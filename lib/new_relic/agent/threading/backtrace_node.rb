@@ -7,12 +7,12 @@ module NewRelic
     module Threading
 
       class BacktraceNode
-        attr_reader :file, :method, :line_no, :children
+        attr_reader :file, :method, :line_no, :children, :raw_line
         attr_accessor :runnable_count, :depth
 
         def initialize(line)
           if line
-            parse_backtrace_frame(line)
+            @raw_line = line
             @root = false
           else
             @root = true
@@ -31,24 +31,13 @@ module NewRelic
           root? && @children.empty?
         end
 
-        def find(target)
-          @children.find { |child| child =~ target }
-        end
-
-        def =~(other)
-          (
-            root? && other.root? ||
-            (
-              @file == other.file &&
-              @method == other.method &&
-              @line_no == other.line_no
-            )
-          )
+        def find(raw_line)
+          @children.find { |child| child.raw_line == raw_line }
         end
 
         def ==(other)
           (
-            self =~ other &&
+            (root? && other.root? || @raw_line == other.raw_line) &&
             (
               @depth == other.depth &&
               @runnable_count == other.runnable_count
@@ -64,12 +53,11 @@ module NewRelic
           current = self
 
           backtrace.reverse_each do |frame|
-            node = Threading::BacktraceNode.new(frame)
-
-            existing_node = current.find(node)
+            existing_node = current.find(frame)
             if existing_node
               node = existing_node
             else
+              node = Threading::BacktraceNode.new(frame)
               current.add_child_unless_present(node)
             end
 
@@ -93,11 +81,12 @@ module NewRelic
         def to_array
           child_arrays = @children.map { |c| c.to_array }
           return child_arrays if root?
+          file, method, line = parse_backtrace_frame(@raw_line)
           [
             [
-              string(@file),
-              string(@method),
-              int(@line_no)
+              string(file),
+              string(method),
+              int(line)
             ],
             int(@runnable_count),
             0,
@@ -116,17 +105,17 @@ module NewRelic
         end
 
         def dump_string(indent=0)
+          file, method, line = parse_backtrace_frame(@raw_line)
           result = "#{" " * indent}#<BacktraceNode:#{object_id} [#{@runnable_count}] #{@file}:#{@line_no} in #{@method}>"
           child_results = @children.map { |c| c.dump_string(indent+2) }.join("\n")
           result << "\n" unless child_results.empty?
           result << child_results
         end
 
+        # Returns [filename, method, line number]
         def parse_backtrace_frame(frame)
           frame =~ /(.*)\:(\d+)\:in `(.*)'/
-          @file = $1
-          @method = $3
-          @line_no = $2.to_i
+          [$1, $3, $2] # sic
         end
       end
 

@@ -32,7 +32,8 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Failed to backtrace #{thread.inspect}: #{e.class.name}: #{e.to_s}")
           end
           return nil unless bt
-          profile_agent_code ? bt : bt.select { |t| t !~ /\/newrelic_rpm-\d/ }
+          bt.reject! { |t| t.include?('/newrelic_rpm-') } unless profile_agent_code
+          bt
         end
       end
 

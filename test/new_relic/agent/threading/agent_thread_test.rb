@@ -80,12 +80,12 @@ module NewRelic::Agent::Threading
     ]
 
     def test_scrubs_backtrace_when_not_profiling_agent_code
-      result = AgentThread.scrub_backtrace(stub(:backtrace => TRACE), false)
+      result = AgentThread.scrub_backtrace(stub(:backtrace => TRACE.dup), false)
       assert_equal [TRACE[0], TRACE[2]], result
     end
 
     def test_doesnt_scrub_backtrace_when_profiling_agent_code
-      result = AgentThread.scrub_backtrace(stub(:backtrace => TRACE), true)
+      result = AgentThread.scrub_backtrace(stub(:backtrace => TRACE.dup), true)
       assert_equal TRACE, result
     end
 
