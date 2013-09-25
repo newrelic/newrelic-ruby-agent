@@ -58,7 +58,7 @@ module NewRelic
         end
 
         def harvest_from_thread_profiler_session(disconnecting)
-          if disconnecting || self.thread_profiler_session.finished?
+          if self.thread_profiler_session.ready_to_harvest?(disconnecting)
             self.thread_profiler_session.stop(true)
             [self.thread_profiler_session.harvest]
           else

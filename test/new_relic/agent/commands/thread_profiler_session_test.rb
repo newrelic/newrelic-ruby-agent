@@ -96,7 +96,7 @@ else
     end
 
     def test_is_not_running
-      assert !@profiler.running?
+      assert_false @profiler.running?
     end
 
     def test_is_running
@@ -104,17 +104,17 @@ else
       assert @profiler.running?
     end
 
-    def test_is_not_finished_if_no_profile_started
-      assert !@profiler.finished?
+    def test_is_not_ready_to_harvest_if_no_profile_started
+      assert_false @profiler.ready_to_harvest?
     end
 
-    def test_is_finished_if_duration_has_elapsed
+    def test_is_ready_to_harvest_if_duration_has_elapsed
       freeze_time
       @profiler.start(start_command)
-      assert !@profiler.finished?
+      assert_false @profiler.ready_to_harvest?
 
       advance_time(0.026)
-      assert @profiler.finished?
+      assert @profiler.ready_to_harvest?
     end
 
     def test_can_stop_a_running_profile
@@ -122,7 +122,7 @@ else
       assert @profiler.running?
 
       @profiler.stop(true)
-      assert !@profiler.running?
+      assert_false @profiler.running?
 
       assert_not_nil @profiler.harvest
     end
@@ -151,7 +151,7 @@ else
       assert @profiler.running?
 
       @profiler.handle_stop_command(stop_command)
-      assert !@profiler.running?
+      assert_false @profiler.running?
     end
 
     def test_handle_stop_command_and_discard
@@ -180,6 +180,18 @@ else
       assert_raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
         @profiler.handle_start_command(start_command)
       end
+    end
+
+    def test_harvested_profile_doesnt_still_report_as_ready_to_harvest
+      freeze_time
+      @profiler.handle_start_command(start_command)
+
+      advance_time(1.0)
+      @profiler.stop(true)
+      assert @profiler.ready_to_harvest?
+
+      @profiler.harvest
+      assert_false @profiler.ready_to_harvest?
     end
 
     def test_command_attributes_passed_along

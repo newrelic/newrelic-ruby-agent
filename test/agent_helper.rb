@@ -189,6 +189,12 @@ def assert_falsy(expected, msg = nil)
   assert_block( msg ) { !expected }
 end
 
+unless defined?( assert_false )
+  def assert_false(expected)
+    assert_equal false, expected
+  end
+end
+
 # Mock up a transaction for testing purposes, optionally specifying a name and
 # transaction type. The given block will be executed within the context of the
 # dummy transaction.
