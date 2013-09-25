@@ -34,9 +34,10 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
   def setup
     @service = stub
+    NewRelic::Agent.agent.stubs(:service).returns(@service)
     @calls = []
 
-    @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new(@service)
+    @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new
     @agent_commands.handlers["bazzle"] = Proc.new { |args| handle_bazzle_command(args) }
     @agent_commands.handlers["boom"]   = Proc.new { |args| handle_boom_command(args) }
   end

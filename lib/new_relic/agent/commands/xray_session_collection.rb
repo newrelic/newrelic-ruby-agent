@@ -12,8 +12,7 @@ module NewRelic
       class XraySessionCollection
         extend Forwardable
 
-        def initialize(new_relic_service, backtrace_service)
-          @new_relic_service = new_relic_service
+        def initialize(backtrace_service)
           @backtrace_service = backtrace_service
 
           # This lock protects access to the sessions hash, but it's expected
@@ -46,7 +45,9 @@ module NewRelic
 
         ### Internals
 
-        attr_accessor :new_relic_service
+        def new_relic_service
+          NewRelic::Agent.instance.service
+        end
 
         # These are unsynchonized and should only be used for testing
         def_delegators :@sessions, :[], :include?
@@ -76,7 +77,7 @@ module NewRelic
           return [] if ids_to_activate.empty?
 
           NewRelic::Agent.logger.debug("Retrieving metadata for X-Ray sessions #{ids_to_activate.inspect}")
-          @new_relic_service.get_xray_metadata(ids_to_activate)
+          new_relic_service.get_xray_metadata(ids_to_activate)
         end
 
         def add_session(session)

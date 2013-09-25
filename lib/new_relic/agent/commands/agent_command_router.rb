@@ -16,23 +16,26 @@ module NewRelic
   module Agent
     module Commands
       class AgentCommandRouter
-        attr_reader :handlers, :new_relic_service
+        attr_reader :handlers
 
         attr_accessor :thread_profiler_session, :backtrace_service,
                       :xray_session_collection
 
-        def initialize(new_relic_service, event_listener=nil)
-          @new_relic_service = new_relic_service
+        def initialize(event_listener=nil)
+          @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
+
           @backtrace_service = Threading::BacktraceService.new(event_listener)
 
           @thread_profiler_session = ThreadProfilerSession.new(@backtrace_service)
-          @xray_session_collection = XraySessionCollection.new(@new_relic_service, @backtrace_service)
-
-          @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
+          @xray_session_collection = XraySessionCollection.new(@backtrace_service)
 
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
           @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
           @handlers['active_xray_sessions'] = Proc.new { |cmd| xray_session_collection.handle_active_xray_sessions(cmd) }
+        end
+
+        def new_relic_service
+          NewRelic::Agent.instance.service
         end
 
         def check_for_and_handle_agent_commands

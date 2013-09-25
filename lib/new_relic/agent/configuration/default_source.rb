@@ -394,6 +394,12 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable spawning of a background thread that listens for connections from child processes. Primarily used for Resque instrumentation.'
         },
+        :'resque.use_harvest_lock' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable synchronizing Resque job forking with New Relic\'s harvest thread. Defaulted to false. This helps prevent Resque jobs from deadlocking, but pauses starting new jobs during harvest.'
+        },
         :data_report_period => {
           :default => 60,
           :public => false,

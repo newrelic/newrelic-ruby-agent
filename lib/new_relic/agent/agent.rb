@@ -44,7 +44,7 @@ module NewRelic
         @stats_engine          = NewRelic::Agent::StatsEngine.new
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
-        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@service, @events)
+        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
@@ -57,6 +57,7 @@ module NewRelic
         @environment_report = nil
 
         @last_harvest_time = Time.now
+        @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
       end
 
@@ -106,6 +107,7 @@ module NewRelic
         # the latter during harvest.
         attr_reader :transaction_rules
         attr_reader :metric_rules
+        attr_reader :harvest_lock
 
         # Returns the length of the unsent errors array, if it exists,
         # otherwise nil
@@ -534,6 +536,7 @@ module NewRelic
         # might be holding locks for background thread that aren't there anymore.
         def reset_objects_with_locks
           @stats_engine = NewRelic::Agent::StatsEngine.new
+          reset_harvest_locks
         end
 
         def add_harvest_sampler(subclass)
@@ -551,6 +554,24 @@ module NewRelic
           def log_worker_loop_start
             ::NewRelic::Agent.logger.debug "Reporting performance data every #{Agent.config[:data_report_period]} seconds."
             ::NewRelic::Agent.logger.debug "Running worker loop"
+          end
+
+          # Synchronize with the harvest loop. If the harvest thread has taken
+          # a lock (DNS lookups, backticks, agent-owned locks, etc), and we
+          # fork while locked, this can deadlock child processes. For more
+          # details, see https://github.com/resque/resque/issues/1101
+          def synchronize_with_harvest
+            harvest_lock.synchronize do
+              yield
+            end
+          end
+
+          # Some forking cases (like Resque) end up with harvest lock from the
+          # parent process orphaned in the child. Let it go before we proceed.
+          def reset_harvest_locks
+            return if harvest_lock.nil?
+
+            harvest_lock.unlock if harvest_lock.locked?
           end
 
           # Creates the worker loop and loads it with the instructions
@@ -1060,6 +1081,14 @@ module NewRelic
         end
 
         def transmit_data(disconnecting=false)
+          harvest_lock.synchronize do
+            transmit_data_already_locked(disconnecting)
+          end
+        end
+
+        # This method is expected to only be called with the harvest_lock
+        # already held
+        def transmit_data_already_locked(disconnecting)
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
 
@@ -1090,6 +1119,8 @@ module NewRelic
           duration = (Time.now - now).to_f
           @stats_engine.record_metrics('Supportability/Harvest', duration)
         end
+
+        private :transmit_data_already_locked
 
         # This method contacts the server to send remaining data and
         # let the server know that the agent is shutting down - this

@@ -39,9 +39,10 @@ module NewRelic::Agent::Commands
 
     def setup
       @new_relic_service  = stub
+      NewRelic::Agent.instance.stubs(:service).returns(@new_relic_service)
       @backtrace_service = NewRelic::Agent::Threading::BacktraceService.new
       @backtrace_service.worker_loop.stubs(:run)
-      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@new_relic_service, @backtrace_service)
+      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@backtrace_service)
 
       @new_relic_service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
       @new_relic_service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
@@ -130,8 +131,7 @@ module NewRelic::Agent::Commands
       # unstub fails on certain mocha/rails versions (rails23 env)
       # replace the service instead to let us expect to never get the call...
       @new_relic_service = stub
-      @sessions.send(:new_relic_service=, @new_relic_service)
-
+      NewRelic::Agent.instance.stubs(:service).returns(@new_relic_service)
       @new_relic_service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
       @new_relic_service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
 
