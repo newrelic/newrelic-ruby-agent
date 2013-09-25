@@ -58,6 +58,10 @@ module NewRelic
           !!@xray_id
         end
 
+        def empty?
+          @backtrace_count == 0
+        end
+
         def aggregate(backtrace, bucket)
           if backtrace.nil?
             @failure_count += 1

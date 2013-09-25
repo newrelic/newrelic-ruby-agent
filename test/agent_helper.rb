@@ -98,7 +98,7 @@ unless defined?( assert_not_includes )
 end
 
 def assert_equal_unordered(left, right)
-  assert_equal(left.length, right.length)
+  assert_equal(left.length, right.length, "Lengths don't match. #{left.length} != #{right.length}")
   left.each { |element| assert_includes(right, element) }
 end
 

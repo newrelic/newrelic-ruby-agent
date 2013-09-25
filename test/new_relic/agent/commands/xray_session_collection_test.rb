@@ -200,13 +200,27 @@ module NewRelic::Agent::Commands
     def test_harvest_thread_profiles_pulls_data_from_backtrace_service
       handle_command_for(FIRST_ID, SECOND_ID)
 
-      profile0, profile1 = mock('profile0'), mock('profile1')
+      profile0 = stub('profile0', :empty? => false)
+      profile1 = stub('profile1', :empty? => false)
 
       @backtrace_service.expects(:harvest).with(FIRST_TRANSACTION_NAME).returns(profile0)
       @backtrace_service.expects(:harvest).with(SECOND_TRANSACTION_NAME).returns(profile1)
 
       profiles = @sessions.harvest_thread_profiles
       assert_equal_unordered([profile0, profile1], profiles)
+    end
+
+    def test_harvest_thread_profiles_doesnt_return_empty_profiles
+      handle_command_for(FIRST_ID, SECOND_ID)
+
+      profile0 = stub('profile0', :empty? => true)
+      profile1 = stub('profile1', :empty? => false)
+
+      @backtrace_service.stubs(:harvest).with(FIRST_TRANSACTION_NAME).returns(profile0)
+      @backtrace_service.stubs(:harvest).with(SECOND_TRANSACTION_NAME).returns(profile1)
+
+      profiles = @sessions.harvest_thread_profiles
+      assert_equal_unordered([profile1], profiles)
     end
 
     def test_concurrency_on_access_to_sessions

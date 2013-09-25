@@ -196,6 +196,16 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         assert_equal 1, result[SAMPLE_COUNT_POSITION]
       end
 
+      def test_empty
+        profile = ThreadProfile.new
+        assert profile.empty?
+      end
+
+      def test_not_empty
+        profile = ThreadProfile.new
+        profile.aggregate([], :request)
+        assert_false profile.empty?
+      end
 
       def encoder
         NewRelic::Agent::NewRelicService::JsonMarshaller.new.default_encoder

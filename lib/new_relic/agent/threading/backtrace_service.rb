@@ -125,6 +125,9 @@ module NewRelic
         end
 
         # This method is expected to be called with @lock held.
+        attr_reader :profiles
+
+        # This method is expected to be called with @lock held.
         def should_buffer?(bucket)
           bucket == :request && @profiles.keys.any? { |k| k != ALL_TRANSACTIONS }
         end

@@ -149,6 +149,8 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     start_xray_session(123)
     start_xray_session(456)
 
+    sample_on_profiles
+
     result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
 
     assert_equal 2, result[:profile_data].length
@@ -160,6 +162,8 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
     start_profile('duration' => 1.0)
 
+    sample_on_profiles
+
     result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
 
     assert_equal 2, result[:profile_data].length
@@ -170,6 +174,8 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     start_xray_session(456)
 
     start_profile('duration' => 1.0)
+
+    sample_on_profiles
     advance_time(1.1)
 
     result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
@@ -193,12 +199,18 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     agent_commands.thread_profiler_session.start(create_agent_command(args))
   end
 
-  def start_xray_session(id=42)
-    args = { 'x_ray_id' => id }
+  def start_xray_session(id)
+    args = { 'x_ray_id' => id, 'key_transaction_name' => "txn_#{id}" }
     session = NewRelic::Agent::Commands::XraySession.new(args)
 
     agent_commands.backtrace_service.worker_loop.stubs(:run)
     agent_commands.xray_session_collection.add_session(session)
+  end
+
+  def sample_on_profiles
+    agent_commands.backtrace_service.profiles.each do |(_, profile)|
+      profile.aggregate([], :request)
+    end
   end
 
 end
