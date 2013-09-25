@@ -10,12 +10,9 @@ module NewRelic
       class XraySession
         extend Forwardable
 
-        attr_reader :id, :active, :command_arguments
-        attr_reader :xray_session_name, :key_transaction_name, :run_profiler,
+        attr_reader :id, :command_arguments
+        attr_reader :xray_session_name, :key_transaction_name,
                     :requested_trace_count, :duration, :sample_period
-
-        alias_method :active?, :active
-        alias_method :run_profiler?, :run_profiler
 
         def_delegators :@thread_profile, :aggregate, :increment_poll_count
 
@@ -28,6 +25,14 @@ module NewRelic
           @duration              = command_arguments.fetch("duration", 86400)
           @sample_period         = command_arguments.fetch("sample_period", 0.1)
           @run_profiler          = command_arguments.fetch("run_profiler", true)
+        end
+
+        def active?
+          @active
+        end
+
+        def run_profiler?
+          @run_profiler
         end
 
         def activate

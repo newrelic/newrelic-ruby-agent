@@ -108,7 +108,7 @@ module NewRelic::Agent::Commands
       assert_equal FIRST_REQUESTED_TRACE_COUNT, session.requested_trace_count
       assert_equal FIRST_DURATION, session.duration
       assert_equal FIRST_SAMPLE_PERIOD, session.sample_period
-      assert_equal FIRST_RUN_PROFILER, session.run_profiler
+      assert_equal FIRST_RUN_PROFILER, session.run_profiler?
       assert_equal FIRST_TRANSACTION_NAME, session.key_transaction_name
       assert_equal true, session.active?
     end
@@ -121,7 +121,7 @@ module NewRelic::Agent::Commands
       assert_not_nil session.requested_trace_count
       assert_not_nil session.duration
       assert_not_nil session.sample_period
-      assert_not_nil session.run_profiler
+      assert_not_nil session.run_profiler?
       assert_not_nil session.key_transaction_name
       assert_not_nil session.active?
     end
