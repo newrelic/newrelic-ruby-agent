@@ -81,12 +81,12 @@ module NewRelic
         def to_array
           child_arrays = @children.map { |c| c.to_array }
           return child_arrays if root?
-          parse_backtrace_frame(@raw_line)
+          file, method, line = parse_backtrace_frame(@raw_line)
           [
             [
-              string(@file),
-              string(@method),
-              int(@line_no)
+              string(file),
+              string(method),
+              int(line)
             ],
             int(@runnable_count),
             0,
@@ -105,17 +105,17 @@ module NewRelic
         end
 
         def dump_string(indent=0)
+          file, method, line = parse_backtrace_frame(@raw_line)
           result = "#{" " * indent}#<BacktraceNode:#{object_id} [#{@runnable_count}] #{@file}:#{@line_no} in #{@method}>"
           child_results = @children.map { |c| c.dump_string(indent+2) }.join("\n")
           result << "\n" unless child_results.empty?
           result << child_results
         end
 
+        # Returns [filename, method, line number]
         def parse_backtrace_frame(frame)
           frame =~ /(.*)\:(\d+)\:in `(.*)'/
-          @file ||= $1
-          @method ||= $3
-          @line_no ||= $2
+          [$1, $3, $2] # sic
         end
       end
 

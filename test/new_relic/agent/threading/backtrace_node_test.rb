@@ -68,7 +68,7 @@ module NewRelic::Agent::Threading
 
     def test_gracefully_handle_bad_values_in_to_array
       node = BacktraceNode.new(SINGLE_LINE)
-      node.instance_variable_set(:@line_no, "blarg")
+      node.stubs(:parse_backtrace_frame).returns(["irb.rb", "catch", "blarg"])
       node.runnable_count = Rational(10, 1)
 
       assert_equal([
