@@ -10,7 +10,7 @@
 
 require 'new_relic/agent/commands/agent_command'
 require 'new_relic/agent/commands/xray_session_collection'
-require 'new_relic/agent/threading/thread_profiling_service'
+require 'new_relic/agent/threading/backtrace_service'
 
 module NewRelic
   module Agent
@@ -18,14 +18,15 @@ module NewRelic
       class AgentCommandRouter
         attr_reader :handlers, :new_relic_service
 
-        attr_accessor :thread_profiler_session, :xray_session_collection
+        attr_accessor :thread_profiler_session, :backtrace_service,
+                      :xray_session_collection
 
-        def initialize(new_relic_service)
+        def initialize(new_relic_service, event_listener=nil)
           @new_relic_service = new_relic_service
-          @thread_profiling_service = Threading::ThreadProfilingService.new
+          @backtrace_service = Threading::BacktraceService.new(event_listener)
 
-          @thread_profiler_session = ThreadProfilerSession.new(@thread_profiling_service)
-          @xray_session_collection = XraySessionCollection.new(@new_relic_service, @thread_profiling_service)
+          @thread_profiler_session = ThreadProfilerSession.new(@backtrace_service)
+          @xray_session_collection = XraySessionCollection.new(@new_relic_service, @backtrace_service)
 
           @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
 
@@ -42,15 +43,40 @@ module NewRelic
         NO_PROFILES_TO_SEND = {}.freeze
 
         def harvest_data_to_send(disconnecting)
-          self.thread_profiler_session.stop(true) if disconnecting
+          profiles = []
+          profiles += harvest_from_xray_session_collection
+          profiles += harvest_from_thread_profiler_session(disconnecting)
 
-          if self.thread_profiler_session.finished?
-            profile = self.thread_profiler_session.harvest
-            ::NewRelic::Agent.logger.debug "Sending thread profile #{profile.profile_id}"
-            {:profile_data => profile}
+          format_harvest_data(profiles)
+        end
+
+        def harvest_from_xray_session_collection
+          self.xray_session_collection.harvest_thread_profiles
+        end
+
+        def harvest_from_thread_profiler_session(disconnecting)
+          if disconnecting || self.thread_profiler_session.finished?
+            self.thread_profiler_session.stop(true)
+            [self.thread_profiler_session.harvest]
           else
-            NO_PROFILES_TO_SEND
+            []
           end
+        end
+
+        def format_harvest_data(profiles)
+          if profiles.empty?
+            NO_PROFILES_TO_SEND
+          else
+            log_profiles(profiles)
+            {:profile_data => profiles}
+          end
+        end
+
+        def log_profiles(profiles)
+          profile_descriptors = profiles.map do |p|
+            p.xray_id ? "xray_id: #{p.xray_id}" : "profile_id: #{p.profile_id}"
+          end
+          ::NewRelic::Agent.logger.debug "Sending thread profiles #{profile_descriptors.join(", ")}"
         end
 
         def get_agent_commands

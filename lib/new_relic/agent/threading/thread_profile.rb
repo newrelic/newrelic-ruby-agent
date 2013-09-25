@@ -7,7 +7,6 @@ require 'new_relic/agent/worker_loop'
 require 'new_relic/agent/threading/backtrace_node'
 
 # Intent is for this to be a data structure for representing a thread profile
-# TODO: Get rid of the running/sampling in this class, externalize it elsewhere
 
 module NewRelic
   module Agent
@@ -15,15 +14,18 @@ module NewRelic
 
       class ThreadProfile
 
-        attr_reader :profile_id, :traces, :interval,
-          :duration, :poll_count, :sample_count, :failure_count,
-          :created_at, :last_aggregated_at, :xray_id
+        attr_reader :profile_id, :traces, :sample_period,
+          :duration, :poll_count, :backtrace_count, :failure_count,
+          :created_at, :xray_id, :command_arguments, :profile_agent_code
+        attr_accessor :finished_at
 
         def initialize(command_arguments={})
-          @profile_id = command_arguments.fetch('profile_id', -1)
-          @duration = command_arguments.fetch('duration', 120)
-          @interval = command_arguments.fetch('sample_period', 0.1)
-          @xray_id = command_arguments.fetch('x_ray_id', nil)
+          @command_arguments  = command_arguments
+          @profile_id         = command_arguments.fetch('profile_id', -1)
+          @duration           = command_arguments.fetch('duration', 120)
+          @sample_period      = command_arguments.fetch('sample_period', 0.1)
+          @profile_agent_code = command_arguments.fetch('profile_agent_code', false)
+          @xray_id            = command_arguments.fetch('x_ray_id', nil)
           @finished = false
 
           @traces = {
@@ -34,30 +36,35 @@ module NewRelic
           }
 
           @poll_count = 0
-          @sample_count = 0
+          @backtrace_count = 0
           @failure_count = 0
 
           @created_at = Time.now
-          @last_aggregated_at = nil
         end
 
         def requested_period
-          @interval
+          @sample_period
         end
 
         def increment_poll_count
           @poll_count += 1
         end
 
+        def sample_count
+          xray? ? @backtrace_count : @poll_count
+        end
+
+        def xray?
+          !!@xray_id
+        end
+
         def aggregate(backtrace, bucket)
           if backtrace.nil?
             @failure_count += 1
           else
-            @sample_count += 1
+            @backtrace_count += 1
             @traces[bucket].aggregate(backtrace)
           end
-
-          @last_aggregated_at = Time.now
         end
 
         def truncate_to_node_count!(count_to_keep)
@@ -87,24 +94,16 @@ module NewRelic
 
         def to_collector_array(encoder)
           result = [
-            int(@profile_id),
+            int(self.profile_id),
             float(self.created_at),
-            float(self.last_aggregated_at),
-            int(@poll_count),
+            float(self.finished_at),
+            int(self.sample_count),
             string(encoder.encode(generate_traces)),
-            int(@sample_count),
+            int(self.backtrace_count),
             0 # runnable thread count, which we don't track
           ]
-          result << int(@xray_id) unless @xray_id.nil?
-          [result]
-        end
-
-        def finished?
-          @marked_done || Time.now > self.created_at + @duration
-        end
-
-        def mark_done
-          @marked_done = true
+          result << int(@xray_id) if xray?
+          result
         end
       end
     end

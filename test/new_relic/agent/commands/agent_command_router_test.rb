@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/commands/agent_command_router'
+require 'new_relic/agent/commands/xray_session'
 
 class AgentCommandRouterTest < Test::Unit::TestCase
 
@@ -38,6 +39,10 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new(@service)
     @agent_commands.handlers["bazzle"] = Proc.new { |args| handle_bazzle_command(args) }
     @agent_commands.handlers["boom"]   = Proc.new { |args| handle_boom_command(args) }
+  end
+
+  def teardown
+    agent_commands.backtrace_service.worker_thread.join if agent_commands.backtrace_service.worker_thread
   end
 
   # General command routing
@@ -99,21 +104,77 @@ class AgentCommandRouterTest < Test::Unit::TestCase
   end
 
   def test_harvest_data_to_send_with_profile_in_progress
-    with_profile(:finished => false)
+    start_profile('duration' => 1.0)
+
     result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
     assert_equal({}, result)
   end
 
   def test_harvest_data_to_send_with_profile_completed
-    expected_profile = with_profile(:finished => true)
+    start_profile('duration' => 1.0)
+
+    advance_time(1.1)
     result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
-    assert_equal({:profile_data => expected_profile}, result)
+
+    assert_not_nil result[:profile_data]
+  end
+
+  def test_can_stop_multiple_times_safely
+    start_profile('duration' => 1.0)
+
+    advance_time(1.1)
+    agent_commands.thread_profiler_session.stop(true)
+
+    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+    assert_not_nil result[:profile_data]
+  end
+
+  def test_transmits_after_forced_stop
+    start_profile('duration' => 1.0)
+
+    agent_commands.thread_profiler_session.stop(true)
+
+    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+    assert_not_nil result[:profile_data]
   end
 
   def test_harvest_data_to_send_with_profile_in_progress_but_disconnecting
-    expected_profile = with_profile(:finished => false)
+    start_profile('duration' => 1.0)
+
     result = agent_commands.harvest_data_to_send(DISCONNECTING)
-    assert_equal({:profile_data => expected_profile}, result)
+    assert_not_nil result[:profile_data]
+  end
+
+  def test_harvest_data_to_send_with_xray_sessions_in_progress
+    start_xray_session(123)
+    start_xray_session(456)
+
+    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+
+    assert_equal 2, result[:profile_data].length
+  end
+
+  def test_harvest_data_to_send_with_xray_sessions_and_thread_profile_in_progress
+    start_xray_session(123)
+    start_xray_session(456)
+
+    start_profile('duration' => 1.0)
+
+    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+
+    assert_equal 2, result[:profile_data].length
+  end
+
+  def test_harvest_data_to_send_with_xray_sessions_and_completed_thread_profile
+    start_xray_session(123)
+    start_xray_session(456)
+
+    start_profile('duration' => 1.0)
+    advance_time(1.1)
+
+    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+
+    assert_equal 3, result[:profile_data].length
   end
 
   # Helpers
@@ -126,13 +187,18 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new("BOOOOOM")
   end
 
-  def with_profile(opts)
-    profile = NewRelic::Agent::Threading::ThreadProfile.new
-    profile.aggregate(["chunky.rb:42:in `bacon'"], :other)
-    profile.mark_done if opts[:finished]
+  def start_profile(args={})
+    freeze_time
+    agent_commands.backtrace_service.worker_loop.stubs(:run)
+    agent_commands.thread_profiler_session.start(create_agent_command(args))
+  end
 
-    agent_commands.thread_profiler_session.profile = profile
-    profile
+  def start_xray_session(id=42)
+    args = { 'x_ray_id' => id }
+    session = NewRelic::Agent::Commands::XraySession.new(args)
+
+    agent_commands.backtrace_service.worker_loop.stubs(:run)
+    agent_commands.xray_session_collection.add_session(session)
   end
 
 end

@@ -10,27 +10,29 @@ module NewRelic
       class XraySession
         extend Forwardable
 
-        attr_reader :id, :active
-        attr_reader :xray_session_name, :key_transaction_name, :run_profiler,
-                    :requested_trace_count, :duration, :sample_period,
-                    :thread_profile
-
-        alias_method :active?, :active
+        attr_reader :id, :command_arguments
+        attr_reader :xray_session_name, :key_transaction_name,
+                    :requested_trace_count, :duration, :sample_period
 
         def_delegators :@thread_profile, :aggregate, :increment_poll_count
 
-        def initialize(raw_session)
-          @id                    = raw_session.fetch("x_ray_id", nil)
-          @xray_session_name     = raw_session.fetch("xray_session_name", "")
-          @key_transaction_name  = raw_session.fetch("key_transaction_name", "")
-          @requested_trace_count = raw_session.fetch("requested_trace_count", 100)
-          @duration              = raw_session.fetch("duration", 86400)
-          @sample_period         = raw_session.fetch("sample_period", 0.1)
-          @run_profiler          = raw_session.fetch("run_profiler", true)
+        def initialize(command_arguments)
+          @command_arguments     = command_arguments
+          @id                    = command_arguments.fetch("x_ray_id", nil)
+          @xray_session_name     = command_arguments.fetch("xray_session_name", "")
+          @key_transaction_name  = command_arguments.fetch("key_transaction_name", "")
+          @requested_trace_count = command_arguments.fetch("requested_trace_count", 100)
+          @duration              = command_arguments.fetch("duration", 86400)
+          @sample_period         = command_arguments.fetch("sample_period", 0.1)
+          @run_profiler          = command_arguments.fetch("run_profiler", true)
+        end
 
-          if @run_profiler
-            @thread_profile = NewRelic::Agent::Threading::ThreadProfile.new(raw_session)
-          end
+        def active?
+          @active
+        end
+
+        def run_profiler?
+          @run_profiler
         end
 
         def activate

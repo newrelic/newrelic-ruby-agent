@@ -9,7 +9,6 @@ require 'timeout'
 require 'zlib'
 require 'new_relic/agent/threading/threaded_test_case'
 require 'new_relic/agent/commands/thread_profiler_session'
-#require 'test/new_relic/agent/commands/agent_command_test'
 
 module ThreadProfilerSessionTestHelpers
   START = {
@@ -49,8 +48,8 @@ if !NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
     include ThreadProfilerSessionTestHelpers
 
     def setup
-      thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
-      @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(thread_profiling_service)
+      backtrace_service = NewRelic::Agent::Threading::BacktraceService.new
+      @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(backtrace_service)
     end
 
     def test_thread_profiling_isnt_supported
@@ -82,11 +81,13 @@ else
 
     def setup
       setup_fake_threads
-      thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
-      @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(thread_profiling_service)
+      backtrace_service = NewRelic::Agent::Threading::BacktraceService.new
+      backtrace_service.worker_loop.stubs(:run).returns(nil)
+      @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(backtrace_service)
     end
 
     def teardown
+      NewRelic::Agent.instance.stats_engine.clear_stats
       teardown_fake_threads
     end
 
@@ -107,13 +108,22 @@ else
       assert !@profiler.finished?
     end
 
+    def test_is_finished_if_duration_has_elapsed
+      freeze_time
+      @profiler.start(start_command)
+      assert !@profiler.finished?
+
+      advance_time(0.026)
+      assert @profiler.finished?
+    end
+
     def test_can_stop_a_running_profile
       @profiler.start(start_command)
       assert @profiler.running?
 
       @profiler.stop(true)
+      assert !@profiler.running?
 
-      assert @profiler.finished?
       assert_not_nil @profiler.harvest
     end
 
@@ -141,7 +151,7 @@ else
       assert @profiler.running?
 
       @profiler.handle_stop_command(stop_command)
-      assert_equal true, @profiler.finished?
+      assert !@profiler.running?
     end
 
     def test_handle_stop_command_and_discard
@@ -174,9 +184,10 @@ else
 
     def test_command_attributes_passed_along
       @profiler.handle_start_command(start_command)
+      @profiler.handle_stop_command(stop_command)
       profile = @profiler.harvest
       assert_equal 42,  profile.profile_id
-      assert_equal 0.02, profile.interval
+      assert_equal 0.02, profile.requested_period
     end
 
   end

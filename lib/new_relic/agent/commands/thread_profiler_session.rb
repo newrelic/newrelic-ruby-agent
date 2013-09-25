@@ -11,10 +11,8 @@ module NewRelic
 
       class ThreadProfilerSession
 
-        attr_accessor :profile
-
-        def initialize(thread_profiling_service)
-          @thread_profiling_service = thread_profiling_service
+        def initialize(backtrace_service)
+          @backtrace_service = backtrace_service
         end
 
         def self.is_supported?
@@ -33,37 +31,40 @@ module NewRelic
         end
 
         def start(agent_command)
-          @profile = Threading::ThreadProfile.new(agent_command.arguments)
+          profile = @backtrace_service.subscribe(
+            NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS,
+            agent_command.arguments
+          )
 
-          # This should really be a per-client setting rather than a global
-          # setting for whole ThreadProfilingService. We're relying here on the
-          # fact that we are the only client to set the profile_agent_code
-          # setting. This (at present) only an internal setting.
-          profile_agent_code = agent_command.arguments.fetch('profile_agent_code', false)
-          @thread_profiling_service.profile_agent_code = profile_agent_code
-
-          @thread_profiling_service.add_client(@profile)
+          @started_at = Time.now
+          @duration = profile.duration
         end
 
         def stop(report_data)
+          return unless running?
           NewRelic::Agent.logger.debug("Stopping thread profile.")
-          @profile.mark_done unless @profile.nil?
-          @profile = nil if !report_data
+          @finished_profile = @backtrace_service.harvest(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
+          @backtrace_service.unsubscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
+          @finished_profile = nil if !report_data
         end
 
         def harvest
-          profile = @profile
-          @thread_profiling_service.profile_agent_code = false
-          @profile = nil
+          profile = @finished_profile
+          @backtrace_service.profile_agent_code = false
+          @finished_profile = nil
           profile
         end
 
         def running?
-          !@profile.nil?
+          @backtrace_service.subscribed?(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
         end
 
         def finished?
-          @profile && @profile.finished?
+          @started_at && (Time.now > @started_at + @duration) || stopped?
+        end
+
+        def stopped?
+          !!@finished_profile
         end
 
         private

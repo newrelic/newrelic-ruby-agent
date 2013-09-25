@@ -6,13 +6,11 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 
 require 'new_relic/agent/threading/thread_profile'
 require 'new_relic/agent/threading/threaded_test_case'
-require 'new_relic/agent/threading/thread_profiling_client_test'
 
 if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
   module NewRelic::Agent::Threading
     class ThreadProfileTest < Test::Unit::TestCase
-      include ThreadProfilingClientTests
       include ThreadedTestCase
 
       def setup
@@ -37,18 +35,6 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
       def target_for_shared_client_tests
         @profile
-      end
-
-      def test_finished
-        freeze_time
-        @profile = ThreadProfile.new('duration' => 7.0)
-        assert !@profile.finished?
-
-        advance_time(5.0)
-        assert !@profile.finished?
-
-        advance_time(5.0)
-        assert @profile.finished?
       end
 
       def test_prune_tree
@@ -106,9 +92,9 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       def test_to_collector_array
         build_well_known_trace('profile_id' => 333)
         @profile.stubs(:created_at).returns(1350403938892.524)
-        @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
+        @profile.finished_at = 1350403939904.375
 
-        expected = [[
+        expected = [
           333,
           1350403938892.524,
           1350403939904.375,
@@ -116,40 +102,38 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
           WELL_KNOWN_TRACE_ENCODED,
           20,
           0
-        ]]
+        ]
 
-        marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-        assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
+        assert_equal expected, @profile.to_collector_array(encoder)
       end
 
       def test_to_collector_array_with_xray_session_id
         build_well_known_trace('profile_id' => -1, 'x_ray_id' => 4242)
         @profile.stubs(:created_at).returns(1350403938892.524)
-        @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
+        @profile.finished_at = 1350403939904.375
 
-        expected = [[
+        expected = [
           -1,
           1350403938892.524,
           1350403939904.375,
-          1,
+          20,
           WELL_KNOWN_TRACE_ENCODED,
           20,
           0,
           4242
-        ]]
+        ]
 
-        marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-        assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
+        assert_equal expected, @profile.to_collector_array(encoder)
       end
 
       def test_to_collector_array_with_bad_values
         build_well_known_trace(:profile_id => -1)
         @profile.stubs(:created_at).returns('')
-        @profile.stubs(:last_aggregated_at).returns(nil)
+        @profile.finished_at = nil
         @profile.instance_variable_set(:@poll_count, Rational(10, 1))
-        @profile.instance_variable_set(:@sample_count, nil)
+        @profile.instance_variable_set(:@backtrace_count, nil)
 
-        expected = [[
+        expected = [
           -1,
           0.0,
           0.0,
@@ -157,27 +141,26 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
           WELL_KNOWN_TRACE_ENCODED,
           0,
           0
-        ]]
+        ]
 
-        marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-        assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
+        assert_equal expected, @profile.to_collector_array(encoder)
       end
 
-      def test_aggregate_should_increment_only_sample_count
-        sample_count = @profile.sample_count
+      def test_aggregate_should_increment_only_backtrace_count
+        backtrace_count = @profile.backtrace_count
         failure_count = @profile.failure_count
         @profile.aggregate(@single_trace, :request)
 
-        assert_equal sample_count + 1, @profile.sample_count
+        assert_equal backtrace_count + 1, @profile.backtrace_count
         assert_equal failure_count, @profile.failure_count
       end
 
       def test_aggregate_increments_only_the_failure_count_with_nil_backtrace
-        sample_count = @profile.sample_count
+        backtrace_count = @profile.backtrace_count
         failure_count = @profile.failure_count
         @profile.aggregate(nil, :request)
 
-        assert_equal sample_count, @profile.sample_count
+        assert_equal backtrace_count, @profile.backtrace_count
         assert_equal failure_count + 1, @profile.failure_count
       end
 
@@ -195,16 +178,27 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         assert_equal expected, @profile.created_at
       end
 
-      def test_aggregate_updates_last_aggregated_at_timestamp
-        expected = freeze_time
-        @profile.aggregate(@single_trace, :request)
-        t0 = @profile.last_aggregated_at
+      SAMPLE_COUNT_POSITION = 3
 
-        advance_time(5.0)
-        @profile.aggregate(@single_trace, :request)
+      def test_sample_count_for_thread_profiling
+        profile = ThreadProfile.new('x_ray_id' => nil)
+        profile.increment_poll_count
 
-        assert_equal expected, t0
-        assert_equal expected + 5.0, @profile.last_aggregated_at
+        result = profile.to_collector_array(encoder)
+        assert_equal 1, result[SAMPLE_COUNT_POSITION]
+      end
+
+      def test_sample_count_for_xrays
+        profile = ThreadProfile.new('x_ray_id' => 123)
+        profile.aggregate(@single_trace, :request)
+
+        result = profile.to_collector_array(encoder)
+        assert_equal 1, result[SAMPLE_COUNT_POSITION]
+      end
+
+
+      def encoder
+        NewRelic::Agent::NewRelicService::JsonMarshaller.new.default_encoder
       end
     end
 

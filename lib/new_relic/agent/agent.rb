@@ -44,7 +44,7 @@ module NewRelic
         @stats_engine          = NewRelic::Agent::StatsEngine.new
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
-        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@service)
+        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@service, @events)
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
