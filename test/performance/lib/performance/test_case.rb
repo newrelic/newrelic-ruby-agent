@@ -51,8 +51,12 @@ module Performance
       result = Result.new(self.class, name)
       begin
         with_callbacks(name) do
-          result.timer.measure do
-            self.send(name)
+          if self.method(name).arity == 0
+            result.timer.measure do
+              self.send(name)
+            end
+          else
+            self.send(name, result.timer)
           end
           result
         end
