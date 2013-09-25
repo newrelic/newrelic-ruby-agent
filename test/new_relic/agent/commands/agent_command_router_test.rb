@@ -138,6 +138,11 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     assert_not_nil result[:profile_data]
   end
 
+  def test_harvest_data_to_send_with_no_profile_disconnecting
+    result = agent_commands.harvest_data_to_send(DISCONNECTING)
+    assert_nil result[:profile_data]
+  end
+
   def test_harvest_data_to_send_with_profile_in_progress_but_disconnecting
     start_profile('duration' => 1.0)
 
