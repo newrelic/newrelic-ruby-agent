@@ -87,6 +87,9 @@ module NewRelic
           end
         end
 
+        # Internals
+
+        # This method is expected to be called with @lock held.
         def aggregate_backtraces(backtraces, name, start, duration)
           end_time = start + duration
           backtraces.each do |(timestamp, backtrace)|
@@ -95,8 +98,6 @@ module NewRelic
             end
           end
         end
-
-        # Internals
 
         def start
           return if @running
