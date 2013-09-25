@@ -39,6 +39,7 @@ module NewRelic
           profiles = active_thread_profiling_sessions.map do |session|
             @backtrace_service.harvest(session.key_transaction_name)
           end
+          profiles.reject! {|p| p.empty?}
           profiles.compact
         end
 
