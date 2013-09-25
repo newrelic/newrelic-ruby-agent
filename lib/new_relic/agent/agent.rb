@@ -1081,7 +1081,14 @@ module NewRelic
         end
 
         def transmit_data(disconnecting=false)
-          harvest_lock.lock
+          harvest_lock.synchronize do
+            transmit_data_already_locked(disconnecting)
+          end
+        end
+
+        # This method is expected to only be called with the harvest_lock
+        # already held
+        def transmit_data_already_locked(disconnecting)
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
 
@@ -1108,11 +1115,12 @@ module NewRelic
           end
           raise e
         ensure
-          harvest_lock.unlock
           NewRelic::Agent::Database.close_connections
           duration = (Time.now - now).to_f
           @stats_engine.record_metrics('Supportability/Harvest', duration)
         end
+
+        private :transmit_data_already_locked
 
         # This method contacts the server to send remaining data and
         # let the server know that the agent is shutting down - this
