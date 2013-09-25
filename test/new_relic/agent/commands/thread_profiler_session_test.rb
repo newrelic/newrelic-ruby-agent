@@ -96,7 +96,7 @@ else
     end
 
     def test_is_not_running
-      assert !@profiler.running?
+      assert_false @profiler.running?
     end
 
     def test_is_running
@@ -105,13 +105,13 @@ else
     end
 
     def test_is_not_ready_to_harvest_if_no_profile_started
-      assert !@profiler.ready_to_harvest?
+      assert_false @profiler.ready_to_harvest?
     end
 
     def test_is_ready_to_harvest_if_duration_has_elapsed
       freeze_time
       @profiler.start(start_command)
-      assert !@profiler.ready_to_harvest?
+      assert_false @profiler.ready_to_harvest?
 
       advance_time(0.026)
       assert @profiler.ready_to_harvest?
@@ -122,7 +122,7 @@ else
       assert @profiler.running?
 
       @profiler.stop(true)
-      assert !@profiler.running?
+      assert_false @profiler.running?
 
       assert_not_nil @profiler.harvest
     end
@@ -151,7 +151,7 @@ else
       assert @profiler.running?
 
       @profiler.handle_stop_command(stop_command)
-      assert !@profiler.running?
+      assert_false @profiler.running?
     end
 
     def test_handle_stop_command_and_discard
