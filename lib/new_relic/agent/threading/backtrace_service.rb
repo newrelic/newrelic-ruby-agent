@@ -82,12 +82,16 @@ module NewRelic
           @lock.synchronize do
             backtraces = @buffer.delete(thread)
             if backtraces && @profiles.has_key?(name)
-              end_time = start + duration
-              backtraces.each do |(timestamp, backtrace)|
-                if timestamp >= start && timestamp < end_time
-                  @profiles[name].aggregate(backtrace, :request)
-                end
-              end
+              aggregate_backtraces(backtraces, name, start, duration)
+            end
+          end
+        end
+
+        def aggregate_backtraces(backtraces, name, start, duration)
+          end_time = start + duration
+          backtraces.each do |(timestamp, backtrace)|
+            if timestamp >= start && timestamp < end_time
+              @profiles[name].aggregate(backtrace, :request)
             end
           end
         end
