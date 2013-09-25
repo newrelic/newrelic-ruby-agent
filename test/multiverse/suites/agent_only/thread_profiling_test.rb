@@ -103,7 +103,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
 
   def let_it_finish
     Timeout.timeout(5) do
-      until @thread_profiler_session.finished?
+      until @thread_profiler_session.ready_to_harvest?
         sleep(0.1)
       end
     end
