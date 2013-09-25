@@ -190,13 +190,35 @@ module NewRelic
     end
 
     class TransactionSampleDataPost < AgentPost
+      class SubmittedTransactionTrace
+        def initialize(body)
+          @body = body
+        end
+
+        def metric_name
+          @body[2]
+        end
+
+        def uri
+          @body[3]
+        end
+
+        def xray_id
+          @body[8]
+        end
+      end
+
       def initialize(opts={})
         super
         @body[4] = unblob(@body[4]) if @format == :json
       end
 
+      def samples
+        @samples ||= @body[1].map { |s| SubmittedTransactionTrace.new(s) }
+      end
+
       def metric_name
-        @body[1][0][2]
+        samples.first.metric_name
       end
     end
     class AnalyticEventDataPost < AgentPost
