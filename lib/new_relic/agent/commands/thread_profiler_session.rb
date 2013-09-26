@@ -21,6 +21,7 @@ module NewRelic
 
         def handle_start_command(agent_command)
           raise_unsupported_error unless self.class.is_supported?
+          raise_thread_profiler_disabled unless enabled?
           raise_already_started_error if running?
           start(agent_command)
         end
@@ -58,6 +59,10 @@ module NewRelic
           profile
         end
 
+        def enabled?
+          NewRelic::Agent.config[:'thread_profiler.enabled']
+        end
+
         def running?
           @backtrace_service.subscribed?(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
         end
@@ -81,11 +86,6 @@ module NewRelic
           raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new(msg)
         end
 
-        def raise_already_started_error
-          msg = "Profile already in progress. Ignoring agent command to start another."
-          raise_command_error(msg)
-        end
-
         def raise_unsupported_error
           msg = <<-EOF
 Thread profiling is only supported on 1.9.2 and greater versions of Ruby.
@@ -95,6 +95,16 @@ an agent running Ruby #{RUBY_VERSION}.
 Profiling again might select an appropriate agent, but we recommend running a
 consistent version of Ruby across your application for better results.
           EOF
+          raise_command_error(msg)
+        end
+
+        def raise_thread_profiler_disabled
+          msg = "Not starting Thread Profiler because of config 'thread_profiler.enabled' = #{enabled?}"
+          raise_command_error(msg)
+        end
+
+        def raise_already_started_error
+          msg = "Profile already in progress. Ignoring agent command to start another."
           raise_command_error(msg)
         end
 

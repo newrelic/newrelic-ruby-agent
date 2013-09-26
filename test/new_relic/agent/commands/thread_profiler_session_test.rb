@@ -146,6 +146,15 @@ else
       assert_equal true, @profiler.running?
     end
 
+    def test_config_can_disable_running
+      with_config(:'thread_profiler.enabled' => false) do
+        assert_raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
+          @profiler.handle_start_command(start_command)
+        end
+        assert_false @profiler.running?
+      end
+    end
+
     def test_handle_stop_command
       @profiler.start(start_command)
       assert @profiler.running?
