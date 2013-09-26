@@ -115,10 +115,17 @@ module NewRelic
           end
         end
 
+        # This method is expected to be called with @lock held
         def stop
           return unless @running
           @running = false
           self.worker_loop.stop
+
+          # Note: we can clear the buffer here, which will drop any previously-
+          # buffered backtraces for in-flight transactions on the floor, but
+          # we cannot safely clear @profiles, because someone may be waiting to
+          # harvest them.
+          @buffer = {}
         end
 
         def poll
