@@ -25,8 +25,8 @@ module NewRelic
       end
 
       # Reset state that is changed by running the worker loop
-      def setup(period=nil, block)
-        @task = block
+      def setup(period, task)
+        @task = task
         @period = period if period
         @should_run = true
         @iterations = 0
