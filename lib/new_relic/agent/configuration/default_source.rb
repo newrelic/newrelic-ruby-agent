@@ -670,6 +670,18 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable X-Ray sessions.'
         },
+        :'xray_session.allow_traces' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :description => 'Enable or disable X-Ray sessions recording transaction traces.'
+        },
+        :'xray_session.allow_profiles' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :description => 'Enable or disable X-Ray sessions taking thread profiles.'
+        },
         :marshaller => {
           :default => DefaultSource.marshaller,
           :public => true,

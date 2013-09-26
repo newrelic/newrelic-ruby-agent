@@ -51,6 +51,12 @@ class NewRelic::Agent::Transaction
       assert_equal(samples.first(XraySampleBuffer::MAX_SAMPLES), @buffer.samples)
     end
 
+    def test_can_disable_via_config
+      with_config(:'xray_session.allow_traces' => false) do
+        assert_false @buffer.enabled?
+      end
+    end
+
     def sample_with(opts={})
       sample = NewRelic::TransactionSample.new
       sample.transaction_name = opts[:transaction_name]

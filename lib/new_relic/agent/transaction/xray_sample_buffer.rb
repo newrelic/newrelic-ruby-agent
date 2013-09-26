@@ -11,6 +11,16 @@ module NewRelic
 
         attr_writer :xray_session_collection
 
+        def initialize
+          super
+
+          # Memoize the config setting since this happens per request
+          @enabled = NewRelic::Agent.config[:'xray_session.allow_traces']
+          NewRelic::Agent.config.register_callback(:'xray_session.allow_traces') do |config|
+            @enabled = config
+          end
+        end
+
         def xray_session_collection
           @xray_session_collection ||= NewRelic::Agent.instance.agent_command_router.xray_session_collection
         end
@@ -27,6 +37,10 @@ module NewRelic
 
         def allow_sample?(sample)
           !full? && !lookup_session_id(sample).nil?
+        end
+
+        def enabled?
+          @enabled
         end
 
 
