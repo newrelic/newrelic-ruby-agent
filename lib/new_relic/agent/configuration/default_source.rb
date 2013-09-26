@@ -664,6 +664,12 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable the thread profiler.'
         },
+        :'xray_session.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable X-Ray sessions.'
+        },
         :marshaller => {
           :default => DefaultSource.marshaller,
           :public => true,

@@ -24,6 +24,11 @@ module NewRelic
         end
 
         def handle_active_xray_sessions(agent_command)
+          if !NewRelic::Agent.config[:'xray_session.enabled']
+            NewRelic::Agent.logger.debug("Not responding to X-Ray command because disabled by config 'xray_session.enabled' = #{NewRelic::Agent.config[:'xray_session.enabled']}")
+            return
+          end
+
           incoming_ids = agent_command.arguments["xray_ids"]
           activate_sessions(incoming_ids)
           deactivate_sessions(incoming_ids)

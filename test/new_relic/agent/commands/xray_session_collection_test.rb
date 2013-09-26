@@ -60,6 +60,15 @@ module NewRelic::Agent::Commands
       assert sessions.include?(SECOND_ID)
     end
 
+    def test_can_disable_from_config
+      with_config(:'xray_session.enabled' => false) do
+        handle_command_for(FIRST_ID, SECOND_ID)
+
+        assert_false sessions.include?(FIRST_ID)
+        assert_false sessions.include?(SECOND_ID)
+      end
+    end
+
     def test_adding_sessions_registers_them_as_thread_profiling_clients
       xray_id = 333
       xray_metadata = {
