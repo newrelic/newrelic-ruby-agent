@@ -82,7 +82,6 @@ module NewRelic
         private
 
         def raise_command_error(msg)
-          NewRelic::Agent.logger.debug(msg)
           raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new(msg)
         end
 

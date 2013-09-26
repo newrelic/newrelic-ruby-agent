@@ -24,6 +24,9 @@ module NewRelic
         end
 
         def handle_active_xray_sessions(agent_command)
+          # If X-Rays are disabled, just be quiet about it and don't start the
+          # command. Other hosts might be running the X-Ray, so we don't need
+          # to bark on every get_agent_commands.
           if !NewRelic::Agent.config[:'xray_session.enabled']
             NewRelic::Agent.logger.debug("Not responding to X-Ray command because of config 'xray_session.enabled' = #{NewRelic::Agent.config[:'xray_session.enabled']}")
             return
