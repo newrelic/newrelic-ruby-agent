@@ -26,6 +26,10 @@ class FakeThread
     thread[:scrubbed_backtrace] || thread.backtrace
   end
 
+  def alive?
+    true
+  end
+
   def key?(key)
     @locals.key?(key)
   end

@@ -129,6 +129,7 @@ module NewRelic
               sample_thread(thread)
             end
             @profiles.values.each { |c| c.increment_poll_count }
+            @buffer.delete_if { |thread, _| !thread.alive? }
           end
 
           record_polling_time(Time.now - poll_start)
