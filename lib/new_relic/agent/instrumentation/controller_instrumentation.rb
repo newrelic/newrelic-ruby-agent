@@ -320,17 +320,11 @@ module NewRelic
 
             begin
               NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
-              result = if block_given?
-                         yield
-                       else
-                         perform_action_without_newrelic_trace(*args)
-                       end
-              if defined?(request) && request && defined?(response) && response
-                if !Agent.config[:disable_mobile_headers]
-                  NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
-                end
+              if block_given?
+                yield
+              else
+                perform_action_without_newrelic_trace(*args)
               end
-              result
             rescue => e
               txn.notice_error(e)
               raise

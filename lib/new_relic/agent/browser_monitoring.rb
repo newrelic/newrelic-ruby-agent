@@ -97,29 +97,6 @@ module NewRelic
         NewRelic::Agent::TransactionState.get.timings
       end
 
-      def insert_mobile_response_header(request, response)
-        if mobile_header_found_in?(request) &&
-            NewRelic::Agent.instance.beacon_configuration
-
-          config = NewRelic::Agent.instance.beacon_configuration
-
-          response['X-NewRelic-Beacon-Url'] = beacon_url(request)
-
-          payload = %[ ["#{Agent.config[:application_id]}","#{obfuscate(config, browser_monitoring_transaction_name)}",#{current_timings.queue_time_in_millis},#{current_timings.app_time_in_millis}] ]
-          response['X-NewRelic-App-Server-Metrics'] = payload
-        end
-      end
-
-      def mobile_header_found_in?(request)
-        headers = ['HTTP_X_NEWRELIC_MOBILE_TRACE', 'X_NEWRELIC_MOBILE_TRACE',
-                   'X-NewRelic-Mobile-Trace']
-        headers.inject(false){|i,m| i || (request.env[m] == 'true')}
-      end
-
-      def beacon_url(request)
-        "#{request.scheme || 'http'}://#{Agent.config[:beacon]}/mobile/1/#{Agent.config[:browser_key]}"
-      end
-
       private
 
       # Check whether RUM header and footer should be generated.  Log the
