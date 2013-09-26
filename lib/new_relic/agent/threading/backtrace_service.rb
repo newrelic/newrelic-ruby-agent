@@ -34,6 +34,8 @@ module NewRelic
         end
 
         def subscribe(transaction_name, command_arguments={})
+          NewRelic::Agent.logger.debug("Backtrace Service subscribing transaction '#{transaction_name}'")
+
           profile = ThreadProfile.new(command_arguments)
 
           @lock.synchronize do
@@ -46,6 +48,7 @@ module NewRelic
         end
 
         def unsubscribe(transaction_name)
+          NewRelic::Agent.logger.debug("Backtrace Service unsubscribing transaction '#{transaction_name}'")
           @lock.synchronize do
             @profiles.delete(transaction_name)
             if @profiles.empty?
@@ -103,9 +106,12 @@ module NewRelic
           return if @running
           @running = true
           self.worker_thread = AgentThread.new('Backtrace Service') do
-            # Passing nil for the period here because we expect it to have
-            # been set already.
-            self.worker_loop.run(&method(:poll))
+            begin
+              # Not passing period because we expect it's already been set.
+              self.worker_loop.run(&method(:poll))
+            ensure
+              NewRelic::Agent.logger.debug("Exiting New Relic thread: Backtrace Service")
+            end
           end
         end
 

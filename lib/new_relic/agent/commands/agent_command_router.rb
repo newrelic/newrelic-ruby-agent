@@ -76,10 +76,8 @@ module NewRelic
         end
 
         def log_profiles(profiles)
-          profile_descriptors = profiles.map do |p|
-            p.xray_id ? "xray_id: #{p.xray_id}" : "profile_id: #{p.profile_id}"
-          end
-          ::NewRelic::Agent.logger.debug "Sending thread profiles #{profile_descriptors.join(", ")}"
+          profile_descriptions = profiles.map { |p| p.to_log_description }
+          ::NewRelic::Agent.logger.debug "Sending thread profiles [#{profile_descriptions.join(", ")}]"
         end
 
         def get_agent_commands

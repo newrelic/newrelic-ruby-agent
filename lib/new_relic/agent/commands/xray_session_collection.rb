@@ -37,6 +37,7 @@ module NewRelic
 
         def harvest_thread_profiles
           profiles = active_thread_profiling_sessions.map do |session|
+            NewRelic::Agent.logger.debug("Harvesting profile for X-Ray session #{session.inspect}")
             @backtrace_service.harvest(session.key_transaction_name)
           end
           profiles.reject! {|p| p.empty?}
@@ -63,7 +64,6 @@ module NewRelic
 
         def activate_sessions(incoming_ids)
           lookup_metadata_for(ids_to_activate(incoming_ids)).each do |raw|
-            NewRelic::Agent.logger.debug("Adding new session for #{raw.inspect}")
             add_session(XraySession.new(raw))
           end
         end
