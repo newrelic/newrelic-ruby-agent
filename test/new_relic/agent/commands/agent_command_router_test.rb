@@ -215,7 +215,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
   def sample_on_profiles
     agent_commands.backtrace_service.profiles.each do |(_, profile)|
-      profile.aggregate([], :request)
+      profile.aggregate([], :request, Thread.current)
     end
   end
 

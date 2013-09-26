@@ -38,6 +38,7 @@ module NewRelic
           @poll_count = 0
           @backtrace_count = 0
           @failure_count = 0
+          @unique_threads = []
 
           @created_at = Time.now
         end
@@ -62,12 +63,18 @@ module NewRelic
           @backtrace_count == 0
         end
 
-        def aggregate(backtrace, bucket)
+        def unique_thread_count
+          return 0 if @unique_threads.nil?
+          @unique_threads.length
+        end
+
+        def aggregate(backtrace, bucket, thread)
           if backtrace.nil?
             @failure_count += 1
           else
             @backtrace_count += 1
             @traces[bucket].aggregate(backtrace)
+            @unique_threads << thread unless @unique_threads.include?(thread)
           end
         end
 
@@ -103,7 +110,7 @@ module NewRelic
             float(self.finished_at),
             int(self.sample_count),
             string(encoder.encode(generate_traces)),
-            int(self.backtrace_count),
+            int(self.unique_thread_count),
             0 # runnable thread count, which we don't track
           ]
           result << int(@xray_id) if xray?

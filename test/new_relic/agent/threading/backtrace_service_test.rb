@@ -110,16 +110,12 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
         bt0, bt1 = mock('bt0'), mock('bt1')
 
-        FakeThread.list << FakeThread.new(
-          :bucket => :request,
-          :backtrace => bt0)
-        FakeThread.list << FakeThread.new(
-          :bucket => :differenter_request,
-          :backtrace => bt1)
+        thread0 = fake_thread(:bucket => :request, :backtrace => bt0)
+        thread1 = fake_thread(:bucket => :differenter_request, :backtrace => bt1)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
-        profile.expects(:aggregate).with(bt0, :request)
-        profile.expects(:aggregate).with(bt1, :differenter_request)
+        profile.expects(:aggregate).with(bt0, :request, thread0)
+        profile.expects(:aggregate).with(bt1, :differenter_request, thread1)
 
         @service.poll
       end
@@ -140,16 +136,16 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
       def test_poll_scrubs_backtraces_before_forwarding_to_profiles
         fake_worker_loop(@service)
-        raw_backtarce = mock('raw')
+        raw_backtrace = mock('raw')
         scrubbed_backtrace = mock('scrubbed')
 
-        FakeThread.list << FakeThread.new(
+        thread = fake_thread(
           :bucket => :agent,
-          :backtrace => raw_backtarce,
+          :backtrace => raw_backtrace,
           :scrubbed_backtrace => scrubbed_backtrace)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
-        profile.expects(:aggregate).with(scrubbed_backtrace, :agent)
+        profile.expects(:aggregate).with(scrubbed_backtrace, :agent, thread)
 
         @service.poll
       end
@@ -249,7 +245,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         t0 = freeze_time
         @service.poll
 
-        profile.expects(:aggregate).with(thread.backtrace, :request)
+        profile.expects(:aggregate).with(thread.backtrace, :request, thread)
         @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread)
       end
 
@@ -277,8 +273,8 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         t0 = freeze_time
         @service.poll
 
-        profile.expects(:aggregate).with(thread0.backtrace, :request).once
-        profile.expects(:aggregate).with(thread1.backtrace, :request).once
+        profile.expects(:aggregate).with(thread0.backtrace, :request, thread0).once
+        profile.expects(:aggregate).with(thread1.backtrace, :request, thread1).once
 
         @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread0)
         @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread1)
@@ -297,7 +293,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
           advance_time(1.0)
         end
 
-        profile.expects(:aggregate).with(thread.backtrace, :request).times(2)
+        profile.expects(:aggregate).with(thread.backtrace, :request, thread).times(2)
         @service.on_transaction_finished('foo', (t0 + 1).to_f, 2.0, {}, thread)
       end
 
