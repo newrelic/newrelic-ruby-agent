@@ -24,15 +24,23 @@ module NewRelic
         @propagate_errors = opts.fetch(:propagate_errors, false)
       end
 
+      # Reset state that is changed by running the worker loop
+      def setup(period=nil, block)
+        @task = block
+        @period = period if period
+        @should_run = true
+        @iterations = 0
+
+        now = Time.now
+        @deadline = now + @duration if @duration
+        @next_invocation_time = (now + @period)
+      end
+
       # Run infinitely, calling the registered tasks at their specified
       # call periods.  The caller is responsible for creating the thread
       # that runs this worker loop.  This will run the task immediately.
       def run(period=nil, &block)
-        now = Time.now
-        @deadline = now + @duration if @duration
-        @period = period if period
-        @next_invocation_time = (now + @period)
-        @task = block
+        setup(period, block)
         while keep_running? do
           sleep_time = schedule_next_invocation
           sleep(sleep_time) if sleep_time > 0
