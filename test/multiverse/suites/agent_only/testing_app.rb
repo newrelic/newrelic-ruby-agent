@@ -17,6 +17,12 @@ class TestingApp
   end
 
   def call(env)
+    request = Rack::Request.new(env)
+    params = request.params
+    if params['transaction_name']
+      NewRelic::Agent.set_transaction_name(params['transaction_name'])
+    end
+    sleep(params['sleep'].to_f) if params['sleep']
     [200, headers, [response]]
   end
 

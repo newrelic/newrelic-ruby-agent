@@ -23,6 +23,7 @@ module NewRelic
         'get_redirect_host'       => [200, {'return_value' => 'localhost'}],
         'connect'                 => [200, {'return_value' => {"agent_run_id" => agent_run_id}}],
         'get_agent_commands'      => [200, {'return_value' => []}],
+        'agent_command_results'   => [200, {'return_value' => []}],
         'metric_data'             => [200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}],
         'sql_trace_data'          => [200, {'return_value' => nil}],
         'transaction_sample_data' => [200, {'return_value' => nil}],
@@ -173,10 +174,10 @@ module NewRelic
     end
 
     class ProfileDataPost < AgentPost
-      attr_accessor :poll_count, :traces
+      attr_accessor :sample_count, :traces
       def initialize(opts={})
         super
-        @poll_count = @body[1][0][3]
+        @sample_count = @body[1][0][3]
         @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
         @traces = @body[1][0][4]
       end
@@ -190,13 +191,35 @@ module NewRelic
     end
 
     class TransactionSampleDataPost < AgentPost
+      class SubmittedTransactionTrace
+        def initialize(body)
+          @body = body
+        end
+
+        def metric_name
+          @body[2]
+        end
+
+        def uri
+          @body[3]
+        end
+
+        def xray_id
+          @body[8]
+        end
+      end
+
       def initialize(opts={})
         super
         @body[4] = unblob(@body[4]) if @format == :json
       end
 
+      def samples
+        @samples ||= @body[1].map { |s| SubmittedTransactionTrace.new(s) }
+      end
+
       def metric_name
-        @body[1][0][2]
+        samples.first.metric_name
       end
     end
     class AnalyticEventDataPost < AgentPost
