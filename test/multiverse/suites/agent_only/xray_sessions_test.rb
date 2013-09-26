@@ -20,8 +20,6 @@ class XraySessionsTest < MiniTest::Unit::TestCase
 
   setup_and_teardown_agent() do |collector|
     collector.stub('connect', {"agent_run_id" => AGENT_RUN_ID })
-    collector.stub('get_agent_commands', [])
-    collector.stub('agent_command_results', [])
   end
 
   def after_setup
