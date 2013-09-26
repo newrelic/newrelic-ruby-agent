@@ -41,20 +41,24 @@ class NewRelic::Agent::Transaction
     end
 
     def test_limits_xray_traces
-      tons_o_samples = XraySampleBuffer::MAX_SAMPLES * 2
+      tons_o_samples = max_samples * 2
       samples = (0..tons_o_samples).map do |i|
         sample = sample_with(:transaction_name => MATCHING_TRANSACTION)
         @buffer.store(sample)
         sample
       end
 
-      assert_equal(samples.first(XraySampleBuffer::MAX_SAMPLES), @buffer.samples)
+      assert_equal(samples.first(max_samples), @buffer.samples)
     end
 
     def test_can_disable_via_config
       with_config(:'xray_session.allow_traces' => false) do
         assert_false @buffer.enabled?
       end
+    end
+
+    def max_samples
+      NewRelic::Agent.config[:'xray_session.max_samples']
     end
 
     def sample_with(opts={})

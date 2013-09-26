@@ -392,7 +392,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   FORCE_PERSIST_MAX = NewRelic::Agent::Transaction::ForcePersistSampleBuffer::MAX_SAMPLES
   SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::MAX_SAMPLES
-  XRAY_SAMPLE_MAX = NewRelic::Agent::Transaction::XraySampleBuffer::MAX_SAMPLES
+  XRAY_SAMPLE_MAX = NewRelic::Agent.config[:'xray_session.max_samples']
 
   def test_harvest_respects_limits_from_previous
     slowest = sample_with(:duration => 10.0)
