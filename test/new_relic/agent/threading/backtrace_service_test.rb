@@ -292,13 +292,18 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         profile = @service.subscribe('foo')
 
         t0 = freeze_time
-        4.times do
+        5.times do
           @service.poll
           advance_time(1.0)
         end
 
         profile.expects(:aggregate).with(thread.backtrace, :request).times(2)
         @service.on_transaction_finished('foo', (t0 + 1).to_f, 2.0, {}, thread)
+
+        assert_metrics_recorded({
+          "Supportability/XraySessions/Backtraces"            => { :call_count => 2 },
+          "Supportability/XraySessions/BacktracesOutsideTime" => { :call_count => 3 }
+        })
       end
 
       def test_does_not_deliver_non_request_backtraces_to_subscribed_profiles
@@ -344,6 +349,18 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         assert_equal(5, profile.poll_count)
       end
 
+      def test_service_record_supportability_for_global_aggregation
+        fake_worker_loop(@service)
+
+        profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
+        fake_thread(:bucket => :request)
+        profile.stubs(:aggregate).with(any_parameters)
+
+        5.times { @service.poll }
+        assert_metrics_recorded({
+          "Supportability/ThreadProfiler/Backtraces" => { :call_count => 5 }})
+      end
+
       def test_poll_records_polling_time
         fake_worker_loop(@service)
 
@@ -375,6 +392,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
         @service.buffer_backtrace_for_thread(thread, Time.now.to_f, stub, :request)
         assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
+        assert_metrics_recorded(["Supportability/XraySessions/BacktracesBufferFull"])
       end
 
       def fake_worker_loop(service)

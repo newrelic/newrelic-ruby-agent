@@ -40,6 +40,7 @@ module NewRelic::Agent::Commands
     def setup
       @new_relic_service  = stub
       NewRelic::Agent.instance.stubs(:service).returns(@new_relic_service)
+
       @backtrace_service = NewRelic::Agent::Threading::BacktraceService.new
       @backtrace_service.worker_loop.stubs(:run)
       @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@backtrace_service)
@@ -51,6 +52,7 @@ module NewRelic::Agent::Commands
 
     def teardown
       @backtrace_service.worker_thread.join if @backtrace_service.worker_thread
+      NewRelic::Agent.instance.stats_engine.clear_stats
     end
 
     def test_can_add_sessions
@@ -58,6 +60,9 @@ module NewRelic::Agent::Commands
 
       assert sessions.include?(FIRST_ID)
       assert sessions.include?(SECOND_ID)
+
+      assert_metrics_recorded({
+        "Supportability/XraySessions/Starts" => { :call_count => 2 }})
     end
 
     def test_adding_sessions_registers_them_as_thread_profiling_clients
@@ -186,6 +191,8 @@ module NewRelic::Agent::Commands
 
       assert_equal true, sessions.include?(FIRST_ID)
       assert_equal false, sessions.include?(SECOND_ID)
+
+      assert_metrics_recorded(["Supportability/XraySessions/Stops"])
     end
 
     def test_removing_inactive_sessions_deactivates_them

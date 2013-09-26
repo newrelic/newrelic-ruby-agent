@@ -83,6 +83,8 @@ module NewRelic
 
         def add_session(session)
           NewRelic::Agent.logger.debug("Adding X-Ray session #{session.inspect}")
+          NewRelic::Agent.increment_metric("Supportability/XraySessions/Starts")
+
           @sessions_lock.synchronize { @sessions[session.id] = session }
 
           session.activate
@@ -108,6 +110,8 @@ module NewRelic
 
           if session
             NewRelic::Agent.logger.debug("Removing X-Ray session #{session.inspect}")
+            NewRelic::Agent.increment_metric("Supportability/XraySessions/Stops")
+
             if session.run_profiler?
               @backtrace_service.unsubscribe(session.key_transaction_name)
             end
