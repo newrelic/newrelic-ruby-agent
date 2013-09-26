@@ -105,6 +105,7 @@ module NewRelic
         def start
           return if @running
           @running = true
+          @started_via = caller
           self.worker_thread = AgentThread.new('Backtrace Service') do
             begin
               # Not passing period because we expect it's already been set.
@@ -192,6 +193,9 @@ module NewRelic
         end
 
         def record_polling_time(duration)
+          if ENV['TESTOPTS'] && ENV['TESTOPTS'].include?('-v') && @started_via
+            puts "recording polling time metric, started via #{@started_via.join("\n")}"
+          end
           NewRelic::Agent.record_metric('Supportability/ThreadProfiler/PollingTime', duration)
         end
 
