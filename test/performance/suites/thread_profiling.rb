@@ -30,6 +30,8 @@ class ThreadProfiling < Performance::TestCase
     @nthreads.times do
       @threads << Thread.new do
         @threadq << self
+        transaction_state = NewRelic::Agent::TransactionState.get
+        def transaction_state.in_request_transaction?; true; end
         recurse(50, method(:block))
       end
     end
@@ -44,18 +46,32 @@ class ThreadProfiling < Performance::TestCase
     @service = NewRelic::Agent::Threading::BacktraceService.new
     @worker_loop = @service.worker_loop
     def @worker_loop.run; end # we want to drive it manually
-    @service.subscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
   end
 
   def teardown
-    @service.unsubscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
     @cvar.broadcast
     @threads.each(&:join)
   end
 
-  def test_gather_backtraces
-    (iterations / 10).times do
-      @service.poll
+  def test_gather_backtraces(timer)
+    @service.subscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
+    timer.measure do
+      (iterations / 10).times do
+        @service.poll
+      end
     end
+    @service.unsubscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
+  end
+
+  def test_gather_backtraces_subscribed(timer)
+    @service.subscribe('eagle')
+    timer.measure do
+      (iterations / 10).times do
+        t0 = Time.now.to_f
+        @service.poll
+        @service.on_transaction_finished('eagle', t0, Time.now.to_f-t0, {}, @threads.sample)
+      end
+    end
+    @service.unsubscribe('eagle')
   end
 end
