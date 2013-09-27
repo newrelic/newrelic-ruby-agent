@@ -98,9 +98,6 @@ module NewRelic
           backtraces.each do |(timestamp, backtrace)|
             if timestamp >= start && timestamp < end_time
               @profiles[name].aggregate(backtrace, :request)
-              NewRelic::Agent.increment_metric('Supportability/XraySessions/Backtraces')
-            else
-              NewRelic::Agent.increment_metric('Supportability/XraySessions/BacktracesOutsideTime')
             end
           end
         end
@@ -171,7 +168,6 @@ module NewRelic
         def aggregate_global_backtrace(backtrace, bucket)
           if @profiles[ALL_TRANSACTIONS]
             @profiles[ALL_TRANSACTIONS].aggregate(backtrace, bucket)
-            NewRelic::Agent.increment_metric('Supportability/ThreadProfiler/Backtraces')
           end
         end
 
