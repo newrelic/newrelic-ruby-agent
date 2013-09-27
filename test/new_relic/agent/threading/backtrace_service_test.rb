@@ -110,12 +110,8 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
         bt0, bt1 = mock('bt0'), mock('bt1')
 
-        FakeThread.list << FakeThread.new(
-          :bucket => :request,
-          :backtrace => bt0)
-        FakeThread.list << FakeThread.new(
-          :bucket => :differenter_request,
-          :backtrace => bt1)
+        fake_thread(:backtrace => bt0, :bucket => :request)
+        fake_thread(:backtrace => bt1, :bucket => :differenter_request)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).with(bt0, :request)
@@ -127,10 +123,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       def test_poll_does_not_forward_ignored_backtraces_to_profiles
         fake_worker_loop(@service)
 
-        faketrace = mock('faketrace')
-        FakeThread.list << FakeThread.new(
-          :bucket => :ignore,
-          :backtrace => faketrace)
+        fake_thread(:bucket => :ignore)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).never
@@ -140,12 +133,12 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
       def test_poll_scrubs_backtraces_before_forwarding_to_profiles
         fake_worker_loop(@service)
-        raw_backtarce = mock('raw')
+        raw_backtrace = mock('raw')
         scrubbed_backtrace = mock('scrubbed')
 
-        FakeThread.list << FakeThread.new(
+        fake_thread(
           :bucket => :agent,
-          :backtrace => raw_backtarce,
+          :backtrace => raw_backtrace,
           :scrubbed_backtrace => scrubbed_backtrace)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
@@ -157,9 +150,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       def test_poll_records_supportability_metrics
         fake_worker_loop(@service)
 
-        fake_thread(
-          :bucket => :request,
-          :backtrace => stub('faketrace'))
+        fake_thread(:bucket => :request)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.stubs(:aggregate)
