@@ -136,7 +136,7 @@ module NewRelic
             @profiles.values.each { |c| c.increment_poll_count }
           end
 
-          record_polling_time(Time.now - poll_start)
+          record_polling_time(Time.now, poll_start)
         end
 
         # This method is expected to be called with @lock held.
@@ -163,6 +163,8 @@ module NewRelic
             @buffer[thread] ||= []
             if @buffer[thread].length < MAX_BUFFER_LENGTH
               @buffer[thread] << [timestamp, backtrace]
+            else
+              NewRelic::Agent.increment_metric('Supportability/XraySessions/DroppedBacktraces')
             end
           end
         end
@@ -196,8 +198,13 @@ module NewRelic
           @profiles.values.any? { |p| p.profile_agent_code }
         end
 
-        def record_polling_time(duration)
-          NewRelic::Agent.record_metric('Supportability/ThreadProfiler/PollingTime', duration)
+        def record_polling_time(now, poll_start)
+          NewRelic::Agent.record_metric('Supportability/ThreadProfiler/PollingTime', now - poll_start)
+          if @last_poll
+            skew = poll_start - @last_poll - worker_loop.period
+            NewRelic::Agent.record_metric('Supportability/ThreadProfiler/Skew', skew)
+          end
+          @last_poll = poll_start
         end
 
       end

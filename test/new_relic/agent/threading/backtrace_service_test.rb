@@ -110,12 +110,8 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
         bt0, bt1 = mock('bt0'), mock('bt1')
 
-        FakeThread.list << FakeThread.new(
-          :bucket => :request,
-          :backtrace => bt0)
-        FakeThread.list << FakeThread.new(
-          :bucket => :differenter_request,
-          :backtrace => bt1)
+        fake_thread(:backtrace => bt0, :bucket => :request)
+        fake_thread(:backtrace => bt1, :bucket => :differenter_request)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).with(bt0, :request)
@@ -127,10 +123,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       def test_poll_does_not_forward_ignored_backtraces_to_profiles
         fake_worker_loop(@service)
 
-        faketrace = mock('faketrace')
-        FakeThread.list << FakeThread.new(
-          :bucket => :ignore,
-          :backtrace => faketrace)
+        fake_thread(:bucket => :ignore)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).never
@@ -140,18 +133,36 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
       def test_poll_scrubs_backtraces_before_forwarding_to_profiles
         fake_worker_loop(@service)
-        raw_backtarce = mock('raw')
+        raw_backtrace = mock('raw')
         scrubbed_backtrace = mock('scrubbed')
 
-        FakeThread.list << FakeThread.new(
+        fake_thread(
           :bucket => :agent,
-          :backtrace => raw_backtarce,
+          :backtrace => raw_backtrace,
           :scrubbed_backtrace => scrubbed_backtrace)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).with(scrubbed_backtrace, :agent)
 
         @service.poll
+      end
+
+      def test_poll_records_supportability_metrics
+        fake_worker_loop(@service)
+
+        fake_thread(:bucket => :request)
+
+        profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
+        profile.stubs(:aggregate)
+
+        @service.poll
+        @service.poll
+
+        # First poll doesn't record skew since we don't have a last poll time
+        assert_metrics_recorded({
+          'Supportability/ThreadProfiler/PollingTime' => { :call_count => 2 },
+          'Supportability/ThreadProfiler/Skew'        => { :call_count => 1 }
+        })
       end
 
       def test_subscribe_adjusts_worker_loop_period
@@ -292,7 +303,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         profile = @service.subscribe('foo')
 
         t0 = freeze_time
-        4.times do
+        5.times do
           @service.poll
           advance_time(1.0)
         end
@@ -356,7 +367,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
         @service.poll
 
-        expected = { :call_count => 1, :total_call_time => 5}
+        expected = { :call_count => 1, :total_call_time => 5 }
         assert_metrics_recorded(
           { 'Supportability/ThreadProfiler/PollingTime' => expected }
         )
@@ -375,6 +386,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
         @service.buffer_backtrace_for_thread(thread, Time.now.to_f, stub, :request)
         assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
+        assert_metrics_recorded(["Supportability/XraySessions/DroppedBacktraces"])
       end
 
       def fake_worker_loop(service)
