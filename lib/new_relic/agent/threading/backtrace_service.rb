@@ -159,7 +159,7 @@ module NewRelic
             if @buffer[thread].length < MAX_BUFFER_LENGTH
               @buffer[thread] << [timestamp, backtrace]
             else
-              NewRelic::Agent.increment_metric('Supportability/XraySessions/BacktracesBufferFull')
+              NewRelic::Agent.increment_metric('Supportability/XraySessions/DroppedBacktraces')
             end
           end
         end

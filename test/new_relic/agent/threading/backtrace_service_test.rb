@@ -386,7 +386,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
         @service.buffer_backtrace_for_thread(thread, Time.now.to_f, stub, :request)
         assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
-        assert_metrics_recorded(["Supportability/XraySessions/BacktracesBufferFull"])
+        assert_metrics_recorded(["Supportability/XraySessions/DroppedBacktraces"])
       end
 
       def fake_worker_loop(service)
