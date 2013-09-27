@@ -14,8 +14,6 @@ module NewRelic
         attr_reader :xray_session_name, :key_transaction_name,
                     :requested_trace_count, :duration, :sample_period
 
-        def_delegators :@thread_profile, :aggregate, :increment_poll_count
-
         def initialize(command_arguments)
           @command_arguments     = command_arguments
           @id                    = command_arguments.fetch("x_ray_id", nil)
@@ -49,7 +47,7 @@ module NewRelic
         end
 
         def finished?
-          @start_time + @duration > Time.now
+          @start_time + @duration < Time.now
         end
       end
     end

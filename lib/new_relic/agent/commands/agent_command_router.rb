@@ -27,7 +27,7 @@ module NewRelic
           @backtrace_service = Threading::BacktraceService.new(event_listener)
 
           @thread_profiler_session = ThreadProfilerSession.new(@backtrace_service)
-          @xray_session_collection = XraySessionCollection.new(@backtrace_service)
+          @xray_session_collection = XraySessionCollection.new(@backtrace_service, event_listener)
 
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
           @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }

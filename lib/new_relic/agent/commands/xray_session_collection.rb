@@ -12,7 +12,7 @@ module NewRelic
       class XraySessionCollection
         extend Forwardable
 
-        def initialize(backtrace_service)
+        def initialize(backtrace_service, event_listener)
           @backtrace_service = backtrace_service
 
           # This lock protects access to the sessions hash, but it's expected
@@ -21,12 +21,16 @@ module NewRelic
           # objects is expected from only a single thread (the harvest thread)
           @sessions_lock = Mutex.new
           @sessions = {}
+
+          if event_listener
+            event_listener.subscribe(:before_harvest, &method(:cleanup_finished_sessions))
+          end
         end
 
         def handle_active_xray_sessions(agent_command)
           incoming_ids = agent_command.arguments["xray_ids"]
           activate_sessions(incoming_ids)
-          deactivate_sessions(incoming_ids)
+          deactivate_for_incoming_sessions(incoming_ids)
         end
 
         def session_id_for_transaction_name(name)
@@ -42,6 +46,13 @@ module NewRelic
           end
           profiles.reject! {|p| p.empty?}
           profiles.compact
+        end
+
+        def cleanup_finished_sessions
+          finished_session_ids.each do |id|
+            NewRelic::Agent.logger.debug("Finished X-Ray session #{id} by duration. Removing it from active sessions.")
+            remove_session_by_id(id)
+          end
         end
 
 
@@ -93,7 +104,7 @@ module NewRelic
 
         ### Session deactivation
 
-        def deactivate_sessions(incoming_ids)
+        def deactivate_for_incoming_sessions(incoming_ids)
           ids_to_remove(incoming_ids).each do |session_id|
             remove_session_by_id(session_id)
           end
@@ -112,6 +123,12 @@ module NewRelic
               @backtrace_service.unsubscribe(session.key_transaction_name)
             end
             session.deactivate
+          end
+        end
+
+        def finished_session_ids
+          @sessions_lock.synchronize do
+            @sessions.map{|k, s| k if s.finished?}.compact
           end
         end
 
