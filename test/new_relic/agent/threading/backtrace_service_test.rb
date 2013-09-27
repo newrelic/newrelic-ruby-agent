@@ -57,6 +57,18 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         assert !@service.running?
       end
 
+      def test_stop_clears_buffered_backtraces
+        fake_worker_loop(@service)
+
+        thread = fake_thread(:bucket => :request)
+
+        @service.subscribe('foo')
+        @service.poll
+        @service.unsubscribe('foo')
+
+        assert_equal 0, @service.buffer.size
+      end
+
       def test_harvest_returns_thread_profiles
         fake_worker_loop(@service)
 
@@ -353,6 +365,23 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
         5.times { @service.poll }
         assert_equal(5, profile.poll_count)
+      end
+
+      def test_poll_scrubs_dead_threads_from_buffer
+        fake_worker_loop(@service)
+        thread0 = fake_thread(:bucket => :request)
+        thread1 = fake_thread(:bucket => :request)
+
+        @service.subscribe('foo')
+        @service.poll
+
+        thread1.stubs(:alive?).returns(false)
+        @service.poll
+
+        assert_equal(2, @service.buffer[thread0].size)
+        assert_nil(@service.buffer[thread1])
+
+        @service.unsubscribe('foo')
       end
 
       def test_poll_records_polling_time
