@@ -664,6 +664,30 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable the thread profiler.'
         },
+        :'xray_session.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable X-Ray sessions.'
+        },
+        :'xray_session.allow_traces' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :description => 'Enable or disable X-Ray sessions recording transaction traces.'
+        },
+        :'xray_session.allow_profiles' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :description => 'Enable or disable X-Ray sessions taking thread profiles.'
+        },
+        :'xray_session.max_samples' => {
+          :default => 10,
+          :public => false,
+          :type => Fixnum,
+          :description => 'Maximum number of transaction traces to buffer for active X-Ray sessions'
+        },
         :marshaller => {
           :default => DefaultSource.marshaller,
           :public => true,

@@ -32,7 +32,7 @@ module NewRelic
         end
 
         def run_profiler?
-          @run_profiler
+          @run_profiler && NewRelic::Agent.config[:'xray_session.allow_profiles']
         end
 
         def activate

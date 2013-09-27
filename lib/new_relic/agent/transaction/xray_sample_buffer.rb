@@ -11,14 +11,27 @@ module NewRelic
 
         attr_writer :xray_session_collection
 
+        def initialize
+          super
+
+          # Memoize the config setting since this happens per request
+          @enabled = NewRelic::Agent.config[:'xray_session.allow_traces']
+          NewRelic::Agent.config.register_callback(:'xray_session.allow_traces') do |new_value|
+            @enabled = new_value
+          end
+
+          @max_samples = NewRelic::Agent.config[:'xray_session.max_samples']
+          NewRelic::Agent.config.register_callback(:'xray_session.max_samples') do |new_value|
+            @max_samples = new_value
+          end
+        end
+
         def xray_session_collection
           @xray_session_collection ||= NewRelic::Agent.instance.agent_command_router.xray_session_collection
         end
 
-        MAX_SAMPLES = 10
-
         def max_samples
-          MAX_SAMPLES
+          @max_samples
         end
 
         def truncate_samples
@@ -27,6 +40,10 @@ module NewRelic
 
         def allow_sample?(sample)
           !full? && !lookup_session_id(sample).nil?
+        end
+
+        def enabled?
+          @enabled
         end
 
 

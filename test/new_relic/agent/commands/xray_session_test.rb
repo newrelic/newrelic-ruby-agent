@@ -8,12 +8,17 @@ require 'new_relic/agent/commands/xray_session'
 module NewRelic::Agent::Commands
   class XraySessionTest < Test::Unit::TestCase
 
-    def target_for_shared_client_tests
-      XraySession.new('run_profiler' => true)
+    def test_run_profiler
+      session = XraySession.new('run_profiler' => true)
+      assert session.run_profiler?
     end
 
-    def test_foo
-      assert true
+    def test_run_profiler_respects_config
+      with_config(:'xray_session.allow_profiles' => false) do
+        session = XraySession.new('run_profiler' => true)
+        assert_false session.run_profiler?
+      end
     end
+
   end
 end
