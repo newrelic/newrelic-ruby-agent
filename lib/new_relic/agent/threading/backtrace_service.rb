@@ -85,7 +85,7 @@ module NewRelic
           @lock.synchronize do
             backtraces = @buffer.delete(thread)
             if backtraces && @profiles.has_key?(name)
-              aggregate_backtraces(backtraces, name, start, duration)
+              aggregate_backtraces(backtraces, name, start, duration, thread)
             end
           end
         end
@@ -93,11 +93,11 @@ module NewRelic
         # Internals
 
         # This method is expected to be called with @lock held.
-        def aggregate_backtraces(backtraces, name, start, duration)
+        def aggregate_backtraces(backtraces, name, start, duration, thread)
           end_time = start + duration
           backtraces.each do |(timestamp, backtrace)|
             if timestamp >= start && timestamp < end_time
-              @profiles[name].aggregate(backtrace, :request)
+              @profiles[name].aggregate(backtrace, :request, thread)
             end
           end
         end
@@ -174,9 +174,9 @@ module NewRelic
         end
 
         # This method is expected to be called with @lock held.
-        def aggregate_global_backtrace(backtrace, bucket)
+        def aggregate_global_backtrace(backtrace, bucket, thread)
           if @profiles[ALL_TRANSACTIONS]
-            @profiles[ALL_TRANSACTIONS].aggregate(backtrace, bucket)
+            @profiles[ALL_TRANSACTIONS].aggregate(backtrace, bucket, thread)
           end
         end
 
@@ -187,7 +187,7 @@ module NewRelic
           if need_backtrace?(bucket)
             timestamp = Time.now.to_f
             backtrace = AgentThread.scrub_backtrace(thread, @profile_agent_code)
-            aggregate_global_backtrace(backtrace, bucket)
+            aggregate_global_backtrace(backtrace, bucket, thread)
             buffer_backtrace_for_thread(thread, timestamp, backtrace, bucket)
           end
         end
