@@ -236,6 +236,7 @@ module NewRelic::Agent::Commands
         sessions.session_id_for_transaction_name(FIRST_TRANSACTION_NAME)
       end
 
+      @backtrace_service.wait
       harvest_thread.join
     end
 
