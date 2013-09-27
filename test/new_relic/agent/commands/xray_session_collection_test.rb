@@ -34,6 +34,7 @@ module NewRelic::Agent::Commands
     SECOND_METADATA = {
       "x_ray_id"             => SECOND_ID,
       "key_transaction_name" => SECOND_TRANSACTION_NAME,
+      "duration"             => 0.0,
       "run_profiler"         => true
     }
 
@@ -43,7 +44,10 @@ module NewRelic::Agent::Commands
 
       @backtrace_service = NewRelic::Agent::Threading::BacktraceService.new
       @backtrace_service.worker_loop.stubs(:run)
-      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@backtrace_service)
+
+      @event_listener = NewRelic::Agent::EventListener.new
+
+      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@backtrace_service, @event_listener)
 
       @new_relic_service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
       @new_relic_service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
@@ -211,6 +215,15 @@ module NewRelic::Agent::Commands
       handle_command_for(*[])
 
       assert_equal false, session.active?
+    end
+
+    def test_before_harvest_event_prunes_finished_sessions
+      handle_command_for(SECOND_ID)
+      assert sessions.include?(SECOND_ID)
+
+      @event_listener.notify(:before_harvest)
+
+      assert_false sessions.include?(SECOND_ID)
     end
 
     def test_harvest_thread_profiles_pulls_data_from_backtrace_service

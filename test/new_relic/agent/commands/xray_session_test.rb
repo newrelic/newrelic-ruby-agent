@@ -7,7 +7,6 @@ require 'new_relic/agent/commands/xray_session'
 
 module NewRelic::Agent::Commands
   class XraySessionTest < Test::Unit::TestCase
-
     def test_run_profiler
       session = XraySession.new('run_profiler' => true)
       assert session.run_profiler?
@@ -20,5 +19,24 @@ module NewRelic::Agent::Commands
       end
     end
 
+    def test_not_finished
+      freeze_time
+
+      session = XraySession.new({})
+      session.activate
+
+      assert_false session.finished?
+    end
+
+    def test_finished
+      freeze_time
+
+      session = XraySession.new('duration' => 1.0)
+      session.activate
+
+      advance_time(2.0)
+
+      assert session.finished?
+    end
   end
 end
