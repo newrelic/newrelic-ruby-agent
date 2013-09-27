@@ -121,10 +121,6 @@ module NewRelic
           @running = false
           self.worker_loop.stop
 
-          # Note: we can clear the buffer here, which will drop any previously-
-          # buffered backtraces for in-flight transactions on the floor, but
-          # we cannot safely clear @profiles, because someone may be waiting to
-          # harvest them.
           @buffer = {}
         end
 
