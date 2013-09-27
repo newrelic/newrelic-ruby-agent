@@ -105,7 +105,7 @@ module NewRelic
             call_handler_for(agent_command)
             return success
           rescue AgentCommandError => e
-            NewRelic::Agent.logger.debug(e.message)
+            NewRelic::Agent.logger.debug(e)
             error(e)
           end
         end
