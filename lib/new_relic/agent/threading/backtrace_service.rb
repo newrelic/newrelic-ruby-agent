@@ -124,11 +124,6 @@ module NewRelic
           @buffer = {}
         end
 
-        def wait
-          return unless @running && @worker_thread
-          @worker_thread.join
-        end
-
         def poll
           poll_start = Time.now
 
