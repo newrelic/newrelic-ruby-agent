@@ -94,6 +94,17 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     agent_commands.check_for_and_handle_agent_commands
   end
 
+  # Start/stop X-Ray tests
+
+  def test_empty_agent_commands_stops_running_xray
+    start_xray_session(123)
+
+    service.stubs(:get_agent_commands).returns([])
+    agent_commands.check_for_and_handle_agent_commands
+
+    assert_false agent_commands.xray_session_collection.include?(123)
+  end
+
   # Harvesting tests
 
   DISCONNECTING = true

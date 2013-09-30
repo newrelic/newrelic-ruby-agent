@@ -39,8 +39,20 @@ module NewRelic
         end
 
         def check_for_and_handle_agent_commands
-          results = invoke_commands(get_agent_commands)
+          commands = get_agent_commands
+
+          stop_xray_sessions unless active_xray_command?(commands)
+
+          results = invoke_commands(commands)
           new_relic_service.agent_command_results(results) unless results.empty?
+        end
+
+        def stop_xray_sessions
+          self.xray_session_collection.stop_all_sessions
+        end
+
+        def active_xray_command?(commands)
+          commands.any? {|command| command.name == 'active_xray_sessions'}
         end
 
         NO_PROFILES_TO_SEND = {}.freeze
@@ -83,14 +95,13 @@ module NewRelic
         def get_agent_commands
           commands = new_relic_service.get_agent_commands
           NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
-          commands
+          commands.map {|collector_command| AgentCommand.new(collector_command)}
         end
 
-        def invoke_commands(collector_commands)
+        def invoke_commands(agent_commands)
           results = {}
 
-          collector_commands.each do |collector_command|
-            agent_command = AgentCommand.new(collector_command)
+          agent_commands.each do |agent_command|
             results[agent_command.id.to_s] = invoke_command(agent_command)
           end
 
