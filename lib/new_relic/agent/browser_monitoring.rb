@@ -229,7 +229,7 @@ module NewRelic
             :agent => NewRelic::Agent.config[:js_agent_file]
           }
 
-          html_safe_if_needed("\n<script type=\"text/javascript\">NREUM.info=#{js_data.to_json}</script>")
+          html_safe_if_needed("\n<script type=\"text/javascript\">NREUM.info=#{NewRelic.json_dump(js_data)}</script>")
         else
           obfuscated_transaction_name = obfuscate(config, browser_monitoring_transaction_name)
 
