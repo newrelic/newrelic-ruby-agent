@@ -36,7 +36,7 @@ module NewRelic
           )
 
           @started_at = Time.now
-          @duration = profile.duration
+          @duration = profile.duration if profile
         end
 
         def stop(report_data)

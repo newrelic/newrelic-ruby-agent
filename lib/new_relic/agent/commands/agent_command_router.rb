@@ -68,6 +68,7 @@ module NewRelic
 
         def format_harvest_data(profiles)
           if profiles.empty?
+            NewRelic::Agent.logger.debug "No thread profiles with data found to send."
             NO_PROFILES_TO_SEND
           else
             log_profiles(profiles)
