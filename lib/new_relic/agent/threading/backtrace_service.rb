@@ -8,6 +8,10 @@ module NewRelic
       class BacktraceService
         ALL_TRANSACTIONS = "**ALL**".freeze
 
+        def self.is_supported?
+          RUBY_VERSION >= "1.9.2"
+        end
+
         attr_reader :worker_loop, :buffer
         attr_accessor :worker_thread, :profile_agent_code
 

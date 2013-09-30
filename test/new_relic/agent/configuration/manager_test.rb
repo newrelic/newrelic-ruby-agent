@@ -5,6 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/configuration/mask_defaults'
+require 'new_relic/agent/threading/backtrace_service'
 
 module NewRelic::Agent::Configuration
   class ManagerTest < Test::Unit::TestCase
@@ -153,7 +154,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_masks_thread_profiler
-      supported = NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
+      supported = NewRelic::Agent::Threading::BacktraceService.is_supported?
       reported_config = @manager.to_collector_hash
 
       if supported

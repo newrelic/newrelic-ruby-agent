@@ -7,6 +7,7 @@ require 'base64'
 require 'thread'
 require 'timeout'
 require 'zlib'
+require 'new_relic/agent/threading/backtrace_service'
 require 'new_relic/agent/threading/threaded_test_case'
 require 'new_relic/agent/commands/thread_profiler_session'
 
@@ -42,7 +43,7 @@ module ThreadProfilerSessionTestHelpers
   end
 end
 
-if !NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
+if !NewRelic::Agent::Threading::BacktraceService.is_supported?
 
   class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
     include ThreadProfilerSessionTestHelpers
@@ -53,7 +54,7 @@ if !NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
     end
 
     def test_thread_profiling_isnt_supported
-      assert_equal false, NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
+      assert_equal false, NewRelic::Agent::Threading::BacktraceService.is_supported?
     end
 
     def test_stop_is_safe_when_not_supported
@@ -92,7 +93,7 @@ else
     end
 
     def test_is_supported
-      assert NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
+      assert NewRelic::Agent::Threading::BacktraceService.is_supported?
     end
 
     def test_is_not_running

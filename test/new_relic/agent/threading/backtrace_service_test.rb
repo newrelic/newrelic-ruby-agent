@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/threading/backtrace_service'
 require 'new_relic/agent/threading/threaded_test_case'
 
-if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
+if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
   module NewRelic::Agent::Threading
     class BacktraceServiceTest < Test::Unit::TestCase
