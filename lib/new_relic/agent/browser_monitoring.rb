@@ -191,7 +191,6 @@ module NewRelic
 
       def use_beta_js_agent?
         if Agent.config[:js_errors_beta] && Agent.config[:js_agent_loader]
-          ::NewRelic::Agent.logger.debug "Beta JavaScript error reporting enabled."
           true
         else
           false

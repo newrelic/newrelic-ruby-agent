@@ -28,10 +28,16 @@ module NewRelic
       # Creates a new browser configuration data. Argument is a hash
       # of configuration values from the server
       def initialize
-        @browser_timing_header = build_browser_timing_header
-        ::NewRelic::Agent.logger.debug("Browser timing header: #{@browser_timing_header.inspect}")
-        @browser_timing_static_footer = build_load_file_js
-        ::NewRelic::Agent.logger.debug("Browser timing static footer: #{@browser_timing_static_footer.inspect}")
+        if Agent.config[:js_errors_beta] && Agent.config[:js_agent_loader]
+          ::NewRelic::Agent.logger.debug("Beta JS errors functionality enabled")
+          ::NewRelic::Agent.logger.debug("JS agent loader version: #{Agent.config[:js_agent_loader_version]}")
+        else
+          @browser_timing_header = build_browser_timing_header
+          ::NewRelic::Agent.logger.debug("Browser timing header: #{@browser_timing_header.inspect}")
+          @browser_timing_static_footer = build_load_file_js
+          ::NewRelic::Agent.logger.debug("Browser timing static footer: #{@browser_timing_static_footer.inspect}")
+        end
+
         if Agent.config[:'rum.jsonp']
           ::NewRelic::Agent.logger.debug("Real User Monitoring is using JSONP protocol")
           @finish_command = 'nrfj'
