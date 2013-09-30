@@ -177,11 +177,7 @@ module NewRelic
       end
 
       def use_beta_js_agent?
-        if Agent.config[:js_errors_beta] && Agent.config[:js_agent_loader]
-          true
-        else
-          false
-        end
+        return Agent.config[:js_errors_beta] && Agent.config[:js_agent_loader]
       end
 
       # NOTE: This method may be overridden for internal prototyping, so should
