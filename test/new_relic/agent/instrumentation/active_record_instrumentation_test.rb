@@ -348,6 +348,10 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_blocked_instrumentation
+    #require 'new_relic/agent/threading/agent_thread'
+    #puts "#{NewRelic::Agent::Threading::AgentThread.list.map {|t| t[:caller]}}"
+      puts "THREADS! #{::Thread.list.length}"
+
     ActiveRecordFixtures::Order.add_delay
     NewRelic::Agent.disable_all_tracing do
       perform_action_with_newrelic_trace :name => 'bogosity' do

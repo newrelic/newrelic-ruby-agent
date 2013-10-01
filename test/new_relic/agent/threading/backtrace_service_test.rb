@@ -450,6 +450,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def test_adding_subscriptions_is_thread_safe
         @service.worker_loop.propagate_errors = true
+        @service.worker_loop.period = 10
 
         @service.subscribe('foo', { 'sample_period' => 0.01 })
 
@@ -458,10 +459,36 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
           @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
         end
 
+        puts "THREADS IN SAFETY!! #{::Thread.list.length}"
+        require 'new_relic/agent/threading/agent_thread'
+        puts "#{NewRelic::Agent::Threading::AgentThread.list.map {|t| t[:caller]}.join("\n\n")}"
+
         @service.unsubscribe('foo')
 
-        @service.worker_thread.join
+        @service.worker_thread.kill
       end
+
+      #def test_adding_subscriptions_is_thread_safe
+      #  @service.worker_loop.stubs(:run)
+
+      #  @service.subscribe('foo', { 'sample_period' => 0.01 })
+
+      #  threads = []
+      #  2.times do
+      #    threads << Thread.new do
+      #      1000.times do
+      #        @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
+      #        @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
+      #        print "!"
+      #      end
+      #    end
+      #  end
+
+      #  puts "THREADS! #{::Thread.list.length}"
+      #  @service.unsubscribe('foo')
+
+      #  threads.each{|t| t.join}
+      #end
     end
 
   end

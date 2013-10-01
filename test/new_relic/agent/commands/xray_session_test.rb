@@ -7,6 +7,7 @@ require 'new_relic/agent/commands/xray_session'
 
 module NewRelic::Agent::Commands
   class XraySessionTest < Test::Unit::TestCase
+
     def test_run_profiler
       session = XraySession.new('run_profiler' => true)
       assert session.run_profiler?

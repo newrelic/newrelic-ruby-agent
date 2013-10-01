@@ -255,6 +255,11 @@ module NewRelic::Agent::Commands
       end
 
       def test_concurrency_on_access_to_sessions
+        # Our usage in this test will spin up tons of threads when we pound
+        # the commands. Since we are only checking locking around @sessions,
+        # don't let the backtrace service spin up threads...
+        @backtrace_service.stubs(:subscribe)
+
         harvest_thread = Thread.new do
           Thread.current.abort_on_exception = true
           500.times do
@@ -268,7 +273,7 @@ module NewRelic::Agent::Commands
         end
 
         harvest_thread.join
-        @backtrace_service.worker_thread.join
+        assert_nil @backtrace_service.worker_thread
       end
 
     else
