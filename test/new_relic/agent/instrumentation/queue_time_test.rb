@@ -59,7 +59,6 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
 
   def test_parse_frontend_timestamp_from_header_missing_t_equals
     header = { 'HTTP_X_REQUEST_START' => (Time.now.to_f - 60).to_s }
-    sleep 2
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
