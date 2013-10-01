@@ -226,17 +226,6 @@ module NewRelic::Agent::Commands
       assert_equal false, session.active?
     end
 
-    def test_starting_and_stopping_for_same_transaction_in_one_call
-      handle_command_for(SECOND_ID)
-      assert_equal true, sessions.include?(SECOND_ID)
-      assert_not_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
-
-      handle_command_for(ANOTHER_ID_FOR_SECOND)
-      assert_equal false, sessions.include?(SECOND_ID)
-      assert_equal true, sessions.include?(ANOTHER_ID_FOR_SECOND)
-      assert_not_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
-    end
-
     def test_before_harvest_event_prunes_finished_sessions
       freeze_time
 
@@ -275,6 +264,17 @@ module NewRelic::Agent::Commands
 
         profiles = @sessions.harvest_thread_profiles
         assert_equal_unordered([profile1], profiles)
+      end
+
+      def test_starting_and_stopping_for_same_transaction_in_one_call
+        handle_command_for(SECOND_ID)
+        assert_equal true, sessions.include?(SECOND_ID)
+        assert_not_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
+
+        handle_command_for(ANOTHER_ID_FOR_SECOND)
+        assert_equal false, sessions.include?(SECOND_ID)
+        assert_equal true, sessions.include?(ANOTHER_ID_FOR_SECOND)
+        assert_not_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
       end
 
       def test_concurrency_on_access_to_sessions
