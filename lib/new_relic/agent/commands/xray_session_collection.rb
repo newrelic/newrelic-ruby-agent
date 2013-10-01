@@ -60,6 +60,10 @@ module NewRelic
           profiles.compact
         end
 
+        def stop_all_sessions
+          deactivate_for_incoming_sessions([])
+        end
+
         def cleanup_finished_sessions
           finished_session_ids.each do |id|
             NewRelic::Agent.logger.debug("Finished X-Ray session #{id} by duration. Removing it from active sessions.")
