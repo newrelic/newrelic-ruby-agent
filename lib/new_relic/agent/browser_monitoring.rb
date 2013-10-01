@@ -195,20 +195,20 @@ module NewRelic
       def footer_js_string(config)
         if (use_beta_js_agent?)
           js_data = {
-            :txnParam => config.finish_command,
-            :beacon => NewRelic::Agent.config[:beacon],
-            :errorBeacon => NewRelic::Agent.config[:error_beacon],
-            :licenseKey => NewRelic::Agent.config[:browser_key],
-            :applicationID => NewRelic::Agent.config[:application_id],
-            :transactionName => obfuscate(config, browser_monitoring_transaction_name),
-            :queueTime => current_timings.queue_time_in_millis,
-            :applicationTime => current_timings.app_time_in_millis,
-            :ttGuid => tt_guid,
-            :agentToken => tt_token,
-            :user => obfuscate(config, transaction_attribute(:user)),
-            :account => obfuscate(config, transaction_attribute(:account)),
-            :product => obfuscate(config, transaction_attribute(:product)),
-            :agent => NewRelic::Agent.config[:js_agent_file]
+            'txnParam' => config.finish_command,
+            'beacon' => NewRelic::Agent.config[:beacon],
+            'errorBeacon' => NewRelic::Agent.config[:error_beacon],
+            'licenseKey' => NewRelic::Agent.config[:browser_key],
+            'applicationID' => NewRelic::Agent.config[:application_id],
+            'transactionName' => obfuscate(config, browser_monitoring_transaction_name),
+            'queueTime' => current_timings.queue_time_in_millis,
+            'applicationTime' => current_timings.app_time_in_millis,
+            'ttGuid' => tt_guid,
+            'agentToken' => tt_token,
+            'user' => obfuscate(config, transaction_attribute(:user)),
+            'account' => obfuscate(config, transaction_attribute(:account)),
+            'product' => obfuscate(config, transaction_attribute(:product)),
+            'agent' => NewRelic::Agent.config[:js_agent_file]
           }
 
           html_safe_if_needed("\n<script type=\"text/javascript\">NREUM.info=#{NewRelic.json_dump(js_data)}</script>")
