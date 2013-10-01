@@ -38,7 +38,10 @@ module NewRelic
         end
 
         def subscribe(transaction_name, command_arguments={})
-          return unless self.class.is_supported?
+          if !self.class.is_supported?
+            NewRelic::Agent.logger.debug("Backtracing not supported, so not subscribing transaction '#{transaction_name}'")
+            return
+          end
 
           NewRelic::Agent.logger.debug("Backtrace Service subscribing transaction '#{transaction_name}'")
 
