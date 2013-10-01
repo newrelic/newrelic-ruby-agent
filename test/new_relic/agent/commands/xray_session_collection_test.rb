@@ -238,9 +238,12 @@ module NewRelic::Agent::Commands
     end
 
     def test_before_harvest_event_prunes_finished_sessions
+      freeze_time
+
       handle_command_for(SECOND_ID)
       assert sessions.include?(SECOND_ID)
 
+      advance_time(1.0)
       @event_listener.notify(:before_harvest)
 
       assert_false sessions.include?(SECOND_ID)
