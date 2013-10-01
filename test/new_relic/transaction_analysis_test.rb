@@ -121,9 +121,5 @@ class NewRelic::TransactionAnalysisTest < Test::Unit::TestCase
     self.expects(:duration).returns(0.2)
     self.expects(:each_segment).multiple_yields(root_segment, other_segment)
     assert_equal 50.0, time_percentage(/Controller\/.*/)
-
-
-    #require 'new_relic/agent/threading/agent_thread'
-    #puts "#{NewRelic::Agent::Threading::AgentThread.list.map {|t| t[:caller]}}"
   end
 end

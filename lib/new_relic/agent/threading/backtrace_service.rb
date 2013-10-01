@@ -119,7 +119,6 @@ module NewRelic
           @running = true
           self.worker_thread = AgentThread.new('Backtrace Service') do
             begin
-              sleep 0.1
               # Not passing period because we expect it's already been set.
               self.worker_loop.run(&method(:poll))
             ensure
@@ -215,9 +214,6 @@ module NewRelic
           if @last_poll
             skew = poll_start - @last_poll - worker_loop.period
             NewRelic::Agent.record_metric('Supportability/ThreadProfiler/Skew', skew)
-
-            require 'thread'
-            #puts "THREADS! #{::Thread.list.map{|t|t[:caller]}}"
           end
           @last_poll = poll_start
         end

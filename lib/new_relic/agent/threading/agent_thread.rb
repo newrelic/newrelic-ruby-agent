@@ -10,7 +10,6 @@ module NewRelic
         def initialize(label)
           ::NewRelic::Agent.logger.debug("Creating New Relic thread: #{label}")
           self[:newrelic_label] = label
-          self[:caller] = self.to_s + "\n" + caller.join("\n\t")
           super
         end
 
