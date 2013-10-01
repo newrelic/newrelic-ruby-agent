@@ -8,6 +8,10 @@ module NewRelic
       class BacktraceService
         ALL_TRANSACTIONS = "**ALL**".freeze
 
+        def self.is_supported?
+          RUBY_VERSION >= "1.9.2"
+        end
+
         attr_reader :worker_loop, :buffer
         attr_accessor :worker_thread, :profile_agent_code
 
@@ -34,6 +38,11 @@ module NewRelic
         end
 
         def subscribe(transaction_name, command_arguments={})
+          if !self.class.is_supported?
+            NewRelic::Agent.logger.debug("Backtracing not supported, so not subscribing transaction '#{transaction_name}'")
+            return
+          end
+
           NewRelic::Agent.logger.debug("Backtrace Service subscribing transaction '#{transaction_name}'")
 
           profile = ThreadProfile.new(command_arguments)
@@ -48,6 +57,8 @@ module NewRelic
         end
 
         def unsubscribe(transaction_name)
+          return unless self.class.is_supported?
+
           NewRelic::Agent.logger.debug("Backtrace Service unsubscribing transaction '#{transaction_name}'")
           @lock.synchronize do
             @profiles.delete(transaction_name)
@@ -103,7 +114,8 @@ module NewRelic
         end
 
         def start
-          return if @running
+          return if @running || !self.class.is_supported?
+
           @running = true
           self.worker_thread = AgentThread.new('Backtrace Service') do
             begin

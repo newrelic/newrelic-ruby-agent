@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/threading/agent_thread'
+require 'new_relic/agent/threading/backtrace_service'
 require 'new_relic/agent/threading/thread_profile'
 
 module NewRelic
@@ -15,12 +16,8 @@ module NewRelic
           @backtrace_service = backtrace_service
         end
 
-        def self.is_supported?
-          RUBY_VERSION >= "1.9.2"
-        end
-
         def handle_start_command(agent_command)
-          raise_unsupported_error unless self.class.is_supported?
+          raise_unsupported_error unless NewRelic::Agent::Threading::BacktraceService.is_supported?
           raise_thread_profiler_disabled unless enabled?
           raise_already_started_error if running?
           start(agent_command)
@@ -39,7 +36,7 @@ module NewRelic
           )
 
           @started_at = Time.now
-          @duration = profile.duration
+          @duration = profile.duration if profile
         end
 
         def stop(report_data)

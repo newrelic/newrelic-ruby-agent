@@ -226,48 +226,64 @@ module NewRelic::Agent::Commands
       assert_false sessions.include?(SECOND_ID)
     end
 
-    def test_harvest_thread_profiles_pulls_data_from_backtrace_service
-      handle_command_for(FIRST_ID, SECOND_ID)
+    if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
-      profile0 = stub('profile0', :empty? => false)
-      profile1 = stub('profile1', :empty? => false)
+      def test_harvest_thread_profiles_pulls_data_from_backtrace_service
+        handle_command_for(FIRST_ID, SECOND_ID)
 
-      @backtrace_service.expects(:harvest).with(FIRST_TRANSACTION_NAME).returns(profile0)
-      @backtrace_service.expects(:harvest).with(SECOND_TRANSACTION_NAME).returns(profile1)
+        profile0 = stub('profile0', :empty? => false)
+        profile1 = stub('profile1', :empty? => false)
 
-      profiles = @sessions.harvest_thread_profiles
-      assert_equal_unordered([profile0, profile1], profiles)
-    end
+        @backtrace_service.expects(:harvest).with(FIRST_TRANSACTION_NAME).returns(profile0)
+        @backtrace_service.expects(:harvest).with(SECOND_TRANSACTION_NAME).returns(profile1)
 
-    def test_harvest_thread_profiles_doesnt_return_empty_profiles
-      handle_command_for(FIRST_ID, SECOND_ID)
+        profiles = @sessions.harvest_thread_profiles
+        assert_equal_unordered([profile0, profile1], profiles)
+      end
 
-      profile0 = stub('profile0', :empty? => true)
-      profile1 = stub('profile1', :empty? => false)
+      def test_harvest_thread_profiles_doesnt_return_empty_profiles
+        handle_command_for(FIRST_ID, SECOND_ID)
 
-      @backtrace_service.stubs(:harvest).with(FIRST_TRANSACTION_NAME).returns(profile0)
-      @backtrace_service.stubs(:harvest).with(SECOND_TRANSACTION_NAME).returns(profile1)
+        profile0 = stub('profile0', :empty? => true)
+        profile1 = stub('profile1', :empty? => false)
 
-      profiles = @sessions.harvest_thread_profiles
-      assert_equal_unordered([profile1], profiles)
-    end
+        @backtrace_service.stubs(:harvest).with(FIRST_TRANSACTION_NAME).returns(profile0)
+        @backtrace_service.stubs(:harvest).with(SECOND_TRANSACTION_NAME).returns(profile1)
 
-    def test_concurrency_on_access_to_sessions
-      harvest_thread = Thread.new do
-        Thread.current.abort_on_exception = true
-        500.times do
-          handle_command_for(FIRST_ID)
-          handle_command_for()
+        profiles = @sessions.harvest_thread_profiles
+        assert_equal_unordered([profile1], profiles)
+      end
+
+      def test_concurrency_on_access_to_sessions
+        harvest_thread = Thread.new do
+          Thread.current.abort_on_exception = true
+          500.times do
+            handle_command_for(FIRST_ID)
+            handle_command_for()
+          end
         end
+
+        500.times do
+          sessions.session_id_for_transaction_name(FIRST_TRANSACTION_NAME)
+        end
+
+        harvest_thread.join
+        @backtrace_service.worker_thread.join
       end
 
-      500.times do
-        sessions.session_id_for_transaction_name(FIRST_TRANSACTION_NAME)
+    else
+
+      def test_harvest_is_empty_if_not_supported
+        handle_command_for(FIRST_ID, SECOND_ID)
+
+        @backtrace_service.expects(:harvest).never
+
+        profiles = @sessions.harvest_thread_profiles
+        assert_equal([], profiles)
       end
 
-      harvest_thread.join
-      @backtrace_service.worker_thread.join
     end
+
 
     # Helpers
 

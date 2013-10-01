@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/threading/backtrace_service'
 require 'new_relic/agent/threading/threaded_test_case'
 
-if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
+if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
   module NewRelic::Agent::Threading
     class BacktraceServiceTest < Test::Unit::TestCase
@@ -464,5 +464,38 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       end
     end
 
+  end
+else
+  module NewRelic::Agent::Threading
+    class BacktraceServiceUnsupportedTest < Test::Unit::TestCase
+      def test_is_not_supported?
+        assert_false BacktraceService.is_supported?
+      end
+
+      def test_safely_ignores_subscribe
+        service = BacktraceService.new
+        service.subscribe('fine/ignore/me')
+
+        assert_false service.subscribed?('fine/ignore/me')
+      end
+
+      def test_safely_ignores_unsubscribe
+        service = BacktraceService.new
+
+        service.subscribe('fine/ignore/me')
+        service.unsubscribe('fine/ignore/me')
+
+        assert_false service.subscribed?('fine/ignore/me')
+      end
+
+      def test_cannot_start
+        service = BacktraceService.new
+
+        service.start
+
+        assert_false service.running?
+      end
+
+    end
   end
 end

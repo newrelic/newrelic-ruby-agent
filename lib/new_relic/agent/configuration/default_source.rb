@@ -91,7 +91,7 @@ module NewRelic
         end
 
         def self.thread_profiler_enabled
-          Proc.new { NewRelic::Agent::Commands::ThreadProfilerSession.is_supported? }
+          Proc.new { NewRelic::Agent::Threading::BacktraceService.is_supported? }
         end
 
         def self.browser_monitoring_auto_instrument

@@ -96,97 +96,101 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
   # Harvesting tests
 
-  DISCONNECTING = true
-  NOT_DISCONNECTING = false
+  if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
-  def test_harvest_data_to_send_not_started
-    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
-    assert_equal({}, result)
-  end
+    DISCONNECTING = true
+    NOT_DISCONNECTING = false
 
-  def test_harvest_data_to_send_with_profile_in_progress
-    start_profile('duration' => 1.0)
+    def test_harvest_data_to_send_not_started
+      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      assert_equal({}, result)
+    end
 
-    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
-    assert_equal({}, result)
-  end
+    def test_harvest_data_to_send_with_profile_in_progress
+      start_profile('duration' => 1.0)
 
-  def test_harvest_data_to_send_with_profile_completed
-    start_profile('duration' => 1.0)
+      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      assert_equal({}, result)
+    end
 
-    advance_time(1.1)
-    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+    def test_harvest_data_to_send_with_profile_completed
+      start_profile('duration' => 1.0)
 
-    assert_not_nil result[:profile_data]
-  end
+      advance_time(1.1)
+      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
 
-  def test_can_stop_multiple_times_safely
-    start_profile('duration' => 1.0)
+      assert_not_nil result[:profile_data]
+    end
 
-    advance_time(1.1)
-    agent_commands.thread_profiler_session.stop(true)
+    def test_can_stop_multiple_times_safely
+      start_profile('duration' => 1.0)
 
-    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
-    assert_not_nil result[:profile_data]
-  end
+      advance_time(1.1)
+      agent_commands.thread_profiler_session.stop(true)
 
-  def test_transmits_after_forced_stop
-    start_profile('duration' => 1.0)
+      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      assert_not_nil result[:profile_data]
+    end
 
-    agent_commands.thread_profiler_session.stop(true)
+    def test_transmits_after_forced_stop
+      start_profile('duration' => 1.0)
 
-    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
-    assert_not_nil result[:profile_data]
-  end
+      agent_commands.thread_profiler_session.stop(true)
 
-  def test_harvest_data_to_send_with_no_profile_disconnecting
-    result = agent_commands.harvest_data_to_send(DISCONNECTING)
-    assert_nil result[:profile_data]
-  end
+      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      assert_not_nil result[:profile_data]
+    end
 
-  def test_harvest_data_to_send_with_profile_in_progress_but_disconnecting
-    start_profile('duration' => 1.0)
+    def test_harvest_data_to_send_with_no_profile_disconnecting
+      result = agent_commands.harvest_data_to_send(DISCONNECTING)
+      assert_nil result[:profile_data]
+    end
 
-    result = agent_commands.harvest_data_to_send(DISCONNECTING)
-    assert_not_nil result[:profile_data]
-  end
+    def test_harvest_data_to_send_with_profile_in_progress_but_disconnecting
+      start_profile('duration' => 1.0)
 
-  def test_harvest_data_to_send_with_xray_sessions_in_progress
-    start_xray_session(123)
-    start_xray_session(456)
+      result = agent_commands.harvest_data_to_send(DISCONNECTING)
+      assert_not_nil result[:profile_data]
+    end
 
-    sample_on_profiles
+    def test_harvest_data_to_send_with_xray_sessions_in_progress
+      start_xray_session(123)
+      start_xray_session(456)
 
-    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      sample_on_profiles
 
-    assert_equal 2, result[:profile_data].length
-  end
+      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
 
-  def test_harvest_data_to_send_with_xray_sessions_and_thread_profile_in_progress
-    start_xray_session(123)
-    start_xray_session(456)
+      assert_equal 2, result[:profile_data].length
+    end
 
-    start_profile('duration' => 1.0)
+    def test_harvest_data_to_send_with_xray_sessions_and_thread_profile_in_progress
+      start_xray_session(123)
+      start_xray_session(456)
 
-    sample_on_profiles
+      start_profile('duration' => 1.0)
 
-    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      sample_on_profiles
 
-    assert_equal 2, result[:profile_data].length
-  end
+      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
 
-  def test_harvest_data_to_send_with_xray_sessions_and_completed_thread_profile
-    start_xray_session(123)
-    start_xray_session(456)
+      assert_equal 2, result[:profile_data].length
+    end
 
-    start_profile('duration' => 1.0)
+    def test_harvest_data_to_send_with_xray_sessions_and_completed_thread_profile
+      start_xray_session(123)
+      start_xray_session(456)
 
-    sample_on_profiles
-    advance_time(1.1)
+      start_profile('duration' => 1.0)
 
-    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      sample_on_profiles
+      advance_time(1.1)
 
-    assert_equal 3, result[:profile_data].length
+      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+
+      assert_equal 3, result[:profile_data].length
+    end
+
   end
 
   # Helpers

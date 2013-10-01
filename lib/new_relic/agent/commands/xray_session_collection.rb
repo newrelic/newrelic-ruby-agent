@@ -47,7 +47,11 @@ module NewRelic
           end
         end
 
+        NO_PROFILES = [].freeze
+
         def harvest_thread_profiles
+          return NO_PROFILES unless NewRelic::Agent::Threading::BacktraceService.is_supported?
+
           profiles = active_thread_profiling_sessions.map do |session|
             NewRelic::Agent.logger.debug("Harvesting profile for X-Ray session #{session.inspect}")
             @backtrace_service.harvest(session.key_transaction_name)
