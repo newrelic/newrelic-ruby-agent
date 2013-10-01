@@ -37,8 +37,8 @@ module NewRelic
           end
 
           incoming_ids = agent_command.arguments["xray_ids"]
-          activate_sessions(incoming_ids)
           deactivate_for_incoming_sessions(incoming_ids)
+          activate_sessions(incoming_ids)
         end
 
         def session_id_for_transaction_name(name)

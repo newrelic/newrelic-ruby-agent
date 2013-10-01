@@ -38,6 +38,14 @@ module NewRelic::Agent::Commands
       "run_profiler"         => true
     }
 
+    ANOTHER_ID_FOR_SECOND = 666
+    ANOTHER_FOR_SECOND_METADATA = {
+      "x_ray_id"             => ANOTHER_ID_FOR_SECOND,
+      "key_transaction_name" => SECOND_TRANSACTION_NAME,
+      "duration"             => 0.0,
+      "run_profiler"         => true
+    }
+
     def setup
       @new_relic_service  = stub
       NewRelic::Agent.instance.stubs(:service).returns(@new_relic_service)
@@ -52,6 +60,7 @@ module NewRelic::Agent::Commands
       @new_relic_service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
       @new_relic_service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
       @new_relic_service.stubs(:get_xray_metadata).with([FIRST_ID, SECOND_ID]).returns([FIRST_METADATA, SECOND_METADATA])
+      @new_relic_service.stubs(:get_xray_metadata).with([ANOTHER_ID_FOR_SECOND]).returns([ANOTHER_FOR_SECOND_METADATA])
     end
 
     def teardown
@@ -215,6 +224,17 @@ module NewRelic::Agent::Commands
       handle_command_for(*[])
 
       assert_equal false, session.active?
+    end
+
+    def test_starting_and_stopping_for_same_transaction_in_one_call
+      handle_command_for(SECOND_ID)
+      assert_equal true, sessions.include?(SECOND_ID)
+      assert_not_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
+
+      handle_command_for(ANOTHER_ID_FOR_SECOND)
+      assert_equal false, sessions.include?(SECOND_ID)
+      assert_equal true, sessions.include?(ANOTHER_ID_FOR_SECOND)
+      assert_not_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
     end
 
     def test_before_harvest_event_prunes_finished_sessions
