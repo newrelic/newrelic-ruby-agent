@@ -611,9 +611,12 @@ module NewRelic
 
           # Handles an unknown error in the worker thread by logging
           # it and disconnecting the agent, since we are now in an
-          # unknown state
+          # unknown state.
           def handle_other_error(error)
-            ::NewRelic::Agent.logger.error "Terminating worker loop.", error
+            ::NewRelic::Agent.logger.error "Unhandled error in worker thread, disconnecting this agent process:"
+            # These errors are fatal (that is, they will prevent the agent from
+            # reporting entirely), so we really want backtraces when they happen
+            ::NewRelic::Agent.logger.log_exception(:error, error)
             disconnect
           end
 
@@ -910,7 +913,7 @@ module NewRelic
           handle_license_error(e)
         rescue NewRelic::Agent::UnrecoverableAgentException => e
           handle_unrecoverable_agent_error(e)
-        rescue Timeout::Error, StandardError => e
+        rescue Timeout::Error => e
           log_error(e)
           if opts[:keep_retrying]
             note_connect_failure
@@ -920,6 +923,8 @@ module NewRelic
           else
             disconnect
           end
+        rescue StandardError => e
+          handle_other_error(e)
         end
 
         # Who am I? Well, this method can tell you your hostname.
