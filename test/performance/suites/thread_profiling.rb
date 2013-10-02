@@ -69,7 +69,13 @@ class ThreadProfiling < Performance::TestCase
       (iterations / 10).times do
         t0 = Time.now.to_f
         @service.poll
-        @service.on_transaction_finished('eagle', t0, Time.now.to_f-t0, {}, @threads.sample)
+        payload = {
+          :name => 'eagle',
+          :start_timestamp => t0,
+          :duration => Time.now.to_f-t0,
+          :thread => @threads.sample
+        }
+        @service.on_transaction_finished(payload)
       end
     end
     @service.unsubscribe('eagle')

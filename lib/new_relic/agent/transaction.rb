@@ -206,7 +206,13 @@ module NewRelic
 
         # these tear everything down so need to be done after merging stats
         if self.root?
-          agent.events.notify(:transaction_finished, @name, start_time.to_f, end_time.to_f - start_time.to_f, overview_metrics)
+          payload = {
+            :name             => @name,
+            :start_timestamp  => start_time.to_f,
+            :duration         => end_time.to_f - start_time.to_f,
+            :overview_metrics => overview_metrics
+          }
+          agent.events.notify(:transaction_finished, payload)
           agent.stats_engine.end_transaction
         end
       end

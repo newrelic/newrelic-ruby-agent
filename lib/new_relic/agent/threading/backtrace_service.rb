@@ -92,7 +92,11 @@ module NewRelic
           end
         end
 
-        def on_transaction_finished(name, start, duration, options={}, thread=Thread.current)
+        def on_transaction_finished(payload)
+          name     = payload[:name]
+          start    = payload[:start_timestamp]
+          duration = payload[:duration]
+          thread   = payload[:thread] || Thread.current
           @lock.synchronize do
             backtraces = @buffer.delete(thread)
             if backtraces && @profiles.has_key?(name)

@@ -16,25 +16,21 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_samples_on_transaction_finished_event
     with_sampler_config do
-      advance_time( 0.60 )
-      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.095 )
-
+      generate_request
       assert_equal 1, @sampler.samples.length
     end
   end
 
   def test_samples_on_transaction_finished_event_include_options
     with_sampler_config do
-      advance_time( 0.60 )
-      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.095, :foo => :bar )
-
+      generate_request('name', :foo => :bar)
       assert_equal :bar, @sampler.samples.first[:foo]
     end
   end
 
   def test_can_disable_sampling
     with_sampler_config( :'request_sampler.enabled' => false ) do
-      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
+      generate_request
       assert @sampler.samples.empty?
     end
   end
@@ -80,8 +76,14 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   # Helpers
   #
 
-  def generate_request(name='whatever')
-    @event_listener.notify( :transaction_finished, "Controller/#{name}", Time.now.to_f, 0.1)
+  def generate_request(name='whatever', overview_metrics={})
+    payload = {
+      :name => "Controller/#{name}",
+      :start_timestamp => Time.now.to_f,
+      :duration => 0.1,
+      :overview_metrics => overview_metrics
+    }
+    @event_listener.notify(:transaction_finished, payload)
   end
 
   def with_sampler_config(options = {})
