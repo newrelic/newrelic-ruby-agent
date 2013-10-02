@@ -101,19 +101,14 @@ module NewRelic::Agent
     end
 
     def test_doesnt_add_header_if_no_id_on_agent
-      # Since a +nil+ will make it fall back to the config installed in setup,
-      # we need to remove that first in order to test the no-id case
-      newconfig = @config.merge( :cross_process_id => nil )
-      NewRelic::Agent.config.remove_config( @config )
-
-      with_config( newconfig ) do
+      with_config( :cross_process_id => '' ) do
         when_request_runs
         assert_nil response_app_data
       end
     end
 
     def test_doesnt_add_header_if_config_disabled
-      with_config(:"cross_application_tracer.enabled" => false) do
+      with_config(:"cross_application_tracer.enabled" => false, :cross_application_tracing => false) do
         when_request_runs
         assert_nil response_app_data
       end

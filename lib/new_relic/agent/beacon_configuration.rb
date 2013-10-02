@@ -103,7 +103,7 @@ EOS
       # Returns the header string, properly html-safed if needed
       def build_browser_timing_header
         return "" if !enabled?
-        return "" if Agent.config[:browser_key].nil?
+        return "" if Agent.config[:browser_key].empty?
 
         value = javascript_header
         if value.respond_to?(:html_safe)

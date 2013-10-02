@@ -54,7 +54,7 @@ module NewRelic
         # needs it in host form
         return host if Agent.config[:ssl]
         # We won't talk directly to the host, so no need to resolve if proxy configured
-        return host if Agent.config[:proxy_host]
+        return host unless Agent.config[:proxy_host].empty?
         return nil if host.nil? || host.downcase == "localhost"
         ip = resolve_ip_address(host)
 

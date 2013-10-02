@@ -246,7 +246,7 @@ module NewRelic
         },
         :monitor_mode => {
           :default => DefaultSource.monitor_mode,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :description => 'Enable or disable transmission of data to the New Relic data collection service.'
         },
@@ -352,6 +352,30 @@ module NewRelic
           :type => Boolean,
           :description => "Enable or disable SSL for transmissions to the New Relic data collection service."
         },
+        :proxy_host => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Host for proxy server.'
+        },
+        :proxy_port => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Port for proxy server.'
+        },
+        :proxy_user => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'User for proxy server.'
+        },
+        :proxy_pass => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Password for proxy server.'
+        },
         :sync_startup => {
           :default => false,
           :public => true,
@@ -412,6 +436,12 @@ module NewRelic
           :type => Boolean,
           :description => '(Deprecated) Enable or disable retrying failed connections to the New Relic data collection service.'
         },
+        :force_reconnect => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Force a new connection to the server before running the worker loop. Creates a separate agent run and is recorded as a separate instance by the New Relic data collection service.'
+        },
         :report_instance_busy => {
           :default => true,
           :public => false,
@@ -459,6 +489,12 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable resque instrumentation.'
+        },
+        :disable_sidekiq => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable sidekiq instrumentation.'
         },
         :disable_dj => {
           :default => false,
@@ -574,6 +610,24 @@ module NewRelic
           :type => Fixnum,
           :description => 'Maximum number of transaction trace segments to record in a single transaction trace.'
         },
+        :disable_sequel_instrumentation => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable sequel instrumentation.'
+        },
+        :override_sql_obfuscation_adapter => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :description => "Override for the sql obfuscation adapter."
+        },
+        :disable_database_instrumentation => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable sequel instrumentation.'
+        },
         :'slow_sql.enabled' => {
           :default => DefaultSource.slow_sql_enabled,
           :public => true,
@@ -634,11 +688,47 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable jsonp as the default means of communicating with the beacon.'
         },
+        :episodes_file => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Name of the file containing javascript to include with rum injection.'
+        },
         :'rum.load_episodes_file' => {
           :default => true,
           :public => false,
           :type => Boolean,
           :description => 'Enable or disable real user monitoring.'
+        },
+        :browser_key => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Real user monitoring license key for the browser timing header.'
+        },
+        :beacon => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Beacon for real user monitoring.'
+        },
+        :error_beacon => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Error beacon for real user monitoring.'
+        },
+        :application_id => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Application ID for real user monitoring.'
+        },
+        :js_agent_file => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Javascript agent file for real user monitoring.'
         },
         :'browser_monitoring.auto_instrument' => {
           :default => DefaultSource.browser_monitoring_auto_instrument,
@@ -675,6 +765,24 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable cross-application tracing.'
+        },
+        :cross_application_tracing => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :description => 'Enable or disable cross-application tracing.'
+        },
+        :encoding_key => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Encoding key for cross-application tracing.'
+        },
+        :cross_process_id => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => 'Cross process ID for cross-application tracing.'
         },
         :'thread_profiler.enabled' => {
           :default => DefaultSource.thread_profiler_enabled,
