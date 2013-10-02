@@ -16,7 +16,6 @@ module NewRelic
         gather_startup_logs
       end
 
-
       def fatal(*msgs)
         format_and_send(:fatal, msgs)
       end
@@ -140,46 +139,6 @@ module NewRelic
 
       def gather_startup_logs
         StartupLogger.instance.dump(self)
-      end
-    end
-
-    # Base class for startup logging and testing in multiverse
-    class MemoryLogger
-      def initialize
-        @messages = []
-      end
-
-      def is_startup_logger?
-        true
-      end
-
-      attr_accessor :messages, :level
-
-      def fatal(*msgs)
-        messages << [:fatal, msgs]
-      end
-
-      def error(*msgs)
-        messages << [:error, msgs]
-      end
-
-      def warn(*msgs)
-        messages << [:warn, msgs]
-      end
-
-      def info(*msgs)
-        messages << [:info, msgs]
-      end
-
-      def debug(*msgs)
-        messages << [:debug, msgs]
-      end
-
-      def dump(logger)
-        messages.each do |msg|
-          logger.send(msg[0], msg[1])
-        end
-        messages.clear
       end
     end
 
