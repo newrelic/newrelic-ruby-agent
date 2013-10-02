@@ -102,6 +102,7 @@ class NewRelic::Agent::RequestSampler
   # Event handler for the :transaction_finished event.
   def on_transaction_finished(payload)
     return unless @enabled
+    return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
     sample = {
       TIMESTAMP_KEY => float(payload[:start_timestamp]),
       NAME_KEY      => string(payload[:name]),

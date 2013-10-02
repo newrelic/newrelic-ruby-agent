@@ -21,9 +21,9 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
-  def test_samples_on_transaction_finished_event_include_options
+  def test_samples_on_transaction_finished_event_includes_overview_metrics
     with_sampler_config do
-      generate_request('name', :foo => :bar)
+      generate_request('name', :overview_metrics => {:foo => :bar})
       assert_equal :bar, @sampler.samples.first[:foo]
     end
   end
@@ -58,6 +58,14 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
+  def test_does_not_record_requests_from_background_tasks
+    with_sampler_config do
+      generate_request('a', :type => :controller)
+      generate_request('b', :type => :background)
+      assert_equal 1, @sampler.samples.size
+    end
+  end
+
   def test_does_not_drop_samples_when_used_from_multiple_threads
     with_sampler_config( :'request_sampler.max_samples' => 100 * 100 ) do
       threads = []
@@ -76,13 +84,14 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   # Helpers
   #
 
-  def generate_request(name='whatever', overview_metrics={})
+  def generate_request(name='whatever', options={})
     payload = {
       :name => "Controller/#{name}",
+      :type => :controller,
       :start_timestamp => Time.now.to_f,
       :duration => 0.1,
-      :overview_metrics => overview_metrics
-    }
+      :overview_metrics => {}
+    }.merge(options)
     @event_listener.notify(:transaction_finished, payload)
   end
 
