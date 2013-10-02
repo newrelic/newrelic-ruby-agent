@@ -206,15 +206,20 @@ module NewRelic
 
         # these tear everything down so need to be done after merging stats
         if self.root?
-          payload = {
-            :name             => @name,
-            :start_timestamp  => start_time.to_f,
-            :duration         => end_time.to_f - start_time.to_f,
-            :overview_metrics => overview_metrics
-          }
-          agent.events.notify(:transaction_finished, payload)
+          send_transaction_finished_event(start_time, end_time, overview_metrics)
           agent.stats_engine.end_transaction
         end
+      end
+
+      def send_transaction_finished_event(start_time, end_time, overview_metrics)
+        payload = {
+          :name             => @name,
+          :type             => @type,
+          :start_timestamp  => start_time.to_f,
+          :duration         => end_time.to_f - start_time.to_f,
+          :overview_metrics => overview_metrics
+        }
+        agent.events.notify(:transaction_finished, payload)
       end
 
       def merge_stats_hash
