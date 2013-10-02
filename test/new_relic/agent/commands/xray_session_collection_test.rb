@@ -267,6 +267,10 @@ module NewRelic::Agent::Commands
       end
 
       def test_starting_and_stopping_for_same_transaction_in_one_call
+        # Don't run an actual thread--our shutdown on SECOND_ID leaves a thread
+        # that potentially tromples on other tests
+        @backtrace_service.stubs(:start)
+
         handle_command_for(SECOND_ID)
         assert_equal true, sessions.include?(SECOND_ID)
         assert_not_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
