@@ -376,8 +376,12 @@ module NewRelic
         self.current && self.current.recording_web_transaction?
       end
 
+      def self.transaction_type_is_web?(type)
+        [:controller, :uri, :rack, :sinatra].include?(type)
+      end
+
       def recording_web_transaction?
-        [:controller, :uri, :rack, :sinatra].include?(@type)
+        self.class.transaction_type_is_web?(@type)
       end
 
       # Make a safe attempt to get the referer from a request object, generally successful when
