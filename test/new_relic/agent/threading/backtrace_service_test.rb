@@ -104,7 +104,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_harvest_sets_finished_at_on_returned_thread_profile
         fake_worker_loop(@service)
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.subscribe('foo')
         harvested_profile = @service.harvest('foo')
 
@@ -179,23 +179,23 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
 
       def test_subscribe_adjusts_worker_loop_period
-        dummy_loop = fake_worker_loop(@service)
+        fake_worker_loop(@service)
 
         @service.subscribe('foo', 'sample_period' => 10)
-        assert_equal(10, dummy_loop.period)
+        assert_has_period(10)
 
         @service.subscribe('bar', 'sample_period' => 5)
-        assert_equal(5, dummy_loop.period)
+        assert_has_period(5)
       end
 
       def test_unsubscribe_adjusts_worker_loop_period
-        dummy_loop = fake_worker_loop(@service)
+        fake_worker_loop(@service)
 
         @service.subscribe('foo', 'sample_period' => 10)
         @service.subscribe('bar', 'sample_period' => 5)
         @service.unsubscribe('bar')
 
-        assert_equal(10, dummy_loop.period)
+        assert_has_period(10)
       end
 
       def test_subscribe_sets_profile_agent_code
@@ -270,7 +270,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         thread = fake_thread(:bucket => :request)
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.poll
 
         profile.expects(:aggregate).with(thread.backtrace, :request, thread)
@@ -283,7 +283,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         thread = fake_thread(:bucket => :request)
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.poll
 
         profile.expects(:aggregate).never
@@ -298,7 +298,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.poll
 
         profile.expects(:aggregate).with(thread0.backtrace, :request, thread0).once
@@ -315,7 +315,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         5.times do
           @service.poll
           advance_time(1.0)
@@ -332,7 +332,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.poll
 
         profile.expects(:aggregate).never
@@ -347,7 +347,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.poll
 
         profile.expects(:aggregate).once
@@ -387,8 +387,6 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def test_poll_records_polling_time
         fake_worker_loop(@service)
-
-        freeze_time
 
         profile = @service.subscribe('foo')
         def profile.increment_poll_count
