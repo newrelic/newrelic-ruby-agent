@@ -43,25 +43,36 @@ class NewRelic::Agent::RequestSampler
   ######
 
   ### Fetch a copy of the sampler's gathered samples. (Synchronized)
+
   def samples
     return self.synchronize { @samples.to_a }
   end
-
 
   # Clear any existing samples and reset the last sample time. (Synchronized)
   def reset
     NewRelic::Agent.logger.debug "Resetting RequestSampler"
 
     sample_count, request_count = 0
+    old_samples = nil
 
     self.synchronize do
       sample_count = @samples.size
       request_count = @samples.seen
+      old_samples = @samples.to_a
       @samples.reset
       @notified_full = false
     end
 
     record_sampling_rate(request_count, sample_count) if @enabled
+    old_samples
+  end
+
+  # Merge samples back into the buffer, for example after a failed
+  # transmission to the collector. (Synchronized)
+  def merge(old_samples)
+    self.synchronize do
+      old_samples.each { |s| @samples.append(s) }
+    end
   end
 
   def record_sampling_rate(request_count, sample_count)

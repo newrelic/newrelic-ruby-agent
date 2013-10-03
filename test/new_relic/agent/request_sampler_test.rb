@@ -32,6 +32,39 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
+  def test_harvest_returns_previous_sample_list
+    with_sampler_config do
+      5.times { generate_request }
+
+      old_samples = @sampler.reset
+
+      assert_equal 5, old_samples.size
+      assert_equal 0, @sampler.samples.size
+    end
+  end
+
+  def test_merge_merges_samples_back_into_buffer
+    with_sampler_config do
+      5.times { generate_request }
+      old_samples = @sampler.reset
+      5.times { generate_request }
+
+      @sampler.merge(old_samples)
+      assert_equal(10, @sampler.samples.size)
+    end
+  end
+
+  def merge_abides_by_max_samples_limit
+    with_sampler_config(:'request_sampler.max_samples' => 5) do
+      4.times { generate_request }
+      old_samples = @sampler.reset
+      4.times { generate_request }
+
+      @sampler.merge(old_samples)
+      assert_equal(5, @sampler.samples.size)
+    end
+  end
+
   def test_can_disable_sampling
     with_sampler_config( :'request_sampler.enabled' => false ) do
       @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
