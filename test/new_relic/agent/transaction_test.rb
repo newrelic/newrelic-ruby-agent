@@ -222,9 +222,12 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
   end
 
   def test_end_fires_a_transaction_finished_event
-    name, timestamp, duration = nil
-    NewRelic::Agent.subscribe(:transaction_finished) do |*args|
-      name, timestamp, duration = *args
+    name, timestamp, duration, type = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      name = payload[:name]
+      timestamp = payload[:start_timestamp]
+      duration = payload[:duration]
+      type = payload[:type]
     end
 
     start_time = freeze_time
@@ -237,12 +240,13 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     assert_equal 'Controller/foo/1/bar/22', name
     assert_equal start_time.to_f, timestamp
     assert_equal 5.0, duration
+    assert_equal :controller, type
   end
 
   def test_end_fires_a_transaction_finished_event_with_overview_metrics
     options = nil
-    NewRelic::Agent.subscribe(:transaction_finished) do |_, _, _, opts|
-      options = opts
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      options = payload[:overview_metrics]
     end
 
     NewRelic::Agent::Transaction.start(:controller)

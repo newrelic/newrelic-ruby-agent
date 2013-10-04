@@ -206,9 +206,20 @@ module NewRelic
 
         # these tear everything down so need to be done after merging stats
         if self.root?
-          agent.events.notify(:transaction_finished, @name, start_time.to_f, end_time.to_f - start_time.to_f, overview_metrics)
+          send_transaction_finished_event(start_time, end_time, overview_metrics)
           agent.stats_engine.end_transaction
         end
+      end
+
+      def send_transaction_finished_event(start_time, end_time, overview_metrics)
+        payload = {
+          :name             => @name,
+          :type             => @type,
+          :start_timestamp  => start_time.to_f,
+          :duration         => end_time.to_f - start_time.to_f,
+          :overview_metrics => overview_metrics
+        }
+        agent.events.notify(:transaction_finished, payload)
       end
 
       def merge_stats_hash
@@ -370,8 +381,12 @@ module NewRelic
         self.current && self.current.recording_web_transaction?
       end
 
+      def self.transaction_type_is_web?(type)
+        [:controller, :uri, :rack, :sinatra].include?(type)
+      end
+
       def recording_web_transaction?
-        [:controller, :uri, :rack, :sinatra].include?(@type)
+        self.class.transaction_type_is_web?(@type)
       end
 
       # Make a safe attempt to get the referer from a request object, generally successful when

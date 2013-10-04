@@ -100,14 +100,15 @@ class NewRelic::Agent::RequestSampler
   end
 
   # Event handler for the :transaction_finished event.
-  def on_transaction_finished( metric, start_timestamp, duration, options={} )
+  def on_transaction_finished(payload)
     return unless @enabled
+    return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
     sample = {
-      TIMESTAMP_KEY => float(start_timestamp),
-      NAME_KEY      => string(metric),
-      DURATION_KEY  => float(duration),
+      TIMESTAMP_KEY => float(payload[:start_timestamp]),
+      NAME_KEY      => string(payload[:name]),
+      DURATION_KEY  => float(payload[:duration]),
       TYPE_KEY      => SAMPLE_TYPE
-    }.merge(options)
+    }.merge((payload[:overview_metrics] || {}))
 
     is_full = self.synchronize { @samples.append(sample) }
     notify_full if is_full && !@notified_full
