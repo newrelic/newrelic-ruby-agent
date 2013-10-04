@@ -712,17 +712,23 @@ module NewRelic
           :type => String,
           :description => 'Marshaller to use when marshalling data for transmission to the New Relic data collection service (e.g json, pruby).'
         },
-        :'request_sampler.enabled' => {
+        :'analytics_events.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable the request sampler.'
+          :description => 'Enable or disable the analytics event sampling.'
         },
-        :'request_sampler.max_samples' => {
+        :'analytics_events.transactions.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable the analytics event sampling for transactions.'
+        },
+        :'analytics_events.max_samples_stored' => {
           :default => 1200,
           :public => false,
           :type => Fixnum,
-          :description => 'Maximum number of request events recorded by the request sampler in a single harvest.'
+          :description => 'Maximum number of request events recorded by the analytics event sampling in a single harvest.'
         },
       }.freeze
 

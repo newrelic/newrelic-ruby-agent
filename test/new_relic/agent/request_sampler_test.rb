@@ -28,22 +28,29 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
-  def test_can_disable_sampling
-    with_sampler_config( :'request_sampler.enabled' => false ) do
+  def test_can_disable_sampling_for_analytics
+    with_sampler_config( :'analytics_events.enabled' => false ) do
       generate_request
       assert @sampler.samples.empty?
     end
   end
 
-  def test_limits_total_number_of_samples_to_max_samples
-    with_sampler_config( :'request_sampler.max_samples' => 100 ) do
+  def test_can_disable_sampling_for_analytics_transactions
+    with_sampler_config( :'analytics_events.transactions.enabled' => false ) do
+      generate_request
+      assert @sampler.samples.empty?
+    end
+  end
+
+  def test_limits_total_number_of_samples_to_max_samples_stored
+    with_sampler_config( :'analytics_events.max_samples_stored' => 100 ) do
       150.times { generate_request }
       assert_equal 100, @sampler.samples.size
     end
   end
 
   def test_resets_limits_on_reset
-    with_sampler_config( :'request_sampler.max_samples' => 100 ) do
+    with_sampler_config( :'analytics_events.max_samples_stored' => 100 ) do
       50.times { generate_request('before') }
       samples_before = @sampler.samples
       assert_equal 50, samples_before.size
@@ -67,7 +74,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   end
 
   def test_does_not_drop_samples_when_used_from_multiple_threads
-    with_sampler_config( :'request_sampler.max_samples' => 100 * 100 ) do
+    with_sampler_config( :'analytics_events.max_samples_stored' => 100 * 100 ) do
       threads = []
       25.times do
         threads << Thread.new do
@@ -98,8 +105,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def with_sampler_config(options = {})
     defaults =
     {
-      :'request_sampler.enabled' => true,
-      :'request_sampler.max_samples' => 100
+      :'analytics_events.max_samples_stored' => 100
     }
 
     defaults.merge!(options)
