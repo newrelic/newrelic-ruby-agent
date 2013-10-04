@@ -2,6 +2,12 @@
 
 ## v3.6.8 ##
 
+  * X-Ray Sessions support
+
+  X-Ray Sessions provide more targeted transaction trace samples and thread
+  profiling for web transactions. For full details see our X-Ray sessions
+  documentation at https://newrelic.com/docs/site/xray-sessions.
+
   * CPU metrics re-enabled for JRuby >= 1.7.0
 
   To work around a JRuby bug, the Ruby agent stopped gathering CPU metrics on
