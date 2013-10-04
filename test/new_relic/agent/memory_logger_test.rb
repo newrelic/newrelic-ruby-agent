@@ -17,7 +17,12 @@ class MemoryLoggerTest < Test::Unit::TestCase
       @logger.send(level, "message at #{level}")
     end
 
-    real_logger = stub
+    real_logger = mock
+
+    # This is needed for the expectation on #warn (also defined in Kernel) to
+    # work with old versions of Mocha.
+    def real_logger.warn(*); end
+
     real_logger.expects(:fatal).with("message at fatal")
     real_logger.expects(:error).with("message at error")
     real_logger.expects(:warn).with("message at warn")
