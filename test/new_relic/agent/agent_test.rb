@@ -224,6 +224,22 @@ module NewRelic
         assert_equal 0, @agent.stats_engine.get_stats("Errors/all").call_count
       end
 
+      def test_harvest_and_send_analytic_event_data_merges_in_samples_on_failure
+        service = @agent.service
+        request_sampler = @agent.instance_variable_get(:@request_sampler)
+        samples = [mock('some analytics event')]
+
+        request_sampler.expects(:reset).returns(samples)
+        request_sampler.expects(:merge).with(samples)
+
+        # simulate a failure in transmitting analytics events
+        service.stubs(:analytic_event_data).raises(StandardError.new)
+
+        assert_raises(StandardError) do
+          @agent.send(:harvest_and_send_analytic_event_data)
+        end
+      end
+
       def test_connect_retries_on_timeout
         service = @agent.service
         def service.connect(opts={})
