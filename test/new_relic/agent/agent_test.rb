@@ -229,7 +229,7 @@ module NewRelic
         request_sampler = @agent.instance_variable_get(:@request_sampler)
         samples = [mock('some analytics event')]
 
-        request_sampler.expects(:reset).returns(samples)
+        request_sampler.expects(:harvest).returns(samples)
         request_sampler.expects(:merge).with(samples)
 
         # simulate a failure in transmitting analytics events
