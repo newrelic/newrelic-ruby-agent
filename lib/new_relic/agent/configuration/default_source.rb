@@ -706,6 +706,12 @@ module NewRelic
           :type => Fixnum,
           :description => 'Maximum number of transaction traces to buffer for active X-Ray sessions'
         },
+        :'xray_session.max_profile_overhead' => {
+          :default => 0.05,
+          :public => false,
+          :type => Float,
+          :description => 'Maximum overhead percentage for thread profiling before agent reduces polling frequency'
+        },
         :marshaller => {
           :default => DefaultSource.marshaller,
           :public => true,
