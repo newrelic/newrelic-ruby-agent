@@ -87,7 +87,11 @@ module Environments
 
     def bundle(dir)
       puts "Bundling..."
-      bundling = `cd #{dir} && bundle install`
+      bundling = `cd #{dir} && bundle install --local`
+      unless $?.success?
+        puts "Failed local bundle, trying again with full bundle..."
+        bundling = `cd #{dir} && bundle install`
+      end
       puts red(bundling) unless $?.success?
     end
 
