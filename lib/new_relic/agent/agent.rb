@@ -1076,9 +1076,13 @@ module NewRelic
 
         # Fetch samples from the RequestSampler and send them.
         def harvest_and_send_analytic_event_data
-          samples = @request_sampler.samples
-          @service.analytic_event_data(samples) unless samples.empty?
-          @request_sampler.reset
+          samples = @request_sampler.harvest
+          begin
+            @service.analytic_event_data(samples) unless samples.empty?
+          rescue
+            @request_sampler.merge(samples)
+            raise
+          end
         end
 
         def check_for_and_handle_agent_commands
