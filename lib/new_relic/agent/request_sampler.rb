@@ -13,9 +13,9 @@ class NewRelic::Agent::RequestSampler
           MonitorMixin
 
   # The namespace and keys of config values
-  CONFIG_NAMESPACE = 'request_sampler'
-  MAX_SAMPLES_KEY  = "#{CONFIG_NAMESPACE}.max_samples".to_sym
-  ENABLED_KEY      = "#{CONFIG_NAMESPACE}.enabled".to_sym
+  MAX_SAMPLES_KEY  = :'analytics_events.max_samples_stored'
+  ENABLED_KEY      = :'analytics_events.enabled'
+  ENABLED_TXN_KEY  = :'analytics_events.transactions.enabled'
 
   # The type field of the sample
   SAMPLE_TYPE              = 'Transaction'
@@ -90,7 +90,12 @@ class NewRelic::Agent::RequestSampler
 
     NewRelic::Agent.config.register_callback(ENABLED_KEY) do |enabled|
       NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ enabled ? 'En' : 'Dis' ]
-      @enabled = enabled
+      @enabled = enabled && NewRelic::Agent.config[ENABLED_TXN_KEY]
+    end
+
+    NewRelic::Agent.config.register_callback(ENABLED_TXN_KEY) do |enabled|
+      NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ enabled ? 'En' : 'Dis' ]
+      @enabled = enabled && NewRelic::Agent.config[ENABLED_KEY]
     end
   end
 

@@ -30,7 +30,7 @@ class RequestStatsTest < ActionController::TestCase
   #
 
   def test_doesnt_send_when_disabled
-    with_config( :'request_sampler.enabled' => false ) do
+    with_config( :'analytics_events.enabled' => false ) do
       20.times { get :stats_action }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
@@ -40,7 +40,7 @@ class RequestStatsTest < ActionController::TestCase
   end
 
   def test_request_times_should_be_reported_if_enabled
-    with_config( :'request_sampler.enabled' => true ) do
+    with_config( :'analytics_events.enabled' => true ) do
       20.times { get :stats_action }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
