@@ -190,8 +190,6 @@ development:
   <<: *default_settings
   # Turn off communication to New Relic service in development mode (also
   # 'enabled').
-  # NOTE: for initial evaluation purposes, you may want to temporarily
-  # turn the agent on in development mode.
   monitor_mode: true
   app_name: <%= @app_name %> (Development)
 
