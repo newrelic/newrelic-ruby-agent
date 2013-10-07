@@ -246,7 +246,7 @@ module NewRelic
         },
         :monitor_mode => {
           :default => DefaultSource.monitor_mode,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :description => 'Enable or disable transmission of data to the New Relic data collection service.'
         },
