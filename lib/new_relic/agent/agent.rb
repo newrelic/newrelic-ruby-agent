@@ -525,6 +525,7 @@ module NewRelic
         # making sure the agent is in a fresh state
         def reset_stats
           @stats_engine.reset_stats
+          @error_collector.errors.clear
           @unsent_errors = []
           @traces = nil
           @unsent_timeslice_data = {}

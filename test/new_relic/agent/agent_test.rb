@@ -67,6 +67,20 @@ module NewRelic
         end
       end
 
+      def test_after_fork_should_reset_errors_collected
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+
+          errors = []
+          errors << NewRelic::NoticedError.new("", {}, Exception.new("boo"))
+          @agent.merge_data_from([{}, [], errors])
+
+          @agent.after_fork(:report_to_channel => 123)
+
+          assert_equal 0, @agent.error_collector.errors.length, "Still got errors collected in parent"
+        end
+      end
+
       def test_transmit_data_should_emit_before_harvest_event
         got_it = false
         @agent.events.subscribe(:before_harvest) { got_it = true }
