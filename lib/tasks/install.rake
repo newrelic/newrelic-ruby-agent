@@ -7,9 +7,8 @@ namespace :newrelic do
 
   namespace :config do
     desc "Describe available New Relic configuration settings."
-    task :docs do
-      require File.expand_path(File.join(File.dirname(__FILE__), "..", "new_relic", "agent", "configuration", "default_source.rb"))
 
+    def output_text
       NewRelic::Agent::Configuration::DEFAULTS.each do |key, value|
         if value[:public]
           puts "Setting:      #{key}"
@@ -21,6 +20,38 @@ namespace :newrelic do
           puts 'Description:  ' + value[:description]
           puts "-" * (value[:description].length + 14)
         end
+      end
+    end
+
+    def output_html
+      puts "<table>"
+      puts "<thead>"
+      puts "  <th>Setting</th>"
+      puts "  <th style='width: 15%'>Type</th>"
+      puts "  <th>Description</th>"
+      puts "</thead>"
+
+      NewRelic::Agent::Configuration::DEFAULTS.each do |key, value|
+        if value[:public]
+          puts "<tr>"
+          puts "  <td><a name='#{key}'></a>#{key}</td>"
+          puts "  <td>#{value[:type].to_s.gsub("NewRelic::Agent::Configuration::", "")}</td>"
+          puts "  <td>#{value[:description]}</td>"
+          puts "</tr>"
+        end
+      end
+
+      puts "</table>"
+    end
+
+    task :docs, [:format] => [] do |t, args|
+      require File.expand_path(File.join(File.dirname(__FILE__), "..", "new_relic", "agent", "configuration", "default_source.rb"))
+
+      format = args[:format]
+      if format.nil? || format == "text"
+        output_text
+      else
+        output_html
       end
     end
   end
