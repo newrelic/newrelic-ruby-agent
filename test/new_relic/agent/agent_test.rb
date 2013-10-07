@@ -79,7 +79,7 @@ module NewRelic
         @agent.instance_eval { transmit_data }
       end
 
-      def test_harvest_and_send_slowest_sample
+      def test_harvest_and_send_transaction_traces
         with_config(:'transaction_tracer.explain_threshold' => 2,
                     :'transaction_tracer.explain_enabled' => true,
                     :'transaction_tracer.record_sql' => 'raw') do
@@ -93,11 +93,11 @@ module NewRelic
                                                :keep_backtraces => true)
 
           @agent.transaction_sampler.stubs(:harvest).returns([trace])
-          @agent.send :harvest_and_send_slowest_sample
+          @agent.send :harvest_and_send_transaction_traces
         end
       end
 
-      def test_harvest_and_send_slowest_sample_merges_back_on_failure
+      def test_harvest_and_send_transaction_traces_merges_back_on_failure
         traces = [mock('tt1'), mock('tt2')]
 
         # make prepare_to_send just return self
@@ -108,7 +108,7 @@ module NewRelic
         @agent.transaction_sampler.expects(:merge).with(traces)
 
         assert_nothing_raised do
-          @agent.send :harvest_and_send_slowest_sample
+          @agent.send :harvest_and_send_transaction_traces
         end
       end
 

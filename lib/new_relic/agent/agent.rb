@@ -985,7 +985,7 @@ module NewRelic
         # SQL.  note that we explain only the sql statements whose
         # segments' execution times exceed our threshold (to avoid
         # unnecessary overhead of running explains on fast queries.)
-        def harvest_and_send_slowest_sample
+        def harvest_and_send_transaction_traces
           traces = @transaction_sampler.harvest
           unless traces.empty?
             begin
@@ -1086,7 +1086,7 @@ module NewRelic
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive
             harvest_and_send_errors
-            harvest_and_send_slowest_sample
+            harvest_and_send_transaction_traces
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
             harvest_and_send_analytic_event_data

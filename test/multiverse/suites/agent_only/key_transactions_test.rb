@@ -62,7 +62,7 @@ class KeyTransactionsTest < MiniTest::Unit::TestCase
     TestWidget.new.key_txn
     TestWidget.new.other_txn
 
-    NewRelic::Agent.instance.send(:harvest_and_send_slowest_sample)
+    NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
 
     traces = $collector.calls_for('transaction_sample_data')
     assert_equal 1, traces.size
