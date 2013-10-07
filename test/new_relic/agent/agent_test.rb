@@ -79,10 +79,6 @@ module NewRelic
         @agent.instance_eval { transmit_data }
       end
 
-      def test_harvest_transaction_traces
-        assert_equal([], @agent.send(:harvest_transaction_traces), 'should return transaction traces')
-      end
-
       def test_harvest_and_send_slowest_sample
         with_config(:'transaction_tracer.explain_threshold' => 2,
                     :'transaction_tracer.explain_enabled' => true,
@@ -95,7 +91,23 @@ module NewRelic
           trace.expects(:prepare_to_send).with(:record_sql => :raw,
                                                :explain_sql => 2,
                                                :keep_backtraces => true)
-          @agent.instance_variable_set(:@traces, [ trace ])
+
+          @agent.transaction_sampler.stubs(:harvest).returns([trace])
+          @agent.send :harvest_and_send_slowest_sample
+        end
+      end
+
+      def test_harvest_and_send_slowest_sample_merges_back_on_failure
+        traces = [mock('tt1'), mock('tt2')]
+
+        # make prepare_to_send just return self
+        traces.each { |tt| tt.expects(:prepare_to_send).returns(tt) }
+
+        @agent.transaction_sampler.expects(:harvest).returns(traces)
+        @agent.service.stubs(:transaction_sample_data).raises("wat")
+        @agent.transaction_sampler.expects(:merge).with(traces)
+
+        assert_nothing_raised do
           @agent.send :harvest_and_send_slowest_sample
         end
       end
@@ -149,11 +161,10 @@ module NewRelic
       def test_merge_data_from_empty
         unsent_timeslice_data = mock('unsent timeslice data')
         unsent_errors = mock('unsent errors')
-        unsent_traces = mock('unsent traces')
+        @agent.transaction_sampler.expects(:merge).never
         @agent.instance_eval {
           @unsent_errors = unsent_errors
           @unsent_timeslice_data = unsent_timeslice_data
-          @traces = unsent_traces
         }
         # nb none of the others should receive merge requests
         @agent.merge_data_from([{}])
@@ -173,20 +184,6 @@ module NewRelic
         assert_equal(1, @agent.unsent_errors_size)
       end
 
-      def test_unsent_traces_size_empty
-        @agent.instance_eval {
-          @traces = nil
-        }
-        assert_equal(nil, @agent.unsent_traces_size)
-      end
-
-      def test_unsent_traces_size_with_traces
-        @agent.instance_eval {
-          @traces = ['a trace']
-        }
-        assert_equal(1, @agent.unsent_traces_size)
-      end
-
       def test_unsent_timeslice_data_empty
         @agent.instance_eval {
           @unsent_timeslice_data = nil
@@ -203,11 +200,11 @@ module NewRelic
       end
 
       def test_merge_data_traces
-        unsent_traces = mock('unsent traces')
+        transaction_sampler = mock('transaction sampler')
         @agent.instance_eval {
-          @traces = unsent_traces
+          @transaction_sampler = transaction_sampler
         }
-        unsent_traces.expects(:+).with([1,2,3])
+        transaction_sampler.expects(:merge).with([1,2,3])
         @agent.merge_data_from([{}, [1,2,3], []])
       end
 

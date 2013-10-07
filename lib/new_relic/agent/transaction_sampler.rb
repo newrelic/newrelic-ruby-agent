@@ -235,31 +235,27 @@ module NewRelic
       end
 
       # Gather transaction traces that we'd like to transmit to the server.
-      # choose_samples is responsible for determining the contents of that
-      # transmission, along with limits and ordering.
-      def harvest(previous=[])
-        return [] if !enabled?
-
-        # If no unsent transactions from last time, we explicitly pass nil!
-        previous ||= []
+      def harvest
+        return [] unless enabled?
 
         @samples_lock.synchronize do
           @last_sample = nil
-          choose_samples(previous)
+          harvest_from_sample_buffers
         end
       end
 
-      # Runs previously untransmitted samples into buffers, then chooses what
-      # to send based on each buffer's internal logic
-      def choose_samples(previous_samples)
-        append_previous_samples_to_buffers(previous_samples)
-        harvest_from_sample_buffers
+      def merge(previous)
+        @samples_lock.synchronize do
+          @sample_buffers.each do |buffer|
+            buffer.store_previous(previous)
+          end
+        end
       end
 
-      # Previous samples are added to buffers to enforce limiting rules
-      def append_previous_samples_to_buffers(previous_samples)
-        @sample_buffers.each do |buffer|
-          buffer.store_previous(previous_samples)
+      def count
+        @samples_lock.synchronize do
+          samples = @sample_buffers.inject([]) { |all, b| all.concat(b.samples) }
+          samples.uniq.size
         end
       end
 
@@ -268,7 +264,7 @@ module NewRelic
         # want a single level flatten anyway, but, as you probably already
         # know, Ruby 1.8.6 :/
         result = []
-        @sample_buffers.each {|buffer| result.concat(buffer.harvest_samples)}
+        @sample_buffers.each { |buffer| result.concat(buffer.harvest_samples) }
         result.uniq
       end
 
