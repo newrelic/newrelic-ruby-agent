@@ -266,8 +266,7 @@ module NewRelic
             target_called_segment[k]=v if options[:keep_backtraces]
           when :sql
             # run an EXPLAIN on this sql if specified.
-            if options[:record_sql] && options[:record_sql] &&
-                options[:explain_sql] &&
+            if options[:record_sql] && options[:explain_sql] &&
                 source_called_segment.duration > options[:explain_sql].to_f
               target_called_segment[:explain_plan] = source_called_segment.explain_sql
             end
