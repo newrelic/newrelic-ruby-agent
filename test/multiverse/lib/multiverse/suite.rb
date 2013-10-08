@@ -82,10 +82,13 @@ module Multiverse
         # resolved in some fashion at that point
         f.puts "  gem 'mocha', '~> 0.9.8', :require => false" unless environments.omit_mocha
 
-        if RUBY_VERSION > '1.8.7'
-          f.puts "  gem 'debugger'" if include_debugger
-        else
-          f.puts "  gem 'ruby-debug'" if include_debugger
+        # Need to get Rubinius' debugger wired in, but MRI's doesn't work
+        if include_debugger && RUBY_ENGINE != 'rbx'
+          if RUBY_VERSION > '1.8.7'
+            f.puts "  gem 'debugger'"
+          else
+            f.puts "  gem 'ruby-debug'"
+          end
         end
       end
       puts yellow("Gemfile.#{env_index} set to:") if verbose?
