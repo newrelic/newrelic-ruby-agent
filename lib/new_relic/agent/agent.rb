@@ -109,12 +109,6 @@ module NewRelic
         attr_reader :metric_rules
         attr_reader :harvest_lock
 
-        # Returns the length of the unsent errors array, if it exists,
-        # otherwise nil
-        def unsent_errors_size
-          @unsent_errors.length if @unsent_errors
-        end
-
         # Initializes the unsent timeslice data hash, if needed, and
         # returns the number of keys it contains
         def unsent_timeslice_data
@@ -518,7 +512,7 @@ module NewRelic
         # making sure the agent is in a fresh state
         def reset_stats
           @stats_engine.reset_stats
-          @unsent_errors = []
+          @error_collector.reset!
           @transaction_sampler.reset!
           @unsent_timeslice_data = {}
           @last_harvest_time = Time.now
@@ -1027,32 +1021,21 @@ module NewRelic
           end
         end
 
-        # Gets the collection of unsent errors from the error
-        # collector. We pass back in an existing array of errors that
-        # may be left over from a previous send
-        def harvest_errors
-          @unsent_errors = @error_collector.harvest_errors(@unsent_errors)
-          @unsent_errors
-        end
-
         # Handles getting the errors from the error collector and
         # sending them to the server, and any error cases like trying
-        # to send very large errors - we drop the oldest error on the
-        # floor and try again
+        # to send very large errors
         def harvest_and_send_errors
-          harvest_errors
-          if @unsent_errors && @unsent_errors.length > 0
-            ::NewRelic::Agent.logger.debug "Sending #{@unsent_errors.length} errors"
+          errors = @error_collector.harvest_errors
+          if errors && !errors.empty?
+            ::NewRelic::Agent.logger.debug "Sending #{errors.length} errors"
             begin
-              @service.error_data(@unsent_errors)
+              @service.error_data(errors)
             rescue UnrecoverableServerException => e
               ::NewRelic::Agent.logger.debug e.message
+            rescue => e
+              ::NewRelic::Agent.logger.debug "Failed to send error traces, will try again later. Error:", e
+              @error_collector.merge errors
             end
-            # if the remote invocation fails, then we never clear
-            # @unsent_errors, and therefore we can re-attempt to send on
-            # the next heartbeat.  Note the error collector maxes out at
-            # 20 instances to prevent leakage
-            @unsent_errors = []
           end
         end
 
