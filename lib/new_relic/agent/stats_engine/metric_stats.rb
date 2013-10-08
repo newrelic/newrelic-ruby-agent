@@ -135,10 +135,9 @@ module NewRelic
         # with any previously
         # unsent metrics, clear out stats cache, and return the current
         # stats.
-        def harvest_timeslice_data(old_stats_hash, rules_engine=RulesEngine.new)
+        def harvest_timeslice_data(rules_engine=RulesEngine.new)
           snapshot = reset_stats
-          snapshot = apply_rules_to_metric_data(rules_engine, snapshot)
-          snapshot.merge!(old_stats_hash)
+          apply_rules_to_metric_data(rules_engine, snapshot)
         end
 
         def apply_rules_to_metric_data(rules_engine, stats_hash)

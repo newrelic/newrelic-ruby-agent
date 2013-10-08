@@ -14,7 +14,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def teardown
-    @engine.harvest_timeslice_data({})
+    @engine.harvest_timeslice_data
     super
   end
 
@@ -46,7 +46,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal 2, @engine.get_stats("c").call_count
     assert_equal 4, @engine.get_stats("c").total_call_time
 
-    harvested = @engine.harvest_timeslice_data({})
+    harvested = @engine.harvest_timeslice_data
 
     # after harvest, all the metrics should be reset
     assert_equal 0, @engine.get_stats("a").call_count
@@ -72,7 +72,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     @engine.get_stats_no_scope('Custom/foo/3/bar/44').record_data_point(1)
     @engine.get_stats_no_scope('Custom/foo/5/bar/66').record_data_point(1)
 
-    harvested = @engine.harvest_timeslice_data({}, rules_engine)
+    harvested = @engine.harvest_timeslice_data(rules_engine)
 
     assert !harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/1/bar/22'))
     assert !harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/3/bar/44'))
@@ -86,16 +86,17 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     s.trace_call 1
     assert_equal 1, @engine.get_stats("a").call_count
 
-    harvest = @engine.harvest_timeslice_data({})
+    harvest = @engine.harvest_timeslice_data
 
     s = @engine.get_stats "a"
     assert_equal 0, s.call_count
     s.trace_call 2
     assert_equal 1, s.call_count
 
-    # this call should merge the contents of the previous harvest,
+    # this should merge the contents of the previous harvest,
     # so the stats for metric "a" should have 2 data points
-    harvest = @engine.harvest_timeslice_data(harvest)
+    @engine.merge!(harvest)
+    harvest = @engine.harvest_timeslice_data
     stats = harvest.fetch(NewRelic::MetricSpec.new("a"))
     assert_equal 2, stats.call_count
     assert_equal 3, stats.total_call_time

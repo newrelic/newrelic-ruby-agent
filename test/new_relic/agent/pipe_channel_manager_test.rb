@@ -47,7 +47,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         NewRelic::Agent.after_fork
         new_engine = NewRelic::Agent::StatsEngine.new
         new_engine.get_stats_no_scope(metric).record_data_point(2.0)
-        listener.pipes[666].write(:stats => new_engine.harvest_timeslice_data({}))
+        listener.pipes[666].write(:stats => new_engine.harvest_timeslice_data)
       end
       Process.wait(pid)
       listener.stop

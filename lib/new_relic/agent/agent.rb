@@ -109,13 +109,6 @@ module NewRelic
         attr_reader :metric_rules
         attr_reader :harvest_lock
 
-        # Initializes the unsent timeslice data hash, if needed, and
-        # returns the number of keys it contains
-        def unsent_timeslice_data
-          @unsent_timeslice_data ||= {}
-          @unsent_timeslice_data.keys.length
-        end
-
         # fakes out a transaction that did not happen in this process
         # by creating apdex, summary metrics, and recording statistics
         # for the transaction
@@ -514,7 +507,6 @@ module NewRelic
           @stats_engine.reset_stats
           @error_collector.reset!
           @transaction_sampler.reset!
-          @unsent_timeslice_data = {}
           @last_harvest_time = Time.now
           @launch_time = Time.now
         end
@@ -850,7 +842,7 @@ module NewRelic
         # will be sent multiple times.
         def merge_data_from(data)
           metrics, transaction_traces, errors = data
-          @stats_engine.merge!(metrics) if metrics
+          @stats_engine.merge!(metrics) if metrics && !metrics.empty?
           if transaction_traces && transaction_traces.respond_to?(:any?) &&
               transaction_traces.any?
             @transaction_sampler.merge(transaction_traces)
@@ -923,13 +915,8 @@ module NewRelic
         # calls the busy harvester and collects timeslice data to
         # send later
         def harvest_timeslice_data(time=Time.now)
-          # this creates timeslices that are harvested below
           NewRelic::Agent::BusyCalculator.harvest_busy
-
-          @unsent_timeslice_data ||= {}
-          @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data,
-                                                                        @metric_rules)
-          @unsent_timeslice_data
+          @stats_engine.harvest_timeslice_data(@metric_rules)
         end
 
         # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
@@ -937,21 +924,16 @@ module NewRelic
         # transmission later
         def harvest_and_send_timeslice_data
           now = Time.now
-          NewRelic::Agent.record_metric('Supportability/invoke_remote', 0.0)
-          NewRelic::Agent.record_metric('Supportability/invoke_remote/metric_data', 0.0)
-          harvest_timeslice_data(now)
+          timeslices = harvest_timeslice_data(now)
           begin
-            @service.metric_data(@last_harvest_time.to_f,
-                                  now.to_f,
-                                  @unsent_timeslice_data)
+            @service.metric_data(@last_harvest_time.to_f, now.to_f, timeslices)
           rescue UnrecoverableServerException => e
             ::NewRelic::Agent.logger.debug e.message
+          rescue StandardError => e
+            NewRelic::Agent.logger.info("Failed to send timelsice data, trying again later. Error:", e)
+            @stats_engine.merge!(timeslices)
           end
 
-          ::NewRelic::Agent.logger.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@service.agent_id}) in #{Time.now - now} seconds"
-
-          # if we successfully invoked this web service, then clear the unsent message cache.
-          @unsent_timeslice_data = {}
           @last_harvest_time = now
         end
 
@@ -1075,9 +1057,6 @@ module NewRelic
             check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands(disconnecting)
           end
-        rescue EOFError => e
-          ::NewRelic::Agent.logger.warn("EOFError after #{Time.now - now}s when transmitting data to New Relic Service.")
-          ::NewRelic::Agent.logger.debug(e)
         rescue => e
           retry_count ||= 0
           retry_count += 1
