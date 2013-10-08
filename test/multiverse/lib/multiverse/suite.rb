@@ -70,7 +70,7 @@ module Multiverse
         f.puts '  source :rubygems' unless local
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
-        f.puts rbx_rubysl_line unless gemfile_text =~ /^\s*gem .rubysl./ || RUBY_ENGINE != "rbx"
+        f.puts rbx_rubysl_line unless gemfile_text =~ /^\s*gem .rubysl./ || !is_rbx?
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
 
@@ -83,7 +83,7 @@ module Multiverse
         f.puts "  gem 'mocha', '~> 0.9.8', :require => false" unless environments.omit_mocha
 
         # Need to get Rubinius' debugger wired in, but MRI's doesn't work
-        if include_debugger && RUBY_ENGINE != 'rbx'
+        if include_debugger && !is_rbx?
           if RUBY_VERSION > '1.8.7'
             f.puts "  gem 'debugger'"
           else
@@ -104,6 +104,10 @@ module Multiverse
 
     def rbx_rubysl_line
       "gem 'rubysl', :platforms => [:rbx]"
+    end
+
+    def is_rbx?
+      defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
     end
 
     def jruby_openssl_line
