@@ -70,6 +70,7 @@ module Multiverse
         f.puts '  source :rubygems' unless local
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
+        f.puts rbx_rubysl_line unless gemfile_text =~ /^\s*gem .rubysl./ || RUBY_ENGINE != "rbx"
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
 
@@ -96,6 +97,10 @@ module Multiverse
       path = ENV['NEWRELIC_GEM_PATH'] || '../../../..'
       line ||= "  gem 'newrelic_rpm', :path => '#{path}'"
       line
+    end
+
+    def rbx_rubysl_line
+      "gem 'rubysl', :platforms => [:rbx]"
     end
 
     def jruby_openssl_line
