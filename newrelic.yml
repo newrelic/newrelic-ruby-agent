@@ -188,8 +188,7 @@ common: &default_settings
 
 development:
   <<: *default_settings
-  # Turn off communication to New Relic service in development mode (also
-  # 'enabled').
+  # Turn on communication to New Relic service in development mode
   monitor_mode: true
   app_name: <%= @app_name %> (Development)
 
