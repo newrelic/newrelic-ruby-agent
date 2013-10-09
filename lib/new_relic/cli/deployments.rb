@@ -47,7 +47,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   end
 
   def setup_logging(env)
-    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(NewRelic::Agent.config)
+    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new
     NewRelic::Agent.logger.info("Running Capistrano from '#{env}' environment for application '#{@appname}'")
   end
 

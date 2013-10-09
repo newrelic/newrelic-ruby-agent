@@ -314,8 +314,11 @@ def with_debug_logging
   orig_logger = NewRelic::Agent.logger
   $stderr.puts '', '---', ''
   NewRelic::Agent.logger =
-    NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
-  yield
+    NewRelic::Agent::AgentLogger.new('', Logger.new($stderr) )
+
+  with_config(:log_level => 'debug') do
+    yield
+  end
 ensure
   NewRelic::Agent.logger = orig_logger
 end

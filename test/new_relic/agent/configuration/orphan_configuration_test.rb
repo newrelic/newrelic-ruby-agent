@@ -32,4 +32,23 @@ class OrphanedConfigTest < Test::Unit::TestCase
       end
     end
   end
+
+  def test_all_default_source_config_keys_are_used_in_the_agent
+    non_test_files = all_rb_files.reject { |filename| filename.include? 'test.rb' }
+
+    non_test_files.each do |file|
+      lines = File.read(file).split("\n")
+
+      lines.each_with_index do |line, index|
+        config_match = line.match(/Agent\.config\[:([a-z\._]+)\]/)
+        next unless config_match
+
+        config_match.captures.map do |key|
+          @default_keys.delete key.gsub("'", "").to_sym
+        end
+      end
+    end
+
+    assert_empty @default_keys
+  end
 end

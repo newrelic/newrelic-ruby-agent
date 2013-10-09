@@ -59,7 +59,7 @@ module NewRelic
 
         # Be sure to only create once! RUBY-1020
         if ::NewRelic::Agent.logger.is_startup_logger?
-          ::NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(Agent.config, root, options.delete(:log))
+          ::NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(root, options.delete(:log))
         end
 
         # Merge the stringified options into the config as overrides:
