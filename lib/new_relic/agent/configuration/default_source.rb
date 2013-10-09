@@ -348,30 +348,35 @@ module NewRelic
         },
         :ssl => {
           :default => true,
+          :allow_nil => true,
           :public => true,
           :type => Boolean,
           :description => "Enable or disable SSL for transmissions to the New Relic data collection service."
         },
         :proxy_host => {
-          :default => '',
+          :default => nil,
+          :allow_nil => true,
           :public => false,
           :type => String,
           :description => 'Host for proxy server.'
         },
         :proxy_port => {
-          :default => '',
+          :default => nil,
+          :allow_nil => true,
           :public => false,
-          :type => String,
+          :type => Fixnum,
           :description => 'Port for proxy server.'
         },
         :proxy_user => {
-          :default => '',
+          :default => nil,
+          :allow_nil => true,
           :public => false,
           :type => String,
           :description => 'User for proxy server.'
         },
         :proxy_pass => {
-          :default => '',
+          :default => nil,
+          :allow_nil => true,
           :public => false,
           :type => String,
           :description => 'Password for proxy server.'
@@ -767,7 +772,8 @@ module NewRelic
           :description => 'Enable or disable cross-application tracing.'
         },
         :cross_application_tracing => {
-          :default => true,
+          :default => nil,
+          :allow_nil => true,
           :public => false,
           :type => Boolean,
           :description => 'Enable or disable cross-application tracing.'
