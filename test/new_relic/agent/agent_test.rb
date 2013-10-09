@@ -89,8 +89,7 @@ module NewRelic
                        :force_persist => true,
                        :truncate => 4000)
           trace.expects(:prepare_to_send!).with(:record_sql => :raw,
-                                               :explain_sql => 2,
-                                               :keep_backtraces => true)
+                                               :explain_sql => 2)
 
           @agent.transaction_sampler.stubs(:harvest).returns([trace])
           @agent.send :harvest_and_send_transaction_traces

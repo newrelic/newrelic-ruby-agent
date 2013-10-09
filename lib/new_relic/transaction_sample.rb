@@ -188,12 +188,9 @@ module NewRelic
     #
     #   :explain_sql : run EXPLAIN on all queries whose response times equal the value for this key
     #       (for example :explain_sql => 2.0 would explain everything over 2 seconds.  0.0 would explain everything.)
-    #   :keep_backtraces : keep backtraces, significantly increasing size of trace (off by default)
     #   :record_sql => [ :raw | :obfuscated] : copy over the sql, obfuscating if necessary
     def prepare_to_send!(options={})
       return self if @prepared
-
-      strip_backtraces! unless options[:keep_backtraces]
 
       if options[:record_sql]
         collect_explain_plans!(options[:explain_sql]) if options[:explain_sql]
@@ -255,12 +252,6 @@ module NewRelic
       end
 
       return time_delta
-    end
-
-    def strip_backtraces!
-      each_segment do |segment|
-        segment.params.delete(:backtrace)
-      end
     end
 
     def strip_sql!

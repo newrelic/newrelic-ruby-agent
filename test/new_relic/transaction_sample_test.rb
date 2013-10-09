@@ -196,7 +196,6 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     opts = { :record_sql => :raw, :explain_sql => 0.00001 }
     @t.prepare_to_send!(opts)
 
-    @t.expects(:strip_backtraces!).never
     @t.expects(:collect_explain_plans!).never
     @t.expects(:prepare_sql_for_transmission!).never
 
