@@ -564,7 +564,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       @sampler.harvest[0]
     end
 
-    ready_to_send = sample.prepare_to_send
+    ready_to_send = sample.prepare_to_send!
     assert sample.duration == ready_to_send.duration
 
     assert ready_to_send.start_time.is_a?(Time)

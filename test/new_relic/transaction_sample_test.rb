@@ -6,7 +6,8 @@ require File.expand_path('../../test_helper.rb', __FILE__)
 
 class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   include TransactionSampleTestHelper
-  ::SQL_STATEMENT = "SELECT * from sandwiches"
+  ::SQL_STATEMENT = "SELECT * from sandwiches WHERE meat='bacon'"
+  ::OBFUSCATED_SQL_STATEMENT = "SELECT * from sandwiches WHERE meat=?"
 
   def setup
     @test_config = { :developer_mode => true }
@@ -32,38 +33,39 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     assert_not_nil @t
   end
 
-  def test_not_record_sql_when_record_sql_off
-    s = @t.prepare_to_send(:explain_sql => 0.00000001)
+  def test_prepare_to_send_strips_sql_if_record_sql_omitted
+    s = @t.prepare_to_send!(:explain_sql => 0.00000001)
+
     s.each_segment do |segment|
       assert_nil segment.params[:explain_plan]
       assert_nil segment.params[:sql]
     end
   end
 
-  def test_record_raw_sql
-    s = @t.prepare_to_send(:explain_sql => 0.00000001, :record_sql => :raw)
-    got_one = false
+  def test_prepare_to_send_preserves_raw_sql_if_record_sql_set_to_raw
+    s = @t.prepare_to_send!(:record_sql => :raw)
+
+    sql_statements = []
     s.each_segment do |segment|
-      fail if segment.params[:obfuscated_sql]
-      got_one = got_one || segment.params[:explain_plan] || segment.params[:sql]
+      sql_statements << segment.params[:sql] if segment.params[:sql]
     end
-    assert got_one
+
+    assert_equal([::SQL_STATEMENT], sql_statements)
   end
 
-  def test_record_obfuscated_sql
+  def test_prepare_to_send_obfuscates_sql_if_record_sql_set_to_obfuscated
+    s = @t.prepare_to_send!(:record_sql => :obfuscated)
 
-    s = @t.prepare_to_send(:explain_sql => 0.00000001, :record_sql => :obfuscated)
-
-    got_one = false
+    sql_statements = []
     s.each_segment do |segment|
-      got_one = got_one || segment.params[:explain_plan] || segment.params[:sql]
+      sql_statements << segment.params[:sql] if segment.params[:sql]
     end
 
-    assert got_one
+    assert_equal([::OBFUSCATED_SQL_STATEMENT], sql_statements)
   end
 
   def test_have_sql_rows_when_sql_is_recorded
-    s = @t.prepare_to_send(:explain_sql => 0.00000001)
+    s = @t.prepare_to_send!(:explain_sql => 0.00000001)
 
     assert s.sql_segments.empty?
     s.root_segment[:sql] = 'hello'
@@ -71,7 +73,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_have_sql_rows_when_sql_is_obfuscated
-    s = @t.prepare_to_send(:explain_sql => 0.00000001)
+    s = @t.prepare_to_send!(:explain_sql => 0.00000001)
 
     assert s.sql_segments.empty?
     s.root_segment[:sql_obfuscated] = 'hello'
@@ -79,7 +81,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_have_sql_rows_when_recording_non_sql_keys
-    s = @t.prepare_to_send(:explain_sql => 0.00000001)
+    s = @t.prepare_to_send!(:explain_sql => 0.00000001)
 
     assert s.sql_segments.empty?
     s.root_segment[:key] = 'hello'
@@ -89,11 +91,11 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   def test_catch_exceptions
     @connection_stub.expects(:execute).raises
     # the sql connection will throw
-    @t.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.00000001)
+    @t.prepare_to_send!(:record_sql => :obfuscated, :explain_sql => 0.00000001)
   end
 
   def test_have_explains
-    s = @t.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.00000001)
+    s = @t.prepare_to_send!(:record_sql => :obfuscated, :explain_sql => 0.00000001)
 
     s.each_segment do |segment|
       if segment.params[:explain_plan]
@@ -111,7 +113,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     end
 
-    s = t.prepare_to_send(:explain_sql => 0.00000001)
+    s = t.prepare_to_send!(:explain_sql => 0.00000001)
 
     s.each_segment do |segment|
       assert_nil segment.params[:explain_plan]
@@ -127,7 +129,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_path_string
-    s = @t.prepare_to_send(:explain_sql => 0.1)
+    s = @t.prepare_to_send!(:explain_sql => 0.1)
     fake_segment = mock('segment')
     fake_segment.expects(:path_string).returns('a path string')
     s.instance_eval do
@@ -138,7 +140,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_params_equals
-    s = @t.prepare_to_send(:explain_sql => 0.1)
+    s = @t.prepare_to_send!(:explain_sql => 0.1)
     s.params = {:params => 'hash' }
     assert_equal({:params => 'hash'}, s.params, "should have the specified hash, but instead was #{s.params}")
   end
@@ -148,7 +150,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_to_s_with_bad_object
-    s = @t.prepare_to_send(:explain_sql => 0.1)
+    s = @t.prepare_to_send!(:explain_sql => 0.1)
     s.params[:fake] = Hat.new
     assert_raise(RuntimeError) do
       s.to_s
@@ -156,14 +158,14 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_to_s_includes_keys
-    s = @t.prepare_to_send(:explain_sql => 0.1)
+    s = @t.prepare_to_send!(:explain_sql => 0.1)
     s.params[:fake_key] = 'a fake param'
     assert(s.to_s.include?('fake_key'), "should include 'fake_key' but instead was (#{s.to_s})")
     assert(s.to_s.include?('a fake param'), "should include 'a fake param' but instead was (#{s.to_s})")
   end
 
   def test_find_segment
-    s = @t.prepare_to_send(:explain_sql => 0.1)
+    s = @t.prepare_to_send!(:explain_sql => 0.1)
     fake_segment = mock('segment')
     fake_segment.expects(:find_segment).with(1).returns('a segment')
     s.instance_eval do
@@ -174,16 +176,32 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_timestamp
-    s = @t.prepare_to_send(:explain_sql => 0.1)
+    s = @t.prepare_to_send!(:explain_sql => 0.1)
     assert(s.timestamp.instance_of?(Float), "s.timestamp should be a Float, but is #{s.timestamp.class.inspect}")
   end
 
   def test_xray_session_id
     @t.xray_session_id = 123
-    s = @t.prepare_to_send
+    s = @t.prepare_to_send!
     assert_equal(123, s.xray_session_id)
   end
 
+  def test_prepare_to_send_marks_returned_sample_as_prepared
+    assert(!@t.prepared?)
+    prepared_sample = @t.prepare_to_send!
+    assert(prepared_sample.prepared?)
+  end
+
+  def test_prepare_to_send_does_not_re_prepare
+    opts = { :record_sql => :raw, :explain_sql => 0.00001 }
+    @t.prepare_to_send!(opts)
+
+    @t.expects(:strip_backtraces!).never
+    @t.expects(:collect_explain_plans!).never
+    @t.expects(:prepare_sql_for_transmission!).never
+
+    @t.prepare_to_send!(opts)
+  end
 
   def test_count_segments
     transaction = run_sample_trace_on(NewRelic::Agent::TransactionSampler.new) do |sampler|

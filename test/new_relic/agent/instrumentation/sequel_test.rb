@@ -303,7 +303,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
         yield
       end
 
-      sample = transaction_samples.first.prepare_to_send(
+      sample = transaction_samples.first.prepare_to_send!(
         :explain_sql=>options[:explain_sql] || -0.01,    # Force to take explain, even if duration's reported as 0.0
         :record_sql=>options[:record_sql])
       segment = last_segment( sample )

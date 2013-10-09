@@ -18,6 +18,7 @@ module NewRelic
     attr_accessor :params, :root_segment, :profile, :force_persist, :guid,
                   :threshold, :finished, :xray_session_id
     attr_reader :root_segment, :params, :sample_id
+    attr_writer :prepared
 
     @@start_time = Time.now
 
@@ -29,9 +30,14 @@ module NewRelic
       @params = { :segment_count => -1, :request_params => {} }
       @segment_count = -1
       @root_segment = create_segment 0.0, "ROOT"
+      @prepared = false
 
       @guid = generate_guid
       NewRelic::Agent::TransactionState.get.request_guid = @guid
+    end
+
+    def prepared?
+      @prepared
     end
 
     def count_segments
@@ -184,18 +190,20 @@ module NewRelic
     #       (for example :explain_sql => 2.0 would explain everything over 2 seconds.  0.0 would explain everything.)
     #   :keep_backtraces : keep backtraces, significantly increasing size of trace (off by default)
     #   :record_sql => [ :raw | :obfuscated] : copy over the sql, obfuscating if necessary
-    def prepare_to_send(options={})
-      sample = TransactionSample.new(@start_time, sample_id)
+    def prepare_to_send!(options={})
+      return self if @prepared
 
-      sample.params.merge! self.params
-      sample.guid = self.guid
-      sample.force_persist = self.force_persist if self.force_persist
-      sample.xray_session_id = self.xray_session_id
+      strip_backtraces! unless options[:keep_backtraces]
 
-      build_segment_for_transfer(sample, @root_segment, sample.root_segment, options)
+      if options[:record_sql]
+        collect_explain_plans!(options[:explain_sql]) if options[:explain_sql]
+        prepare_sql_for_transmission!(options[:record_sql])
+      else
+        strip_sql!
+      end
 
-      sample.root_segment.end_trace(@root_segment.exit_timestamp)
-      sample
+      @prepared = true
+      self
     end
 
     def params=(params)
@@ -249,42 +257,36 @@ module NewRelic
       return time_delta
     end
 
-    # see prepare_to_send for what we do with options
-    #
-    # This is badly in need of refactoring
-    def build_segment_for_transfer(new_sample, source_segment, target_segment, options)
-      source_segment.called_segments.each do |source_called_segment|
-        target_called_segment = new_sample.create_segment(
-              source_called_segment.entry_timestamp,
-              source_called_segment.metric_name,
-              source_called_segment.segment_id)
+    def strip_backtraces!
+      each_segment do |segment|
+        segment.params.delete(:backtrace)
+      end
+    end
 
-        target_segment.add_called_segment target_called_segment
-        source_called_segment.params.each do |k,v|
-          case k
-          when :backtrace
-            target_called_segment[k]=v if options[:keep_backtraces]
-          when :sql
-            # run an EXPLAIN on this sql if specified.
-            if options[:record_sql] && options[:explain_sql] &&
-                source_called_segment.duration > options[:explain_sql].to_f
-              target_called_segment[:explain_plan] = source_called_segment.explain_sql
-            end
+    def strip_sql!
+      each_segment do |segment|
+        segment.params.delete(:sql)
+      end
+    end
 
-            target_called_segment[:sql] = case options[:record_sql]
-              when :raw then v
-              when :obfuscated then NewRelic::Agent::Database.obfuscate_sql(v)
-              else raise "Invalid value for record_sql: #{options[:record_sql]}"
-            end.to_s if options[:record_sql]
-          when :connection_config
-            # don't copy it
-          else
-            target_called_segment[k]=v
+    def collect_explain_plans!(threshold)
+      each_segment do |segment|
+        if segment[:sql] && segment.duration > threshold
+          segment[:explain_plan] = segment.explain_sql
+        end
+      end
+    end
+
+    def prepare_sql_for_transmission!(strategy)
+      each_segment do |segment|
+        if segment[:sql]
+          segment[:sql] = case strategy
+          when :raw
+            segment[:sql].to_s
+          when :obfuscated
+            NewRelic::Agent::Database.obfuscate_sql(segment[:sql]).to_s
           end
         end
-
-        build_segment_for_transfer(new_sample, source_called_segment, target_called_segment, options)
-        target_called_segment.end_trace(source_called_segment.exit_timestamp)
       end
     end
   end
