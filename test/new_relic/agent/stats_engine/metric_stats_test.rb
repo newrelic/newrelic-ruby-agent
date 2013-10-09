@@ -117,6 +117,12 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal(1, bar_stats.call_count)
   end
 
+  def test_harvest_adds_harvested_at_time
+    t0 = freeze_time
+    result = @engine.harvest_timeslice_data
+    assert_equal(t0, result.harvested_at)
+  end
+
   def test_record_metrics_unscoped_metrics_only_by_default
     in_transaction('scopey') do
       @engine.record_metrics('foo', 42)

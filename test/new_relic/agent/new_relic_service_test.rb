@@ -190,8 +190,9 @@ class NewRelicServiceTest < Test::Unit::TestCase
     dummy_rsp = 'met rick date uhh'
     @http_handle.respond_to(:metric_data, dummy_rsp)
     stats_hash = NewRelic::Agent::StatsHash.new
+    stats_hash.harvested_at = Time.now
     @service.expects(:fill_metric_id_cache).with(dummy_rsp)
-    response = @service.metric_data((Time.now - 60).to_f, Time.now.to_f, stats_hash)
+    response = @service.metric_data(stats_hash)
     assert_equal dummy_rsp, response
   end
 
@@ -212,19 +213,33 @@ class NewRelicServiceTest < Test::Unit::TestCase
     dummy_rsp = [[{ 'name' => 'a', 'scope' => '' }, 42]]
     @http_handle.respond_to(:metric_data, dummy_rsp)
 
-    hash = NewRelic::Agent::StatsHash.new
-    hash.record(NewRelic::MetricSpec.new('a'), 1)
+    hash = build_stats_hash('a' => 1)
 
-    @service.metric_data((Time.now - 60).to_f, Time.now.to_f, hash)
+    @service.metric_data(hash)
 
-    hash = NewRelic::Agent::StatsHash.new
-    hash.record(NewRelic::MetricSpec.new('a'), 1)
+    hash = build_stats_hash('a' => 1)
     stats = hash[NewRelic::MetricSpec.new('a')]
 
     results = @service.build_metric_data_array(hash)
     assert_nil(results.first.metric_spec)
     assert_equal(stats, results.first.stats)
     assert_equal(42, results.first.metric_id)
+  end
+
+  def test_metric_data_tracks_last_harvest_time
+    t0 = freeze_time
+
+    @http_handle.respond_to(:metric_data, [])
+
+    hash = build_stats_hash('a' => 1)
+    advance_time(1)
+    @service.metric_data(hash)
+    assert_equal(t0, @service.last_metric_harvest_time)
+
+    t1 = advance_time(60)
+    hash = build_stats_hash('a' => 1)
+    @service.metric_data(hash)
+    assert_equal(t1, @service.last_metric_harvest_time)
   end
 
   def test_error_data
@@ -301,7 +316,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @http_handle.respond_to(:metric_data, 0)
     @service.stubs(:fill_metric_id_cache)
     stats_hash = NewRelic::Agent::StatsHash.new
-    @service.metric_data((Time.now - 60).to_f, Time.now.to_f, stats_hash)
+    stats_hash.harvested_at = Time.now
+    @service.metric_data(stats_hash)
 
     @http_handle.respond_to(:transaction_sample_data, 1)
     @service.transaction_sample_data([])
@@ -324,7 +340,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @http_handle.respond_to(:metric_data, 'too big', :code => 413)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
       stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data((Time.now - 60).to_f, Time.now.to_f, stats_hash)
+      @service.metric_data(stats_hash)
     end
   end
 
@@ -333,7 +349,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @http_handle.respond_to(:metric_data, 'too big', :code => 415)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
       stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data((Time.now - 60).to_f, Time.now.to_f, stats_hash)
+      @service.metric_data(stats_hash)
     end
   end
 
@@ -480,6 +496,15 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
     metric_data = metric_data_array.first
     assert_equal(spec1, metric_data.metric_spec)
+  end
+
+  def build_stats_hash(items={})
+    hash = NewRelic::Agent::StatsHash.new
+    items.each do |key, value|
+      hash.record(NewRelic::MetricSpec.new(key), value)
+    end
+    hash.harvested_at = Time.now
+    hash
   end
 
   class HTTPHandle

@@ -23,13 +23,14 @@ module NewRelic
       # 534:   v2 (shows up in 2.1.0, our first tag)
 
       attr_accessor :request_timeout, :agent_id
-      attr_reader :collector, :marshaller, :metric_id_cache
+      attr_reader :collector, :marshaller, :metric_id_cache, :last_metric_harvest_time
 
       def initialize(license_key=nil, collector=control.server)
         @license_key = license_key || Agent.config[:license_key]
         @collector = collector
         @request_timeout = Agent.config[:timeout]
         @metric_id_cache = {}
+        @last_metric_harvest_time = Time.now
 
         @audit_logger = ::NewRelic::Agent::AuditLogger.new(Agent.config)
         Agent.config.register_callback(:'audit_log.enabled') do |enabled|
@@ -109,11 +110,13 @@ module NewRelic
         metric_data_array
       end
 
-      def metric_data(last_harvest_time, now, unsent_timeslice_data)
-        metric_data_array = build_metric_data_array(unsent_timeslice_data)
-        result = invoke_remote(:metric_data, @agent_id, last_harvest_time, now,
-                                metric_data_array)
+      def metric_data(stats_hash)
+        harvest_time = stats_hash.harvested_at || Time.now
+        metric_data_array = build_metric_data_array(stats_hash)
+        result = invoke_remote(:metric_data, @agent_id, @last_metric_harvest_time,
+                                harvest_time, metric_data_array)
         fill_metric_id_cache(result)
+        @last_metric_harvest_time = harvest_time
         result
       end
 

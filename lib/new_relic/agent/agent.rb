@@ -56,7 +56,6 @@ module NewRelic
         @connect_attempts   = 0
         @environment_report = nil
 
-        @last_harvest_time = Time.now
         @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
       end
@@ -507,7 +506,6 @@ module NewRelic
           @stats_engine.reset_stats
           @error_collector.reset!
           @transaction_sampler.reset!
-          @last_harvest_time = Time.now
           @launch_time = Time.now
         end
 
@@ -914,7 +912,7 @@ module NewRelic
 
         # calls the busy harvester and collects timeslice data to
         # send later
-        def harvest_timeslice_data(time=Time.now)
+        def harvest_timeslice_data
           NewRelic::Agent::BusyCalculator.harvest_busy
           @stats_engine.harvest_timeslice_data(@metric_rules)
         end
@@ -923,18 +921,15 @@ module NewRelic
         # then the metric data is downsampled for another
         # transmission later
         def harvest_and_send_timeslice_data
-          now = Time.now
-          timeslices = harvest_timeslice_data(now)
+          timeslices = harvest_timeslice_data
           begin
-            @service.metric_data(@last_harvest_time.to_f, now.to_f, timeslices)
+            @service.metric_data(timeslices)
           rescue UnrecoverableServerException => e
             ::NewRelic::Agent.logger.debug e.message
           rescue StandardError => e
             NewRelic::Agent.logger.info("Failed to send timelsice data, trying again later. Error:", e)
             @stats_engine.merge!(timeslices)
           end
-
-          @last_harvest_time = now
         end
 
         def harvest_and_send_slowest_sql
