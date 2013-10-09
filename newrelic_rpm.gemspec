@@ -51,8 +51,8 @@ EOS
   s.add_development_dependency 'jruby-openssl' if RUBY_PLATFORM == 'java'
   s.add_development_dependency 'sequel', '~> 3.46.0'
   s.add_development_dependency 'pry'
-  s.add_development_dependency 'guard'
-  s.add_development_dependency 'guard-test'
+  s.add_development_dependency 'guard', '~> 1.8.3' # Guard 2.0 is Ruby 1.9 only
+  s.add_development_dependency 'guard-test', '~> 1.0.0'
   s.add_development_dependency 'rb-fsevent', '~> 0.9.1'
 
   # Only sign with our private key if you can find it
