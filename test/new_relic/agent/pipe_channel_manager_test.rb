@@ -11,6 +11,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
 
   def setup
     @test_config = { :developer_mode => true }
+    NewRelic::Agent.agent.reset_stats
     NewRelic::Agent.config.apply_config(@test_config)
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     NewRelic::Agent.manual_start
