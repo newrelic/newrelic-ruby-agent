@@ -17,9 +17,19 @@ namespace :newrelic do
           else
             puts "Type:         #{value[:type]}"
           end
+          puts "Default:      #{format_default_value(value)}"
+
           puts 'Description:  ' + value[:description]
           puts "-" * (value[:description].length + 14)
         end
+      end
+    end
+
+    def format_default_value(spec)
+      if spec[:default].is_a?(Proc)
+        '(Dynamic)'
+      else
+        spec[:default].inspect
       end
     end
 
@@ -36,6 +46,7 @@ namespace :newrelic do
           puts "<tr>"
           puts "  <td><a name='#{key}'></a>#{key}</td>"
           puts "  <td>#{value[:type].to_s.gsub("NewRelic::Agent::Configuration::", "")}</td>"
+          puts "  <td>#{format_default_value(value)}</td>"
           puts "  <td>#{value[:description]}</td>"
           puts "</tr>"
         end
