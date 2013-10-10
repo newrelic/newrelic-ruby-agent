@@ -10,6 +10,8 @@ module NewRelic
   module Agent
     # This module contains support for Real User Monitoring - the
     # javascript generation and configuration
+    #
+    # @api public
     module BrowserMonitoring
       class DummyTransaction
 
@@ -47,6 +49,9 @@ module NewRelic
       # This is the header string - it should be placed as high in the
       # page as is reasonably possible - that is, before any style or
       # javascript inclusions, but after any header-related meta tags
+      #
+      # @api public
+      #
       def browser_timing_header
         insert_js? ? header_js_string : ""
       end
@@ -59,6 +64,9 @@ module NewRelic
       #
       # This is the footer string - it should be placed as low in the
       # page as is reasonably possible.
+      #
+      # @api public
+      #
       def browser_timing_footer
         if insert_js?
           NewRelic::Agent::Transaction.freeze_name
