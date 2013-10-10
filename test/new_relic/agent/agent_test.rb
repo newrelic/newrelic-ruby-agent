@@ -219,7 +219,7 @@ module NewRelic
       def test_harvest_and_send_timeslice_data_merges_back_on_failure
         timeslices = mock('timeslices')
 
-        @agent.stats_engine.expects(:harvest_timeslice_data).returns(timeslices)
+        @agent.stats_engine.expects(:harvest).returns(timeslices)
         @agent.service.stubs(:metric_data).raises('wat')
         @agent.stats_engine.expects(:merge!).with(timeslices)
 

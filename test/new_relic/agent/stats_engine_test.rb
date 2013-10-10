@@ -15,7 +15,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   end
 
   def teardown
-    @engine.harvest_timeslice_data
+    @engine.harvest
     mocha_teardown
     super
   end

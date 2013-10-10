@@ -914,7 +914,7 @@ module NewRelic
         # send later
         def harvest_timeslice_data
           NewRelic::Agent::BusyCalculator.harvest_busy
-          @stats_engine.harvest_timeslice_data(@metric_rules)
+          @stats_engine.harvest(@metric_rules)
         end
 
         # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
