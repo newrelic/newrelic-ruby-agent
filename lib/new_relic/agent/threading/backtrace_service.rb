@@ -159,7 +159,7 @@ module NewRelic
             AgentThread.list.each do |thread|
               sample_thread(thread)
             end
-            @profiles.values.each { |c| c.increment_poll_count }
+            @profiles.each_value { |p| p.increment_poll_count }
             @buffer.delete_if { |thread, _| !thread.alive? }
           end
 

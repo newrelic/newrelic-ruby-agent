@@ -519,6 +519,8 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.subscribe('foo', { 'sample_period' => 0.01 })
 
+        wait_for_backtrace_service_poll(5.0, @service)
+
         10000.times do
           @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
           @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
