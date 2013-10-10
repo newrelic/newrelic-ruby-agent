@@ -38,7 +38,10 @@ module HttpClientTestCases
     NewRelic::Agent.instance.events.notify(:finished_configuring)
 
     @nr_header = nil
-    NewRelic::Agent.instance.events.subscribe(:after_call) do |_, (_, headers, _)|
+    # Don't use destructuring on result array with ignores since it fails
+    # on Rubinius: https://github.com/rubinius/rubinius/issues/2678
+    NewRelic::Agent.instance.events.subscribe(:after_call) do |_, result|
+      headers = result[1]
       headers[ NR_APPDATA_HEADER ] = @nr_header unless @nr_header.nil?
     end
 
