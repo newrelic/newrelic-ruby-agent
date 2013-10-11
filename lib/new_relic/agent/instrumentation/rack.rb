@@ -68,6 +68,8 @@ module NewRelic
       #     add_transaction_tracer :call, :category => :rack, :name => 'my app'
       #   end
       #
+      # @api public
+      #
       module Rack
         def newrelic_request_headers
           @newrelic_request.env

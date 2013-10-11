@@ -3,3 +3,4 @@
 lib/new_relic/agent.rb
 lib/new_relic/agent/method_tracer.rb
 lib/new_relic/agent/instrumentation/controller_instrumentation.rb
+lib/new_relic/agent/instrumentation/rack.rb
