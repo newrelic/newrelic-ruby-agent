@@ -5,14 +5,12 @@
 require 'new_relic/agent/transaction/pop'
 require 'new_relic/agent/transaction_timings'
 
-# A struct holding the information required to measure a controller
-# action.  This is put on the thread local.  Handles the issue of
-# re-entrancy, or nested action calls.
-#
-# This class is not part of the public API.  Avoid making calls on it directly.
-#
 module NewRelic
   module Agent
+    # This class represents a single transaction (usually mapping to one
+    # web request or background job invocation) instrumented by the Ruby agent.
+    #
+    # @api public
     class Transaction
       # helper module refactored out of the `pop` method
       include Pop
@@ -377,6 +375,9 @@ module NewRelic
 
       # Returns truthy if the current in-progress transaction is considered a
       # a web transaction (as opposed to, e.g., a background transaction).
+      #
+      # @api public
+      #
       def self.recording_web_transaction?
         self.current && self.current.recording_web_transaction?
       end
