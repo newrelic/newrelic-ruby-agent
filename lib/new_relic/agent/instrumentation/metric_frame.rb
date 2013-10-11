@@ -10,9 +10,9 @@ module NewRelic
       #
       # This class is deprecated and will be removed in a future agent version.
       #
-      # This class is not part of the public API.  Avoid making calls on it directly.
+      # @api public
+      # @deprecated in favor of the +Transaction+ class
       #
-      # @deprecated
       class MetricFrame
 
         # @deprecated
