@@ -115,12 +115,6 @@ module NewRelic
           @unsent_errors.length if @unsent_errors
         end
 
-        # Returns the length of the traces array, if it exists,
-        # otherwise nil
-        def unsent_traces_size
-          @traces.length if @traces
-        end
-
         # Initializes the unsent timeslice data hash, if needed, and
         # returns the number of keys it contains
         def unsent_timeslice_data
@@ -525,7 +519,7 @@ module NewRelic
         def reset_stats
           @stats_engine.reset_stats
           @unsent_errors = []
-          @traces = nil
+          @transaction_sampler.reset!
           @unsent_timeslice_data = {}
           @last_harvest_time = Time.now
           @launch_time = Time.now
@@ -865,11 +859,7 @@ module NewRelic
           @stats_engine.merge!(metrics) if metrics
           if transaction_traces && transaction_traces.respond_to?(:any?) &&
               transaction_traces.any?
-            if @traces
-              @traces += transaction_traces
-            else
-              @traces = transaction_traces
-            end
+            @transaction_sampler.merge(transaction_traces)
           end
           if errors && errors.respond_to?(:each)
             errors.each do |err|
@@ -973,13 +963,6 @@ module NewRelic
           @last_harvest_time = now
         end
 
-        # Fills the traces array with the harvested transactions from
-        # the transaction sampler, subject to the setting for slowest
-        # transaction threshold
-        def harvest_transaction_traces
-          @traces = @transaction_sampler.harvest(@traces)
-        end
-
         def harvest_and_send_slowest_sql
           # FIXME add the code to try to resend if our connection is down
           sql_traces = @sql_sampler.harvest
@@ -1002,28 +985,27 @@ module NewRelic
         # SQL.  note that we explain only the sql statements whose
         # segments' execution times exceed our threshold (to avoid
         # unnecessary overhead of running explains on fast queries.)
-        def harvest_and_send_slowest_sample
-          harvest_transaction_traces
-
-          unless @traces.empty?
+        def harvest_and_send_transaction_traces
+          traces = @transaction_sampler.harvest
+          unless traces.empty?
             begin
-              send_slowest_sample
+              send_transaction_traces(traces)
             rescue UnrecoverableServerException => e
-              ::NewRelic::Agent.logger.debug e.message
+              # This indicates that there was a problem with the POST body, so
+              # we discard the traces rather than trying again later.
+              ::NewRelic::Agent.logger.debug("Server rejected transaction traces, discarding. Error: ", e)
+            rescue => e
+              ::NewRelic::Agent.logger.error("Failed to send transaction traces, will re-attempt next harvest. Error: ", e)
+              @transaction_sampler.merge(traces)
             end
           end
-
-          # if we succeed sending this sample, then we don't need to keep
-          # the slowest sample around - it has been sent already and we
-          # can clear the collection and move on
-          @traces = nil
         end
 
-        def send_slowest_sample
+        def send_transaction_traces(traces)
           start_time = Time.now
-          ::NewRelic::Agent.logger.debug "Sending (#{@traces.length}) transaction traces"
+          ::NewRelic::Agent.logger.debug "Sending (#{traces.length}) transaction traces"
 
-          options = { :keep_backtraces => true }
+          options = {}
           unless NewRelic::Agent::Database.record_sql_method == :off
             options[:record_sql] = NewRelic::Agent::Database.record_sql_method
           end
@@ -1032,7 +1014,7 @@ module NewRelic
             options[:explain_sql] = Agent.config[:'transaction_tracer.explain_threshold']
           end
 
-          traces = @traces.map {|trace| trace.prepare_to_send(options) }
+          traces.each { |trace| trace.prepare_to_send!(options) }
 
           @service.transaction_sample_data(traces)
           ::NewRelic::Agent.logger.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - start_time} seconds"
@@ -1104,7 +1086,7 @@ module NewRelic
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive
             harvest_and_send_errors
-            harvest_and_send_slowest_sample
+            harvest_and_send_transaction_traces
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
             harvest_and_send_analytic_event_data
