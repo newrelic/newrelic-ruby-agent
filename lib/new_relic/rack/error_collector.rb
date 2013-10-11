@@ -3,6 +3,13 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 module NewRelic::Rack
+  # This middleware is used by the agent in order to capture exceptions that
+  # occur within your web application. It will normally be injected into the
+  # middleware chain automatically, but if automatic injection fails in your
+  # environment, you may alternately include it manually.
+  #
+  # @api public
+  #
   class ErrorCollector
     def initialize(app, options={})
       @app = app
