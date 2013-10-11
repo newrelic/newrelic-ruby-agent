@@ -6,6 +6,7 @@ require 'new_relic/agent/transaction'
 require 'new_relic/agent/instrumentation/queue_time'
 module NewRelic
   module Agent
+    # @api public
     module Instrumentation
       # == NewRelic instrumentation for controller actions and tasks
       #
@@ -19,6 +20,8 @@ module NewRelic
       # For details on how to instrument background tasks see
       # ClassMethods#add_transaction_tracer and
       # #perform_action_with_newrelic_trace
+      #
+      # @api public
       #
       module ControllerInstrumentation
 
@@ -45,16 +48,23 @@ module NewRelic
         module ClassMethods
           # Have NewRelic ignore actions in this controller.  Specify the actions as hash options
           # using :except and :only.  If no actions are specified, all actions are ignored.
+          #
+          # @api public
+          #
           def newrelic_ignore(specifiers={})
             newrelic_ignore_aspect('do_not_trace', specifiers)
           end
           # Have NewRelic omit apdex measurements on the given actions.  Typically used for
           # actions that are not user facing or that skew your overall apdex measurement.
           # Accepts :except and :only options, as with #newrelic_ignore.
+          #
+          # @api public
+          #
           def newrelic_ignore_apdex(specifiers={})
             newrelic_ignore_aspect('ignore_apdex', specifiers)
           end
 
+          # @api public
           def newrelic_ignore_enduser(specifiers={})
             newrelic_ignore_aspect('ignore_enduser', specifiers)
           end
@@ -130,6 +140,8 @@ module NewRelic
           #
           # See NewRelic::Agent::Instrumentation::ControllerInstrumentation#perform_action_with_newrelic_trace
           # for the full list of available options.
+          #
+          # @api public
           #
           def add_transaction_tracer(method, options={})
             # The metric path:
@@ -294,6 +306,9 @@ module NewRelic
         #
         # If a single argument is passed in, it is treated as a metric
         # path.  This form is deprecated.
+        #
+        # @api public
+        #
         def perform_action_with_newrelic_trace(*args, &block)
           request = newrelic_request(args)
           NewRelic::Agent::TransactionState.reset(request)

@@ -9,14 +9,12 @@ dual-purposed as a either a Rails plugin or a Gem, hosted on
 
 The New Relic Ruby Agent runs in one of two modes:
 
-#### Production Mode
-
+**Production Mode**
 Low overhead instrumentation that captures detailed information on
 your application running in production and transmits them to
 newrelic.com where you can monitor them in real time.
 
-#### Developer Mode
-
+**Developer Mode**
 A Rack middleware that maps `/newrelic` to an application for showing
 detailed performance metrics on a page by page basis.  Installed
 automatically in Rails applications.

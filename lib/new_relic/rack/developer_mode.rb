@@ -11,6 +11,20 @@ require 'new_relic/collection_helper'
 
 module NewRelic
   module Rack
+    # This middleware provides the 'developer mode' feature of newrelic_rpm,
+    # which allows you to see data about local web transactions in development
+    # mode immediately without needing to send this data to New Relic's servers.
+    #
+    # Enabling developer mode has serious performance and security impact, and
+    # thus you should never use this middleware in a production or non-local
+    # environment.
+    #
+    # This middleware should be automatically inserted in most contexts, but if
+    # automatic middleware insertion fails, you may manually insert it into your
+    # middleware chain.
+    #
+    # @api public
+    #
     class DeveloperMode
 
       VIEW_PATH = File.expand_path('../../../../ui/views/', __FILE__)

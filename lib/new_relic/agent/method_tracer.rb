@@ -36,19 +36,25 @@ module NewRelic
     #         add_method_tracer :process
     #       end
     #     end
+    #
+    # @api public
+    #
 
     module MethodTracer
-
-      def self.included clazz #:nodoc:
+      def self.included clazz
         clazz.extend ClassMethods
       end
 
-      def self.extended clazz #:nodoc:
+      def self.extended clazz
         clazz.extend ClassMethods
       end
 
       # Deprecated: original method preserved for API backward compatibility.
       # Use either #trace_execution_scoped or #trace_execution_unscoped
+      #
+      # @api public
+      # @deprecated
+      #
       def trace_method_execution(metric_names, push_scope, produce_metric, deduct_call_time_from_parent, &block) #:nodoc:
         if push_scope
           trace_execution_scoped(metric_names, :metric => produce_metric,
@@ -66,6 +72,8 @@ module NewRelic
       # * <tt>:force => true</tt> will force the metric to be captured even when
       #   tracing is disabled with NewRelic::Agent#disable_all_tracing
       #
+      # @api public
+      #
       def trace_execution_unscoped(metric_names, options={})
         return yield unless NewRelic::Agent.is_execution_traced?
         t0 = Time.now
@@ -80,6 +88,9 @@ module NewRelic
       end
 
       # Deprecated. Use #trace_execution_scoped, a version with an options hash.
+      #
+      # @deprecated
+      #
       def trace_method_execution_with_scope(metric_names, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false, &block) #:nodoc:
         trace_execution_scoped(metric_names,
                                :metric => produce_metric,
@@ -120,6 +131,7 @@ module NewRelic
         def get_stats_scoped(first_name, scoped_metric_only)
           stat_engine.get_stats(first_name, true, scoped_metric_only)
         end
+
         # Shorthand method to get stats from the stat engine
         def get_stats_unscoped(name)
           stat_engine.get_stats_no_scope(name)
@@ -238,35 +250,37 @@ module NewRelic
             end
           end
         end
-
-        # Trace a given block with stats and keep track of the caller.
-        # See NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer for a description of the arguments.
-        # +metric_names+ is either a single name or an array of metric names.
-        # If more than one metric is passed, the +produce_metric+ option only applies to the first.  The
-        # others are always recorded.  Only the first metric is pushed onto the scope stack.
-        #
-        # Generally you pass an array of metric names if you want to record the metric under additional
-        # categories, but generally this *should never ever be done*.  Most of the time you can aggregate
-        # on the server.
-        def trace_execution_scoped(metric_names, options={})
-          return yield if trace_disabled?(options)
-          set_if_nil(options, :metric)
-          set_if_nil(options, :deduct_call_time_from_parent)
-          metric_names = Array(metric_names)
-          first_name = metric_names.shift
-          start_time, expected_scope = trace_execution_scoped_header(options)
-          begin
-            yield
-          ensure
-            trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, options)
-          end
-        end
-
       end
       include TraceExecutionScoped
 
+      # Trace a given block with stats and keep track of the caller.
+      # See NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer for a description of the arguments.
+      # +metric_names+ is either a single name or an array of metric names.
+      # If more than one metric is passed, the +produce_metric+ option only applies to the first.  The
+      # others are always recorded.  Only the first metric is pushed onto the scope stack.
+      #
+      # Generally you pass an array of metric names if you want to record the metric under additional
+      # categories, but generally this *should never ever be done*.  Most of the time you can aggregate
+      # on the server.
+      #
+      # @api public
+      #
+      def trace_execution_scoped(metric_names, options={})
+        return yield if trace_disabled?(options)
+        set_if_nil(options, :metric)
+        set_if_nil(options, :deduct_call_time_from_parent)
+        metric_names = Array(metric_names)
+        first_name = metric_names.shift
+        start_time, expected_scope = trace_execution_scoped_header(options)
+        begin
+          yield
+        ensure
+          trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, options)
+        end
+      end
 
       # Defines methods used at the class level, for adding instrumentation
+      # @api public
       module ClassMethods
         # contains methods refactored out of the #add_method_tracer method
         module AddMethodTracer
@@ -489,6 +503,8 @@ module NewRelic
         #       add_method_tracer :foo, 'Custom/People/fetch'
         #     end
         #
+        # @api public
+        #
         def add_method_tracer(method_name, metric_name_code=nil, options = {})
           return unless newrelic_method_exists?(method_name)
           metric_name_code ||= default_metric_name_code(method_name)
@@ -542,6 +558,8 @@ module NewRelic
           name.to_s.tr_s('^a-zA-Z0-9', '_')
         end
       end
+
+      # @!parse extend ClassMethods
     end
   end
 end

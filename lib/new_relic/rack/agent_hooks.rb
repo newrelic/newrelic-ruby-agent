@@ -5,6 +5,12 @@
 require 'new_relic/agent/event_listener'
 
 module NewRelic::Rack
+  # This middleware is used by the agent internally, and is usually injected
+  # automatically into the middleware chain. If automatic injection is not
+  # working, you may manually use it in your middleware chain instead.
+  #
+  # @api public
+  #
   class AgentHooks
     def initialize(app, options = {})
       @app = app

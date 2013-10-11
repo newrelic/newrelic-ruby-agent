@@ -5,6 +5,13 @@
 require 'rack'
 
 module NewRelic::Rack
+  # This middleware is used by the agent for the Real user monitoring (RUM)
+  # feature, and will usually be automatically injected in the middleware chain.
+  # If automatic injection is not working, you may manually use it in your
+  # middleware chain instead.
+  #
+  # @api public
+  #
   class BrowserMonitoring
 
     def initialize(app, options = {})
