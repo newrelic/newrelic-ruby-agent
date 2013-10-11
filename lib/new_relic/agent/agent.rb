@@ -856,9 +856,7 @@ module NewRelic
             @transaction_sampler.merge(transaction_traces)
           end
           if errors && errors.respond_to?(:each)
-            errors.each do |err|
-              @error_collector.add_to_error_queue(err)
-            end
+            @error_collector.merge(errors)
           end
         end
 
