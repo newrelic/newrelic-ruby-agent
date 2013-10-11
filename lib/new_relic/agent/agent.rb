@@ -994,8 +994,8 @@ module NewRelic
               # This indicates that there was a problem with the POST body, so
               # we discard the traces rather than trying again later.
               ::NewRelic::Agent.logger.debug("Server rejected transaction traces, discarding. Error: ", e)
-            rescue
-              ::NewRelic::Agent.logger.debug("Failed to send transaction traces, will re-attempt next harvest. Error: ", e)
+            rescue => e
+              ::NewRelic::Agent.logger.error("Failed to send transaction traces, will re-attempt next harvest. Error: ", e)
               @transaction_sampler.merge(traces)
             end
           end
