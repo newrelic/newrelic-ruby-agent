@@ -82,12 +82,11 @@ module NewRelic
         end
 
         def active_record_config_for_event(event)
-          return unless event.payload[:connection_id] && NewRelic::LanguageSupport.object_space_enabled?
+          return unless event.payload[:connection_id]
 
-          # TODO: This will not work for JRuby and in any case we want
-          # this to be part of the event meta data so it doesn't have
-          # to be dug out of an ivar.
-          connection = ObjectSpace._id2ref(event.payload[:connection_id])
+          connections = ::ActiveRecord::Base.connection_handler.connection_pool_list.map(&:connections).flatten
+          connection = connections.select { |connection| connection.object_id == event.payload[:connection_id] }
+
           connection.instance_variable_get(:@config) if connection
         end
       end

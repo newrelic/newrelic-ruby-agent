@@ -128,6 +128,17 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     advance_time(duration) if duration
     @subscriber.finish('sql.active_record', :id, @params)
   end
+
+  def test_active_record_config_for_event
+    target_connection = ActiveRecord::Base.connection_handler.connection_pool_list.first.connections.first
+    expected_config = target_connection.instance_variable_get(:@config)
+
+    event = mock('event')
+    event.stubs(:payload).returns({ :connection_id => target_connection.object_id })
+
+    result = @subscriber.active_record_config_for_event(event)
+    assert_equal expected_config, result
+  end
 end
 
 else
