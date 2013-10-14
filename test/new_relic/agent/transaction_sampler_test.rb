@@ -432,6 +432,27 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal_unordered(expected, result)
   end
 
+  class BoundlessBuffer < NewRelic::Agent::Transaction::TransactionSampleBuffer
+    def max_samples
+      1.0 / 0 # Can't use Float::INFINITY on older Rubies :(
+    end
+  end
+
+  def test_harvest_has_hard_maximum
+    boundless_buffer = BoundlessBuffer.new
+
+    buffers = @sampler.instance_variable_get(:@sample_buffers)
+    buffers << boundless_buffer
+
+    samples = generate_samples(100)
+    samples.each do |sample|
+      @sampler.store_sample(sample)
+    end
+
+    result = @sampler.harvest
+    assert_equal NewRelic::Agent::Transaction::TransactionSampleBuffer::SINGLE_BUFFER_MAX, result.length
+  end
+
   def test_start_builder_default
     NewRelic::Agent.expects(:is_execution_traced?).returns(true)
     @sampler.send(:start_builder)

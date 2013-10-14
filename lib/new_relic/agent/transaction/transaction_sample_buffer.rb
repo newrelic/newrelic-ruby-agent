@@ -8,6 +8,7 @@ module NewRelic
       class TransactionSampleBuffer
         attr_reader :samples
 
+        SINGLE_BUFFER_MAX = 20
         NO_SAMPLES = [].freeze
 
         def initialize
@@ -53,17 +54,24 @@ module NewRelic
         end
 
         def full?
-          @samples.length >= max_samples
+          @samples.length >= effective_max_samples
         end
 
-        # Our default truncation strategy is to keep max_samples worth of the
-        # longest samples. Override this method for alternate behavior.
+        # To keep users from consuming too much memory, we apply an upper limit
+        # per buffer to how large it can get...
+        def effective_max_samples
+          max_samples > SINGLE_BUFFER_MAX ? SINGLE_BUFFER_MAX : max_samples
+        end
+
+        # Our default truncation strategy is to keep effective_max_samples
+        # worth of the longest samples. Override this method for alternate
+        # behavior.
         #
         # This doesn't use the more convenient #last and #sort_by to avoid
         # additional array allocations (and abundant alliteration)
         def truncate_samples
           @samples.sort!{|a,b| a.duration <=> b.duration}
-          @samples.slice!(0..-(max_samples + 1))
+          @samples.slice!(0..-(effective_max_samples + 1))
         end
 
         # When pushing a scope different sample buffers potentially want to

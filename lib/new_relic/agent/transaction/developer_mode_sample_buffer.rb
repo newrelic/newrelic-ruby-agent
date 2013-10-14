@@ -12,6 +12,12 @@ module NewRelic
         MAX_SAMPLES = 100
 
         def max_samples
+          effective_max_samples
+        end
+
+        # Dev mode is allowed more than the typical upper limit.
+        # Sidestep normal cap by overriding effective_max_samples.
+        def effective_max_samples
           MAX_SAMPLES
         end
 
