@@ -84,7 +84,7 @@ module NewRelic
         def active_record_config_for_event(event)
           return unless event.payload[:connection_id]
 
-          connections = ::ActiveRecord::Base.connection_handler.connection_pool_list.map(&:connections).flatten
+          connections = ::ActiveRecord::Base.connection_handler.connection_pool_list.map { |handler| handler.connections }.flatten
           connection = connections.select { |connection| connection.object_id == event.payload[:connection_id] }
 
           connection.instance_variable_get(:@config) if connection
