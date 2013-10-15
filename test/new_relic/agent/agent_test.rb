@@ -49,6 +49,20 @@ module NewRelic
         end
       end
 
+      def test_after_fork_should_reset_errors_collected
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+
+          errors = []
+          errors << NewRelic::NoticedError.new("", {}, Exception.new("boo"))
+          @agent.merge_data_from([{}, [], errors])
+
+          @agent.after_fork(:report_to_channel => 123)
+
+          assert_equal 0, @agent.error_collector.errors.length, "Still got errors collected in parent"
+        end
+      end
+
       def test_transmit_data_should_emit_before_harvest_event
         got_it = false
         @agent.events.subscribe(:before_harvest) { got_it = true }
@@ -111,6 +125,18 @@ module NewRelic
         end
       end
 
+      def test_harvest_and_send_errors_merges_back_on_failure
+        errors = [mock('e0'), mock('e1')]
+
+        @agent.error_collector.expects(:harvest_errors).returns(errors)
+        @agent.service.stubs(:error_data).raises('wat')
+        @agent.error_collector.expects(:merge).with(errors)
+
+        assert_nothing_raised do
+          @agent.send :harvest_and_send_errors
+        end
+      end
+
       def test_harvest_timeslice_data
         assert_equal({}, @agent.send(:harvest_timeslice_data),
                      'should return timeslice data')
@@ -142,10 +168,6 @@ module NewRelic
         end
       end
 
-      def test_harvest_errors
-        assert_equal([], @agent.send(:harvest_errors), 'should return errors')
-      end
-
       def test_handle_for_agent_commands
         @agent.service.expects(:get_agent_commands).returns([]).once
         @agent.send :check_for_and_handle_agent_commands
@@ -159,28 +181,13 @@ module NewRelic
 
       def test_merge_data_from_empty
         unsent_timeslice_data = mock('unsent timeslice data')
-        unsent_errors = mock('unsent errors')
+        @agent.error_collector.expects(:merge).never
         @agent.transaction_sampler.expects(:merge).never
         @agent.instance_eval {
-          @unsent_errors = unsent_errors
           @unsent_timeslice_data = unsent_timeslice_data
         }
         # nb none of the others should receive merge requests
         @agent.merge_data_from([{}])
-      end
-
-      def test_unsent_errors_size_empty
-        @agent.instance_eval {
-          @unsent_errors = nil
-        }
-        assert_equal(nil, @agent.unsent_errors_size)
-      end
-
-      def test_unsent_errors_size_with_errors
-        @agent.instance_eval {
-          @unsent_errors = ['an error']
-        }
-        assert_equal(1, @agent.unsent_errors_size)
       end
 
       def test_unsent_timeslice_data_empty

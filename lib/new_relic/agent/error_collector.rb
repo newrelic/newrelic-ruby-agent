@@ -298,18 +298,25 @@ module NewRelic
         NewRelic::Agent.logger.info("Unable to capture internal agent error due to an exception:", e)
       end
 
+      def merge(errors)
+        errors.each do |error|
+          add_to_error_queue(error)
+        end
+      end
+
       # Get the errors currently queued up.  Unsent errors are left
       # over from a previous unsuccessful attempt to send them to the server.
-      def harvest_errors(unsent_errors)
+      def harvest_errors
         @lock.synchronize do
           errors = @errors
           @errors = []
-
-          if unsent_errors && !unsent_errors.empty?
-            errors = unsent_errors + errors
-          end
-
           errors
+        end
+      end
+
+      def reset!
+        @lock.synchronize do
+          @errors = []
         end
       end
     end
