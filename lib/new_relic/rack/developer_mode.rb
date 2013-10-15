@@ -155,7 +155,7 @@ module NewRelic
           body = render_without_layout(view, binding)
         end
         if add_rack_array
-          ::Rack::Response.new(body).finish
+          ::Rack::Response.new(body, 200, {'Content-Type' => 'text/html'}).finish
         else
           body
         end
