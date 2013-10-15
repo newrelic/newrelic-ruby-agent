@@ -261,6 +261,28 @@ module HttpClientTestCases
     ])
   end
 
+  def test_put
+    put_response
+
+    assert_metrics_recorded([
+      "External/all",
+      "External/localhost/#{client_name}/PUT",
+      "External/allOther",
+      "External/localhost/all"
+    ])
+  end
+
+  def test_delete
+    delete_response
+
+    assert_metrics_recorded([
+      "External/all",
+      "External/localhost/#{client_name}/DELETE",
+      "External/allOther",
+      "External/localhost/all"
+    ])
+  end
+
   # When an http call is made, the agent should add a request header named
   # X-NewRelic-ID with a value equal to the encoded cross_app_id.
 

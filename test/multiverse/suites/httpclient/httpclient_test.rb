@@ -28,6 +28,14 @@ class HTTPClientTest < MiniTest::Unit::TestCase
     HTTPClient.post(default_url, :body => "")
   end
 
+  def put_response
+    HTTPClient.put(default_url, :body => "")
+  end
+
+  def delete_response
+    HTTPClient.delete(default_url, :body => "")
+  end
+
   def request_instance
     httpclient_req = HTTP::Message.new_request(:get, 'http://newrelic.com')
     NewRelic::Agent::HTTPClients::HTTPClientRequest.new(httpclient_req)

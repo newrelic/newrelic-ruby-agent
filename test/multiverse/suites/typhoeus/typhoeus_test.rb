@@ -43,6 +43,14 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
       Typhoeus::Request.post(default_url, ssl_option.merge(:body => ""))
     end
 
+    def put_response
+      Typhoeus::Request.put(default_url, ssl_option.merge(:body => ""))
+    end
+
+    def delete_response
+      Typhoeus::Request.delete(default_url, ssl_option)
+    end
+
     def request_instance
       NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(Typhoeus::Request.new("http://newrelic.com"))
     end
