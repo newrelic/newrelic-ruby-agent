@@ -175,7 +175,7 @@ module NewRelic
         @agent.stats_engine.expects(:merge!).never
         @agent.error_collector.expects(:merge).never
         @agent.transaction_sampler.expects(:merge).never
-        @agent.merge_data_from([{}])
+        @agent.merge_data_from([])
       end
 
       def test_merge_data_traces

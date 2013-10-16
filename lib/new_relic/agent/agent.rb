@@ -840,7 +840,7 @@ module NewRelic
         # will be sent multiple times.
         def merge_data_from(data)
           metrics, transaction_traces, errors = data
-          @stats_engine.merge!(metrics) if metrics && !metrics.empty?
+          @stats_engine.merge!(metrics) if metrics
           if transaction_traces && transaction_traces.respond_to?(:any?) &&
               transaction_traces.any?
             @transaction_sampler.merge(transaction_traces)
