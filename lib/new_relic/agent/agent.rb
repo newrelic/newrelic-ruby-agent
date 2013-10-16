@@ -917,17 +917,14 @@ module NewRelic
           @stats_engine.harvest(@metric_rules)
         end
 
-        # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
-        # then the metric data is downsampled for another
-        # transmission later
         def harvest_and_send_timeslice_data
           timeslices = harvest_timeslice_data
           begin
             @service.metric_data(timeslices)
           rescue UnrecoverableServerException => e
             ::NewRelic::Agent.logger.debug e.message
-          rescue StandardError => e
-            NewRelic::Agent.logger.info("Failed to send timelsice data, trying again later. Error:", e)
+          rescue => e
+            NewRelic::Agent.logger.info("Failed to send timeslice data, trying again later. Error:", e)
             @stats_engine.merge!(timeslices)
           end
         end
