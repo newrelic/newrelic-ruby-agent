@@ -81,7 +81,9 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
     issue_command(START_COMMAND)
     issue_command(STOP_COMMAND)
 
-    let_it_finish
+    # No wait needed, should be immediately ready to harvest
+    assert @thread_profiler_session.ready_to_harvest?
+    harvest
 
     profile_data = $collector.calls_for('profile_data')[0]
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
@@ -104,10 +106,17 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   def let_it_finish
     Timeout.timeout(5) do
       until @thread_profiler_session.ready_to_harvest?
+        # Profiler thread occasionally isn't getting a shot.
+        # Try harder to give it a chance.
+        Thread.pass
         sleep(0.1)
       end
     end
 
+    harvest
+  end
+
+  def harvest
     agent.send(:transmit_data, true)
   end
 
