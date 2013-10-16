@@ -14,6 +14,7 @@ require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
 class SidekiqTest < MiniTest::Unit::TestCase
   JOB_COUNT = 5
+  TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/SidekiqTest::TestWorker/perform'
 
   include MultiverseHelpers
 
@@ -72,8 +73,6 @@ class SidekiqTest < MiniTest::Unit::TestCase
     run_jobs
     assert_metric_and_call_count('OtherTransaction/SidekiqJob/all', JOB_COUNT)
   end
-
-  TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/SidekiqTest::TestWorker/perform'
 
   def test_doesnt_capture_args_by_default
     run_jobs
