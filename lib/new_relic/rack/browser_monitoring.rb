@@ -83,9 +83,9 @@ module NewRelic::Rack
         # is really weird and we should punt.
         if head_pos && (head_pos < body_close)
           # rebuild the source
-          source = source[0..(head_pos-1)] <<
+          source = source[0...head_pos] <<
             header <<
-            source[head_pos..(body_close-1)] <<
+            source[head_pos...body_close] <<
             footer <<
             source[body_close..-1]
         else
