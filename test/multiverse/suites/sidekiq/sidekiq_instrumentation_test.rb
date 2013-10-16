@@ -51,9 +51,11 @@ class SidekiqTest < MiniTest::Unit::TestCase
   end
 
   def run_jobs
-    TestWorker.reset
-    JOB_COUNT.times do |i|
-      TestWorker.perform_async('jobs_completed', i + 1)
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      TestWorker.reset
+      JOB_COUNT.times do |i|
+        TestWorker.perform_async('jobs_completed', i + 1)
+      end
     end
 
     NewRelic::Agent.instance.send(:transmit_data)
@@ -74,23 +76,19 @@ class SidekiqTest < MiniTest::Unit::TestCase
   TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/SidekiqTest::TestWorker/perform'
 
   def test_doesnt_capture_args_by_default
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+    run_jobs
+    assert_no_params_on_jobs
+  end
+
+  def test_doesnt_capture_args_without_sidekiq_specific_setting
+    with_config(:capture_params => true) do
       run_jobs
     end
-
-    transaction_samples = $collector.calls_for('transaction_sample_data')
-    assert_false transaction_samples.empty?
-
-    transaction_samples.each do |post|
-      post.samples.each do |sample|
-        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_equal sample.tree.request_params, {}
-      end
-    end
+    assert_no_params_on_jobs
   end
 
   def test_agent_posts_captured_args_to_job
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0, :capture_params => true) do
+    with_config(:capture_params => true, :'sidekiq.capture_params' => true) do
       run_jobs
     end
 
@@ -117,5 +115,17 @@ class SidekiqTest < MiniTest::Unit::TestCase
 
     call_count = metric[1][0]
     assert_equal(expected_call_count, call_count)
+  end
+
+  def assert_no_params_on_jobs
+    transaction_samples = $collector.calls_for('transaction_sample_data')
+    assert_false transaction_samples.empty?
+
+    transaction_samples.each do |post|
+      post.samples.each do |sample|
+        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
+        assert_equal sample.tree.request_params, {}
+      end
+    end
   end
 end
