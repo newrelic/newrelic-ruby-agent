@@ -9,16 +9,16 @@ module NewRelic
     class Transaction
       class DeveloperModeSampleBuffer < TransactionSampleBuffer
 
-        MAX_SAMPLES = 100
+        CAPACITY = 100
 
-        def max_samples
-          effective_max_samples
+        def capacity
+          max_capacity
         end
 
         # Dev mode is allowed more than the typical upper limit.
-        # Sidestep normal cap by overriding effective_max_samples.
-        def effective_max_samples
-          MAX_SAMPLES
+        # Sidestep normal cap by overriding max_capacity.
+        def max_capacity
+          CAPACITY
         end
 
         def harvest_samples
@@ -29,9 +29,9 @@ module NewRelic
           Agent.config[:developer_mode]
         end
 
-        # Truncate to the last max_samples we've received
+        # Truncate to the last capacity samples we've received
         def truncate_samples
-          @samples = @samples.last(max_samples)
+          @samples = @samples.last(capacity)
         end
 
         # We don't hold onto previously trapped transactions on harvest

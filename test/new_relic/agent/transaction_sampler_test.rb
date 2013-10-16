@@ -381,8 +381,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_includes(result, old_forced)
   end
 
-  FORCE_PERSIST_MAX = NewRelic::Agent::Transaction::ForcePersistSampleBuffer::MAX_SAMPLES
-  SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::MAX_SAMPLES
+  FORCE_PERSIST_MAX = NewRelic::Agent::Transaction::ForcePersistSampleBuffer::CAPACITY
+  SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::CAPACITY
   XRAY_SAMPLE_MAX = NewRelic::Agent.config[:'xray_session.max_samples']
 
   def test_harvest_respects_limits_from_previous
@@ -433,7 +433,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   class BoundlessBuffer < NewRelic::Agent::Transaction::TransactionSampleBuffer
-    def max_samples
+    def capacity
       1.0 / 0 # Can't use Float::INFINITY on older Rubies :(
     end
   end

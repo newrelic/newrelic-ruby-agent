@@ -9,10 +9,10 @@ module NewRelic
     class Transaction
       class SlowestSampleBuffer < TransactionSampleBuffer
 
-        MAX_SAMPLES = 1
+        CAPACITY = 1
 
-        def max_samples
-          MAX_SAMPLES
+        def capacity
+          CAPACITY
         end
 
         def allow_sample?(sample)

@@ -54,16 +54,27 @@ module NewRelic
         end
 
         def full?
-          @samples.length >= effective_max_samples
+          @samples.length >= max_capacity
         end
 
-        # To keep users from consuming too much memory, we apply an upper limit
-        # per buffer to how large it can get...
-        def effective_max_samples
-          max_samples > SINGLE_BUFFER_MAX ? SINGLE_BUFFER_MAX : max_samples
+        # Capacity is the desired number of samples a buffer will hold. This
+        # can be user dictated via config if a feature wants.
+        #
+        # This value will be forcibly capped by the max_capacity
+        def capacity
+          raise NotImplementedError.new("TransactionSampleBuffer subclasses must provide a capacity override")
         end
 
-        # Our default truncation strategy is to keep effective_max_samples
+        # Apply hard upper limit to the capacity to prevent users from
+        # consuming too much memory buffering TT's.
+        #
+        # A typical buffer should NOT override this method (although we do for
+        # odd things like dev-mode)
+        def max_capacity
+          capacity > SINGLE_BUFFER_MAX ? SINGLE_BUFFER_MAX : capacity
+        end
+
+        # Our default truncation strategy is to keep max_capacity
         # worth of the longest samples. Override this method for alternate
         # behavior.
         #
@@ -71,7 +82,7 @@ module NewRelic
         # additional array allocations (and abundant alliteration)
         def truncate_samples
           @samples.sort!{|a,b| a.duration <=> b.duration}
-          @samples.slice!(0..-(effective_max_samples + 1))
+          @samples.slice!(0..-(max_capacity + 1))
         end
 
         # When pushing a scope different sample buffers potentially want to

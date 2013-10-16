@@ -9,10 +9,10 @@ module NewRelic
     class Transaction
       class ForcePersistSampleBuffer < TransactionSampleBuffer
 
-        MAX_SAMPLES = 10
+        CAPACITY = 10
 
-        def max_samples
-          MAX_SAMPLES
+        def capacity
+          CAPACITY
         end
 
         def allow_sample?(sample)
