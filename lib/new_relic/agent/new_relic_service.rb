@@ -113,8 +113,13 @@ module NewRelic
       def metric_data(stats_hash)
         harvest_time = stats_hash.harvested_at || Time.now
         metric_data_array = build_metric_data_array(stats_hash)
-        result = invoke_remote(:metric_data, @agent_id, @last_metric_harvest_time,
-                                harvest_time, metric_data_array)
+        result = invoke_remote(
+          :metric_data,
+          @agent_id,
+          @last_metric_harvest_time.to_f,
+          harvest_time.to_f,
+          metric_data_array
+        )
         fill_metric_id_cache(result)
         @last_metric_harvest_time = harvest_time
         result

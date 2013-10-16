@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'cgi'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/commands/thread_profiler_session'
 
@@ -193,7 +194,32 @@ class NewRelicServiceTest < Test::Unit::TestCase
     stats_hash.harvested_at = Time.now
     @service.expects(:fill_metric_id_cache).with(dummy_rsp)
     response = @service.metric_data(stats_hash)
+
+    assert_equal 4, @http_handle.last_request_payload.size
     assert_equal dummy_rsp, response
+  end
+
+  def test_metric_data_sends_harvest_timestamps
+    @http_handle.respond_to(:metric_data, 'foo')
+    @service.stubs(:fill_metric_id_cache)
+
+    t0 = freeze_time
+    stats_hash = NewRelic::Agent::StatsHash.new
+    stats_hash.harvested_at = Time.now
+
+    @service.metric_data(stats_hash)
+    payload = @http_handle.last_request_payload
+    _, last_harvest_timestamp, harvest_timestamp, _ = payload
+    assert_equal(t0.to_f, harvest_timestamp)
+
+    t1 = advance_time(10)
+    stats_hash.harvested_at = t1
+
+    @service.metric_data(stats_hash)
+    payload = @http_handle.last_request_payload
+    _, last_harvest_timestamp, harvest_timestamp, _ = payload
+    assert_equal(t1.to_f, harvest_timestamp)
+    assert_equal(t0.to_f, last_harvest_timestamp)
   end
 
   def test_fill_metric_id_cache_from_collect_response
@@ -554,6 +580,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
     end
 
     def request(*args)
+      @last_request = args.first
       @route_table.each_pair do |condition, response|
         if condition.call(args[0])
           return response
@@ -564,6 +591,23 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
     def reset
       @route_table = {}
+      @last_request = nil
+    end
+
+    def last_request
+      @last_request
+    end
+
+    def last_request_payload
+      return nil unless @last_request && @last_request.body
+      uri = URI.parse(@last_request.path)
+      params = CGI.parse(uri.query)
+      format = params['marshal_format'].first
+      if format == 'json'
+        JSON.load(@last_request.body)
+      else
+        Marshal.load(@last_request.body)
+      end
     end
   end
 
