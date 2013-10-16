@@ -602,13 +602,6 @@ module NewRelic
             disconnect
           end
 
-          # there is a problem with connecting to the server, so we
-          # stop trying to connect and shut down the agent
-          def handle_server_connection_problem(error)
-            ::NewRelic::Agent.logger.error "Unable to establish connection with the server.", error
-            disconnect
-          end
-
           # Handles an unknown error in the worker thread by logging
           # it and disconnecting the agent, since we are now in an
           # unknown state.
@@ -630,8 +623,6 @@ module NewRelic
             retry
           rescue NewRelic::Agent::ForceDisconnectException => e
             handle_force_disconnect(e)
-          rescue NewRelic::Agent::ServerConnectionException => e
-            handle_server_connection_problem(e)
           rescue => e
             handle_other_error(e)
           end
@@ -913,7 +904,7 @@ module NewRelic
           handle_license_error(e)
         rescue NewRelic::Agent::UnrecoverableAgentException => e
           handle_unrecoverable_agent_error(e)
-        rescue Timeout::Error => e
+        rescue Timeout::Error, NewRelic::Agent::ServerConnectionException => e
           log_error(e)
           if opts[:keep_retrying]
             note_connect_failure

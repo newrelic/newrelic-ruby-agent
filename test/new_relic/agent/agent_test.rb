@@ -242,13 +242,15 @@ module NewRelic
 
       def test_connect_retries_on_timeout
         service = @agent.service
-        def service.connect(opts={})
-          unless @tried
-            @tried = true
-            raise Timeout::Error
-          end
-          nil
-        end
+        service.stubs(:connect).raises(Timeout::Error).then.returns(nil)
+        @agent.stubs(:connect_retry_period).returns(0)
+        @agent.send(:connect)
+        assert(@agent.connected?)
+      end
+
+      def test_connect_retries_on_server_connection_exception
+        service = @agent.service
+        service.stubs(:connect).raises(ServerConnectionException).then.returns(nil)
         @agent.stubs(:connect_retry_period).returns(0)
         @agent.send(:connect)
         assert(@agent.connected?)
