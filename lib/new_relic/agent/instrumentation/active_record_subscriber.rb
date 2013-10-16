@@ -65,6 +65,7 @@ module NewRelic
                               :scoped => true)
 
           other_metrics = ActiveRecordHelper.rollup_metrics_for(base)
+
           if config = active_record_config_for_event(event)
             other_metrics << ActiveRecordHelper.remote_service_metric(config[:adapter], config[:host])
           end
@@ -85,7 +86,8 @@ module NewRelic
           return unless event.payload[:connection_id]
 
           connections = ::ActiveRecord::Base.connection_handler.connection_pool_list.map { |handler| handler.connections }.flatten
-          connection = connections.select { |connection| connection.object_id == event.payload[:connection_id] }
+
+          connection = connections.detect { |connection| connection.object_id == event.payload[:connection_id] }
 
           connection.instance_variable_get(:@config) if connection
         end

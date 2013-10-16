@@ -16,7 +16,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     @config = { :adapter => 'mysql', :host => 'server' }
     @connection = Object.new
     @connection.instance_variable_set(:@config, @config)
-    Order.stubs(:connection_pool).returns(stub(:connections => [ @connection ]))
+
 
     @params = {
       :name => 'NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order Load',
@@ -73,6 +73,10 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   end
 
   def test_records_remote_service_metric
+    connection_pool = stub(:connections => [ @connection ])
+    connection_pool_list = [connection_pool]
+    ::ActiveRecord::Base.connection_handler.stubs(:connection_pool_list).returns(connection_pool_list)
+
     freeze_time
 
     simulate_query(2)
