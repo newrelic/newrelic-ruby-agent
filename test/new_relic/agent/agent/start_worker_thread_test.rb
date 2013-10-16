@@ -54,13 +54,6 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     handle_force_disconnect(error)
   end
 
-  def test_handle_server_connection_problem
-    error = StandardError.new('a message')
-
-    self.expects(:disconnect)
-    handle_server_connection_problem(error)
-  end
-
   def test_handle_other_error
     error = StandardError.new('a message')
 
