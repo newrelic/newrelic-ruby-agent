@@ -46,7 +46,7 @@ class NewRelic::Agent::Transaction
       samples = (1..100).map { |i| stub(i.to_s, :force_persist => true, :duration => i) }
       samples.each {|s| @buffer.store(s)}
 
-      assert_equal(samples.last(@buffer.max_samples), @buffer.samples)
+      assert_equal(samples.last(@buffer.capacity), @buffer.samples)
     end
   end
 end
