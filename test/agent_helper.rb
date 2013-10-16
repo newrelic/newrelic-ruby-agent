@@ -320,10 +320,15 @@ def create_agent_command(args = {})
   NewRelic::Agent::Commands::AgentCommand.new([-1, { "name" => "command_name", "arguments" => args}])
 end
 
-def wait_for_backtrace_service_poll(timeout=5.0, service=nil)
-  deadline = Time.now + timeout
-  service ||= NewRelic::Agent.agent.agent_command_router.backtrace_service
-  until service.worker_loop.iterations > 0
+def wait_for_backtrace_service_poll(opts={})
+  defaults = {
+    :timeout => 5.0,
+    :service => NewRelic::Agent.agent.agent_command_router.backtrace_service,
+    :iterations => 1
+  }
+  opts = defaults.merge(opts)
+  deadline = Time.now + opts[:timeout]
+  until opts[:service].worker_loop.iterations > opts[:iterations]
     sleep(0.01)
     if Time.now > deadline
       raise "Timed out waiting #{timeout} s for backtrace service poll"

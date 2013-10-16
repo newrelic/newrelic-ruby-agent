@@ -104,15 +104,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   end
 
   def let_it_finish
-    Timeout.timeout(5) do
-      until @thread_profiler_session.ready_to_harvest?
-        # Profiler thread occasionally isn't getting a shot.
-        # Try harder to give it a chance.
-        Thread.pass
-        sleep(0.1)
-      end
-    end
-
+    wait_for_backtrace_service_poll(:timeout => 10.0, :iterations => 10)
     harvest
   end
 
