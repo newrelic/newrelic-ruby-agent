@@ -156,15 +156,16 @@ module NewRelic
     end
 
     def check_for_thin
-      if defined?(::Thin) && defined?(::Thin::Server) && NewRelic::LanguageSupport.object_space_enabled?
-        # This case covers the thin web dispatcher
-        # Same issue as above- we assume only one instance per process
-        ObjectSpace.each_object(Thin::Server) do |thin_dispatcher|
+      if defined?(::Thin) && defined?(::Thin::Server)
+        # If ObjectSpace is available, use it to search for a Thin::Server
+        # instance. Otherwise, just the presence of the constant is sufficient.
+        if NewRelic::LanguageSupport.object_space_enabled?
+          ObjectSpace.each_object(Thin::Server) do |thin_dispatcher|
+            @discovered_dispatcher = :thin
+          end
+        else
           @discovered_dispatcher = :thin
         end
-      end
-      if defined?(::Thin) && defined?(::Thin::VERSION) && !@discovered_dispatcher
-        @discovered_dispatcher = :thin
       end
     end
 
