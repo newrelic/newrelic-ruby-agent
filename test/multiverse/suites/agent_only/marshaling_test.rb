@@ -31,7 +31,7 @@ class MarshalingTest < MiniTest::Unit::TestCase
     expected_sample = sampler.last_sample
 
     agent.service.connect
-    agent.send(:harvest_and_send_slowest_sample)
+    agent.send(:harvest_and_send_transaction_traces)
 
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new

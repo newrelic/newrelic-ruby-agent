@@ -11,6 +11,7 @@ module NewRelic
     class WorkerLoop
 
       attr_accessor :period, :propagate_errors
+      attr_reader :iterations
 
       # Optional argument :duration (in seconds) for how long the worker loop runs
       # or :limit (integer) for max number of iterations

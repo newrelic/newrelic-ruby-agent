@@ -36,6 +36,14 @@ class ExconTest < MiniTest::Unit::TestCase
     Excon.post(default_url, :body => "")
   end
 
+  def put_response
+    Excon.put(default_url, :body => "")
+  end
+
+  def delete_response
+    Excon.delete(default_url)
+  end
+
   def request_instance
     NewRelic::Agent::HTTPClients::ExconHTTPRequest.new({:headers => ""})
   end

@@ -109,18 +109,6 @@ module NewRelic
         attr_reader :metric_rules
         attr_reader :harvest_lock
 
-        # Returns the length of the unsent errors array, if it exists,
-        # otherwise nil
-        def unsent_errors_size
-          @unsent_errors.length if @unsent_errors
-        end
-
-        # Returns the length of the traces array, if it exists,
-        # otherwise nil
-        def unsent_traces_size
-          @traces.length if @traces
-        end
-
         # Initializes the unsent timeslice data hash, if needed, and
         # returns the number of keys it contains
         def unsent_timeslice_data
@@ -524,8 +512,8 @@ module NewRelic
         # making sure the agent is in a fresh state
         def reset_stats
           @stats_engine.reset_stats
-          @unsent_errors = []
-          @traces = nil
+          @error_collector.reset!
+          @transaction_sampler.reset!
           @unsent_timeslice_data = {}
           @last_harvest_time = Time.now
           @launch_time = Time.now
@@ -602,13 +590,6 @@ module NewRelic
             disconnect
           end
 
-          # there is a problem with connecting to the server, so we
-          # stop trying to connect and shut down the agent
-          def handle_server_connection_problem(error)
-            ::NewRelic::Agent.logger.error "Unable to establish connection with the server.", error
-            disconnect
-          end
-
           # Handles an unknown error in the worker thread by logging
           # it and disconnecting the agent, since we are now in an
           # unknown state.
@@ -630,8 +611,6 @@ module NewRelic
             retry
           rescue NewRelic::Agent::ForceDisconnectException => e
             handle_force_disconnect(e)
-          rescue NewRelic::Agent::ServerConnectionException => e
-            handle_server_connection_problem(e)
           rescue => e
             handle_other_error(e)
           end
@@ -865,16 +844,10 @@ module NewRelic
           @stats_engine.merge!(metrics) if metrics
           if transaction_traces && transaction_traces.respond_to?(:any?) &&
               transaction_traces.any?
-            if @traces
-              @traces += transaction_traces
-            else
-              @traces = transaction_traces
-            end
+            @transaction_sampler.merge(transaction_traces)
           end
           if errors && errors.respond_to?(:each)
-            errors.each do |err|
-              @error_collector.add_to_error_queue(err)
-            end
+            @error_collector.merge(errors)
           end
         end
 
@@ -913,7 +886,7 @@ module NewRelic
           handle_license_error(e)
         rescue NewRelic::Agent::UnrecoverableAgentException => e
           handle_unrecoverable_agent_error(e)
-        rescue Timeout::Error => e
+        rescue Timeout::Error, NewRelic::Agent::ServerConnectionException => e
           log_error(e)
           if opts[:keep_retrying]
             note_connect_failure
@@ -973,13 +946,6 @@ module NewRelic
           @last_harvest_time = now
         end
 
-        # Fills the traces array with the harvested transactions from
-        # the transaction sampler, subject to the setting for slowest
-        # transaction threshold
-        def harvest_transaction_traces
-          @traces = @transaction_sampler.harvest(@traces)
-        end
-
         def harvest_and_send_slowest_sql
           # FIXME add the code to try to resend if our connection is down
           sql_traces = @sql_sampler.harvest
@@ -1002,28 +968,27 @@ module NewRelic
         # SQL.  note that we explain only the sql statements whose
         # segments' execution times exceed our threshold (to avoid
         # unnecessary overhead of running explains on fast queries.)
-        def harvest_and_send_slowest_sample
-          harvest_transaction_traces
-
-          unless @traces.empty?
+        def harvest_and_send_transaction_traces
+          traces = @transaction_sampler.harvest
+          unless traces.empty?
             begin
-              send_slowest_sample
+              send_transaction_traces(traces)
             rescue UnrecoverableServerException => e
-              ::NewRelic::Agent.logger.debug e.message
+              # This indicates that there was a problem with the POST body, so
+              # we discard the traces rather than trying again later.
+              ::NewRelic::Agent.logger.debug("Server rejected transaction traces, discarding. Error: ", e)
+            rescue => e
+              ::NewRelic::Agent.logger.error("Failed to send transaction traces, will re-attempt next harvest. Error: ", e)
+              @transaction_sampler.merge(traces)
             end
           end
-
-          # if we succeed sending this sample, then we don't need to keep
-          # the slowest sample around - it has been sent already and we
-          # can clear the collection and move on
-          @traces = nil
         end
 
-        def send_slowest_sample
+        def send_transaction_traces(traces)
           start_time = Time.now
-          ::NewRelic::Agent.logger.debug "Sending (#{@traces.length}) transaction traces"
+          ::NewRelic::Agent.logger.debug "Sending (#{traces.length}) transaction traces"
 
-          options = { :keep_backtraces => true }
+          options = {}
           unless NewRelic::Agent::Database.record_sql_method == :off
             options[:record_sql] = NewRelic::Agent::Database.record_sql_method
           end
@@ -1032,7 +997,7 @@ module NewRelic
             options[:explain_sql] = Agent.config[:'transaction_tracer.explain_threshold']
           end
 
-          traces = @traces.map {|trace| trace.prepare_to_send(options) }
+          traces.each { |trace| trace.prepare_to_send!(options) }
 
           @service.transaction_sample_data(traces)
           ::NewRelic::Agent.logger.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - start_time} seconds"
@@ -1045,32 +1010,21 @@ module NewRelic
           end
         end
 
-        # Gets the collection of unsent errors from the error
-        # collector. We pass back in an existing array of errors that
-        # may be left over from a previous send
-        def harvest_errors
-          @unsent_errors = @error_collector.harvest_errors(@unsent_errors)
-          @unsent_errors
-        end
-
         # Handles getting the errors from the error collector and
         # sending them to the server, and any error cases like trying
-        # to send very large errors - we drop the oldest error on the
-        # floor and try again
+        # to send very large errors
         def harvest_and_send_errors
-          harvest_errors
-          if @unsent_errors && @unsent_errors.length > 0
-            ::NewRelic::Agent.logger.debug "Sending #{@unsent_errors.length} errors"
+          errors = @error_collector.harvest_errors
+          if errors && !errors.empty?
+            ::NewRelic::Agent.logger.debug "Sending #{errors.length} errors"
             begin
-              @service.error_data(@unsent_errors)
+              @service.error_data(errors)
             rescue UnrecoverableServerException => e
               ::NewRelic::Agent.logger.debug e.message
+            rescue => e
+              ::NewRelic::Agent.logger.debug "Failed to send error traces, will try again later. Error:", e
+              @error_collector.merge errors
             end
-            # if the remote invocation fails, then we never clear
-            # @unsent_errors, and therefore we can re-attempt to send on
-            # the next heartbeat.  Note the error collector maxes out at
-            # 20 instances to prevent leakage
-            @unsent_errors = []
           end
         end
 
@@ -1104,7 +1058,7 @@ module NewRelic
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive
             harvest_and_send_errors
-            harvest_and_send_slowest_sample
+            harvest_and_send_transaction_traces
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
             harvest_and_send_analytic_event_data

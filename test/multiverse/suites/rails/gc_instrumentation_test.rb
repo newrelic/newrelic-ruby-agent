@@ -12,11 +12,20 @@ if (defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise/) ||
 class GcController < ApplicationController
   include Rails.application.routes.url_helpers
   def gc_action
-    long_string = "01234567" * 100_000
-    long_string = nil
-    another_long_string = "01234567" * 100_000
+    begin
+      profiler = NewRelic::Agent::StatsEngine::GCProfiler.init
+      gc_count = profiler.call_count
 
-    GC.start
+      Timeout.timeout(5) do
+        until profiler.call_count > gc_count
+          long_string = "01234567" * 100_000
+          long_string = nil
+          another_long_string = "01234567" * 100_000
+        end
+      end
+    rescue Timeout::Error
+      puts "Timed out waiting for GC..."
+    end
 
     render :text => 'ha'
   end

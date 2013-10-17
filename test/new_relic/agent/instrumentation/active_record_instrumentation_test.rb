@@ -386,7 +386,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     assert_not_nil sql_segment, sample.to_s
     assert_match /^SELECT /, sql_segment.params[:sql]
     assert sql_segment.duration > 0.0, "Segment duration must be greater than zero."
-    sample = sample.prepare_to_send(:record_sql => :raw, :explain_sql => 0.0)
+    sample = sample.prepare_to_send!(:record_sql => :raw, :explain_sql => 0.0)
     sql_segment = last_segment(sample)
     assert_match /^SELECT /, sql_segment.params[:sql]
     explanations = sql_segment.params[:explain_plan]
@@ -408,7 +408,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
 
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-    sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
+    sample = sample.prepare_to_send!(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = last_segment(sample)
     explanation = segment.params[:explain_plan]
     assert_not_nil explanation, "No explains in segment: #{segment}"
@@ -438,7 +438,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
 
-    sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
+    sample = sample.prepare_to_send!(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = last_segment(sample)
     explanations = segment.params[:explain_plan]
 
@@ -463,7 +463,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
 
-    sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
+    sample = sample.prepare_to_send!(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = last_segment(sample)
 
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")

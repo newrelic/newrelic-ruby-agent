@@ -5,6 +5,13 @@
 require 'rack'
 
 module NewRelic::Rack
+  # This middleware is used by the agent for the Real user monitoring (RUM)
+  # feature, and will usually be automatically injected in the middleware chain.
+  # If automatic injection is not working, you may manually use it in your
+  # middleware chain instead.
+  #
+  # @api public
+  #
   class BrowserMonitoring
 
     def initialize(app, options = {})
@@ -76,9 +83,9 @@ module NewRelic::Rack
         # is really weird and we should punt.
         if head_pos && (head_pos < body_close)
           # rebuild the source
-          source = source[0..(head_pos-1)] <<
+          source = source[0...head_pos] <<
             header <<
-            source[head_pos..(body_close-1)] <<
+            source[head_pos...body_close] <<
             footer <<
             source[body_close..-1]
         else

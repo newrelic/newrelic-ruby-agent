@@ -8,9 +8,9 @@ module NewRelic
     class StatsEngine
       module GCProfiler
         def self.init
-          @profiler = RailsBench.new if RailsBench.enabled?
-          @profiler = Ruby19.new if Ruby19.enabled?
-          @profiler = Rubinius.new if Rubinius.enabled?
+          @profiler = RailsBenchProfiler.new if RailsBenchProfiler.enabled?
+          @profiler = CoreGCProfiler.new if CoreGCProfiler.enabled?
+          @profiler = LegacyRubiniusProfiler.new if LegacyRubiniusProfiler.enabled?
           @profiler
         end
 
@@ -61,7 +61,7 @@ module NewRelic
           end
         end
 
-        class RailsBench < Profiler
+        class RailsBenchProfiler < Profiler
           def self.enabled?
             ::GC.respond_to?(:time) && ::GC.respond_to?(:collections)
           end
@@ -80,7 +80,7 @@ module NewRelic
           end
         end
 
-        class Ruby19 < Profiler
+        class CoreGCProfiler < Profiler
           def self.enabled?
             defined?(::GC::Profiler) && ::GC::Profiler.enabled?
           end
@@ -101,9 +101,18 @@ module NewRelic
           end
         end
 
-        class Rubinius < Profiler
+        # Only present for legacy support of Rubinius < 2.0.0
+        class LegacyRubiniusProfiler < Profiler
           def self.enabled?
+            self.has_rubinius_profiler? && !has_core_profiler?
+          end
+
+          def self.has_rubinius_profiler?
             defined?(::Rubinius) && defined?(::Rubinius::GC) && ::Rubinius::GC.respond_to?(:count)
+          end
+
+          def self.has_core_profiler?
+            defined?(::GC::Profiler)
           end
 
           def call_time

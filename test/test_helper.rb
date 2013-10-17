@@ -148,6 +148,7 @@ def fixture_tcp_socket( response )
   socket = stub("socket") do
     stubs(:closed?).returns(false)
     stubs(:close)
+    stubs(:setsockopt)
 
     # Simulate a bunch of socket-ey stuff since Mocha doesn't really
     # provide any other way to do it

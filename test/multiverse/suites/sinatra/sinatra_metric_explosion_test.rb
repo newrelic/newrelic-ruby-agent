@@ -64,7 +64,13 @@ class SinatraMetricExplosionTest < MiniTest::Unit::TestCase
     get '/another_controller'
 
     metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
-    metric_names -= ['CPU/User Time', "Middleware/all", "WebFrontend/QueueTime", "WebFrontend/WebServer/all"]
+    metric_names -= [
+      'CPU/User Time',
+      "Middleware/all",
+      "WebFrontend/QueueTime",
+      "WebFrontend/WebServer/all",
+      "GC/cumulative"
+    ]
     metric_names.delete_if {|metric| metric.start_with?("Supportability")}
     assert_equal 6, metric_names.size, "Explosion detected in: #{metric_names.inspect}"
   end

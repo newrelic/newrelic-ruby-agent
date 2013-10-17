@@ -20,9 +20,9 @@ module NewRelic
             @enabled = new_value
           end
 
-          @max_samples = NewRelic::Agent.config[:'xray_session.max_samples']
+          @capacity = NewRelic::Agent.config[:'xray_session.max_samples']
           NewRelic::Agent.config.register_callback(:'xray_session.max_samples') do |new_value|
-            @max_samples = new_value
+            @capacity = new_value
           end
         end
 
@@ -30,8 +30,8 @@ module NewRelic
           @xray_session_collection ||= NewRelic::Agent.instance.agent_command_router.xray_session_collection
         end
 
-        def max_samples
-          @max_samples
+        def capacity
+          @capacity
         end
 
         def truncate_samples
