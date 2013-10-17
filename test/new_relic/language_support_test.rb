@@ -42,4 +42,12 @@ class NewRelic::LanguageSupportTest < Test::Unit::TestCase
       end
     end
   end
+
+  def test_object_space_disabled_in_rubinius
+    define_constant(:ObjectSpace, mock()) do
+      define_constant(:RUBY_ENGINE, 'not_rbx') do
+        assert_falsy NewRelic::LanguageSupport.rubinius?
+      end
+    end
+  end
 end
