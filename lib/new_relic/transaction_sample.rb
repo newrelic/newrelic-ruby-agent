@@ -190,6 +190,7 @@ module NewRelic
       sample.params.merge! self.params
       sample.guid = self.guid
       sample.force_persist = self.force_persist if self.force_persist
+      sample.threshold = self.threshold
       sample.xray_session_id = self.xray_session_id
 
       build_segment_for_transfer(sample, @root_segment, sample.root_segment, options)
