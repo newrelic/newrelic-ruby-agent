@@ -184,6 +184,12 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     assert_equal(123, s.xray_session_id)
   end
 
+  def test_threshold
+    @t.threshold = 4.2
+    s = @t.prepare_to_send
+    assert_equal(4.2, s.threshold)
+  end
+
 
   def test_count_segments
     transaction = run_sample_trace_on(NewRelic::Agent::TransactionSampler.new) do |sampler|
