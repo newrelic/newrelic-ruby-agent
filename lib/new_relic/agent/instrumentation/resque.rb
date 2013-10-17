@@ -28,13 +28,15 @@ DependencyDetection.defer do
 
           def around_perform_with_monitoring(*args)
             begin
-              params = {}
-              params[:args] = args if NewRelic::Agent.config[:'resque.capture_params']
+              perform_action_with_newrelic_trace(
+                :name => 'perform',
+                :class_name => self.name,
+                :category => 'OtherTransaction/ResqueJob') do
 
-              perform_action_with_newrelic_trace(:name => 'perform',
-                                   :class_name => self.name,
-                                   :params => params,
-                                   :category => 'OtherTransaction/ResqueJob') do
+                if NewRelic::Agent.config[:'resque.capture_params']
+                  NewRelic::Agent.add_custom_parameters(:job_arguments => args)
+                end
+
                 yield(*args)
               end
             ensure

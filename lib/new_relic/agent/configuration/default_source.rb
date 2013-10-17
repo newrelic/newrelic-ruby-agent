@@ -524,13 +524,13 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable capturing job arguments for transaction traces and traced errors in Sidekiq. Global capture_params must be enabled as well for this setting to take effect.'
+          :description => 'Enable or disable capturing job arguments for transaction traces and traced errors in Sidekiq.'
         },
         :'resque.capture_params' => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable capturing job arguments for transaction traces and traced errors in Resque. Global capture_params must be enabled as well for this setting to take effect.'
+          :description => 'Enable or disable capturing job arguments for transaction traces and traced errors in Resque.'
         },
         :capture_memcache_keys => {
           :default => false,

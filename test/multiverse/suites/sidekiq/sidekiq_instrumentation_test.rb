@@ -79,7 +79,7 @@ class SidekiqTest < MiniTest::Unit::TestCase
     assert_no_params_on_jobs
   end
 
-  def test_doesnt_capture_args_without_sidekiq_specific_setting
+  def test_isnt_influenced_by_global_capture_params
     with_config(:capture_params => true) do
       run_jobs
     end
@@ -87,7 +87,7 @@ class SidekiqTest < MiniTest::Unit::TestCase
   end
 
   def test_agent_posts_captured_args_to_job
-    with_config(:capture_params => true, :'sidekiq.capture_params' => true) do
+    with_config(:'sidekiq.capture_params' => true) do
       run_jobs
     end
 
@@ -98,7 +98,7 @@ class SidekiqTest < MiniTest::Unit::TestCase
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
 
-        args = sample.tree.request_params["args"]
+        args = sample.tree.custom_params["job_arguments"]
         assert_equal args.length, 2
         assert_equal args[0], "jobs_completed"
       end
@@ -123,7 +123,7 @@ class SidekiqTest < MiniTest::Unit::TestCase
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_equal sample.tree.request_params, {}
+        assert_nil sample.tree.custom_params["job_arguments"]
       end
     end
   end

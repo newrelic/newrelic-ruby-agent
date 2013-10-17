@@ -75,7 +75,7 @@ class ResqueTest < MiniTest::Unit::TestCase
     assert_no_params_on_jobs
   end
 
-  def test_doesnt_capture_args_without_resque_specific_setting
+  def test_isnt_influenced_by_global_capture_params
     with_config(:capture_params => true) do
       run_jobs
     end
@@ -83,7 +83,7 @@ class ResqueTest < MiniTest::Unit::TestCase
   end
 
   def test_agent_posts_captured_args_to_job
-    with_config(:capture_params => true, :'resque.capture_params' => true) do
+    with_config(:'resque.capture_params' => true) do
       run_jobs
     end
 
@@ -93,9 +93,7 @@ class ResqueTest < MiniTest::Unit::TestCase
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-
-        args = sample.tree.request_params["args"]
-        assert_equal args, ["testing"]
+        assert_equal sample.tree.custom_params["job_arguments"], ["testing"]
       end
     end
   end
@@ -118,7 +116,7 @@ class ResqueTest < MiniTest::Unit::TestCase
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_equal sample.tree.request_params, {}
+        assert_nil sample.tree.custom_params["job_arguments"]
       end
     end
   end

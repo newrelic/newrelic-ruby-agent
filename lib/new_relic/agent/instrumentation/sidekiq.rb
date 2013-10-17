@@ -18,14 +18,15 @@ DependencyDetection.defer do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
       def call(worker, msg, queue)
-        params = {}
-        params[:args] = msg['args'] if NewRelic::Agent.config[:'sidekiq.capture_params']
-
         perform_action_with_newrelic_trace(
           :name => 'perform',
           :class_name => msg['class'],
-          :params => params,
           :category => 'OtherTransaction/SidekiqJob') do
+
+          if NewRelic::Agent.config[:'sidekiq.capture_params']
+            NewRelic::Agent.add_custom_parameters(:job_arguments => msg['args'])
+          end
+
           yield
         end
       end

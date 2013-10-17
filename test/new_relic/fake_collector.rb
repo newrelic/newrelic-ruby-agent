@@ -225,6 +225,10 @@ module NewRelic
         def request_params
           @body[1]
         end
+
+        def custom_params
+          @body[2]
+        end
       end
 
       def initialize(opts={})
