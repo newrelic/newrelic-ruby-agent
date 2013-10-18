@@ -56,7 +56,6 @@ module NewRelic
         @connect_attempts   = 0
         @environment_report = nil
 
-        @last_harvest_time = Time.now
         @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
       end
@@ -108,13 +107,6 @@ module NewRelic
         attr_reader :transaction_rules
         attr_reader :metric_rules
         attr_reader :harvest_lock
-
-        # Initializes the unsent timeslice data hash, if needed, and
-        # returns the number of keys it contains
-        def unsent_timeslice_data
-          @unsent_timeslice_data ||= {}
-          @unsent_timeslice_data.keys.length
-        end
 
         # fakes out a transaction that did not happen in this process
         # by creating apdex, summary metrics, and recording statistics
@@ -514,8 +506,6 @@ module NewRelic
           @stats_engine.reset_stats
           @error_collector.reset!
           @transaction_sampler.reset!
-          @unsent_timeslice_data = {}
-          @last_harvest_time = Time.now
           @launch_time = Time.now
         end
 
@@ -913,37 +903,21 @@ module NewRelic
 
         # calls the busy harvester and collects timeslice data to
         # send later
-        def harvest_timeslice_data(time=Time.now)
-          # this creates timeslices that are harvested below
+        def harvest_timeslice_data
           NewRelic::Agent::BusyCalculator.harvest_busy
-
-          @unsent_timeslice_data ||= {}
-          @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data,
-                                                                        @metric_rules)
-          @unsent_timeslice_data
+          @stats_engine.harvest(@metric_rules)
         end
 
-        # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
-        # then the metric data is downsampled for another
-        # transmission later
         def harvest_and_send_timeslice_data
-          now = Time.now
-          NewRelic::Agent.record_metric('Supportability/invoke_remote', 0.0)
-          NewRelic::Agent.record_metric('Supportability/invoke_remote/metric_data', 0.0)
-          harvest_timeslice_data(now)
+          timeslices = harvest_timeslice_data
           begin
-            @service.metric_data(@last_harvest_time.to_f,
-                                  now.to_f,
-                                  @unsent_timeslice_data)
+            @service.metric_data(timeslices)
           rescue UnrecoverableServerException => e
             ::NewRelic::Agent.logger.debug e.message
+          rescue => e
+            NewRelic::Agent.logger.info("Failed to send timeslice data, trying again later. Error:", e)
+            @stats_engine.merge!(timeslices)
           end
-
-          ::NewRelic::Agent.logger.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@service.agent_id}) in #{Time.now - now} seconds"
-
-          # if we successfully invoked this web service, then clear the unsent message cache.
-          @unsent_timeslice_data = {}
-          @last_harvest_time = now
         end
 
         def harvest_and_send_slowest_sql

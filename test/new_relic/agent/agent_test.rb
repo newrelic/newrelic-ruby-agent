@@ -85,14 +85,6 @@ module NewRelic
         @agent.instance_eval { transmit_data }
       end
 
-      def test_transmit_data_should_handle_eoferror
-        @agent.service.stubs(:metric_data).raises(EOFError)
-        expects_no_logging(:error)
-        expects_logging(:warn, regexp_matches(/EOFError/))
-        expects_logging(:debug, is_a(EOFError))
-        @agent.instance_eval { transmit_data }
-      end
-
       def test_harvest_and_send_transaction_traces
         with_config(:'transaction_tracer.explain_threshold' => 2,
                     :'transaction_tracer.explain_enabled' => true,
@@ -180,29 +172,10 @@ module NewRelic
       end
 
       def test_merge_data_from_empty
-        unsent_timeslice_data = mock('unsent timeslice data')
+        @agent.stats_engine.expects(:merge!).never
         @agent.error_collector.expects(:merge).never
         @agent.transaction_sampler.expects(:merge).never
-        @agent.instance_eval {
-          @unsent_timeslice_data = unsent_timeslice_data
-        }
-        # nb none of the others should receive merge requests
-        @agent.merge_data_from([{}])
-      end
-
-      def test_unsent_timeslice_data_empty
-        @agent.instance_eval {
-          @unsent_timeslice_data = nil
-        }
-        assert_equal(0, @agent.unsent_timeslice_data, "should have zero timeslice data to start")
-        assert_equal({}, @agent.instance_variable_get('@unsent_timeslice_data'), "should initialize the timeslice data to an empty hash if it is empty")
-      end
-
-      def test_unsent_timeslice_data_with_errors
-        @agent.instance_eval {
-          @unsent_timeslice_data = {:key => 'value'}
-        }
-        assert_equal(1, @agent.unsent_timeslice_data, "should have the key from above")
+        @agent.merge_data_from([])
       end
 
       def test_merge_data_traces
@@ -240,6 +213,18 @@ module NewRelic
 
         assert_raises(StandardError) do
           @agent.send(:harvest_and_send_analytic_event_data)
+        end
+      end
+
+      def test_harvest_and_send_timeslice_data_merges_back_on_failure
+        timeslices = mock('timeslices')
+
+        @agent.stats_engine.expects(:harvest).returns(timeslices)
+        @agent.service.stubs(:metric_data).raises('wat')
+        @agent.stats_engine.expects(:merge!).with(timeslices)
+
+        assert_nothing_raised do
+          @agent.send(:harvest_and_send_timeslice_data)
         end
       end
 

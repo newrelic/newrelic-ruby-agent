@@ -18,6 +18,8 @@ require 'new_relic/agent/internal_agent_error'
 module NewRelic
   module Agent
     class StatsHash < ::Hash
+      attr_accessor :harvested_at
+
       def initialize
         super { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
       end

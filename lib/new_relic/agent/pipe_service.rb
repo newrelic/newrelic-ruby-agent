@@ -32,7 +32,7 @@ module NewRelic
         nil
       end
 
-      def metric_data(last_harvest_time, now, unsent_timeslice_data)
+      def metric_data(unsent_timeslice_data)
         write_to_pipe(:stats => unsent_timeslice_data)
         {}
       end
