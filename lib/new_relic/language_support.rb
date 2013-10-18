@@ -77,6 +77,10 @@ module NewRelic::LanguageSupport
     numbers == ::RUBY_VERSION.split('.')[0, numbers.size]
   end
 
+  def stdlib_json_usable?
+    RUBY_VERSION >= '1.9.2'
+  end
+
   def test_forkability
     child = Process.fork { exit! }
     # calling wait here doesn't seem like it should necessary, but it seems to
