@@ -107,6 +107,30 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert_equal "", header
   end
 
+  def test_browser_timing_header_with_loader_without_js_errors_beta
+    with_config(:js_agent_loader => 'loader') do
+      header = browser_timing_header
+      assert_equal("<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header,
+                   "expected old RUM header but saw '#{header}'")
+    end
+  end
+
+  def test_browser_timing_header_with_js_errors_beta_without_loader
+    with_config(:js_errors_beta => true) do
+      header = browser_timing_header
+      assert_equal("<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header,
+                   "expected old RUM header but saw '#{header}'")
+    end
+  end
+
+  def test_browser_timing_header_with_js_errors_beta_and_loader
+    with_config(:js_errors_beta => true, :js_agent_loader => 'loader') do
+      header = browser_timing_header
+      assert_equal("\n<script type=\"text/javascript\">loader</script>", header,
+                   "expected new JS agent loader 'loader' but saw '#{header}'")
+    end
+  end
+
   def test_browser_timing_footer
     with_config(:license_key => 'a' * 13) do
       NewRelic::Agent::TransactionState.reset
@@ -139,7 +163,7 @@ var e=document.createElement("script");'
     end
   end
 
-  def test_browser_timing_footer_with_rum_enabled_not_specified
+  def setup_beacon_config
     NewRelic::Agent::TransactionState.reset
     browser_timing_header
 
@@ -148,6 +172,11 @@ var e=document.createElement("script");'
     config =  NewRelic::Agent::BeaconConfiguration.new
     config.expects(:license_bytes).returns(license_bytes).at_least_once
     NewRelic::Agent.instance.stubs(:beacon_configuration).returns(config).at_least_once
+  end
+
+  def test_browser_timing_footer_with_rum_enabled_not_specified
+    setup_beacon_config
+
     footer = browser_timing_footer
     beginning_snippet = '<script type="text/javascript">if (typeof NREUMQ !== "undefined") { if (!NREUMQ.f) { NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
@@ -207,6 +236,20 @@ var e=document.createElement("script");'
       self.expects(:footer_js_string).with(NewRelic::Agent.instance.beacon_configuration).returns('footer js')
       assert_equal('footer js', generate_footer_js(NewRelic::Agent.instance.beacon_configuration),
                    'should generate and return the footer JS when there is a start time')
+    end
+  end
+
+  def test_browser_timing_footer_with_js_errors_beta_and_loader
+    with_config(:js_errors_beta => true, :js_agent_loader => 'loader') do
+      setup_beacon_config
+
+      footer = browser_timing_footer
+      beginning_snippet = "\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info={\""
+      ending_snippet = '}</script>'
+      assert(footer.include?(beginning_snippet),
+             "expected footer to include beginning snippet: '#{beginning_snippet}', but was '#{footer}'")
+      assert(footer.include?(ending_snippet),
+             "expected footer to include ending snippet: '#{ending_snippet}', but was '#{footer}'")
     end
   end
 
