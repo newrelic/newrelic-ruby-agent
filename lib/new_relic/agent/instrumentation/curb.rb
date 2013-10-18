@@ -46,7 +46,7 @@ DependencyDetection.defer do
 
       def http_put_with_newrelic(url, data, &blk)
         self._nr_http_verb = :PUT
-        http_put_with_newrelic(url, data, &blk)
+        http_put_without_newrelic(url, data, &blk)
       end
       alias_method :http_put_without_newrelic, :http_put
       alias_method :http_put, :http_put_with_newrelic
