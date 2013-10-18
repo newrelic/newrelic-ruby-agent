@@ -19,9 +19,11 @@ module ActiveRecordFixtures
     rescue => e
     end
   end
+
   class Order < ActiveRecord::Base
     self.table_name = 'newrelic_test_orders'
     has_and_belongs_to_many :shipments, :class_name => 'ActiveRecordFixtures::Shipment'
+
     def self.setup
       unless check_for_table
         connection.create_table self.table_name, :force => true do |t|
@@ -45,6 +47,7 @@ module ActiveRecordFixtures
         super *args
       end
     end
+
     def self.teardown
       def connection.log_info *args
         super *args
@@ -55,6 +58,7 @@ module ActiveRecordFixtures
   class Shipment < ActiveRecord::Base
     self.table_name = 'newrelic_test_shipment'
     has_and_belongs_to_many :orders, :class_name => 'ActiveRecordFixtures::Order'
+
     def self.setup
       unless check_for_table
         connection.create_table self.table_name, :force => true do |t|
