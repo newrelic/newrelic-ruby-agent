@@ -520,6 +520,18 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable capturing and attachment of HTTP request parameters to transaction traces and traced errors.'
         },
+        :'sidekiq.capture_params' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable capturing job arguments for transaction traces and traced errors in Sidekiq.'
+        },
+        :'resque.capture_params' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable capturing job arguments for transaction traces and traced errors in Resque.'
+        },
         :capture_memcache_keys => {
           :default => false,
           :public => true,

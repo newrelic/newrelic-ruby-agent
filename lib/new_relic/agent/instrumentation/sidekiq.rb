@@ -22,6 +22,11 @@ DependencyDetection.defer do
           :name => 'perform',
           :class_name => msg['class'],
           :category => 'OtherTransaction/SidekiqJob') do
+
+          if NewRelic::Agent.config[:'sidekiq.capture_params']
+            NewRelic::Agent.add_custom_parameters(:job_arguments => msg['args'])
+          end
+
           yield
         end
       end

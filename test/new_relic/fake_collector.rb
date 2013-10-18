@@ -146,6 +146,10 @@ module NewRelic
       end
 
       def unblob(blob)
+        self.class.unblob(blob)
+      end
+
+      def self.unblob(blob)
         return unless blob
         JSON.load(Zlib::Inflate.inflate(Base64.decode64(blob)))
       end
@@ -204,8 +208,26 @@ module NewRelic
           @body[3]
         end
 
+        def tree
+          SubmittedTransactionTraceTree.new(@body[4])
+        end
+
         def xray_id
           @body[8]
+        end
+      end
+
+      class SubmittedTransactionTraceTree
+        def initialize(body)
+          @body = AgentPost.unblob(body)
+        end
+
+        def request_params
+          @body[1]
+        end
+
+        def custom_params
+          @body[2]
         end
       end
 

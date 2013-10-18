@@ -10,9 +10,11 @@ require 'test/unit'
 require 'newrelic_rpm'
 require 'fake_collector'
 require 'multiverse_helpers'
+require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
 class SidekiqTest < MiniTest::Unit::TestCase
   JOB_COUNT = 5
+  TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/SidekiqTest::TestWorker/perform'
 
   include MultiverseHelpers
 
@@ -50,9 +52,11 @@ class SidekiqTest < MiniTest::Unit::TestCase
   end
 
   def run_jobs
-    TestWorker.reset
-    JOB_COUNT.times do |i|
-      TestWorker.perform_async('jobs_completed', i + 1)
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      TestWorker.reset
+      JOB_COUNT.times do |i|
+        TestWorker.perform_async('jobs_completed', i + 1)
+      end
     end
 
     NewRelic::Agent.instance.send(:transmit_data)
@@ -70,16 +74,57 @@ class SidekiqTest < MiniTest::Unit::TestCase
     assert_metric_and_call_count('OtherTransaction/SidekiqJob/all', JOB_COUNT)
   end
 
-  METRIC_VALUES_POSITION = 3
+  def test_doesnt_capture_args_by_default
+    run_jobs
+    assert_no_params_on_jobs
+  end
+
+  def test_isnt_influenced_by_global_capture_params
+    with_config(:capture_params => true) do
+      run_jobs
+    end
+    assert_no_params_on_jobs
+  end
+
+  def test_agent_posts_captured_args_to_job
+    with_config(:'sidekiq.capture_params' => true) do
+      run_jobs
+    end
+
+    transaction_samples = $collector.calls_for('transaction_sample_data')
+    assert_false transaction_samples.empty?
+
+    transaction_samples.each do |post|
+      post.samples.each do |sample|
+        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
+
+        args = sample.tree.custom_params["job_arguments"]
+        assert_equal args.length, 2
+        assert_equal args[0], "jobs_completed"
+      end
+    end
+  end
 
   def assert_metric_and_call_count(name, expected_call_count)
     metric_data = $collector.calls_for('metric_data')
     assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
 
-    metric = metric_data.first[METRIC_VALUES_POSITION].find { |m| m[0]['name'] == name }
+    metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
     assert(metric, "could not find metric named #{name}")
 
     call_count = metric[1][0]
     assert_equal(expected_call_count, call_count)
+  end
+
+  def assert_no_params_on_jobs
+    transaction_samples = $collector.calls_for('transaction_sample_data')
+    assert_false transaction_samples.empty?
+
+    transaction_samples.each do |post|
+      post.samples.each do |sample|
+        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
+        assert_nil sample.tree.custom_params["job_arguments"]
+      end
+    end
   end
 end
