@@ -513,7 +513,7 @@ module NewRelic
         end
 
         def self.is_supported?
-          RUBY_VERSION >= '1.9.2'
+          NewRelic::LanguageSupport.stdlib_json_usable?
         end
 
         def self.human_readable?

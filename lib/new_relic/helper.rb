@@ -52,8 +52,7 @@ module NewRelic
 
   # Load the JSON library from the standard library.
   def self::load_stdlib_json
-    # Don't even try to use 1.9.1's json.
-    return false if RUBY_VERSION == '1.9.1'
+    return false unless NewRelic::LanguageSupport.stdlib_json_usable?
 
     require 'json'
     define_method( :json_dump, &::JSON.method(:dump) )
