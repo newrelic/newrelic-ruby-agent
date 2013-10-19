@@ -64,7 +64,7 @@ module NewRelic::LanguageSupport
     end
   end
 
-  def object_space_enabled?
+  def object_space_usable?
     if defined?(::JRuby) && JRuby.respond_to?(:runtime)
       JRuby.runtime.is_object_space_enabled
     elsif defined?(::ObjectSpace) && !rubinius?
