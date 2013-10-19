@@ -24,6 +24,11 @@
   Failure to contact New Relic on agent start-up would not properly retry. This
   has been fixed.
 
+  * Fix potential memory leak on failure to send to New Relic (3.6.8.167)
+
+  3.6.8.164 introduced a potential memory leak when transmission of come kinds
+  of data to New Relic servers failed. 3.6.8.167 fixes this.
+
 ## v3.6.7 ##
 
   * Resque-pool support
