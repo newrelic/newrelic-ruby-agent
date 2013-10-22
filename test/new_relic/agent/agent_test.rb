@@ -275,7 +275,7 @@ module NewRelic
       end
 
       def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started
-        NewRelic::Agent::PipeChannelManager.listener.expects(:started?).returns(false)
+        NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
         with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
@@ -286,7 +286,19 @@ module NewRelic
       end
 
       def test_doesnt_defer_start_if_resque_dispatcher_and_channel_manager_started
-        NewRelic::Agent::PipeChannelManager.listener.expects(:started?).returns(true)
+        NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(true)
+
+        # :send_data_on_exit setting to avoid setting an at_exit
+        with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
+          @agent.start
+        end
+
+        assert @agent.started?
+      end
+
+      def test_doesnt_defer_start_for_resque_if_non_forking_platform
+        NewRelic::LanguageSupport.stubs(:can_fork?).returns(false)
+        NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
         with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
