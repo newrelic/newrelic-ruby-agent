@@ -110,7 +110,7 @@ module NewRelic
 
         @agent.transaction_sampler.expects(:harvest).returns(traces)
         @agent.service.stubs(:transaction_sample_data).raises("wat")
-        @agent.transaction_sampler.expects(:merge).with(traces)
+        @agent.transaction_sampler.expects(:merge!).with(traces)
 
         assert_nothing_raised do
           @agent.send :harvest_and_send_transaction_traces
@@ -122,7 +122,7 @@ module NewRelic
 
         @agent.error_collector.expects(:harvest_errors).returns(errors)
         @agent.service.stubs(:error_data).raises('wat')
-        @agent.error_collector.expects(:merge).with(errors)
+        @agent.error_collector.expects(:merge!).with(errors)
 
         assert_nothing_raised do
           @agent.send :harvest_and_send_errors
@@ -173,8 +173,8 @@ module NewRelic
 
       def test_merge_data_from_empty
         @agent.stats_engine.expects(:merge!).never
-        @agent.error_collector.expects(:merge).never
-        @agent.transaction_sampler.expects(:merge).never
+        @agent.error_collector.expects(:merge!).never
+        @agent.transaction_sampler.expects(:merge!).never
         @agent.merge_data_from([])
       end
 
@@ -183,7 +183,7 @@ module NewRelic
         @agent.instance_eval {
           @transaction_sampler = transaction_sampler
         }
-        transaction_sampler.expects(:merge).with([1,2,3])
+        transaction_sampler.expects(:merge!).with([1,2,3])
         @agent.merge_data_from([{}, [1,2,3], []])
       end
 
@@ -206,7 +206,7 @@ module NewRelic
         samples = [mock('some analytics event')]
 
         request_sampler.expects(:harvest).returns(samples)
-        request_sampler.expects(:merge).with(samples)
+        request_sampler.expects(:merge!).with(samples)
 
         # simulate a failure in transmitting analytics events
         service.stubs(:analytic_event_data).raises(StandardError.new)

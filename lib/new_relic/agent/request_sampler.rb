@@ -71,7 +71,7 @@ class NewRelic::Agent::RequestSampler
 
   # Merge samples back into the buffer, for example after a failed
   # transmission to the collector. (Synchronized)
-  def merge(old_samples)
+  def merge!(old_samples)
     self.synchronize do
       old_samples.each { |s| @samples.append(s) }
     end

@@ -834,10 +834,10 @@ module NewRelic
           @stats_engine.merge!(metrics) if metrics
           if transaction_traces && transaction_traces.respond_to?(:any?) &&
               transaction_traces.any?
-            @transaction_sampler.merge(transaction_traces)
+            @transaction_sampler.merge!(transaction_traces)
           end
           if errors && errors.respond_to?(:each)
-            @error_collector.merge(errors)
+            @error_collector.merge!(errors)
           end
         end
 
@@ -931,7 +931,7 @@ module NewRelic
               ::NewRelic::Agent.logger.debug e.message
             rescue => e
               ::NewRelic::Agent.logger.debug "Remerging SQL traces after #{e.class.name}: #{e.message}"
-              @sql_sampler.merge sql_traces
+              @sql_sampler.merge!(sql_traces)
             end
           end
         end
@@ -953,7 +953,7 @@ module NewRelic
               ::NewRelic::Agent.logger.debug("Server rejected transaction traces, discarding. Error: ", e)
             rescue => e
               ::NewRelic::Agent.logger.error("Failed to send transaction traces, will re-attempt next harvest. Error: ", e)
-              @transaction_sampler.merge(traces)
+              @transaction_sampler.merge!(traces)
             end
           end
         end
@@ -997,7 +997,7 @@ module NewRelic
               ::NewRelic::Agent.logger.debug e.message
             rescue => e
               ::NewRelic::Agent.logger.debug "Failed to send error traces, will try again later. Error:", e
-              @error_collector.merge errors
+              @error_collector.merge!(errors)
             end
           end
         end
@@ -1008,7 +1008,7 @@ module NewRelic
           begin
             @service.analytic_event_data(samples) unless samples.empty?
           rescue
-            @request_sampler.merge(samples)
+            @request_sampler.merge!(samples)
             raise
           end
         end

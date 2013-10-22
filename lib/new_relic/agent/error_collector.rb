@@ -298,7 +298,7 @@ module NewRelic
         NewRelic::Agent.logger.info("Unable to capture internal agent error due to an exception:", e)
       end
 
-      def merge(errors)
+      def merge!(errors)
         errors.each do |error|
           add_to_error_queue(error)
         end
