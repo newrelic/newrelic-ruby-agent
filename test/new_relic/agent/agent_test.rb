@@ -274,7 +274,8 @@ module NewRelic
         @agent.send(:connect, :force_reconnect => true)
       end
 
-      def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started
+      def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started_and_forkable
+        NewRelic::LanguageSupport.stubs(:can_fork?).returns(true)
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
