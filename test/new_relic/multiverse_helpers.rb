@@ -53,7 +53,7 @@ module MultiverseHelpers
 
     # Renaming rules don't get cleared on connect--only appended to
     NewRelic::Agent.instance.transaction_rules.rules.clear
-    NewRelic::Agent.instance.metric_rules.rules.clear
+    NewRelic::Agent.instance.stats_engine.metric_rules.rules.clear
 
     # Clear out lingering stats we didn't transmit
     NewRelic::Agent.instance.reset_stats

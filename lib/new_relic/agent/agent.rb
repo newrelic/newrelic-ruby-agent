@@ -48,7 +48,6 @@ module NewRelic
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
-        @metric_rules          = NewRelic::Agent::RulesEngine.new
         @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
 
@@ -105,7 +104,6 @@ module NewRelic
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
         attr_reader :transaction_rules
-        attr_reader :metric_rules
         attr_reader :harvest_lock
 
         # fakes out a transaction that did not happen in this process
@@ -791,7 +789,7 @@ module NewRelic
             log_connection!(config_data) if @service
 
             @transaction_rules = RulesEngine.from_specs(config_data['transaction_name_rules'])
-            @metric_rules = RulesEngine.from_specs(config_data['metric_name_rules'])
+            @stats_engine.metric_rules = RulesEngine.from_specs(config_data['metric_name_rules'])
 
             # If you're adding something else here to respond to the server-side config,
             # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
@@ -898,7 +896,7 @@ module NewRelic
         # send later
         def harvest_timeslice_data
           NewRelic::Agent::BusyCalculator.harvest_busy
-          @stats_engine.harvest(@metric_rules)
+          @stats_engine.harvest
         end
 
         def harvest_and_send_timeslice_data

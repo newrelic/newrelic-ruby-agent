@@ -131,10 +131,10 @@ module NewRelic
           end
         end
 
-        def harvest(rules_engine=RulesEngine.new)
+        def harvest
           now = Time.now
           snapshot = reset_stats
-          snapshot = apply_rules_to_metric_data(rules_engine, snapshot)
+          snapshot = apply_rules_to_metric_data(@metric_rules, snapshot)
           snapshot.harvested_at = now
           snapshot
         end
