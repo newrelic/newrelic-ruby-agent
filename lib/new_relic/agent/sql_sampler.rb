@@ -130,8 +130,10 @@ module NewRelic
         slowest
       end
 
-      # reset samples without rebooting the web server
       def reset!
+        @samples_lock.synchronize do
+          @sql_traces = {}
+        end
       end
     end
 

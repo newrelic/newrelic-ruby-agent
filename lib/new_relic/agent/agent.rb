@@ -506,6 +506,8 @@ module NewRelic
           @stats_engine.reset_stats
           @error_collector.reset!
           @transaction_sampler.reset!
+          @request_sampler.reset!
+          @sql_sampler.reset!
           @launch_time = Time.now
         end
 

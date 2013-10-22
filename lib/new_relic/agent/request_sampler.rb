@@ -67,7 +67,7 @@ class NewRelic::Agent::RequestSampler
     old_samples
   end
 
-  alias_method :reset, :harvest
+  alias_method :reset!, :harvest
 
   # Merge samples back into the buffer, for example after a failed
   # transmission to the collector. (Synchronized)
@@ -98,7 +98,7 @@ class NewRelic::Agent::RequestSampler
     NewRelic::Agent.config.register_callback(MAX_SAMPLES_KEY) do |max_samples|
       NewRelic::Agent.logger.debug "RequestSampler max_samples set to #{max_samples}"
       self.synchronize { @samples.capacity = max_samples }
-      self.reset
+      self.reset!
     end
 
     NewRelic::Agent.config.register_callback(ENABLED_KEY) do |enabled|
