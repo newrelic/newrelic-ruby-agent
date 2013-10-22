@@ -790,22 +790,13 @@ module NewRelic
             Agent.config.apply_config(server_config, 1)
             log_connection!(config_data) if @service
 
-            add_rules_to_engine(config_data['transaction_name_rules'],
-                                NewRelic::Agent.instance.transaction_rules)
-            add_rules_to_engine(config_data['metric_name_rules'],
-                                NewRelic::Agent.instance.metric_rules)
+            @transaction_rules = RulesEngine.from_specs(config_data['transaction_name_rules'])
+            @metric_rules = RulesEngine.from_specs(config_data['metric_name_rules'])
 
             # If you're adding something else here to respond to the server-side config,
             # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
 
             @beacon_configuration = BeaconConfiguration.new
-          end
-
-          def add_rules_to_engine(rule_specifications, rules_engine)
-            return unless rule_specifications && rule_specifications.any?
-            rule_specifications.each do |rule_spec|
-              rules_engine << NewRelic::Agent::RulesEngine::Rule.new(rule_spec)
-            end
           end
 
           # Logs when we connect to the server, for debugging purposes

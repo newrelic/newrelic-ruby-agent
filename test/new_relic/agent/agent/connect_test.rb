@@ -195,7 +195,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
                                     { 'match_expression' => 'xx',
                                       'replacement'      => 'XX' } ]
     }
-    finish_setup(config)
+    NewRelic::Agent.instance.finish_setup(config)
 
     rules = NewRelic::Agent.instance.transaction_rules
     assert_equal 2, rules.size
@@ -217,7 +217,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
                                { 'match_expression' => 'yy',
                                  'replacement'      => 'YY' }]
     }
-    finish_setup(config)
+    NewRelic::Agent.instance.finish_setup(config)
 
     rules = NewRelic::Agent.instance.metric_rules
     assert_equal 2, rules.size
