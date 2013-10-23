@@ -192,9 +192,13 @@ module NewRelic
     def prepare_to_send!(options={})
       return self if @prepared
 
-      if options[:record_sql]
-        collect_explain_plans!(options[:explain_sql]) if options[:explain_sql]
-        prepare_sql_for_transmission!(options[:record_sql])
+      record_sql_method = ::NewRelic::Agent::Database.record_sql_method
+
+      if record_sql_method == :obfuscated || record_sql_method == :raw
+        if Agent.config[:'transaction_tracer.explain_enabled']
+          collect_explain_plans!(Agent.config[:'transaction_tracer.explain_threshold'])
+        end
+        prepare_sql_for_transmission!(record_sql_method)
       else
         strip_sql!
       end

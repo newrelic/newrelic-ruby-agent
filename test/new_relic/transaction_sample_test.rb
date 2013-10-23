@@ -33,20 +33,27 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     assert_not_nil @t
   end
 
-  def test_prepare_to_send_strips_sql_if_record_sql_omitted
-    s = @t.prepare_to_send!(:explain_sql => 0.00000001)
-
-    s.each_segment do |segment|
-      assert_nil segment.params[:explain_plan]
-      assert_nil segment.params[:sql]
+  def test_prepare_to_send_strips_sql_if_record_sql_is_off_or_none_or_false
+    record_sql_values = %w(off none false)
+    record_sql_values.each do |record_sql_value|
+      s = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+      with_config(:'transaction_tracer.record_sql' => record_sql_value) do
+        s.prepare_to_send!
+        s.each_segment do |segment|
+          assert_nil segment.params[:explain_plan]
+          assert_nil segment.params[:sql]
+        end
+      end
     end
   end
 
   def test_prepare_to_send_preserves_raw_sql_if_record_sql_set_to_raw
-    s = @t.prepare_to_send!(:record_sql => :raw)
+    with_config(:'transaction_tracer.record_sql' => 'raw') do
+      @t.prepare_to_send!
+    end
 
     sql_statements = []
-    s.each_segment do |segment|
+    @t.each_segment do |segment|
       sql_statements << segment.params[:sql] if segment.params[:sql]
     end
 
@@ -54,10 +61,12 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_prepare_to_send_obfuscates_sql_if_record_sql_set_to_obfuscated
-    s = @t.prepare_to_send!(:record_sql => :obfuscated)
+    with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
+      @t.prepare_to_send!
+    end
 
     sql_statements = []
-    s.each_segment do |segment|
+    @t.each_segment do |segment|
       sql_statements << segment.params[:sql] if segment.params[:sql]
     end
 
@@ -65,59 +74,68 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_have_sql_rows_when_sql_is_recorded
-    s = @t.prepare_to_send!(:explain_sql => 0.00000001)
+    with_config(:'transaction_tracer.record_sql' => 'off') do
+      @t.prepare_to_send!
+    end
 
-    assert s.sql_segments.empty?
-    s.root_segment[:sql] = 'hello'
-    assert !s.sql_segments.empty?
+    assert @t.sql_segments.empty?
+    @t.root_segment[:sql] = 'hello'
+    assert !@t.sql_segments.empty?
   end
 
   def test_have_sql_rows_when_sql_is_obfuscated
-    s = @t.prepare_to_send!(:explain_sql => 0.00000001)
+    with_config(:'transaction_tracer.record_sql' => 'off') do
+      @t.prepare_to_send!
+    end
 
-    assert s.sql_segments.empty?
-    s.root_segment[:sql_obfuscated] = 'hello'
-    assert !s.sql_segments.empty?
+    assert @t.sql_segments.empty?
+    @t.root_segment[:sql_obfuscated] = 'hello'
+    assert !@t.sql_segments.empty?
   end
 
   def test_have_sql_rows_when_recording_non_sql_keys
-    s = @t.prepare_to_send!(:explain_sql => 0.00000001)
+    with_config(:'transaction_tracer.record_sql' => 'off') do
+      @t.prepare_to_send!
+    end
 
-    assert s.sql_segments.empty?
-    s.root_segment[:key] = 'hello'
-    assert !s.sql_segments.empty?
+    assert @t.sql_segments.empty?
+    @t.root_segment[:key] = 'hello'
+    assert !@t.sql_segments.empty?
   end
 
   def test_catch_exceptions
+    config = {
+      :'transaction_tracer.record_sql'        => 'obfuscated',
+      :'transaction_tracer.explain_enabled'   => true,
+      :'transaction_tracer.explain_threshold' => 0.00000001
+    }
+
     @connection_stub.expects(:execute).raises
-    # the sql connection will throw
-    @t.prepare_to_send!(:record_sql => :obfuscated, :explain_sql => 0.00000001)
+    with_config(config) do
+      assert_nothing_raised do
+        @t.prepare_to_send!
+      end
+    end
   end
 
   def test_have_explains
-    s = @t.prepare_to_send!(:record_sql => :obfuscated, :explain_sql => 0.00000001)
+    config = {
+      :'transaction_tracer.record_sql'        => 'obfuscated',
+      :'transaction_tracer.explain_enabled'   => true,
+      :'transaction_tracer.explain_threshold' => 0.00000001
+    }
 
-    s.each_segment do |segment|
+    with_config(config) do
+      @t.prepare_to_send!
+    end
+
+    @t.each_segment do |segment|
       if segment.params[:explain_plan]
         explanation = segment.params[:explain_plan]
 
         assert_kind_of Array, explanation
         assert_equal([nil, [["QUERY RESULT"]]], explanation)
       end
-    end
-  end
-
-  def test_not_record_sql_without_record_sql_option
-    t = nil
-    NewRelic::Agent.disable_sql_recording do
-      t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
-    end
-
-    s = t.prepare_to_send!(:explain_sql => 0.00000001)
-
-    s.each_segment do |segment|
-      assert_nil segment.params[:explain_plan]
-      assert_nil segment.params[:sql]
     end
   end
 
@@ -129,7 +147,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_path_string
-    s = @t.prepare_to_send!(:explain_sql => 0.1)
+    s = @t.prepare_to_send!
     fake_segment = mock('segment')
     fake_segment.expects(:path_string).returns('a path string')
     s.instance_eval do
@@ -140,7 +158,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_params_equals
-    s = @t.prepare_to_send!(:explain_sql => 0.1)
+    s = @t.prepare_to_send!
     s.params = {:params => 'hash' }
     assert_equal({:params => 'hash'}, s.params, "should have the specified hash, but instead was #{s.params}")
   end
@@ -150,18 +168,18 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_to_s_with_bad_object
-    s = @t.prepare_to_send!(:explain_sql => 0.1)
-    s.params[:fake] = Hat.new
+    @t.prepare_to_send!
+    @t.params[:fake] = Hat.new
     assert_raise(RuntimeError) do
-      s.to_s
+      @t.to_s
     end
   end
 
   def test_to_s_includes_keys
-    s = @t.prepare_to_send!(:explain_sql => 0.1)
-    s.params[:fake_key] = 'a fake param'
-    assert(s.to_s.include?('fake_key'), "should include 'fake_key' but instead was (#{s.to_s})")
-    assert(s.to_s.include?('a fake param'), "should include 'a fake param' but instead was (#{s.to_s})")
+    @t.prepare_to_send!(:explain_sql => 0.1)
+    @t.params[:fake_key] = 'a fake param'
+    assert(@t.to_s.include?('fake_key'), "should include 'fake_key' but instead was (#{@t.to_s})")
+    assert(@t.to_s.include?('a fake param'), "should include 'a fake param' but instead was (#{@t.to_s})")
   end
 
   def test_find_segment

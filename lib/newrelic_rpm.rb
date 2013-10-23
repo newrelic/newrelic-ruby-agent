@@ -21,6 +21,7 @@
 # For other frameworks, or to manage the agent manually, invoke NewRelic::Agent#manual_start
 # directly.
 #
+
 require 'new_relic/control'
 if defined?(Merb) && defined?(Merb::BootLoader)
   module NewRelic

@@ -954,16 +954,7 @@ module NewRelic
           start_time = Time.now
           ::NewRelic::Agent.logger.debug "Sending (#{traces.length}) transaction traces"
 
-          options = {}
-          unless NewRelic::Agent::Database.record_sql_method == :off
-            options[:record_sql] = NewRelic::Agent::Database.record_sql_method
-          end
-
-          if Agent.config[:'transaction_tracer.explain_enabled']
-            options[:explain_sql] = Agent.config[:'transaction_tracer.explain_threshold']
-          end
-
-          traces.each { |trace| trace.prepare_to_send!(options) }
+          traces.each { |trace| trace.prepare_to_send! }
 
           @service.transaction_sample_data(traces)
           ::NewRelic::Agent.logger.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - start_time} seconds"

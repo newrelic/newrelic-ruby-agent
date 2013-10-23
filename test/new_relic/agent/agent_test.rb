@@ -100,8 +100,7 @@ module NewRelic
                        :transaction_name => nil,
                        :force_persist => true,
                        :truncate => 4000)
-          trace.expects(:prepare_to_send!).with(:record_sql => :raw,
-                                               :explain_sql => 2)
+          trace.expects(:prepare_to_send!)
 
           @agent.transaction_sampler.stubs(:harvest).returns([trace])
           @agent.send :harvest_and_send_transaction_traces
@@ -112,7 +111,7 @@ module NewRelic
         traces = [mock('tt1'), mock('tt2')]
 
         # make prepare_to_send just return self
-        traces.each { |tt| tt.expects(:prepare_to_send!).returns(tt) }
+        traces.each { |tt| tt.expects(:prepare_to_send!) }
 
         @agent.transaction_sampler.expects(:harvest).returns(traces)
         @agent.service.stubs(:transaction_sample_data).raises("wat")
