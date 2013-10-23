@@ -62,6 +62,33 @@ class RequestStatsTest < ActionController::TestCase
     end
   end
 
+  def test_request_samples_should_be_preserved_upon_failure
+    with_config(:'analytics_events.enabled' => true) do
+      5.times { get :stats_action }
+
+      # fail once
+      $collector.stub('analytic_event_data', {}, 503)
+      assert_raises(NewRelic::Agent::ServerConnectionException) do
+        NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+      end
+
+      # recover
+      $collector.stub('analytic_event_data', {'return_value'=>nil}, 200)
+      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+
+      post = $collector.calls_for('analytic_event_data').last
+
+      samples = post.body
+      assert_equal(5, samples.size)
+      samples.each do |sample|
+        # undo the extra layer of wrapping that the collector wants
+        sample = sample.first
+        assert_kind_of Hash, sample
+        assert_kind_of Float, sample['duration']
+        assert_kind_of Float, sample['timestamp']
+      end
+    end
+  end
 
 
   #
