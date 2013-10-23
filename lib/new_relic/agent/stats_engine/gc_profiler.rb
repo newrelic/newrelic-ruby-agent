@@ -82,7 +82,8 @@ module NewRelic
 
         class CoreGCProfiler < Profiler
           def self.enabled?
-            defined?(::GC::Profiler) && ::GC::Profiler.enabled?
+            !NewRelic::LanguageSupport.using_engine?('jruby') &&
+              defined?(::GC::Profiler) && ::GC::Profiler.enabled?
           end
 
           # microseconds spent in GC

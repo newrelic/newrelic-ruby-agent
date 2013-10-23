@@ -83,11 +83,11 @@ module Multiverse
         f.puts "  gem 'mocha', '~> 0.9.8', :require => false" unless environments.omit_mocha
 
         # Need to get Rubinius' debugger wired in, but MRI's doesn't work
-        if include_debugger && !is_rbx?
+        if include_debugger
           if RUBY_VERSION > '1.8.7'
-            f.puts "  gem 'debugger'"
+            f.puts "  gem 'debugger', :platforms => [:mri]"
           else
-            f.puts "  gem 'ruby-debug'"
+            f.puts "  gem 'ruby-debug', :platforms => [:mri]"
           end
         end
       end
