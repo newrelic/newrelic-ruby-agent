@@ -6,6 +6,11 @@ gem "mocha", '~>0.13.0', :require => false
 gem 'rack'
 gem 'rack-test'
 
+platforms :rbx do
+  gem "rubysl"
+  gem "racc"  # https://github.com/rubinius/rubinius/issues/2632
+end
+
 gem 'sequel', '~> 3.46.0'
 
 gem "newrelic_rpm", :path => "../../.."
