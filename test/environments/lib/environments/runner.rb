@@ -18,8 +18,9 @@ module Environments
       "1.9.2"       => ["rails21", "rails22", "rails40"],
       "1.9.3"       => ["rails21", "rails22"],
       "2.0.0"       => ["rails21", "rails22", "rails23"],
-      "jruby-1.6.8" => ["rails40"],
-      "jruby-1.7.3" => ["rails21", "rails22", "rails23", "rails40"],
+      "jruby-1.6"   => ["rails40"],
+      "jruby-1.7"   => ["rails21", "rails22", "rails23", "rails40"],
+      "rbx-2.0"     => ["rails21", "rails22", "rails23", "rails30", "rails31", "rails32"],
     }
 
     attr_reader :envs
@@ -64,7 +65,8 @@ module Environments
 
       version = RUBY_VERSION
       version = "ree" if defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Ruby Enterprise Edition/
-      version = "jruby-#{JRUBY_VERSION}" if defined?(JRUBY_VERSION)
+      version = "jruby-#{JRUBY_VERSION[0..2]}" if defined?(JRUBY_VERSION)
+      version = "rbx-2.0" if defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
 
       blacklist = BLACKLIST[version] || []
       blacklist.each do |blacklisted|
