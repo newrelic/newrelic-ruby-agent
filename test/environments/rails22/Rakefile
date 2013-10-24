@@ -5,8 +5,11 @@ require(File.join(File.dirname(__FILE__), 'config', 'boot'))
 
 require 'rake'
 require 'rake/testtask'
+require 'rdoc/task'
 
 gem 'newrelic_rpm'
+
+require 'tasks/rails'
 require 'tasks/all'
 
 task :default => [:'test:newrelic']
