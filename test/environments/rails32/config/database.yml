@@ -4,7 +4,7 @@ mysql: &mysql
   socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
   username: root
   host: localhost
-  database: rails_blog
+  database: <%= db = "#{ENV['RUBY_VERSION']}#{ENV['BRANCH']}"; db.empty? ? "rails_blog" : db %>
 
 # Shared properties for postgres.  This won't work with our schema but
 # Does work with agent tests

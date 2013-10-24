@@ -43,6 +43,7 @@ module Environments
           dir = File.expand_path(dir)
           puts "", yellow("Running tests for #{dir}")
           bundle(dir)
+          create_database(dir)
           status = run(dir)
           if !status.success?
             overall_status += 1
@@ -95,6 +96,15 @@ module Environments
         bundling = `cd #{dir} && bundle install`
       end
       puts red(bundling) unless $?.success?
+    end
+
+    # Would be nice to get our unit tests decoupled from the actual DB, but
+    # until then this is necessary
+    def create_database(dir)
+      return if File.basename(dir) == "norails"
+
+      puts "Making sure the database is there for '#{File.basename(dir)}'..."
+      result = `cd #{dir} && RAILS_ENV=test bundle exec rake --trace db:create`
     end
 
     def run(dir)

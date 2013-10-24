@@ -1,5 +1,4 @@
-# A sample Gemfile
-source :gemcutter
+source 'http://rubygems.org'
 
 gem "rails", "2.2.2"
 
@@ -7,6 +6,8 @@ gem "ci_reporter", "1.6.0"
 gem "mocha", "0.9.8"
 gem "jeweler", "1.4.0"
 gem "gemcutter", "0.5.0"
+gem "rdoc"
+
 gem 'rack'
 gem 'rack-test'
 gem 'newrelic_rpm', :path => '../../..'
