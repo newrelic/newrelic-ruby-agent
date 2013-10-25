@@ -70,9 +70,10 @@ module Multiverse
         f.puts '  source :rubygems' unless local
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
-        f.puts rbx_rubysl_line unless gemfile_text =~ /^\s*gem .rubysl./ || !is_rbx?
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
+
+        rbx_gemfile_lines(f, gemfile_text)
 
         # We currently pin usage of mocha at the 0.9.x line for compatibility
         # 0.10.x had issues with the integration handlers and MiniTest on old Rubies
@@ -102,8 +103,11 @@ module Multiverse
       line
     end
 
-    def rbx_rubysl_line
-      "gem 'rubysl', :platforms => [:rbx]"
+    def rbx_gemfile_lines(f, gemfile_text)
+      return unless is_rbx?
+
+      f.puts "gem 'rubysl', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .rubysl./
+      f.puts "gem 'racc', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .racc./
     end
 
     def is_rbx?
