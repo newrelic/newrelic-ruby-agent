@@ -390,7 +390,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     sql_segment = last_segment(sample)
     assert_match /^SELECT /, sql_segment.params[:sql]
     explanations = sql_segment.params[:explain_plan]
-    if isMysql? || isPostgres?
+    if (isMysql? || isPostgres?) && !NewRelic::LanguageSupport.using_engine?('jruby')
       assert_not_nil explanations, "No explains in segment: #{sql_segment}"
       assert_equal(2, explanations.size,
                    "No explains in segment: #{sql_segment}")
@@ -517,9 +517,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
     assert_metrics_recorded(
       'ActiveRecord/all' => { :call_count => 1 },
-      'Database/SQL/select' => { :call_count => 1 },
-      "RemoteService/sql/#{adapter}/localhost" => { :call_count => 1 }
+      'Database/SQL/select' => { :call_count => 1 }
     )
+
+    if !NewRelic::LanguageSupport.using_engine?('jruby')
+      assert_metrics_recorded("RemoteService/sql/#{adapter}/localhost" => { :call_count => 1 })
+    end
   end
 
   def test_rescue_handling
@@ -536,17 +539,17 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_remote_service_metric_respects_dynamic_connection_config
-    return unless isMysql?
+    return unless isMysql? && !NewRelic::LanguageSupport.using_engine?('jruby')
 
     ActiveRecordFixtures::Shipment.connection.execute('SHOW TABLES');
-    assert(NewRelic::Agent.get_stats("RemoteService/sql/#{adapter}/localhost").call_count != 0)
+    assert_metrics_recorded(["RemoteService/sql/#{adapter}/localhost"])
 
     config = ActiveRecordFixtures::Shipment.connection.instance_eval { @config }
     config[:host] = '127.0.0.1'
     connection = ActiveRecordFixtures::Shipment.establish_connection(config)
 
     ActiveRecordFixtures::Shipment.connection.execute('SHOW TABLES');
-    assert(NewRelic::Agent.get_stats("RemoteService/sql/#{adapter}/127.0.0.1").call_count != 0)
+    assert_metrics_recorded(["RemoteService/sql/#{adapter}/127.0.0.1"])
 
     config[:host] = 'localhost'
     ActiveRecordFixtures::Shipment.establish_connection(config)

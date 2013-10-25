@@ -19,7 +19,7 @@ module Environments
       "1.9.3"       => ["rails21", "rails22"],
       "2.0.0"       => ["rails21", "rails22", "rails23"],
       "jruby-1.6"   => ["rails40"],
-      "jruby-1.7"   => ["rails21", "rails22", "rails23", "rails40"],
+      "jruby-1.7"   => ["rails21", "rails22", "rails23"],
       "rbx-2.0"     => ["rails21", "rails22", "rails23", "rails30", "rails31", "rails32"],
     }
 
