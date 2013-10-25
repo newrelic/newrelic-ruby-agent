@@ -7,6 +7,7 @@ gem "rails", "~> 2.3.0"
 gem "mocha", "0.9.8"
 gem 'rack'
 gem 'rack-test'
+gem 'rdoc'
 
 gem "newrelic_rpm", :path => '../../..'
 
