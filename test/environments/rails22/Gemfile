@@ -17,14 +17,8 @@ if (RUBY_PLATFORM == 'java')
   gem "activerecord-jdbcsqlite3-adapter", "~>1.2.9"
   gem "jruby-openssl"
 else
-  gem "sqlite3-ruby", "1.2.5"
-end
-
-if RUBY_VERSION == '1.8.6'
-  gem "mysql", '2.7' unless RUBY_PLATFORM == 'java'
-  gem 'shoulda', '~> 2.11.3'
-else
-  gem "mysql", '2.8.1' unless RUBY_PLATFORM == 'java'
+  gem "mysql", "~>2.9.1"
+  gem "sqlite3"
   gem 'shoulda', '~> 3.0.0'
   gem 'sequel', '~> 3.46.0'
 end
