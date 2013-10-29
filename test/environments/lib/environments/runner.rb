@@ -95,7 +95,9 @@ module Environments
         puts "Failed local bundle, trying again with full bundle..."
         bundling = `cd #{dir} && bundle install`
       end
-      puts red(bundling) unless $?.success?
+
+      bundling = red(bundling) unless $?.success?
+      puts bundling
     end
 
     # Would be nice to get our unit tests decoupled from the actual DB, but

@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 
 gem 'test-unit'
-gem 'rails', '~>3.0.0'
+gem 'rails', '~>3.0.20'
 gem 'newrelic_rpm', :path => '../../..'
 gem "mocha"
 gem 'rack'
