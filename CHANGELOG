@@ -8,6 +8,11 @@
   profiling for web transactions. For full details see our X-Ray sessions
   documentation at https://newrelic.com/docs/site/xray-sessions.
 
+  * Percentiles and Histograms
+
+  The Ruby Agent now captures data that provides percentile and histogram views
+  in the New Relic UI.
+
   * CPU metrics re-enabled for JRuby >= 1.7.0
 
   To work around a JRuby bug, the Ruby agent stopped gathering CPU metrics on
