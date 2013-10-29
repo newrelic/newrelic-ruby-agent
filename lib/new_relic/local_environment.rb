@@ -131,7 +131,7 @@ module NewRelic
     end
 
     def check_for_delayed_job
-      if $0 =~ /delayed_job$/
+      if $0 =~ /delayed_job$/ || (File.basename($0) == 'rake' && ARGV.include?('jobs:work'))
         @discovered_dispatcher = :delayed_job
       end
     end
