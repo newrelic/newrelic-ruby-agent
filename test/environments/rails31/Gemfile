@@ -15,5 +15,3 @@ else
   gem "mysql", "~>2.9.1"
   gem "sqlite3-ruby"
 end
-
-gem 'sequel', '~> 3.46.0'
