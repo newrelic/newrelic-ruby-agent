@@ -202,6 +202,12 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     @t.prepare_to_send!(opts)
   end
 
+  def test_threshold_preserved_by_prepare_to_send
+    @t.threshold = 4.2
+    s = @t.prepare_to_send!
+    assert_equal(4.2, s.threshold)
+  end
+
   def test_count_segments
     transaction = run_sample_trace_on(NewRelic::Agent::TransactionSampler.new) do |sampler|
       sampler.notice_push_scope "level0"

@@ -8,11 +8,31 @@
   profiling for web transactions. For full details see our X-Ray sessions
   documentation at https://newrelic.com/docs/site/xray-sessions.
 
+  * Percentiles and Histograms
+
+  The Ruby Agent now captures data that provides percentile and histogram views
+  in the New Relic UI.
+
   * CPU metrics re-enabled for JRuby >= 1.7.0
 
   To work around a JRuby bug, the Ruby agent stopped gathering CPU metrics on
   that platform.  With the bug fixed, the agent can gather those metrics again.
   Thanks Bram de Vries for the contribution!
+
+  * Missing Resque transaction traces (3.6.8.168)
+
+  A bug in 3.6.8.164 prevented transaction traces in Resque jobs from being
+  communicated back to New Relic. 3.6.8.168 fixes this.
+
+  * Retry on initial connect (3.6.8.168)
+
+  Failure to contact New Relic on agent start-up would not properly retry. This
+  has been fixed.
+
+  * Fix potential memory leak on failure to send to New Relic (3.6.8.168)
+
+  3.6.8.164 introduced a potential memory leak when transmission of some kinds
+  of data to New Relic servers failed. 3.6.8.168 fixes this.
 
 ## v3.6.7 ##
 

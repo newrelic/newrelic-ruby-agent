@@ -5,9 +5,9 @@
 require './app'
 require 'multiverse_helpers'
 
-# GC instrumentation only works with REE or 1.9.x
+# GC instrumentation only works with REE or MRI >= 1.9.2
 if (defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise/) ||
-    RUBY_VERSION >= '1.9.2'
+    (RUBY_VERSION >= '1.9.2' && !NewRelic::LanguageSupport.using_engine?('jruby'))
 
 class GcController < ApplicationController
   include Rails.application.routes.url_helpers
@@ -61,7 +61,7 @@ class GCRailsInstrumentationTest < ActionController::TestCase
 
   def assert_in_range(duration, gc_time)
     assert gc_time > 0.0, "GC Time wasn't recorded!"
-    assert gc_time < duration, "GC Time can't be more than elapsed!"
+    assert gc_time < duration, "GC Time #{gc_time} can't be more than elapsed #{duration}!"
   end
 
   def get_call_time(name, scope=nil)

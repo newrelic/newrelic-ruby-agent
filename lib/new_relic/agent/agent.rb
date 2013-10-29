@@ -440,6 +440,7 @@ module NewRelic
           # before Resque calls Process.daemon (Jira RUBY-857)
           def defer_for_resque?
             NewRelic::Agent.config[:dispatcher] == :resque &&
+              NewRelic::LanguageSupport.can_fork? &&
               !NewRelic::Agent::PipeChannelManager.listener.started?
           end
 

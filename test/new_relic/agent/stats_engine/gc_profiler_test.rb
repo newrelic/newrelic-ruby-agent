@@ -17,6 +17,7 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Test::Unit::TestCase
 
   def test_init_profiler_for_ruby_19_and_greater
     return unless defined?(::GC::Profiler)
+    return if NewRelic::LanguageSupport.using_engine?('jruby')
 
     ::GC::Profiler.stubs(:enabled?).returns(true)
     ::GC::Profiler.stubs(:total_time).returns(0)
@@ -34,7 +35,9 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Test::Unit::TestCase
   end
 
   def test_collect_gc_data
-    GC.disable unless NewRelic::LanguageSupport.using_engine?('jruby')
+    return if NewRelic::LanguageSupport.using_engine?('jruby')
+
+    GC.disable
     if NewRelic::LanguageSupport.using_version?('1.9')
       ::GC::Profiler.stubs(:enabled?).returns(true)
       ::GC::Profiler.stubs(:total_time).returns(1.0, 4.0)
@@ -59,7 +62,5 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Test::Unit::TestCase
     assert_equal 2, gc_stats.call_count
     assert_equal 3.0, gc_stats.total_call_time
     assert_equal(3.0, tracer.last_sample.params[:custom_params][:gc_time])
-  ensure
-    GC.enable unless NewRelic::LanguageSupport.using_engine?('jruby')
   end
 end

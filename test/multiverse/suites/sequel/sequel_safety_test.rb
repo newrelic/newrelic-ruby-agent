@@ -5,24 +5,9 @@
 # https://newrelic.atlassian.net/browse/RUBY-1123
 # https://support.newrelic.com/tickets/42515
 
-require 'sequel'
-require 'test/unit'
+require File.join(File.dirname(__FILE__), 'database.rb')
 
-if defined?(JRuby)
-  DB = Sequel.connect('jdbc:sqlite::memory:')
-else
-  DB = Sequel.sqlite
-end
-
-DB.create_table( :users ) do
-  primary_key :uid
-  string :login
-  string :firstname
-  string :lastname
-end
-class User < Sequel::Model; end
-
-class SequelTest < MiniTest::Unit::TestCase
+class SequelSafetyTest < MiniTest::Unit::TestCase
 
   def test_it_doesnt_blow_up
     require 'newrelic_rpm'

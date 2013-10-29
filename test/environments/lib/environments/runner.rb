@@ -18,8 +18,9 @@ module Environments
       "1.9.2"       => ["rails21", "rails22", "rails40"],
       "1.9.3"       => ["rails21", "rails22"],
       "2.0.0"       => ["rails21", "rails22", "rails23"],
-      "jruby-1.6.8" => ["rails40"],
-      "jruby-1.7.3" => ["rails21", "rails22", "rails23", "rails40"],
+      "jruby-1.6"   => ["rails40"],
+      "jruby-1.7"   => ["rails21", "rails22", "rails23"],
+      "rbx-2.0"     => ["rails21", "rails22", "rails23", "rails30", "rails31", "rails32"],
     }
 
     attr_reader :envs
@@ -42,6 +43,7 @@ module Environments
           dir = File.expand_path(dir)
           puts "", yellow("Running tests for #{dir}")
           bundle(dir)
+          create_database(dir)
           status = run(dir)
           if !status.success?
             overall_status += 1
@@ -64,7 +66,8 @@ module Environments
 
       version = RUBY_VERSION
       version = "ree" if defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Ruby Enterprise Edition/
-      version = "jruby-#{JRUBY_VERSION}" if defined?(JRUBY_VERSION)
+      version = "jruby-#{JRUBY_VERSION[0..2]}" if defined?(JRUBY_VERSION)
+      version = "rbx-2.0" if defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
 
       blacklist = BLACKLIST[version] || []
       blacklist.each do |blacklisted|
@@ -92,7 +95,18 @@ module Environments
         puts "Failed local bundle, trying again with full bundle..."
         bundling = `cd #{dir} && bundle install`
       end
-      puts red(bundling) unless $?.success?
+
+      bundling = red(bundling) unless $?.success?
+      puts bundling
+    end
+
+    # Would be nice to get our unit tests decoupled from the actual DB, but
+    # until then this is necessary
+    def create_database(dir)
+      return if File.basename(dir) == "norails"
+
+      puts "Making sure the database is there for '#{File.basename(dir)}'..."
+      result = `cd #{dir} && RAILS_ENV=test bundle exec rake --trace db:create`
     end
 
     def run(dir)
