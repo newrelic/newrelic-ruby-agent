@@ -256,6 +256,19 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     assert_equal 2.1, options[:webDuration]
   end
 
+  def test_end_fires_a_transaction_finished_event_with_custom_params
+    options = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      options = payload[:custom_params]
+    end
+
+    NewRelic::Agent::Transaction.start(:controller)
+    NewRelic::Agent.add_custom_parameters('fooz' => 'barz')
+    NewRelic::Agent::Transaction.stop('txn')
+
+    assert_equal 'barz', options['fooz']
+  end
+
   def test_parent_returns_parent_transaction_if_there_is_one
     txn, outer_txn = nil
     in_transaction('outer') do

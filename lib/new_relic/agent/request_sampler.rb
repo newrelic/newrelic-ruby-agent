@@ -121,13 +121,16 @@ class NewRelic::Agent::RequestSampler
   def on_transaction_finished(payload)
     return unless @enabled
     return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
-    sample = {
-      TIMESTAMP_KEY => float(payload[:start_timestamp]),
-      NAME_KEY      => string(payload[:name]),
-      DURATION_KEY  => float(payload[:duration]),
-      TYPE_KEY      => SAMPLE_TYPE
-    }.merge((payload[:overview_metrics] || {}))
-
+    # The order in which these are merged is important.  We want to ensure that
+    # custom parameters can't override required fields (e.g. type)
+    sample = {}.merge!(payload[:custom_params] || {}).
+      merge!(payload[:overview_metrics] || {}).
+      merge!({
+        TIMESTAMP_KEY     => float(payload[:start_timestamp]),
+        NAME_KEY          => string(payload[:name]),
+        DURATION_KEY      => float(payload[:duration]),
+        TYPE_KEY          => SAMPLE_TYPE,
+      })
     is_full = self.synchronize { @samples.append(sample) }
     notify_full if is_full && !@notified_full
   end
