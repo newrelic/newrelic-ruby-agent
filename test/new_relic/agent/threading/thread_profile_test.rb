@@ -111,6 +111,25 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         assert_equal expected, @profile.to_collector_array(encoder)
       end
 
+      def test_to_collector_array_with_identity_encoder
+        build_well_known_trace('profile_id' => 333)
+        @profile.stubs(:created_at).returns(12)
+        @profile.finished_at = 13
+
+        expected = [
+          333,
+          12,
+          13,
+          1,
+          @profile.generate_traces,
+          2,
+          0
+        ]
+
+        identity_encoder = NewRelic::Agent::NewRelicService::PrubyMarshaller.new.default_encoder
+        assert_equal expected, @profile.to_collector_array(identity_encoder)
+      end
+
       def test_to_collector_array_with_xray_session_id
         build_well_known_trace('profile_id' => -1, 'x_ray_id' => 4242)
         @profile.stubs(:created_at).returns(1350403938892.524)
