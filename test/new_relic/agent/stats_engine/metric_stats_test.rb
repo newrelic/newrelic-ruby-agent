@@ -68,11 +68,12 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     )
     rules_engine = NewRelic::Agent::RulesEngine.new([rule])
 
+    @engine.metric_rules = rules_engine
     @engine.get_stats_no_scope('Custom/foo/1/bar/22').record_data_point(1)
     @engine.get_stats_no_scope('Custom/foo/3/bar/44').record_data_point(1)
     @engine.get_stats_no_scope('Custom/foo/5/bar/66').record_data_point(1)
 
-    harvested = @engine.harvest(rules_engine)
+    harvested = @engine.harvest
 
     assert !harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/1/bar/22'))
     assert !harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/3/bar/44'))

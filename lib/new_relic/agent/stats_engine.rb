@@ -16,11 +16,14 @@ module NewRelic
       include Samplers
       include Transactions
 
+      attr_accessor :metric_rules
+
       def initialize
         # Makes the unit tests happy
         NewRelic::Agent::TransactionState.get.clear_stats_scope_stack
         @stats_lock = Mutex.new
         @stats_hash = StatsHash.new
+        @metric_rules = RulesEngine.new
       end
 
       # All access to the @stats_hash ivar should be funnelled through this

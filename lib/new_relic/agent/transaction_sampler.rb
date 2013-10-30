@@ -244,7 +244,7 @@ module NewRelic
         end
       end
 
-      def merge(previous)
+      def merge!(previous)
         @samples_lock.synchronize do
           @sample_buffers.each do |buffer|
             buffer.store_previous(previous)

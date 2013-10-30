@@ -48,7 +48,6 @@ module NewRelic
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
-        @metric_rules          = NewRelic::Agent::RulesEngine.new
         @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
 
@@ -105,7 +104,6 @@ module NewRelic
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
         attr_reader :transaction_rules
-        attr_reader :metric_rules
         attr_reader :harvest_lock
 
         # fakes out a transaction that did not happen in this process
@@ -507,6 +505,8 @@ module NewRelic
           @stats_engine.reset_stats
           @error_collector.reset!
           @transaction_sampler.reset!
+          @request_sampler.reset!
+          @sql_sampler.reset!
           @launch_time = Time.now
         end
 
@@ -789,22 +789,13 @@ module NewRelic
             Agent.config.apply_config(server_config, 1)
             log_connection!(config_data) if @service
 
-            add_rules_to_engine(config_data['transaction_name_rules'],
-                                NewRelic::Agent.instance.transaction_rules)
-            add_rules_to_engine(config_data['metric_name_rules'],
-                                NewRelic::Agent.instance.metric_rules)
+            @transaction_rules = RulesEngine.from_specs(config_data['transaction_name_rules'])
+            @stats_engine.metric_rules = RulesEngine.from_specs(config_data['metric_name_rules'])
 
             # If you're adding something else here to respond to the server-side config,
             # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
 
             @beacon_configuration = BeaconConfiguration.new
-          end
-
-          def add_rules_to_engine(rule_specifications, rules_engine)
-            return unless rule_specifications && rule_specifications.any?
-            rule_specifications.each do |rule_spec|
-              rules_engine << NewRelic::Agent::RulesEngine::Rule.new(rule_spec)
-            end
           end
 
           # Logs when we connect to the server, for debugging purposes
@@ -835,10 +826,10 @@ module NewRelic
           @stats_engine.merge!(metrics) if metrics
           if transaction_traces && transaction_traces.respond_to?(:any?) &&
               transaction_traces.any?
-            @transaction_sampler.merge(transaction_traces)
+            @transaction_sampler.merge!(transaction_traces)
           end
           if errors && errors.respond_to?(:each)
-            @error_collector.merge(errors)
+            @error_collector.merge!(errors)
           end
         end
 
@@ -906,7 +897,7 @@ module NewRelic
         # send later
         def harvest_timeslice_data
           NewRelic::Agent::BusyCalculator.harvest_busy
-          @stats_engine.harvest(@metric_rules)
+          @stats_engine.harvest
         end
 
         def harvest_and_send_timeslice_data
@@ -932,7 +923,7 @@ module NewRelic
               ::NewRelic::Agent.logger.debug e.message
             rescue => e
               ::NewRelic::Agent.logger.debug "Remerging SQL traces after #{e.class.name}: #{e.message}"
-              @sql_sampler.merge sql_traces
+              @sql_sampler.merge!(sql_traces)
             end
           end
         end
@@ -954,7 +945,7 @@ module NewRelic
               ::NewRelic::Agent.logger.debug("Server rejected transaction traces, discarding. Error: ", e)
             rescue => e
               ::NewRelic::Agent.logger.error("Failed to send transaction traces, will re-attempt next harvest. Error: ", e)
-              @transaction_sampler.merge(traces)
+              @transaction_sampler.merge!(traces)
             end
           end
         end
@@ -998,7 +989,7 @@ module NewRelic
               ::NewRelic::Agent.logger.debug e.message
             rescue => e
               ::NewRelic::Agent.logger.debug "Failed to send error traces, will try again later. Error:", e
-              @error_collector.merge errors
+              @error_collector.merge!(errors)
             end
           end
         end
@@ -1009,7 +1000,7 @@ module NewRelic
           begin
             @service.analytic_event_data(samples) unless samples.empty?
           rescue
-            @request_sampler.merge(samples)
+            @request_sampler.merge!(samples)
             raise
           end
         end

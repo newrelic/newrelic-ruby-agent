@@ -47,9 +47,7 @@ class NewRelic::Agent::RequestSampler
     return self.synchronize { @samples.to_a }
   end
 
-  # Clear any existing samples, reset the last sample time, and return the
-  # previous set of samples. (Synchronized)
-  def harvest
+  def reset!
     NewRelic::Agent.logger.debug "Resetting RequestSampler"
 
     sample_count, request_count = 0
@@ -63,15 +61,20 @@ class NewRelic::Agent::RequestSampler
       @notified_full = false
     end
 
+    [old_samples, sample_count, request_count]
+  end
+
+  # Clear any existing samples, reset the last sample time, and return the
+  # previous set of samples. (Synchronized)
+  def harvest
+    old_samples, sample_count, request_count = reset!
     record_sampling_rate(request_count, sample_count) if @enabled
     old_samples
   end
 
-  alias_method :reset, :harvest
-
   # Merge samples back into the buffer, for example after a failed
   # transmission to the collector. (Synchronized)
-  def merge(old_samples)
+  def merge!(old_samples)
     self.synchronize do
       old_samples.each { |s| @samples.append(s) }
     end
@@ -98,7 +101,7 @@ class NewRelic::Agent::RequestSampler
     NewRelic::Agent.config.register_callback(MAX_SAMPLES_KEY) do |max_samples|
       NewRelic::Agent.logger.debug "RequestSampler max_samples set to #{max_samples}"
       self.synchronize { @samples.capacity = max_samples }
-      self.reset
+      self.reset!
     end
 
     NewRelic::Agent.config.register_callback(ENABLED_KEY) do |enabled|

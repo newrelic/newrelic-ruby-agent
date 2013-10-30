@@ -53,7 +53,7 @@ module MultiverseHelpers
 
     # Renaming rules don't get cleared on connect--only appended to
     NewRelic::Agent.instance.transaction_rules.rules.clear
-    NewRelic::Agent.instance.metric_rules.rules.clear
+    NewRelic::Agent.instance.stats_engine.metric_rules.rules.clear
 
     # Clear out lingering stats we didn't transmit
     NewRelic::Agent.instance.reset_stats
@@ -61,9 +61,6 @@ module MultiverseHelpers
     # Clear out lingering errors in the collector
     NewRelic::Agent.instance.error_collector.harvest_errors
     NewRelic::Agent.instance.error_collector.instance_variable_set(:@ignore_filter, nil)
-
-    # Clear out the request sampler!
-    NewRelic::Agent.instance.instance_variable_get(:@request_sampler).reset
 
     # Clean up any thread-local variables starting with 'newrelic'
     Thread.current.keys.select { |k| k.to_s =~ /^newrelic/i }.each do |key|
