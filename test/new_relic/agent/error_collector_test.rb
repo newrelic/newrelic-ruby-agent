@@ -86,7 +86,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     @error_collector.notice_error(StandardError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
     @error_collector.notice_error(StandardError.new("message"), :metric => 'last', :request_params => {:x => 'y'})
 
-    @error_collector.merge(errors)
+    @error_collector.merge!(errors)
     errors = @error_collector.harvest_errors
 
     assert_equal 4, errors.length

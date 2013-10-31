@@ -84,7 +84,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       old_samples = @sampler.harvest
       5.times { generate_request }
 
-      @sampler.merge(old_samples)
+      @sampler.merge!(old_samples)
       assert_equal(10, @sampler.samples.size)
     end
   end
@@ -95,7 +95,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       old_samples = @sampler.harvest
       4.times { generate_request }
 
-      @sampler.merge(old_samples)
+      @sampler.merge!(old_samples)
       assert_equal(5, @sampler.samples.size)
     end
   end

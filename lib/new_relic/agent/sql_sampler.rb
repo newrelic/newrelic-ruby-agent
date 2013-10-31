@@ -111,7 +111,7 @@ module NewRelic
         end
       end
 
-      def merge(sql_traces)
+      def merge!(sql_traces)
         @samples_lock.synchronize do
 #FIXME we need to merge the sql_traces array back into the @sql_traces hash
 #          @sql_traces.merge! sql_traces
@@ -130,8 +130,10 @@ module NewRelic
         slowest
       end
 
-      # reset samples without rebooting the web server
       def reset!
+        @samples_lock.synchronize do
+          @sql_traces = {}
+        end
       end
     end
 

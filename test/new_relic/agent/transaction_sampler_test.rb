@@ -293,13 +293,13 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_add_samples_holds_onto_previous_result
     sample = sample_with(:duration => 1)
-    @sampler.merge([sample])
+    @sampler.merge!([sample])
     assert_equal([sample], @sampler.harvest)
   end
 
   def test_merge_avoids_dups
     sample = sample_with(:duration => 1)
-    @sampler.merge([sample, sample])
+    @sampler.merge!([sample, sample])
     assert_equal([sample], @sampler.harvest)
   end
 
@@ -313,7 +313,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_merge_avoids_dups_from_forced
     sample = sample_with(:duration => 1, :force_persist => true)
-    @sampler.merge([sample, sample])
+    @sampler.merge!([sample, sample])
     assert_equal([sample], @sampler.harvest)
   end
 
@@ -329,7 +329,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     slower_sample = sample_with(:duration => 10.0)
 
     @sampler.store_sample(slower_sample)
-    @sampler.merge([faster_sample])
+    @sampler.merge!([faster_sample])
 
     assert_equal([slower_sample], @sampler.harvest)
   end
@@ -339,7 +339,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     slower_sample = sample_with(:duration => 10.0)
 
     @sampler.store_sample(faster_sample)
-    @sampler.merge([slower_sample])
+    @sampler.merge!([slower_sample])
 
     assert_equal([slower_sample], @sampler.harvest)
   end
@@ -348,7 +348,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     unforced_sample = sample_with(:duration => 10, :force_persist => false)
     forced_sample = sample_with(:duration => 1, :force_persist => true)
 
-    @sampler.merge([unforced_sample, forced_sample])
+    @sampler.merge!([unforced_sample, forced_sample])
     result = @sampler.harvest
 
     assert_includes(result, unforced_sample)
@@ -374,7 +374,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     old_forced = sample_with(:duration => 1, :force_persist => true)
 
-    @sampler.merge([old_forced])
+    @sampler.merge!([old_forced])
     result = @sampler.harvest
 
     assert_includes(result, new_forced)
@@ -397,7 +397,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     result = nil
     with_active_xray_session("Active/xray") do
-      @sampler.merge(previous)
+      @sampler.merge!(previous)
       result = @sampler.harvest
     end
 
@@ -566,13 +566,13 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
       # 1 second duration
       run_sample_trace(0,1)
-      @sampler.merge([slowest])
+      @sampler.merge!([slowest])
       not_as_slow = @sampler.harvest[0]
       assert((not_as_slow == slowest), "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
 
       run_sample_trace(0,10)
 
-      @sampler.merge([slowest])
+      @sampler.merge!([slowest])
       new_slowest = @sampler.harvest[0]
       assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
       assert_equal(new_slowest.duration.round, 10, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
