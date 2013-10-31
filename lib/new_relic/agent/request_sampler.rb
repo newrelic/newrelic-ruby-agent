@@ -126,7 +126,7 @@ class NewRelic::Agent::RequestSampler
     return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
     # The order in which these are merged is important.  We want to ensure that
     # custom parameters can't override required fields (e.g. type)
-    sample = {}.merge!(payload[:custom_params] || {}).
+    sample = {}.merge!(event_params(payload[:custom_params] || {})).
       merge!(payload[:overview_metrics] || {}).
       merge!({
         TIMESTAMP_KEY     => float(payload[:start_timestamp]),

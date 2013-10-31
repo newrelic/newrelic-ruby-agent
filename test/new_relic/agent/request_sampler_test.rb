@@ -21,6 +21,16 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
+  def test_custom_parameters_in_event_are_normalized_to_string_keys
+    with_sampler_config do
+      generate_request('whatever', :custom_params => {:bing => 2, 1 => 3})
+      txn_event = @sampler.samples.first
+      assert_equal 2, txn_event['bing']
+      assert_equal 3, txn_event['1']
+    end
+  end
+
+
   def test_includes_custom_parameters_in_event
     with_sampler_config do
       generate_request('whatever', :custom_params => {'bing' => 2})

@@ -89,6 +89,30 @@ class CoerceTest < Test::Unit::TestCase
     string(Unstringable.new, "HERE")
   end
 
+  def test_event_params_coerce_returns_empty_hash_when_non_hash_is_passed
+    assert_equal({}, event_params([]))
+    assert_equal({}, event_params(''))
+    assert_equal({}, event_params(1))
+    assert_equal({}, event_params(nil))
+    assert_equal({}, event_params(self.class))
+  end
+
+  def test_event_params_coerce_converts_hash_keys_to_strings
+    assert_equal(
+      {'foo' => 1, 'bar' => 2, '3' => 3},
+      event_params({:foo => 1, 'bar' => 2, 3 => 3})
+    )
+  end
+
+  def test_event_params_coerce_only_allow_values_that_are_strings_symbols_floats_or_ints
+    assert_equal(
+      {'foo' => 1.0, 'bar' => 2, 'bang' => 'woot', 'ok' => :dokey},
+      event_params(
+        {'foo' => 1.0, 'bar' => 2, 'bang' => 'woot', 'ok' => :dokey, 'bad' => [], 'worse' => {}, 'nope' => Rational(1)}
+      )
+    )
+  end
+
   class Unstringable
     undef :to_s
   end

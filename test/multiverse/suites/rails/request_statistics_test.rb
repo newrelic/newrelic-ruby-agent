@@ -18,7 +18,7 @@ class RequestStatsController < ApplicationController
   end
 
   def stats_action_with_custom_params
-    ::NewRelic::Agent.add_custom_parameters('color' => 'blue')
+    ::NewRelic::Agent.add_custom_parameters('color' => 'blue', 1 => :bar, 'bad' => {})
     render :text => 'some stuff'
   end
 end
@@ -67,7 +67,7 @@ class RequestStatsTest < ActionController::TestCase
     end
   end
 
-  def test_custom_params_should_be_reported_with_events
+  def test_custom_params_should_be_reported_with_events_and_coerced_to_safe_types
     with_config( :'analytics_events.enabled' => true ) do
       20.times { get :stats_action_with_custom_params }
 
@@ -86,9 +86,10 @@ class RequestStatsTest < ActionController::TestCase
       assert_encoding 'utf-8', sample['name']
       assert_equal 'Transaction', sample['type']
       assert_equal 'blue', sample['color']
+      assert_equal 'bar', sample['1']
+      assert_false sample.has_key?('bad')
     end
   end
-
 
   def test_request_samples_should_be_preserved_upon_failure
     with_config(:'analytics_events.enabled' => true) do
