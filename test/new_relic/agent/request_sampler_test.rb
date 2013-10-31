@@ -23,10 +23,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_includes_custom_parameters_in_event
     with_sampler_config do
-      generate_request do |payload|
-        payload[:custom_params] = {'bing' => 2}
-        payload
-      end
+      generate_request('whatever', :custom_params => {'bing' => 2})
       txn_event = @sampler.samples.first
       assert_equal 2, txn_event['bing']
     end
@@ -34,11 +31,10 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_custom_parameters_in_event_cant_override_reserved_attributes
     with_sampler_config do
-      generate_request do |payload|
-        payload[:overview_metrics] = {'webDuration' => 0.01}
-        payload[:custom_params] = {'type' => 'giraffe', 'duration' => 'hippo', 'webDuration' => 'zebra'}
-        payload
-      end
+      generate_request('whatever',
+        :overview_metrics => {'webDuration' => 0.01},
+        :custom_params => {'type' => 'giraffe', 'duration' => 'hippo', 'webDuration' => 'zebra'}
+      )
       txn_event = @sampler.samples.first
       assert_equal 'Transaction', txn_event['type']
       assert_equal 0.1, txn_event['duration']
@@ -158,7 +154,6 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       :overview_metrics => {},
       :custom_params => {}
     }.merge(options)
-    payload = yield(payload) if block_given?
     @event_listener.notify(:transaction_finished, payload)
   end
 
