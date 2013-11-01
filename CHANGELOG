@@ -1,5 +1,17 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.6.9 ##
+
+  * Capture arguments for Resque and Sidekiq jobs
+
+  The agent can now optionally record arguments for your Resque and Sidekiq jobs
+  on transaction traces and traced errors. This feature is disabled by default,
+  but may be enabled using the resque.capture_params and sidekiq.capture_params
+  settings.
+
+  Thanks to Juan Ignacio Pumarino, Ken Mayer, Paul Henry, and Eric Saxby for
+  their help with this feature!
+
 ## v3.6.8 ##
 
   * X-Ray Sessions support
