@@ -187,7 +187,7 @@ module NewRelic
           # Clear out stats that are left over from parent process
           reset_stats
 
-          generate_environment_report
+          generate_environment_report unless @service.is_a?(NewRelic::Agent::PipeService)
           start_worker_thread(options)
         end
 
