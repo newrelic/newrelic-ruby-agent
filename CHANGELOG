@@ -2,6 +2,12 @@
 
 ## v3.6.9 ##
 
+  * Experimental Rubinius 2.x support
+
+  The agent is now being tested against the latest version of Rubinius. While
+  support is still considered experimental, you can track the progress at
+  http://docs.newrelic.com/docs/ruby/rubinius for up to date status.
+
   * Capture arguments for Resque and Sidekiq jobs
 
   The agent can now optionally record arguments for your Resque and Sidekiq jobs
@@ -11,6 +17,13 @@
 
   Thanks to Juan Ignacio Pumarino, Ken Mayer, Paul Henry, and Eric Saxby for
   their help with this feature!
+
+  * ActiveRecord 4.0 explain plans for JRuby and Rubinius
+
+  The Ruby agent's ActiveRecord 4.0 instrumentation relied on a feature not
+  available by default in JRuby (ObjectSpace) and could not gather SQL explain
+  plans.  This has been fixed to work across Ruby implementations (MRI, JRuby
+  and Rubinius).
 
 ## v3.6.8 ##
 
