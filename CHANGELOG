@@ -10,20 +10,34 @@
 
   * Capture arguments for Resque and Sidekiq jobs
 
-  The agent can now optionally record arguments for your Resque and Sidekiq jobs
-  on transaction traces and traced errors. This feature is disabled by default,
-  but may be enabled using the resque.capture_params and sidekiq.capture_params
-  settings.
+  The agent can optionally record arguments for your Resque and Sidekiq jobs on
+  transaction traces and traced errors. This is disabled by default, but may be
+  enabled by setting resque.capture_params or sidekiq.capture_params.
 
   Thanks to Juan Ignacio Pumarino, Ken Mayer, Paul Henry, and Eric Saxby for
   their help with this feature!
 
+  * Supported versions rake task and documentation
+
+  We've improved our documentation for what Ruby and gem versions we support.
+  Run `rake newrelic:supported_versions` or see the latest agent's versions at
+  https://docs.newrelic.com/docs/ruby/supported-frameworks.
+
   * ActiveRecord 4.0 explain plans for JRuby and Rubinius
 
-  The Ruby agent's ActiveRecord 4.0 instrumentation relied on a feature not
-  available by default in JRuby (ObjectSpace) and could not gather SQL explain
-  plans.  This has been fixed to work across Ruby implementations (MRI, JRuby
-  and Rubinius).
+  The agent's ActiveRecord 4.0 instrumentation could not gather SQL explain
+  plans on JRuby by default because of a dependency on ObjectSpace, which isn't
+  avialable by default. This has been fixed.
+
+  * Fix for Curb http_put_with_newrelic
+
+  A bug in the agent caused PUT calls in the Curb gem to crash. This has been
+  fixed. Thanks to Michael D'Auria and Kirk Diggler for the contributions!
+
+  * Fix for head position on RUM injection
+
+  Certain unusual HTML documents resulted in browser monitoring injecting
+  incorrect content. Thanks Alex McHale for the contribution!
 
 ## v3.6.8 ##
 
