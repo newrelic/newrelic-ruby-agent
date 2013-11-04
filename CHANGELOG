@@ -39,6 +39,10 @@
   Certain unusual HTML documents resulted in browser monitoring injecting
   incorrect content. Thanks Alex McHale for the contribution!
 
+  * Specify the Content-Type header in developer mode
+
+  Thanks Jared Ning for the contribution!
+
 ## v3.6.8 ##
 
   * X-Ray Sessions support
