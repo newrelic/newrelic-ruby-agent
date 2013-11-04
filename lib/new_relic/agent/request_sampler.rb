@@ -16,7 +16,7 @@ class NewRelic::Agent::RequestSampler
   MAX_SAMPLES_KEY            = :'analytics_events.max_samples_stored'
   ENABLED_KEY                = :'analytics_events.enabled'
   ENABLED_TXN_KEY            = :'analytics_events.transactions.enabled'
-  INCLUDE_CUSTOM_PARAMS_KEY  = :'analytics_events.include_custom_params'
+  INCLUDE_CUSTOM_PARAMS_KEY  = :'analytics_events.transactions.include_custom_params'
 
   # The type field of the sample
   SAMPLE_TYPE              = 'Transaction'
