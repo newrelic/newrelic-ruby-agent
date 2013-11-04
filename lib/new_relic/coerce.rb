@@ -52,17 +52,15 @@ module NewRelic
     # Array, any other class) are discarded. Their keys are also removed from
     # the results hash.
     def event_params(value, context=nil)
-      case value
-      when Hash
-        value.inject({}) do |memo, (key, val)|
-          case val
-          when String, Float, Integer, Symbol
-            memo[key.to_s] = val
-          end
-          memo
-        end
-      else
+      unless value.is_a? Hash
         raise ArgumentError, "Expected Hash but got #{value.class}"
+      end
+      value.inject({}) do |memo, (key, val)|
+        case val
+        when String, Float, Integer, Symbol
+          memo[key.to_s] = val
+        end
+      memo
       end
     rescue => error
       log_failure(value.class, 'valid event params', context, error)
