@@ -1,7 +1,7 @@
 namespace :newrelic do
   desc "Lists information on supported versions of frameworks for this agent"
 
-  require File.join(File.dirname(__FILE__), '..', 'new_relic', 'supported_versions')
+  require File.join(File.dirname(__FILE__), '..', 'new_relic', 'agent', 'supported_versions')
 
   task :supported_versions, [:format] => [] do |t, args|
 
@@ -11,7 +11,7 @@ namespace :newrelic do
     end
 
     def versions_for_type(type)
-      NewRelic::SUPPORTED_VERSIONS.
+      NewRelic::Agent::SUPPORTED_VERSIONS.
         select {|_,v| v[:type] == type}.
         map    do |key,values|
           VersionStruct.new(
