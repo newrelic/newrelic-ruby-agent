@@ -16,7 +16,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     @config = { :adapter => 'mysql', :host => 'server' }
     @connection = Object.new
     @connection.instance_variable_set(:@config, @config)
-    Order.stubs(:connection_pool).returns(stub(:connections => [ @connection ]))
+
 
     @params = {
       :name => 'NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order Load',
@@ -73,6 +73,10 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   end
 
   def test_records_remote_service_metric
+    connection_pool = stub(:connections => [ @connection ])
+    connection_pool_list = [connection_pool]
+    ::ActiveRecord::Base.connection_handler.stubs(:connection_pool_list).returns(connection_pool_list)
+
     freeze_time
 
     simulate_query(2)
@@ -127,6 +131,17 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     @subscriber.start('sql.active_record', :id, @params)
     advance_time(duration) if duration
     @subscriber.finish('sql.active_record', :id, @params)
+  end
+
+  def test_active_record_config_for_event
+    target_connection = ActiveRecord::Base.connection_handler.connection_pool_list.first.connections.first
+    expected_config = target_connection.instance_variable_get(:@config)
+
+    event = mock('event')
+    event.stubs(:payload).returns({ :connection_id => target_connection.object_id })
+
+    result = @subscriber.active_record_config_for_event(event)
+    assert_equal expected_config, result
   end
 end
 

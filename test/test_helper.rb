@@ -15,6 +15,10 @@ $LOAD_PATH.uniq!
 require 'rubygems'
 require 'rake'
 
+Dir.glob(File.join(NEWRELIC_PLUGIN_DIR,'test/helpers/*.rb')).each do |helper|
+  require helper
+end
+
 # We can speed things up in tests that don't need to load rails.
 # You can also run the tests in a mode without rails.  Many tests
 # will be skipped.

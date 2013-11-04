@@ -138,7 +138,11 @@ def assert_metrics_recorded(expected)
       matches.map! { |m| "  #{m.inspect}" }
       msg = "Did not find stats for spec #{expected_spec.inspect}."
       msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
-      msg += "\nAll specs in there were: [\n#{all_specs.map {|s| s.name}.join(",\n")}\n]"
+
+      msg += "\nAll specs in there were: [\n#{all_specs.map do |s|
+        "#{s.name} (#{s.scope.empty? ? '<unscoped>' : s.scope})"
+      end.join(",\n")}\n]"
+
       assert(actual_stats, msg)
     end
     expected_attrs.each do |attr, expected_value|

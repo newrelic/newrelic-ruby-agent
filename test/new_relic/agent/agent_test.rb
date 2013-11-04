@@ -25,6 +25,12 @@ module NewRelic
         assert_equal 123, @agent.service.channel_id
       end
 
+      def test_after_fork_reporting_to_channel_should_not_collect_environment_report
+        @agent.stubs(:connected?).returns(true)
+        @agent.expects(:generate_environment_report).never
+        @agent.after_fork(:report_to_channel => 123)
+      end
+
       def test_after_fork_should_close_pipe_if_parent_not_connected
         pipe = mock
         pipe.expects(:after_fork_in_child)

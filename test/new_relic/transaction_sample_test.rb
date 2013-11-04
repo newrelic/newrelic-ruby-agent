@@ -222,11 +222,15 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_to_array
-    expected_array = [@t.start_time.to_f,
-                      @t.params[:request_params],
-                      @t.params[:custom_params],
-                      @t.root_segment.to_array]
-    assert_equal expected_array, @t.to_array
+    # Round-trip through Time.at makes minor rounding diffs in Rubinius
+    # Check each element separately so we can reconcile the delta
+    result = @t.to_array
+    assert_equal 4, result.length
+
+    assert_in_delta(@t.start_time.to_f, result[0], 0.000001)
+    assert_equal @t.params[:request_params], result[1]
+    assert_equal @t.params[:custom_params], result[2]
+    assert_equal @t.root_segment.to_array, result[3]
   end
 
 
