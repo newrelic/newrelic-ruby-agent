@@ -1,10 +1,6 @@
-suite_condition("Rails 3+ do not support 1.8.6") do
-  RUBY_VERSION != '1.8.6'
-end
-
 if RUBY_VERSION >= '1.9.3'
   gemfile <<-RB
-    gem 'rails', '~>4.0.0'
+    gem 'rails', '~>4.0.1'
     gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
   RB
 end
