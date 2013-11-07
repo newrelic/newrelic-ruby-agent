@@ -460,7 +460,7 @@ module NewRelic
       if params.is_a? Hash
         Transaction.add_custom_parameters(params)
       else
-        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_parameters. Expected Hash but got #{p.class}")
+        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_parameters. Expected Hash but got #{params.class}")
       end
     end
 
