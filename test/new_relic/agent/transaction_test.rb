@@ -269,6 +269,13 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     assert_equal 'barz', options['fooz']
   end
 
+  def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
+    expects_logging(:warn, includes("add_custom_parameters"))
+    NewRelic::Agent::Transaction.start(:controller)
+    NewRelic::Agent.add_custom_parameters('fooz')
+    NewRelic::Agent::Transaction.stop('txn')
+  end
+
   def test_parent_returns_parent_transaction_if_there_is_one
     txn, outer_txn = nil
     in_transaction('outer') do
