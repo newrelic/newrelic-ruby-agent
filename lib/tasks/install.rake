@@ -38,6 +38,7 @@ namespace :newrelic do
       puts "<thead>"
       puts "  <th>Setting</th>"
       puts "  <th style='width: 15%'>Type</th>"
+      puts "  <th>Default</th>"
       puts "  <th>Description</th>"
       puts "</thead>"
 
