@@ -326,7 +326,7 @@ end
 
 def wait_for_backtrace_service_poll(opts={})
   defaults = {
-    :timeout => 5.0,
+    :timeout => 10.0,
     :service => NewRelic::Agent.agent.agent_command_router.backtrace_service,
     :iterations => 1
   }
