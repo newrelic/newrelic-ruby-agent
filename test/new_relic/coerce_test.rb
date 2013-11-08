@@ -106,7 +106,7 @@ class CoerceTest < Test::Unit::TestCase
 
   def test_event_params_coerce_only_allow_values_that_are_strings_symbols_floats_or_ints
     assert_equal(
-      {'foo' => 1.0, 'bar' => 2, 'bang' => 'woot', 'ok' => :dokey},
+      {'foo' => 1.0, 'bar' => 2, 'bang' => 'woot', 'ok' => 'dokey'},
       event_params(
         {'foo' => 1.0, 'bar' => 2, 'bang' => 'woot', 'ok' => :dokey, 'bad' => [], 'worse' => {}, 'nope' => Rational(1)}
       )
