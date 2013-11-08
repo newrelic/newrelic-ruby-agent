@@ -13,9 +13,10 @@ class NewRelic::Agent::RequestSampler
           MonitorMixin
 
   # The namespace and keys of config values
-  MAX_SAMPLES_KEY  = :'analytics_events.max_samples_stored'
-  ENABLED_KEY      = :'analytics_events.enabled'
-  ENABLED_TXN_KEY  = :'analytics_events.transactions.enabled'
+  MAX_SAMPLES_KEY            = :'analytics_events.max_samples_stored'
+  ENABLED_KEY                = :'analytics_events.enabled'
+  ENABLED_TXN_KEY            = :'analytics_events.transactions.enabled'
+  INCLUDE_CUSTOM_PARAMS_KEY  = :'analytics_events.transactions.include_custom_params'
 
   # The type field of the sample
   SAMPLE_TYPE              = 'Transaction'
@@ -124,13 +125,19 @@ class NewRelic::Agent::RequestSampler
   def on_transaction_finished(payload)
     return unless @enabled
     return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
-    sample = {
-      TIMESTAMP_KEY => float(payload[:start_timestamp]),
-      NAME_KEY      => string(payload[:name]),
-      DURATION_KEY  => float(payload[:duration]),
-      TYPE_KEY      => SAMPLE_TYPE
-    }.merge((payload[:overview_metrics] || {}))
-
+    # The order in which these are merged is important.  We want to ensure that
+    # custom parameters can't override required fields (e.g. type)
+    sample = {}
+    if ::NewRelic::Agent.config[INCLUDE_CUSTOM_PARAMS_KEY]
+      sample.merge!(event_params(payload[:custom_params] || {}))
+    end
+    sample.merge!(payload[:overview_metrics] || {})
+    sample.merge!({
+        TIMESTAMP_KEY     => float(payload[:start_timestamp]),
+        NAME_KEY          => string(payload[:name]),
+        DURATION_KEY      => float(payload[:duration]),
+        TYPE_KEY          => SAMPLE_TYPE,
+      })
     is_full = self.synchronize { @samples.append(sample) }
     notify_full if is_full && !@notified_full
   end

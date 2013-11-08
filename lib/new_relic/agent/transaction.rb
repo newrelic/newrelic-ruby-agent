@@ -215,7 +215,8 @@ module NewRelic
           :type             => @type,
           :start_timestamp  => start_time.to_f,
           :duration         => end_time.to_f - start_time.to_f,
-          :overview_metrics => overview_metrics
+          :overview_metrics => overview_metrics,
+          :custom_params    => custom_parameters
         }
         agent.events.notify(:transaction_finished, payload)
       end

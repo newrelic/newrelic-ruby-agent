@@ -748,6 +748,12 @@ module NewRelic
           :type => Fixnum,
           :description => 'Maximum number of request events recorded by the analytics event sampling in a single harvest.'
         },
+        :'analytics_events.transactions.include_custom_params' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :description => 'Include TT custom params in analytics event data.'
+        },
       }.freeze
 
     end

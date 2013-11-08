@@ -16,6 +16,11 @@ class RequestStatsController < ApplicationController
     sleep 0.01
     render :text => 'some stuff'
   end
+
+  def stats_action_with_custom_params
+    ::NewRelic::Agent.add_custom_parameters('color' => 'blue', 1 => :bar, 'bad' => {})
+    render :text => 'some stuff'
+  end
 end
 
 class RequestStatsTest < ActionController::TestCase
@@ -59,6 +64,30 @@ class RequestStatsTest < ActionController::TestCase
       assert_equal 'Transaction', sample['type']
       assert_kind_of Float, sample['duration']
       assert_kind_of Float, sample['timestamp']
+    end
+  end
+
+  def test_custom_params_should_be_reported_with_events_and_coerced_to_safe_types
+    with_config( :'analytics_events.enabled' => true ) do
+      20.times { get :stats_action_with_custom_params }
+
+      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+
+      post = $collector.calls_for('analytic_event_data').first
+
+      refute_nil( post )
+      assert_kind_of Array, post.body
+      assert_kind_of Array, post.body.first
+
+      sample = post.body.first.first
+      assert_kind_of Hash, sample
+
+      assert_equal 'Controller/request_stats/stats_action_with_custom_params', sample['name']
+      assert_encoding 'utf-8', sample['name']
+      assert_equal 'Transaction', sample['type']
+      assert_equal 'blue', sample['color']
+      assert_equal 'bar', sample['1']
+      assert_false sample.has_key?('bad')
     end
   end
 

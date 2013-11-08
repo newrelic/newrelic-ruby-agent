@@ -21,6 +21,45 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
+  def test_custom_parameters_in_event_are_normalized_to_string_keys
+    with_sampler_config do
+      generate_request('whatever', :custom_params => {:bing => 2, 1 => 3})
+      txn_event = @sampler.samples.first
+      assert_equal 2, txn_event['bing']
+      assert_equal 3, txn_event['1']
+    end
+  end
+
+
+  def test_includes_custom_parameters_in_event
+    with_sampler_config do
+      generate_request('whatever', :custom_params => {'bing' => 2})
+      txn_event = @sampler.samples.first
+      assert_equal 2, txn_event['bing']
+    end
+  end
+
+  def test_doesnt_include_custom_parameters_in_event_when_configured_not_to
+    with_sampler_config('analytics_events.transactions.include_custom_params' => false) do
+      generate_request('whatever', :custom_params => {'bing' => 2})
+      txn_event = @sampler.samples.first
+      assert_equal nil, txn_event['bing']
+    end
+  end
+
+  def test_custom_parameters_in_event_cant_override_reserved_attributes
+    with_sampler_config do
+      generate_request('whatever',
+        :overview_metrics => {'webDuration' => 0.01},
+        :custom_params => {'type' => 'giraffe', 'duration' => 'hippo', 'webDuration' => 'zebra'}
+      )
+      txn_event = @sampler.samples.first
+      assert_equal 'Transaction', txn_event['type']
+      assert_equal 0.1, txn_event['duration']
+      assert_equal 0.01, txn_event['webDuration']
+    end
+  end
+
   def test_samples_on_transaction_finished_event_includes_overview_metrics
     with_sampler_config do
       generate_request('name', :overview_metrics => {:foo => :bar})
@@ -130,7 +169,8 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       :type => :controller,
       :start_timestamp => Time.now.to_f,
       :duration => 0.1,
-      :overview_metrics => {}
+      :overview_metrics => {},
+      :custom_params => {}
     }.merge(options)
     @event_listener.notify(:transaction_finished, payload)
   end
