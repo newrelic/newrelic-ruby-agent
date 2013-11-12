@@ -658,11 +658,23 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable automatic insertion of the real user monitoring header and footer into outgoing responses.'
         },
-        :'js_agent_loader_version' => {
-          :default => '',
-          :public => false,
+        :'browser_monitoring.loader' => {
+          :default => 'rum',
+          :public => true,
           :type => String,
-          :description => 'Version of the JavaScript agent loader retrieved by the collector. This is only informational, setting the value does nothing.'
+          :description => 'Type of JavaScript agent loader to request from the collector.'
+        },
+        :'browser_monitoring.version' => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :description => 'Version of the JavaScript agent loader to retrieve from the collector.'
+        },
+        :'browser_monitoring.debug' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Enable or disable debugging version of JavaScript agent loader from the collector.'
         },
         :'js_agent_loader' => {
           :default => '',
