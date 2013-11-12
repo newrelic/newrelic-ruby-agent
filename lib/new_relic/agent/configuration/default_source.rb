@@ -682,12 +682,6 @@ module NewRelic
           :type => String,
           :description => 'JavaScript agent loader content.'
         },
-        :'js_errors_beta' => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enable or disable beta JavaScript error reporting.'
-        },
         :trusted_account_ids => {
           :default => [],
           :public => false,

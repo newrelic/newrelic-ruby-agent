@@ -161,14 +161,14 @@ module NewRelic
         return NewRelic::Agent::TransactionState.get.request_token
       end
 
-      def use_beta_js_agent?
-        return Agent.config[:js_errors_beta] && !Agent.config[:js_agent_loader].to_s.empty?
+      def use_js_agent?
+        return !Agent.config[:js_agent_loader].to_s.empty?
       end
 
       # NOTE: This method may be overridden for internal prototyping, so should
       # remain stable.
       def header_js_string
-        if (use_beta_js_agent?)
+        if (use_js_agent?)
           html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
         else
           NewRelic::Agent.instance.beacon_configuration.browser_timing_header
@@ -178,7 +178,7 @@ module NewRelic
       # NOTE: This method may be overridden for internal prototyping, so should
       # remain stable.
       def footer_js_string(config)
-        if (use_beta_js_agent?)
+        if (use_js_agent?)
           js_data = {
             'txnParam' => config.finish_command,
             'beacon' => NewRelic::Agent.config[:beacon],

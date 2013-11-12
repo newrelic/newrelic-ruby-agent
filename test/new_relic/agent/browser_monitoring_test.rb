@@ -100,35 +100,34 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   end
 
   def test_browser_timing_header_disable_transaction_tracing
-    header = nil
     NewRelic::Agent.disable_transaction_tracing do
-      header = browser_timing_header
+      assert_equal "", browser_timing_header
     end
-    assert_equal "", header
   end
 
-  def test_browser_timing_header_with_loader_without_js_errors_beta
+  def test_browser_timing_header_without_loader
+    with_config(:js_agent_load => '') do
+      # TODO: Once old RUM is ripped out, this should be nil!
+      assert_has_old_rum_header(browser_timing_header)
+    end
+  end
+
+  def test_browser_timing_header_with_loader
     with_config(:js_agent_loader => 'loader') do
-      header = browser_timing_header
-      assert_equal("<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header,
-                   "expected old RUM header but saw '#{header}'")
+      assert_has_js_agent_loader(browser_timing_header)
     end
   end
 
-  def test_browser_timing_header_with_js_errors_beta_without_loader
-    with_config(:js_errors_beta => true) do
-      header = browser_timing_header
-      assert_equal("<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header,
-                   "expected old RUM header but saw '#{header}'")
-    end
+  def assert_has_old_rum_header(header)
+    assert_equal("<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>",
+                 header,
+                 "expected old RUM header but saw '#{header}'")
   end
 
-  def test_browser_timing_header_with_js_errors_beta_and_loader
-    with_config(:js_errors_beta => true, :js_agent_loader => 'loader') do
-      header = browser_timing_header
-      assert_equal("\n<script type=\"text/javascript\">loader</script>", header,
-                   "expected new JS agent loader 'loader' but saw '#{header}'")
-    end
+  def assert_has_js_agent_loader(header)
+    assert_equal("\n<script type=\"text/javascript\">loader</script>",
+                 header,
+                 "expected new JS agent loader 'loader' but saw '#{header}'")
   end
 
   def test_browser_timing_footer
@@ -239,8 +238,8 @@ var e=document.createElement("script");'
     end
   end
 
-  def test_browser_timing_footer_with_js_errors_beta_and_loader
-    with_config(:js_errors_beta => true, :js_agent_loader => 'loader') do
+  def test_browser_timing_footer_with_loader
+    with_config(:js_agent_loader => 'loader') do
       setup_beacon_config
 
       footer = browser_timing_footer
