@@ -57,7 +57,8 @@ EOL
       :application_id => 5,
       :'rum.enabled' => true,
       :episodes_file => 'this_is_my_file',
-      :license_key => 'a' * 40
+      :license_key => 'a' * 40,
+      :js_agent_loader => 'loader',
     }
     NewRelic::Agent.config.apply_config(@config)
     NewRelic::Agent.manual_start

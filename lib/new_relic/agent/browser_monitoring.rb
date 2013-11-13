@@ -162,21 +162,20 @@ module NewRelic
       end
 
       def use_js_agent?
+        return has_loader?
+      end
+
+      def has_loader?
         return !Agent.config[:js_agent_loader].to_s.empty?
       end
 
-      # NOTE: This method may be overridden for internal prototyping, so should
-      # remain stable.
+      # NOTE: Internal prototyping often overrides this, so leave name stable!
       def header_js_string
-        if (use_js_agent?)
-          html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
-        else
-          NewRelic::Agent.instance.beacon_configuration.browser_timing_header
-        end
+        return "" unless has_loader?
+        html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
       end
 
-      # NOTE: This method may be overridden for internal prototyping, so should
-      # remain stable.
+      # NOTE: Internal prototyping often overrides this, so leave name stable!
       def footer_js_string(config)
         if (use_js_agent?)
           js_data = {

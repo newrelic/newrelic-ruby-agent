@@ -68,35 +68,20 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_header_with_no_beacon_configuration
     NewRelic::Agent.instance.stubs(:beacon_configuration).returns( nil)
-    header = browser_timing_header
-    assert_equal "", header
-  end
-
-  def test_browser_timing_header
-    header = browser_timing_header
-    assert_equal "<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
-  end
-
-  def test_browser_timing_header_with_rum_enabled_not_specified
-    NewRelic::Agent.instance.stubs(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new)
-    header = browser_timing_header
-    assert_equal "<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
+    assert_equal "", browser_timing_header
   end
 
   def test_browser_timing_header_with_rum_enabled_false
     with_config(:'rum.enabled' => false) do
-      NewRelic::Agent.instance.stubs(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new)
-      header = browser_timing_header
-      assert_equal "", header
+      NewRelic::Agent.instance.stubs(:beacon_configuration).returns(NewRelic::Agent::BeaconConfiguration.new)
+      assert_equal "", browser_timing_header
     end
   end
 
   def test_browser_timing_header_disable_all_tracing
-    header = nil
     NewRelic::Agent.disable_all_tracing do
-      header = browser_timing_header
+      assert_equal "", browser_timing_header
     end
-    assert_equal "", header
   end
 
   def test_browser_timing_header_disable_transaction_tracing
@@ -107,14 +92,19 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_header_without_loader
     with_config(:js_agent_load => '') do
-      # TODO: Once old RUM is ripped out, this should be nil!
-      assert_has_old_rum_header(browser_timing_header)
+      assert_equal "", browser_timing_header
     end
   end
 
   def test_browser_timing_header_with_loader
     with_config(:js_agent_loader => 'loader') do
       assert_has_js_agent_loader(browser_timing_header)
+    end
+  end
+
+  def test_browser_timing_header_without_rum_enabled
+    with_config(:js_agent_loader => 'loader', :'rum.enabled' => false) do
+      assert_equal "", browser_timing_header
     end
   end
 
