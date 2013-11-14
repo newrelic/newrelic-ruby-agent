@@ -285,22 +285,45 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
       NewRelic::Agent::TransactionState.get.request_token = '0123456789ABCDEF'
       NewRelic::Agent::TransactionState.get.request_guid = 'ABC'
 
-      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
-      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
-      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
-      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
+      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
+      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
+      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
+      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
 
-      result = js_data(NewRelic::Agent.instance.beacon_configuration)
+      data = js_data(NewRelic::Agent.instance.beacon_configuration)
       expected = {
-          "txnParam"=>"nrfj", "beacon"=>"beacon", "errorBeacon"=>nil,
-          "licenseKey"=>"browserKey", "applicationID"=>"5, 6",
-          "transactionName"=>"most recent transaction",
-          "queueTime"=>0, "applicationTime"=>10000,
-          "ttGuid"=>"ABC", "agentToken"=>"0123456789ABCDEF",
-          "user"=>"user", "account"=>"account", "product"=>"product",
-          "agent"=>nil }
+          :txnParam        => "nrfj",
+          :beacon          => "beacon",
+          :errorBeacon     => nil,
+          :licenseKey      => "browserKey",
+          :applicationID   => "5, 6",
+          :transactionName => "most recent transaction",
+          :queueTime       => 0,
+          :applicationTime => 10000,
+          :ttGuid          => "ABC",
+          :agentToken      => "0123456789ABCDEF",
+          :user            => "user",
+          :account         => "account",
+          :product         => "product",
+          :agent           => nil }
 
-      assert_equal(expected, result)
+      assert_equal(expected, data)
+
+      js = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
+      expected.each do |key, value|
+        assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)
+      end
+    end
+  end
+
+  def formatted_for_matching(value)
+    case value
+    when String
+      %Q["#{value}"]
+    when NilClass
+      "null"
+    else
+      value
     end
   end
 
