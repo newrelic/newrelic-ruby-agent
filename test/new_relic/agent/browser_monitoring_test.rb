@@ -40,6 +40,12 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     mocha_teardown
   end
 
+  def test_js_errors_beta_resolves_to_different_loader
+    with_config(:js_agent_loader => 'rum', :js_errors_beta => true) do
+      assert_equal "full", js_agent_loader
+    end
+  end
+
   def test_auto_instrumentation_config_defaults_to_enabled
     assert NewRelic::Agent.config[:'browser_monitoring.auto_instrument']
   end

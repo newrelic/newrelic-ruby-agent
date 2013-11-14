@@ -670,11 +670,17 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable debugging version of JavaScript agent loader for browser monitoring instrumentation.'
         },
-        :'js_agent_loader' => {
+        :js_agent_loader => {
           :default => '',
           :public => false,
           :type => String,
           :description => 'JavaScript agent loader content.'
+        },
+        :js_errors_beta => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Enable or disable beta JavaScript error reporting.'
         },
         :trusted_account_ids => {
           :default => [],

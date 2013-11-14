@@ -161,14 +161,22 @@ module NewRelic
         return NewRelic::Agent::TransactionState.get.request_token
       end
 
+      def js_agent_loader
+        # Temporary for js errors beta so clients can keep config when
+        # upgrading to later agent than 3.6.9
+        return "full" if Agent.config[:js_errors_beta]
+
+        Agent.config[:js_agent_loader].to_s
+      end
+
       def has_loader?
-        return !Agent.config[:js_agent_loader].to_s.empty?
+        !js_agent_loader.empty?
       end
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def header_js_string
         return "" unless has_loader?
-        html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
+        html_safe_if_needed("\n<script type=\"text/javascript\">#{js_agent_loader}</script>")
       end
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
