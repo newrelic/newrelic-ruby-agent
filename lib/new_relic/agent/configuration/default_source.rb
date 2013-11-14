@@ -99,7 +99,8 @@ module NewRelic
         end
 
         # This check supports the js_errors_beta key we've asked clients to
-        # set. Once JS errors are GA, this setting can be removed.
+        # set. Once JS errors are GA, browser_monitoring.loader can stop
+        # being dynamic.
         def self.browser_monitoring_loader
           Proc.new { self[:js_errors_beta] ? "full" : "rum"}
         end
