@@ -16,7 +16,7 @@ module NewRelic
       # Creates a new browser configuration data. Argument is a hash
       # of configuration values from the server
       def initialize
-        ::NewRelic::Agent.logger.debug("JS agent loader version: #{Agent.config[:js_agent_loader_version]}")
+        ::NewRelic::Agent.logger.debug("JS agent loader version: #{Agent.config[:'browser_monitoring.loader_version']}")
 
         if Agent.config[:'rum.jsonp']
           ::NewRelic::Agent.logger.debug("Real User Monitoring is using JSONP protocol")
