@@ -660,15 +660,15 @@ module NewRelic
         },
         :'browser_monitoring.loader' => {
           :default => 'rum',
-          :public => true,
+          :public => private,
           :type => String,
-          :description => 'Type of JavaScript agent loader to request from the collector.'
+          :description => 'Type of JavaScript agent loader to use for browser monitoring instrumentation'
         },
         :'browser_monitoring.debug' => {
           :default => false,
           :public => false,
           :type => Boolean,
-          :description => 'Enable or disable debugging version of JavaScript agent loader from the collector.'
+          :description => 'Enable or disable debugging version of JavaScript agent loader for browser monitoring instrumentation.'
         },
         :'js_agent_loader' => {
           :default => '',
