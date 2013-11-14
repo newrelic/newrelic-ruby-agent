@@ -91,7 +91,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   end
 
   def test_browser_timing_header_without_loader
-    with_config(:js_agent_load => '') do
+    with_config(:js_agent_loader => '') do
       assert_equal "", browser_timing_header
     end
   end
