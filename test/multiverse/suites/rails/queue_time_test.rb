@@ -22,7 +22,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
 
   include MultiverseHelpers
 
-  setup_and_teardown_agent(:beacon => "beacon", :browser_key => "key")
+  setup_and_teardown_agent(:beacon => "beacon", :browser_key => "key", :js_agent_loader => "loader")
 
   def test_should_track_queue_time_metric
     get_queued
@@ -43,7 +43,8 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   end
 
   def extract_queue_time_from_response
-    @response.body =~ /key\","",\".*\",(\d+.*),\d+,new Date/
+    @response.body =~ /\"queueTime\":(\d+.*)/
+    refute_nil $1
     $1.to_i
   end
 end
