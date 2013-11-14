@@ -664,12 +664,6 @@ module NewRelic
           :type => String,
           :description => 'Type of JavaScript agent loader to request from the collector.'
         },
-        :'browser_monitoring.version' => {
-          :default => '',
-          :public => true,
-          :type => String,
-          :description => 'Version of the JavaScript agent loader to retrieve from the collector.'
-        },
         :'browser_monitoring.debug' => {
           :default => false,
           :public => false,
