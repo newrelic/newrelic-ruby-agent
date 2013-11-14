@@ -161,13 +161,7 @@ module NewRelic
         return NewRelic::Agent::TransactionState.get.request_token
       end
 
-      FULL = "full".freeze
-
       def js_agent_loader
-        # Temporary for js errors beta so clients can keep config when
-        # upgrading to later agent than 3.6.9
-        return FULL if Agent.config[:js_errors_beta]
-
         Agent.config[:js_agent_loader].to_s
       end
 
