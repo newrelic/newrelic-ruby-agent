@@ -16,6 +16,9 @@ class RumAutoTest < MiniTest::Unit::TestCase
 
   JS_AGENT_LOADER = "JS_AGENT_LOADER"
 
+  LOADER_REGEX = "\n<script.*>JS_AGENT_LOADER</script>"
+  CONFIG_REGEX = "\n<script.*>.*NREUM.info=.*</script>"
+
   setup_and_teardown_agent(:browser_key => 'browserKey', :application_id => 'appId',
                             :beacon => 'beacon', :js_agent_loader => JS_AGENT_LOADER)
 
@@ -33,19 +36,19 @@ class RumAutoTest < MiniTest::Unit::TestCase
   def test_autoinstrumentation_with_basic_page_puts_header_at_beginning_of_head
     @inner_app.response = "<html><head><title>foo</title></head><body><p>Hello World</p></body></html>"
     get '/'
-    assert_response_includes("<html><head>\n<script.*>JS_AGENT_LOADER</script><title>foo</title></head>")
+    assert_response_includes(%Q[<html><head>#{CONFIG_REGEX}#{LOADER_REGEX}<title>foo</title></head>])
   end
 
   def test_autoinstrumentation_with_body_only_puts_header_before_body
     @inner_app.response = "<html><body><p>Hello World</p></body></html>"
     get '/'
-    assert_response_includes '<html>\n<script.*>JS_AGENT_LOADER</script><body>'
+    assert_response_includes %Q[<html>#{CONFIG_REGEX}#{LOADER_REGEX}<body>]
   end
 
   def test_autoinstrumentation_with_X_UA_Compatible_puts_header_after_meta_tag
     @inner_app.response = '<html><head><meta http-equiv="X-UA-Compatible"/></head><body><p>Hello World</p></body></html>'
     get '/'
-    assert_response_includes('<html><head><meta http-equiv="X-UA-Compatible"/>\n<script.*>JS_AGENT_LOADER</script></head><body>')
+    assert_response_includes(%Q[<html><head><meta http-equiv="X-UA-Compatible"/>#{CONFIG_REGEX}#{LOADER_REGEX}</head><body>])
   end
 
   def test_autoinstrumentation_doesnt_run_for_crazy_shit_like_this
