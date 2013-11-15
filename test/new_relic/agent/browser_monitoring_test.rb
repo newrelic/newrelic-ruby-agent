@@ -9,21 +9,16 @@ require 'base64'
 
 class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   include NewRelic::Agent::BrowserMonitoring
-  include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
   def setup
-    NewRelic::Agent.manual_start
     @config = {
       :beacon                 => 'beacon',
       :browser_key            => 'browserKey',
       :application_id         => '5, 6', # collector can return app multiple ids
       :'rum.enabled'          => true,
-      :episodes_file          => 'this_is_my_file',
-      :'rum.jsonp'            => true,
-      :license_key            => 'a' * 40
+      :license_key            => "\0"  # no-op obfuscation key
     }
     NewRelic::Agent.config.apply_config(@config)
-    @episodes_file = "this_is_my_file"
     NewRelic::Agent.instance.instance_eval do
       @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new
     end
@@ -135,7 +130,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_footer
     with_config(:license_key => 'a' * 13) do
-      NewRelic::Agent::TransactionState.reset
       browser_timing_header
       footer = browser_timing_footer
       assert_has_text(BEGINNING_OF_FOOTER, footer)
@@ -165,20 +159,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
   end
 
-  def setup_beacon_config
-    NewRelic::Agent::TransactionState.reset
-    browser_timing_header
-
-    license_bytes = [];
-    ("a" * 13).each_byte {|byte| license_bytes << byte}
-    config =  NewRelic::Agent::BeaconConfiguration.new
-    config.expects(:license_bytes).returns(license_bytes).at_least_once
-    NewRelic::Agent.instance.stubs(:beacon_configuration).returns(config).at_least_once
-  end
-
   def test_browser_timing_footer_with_rum_enabled_not_specified
-    setup_beacon_config
-
     footer = browser_timing_footer
     beginning_snippet = BEGINNING_OF_FOOTER
     assert_has_text(BEGINNING_OF_FOOTER, footer)
@@ -238,8 +219,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_footer_with_loader
     with_config(:js_agent_loader => 'loader') do
-      setup_beacon_config
-
       footer = browser_timing_footer
       beginning_snippet = "\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info={\""
       ending_snippet = '}</script>'
@@ -272,7 +251,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_monitoring_transaction_name_when_tt_disabled
     with_config(:'transaction_tracer.enabled' => false) do
-      perform_action_with_newrelic_trace(:name => 'disabled_transactions') do
+      in_transaction('disabled_transactions') do
         self.class.inspect
       end
 
@@ -285,37 +264,34 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     freeze_time
     in_transaction do
       txn = NewRelic::Agent::Transaction.current
-      user_attributes = {:user => "user", :account => "account", :product => "product"}
-      txn.stubs(:user_attributes).returns(user_attributes)
+      txn.user_attributes[:user] = "user"
+      txn.user_attributes[:account] = "account"
+      txn.user_attributes[:product] = "product"
+
       txn.stubs(:queue_time).returns(0)
       txn.stubs(:start_time).returns(Time.now - 10)
       txn.name = 'most recent transaction'
 
-      NewRelic::Agent::TransactionState.get.reset(nil)
       NewRelic::Agent::TransactionState.get.request_token = '0123456789ABCDEF'
       NewRelic::Agent::TransactionState.get.request_guid = 'ABC'
 
-      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
-      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
-      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
-      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
-
       data = js_data(NewRelic::Agent.instance.beacon_configuration)
       expected = {
-          "txnParam"        => "nrfj",
-          "beacon"          => "beacon",
-          "errorBeacon"     => nil,
-          "licenseKey"      => "browserKey",
-          "applicationID"   => "5, 6",
-          "transactionName" => "most recent transaction",
-          "queueTime"       => 0,
-          "applicationTime" => 10000,
-          "ttGuid"          => "ABC",
-          "agentToken"      => "0123456789ABCDEF",
-          "user"            => "user",
-          "account"         => "account",
-          "product"         => "product",
-          "agent"           => nil }
+        "beacon"          => "beacon",
+        "errorBeacon"     => nil,
+        "licenseKey"      => "browserKey",
+        "applicationID"   => "5, 6",
+        "transactionName" => pack("most recent transaction"),
+        "queueTime"       => 0,
+        "applicationTime" => 10000,
+        "ttGuid"          => "ABC",
+        "agentToken"      => "0123456789ABCDEF",
+        "user"            => pack("user"),
+        "account"         => pack("account"),
+        "product"         => pack("product"),
+        "agent"           => nil,
+        "extra"           => pack("")
+      }
 
       assert_equal(expected, data)
 
@@ -324,6 +300,10 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
         assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)
       end
     end
+  end
+
+  def pack(text)
+    [text].pack("m0")
   end
 
   def formatted_for_matching(value)

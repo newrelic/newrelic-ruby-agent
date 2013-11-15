@@ -9,21 +9,10 @@ module NewRelic
     # need to look it up or reconfigure it every request
     class BeaconConfiguration
 
-      # RUM footer command used for 'finish' - based on whether JSONP is
-      # being used. 'nrfj' for JSONP, otherwise 'nrf2'
-      attr_reader :finish_command
-
       # Creates a new browser configuration data. Argument is a hash
       # of configuration values from the server
       def initialize
         ::NewRelic::Agent.logger.debug("JS agent loader version: #{Agent.config[:'browser_monitoring.loader_version']}")
-
-        if Agent.config[:'rum.jsonp']
-          ::NewRelic::Agent.logger.debug("Real User Monitoring is using JSONP protocol")
-          @finish_command = 'nrfj'
-        else
-          @finish_command = 'nrf2'
-        end
 
         if !Agent.config[:'rum.enabled']
           ::NewRelic::Agent.logger.debug("Real User Monitoring is disabled for this agent. Edit your configuration to change this.")

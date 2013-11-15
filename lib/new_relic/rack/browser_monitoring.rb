@@ -53,7 +53,6 @@ module NewRelic::Rack
       response.each {|fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
       return nil unless source
 
-
       # Only scan the first 50k (roughly) then give up.
       beginning_of_source = source[0..50_000]
       # Don't scan for body close unless we find body start

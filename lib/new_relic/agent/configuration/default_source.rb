@@ -647,12 +647,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable real user monitoring.'
         },
-        :'rum.jsonp' => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enable or disable jsonp as the default means of communicating with the beacon.'
-        },
         :'rum.load_episodes_file' => {
           :default => true,
           :public => false,

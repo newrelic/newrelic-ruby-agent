@@ -181,7 +181,6 @@ module NewRelic
         html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{NewRelic.json_dump(data)}</script>")
       end
 
-      TXN_PARAM_KEY        = "txnParam".freeze
       BEACON_KEY           = "beacon".freeze
       ERROR_BEACON_KEY     = "errorBeacon".freeze
       LICENSE_KEY_KEY      = "licenseKey".freeze
@@ -195,11 +194,11 @@ module NewRelic
       ACCOUNT_KEY          = "account".freeze
       PRODUCT_KEY          = "product".freeze
       AGENT_KEY            = "agent".freeze
+      EXTRA_KEY            = "extra".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def js_data(config)
         {
-          TXN_PARAM_KEY        => config.finish_command,
           BEACON_KEY           => NewRelic::Agent.config[:beacon],
           ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],
           LICENSE_KEY_KEY      => NewRelic::Agent.config[:browser_key],
@@ -212,7 +211,8 @@ module NewRelic
           USER_KEY             => obfuscate(config, transaction_attribute(:user)),
           ACCOUNT_KEY          => obfuscate(config, transaction_attribute(:account)),
           PRODUCT_KEY          => obfuscate(config, transaction_attribute(:product)),
-          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file]
+          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
+          EXTRA_KEY            => obfuscate(config, "")
         }
       end
 
