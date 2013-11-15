@@ -13,6 +13,8 @@ module NewRelic
     #
     # @api public
     module BrowserMonitoring
+      include NewRelic::Coerce
+
       class DummyTransaction
 
         attr_reader :user_attributes, :custom_parameters
@@ -222,6 +224,7 @@ module NewRelic
       # Format the props using semicolon separated pairs separated by '=':
       #   product=pro;user=bill@microsoft.com
       def format_extra_data(extra_props)
+        extra_props = event_params(extra_props)
         extra_props.map do |k, v|
           key = escape_special_characters(k)
           value = format_value(v)
