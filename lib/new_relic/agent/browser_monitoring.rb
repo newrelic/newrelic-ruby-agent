@@ -15,14 +15,12 @@ module NewRelic
     module BrowserMonitoring
       class DummyTransaction
 
+        attr_reader :user_attributes, :custom_parameters
         attr_accessor :start_time
 
         def initialize
-          @attributes = {}
-        end
-
-        def user_attributes
-          @attributes
+          @user_attributes = {}
+          @custom_parameters = {}
         end
 
         def queue_time
@@ -212,8 +210,29 @@ module NewRelic
           ACCOUNT_KEY          => obfuscate(config, transaction_attribute(:account)),
           PRODUCT_KEY          => obfuscate(config, transaction_attribute(:product)),
           AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
-          EXTRA_KEY            => obfuscate(config, "")
+          EXTRA_KEY            => obfuscate(config, format_extra_data(extra_data))
         }
+      end
+
+      # NOTE: Internal prototyping may override this, so leave name stable!
+      def extra_data
+        current_transaction.custom_parameters.dup
+      end
+
+      # Format the props using semicolon separated pairs separated by '=':
+      #   product=pro;user=bill@microsoft.com
+      def format_extra_data(extra_props)
+        extra_props.map do |k, v|
+          # escape special characters
+          key = k.to_s.tr("\";=", "':-" )
+          # flag numeric values with `#' prefix
+          if v.is_a? Numeric
+            value = "##{v}"
+          else
+            value = v.to_s.tr("\";=", "':-")
+          end
+          "#{key}=#{value}"
+        end.join(';')
       end
 
       def html_safe_if_needed(string)

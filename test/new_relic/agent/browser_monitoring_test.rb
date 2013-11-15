@@ -260,6 +260,18 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
   end
 
+  def test_extra_data
+    in_transaction do
+      NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+      assert_equal({:boo => "hoo"}, extra_data)
+    end
+  end
+
+  def test_extra_data_outside_transaction
+    NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+    assert extra_data.empty?
+  end
+
   def test_footer_js_data
     freeze_time
     in_transaction do
@@ -299,6 +311,14 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
       expected.each do |key, value|
         assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)
       end
+    end
+  end
+
+  def test_js_data_picks_up_extras
+    in_transaction do
+      NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+      data = js_data(NewRelic::Agent.instance.beacon_configuration)
+      assert_equal pack("boo=hoo"), data["extra"]
     end
   end
 
