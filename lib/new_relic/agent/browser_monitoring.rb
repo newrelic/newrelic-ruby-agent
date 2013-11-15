@@ -161,55 +161,59 @@ module NewRelic
         return NewRelic::Agent::TransactionState.get.request_token
       end
 
-      def use_beta_js_agent?
-        return Agent.config[:js_errors_beta] && !Agent.config[:js_agent_loader].to_s.empty?
+      def js_agent_loader
+        Agent.config[:js_agent_loader].to_s
       end
 
-      # NOTE: This method may be overridden for internal prototyping, so should
-      # remain stable.
+      def has_loader?
+        !js_agent_loader.empty?
+      end
+
+      # NOTE: Internal prototyping often overrides this, so leave name stable!
       def header_js_string
-        if (use_beta_js_agent?)
-          html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
-        else
-          NewRelic::Agent.instance.beacon_configuration.browser_timing_header
-        end
+        return "" unless has_loader?
+        html_safe_if_needed("\n<script type=\"text/javascript\">#{js_agent_loader}</script>")
       end
 
-      # NOTE: This method may be overridden for internal prototyping, so should
-      # remain stable.
+      # NOTE: Internal prototyping often overrides this, so leave name stable!
       def footer_js_string(config)
-        if (use_beta_js_agent?)
-          js_data = {
-            'txnParam' => config.finish_command,
-            'beacon' => NewRelic::Agent.config[:beacon],
-            'errorBeacon' => NewRelic::Agent.config[:error_beacon],
-            'licenseKey' => NewRelic::Agent.config[:browser_key],
-            'applicationID' => NewRelic::Agent.config[:application_id],
-            'transactionName' => obfuscate(config, browser_monitoring_transaction_name),
-            'queueTime' => current_timings.queue_time_in_millis,
-            'applicationTime' => current_timings.app_time_in_millis,
-            'ttGuid' => tt_guid,
-            'agentToken' => tt_token,
-            'user' => obfuscate(config, transaction_attribute(:user)),
-            'account' => obfuscate(config, transaction_attribute(:account)),
-            'product' => obfuscate(config, transaction_attribute(:product)),
-            'agent' => NewRelic::Agent.config[:js_agent_file]
-          }
+        data = js_data(config)
+        html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{NewRelic.json_dump(data)}</script>")
+      end
 
-          html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{NewRelic.json_dump(js_data)}</script>")
-        else
-          obfuscated_transaction_name = obfuscate(config, browser_monitoring_transaction_name)
+      TXN_PARAM_KEY        = "txnParam".freeze
+      BEACON_KEY           = "beacon".freeze
+      ERROR_BEACON_KEY     = "errorBeacon".freeze
+      LICENSE_KEY_KEY      = "licenseKey".freeze
+      APPLICATIONID_KEY    = "applicationID".freeze
+      TRANSACTION_NAME_KEY = "transactionName".freeze
+      QUEUE_TIME_KEY       = "queueTime".freeze
+      APPLICATION_TIME_KEY = "applicationTime".freeze
+      TT_GUID_KEY          = "ttGuid".freeze
+      AGENT_TOKEN_KEY      = "agentToken".freeze
+      USER_KEY             = "user".freeze
+      ACCOUNT_KEY          = "account".freeze
+      PRODUCT_KEY          = "product".freeze
+      AGENT_KEY            = "agent".freeze
 
-          user = obfuscate(config, transaction_attribute(:user))
-          account = obfuscate(config, transaction_attribute(:account))
-          product = obfuscate(config, transaction_attribute(:product))
-
-          # This is slightly varied from other agents' RUM footer to ensure that
-          # NREUMQ is defined. Our experimental header placement has some holes
-          # where it could end up in a comment and not define NREUMQ as the footer
-          # assumes. We protect against that here.
-          html_safe_if_needed(%'<script type="text/javascript">if (typeof NREUMQ !== "undefined") { #{config.browser_timing_static_footer}NREUMQ.push(["#{config.finish_command}","#{Agent.config[:beacon]}","#{Agent.config[:browser_key]}","#{Agent.config[:application_id]}","#{obfuscated_transaction_name}",#{current_timings.queue_time_in_millis},#{current_timings.app_time_in_millis},new Date().getTime(),"#{tt_guid}","#{tt_token}","#{user}","#{account}","#{product}"]);}</script>')
-        end
+      # NOTE: Internal prototyping may override this, so leave name stable!
+      def js_data(config)
+        {
+          TXN_PARAM_KEY        => config.finish_command,
+          BEACON_KEY           => NewRelic::Agent.config[:beacon],
+          ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],
+          LICENSE_KEY_KEY      => NewRelic::Agent.config[:browser_key],
+          APPLICATIONID_KEY    => NewRelic::Agent.config[:application_id],
+          TRANSACTION_NAME_KEY => obfuscate(config, browser_monitoring_transaction_name),
+          QUEUE_TIME_KEY       => current_timings.queue_time_in_millis,
+          APPLICATION_TIME_KEY => current_timings.app_time_in_millis,
+          TT_GUID_KEY          => tt_guid,
+          AGENT_TOKEN_KEY      => tt_token,
+          USER_KEY             => obfuscate(config, transaction_attribute(:user)),
+          ACCOUNT_KEY          => obfuscate(config, transaction_attribute(:account)),
+          PRODUCT_KEY          => obfuscate(config, transaction_attribute(:product)),
+          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file]
+        }
       end
 
       def html_safe_if_needed(string)

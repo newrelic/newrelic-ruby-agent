@@ -40,6 +40,22 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     mocha_teardown
   end
 
+  def test_js_errors_beta_default_gets_default_loader
+    assert_equal "rum", NewRelic::Agent.config[:'browser_monitoring.loader']
+  end
+
+  def test_js_errors_beta_gets_full_loader
+    with_config(:js_errors_beta => true) do
+      assert_equal "full", NewRelic::Agent.config[:'browser_monitoring.loader']
+    end
+  end
+
+  def test_js_errors_beta_off_gets_default_loader
+    with_config(:js_errors_beta => false) do
+      assert_equal "rum", NewRelic::Agent.config[:'browser_monitoring.loader']
+    end
+  end
+
   def test_auto_instrumentation_config_defaults_to_enabled
     assert NewRelic::Agent.config[:'browser_monitoring.auto_instrument']
   end
@@ -68,80 +84,67 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_header_with_no_beacon_configuration
     NewRelic::Agent.instance.stubs(:beacon_configuration).returns( nil)
-    header = browser_timing_header
-    assert_equal "", header
-  end
-
-  def test_browser_timing_header
-    header = browser_timing_header
-    assert_equal "<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
-  end
-
-  def test_browser_timing_header_with_rum_enabled_not_specified
-    NewRelic::Agent.instance.stubs(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new)
-    header = browser_timing_header
-    assert_equal "<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
+    assert_equal "", browser_timing_header
   end
 
   def test_browser_timing_header_with_rum_enabled_false
     with_config(:'rum.enabled' => false) do
-      NewRelic::Agent.instance.stubs(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new)
-      header = browser_timing_header
-      assert_equal "", header
+      NewRelic::Agent.instance.stubs(:beacon_configuration).returns(NewRelic::Agent::BeaconConfiguration.new)
+      assert_equal "", browser_timing_header
     end
   end
 
   def test_browser_timing_header_disable_all_tracing
-    header = nil
     NewRelic::Agent.disable_all_tracing do
-      header = browser_timing_header
+      assert_equal "", browser_timing_header
     end
-    assert_equal "", header
   end
 
   def test_browser_timing_header_disable_transaction_tracing
-    header = nil
     NewRelic::Agent.disable_transaction_tracing do
-      header = browser_timing_header
+      assert_equal "", browser_timing_header
     end
-    assert_equal "", header
   end
 
-  def test_browser_timing_header_with_loader_without_js_errors_beta
+  def test_browser_timing_header_without_loader
+    with_config(:js_agent_loader => '') do
+      assert_equal "", browser_timing_header
+    end
+  end
+
+  def test_browser_timing_header_without_rum_enabled
+    with_config(:js_agent_loader => 'loader', :'rum.enabled' => false) do
+      assert_equal "", browser_timing_header
+    end
+  end
+
+  def test_browser_timing_header_with_loader
     with_config(:js_agent_loader => 'loader') do
-      header = browser_timing_header
-      assert_equal("<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header,
-                   "expected old RUM header but saw '#{header}'")
+      assert_has_js_agent_loader(browser_timing_header)
     end
   end
 
-  def test_browser_timing_header_with_js_errors_beta_without_loader
-    with_config(:js_errors_beta => true) do
-      header = browser_timing_header
-      assert_equal("<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header,
-                   "expected old RUM header but saw '#{header}'")
-    end
+  def assert_has_js_agent_loader(header)
+    assert_equal("\n<script type=\"text/javascript\">loader</script>",
+                 header,
+                 "expected new JS agent loader 'loader' but saw '#{header}'")
   end
 
-  def test_browser_timing_header_with_js_errors_beta_and_loader
-    with_config(:js_errors_beta => true, :js_agent_loader => 'loader') do
-      header = browser_timing_header
-      assert_equal("\n<script type=\"text/javascript\">loader</script>", header,
-                   "expected new JS agent loader 'loader' but saw '#{header}'")
-    end
-  end
+  BEGINNING_OF_FOOTER = '<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info='
+  END_OF_FOOTER = '}</script>'
 
   def test_browser_timing_footer
     with_config(:license_key => 'a' * 13) do
       NewRelic::Agent::TransactionState.reset
       browser_timing_header
       footer = browser_timing_footer
-      snippet = '<script type="text/javascript">if (typeof NREUMQ !== "undefined") { if (!NREUMQ.f) { NREUMQ.f=function() {
-NREUMQ.push(["load",new Date().getTime()]);
-var e=document.createElement("script");'
-      assert(footer.include?(snippet),
-             "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
+      assert_has_text(BEGINNING_OF_FOOTER, footer)
+      assert_has_text(END_OF_FOOTER, footer)
     end
+  end
+
+  def assert_has_text(snippet, footer)
+    assert(footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
   end
 
   def test_browser_timing_footer_with_no_browser_key_rum_enabled
@@ -156,8 +159,7 @@ var e=document.createElement("script");'
   def test_browser_timing_footer_with_no_browser_key_rum_disabled
     with_config(:'rum.enabled' => false) do
       browser_timing_header
-      NewRelic::Agent.instance.stubs(:beacon_configuration) \
-        .returns(NewRelic::Agent::BeaconConfiguration.new)
+      NewRelic::Agent.instance.stubs(:beacon_configuration).returns(NewRelic::Agent::BeaconConfiguration.new)
       footer = browser_timing_footer
       assert_equal "", footer
     end
@@ -178,14 +180,9 @@ var e=document.createElement("script");'
     setup_beacon_config
 
     footer = browser_timing_footer
-    beginning_snippet = '<script type="text/javascript">if (typeof NREUMQ !== "undefined") { if (!NREUMQ.f) { NREUMQ.f=function() {
-NREUMQ.push(["load",new Date().getTime()]);
-var e=document.createElement("script");'
-    ending_snippet = "]);}</script>"
-    assert(footer.include?(beginning_snippet),
-           "expected footer to include beginning snippet: #{beginning_snippet}, but was #{footer}")
-    assert(footer.include?(ending_snippet),
-           "expected footer to include ending snippet: #{ending_snippet}, but was #{footer}")
+    beginning_snippet = BEGINNING_OF_FOOTER
+    assert_has_text(BEGINNING_OF_FOOTER, footer)
+    assert_has_text(END_OF_FOOTER, footer)
   end
 
   def test_browser_timing_footer_with_no_beacon_configuration
@@ -239,8 +236,8 @@ var e=document.createElement("script");'
     end
   end
 
-  def test_browser_timing_footer_with_js_errors_beta_and_loader
-    with_config(:js_errors_beta => true, :js_agent_loader => 'loader') do
+  def test_browser_timing_footer_with_loader
+    with_config(:js_agent_loader => 'loader') do
       setup_beacon_config
 
       footer = browser_timing_footer
@@ -284,7 +281,7 @@ var e=document.createElement("script");'
     end
   end
 
-  def test_footer_js_string_basic
+  def test_footer_js_data
     freeze_time
     in_transaction do
       txn = NewRelic::Agent::Transaction.current
@@ -298,13 +295,45 @@ var e=document.createElement("script");'
       NewRelic::Agent::TransactionState.get.request_token = '0123456789ABCDEF'
       NewRelic::Agent::TransactionState.get.request_guid = 'ABC'
 
-      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
-      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
-      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
-      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
+      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
+      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
+      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
+      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
 
-      value = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
-      assert_equal(%'<script type="text/javascript">if (typeof NREUMQ !== "undefined") { if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push(["load",new Date().getTime()]);\nvar e=document.createElement("script");\ne.type="text/javascript";\ne.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +\n  "this_is_my_file";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push(["nrfj","beacon","browserKey","5, 6","most recent transaction",0,10000,new Date().getTime(),"ABC","0123456789ABCDEF","user","account","product"]);}</script>', value, "should return the javascript given some default values")
+      data = js_data(NewRelic::Agent.instance.beacon_configuration)
+      expected = {
+          "txnParam"        => "nrfj",
+          "beacon"          => "beacon",
+          "errorBeacon"     => nil,
+          "licenseKey"      => "browserKey",
+          "applicationID"   => "5, 6",
+          "transactionName" => "most recent transaction",
+          "queueTime"       => 0,
+          "applicationTime" => 10000,
+          "ttGuid"          => "ABC",
+          "agentToken"      => "0123456789ABCDEF",
+          "user"            => "user",
+          "account"         => "account",
+          "product"         => "product",
+          "agent"           => nil }
+
+      assert_equal(expected, data)
+
+      js = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
+      expected.each do |key, value|
+        assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)
+      end
+    end
+  end
+
+  def formatted_for_matching(value)
+    case value
+    when String
+      %Q["#{value}"]
+    when NilClass
+      "null"
+    else
+      value
     end
   end
 

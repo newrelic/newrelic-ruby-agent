@@ -98,6 +98,13 @@ module NewRelic
           Proc.new { self[:'rum.enabled'] }
         end
 
+        # This check supports the js_errors_beta key we've asked clients to
+        # set. Once JS errors are GA, browser_monitoring.loader can stop
+        # being dynamic.
+        def self.browser_monitoring_loader
+          Proc.new { self[:js_errors_beta] ? "full" : "rum"}
+        end
+
         def self.slow_sql_record_sql
           Proc.new { self[:'transaction_tracer.record_sql'] }
         end
@@ -658,19 +665,25 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable automatic insertion of the real user monitoring header and footer into outgoing responses.'
         },
-        :'js_agent_loader_version' => {
-          :default => '',
-          :public => false,
+        :'browser_monitoring.loader' => {
+          :default => DefaultSource.browser_monitoring_loader,
+          :public => private,
           :type => String,
-          :description => 'Version of the JavaScript agent loader retrieved by the collector. This is only informational, setting the value does nothing.'
+          :description => 'Type of JavaScript agent loader to use for browser monitoring instrumentation'
         },
-        :'js_agent_loader' => {
+        :'browser_monitoring.debug' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Enable or disable debugging version of JavaScript agent loader for browser monitoring instrumentation.'
+        },
+        :js_agent_loader => {
           :default => '',
           :public => false,
           :type => String,
           :description => 'JavaScript agent loader content.'
         },
-        :'js_errors_beta' => {
+        :js_errors_beta => {
           :default => false,
           :public => false,
           :type => Boolean,
