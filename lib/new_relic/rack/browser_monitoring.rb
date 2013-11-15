@@ -49,8 +49,8 @@ module NewRelic::Rack
     X_UA_COMPATIBLE_RE = /<\s*meta[^>]+http-equiv=['"]x-ua-compatible['"][^>]*>/im.freeze
 
     def autoinstrument_source(response, headers)
-      source = nil
-      response.each {|fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
+      source = gather_source(response)
+      close_old_response(response)
       return nil unless source
 
       # Only scan the first 50k (roughly) then give up.
@@ -78,6 +78,20 @@ module NewRelic::Rack
       end
 
       source
+    end
+
+    def gather_source(response)
+      source = nil
+      response.each {|fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
+      source
+    end
+
+    # Per "The Response > The Body" section of Rack spec, we should close
+    # if our response is able. http://rack.rubyforge.org/doc/SPEC.html
+    def close_old_response(response)
+      if response.respond_to?(:close)
+        response.close
+      end
     end
 
     def find_body_start(beginning_of_source)
