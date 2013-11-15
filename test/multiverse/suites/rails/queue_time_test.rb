@@ -44,7 +44,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
 
   def extract_queue_time_from_response
     @response.body =~ /\"queueTime\":(\d+.*)/
-    refute_nil $1
+    refute_nil $1, "Should have found queue time in #{@response.body.inspect}"
     $1.to_i
   end
 end

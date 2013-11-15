@@ -302,20 +302,20 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
       data = js_data(NewRelic::Agent.instance.beacon_configuration)
       expected = {
-          :txnParam        => "nrfj",
-          :beacon          => "beacon",
-          :errorBeacon     => nil,
-          :licenseKey      => "browserKey",
-          :applicationID   => "5, 6",
-          :transactionName => "most recent transaction",
-          :queueTime       => 0,
-          :applicationTime => 10000,
-          :ttGuid          => "ABC",
-          :agentToken      => "0123456789ABCDEF",
-          :user            => "user",
-          :account         => "account",
-          :product         => "product",
-          :agent           => nil }
+          "txnParam"        => "nrfj",
+          "beacon"          => "beacon",
+          "errorBeacon"     => nil,
+          "licenseKey"      => "browserKey",
+          "applicationID"   => "5, 6",
+          "transactionName" => "most recent transaction",
+          "queueTime"       => 0,
+          "applicationTime" => 10000,
+          "ttGuid"          => "ABC",
+          "agentToken"      => "0123456789ABCDEF",
+          "user"            => "user",
+          "account"         => "account",
+          "product"         => "product",
+          "agent"           => nil }
 
       assert_equal(expected, data)
 
