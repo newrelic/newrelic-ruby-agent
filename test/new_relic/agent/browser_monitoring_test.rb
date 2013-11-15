@@ -272,6 +272,22 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert extra_data.empty?
   end
 
+
+  def test_format
+    assert_formatted("a=1;b=#2", {:a => "1", "b" => 2})
+  end
+
+  def test_format_extra_data
+    assert_formatted("semi:colon=gets:escaped", {"semi;colon" => "gets;escaped"})
+    assert_formatted("equal-key=equal-value", {"equal=key" => "equal=value"})
+    assert_formatted(%Q['quoted'='marks'], {'"quoted"' => '"marks"'})
+  end
+
+  def assert_formatted(expected, data)
+    result = format_extra_data(data)
+    assert_equal expected, result
+  end
+
   def test_footer_js_data
     freeze_time
     in_transaction do

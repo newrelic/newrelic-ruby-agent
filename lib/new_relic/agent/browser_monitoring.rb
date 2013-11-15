@@ -223,16 +223,23 @@ module NewRelic
       #   product=pro;user=bill@microsoft.com
       def format_extra_data(extra_props)
         extra_props.map do |k, v|
-          # escape special characters
-          key = k.to_s.tr("\";=", "':-" )
-          # flag numeric values with `#' prefix
-          if v.is_a? Numeric
-            value = "##{v}"
-          else
-            value = v.to_s.tr("\";=", "':-")
-          end
+          key = escape_special_characters(k)
+          value = format_value(v)
           "#{key}=#{value}"
         end.join(';')
+      end
+
+      def escape_special_characters(string)
+        string.to_s.tr("\";=", "':-" )
+      end
+
+      def format_value(v)
+        # flag numeric values with `#' prefix
+        if v.is_a? Numeric
+          value = "##{v}"
+        else
+          value = escape_special_characters(v)
+        end
       end
 
       def html_safe_if_needed(string)
