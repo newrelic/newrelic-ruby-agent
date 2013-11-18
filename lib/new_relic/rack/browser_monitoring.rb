@@ -57,15 +57,15 @@ module NewRelic::Rack
       beginning_of_source = source[0..50_000]
 
       if body_start = find_body_start(beginning_of_source)
-        head_pos = find_x_ua_compatible_position(beginning_of_source) ||
-                    find_end_of_head_open(beginning_of_source) ||
-                    body_start
+        insertion_index = find_x_ua_compatible_position(beginning_of_source) ||
+                          find_end_of_head_open(beginning_of_source) ||
+                          body_start
 
-        if head_pos
-          source = source[0...head_pos] <<
+        if insertion_index
+          source = source[0...insertion_index] <<
             NewRelic::Agent.browser_timing_footer <<   # sic, footer is now considered "config". Rename soon?
             NewRelic::Agent.browser_timing_header <<
-            source[head_pos..-1]
+            source[insertion_index..-1]
         else
           NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Could not properly determine location to inject script."
         end
