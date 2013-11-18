@@ -296,16 +296,15 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     freeze_time
     in_transaction do
       txn = NewRelic::Agent::Transaction.current
-      txn.user_attributes[:user] = "user"
-      txn.user_attributes[:account] = "account"
-      txn.user_attributes[:product] = "product"
+      txn.user_attributes[:user] = "not explicitly handled anymore"
 
       txn.stubs(:queue_time).returns(0)
       txn.stubs(:start_time).returns(Time.now - 10)
       txn.name = 'most recent transaction'
 
-      NewRelic::Agent::TransactionState.get.request_token = '0123456789ABCDEF'
-      NewRelic::Agent::TransactionState.get.request_guid = 'ABC'
+      state = NewRelic::Agent::TransactionState.get
+      state.request_token = '0123456789ABCDEF'
+      state.request_guid = 'ABC'
 
       data = js_data(NewRelic::Agent.instance.beacon_configuration)
       expected = {
@@ -318,9 +317,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
         "applicationTime" => 10000,
         "ttGuid"          => "ABC",
         "agentToken"      => "0123456789ABCDEF",
-        "user"            => pack("user"),
-        "account"         => pack("account"),
-        "product"         => pack("product"),
         "agent"           => nil,
         "extra"           => pack("")
       }

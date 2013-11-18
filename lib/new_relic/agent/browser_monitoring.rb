@@ -17,11 +17,10 @@ module NewRelic
 
       class DummyTransaction
 
-        attr_reader :user_attributes, :custom_parameters
+        attr_reader :custom_parameters
         attr_accessor :start_time
 
         def initialize
-          @user_attributes = {}
           @custom_parameters = {}
         end
 
@@ -142,10 +141,6 @@ module NewRelic
         end
       end
 
-      def transaction_attribute(key)
-        current_transaction.user_attributes[key] || ""
-      end
-
       def tt_guid
         state = NewRelic::Agent::TransactionState.get
         return state.request_guid if include_guid?(state)
@@ -190,9 +185,6 @@ module NewRelic
       APPLICATION_TIME_KEY = "applicationTime".freeze
       TT_GUID_KEY          = "ttGuid".freeze
       AGENT_TOKEN_KEY      = "agentToken".freeze
-      USER_KEY             = "user".freeze
-      ACCOUNT_KEY          = "account".freeze
-      PRODUCT_KEY          = "product".freeze
       AGENT_KEY            = "agent".freeze
       EXTRA_KEY            = "extra".freeze
 
@@ -208,9 +200,6 @@ module NewRelic
           APPLICATION_TIME_KEY => current_timings.app_time_in_millis,
           TT_GUID_KEY          => tt_guid,
           AGENT_TOKEN_KEY      => tt_token,
-          USER_KEY             => obfuscate(config, transaction_attribute(:user)),
-          ACCOUNT_KEY          => obfuscate(config, transaction_attribute(:account)),
-          PRODUCT_KEY          => obfuscate(config, transaction_attribute(:product)),
           AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
           EXTRA_KEY            => obfuscate(config, format_extra_data(extra_data))
         }
