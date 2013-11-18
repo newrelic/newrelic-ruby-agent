@@ -9,21 +9,16 @@ require 'base64'
 
 class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   include NewRelic::Agent::BrowserMonitoring
-  include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
   def setup
-    NewRelic::Agent.manual_start
     @config = {
       :beacon                 => 'beacon',
       :browser_key            => 'browserKey',
       :application_id         => '5, 6', # collector can return app multiple ids
       :'rum.enabled'          => true,
-      :episodes_file          => 'this_is_my_file',
-      :'rum.jsonp'            => true,
-      :license_key            => 'a' * 40
+      :license_key            => "\0"  # no-op obfuscation key
     }
     NewRelic::Agent.config.apply_config(@config)
-    @episodes_file = "this_is_my_file"
     NewRelic::Agent.instance.instance_eval do
       @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new
     end
@@ -135,7 +130,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_footer
     with_config(:license_key => 'a' * 13) do
-      NewRelic::Agent::TransactionState.reset
       browser_timing_header
       footer = browser_timing_footer
       assert_has_text(BEGINNING_OF_FOOTER, footer)
@@ -165,20 +159,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
   end
 
-  def setup_beacon_config
-    NewRelic::Agent::TransactionState.reset
-    browser_timing_header
-
-    license_bytes = [];
-    ("a" * 13).each_byte {|byte| license_bytes << byte}
-    config =  NewRelic::Agent::BeaconConfiguration.new
-    config.expects(:license_bytes).returns(license_bytes).at_least_once
-    NewRelic::Agent.instance.stubs(:beacon_configuration).returns(config).at_least_once
-  end
-
   def test_browser_timing_footer_with_rum_enabled_not_specified
-    setup_beacon_config
-
     footer = browser_timing_footer
     beginning_snippet = BEGINNING_OF_FOOTER
     assert_has_text(BEGINNING_OF_FOOTER, footer)
@@ -238,8 +219,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_footer_with_loader
     with_config(:js_agent_loader => 'loader') do
-      setup_beacon_config
-
       footer = browser_timing_footer
       beginning_snippet = "\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info={\""
       ending_snippet = '}</script>'
@@ -272,7 +251,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_monitoring_transaction_name_when_tt_disabled
     with_config(:'transaction_tracer.enabled' => false) do
-      perform_action_with_newrelic_trace(:name => 'disabled_transactions') do
+      in_transaction('disabled_transactions') do
         self.class.inspect
       end
 
@@ -281,49 +260,142 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
   end
 
+  def test_extra_data
+    in_transaction do
+      with_config(ANALYTICS_TXN_IN_PAGE => true) do
+        NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+        assert_equal({:boo => "hoo"}, extra_data)
+      end
+    end
+  end
+
+  def test_extra_data_outside_transaction
+    NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+    assert extra_data.empty?
+  end
+
+  def test_format
+    assert_formatted("a=1;b=#2", {:a => "1", "b" => 2})
+  end
+
+  def test_format_extra_data_escaping
+    assert_formatted("semi:colon=gets:escaped", {"semi;colon" => "gets;escaped"})
+    assert_formatted("equal-key=equal-value", {"equal=key" => "equal=value"})
+    assert_formatted(%Q['quoted'='marks'], {'"quoted"' => '"marks"'})
+  end
+
+  def test_format_extra_data_disallowed_types
+    assert_formatted("", {"nested" => { "hashes?" => "nope" }})
+    assert_formatted("", {"lists" => ["are", "they", "allowed?", "nope"]})
+  end
+
+  def assert_formatted(expected, data)
+    result = format_extra_data(data)
+    assert_equal expected, result
+  end
+
   def test_footer_js_data
     freeze_time
     in_transaction do
-      txn = NewRelic::Agent::Transaction.current
-      user_attributes = {:user => "user", :account => "account", :product => "product"}
-      txn.stubs(:user_attributes).returns(user_attributes)
-      txn.stubs(:queue_time).returns(0)
-      txn.stubs(:start_time).returns(Time.now - 10)
-      txn.name = 'most recent transaction'
+      with_config(ANALYTICS_TXN_IN_PAGE => true) do
+        NewRelic::Agent.set_user_attributes(:user => "user", :foo => "bazzle")
 
-      NewRelic::Agent::TransactionState.get.reset(nil)
-      NewRelic::Agent::TransactionState.get.request_token = '0123456789ABCDEF'
-      NewRelic::Agent::TransactionState.get.request_guid = 'ABC'
+        txn = NewRelic::Agent::Transaction.current
+        txn.stubs(:queue_time).returns(0)
+        txn.stubs(:start_time).returns(Time.now - 10)
+        txn.name = 'most recent transaction'
 
-      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
-      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
-      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
-      self.stubs(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
+        state = NewRelic::Agent::TransactionState.get
+        state.request_token = '0123456789ABCDEF'
+        state.request_guid = 'ABC'
 
-      data = js_data(NewRelic::Agent.instance.beacon_configuration)
-      expected = {
-          "txnParam"        => "nrfj",
+        data = js_data(NewRelic::Agent.instance.beacon_configuration)
+        expected = {
           "beacon"          => "beacon",
           "errorBeacon"     => nil,
           "licenseKey"      => "browserKey",
           "applicationID"   => "5, 6",
-          "transactionName" => "most recent transaction",
+          "transactionName" => pack("most recent transaction"),
           "queueTime"       => 0,
           "applicationTime" => 10000,
           "ttGuid"          => "ABC",
           "agentToken"      => "0123456789ABCDEF",
-          "user"            => "user",
-          "account"         => "account",
-          "product"         => "product",
-          "agent"           => nil }
+          "agent"           => nil,
+          "extra"           => pack("user=user;foo=bazzle")
+        }
 
-      assert_equal(expected, data)
+        assert_equal(expected, data)
 
-      js = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
-      expected.each do |key, value|
-        assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)
+        js = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
+        expected.each do |key, value|
+          assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)
+        end
       end
     end
+  end
+
+  ANALYTICS_ENABLED = :'analytics_events.enabled'
+  ANALYTICS_TXN_ENABLED = :'analytics_events.transactions.enabled'
+  ANALYTICS_TXN_IN_PAGE = :'analytics_events.transactions.include_custom_params_in_page_views'
+
+  def test_js_data_doesnt_pick_up_extras_by_default
+    in_transaction do
+      NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+      assert_extra_data_is("")
+    end
+  end
+
+  def test_js_data_picks_up_extras_when_configured
+    in_transaction do
+      with_config(ANALYTICS_ENABLED => true,
+                  ANALYTICS_TXN_ENABLED => true,
+                  ANALYTICS_TXN_IN_PAGE => true) do
+        NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+        assert_extra_data_is("boo=hoo")
+      end
+    end
+  end
+
+  def test_js_data_ignores_extras_if_no_analytics
+    in_transaction do
+      with_config(ANALYTICS_ENABLED => false,
+                  ANALYTICS_TXN_ENABLED => true,
+                  ANALYTICS_TXN_IN_PAGE => true) do
+        NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+        assert_extra_data_is("")
+      end
+    end
+  end
+
+  def test_js_data_ignores_extras_if_no_transaction_analytics
+    in_transaction do
+      with_config(ANALYTICS_ENABLED => true,
+                  ANALYTICS_TXN_ENABLED => false,
+                  ANALYTICS_TXN_IN_PAGE => true) do
+        NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+        assert_extra_data_is("")
+      end
+    end
+  end
+
+  def test_js_data_ignores_extras_if_not_allowed_in_page
+    in_transaction do
+      with_config(ANALYTICS_ENABLED => true,
+                  ANALYTICS_TXN_ENABLED => true,
+                  ANALYTICS_TXN_IN_PAGE => false) do
+        NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+        assert_extra_data_is("")
+      end
+    end
+  end
+
+  def assert_extra_data_is(expected)
+    data = js_data(NewRelic::Agent.instance.beacon_configuration)
+    assert_equal pack(expected), data["extra"]
+  end
+
+  def pack(text)
+    [text].pack("m0")
   end
 
   def formatted_for_matching(value)

@@ -647,12 +647,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable real user monitoring.'
         },
-        :'rum.jsonp' => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enable or disable jsonp as the default means of communicating with the beacon.'
-        },
         :'rum.load_episodes_file' => {
           :default => true,
           :public => false,
@@ -766,6 +760,12 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Include TT custom params in analytics event data.'
+        },
+        :'analytics_events.transactions.include_custom_params_in_page_views' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Include TT custom params in real user monitoring script in outgoing responses.'
         },
       }.freeze
 

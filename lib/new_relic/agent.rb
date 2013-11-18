@@ -451,8 +451,11 @@ module NewRelic
       nil # don't return a noticed error datastructure. it can only hurt.
     end
 
-    # Add parameters to the current transaction trace (and traced error if any)
-    # on the call stack.
+    # Add parameters to any Transaction Trace, Error or Analytics Events that
+    # are recorded during the current transaction.
+    #
+    # If configured to allow it, these custom parameters will also be present
+    # in the RUM script injected into the page.
     #
     # @api public
     #
@@ -464,20 +467,11 @@ module NewRelic
       end
     end
 
-    # Set attributes about the user making this request. These attributes will be automatically
-    # appended to any Transaction Trace or Error that is collected. These attributes
-    # will also be collected for RUM requests.
-    #
-    # Attributes (hash)
-    # * <tt>:user</tt> => user name or ID
-    # * <tt>:account</tt> => account name or ID
-    # * <tt>:product</tt> => product name or level
-    #
-    # @api public
-    #
-    def set_user_attributes(attributes)
-      Transaction.set_user_attributes(attributes)
-    end
+    # @deprecated
+    alias add_request_parameters add_custom_parameters
+
+    # @deprecated
+    alias set_user_attributes add_custom_parameters
 
     # Set the name of the current running transaction.  The agent will
     # apply a reasonable default based on framework routing, but in
@@ -521,10 +515,6 @@ module NewRelic
         Transaction.current.name.sub(Regexp.new("\\A#{Regexp.escape(namer.category_name)}/"), '')
       end
     end
-
-    # The #add_request_parameters method is aliased to #add_custom_parameters
-    # and is now deprecated.
-    alias add_request_parameters add_custom_parameters #:nodoc:
 
     # Yield to a block that is run with a database metric name
     # context.  This means the Database instrumentation will use this

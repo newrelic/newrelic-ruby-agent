@@ -13,16 +13,15 @@ module NewRelic
     #
     # @api public
     module BrowserMonitoring
+      include NewRelic::Coerce
+
       class DummyTransaction
 
+        attr_reader :custom_parameters
         attr_accessor :start_time
 
         def initialize
-          @attributes = {}
-        end
-
-        def user_attributes
-          @attributes
+          @custom_parameters = {}
         end
 
         def queue_time
@@ -142,10 +141,6 @@ module NewRelic
         end
       end
 
-      def transaction_attribute(key)
-        current_transaction.user_attributes[key] || ""
-      end
-
       def tt_guid
         state = NewRelic::Agent::TransactionState.get
         return state.request_guid if include_guid?(state)
@@ -181,7 +176,6 @@ module NewRelic
         html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{NewRelic.json_dump(data)}</script>")
       end
 
-      TXN_PARAM_KEY        = "txnParam".freeze
       BEACON_KEY           = "beacon".freeze
       ERROR_BEACON_KEY     = "errorBeacon".freeze
       LICENSE_KEY_KEY      = "licenseKey".freeze
@@ -191,15 +185,12 @@ module NewRelic
       APPLICATION_TIME_KEY = "applicationTime".freeze
       TT_GUID_KEY          = "ttGuid".freeze
       AGENT_TOKEN_KEY      = "agentToken".freeze
-      USER_KEY             = "user".freeze
-      ACCOUNT_KEY          = "account".freeze
-      PRODUCT_KEY          = "product".freeze
       AGENT_KEY            = "agent".freeze
+      EXTRA_KEY            = "extra".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def js_data(config)
         {
-          TXN_PARAM_KEY        => config.finish_command,
           BEACON_KEY           => NewRelic::Agent.config[:beacon],
           ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],
           LICENSE_KEY_KEY      => NewRelic::Agent.config[:browser_key],
@@ -209,11 +200,49 @@ module NewRelic
           APPLICATION_TIME_KEY => current_timings.app_time_in_millis,
           TT_GUID_KEY          => tt_guid,
           AGENT_TOKEN_KEY      => tt_token,
-          USER_KEY             => obfuscate(config, transaction_attribute(:user)),
-          ACCOUNT_KEY          => obfuscate(config, transaction_attribute(:account)),
-          PRODUCT_KEY          => obfuscate(config, transaction_attribute(:product)),
-          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file]
+          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
+          EXTRA_KEY            => obfuscate(config, format_extra_data(extra_data))
         }
+      end
+
+      ANALYTICS_ENABLED = :'analytics_events.enabled'
+      ANALYTICS_TXN_ENABLED = :'analytics_events.transactions.enabled'
+      ANALYTICS_TXN_IN_PAGE = :'analytics_events.transactions.include_custom_params_in_page_views'
+
+      # NOTE: Internal prototyping may override this, so leave name stable!
+      def extra_data
+        return {} unless include_custom_parameters_in_extra?
+        current_transaction.custom_parameters.dup
+      end
+
+      def include_custom_parameters_in_extra?
+        NewRelic::Agent.config[ANALYTICS_ENABLED] &&
+          NewRelic::Agent.config[ANALYTICS_TXN_ENABLED] &&
+          NewRelic::Agent.config[ANALYTICS_TXN_IN_PAGE]
+      end
+
+      # Format the props using semicolon separated pairs separated by '=':
+      #   product=pro;user=bill@microsoft.com
+      def format_extra_data(extra_props)
+        extra_props = event_params(extra_props)
+        extra_props.map do |k, v|
+          key = escape_special_characters(k)
+          value = format_value(v)
+          "#{key}=#{value}"
+        end.join(';')
+      end
+
+      def escape_special_characters(string)
+        string.to_s.tr("\";=", "':-" )
+      end
+
+      def format_value(v)
+        # flag numeric values with `#' prefix
+        if v.is_a? Numeric
+          value = "##{v}"
+        else
+          value = escape_special_characters(v)
+        end
       end
 
       def html_safe_if_needed(string)
