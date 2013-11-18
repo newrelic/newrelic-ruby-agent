@@ -22,8 +22,15 @@ class BrowserMonitoringTest < Test::Unit::TestCase
   include Rack::Test::Methods
 
   class TestApp
+    @@next_response = nil
+    @@doc = nil
+
     def self.doc=(other)
       @@doc = other
+    end
+
+    def self.next_response=(next_response)
+      @@next_response = next_response
     end
 
     def call(env)
@@ -39,7 +46,10 @@ class BrowserMonitoringTest < Test::Unit::TestCase
   <body>im some body text</body>
 </html>
 EOL
-      [200, {'Content-Type' => 'text/html'}, Rack::Response.new(@@doc)]
+      response = @@next_response || Rack::Response.new(@@doc)
+      @@next_response = nil
+
+      [200, {'Content-Type' => 'text/html'}, response]
     end
     include NewRelic::Agent::Instrumentation::Rack
   end
@@ -61,10 +71,9 @@ EOL
       :js_agent_loader => 'loader',
     }
     NewRelic::Agent.config.apply_config(@config)
-    NewRelic::Agent.manual_start
-    config = NewRelic::Agent::BeaconConfiguration.new
-    NewRelic::Agent.instance.stubs(:beacon_configuration).returns(config)
-    NewRelic::Agent.stubs(:is_transaction_traced?).returns(true)
+
+    beacon_config = NewRelic::Agent::BeaconConfiguration.new
+    NewRelic::Agent.instance.stubs(:beacon_configuration).returns(beacon_config)
   end
 
   def teardown
@@ -137,6 +146,28 @@ EOL
 
       assert_equal(source_html, last_response.body)
     end
+  end
+
+  def test_should_close_response
+    response = Rack::Response.new("<html/>")
+    response.expects(:close)
+    TestApp.next_response = response
+
+    get '/'
+
+    assert last_response.ok?
+  end
+
+  def test_should_not_close_if_not_responded_to
+    response = Rack::Response.new("<html/>")
+    response.stubs(:respond_to?).with(:close).returns(false)
+    response.expects(:close).never
+
+    TestApp.next_response = response
+
+    get '/'
+
+    assert last_response.ok?
   end
 
   def test_should_not_throw_exception_on_empty_reponse

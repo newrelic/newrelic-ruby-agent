@@ -49,52 +49,28 @@ module NewRelic::Rack
     X_UA_COMPATIBLE_RE = /<\s*meta[^>]+http-equiv=['"]x-ua-compatible['"][^>]*>/im.freeze
 
     def autoinstrument_source(response, headers)
-      source = nil
-      response.each {|fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
+      source = gather_source(response)
+      close_old_response(response)
       return nil unless source
-
 
       # Only scan the first 50k (roughly) then give up.
       beginning_of_source = source[0..50_000]
-      # Don't scan for body close unless we find body start
-      if (body_start = beginning_of_source.index("<body")) && (body_close = source.rindex("</body>"))
 
-        footer = NewRelic::Agent.browser_timing_footer
-        header = NewRelic::Agent.browser_timing_header
+      if body_start = find_body_start(beginning_of_source)
+        insertion_index = find_x_ua_compatible_position(beginning_of_source) ||
+                          find_end_of_head_open(beginning_of_source) ||
+                          body_start
 
-        match = X_UA_COMPATIBLE_RE.match(beginning_of_source)
-        x_ua_compatible_position = match.end(0) if match
-
-        head_pos = if x_ua_compatible_position
-          # put after X-UA-Compatible meta tag if found
-          ::NewRelic::Agent.logger.debug "Detected X-UA-Compatible meta tag. Attempting to insert RUM header after meta tag."
-          x_ua_compatible_position
-        elsif head_open = beginning_of_source.index("<head")
-          ::NewRelic::Agent.logger.debug "Attempting to insert RUM header at beginning of head."
-          # put at the beginning of the header
-          beginning_of_source.index(">", head_open) + 1
+        if insertion_index
+          source = source[0...insertion_index] <<
+            NewRelic::Agent.browser_timing_footer <<   # sic, footer is now considered "config". Rename soon?
+            NewRelic::Agent.browser_timing_header <<
+            source[insertion_index..-1]
         else
-          ::NewRelic::Agent.logger.debug "Failed to detect head tag. Attempting to insert RUM header at above body tag."
-          # otherwise put the header right above body start
-          body_start
+          NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Could not properly determine location to inject script."
         end
-
-        # check that head_pos is less than body close.  If it's not something
-        # is really weird and we should punt.
-        if head_pos && (head_pos < body_close)
-          # rebuild the source
-          source = source[0...head_pos] <<
-            header <<
-            source[head_pos...body_close] <<
-            footer <<
-            source[body_close..-1]
-        else
-          if head_pos
-            ::NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Failed to detect head tags."
-          else
-            ::NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Detected head is after detected body close."
-          end
-        end
+      else
+        NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Unable to find <body> tag in document."
       end
 
       if headers['Content-Length']
@@ -102,6 +78,34 @@ module NewRelic::Rack
       end
 
       source
+    end
+
+    def gather_source(response)
+      source = nil
+      response.each {|fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
+      source
+    end
+
+    # Per "The Response > The Body" section of Rack spec, we should close
+    # if our response is able. http://rack.rubyforge.org/doc/SPEC.html
+    def close_old_response(response)
+      if response.respond_to?(:close)
+        response.close
+      end
+    end
+
+    def find_body_start(beginning_of_source)
+      beginning_of_source.index("<body")
+    end
+
+    def find_x_ua_compatible_position(beginning_of_source)
+      match = X_UA_COMPATIBLE_RE.match(beginning_of_source)
+      match.end(0) if match
+    end
+
+    def find_end_of_head_open(beginning_of_source)
+      head_open = beginning_of_source.index("<head")
+      beginning_of_source.index(">", head_open) + 1 if head_open
     end
 
     # String does not respond to 'bytesize' in 1.8.6. Fortunately String#length
