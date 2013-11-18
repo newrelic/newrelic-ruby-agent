@@ -296,12 +296,9 @@ module NewRelic
         (current && current.custom_parameters) ? current.custom_parameters : {}
       end
 
-      def self.set_user_attributes(attributes)
-        current.set_user_attributes(attributes) if current
-      end
-
-      def self.user_attributes
-        (current) ? current.user_attributes : {}
+      class << self
+        alias_method :user_attributes, :custom_parameters
+        alias_method :set_user_attributes, :add_custom_parameters
       end
 
       APDEX_METRIC_SPEC = NewRelic::MetricSpec.new('Apdex').freeze
@@ -358,20 +355,15 @@ module NewRelic
         @custom_parameters ||= {}
       end
 
-      def user_attributes
-        @user_atrributes ||= {}
-      end
-
-      def queue_time
-        @apdex_start ? @start_time - @apdex_start : 0
-      end
-
       def add_custom_parameters(p)
         custom_parameters.merge!(p)
       end
 
-      def set_user_attributes(attributes)
-        user_attributes.merge!(attributes)
+      alias_method :user_attributes, :custom_parameters
+      alias_method :set_user_attributes, :add_custom_parameters
+
+      def queue_time
+        @apdex_start ? @start_time - @apdex_start : 0
       end
 
       # Returns truthy if the current in-progress transaction is considered a

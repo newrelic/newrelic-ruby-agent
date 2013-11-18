@@ -14,6 +14,11 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     @stats_engine.reset_stats
   end
 
+  def teardown
+    # Failed transactions can leave partial stack, so pave it for next test
+    NewRelic::Agent::Transaction.stack.clear
+  end
+
   def test_request_parsing__none
     assert_nil txn.uri
     assert_nil txn.referer
@@ -298,4 +303,26 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
   def test_parent_returns_nil_if_outside_transaction_entirely
     assert_nil(NewRelic::Agent::Transaction.parent)
   end
+
+  def test_user_attributes_alias_to_custom_parameters
+    in_transaction('user_attributes') do
+      txn = NewRelic::Agent::Transaction.current
+      txn.set_user_attributes(:set_instance => :set_instance)
+      txn.user_attributes[:indexer_instance] = :indexer_instance
+
+      NewRelic::Agent::Transaction.set_user_attributes(:set_class => :set_class)
+      NewRelic::Agent::Transaction.user_attributes[:indexer_class] = :indexer_class
+
+      assert_has_custom_parameter(:set_instance)
+      assert_has_custom_parameter(:indexer_instance)
+
+      assert_has_custom_parameter(:set_class)
+      assert_has_custom_parameter(:indexer_class)
+    end
+  end
+
+  def assert_has_custom_parameter(key, value = key)
+    assert_equal(value, NewRelic::Agent::Transaction.current.custom_parameters[key])
+  end
+
 end

@@ -295,9 +295,9 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   def test_footer_js_data
     freeze_time
     in_transaction do
-      txn = NewRelic::Agent::Transaction.current
-      txn.user_attributes[:user] = "not explicitly handled anymore"
+      NewRelic::Agent.set_user_attributes(:user => "user", :foo => "bazzle")
 
+      txn = NewRelic::Agent::Transaction.current
       txn.stubs(:queue_time).returns(0)
       txn.stubs(:start_time).returns(Time.now - 10)
       txn.name = 'most recent transaction'
@@ -318,7 +318,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
         "ttGuid"          => "ABC",
         "agentToken"      => "0123456789ABCDEF",
         "agent"           => nil,
-        "extra"           => pack("")
+        "extra"           => pack("user=user;foo=bazzle")
       }
 
       assert_equal(expected, data)
