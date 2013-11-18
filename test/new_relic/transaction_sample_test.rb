@@ -52,11 +52,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       @t.prepare_to_send!
     end
 
-    sql_statements = []
-    @t.each_segment do |segment|
-      sql_statements << segment.params[:sql] if segment.params[:sql]
-    end
-
+    sql_statements = extract_captured_sql(@t)
     assert_equal([::SQL_STATEMENT], sql_statements)
   end
 
@@ -65,11 +61,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       @t.prepare_to_send!
     end
 
-    sql_statements = []
-    @t.each_segment do |segment|
-      sql_statements << segment.params[:sql] if segment.params[:sql]
-    end
-
+    sql_statements = extract_captured_sql(@t)
     assert_equal([::OBFUSCATED_SQL_STATEMENT], sql_statements)
   end
 
@@ -312,5 +304,13 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
 
   def compress(string)
     Base64.encode64(Zlib::Deflate.deflate(string, Zlib::DEFAULT_COMPRESSION))
+  end
+
+  def extract_captured_sql(trace)
+    sqls = []
+    trace.each_segment do |s|
+      sqls << s.params[:sql]
+    end
+    sqls.compact
   end
 end
