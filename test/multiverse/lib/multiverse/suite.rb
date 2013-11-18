@@ -216,6 +216,7 @@ module Multiverse
       else
         puts "No tests found with those options."
         puts "options: #{original_options}"
+        exit(1)
       end
     end
 
