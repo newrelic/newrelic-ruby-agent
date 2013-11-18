@@ -46,6 +46,17 @@ module NewRelic
         end
       end
 
+      def should_record_sql?
+        case record_sql_method
+        when :raw, :obfuscated then true
+        else false
+        end
+      end
+
+      def should_collect_explain_plans?
+        should_record_sql? && Agent.config[:'transaction_tracer.explain_enabled']
+      end
+
       def get_connection(config, &connector)
         ConnectionManager.instance.get_connection(config, &connector)
       end
