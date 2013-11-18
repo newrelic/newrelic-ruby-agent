@@ -467,10 +467,10 @@ module NewRelic
       end
     end
 
-    # @api deprecated
+    # @deprecated
     alias add_request_parameters add_custom_parameters
 
-    # @api deprecated
+    # @deprecated
     alias set_user_attributes add_custom_parameters
 
     # Set the name of the current running transaction.  The agent will
