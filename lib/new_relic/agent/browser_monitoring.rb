@@ -205,9 +205,20 @@ module NewRelic
         }
       end
 
+      ANALYTICS_ENABLED = :'analytics_events.enabled'
+      ANALYTICS_TXN_ENABLED = :'analytics_events.transactions.enabled'
+      ANALYTICS_TXN_IN_PAGE = :'analytics_events.transactions.include_custom_params_in_page_views'
+
       # NOTE: Internal prototyping may override this, so leave name stable!
       def extra_data
+        return {} unless include_custom_parameters_in_extra?
         current_transaction.custom_parameters.dup
+      end
+
+      def include_custom_parameters_in_extra?
+        NewRelic::Agent.config[ANALYTICS_ENABLED] &&
+          NewRelic::Agent.config[ANALYTICS_TXN_ENABLED] &&
+          NewRelic::Agent.config[ANALYTICS_TXN_IN_PAGE]
       end
 
       # Format the props using semicolon separated pairs separated by '=':

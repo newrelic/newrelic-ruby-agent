@@ -761,6 +761,12 @@ module NewRelic
           :type => Boolean,
           :description => 'Include TT custom params in analytics event data.'
         },
+        :'analytics_events.transactions.include_custom_params_in_page_views' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Include TT custom params in real user monitoring script in outgoing responses.'
+        },
       }.freeze
 
     end
