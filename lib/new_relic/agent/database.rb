@@ -46,11 +46,10 @@ module NewRelic
         end
       end
 
+      RECORD_FOR = [:raw, :obfuscated].freeze
+
       def should_record_sql?
-        case record_sql_method
-        when :raw, :obfuscated then true
-        else false
-        end
+        RECORD_FOR.include?(record_sql_method)
       end
 
       def should_collect_explain_plans?

@@ -188,9 +188,7 @@ module NewRelic
       return self if @prepared
 
       if Agent::Database.should_record_sql?
-        if Agent::Database.should_collect_explain_plans?
-          collect_explain_plans!
-        end
+        collect_explain_plans!
         prepare_sql_for_transmission!
       else
         strip_sql!
@@ -258,6 +256,7 @@ module NewRelic
     end
 
     def collect_explain_plans!
+      return unless Agent::Database.should_collect_explain_plans?
       threshold = Agent.config[:'transaction_tracer.explain_threshold']
       each_segment do |segment|
         if segment[:sql] && segment.duration > threshold
