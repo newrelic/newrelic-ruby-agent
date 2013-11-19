@@ -10,8 +10,9 @@ gemfile <<-RB
 RB
 
 gemfile <<-RB
-  # Oldest supported version
+  # Almost oldest supported version
+  # Having rbx issues on 2.8.0, 2.9.0 seems fine.
   gem 'json'
-  gem 'sidekiq', '~> 2.8.0'
+  gem 'sidekiq', '~> 2.9.0'
   gem 'rack'
 RB
