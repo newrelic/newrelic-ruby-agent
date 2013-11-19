@@ -207,7 +207,17 @@ module Multiverse
       options << "-v" if verbose?
       options << "--seed=#{seed}" unless seed == ""
       options << "--name=/#{names.map {|n| n + ".*"}.join("|")}/" unless names == []
-      exit(::MiniTest::Unit.new.run(options))
+
+      original_options = options.dup
+      test_run = ::MiniTest::Unit.new.run(options)
+
+      if test_run
+        exit(test_run)
+      else
+        puts "No tests found with those options."
+        puts "options: #{original_options}"
+        exit(1)
+      end
     end
 
     def configure_before_bundling
