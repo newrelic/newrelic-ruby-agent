@@ -275,30 +275,37 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   end
 
   def test_format
-    assert_formatted("a=1;b=#2", {:a => "1", "b" => 2})
+    assert_formatted({:a => "1", "b" => 2}, "a=1", "b=#2")
   end
 
   def test_format_extra_data_escaping
-    assert_formatted("semi:colon=gets:escaped", {"semi;colon" => "gets;escaped"})
-    assert_formatted("equal-key=equal-value", {"equal=key" => "equal=value"})
-    assert_formatted(%Q['quoted'='marks'], {'"quoted"' => '"marks"'})
+    assert_formatted({"semi;colon" => "gets;escaped"}, "semi:colon=gets:escaped")
+    assert_formatted({"equal=key" => "equal=value"}, "equal-key=equal-value")
+    assert_formatted({'"quoted"' => '"marks"'}, %Q['quoted'='marks'])
   end
 
   def test_format_extra_data_disallowed_types
-    assert_formatted("", {"nested" => { "hashes?" => "nope" }})
-    assert_formatted("", {"lists" => ["are", "they", "allowed?", "nope"]})
+    assert_formatted_empty({"nested" => { "hashes?" => "nope" }})
+    assert_formatted_empty({"lists" => ["are", "they", "allowed?", "nope"]})
   end
 
-  def assert_formatted(expected, data)
+  def assert_formatted(data, *expected)
+    result = format_extra_data(data).split(";")
+    expected.each do |expect|
+      assert_includes(result, expect)
+    end
+  end
+
+  def assert_formatted_empty(data)
     result = format_extra_data(data)
-    assert_equal expected, result
+    assert_equal("", result)
   end
 
   def test_footer_js_data
     freeze_time
     in_transaction do
       with_config(ANALYTICS_TXN_IN_PAGE => true) do
-        NewRelic::Agent.set_user_attributes(:user => "user", :foo => "bazzle")
+        NewRelic::Agent.set_user_attributes(:user => "user")
 
         txn = NewRelic::Agent::Transaction.current
         txn.stubs(:queue_time).returns(0)
@@ -321,7 +328,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
           "ttGuid"          => "ABC",
           "agentToken"      => "0123456789ABCDEF",
           "agent"           => nil,
-          "extra"           => pack("user=user;foo=bazzle")
+          "extra"           => pack("user=user")
         }
 
         assert_equal(expected, data)
@@ -395,7 +402,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   end
 
   def pack(text)
-    [text].pack("m0")
+    [text].pack("m0").gsub("\n", "")
   end
 
   def formatted_for_matching(value)
