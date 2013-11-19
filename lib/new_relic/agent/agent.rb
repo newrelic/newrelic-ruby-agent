@@ -893,6 +893,77 @@ module NewRelic
           control.root
         end
 
+        # Prepares a collection of objects for transmission to the collector.
+        # The collection should respond to #size and #each. Objects in the
+        # collection may implement #prepare_to_send!, in which case it will be
+        # called on them before return.
+        def prepare_data_for_transmission(collection)
+          collection.each do |item|
+            item.prepare_to_send! if item.respond_to?(:prepare_to_send!)
+          end
+          collection
+        end
+
+        # Harvests data from the given container, sends it to the named endpoint
+        # on the service, and automatically merges back in upon a recoverable
+        # failure.
+        #
+        # The given container should respond to:
+        #
+        #  #harvest
+        #    returns an enumerable collection of data items to be sent to the
+        #    collector. If data items respond to #prepare_to_send!, it will be
+        #    called before transmission.
+        #
+        #  #reset!
+        #    drop any stored data and reset to a clean state.
+        #
+        #  #merge!(items)
+        #    merge the given items back into the internal buffer of the
+        #    container, so that they may be harvested again later.
+        #  
+        def harvest_and_send_from_container(container, endpoint)
+          items = harvest_from_container(container, endpoint)
+          items = prepare_data_items_from_container(container, endpoint, items)
+          send_data_from_container(container, endpoint, items) unless items.empty?
+        end
+
+        def harvest_from_container(container, endpoint)
+          items = []
+          begin
+            items = container.harvest
+          rescue => e
+            NewRelic::Agent.logger.error("Failed to harvest #{endpoint} data, resetting. Error: ", e)
+            container.reset!
+          end
+          items
+        end
+
+        def prepare_data_items_from_container(container, endpoint, items)
+          items.select do |item|
+            begin
+              item.prepare_to_send! if item.respond_to?(:prepare_to_send!)
+            rescue => e
+              NewRelic::Agent.logger.error("Failed to prepare #{endpoint} data. Error: ", e)
+              false # reject this item
+            else
+              true # keep this item
+            end
+          end
+        end
+
+        def send_data_from_container(container, endpoint, items)
+          NewRelic::Agent.logger.debug("Sending #{items.size} items to #{endpoint}")
+          begin
+            @service.send(endpoint, items)
+          rescue UnrecoverableServerException => e
+            NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
+          rescue => e
+            NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
+            container.merge!(items)
+          end
+        end
+
         # calls the busy harvester and collects timeslice data to
         # send later
         def harvest_timeslice_data
