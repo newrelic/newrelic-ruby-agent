@@ -22,14 +22,14 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   end
 
   def test_empty
-    @error_collector.harvest_errors
+    @error_collector.harvest
     @error_collector.notice_error(nil, :metric=> 'path', :request_params => {:x => 'y'})
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
 
     assert_equal 0, errors.length
 
     @error_collector.notice_error('Some error message', :metric=> 'path', :request_params => {:x => 'y'})
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
 
     err = errors.first
     assert_equal 'Some error message', err.message
@@ -44,7 +44,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   def test_simple
     @error_collector.notice_error(StandardError.new("message"), :uri => '/myurl/', :metric => 'path', :referer => 'test_referer', :request_params => {:x => 'y'})
 
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
 
     assert_equal errors.length, 1
 
@@ -59,7 +59,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
 
     # the collector should now return an empty array since nothing
     # has been added since its last harvest
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
     assert errors.length == 0
   end
 
@@ -68,7 +68,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     #still 1 byte / char.
     @error_collector.notice_error(StandardError.new("1234567890" * 500), :uri => '/myurl/', :metric => 'path', :request_params => {:x => 'y'})
 
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
 
     assert_equal errors.length, 1
 
@@ -80,14 +80,14 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   def test_collect_failover
     @error_collector.notice_error(StandardError.new("message"), :metric => 'first', :request_params => {:x => 'y'})
 
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
 
     @error_collector.notice_error(StandardError.new("message"), :metric => 'second', :request_params => {:x => 'y'})
     @error_collector.notice_error(StandardError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
     @error_collector.notice_error(StandardError.new("message"), :metric => 'last', :request_params => {:x => 'y'})
 
     @error_collector.merge!(errors)
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
 
     assert_equal 4, errors.length
     assert_equal_unordered(%w(first second path last), errors.map { |e| e.path })
@@ -95,7 +95,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     @error_collector.notice_error(StandardError.new("message"), :metric => 'first', :request_params => {:x => 'y'})
     @error_collector.notice_error(StandardError.new("message"), :metric => 'last', :request_params => {:x => 'y'})
 
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
     assert_equal 2, errors.length
     assert_equal 'first', errors.first.path
     assert_equal 'last', errors.last.path
@@ -111,7 +111,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
       end
     end
 
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
     assert errors.length == max_q_length
     errors.each_index do |i|
       err = errors.shift
@@ -138,7 +138,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     types.each do |test|
       @error_collector.notice_error(StandardError.new("message"), :metric => 'path',
                                     :request_params => {:x => test[0]})
-      assert_equal test[1], @error_collector.harvest_errors[0].params[:request_params][:x]
+      assert_equal test[1], @error_collector.harvest[0].params[:request_params][:x]
     end
   end
 
@@ -148,7 +148,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
 
     @error_collector.notice_error(IOError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
 
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
 
     assert_equal 0, errors.length
   end
@@ -159,7 +159,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     NewRelic::Agent.config.apply_config(:'error_collector.ignore_errors' => "IOError")
     @error_collector.notice_error(IOError.new("message"))
 
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
 
     assert_equal 1, errors.length
 
@@ -171,7 +171,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     @error_collector.notice_error(IOError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
     @error_collector.notice_error(StandardError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
 
-    errors = @error_collector.harvest_errors
+    errors = @error_collector.harvest
 
     assert_equal 1, errors.length
   end
@@ -181,7 +181,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
       @error_collector.notice_error(StandardError.new("YO SQL BAD: serect * flom test where foo = 'bar'"))
       @error_collector.notice_error(StandardError.new("YO SQL BAD: serect * flom test where foo in (1,2,3,4,5)"))
 
-      errors = @error_collector.harvest_errors
+      errors = @error_collector.harvest
 
       assert_equal(NewRelic::NoticedError::STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE, errors[0].message)
       assert_equal(NewRelic::NoticedError::STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE, errors[1].message)

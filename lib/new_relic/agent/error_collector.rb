@@ -306,7 +306,7 @@ module NewRelic
 
       # Get the errors currently queued up.  Unsent errors are left
       # over from a previous unsuccessful attempt to send them to the server.
-      def harvest_errors
+      def harvest
         @lock.synchronize do
           errors = @errors
           @errors = []

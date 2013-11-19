@@ -125,7 +125,7 @@ module NewRelic
       def test_harvest_and_send_errors_merges_back_on_failure
         errors = [mock('e0'), mock('e1')]
 
-        @agent.error_collector.expects(:harvest_errors).returns(errors)
+        @agent.error_collector.expects(:harvest).returns(errors)
         @agent.service.stubs(:error_data).raises('wat')
         @agent.error_collector.expects(:merge!).with(errors)
 

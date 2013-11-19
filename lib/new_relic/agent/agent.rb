@@ -971,7 +971,7 @@ module NewRelic
         # sending them to the server, and any error cases like trying
         # to send very large errors
         def harvest_and_send_errors
-          errors = @error_collector.harvest_errors
+          errors = @error_collector.harvest
           if errors && !errors.empty?
             ::NewRelic::Agent.logger.debug "Sending #{errors.length} errors"
             begin

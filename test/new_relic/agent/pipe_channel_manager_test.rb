@@ -93,7 +93,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
                                  :metric => 'path', :referer => 'test_referer',
                                  :request_params => {:x => 'y'})
-        listener.pipes[668].write(:error_traces => new_sampler.harvest_errors)
+        listener.pipes[668].write(:error_traces => new_sampler.harvest)
       end
       Process.wait(pid)
       listener.stop

@@ -59,7 +59,7 @@ module MultiverseHelpers
     NewRelic::Agent.instance.reset_stats
 
     # Clear out lingering errors in the collector
-    NewRelic::Agent.instance.error_collector.harvest_errors
+    NewRelic::Agent.instance.error_collector.harvest
     NewRelic::Agent.instance.error_collector.instance_variable_set(:@ignore_filter, nil)
 
     # Clean up any thread-local variables starting with 'newrelic'
