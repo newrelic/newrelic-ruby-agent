@@ -938,23 +938,9 @@ module NewRelic
           end
         end
 
-        # calls the busy harvester and collects timeslice data to
-        # send later
-        def harvest_timeslice_data
-          NewRelic::Agent::BusyCalculator.harvest_busy
-          @stats_engine.harvest
-        end
-
         def harvest_and_send_timeslice_data
-          timeslices = harvest_timeslice_data
-          begin
-            @service.metric_data(timeslices)
-          rescue UnrecoverableServerException => e
-            ::NewRelic::Agent.logger.debug e.message
-          rescue => e
-            NewRelic::Agent.logger.info("Failed to send timeslice data, trying again later. Error:", e)
-            @stats_engine.merge!(timeslices)
-          end
+          NewRelic::Agent::BusyCalculator.harvest_busy
+          harvest_and_send_from_container(@stats_engine, :metric_data)
         end
 
         def harvest_and_send_slowest_sql

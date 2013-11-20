@@ -78,6 +78,7 @@ module NewRelic
 
       def test_transmit_data_should_transmit
         @agent.service.expects(:metric_data).at_least_once
+        @agent.stats_engine.record_metrics(['foo'], 12)
         @agent.instance_eval { transmit_data }
       end
 
@@ -130,11 +131,6 @@ module NewRelic
         end
       end
 
-      def test_harvest_timeslice_data
-        assert_equal({}, @agent.send(:harvest_timeslice_data),
-                     'should return timeslice data')
-      end
-
       # This test asserts nothing about correctness of logging data from multiple
       # threads, since the get_stats + record_data_point combo is not designed
       # to be thread-safe, but it does ensure that writes to the stats hash
@@ -156,7 +152,7 @@ module NewRelic
             threads << t
           end
 
-          100.times { @agent.send(:harvest_timeslice_data) }
+          100.times { @agent.send(:harvest_and_send_timeslice_data) }
           threads.each { |t| t.join }
         end
       end
@@ -218,7 +214,7 @@ module NewRelic
       end
 
       def test_harvest_and_send_timeslice_data_merges_back_on_failure
-        timeslices = mock('timeslices')
+        timeslices = [1,2,3]
 
         @agent.stats_engine.expects(:harvest).returns(timeslices)
         @agent.service.stubs(:metric_data).raises('wat')
