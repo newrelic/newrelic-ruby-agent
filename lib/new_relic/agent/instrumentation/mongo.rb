@@ -42,6 +42,10 @@ DependencyDetection.defer do
         end
       end
 
+      ::Mongo::Collection.class_eval { include Mongo::Logging; }
+      ::Mongo::Connection.class_eval { include Mongo::Logging; }
+      ::Mongo::Cursor.class_eval { include Mongo::Logging; }
+
       alias_method :instrument_without_newrelic_trace, :instrument
       alias_method :instrument, :instrument_with_newrelic_trace
     end

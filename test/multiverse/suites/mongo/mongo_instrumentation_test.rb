@@ -6,7 +6,21 @@ require 'mongo'
 require 'newrelic_rpm'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
-class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Unit::TestCase
+  include Mongo
+
+  def setup
+    @mongodb = MongoClient.new.db('multiverse')
+    puts '*'*80
+    p @mongodb.inspect
+    @collection = @mongodb.collection('tribbles')
+    p @collection
+    puts '*'*80
+  end
+
+  def teardown
+    # @mongodb.remove
+  end
 
   def test_mongo_instrumentation_loaded
     logging_methods = ::Mongo::Logging.instance_methods
@@ -14,26 +28,26 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Un
   end
 
   OPERATION_NAMES = {
-    'find' => Proc.new { Tribble.find },
-    'findOne' => Proc.new { Tribble.findOne },
-    'insert' => Proc.new { Tribble.insert },
-    'remove' => Proc.new { Tribble.remove },
-    'save' => Proc.new { Tribble.save },
-    'update' => Proc.new { Tribble.update },
-    'distinct' => Proc.new { Tribble.distinct },
-    'count' => Proc.new { Tribble.count },
-    'findAndModify' => Proc.new { Tribble.findAndModify },
-    'findAndRemove' => Proc.new { Tribble.findAndRemove },
-    'createIndex' => Proc.new { Tribble.createIndex },
-    'ensureIndex' => Proc.new { Tribble.ensureIndex },
-    'dropIndex' => Proc.new { Tribble.dropIndex },
-    'dropAllIndexes' => Proc.new { Tribble.dropAllIndexes },
-    'reIndex' => Proc.new { Tribble.reIndex }
+    'find' => Proc.new { |collection| collection.insert({'name' => 'larry'})}
+    # 'findOne' => Proc.new { Tribble.findOne },
+    # 'insert' => Proc.new { Tribble.insert },
+    # 'remove' => Proc.new { Tribble.remove },
+    # 'save' => Proc.new { Tribble.save },
+    # 'update' => Proc.new { Tribble.update },
+    # 'distinct' => Proc.new { Tribble.distinct },
+    # 'count' => Proc.new { Tribble.count },
+    # 'findAndModify' => Proc.new { Tribble.findAndModify },
+    # 'findAndRemove' => Proc.new { Tribble.findAndRemove },
+    # 'createIndex' => Proc.new { Tribble.createIndex },
+    # 'ensureIndex' => Proc.new { Tribble.ensureIndex },
+    # 'dropIndex' => Proc.new { Tribble.dropIndex },
+    # 'dropAllIndexes' => Proc.new { Tribble.dropAllIndexes },
+    # 'reIndex' => Proc.new { Tribble.reIndex }
   }
 
   def test_instrumentation_records_metrics
     OPERATION_NAMES.each do |name, operation|
-      in_web_transaction { operation.call }
+      in_web_transaction { operation.call(@collection) }
 
       assert_metrics_recorded([
         "Datastore/all",
