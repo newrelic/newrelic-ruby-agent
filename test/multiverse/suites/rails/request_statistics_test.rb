@@ -97,9 +97,7 @@ class RequestStatsTest < ActionController::TestCase
 
       # fail once
       $collector.stub('analytic_event_data', {}, 503)
-      assert_raises(NewRelic::Agent::ServerConnectionException) do
-        NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
-      end
+      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
       # recover
       $collector.stub('analytic_event_data', {'return_value'=>nil}, 200)
