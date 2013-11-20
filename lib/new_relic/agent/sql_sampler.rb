@@ -104,7 +104,7 @@ module NewRelic
         if NewRelic::Agent.is_sql_recorded?
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
-            transaction_data.sql_data << SlowSql.new(TransactionSampler.truncate_message(sql),
+            transaction_data.sql_data << SlowSql.new(Database.capture_query(sql),
                                                      metric_name, config,
                                                      duration, backtrace, &explainer)
           end
