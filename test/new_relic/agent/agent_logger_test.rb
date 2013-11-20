@@ -25,9 +25,10 @@ class AgentLoggerTest < Test::Unit::TestCase
   LEVELS = [:fatal, :error, :warn, :info, :debug]
 
   def setup
-    NewRelic::Agent.stubs(:config).returns({ :log_file_path => "log/", :log_file_name => "testlog.log", :log_level => :info })
+    NewRelic::Agent.config.apply_config(:log_file_path => "log/",
+                                        :log_file_name => "testlog.log",
+                                        :log_level => :info)
   end
-
 
   #
   # Tests
@@ -270,7 +271,8 @@ class AgentLoggerTest < Test::Unit::TestCase
       def debug; end
     end
 
-    with_config(:agent_enabled) do
+    logger = NewRelic::Agent::AgentLogger.new
+    with_config(:agent_enabled => false) do
       assert_nothing_raised do
         logger.debug('hi!')
       end
