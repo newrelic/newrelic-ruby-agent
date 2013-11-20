@@ -6,16 +6,19 @@ DependencyDetection.defer do
   named :mongo
 
   depends_on do
-    defined?(::Mongo)
+    return false unless defined? ::Mongo
+
+    unless defined? ::Mongo::Logging
+      NewRelic::Agent.logger.debug 'Mongo instrumentation requires Mongo::Logging'
+      false
+    else
+      true
+    end
   end
 
   executes do
-    if defined?(::Mongo::Logging)
-      NewRelic::Agent.logger.debug 'Installing Mongo instrumentation'
-      install_mongo_instrumentation
-    else
-      NewRelic::Agent.logger.debug 'Mongo instrumentation requires Mongo::Logging'
-    end
+    NewRelic::Agent.logger.debug 'Installing Mongo instrumentation'
+    install_mongo_instrumentation
   end
 
   def install_mongo_instrumentation
