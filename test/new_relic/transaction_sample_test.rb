@@ -203,13 +203,10 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_prepare_to_send_does_not_re_prepare
-    opts = { :record_sql => :raw, :explain_sql => 0.00001 }
-    @t.prepare_to_send!(opts)
-
+    @t.prepare_to_send!
     @t.expects(:collect_explain_plans!).never
     @t.expects(:prepare_sql_for_transmission!).never
-
-    @t.prepare_to_send!(opts)
+    @t.prepare_to_send!
   end
 
   def test_threshold_preserved_by_prepare_to_send

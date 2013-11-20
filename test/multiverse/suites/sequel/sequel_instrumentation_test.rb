@@ -200,8 +200,9 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Un
   end
 
   def test_slow_queries_get_an_explain_plan
-    with_config( :'transaction_tracer.explain_threshold' => 0.0 ) do
-      segment = last_segment_for(:record_sql => :raw) do
+    with_config( :'transaction_tracer.explain_threshold' => 0.0,
+                 :'transaction_tracer.record_sql' => 'raw' ) do
+      segment = last_segment_for do
         Post[11]
       end
       assert_match %r{select \* from `posts` where `id` = 11}i, segment.params[:sql]
@@ -266,10 +267,8 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Un
         yield
       end
 
-      sample = transaction_samples.first.prepare_to_send!(
-        :explain_sql=>options[:explain_sql] || -0.01,    # Force to take explain, even if duration's reported as 0.0
-        :record_sql=>options[:record_sql])
-      segment = last_segment( sample )
+      sample = transaction_samples.first.prepare_to_send!
+      last_segment( sample )
   end
 
   def last_segment(txn_sample)

@@ -372,8 +372,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_prepare_to_send
-    with_config(:record_sql => :raw,
-                :'transaction_tracer.explain_enabled' => true,
+    with_config(:'transaction_tracer.explain_enabled' => true,
                 :'transaction_tracer.explain_threshold' => 0.0) do
       perform_action_with_newrelic_trace :name => 'bogosity' do
         ActiveRecordFixtures::Order.add_delay
