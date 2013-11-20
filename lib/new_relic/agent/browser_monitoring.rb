@@ -207,7 +207,7 @@ module NewRelic
 
       ANALYTICS_ENABLED = :'analytics_events.enabled'
       ANALYTICS_TXN_ENABLED = :'analytics_events.transactions.enabled'
-      ANALYTICS_TXN_IN_PAGE = :'analytics_events.transactions.include_custom_params_in_page_views'
+      ANALYTICS_TXN_IN_PAGE = :'capture_attributes.page_events'
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def extra_data
