@@ -607,6 +607,9 @@ module NewRelic
     # Relic places it before before the Real User Monitoring header when
     # auto-instrumenting.
     #
+    # This was previously known as browser_timing_footer and required to be
+    # located as low as possible in the page, but that is no longer the case.
+    #
     # @api public
     #
     def browser_timing_config
