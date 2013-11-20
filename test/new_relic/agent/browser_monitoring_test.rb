@@ -128,10 +128,10 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   BEGINNING_OF_FOOTER = '<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info='
   END_OF_FOOTER = '}</script>'
 
-  def test_browser_timing_footer
+  def test_browser_timing_config
     with_config(:license_key => 'a' * 13) do
       browser_timing_header
-      footer = browser_timing_footer
+      footer = browser_timing_config
       assert_has_text(BEGINNING_OF_FOOTER, footer)
       assert_has_text(END_OF_FOOTER, footer)
     end
@@ -141,64 +141,64 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert(footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
   end
 
-  def test_browser_timing_footer_with_no_browser_key_rum_enabled
+  def test_browser_timing_config_with_no_browser_key_rum_enabled
     with_config(:browser_key => '') do
       browser_timing_header
       NewRelic::Agent.instance.stubs(:beacon_configuration).returns(NewRelic::Agent::BeaconConfiguration.new)
-      footer = browser_timing_footer
+      footer = browser_timing_config
       assert_equal "", footer
     end
   end
 
-  def test_browser_timing_footer_with_no_browser_key_rum_disabled
+  def test_browser_timing_config_with_no_browser_key_rum_disabled
     with_config(:'rum.enabled' => false) do
       browser_timing_header
       NewRelic::Agent.instance.stubs(:beacon_configuration).returns(NewRelic::Agent::BeaconConfiguration.new)
-      footer = browser_timing_footer
+      footer = browser_timing_config
       assert_equal "", footer
     end
   end
 
-  def test_browser_timing_footer_with_rum_enabled_not_specified
-    footer = browser_timing_footer
+  def test_browser_timing_config_with_rum_enabled_not_specified
+    footer = browser_timing_config
     beginning_snippet = BEGINNING_OF_FOOTER
     assert_has_text(BEGINNING_OF_FOOTER, footer)
     assert_has_text(END_OF_FOOTER, footer)
   end
 
-  def test_browser_timing_footer_with_no_beacon_configuration
+  def test_browser_timing_config_with_no_beacon_configuration
     browser_timing_header
     NewRelic::Agent.instance.stubs(:beacon_configuration).returns( nil)
-    footer = browser_timing_footer
+    footer = browser_timing_config
     assert_equal "", footer
   end
 
-  def test_browser_timing_footer_disable_all_tracing
+  def test_browser_timing_config_disable_all_tracing
     browser_timing_header
     footer = nil
     NewRelic::Agent.disable_all_tracing do
-      footer = browser_timing_footer
+      footer = browser_timing_config
     end
     assert_equal "", footer
   end
 
-  def test_browser_timing_footer_disable_transaction_tracing
+  def test_browser_timing_config_disable_transaction_tracing
     browser_timing_header
     footer = nil
     NewRelic::Agent.disable_transaction_tracing do
-      footer = browser_timing_footer
+      footer = browser_timing_config
     end
     assert_equal "", footer
   end
 
-  def test_browser_timing_footer_browser_key_missing
+  def test_browser_timing_config_browser_key_missing
     with_config(:browser_key => '') do
       fake_config = mock('beacon configuration')
       NewRelic::Agent.instance.stubs(:beacon_configuration).returns(fake_config)
       fake_config.expects(:nil?).returns(false)
       fake_config.expects(:enabled?).returns(true)
       self.expects(:generate_footer_js).never
-      assert_equal('', browser_timing_footer, "should not return a footer when there is no key")
+      assert_equal('', browser_timing_config, "should not return a footer when there is no key")
     end
   end
 
@@ -217,9 +217,9 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
   end
 
-  def test_browser_timing_footer_with_loader
+  def test_browser_timing_config_with_loader
     with_config(:js_agent_loader => 'loader') do
-      footer = browser_timing_footer
+      footer = browser_timing_config
       beginning_snippet = "\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info={\""
       ending_snippet = '}</script>'
       assert(footer.include?(beginning_snippet),
@@ -466,7 +466,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     with_config(:license_key => 'a' * 13) do
       in_transaction do
         assert !NewRelic::Agent::Transaction.current.name_frozen?
-        browser_timing_footer
+        browser_timing_config
         assert NewRelic::Agent::Transaction.current.name_frozen?
       end
     end

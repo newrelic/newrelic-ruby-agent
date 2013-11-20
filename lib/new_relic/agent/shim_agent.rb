@@ -26,6 +26,7 @@ module NewRelic
       def push_trace_execution_flag *args; end
       def pop_trace_execution_flag *args; end
       def browser_timing_header; "" end
+      def browser_timing_config; "" end
       def browser_timing_footer; "" end
     end
   end

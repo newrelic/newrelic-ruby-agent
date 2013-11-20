@@ -63,7 +63,7 @@ module NewRelic::Rack
 
         if insertion_index
           source = source[0...insertion_index] <<
-            NewRelic::Agent.browser_timing_footer <<   # sic, footer is now considered "config". Rename soon?
+            NewRelic::Agent.browser_timing_config <<
             NewRelic::Agent.browser_timing_header <<
             source[insertion_index..-1]
         else
