@@ -944,19 +944,7 @@ module NewRelic
         end
 
         def harvest_and_send_slowest_sql
-          # FIXME add the code to try to resend if our connection is down
-          sql_traces = @sql_sampler.harvest
-          unless sql_traces.empty?
-            ::NewRelic::Agent.logger.debug "Sending (#{sql_traces.size}) sql traces"
-            begin
-              @service.sql_trace_data(sql_traces)
-            rescue UnrecoverableServerException => e
-              ::NewRelic::Agent.logger.debug e.message
-            rescue => e
-              ::NewRelic::Agent.logger.debug "Remerging SQL traces after #{e.class.name}: #{e.message}"
-              @sql_sampler.merge!(sql_traces)
-            end
-          end
+          harvest_and_send_from_container(@sql_sampler, :sql_trace_data)
         end
 
         # This handles getting the transaction traces and then sending
