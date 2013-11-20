@@ -9,26 +9,28 @@ dual-purposed as a either a Rails plugin or a Gem, hosted on
 
 The New Relic Ruby Agent runs in one of two modes:
 
-#### Production Mode
-
+**Production Mode**
 Low overhead instrumentation that captures detailed information on
 your application running in production and transmits them to
 newrelic.com where you can monitor them in real time.
 
-#### Developer Mode
-
+**Developer Mode**
 A Rack middleware that maps `/newrelic` to an application for showing
 detailed performance metrics on a page by page basis.  Installed
 automatically in Rails applications.
 
 ## Supported Environments
 
-* Ruby 1.8.6, 1.8.7, REE, 1.9.x, 2.0.x
+* Ruby 1.8.7, REE, 1.9.x, 2.0.x
 * JRuby 1.6 and 1.7
-* Rails 2.0 or later for Production Mode
+* Rubinius 2.x (Experimental support only)
+* Rails 2.1 or later for Production Mode
 * Rails 2.3 or later for Developer Mode
 * Sinatra
 * Rack
+
+An up to date list of Ruby versions and frameworks for the latest agent
+can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-frameworks).
 
 Any Rack based framework should work but may not be tested.  Install
 the Ruby Agent as a gem and add the Developer Mode middleware if

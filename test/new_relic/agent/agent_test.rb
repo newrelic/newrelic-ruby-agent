@@ -25,6 +25,12 @@ module NewRelic
         assert_equal 123, @agent.service.channel_id
       end
 
+      def test_after_fork_reporting_to_channel_should_not_collect_environment_report
+        @agent.stubs(:connected?).returns(true)
+        @agent.expects(:generate_environment_report).never
+        @agent.after_fork(:report_to_channel => 123)
+      end
+
       def test_after_fork_should_close_pipe_if_parent_not_connected
         pipe = mock
         pipe.expects(:after_fork_in_child)
@@ -46,6 +52,20 @@ module NewRelic
           @agent.after_fork(:report_to_channel => 123)
 
           assert old_engine != @agent.stats_engine, "Still got our old engine around!"
+        end
+      end
+
+      def test_after_fork_should_reset_errors_collected
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+
+          errors = []
+          errors << NewRelic::NoticedError.new("", {}, Exception.new("boo"))
+          @agent.merge_data_from([{}, [], errors])
+
+          @agent.after_fork(:report_to_channel => 123)
+
+          assert_equal 0, @agent.error_collector.errors.length, "Still got errors collected in parent"
         end
       end
 
@@ -71,19 +91,7 @@ module NewRelic
         @agent.instance_eval { transmit_data }
       end
 
-      def test_transmit_data_should_handle_eoferror
-        @agent.service.stubs(:metric_data).raises(EOFError)
-        expects_no_logging(:error)
-        expects_logging(:warn, regexp_matches(/EOFError/))
-        expects_logging(:debug, is_a(EOFError))
-        @agent.instance_eval { transmit_data }
-      end
-
-      def test_harvest_transaction_traces
-        assert_equal([], @agent.send(:harvest_transaction_traces), 'should return transaction traces')
-      end
-
-      def test_harvest_and_send_slowest_sample
+      def test_harvest_and_send_transaction_traces
         with_config(:'transaction_tracer.explain_threshold' => 2,
                     :'transaction_tracer.explain_enabled' => true,
                     :'transaction_tracer.record_sql' => 'raw') do
@@ -92,11 +100,37 @@ module NewRelic
                        :transaction_name => nil,
                        :force_persist => true,
                        :truncate => 4000)
-          trace.expects(:prepare_to_send).with(:record_sql => :raw,
-                                               :explain_sql => 2,
-                                               :keep_backtraces => true)
-          @agent.instance_variable_set(:@traces, [ trace ])
-          @agent.send :harvest_and_send_slowest_sample
+          trace.expects(:prepare_to_send!)
+
+          @agent.transaction_sampler.stubs(:harvest).returns([trace])
+          @agent.send :harvest_and_send_transaction_traces
+        end
+      end
+
+      def test_harvest_and_send_transaction_traces_merges_back_on_failure
+        traces = [mock('tt1'), mock('tt2')]
+
+        # make prepare_to_send just return self
+        traces.each { |tt| tt.expects(:prepare_to_send!) }
+
+        @agent.transaction_sampler.expects(:harvest).returns(traces)
+        @agent.service.stubs(:transaction_sample_data).raises("wat")
+        @agent.transaction_sampler.expects(:merge!).with(traces)
+
+        assert_nothing_raised do
+          @agent.send :harvest_and_send_transaction_traces
+        end
+      end
+
+      def test_harvest_and_send_errors_merges_back_on_failure
+        errors = [mock('e0'), mock('e1')]
+
+        @agent.error_collector.expects(:harvest_errors).returns(errors)
+        @agent.service.stubs(:error_data).raises('wat')
+        @agent.error_collector.expects(:merge!).with(errors)
+
+        assert_nothing_raised do
+          @agent.send :harvest_and_send_errors
         end
       end
 
@@ -131,10 +165,6 @@ module NewRelic
         end
       end
 
-      def test_harvest_errors
-        assert_equal([], @agent.send(:harvest_errors), 'should return errors')
-      end
-
       def test_handle_for_agent_commands
         @agent.service.expects(:get_agent_commands).returns([]).once
         @agent.send :check_for_and_handle_agent_commands
@@ -147,67 +177,18 @@ module NewRelic
       end
 
       def test_merge_data_from_empty
-        unsent_timeslice_data = mock('unsent timeslice data')
-        unsent_errors = mock('unsent errors')
-        unsent_traces = mock('unsent traces')
-        @agent.instance_eval {
-          @unsent_errors = unsent_errors
-          @unsent_timeslice_data = unsent_timeslice_data
-          @traces = unsent_traces
-        }
-        # nb none of the others should receive merge requests
-        @agent.merge_data_from([{}])
-      end
-
-      def test_unsent_errors_size_empty
-        @agent.instance_eval {
-          @unsent_errors = nil
-        }
-        assert_equal(nil, @agent.unsent_errors_size)
-      end
-
-      def test_unsent_errors_size_with_errors
-        @agent.instance_eval {
-          @unsent_errors = ['an error']
-        }
-        assert_equal(1, @agent.unsent_errors_size)
-      end
-
-      def test_unsent_traces_size_empty
-        @agent.instance_eval {
-          @traces = nil
-        }
-        assert_equal(nil, @agent.unsent_traces_size)
-      end
-
-      def test_unsent_traces_size_with_traces
-        @agent.instance_eval {
-          @traces = ['a trace']
-        }
-        assert_equal(1, @agent.unsent_traces_size)
-      end
-
-      def test_unsent_timeslice_data_empty
-        @agent.instance_eval {
-          @unsent_timeslice_data = nil
-        }
-        assert_equal(0, @agent.unsent_timeslice_data, "should have zero timeslice data to start")
-        assert_equal({}, @agent.instance_variable_get('@unsent_timeslice_data'), "should initialize the timeslice data to an empty hash if it is empty")
-      end
-
-      def test_unsent_timeslice_data_with_errors
-        @agent.instance_eval {
-          @unsent_timeslice_data = {:key => 'value'}
-        }
-        assert_equal(1, @agent.unsent_timeslice_data, "should have the key from above")
+        @agent.stats_engine.expects(:merge!).never
+        @agent.error_collector.expects(:merge!).never
+        @agent.transaction_sampler.expects(:merge!).never
+        @agent.merge_data_from([])
       end
 
       def test_merge_data_traces
-        unsent_traces = mock('unsent traces')
+        transaction_sampler = mock('transaction sampler')
         @agent.instance_eval {
-          @traces = unsent_traces
+          @transaction_sampler = transaction_sampler
         }
-        unsent_traces.expects(:+).with([1,2,3])
+        transaction_sampler.expects(:merge!).with([1,2,3])
         @agent.merge_data_from([{}, [1,2,3], []])
       end
 
@@ -224,15 +205,45 @@ module NewRelic
         assert_equal 0, @agent.stats_engine.get_stats("Errors/all").call_count
       end
 
+      def test_harvest_and_send_analytic_event_data_merges_in_samples_on_failure
+        service = @agent.service
+        request_sampler = @agent.instance_variable_get(:@request_sampler)
+        samples = [mock('some analytics event')]
+
+        request_sampler.expects(:harvest).returns(samples)
+        request_sampler.expects(:merge!).with(samples)
+
+        # simulate a failure in transmitting analytics events
+        service.stubs(:analytic_event_data).raises(StandardError.new)
+
+        assert_raises(StandardError) do
+          @agent.send(:harvest_and_send_analytic_event_data)
+        end
+      end
+
+      def test_harvest_and_send_timeslice_data_merges_back_on_failure
+        timeslices = mock('timeslices')
+
+        @agent.stats_engine.expects(:harvest).returns(timeslices)
+        @agent.service.stubs(:metric_data).raises('wat')
+        @agent.stats_engine.expects(:merge!).with(timeslices)
+
+        assert_nothing_raised do
+          @agent.send(:harvest_and_send_timeslice_data)
+        end
+      end
+
       def test_connect_retries_on_timeout
         service = @agent.service
-        def service.connect(opts={})
-          unless @tried
-            @tried = true
-            raise Timeout::Error
-          end
-          nil
-        end
+        service.stubs(:connect).raises(Timeout::Error).then.returns(nil)
+        @agent.stubs(:connect_retry_period).returns(0)
+        @agent.send(:connect)
+        assert(@agent.connected?)
+      end
+
+      def test_connect_retries_on_server_connection_exception
+        service = @agent.service
+        service.stubs(:connect).raises(ServerConnectionException).then.returns(nil)
         @agent.stubs(:connect_retry_period).returns(0)
         @agent.send(:connect)
         assert(@agent.connected?)
@@ -268,8 +279,9 @@ module NewRelic
         @agent.send(:connect, :force_reconnect => true)
       end
 
-      def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started
-        NewRelic::Agent::PipeChannelManager.listener.expects(:started?).returns(false)
+      def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started_and_forkable
+        NewRelic::LanguageSupport.stubs(:can_fork?).returns(true)
+        NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
         with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
@@ -280,7 +292,19 @@ module NewRelic
       end
 
       def test_doesnt_defer_start_if_resque_dispatcher_and_channel_manager_started
-        NewRelic::Agent::PipeChannelManager.listener.expects(:started?).returns(true)
+        NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(true)
+
+        # :send_data_on_exit setting to avoid setting an at_exit
+        with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
+          @agent.start
+        end
+
+        assert @agent.started?
+      end
+
+      def test_doesnt_defer_start_for_resque_if_non_forking_platform
+        NewRelic::LanguageSupport.stubs(:can_fork?).returns(false)
+        NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
         with_config( :send_data_on_exit => false, :dispatcher => :resque ) do

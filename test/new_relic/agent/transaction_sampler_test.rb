@@ -281,37 +281,26 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       @last_sample = 'a sample'
     end
 
-    @sampler.expects(:choose_samples).with([]).returns([])
-
     assert_equal([], @sampler.harvest)
 
     # make sure the samples have been cleared
     assert_equal(nil, @sampler.instance_variable_get('@last_sample'))
   end
 
-  def test_harvest_with_previous_samples
-    with_config(:'transaction_tracer.limit_segments' => 2000) do
-      sample = mock('sample')
-      @sampler.expects(:choose_samples).with([sample]).returns([sample])
-      assert_equal([sample], @sampler.harvest([sample]))
-    end
-  end
-
   def test_harvest_no_data
-    previous = []
-    assert_equal([], @sampler.harvest(previous))
+    assert_equal([], @sampler.harvest)
   end
 
   def test_add_samples_holds_onto_previous_result
     sample = sample_with(:duration => 1)
-    previous = [sample]
-    assert_equal([sample], @sampler.harvest(previous))
+    @sampler.merge!([sample])
+    assert_equal([sample], @sampler.harvest)
   end
 
-  def test_add_samples_avoids_dups_from_previous
+  def test_merge_avoids_dups
     sample = sample_with(:duration => 1)
-    previous = [sample, sample]
-    assert_equal([sample], @sampler.harvest(previous))
+    @sampler.merge!([sample, sample])
+    assert_equal([sample], @sampler.harvest)
   end
 
   def test_harvest_avoids_dups_from_harvested_samples
@@ -319,47 +308,48 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.store_sample(sample)
     @sampler.store_sample(sample)
 
-    assert_equal([sample], @sampler.harvest([]))
+    assert_equal([sample], @sampler.harvest)
   end
 
-  def test_add_samples_avoids_dups_from_forced
+  def test_merge_avoids_dups_from_forced
     sample = sample_with(:duration => 1, :force_persist => true)
-    previous = [sample, sample]
-    assert_equal([sample], @sampler.harvest(previous))
+    @sampler.merge!([sample, sample])
+    assert_equal([sample], @sampler.harvest)
   end
 
   def test_harvest_adding_slowest
     sample = sample_with(:duration => 2.5, :force_persist => false)
     @sampler.store_sample(sample)
 
-    assert_equal([sample], @sampler.harvest([]))
+    assert_equal([sample], @sampler.harvest)
   end
 
   def test_harvest_new_slower_sample_replaces_older
     faster_sample = sample_with(:duration => 5.0)
-    previous = [faster_sample]
-
     slower_sample = sample_with(:duration => 10.0)
-    @sampler.store_sample(slower_sample)
 
-    assert_equal([slower_sample], @sampler.harvest(previous))
+    @sampler.store_sample(slower_sample)
+    @sampler.merge!([faster_sample])
+
+    assert_equal([slower_sample], @sampler.harvest)
   end
 
   def test_harvest_keep_older_slower_sample
     faster_sample = sample_with(:duration => 5.0)
-    @sampler.store_sample(faster_sample)
-
     slower_sample = sample_with(:duration => 10.0)
-    previous = [slower_sample]
 
-    assert_equal([slower_sample], @sampler.harvest(previous))
+    @sampler.store_sample(faster_sample)
+    @sampler.merge!([slower_sample])
+
+    assert_equal([slower_sample], @sampler.harvest)
   end
 
   def test_harvest_keep_force_persist_in_previous_results
     unforced_sample = sample_with(:duration => 10, :force_persist => false)
     forced_sample = sample_with(:duration => 1, :force_persist => true)
 
-    result = @sampler.harvest([unforced_sample, forced_sample])
+    @sampler.merge!([unforced_sample, forced_sample])
+    result = @sampler.harvest
 
     assert_includes(result, unforced_sample)
     assert_includes(result, forced_sample)
@@ -372,7 +362,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     unforced_sample = sample_with(:duration => 10, :force_persist => false)
     @sampler.store_sample(unforced_sample)
 
-    result = @sampler.harvest([])
+    result = @sampler.harvest
 
     assert_includes(result, unforced_sample)
     assert_includes(result, forced_sample)
@@ -384,14 +374,15 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     old_forced = sample_with(:duration => 1, :force_persist => true)
 
-    result = @sampler.harvest([old_forced])
+    @sampler.merge!([old_forced])
+    result = @sampler.harvest
 
     assert_includes(result, new_forced)
     assert_includes(result, old_forced)
   end
 
-  FORCE_PERSIST_MAX = NewRelic::Agent::Transaction::ForcePersistSampleBuffer::MAX_SAMPLES
-  SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::MAX_SAMPLES
+  FORCE_PERSIST_MAX = NewRelic::Agent::Transaction::ForcePersistSampleBuffer::CAPACITY
+  SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::CAPACITY
   XRAY_SAMPLE_MAX = NewRelic::Agent.config[:'xray_session.max_samples']
 
   def test_harvest_respects_limits_from_previous
@@ -406,7 +397,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     result = nil
     with_active_xray_session("Active/xray") do
-      result = @sampler.harvest(previous)
+      @sampler.merge!(previous)
+      result = @sampler.harvest
     end
 
     expected = [slowest]
@@ -432,12 +424,33 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       end
     end
 
-    result = @sampler.harvest([])
+    result = @sampler.harvest
 
     expected = [slowest]
     expected = expected.concat(forced_samples.last(FORCE_PERSIST_MAX))
     expected = expected.concat(xray_samples.first(XRAY_SAMPLE_MAX))
     assert_equal_unordered(expected, result)
+  end
+
+  class BoundlessBuffer < NewRelic::Agent::Transaction::TransactionSampleBuffer
+    def capacity
+      1.0 / 0 # Can't use Float::INFINITY on older Rubies :(
+    end
+  end
+
+  def test_harvest_has_hard_maximum
+    boundless_buffer = BoundlessBuffer.new
+
+    buffers = @sampler.instance_variable_get(:@sample_buffers)
+    buffers << boundless_buffer
+
+    samples = generate_samples(100)
+    samples.each do |sample|
+      @sampler.store_sample(sample)
+    end
+
+    result = @sampler.harvest
+    assert_equal NewRelic::Agent::Transaction::TransactionSampleBuffer::SINGLE_BUFFER_MAX, result.length
   end
 
   def test_start_builder_default
@@ -500,7 +513,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
       @sampler.notice_pop_scope "a"
       @sampler.notice_scope_empty(@txn)
-      sample = @sampler.harvest([]).first
+      sample = @sampler.harvest.first
       assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
     end
   end
@@ -527,7 +540,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       @sampler.notice_pop_scope "a"
       @sampler.notice_scope_empty(@txn)
 
-      sample = @sampler.harvest([]).first
+      sample = @sampler.harvest.first
       assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
     end
   ensure
@@ -546,19 +559,21 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       run_sample_trace(0,0.1)
       run_sample_trace(0,0.1)
 
-      slowest = @sampler.harvest(nil)[0]
+      slowest = @sampler.harvest[0]
       first_duration = slowest.duration
       assert((first_duration.round >= 2),
              "expected sample duration = 2, but was: #{slowest.duration.inspect}")
 
       # 1 second duration
       run_sample_trace(0,1)
-      not_as_slow = @sampler.harvest([slowest])[0]
+      @sampler.merge!([slowest])
+      not_as_slow = @sampler.harvest[0]
       assert((not_as_slow == slowest), "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
 
       run_sample_trace(0,10)
 
-      new_slowest = @sampler.harvest([slowest])[0]
+      @sampler.merge!([slowest])
+      new_slowest = @sampler.harvest[0]
       assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
       assert_equal(new_slowest.duration.round, 10, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
     end
@@ -567,10 +582,10 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_prepare_to_send
     sample = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       run_sample_trace { sleep 0.002 }
-      @sampler.harvest(nil)[0]
+      @sampler.harvest[0]
     end
 
-    ready_to_send = sample.prepare_to_send
+    ready_to_send = sample.prepare_to_send!
     assert sample.duration == ready_to_send.duration
 
     assert ready_to_send.start_time.is_a?(Time)
@@ -628,7 +643,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       @sampler.notice_scope_empty(@txn)
       @sampler.notice_scope_empty(@txn)
 
-      assert_not_nil @sampler.harvest(nil)[0]
+      assert_not_nil @sampler.harvest[0]
     end
   end
 
@@ -718,7 +733,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
           @sampler.notice_first_scope_push Time.now.to_f
           @sampler.notice_transaction(nil, :param => 'hi')
           @sampler.notice_scope_empty(@txn)
-          @sampler.harvest(nil)[0]
+          @sampler.harvest[0]
         end
 
         assert_equal (capture ? 1 : 0), tt.params[:request_params].length

@@ -75,8 +75,8 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
 
   def test_does_not_overwrite_name_when_set_by_RUM
     TestTransactor.new.parent_txn do
+      NewRelic::Agent.browser_timing_config
       NewRelic::Agent.browser_timing_header
-      NewRelic::Agent.browser_timing_footer
       NewRelic::Agent.set_transaction_name('this/should/not/work')
     end
     assert_metrics_not_recorded(['Controller/this/should/not/work'])

@@ -77,11 +77,33 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
     assert_saw_traces(profile_data, "BACKGROUND")
   end
 
+  def test_thread_profiling_with_pruby_marshaller
+    with_config(:marshaller => 'pruby') do
+      issue_command(START_COMMAND)
+
+      run_thread { NewRelic::Agent::Transaction.start(:controller, :request => stub) }
+      run_thread { NewRelic::Agent::Transaction.start(:task) }
+
+      let_it_finish
+    end
+
+    profile_data = $collector.calls_for('profile_data')[0]
+    assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
+    assert(profile_data.sample_count > 10, "Expected sample_count > 10, but was #{profile_data.sample_count}")
+
+    assert_saw_traces(profile_data, "OTHER")
+    assert_saw_traces(profile_data, "AGENT")
+    assert_saw_traces(profile_data, "REQUEST")
+    assert_saw_traces(profile_data, "BACKGROUND")
+  end
+
   def test_thread_profiling_can_stop
     issue_command(START_COMMAND)
     issue_command(STOP_COMMAND)
 
-    let_it_finish
+    # No wait needed, should be immediately ready to harvest
+    assert @thread_profiler_session.ready_to_harvest?
+    harvest
 
     profile_data = $collector.calls_for('profile_data')[0]
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
@@ -102,17 +124,20 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   end
 
   def let_it_finish
-    Timeout.timeout(5) do
-      until @thread_profiler_session.ready_to_harvest?
-        sleep(0.1)
-      end
-    end
+    wait_for_backtrace_service_poll(:timeout => 10.0, :iterations => 10)
+    harvest
+  end
 
+  def harvest
     agent.send(:transmit_data, true)
   end
 
   def assert_saw_traces(profile_data, type)
-    assert !profile_data.traces[type].empty?, "Missing #{type} traces"
+    assert_kind_of Hash, profile_data.traces
+    traces_for_type = profile_data.traces[type]
+    assert traces_for_type, "Missing key for type #{type} in profile_data"
+    assert_kind_of Array, traces_for_type
+    assert !profile_data.traces[type].empty?, "Zero #{type} traces seen"
   end
 
 end

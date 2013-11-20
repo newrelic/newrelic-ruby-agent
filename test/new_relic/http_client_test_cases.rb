@@ -38,7 +38,10 @@ module HttpClientTestCases
     NewRelic::Agent.instance.events.notify(:finished_configuring)
 
     @nr_header = nil
-    NewRelic::Agent.instance.events.subscribe(:after_call) do |_, (_, headers, _)|
+    # Don't use destructuring on result array with ignores since it fails
+    # on Rubinius: https://github.com/rubinius/rubinius/issues/2678
+    NewRelic::Agent.instance.events.subscribe(:after_call) do |_, result|
+      headers = result[1]
       headers[ NR_APPDATA_HEADER ] = @nr_header unless @nr_header.nil?
     end
 
@@ -253,6 +256,28 @@ module HttpClientTestCases
     assert_metrics_recorded([
       "External/all",
       "External/localhost/#{client_name}/POST",
+      "External/allOther",
+      "External/localhost/all"
+    ])
+  end
+
+  def test_put
+    put_response
+
+    assert_metrics_recorded([
+      "External/all",
+      "External/localhost/#{client_name}/PUT",
+      "External/allOther",
+      "External/localhost/all"
+    ])
+  end
+
+  def test_delete
+    delete_response
+
+    assert_metrics_recorded([
+      "External/all",
+      "External/localhost/#{client_name}/DELETE",
       "External/allOther",
       "External/localhost/all"
     ])

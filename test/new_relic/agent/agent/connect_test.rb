@@ -18,6 +18,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @transaction_sampler = NewRelic::Agent::TransactionSampler.new
     @sql_sampler = NewRelic::Agent::SqlSampler.new
     @error_collector = NewRelic::Agent::ErrorCollector.new
+    @stats_engine = NewRelic::Agent::StatsEngine.new
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
     @test_config = { :developer_mode => true }
@@ -195,7 +196,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
                                     { 'match_expression' => 'xx',
                                       'replacement'      => 'XX' } ]
     }
-    finish_setup(config)
+    NewRelic::Agent.instance.finish_setup(config)
 
     rules = NewRelic::Agent.instance.transaction_rules
     assert_equal 2, rules.size
@@ -219,7 +220,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     }
     finish_setup(config)
 
-    rules = NewRelic::Agent.instance.metric_rules
+    rules = @stats_engine.metric_rules
     assert_equal 2, rules.size
     assert(rules.find{|r| r.match_expression == /77/ && r.replacement == '&&' },
            "rule not found among #{rules}")

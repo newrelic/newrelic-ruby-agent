@@ -60,7 +60,7 @@ module Performance
           end
           result
         end
-      rescue => e
+      rescue StandardError, LoadError => e
         result.exception = e
       end
       result

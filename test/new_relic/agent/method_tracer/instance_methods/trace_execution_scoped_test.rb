@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Test::Unit::TestCase
   require 'new_relic/agent/method_tracer'
-  include NewRelic::Agent::MethodTracer::TraceExecutionScoped
+  include NewRelic::Agent::MethodTracer
 
   def setup
     NewRelic::Agent.agent.stats_engine.clear_stats

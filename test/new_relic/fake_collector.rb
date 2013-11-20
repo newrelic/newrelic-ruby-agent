@@ -146,6 +146,10 @@ module NewRelic
       end
 
       def unblob(blob)
+        self.class.unblob(blob)
+      end
+
+      def self.unblob(blob)
         return unless blob
         JSON.load(Zlib::Inflate.inflate(Base64.decode64(blob)))
       end
@@ -192,8 +196,9 @@ module NewRelic
 
     class TransactionSampleDataPost < AgentPost
       class SubmittedTransactionTrace
-        def initialize(body)
+        def initialize(body, format)
           @body = body
+          @format = format
         end
 
         def metric_name
@@ -204,8 +209,38 @@ module NewRelic
           @body[3]
         end
 
+        def tree
+          SubmittedTransactionTraceTree.new(@body[4], @format)
+        end
+
         def xray_id
           @body[8]
+        end
+      end
+
+      class SubmittedTransactionTraceTree
+        def initialize(body, format)
+          @body = body
+          @body = AgentPost.unblob(@body) if format == :json
+        end
+
+        def request_params
+          normalize_params(@body[1])
+        end
+
+        def custom_params
+          normalize_params(@body[2])
+        end
+
+        # Pruby marshalled stuff ends up with symbol keys.  JSON ends up with
+        # strings. This makes writing tests on the params annoying. Normalize
+        # it all to string keys.
+        def normalize_params(params)
+          result = {}
+          @body[2].each do |k,v|
+            result[k.to_s] = v
+          end
+          result
         end
       end
 
@@ -215,7 +250,7 @@ module NewRelic
       end
 
       def samples
-        @samples ||= @body[1].map { |s| SubmittedTransactionTrace.new(s) }
+        @samples ||= @body[1].map { |s| SubmittedTransactionTrace.new(s, @format) }
       end
 
       def metric_name

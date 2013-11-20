@@ -14,6 +14,11 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     @stats_engine.reset_stats
   end
 
+  def teardown
+    # Failed transactions can leave partial stack, so pave it for next test
+    NewRelic::Agent::Transaction.stack.clear
+  end
+
   def test_request_parsing__none
     assert_nil txn.uri
     assert_nil txn.referer
@@ -222,9 +227,12 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
   end
 
   def test_end_fires_a_transaction_finished_event
-    name, timestamp, duration = nil
-    NewRelic::Agent.subscribe(:transaction_finished) do |*args|
-      name, timestamp, duration = *args
+    name, timestamp, duration, type = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      name = payload[:name]
+      timestamp = payload[:start_timestamp]
+      duration = payload[:duration]
+      type = payload[:type]
     end
 
     start_time = freeze_time
@@ -237,12 +245,13 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     assert_equal 'Controller/foo/1/bar/22', name
     assert_equal start_time.to_f, timestamp
     assert_equal 5.0, duration
+    assert_equal :controller, type
   end
 
   def test_end_fires_a_transaction_finished_event_with_overview_metrics
     options = nil
-    NewRelic::Agent.subscribe(:transaction_finished) do |_, _, _, opts|
-      options = opts
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      options = payload[:overview_metrics]
     end
 
     NewRelic::Agent::Transaction.start(:controller)
@@ -250,6 +259,26 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     NewRelic::Agent::Transaction.stop('txn')
 
     assert_equal 2.1, options[:webDuration]
+  end
+
+  def test_end_fires_a_transaction_finished_event_with_custom_params
+    options = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      options = payload[:custom_params]
+    end
+
+    NewRelic::Agent::Transaction.start(:controller)
+    NewRelic::Agent.add_custom_parameters('fooz' => 'barz')
+    NewRelic::Agent::Transaction.stop('txn')
+
+    assert_equal 'barz', options['fooz']
+  end
+
+  def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
+    expects_logging(:warn, includes("add_custom_parameters"))
+    NewRelic::Agent::Transaction.start(:controller)
+    NewRelic::Agent.add_custom_parameters('fooz')
+    NewRelic::Agent::Transaction.stop('txn')
   end
 
   def test_parent_returns_parent_transaction_if_there_is_one
@@ -274,4 +303,26 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
   def test_parent_returns_nil_if_outside_transaction_entirely
     assert_nil(NewRelic::Agent::Transaction.parent)
   end
+
+  def test_user_attributes_alias_to_custom_parameters
+    in_transaction('user_attributes') do
+      txn = NewRelic::Agent::Transaction.current
+      txn.set_user_attributes(:set_instance => :set_instance)
+      txn.user_attributes[:indexer_instance] = :indexer_instance
+
+      NewRelic::Agent::Transaction.set_user_attributes(:set_class => :set_class)
+      NewRelic::Agent::Transaction.user_attributes[:indexer_class] = :indexer_class
+
+      assert_has_custom_parameter(:set_instance)
+      assert_has_custom_parameter(:indexer_instance)
+
+      assert_has_custom_parameter(:set_class)
+      assert_has_custom_parameter(:indexer_class)
+    end
+  end
+
+  def assert_has_custom_parameter(key, value = key)
+    assert_equal(value, NewRelic::Agent::Transaction.current.custom_parameters[key])
+  end
+
 end

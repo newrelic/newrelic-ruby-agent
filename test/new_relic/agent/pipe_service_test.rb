@@ -34,7 +34,7 @@ class PipeServiceTest < Test::Unit::TestCase
       .with(regexp_matches(/No communication channel to parent process/)).once
     service = NewRelic::Agent::PipeService.new(:non_existant)
     assert_nothing_raised do
-      service.metric_data(Time.now, Time.now, {})
+      service.metric_data({})
     end
   end
 
@@ -44,7 +44,7 @@ class PipeServiceTest < Test::Unit::TestCase
     def test_metric_data
       received_data = data_from_forked_process do
         metric_data0 = generate_metric_data('Custom/something')
-        @service.metric_data(0.0, 0.1, metric_data0)
+        @service.metric_data(metric_data0)
       end
 
       assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
@@ -75,7 +75,7 @@ class PipeServiceTest < Test::Unit::TestCase
     def test_multiple_writes_to_pipe
       pid = Process.fork do
         metric_data0 = generate_metric_data('Custom/something')
-        @service.metric_data(0.0, 0.1, metric_data0)
+        @service.metric_data(metric_data0)
         @service.transaction_sample_data(['txn0'])
         @service.error_data(['err0'])
         @service.sql_trace_data(['sql0'])
@@ -102,7 +102,7 @@ class PipeServiceTest < Test::Unit::TestCase
   def generate_metric_data(metric_name, data=1.0)
     engine = NewRelic::Agent::StatsEngine.new
     engine.get_stats_no_scope(metric_name).record_data_point(data)
-    engine.harvest_timeslice_data({})
+    engine.harvest
   end
 
   def read_from_pipe

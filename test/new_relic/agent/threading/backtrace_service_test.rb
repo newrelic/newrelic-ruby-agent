@@ -14,6 +14,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       include ThreadedTestCase
 
       def setup
+        freeze_time
         NewRelic::Agent.instance.stats_engine.clear_stats
         @event_listener = NewRelic::Agent::EventListener.new
         @service = BacktraceService.new(@event_listener)
@@ -103,7 +104,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_harvest_sets_finished_at_on_returned_thread_profile
         fake_worker_loop(@service)
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.subscribe('foo')
         harvested_profile = @service.harvest('foo')
 
@@ -178,23 +179,23 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
 
       def test_subscribe_adjusts_worker_loop_period
-        dummy_loop = fake_worker_loop(@service)
+        fake_worker_loop(@service)
 
         @service.subscribe('foo', 'sample_period' => 10)
-        assert_equal(10, dummy_loop.period)
+        assert_has_period(10)
 
         @service.subscribe('bar', 'sample_period' => 5)
-        assert_equal(5, dummy_loop.period)
+        assert_has_period(5)
       end
 
       def test_unsubscribe_adjusts_worker_loop_period
-        dummy_loop = fake_worker_loop(@service)
+        fake_worker_loop(@service)
 
         @service.subscribe('foo', 'sample_period' => 10)
         @service.subscribe('bar', 'sample_period' => 5)
         @service.unsubscribe('bar')
 
-        assert_equal(10, dummy_loop.period)
+        assert_has_period(10)
       end
 
       def test_subscribe_sets_profile_agent_code
@@ -259,7 +260,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.subscribe('foo')
         @service.poll
 
-        @service.on_transaction_finished('bar', 0.0, 1, {}, thread)
+        fake_transaction_finished('bar', 0, 1, thread)
         assert @service.buffer.empty?
       end
 
@@ -269,11 +270,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         thread = fake_thread(:bucket => :request)
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.poll
 
         profile.expects(:aggregate).with(thread.backtrace, :request, thread)
-        @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread)
+        fake_transaction_finished('foo', t0.to_f, 1, thread)
       end
 
       def test_on_transaction_finished_does_not_aggregate_backtraces_to_non_subscribed_profiles
@@ -282,11 +283,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         thread = fake_thread(:bucket => :request)
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.poll
 
         profile.expects(:aggregate).never
-        @service.on_transaction_finished('bar', t0.to_f, 1, {}, thread)
+        fake_transaction_finished('bar', t0.to_f, 1, thread)
       end
 
       def test_on_transaction_finished_delivers_buffered_backtraces_for_correct_thread
@@ -297,14 +298,14 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.poll
 
         profile.expects(:aggregate).with(thread0.backtrace, :request, thread0).once
         profile.expects(:aggregate).with(thread1.backtrace, :request, thread1).once
 
-        @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread0)
-        @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread1)
+        fake_transaction_finished('foo', t0.to_f, 1, thread0)
+        fake_transaction_finished('foo', t0.to_f, 1, thread1)
       end
 
       def test_on_transaction_finished_only_delivers_backtraces_within_transaction_time_window
@@ -314,14 +315,14 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         5.times do
           @service.poll
           advance_time(1.0)
         end
 
         profile.expects(:aggregate).with(thread.backtrace, :request, thread).times(2)
-        @service.on_transaction_finished('foo', (t0 + 1).to_f, 2.0, {}, thread)
+        fake_transaction_finished('foo', (t0 + 1).to_f, 2.0, thread)
       end
 
       def test_does_not_deliver_non_request_backtraces_to_subscribed_profiles
@@ -331,11 +332,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.poll
 
         profile.expects(:aggregate).never
-        @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread)
+        fake_transaction_finished('foo', t0.to_f, 1, thread)
       end
 
       def test_subscribe_sets_up_transaction_finished_subscription
@@ -346,11 +347,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = freeze_time
+        t0 = Time.now
         @service.poll
 
         profile.expects(:aggregate).once
-        @event_listener.notify(:transaction_finished, 'foo', t0.to_f, 1.0, {})
+        fake_transaction_finished('foo', t0.to_f, 1.0)
       ensure
         Thread.current[:bucket] = nil
       end
@@ -387,8 +388,6 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_poll_records_polling_time
         fake_worker_loop(@service)
 
-        freeze_time
-
         profile = @service.subscribe('foo')
         def profile.increment_poll_count
           advance_time(5.0)
@@ -418,11 +417,78 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         assert_metrics_recorded(["Supportability/XraySessions/DroppedBacktraces"])
       end
 
+      def test_dynamically_adjusts_worker_loop_period
+        fake_worker_loop(@service)
+
+        poll_for(0.01)
+        assert_has_period 0.2
+      end
+
+      def test_doesnt_adjust_worker_loop_period_if_not_enough_overhead
+        fake_worker_loop(@service)
+
+        poll_for(0.001)
+        assert_has_default_period
+      end
+
+      def test_dynamic_adjustment_returns_if_later_polls_are_shorter
+        fake_worker_loop(@service)
+
+        poll_for(0.01)
+        assert_has_period 0.2
+
+        poll_for(0.001)
+        assert_has_default_period
+      end
+
+      def test_dynamic_adjustment_drives_from_config
+        freeze_time
+        fake_worker_loop(@service)
+
+        with_config(:'xray_session.max_profile_overhead' => 0.1) do
+          poll_for(0.01)
+          assert_has_default_period
+        end
+      end
+
+      def poll_for(poll_length)
+        fake_last_poll_took(poll_length)
+        @service.poll
+      end
+
+      def assert_has_period(value)
+        assert_in_delta(value, @service.worker_loop.period, 0.001)
+      end
+
+      def assert_has_default_period
+        assert_equal 0.1, @service.worker_loop.period
+      end
+
+      def fake_last_poll_took(last_poll_length)
+        # We need to adjust Time.now during the midst of poll
+        # Slip in before the adjust_polling_time call to advance the clock
+        @service.define_singleton_method(:adjust_polling_time) do |end_time, *args|
+          end_time += last_poll_length
+          super(end_time, *args)
+        end
+      end
+
+      def fake_transaction_finished(name, start_timestamp, duration, thread=nil)
+        payload = {
+          :name => name,
+          :start_timestamp => start_timestamp,
+          :duration => duration
+        }
+        payload[:thread] = thread if thread
+        @event_listener.notify(:transaction_finished, payload)
+      end
+
       def fake_worker_loop(service)
         dummy_loop = NewRelic::Agent::WorkerLoop.new
         dummy_loop.stubs(:run).returns(nil)
         dummy_loop.stubs(:stop).returns(nil)
         service.stubs(:worker_loop).returns(dummy_loop)
+        service.effective_polling_period = 0.1
         dummy_loop
       end
 
@@ -452,6 +518,8 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.worker_loop.propagate_errors = true
 
         @service.subscribe('foo', { 'sample_period' => 0.01 })
+
+        wait_for_backtrace_service_poll(:service => @service)
 
         10000.times do
           @service.subscribe(BacktraceService::ALL_TRANSACTIONS)

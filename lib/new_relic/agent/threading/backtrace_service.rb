@@ -12,7 +12,8 @@ module NewRelic
           RUBY_VERSION >= "1.9.2"
         end
 
-        attr_reader :worker_loop, :buffer
+        attr_reader :worker_loop, :buffer, :effective_polling_period,
+                    :overhead_percent_threshold
         attr_accessor :worker_thread, :profile_agent_code
 
         def initialize(event_listener=nil)
@@ -25,6 +26,12 @@ module NewRelic
           @running = false
           @profile_agent_code = false
           @worker_loop = NewRelic::Agent::WorkerLoop.new
+
+          # Memoize overhead % to avoid getting stale OR looked up every poll
+          @overhead_percent_threshold = NewRelic::Agent.config[:'xray_session.max_profile_overhead']
+          NewRelic::Agent.config.register_callback(:'xray_session.max_profile_overhead') do |new_value|
+            @overhead_percent_threshold = new_value
+          end
 
           if event_listener
             event_listener.subscribe(:transaction_finished, &method(:on_transaction_finished))
@@ -71,7 +78,7 @@ module NewRelic
         end
 
         def update_values_from_profiles
-          self.worker_loop.period = effective_profiling_period
+          self.effective_polling_period = find_effective_polling_period
           self.profile_agent_code = should_profile_agent_code?
         end
 
@@ -92,7 +99,11 @@ module NewRelic
           end
         end
 
-        def on_transaction_finished(name, start, duration, options={}, thread=Thread.current)
+        def on_transaction_finished(payload)
+          name     = payload[:name]
+          start    = payload[:start_timestamp]
+          duration = payload[:duration]
+          thread   = payload[:thread] || Thread.current
           @lock.synchronize do
             backtraces = @buffer.delete(thread)
             if backtraces && @profiles.has_key?(name)
@@ -136,6 +147,11 @@ module NewRelic
           @buffer = {}
         end
 
+        def effective_polling_period=(new_period)
+          @effective_polling_period = new_period
+          self.worker_loop.period = new_period
+        end
+
         def poll
           poll_start = Time.now
 
@@ -143,11 +159,13 @@ module NewRelic
             AgentThread.list.each do |thread|
               sample_thread(thread)
             end
-            @profiles.values.each { |c| c.increment_poll_count }
+            @profiles.each_value { |p| p.increment_poll_count }
             @buffer.delete_if { |thread, _| !thread.alive? }
           end
 
-          record_polling_time(Time.now, poll_start)
+          end_time = Time.now
+          adjust_polling_time(end_time, poll_start)
+          record_supportability_metrics(end_time, poll_start)
         end
 
         # This method is expected to be called with @lock held.
@@ -200,7 +218,7 @@ module NewRelic
         end
 
         # This method is expected to be called with @lock held.
-        def effective_profiling_period
+        def find_effective_polling_period
           @profiles.values.map { |p| p.requested_period }.min
         end
 
@@ -209,8 +227,30 @@ module NewRelic
           @profiles.values.any? { |p| p.profile_agent_code }
         end
 
+        # If our overhead % exceeds the threshold, bump the next poll period
+        # relative to how much larger our overhead is than allowed
+        def adjust_polling_time(now, poll_start)
+          duration = now - poll_start
+          overhead_percent = duration / effective_polling_period
+
+          if overhead_percent > self.overhead_percent_threshold
+            scale_up_by = overhead_percent / self.overhead_percent_threshold
+            worker_loop.period = effective_polling_period * scale_up_by
+          else
+            worker_loop.period = effective_polling_period
+          end
+        end
+
+        def record_supportability_metrics(now, poll_start)
+          record_polling_time(now, poll_start)
+          record_skew(poll_start)
+        end
+
         def record_polling_time(now, poll_start)
           NewRelic::Agent.record_metric('Supportability/ThreadProfiler/PollingTime', now - poll_start)
+        end
+
+        def record_skew(poll_start)
           if @last_poll
             skew = poll_start - @last_poll - worker_loop.period
             NewRelic::Agent.record_metric('Supportability/ThreadProfiler/Skew', skew)

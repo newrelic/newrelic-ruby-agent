@@ -35,6 +35,8 @@ require 'new_relic/control'
 # For detailed information on customizing the Ruby Agent
 # please visit our {support and documentation site}[http://support.newrelic.com].
 #
+# @api public
+#
 module NewRelic
   # == Ruby Agent APIs
   # This module contains the public API methods for the Ruby Agent.
@@ -61,6 +63,9 @@ module NewRelic
   # Refer to the online docs at support.newrelic.com to see how to
   # access the data collected by custom instrumentation, or e-mail
   # support at New Relic for help.
+  #
+  # @api public
+  #
   module Agent
     extend self
     extend Forwardable
@@ -220,7 +225,12 @@ module NewRelic
     # Return a NewRelic::Agent::Stats that accepts data
     # via calls to add_data_point(value).
     #
+    # This method is deprecated in favor of record_metric and increment_metric,
+    # and is not thread-safe.
+    #
+    # @api public
     # @deprecated
+    #
     def get_stats(metric_name, use_scope=false)
       agent.stats_engine.get_stats(metric_name, use_scope)
     end
@@ -241,6 +251,8 @@ module NewRelic
     # will take a logger that will be used instead of the standard
     # file logger.  The setting for the newrelic.yml section to use
     # (ie, RAILS_ENV) can be overridden with an :env argument.
+    #
+    # @api public
     #
     def manual_start(options={})
       raise "Options must be a hash" unless Hash === options
@@ -272,6 +284,9 @@ module NewRelic
     # * <tt>:keep_retrying => false</tt> if we try to initiate a new
     #   connection, this tells me to only try it once so this method returns
     #   quickly if there is some kind of latency with the server.
+    #
+    # @api public
+    #
     def after_fork(options={})
       agent.after_fork(options)
     end
@@ -283,6 +298,9 @@ module NewRelic
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
     # and kills the background thread.
+    #
+    # @api public
+    #
     def shutdown(options={})
       agent.shutdown(options)
     end
@@ -293,6 +311,9 @@ module NewRelic
     # when the agent is not running it's better to use this method to
     # register instrumentation than just loading the files directly,
     # although that probably also works.
+    #
+    # @api public
+    #
     def add_instrumentation(file_pattern)
       NewRelic::Control.instance.add_instrumentation file_pattern
     end
@@ -311,6 +332,8 @@ module NewRelic
     #       my_obfuscator(sql)
     #    end
     #
+    # @api public
+    #
     def set_sql_obfuscator(type = :replace, &block)
       NewRelic::Agent::Database.set_sql_obfuscator(type, &block)
     end
@@ -325,6 +348,8 @@ module NewRelic
     #     ...
     #   end
     #
+    # @api public
+    #
     def disable_sql_recording
       state = agent.set_record_sql(false)
       begin
@@ -334,25 +359,11 @@ module NewRelic
       end
     end
 
-
-    # Subscribe to events of +event_type+, calling the given +handler+
-    # when one is sent.
-    def subscribe(event_type, &handler)
-      agent.events.subscribe( event_type, &handler )
-    end
-
-
-    # Fire an event of the specified +event_type+, passing it an the given +args+
-    # to any registered handlers.
-    def notify(event_type, *args)
-      agent.events.notify( event_type, *args )
-    rescue => err
-      NewRelic::Agent.logger.debug "Ignoring exception during %p event notification" % [event_type]
-    end
-
-
     # This method disables the recording of transaction traces in the given
     # block.  See also #disable_all_tracing
+    #
+    # @api public
+    #
     def disable_transaction_tracing
       state = agent.set_record_tt(false)
       begin
@@ -365,6 +376,9 @@ module NewRelic
     # Cancel the collection of the current transaction in progress, if
     # any.  Only affects the transaction started on this thread once
     # it has started and before it has completed.
+    #
+    # @api public
+    #
     def abort_transaction!
       Transaction.abort_transaction!
     end
@@ -374,6 +388,9 @@ module NewRelic
     # track of the first entry point and turn on tracing again after
     # leaving that block.  This uses the thread local
     # +newrelic_untrace+
+    #
+    # @api public
+    #
     def disable_all_tracing
       agent.push_trace_execution_flag(false)
       yield
@@ -407,6 +424,8 @@ module NewRelic
     #
     # Return the new block or the existing filter Proc if no block is passed.
     #
+    # @api public
+    #
     def ignore_error_filter(&block)
       agent.error_collector.ignore_error_filter(&block)
     end
@@ -425,30 +444,34 @@ module NewRelic
     #
     # Anything left over is treated as custom params.
     #
+    # @api public
+    #
     def notice_error(exception, options={})
       Transaction.notice_error(exception, options)
       nil # don't return a noticed error datastructure. it can only hurt.
     end
 
-    # Add parameters to the current transaction trace (and traced error if any)
-    # on the call stack.
+    # Add parameters to any Transaction Trace, Error or Analytics Events that
+    # are recorded during the current transaction.
+    #
+    # If configured to allow it, these custom parameters will also be present
+    # in the RUM script injected into the page.
+    #
+    # @api public
     #
     def add_custom_parameters(params)
-      Transaction.add_custom_parameters(params)
+      if params.is_a? Hash
+        Transaction.add_custom_parameters(params)
+      else
+        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_parameters. Expected Hash but got #{params.class}")
+      end
     end
 
-    # Set attributes about the user making this request. These attributes will be automatically
-    # appended to any Transaction Trace or Error that is collected. These attributes
-    # will also be collected for RUM requests.
-    #
-    # Attributes (hash)
-    # * <tt>:user</tt> => user name or ID
-    # * <tt>:account</tt> => account name or ID
-    # * <tt>:product</tt> => product name or level
-    #
-    def set_user_attributes(attributes)
-      Transaction.set_user_attributes(attributes)
-    end
+    # @deprecated
+    alias add_request_parameters add_custom_parameters
+
+    # @deprecated
+    alias set_user_attributes add_custom_parameters
 
     # Set the name of the current running transaction.  The agent will
     # apply a reasonable default based on framework routing, but in
@@ -472,6 +495,7 @@ module NewRelic
     # The default category is the same as the running transaction.
     #
     # @api public
+    #
     def set_transaction_name(name, options={})
       if Transaction.current
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(self)
@@ -484,16 +508,13 @@ module NewRelic
     # want to modify the default name.
     #
     # @api public
+    #
     def get_transaction_name
       if Transaction.current
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(self)
         Transaction.current.name.sub(Regexp.new("\\A#{Regexp.escape(namer.category_name)}/"), '')
       end
     end
-
-    # The #add_request_parameters method is aliased to #add_custom_parameters
-    # and is now deprecated.
-    alias add_request_parameters add_custom_parameters #:nodoc:
 
     # Yield to a block that is run with a database metric name
     # context.  This means the Database instrumentation will use this
@@ -503,6 +524,9 @@ module NewRelic
     # * <tt>model</tt> is the DB model class
     # * <tt>method</tt> is the name of the finder method or other
     #   method to identify the operation with.
+    #
+    # @api public
+    #
     def with_database_metric_name(model, method, &block)
       if txn = Transaction.current
         txn.with_database_metric_name(model, method, &block)
@@ -537,21 +561,63 @@ module NewRelic
     #   request parameters.
     # * <tt>'custom_params' => hash</tt> to record extra information in traced errors
     #
+    # @api public
+    # @deprecated
+    #
     def record_transaction(response_sec, options = {})
       agent.record_transaction(response_sec, options)
     end
 
-    # Returns a Javascript string which should be injected into the very top of the response body
+    # Subscribe to events of +event_type+, calling the given +handler+
+    # when one is sent.
+    def subscribe(event_type, &handler)
+      agent.events.subscribe( event_type, &handler )
+    end
+
+
+    # Fire an event of the specified +event_type+, passing it an the given +args+
+    # to any registered handlers.
+    def notify(event_type, *args)
+      agent.events.notify( event_type, *args )
+    rescue => err
+      NewRelic::Agent.logger.debug "Ignoring exception during %p event notification" % [event_type]
+    end
+
+    # This method returns a string suitable for inclusion in a page - known as
+    # 'manual instrumentation' for Real User Monitoring. Can return either a
+    # script tag with associated javascript, or in the case of disabled Real
+    # User Monitoring, an empty string
+    #
+    # This is the header string - it should be placed as high in the page as is
+    # reasonably possible - that is, before any style or javascript inclusions,
+    # but after any header-related meta tags
+    #
+    # @api public
     #
     def browser_timing_header
       agent.browser_timing_header
     end
 
-    # Returns a Javascript string which should be injected into the very bottom of the response body
+    # This method returns a string suitable for inclusion in a page - known as
+    # 'manual instrumentation' for Real User Monitoring. Can return either a
+    # script tag with associated javascript, or in the case of disabled Real
+    # User Monitoring, an empty string
     #
-    def browser_timing_footer
-      agent.browser_timing_footer
+    # This is the config string and can be placed anywhere in the page.  New
+    # Relic places it before before the Real User Monitoring header when
+    # auto-instrumenting.
+    #
+    # This was previously known as browser_timing_footer and required to be
+    # located as low as possible in the page, but that is no longer the case.
+    #
+    # @api public
+    #
+    def browser_timing_config
+      agent.browser_timing_config
     end
+
+    # @deprecated
+    alias browser_timing_footer browser_timing_config
 
     def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end

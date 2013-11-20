@@ -11,6 +11,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
 
   def setup
     @test_config = { :developer_mode => true }
+    NewRelic::Agent.agent.reset_stats
     NewRelic::Agent.config.apply_config(@test_config)
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     NewRelic::Agent.manual_start
@@ -46,7 +47,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         NewRelic::Agent.after_fork
         new_engine = NewRelic::Agent::StatsEngine.new
         new_engine.get_stats_no_scope(metric).record_data_point(2.0)
-        listener.pipes[666].write(:stats => new_engine.harvest_timeslice_data({}))
+        listener.pipes[666].write(:stats => new_engine.harvest)
       end
       Process.wait(pid)
       listener.stop
@@ -57,24 +58,21 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
 
     def test_listener_merges_transaction_traces
       sampler = NewRelic::Agent.agent.transaction_sampler
-      run_sample_trace_on(sampler)
-      NewRelic::Agent.agent.merge_data_from([nil, [[sampler.last_sample]], nil])
-
-      assert_equal(1, NewRelic::Agent.agent.unsent_traces_size)
+      sample = run_sample_trace_on(sampler)
+      assert_equal(1, sampler.count)
 
       listener = start_listener_with_pipe(667)
-
       pid = Process.fork do
         NewRelic::Agent.after_fork
         with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
           sample = run_sample_trace_on(sampler)
-          listener.pipes[667].write(:transaction_traces => sampler.harvest([]))
+          listener.pipes[667].write(:transaction_traces => sampler.harvest)
         end
       end
       Process.wait(pid)
       listener.stop
 
-      assert_equal(2, NewRelic::Agent.agent.unsent_traces_size)
+      assert_equal(2, sampler.count)
     end
 
     def test_listener_merges_error_traces
@@ -95,7 +93,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
                                  :metric => 'path', :referer => 'test_referer',
                                  :request_params => {:x => 'y'})
-        listener.pipes[668].write(:error_traces => new_sampler.harvest_errors([]))
+        listener.pipes[668].write(:error_traces => new_sampler.harvest_errors)
       end
       Process.wait(pid)
       listener.stop

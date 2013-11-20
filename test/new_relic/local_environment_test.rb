@@ -40,6 +40,8 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
   # around that interaction, so we don't run them on JRuby.
   unless defined?(JRuby)
     def test_mongrel_only_checks_once
+      return unless NewRelic::LanguageSupport.object_space_usable?
+
       define_mongrel
 
       # One call from LocalEnvironment's initialize, second from first #mongrel call.
@@ -50,10 +52,12 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
       5.times { e.mongrel }
       assert_nil e.mongrel
     ensure
-      Object.send(:remove_const, :Mongrel)
+      Object.send(:remove_const, :Mongrel) if defined?(Mongrel)
     end
 
     def test_check_for_mongrel_allows_one_more_check
+      return unless NewRelic::LanguageSupport.object_space_usable?
+
       define_mongrel
 
       ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).at_least(2)
@@ -61,7 +65,7 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
       e = NewRelic::LocalEnvironment.new
       e.send(:check_for_mongrel)
     ensure
-      Object.send(:remove_const, :Mongrel)
+      Object.send(:remove_const, :Mongrel) if defined?(Mongrel)
     end
   end
 

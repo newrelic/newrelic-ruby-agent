@@ -104,12 +104,13 @@ module NewRelic
         end
 
         def to_collector_array(encoder)
+          encoded_trace_tree = encoder.encode(generate_traces)
           result = [
             int(self.profile_id),
             float(self.created_at),
             float(self.finished_at),
             int(self.sample_count),
-            string(encoder.encode(generate_traces)),
+            encoded_trace_tree,
             int(self.unique_thread_count),
             0 # runnable thread count, which we don't track
           ]

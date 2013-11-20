@@ -5,14 +5,12 @@
 require 'new_relic/agent/transaction/pop'
 require 'new_relic/agent/transaction_timings'
 
-# A struct holding the information required to measure a controller
-# action.  This is put on the thread local.  Handles the issue of
-# re-entrancy, or nested action calls.
-#
-# This class is not part of the public API.  Avoid making calls on it directly.
-#
 module NewRelic
   module Agent
+    # This class represents a single transaction (usually mapping to one
+    # web request or background job invocation) instrumented by the Ruby agent.
+    #
+    # @api public
     class Transaction
       # helper module refactored out of the `pop` method
       include Pop
@@ -206,9 +204,21 @@ module NewRelic
 
         # these tear everything down so need to be done after merging stats
         if self.root?
-          agent.events.notify(:transaction_finished, @name, start_time.to_f, end_time.to_f - start_time.to_f, overview_metrics)
+          send_transaction_finished_event(start_time, end_time, overview_metrics)
           agent.stats_engine.end_transaction
         end
+      end
+
+      def send_transaction_finished_event(start_time, end_time, overview_metrics)
+        payload = {
+          :name             => @name,
+          :type             => @type,
+          :start_timestamp  => start_time.to_f,
+          :duration         => end_time.to_f - start_time.to_f,
+          :overview_metrics => overview_metrics,
+          :custom_params    => custom_parameters
+        }
+        agent.events.notify(:transaction_finished, payload)
       end
 
       def merge_stats_hash
@@ -286,12 +296,9 @@ module NewRelic
         (current && current.custom_parameters) ? current.custom_parameters : {}
       end
 
-      def self.set_user_attributes(attributes)
-        current.set_user_attributes(attributes) if current
-      end
-
-      def self.user_attributes
-        (current) ? current.user_attributes : {}
+      class << self
+        alias_method :user_attributes, :custom_parameters
+        alias_method :set_user_attributes, :add_custom_parameters
       end
 
       APDEX_METRIC_SPEC = NewRelic::MetricSpec.new('Apdex').freeze
@@ -348,30 +355,32 @@ module NewRelic
         @custom_parameters ||= {}
       end
 
-      def user_attributes
-        @user_atrributes ||= {}
+      def add_custom_parameters(p)
+        custom_parameters.merge!(p)
       end
+
+      alias_method :user_attributes, :custom_parameters
+      alias_method :set_user_attributes, :add_custom_parameters
 
       def queue_time
         @apdex_start ? @start_time - @apdex_start : 0
       end
 
-      def add_custom_parameters(p)
-        custom_parameters.merge!(p)
-      end
-
-      def set_user_attributes(attributes)
-        user_attributes.merge!(attributes)
-      end
-
       # Returns truthy if the current in-progress transaction is considered a
       # a web transaction (as opposed to, e.g., a background transaction).
+      #
+      # @api public
+      #
       def self.recording_web_transaction?
         self.current && self.current.recording_web_transaction?
       end
 
+      def self.transaction_type_is_web?(type)
+        [:controller, :uri, :rack, :sinatra].include?(type)
+      end
+
       def recording_web_transaction?
-        [:controller, :uri, :rack, :sinatra].include?(@type)
+        self.class.transaction_type_is_web?(@type)
       end
 
       # Make a safe attempt to get the referer from a request object, generally successful when

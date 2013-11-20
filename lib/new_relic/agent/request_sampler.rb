@@ -13,9 +13,10 @@ class NewRelic::Agent::RequestSampler
           MonitorMixin
 
   # The namespace and keys of config values
-  CONFIG_NAMESPACE = 'request_sampler'
-  MAX_SAMPLES_KEY  = "#{CONFIG_NAMESPACE}.max_samples".to_sym
-  ENABLED_KEY      = "#{CONFIG_NAMESPACE}.enabled".to_sym
+  MAX_SAMPLES_KEY            = :'analytics_events.max_samples_stored'
+  ENABLED_KEY                = :'analytics_events.enabled'
+  ENABLED_TXN_KEY            = :'analytics_events.transactions.enabled'
+  INCLUDE_CUSTOM_PARAMS_KEY  = :'capture_attributes.transaction_events'
 
   # The type field of the sample
   SAMPLE_TYPE              = 'Transaction'
@@ -42,26 +43,42 @@ class NewRelic::Agent::RequestSampler
   public
   ######
 
-  ### Fetch a copy of the sampler's gathered samples. (Synchronized)
+  # Fetch a copy of the sampler's gathered samples. (Synchronized)
   def samples
     return self.synchronize { @samples.to_a }
   end
 
-
-  # Clear any existing samples and reset the last sample time. (Synchronized)
-  def reset
+  def reset!
     NewRelic::Agent.logger.debug "Resetting RequestSampler"
 
     sample_count, request_count = 0
+    old_samples = nil
 
     self.synchronize do
       sample_count = @samples.size
       request_count = @samples.seen
+      old_samples = @samples.to_a
       @samples.reset
       @notified_full = false
     end
 
+    [old_samples, sample_count, request_count]
+  end
+
+  # Clear any existing samples, reset the last sample time, and return the
+  # previous set of samples. (Synchronized)
+  def harvest
+    old_samples, sample_count, request_count = reset!
     record_sampling_rate(request_count, sample_count) if @enabled
+    old_samples
+  end
+
+  # Merge samples back into the buffer, for example after a failed
+  # transmission to the collector. (Synchronized)
+  def merge!(old_samples)
+    self.synchronize do
+      old_samples.each { |s| @samples.append(s) }
+    end
   end
 
   def record_sampling_rate(request_count, sample_count)
@@ -85,12 +102,17 @@ class NewRelic::Agent::RequestSampler
     NewRelic::Agent.config.register_callback(MAX_SAMPLES_KEY) do |max_samples|
       NewRelic::Agent.logger.debug "RequestSampler max_samples set to #{max_samples}"
       self.synchronize { @samples.capacity = max_samples }
-      self.reset
+      self.reset!
     end
 
     NewRelic::Agent.config.register_callback(ENABLED_KEY) do |enabled|
       NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ enabled ? 'En' : 'Dis' ]
-      @enabled = enabled
+      @enabled = enabled && NewRelic::Agent.config[ENABLED_TXN_KEY]
+    end
+
+    NewRelic::Agent.config.register_callback(ENABLED_TXN_KEY) do |enabled|
+      NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ enabled ? 'En' : 'Dis' ]
+      @enabled = enabled && NewRelic::Agent.config[ENABLED_KEY]
     end
   end
 
@@ -100,15 +122,22 @@ class NewRelic::Agent::RequestSampler
   end
 
   # Event handler for the :transaction_finished event.
-  def on_transaction_finished( metric, start_timestamp, duration, options={} )
+  def on_transaction_finished(payload)
     return unless @enabled
-    sample = {
-      TIMESTAMP_KEY => float(start_timestamp),
-      NAME_KEY      => string(metric),
-      DURATION_KEY  => float(duration),
-      TYPE_KEY      => SAMPLE_TYPE
-    }.merge(options)
-
+    return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
+    # The order in which these are merged is important.  We want to ensure that
+    # custom parameters can't override required fields (e.g. type)
+    sample = {}
+    if ::NewRelic::Agent.config[INCLUDE_CUSTOM_PARAMS_KEY]
+      sample.merge!(event_params(payload[:custom_params] || {}))
+    end
+    sample.merge!(payload[:overview_metrics] || {})
+    sample.merge!({
+        TIMESTAMP_KEY     => float(payload[:start_timestamp]),
+        NAME_KEY          => string(payload[:name]),
+        DURATION_KEY      => float(payload[:duration]),
+        TYPE_KEY          => SAMPLE_TYPE,
+      })
     is_full = self.synchronize { @samples.append(sample) }
     notify_full if is_full && !@notified_full
   end

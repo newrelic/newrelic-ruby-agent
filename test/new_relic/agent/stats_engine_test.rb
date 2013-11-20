@@ -15,7 +15,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   end
 
   def teardown
-    @engine.harvest_timeslice_data({})
+    @engine.harvest
     mocha_teardown
     super
   end
@@ -40,13 +40,14 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   def test_scope__overlap
     NewRelic::Agent.instance.stubs(:stats_engine).returns(@engine)
 
+    freeze_time
     in_transaction('orlando') do
-      self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
+      self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { advance_time(0.1) }
     end
     orlando_disney = @engine.lookup_stats('disney', 'orlando')
 
     in_transaction('anaheim') do
-      self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.11 }
+      self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { advance_time(0.11) }
     end
     anaheim_disney = @engine.lookup_stats('disney', 'anaheim')
 

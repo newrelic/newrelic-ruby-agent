@@ -35,7 +35,7 @@ module NewRelic
     # Runs through all the objects in ObjectSpace to find the first one that
     # match the provided class
     def find_class_in_object_space(klass)
-      if NewRelic::LanguageSupport.object_space_enabled?
+      if NewRelic::LanguageSupport.object_space_usable?
         ObjectSpace.each_object(klass) do |x|
           return x
         end
@@ -117,21 +117,21 @@ module NewRelic
     end
 
     def check_for_unicorn
-      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && NewRelic::LanguageSupport.object_space_enabled?
+      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && NewRelic::LanguageSupport.object_space_usable?
         v = find_class_in_object_space(::Unicorn::HttpServer)
         @discovered_dispatcher = :unicorn if v
       end
     end
 
     def check_for_rainbows
-      if (defined?(::Rainbows) && defined?(::Rainbows::HttpServer)) && NewRelic::LanguageSupport.object_space_enabled?
+      if (defined?(::Rainbows) && defined?(::Rainbows::HttpServer)) && NewRelic::LanguageSupport.object_space_usable?
         v = find_class_in_object_space(::Rainbows::HttpServer)
         @discovered_dispatcher = :rainbows if v
       end
     end
 
     def check_for_delayed_job
-      if $0 =~ /delayed_job$/
+      if $0 =~ /delayed_job$/ || (File.basename($0) == 'rake' && ARGV.include?('jobs:work'))
         @discovered_dispatcher = :delayed_job
       end
     end
@@ -156,15 +156,16 @@ module NewRelic
     end
 
     def check_for_thin
-      if defined?(::Thin) && defined?(::Thin::Server) && NewRelic::LanguageSupport.object_space_enabled?
-        # This case covers the thin web dispatcher
-        # Same issue as above- we assume only one instance per process
-        ObjectSpace.each_object(Thin::Server) do |thin_dispatcher|
+      if defined?(::Thin) && defined?(::Thin::Server)
+        # If ObjectSpace is available, use it to search for a Thin::Server
+        # instance. Otherwise, just the presence of the constant is sufficient.
+        if NewRelic::LanguageSupport.object_space_usable?
+          ObjectSpace.each_object(Thin::Server) do |thin_dispatcher|
+            @discovered_dispatcher = :thin
+          end
+        else
           @discovered_dispatcher = :thin
         end
-      end
-      if defined?(::Thin) && defined?(::Thin::VERSION) && !@discovered_dispatcher
-        @discovered_dispatcher = :thin
       end
     end
 

@@ -12,6 +12,11 @@ module NewRelic
 
       attr_accessor :rules
 
+      def self.from_specs(specs)
+        rules = (specs || []).map { |spec| Rule.new(spec) }
+        self.new(rules)
+      end
+
       def initialize(rules=[])
         @rules = rules
       end

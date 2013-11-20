@@ -1,5 +1,6 @@
-suite_condition("Sinatra not compatible with 1.8.6") do
-  RUBY_VERSION != '1.8.6'
+suite_condition("Sinatra not compatible with 1.8.6 or Rubinius") do
+  is_rbx = defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
+  RUBY_VERSION != '1.8.6' && !is_rbx # https://github.com/rubinius/rubinius/issues/2671
 end
 
 gemfile <<-RB

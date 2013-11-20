@@ -2,57 +2,21 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-if defined?(::Rails) && RUBY_VERSION >= "1.8.7"
+require File.join(File.dirname(__FILE__), 'database.rb')
 
-require 'sequel'
+if Sequel.const_defined?( :MAJOR ) &&
+      ( Sequel::MAJOR > 3 ||
+        Sequel::MAJOR == 3 && Sequel::MINOR >= 37 )
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require 'newrelic_rpm'
+require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
-class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::TestCase
-  require 'active_record_fixtures'
-  include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
-          TransactionSampleTestHelper
-
-  def self.jruby?
-    NewRelic::LanguageSupport.using_engine?('jruby')
-  end
-
-  def jruby?
-    self.class.jruby?
-  end
-
-  # Use an in-memory SQLite database
-  if (jruby?)
-    DB = Sequel.connect('jdbc:sqlite::memory:')
-  else
-    DB = Sequel.sqlite
-  end
-  DB.extension :newrelic_instrumentation
-
-  # Create tables and model classes for testing
-  DB.create_table( :authors ) do
-    primary_key :id
-    string :name
-    string :login
-  end
-  class Author < Sequel::Model; end
-
-  DB.create_table( :posts ) do
-    primary_key :id
-    string :title
-    string :content
-    time :created_at
-  end
-  class Post < Sequel::Model; end
-
-
-
-  #
-  # Setup/teardown
-  #
+class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Unit::TestCase
 
   def setup
     super
+
+    DB.extension :newrelic_instrumentation
 
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.transaction_sampler.reset!
@@ -64,11 +28,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
 
     NewRelic::Agent.shutdown
   end
-
-
-  #
-  # Tests
-  #
 
   def test_sequel_database_instrumentation_is_loaded
     assert DB.respond_to?( :primary_metric_for )
@@ -144,7 +103,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
   def test_model_update_except_method_generates_metrics
     in_web_transaction do
       post = Post.create( :title => 'All The Things', :content => 'A story.' )
-      post.update_except( {:title => 'A Bit More of the Things'}, :created_at )
+      post.update_except( {:title => 'A Bit More of the Things'} )
     end
 
     assert_remote_service_metrics
@@ -251,7 +210,11 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
   end
 
   def test_queries_can_get_explain_plan_with_obfuscated_sql
-    with_config( :'transaction_tracer.explain_threshold' => 0.0 ) do
+    config = {
+      :'transaction_tracer.explain_threshold' => 0.0,
+      :'transaction_tracer.record_sql' => 'obfuscated'
+    }
+    with_config(config) do
       segment = last_segment_for(:record_sql => :obfuscated) do
         Post[11]
       end
@@ -303,7 +266,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
         yield
       end
 
-      sample = transaction_samples.first.prepare_to_send(
+      sample = transaction_samples.first.prepare_to_send!(
         :explain_sql=>options[:explain_sql] || -0.01,    # Force to take explain, even if duration's reported as 0.0
         :record_sql=>options[:record_sql])
       segment = last_segment( sample )
@@ -320,5 +283,5 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
 end
 
 else
-  puts "Skipping tests in #{__FILE__} because Rails is unavailable"
+  puts "Skipping tests in #{__FILE__} because unsupported Sequel version"
 end

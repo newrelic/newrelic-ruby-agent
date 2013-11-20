@@ -188,6 +188,14 @@ class CurbTest < MiniTest::Unit::TestCase
     Curl::Easy.http_post( default_url, '' )
   end
 
+  def put_response
+    Curl::Easy.http_put( default_url, '' )
+  end
+
+  def delete_response
+    Curl::Easy.http_delete( default_url )
+  end
+
   def body(res)
     res.body_str
   end

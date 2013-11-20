@@ -89,6 +89,7 @@ class XraySessionsTest < MiniTest::Unit::TestCase
   def test_gathers_thread_profiles
     session = build_xray_session('key_transaction_name' => 'Controller/Rack/A')
     with_xray_sessions(session) do
+      wait_for_backtrace_service_poll
       get '/?transaction_name=A&sleep=1'
       trigger_harvest
     end

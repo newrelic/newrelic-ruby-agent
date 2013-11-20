@@ -64,17 +64,27 @@ module NewRelic::LanguageSupport
     end
   end
 
-  def object_space_enabled?
+  def object_space_usable?
     if defined?(::JRuby) && JRuby.respond_to?(:runtime)
       JRuby.runtime.is_object_space_enabled
+    elsif defined?(::ObjectSpace) && !rubinius?
+      true
     else
-      defined?(::ObjectSpace) ? true : false
+      false
     end
+  end
+
+  def rubinius?
+    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
   end
 
   def using_version?(version)
     numbers = version.split('.')
     numbers == ::RUBY_VERSION.split('.')[0, numbers.size]
+  end
+
+  def stdlib_json_usable?
+    RUBY_VERSION >= '1.9.2'
   end
 
   def test_forkability

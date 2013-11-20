@@ -138,7 +138,11 @@ def assert_metrics_recorded(expected)
       matches.map! { |m| "  #{m.inspect}" }
       msg = "Did not find stats for spec #{expected_spec.inspect}."
       msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
-      msg += "\nAll specs in there were: [\n#{all_specs.map {|s| s.name}.join(",\n")}\n]"
+
+      msg += "\nAll specs in there were: [\n#{all_specs.map do |s|
+        "#{s.name} (#{s.scope.empty? ? '<unscoped>' : s.scope})"
+      end.join(",\n")}\n]"
+
       assert(actual_stats, msg)
     end
     expected_attrs.each do |attr, expected_value|
@@ -318,4 +322,20 @@ end
 
 def create_agent_command(args = {})
   NewRelic::Agent::Commands::AgentCommand.new([-1, { "name" => "command_name", "arguments" => args}])
+end
+
+def wait_for_backtrace_service_poll(opts={})
+  defaults = {
+    :timeout => 10.0,
+    :service => NewRelic::Agent.agent.agent_command_router.backtrace_service,
+    :iterations => 1
+  }
+  opts = defaults.merge(opts)
+  deadline = Time.now + opts[:timeout]
+  until opts[:service].worker_loop.iterations > opts[:iterations]
+    sleep(0.01)
+    if Time.now > deadline
+      raise "Timed out waiting #{opts[:timeout]} s for backtrace service poll"
+    end
+  end
 end

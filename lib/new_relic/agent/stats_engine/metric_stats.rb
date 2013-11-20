@@ -131,14 +131,12 @@ module NewRelic
           end
         end
 
-        # Harvest the timeslice data.  First recombine current statss
-        # with any previously
-        # unsent metrics, clear out stats cache, and return the current
-        # stats.
-        def harvest_timeslice_data(old_stats_hash, rules_engine=RulesEngine.new)
+        def harvest
+          now = Time.now
           snapshot = reset_stats
-          snapshot = apply_rules_to_metric_data(rules_engine, snapshot)
-          snapshot.merge!(old_stats_hash)
+          snapshot = apply_rules_to_metric_data(@metric_rules, snapshot)
+          snapshot.harvested_at = now
+          snapshot
         end
 
         def apply_rules_to_metric_data(rules_engine, stats_hash)

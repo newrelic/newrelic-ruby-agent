@@ -94,9 +94,9 @@ module NewRelic
       NewRelic::Agent.browser_timing_header
     end
 
-    def test_browser_timing_footer
+    def test_browser_timing_footer_aliases_config
       agent = mocked_agent
-      agent.expects(:browser_timing_footer)
+      agent.expects(:browser_timing_config)
       NewRelic::Agent.browser_timing_footer
     end
 

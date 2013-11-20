@@ -73,6 +73,8 @@ module Multiverse
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
 
+        rbx_gemfile_lines(f, gemfile_text)
+
         # We currently pin usage of mocha at the 0.9.x line for compatibility
         # 0.10.x had issues with the integration handlers and MiniTest on old Rubies
         # 0.11.x introduced syntax that breaks 1.8.6 entirely :(
@@ -81,10 +83,13 @@ module Multiverse
         # resolved in some fashion at that point
         f.puts "  gem 'mocha', '~> 0.9.8', :require => false" unless environments.omit_mocha
 
-        if RUBY_VERSION > '1.8.7'
-          f.puts "  gem 'debugger'" if include_debugger
-        else
-          f.puts "  gem 'ruby-debug'" if include_debugger
+        # Need to get Rubinius' debugger wired in, but MRI's doesn't work
+        if include_debugger
+          if RUBY_VERSION > '1.8.7'
+            f.puts "  gem 'debugger', :platforms => [:mri]"
+          else
+            f.puts "  gem 'ruby-debug', :platforms => [:mri]"
+          end
         end
       end
       puts yellow("Gemfile.#{env_index} set to:") if verbose?
@@ -96,6 +101,17 @@ module Multiverse
       path = ENV['NEWRELIC_GEM_PATH'] || '../../../..'
       line ||= "  gem 'newrelic_rpm', :path => '#{path}'"
       line
+    end
+
+    def rbx_gemfile_lines(f, gemfile_text)
+      return unless is_rbx?
+
+      f.puts "gem 'rubysl', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .rubysl./
+      f.puts "gem 'racc', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .racc./
+    end
+
+    def is_rbx?
+      defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
     end
 
     def jruby_openssl_line
@@ -191,7 +207,17 @@ module Multiverse
       options << "-v" if verbose?
       options << "--seed=#{seed}" unless seed == ""
       options << "--name=/#{names.map {|n| n + ".*"}.join("|")}/" unless names == []
-      exit(::MiniTest::Unit.new.run(options))
+
+      original_options = options.dup
+      test_run = ::MiniTest::Unit.new.run(options)
+
+      if test_run
+        exit(test_run)
+      else
+        puts "No tests found with those options."
+        puts "options: #{original_options}"
+        exit(1)
+      end
     end
 
     def configure_before_bundling

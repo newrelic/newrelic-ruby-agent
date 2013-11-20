@@ -27,16 +27,16 @@ class NewRelic::Agent::Transaction
 
     def test_stores_up_to_truncate_max
       sample = stub
-      @buffer.max_samples.times { @buffer.store(sample) }
+      @buffer.capacity.times { @buffer.store(sample) }
 
-      assert_equal(Array.new(@buffer.max_samples, sample), @buffer.samples)
+      assert_equal(Array.new(@buffer.capacity, sample), @buffer.samples)
     end
 
     def test_stores_and_truncates
       sample = stub
-      (@buffer.max_samples * 2).times { @buffer.store(sample) }
+      (@buffer.capacity * 2).times { @buffer.store(sample) }
 
-      assert_equal(Array.new(@buffer.max_samples, sample), @buffer.samples)
+      assert_equal(Array.new(@buffer.capacity, sample), @buffer.samples)
     end
 
     def test_visit_segment_takes_backtraces_in_dev_mode

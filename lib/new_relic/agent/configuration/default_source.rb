@@ -98,6 +98,13 @@ module NewRelic
           Proc.new { self[:'rum.enabled'] }
         end
 
+        # This check supports the js_errors_beta key we've asked clients to
+        # set. Once JS errors are GA, browser_monitoring.loader can stop
+        # being dynamic.
+        def self.browser_monitoring_loader
+          Proc.new { self[:js_errors_beta] ? "full" : "rum"}
+        end
+
         def self.slow_sql_record_sql
           Proc.new { self[:'transaction_tracer.record_sql'] }
         end
@@ -561,6 +568,18 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable capturing and attachment of HTTP request parameters to transaction traces and traced errors.'
         },
+        :'sidekiq.capture_params' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable capturing job arguments for transaction traces and traced errors in Sidekiq.'
+        },
+        :'resque.capture_params' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable capturing job arguments for transaction traces and traced errors in Resque.'
+        },
         :capture_memcache_keys => {
           :default => false,
           :public => true,
@@ -687,18 +706,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable real user monitoring.'
         },
-        :'rum.jsonp' => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enable or disable jsonp as the default means of communicating with the beacon.'
-        },
-        :episodes_file => {
-          :default => '',
-          :public => false,
-          :type => String,
-          :description => 'Name of the file containing javascript to include with rum injection.'
-        },
         :'rum.load_episodes_file' => {
           :default => true,
           :public => false,
@@ -741,19 +748,25 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable automatic insertion of the real user monitoring header and footer into outgoing responses.'
         },
-        :'js_agent_loader_version' => {
-          :default => '',
-          :public => false,
+        :'browser_monitoring.loader' => {
+          :default => DefaultSource.browser_monitoring_loader,
+          :public => private,
           :type => String,
-          :description => 'Version of the JavaScript agent loader retrieved by the collector. This is only informational, setting the value does nothing.'
+          :description => 'Type of JavaScript agent loader to use for browser monitoring instrumentation'
         },
-        :'js_agent_loader' => {
+        :'browser_monitoring.debug' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Enable or disable debugging version of JavaScript agent loader for browser monitoring instrumentation.'
+        },
+        :js_agent_loader => {
           :default => '',
           :public => false,
           :type => String,
           :description => 'JavaScript agent loader content.'
         },
-        :'js_errors_beta' => {
+        :js_errors_beta => {
           :default => false,
           :public => false,
           :type => Boolean,
@@ -820,23 +833,47 @@ module NewRelic
           :type => Fixnum,
           :description => 'Maximum number of transaction traces to buffer for active X-Ray sessions'
         },
+        :'xray_session.max_profile_overhead' => {
+          :default => 0.05,
+          :public => false,
+          :type => Float,
+          :description => 'Maximum overhead percentage for thread profiling before agent reduces polling frequency'
+        },
         :marshaller => {
           :default => DefaultSource.marshaller,
           :public => true,
           :type => String,
           :description => 'Marshaller to use when marshalling data for transmission to the New Relic data collection service (e.g json, pruby).'
         },
-        :'request_sampler.enabled' => {
+        :'analytics_events.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable the request sampler.'
+          :description => 'Enable or disable the analytics event sampling.'
         },
-        :'request_sampler.max_samples' => {
+        :'analytics_events.transactions.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable the analytics event sampling for transactions.'
+        },
+        :'analytics_events.max_samples_stored' => {
           :default => 1200,
           :public => false,
           :type => Fixnum,
-          :description => 'Maximum number of request events recorded by the request sampler in a single harvest.'
+          :description => 'Maximum number of request events recorded by the analytics event sampling in a single harvest.'
+        },
+        :'capture_attributes.transaction_events' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => 'Include TT custom params in analytics event data.'
+        },
+        :'capture_attributes.page_events' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Include TT custom params in real user monitoring script in outgoing responses.'
         },
       }.freeze
 

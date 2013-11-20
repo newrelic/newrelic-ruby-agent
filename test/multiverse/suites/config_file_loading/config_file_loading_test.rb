@@ -33,12 +33,13 @@ class ConfigFileLoadingTest < MiniTest::Unit::TestCase
 
     # Figure out where multiverse is in the real file system.
     @cwd = Dir.pwd
+
+    # require the agent before we're in FakeFS so require doesn't hit the fake
+    require 'newrelic_rpm'
+
     # Use a fake file system so we don't damage the real one.
     FakeFS.activate!
     FakeFS::FileSystem.clear
-
-    # require the agent after we're in FakeFS
-    require 'newrelic_rpm'
 
     FileUtils.mkdir_p(@cwd)
   end

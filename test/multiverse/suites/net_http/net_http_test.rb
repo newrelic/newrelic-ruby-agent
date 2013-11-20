@@ -50,6 +50,14 @@ class NetHttpTest < MiniTest::Unit::TestCase
     start(default_uri) { |http| http.post(default_uri.path, "") }
   end
 
+  def put_response
+    start(default_uri) { |http| http.put(default_uri.path, "") }
+  end
+
+  def delete_response
+    start(default_uri) { |http| http.delete(default_uri.path) }
+  end
+
   def create_http(uri)
     http = Net::HTTP.new(uri.host, uri.port)
     if use_ssl?
