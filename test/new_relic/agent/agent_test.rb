@@ -208,9 +208,7 @@ module NewRelic
         # simulate a failure in transmitting analytics events
         service.stubs(:analytic_event_data).raises(StandardError.new)
 
-        assert_raises(StandardError) do
-          @agent.send(:harvest_and_send_analytic_event_data)
-        end
+        @agent.send(:harvest_and_send_analytic_event_data)
       end
 
       def test_harvest_and_send_timeslice_data_merges_back_on_failure
