@@ -183,18 +183,13 @@ module NewRelic
     end
 
     # Return a new transaction sample that can be sent to the New
-    # Relic service. This involves potentially one or more of the
-    # following options
-    #
-    #   :explain_sql : run EXPLAIN on all queries whose response times equal the value for this key
-    #       (for example :explain_sql => 2.0 would explain everything over 2 seconds.  0.0 would explain everything.)
-    #   :record_sql => [ :raw | :obfuscated] : copy over the sql, obfuscating if necessary
+    # Relic service.
     def prepare_to_send!(options={})
       return self if @prepared
 
-      if options[:record_sql]
-        collect_explain_plans!(options[:explain_sql]) if options[:explain_sql]
-        prepare_sql_for_transmission!(options[:record_sql])
+      if Agent::Database.should_record_sql?
+        collect_explain_plans!
+        prepare_sql_for_transmission!
       else
         strip_sql!
       end
@@ -260,7 +255,9 @@ module NewRelic
       end
     end
 
-    def collect_explain_plans!(threshold)
+    def collect_explain_plans!
+      return unless Agent::Database.should_collect_explain_plans?
+      threshold = Agent.config[:'transaction_tracer.explain_threshold']
       each_segment do |segment|
         if segment[:sql] && segment.duration > threshold
           segment[:explain_plan] = segment.explain_sql
@@ -268,14 +265,15 @@ module NewRelic
       end
     end
 
-    def prepare_sql_for_transmission!(strategy)
+    def prepare_sql_for_transmission!
+      strategy = Agent::Database.record_sql_method
       each_segment do |segment|
         if segment[:sql]
           segment[:sql] = case strategy
           when :raw
             segment[:sql].to_s
           when :obfuscated
-            NewRelic::Agent::Database.obfuscate_sql(segment[:sql]).to_s
+            Agent::Database.obfuscate_sql(segment[:sql]).to_s
           end
         end
       end
