@@ -184,7 +184,7 @@ module NewRelic
 
     # Return a new transaction sample that can be sent to the New
     # Relic service.
-    def prepare_to_send!(options={})
+    def prepare_to_send!
       return self if @prepared
 
       if Agent::Database.should_record_sql?
