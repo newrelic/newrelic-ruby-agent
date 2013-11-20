@@ -583,17 +583,38 @@ module NewRelic
       NewRelic::Agent.logger.debug "Ignoring exception during %p event notification" % [event_type]
     end
 
-    # Returns a Javascript string which should be injected into the very top of the response body
+    # This method returns a string suitable for inclusion in a page - known as
+    # 'manual instrumentation' for Real User Monitoring. Can return either a
+    # script tag with associated javascript, or in the case of disabled Real
+    # User Monitoring, an empty string
+    #
+    # This is the header string - it should be placed as high in the page as is
+    # reasonably possible - that is, before any style or javascript inclusions,
+    # but after any header-related meta tags
+    #
+    # @api public
     #
     def browser_timing_header
       agent.browser_timing_header
     end
 
-    # Returns a Javascript string which should be injected into the very bottom of the response body
+    # This method returns a string suitable for inclusion in a page - known as
+    # 'manual instrumentation' for Real User Monitoring. Can return either a
+    # script tag with associated javascript, or in the case of disabled Real
+    # User Monitoring, an empty string
     #
-    def browser_timing_footer
-      agent.browser_timing_footer
+    # This is the config string and can be placed anywhere in the page.  New
+    # Relic places it before before the Real User Monitoring header when
+    # auto-instrumenting.
+    #
+    # @api public
+    #
+    def browser_timing_config
+      agent.browser_timing_config
     end
+
+    # @deprecated
+    alias browser_timing_footer browser_timing_config
 
     def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end

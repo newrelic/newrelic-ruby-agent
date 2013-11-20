@@ -39,34 +39,11 @@ module NewRelic
 
       @@dummy_txn = DummyTransaction.new
 
-      # This method returns a string suitable for inclusion in a page
-      # - known as 'manual instrumentation' for Real User
-      # Monitoring. Can return either a script tag with associated
-      # javascript, or in the case of disabled Real User Monitoring,
-      # an empty string
-      #
-      # This is the header string - it should be placed as high in the
-      # page as is reasonably possible - that is, before any style or
-      # javascript inclusions, but after any header-related meta tags
-      #
-      # @api public
-      #
       def browser_timing_header
         insert_js? ? header_js_string : ""
       end
 
-      # This method returns a string suitable for inclusion in a page
-      # - known as 'manual instrumentation' for Real User
-      # Monitoring. Can return either a script tag with associated
-      # javascript, or in the case of disabled Real User Monitoring,
-      # an empty string
-      #
-      # This is the footer string - it should be placed as low in the
-      # page as is reasonably possible.
-      #
-      # @api public
-      #
-      def browser_timing_footer
+      def browser_timing_config
         if insert_js?
           NewRelic::Agent::Transaction.freeze_name
           generate_footer_js(NewRelic::Agent.instance.beacon_configuration)
@@ -74,6 +51,9 @@ module NewRelic
           ""
         end
       end
+
+      # @deprecated
+      alias browser_timing_footer browser_timing_config
 
       module_function
 
