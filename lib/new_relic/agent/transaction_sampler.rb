@@ -238,9 +238,23 @@ module NewRelic
       def harvest
         return [] unless enabled?
 
-        @samples_lock.synchronize do
+        samples = @samples_lock.synchronize do
           @last_sample = nil
           harvest_from_sample_buffers
+        end
+        prepare_samples(samples)
+      end
+
+      def prepare_samples(samples)
+        samples.select do |sample|
+          begin
+            sample.prepare_to_send!
+          rescue => e
+            NewRelic::Agent.logger.error("Failed to prepare transaction trace. Error: ", e)
+            false
+          else
+            true
+          end
         end
       end
 

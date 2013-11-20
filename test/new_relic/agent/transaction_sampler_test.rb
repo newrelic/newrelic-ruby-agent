@@ -809,6 +809,24 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     end
   end
 
+  def test_harvest_prepare_samples
+    samples = [mock('TT0'), mock('TT1')]
+    samples[0].expects(:prepare_to_send!)
+    samples[1].expects(:prepare_to_send!)
+    @sampler.stubs(:harvest_from_sample_buffers).returns(samples)
+    prepared = @sampler.harvest
+    assert_equal(samples, prepared)
+  end
+
+  def test_harvest_prepare_samples_with_error
+    samples = [mock('TT0'), mock('TT1')]
+    samples[0].expects(:prepare_to_send!).raises('an error')
+    samples[1].expects(:prepare_to_send!)
+    @sampler.stubs(:harvest_from_sample_buffers).returns(samples)
+    prepared = @sampler.harvest
+    assert_equal([samples[1]], prepared)
+  end
+
   class Dummy
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     def run(n)

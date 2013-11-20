@@ -893,17 +893,6 @@ module NewRelic
           control.root
         end
 
-        # Prepares a collection of objects for transmission to the collector.
-        # The collection should respond to #size and #each. Objects in the
-        # collection may implement #prepare_to_send!, in which case it will be
-        # called on them before return.
-        def prepare_data_for_transmission(collection)
-          collection.each do |item|
-            item.prepare_to_send! if item.respond_to?(:prepare_to_send!)
-          end
-          collection
-        end
-
         # Harvests data from the given container, sends it to the named endpoint
         # on the service, and automatically merges back in upon a recoverable
         # failure.
@@ -912,8 +901,7 @@ module NewRelic
         #
         #  #harvest
         #    returns an enumerable collection of data items to be sent to the
-        #    collector. If data items respond to #prepare_to_send!, it will be
-        #    called before transmission.
+        #    collector.
         #
         #  #reset!
         #    drop any stored data and reset to a clean state.
@@ -924,7 +912,6 @@ module NewRelic
         #  
         def harvest_and_send_from_container(container, endpoint)
           items = harvest_from_container(container, endpoint)
-          items = prepare_data_items_from_container(container, endpoint, items)
           send_data_from_container(container, endpoint, items) unless items.empty?
         end
 
@@ -937,19 +924,6 @@ module NewRelic
             container.reset!
           end
           items
-        end
-
-        def prepare_data_items_from_container(container, endpoint, items)
-          items.select do |item|
-            begin
-              item.prepare_to_send! if item.respond_to?(:prepare_to_send!)
-            rescue => e
-              NewRelic::Agent.logger.error("Failed to prepare #{endpoint} data. Error: ", e)
-              false # reject this item
-            else
-              true # keep this item
-            end
-          end
         end
 
         def send_data_from_container(container, endpoint, items)
@@ -1006,29 +980,7 @@ module NewRelic
         # segments' execution times exceed our threshold (to avoid
         # unnecessary overhead of running explains on fast queries.)
         def harvest_and_send_transaction_traces
-          traces = @transaction_sampler.harvest
-          unless traces.empty?
-            begin
-              send_transaction_traces(traces)
-            rescue UnrecoverableServerException => e
-              # This indicates that there was a problem with the POST body, so
-              # we discard the traces rather than trying again later.
-              ::NewRelic::Agent.logger.debug("Server rejected transaction traces, discarding. Error: ", e)
-            rescue => e
-              ::NewRelic::Agent.logger.error("Failed to send transaction traces, will re-attempt next harvest. Error: ", e)
-              @transaction_sampler.merge!(traces)
-            end
-          end
-        end
-
-        def send_transaction_traces(traces)
-          start_time = Time.now
-          ::NewRelic::Agent.logger.debug "Sending (#{traces.length}) transaction traces"
-
-          traces.each { |trace| trace.prepare_to_send! }
-
-          @service.transaction_sample_data(traces)
-          ::NewRelic::Agent.logger.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - start_time} seconds"
+          harvest_and_send_from_container(@transaction_sampler, :transaction_sample_data)
         end
 
         def harvest_and_send_for_agent_commands(disconnecting=false)

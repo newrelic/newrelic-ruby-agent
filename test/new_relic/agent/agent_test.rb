@@ -100,7 +100,6 @@ module NewRelic
                        :transaction_name => nil,
                        :force_persist => true,
                        :truncate => 4000)
-          trace.expects(:prepare_to_send!)
 
           @agent.transaction_sampler.stubs(:harvest).returns([trace])
           @agent.send :harvest_and_send_transaction_traces
@@ -109,9 +108,6 @@ module NewRelic
 
       def test_harvest_and_send_transaction_traces_merges_back_on_failure
         traces = [mock('tt1'), mock('tt2')]
-
-        # make prepare_to_send just return self
-        traces.each { |tt| tt.expects(:prepare_to_send!) }
 
         @agent.transaction_sampler.expects(:harvest).returns(traces)
         @agent.service.stubs(:transaction_sample_data).raises("wat")
@@ -367,21 +363,6 @@ module NewRelic
         @agent.send(:harvest_from_container, container, 'digglewumpus')
       end
 
-      def test_prepare_data_items_from_container
-        items = [mock, mock]
-        items[0].expects(:prepare_to_send!).once
-        prepared = @agent.send(:prepare_data_items_from_container, stub, 'digglewumpus', items)
-        assert_equal(items, prepared)
-      end
-
-      def test_prepare_data_items_from_container_error
-        items = [mock('good'), mock('bad')]
-        items[0].expects(:prepare_to_send!)
-        items[1].expects(:prepare_to_send!).raises('an error')
-        prepared = @agent.send(:prepare_data_items_from_container, stub, 'digglewumpus', items)
-        assert_equal([items[0]], prepared)
-      end
-
       def send_data_from_container
         service = @agent.service
         items = [1, 2, 3]
@@ -446,20 +427,6 @@ module NewRelic
         container.stubs(:harvest).returns([1,2,3])
         @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises('other error')
         container.expects(:merge!).with([1,2,3])
-        @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
-      end
-
-      def harvest_and_send_from_container_calls_prepare_to_send
-        items = [mock, mock]
-        items[0].expects(:prepare_to_send!)
-        @agent.service.expects(:dummy_endpoint).with(items)
-        @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
-      end
-
-      def harvest_and_send_from_container_discards_items_that_failed_prepare
-        items = [mock, mock]
-        items[0].expects(:prepare_to_send!).raises("an error")
-        @agent.service.expects(:dummy_endpoint).with([items[1]])
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
     end
