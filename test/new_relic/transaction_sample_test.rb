@@ -168,14 +168,14 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_to_s_includes_keys
-    @t.prepare_to_send!(:explain_sql => 0.1)
+    @t.prepare_to_send!
     @t.params[:fake_key] = 'a fake param'
     assert(@t.to_s.include?('fake_key'), "should include 'fake_key' but instead was (#{@t.to_s})")
     assert(@t.to_s.include?('a fake param'), "should include 'a fake param' but instead was (#{@t.to_s})")
   end
 
   def test_find_segment
-    s = @t.prepare_to_send!(:explain_sql => 0.1)
+    s = @t.prepare_to_send!
     fake_segment = mock('segment')
     fake_segment.expects(:find_segment).with(1).returns('a segment')
     s.instance_eval do
@@ -186,7 +186,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_timestamp
-    s = @t.prepare_to_send!(:explain_sql => 0.1)
+    s = @t.prepare_to_send!
     assert(s.timestamp.instance_of?(Float), "s.timestamp should be a Float, but is #{s.timestamp.class.inspect}")
   end
 

@@ -372,102 +372,120 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_prepare_to_send
-    perform_action_with_newrelic_trace :name => 'bogosity' do
-      ActiveRecordFixtures::Order.add_delay
-      all_finder(ActiveRecordFixtures::Order)
-    end
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-    assert_not_nil sample
+    with_config(:record_sql => :raw,
+                :'transaction_tracer.explain_enabled' => true,
+                :'transaction_tracer.explain_threshold' => 0.0) do
+      perform_action_with_newrelic_trace :name => 'bogosity' do
+        ActiveRecordFixtures::Order.add_delay
+        all_finder(ActiveRecordFixtures::Order)
+      end
+      sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+      assert_not_nil sample
 
-    includes_gc = false
-    sample.each_segment {|s| includes_gc ||= s.metric_name =~ /GC/ }
+      includes_gc = false
+      sample.each_segment {|s| includes_gc ||= s.metric_name =~ /GC/ }
 
-    sql_segment = last_segment(sample)
-    assert_not_nil sql_segment, sample.to_s
-    assert_match /^SELECT /, sql_segment.params[:sql]
-    assert sql_segment.duration > 0.0, "Segment duration must be greater than zero."
-    sample = sample.prepare_to_send!(:record_sql => :raw, :explain_sql => 0.0)
-    sql_segment = last_segment(sample)
-    assert_match /^SELECT /, sql_segment.params[:sql]
-    explanations = sql_segment.params[:explain_plan]
-    if (isMysql? || isPostgres?) && !NewRelic::LanguageSupport.using_engine?('jruby')
-      assert_not_nil explanations, "No explains in segment: #{sql_segment}"
-      assert_equal(2, explanations.size,
-                   "No explains in segment: #{sql_segment}")
+      sql_segment = last_segment(sample)
+      assert_not_nil sql_segment, sample.to_s
+      assert_match /^SELECT /, sql_segment.params[:sql]
+      assert sql_segment.duration > 0.0, "Segment duration must be greater than zero."
+      sample = sample.prepare_to_send!
+      sql_segment = last_segment(sample)
+      assert_match /^SELECT /, sql_segment.params[:sql]
+      explanations = sql_segment.params[:explain_plan]
+      if (isMysql? || isPostgres?) && !NewRelic::LanguageSupport.using_engine?('jruby')
+        assert_not_nil explanations, "No explains in segment: #{sql_segment}"
+        assert_equal(2, explanations.size,
+                     "No explains in segment: #{sql_segment}")
+      end
     end
   end
 
   def test_transaction_mysql
     return unless isMysql? && !defined?(JRuby)
 
-    ActiveRecordFixtures.setup
-    sample = NewRelic::Agent.instance.transaction_sampler.reset!
-    perform_action_with_newrelic_trace :name => 'bogosity' do
-      ActiveRecordFixtures::Order.add_delay
-      all_finder(ActiveRecordFixtures::Order)
-    end
+    with_config(:record_sql => :obfuscated,
+                :'transaction_tracer.explain_enabled' => true,
+                :'transaction_tracer.explain_threshold' => 0.0) do
+      ActiveRecordFixtures.setup
+      sample = NewRelic::Agent.instance.transaction_sampler.reset!
+      perform_action_with_newrelic_trace :name => 'bogosity' do
+        ActiveRecordFixtures::Order.add_delay
+        all_finder(ActiveRecordFixtures::Order)
+      end
 
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-    sample = sample.prepare_to_send!(:record_sql => :obfuscated, :explain_sql => 0.0)
-    segment = last_segment(sample)
-    explanation = segment.params[:explain_plan]
-    assert_not_nil explanation, "No explains in segment: #{segment}"
-    assert_equal 2, explanation.size,"No explains in segment: #{segment}"
+      sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+      sample = sample.prepare_to_send!
+      segment = last_segment(sample)
+      explanation = segment.params[:explain_plan]
+      assert_not_nil explanation, "No explains in segment: #{segment}"
+      assert_equal 2, explanation.size,"No explains in segment: #{segment}"
 
-    assert_equal 10, explanation[0].size
-    ['id', 'select_type', 'table'].each do |c|
-      assert explanation[0].include?(c)
-    end
-    ['1', 'SIMPLE', ActiveRecordFixtures::Order.table_name].each do |c|
-      assert explanation[1][0].include?(c)
-    end
+      assert_equal 10, explanation[0].size
+      ['id', 'select_type', 'table'].each do |c|
+        assert explanation[0].include?(c)
+      end
+      ['1', 'SIMPLE', ActiveRecordFixtures::Order.table_name].each do |c|
+        assert explanation[1][0].include?(c)
+      end
 
-    s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
-    assert_equal 1, s.call_count
+      s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
+      assert_equal 1, s.call_count
+    end
   end
 
   def test_transaction_postgres
     return unless isPostgres?
-    # note that our current test builds do not use postgres, this is
-    # here strictly for troubleshooting, not CI builds
-    sample = NewRelic::Agent.instance.transaction_sampler.reset!
-    perform_action_with_newrelic_trace :name => 'bogosity' do
-      ActiveRecordFixtures::Order.add_delay
-      all_finder(ActiveRecordFixtures::Order)
+
+    with_config(:record_sql => :obfuscated,
+                :'transaction_tracer.explain_enabled' => true,
+                :'transaction_tracer.explain_threshold' => 0.0) do
+      # note that our current test builds do not use postgres, this is
+      # here strictly for troubleshooting, not CI builds
+      sample = NewRelic::Agent.instance.transaction_sampler.reset!
+      perform_action_with_newrelic_trace :name => 'bogosity' do
+        ActiveRecordFixtures::Order.add_delay
+        all_finder(ActiveRecordFixtures::Order)
+      end
+
+      sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+
+      sample = sample.prepare_to_send!
+      segment = last_segment(sample)
+      explanations = segment.params[:explain_plan]
+
+      assert_not_nil explanations, "No explains in segment: #{segment}"
+      assert_equal 1, explanations.size,"No explains in segment: #{segment}"
+      assert_equal 1, explanations.first.size
+
+      assert_equal("Explain Plan", explanations[0][0])
+      assert_match /Seq Scan on test_data/, explanations[0][1].join(";")
+
+      s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
+      assert_equal 1, s.call_count
     end
-
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-
-    sample = sample.prepare_to_send!(:record_sql => :obfuscated, :explain_sql => 0.0)
-    segment = last_segment(sample)
-    explanations = segment.params[:explain_plan]
-
-    assert_not_nil explanations, "No explains in segment: #{segment}"
-    assert_equal 1, explanations.size,"No explains in segment: #{segment}"
-    assert_equal 1, explanations.first.size
-
-    assert_equal("Explain Plan", explanations[0][0])
-    assert_match /Seq Scan on test_data/, explanations[0][1].join(";")
-
-    s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
-    assert_equal 1, s.call_count
   end
 
   def test_transaction_other
     return if isMysql? || isPostgres?
-    sample = NewRelic::Agent.instance.transaction_sampler.reset!
-    perform_action_with_newrelic_trace :name => 'bogosity' do
-      ActiveRecordFixtures::Order.add_delay
-      all_finder(ActiveRecordFixtures::Order)
+
+    with_config(:record_sql => :obfuscated,
+                :'transaction_tracer.explain_enabled' => true,
+                :'transaction_tracer.explain_threshold' => 0.0) do
+      sample = NewRelic::Agent.instance.transaction_sampler.reset!
+      perform_action_with_newrelic_trace :name => 'bogosity' do
+        ActiveRecordFixtures::Order.add_delay
+        all_finder(ActiveRecordFixtures::Order)
+      end
+
+      sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+
+      sample = sample.prepare_to_send!
+      segment = last_segment(sample)
+
+      s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
+      assert_equal 1, s.call_count
     end
-
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-
-    sample = sample.prepare_to_send!(:record_sql => :obfuscated, :explain_sql => 0.0)
-    segment = last_segment(sample)
-
-    s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
-    assert_equal 1, s.call_count
   end
 
   # These are only valid for rails 2.1 and later
