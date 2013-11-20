@@ -964,22 +964,8 @@ module NewRelic
           end
         end
 
-        # Handles getting the errors from the error collector and
-        # sending them to the server, and any error cases like trying
-        # to send very large errors
         def harvest_and_send_errors
-          errors = @error_collector.harvest
-          if errors && !errors.empty?
-            ::NewRelic::Agent.logger.debug "Sending #{errors.length} errors"
-            begin
-              @service.error_data(errors)
-            rescue UnrecoverableServerException => e
-              ::NewRelic::Agent.logger.debug e.message
-            rescue => e
-              ::NewRelic::Agent.logger.debug "Failed to send error traces, will try again later. Error:", e
-              @error_collector.merge!(errors)
-            end
-          end
+          harvest_and_send_from_container(@error_collector, :error_data)
         end
 
         # Fetch samples from the RequestSampler and send them.
