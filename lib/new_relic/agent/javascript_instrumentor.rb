@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'base64'
-require 'new_relic/agent/beacon_configuration'
 require 'new_relic/agent/transaction_timings'
 
 module NewRelic
@@ -11,17 +10,40 @@ module NewRelic
     class JavascriptInstrumentor
       include NewRelic::Coerce
 
+      def initialize
+        NewRelic::Agent.logger.debug("JS agent loader requested: #{NewRelic::Agent.config[:'browser_monitoring.loader']}",
+                                       "JS agent loader debug: #{NewRelic::Agent.config[:'browser_monitoring.debug']}",
+                                       "JS agent loader version: #{NewRelic::Agent.config[:'browser_monitoring.loader_version']}")
+
+        if !NewRelic::Agent.config[:'rum.enabled']
+          NewRelic::Agent.logger.debug("Real User Monitoring is disabled for this agent. Edit your configuration to change this.")
+        end
+      end
+
+      def enabled?
+        Agent.config[:'rum.enabled'] && !!Agent.config[:beacon]
+      end
+
+      # Memoize license key bytes for obscuring transaction names in javascript
+      def license_bytes
+        if @license_bytes.nil?
+          @license_bytes = []
+          NewRelic::Agent.config[:license_key].each_byte {|byte| @license_bytes << byte}
+        end
+        @license_bytes
+      end
+
       # Obfuscation
 
-      def obfuscate(config, text)
+      def obfuscate(text)
         obfuscated = ""
         if defined?(::Encoding::ASCII_8BIT)
           obfuscated.force_encoding(::Encoding::ASCII_8BIT)
         end
-        key_bytes = config.license_bytes
+
         index = 0
         text.each_byte{|byte|
-          obfuscated.concat((byte ^ key_bytes[index % 13].to_i))
+          obfuscated.concat((byte ^ license_bytes[index % 13].to_i))
           index+=1
         }
 
@@ -70,28 +92,32 @@ module NewRelic
 
       # Should JS agent script be generated? Log if not.
       def insert_js?
-        if NewRelic::Agent.instance.beacon_configuration.nil?
-          ::NewRelic::Agent.logger.debug "Beacon configuration is nil. Skipping browser instrumentation."
+        if missing_config?(:beacon)
+          ::NewRelic::Agent.logger.debug "Beacon configuration not received (yet?). Skipping browser instrumentation."
           false
-        elsif ! NewRelic::Agent.instance.beacon_configuration.enabled?
-          ::NewRelic::Agent.logger.debug "Beacon configuration is disabled. Skipping browser instrumentation."
-          ::NewRelic::Agent.logger.debug NewRelic::Agent.instance.beacon_configuration.inspect
+        elsif !enabled?
+          ::NewRelic::Agent.logger.debug "JS agent instrumentation is disabled."
           false
-        elsif Agent.config[:browser_key].nil? || Agent.config[:browser_key].empty?
+        elsif missing_config?(:browser_key)
           ::NewRelic::Agent.logger.debug "Browser key is not set. Skipping browser instrumentation."
           false
-        elsif ! NewRelic::Agent.is_transaction_traced?
+        elsif !::NewRelic::Agent.is_transaction_traced?
           ::NewRelic::Agent.logger.debug "Transaction is not traced. Skipping browser instrumentation."
           false
-        elsif ! NewRelic::Agent.is_execution_traced?
+        elsif !::NewRelic::Agent.is_execution_traced?
           ::NewRelic::Agent.logger.debug "Execution is not traced. Skipping browser instrumentation."
           false
-        elsif NewRelic::Agent::TransactionState.get.request_ignore_enduser
+        elsif ::NewRelic::Agent::TransactionState.get.request_ignore_enduser
           ::NewRelic::Agent.logger.debug "Ignore end user for this transaction is set. Skipping browser instrumentation."
           false
         else
           true
         end
+      end
+
+      def missing_config?(key)
+        value = NewRelic::Agent.config[key]
+        value.nil? || value.empty?
       end
 
       def browser_timing_header
@@ -101,16 +127,16 @@ module NewRelic
       def browser_timing_config
         if insert_js?
           NewRelic::Agent::Transaction.freeze_name
-          generate_footer_js(NewRelic::Agent.instance.beacon_configuration)
+          generate_footer_js
         else
           ""
         end
       end
 
       # TODO: Fold into footer_js_string!
-      def generate_footer_js(config)
+      def generate_footer_js
         if current_transaction
-          footer_js_string(config)
+          footer_js_string
         else
           ''
         end
@@ -123,8 +149,8 @@ module NewRelic
       end
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
-      def footer_js_string(config)
-        data = js_data(config)
+      def footer_js_string
+        data = js_data
         html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{NewRelic.json_dump(data)}</script>")
       end
 
@@ -142,19 +168,19 @@ module NewRelic
       SSL_FOR_HTTP_KEY     = "sslForHttp".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
-      def js_data(config)
+      def js_data
         data = {
           BEACON_KEY           => NewRelic::Agent.config[:beacon],
           ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],
           LICENSE_KEY_KEY      => NewRelic::Agent.config[:browser_key],
           APPLICATIONID_KEY    => NewRelic::Agent.config[:application_id],
-          TRANSACTION_NAME_KEY => obfuscate(config, browser_monitoring_transaction_name),
+          TRANSACTION_NAME_KEY => obfuscate(browser_monitoring_transaction_name),
           QUEUE_TIME_KEY       => current_timings.queue_time_in_millis,
           APPLICATION_TIME_KEY => current_timings.app_time_in_millis,
           TT_GUID_KEY          => tt_guid,
           AGENT_TOKEN_KEY      => tt_token,
           AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
-          EXTRA_KEY            => obfuscate(config, format_extra_data(extra_data))
+          EXTRA_KEY            => obfuscate(format_extra_data(extra_data))
         }
         add_ssl_for_http(data)
 

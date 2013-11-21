@@ -199,17 +199,13 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
 
   def test_browser_timing_config_browser_key_missing
     with_config(:browser_key => '') do
-      fake_config = mock('beacon configuration')
-      NewRelic::Agent.instance.stubs(:beacon_configuration).returns(fake_config)
-      fake_config.expects(:nil?).returns(false)
-      fake_config.expects(:enabled?).returns(true)
       instrumentor.expects(:generate_footer_js).never
-      assert_equal('', instrumentor.browser_timing_config, "should not return a footer when there is no key")
+      assert_equal('', instrumentor.browser_timing_config)
     end
   end
 
   def test_generate_footer_js_without_transaction
-    assert_equal('', instrumentor.generate_footer_js(NewRelic::Agent.instance.beacon_configuration))
+    assert_equal('', instrumentor.generate_footer_js)
   end
 
   def test_browser_timing_config_with_loader
@@ -315,7 +311,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
         state.request_token = '0123456789ABCDEF'
         state.request_guid = 'ABC'
 
-        data = instrumentor.js_data(NewRelic::Agent.instance.beacon_configuration)
+        data = instrumentor.js_data
         expected = {
           "beacon"          => "beacon",
           "errorBeacon"     => "",
@@ -332,7 +328,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
 
         assert_equal(expected, data)
 
-        js = instrumentor.footer_js_string(NewRelic::Agent.instance.beacon_configuration)
+        js = instrumentor.footer_js_string
         expected.each do |key, value|
           assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)
         end
@@ -341,20 +337,20 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   end
 
   def test_ssl_for_http_not_included_by_default
-    data = instrumentor.js_data(NewRelic::Agent.instance.beacon_configuration)
+    data = instrumentor.js_data
     assert_false data.include?("sslForHttp")
   end
 
   def test_ssl_for_http_enabled
     with_config(:'browser_monitoring.ssl_for_http' => true) do
-      data = instrumentor.js_data(NewRelic::Agent.instance.beacon_configuration)
+      data = instrumentor.js_data
       assert data["sslForHttp"]
     end
   end
 
   def test_ssl_for_http_disabled
     with_config(:'browser_monitoring.ssl_for_http' => false) do
-      data = instrumentor.js_data(NewRelic::Agent.instance.beacon_configuration)
+      data = instrumentor.js_data
       assert_false data["sslForHttp"]
     end
   end
@@ -415,7 +411,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   end
 
   def assert_extra_data_is(expected)
-    data = instrumentor.js_data(NewRelic::Agent.instance.beacon_configuration)
+    data = instrumentor.js_data
     assert_equal pack(expected), data["extra"]
   end
 
@@ -453,30 +449,31 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     assert_equal(string, instrumentor.html_safe_if_needed(string))
   end
 
+  OBFUSCATION_KEY = (1..40).to_a
+
   def test_obfuscate_basic
     text = 'a happy piece of small text'
-    key = (1..40).to_a
-    NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key)
-    output = instrumentor.obfuscate(NewRelic::Agent.instance.beacon_configuration, text)
+    instrumentor.instance_variable_set(:@license_bytes, OBFUSCATION_KEY)
+    output = instrumentor.obfuscate(text)
     assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1', output, "should output obfuscated text")
   end
 
   def test_obfuscate_long_string
     text = 'a happy piece of small text' * 5
     key = (1..40).to_a
-    NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key)
-    output = instrumentor.obfuscate(NewRelic::Agent.instance.beacon_configuration, text)
+    instrumentor.instance_variable_set(:@license_bytes, OBFUSCATION_KEY)
+    output = instrumentor.obfuscate(text)
     assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output, "should output obfuscated text")
   end
 
   def test_obfuscate_utf8
     text = "foooooééoooo - blah"
     key = (1..40).to_a
-    NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key).at_least_once
-    output = instrumentor.obfuscate(NewRelic::Agent.instance.beacon_configuration, text)
+    instrumentor.instance_variable_set(:@license_bytes, OBFUSCATION_KEY)
+    output = instrumentor.obfuscate(text)
     assert_equal('Z21sa2ppxKHKo2RjYm4iLiRnamZg', output, "should output obfuscated text")
 
-    unoutput = instrumentor.obfuscate(NewRelic::Agent.instance.beacon_configuration, Base64.decode64(output))
+    unoutput = instrumentor.obfuscate(Base64.decode64(output))
     assert_equal Base64.encode64(text).gsub("\n", ''), unoutput
   end
 
