@@ -116,13 +116,18 @@ module NewRelic
           end
         end
 
-        def reset_stats
+        def reset!
           with_stats_lock do
             old = @stats_hash
             @stats_hash = StatsHash.new
             old
           end
         end
+
+        # Renamed to reset!, here for backwards compatibility with 3rd-party
+        # gems (though this really isn't part of the public API).
+        # @deprecated
+        def reset_stats; reset!; end
 
         # merge data from previous harvests into this stats engine
         def merge!(other_stats_hash)
@@ -133,7 +138,7 @@ module NewRelic
 
         def harvest
           now = Time.now
-          snapshot = reset_stats
+          snapshot = reset!
           snapshot = apply_rules_to_metric_data(@metric_rules, snapshot)
           snapshot.harvested_at = now
           snapshot
@@ -165,7 +170,7 @@ module NewRelic
 
         # For use by test code only.
         def clear_stats
-          reset_stats
+          reset!
           NewRelic::Agent::BusyCalculator.reset
         end
 

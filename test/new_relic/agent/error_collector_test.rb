@@ -13,7 +13,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     @error_collector = NewRelic::Agent::ErrorCollector.new
     @error_collector.stubs(:enabled).returns(true)
 
-    NewRelic::Agent.instance.stats_engine.reset_stats
+    NewRelic::Agent.instance.stats_engine.reset!
   end
 
   def teardown

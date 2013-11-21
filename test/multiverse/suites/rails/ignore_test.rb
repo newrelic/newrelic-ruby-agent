@@ -31,7 +31,7 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
 
   def after_setup
     # Make sure we've got a blank slate for doing easier metric comparisons
-    NewRelic::Agent.instance.reset_stats
+    NewRelic::Agent.instance.drop_buffered_data
   end
 
   def test_metric__ignore

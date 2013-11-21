@@ -291,10 +291,19 @@ module NewRelic
       agent.after_fork(options)
     end
 
-    # Clear out any unsent metric data. See NewRelic::Agent::Agent#reset_stats
-    def reset_stats
-      agent.reset_stats
+    # Clear out any data the agent has buffered but has not yet transmitted
+    # to the collector.
+    #
+    # @api public
+    def drop_buffered_data
+      agent.drop_buffered_data
     end
+
+    # Deprecated in favor of drop_buffered_data
+    #
+    # @api public
+    # @deprecated
+    def reset_stats; drop_buffered_data; end
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
     # and kills the background thread.

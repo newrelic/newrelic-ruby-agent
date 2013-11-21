@@ -38,8 +38,6 @@ module NewRelic
           @service = NewRelic::Agent::NewRelicService.new
         end
 
-        @launch_time = Time.now
-
         @events                = NewRelic::Agent::EventListener.new
         @stats_engine          = NewRelic::Agent::StatsEngine.new
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
@@ -185,7 +183,7 @@ module NewRelic
           reset_objects_with_locks
 
           # Clear out stats that are left over from parent process
-          reset_stats
+          drop_buffered_data
 
           generate_environment_report unless @service.is_a?(NewRelic::Agent::PipeService)
           start_worker_thread(options)
@@ -499,16 +497,19 @@ module NewRelic
           log_version_and_pid
         end
 
-        # Clear out the metric data, errors, and transaction traces,
-        # making sure the agent is in a fresh state
-        def reset_stats
-          @stats_engine.reset_stats
+        # Clear out the metric data, errors, and transaction traces, etc.
+        def drop_buffered_data
+          @stats_engine.reset!
           @error_collector.reset!
           @transaction_sampler.reset!
           @request_sampler.reset!
           @sql_sampler.reset!
-          @launch_time = Time.now
         end
+
+        # Deprecated, and not part of the public API, but here for backwards
+        # compatibility because some 3rd-party gems call it.
+        # @deprecated
+        def reset_stats; drop_buffered_data; end
 
         # Clear out state for any objects that we know lock from our parents
         # This is necessary for cases where we're in a forked child and Ruby
@@ -567,7 +568,7 @@ module NewRelic
           # waits a while to reconnect.
           def handle_force_restart(error)
             ::NewRelic::Agent.logger.debug error.message
-            reset_stats
+            drop_buffered_data
             @service.reset_metric_id_cache if @service
             @connect_state = :pending
             sleep 30

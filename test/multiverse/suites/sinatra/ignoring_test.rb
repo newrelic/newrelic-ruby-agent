@@ -155,7 +155,7 @@ class SinatraIgnoreItAllTest < SinatraTestCase
 
   def test_ignores_everything
     # Avoid Supportability metrics from startup of agent for this check
-    NewRelic::Agent.instance.reset_stats
+    NewRelic::Agent.drop_buffered_data
 
     get_and_assert_ok '/'
     assert_metrics_recorded_exclusive([])

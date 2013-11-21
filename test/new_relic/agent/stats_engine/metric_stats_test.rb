@@ -14,7 +14,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def teardown
-    @engine.harvest
+    @engine.reset!
     super
   end
 

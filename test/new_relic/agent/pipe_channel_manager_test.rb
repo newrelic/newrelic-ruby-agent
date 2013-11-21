@@ -11,7 +11,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
 
   def setup
     @test_config = { :developer_mode => true }
-    NewRelic::Agent.agent.reset_stats
+    NewRelic::Agent.agent.drop_buffered_data
     NewRelic::Agent.config.apply_config(@test_config)
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     NewRelic::Agent.manual_start
@@ -53,7 +53,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       listener.stop
 
       assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
-      engine.reset_stats
+      engine.reset!
     end
 
     def test_listener_merges_transaction_traces
