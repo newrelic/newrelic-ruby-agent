@@ -362,7 +362,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   ANALYTICS_ENABLED = :'analytics_events.enabled'
   ANALYTICS_TXN_ENABLED = :'analytics_events.transactions.enabled'
-  ANALYTICS_TXN_IN_PAGE = :'capture_attributes.page_events'
+  ANALYTICS_TXN_IN_PAGE = :'capture_attributes.page_view_events'
 
   def test_js_data_doesnt_pick_up_extras_by_default
     in_transaction do
