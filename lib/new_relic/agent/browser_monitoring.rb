@@ -194,7 +194,7 @@ module NewRelic
       def include_custom_parameters_in_extra?
         NewRelic::Agent.config[:'analytics_events.enabled'] &&
           NewRelic::Agent.config[:'analytics_events.transactions.enabled'] &&
-          NewRelic::Agent.config[:'capture_attributes.page_events']
+          NewRelic::Agent.config[:'capture_attributes.page_view_events']
       end
 
       # Format the props using semicolon separated pairs separated by '=':
