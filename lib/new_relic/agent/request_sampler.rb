@@ -67,7 +67,7 @@ class NewRelic::Agent::RequestSampler
 
   # Clear any existing samples, reset the last sample time, and return the
   # previous set of samples. (Synchronized)
-  def harvest
+  def harvest!
     old_samples, sample_count, request_count = reset!
     record_sampling_rate(request_count, sample_count) if @enabled
     old_samples

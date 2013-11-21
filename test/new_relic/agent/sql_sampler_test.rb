@@ -82,7 +82,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                           NewRelic::Agent::SlowSql.new("select * from test2", "Database/test2/select", {}, 1.1)]
     @sampler.harvest_slow_sql data
 
-    sql_traces = @sampler.harvest
+    sql_traces = @sampler.harvest!
     assert_equal 2, sql_traces.size
   end
 
@@ -96,7 +96,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     end
 
     @sampler.harvest_slow_sql data
-    result = @sampler.harvest
+    result = @sampler.harvest!
 
     assert_equal(10, result.size)
     assert_equal(14, result.sort{|a,b| b.max_call_time <=> a.max_call_time}.first.total_call_time)
@@ -114,7 +114,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     data.sql_data.concat(queries)
     @sampler.harvest_slow_sql data
 
-    sql_traces = @sampler.harvest
+    sql_traces = @sampler.harvest!
     assert_equal 2, sql_traces.size
   end
 
@@ -141,7 +141,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
               ]
     data.sql_data.concat(queries)
     @sampler.harvest_slow_sql data
-    sql_traces = @sampler.harvest
+    sql_traces = @sampler.harvest!
     assert_equal(["header0", "header1", "header2"],
                  sql_traces[0].params[:explain_plan][0].sort)
     assert_equal(["header0", "header1", "header2"],
@@ -174,7 +174,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                 ]
       data.sql_data.concat(queries)
       @sampler.harvest_slow_sql data
-      sql_traces = @sampler.harvest
+      sql_traces = @sampler.harvest!
       assert_equal(nil, sql_traces[0].params[:explain_plan])
     end
   end
@@ -199,7 +199,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                             NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
                                                          "Database/test/select", {}, 1.2)])
       @sampler.harvest_slow_sql(data)
-      sql_traces = @sampler.harvest
+      sql_traces = @sampler.harvest!
 
       assert_equal('select * from test where foo = ?', sql_traces[0].sql)
       assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
@@ -214,7 +214,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                                                          "Database/test/select",
                                                          {}, 1.5, &explainer)])
       @sampler.harvest_slow_sql(data)
-      sql_traces = @sampler.harvest
+      sql_traces = @sampler.harvest!
 
       assert_nothing_raised do
         Marshal.dump(sql_traces)
@@ -231,7 +231,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                                                          "Database/test/select",
                                                          {}, 1.5)])
       @sampler.harvest_slow_sql(data)
-      sql_traces = @sampler.harvest
+      sql_traces = @sampler.harvest!
 
       params = RUBY_VERSION >= '1.9.2' ? "eJyrrgUAAXUA+Q==\n" : {}
       expected = [ 'WebTransaction/Controller/c/a', '/c/a', 526336943,

@@ -136,7 +136,7 @@ module NewRelic
           end
         end
 
-        def harvest
+        def harvest!
           now = Time.now
           snapshot = reset!
           snapshot = apply_rules_to_metric_data(@metric_rules, snapshot)

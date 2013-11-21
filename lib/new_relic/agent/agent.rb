@@ -900,7 +900,7 @@ module NewRelic
         #
         # The given container should respond to:
         #
-        #  #harvest
+        #  #harvest!
         #    returns an enumerable collection of data items to be sent to the
         #    collector.
         #
@@ -919,7 +919,7 @@ module NewRelic
         def harvest_from_container(container, endpoint)
           items = []
           begin
-            items = container.harvest
+            items = container.harvest!
           rescue => e
             NewRelic::Agent.logger.error("Failed to harvest #{endpoint} data, resetting. Error: ", e)
             container.reset!

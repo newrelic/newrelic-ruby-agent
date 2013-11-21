@@ -118,7 +118,7 @@ module NewRelic
         end
       end
 
-      def harvest
+      def harvest!
         return [] if !Agent.config[:'slow_sql.enabled']
         result = []
         @samples_lock.synchronize do

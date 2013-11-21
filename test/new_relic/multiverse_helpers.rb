@@ -56,10 +56,9 @@ module MultiverseHelpers
     NewRelic::Agent.instance.stats_engine.metric_rules.rules.clear
 
     # Clear out lingering stats we didn't transmit
-    NewRelic::Agent.instance.drop_buffered_data
+    NewRelic::Agent.drop_buffered_data
 
-    # Clear out lingering errors in the collector
-    NewRelic::Agent.instance.error_collector.harvest
+    # Clear the error collector's ignore_filter
     NewRelic::Agent.instance.error_collector.instance_variable_set(:@ignore_filter, nil)
 
     # Clean up any thread-local variables starting with 'newrelic'

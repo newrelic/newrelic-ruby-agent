@@ -235,7 +235,7 @@ module NewRelic
       end
 
       # Gather transaction traces that we'd like to transmit to the server.
-      def harvest
+      def harvest!
         return [] unless enabled?
 
         samples = @samples_lock.synchronize do

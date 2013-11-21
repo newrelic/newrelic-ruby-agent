@@ -85,7 +85,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     with_sampler_config do
       5.times { generate_request }
 
-      old_samples = @sampler.harvest
+      old_samples = @sampler.harvest!
 
       assert_equal 5, old_samples.size
       assert_equal 0, @sampler.samples.size
@@ -95,7 +95,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def test_merge_merges_samples_back_into_buffer
     with_sampler_config do
       5.times { generate_request }
-      old_samples = @sampler.harvest
+      old_samples = @sampler.harvest!
       5.times { generate_request }
 
       @sampler.merge!(old_samples)
@@ -106,7 +106,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def test_merge_abides_by_max_samples_limit
     with_sampler_config(:'analytics_events.max_samples_stored' => 5) do
       4.times { generate_request }
-      old_samples = @sampler.harvest
+      old_samples = @sampler.harvest!
       4.times { generate_request }
 
       @sampler.merge!(old_samples)
@@ -127,7 +127,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       samples_before = @sampler.samples
       assert_equal 50, samples_before.size
 
-      @sampler.harvest
+      @sampler.harvest!
 
       150.times { generate_request('after') }
       samples_after = @sampler.samples

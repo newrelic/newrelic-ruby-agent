@@ -15,7 +15,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   end
 
   def teardown
-    @engine.harvest
+    @engine.reset!
     mocha_teardown
     super
   end
