@@ -722,6 +722,13 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable debugging version of JavaScript agent loader for browser monitoring instrumentation.'
         },
+        :'browser_monitoring.ssl_for_http' => {
+          :default => nil,
+          :allow_nil => true,
+          :public => false,
+          :type => Boolean,
+          :description => 'Enable or disable HTTPS instrumentation by JavaScript agent on HTTP pages.'
+        },
         :js_agent_loader => {
           :default => '',
           :public => false,

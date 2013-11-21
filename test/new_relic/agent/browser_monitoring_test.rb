@@ -341,6 +341,25 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
   end
 
+  def test_ssl_for_http_not_included_by_default
+    data = js_data(NewRelic::Agent.instance.beacon_configuration)
+    assert_false data.include?("sslForHttp")
+  end
+
+  def test_ssl_for_http_enabled
+    with_config(:'browser_monitoring.ssl_for_http' => true) do
+      data = js_data(NewRelic::Agent.instance.beacon_configuration)
+      assert data["sslForHttp"]
+    end
+  end
+
+  def test_ssl_for_http_disabled
+    with_config(:'browser_monitoring.ssl_for_http' => false) do
+      data = js_data(NewRelic::Agent.instance.beacon_configuration)
+      assert_false data["sslForHttp"]
+    end
+  end
+
   ANALYTICS_ENABLED = :'analytics_events.enabled'
   ANALYTICS_TXN_ENABLED = :'analytics_events.transactions.enabled'
   ANALYTICS_TXN_IN_PAGE = :'capture_attributes.page_events'
