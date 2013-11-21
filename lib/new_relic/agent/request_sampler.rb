@@ -13,10 +13,8 @@ class NewRelic::Agent::RequestSampler
           MonitorMixin
 
   # The namespace and keys of config values
-  MAX_SAMPLES_KEY            = :'analytics_events.max_samples_stored'
   ENABLED_KEY                = :'analytics_events.enabled'
   ENABLED_TXN_KEY            = :'analytics_events.transactions.enabled'
-  INCLUDE_CUSTOM_PARAMS_KEY  = :'capture_attributes.transaction_events'
 
   # The type field of the sample
   SAMPLE_TYPE              = 'Transaction'
@@ -31,7 +29,7 @@ class NewRelic::Agent::RequestSampler
     super()
 
     @enabled       = false
-    @samples       = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[MAX_SAMPLES_KEY])
+    @samples       = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[:'analytics_events.max_samples_stored'])
     @notified_full = false
 
     event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
@@ -99,7 +97,7 @@ class NewRelic::Agent::RequestSampler
   end
 
   def register_config_callbacks
-    NewRelic::Agent.config.register_callback(MAX_SAMPLES_KEY) do |max_samples|
+    NewRelic::Agent.config.register_callback(:'analytics_events.max_samples_stored') do |max_samples|
       NewRelic::Agent.logger.debug "RequestSampler max_samples set to #{max_samples}"
       self.synchronize { @samples.capacity = max_samples }
       self.reset!
@@ -128,7 +126,7 @@ class NewRelic::Agent::RequestSampler
     # The order in which these are merged is important.  We want to ensure that
     # custom parameters can't override required fields (e.g. type)
     sample = {}
-    if ::NewRelic::Agent.config[INCLUDE_CUSTOM_PARAMS_KEY]
+    if ::NewRelic::Agent.config[:'capture_attributes.transaction_events']
       sample.merge!(event_params(payload[:custom_params] || {}))
     end
     sample.merge!(payload[:overview_metrics] || {})

@@ -40,10 +40,13 @@ class OrphanedConfigTest < Test::Unit::TestCase
       lines = File.read(file).split("\n")
 
       lines.each_with_index do |line, index|
-        config_match = line.match(/Agent\.config\[:([a-z\._]+)\]/)
-        next unless config_match
+        captures = []
+        captures << line.scan(/Agent\.config\[:['"]?([a-z\._]+)['"]?\]/)
+        captures << line.scan(/register_callback\(:['"]?([a-z\._]+)['"]?\)/)
 
-        config_match.captures.map do |key|
+        next if captures.empty?
+
+        captures.flatten.map do |key|
           @default_keys.delete key.gsub("'", "").to_sym
         end
       end

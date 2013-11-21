@@ -68,13 +68,15 @@ module NewRelic
 
         def self.agent_enabled
           Proc.new {
-            self[:enabled] && (self[:developer_mode] || self[:monitor_mode] || self[:monitor_daemons]) && ::NewRelic::Agent::Autostart.agent_should_start?
+            NewRelic::Agent.config[:enabled] &&
+            (NewRelic::Agent.config[:developer_mode] || NewRelic::Agent.config[:monitor_mode] || NewRelic::Agent.config[:monitor_daemons]) &&
+            NewRelic::Agent::Autostart.agent_should_start?
           }
         end
 
         def self.audit_log_path
           Proc.new {
-            File.join(self[:log_file_path], 'newrelic_audit.log')
+            File.join(NewRelic::Agent.config[:log_file_path], 'newrelic_audit.log')
           }
         end
 
@@ -95,62 +97,62 @@ module NewRelic
         end
 
         def self.browser_monitoring_auto_instrument
-          Proc.new { self[:'rum.enabled'] }
+          Proc.new { NewRelic::Agent.config[:'rum.enabled'] }
         end
 
         # This check supports the js_errors_beta key we've asked clients to
         # set. Once JS errors are GA, browser_monitoring.loader can stop
         # being dynamic.
         def self.browser_monitoring_loader
-          Proc.new { self[:js_errors_beta] ? "full" : "rum"}
+          Proc.new { NewRelic::Agent.config[:js_errors_beta] ? "full" : "rum"}
         end
 
         def self.slow_sql_record_sql
-          Proc.new { self[:'transaction_tracer.record_sql'] }
+          Proc.new { NewRelic::Agent.config[:'transaction_tracer.record_sql'] }
         end
 
         def self.slow_sql_explain_enabled
-          Proc.new { self[:'transaction_tracer.explain_enabled'] }
+          Proc.new { NewRelic::Agent.config[:'transaction_tracer.explain_enabled'] }
         end
 
         def self.slow_sql_explain_threshold
-          Proc.new { self[:'transaction_tracer.explain_threshold'] }
+          Proc.new { NewRelic::Agent.config[:'transaction_tracer.explain_threshold'] }
         end
 
         def self.slow_sql_stack_trace_threshold
-          Proc.new { self[:'transaction_tracer.stack_trace_threshold'] }
+          Proc.new { NewRelic::Agent.config[:'transaction_tracer.stack_trace_threshold'] }
         end
 
         def self.slow_sql_enabled
-          Proc.new { self[:'transaction_tracer.enabled'] }
+          Proc.new { NewRelic::Agent.config[:'transaction_tracer.enabled'] }
         end
 
         def self.transaction_tracer_transaction_threshold
-          Proc.new { self[:apdex_t] * 4 }
+          Proc.new { NewRelic::Agent.config[:apdex_t] * 4 }
         end
 
         def self.disable_activerecord_instrumentation
-          Proc.new { self[:skip_ar_instrumentation] }
+          Proc.new { NewRelic::Agent.config[:skip_ar_instrumentation] }
         end
 
         def self.api_port
-          Proc.new { self[:port] }
+          Proc.new { NewRelic::Agent.config[:port] }
         end
 
         def self.port
-          Proc.new { self[:ssl] ? 443 : 80 }
+          Proc.new { NewRelic::Agent.config[:ssl] ? 443 : 80 }
         end
 
         def self.strip_exception_messages_enabled
-          Proc.new { self[:high_security] }
+          Proc.new { NewRelic::Agent.config[:high_security] }
         end
 
         def self.developer_mode
-          Proc.new { self[:developer] }
+          Proc.new { NewRelic::Agent.config[:developer] }
         end
 
         def self.monitor_mode
-          Proc.new { self[:enabled] }
+          Proc.new { NewRelic::Agent.config[:enabled] }
         end
       end
 
@@ -207,18 +209,6 @@ module NewRelic
           :public => true,
           :type => String,
           :description => "New Relic license key."
-        },
-        :log => {
-          :default => '',
-          :public => false,
-          :type => String,
-          :description => "Override to set log file name and path to STDOUT."
-        },
-        :omit_fake_collector => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :description => "Override to omit fake collector in multiverse tests."
         },
         :config_path => {
           :default => DefaultSource.config_path,
@@ -304,12 +294,6 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Enables or disables the agent for background processes. No longer necessary as the agent now automatically instruments background processes.'
-        },
-        :multi_homed => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enable or disable instrumentation for multiple applications on the same host bound to different interfaces serving the same port.'
         },
         :high_security => {
           :default => false,
@@ -423,12 +407,6 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Enable or disable transmission of application environment information to the New Relic data collection service.'
-        },
-        :start_channel_listener => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enable or disable spawning of a background thread that listens for connections from child processes. Primarily used for Resque instrumentation.'
         },
         :'resque.use_harvest_lock' => {
           :default => false,
@@ -658,12 +636,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable collection of slow sql queries.'
         },
-        :'slow_sql.stack_trace_threshold' => {
-          :default => DefaultSource.slow_sql_stack_trace_threshold,
-          :public => true,
-          :type => Float,
-          :description => 'Stack traces will be generated and included in slow sql queries with durations that exceed this threshold.'
-        },
         :'slow_sql.explain_threshold' => {
           :default => DefaultSource.slow_sql_explain_threshold,
           :public => true,
@@ -703,12 +675,6 @@ module NewRelic
         :'rum.enabled' => {
           :default => true,
           :public => true,
-          :type => Boolean,
-          :description => 'Enable or disable real user monitoring.'
-        },
-        :'rum.load_episodes_file' => {
-          :default => true,
-          :public => false,
           :type => Boolean,
           :description => 'Enable or disable real user monitoring.'
         },
