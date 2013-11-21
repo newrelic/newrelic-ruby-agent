@@ -69,7 +69,7 @@ module NewRelic
       def create_log(root, override_logger)
         if !override_logger.nil?
           @log = override_logger
-        elsif NewRelic::Agent.config[:agent_enabled] == false
+        elsif ::NewRelic::Agent.config[:agent_enabled] == false
           create_null_logger
         else
           if wants_stdout?
@@ -81,12 +81,12 @@ module NewRelic
       end
 
       def create_log_to_file(root)
-        path = find_or_create_file_path(NewRelic::Agent.config[:log_file_path], root)
+        path = find_or_create_file_path(::NewRelic::Agent.config[:log_file_path], root)
         if path.nil?
           @log = ::Logger.new(STDOUT)
-          warn("Error creating log directory #{NewRelic::Agent.config[:log_file_path]}, using standard out for logging.")
+          warn("Error creating log directory #{::NewRelic::Agent.config[:log_file_path]}, using standard out for logging.")
         else
-          file_path = "#{path}/#{NewRelic::Agent.config[:log_file_name]}"
+          file_path = "#{path}/#{::NewRelic::Agent.config[:log_file_name]}"
           begin
             @log = ::Logger.new(file_path)
           rescue => e
@@ -97,11 +97,11 @@ module NewRelic
       end
 
       def create_null_logger
-        @log = NewRelic::Agent::NullLogger.new
+        @log = ::NewRelic::Agent::NullLogger.new
       end
 
       def wants_stdout?
-        NewRelic::Agent.config[:log_file_path].upcase == "STDOUT"
+        ::NewRelic::Agent.config[:log_file_path].upcase == "STDOUT"
       end
 
       def find_or_create_file_path(path_setting, root)
@@ -115,7 +115,7 @@ module NewRelic
       end
 
       def set_log_level!
-        @log.level = AgentLogger.log_level_for(NewRelic::Agent.config[:log_level])
+        @log.level = AgentLogger.log_level_for(::NewRelic::Agent.config[:log_level])
       end
 
       LOG_LEVELS = {
