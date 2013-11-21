@@ -226,13 +226,14 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     assert_equal('a' * (NewRelic::Agent::Database::MAX_QUERY_LENGTH - 3) + '...', truncated_query)
   end
 
+  INVALID_UTF8_STRING = (''.respond_to?(:force_encoding) ? "\x80".force_encoding('UTF-8') : "\x80")
+
   def test_capture_query_mis_encoded
-    query = [129].pack('C')
-    query.force_encoding('UTF-8') if query.respond_to?(:force_encoding)
-    old_encoding = query.encoding
-    expected_query = [129].pack('C')
+    query = INVALID_UTF8_STRING
+    original_encoding = query.encoding
+    expected_query = INVALID_UTF8_STRING.dup.force_encoding('ASCII-8BIT')
     captured = NewRelic::Agent::Database.capture_query(query)
-    assert_equal(old_encoding, query.encoding) # input query should remain untouched
+    assert_equal(original_encoding, query.encoding) # input query encoding should remain untouched
     assert_equal(expected_query, captured)
   end
 end

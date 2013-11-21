@@ -291,10 +291,10 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     assert_equal expected, transaction.to_collector_array(@marshaller.default_encoder)
   end
 
+  INVALID_UTF8_STRING = (''.respond_to?(:force_encoding) ? "\x80".force_encoding('UTF-8') : "\x80")
+
   def test_prepare_to_send_with_incorrectly_encoded_string_in_sql_query
-    bad_string = [129].pack("C")
-    bad_string.force_encoding("UTF-8") if bad_string.respond_to?(:force_encoding)
-    query = "SELECT * FROM table WHERE col1=\"#{bad_string}\" AND col2=\"whatev\""
+    query = "SELECT * FROM table WHERE col1=\"#{INVALID_UTF8_STRING}\" AND col2=\"whatev\""
 
     t = nil
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
