@@ -97,6 +97,12 @@ unless defined?( assert_not_includes )
   end
 end
 
+unless defined?( assert_empty )
+  def assert_empty(collection, msg=nil)
+    assert collection.empty?, msg
+  end
+end
+
 def assert_equal_unordered(left, right)
   assert_equal(left.length, right.length, "Lengths don't match. #{left.length} != #{right.length}")
   left.each { |element| assert_includes(right, element) }
