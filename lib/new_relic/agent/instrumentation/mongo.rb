@@ -34,7 +34,13 @@ DependencyDetection.defer do
           name, collection = f if f
         end
 
-        trace_execution_scoped('Database/#{collection}/#{name}') do
+        metrics = [
+          "Datastore/all",
+          "Datastore/operation/MongoDB/#{name}",
+          "Datastore/statement/MongoDB/#{collection}/#{name}"
+        ]
+
+        trace_execution_scoped(metrics) do
           t0 = Time.now
           result = instrument_without_newrelic_trace(name, payload, &block)
           NewRelic::Agent.instance.transaction_sampler.notice_sql(payload.inspect, nil, (Time.now - t0).to_f)
