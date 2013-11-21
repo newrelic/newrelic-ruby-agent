@@ -119,10 +119,6 @@ module NewRelic
           Proc.new { NewRelic::Agent.config[:'transaction_tracer.explain_threshold'] }
         end
 
-        def self.slow_sql_stack_trace_threshold
-          Proc.new { NewRelic::Agent.config[:'transaction_tracer.stack_trace_threshold'] }
-        end
-
         def self.slow_sql_enabled
           Proc.new { NewRelic::Agent.config[:'transaction_tracer.enabled'] }
         end
