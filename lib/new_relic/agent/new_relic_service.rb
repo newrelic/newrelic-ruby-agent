@@ -32,7 +32,7 @@ module NewRelic
         @metric_id_cache = {}
         @last_metric_harvest_time = Time.now
 
-        @audit_logger = ::NewRelic::Agent::AuditLogger.new(Agent.config)
+        @audit_logger = ::NewRelic::Agent::AuditLogger.new
         Agent.config.register_callback(:'audit_log.enabled') do |enabled|
           @audit_logger.enabled = enabled
         end

@@ -185,10 +185,6 @@ module NewRelic
         }
       end
 
-      ANALYTICS_ENABLED = :'analytics_events.enabled'
-      ANALYTICS_TXN_ENABLED = :'analytics_events.transactions.enabled'
-      ANALYTICS_TXN_IN_PAGE = :'capture_attributes.page_events'
-
       # NOTE: Internal prototyping may override this, so leave name stable!
       def extra_data
         return {} unless include_custom_parameters_in_extra?
@@ -196,9 +192,9 @@ module NewRelic
       end
 
       def include_custom_parameters_in_extra?
-        NewRelic::Agent.config[ANALYTICS_ENABLED] &&
-          NewRelic::Agent.config[ANALYTICS_TXN_ENABLED] &&
-          NewRelic::Agent.config[ANALYTICS_TXN_IN_PAGE]
+        NewRelic::Agent.config[:'analytics_events.enabled'] &&
+          NewRelic::Agent.config[:'analytics_events.transactions.enabled'] &&
+          NewRelic::Agent.config[:'capture_attributes.page_events']
       end
 
       # Format the props using semicolon separated pairs separated by '=':

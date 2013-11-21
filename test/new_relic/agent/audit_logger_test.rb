@@ -8,9 +8,8 @@ require 'new_relic/agent/null_logger'
 
 class AuditLoggerTest < Test::Unit::TestCase
   def setup
-    @config = {
-      :'audit_log.enabled' => true
-    }
+    NewRelic::Agent.config.apply_config(:'audit_log.enabled' => true)
+
     @uri = "http://really.notreal"
     @marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
     @hostname = 'dummyhost'
@@ -26,7 +25,7 @@ class AuditLoggerTest < Test::Unit::TestCase
 
   def setup_fake_logger
     @fakelog = StringIO.new
-    @logger = NewRelic::Agent::AuditLogger.new(@config)
+    @logger = NewRelic::Agent::AuditLogger.new
     @logger.stubs(:ensure_log_path).returns(@fakelog)
   end
 
@@ -37,22 +36,24 @@ class AuditLoggerTest < Test::Unit::TestCase
   end
 
   def test_never_setup_if_disabled
-    config = { :'audit_log.enabled' => false }
-    logger = NewRelic::Agent::AuditLogger.new(config)
-    logger.log_request(@uri, "hi there", @marshaller)
-    assert(!logger.setup?, "Expected logger to not have been setup")
+    with_config(:'audit_log.enabled' => false) do
+      logger = NewRelic::Agent::AuditLogger.new
+      logger.log_request(@uri, "hi there", @marshaller)
+      assert(!logger.setup?, "Expected logger to not have been setup")
+    end
   end
 
   def test_never_prepare_if_disabled
-    config = { :'audit_log.enabled' => false }
-    logger = NewRelic::Agent::AuditLogger.new(config)
-    marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
-    marshaller.expects(:prepare).never
-    logger.log_request(@uri, "hi there", @marshaller)
+    with_config(:'audit_log.enabled' => false) do
+      logger = NewRelic::Agent::AuditLogger.new
+      marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
+      marshaller.expects(:prepare).never
+      logger.log_request(@uri, "hi there", @marshaller)
+    end
   end
 
   def test_log_formatter
-    formatter = NewRelic::Agent::AuditLogger.new(@config).log_formatter
+    formatter = NewRelic::Agent::AuditLogger.new.log_formatter
     time = '2012-01-01 00:00:00'
     msg = 'hello'
     result = formatter.call(Logger::INFO, time, 'bleh', msg)
@@ -61,16 +62,17 @@ class AuditLoggerTest < Test::Unit::TestCase
   end
 
   def test_ensure_path_returns_nil_with_bogus_path
-    opts = { :'audit_log.path' => '/really/really/not/a/path' }
-    FileUtils.stubs(:mkdir_p).raises(SystemCallError, "i'd rather not")
-    logger = NewRelic::Agent::AuditLogger.new(@config.merge(opts))
-    assert_nil(logger.ensure_log_path)
+    with_config(:'audit_log.path' => '/really/really/not/a/path') do
+      FileUtils.stubs(:mkdir_p).raises(SystemCallError, "i'd rather not")
+      logger = NewRelic::Agent::AuditLogger.new
+      assert_nil(logger.ensure_log_path)
+    end
   end
 
   def test_setup_logger_creates_null_logger_when_ensure_path_fails
     null_logger = NewRelic::Agent::NullLogger.new
     NewRelic::Agent::NullLogger.expects(:new).returns(null_logger)
-    logger = NewRelic::Agent::AuditLogger.new(@config)
+    logger = NewRelic::Agent::AuditLogger.new
     logger.stubs(:ensure_log_path).returns(nil)
     assert_nothing_raised do
       logger.setup_logger
@@ -79,7 +81,7 @@ class AuditLoggerTest < Test::Unit::TestCase
   end
 
   def test_log_request_captures_system_call_errors
-    logger = NewRelic::Agent::AuditLogger.new(@config)
+    logger = NewRelic::Agent::AuditLogger.new
     dummy_sink = StringIO.new
     dummy_sink.stubs(:write).raises(SystemCallError, "nope")
     logger.stubs(:ensure_log_path).returns(dummy_sink)

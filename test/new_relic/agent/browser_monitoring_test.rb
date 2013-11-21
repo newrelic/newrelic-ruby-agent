@@ -319,7 +319,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
         data = js_data(NewRelic::Agent.instance.beacon_configuration)
         expected = {
           "beacon"          => "beacon",
-          "errorBeacon"     => nil,
+          "errorBeacon"     => "",
           "licenseKey"      => "browserKey",
           "applicationID"   => "5, 6",
           "transactionName" => pack("most recent transaction"),
@@ -327,7 +327,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
           "applicationTime" => 10000,
           "ttGuid"          => "ABC",
           "agentToken"      => "0123456789ABCDEF",
-          "agent"           => nil,
+          "agent"           => "",
           "extra"           => pack("user=user")
         }
 

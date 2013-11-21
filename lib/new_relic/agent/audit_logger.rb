@@ -8,9 +8,8 @@ require 'fileutils'
 module NewRelic
   module Agent
     class AuditLogger
-      def initialize(config)
-        @config = config
-        @enabled = @config[:'audit_log.enabled']
+      def initialize
+        @enabled = NewRelic::Agent.config[:'audit_log.enabled']
         @encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
       end
 
@@ -51,7 +50,7 @@ module NewRelic
       end
 
       def ensure_log_path
-        path = File.expand_path(@config[:'audit_log.path'])
+        path = File.expand_path(NewRelic::Agent.config[:'audit_log.path'])
         log_dir = File.dirname(path)
 
         begin

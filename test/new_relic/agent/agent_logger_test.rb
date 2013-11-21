@@ -25,24 +25,21 @@ class AgentLoggerTest < Test::Unit::TestCase
   LEVELS = [:fatal, :error, :warn, :info, :debug]
 
   def setup
-    @config = {
-      :log_file_path => "log/",
-      :log_file_name => "testlog.log",
-      :log_level => :info,
-    }
+    NewRelic::Agent.config.apply_config(:log_file_path => "log/",
+                                        :log_file_name => "testlog.log",
+                                        :log_level => :info)
   end
-
 
   #
   # Tests
   #
 
   def test_initalizes_from_config
-    logger = NewRelic::Agent::AgentLogger.new(@config)
+    logger = NewRelic::Agent::AgentLogger.new
 
     wrapped_logger = logger.instance_variable_get( :@log )
     logdev = wrapped_logger.instance_variable_get( :@logdev )
-    expected_logpath = File.expand_path( @config[:log_file_path] + @config[:log_file_name] )
+    expected_logpath = File.expand_path( NewRelic::Agent.config[:log_file_path] + NewRelic::Agent.config[:log_file_name] )
 
     assert_kind_of( Logger, wrapped_logger )
     assert_kind_of( File, logdev.dev )
@@ -51,7 +48,7 @@ class AgentLoggerTest < Test::Unit::TestCase
 
   def test_initalizes_from_override
     override_logger = Logger.new( '/dev/null' )
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
     assert_equal override_logger, logger.instance_variable_get(:@log)
   end
 
@@ -59,7 +56,7 @@ class AgentLoggerTest < Test::Unit::TestCase
   def test_forwards_calls_to_logger
     logdev = ArrayLogDevice.new
     override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
     LEVELS.each do |level|
       logger.send(level, "Boo!")
@@ -77,7 +74,7 @@ class AgentLoggerTest < Test::Unit::TestCase
   def test_forwards_calls_to_logger_with_multiple_arguments
     logdev = ArrayLogDevice.new
     override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
     LEVELS.each do |level|
       logger.send(level, "What", "up?")
@@ -96,19 +93,21 @@ class AgentLoggerTest < Test::Unit::TestCase
   end
 
   def test_wont_log_if_agent_not_enabled
-    @config[:agent_enabled] = false
-    logger = NewRelic::Agent::AgentLogger.new(@config)
-    assert_nothing_raised do
-      logger.warn('hi there')
-    end
+    with_config(:agent_enabled => false) do
+      logger = NewRelic::Agent::AgentLogger.new
+      assert_nothing_raised do
+        logger.warn('hi there')
+      end
 
-    assert_kind_of NewRelic::Agent::NullLogger, logger.instance_variable_get( :@log )
+      assert_kind_of NewRelic::Agent::NullLogger, logger.instance_variable_get( :@log )
+    end
   end
 
   def test_does_not_touch_dev_null
     Logger.expects(:new).with('/dev/null').never
-    @config[:agent_enabled] = false
-    logger = NewRelic::Agent::AgentLogger.new(@config)
+    with_config(:agent_enabled => false) do
+      logger = NewRelic::Agent::AgentLogger.new
+    end
   end
 
   def test_maps_log_levels
@@ -123,38 +122,39 @@ class AgentLoggerTest < Test::Unit::TestCase
   end
 
   def test_sets_log_level
-    @config[:log_level] = :debug
+    with_config(:log_level => :debug) do
+      override_logger = Logger.new( $stderr )
+      override_logger.level = Logger::FATAL
 
-    override_logger = Logger.new( $stderr )
-    override_logger.level = Logger::FATAL
+      logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
-
-    assert_equal Logger::DEBUG, override_logger.level
+      assert_equal Logger::DEBUG, override_logger.level
+    end
   end
 
   def test_log_to_stdout_and_warns_if_failed_on_create
-      Dir.stubs(:mkdir).returns(nil)
-      config = @config.merge( :log_file_path => '/someplace/non/existant' )
+    Dir.stubs(:mkdir).returns(nil)
 
-    logger = with_squelched_stdout do
-      NewRelic::Agent::AgentLogger.new(config)
+    with_config(:log_file_path => '/someplace/nonexistent') do
+      logger = with_squelched_stdout do
+        NewRelic::Agent::AgentLogger.new
+      end
+
+      wrapped_logger = logger.instance_variable_get(:@log)
+      logdev = wrapped_logger.instance_variable_get(:@logdev)
+
+      assert_equal $stdout, logdev.dev
     end
-
-    wrapped_logger = logger.instance_variable_get(:@log)
-    logdev = wrapped_logger.instance_variable_get(:@logdev)
-
-    assert_equal $stdout, logdev.dev
   end
 
   def test_log_to_stdout_based_on_config
-    @config[:log_file_path] = "STDOUT"
+    with_config(:log_file_path => 'STDOUT') do
+      logger = NewRelic::Agent::AgentLogger.new
+      wrapped_logger = logger.instance_variable_get(:@log)
+      logdev = wrapped_logger.instance_variable_get(:@logdev)
 
-    logger = NewRelic::Agent::AgentLogger.new(@config)
-    wrapped_logger = logger.instance_variable_get(:@log)
-    logdev = wrapped_logger.instance_variable_get(:@logdev)
-
-    assert_equal $stdout, logdev.dev
+      assert_equal $stdout, logdev.dev
+    end
   end
 
   def test_startup_purges_memory_logger
@@ -164,7 +164,7 @@ class AgentLoggerTest < Test::Unit::TestCase
 
     logdev = ArrayLogDevice.new
     override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
     assert_equal 4, logdev.array.length # No DEBUG
 
@@ -177,7 +177,7 @@ class AgentLoggerTest < Test::Unit::TestCase
   def test_passing_exceptions_only_logs_the_message_at_levels_higher_than_debug
     logdev = ArrayLogDevice.new
     override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
     begin
       raise "Something bad happened"
@@ -190,44 +190,43 @@ class AgentLoggerTest < Test::Unit::TestCase
   end
 
   def test_passing_exceptions_logs_the_backtrace_at_debug_level
-    config = @config.merge(:log_level => :debug)
+    with_config(:log_level => :debug) do
+      logdev = ArrayLogDevice.new
+      override_logger = Logger.new( logdev )
+      logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
-    logdev = ArrayLogDevice.new
-    override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new(config, "", override_logger)
+      begin
+        raise "Something bad happened"
+      rescue => err
+        logger.error( err )
+      end
 
-    begin
-      raise "Something bad happened"
-    rescue => err
-      logger.error( err )
+      assert_equal 2, logdev.array.length
+      assert_match( /ERROR : RuntimeError: Something bad happened/i, logdev.array[0] )
+      assert_match( /DEBUG : Debugging backtrace:\n.*test_passing_exceptions/i, logdev.array[1] )
     end
-
-    assert_equal 2, logdev.array.length
-    assert_match( /ERROR : RuntimeError: Something bad happened/i, logdev.array[0] )
-    assert_match( /DEBUG : Debugging backtrace:\n.*test_passing_exceptions/i,
-                  logdev.array[1] )
   end
 
   def test_format_message_allows_nil_backtrace
-    config = @config.merge(:log_level => :debug)
+    with_config(:log_level => :debug) do
+      logdev = ArrayLogDevice.new
+      override_logger = Logger.new( logdev )
+      logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
-    logdev = ArrayLogDevice.new
-    override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new(config, "", override_logger)
+      e = Exception.new("Look Ma, no backtrace!")
+      assert_nil(e.backtrace)
+      logger.error(e)
 
-    e = Exception.new("Look Ma, no backtrace!")
-    assert_nil(e.backtrace)
-    logger.error(e)
-
-    assert_equal 2, logdev.array.length
-    assert_match( /ERROR : Exception: Look Ma, no backtrace!/i, logdev.array[0] )
-    assert_match( /DEBUG : No backtrace available./, logdev.array[1])
+      assert_equal 2, logdev.array.length
+      assert_match( /ERROR : Exception: Look Ma, no backtrace!/i, logdev.array[0] )
+      assert_match( /DEBUG : No backtrace available./, logdev.array[1])
+    end
   end
 
   def test_log_exception_logs_backtrace_at_same_level_as_message_by_default
     logdev = ArrayLogDevice.new
     override_logger = Logger.new(logdev)
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
     e = Exception.new("howdy")
     e.set_backtrace(["wiggle", "wobble", "topple"])
@@ -242,7 +241,7 @@ class AgentLoggerTest < Test::Unit::TestCase
   def test_log_exception_logs_backtrace_at_explicitly_specified_level
     logdev = ArrayLogDevice.new
     override_logger = Logger.new(logdev)
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
     e = Exception.new("howdy")
     e.set_backtrace(["wiggle", "wobble", "topple"])
@@ -258,7 +257,7 @@ class AgentLoggerTest < Test::Unit::TestCase
     Logger::LogDevice.any_instance.stubs(:open).raises(Errno::EACCES)
 
     logger = with_squelched_stdout do
-      NewRelic::Agent::AgentLogger.new(@config, "")
+      NewRelic::Agent::AgentLogger.new
     end
 
     wrapped_logger = logger.instance_variable_get(:@log)
@@ -272,9 +271,11 @@ class AgentLoggerTest < Test::Unit::TestCase
       def debug; end
     end
 
-    logger = NewRelic::Agent::AgentLogger.new(@config.merge(:agent_enabled => false))
-    assert_nothing_raised do
-      logger.debug('hi!')
+    logger = NewRelic::Agent::AgentLogger.new
+    with_config(:agent_enabled => false) do
+      assert_nothing_raised do
+        logger.debug('hi!')
+      end
     end
   ensure
     Kernel.module_eval do

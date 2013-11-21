@@ -8,9 +8,9 @@ module NewRelic
   module Agent
     class AgentLogger
 
-      def initialize(config, root = "", override_logger=nil)
-        create_log(config, root, override_logger)
-        set_log_level!(config)
+      def initialize(root = "", override_logger=nil)
+        create_log(root, override_logger)
+        set_log_level!
         set_log_format!
 
         gather_startup_logs
@@ -66,27 +66,27 @@ module NewRelic
         end
       end
 
-      def create_log(config, root, override_logger)
+      def create_log(root, override_logger)
         if !override_logger.nil?
           @log = override_logger
-        elsif config[:agent_enabled] == false
+        elsif ::NewRelic::Agent.config[:agent_enabled] == false
           create_null_logger
         else
-          if wants_stdout(config)
+          if wants_stdout?
             @log = ::Logger.new(STDOUT)
           else
-            create_log_to_file(config, root)
+            create_log_to_file(root)
           end
         end
       end
 
-      def create_log_to_file(config, root)
-        path = find_or_create_file_path(config[:log_file_path], root)
+      def create_log_to_file(root)
+        path = find_or_create_file_path(::NewRelic::Agent.config[:log_file_path], root)
         if path.nil?
           @log = ::Logger.new(STDOUT)
-          warn("Error creating log directory #{config[:log_file_path]}, using standard out for logging.")
+          warn("Error creating log directory #{::NewRelic::Agent.config[:log_file_path]}, using standard out for logging.")
         else
-          file_path = "#{path}/#{config[:log_file_name]}"
+          file_path = "#{path}/#{::NewRelic::Agent.config[:log_file_name]}"
           begin
             @log = ::Logger.new(file_path)
           rescue => e
@@ -97,11 +97,11 @@ module NewRelic
       end
 
       def create_null_logger
-        @log = NewRelic::Agent::NullLogger.new
+        @log = ::NewRelic::Agent::NullLogger.new
       end
 
-      def wants_stdout(config)
-        config[:log_file_path].upcase == "STDOUT"
+      def wants_stdout?
+        ::NewRelic::Agent.config[:log_file_path].upcase == "STDOUT"
       end
 
       def find_or_create_file_path(path_setting, root)
@@ -114,8 +114,8 @@ module NewRelic
         nil
       end
 
-      def set_log_level!(config)
-        @log.level = AgentLogger.log_level_for(config.fetch(:log_level))
+      def set_log_level!
+        @log.level = AgentLogger.log_level_for(::NewRelic::Agent.config[:log_level])
       end
 
       LOG_LEVELS = {

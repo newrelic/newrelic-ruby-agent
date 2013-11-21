@@ -14,6 +14,7 @@ $LOAD_PATH.uniq!
 
 require 'rubygems'
 require 'rake'
+Dir.glob('test/helpers/*').each { |f| require f }
 
 Dir.glob(File.join(NEWRELIC_PLUGIN_DIR,'test/helpers/*.rb')).each do |helper|
   require helper
@@ -117,11 +118,12 @@ end
 def with_verbose_logging
   orig_logger = NewRelic::Agent.logger
   $stderr.puts '', '---', ''
-  new_logger = NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
+  new_logger = NewRelic::Agent::AgentLogger.new('', Logger.new($stderr) )
   NewRelic::Agent.logger = new_logger
 
-  yield
-
+  with_config(:log_level => 'debug') do
+    yield
+  end
 ensure
   NewRelic::Agent.logger = orig_logger
 end
@@ -210,9 +212,11 @@ def with_array_logger( level=:info )
     }
   logdev = ArrayLogDevice.new
   override_logger = Logger.new( logdev )
-  NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(config, "", override_logger)
+  NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
-  yield
+  with_config(config) do
+    yield
+  end
 
   return logdev
 ensure

@@ -137,9 +137,9 @@ module NewRelic
         end
 
         def app_names
-          case self[:app_name]
-          when Array then self[:app_name]
-          when String then self[:app_name].split(';')
+          case NewRelic::Agent.config[:app_name]
+          when Array then NewRelic::Agent.config[:app_name]
+          when String then NewRelic::Agent.config[:app_name].split(';')
           else []
           end
         end

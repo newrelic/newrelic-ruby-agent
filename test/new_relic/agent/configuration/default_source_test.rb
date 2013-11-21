@@ -35,8 +35,14 @@ module NewRelic::Agent::Configuration
       NewRelic::Control.instance.local_env.stubs(:discovered_dispatcher).returns(:unicorn)
 
       @default_source.keys.each do |key|
-        default_value_class = get_config_value_class(fetch_config_value(key))
-        assert_equal @defaults[key][:type], default_value_class, "Config setting #{key} does not have the correct type."
+        actual_type = get_config_value_class(fetch_config_value(key))
+        expected_type = @defaults[key][:type]
+
+        if @defaults[key][:allow_nil]
+          assert [NilClass, expected_type].include?(actual_type), "Default value for #{key} should be NilClass or #{expected_type}, is #{actual_type}."
+        else
+          assert_equal expected_type, actual_type, "Default value for #{key} should be #{expected_type}, is #{actual_type}."
+        end
       end
     end
 

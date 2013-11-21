@@ -7,6 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 # look through the source code to enforce some simple rules that help us keep
 # our license data up to date.
 class LicenseTest < Test::Unit::TestCase
+  include NewRelic::TestHelpers::FileSearching
 
   # A list of regexs that will likely match license info
   LICENSE_TERMS = {
@@ -45,20 +46,6 @@ class LicenseTest < Test::Unit::TestCase
     ['/vendor/gems/metric_parser-0.1.0.pre1/lib/new_relic/metric_parser/solr_request_handler.rb', 'Apache'] => 1, # parse apache solr metrics
   }
 
-  def all_rb_and_js_files
-    pattern = File.expand_path(gem_root + "/**/*.{rb,js}")
-    Dir[pattern]
-  end
-
-  def all_files
-    pattern = File.expand_path(gem_root + "/**/*")
-    Dir[pattern]
-  end
-
-  def gem_root
-    File.expand_path(File.dirname(__FILE__) + "/../../")
-  end
-
   def shebang
     /^#!/
   end
@@ -92,7 +79,11 @@ class LicenseTest < Test::Unit::TestCase
     all_rb_and_js_files.each do |filename|
       next if should_skip?(filename)
 
-      first_four_lines = File.read(filename, 1000).split("\n")[0...4]
+      first_thousand_bytes = File.read(filename, 1000)
+      assert_not_nil first_thousand_bytes, "#{filename} is shorter than 1000 bytes."
+
+      first_four_lines = first_thousand_bytes.split("\n")[0...4]
+
       if first_four_lines.first =~ shebang
         first_four_lines.shift # discard it
       end

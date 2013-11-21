@@ -19,14 +19,26 @@ module NewRelic
       extend self
 
 
-      # The constants, execuatables (i.e. $0) and rake tasks used can be
+      # The constants, executables (i.e. $0) and rake tasks used can be
       # configured with the config keys 'autostart.blacklisted_constants',
       # 'autostart.blacklisted_executables' and
       # 'autostart.blacklisted_rake_tasks'
       def agent_should_start?
-          !blacklisted?('autostart.blacklisted_constants') { |name| constant_is_defined?(name) } &&
-          !blacklisted?('autostart.blacklisted_executables') { |bin| File.basename($0) == bin } &&
+          !blacklisted_constants? &&
+          !blacklisted_executables? &&
           !in_blacklisted_rake_task?
+      end
+
+      def blacklisted_constants?
+        blacklisted?(NewRelic::Agent.config[:'autostart.blacklisted_constants']) do |name|
+          constant_is_defined?(name)
+        end
+      end
+
+      def blacklisted_executables?
+        blacklisted?(NewRelic::Agent.config[:'autostart.blacklisted_executables']) do |bin|
+          File.basename($0) == bin
+        end
       end
 
       # Lookup whether namespaced constants (e.g. ::Foo::Bar::Baz) are in the
@@ -52,18 +64,18 @@ module NewRelic
         end
       end
 
-      def blacklisted?(key, &block)
-        ::NewRelic::Agent.config[key].split(/\s*,\s*/).any?(&block)
+      def blacklisted?(value, &block)
+        value.split(/\s*,\s*/).any?(&block)
       end
 
       def in_blacklisted_rake_task?
         tasks = begin
-            ::Rake.application.top_level_tasks
-          rescue => e
+                  ::Rake.application.top_level_tasks
+                rescue => e
             ::NewRelic::Agent.logger.debug("Not in Rake environment so skipping blacklisted_rake_tasks check: #{e}")
             []
           end
-        !(tasks & ::NewRelic::Agent.config['autostart.blacklisted_rake_tasks'].split(/\s*,\s*/)).empty?
+        !(tasks & ::NewRelic::Agent.config[:'autostart.blacklisted_rake_tasks'].split(/\s*,\s*/)).empty?
       end
     end
   end

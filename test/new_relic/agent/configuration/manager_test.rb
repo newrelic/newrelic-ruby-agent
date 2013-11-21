@@ -10,7 +10,9 @@ require 'new_relic/agent/threading/backtrace_service'
 module NewRelic::Agent::Configuration
   class ManagerTest < Test::Unit::TestCase
     def setup
-      @manager = NewRelic::Agent::Configuration::Manager.new
+      # Defaults look up against the shared config, so reset and use it
+      NewRelic::Agent.reset_config
+      @manager = NewRelic::Agent.config
     end
 
     def test_should_use_indifferent_access
