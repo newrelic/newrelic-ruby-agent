@@ -221,10 +221,9 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
   end
 
   def test_capture_query_long_query
-    query = 'a' * 16384
+    query = 'a' * NewRelic::Agent::Database::MAX_QUERY_LENGTH
     truncated_query = NewRelic::Agent::Database.capture_query(query)
-    assert_equal(16384, truncated_query.length)
-    assert_equal('a' * 16381 + '...', truncated_query)
+    assert_equal('a' * (NewRelic::Agent::Database::MAX_QUERY_LENGTH - 3) + '...', truncated_query)
   end
 
   def test_capture_query_mis_encoded
