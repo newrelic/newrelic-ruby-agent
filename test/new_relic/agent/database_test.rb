@@ -230,10 +230,20 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
 
   def test_capture_query_mis_encoded
     query = INVALID_UTF8_STRING
-    original_encoding = query.encoding
-    expected_query = INVALID_UTF8_STRING.dup.force_encoding('ASCII-8BIT')
+    original_encoding = encoding_from_string(query)
+    expected_query = INVALID_UTF8_STRING.dup
+    expected_query.force_encoding('ASCII-8BIT') if expected_query.respond_to?(:force_encoding)
     captured = NewRelic::Agent::Database.capture_query(query)
-    assert_equal(original_encoding, query.encoding) # input query encoding should remain untouched
+    assert_equal(original_encoding, encoding_from_string(query)) # input query encoding should remain untouched
     assert_equal(expected_query, captured)
+  end
+
+  # Ruby 1.8 doesn't have String#encoding
+  def encoding_from_string(str)
+    if str.respond_to?(:encoding)
+      str.encoding
+    else
+      nil
+    end
   end
 end
