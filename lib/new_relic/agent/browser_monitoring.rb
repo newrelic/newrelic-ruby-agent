@@ -167,10 +167,11 @@ module NewRelic
       AGENT_TOKEN_KEY      = "agentToken".freeze
       AGENT_KEY            = "agent".freeze
       EXTRA_KEY            = "extra".freeze
+      SSL_FOR_HTTP_KEY     = "sslForHttp".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def js_data(config)
-        {
+        data = {
           BEACON_KEY           => NewRelic::Agent.config[:beacon],
           ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],
           LICENSE_KEY_KEY      => NewRelic::Agent.config[:browser_key],
@@ -183,6 +184,16 @@ module NewRelic
           AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
           EXTRA_KEY            => obfuscate(config, format_extra_data(extra_data))
         }
+        add_ssl_for_http(data)
+
+        data
+      end
+
+      def add_ssl_for_http(data)
+        ssl_for_http = NewRelic::Agent.config[:'browser_monitoring.ssl_for_http']
+        unless ssl_for_http.nil?
+          data[SSL_FOR_HTTP_KEY] = ssl_for_http
+        end
       end
 
       # NOTE: Internal prototyping may override this, so leave name stable!
