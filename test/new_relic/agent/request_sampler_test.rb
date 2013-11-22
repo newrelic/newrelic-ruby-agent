@@ -4,6 +4,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/request_sampler'
 
 class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
@@ -13,6 +14,22 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     @event_listener = NewRelic::Agent::EventListener.new
     @sampler = NewRelic::Agent::RequestSampler.new( @event_listener )
   end
+
+  # Helpers for DataContainerTests
+
+  def create_container
+    @sampler
+  end
+
+  def populate_container(sampler, n)
+    n.times do |i|
+      generate_request("whatever#{i}")
+    end
+  end
+
+  include NewRelic::DataContainerTests
+
+  # Tests
 
   def test_samples_on_transaction_finished_event
     with_sampler_config do
