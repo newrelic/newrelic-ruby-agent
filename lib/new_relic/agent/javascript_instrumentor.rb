@@ -178,7 +178,7 @@ module NewRelic
           TT_GUID_KEY          => tt_guid,
           AGENT_TOKEN_KEY      => tt_token,
           AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
-          EXTRA_KEY            => obfuscate(format_extra_data(extra_data))
+          EXTRA_KEY            => obfuscate(formatted_extra_parameter_for_js_agent)
         }
         add_ssl_for_http(data)
 
@@ -193,7 +193,7 @@ module NewRelic
       end
 
       # NOTE: Internal prototyping may override this, so leave name stable!
-      def extra_data
+      def data_for_js_agent_extra_parameter
         return {} unless include_custom_parameters_in_extra?
         current_transaction.custom_parameters.dup
       end
@@ -203,6 +203,10 @@ module NewRelic
           NewRelic::Agent.config[:'analytics_events.enabled'] &&
           NewRelic::Agent.config[:'analytics_events.transactions.enabled'] &&
           NewRelic::Agent.config[:'capture_attributes.page_view_events']
+      end
+
+      def formatted_extra_parameter_for_js_agent
+        format_extra_data(data_for_js_agent_extra_parameter)
       end
 
       # Format the props using semicolon separated pairs separated by '=':

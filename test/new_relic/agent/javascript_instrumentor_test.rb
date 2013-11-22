@@ -140,19 +140,19 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_extra_data
+  def test_data_for_js_agent_extra_parameter
     in_transaction do
       with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-        assert_equal({:boo => "hoo"}, instrumentor.extra_data)
+        assert_equal({:boo => "hoo"}, instrumentor.data_for_js_agent_extra_parameter)
       end
     end
   end
 
-  def test_extra_data_outside_transaction
+  def test_data_for_js_agent_extra_parameter_outside_transaction
     with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
       NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-      assert_empty instrumentor.extra_data
+      assert_empty instrumentor.data_for_js_agent_extra_parameter
     end
   end
 
