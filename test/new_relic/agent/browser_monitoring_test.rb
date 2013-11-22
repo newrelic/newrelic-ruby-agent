@@ -361,7 +361,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   end
 
   ANALYTICS_ENABLED = :'analytics_events.enabled'
-  ANALYTICS_TXN_ENABLED = :'analytics_events.transactions.enabled'
   ANALYTICS_TXN_IN_PAGE = :'capture_attributes.page_view_events'
 
   def test_js_data_doesnt_pick_up_extras_by_default
@@ -374,7 +373,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   def test_js_data_picks_up_extras_when_configured
     in_transaction do
       with_config(ANALYTICS_ENABLED => true,
-                  ANALYTICS_TXN_ENABLED => true,
                   ANALYTICS_TXN_IN_PAGE => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("boo=hoo")
@@ -385,18 +383,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   def test_js_data_ignores_extras_if_no_analytics
     in_transaction do
       with_config(ANALYTICS_ENABLED => false,
-                  ANALYTICS_TXN_ENABLED => true,
-                  ANALYTICS_TXN_IN_PAGE => true) do
-        NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-        assert_extra_data_is("")
-      end
-    end
-  end
-
-  def test_js_data_ignores_extras_if_no_transaction_analytics
-    in_transaction do
-      with_config(ANALYTICS_ENABLED => true,
-                  ANALYTICS_TXN_ENABLED => false,
                   ANALYTICS_TXN_IN_PAGE => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("")
@@ -407,7 +393,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   def test_js_data_ignores_extras_if_not_allowed_in_page
     in_transaction do
       with_config(ANALYTICS_ENABLED => true,
-                  ANALYTICS_TXN_ENABLED => true,
                   ANALYTICS_TXN_IN_PAGE => false) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("")
