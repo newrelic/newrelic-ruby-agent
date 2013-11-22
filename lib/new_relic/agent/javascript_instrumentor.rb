@@ -147,7 +147,7 @@ module NewRelic
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def footer_js_string
-        data = js_data
+        data = data_for_js_agent
         json = NewRelic.json_dump(data)
         html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
       end
@@ -166,7 +166,7 @@ module NewRelic
       SSL_FOR_HTTP_KEY     = "sslForHttp".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
-      def js_data
+      def data_for_js_agent
         data = {
           BEACON_KEY           => NewRelic::Agent.config[:beacon],
           ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],

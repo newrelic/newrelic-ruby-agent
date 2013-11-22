@@ -183,7 +183,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     assert_equal("", result)
   end
 
-  def test_footer_js_data
+  def test_footer_data_for_js_agent
     freeze_time
     in_transaction do
       with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
@@ -198,7 +198,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
         state.request_token = '0123456789ABCDEF'
         state.request_guid = 'ABC'
 
-        data = instrumentor.js_data
+        data = instrumentor.data_for_js_agent
         expected = {
           "beacon"          => "beacon",
           "errorBeacon"     => "",
@@ -224,20 +224,20 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   end
 
   def test_ssl_for_http_not_included_by_default
-    data = instrumentor.js_data
+    data = instrumentor.data_for_js_agent
     assert_false data.include?("sslForHttp")
   end
 
   def test_ssl_for_http_enabled
     with_config(:'browser_monitoring.ssl_for_http' => true) do
-      data = instrumentor.js_data
+      data = instrumentor.data_for_js_agent
       assert data["sslForHttp"]
     end
   end
 
   def test_ssl_for_http_disabled
     with_config(:'browser_monitoring.ssl_for_http' => false) do
-      data = instrumentor.js_data
+      data = instrumentor.data_for_js_agent
       assert_false data["sslForHttp"]
     end
   end
@@ -246,14 +246,14 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   ANALYTICS_TXN_ENABLED = :'analytics_events.transactions.enabled'
   CAPTURE_ATTRIBUTES_PAGE_EVENTS = :'capture_attributes.page_view_events'
 
-  def test_js_data_doesnt_pick_up_extras_by_default
+  def test_data_for_js_agent_doesnt_pick_up_extras_by_default
     in_transaction do
       NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
       assert_extra_data_is("")
     end
   end
 
-  def test_js_data_picks_up_extras_when_configured
+  def test_data_for_js_agent_picks_up_extras_when_configured
     in_transaction do
       with_config(ANALYTICS_ENABLED => true,
                   ANALYTICS_TXN_ENABLED => true,
@@ -264,7 +264,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_js_data_ignores_extras_if_no_analytics
+  def test_data_for_js_agent_ignores_extras_if_no_analytics
     in_transaction do
       with_config(ANALYTICS_ENABLED => false,
                   ANALYTICS_TXN_ENABLED => true,
@@ -275,7 +275,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_js_data_ignores_extras_if_no_transaction_analytics
+  def test_data_for_js_agent_ignores_extras_if_no_transaction_analytics
     in_transaction do
       with_config(ANALYTICS_ENABLED => true,
                   ANALYTICS_TXN_ENABLED => false,
@@ -286,7 +286,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_js_data_ignores_extras_if_not_allowed_in_page
+  def test_data_for_js_agent_ignores_extras_if_not_allowed_in_page
     in_transaction do
       with_config(ANALYTICS_ENABLED => true,
                   ANALYTICS_TXN_ENABLED => true,
@@ -298,7 +298,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   end
 
   def assert_extra_data_is(expected)
-    data = instrumentor.js_data
+    data = instrumentor.data_for_js_agent
     assert_equal pack(expected), data["extra"]
   end
 
