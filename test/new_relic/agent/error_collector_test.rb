@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/internal_agent_error'
 
 class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
@@ -20,6 +21,22 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     super
     NewRelic::Agent.config.remove_config(@test_config)
   end
+
+  # Helpers for DataContainerTests
+
+  def create_container
+    NewRelic::Agent::ErrorCollector.new
+  end
+
+  def populate_container(collector, n)
+    n.times do |i|
+      collector.notice_error('yay errors', :metric => 'path')
+    end
+  end
+
+  include NewRelic::DataContainerTests
+
+  # Tests
 
   def test_empty
     @error_collector.harvest!
