@@ -4,7 +4,7 @@
 
 module NewRelic
   module Agent
-    class MongoMetricTranslator
+    module MongoMetricTranslator
       def self.metrics_for(name, payload)
       end
     end
