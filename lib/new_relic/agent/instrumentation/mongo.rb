@@ -27,21 +27,7 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
 
       def instrument_with_newrelic_trace(name, payload = {}, &block)
-        payload = {} if payload.nil?
-        collection = payload[:collection]
-
-        if collection == '$cmd'
-          f = payload[:selector].first
-          name, collection = f if f
-        end
-
         metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(name, payload)
-
-        metrics = [
-          "Datastore/all",
-          "Datastore/operation/MongoDB/#{name}",
-          "Datastore/statement/MongoDB/#{collection}/#{name}"
-        ]
 
         trace_execution_scoped(metrics) do
           t0 = Time.now

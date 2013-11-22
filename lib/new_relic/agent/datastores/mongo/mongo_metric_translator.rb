@@ -5,7 +5,21 @@
 module NewRelic
   module Agent
     module MongoMetricTranslator
-      def self.metrics_for(name, payload)
+      def self.metrics_for(name, payload = {})
+        payload = {} if payload.nil?
+
+        collection = payload[:collection]
+
+        if collection == '$cmd'
+          f = payload[:selector].first
+          name, collection = f if f
+        end
+
+        [
+          "Datastore/all",
+          "Datastore/operation/MongoDB/#{name}",
+          "Datastore/statement/MongoDB/#{collection}/#{name}"
+        ]
       end
     end
   end
