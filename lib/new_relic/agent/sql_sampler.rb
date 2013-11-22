@@ -96,7 +96,6 @@ module NewRelic
                 sql_item, transaction_sql_data.path, transaction_sql_data.uri)
           end
         end
-
       end
 
       def notice_sql(sql, metric_name, config, duration, &explainer)
@@ -113,8 +112,14 @@ module NewRelic
 
       def merge!(sql_traces)
         @samples_lock.synchronize do
-#FIXME we need to merge the sql_traces array back into the @sql_traces hash
-#          @sql_traces.merge! sql_traces
+          sql_traces.each do |trace|
+            existing_trace = @sql_traces[trace.sql]
+            if existing_trace
+              existing_trace.aggregate_trace(trace)
+            else
+              @sql_traces[trace.sql] = trace
+            end
+          end
         end
       end
 
@@ -203,6 +208,7 @@ module NewRelic
       attr_reader :sql
       attr_reader :database_metric_name
       attr_reader :params
+      attr_reader :slow_sql
 
       def initialize(normalized_query, slow_sql, path, uri)
         super()
@@ -228,6 +234,10 @@ module NewRelic
         end
 
         record_data_point(float(slow_sql.duration))
+      end
+
+      def aggregate_trace(trace)
+        aggregate(trace.slow_sql, trace.path, trace.url)
       end
 
       def prepare_to_send
