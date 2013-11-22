@@ -96,7 +96,10 @@ module NewRelic
 
       # Should JS agent script be generated? Log if not.
       def insert_js?
-        if missing_config?(:beacon)
+        if !has_loader?
+          ::NewRelic::Agent.logger.debug "Missing :js_agent_loader. Skipping browser instrumentation."
+          false
+        elsif missing_config?(:beacon)
           ::NewRelic::Agent.logger.debug "Beacon configuration not received (yet?). Skipping browser instrumentation."
           false
         elsif !enabled?
@@ -125,37 +128,28 @@ module NewRelic
       end
 
       def browser_timing_header
-        insert_js? ? header_js_string : ""
+        return "" unless insert_js?
+        header_js_string
       end
 
       def browser_timing_config
-        if insert_js?
-          NewRelic::Agent::Transaction.freeze_name
-          generate_footer_js
-        else
-          ""
-        end
-      end
+        return "" unless insert_js?
+        NewRelic::Agent::Transaction.freeze_name
 
-      # TODO: Fold into footer_js_string!
-      def generate_footer_js
-        if current_transaction
-          footer_js_string
-        else
-          ''
-        end
+        return "" unless current_transaction
+        footer_js_string
       end
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def header_js_string
-        return "" unless has_loader?
         html_safe_if_needed("\n<script type=\"text/javascript\">#{js_agent_loader}</script>")
       end
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def footer_js_string
         data = js_data
-        html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{NewRelic.json_dump(data)}</script>")
+        json = NewRelic.json_dump(data)
+        html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
       end
 
       BEACON_KEY           = "beacon".freeze
@@ -214,12 +208,15 @@ module NewRelic
       # Format the props using semicolon separated pairs separated by '=':
       #   product=pro;user=bill@microsoft.com
       def format_extra_data(extra_props)
-        extra_props = event_params(extra_props)
-        extra_props.map do |k, v|
-          key = escape_special_characters(k)
-          value = format_value(v)
-          "#{key}=#{value}"
-        end.join(';')
+        event_params(extra_props).
+          map {|k,v| format_pair(k, v)}.
+          join(';')
+      end
+
+      def format_pair(key, value)
+        key = escape_special_characters(key)
+        value = format_value(value)
+        "#{key}=#{value}"
       end
 
       def escape_special_characters(string)
@@ -227,20 +224,13 @@ module NewRelic
       end
 
       def format_value(v)
-        # flag numeric values with `#' prefix
-        if v.is_a? Numeric
-          value = "##{v}"
-        else
-          value = escape_special_characters(v)
-        end
+        v = "##{v}" if v.is_a?(Numeric)
+        escape_special_characters(v)
       end
 
       def html_safe_if_needed(string)
-        if string.respond_to?(:html_safe)
-          string.html_safe
-        else
-          string
-        end
+        string = string.html_safe if string.respond_to?(:html_safe)
+        string
       end
     end
   end
