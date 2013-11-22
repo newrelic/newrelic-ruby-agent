@@ -10,18 +10,20 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   include Mongo
 
   def setup
+    @client = MongoClient.new
+    @database = @client.db('multiverse')
+    @collection = @database.collection('tribbles')
+
     @tribble = {'name' => 'soterious johnson'}
-    @mongodb = MongoClient.new.db('multiverse')
-    @tribbles = @mongodb.collection('tribbles')
   end
 
-  def teardown
-    # @mongodb.remove
+  def after_tests
+    @client.drop_database('multiverse')
   end
 
   def test_generates_payload_metrics_for_an_operation
     ::NewRelic::Agent::MongoMetricTranslator.expects(:metrics_for).with(:insert, has_entry(:database => 'multiverse', :collection => 'tribbles'))
-    @tribbles.insert(@tribble)
+    @collection.insert(@tribble)
   end
 
   def test_mongo_instrumentation_loaded
@@ -30,7 +32,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_insert
-    @tribbles.insert(@tribble)
+    @collection.insert(@tribble)
 
     metric = 'insert'
     assert_metrics_recorded([
@@ -41,8 +43,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_find
-    @tribbles.insert(@tribble)
-    @tribbles.find(@tribble).to_a
+    @collection.insert(@tribble)
+    @collection.find(@tribble).to_a
 
     metric = 'find'
     assert_metrics_recorded([
@@ -53,8 +55,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def _test_records_metrics_for_find_one
-    @tribbles.insert(@tribble)
-    @tribbles.find_one
+    @collection.insert(@tribble)
+    @collection.find_one
 
     metric = 'find_one'
     assert_metrics_recorded([
@@ -65,8 +67,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_remove
-    @tribbles.insert(@tribble)
-    @tribbles.remove(@tribble).to_a
+    @collection.insert(@tribble)
+    @collection.remove(@tribble).to_a
 
     metric = 'remove'
     assert_metrics_recorded([
@@ -77,7 +79,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def _test_records_metrics_for_save
-    @tribbles.save(@tribble)
+    @collection.save(@tribble)
 
     metric = 'save'
     assert_metrics_recorded([
@@ -91,7 +93,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     updated = @tribble.dup
     updated['name'] = 'codemonkey'
 
-    @tribbles.update(@tribble, updated)
+    @collection.update(@tribble, updated)
 
     metric = 'update'
     assert_metrics_recorded([
@@ -102,7 +104,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_distinct
-    @tribbles.distinct('name')
+    @collection.distinct('name')
 
     metric = 'distinct'
     assert_metrics_recorded([
@@ -113,7 +115,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_count
-    @tribbles.count
+    @collection.count
 
     metric = 'count'
     assert_metrics_recorded([
@@ -126,7 +128,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_find_and_modify
     updated = @tribble.dup
     updated['name'] = 'codemonkey'
-    @tribbles.find_and_modify(query: @tribble, update: updated)
+    @collection.find_and_modify(query: @tribble, update: updated)
 
     metric = 'findandmodify'
     assert_metrics_recorded([
@@ -137,7 +139,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def _test_records_metrics_for_find_and_remove
-    @tribbles.find_and_modify(query: @tribble, remove: true)
+    @collection.find_and_modify(query: @tribble, remove: true)
 
     metric = 'findandremove'
     assert_metrics_recorded([
@@ -148,7 +150,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def _test_records_metrics_for_create_index
-    @tribbles.create_index({'name' => Mongo::ASCENDING})
+    @collection.create_index({'name' => Mongo::ASCENDING})
 
     metric = 'create_index'
     assert_metrics_recorded([
@@ -159,7 +161,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def _test_records_metrics_for_ensure_index
-    @tribbles.ensure_index({'name' => Mongo::ASCENDING})
+    @collection.ensure_index({'name' => Mongo::ASCENDING})
 
     metric = 'ensure_index'
     assert_metrics_recorded([
@@ -170,9 +172,9 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def _test_records_metrics_for_drop_index
-    @tribbles.create_index({'name' => Mongo::ASCENDING})
-    name = @tribbles.index_information.values.last['name']
-    @tribbles.drop_index(name)
+    @collection.create_index({'name' => Mongo::ASCENDING})
+    name = @collection.index_information.values.last['name']
+    @collection.drop_index(name)
 
     metric = 'drop_index'
     assert_metrics_recorded([
@@ -183,7 +185,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_drop_indexes
-    @tribbles.drop_indexes
+    @collection.create_index({'name' => Mongo::ASCENDING})
+    @collection.drop_indexes
 
     metric = 'deleteIndexes'
     assert_metrics_recorded([
@@ -194,7 +197,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def _test_records_metrics_for_reindex
-    @tribbles.reindex
+    @collection.reindex
 
     metric = 'reindex'
     assert_metrics_recorded([
