@@ -102,6 +102,8 @@ module NewRelic::Agent::Configuration
       manager.apply_config({:license_key => 'wrong'}, 1)
 
       assert_equal 'right', manager['license_key']
+    ensure
+      ENV.delete('NEWRELIC_LICENSE_KEY')
     end
 
     def test_config_values_should_be_memoized
