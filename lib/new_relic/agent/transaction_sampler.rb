@@ -146,7 +146,6 @@ module NewRelic
         builder.set_transaction_cpu_time(cpu_time) if builder
       end
 
-      MAX_DATA_LENGTH = 16384
       # This method is used to record metadata into the currently
       # active segment like a sql query, memcache key, or Net::HTTP uri
       #
@@ -166,17 +165,6 @@ module NewRelic
       end
 
       private :notice_extra_data
-
-      # Truncates the message to `MAX_DATA_LENGTH` if needed, and
-      # appends an ellipsis because it makes the trucation clearer in
-      # the UI
-      def self.truncate_message(message)
-        if message.length > (MAX_DATA_LENGTH - 4)
-          message[0..MAX_DATA_LENGTH - 4] + '...'
-        else
-          message
-        end
-      end
 
       # Allows the addition of multiple pieces of metadata to one
       # segment - i.e. traced method calls multiple sql queries
@@ -208,7 +196,7 @@ module NewRelic
       end
 
       def build_database_statement(sql, config, explainer)
-        statement = Database::Statement.new(self.class.truncate_message(sql))
+        statement = Database::Statement.new(Database.capture_query(sql))
         if config
           statement.adapter = config[:adapter]
           statement.config = config

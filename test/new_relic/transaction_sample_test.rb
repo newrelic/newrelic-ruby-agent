@@ -291,6 +291,21 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     assert_equal expected, transaction.to_collector_array(@marshaller.default_encoder)
   end
 
+  INVALID_UTF8_STRING = (''.respond_to?(:force_encoding) ? "\x80".force_encoding('UTF-8') : "\x80")
+
+  def test_prepare_to_send_with_incorrectly_encoded_string_in_sql_query
+    query = "SELECT * FROM table WHERE col1=\"#{INVALID_UTF8_STRING}\" AND col2=\"whatev\""
+
+    t = nil
+    with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
+      t = make_sql_transaction(query, query)
+      t.prepare_to_send!
+    end
+
+    sql_statements = extract_captured_sql(t)
+    assert_equal(["SELECT * FROM table WHERE col1=? AND col2=?"], sql_statements)
+  end
+
   def trace_tree(transaction=@t)
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       trace_tree = compress(transaction.to_json)

@@ -13,7 +13,9 @@ module NewRelic
     if RUBY_VERSION >= '1.9'
       def correctly_encoded(string)
         return string unless string.is_a? String
-        string.valid_encoding? ? string : string.force_encoding("ASCII-8BIT")
+        # The .dup here is intentional, since force_encoding mutates the target,
+        # and we don't know who is going to use this string downstream of us.
+        string.valid_encoding? ? string : string.dup.force_encoding("ASCII-8BIT")
       end
     else
       #noop
