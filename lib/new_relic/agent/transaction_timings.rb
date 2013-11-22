@@ -15,7 +15,11 @@ module NewRelic
       end
 
       attr_reader :transaction_name,
-        :start_time_in_seconds, :queue_time_in_seconds
+                  :start_time_in_seconds, :queue_time_in_seconds
+
+      def transaction_name_or_unknown
+        transaction_name || ::NewRelic::Agent::UNKNOWN_METRIC
+      end
 
       def start_time_as_time
         Time.at(@start_time_in_seconds)

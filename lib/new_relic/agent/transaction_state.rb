@@ -63,6 +63,15 @@ module NewRelic
       # Request data
       attr_accessor :request, :request_token, :request_guid, :request_ignore_enduser
 
+      def request_guid_to_include
+        return "" unless include_guid?
+        request_guid
+      end
+
+      def include_guid?
+        request_token && timings.app_time_in_seconds > transaction.apdex_t
+      end
+
       # Current transaction stack and sample building
       attr_accessor :transaction, :transaction_sample_builder
       attr_writer   :current_transaction_stack

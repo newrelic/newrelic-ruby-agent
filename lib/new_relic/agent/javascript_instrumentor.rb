@@ -60,30 +60,6 @@ module NewRelic
         NewRelic::Agent::TransactionState.get.transaction
       end
 
-      def current_timings
-        NewRelic::Agent::TransactionState.get.timings
-      end
-
-      def browser_monitoring_transaction_name
-        current_timings.transaction_name || ::NewRelic::Agent::UNKNOWN_METRIC
-      end
-
-      def tt_guid
-        state = NewRelic::Agent::TransactionState.get
-        return state.request_guid if include_guid?(state)
-        ""
-      end
-
-      # TODO: Feature envy? Move to TransactionState?
-      def include_guid?(state)
-        state.request_token &&
-          state.timings.app_time_in_seconds > state.transaction.apdex_t
-      end
-
-      def tt_token
-        return NewRelic::Agent::TransactionState.get.request_token
-      end
-
       # Javascript
 
       # Should JS agent script be generated? Log if not.
@@ -159,16 +135,19 @@ module NewRelic
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def data_for_js_agent
+        state = NewRelic::Agent::TransactionState.get
+        timings = state.timings
+
         data = {
           BEACON_KEY           => NewRelic::Agent.config[:beacon],
           ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],
           LICENSE_KEY_KEY      => NewRelic::Agent.config[:browser_key],
           APPLICATIONID_KEY    => NewRelic::Agent.config[:application_id],
-          TRANSACTION_NAME_KEY => obfuscate(browser_monitoring_transaction_name),
-          QUEUE_TIME_KEY       => current_timings.queue_time_in_millis,
-          APPLICATION_TIME_KEY => current_timings.app_time_in_millis,
-          TT_GUID_KEY          => tt_guid,
-          AGENT_TOKEN_KEY      => tt_token,
+          TRANSACTION_NAME_KEY => obfuscate(timings.transaction_name_or_unknown),
+          QUEUE_TIME_KEY       => timings.queue_time_in_millis,
+          APPLICATION_TIME_KEY => timings.app_time_in_millis,
+          TT_GUID_KEY          => state.request_guid_to_include,
+          AGENT_TOKEN_KEY      => state.request_token,
           AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
           EXTRA_KEY            => obfuscate(formatted_extra_parameter_for_js_agent)
         }

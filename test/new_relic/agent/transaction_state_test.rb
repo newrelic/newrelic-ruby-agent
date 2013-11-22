@@ -71,5 +71,49 @@ module NewRelic::Agent
       assert_equal 5.0, timings.app_time_in_seconds
       assert_equal transaction.name, timings.transaction_name
     end
+
+    GUID = "goo-id"
+
+    def test_request_guid_to_include
+      with_config(:apdex_t => 2.0) do
+        freeze_time
+
+        state.request_token = "token"
+        state.request_guid = GUID
+        state.transaction = NewRelic::Agent::Transaction.new
+
+        advance_time(4.0)
+
+        assert_equal GUID, state.request_guid_to_include
+      end
+    end
+
+    def test_requst_guid_excluded_if_request_fast_enough
+      with_config(:apdex_t => 2.0) do
+        freeze_time
+
+        state.request_token = "token"
+        state.request_guid = GUID
+        state.transaction = NewRelic::Agent::Transaction.new
+
+        advance_time(1.0)
+
+        assert_equal "", state.request_guid_to_include
+      end
+    end
+
+    def test_request_guid_excluded_if_no_token
+      with_config(:apdex_t => 2.0) do
+        freeze_time
+
+        state.request_token = nil
+        state.request_guid = GUID
+        state.transaction = NewRelic::Agent::Transaction.new
+
+        advance_time(4.0)
+
+        assert_equal "", state.request_guid_to_include
+      end
+    end
   end
 end

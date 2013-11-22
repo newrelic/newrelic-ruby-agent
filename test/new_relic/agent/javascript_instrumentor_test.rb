@@ -120,26 +120,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_browser_monitoring_transaction_name_basic
-    in_transaction do
-      NewRelic::Agent.set_transaction_name('a transaction name')
-      assert_match(/a transaction name/, instrumentor.browser_monitoring_transaction_name)
-    end
-  end
-
-  def test_browser_monitoring_transaction_name_nil
-    assert_equal('(unknown)', instrumentor.browser_monitoring_transaction_name)
-  end
-
-  def test_browser_monitoring_transaction_name_when_tt_disabled
-    with_config(:'transaction_tracer.enabled' => false) do
-      in_transaction do
-        NewRelic::Agent.set_transaction_name('disabled_transactions')
-        assert_match(/disabled_transactions/, instrumentor.browser_monitoring_transaction_name)
-      end
-    end
-  end
-
   def test_data_for_js_agent_extra_parameter
     in_transaction do
       with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
