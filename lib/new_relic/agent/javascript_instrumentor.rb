@@ -86,17 +86,9 @@ module NewRelic
 
       # Javascript
 
-      def js_agent_loader
-        Agent.config[:js_agent_loader].to_s
-      end
-
-      def has_loader?
-        !js_agent_loader.empty?
-      end
-
       # Should JS agent script be generated? Log if not.
       def insert_js?
-        if !has_loader?
+        if missing_config?(:js_agent_loader)
           ::NewRelic::Agent.logger.debug "Missing :js_agent_loader. Skipping browser instrumentation."
           false
         elsif missing_config?(:beacon)
@@ -142,7 +134,7 @@ module NewRelic
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def header_js_string
-        html_safe_if_needed("\n<script type=\"text/javascript\">#{js_agent_loader}</script>")
+        html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
       end
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
