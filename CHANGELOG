@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.7.0 ##
+
+  * RUM injection updates
+
+  The Ruby agent's code for both automatically and manually injecting the Real
+  User Monitoring scripts has been updated.  This should not require
+  application changes, but does result in a different script being injected
+  than previous versions of the agent.
+
 ## v3.6.9 ##
 
   * Experimental Rubinius 2.x support
