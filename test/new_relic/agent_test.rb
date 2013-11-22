@@ -88,18 +88,6 @@ module NewRelic
       NewRelic::Agent.shutdown
     end
 
-    def test_browser_timing_header
-      agent = mocked_agent
-      agent.expects(:browser_timing_header)
-      NewRelic::Agent.browser_timing_header
-    end
-
-    def test_browser_timing_footer_aliases_config
-      agent = mocked_agent
-      agent.expects(:browser_timing_config)
-      NewRelic::Agent.browser_timing_footer
-    end
-
     def test_get_stats
       agent = mocked_agent
       mock_stats_engine = mock('stats_engine')

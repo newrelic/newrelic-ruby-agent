@@ -18,17 +18,13 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
       :'rum.enabled'          => true,
       :license_key            => "\0"  # no-op obfuscation key
     }
-    @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new
-
     NewRelic::Agent.config.apply_config(@config)
-    NewRelic::Agent.instance.instance_eval do
-      @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new
-    end
+
+    @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new
 
     # By default we expect our transaction to have a start time
     # All sorts of basics don't output without this setup initially
     NewRelic::Agent::TransactionState.reset(nil)
-    #instrumentor.current_transaction.start_time = Time.now
   end
 
   def teardown
@@ -64,7 +60,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
     def controller.newrelic_metric_path; "foo"; end
     controller.extend ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-    controller.extend ::NewRelic::Agent::BrowserMonitoring
 
     with_config(:'browser_monitoring.auto_instrument' => false) do
       controller.perform_action_with_newrelic_trace(:index)
@@ -79,14 +74,12 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_browser_timing_header_with_no_beacon_configuration
-    NewRelic::Agent.instance.stubs(:beacon_configuration).returns( nil)
+  def test_browser_timing_header_with_no_con_configuration
     assert_equal "", instrumentor.browser_timing_header
   end
 
   def test_browser_timing_header_with_rum_enabled_false
     with_config(:'rum.enabled' => false) do
-      NewRelic::Agent.instance.stubs(:beacon_configuration).returns(NewRelic::Agent::BeaconConfiguration.new)
       assert_equal "", instrumentor.browser_timing_header
     end
   end
@@ -148,7 +141,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   def test_browser_timing_config_with_no_browser_key_rum_enabled
     with_config(:browser_key => '') do
       instrumentor.browser_timing_header
-      NewRelic::Agent.instance.stubs(:beacon_configuration).returns(NewRelic::Agent::BeaconConfiguration.new)
       footer = instrumentor.browser_timing_config
       assert_equal "", footer
     end
@@ -157,7 +149,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   def test_browser_timing_config_with_no_browser_key_rum_disabled
     with_config(:'rum.enabled' => false) do
       instrumentor.browser_timing_header
-      NewRelic::Agent.instance.stubs(:beacon_configuration).returns(NewRelic::Agent::BeaconConfiguration.new)
       footer = instrumentor.browser_timing_config
       assert_equal "", footer
     end
@@ -172,29 +163,20 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_browser_timing_config_with_no_beacon_configuration
-    instrumentor.browser_timing_header
-    NewRelic::Agent.instance.stubs(:beacon_configuration).returns( nil)
-    footer = instrumentor.browser_timing_config
-    assert_equal "", footer
+  def test_browser_timing_config_with_no_configuration
+    assert_equal "", instrumentor.browser_timing_config
   end
 
   def test_browser_timing_config_disable_all_tracing
-    instrumentor.browser_timing_header
-    footer = nil
     NewRelic::Agent.disable_all_tracing do
-      footer = instrumentor.browser_timing_config
+      assert_equal "", instrumentor.browser_timing_config
     end
-    assert_equal "", footer
   end
 
   def test_browser_timing_config_disable_transaction_tracing
-    instrumentor.browser_timing_header
-    footer = nil
     NewRelic::Agent.disable_transaction_tracing do
-      footer = instrumentor.browser_timing_config
+      assert_equal "", instrumentor.browser_timing_config
     end
-    assert_equal "", footer
   end
 
   def test_browser_timing_config_browser_key_missing

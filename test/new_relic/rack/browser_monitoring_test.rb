@@ -71,9 +71,6 @@ EOL
       :js_agent_loader => 'loader',
     }
     NewRelic::Agent.config.apply_config(@config)
-
-    beacon_config = NewRelic::Agent::BeaconConfiguration.new
-    NewRelic::Agent.instance.stubs(:beacon_configuration).returns(beacon_config)
   end
 
   def teardown
@@ -129,8 +126,8 @@ EOL
 
     define_method("test_#{source_filename}") do
       TestApp.doc = source_html
-      NewRelic::Agent.instance.stubs(:browser_timing_header).returns(RUM_HEADER)
-      NewRelic::Agent.instance.stubs(:browser_timing_config).returns(RUM_CONFIG)
+      NewRelic::Agent.stubs(:browser_timing_header).returns(RUM_HEADER)
+      NewRelic::Agent.stubs(:browser_timing_config).returns(RUM_CONFIG)
 
       get '/'
 

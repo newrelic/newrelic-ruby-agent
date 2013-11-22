@@ -22,9 +22,6 @@ class RumAutoInsertion < Performance::TestCase
       :license_key            => 'a' * 40
     }
     NewRelic::Agent.config.apply_config(@config)
-    NewRelic::Agent.instance.instance_eval do
-      @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new
-    end
 
     @browser_monitor = NewRelic::Rack::BrowserMonitoring.new(nil)
     @html = "<html><head>#{'<script>alert("boo");</script>' * 1_000}</head><body></body></html>"
