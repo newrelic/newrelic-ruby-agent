@@ -820,12 +820,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable the analytics event sampling.'
         },
-        :'analytics_events.transactions.enabled' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :description => 'Enable or disable the analytics event sampling for transactions.'
-        },
         :'analytics_events.max_samples_stored' => {
           :default => 1200,
           :public => false,

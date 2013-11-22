@@ -74,13 +74,6 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
-  def test_can_disable_sampling_for_analytics_transactions
-    with_sampler_config( :'analytics_events.transactions.enabled' => false ) do
-      generate_request
-      assert @sampler.samples.empty?
-    end
-  end
-
   def test_harvest_returns_previous_sample_list
     with_sampler_config do
       5.times { generate_request }
