@@ -143,6 +143,10 @@ module Multiverse
       trigger_test_run
     end
 
+    def should_serialize?
+      ENV['SERIALIZE']
+    end
+
     # Load the test suite's environment and execute it.
     #
     # Normally we fork to do this, and wait for the child to exit, to avoid
@@ -154,16 +158,31 @@ module Multiverse
         puts yellow("SKIPPED #{directory.inspect}: #{environments.skip_message}")
         return
       end
-      puts yellow("\nRunning #{directory.inspect} in #{environments.size} environments")
-      environments.before.call if environments.before
 
+      label = should_serialize? ? 'serial' : 'parallel'
+      puts yellow("\nRunning #{directory.inspect} in #{environments.size} environments in #{label}")
+
+      environments.before.call if environments.before
+      if should_serialize?
+        execute_serial
+      else
+        execute_parallel
+      end
+      environments.after.call if environments.after
+    end
+
+    def execute_serial
+      environments.each_with_index do |gemfile_text, i|
+        execute_with_pipe(i)
+      end
+    end
+
+    def execute_parallel
       threads = []
       environments.each_with_index do |gemfile_text, i|
-        threads << execute_with_pipe(i)
+        threads << Thread.new { execute_with_pipe(i) }
       end
       threads.each {|t| t.join}
-
-      environments.after.call if environments.after
     end
 
     def with_clean_env
@@ -177,24 +196,22 @@ module Multiverse
     end
 
     def execute_with_pipe(env)
-      Thread.new do
-        with_clean_env do
-          suite = File.basename(directory)
-          IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'") do |io|
-            OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
-            OutputCollector.write(suite, env, yellow("Starting tests in child PID #{io.pid}\n"))
-            until io.eof do
-              chars = io.read
-              OutputCollector.write(suite, env, chars)
-            end
-            OutputCollector.suite_report(suite, env)
+      with_clean_env do
+        suite = File.basename(directory)
+        IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'") do |io|
+          OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
+          OutputCollector.write(suite, env, yellow("Starting tests in child PID #{io.pid}\n"))
+          until io.eof do
+            chars = io.read
+            OutputCollector.write(suite, env, chars)
           end
-
-          if $? != 0
-            OutputCollector.failed(suite, env)
-          end
-          Multiverse::Runner.notice_exit_status $?
+          OutputCollector.suite_report(suite, env)
         end
+
+        if $? != 0
+          OutputCollector.failed(suite, env)
+        end
+        Multiverse::Runner.notice_exit_status $?
       end
     end
 
