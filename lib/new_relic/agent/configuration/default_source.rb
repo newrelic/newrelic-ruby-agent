@@ -755,13 +755,13 @@ module NewRelic
           :type => Fixnum,
           :description => 'Maximum number of request events recorded by the analytics event sampling in a single harvest.'
         },
-        :'analytics_events.transactions.include_custom_params' => {
+        :'capture_attributes.transaction_events' => {
           :default => true,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :description => 'Include TT custom params in analytics event data.'
         },
-        :'analytics_events.transactions.include_custom_params_in_page_views' => {
+        :'capture_attributes.page_view_events' => {
           :default => false,
           :public => false,
           :type => Boolean,
