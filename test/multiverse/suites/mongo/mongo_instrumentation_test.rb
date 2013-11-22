@@ -78,7 +78,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     ])
   end
 
-  def _test_records_metrics_for_save
+  def test_records_metrics_for_save
     @collection.save(@tribble)
 
     metric = 'save'
@@ -160,7 +160,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     ])
   end
 
-  def _test_records_metrics_for_ensure_index
+  def test_records_metrics_for_ensure_index
     @collection.ensure_index({'name' => Mongo::ASCENDING})
 
     metric = 'ensure_index'
@@ -189,17 +189,6 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     @collection.drop_indexes
 
     metric = 'drop_indexes'
-    assert_metrics_recorded([
-      "Datastore/all",
-      "Datastore/operation/MongoDB/#{metric}",
-      "Datastore/statement/MongoDB/tribbles/#{metric}"
-    ])
-  end
-
-  def _test_records_metrics_for_reindex
-    @collection.reindex
-
-    metric = 'reindex'
     assert_metrics_recorded([
       "Datastore/all",
       "Datastore/operation/MongoDB/#{metric}",
