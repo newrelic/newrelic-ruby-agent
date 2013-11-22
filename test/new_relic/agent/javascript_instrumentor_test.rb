@@ -4,19 +4,19 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require "new_relic/agent/javascript_instrumentor"
-require "new_relic/rack/browser_monitoring"
-require 'base64'
+require "base64"
 
 class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   attr_reader :instrumentor
 
   def setup
     @config = {
+      :application_id         => '5, 6', # collector can return app multiple ids
       :beacon                 => 'beacon',
       :browser_key            => 'browserKey',
-      :application_id         => '5, 6', # collector can return app multiple ids
-      :'rum.enabled'          => true,
-      :license_key            => "\0"  # no-op obfuscation key
+      :js_agent_loader        => 'loader',
+      :license_key            => "\0",  # no-op obfuscation key
+      :'rum.enabled'          => true
     }
     NewRelic::Agent.config.apply_config(@config)
 
@@ -31,7 +31,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   def teardown
     NewRelic::Agent::TransactionState.clear
     NewRelic::Agent.config.remove_config(@config)
-    mocha_teardown
   end
 
   def test_js_errors_beta_default_gets_default_loader
@@ -75,170 +74,75 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_browser_timing_header_with_no_con_configuration
-    assert_equal "", instrumentor.browser_timing_header
-  end
-
-  def test_browser_timing_header_with_rum_enabled_false
+  def test_browser_timing_scripts_with_rum_enabled_false
     with_config(:'rum.enabled' => false) do
       assert_equal "", instrumentor.browser_timing_header
+      assert_equal "", instrumentor.browser_timing_config
     end
   end
 
   def test_browser_timing_header_disable_all_tracing
     NewRelic::Agent.disable_all_tracing do
       assert_equal "", instrumentor.browser_timing_header
+      assert_equal "", instrumentor.browser_timing_config
     end
   end
 
   def test_browser_timing_header_disable_transaction_tracing
     NewRelic::Agent.disable_transaction_tracing do
       assert_equal "", instrumentor.browser_timing_header
+      assert_equal "", instrumentor.browser_timing_config
     end
   end
 
   def test_browser_timing_header_without_loader
     with_config(:js_agent_loader => '') do
       assert_equal "", instrumentor.browser_timing_header
+      assert_equal "", instrumentor.browser_timing_config
     end
   end
 
-  def test_browser_timing_header_without_rum_enabled
-    with_config(:js_agent_loader => 'loader', :'rum.enabled' => false) do
-      assert_equal "", instrumentor.browser_timing_header
-    end
-  end
-
-  def test_browser_timing_header_with_loader
-    with_config(:js_agent_loader => 'loader') do
-      assert_has_js_agent_loader(instrumentor.browser_timing_header)
-    end
-  end
-
-  def assert_has_js_agent_loader(header)
-    assert_equal("\n<script type=\"text/javascript\">loader</script>",
-                 header,
-                 "expected new JS agent loader 'loader' but saw '#{header}'")
-  end
-
-  BEGINNING_OF_FOOTER = '<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info='
-  END_OF_FOOTER = '}</script>'
-
-  def test_browser_timing_config
-    in_transaction do
-    with_config(:license_key => 'a' * 13) do
-      instrumentor.browser_timing_header
-      footer = instrumentor.browser_timing_config
-      assert_has_text(BEGINNING_OF_FOOTER, footer)
-      assert_has_text(END_OF_FOOTER, footer)
-    end
-    end
-  end
-
-  def assert_has_text(snippet, footer)
-    assert(footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
-  end
-
-  def test_browser_timing_config_with_no_browser_key_rum_enabled
-    with_config(:browser_key => '') do
-      instrumentor.browser_timing_header
-      footer = instrumentor.browser_timing_config
-      assert_equal "", footer
-    end
-  end
-
-  def test_browser_timing_config_with_no_browser_key_rum_disabled
-    with_config(:'rum.enabled' => false) do
-      instrumentor.browser_timing_header
-      footer = instrumentor.browser_timing_config
-      assert_equal "", footer
-    end
-  end
-
-  def test_browser_timing_config_with_rum_enabled_not_specified
-    in_transaction do
-      footer = instrumentor.browser_timing_config
-      beginning_snippet = BEGINNING_OF_FOOTER
-      assert_has_text(BEGINNING_OF_FOOTER, footer)
-      assert_has_text(END_OF_FOOTER, footer)
-    end
-  end
-
-  def test_browser_timing_config_with_no_configuration
+  def test_browser_timing_header_with_ignored_enduser
+    NewRelic::Agent::TransactionState.get.request_ignore_enduser = true
+    assert_equal "", instrumentor.browser_timing_header
     assert_equal "", instrumentor.browser_timing_config
   end
 
-  def test_browser_timing_config_disable_all_tracing
-    NewRelic::Agent.disable_all_tracing do
-      assert_equal "", instrumentor.browser_timing_config
-    end
+  def test_browser_timing_header_with_default_settings
+    assert_has_js_agent_loader(instrumentor.browser_timing_header)
   end
 
-  def test_browser_timing_config_disable_transaction_tracing
-    NewRelic::Agent.disable_transaction_tracing do
-      assert_equal "", instrumentor.browser_timing_config
-    end
-  end
-
-  def test_browser_timing_config_browser_key_missing
-    with_config(:browser_key => '') do
-      instrumentor.expects(:generate_footer_js).never
-      assert_equal('', instrumentor.browser_timing_config)
-    end
-  end
-
-  def test_generate_footer_js_without_transaction
-    assert_equal('', instrumentor.generate_footer_js)
-  end
-
-  def test_browser_timing_config_with_loader
+  def test_browser_timing_config
     in_transaction do
-    with_config(:js_agent_loader => 'loader') do
-      footer = instrumentor.browser_timing_config
-      beginning_snippet = "\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info={\""
-      ending_snippet = '}</script>'
-      assert(footer.include?(beginning_snippet),
-             "expected footer to include beginning snippet: '#{beginning_snippet}', but was '#{footer}'")
-      assert(footer.include?(ending_snippet),
-             "expected footer to include ending snippet: '#{ending_snippet}', but was '#{footer}'")
-    end
+      config = instrumentor.browser_timing_config
+      assert_has_text(BEGINNING_OF_FOOTER, config)
+      assert_has_text(END_OF_FOOTER, config)
     end
   end
 
   def test_browser_monitoring_transaction_name_basic
-    txn = NewRelic::Agent::Transaction.new
-    txn.name = 'a transaction name'
-    NewRelic::Agent::TransactionState.get.transaction = txn
-
-    assert_equal('a transaction name', instrumentor.browser_monitoring_transaction_name, "should take the value from the thread local")
-  end
-
-  def test_browser_monitoring_transaction_name_empty
-    txn = NewRelic::Agent::Transaction.new
-    txn.name = ''
-    NewRelic::Agent::TransactionState.get.transaction = txn
-
-    assert_equal('', instrumentor.browser_monitoring_transaction_name, "should take the value even when it is empty")
+    in_transaction do
+      NewRelic::Agent.set_transaction_name('a transaction name')
+      assert_match(/a transaction name/, instrumentor.browser_monitoring_transaction_name)
+    end
   end
 
   def test_browser_monitoring_transaction_name_nil
-    assert_equal('(unknown)', instrumentor.browser_monitoring_transaction_name, "should fill in a default when it is nil")
+    assert_equal('(unknown)', instrumentor.browser_monitoring_transaction_name)
   end
 
   def test_browser_monitoring_transaction_name_when_tt_disabled
     with_config(:'transaction_tracer.enabled' => false) do
-      in_transaction('disabled_transactions') do
-        self.class.inspect
+      in_transaction do
+        NewRelic::Agent.set_transaction_name('disabled_transactions')
+        assert_match(/disabled_transactions/, instrumentor.browser_monitoring_transaction_name)
       end
-
-      assert_match(/disabled_transactions/, instrumentor.browser_monitoring_transaction_name,
-                   "should name transaction when transaction tracing disabled")
     end
   end
 
   def test_extra_data
     in_transaction do
-      with_config(ANALYTICS_TXN_IN_PAGE => true) do
+      with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_equal({:boo => "hoo"}, instrumentor.extra_data)
       end
@@ -246,9 +150,9 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   end
 
   def test_extra_data_outside_transaction
-    with_config(ANALYTICS_TXN_IN_PAGE => TRUE) do
+    with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
       NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-      assert instrumentor.extra_data.empty?
+      assert_empty instrumentor.extra_data
     end
   end
 
@@ -282,7 +186,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   def test_footer_js_data
     freeze_time
     in_transaction do
-      with_config(ANALYTICS_TXN_IN_PAGE => true) do
+      with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
         NewRelic::Agent.set_user_attributes(:user => "user")
 
         txn = NewRelic::Agent::Transaction.current
@@ -340,7 +244,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
 
   ANALYTICS_ENABLED = :'analytics_events.enabled'
   ANALYTICS_TXN_ENABLED = :'analytics_events.transactions.enabled'
-  ANALYTICS_TXN_IN_PAGE = :'capture_attributes.page_view_events'
+  CAPTURE_ATTRIBUTES_PAGE_EVENTS = :'capture_attributes.page_view_events'
 
   def test_js_data_doesnt_pick_up_extras_by_default
     in_transaction do
@@ -353,7 +257,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     in_transaction do
       with_config(ANALYTICS_ENABLED => true,
                   ANALYTICS_TXN_ENABLED => true,
-                  ANALYTICS_TXN_IN_PAGE => true) do
+                  CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("boo=hoo")
       end
@@ -364,7 +268,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     in_transaction do
       with_config(ANALYTICS_ENABLED => false,
                   ANALYTICS_TXN_ENABLED => true,
-                  ANALYTICS_TXN_IN_PAGE => true) do
+                  CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("")
       end
@@ -375,7 +279,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     in_transaction do
       with_config(ANALYTICS_ENABLED => true,
                   ANALYTICS_TXN_ENABLED => false,
-                  ANALYTICS_TXN_IN_PAGE => true) do
+                  CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("")
       end
@@ -386,7 +290,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     in_transaction do
       with_config(ANALYTICS_ENABLED => true,
                   ANALYTICS_TXN_ENABLED => true,
-                  ANALYTICS_TXN_IN_PAGE => false) do
+                  CAPTURE_ATTRIBUTES_PAGE_EVENTS => false) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("")
       end
@@ -432,41 +336,58 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     assert_equal(string, instrumentor.html_safe_if_needed(string))
   end
 
-  OBFUSCATION_KEY = (1..40).to_a
+  OBFUSCATION_KEY = (1..40).to_a.pack('c*')
 
   def test_obfuscate_basic
-    text = 'a happy piece of small text'
-    instrumentor.instance_variable_set(:@license_bytes, OBFUSCATION_KEY)
-    output = instrumentor.obfuscate(text)
-    assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1', output, "should output obfuscated text")
+    with_config(:license_key => OBFUSCATION_KEY) do
+      text = 'a happy piece of small text'
+      output = instrumentor.obfuscate(text)
+      assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1', output)
+    end
   end
 
   def test_obfuscate_long_string
-    text = 'a happy piece of small text' * 5
-    key = (1..40).to_a
-    instrumentor.instance_variable_set(:@license_bytes, OBFUSCATION_KEY)
-    output = instrumentor.obfuscate(text)
-    assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output, "should output obfuscated text")
+    with_config(:license_key => OBFUSCATION_KEY) do
+      text = 'a happy piece of small text' * 5
+      output = instrumentor.obfuscate(text)
+      assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output)
+    end
   end
 
   def test_obfuscate_utf8
-    text = "foooooééoooo - blah"
-    key = (1..40).to_a
-    instrumentor.instance_variable_set(:@license_bytes, OBFUSCATION_KEY)
-    output = instrumentor.obfuscate(text)
-    assert_equal('Z21sa2ppxKHKo2RjYm4iLiRnamZg', output, "should output obfuscated text")
+    with_config(:license_key => OBFUSCATION_KEY) do
+      text = "foooooééoooo - blah"
+      output = instrumentor.obfuscate(text)
+      assert_equal('Z21sa2ppxKHKo2RjYm4iLiRnamZg', output)
 
-    unoutput = instrumentor.obfuscate(Base64.decode64(output))
-    assert_equal Base64.encode64(text).gsub("\n", ''), unoutput
+      unoutput = instrumentor.obfuscate(Base64.decode64(output))
+      assert_equal Base64.encode64(text).gsub("\n", ''), unoutput
+    end
   end
 
   def test_freezes_transaction_name_when_footer_is_written
-    with_config(:license_key => 'a' * 13) do
-      in_transaction do
+    in_transaction do
+      with_config(:license_key => 'a' * 13) do
         assert !NewRelic::Agent::Transaction.current.name_frozen?
         instrumentor.browser_timing_config
         assert NewRelic::Agent::Transaction.current.name_frozen?
       end
     end
   end
+
+  # Helpers
+
+  BEGINNING_OF_FOOTER = '<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info='
+  END_OF_FOOTER = '}</script>'
+
+  def assert_has_js_agent_loader(header)
+    assert_equal("\n<script type=\"text/javascript\">loader</script>",
+                 header,
+                 "expected new JS agent loader 'loader' but saw '#{header}'")
+  end
+
+  def assert_has_text(snippet, footer)
+    assert(footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
+  end
+
 end
