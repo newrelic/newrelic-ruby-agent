@@ -19,6 +19,11 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     # @mongodb.remove
   end
 
+  def test_generates_payload_metrics_for_an_operation
+    ::NewRelic::Agent::MongoMetricTranslator.expects(:metrics_for).with(:insert, has_entry(:database => 'multiverse', :collection => 'tribbles'))
+    @tribbles.insert(@tribble)
+  end
+
   def test_mongo_instrumentation_loaded
     logging_methods = ::Mongo::Logging.instance_methods
     assert logging_methods.include?(:instrument_with_newrelic_trace), "Expected #{logging_methods.inspect}\n to include :instrument_with_newrelic_trace."

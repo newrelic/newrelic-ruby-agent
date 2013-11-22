@@ -24,6 +24,7 @@ DependencyDetection.defer do
   def install_mongo_instrumentation
     ::Mongo::Logging.class_eval do
       include NewRelic::Agent::MethodTracer
+      require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
 
       def instrument_with_newrelic_trace(name, payload = {}, &block)
         payload = {} if payload.nil?
@@ -33,6 +34,8 @@ DependencyDetection.defer do
           f = payload[:selector].first
           name, collection = f if f
         end
+
+        metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(name, payload)
 
         metrics = [
           "Datastore/all",
