@@ -10,10 +10,14 @@ module NewRelic
     class JavascriptInstrumentor
       include NewRelic::Coerce
 
-      def initialize
+      def initialize(event_listener)
+        event_listener.subscribe(:finished_configuring, &method(:log_configuration))
+      end
+
+      def log_configuration
         NewRelic::Agent.logger.debug("JS agent loader requested: #{NewRelic::Agent.config[:'browser_monitoring.loader']}",
-                                       "JS agent loader debug: #{NewRelic::Agent.config[:'browser_monitoring.debug']}",
-                                       "JS agent loader version: #{NewRelic::Agent.config[:'browser_monitoring.loader_version']}")
+                                     "JS agent loader debug: #{NewRelic::Agent.config[:'browser_monitoring.debug']}",
+                                     "JS agent loader version: #{NewRelic::Agent.config[:'browser_monitoring.loader_version']}")
 
         if !NewRelic::Agent.config[:'rum.enabled']
           NewRelic::Agent.logger.debug("Real User Monitoring is disabled for this agent. Edit your configuration to change this.")

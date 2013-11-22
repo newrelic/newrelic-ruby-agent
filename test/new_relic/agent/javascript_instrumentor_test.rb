@@ -20,7 +20,8 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     }
     NewRelic::Agent.config.apply_config(@config)
 
-    @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new
+    events = stub(:subscribe => nil)
+    @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(events)
 
     # By default we expect our transaction to have a start time
     # All sorts of basics don't output without this setup initially

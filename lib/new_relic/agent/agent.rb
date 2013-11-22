@@ -51,7 +51,7 @@ module NewRelic
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
-        @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new()
+        @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
 
         @connect_state      = :pending
         @connect_attempts   = 0
