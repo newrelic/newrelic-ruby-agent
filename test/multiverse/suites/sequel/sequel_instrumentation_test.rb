@@ -200,7 +200,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Un
   end
 
   def test_slow_queries_get_an_explain_plan
-    with_config( :'transaction_tracer.explain_threshold' => 0.0,
+    with_config( :'transaction_tracer.explain_threshold' => -0.01,
                  :'transaction_tracer.record_sql' => 'raw' ) do
       segment = last_segment_for do
         Post[11]
@@ -212,7 +212,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Un
 
   def test_queries_can_get_explain_plan_with_obfuscated_sql
     config = {
-      :'transaction_tracer.explain_threshold' => 0.0,
+      :'transaction_tracer.explain_threshold' => -0.01,
       :'transaction_tracer.record_sql' => 'obfuscated'
     }
     with_config(config) do
