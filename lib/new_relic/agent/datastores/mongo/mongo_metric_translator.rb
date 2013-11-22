@@ -11,8 +11,23 @@ module NewRelic
         collection = payload[:collection]
 
         if collection == '$cmd'
-          f = payload[:selector].first
-          name, collection = f if f
+          name_and_collection = payload[:selector].first
+          name, collection = name_and_collection if name_and_collection
+        end
+
+        if self.find_one?(name, payload)
+          name = 'find_one'
+        elsif self.find_and_remove?(name, payload)
+          name = 'find_and_remove'
+        elsif self.find_and_modify?(name, payload)
+          name = 'find_and_modify'
+        elsif self.create_index?(name, payload)
+          name = 'create_index'
+          collection = self.collection_name_from_index(payload)
+        elsif self.drop_indexes?(name, payload)
+          name = 'drop_indexes'
+        elsif self.drop_index?(name, payload)
+          name = 'drop_index'
         end
 
         [
@@ -20,6 +35,38 @@ module NewRelic
           "Datastore/operation/MongoDB/#{name}",
           "Datastore/statement/MongoDB/#{collection}/#{name}"
         ]
+      end
+
+      def self.find_one?(name, payload)
+        name == :find && payload[:limit] == -1
+      end
+
+      def self.find_and_modify?(name, payload)
+        name == :findandmodify
+      end
+
+      def self.find_and_remove?(name, payload)
+        name == :findandmodify && payload[:selector] && payload[:selector][:remove]
+      end
+
+      def self.create_index?(name, payload)
+        name == :insert && payload[:collection] == "system.indexes"
+      end
+
+      def self.drop_indexes?(name, payload)
+        name == :deleteIndexes && payload[:selector] && payload[:selector][:index] == "*"
+      end
+
+      def self.drop_index?(name, payload)
+        name == :deleteIndexes
+      end
+
+      def self.collection_name_from_index(payload)
+        if payload[:documents] && payload[:documents].first[:ns]
+          payload[:documents].first[:ns].split('.').last
+        else
+          'system.indexes'
+        end
       end
     end
   end

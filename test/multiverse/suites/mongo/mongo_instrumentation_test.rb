@@ -54,7 +54,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     ])
   end
 
-  def _test_records_metrics_for_find_one
+  def test_records_metrics_for_find_one
     @collection.insert(@tribble)
     @collection.find_one
 
@@ -130,7 +130,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     updated['name'] = 'codemonkey'
     @collection.find_and_modify(query: @tribble, update: updated)
 
-    metric = 'findandmodify'
+    metric = 'find_and_modify'
     assert_metrics_recorded([
       "Datastore/all",
       "Datastore/operation/MongoDB/#{metric}",
@@ -138,10 +138,10 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     ])
   end
 
-  def _test_records_metrics_for_find_and_remove
+  def test_records_metrics_for_find_and_remove
     @collection.find_and_modify(query: @tribble, remove: true)
 
-    metric = 'findandremove'
+    metric = 'find_and_remove'
     assert_metrics_recorded([
       "Datastore/all",
       "Datastore/operation/MongoDB/#{metric}",
@@ -149,7 +149,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     ])
   end
 
-  def _test_records_metrics_for_create_index
+  def test_records_metrics_for_create_index
     @collection.create_index({'name' => Mongo::ASCENDING})
 
     metric = 'create_index'
@@ -171,7 +171,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     ])
   end
 
-  def _test_records_metrics_for_drop_index
+  def test_records_metrics_for_drop_index
     @collection.create_index({'name' => Mongo::ASCENDING})
     name = @collection.index_information.values.last['name']
     @collection.drop_index(name)
@@ -188,7 +188,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     @collection.create_index({'name' => Mongo::ASCENDING})
     @collection.drop_indexes
 
-    metric = 'deleteIndexes'
+    metric = 'drop_indexes'
     assert_metrics_recorded([
       "Datastore/all",
       "Datastore/operation/MongoDB/#{metric}",
