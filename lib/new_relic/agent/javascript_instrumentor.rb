@@ -172,7 +172,6 @@ module NewRelic
       def include_custom_parameters_in_extra?
         current_transaction &&
           NewRelic::Agent.config[:'analytics_events.enabled'] &&
-          NewRelic::Agent.config[:'analytics_events.transactions.enabled'] &&
           NewRelic::Agent.config[:'capture_attributes.page_view_events']
       end
 

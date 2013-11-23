@@ -14,7 +14,6 @@ class NewRelic::Agent::RequestSampler
 
   # The namespace and keys of config values
   ENABLED_KEY                = :'analytics_events.enabled'
-  ENABLED_TXN_KEY            = :'analytics_events.transactions.enabled'
 
   # The type field of the sample
   SAMPLE_TYPE              = 'Transaction'
@@ -105,12 +104,7 @@ class NewRelic::Agent::RequestSampler
 
     NewRelic::Agent.config.register_callback(ENABLED_KEY) do |enabled|
       NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ enabled ? 'En' : 'Dis' ]
-      @enabled = enabled && NewRelic::Agent.config[ENABLED_TXN_KEY]
-    end
-
-    NewRelic::Agent.config.register_callback(ENABLED_TXN_KEY) do |enabled|
-      NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ enabled ? 'En' : 'Dis' ]
-      @enabled = enabled && NewRelic::Agent.config[ENABLED_KEY]
+      @enabled = enabled
     end
   end
 

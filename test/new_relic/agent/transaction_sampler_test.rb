@@ -209,18 +209,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.send(:notice_extra_data, 'a message', 1.0, key)
   end
 
-  def test_truncate_message_short_message
-    message = 'a message'
-    assert_equal(message, NewRelic::Agent::TransactionSampler.truncate_message(message))
-  end
-
-  def test_truncate_message_long_message
-    message = 'a' * 16384
-    truncated_message = NewRelic::Agent::TransactionSampler.truncate_message(message)
-    assert_equal(16384, truncated_message.length)
-    assert_equal('a' * 16381 + '...', truncated_message)
-  end
-
   def test_append_new_message_no_old_message
     old_message = nil
     new_message = 'a message'

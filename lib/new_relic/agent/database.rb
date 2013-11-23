@@ -21,7 +21,21 @@ module NewRelic
 
   module Agent
     module Database
+      MAX_QUERY_LENGTH = 16384
+
       extend self
+
+      def capture_query(query)
+        Helper.correctly_encoded(truncate_query(query))
+      end
+
+      def truncate_query(query)
+        if query.length > (MAX_QUERY_LENGTH - 4)
+          query[0..MAX_QUERY_LENGTH - 4] + '...'
+        else
+          query
+        end
+      end
 
       def obfuscate_sql(sql)
         Obfuscator.instance.obfuscator.call(sql)
