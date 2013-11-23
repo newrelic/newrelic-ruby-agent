@@ -85,7 +85,6 @@ module NewRelic
     require 'new_relic/agent'
     require 'new_relic/agent/stats'
     require 'new_relic/agent/chained_call'
-    require 'new_relic/agent/browser_monitoring'
     require 'new_relic/agent/cross_app_monitor'
     require 'new_relic/agent/agent'
     require 'new_relic/agent/shim_agent'
@@ -595,7 +594,7 @@ module NewRelic
     # @api public
     #
     def browser_timing_header
-      agent.browser_timing_header
+      agent.javascript_instrumentor.browser_timing_header
     end
 
     # This method returns a string suitable for inclusion in a page - known as
@@ -613,7 +612,7 @@ module NewRelic
     # @api public
     #
     def browser_timing_config
-      agent.browser_timing_config
+      agent.javascript_instrumentor.browser_timing_config
     end
 
     # @deprecated

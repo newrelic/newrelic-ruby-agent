@@ -9,8 +9,10 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
 
   include MultiverseHelpers
 
-  setup_and_teardown_agent(:browser_key => 'browserKey', :application_id => 'appId',
-                           :beacon => 'beacon', :episodes_file => 'this_is_my_file')
+  setup_and_teardown_agent(:application_id => 'appId',
+                           :beacon => 'beacon',
+                           :browser_key => 'browserKey',
+                           :js_agent_loader => 'loader')
 
   class TestTransactor
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -75,8 +77,10 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
 
   def test_does_not_overwrite_name_when_set_by_RUM
     TestTransactor.new.parent_txn do
-      NewRelic::Agent.browser_timing_config
-      NewRelic::Agent.browser_timing_header
+      # Transaction name is only frozen if RUM is actually injected
+      refute_empty NewRelic::Agent.browser_timing_config
+      refute_empty NewRelic::Agent.browser_timing_header
+
       NewRelic::Agent.set_transaction_name('this/should/not/work')
     end
     assert_metrics_not_recorded(['Controller/this/should/not/work'])

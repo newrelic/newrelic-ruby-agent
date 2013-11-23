@@ -10,20 +10,12 @@ require 'new_relic/rack/browser_monitoring'
 
 ENV['RACK_ENV'] = 'test'
 
-# we should expand the environments we support, any rack app could
-# benefit from auto-rum, but the truth of the matter is that atm
-# we only support Rails >= 2.3
-def middleware_supported?
-  defined?(::Rails) && ::Rails::VERSION::STRING >= '2.3'
-end
-
-if middleware_supported?
 class BrowserMonitoringTest < Test::Unit::TestCase
   include Rack::Test::Methods
 
   class TestApp
-    @@next_response = nil
     @@doc = nil
+    @@next_response = nil
 
     def self.doc=(other)
       @@doc = other
@@ -31,6 +23,10 @@ class BrowserMonitoringTest < Test::Unit::TestCase
 
     def self.next_response=(next_response)
       @@next_response = next_response
+    end
+
+    def self.next_response
+      @@next_response
     end
 
     def call(env)
@@ -60,26 +56,19 @@ EOL
 
   def setup
     super
-    clear_cookies
     @config = {
-      :browser_key => 'some browser key',
-      :beacon => 'beacon',
       :application_id => 5,
+      :beacon => 'beacon',
+      :browser_key => 'some browser key',
       :'rum.enabled' => true,
-      :episodes_file => 'this_is_my_file',
       :license_key => 'a' * 40,
       :js_agent_loader => 'loader',
     }
     NewRelic::Agent.config.apply_config(@config)
-
-    beacon_config = NewRelic::Agent::BeaconConfiguration.new
-    NewRelic::Agent.instance.stubs(:beacon_configuration).returns(beacon_config)
   end
 
   def teardown
     super
-    clear_cookies
-    mocha_teardown
     TestApp.doc = nil
     NewRelic::Agent.config.remove_config(@config)
     NewRelic::Agent.agent.transaction_sampler.reset!
@@ -129,8 +118,8 @@ EOL
 
     define_method("test_#{source_filename}") do
       TestApp.doc = source_html
-      NewRelic::Agent.instance.stubs(:browser_timing_header).returns(RUM_HEADER)
-      NewRelic::Agent.instance.stubs(:browser_timing_config).returns(RUM_CONFIG)
+      NewRelic::Agent.stubs(:browser_timing_header).returns(RUM_HEADER)
+      NewRelic::Agent.stubs(:browser_timing_config).returns(RUM_CONFIG)
 
       get '/'
 
@@ -149,9 +138,8 @@ EOL
   end
 
   def test_should_close_response
-    response = Rack::Response.new("<html/>")
-    response.expects(:close)
-    TestApp.next_response = response
+    TestApp.next_response = Rack::Response.new("<html/>")
+    TestApp.next_response.expects(:close)
 
     get '/'
 
@@ -159,11 +147,9 @@ EOL
   end
 
   def test_should_not_close_if_not_responded_to
-    response = Rack::Response.new("<html/>")
-    response.stubs(:respond_to?).with(:close).returns(false)
-    response.expects(:close).never
-
-    TestApp.next_response = response
+    TestApp.next_response = Rack::Response.new("<html/>")
+    TestApp.next_response.stubs(:respond_to?).with(:close).returns(false)
+    TestApp.next_response.expects(:close).never
 
     get '/'
 
@@ -205,7 +191,4 @@ EOL
     browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(mock('app'))
     assert_equal 18, browser_monitoring.calculate_content_length("七転び八起き")
   end
-end
-else
-  puts "Skipping tests in #{__FILE__} because Rails is unavailable (or too old)"
 end

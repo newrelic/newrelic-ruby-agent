@@ -19,6 +19,7 @@ require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/request_sampler'
 require 'new_relic/agent/sampler_collection'
+require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/environment_report'
 
 module NewRelic
@@ -50,6 +51,7 @@ module NewRelic
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
+        @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
 
         @connect_state      = :pending
         @connect_attempts   = 0
@@ -86,10 +88,8 @@ module NewRelic
         attr_reader :harvest_samplers
         # whether we should record raw, obfuscated, or no sql
         attr_reader :record_sql
-        # a configuration for the Real User Monitoring system -
-        # handles things like static setup of the header for inclusion
-        # into pages
-        attr_reader :beacon_configuration
+        # builder for JS agent scripts to inject
+        attr_reader :javascript_instrumentor
         # cross application tracing ids and encoding
         attr_reader :cross_process_id
         attr_reader :cross_app_encoding_bytes
@@ -794,8 +794,6 @@ module NewRelic
 
             # If you're adding something else here to respond to the server-side config,
             # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
-
-            @beacon_configuration = BeaconConfiguration.new
           end
 
           # Logs when we connect to the server, for debugging purposes
@@ -1073,7 +1071,6 @@ module NewRelic
 
       extend ClassMethods
       include InstanceMethods
-      include BrowserMonitoring
     end
   end
 end

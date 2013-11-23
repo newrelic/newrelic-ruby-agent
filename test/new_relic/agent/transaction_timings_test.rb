@@ -13,6 +13,21 @@ module NewRelic::Agent
       @name = "Name"
     end
 
+    def test_transaction_name
+      t = TransactionTimings.new(nil, nil, @name)
+      assert_equal "Name", t.transaction_name
+    end
+
+    def test_transaction_name_or_unknown
+      t = TransactionTimings.new(nil, nil, @name)
+      assert_equal "Name", t.transaction_name_or_unknown
+    end
+
+    def test_transaction_name_or_unknown_when_nil
+      t = TransactionTimings.new(nil, nil, nil)
+      assert_equal "(unknown)", t.transaction_name_or_unknown
+    end
+
     def test_queue_time_nil
       t = TransactionTimings.new(nil, @start_time, @name)
       assert_equal 0.0, t.queue_time_in_millis
@@ -63,11 +78,6 @@ module NewRelic::Agent
       later = t.app_time_in_seconds
 
       assert_equal original, later
-    end
-
-    def test_transaction_name
-      t = TransactionTimings.new(nil, nil, @name)
-      assert_equal "Name", t.transaction_name
     end
 
     def test_clamp_to_positive

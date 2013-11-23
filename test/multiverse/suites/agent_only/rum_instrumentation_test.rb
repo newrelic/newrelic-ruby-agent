@@ -19,8 +19,10 @@ class RumAutoTest < MiniTest::Unit::TestCase
   LOADER_REGEX = "\n<script.*>JS_AGENT_LOADER</script>"
   CONFIG_REGEX = "\n<script.*>.*NREUM.info=.*</script>"
 
-  setup_and_teardown_agent(:browser_key => 'browserKey', :application_id => 'appId',
-                            :beacon => 'beacon', :js_agent_loader => JS_AGENT_LOADER)
+  setup_and_teardown_agent(:application_id => 'appId',
+                           :beacon => 'beacon',
+                           :browser_key => 'browserKey',
+                           :js_agent_loader => JS_AGENT_LOADER)
 
   def after_setup
     @inner_app = TestingApp.new
