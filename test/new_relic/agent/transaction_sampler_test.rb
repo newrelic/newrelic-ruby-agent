@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
 class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
@@ -44,6 +45,23 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     NewRelic::Agent.config.remove_config(@test_config)
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @old_sampler)
   end
+
+  # Helpers for DataContainerTests
+
+  def create_container
+    @sampler
+  end
+
+  def populate_container(sampler, n)
+    n.times do |i|
+      sample = sample_with(:duration => 1, :transaction_name => "t#{i}", :force_persist => true)
+      @sampler.store_sample(sample)
+    end
+  end
+
+  include NewRelic::DataContainerTests
+
+  # Tests
 
   def test_notice_first_scope_push_default
     @sampler.expects(:start_builder).with(100.0)
