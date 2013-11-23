@@ -96,6 +96,10 @@ module NewRelic
       end
 
       def browser_timing_header
+        browser_timing_config + browser_timing_loader
+      end
+
+      def browser_timing_loader
         return "" unless insert_js?
         header_js_string
       end
