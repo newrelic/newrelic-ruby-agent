@@ -719,13 +719,19 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.limit_segments' => 3) do
       run_sample_trace do
         @sampler.notice_push_scope
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'hallah'", {}, 0)
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'challah'", {}, 0)
         @sampler.notice_push_scope
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", {}, 0)
         @sampler.notice_pop_scope "a11"
         @sampler.notice_pop_scope "a1"
       end
       assert_equal 3, @sampler.last_sample.count_segments
+
+      expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
+      root = @sampler.last_sample.root_segment
+      deepest_segment = root.called_segments[0].called_segments[0].called_segments[0]
+      assert_equal([], deepest_segment.called_segments)
+      assert_equal(expected_sql, deepest_segment[:sql])
     end
   end
 
