@@ -78,10 +78,6 @@ EOL
     assert NewRelic::Agent.browser_timing_header.size > 0
   end
 
-  def test_make_sure_config_is_set
-    assert NewRelic::Agent.browser_timing_config.size > 0
-  end
-
   def test_should_only_instrument_successfull_html_requests
     assert app.should_instrument?({}, 200, {'Content-Type' => 'text/html'})
     assert !app.should_instrument?({}, 500, {'Content-Type' => 'text/html'})
@@ -107,7 +103,7 @@ EOL
 
   source_files = Dir[File.join(File.dirname(__FILE__), "..", "..", "rum", "*.source.html")]
 
-  RUM_HEADER = "|||I AM THE RUM HEADER|||"
+  RUM_LOADER = "|||I AM THE RUM HEADER|||"
   RUM_CONFIG = "|||I AM THE RUM FOOTER|||"
 
   source_files.each do |source_file|
@@ -118,8 +114,7 @@ EOL
 
     define_method("test_#{source_filename}") do
       TestApp.doc = source_html
-      NewRelic::Agent.stubs(:browser_timing_header).returns(RUM_HEADER)
-      NewRelic::Agent.stubs(:browser_timing_config).returns(RUM_CONFIG)
+      NewRelic::Agent.stubs(:browser_timing_header).returns(RUM_CONFIG + RUM_LOADER)
 
       get '/'
 

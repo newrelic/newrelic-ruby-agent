@@ -78,7 +78,6 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
   def test_does_not_overwrite_name_when_set_by_RUM
     TestTransactor.new.parent_txn do
       # Transaction name is only frozen if RUM is actually injected
-      refute_empty NewRelic::Agent.browser_timing_config
       refute_empty NewRelic::Agent.browser_timing_header
 
       NewRelic::Agent.set_transaction_name('this/should/not/work')

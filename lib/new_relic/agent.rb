@@ -600,32 +600,25 @@ module NewRelic
     # reasonably possible - that is, before any style or javascript inclusions,
     # but after any header-related meta tags
     #
+    # In previous agents there was a corresponding footer required, but all the
+    # work is now done by this single method.
+    #
     # @api public
     #
     def browser_timing_header
       agent.javascript_instrumentor.browser_timing_header
     end
 
-    # This method returns a string suitable for inclusion in a page - known as
-    # 'manual instrumentation' for Real User Monitoring. Can return either a
-    # script tag with associated javascript, or in the case of disabled Real
-    # User Monitoring, an empty string
-    #
-    # This is the config string and can be placed anywhere in the page.  New
-    # Relic places it before before the Real User Monitoring header when
-    # auto-instrumenting.
-    #
-    # This was previously known as browser_timing_footer and required to be
-    # located as low as possible in the page, but that is no longer the case.
+    # In previous agent releases, this method was required for manual RUM
+    # instrumentation. That work is now all done by the browser_timing_header
+    # method, but this is left for compatibility.
     #
     # @api public
-    #
-    def browser_timing_config
-      agent.javascript_instrumentor.browser_timing_config
-    end
-
     # @deprecated
-    alias browser_timing_footer browser_timing_config
+    #
+    def browser_timing_footer
+      ""
+    end
 
     def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end

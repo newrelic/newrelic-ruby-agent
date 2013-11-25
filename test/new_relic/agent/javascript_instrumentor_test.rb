@@ -74,49 +74,71 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_browser_timing_scripts_with_rum_enabled_false
-    with_config(:'rum.enabled' => false) do
-      assert_equal "", instrumentor.browser_timing_header
-      assert_equal "", instrumentor.browser_timing_config
-    end
+  def test_browser_timing_header_outside_transaction
+    assert_equal "", instrumentor.browser_timing_header
   end
 
-  def test_browser_timing_header_disable_all_tracing
-    NewRelic::Agent.disable_all_tracing do
-      assert_equal "", instrumentor.browser_timing_header
-      assert_equal "", instrumentor.browser_timing_config
+  def test_browser_timing_scripts_with_rum_enabled_false
+    in_transaction do
+      with_config(:'rum.enabled' => false) do
+        assert_equal "", instrumentor.browser_timing_header
+      end
     end
   end
 
   def test_browser_timing_header_disable_transaction_tracing
-    NewRelic::Agent.disable_transaction_tracing do
-      assert_equal "", instrumentor.browser_timing_header
-      assert_equal "", instrumentor.browser_timing_config
+    in_transaction do
+      NewRelic::Agent.disable_transaction_tracing do
+        assert_equal "", instrumentor.browser_timing_header
+      end
+    end
+  end
+
+  def test_browser_timing_header_disable_all_tracing
+    in_transaction do
+      NewRelic::Agent.disable_all_tracing do
+        assert_equal "", instrumentor.browser_timing_header
+      end
     end
   end
 
   def test_browser_timing_header_without_loader
-    with_config(:js_agent_loader => '') do
-      assert_equal "", instrumentor.browser_timing_header
-      assert_equal "", instrumentor.browser_timing_config
+    in_transaction do
+      with_config(:js_agent_loader => '') do
+        assert_equal "", instrumentor.browser_timing_header
+      end
+    end
+  end
+
+  def test_browser_timing_header_without_beacon
+    in_transaction do
+      with_config(:beacon => '') do
+        assert_equal "", instrumentor.browser_timing_header
+      end
+    end
+  end
+
+  def test_browser_timing_header_without_browser_key
+    in_transaction do
+      with_config(:browser_key => '') do
+        assert_equal "", instrumentor.browser_timing_header
+      end
     end
   end
 
   def test_browser_timing_header_with_ignored_enduser
-    NewRelic::Agent::TransactionState.get.request_ignore_enduser = true
-    assert_equal "", instrumentor.browser_timing_header
-    assert_equal "", instrumentor.browser_timing_config
+    in_transaction do
+      NewRelic::Agent::TransactionState.get.request_ignore_enduser = true
+      assert_equal "", instrumentor.browser_timing_header
+    end
   end
 
   def test_browser_timing_header_with_default_settings
-    assert_has_js_agent_loader(instrumentor.browser_timing_header)
-  end
-
-  def test_browser_timing_config
     in_transaction do
-      config = instrumentor.browser_timing_config
-      assert_has_text(BEGINNING_OF_FOOTER, config)
-      assert_has_text(END_OF_FOOTER, config)
+      header = instrumentor.browser_timing_header
+      assert_has_js_agent_loader(header)
+      assert_has_text(BEGINNING_OF_FOOTER, header)
+      assert_has_text(END_OF_FOOTER, header)
     end
   end
 
@@ -163,7 +185,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     assert_equal("", result)
   end
 
-  def test_footer_data_for_js_agent
+  def test_config_data_for_js_agent
     freeze_time
     in_transaction do
       with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
@@ -195,7 +217,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
 
         assert_equal(expected, data)
 
-        js = instrumentor.footer_js_string
+        js = instrumentor.browser_timing_config
         expected.each do |key, value|
           assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)
         end
@@ -262,26 +284,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def assert_extra_data_is(expected)
-    data = instrumentor.data_for_js_agent
-    assert_equal pack(expected), data["extra"]
-  end
-
-  def pack(text)
-    [text].pack("m0").gsub("\n", "")
-  end
-
-  def formatted_for_matching(value)
-    case value
-    when String
-      %Q["#{value}"]
-    when NilClass
-      "null"
-    else
-      value
-    end
-  end
-
   def test_html_safe_if_needed_unsafed
     string = mock('string')
     # here to handle 1.9 encoding - we stub this out because it should
@@ -330,11 +332,11 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_freezes_transaction_name_when_footer_is_written
+  def test_freezes_transaction_name_when_header_written
     in_transaction do
       with_config(:license_key => 'a' * 13) do
         assert !NewRelic::Agent::Transaction.current.name_frozen?
-        instrumentor.browser_timing_config
+        instrumentor.browser_timing_header
         assert NewRelic::Agent::Transaction.current.name_frozen?
       end
     end
@@ -346,13 +348,33 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   END_OF_FOOTER = '}</script>'
 
   def assert_has_js_agent_loader(header)
-    assert_equal("\n<script type=\"text/javascript\">loader</script>",
+    assert_match(%Q[\n<script type=\"text/javascript\">loader</script>],
                  header,
                  "expected new JS agent loader 'loader' but saw '#{header}'")
   end
 
   def assert_has_text(snippet, footer)
     assert(footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
+  end
+
+  def assert_extra_data_is(expected)
+    data = instrumentor.data_for_js_agent
+    assert_equal pack(expected), data["extra"]
+  end
+
+  def pack(text)
+    [text].pack("m0").gsub("\n", "")
+  end
+
+  def formatted_for_matching(value)
+    case value
+    when String
+      %Q["#{value}"]
+    when NilClass
+      "null"
+    else
+      value
+    end
   end
 
 end
