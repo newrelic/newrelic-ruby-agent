@@ -247,10 +247,16 @@ def in_web_transaction(name='dummy')
   end
 end
 
-def find_last_transaction_segment
-  builder = NewRelic::Agent.agent.transaction_sampler.builder
+def find_last_transaction_segment(transaction_sample=nil)
+  if transaction_sample
+    root_segment = transaction_sample.root_segment
+  else
+    builder = NewRelic::Agent.agent.transaction_sampler.builder
+    root_segment = builder.current_segment
+  end
+
   last_segment = nil
-  builder.current_segment.each_segment {|s| last_segment = s }
+  root_segment.each_segment {|s| last_segment = s }
 
   return last_segment
 end
