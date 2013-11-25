@@ -911,7 +911,7 @@ module NewRelic
         #  
         def harvest_and_send_from_container(container, endpoint)
           items = harvest_from_container(container, endpoint)
-          send_data_from_container(container, endpoint, items) unless items.empty?
+          send_data_to_endpoint(endpoint, items, container) unless items.empty?
         end
 
         def harvest_from_container(container, endpoint)
@@ -925,15 +925,19 @@ module NewRelic
           items
         end
 
-        def send_data_from_container(container, endpoint, items)
+        def send_data_to_endpoint(endpoint, items, container=nil)
           NewRelic::Agent.logger.debug("Sending #{items.size} items to #{endpoint}")
           begin
             @service.send(endpoint, items)
           rescue UnrecoverableServerException => e
             NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
           rescue => e
-            NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
-            container.merge!(items)
+            if container
+              NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
+              container.merge!(items)
+            else
+              NewRelic::Agent.logger.warn("Unable to send #{endpoint} data, discarding. Error: ", e)
+            end
           end
         end
 
@@ -957,9 +961,14 @@ module NewRelic
         end
 
         def harvest_and_send_for_agent_commands(disconnecting=false)
-          data = @agent_command_router.harvest_data_to_send(disconnecting)
-          data.each do |service_method, payload|
-            @service.send(service_method, payload)
+          begin
+            data = @agent_command_router.harvest_data_to_send(disconnecting)
+          rescue => e
+            NewRelic::Agent.logger.error("Error during harvest_and_send_for_agent_commands: ", e)
+          else
+            data.each do |service_method, payload|
+              send_data_to_endpoint(service_method, payload)
+            end
           end
         end
 

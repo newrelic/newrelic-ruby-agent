@@ -164,7 +164,7 @@ module NewRelic
 
       def test_harvest_and_send_for_agent_commands
         @agent.service.expects(:profile_data).with(any_parameters)
-        @agent.agent_command_router.stubs(:harvest_data_to_send).returns({:profile_data => Object.new})
+        @agent.agent_command_router.stubs(:harvest_data_to_send).returns({:profile_data => [Object.new]})
         @agent.send :harvest_and_send_for_agent_commands
       end
 
