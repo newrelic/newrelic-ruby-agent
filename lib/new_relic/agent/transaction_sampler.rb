@@ -155,9 +155,9 @@ module NewRelic
         segment = builder.current_segment
         if segment
           if key != :sql
-            segment[key] = self.class.truncate_message(append_new_message(segment[key],
-                                                                          message))
+            segment[key] = self.class.truncate_message(message)
           else
+            # message is expected to have been pre-truncated by notice_sql
             segment[key] = message
           end
           append_backtrace(segment, duration)
@@ -165,16 +165,6 @@ module NewRelic
       end
 
       private :notice_extra_data
-
-      # Allows the addition of multiple pieces of metadata to one
-      # segment - i.e. traced method calls multiple sql queries
-      def append_new_message(old_message, message)
-        if old_message
-          old_message + ";\n" + message
-        else
-          message
-        end
-      end
 
       # Appends a backtrace to a segment if that segment took longer
       # than the specified duration

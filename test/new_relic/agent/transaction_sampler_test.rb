@@ -200,25 +200,11 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     segment = mock('segment')
     @sampler.expects(:builder).returns(builder).twice
     builder.expects(:current_segment).returns(segment)
-    segment.expects(:[]).with(key).returns(nil)
-    @sampler.expects(:append_new_message).with(nil, 'a message').returns('a message')
     NewRelic::Agent::TransactionSampler.expects(:truncate_message) \
       .with('a message').returns('truncated_message')
     segment.expects(:[]=).with(key, 'truncated_message')
     @sampler.expects(:append_backtrace).with(segment, 1.0)
     @sampler.send(:notice_extra_data, 'a message', 1.0, key)
-  end
-
-  def test_append_new_message_no_old_message
-    old_message = nil
-    new_message = 'a message'
-    assert_equal(new_message, @sampler.append_new_message(old_message, new_message))
-  end
-
-  def test_append_new_message_with_old_message
-    old_message = 'old message'
-    new_message = ' a message'
-    assert_equal("old message;\n a message", @sampler.append_new_message(old_message, new_message))
   end
 
   def test_append_backtrace_under_duration
