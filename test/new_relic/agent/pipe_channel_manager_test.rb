@@ -11,7 +11,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
 
   def setup
     @test_config = { :developer_mode => true }
-    NewRelic::Agent.agent.reset_stats
+    NewRelic::Agent.agent.drop_buffered_data
     NewRelic::Agent.config.apply_config(@test_config)
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     NewRelic::Agent.manual_start
@@ -47,13 +47,13 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         NewRelic::Agent.after_fork
         new_engine = NewRelic::Agent::StatsEngine.new
         new_engine.get_stats_no_scope(metric).record_data_point(2.0)
-        listener.pipes[666].write(:stats => new_engine.harvest)
+        listener.pipes[666].write(:stats => new_engine.harvest!)
       end
       Process.wait(pid)
       listener.stop
 
       assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
-      engine.reset_stats
+      engine.reset!
     end
 
     def test_listener_merges_transaction_traces
@@ -66,7 +66,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         NewRelic::Agent.after_fork
         with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
           sample = run_sample_trace_on(sampler)
-          listener.pipes[667].write(:transaction_traces => sampler.harvest)
+          listener.pipes[667].write(:transaction_traces => sampler.harvest!)
         end
       end
       Process.wait(pid)
@@ -93,7 +93,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
                                  :metric => 'path', :referer => 'test_referer',
                                  :request_params => {:x => 'y'})
-        listener.pipes[668].write(:error_traces => new_sampler.harvest_errors)
+        listener.pipes[668].write(:error_traces => new_sampler.harvest!)
       end
       Process.wait(pid)
       listener.stop

@@ -11,7 +11,7 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
   def setup
     @txn = NewRelic::Agent::Transaction.new
     @stats_engine = NewRelic::Agent.instance.stats_engine
-    @stats_engine.reset_stats
+    @stats_engine.reset!
   end
 
   def teardown

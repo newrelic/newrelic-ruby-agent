@@ -4,6 +4,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/request_sampler'
 
 class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
@@ -13,6 +14,22 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     @event_listener = NewRelic::Agent::EventListener.new
     @sampler = NewRelic::Agent::RequestSampler.new( @event_listener )
   end
+
+  # Helpers for DataContainerTests
+
+  def create_container
+    @sampler
+  end
+
+  def populate_container(sampler, n)
+    n.times do |i|
+      generate_request("whatever#{i}")
+    end
+  end
+
+  include NewRelic::DataContainerTests
+
+  # Tests
 
   def test_samples_on_transaction_finished_event
     with_sampler_config do
@@ -78,7 +95,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     with_sampler_config do
       5.times { generate_request }
 
-      old_samples = @sampler.harvest
+      old_samples = @sampler.harvest!
 
       assert_equal 5, old_samples.size
       assert_equal 0, @sampler.samples.size
@@ -88,7 +105,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def test_merge_merges_samples_back_into_buffer
     with_sampler_config do
       5.times { generate_request }
-      old_samples = @sampler.harvest
+      old_samples = @sampler.harvest!
       5.times { generate_request }
 
       @sampler.merge!(old_samples)
@@ -99,7 +116,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def test_merge_abides_by_max_samples_limit
     with_sampler_config(:'analytics_events.max_samples_stored' => 5) do
       4.times { generate_request }
-      old_samples = @sampler.harvest
+      old_samples = @sampler.harvest!
       4.times { generate_request }
 
       @sampler.merge!(old_samples)
@@ -120,7 +137,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       samples_before = @sampler.samples
       assert_equal 50, samples_before.size
 
-      @sampler.harvest
+      @sampler.harvest!
 
       150.times { generate_request('after') }
       samples_after = @sampler.samples

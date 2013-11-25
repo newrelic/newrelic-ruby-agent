@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..', 'test_helper'))
-
+require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
 class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   def setup
@@ -15,10 +15,26 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   end
 
   def teardown
-    @engine.harvest
+    @engine.reset!
     mocha_teardown
     super
   end
+
+  # Helpers for DataContainerTests
+
+  def create_container
+    NewRelic::Agent::StatsEngine.new
+  end
+
+  def populate_container(engine, n)
+    n.times do |i|
+      engine.record_metrics("metric#{i}", i)
+    end
+  end
+
+  include NewRelic::DataContainerTests
+
+  # Tests
 
   def test_scope
     @engine.push_scope(:scope1)

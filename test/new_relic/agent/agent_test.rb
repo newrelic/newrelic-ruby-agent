@@ -78,6 +78,7 @@ module NewRelic
 
       def test_transmit_data_should_transmit
         @agent.service.expects(:metric_data).at_least_once
+        @agent.stats_engine.record_metrics(['foo'], 12)
         @agent.instance_eval { transmit_data }
       end
 
@@ -100,9 +101,8 @@ module NewRelic
                        :transaction_name => nil,
                        :force_persist => true,
                        :truncate => 4000)
-          trace.expects(:prepare_to_send!)
 
-          @agent.transaction_sampler.stubs(:harvest).returns([trace])
+          @agent.transaction_sampler.stubs(:harvest!).returns([trace])
           @agent.send :harvest_and_send_transaction_traces
         end
       end
@@ -110,10 +110,7 @@ module NewRelic
       def test_harvest_and_send_transaction_traces_merges_back_on_failure
         traces = [mock('tt1'), mock('tt2')]
 
-        # make prepare_to_send just return self
-        traces.each { |tt| tt.expects(:prepare_to_send!) }
-
-        @agent.transaction_sampler.expects(:harvest).returns(traces)
+        @agent.transaction_sampler.expects(:harvest!).returns(traces)
         @agent.service.stubs(:transaction_sample_data).raises("wat")
         @agent.transaction_sampler.expects(:merge!).with(traces)
 
@@ -125,18 +122,13 @@ module NewRelic
       def test_harvest_and_send_errors_merges_back_on_failure
         errors = [mock('e0'), mock('e1')]
 
-        @agent.error_collector.expects(:harvest_errors).returns(errors)
+        @agent.error_collector.expects(:harvest!).returns(errors)
         @agent.service.stubs(:error_data).raises('wat')
         @agent.error_collector.expects(:merge!).with(errors)
 
         assert_nothing_raised do
           @agent.send :harvest_and_send_errors
         end
-      end
-
-      def test_harvest_timeslice_data
-        assert_equal({}, @agent.send(:harvest_timeslice_data),
-                     'should return timeslice data')
       end
 
       # This test asserts nothing about correctness of logging data from multiple
@@ -160,7 +152,7 @@ module NewRelic
             threads << t
           end
 
-          100.times { @agent.send(:harvest_timeslice_data) }
+          100.times { @agent.send(:harvest_and_send_timeslice_data) }
           threads.each { |t| t.join }
         end
       end
@@ -210,21 +202,19 @@ module NewRelic
         request_sampler = @agent.instance_variable_get(:@request_sampler)
         samples = [mock('some analytics event')]
 
-        request_sampler.expects(:harvest).returns(samples)
+        request_sampler.expects(:harvest!).returns(samples)
         request_sampler.expects(:merge!).with(samples)
 
         # simulate a failure in transmitting analytics events
         service.stubs(:analytic_event_data).raises(StandardError.new)
 
-        assert_raises(StandardError) do
-          @agent.send(:harvest_and_send_analytic_event_data)
-        end
+        @agent.send(:harvest_and_send_analytic_event_data)
       end
 
       def test_harvest_and_send_timeslice_data_merges_back_on_failure
-        timeslices = mock('timeslices')
+        timeslices = [1,2,3]
 
-        @agent.stats_engine.expects(:harvest).returns(timeslices)
+        @agent.stats_engine.expects(:harvest!).returns(timeslices)
         @agent.service.stubs(:metric_data).raises('wat')
         @agent.stats_engine.expects(:merge!).with(timeslices)
 
@@ -352,6 +342,87 @@ module NewRelic
         assert done
       end
 
+      def test_harvest_from_container
+        container = mock
+        harvested_items = ['foo', 'bar', 'baz']
+        container.expects(:harvest!).returns(harvested_items)
+        items = @agent.send(:harvest_from_container, container, 'digglewumpus')
+        assert_equal(harvested_items, items)
+      end
+
+      def test_harvest_from_container_with_error
+        container = mock
+        container.stubs(:harvest!).raises('an error')
+        container.expects(:reset!)
+        @agent.send(:harvest_from_container, container, 'digglewumpus')
+      end
+
+      def send_data_from_container
+        service = @agent.service
+        items = [1, 2, 3]
+        service.expects(:dummy_endpoint).with(items)
+        @agent.send(:send_data_from_container, stub, 'dummy_endpoint', items)
+      end
+
+      def send_data_from_container_with_unrecoverable_server_error
+        service = @agent.service
+        container = mock('data container')
+        container.expects(:merge!).never
+        items = [1, 2, 3]
+        service.expects(:dummy_endpoint).raises(UnrecoverableServerException)
+        @agent.send(:send_data_from_container, container, 'dummy_endpoint', items)
+      end
+
+      def send_data_from_container_with_other_error
+        service = @agent.service
+        items = [1, 2, 3]
+        container = mock('data container')
+        container.expects(:merge!).with(items)
+        service.expects(:dummy_endpoint).raises('other errors')
+        @agent.send(:send_data_from_container, container, 'dummy_endpoint', items)
+      end
+
+      def harvest_and_send_from_container
+        container = mock('data container')
+        items = [1, 2, 3]
+        container.expects(:harvest!).returns(items)
+        service = @agent.service
+        service.expects(:dummy_endpoint).with(items)
+        @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
+      end
+
+      def harvest_and_send_from_container_does_not_harvest_if_nothing_to_send
+        container = mock('data container')
+        items = []
+        container.expects(:harvest!).returns(items)
+        service = @agent.service
+        service.expects(:dummy_endpoint).never
+        @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
+      end
+
+      def harvest_and_send_from_container_resets_on_harvest_failure
+        container = mock('data container')
+        container.stubs(:harvest!).raises('an error')
+        container.expects(:reset!)
+        @agent.service.expects(:dummy_endpoint).never
+        @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
+      end
+
+      def harvest_and_send_from_container_does_not_merge_on_unrecoverable_failure
+        container = mock('data container')
+        container.stubs(:harvest!).returns([1,2,3])
+        @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises(UnrecoverableServerException)
+        container.expects(:merge!).never
+        @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
+      end
+
+      def harvest_and_send_from_container_merges_on_other_failure
+        container = mock('data container')
+        container.stubs(:harvest!).returns([1,2,3])
+        @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises('other error')
+        container.expects(:merge!).with([1,2,3])
+        @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
+      end
     end
 
 

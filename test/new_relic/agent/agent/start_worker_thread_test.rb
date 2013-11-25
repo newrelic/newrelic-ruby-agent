@@ -38,7 +38,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     # hooray for methods with no branches
     error = mock(:message => 'a message')
 
-    self.expects(:reset_stats)
+    self.expects(:drop_buffered_data)
     self.expects(:sleep).with(30)
     @connected = true
 

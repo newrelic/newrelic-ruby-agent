@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
 class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   def setup
@@ -13,6 +14,24 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     @connection = stub('ActiveRecord connection', :execute => 'result')
     NewRelic::Agent::Database.stubs(:get_connection).returns(@connection)
   end
+
+  # Helpers for DataContainerTests
+
+  def create_container
+    NewRelic::Agent::SqlSampler.new
+  end
+
+  def populate_container(sampler, n)
+    n.times do |i|
+      sampler.notice_first_scope_push nil
+      sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", nil, 1)
+      sampler.notice_scope_empty('txn')
+    end
+  end
+
+  include NewRelic::DataContainerTests
+
+  # Tests
 
   def test_notice_first_scope_push
     assert_nil @sampler.transaction_data
@@ -82,7 +101,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                           NewRelic::Agent::SlowSql.new("select * from test2", "Database/test2/select", {}, 1.1)]
     @sampler.harvest_slow_sql data
 
-    sql_traces = @sampler.harvest
+    sql_traces = @sampler.harvest!
     assert_equal 2, sql_traces.size
   end
 
@@ -96,7 +115,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     end
 
     @sampler.harvest_slow_sql data
-    result = @sampler.harvest
+    result = @sampler.harvest!
 
     assert_equal(10, result.size)
     assert_equal(14, result.sort{|a,b| b.max_call_time <=> a.max_call_time}.first.total_call_time)
@@ -114,7 +133,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     data.sql_data.concat(queries)
     @sampler.harvest_slow_sql data
 
-    sql_traces = @sampler.harvest
+    sql_traces = @sampler.harvest!
     assert_equal 2, sql_traces.size
   end
 
@@ -141,7 +160,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
               ]
     data.sql_data.concat(queries)
     @sampler.harvest_slow_sql data
-    sql_traces = @sampler.harvest
+    sql_traces = @sampler.harvest!
     assert_equal(["header0", "header1", "header2"],
                  sql_traces[0].params[:explain_plan][0].sort)
     assert_equal(["header0", "header1", "header2"],
@@ -174,7 +193,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                 ]
       data.sql_data.concat(queries)
       @sampler.harvest_slow_sql data
-      sql_traces = @sampler.harvest
+      sql_traces = @sampler.harvest!
       assert_equal(nil, sql_traces[0].params[:explain_plan])
     end
   end
@@ -199,7 +218,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                             NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
                                                          "Database/test/select", {}, 1.2)])
       @sampler.harvest_slow_sql(data)
-      sql_traces = @sampler.harvest
+      sql_traces = @sampler.harvest!
 
       assert_equal('select * from test where foo = ?', sql_traces[0].sql)
       assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
@@ -214,7 +233,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                                                          "Database/test/select",
                                                          {}, 1.5, &explainer)])
       @sampler.harvest_slow_sql(data)
-      sql_traces = @sampler.harvest
+      sql_traces = @sampler.harvest!
 
       assert_nothing_raised do
         Marshal.dump(sql_traces)
@@ -231,7 +250,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                                                          "Database/test/select",
                                                          {}, 1.5)])
       @sampler.harvest_slow_sql(data)
-      sql_traces = @sampler.harvest
+      sql_traces = @sampler.harvest!
 
       params = RUBY_VERSION >= '1.9.2' ? "eJyrrgUAAXUA+Q==\n" : {}
       expected = [ 'WebTransaction/Controller/c/a', '/c/a', 526336943,
@@ -267,4 +286,29 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     assert_equal expected, trace.to_collector_array(marshaller.default_encoder)
   end
 
+  def test_merge_without_existing_trace
+    query = "select * from test"
+    slow_sql = NewRelic::Agent::SlowSql.new(query, "Database/test/select", {}, 1)
+    trace = NewRelic::Agent::SqlTrace.new(query, slow_sql, "txn_name", "uri")
+
+    @sampler.merge!([trace])
+    assert_equal(trace, @sampler.sql_traces[query])
+  end
+
+  def test_merge_with_existing_trace
+    query = "select * from test"
+
+    slow_sql0 = NewRelic::Agent::SlowSql.new(query, "Database/test/select", {}, 1)
+    slow_sql1 = NewRelic::Agent::SlowSql.new(query, "Database/test/select", {}, 2)
+
+    trace0 = NewRelic::Agent::SqlTrace.new(query, slow_sql0, "txn_name", "uri")
+    trace1 = NewRelic::Agent::SqlTrace.new(query, slow_sql1, "txn_name", "uri")
+
+    @sampler.merge!([trace0])
+    @sampler.merge!([trace1])
+
+    aggregated_trace = @sampler.sql_traces[query]
+    assert_equal(2, aggregated_trace.call_count)
+    assert_equal(3, aggregated_trace.total_call_time)
+  end
 end

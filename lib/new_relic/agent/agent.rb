@@ -39,8 +39,6 @@ module NewRelic
           @service = NewRelic::Agent::NewRelicService.new
         end
 
-        @launch_time = Time.now
-
         @events                = NewRelic::Agent::EventListener.new
         @stats_engine          = NewRelic::Agent::StatsEngine.new
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
@@ -185,7 +183,7 @@ module NewRelic
           reset_objects_with_locks
 
           # Clear out stats that are left over from parent process
-          reset_stats
+          drop_buffered_data
 
           generate_environment_report unless @service.is_a?(NewRelic::Agent::PipeService)
           start_worker_thread(options)
@@ -499,16 +497,19 @@ module NewRelic
           log_version_and_pid
         end
 
-        # Clear out the metric data, errors, and transaction traces,
-        # making sure the agent is in a fresh state
-        def reset_stats
-          @stats_engine.reset_stats
+        # Clear out the metric data, errors, and transaction traces, etc.
+        def drop_buffered_data
+          @stats_engine.reset!
           @error_collector.reset!
           @transaction_sampler.reset!
           @request_sampler.reset!
           @sql_sampler.reset!
-          @launch_time = Time.now
         end
+
+        # Deprecated, and not part of the public API, but here for backwards
+        # compatibility because some 3rd-party gems call it.
+        # @deprecated
+        def reset_stats; drop_buffered_data; end
 
         # Clear out state for any objects that we know lock from our parents
         # This is necessary for cases where we're in a forked child and Ruby
@@ -567,7 +568,7 @@ module NewRelic
           # waits a while to reconnect.
           def handle_force_restart(error)
             ::NewRelic::Agent.logger.debug error.message
-            reset_stats
+            drop_buffered_data
             @service.reset_metric_id_cache if @service
             @connect_state = :pending
             sleep 30
@@ -891,39 +892,58 @@ module NewRelic
           control.root
         end
 
-        # calls the busy harvester and collects timeslice data to
-        # send later
-        def harvest_timeslice_data
-          NewRelic::Agent::BusyCalculator.harvest_busy
-          @stats_engine.harvest
+        # Harvests data from the given container, sends it to the named endpoint
+        # on the service, and automatically merges back in upon a recoverable
+        # failure.
+        #
+        # The given container should respond to:
+        #
+        #  #harvest!
+        #    returns an enumerable collection of data items to be sent to the
+        #    collector.
+        #
+        #  #reset!
+        #    drop any stored data and reset to a clean state.
+        #
+        #  #merge!(items)
+        #    merge the given items back into the internal buffer of the
+        #    container, so that they may be harvested again later.
+        #  
+        def harvest_and_send_from_container(container, endpoint)
+          items = harvest_from_container(container, endpoint)
+          send_data_from_container(container, endpoint, items) unless items.empty?
+        end
+
+        def harvest_from_container(container, endpoint)
+          items = []
+          begin
+            items = container.harvest!
+          rescue => e
+            NewRelic::Agent.logger.error("Failed to harvest #{endpoint} data, resetting. Error: ", e)
+            container.reset!
+          end
+          items
+        end
+
+        def send_data_from_container(container, endpoint, items)
+          NewRelic::Agent.logger.debug("Sending #{items.size} items to #{endpoint}")
+          begin
+            @service.send(endpoint, items)
+          rescue UnrecoverableServerException => e
+            NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
+          rescue => e
+            NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
+            container.merge!(items)
+          end
         end
 
         def harvest_and_send_timeslice_data
-          timeslices = harvest_timeslice_data
-          begin
-            @service.metric_data(timeslices)
-          rescue UnrecoverableServerException => e
-            ::NewRelic::Agent.logger.debug e.message
-          rescue => e
-            NewRelic::Agent.logger.info("Failed to send timeslice data, trying again later. Error:", e)
-            @stats_engine.merge!(timeslices)
-          end
+          NewRelic::Agent::BusyCalculator.harvest_busy
+          harvest_and_send_from_container(@stats_engine, :metric_data)
         end
 
         def harvest_and_send_slowest_sql
-          # FIXME add the code to try to resend if our connection is down
-          sql_traces = @sql_sampler.harvest
-          unless sql_traces.empty?
-            ::NewRelic::Agent.logger.debug "Sending (#{sql_traces.size}) sql traces"
-            begin
-              @service.sql_trace_data(sql_traces)
-            rescue UnrecoverableServerException => e
-              ::NewRelic::Agent.logger.debug e.message
-            rescue => e
-              ::NewRelic::Agent.logger.debug "Remerging SQL traces after #{e.class.name}: #{e.message}"
-              @sql_sampler.merge!(sql_traces)
-            end
-          end
+          harvest_and_send_from_container(@sql_sampler, :sql_trace_data)
         end
 
         # This handles getting the transaction traces and then sending
@@ -933,29 +953,7 @@ module NewRelic
         # segments' execution times exceed our threshold (to avoid
         # unnecessary overhead of running explains on fast queries.)
         def harvest_and_send_transaction_traces
-          traces = @transaction_sampler.harvest
-          unless traces.empty?
-            begin
-              send_transaction_traces(traces)
-            rescue UnrecoverableServerException => e
-              # This indicates that there was a problem with the POST body, so
-              # we discard the traces rather than trying again later.
-              ::NewRelic::Agent.logger.debug("Server rejected transaction traces, discarding. Error: ", e)
-            rescue => e
-              ::NewRelic::Agent.logger.error("Failed to send transaction traces, will re-attempt next harvest. Error: ", e)
-              @transaction_sampler.merge!(traces)
-            end
-          end
-        end
-
-        def send_transaction_traces(traces)
-          start_time = Time.now
-          ::NewRelic::Agent.logger.debug "Sending (#{traces.length}) transaction traces"
-
-          traces.each { |trace| trace.prepare_to_send! }
-
-          @service.transaction_sample_data(traces)
-          ::NewRelic::Agent.logger.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - start_time} seconds"
+          harvest_and_send_from_container(@transaction_sampler, :transaction_sample_data)
         end
 
         def harvest_and_send_for_agent_commands(disconnecting=false)
@@ -965,33 +963,12 @@ module NewRelic
           end
         end
 
-        # Handles getting the errors from the error collector and
-        # sending them to the server, and any error cases like trying
-        # to send very large errors
         def harvest_and_send_errors
-          errors = @error_collector.harvest_errors
-          if errors && !errors.empty?
-            ::NewRelic::Agent.logger.debug "Sending #{errors.length} errors"
-            begin
-              @service.error_data(errors)
-            rescue UnrecoverableServerException => e
-              ::NewRelic::Agent.logger.debug e.message
-            rescue => e
-              ::NewRelic::Agent.logger.debug "Failed to send error traces, will try again later. Error:", e
-              @error_collector.merge!(errors)
-            end
-          end
+          harvest_and_send_from_container(@error_collector, :error_data)
         end
 
-        # Fetch samples from the RequestSampler and send them.
         def harvest_and_send_analytic_event_data
-          samples = @request_sampler.harvest
-          begin
-            @service.analytic_event_data(samples) unless samples.empty?
-          rescue
-            @request_sampler.merge!(samples)
-            raise
-          end
+          harvest_and_send_from_container(@request_sampler, :analytic_event_data)
         end
 
         def check_for_and_handle_agent_commands
