@@ -78,10 +78,6 @@ EOL
     assert NewRelic::Agent.browser_timing_header.size > 0
   end
 
-  def test_make_sure_config_is_set
-    assert NewRelic::Agent.browser_timing_config.size > 0
-  end
-
   def test_should_only_instrument_successfull_html_requests
     assert app.should_instrument?({}, 200, {'Content-Type' => 'text/html'})
     assert !app.should_instrument?({}, 500, {'Content-Type' => 'text/html'})

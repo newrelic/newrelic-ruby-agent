@@ -76,6 +76,9 @@ module NewRelic
         elsif missing_config?(:browser_key)
           ::NewRelic::Agent.logger.debug "Browser key is not set. Skipping browser instrumentation."
           false
+        elsif !current_transaction
+          ::NewRelic::Agent.logger.debug "Not in transaction. Skipping browser instrumentation."
+          false
         elsif !::NewRelic::Agent.is_transaction_traced?
           ::NewRelic::Agent.logger.debug "Transaction is not traced. Skipping browser instrumentation."
           false
@@ -96,29 +99,18 @@ module NewRelic
       end
 
       def browser_timing_header
+        return "" unless insert_js?
         browser_timing_config + browser_timing_loader
       end
 
-      def browser_timing_loader
-        return "" unless insert_js?
-        header_js_string
-      end
-
-      def browser_timing_config
-        return "" unless insert_js?
-        NewRelic::Agent::Transaction.freeze_name
-
-        return "" unless current_transaction
-        footer_js_string
-      end
-
       # NOTE: Internal prototyping often overrides this, so leave name stable!
-      def header_js_string
+      def browser_timing_loader
         html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
       end
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
-      def footer_js_string
+      def browser_timing_config
+        NewRelic::Agent::Transaction.freeze_name
         data = data_for_js_agent
         json = NewRelic.json_dump(data)
         html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
