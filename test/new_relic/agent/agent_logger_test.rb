@@ -52,44 +52,30 @@ class AgentLoggerTest < Test::Unit::TestCase
     assert_equal override_logger, logger.instance_variable_get(:@log)
   end
 
-
   def test_forwards_calls_to_logger
-    logdev = ArrayLogDevice.new
-    override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    logger = create_basic_logger
 
     LEVELS.each do |level|
       logger.send(level, "Boo!")
     end
 
-    assert_equal 4, logdev.array.length # No DEBUG
-
-    assert_match( /FATAL/, logdev.array[0] )
-    assert_match( /ERROR/, logdev.array[1] )
-    assert_match( /WARN/,  logdev.array[2] )
-    assert_match( /INFO/,  logdev.array[3] )
+    assert_logged(/FATAL/,
+                  /ERROR/,
+                  /WARN/,
+                  /INFO/) # No DEBUG
   end
 
-
   def test_forwards_calls_to_logger_with_multiple_arguments
-    logdev = ArrayLogDevice.new
-    override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    logger = create_basic_logger
 
     LEVELS.each do |level|
       logger.send(level, "What", "up?")
     end
 
-    assert_equal 8, logdev.array.length # No DEBUG, two per level
-
-    assert_match( /FATAL/, logdev.array[0] )
-    assert_match( /FATAL/, logdev.array[1] )
-    assert_match( /ERROR/, logdev.array[2] )
-    assert_match( /ERROR/, logdev.array[3] )
-    assert_match( /WARN/,  logdev.array[4] )
-    assert_match( /WARN/,  logdev.array[5] )
-    assert_match( /INFO/,  logdev.array[6] )
-    assert_match( /INFO/,  logdev.array[7] )
+    assert_logged(/FATAL/, /FATAL/,
+                  /ERROR/, /ERROR/,
+                  /WARN/,  /WARN/,
+                  /INFO/,  /INFO/) # No DEBUG
   end
 
   def test_wont_log_if_agent_not_enabled
@@ -162,22 +148,16 @@ class AgentLoggerTest < Test::Unit::TestCase
       ::NewRelic::Agent::StartupLogger.instance.send(level, "boo!")
     end
 
-    logdev = ArrayLogDevice.new
-    override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    logger = create_basic_logger
 
-    assert_equal 4, logdev.array.length # No DEBUG
-
-    assert_match( /FATAL/, logdev.array[0] )
-    assert_match( /ERROR/, logdev.array[1] )
-    assert_match( /WARN/,  logdev.array[2] )
-    assert_match( /INFO/,  logdev.array[3] )
+    assert_logged(/FATAL/,
+                  /ERROR/,
+                  /WARN/,
+                  /INFO/) # No DEBUG
   end
 
   def test_passing_exceptions_only_logs_the_message_at_levels_higher_than_debug
-    logdev = ArrayLogDevice.new
-    override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    logger = create_basic_logger
 
     begin
       raise "Something bad happened"
@@ -185,15 +165,12 @@ class AgentLoggerTest < Test::Unit::TestCase
       logger.error( err )
     end
 
-    assert_equal 1, logdev.array.length
-    assert_match( /ERROR : RuntimeError: Something bad happened/i, logdev.array[0] )
+    assert_logged(/ERROR : RuntimeError: Something bad happened/i)
   end
 
   def test_passing_exceptions_logs_the_backtrace_at_debug_level
     with_config(:log_level => :debug) do
-      logdev = ArrayLogDevice.new
-      override_logger = Logger.new( logdev )
-      logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+      logger = create_basic_logger
 
       begin
         raise "Something bad happened"
@@ -201,56 +178,46 @@ class AgentLoggerTest < Test::Unit::TestCase
         logger.error( err )
       end
 
-      assert_equal 2, logdev.array.length
-      assert_match( /ERROR : RuntimeError: Something bad happened/i, logdev.array[0] )
-      assert_match( /DEBUG : Debugging backtrace:\n.*test_passing_exceptions/i, logdev.array[1] )
+      assert_logged(/ERROR : RuntimeError: Something bad happened/i,
+                    /DEBUG : Debugging backtrace:\n.*test_passing_exceptions/i)
     end
   end
 
   def test_format_message_allows_nil_backtrace
     with_config(:log_level => :debug) do
-      logdev = ArrayLogDevice.new
-      override_logger = Logger.new( logdev )
-      logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+      logger = create_basic_logger
 
       e = Exception.new("Look Ma, no backtrace!")
       assert_nil(e.backtrace)
       logger.error(e)
 
-      assert_equal 2, logdev.array.length
-      assert_match( /ERROR : Exception: Look Ma, no backtrace!/i, logdev.array[0] )
-      assert_match( /DEBUG : No backtrace available./, logdev.array[1])
+      assert_logged(/ERROR : Exception: Look Ma, no backtrace!/i,
+                    /DEBUG : No backtrace available./)
     end
   end
 
   def test_log_exception_logs_backtrace_at_same_level_as_message_by_default
-    logdev = ArrayLogDevice.new
-    override_logger = Logger.new(logdev)
-    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    logger = create_basic_logger
 
     e = Exception.new("howdy")
     e.set_backtrace(["wiggle", "wobble", "topple"])
 
     logger.log_exception(:info, e)
 
-    assert_match(/INFO : Exception: howdy/i, logdev.array[0])
-    assert_match(/INFO : Debugging backtrace:\n.*wiggle\s+wobble\s+topple/,
-                  logdev.array[1])
+    assert_logged(/INFO : Exception: howdy/i,
+                  /INFO : Debugging backtrace:\n.*wiggle\s+wobble\s+topple/)
   end
 
   def test_log_exception_logs_backtrace_at_explicitly_specified_level
-    logdev = ArrayLogDevice.new
-    override_logger = Logger.new(logdev)
-    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    logger = create_basic_logger
 
     e = Exception.new("howdy")
     e.set_backtrace(["wiggle", "wobble", "topple"])
 
     logger.log_exception(:warn, e, :info)
 
-    assert_match(/WARN : Exception: howdy/i, logdev.array[0])
-    assert_match(/INFO : Debugging backtrace:\n.*wiggle\s+wobble\s+topple/,
-                  logdev.array[1])
+    assert_logged(/WARN : Exception: howdy/i,
+                  /INFO : Debugging backtrace:\n.*wiggle\s+wobble\s+topple/)
   end
 
   def test_logs_to_stdout_if_fails_on_file
@@ -289,6 +256,16 @@ class AgentLoggerTest < Test::Unit::TestCase
   # Helpers
   #
 
+  def logged_lines
+    @logdev.array
+  end
+
+  def create_basic_logger
+    @logdev = ArrayLogDevice.new
+    override_logger = Logger.new(@logdev)
+    NewRelic::Agent::AgentLogger.new("", override_logger)
+  end
+
   def with_squelched_stdout
     orig = $stdout.dup
     $stdout.reopen( '/dev/null' )
@@ -297,4 +274,10 @@ class AgentLoggerTest < Test::Unit::TestCase
     $stdout.reopen( orig )
   end
 
+  def assert_logged(*args)
+    assert_equal(args.length, logged_lines.length)
+    logged_lines.each_with_index do |line, index|
+      assert_match(args[index], line)
+    end
+  end
 end
