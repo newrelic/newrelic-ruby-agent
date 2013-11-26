@@ -430,6 +430,37 @@ module NewRelic
         container.expects(:merge!).with([1,2,3])
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
+
+      def test_harvest_and_send_from_container_does_not_swallow_forced_errors
+        container = mock('data container')
+        container.stubs(:harvest!).returns([1])
+
+        error_classes = [
+          NewRelic::Agent::ForceRestartException,
+          NewRelic::Agent::ForceDisconnectException
+        ]
+
+        error_classes.each do |cls|
+          @agent.service.expects(:dummy_endpoint).with([1]).raises(cls.new)
+          assert_raise(cls) do
+            @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
+          end
+        end
+      end
+
+      def test_check_for_and_handle_agent_commands_does_not_swallow_forced_errors
+        error_classes = [
+          NewRelic::Agent::ForceRestartException,
+          NewRelic::Agent::ForceDisconnectException
+        ]
+
+        error_classes.each do |cls|
+          @agent.service.expects(:get_agent_commands).raises(cls.new)
+          assert_raise(cls) do
+            @agent.send(:check_for_and_handle_agent_commands)
+          end
+        end
+      end
     end
 
 

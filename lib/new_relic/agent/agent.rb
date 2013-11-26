@@ -929,6 +929,8 @@ module NewRelic
           NewRelic::Agent.logger.debug("Sending #{items.size} items to #{endpoint}")
           begin
             @service.send(endpoint, items)
+          rescue ForceRestartException, ForceDisconnectException
+            raise
           rescue UnrecoverableServerException => e
             NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
           rescue => e
@@ -964,7 +966,7 @@ module NewRelic
           begin
             data = @agent_command_router.harvest_data_to_send(disconnecting)
           rescue => e
-            NewRelic::Agent.logger.error("Error during harvest_and_send_for_agent_commands: ", e)
+            NewRelic::Agent.logger.error("Error during harvest_data_to_send: ", e)
           else
             data.each do |service_method, payload|
               send_data_to_endpoint(service_method, payload)
@@ -983,6 +985,8 @@ module NewRelic
         def check_for_and_handle_agent_commands
           begin
             @agent_command_router.check_for_and_handle_agent_commands
+          rescue ForceRestartException, ForceDisconnectException
+            raise
           rescue => e
             NewRelic::Agent.logger.warn("Error during check_for_and_handle_agent_commands, will retry later: ", e)
           end
