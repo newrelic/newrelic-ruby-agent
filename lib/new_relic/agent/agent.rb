@@ -981,7 +981,11 @@ module NewRelic
         end
 
         def check_for_and_handle_agent_commands
-          @agent_command_router.check_for_and_handle_agent_commands
+          begin
+            @agent_command_router.check_for_and_handle_agent_commands
+          rescue => e
+            NewRelic::Agent.logger.warn("Error during check_for_and_handle_agent_commands, will retry later: ", e)
+          end
         end
 
         def transmit_data(disconnecting=false)

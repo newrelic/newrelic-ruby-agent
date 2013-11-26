@@ -162,6 +162,13 @@ module NewRelic
         @agent.send :check_for_and_handle_agent_commands
       end
 
+      def test_check_for_and_handle_agent_commands_with_error
+        @agent.service.expects(:get_agent_commands).raises('bad news')
+        assert_nothing_raised do
+          @agent.send :check_for_and_handle_agent_commands
+        end
+      end
+
       def test_harvest_and_send_for_agent_commands
         @agent.service.expects(:profile_data).with(any_parameters)
         @agent.agent_command_router.stubs(:harvest_data_to_send).returns({:profile_data => [Object.new]})
