@@ -196,4 +196,16 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     ])
   end
 
+  def test_records_metrics_for_reindex
+    @collection.create_index({'name' => Mongo::ASCENDING})
+    @database.command({ :reIndex => 'tribbles' })
+
+    metric = 're_index'
+    assert_metrics_recorded([
+      "Datastore/all",
+      "Datastore/operation/MongoDB/#{metric}",
+      "Datastore/statement/MongoDB/tribbles/#{metric}"
+    ])
+  end
+
 end

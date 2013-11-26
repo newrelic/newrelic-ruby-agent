@@ -201,4 +201,20 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
 
     assert_equal expected, metrics
   end
+
+  def test_metrics_for_reindex
+    payload = { :database => "multiverse",
+                :collection => "$cmd",
+                :limit => -1,
+                :selector => { :reIndex=> "tribbles" } }
+
+    metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
+    expected = [
+      "Datastore/all",
+      "Datastore/operation/MongoDB/re_index",
+      "Datastore/statement/MongoDB/tribbles/re_index"
+    ]
+
+    assert_equal expected, metrics
+  end
 end

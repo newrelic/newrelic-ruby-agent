@@ -28,6 +28,9 @@ module NewRelic
           name = 'drop_indexes'
         elsif self.drop_index?(name, payload)
           name = 'drop_index'
+        elsif self.re_index?(name, payload)
+          name = 're_index'
+          collection = payload[:selector][:reIndex]
         end
 
         [
@@ -59,6 +62,10 @@ module NewRelic
 
       def self.drop_index?(name, payload)
         name == :deleteIndexes
+      end
+
+      def self.re_index?(name, payload)
+        name == :reIndex && payload[:selector] && payload[:selector][:reIndex]
       end
 
       def self.collection_name_from_index(payload)
