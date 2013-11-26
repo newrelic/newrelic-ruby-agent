@@ -254,7 +254,7 @@ module NewRelic
           raise NewRelic::Agent::CrossAppTracing::Error,
             "Can't derive metrics for response: no #{NR_APPDATA_HEADER} header!"
 
-        decoded_appdata = obfuscator.decode( appdata )
+        decoded_appdata = obfuscator.deobfuscate( appdata )
         decoded_appdata.set_encoding( ::Encoding::UTF_8 ) if
           decoded_appdata.respond_to?( :set_encoding )
 

@@ -45,7 +45,7 @@ class NewRelic::Agent::ObfuscatorTest < Test::Unit::TestCase
 
   def test_decoding_blank
     obfuscator = NewRelic::Agent::Obfuscator.new('query')
-    assert_equal "", obfuscator.decode("")
+    assert_equal "", obfuscator.deobfuscate("")
   end
 
   def test_encode_with_nil_uses_empty_key
@@ -57,7 +57,7 @@ class NewRelic::Agent::ObfuscatorTest < Test::Unit::TestCase
     str = 'Анастасі́я Олексі́ївна Каме́нських'
     obfuscator = NewRelic::Agent::Obfuscator.new('potap')
     encoded = obfuscator.obfuscate(str)
-    decoded = obfuscator.decode(encoded)
+    decoded = obfuscator.deobfuscate(encoded)
     decoded.force_encoding( 'utf-8' ) if decoded.respond_to?( :force_encoding )
     assert_equal str, decoded
   end

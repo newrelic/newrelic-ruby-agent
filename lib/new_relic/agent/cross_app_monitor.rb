@@ -87,7 +87,7 @@ module NewRelic
 
       def save_referring_transaction_info(request_headers)
         txn_header = from_headers( request_headers, NEWRELIC_TXN_HEADER_KEYS ) or return
-        txn_header = obfuscator.decode( txn_header )
+        txn_header = obfuscator.deobfuscate( txn_header )
         txn_info = NewRelic.json_load( txn_header )
         NewRelic::Agent.logger.debug "Referring txn_info: %p" % [ txn_info ]
 
@@ -184,7 +184,7 @@ module NewRelic
         encoded_id = from_headers(request, NEWRELIC_ID_HEADER_KEYS)
         return "" if encoded_id.nil?
 
-        obfuscator.decode(encoded_id)
+        obfuscator.deobfuscate(encoded_id)
       end
 
       def content_length_from_request(request)

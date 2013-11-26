@@ -8,31 +8,36 @@ module NewRelic
   module Agent
     class Obfuscator
 
-      attr_reader :key
+      attr_reader :key_bytes
+
+      EMPTY_KEY_BYTES = [0]
 
       # RUM uses a shortened key, so just trim it up front
       def initialize(key, length=nil)
-        key = key[0...length] unless length.nil?
-        key = key.bytes.to_a if key.respond_to?( :bytes )
-        @key = key
+        if key.nil?
+          @key_bytes = EMPTY_KEY_BYTES
+        else
+          @key_bytes = key.bytes.to_a
+          @key_bytes = @key_bytes.first(length) if length
+        end
       end
 
       def obfuscate(text)
         [ encode(text) ].pack('m').chomp.gsub(/\n/, '')
       end
 
-      def decode(text)
+      def deobfuscate(text)
         encode(text.unpack('m').first )
       end
 
       def encode(text)
-        return text unless key
+        return text unless key_bytes
 
         encoded = ""
         encoded.force_encoding('binary') if encoded.respond_to?( :force_encoding )
         index = 0
         text.each_byte do |byte|
-          encoded.concat((byte ^ key[index % key.length].to_i))
+          encoded.concat((byte ^ key_bytes[index % key_bytes.length]))
           index+=1
         end
         encoded
