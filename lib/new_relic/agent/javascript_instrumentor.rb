@@ -64,17 +64,21 @@ module NewRelic
 
       # Should JS agent script be generated? Log if not.
       def insert_js?
-        if missing_config?(:js_agent_loader)
-          ::NewRelic::Agent.logger.debug "Missing :js_agent_loader. Skipping browser instrumentation."
+        if !enabled?
+          ::NewRelic::Agent.logger.log_once(:debug, :js_agent_disabled,
+                                            "JS agent instrumentation is disabled.")
+          false
+        elsif missing_config?(:js_agent_loader)
+          ::NewRelic::Agent.logger.log_once(:debug, :missing_js_agent_loader,
+                                            "Missing :js_agent_loader. Skipping browser instrumentation.")
           false
         elsif missing_config?(:beacon)
-          ::NewRelic::Agent.logger.debug "Beacon configuration not received (yet?). Skipping browser instrumentation."
-          false
-        elsif !enabled?
-          ::NewRelic::Agent.logger.debug "JS agent instrumentation is disabled."
+          ::NewRelic::Agent.logger.log_once(:debug, :missing_beacon,
+                                            "Beacon configuration not received (yet?). Skipping browser instrumentation.")
           false
         elsif missing_config?(:browser_key)
-          ::NewRelic::Agent.logger.debug "Browser key is not set. Skipping browser instrumentation."
+          ::NewRelic::Agent.logger.log_once(:debug, :missing_browser_key,
+                                            "Browser key is not set. Skipping browser instrumentation.")
           false
         elsif !current_transaction
           ::NewRelic::Agent.logger.debug "Not in transaction. Skipping browser instrumentation."
