@@ -88,8 +88,6 @@ module NewRelic
           rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException
             # blow out the loop
             raise
-          rescue Timeout::Error, NewRelic::Agent::ServerConnectionException
-            # Want to ignore these because they are handled already
           rescue => e
             # Don't blow out the stack for anything that hasn't already propagated
             ::NewRelic::Agent.logger.error "Error running task in Agent Worker Loop:", e
