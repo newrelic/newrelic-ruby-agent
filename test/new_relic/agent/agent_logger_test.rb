@@ -78,6 +78,16 @@ class AgentLoggerTest < Test::Unit::TestCase
                   /INFO/,  /INFO/) # No DEBUG
   end
 
+  def test_forwards_calls_to_logger_once
+    logger = create_basic_logger
+
+    LEVELS.each do |level|
+      logger.send(:log_once, level, :special_key, "Special!")
+    end
+
+    assert_logged(/Special/)
+  end
+
   def test_wont_log_if_agent_not_enabled
     with_config(:agent_enabled => false) do
       logger = NewRelic::Agent::AgentLogger.new

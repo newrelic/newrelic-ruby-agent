@@ -36,6 +36,13 @@ module NewRelic
         format_and_send(:debug, msgs)
       end
 
+      def log_once(level, key, *msgs)
+        return if already_logged.include?(key)
+
+        already_logged[key] = true
+        self.send(level, *msgs)
+      end
+
       def is_startup_logger?
         false
       end
@@ -98,6 +105,11 @@ module NewRelic
 
       def create_null_logger
         @log = ::NewRelic::Agent::NullLogger.new
+      end
+
+      def already_logged
+        @already_logged ||= {}
+        @already_logged
       end
 
       def wants_stdout?
