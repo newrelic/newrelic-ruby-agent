@@ -303,45 +303,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     assert_equal(string, instrumentor.html_safe_if_needed(string))
   end
 
-  OBFUSCATION_KEY = (1..40).to_a.pack('c*')
-
-  def test_obfuscate_basic
-    with_config(:license_key => OBFUSCATION_KEY) do
-      text = 'a happy piece of small text'
-      output = instrumentor.obfuscate(text)
-      assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1', output)
-    end
-  end
-
-  def test_obfuscate_long_string
-    with_config(:license_key => OBFUSCATION_KEY) do
-      text = 'a happy piece of small text' * 5
-      output = instrumentor.obfuscate(text)
-      assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output)
-    end
-  end
-
-  def test_obfuscate_utf8
-    with_config(:license_key => OBFUSCATION_KEY) do
-      text = "foooooééoooo - blah"
-      output = instrumentor.obfuscate(text)
-      assert_equal('Z21sa2ppxKHKo2RjYm4iLiRnamZg', output)
-
-      unoutput = instrumentor.obfuscate(Base64.decode64(output))
-      assert_equal Base64.encode64(text).gsub("\n", ''), unoutput
-    end
-  end
-
-  def test_freezes_transaction_name_when_header_written
-    in_transaction do
-      with_config(:license_key => 'a' * 13) do
-        assert !NewRelic::Agent::Transaction.current.name_frozen?
-        instrumentor.browser_timing_header
-        assert NewRelic::Agent::Transaction.current.name_frozen?
-      end
-    end
-  end
-
   # Helpers
 
   BEGINNING_OF_FOOTER = '<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info='

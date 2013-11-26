@@ -40,7 +40,7 @@ module NewRelic::Agent
       }
 
       NewRelic::Agent.config.apply_config( @config )
-      @monitor.register_event_listeners
+      @monitor.on_finished_configuring
       NewRelic::Agent::TransactionState.get.request_guid = TRANSACTION_GUID
     end
 
@@ -171,24 +171,6 @@ module NewRelic::Agent
       NewRelic::Agent.instance.stats_engine.expects(:record_metrics).never
 
       when_request_runs(for_id(''))
-    end
-
-    def test_decoding_blank
-      assert_equal "",
-        NewRelic::Agent::CrossAppMonitor::EncodingFunctions.decode_with_key( 'querty', "" )
-    end
-
-    def test_encode_with_nil_uses_empty_key
-      assert_equal "querty",
-        NewRelic::Agent::CrossAppMonitor::EncodingFunctions.encode_with_key( nil, 'querty' )
-    end
-
-    def test_encoding_functions_can_roundtrip_utf8_text
-      str = 'Анастасі́я Олексі́ївна Каме́нських'
-      encoded = NewRelic::Agent::CrossAppMonitor::EncodingFunctions.obfuscate_with_key( 'potap', str )
-      decoded = NewRelic::Agent::CrossAppMonitor::EncodingFunctions.decode_with_key( 'potap', encoded )
-      decoded.force_encoding( 'utf-8' ) if decoded.respond_to?( :force_encoding )
-      assert_equal str, decoded
     end
 
     def test_setting_response_headers_freezes_transaction_name

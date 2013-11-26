@@ -10,7 +10,6 @@ require 'multiverse_helpers'
 
 module HttpClientTestCases
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
-          NewRelic::Agent::CrossAppMonitor::EncodingFunctions,
           NewRelic::Agent::CrossAppTracing,
           MultiverseHelpers
 
@@ -491,7 +490,8 @@ module HttpClientTestCases
   end
 
   def make_app_data_payload( *args )
-    return obfuscate_with_key( 'gringletoes', args.to_json ).gsub( /\n/, '' ) + "\n"
+    obfuscator = NewRelic::Agent::Obfuscator.new('gringletoes')
+    return obfuscator.obfuscate( args.to_json ) + "\n"
   end
 
 end

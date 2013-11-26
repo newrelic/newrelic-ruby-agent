@@ -3,12 +3,15 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'base64'
+require 'new_relic/agent/obfuscator'
 require 'new_relic/agent/transaction_timings'
 
 module NewRelic
   module Agent
     class JavascriptInstrumentor
       include NewRelic::Coerce
+
+      RUM_KEY_LENGTH = 13
 
       def initialize(event_listener)
         event_listener.subscribe(:finished_configuring, &method(:log_configuration))
@@ -28,41 +31,14 @@ module NewRelic
         Agent.config[:'rum.enabled'] && !!Agent.config[:beacon]
       end
 
-      # Memoize license key bytes for obscuring transaction names in javascript
-      def license_bytes
-        if @license_bytes.nil?
-          @license_bytes = []
-          NewRelic::Agent.config[:license_key].each_byte {|byte| @license_bytes << byte}
-        end
-        @license_bytes
+      def obfuscator
+        @obfuscator ||= NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:license_key], RUM_KEY_LENGTH)
       end
-
-      # Obfuscation
-
-      def obfuscate(text)
-        obfuscated = ""
-        if defined?(::Encoding::ASCII_8BIT)
-          obfuscated.force_encoding(::Encoding::ASCII_8BIT)
-        end
-
-        index = 0
-        text.each_byte{|byte|
-          obfuscated.concat((byte ^ license_bytes[index % 13].to_i))
-          index+=1
-        }
-
-        [obfuscated].pack("m0").gsub("\n", '')
-      end
-
-      # Transaction Access
 
       def current_transaction
         NewRelic::Agent::TransactionState.get.transaction
       end
 
-      # Javascript
-
-      # Should JS agent script be generated? Log if not.
       def insert_js?
         if !enabled?
           ::NewRelic::Agent.logger.log_once(:debug, :js_agent_disabled,
@@ -143,13 +119,13 @@ module NewRelic
           ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],
           LICENSE_KEY_KEY      => NewRelic::Agent.config[:browser_key],
           APPLICATIONID_KEY    => NewRelic::Agent.config[:application_id],
-          TRANSACTION_NAME_KEY => obfuscate(timings.transaction_name_or_unknown),
+          TRANSACTION_NAME_KEY => obfuscator.obfuscate(timings.transaction_name_or_unknown),
           QUEUE_TIME_KEY       => timings.queue_time_in_millis,
           APPLICATION_TIME_KEY => timings.app_time_in_millis,
           TT_GUID_KEY          => state.request_guid_to_include,
           AGENT_TOKEN_KEY      => state.request_token,
           AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
-          EXTRA_KEY            => obfuscate(formatted_extra_parameter_for_js_agent)
+          EXTRA_KEY            => obfuscator.obfuscate(formatted_extra_parameter_for_js_agent)
         }
         add_ssl_for_http(data)
 

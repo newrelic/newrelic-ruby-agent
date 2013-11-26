@@ -22,36 +22,7 @@ module NewRelic
       }
       CONTENT_LENGTH_HEADER_KEYS = %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH}
 
-      # Functions for obfuscating and unobfuscating header values
-      module EncodingFunctions
-
-        module_function
-
-        def obfuscate_with_key(key, text)
-          [ encode_with_key(key, text) ].pack('m').chomp.gsub(/\n/, '')
-        end
-
-        def decode_with_key(key, text)
-          encode_with_key( key, text.unpack('m').first )
-        end
-
-        def encode_with_key(key, text)
-          return text unless key
-          key = key.bytes.to_a if key.respond_to?( :bytes )
-
-          encoded = ""
-          encoded.force_encoding('binary') if encoded.respond_to?( :force_encoding )
-          index = 0
-          text.each_byte do |byte|
-            encoded.concat((byte ^ key[index % key.length].to_i))
-            index+=1
-          end
-          encoded
-        end
-
-      end
-      include EncodingFunctions
-
+      attr_reader :obfuscator
 
       def initialize(events = nil)
         # When we're starting up for real in the agent, we get passed the events
@@ -59,10 +30,14 @@ module NewRelic
         events ||= Agent.instance.events
 
         events.subscribe(:finished_configuring) do
-          register_event_listeners
+          on_finished_configuring
         end
       end
 
+      def on_finished_configuring
+        setup_obfuscator
+        register_event_listeners
+      end
 
       # Expected sequence of events:
       #   :before_call will save our cross application request id to the thread
@@ -93,6 +68,11 @@ module NewRelic
         end
       end
 
+      # This requires :encoding_key, so must wait until :finished_configuring
+      def setup_obfuscator
+        @obfuscator = NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
+      end
+
       def save_client_cross_app_id(request_headers)
         TransactionState.get.client_cross_app_id = decoded_id(request_headers)
       end
@@ -106,9 +86,8 @@ module NewRelic
       end
 
       def save_referring_transaction_info(request_headers)
-        key = NewRelic::Agent.config[:encoding_key]
         txn_header = from_headers( request_headers, NEWRELIC_TXN_HEADER_KEYS ) or return
-        txn_header = decode_with_key( key, txn_header )
+        txn_header = obfuscator.deobfuscate( txn_header )
         txn_info = NewRelic.json_load( txn_header )
         NewRelic::Agent.logger.debug "Referring txn_info: %p" % [ txn_info ]
 
@@ -176,8 +155,7 @@ module NewRelic
           content_length,
           transaction_guid()
         ]
-        key = NewRelic::Agent.config[:encoding_key]
-        payload = obfuscate_with_key( key, NewRelic.json_dump(payload) )
+        payload = obfuscator.obfuscate(NewRelic.json_dump(payload))
       end
 
       def set_transaction_custom_parameters
@@ -206,8 +184,7 @@ module NewRelic
         encoded_id = from_headers(request, NEWRELIC_ID_HEADER_KEYS)
         return "" if encoded_id.nil?
 
-        key = NewRelic::Agent.config[:encoding_key]
-        decode_with_key( key, encoded_id )
+        obfuscator.deobfuscate(encoded_id)
       end
 
       def content_length_from_request(request)
