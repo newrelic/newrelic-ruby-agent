@@ -85,8 +85,6 @@ module NewRelic
         else
           begin
             @task.call
-          rescue ServerError => e
-            ::NewRelic::Agent.logger.debug "Server Error:", e
           rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException
             # blow out the loop
             raise
