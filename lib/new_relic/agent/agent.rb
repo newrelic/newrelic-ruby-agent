@@ -1015,17 +1015,6 @@ module NewRelic
             check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands(disconnecting)
           end
-        rescue EOFError => e
-          ::NewRelic::Agent.logger.warn("EOFError after #{Time.now - now}s when transmitting data to New Relic Service.")
-          ::NewRelic::Agent.logger.debug(e)
-        rescue => e
-          retry_count ||= 0
-          retry_count += 1
-          if retry_count <= 1
-            ::NewRelic::Agent.logger.debug "retrying transmit_data after #{e}"
-            retry
-          end
-          raise e
         ensure
           NewRelic::Agent::Database.close_connections
           duration = (Time.now - now).to_f
