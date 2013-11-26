@@ -6,11 +6,9 @@
 module NewRelic
   module Agent
     module CrossAppTracing
-      extend NewRelic::Agent::CrossAppMonitor::EncodingFunctions
 
       # Exception raised if there is a problem with cross app transactions.
       class Error < RuntimeError; end
-
 
       # The cross app response header for "outgoing" calls
       NR_APPDATA_HEADER = 'X-NewRelic-App-Data'
@@ -132,17 +130,19 @@ module NewRelic
           raise NewRelic::Agent::CrossAppTracing::Error, "No encoding_key set."
       end
 
+      def obfuscator
+        @obfuscator ||= NewRelic::Agent::Obfuscator.new(cross_app_encoding_key)
+      end
 
       # Inject the X-Process header into the outgoing +request+.
       def inject_request_headers( request )
-        key = cross_app_encoding_key()
         cross_app_id = NewRelic::Agent.config[:cross_process_id] or
           raise NewRelic::Agent::CrossAppTracing::Error, "no cross app ID configured"
         txn_guid = NewRelic::Agent::TransactionState.get.request_guid
         txn_data = NewRelic.json_dump([ txn_guid, false ])
 
-        request[ NR_ID_HEADER ]  = obfuscate_with_key( key, cross_app_id )
-        request[ NR_TXN_HEADER ] = obfuscate_with_key( key, txn_data )
+        request[ NR_ID_HEADER ]  = obfuscator.obfuscate( cross_app_id )
+        request[ NR_TXN_HEADER ] = obfuscator.obfuscate( txn_data )
 
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "Not injecting x-process header", err
@@ -254,8 +254,7 @@ module NewRelic
           raise NewRelic::Agent::CrossAppTracing::Error,
             "Can't derive metrics for response: no #{NR_APPDATA_HEADER} header!"
 
-        key = cross_app_encoding_key()
-        decoded_appdata = decode_with_key( key, appdata )
+        decoded_appdata = obfuscator.decode( appdata )
         decoded_appdata.set_encoding( ::Encoding::UTF_8 ) if
           decoded_appdata.respond_to?( :set_encoding )
 

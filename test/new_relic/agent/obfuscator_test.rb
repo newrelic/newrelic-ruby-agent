@@ -42,6 +42,26 @@ class NewRelic::Agent::ObfuscatorTest < Test::Unit::TestCase
                    "Z21sa2ppxKHKo2RjYm4iLiRnamZg")
   end
 
+
+  def test_decoding_blank
+    obfuscator = NewRelic::Agent::Obfuscator.new('query')
+    assert_equal "", obfuscator.decode("")
+  end
+
+  def test_encode_with_nil_uses_empty_key
+    obfuscator = NewRelic::Agent::Obfuscator.new(nil)
+    assert_equal "querty", obfuscator.encode('querty')
+  end
+
+  def test_encoding_functions_can_roundtrip_utf8_text
+    str = 'Анастасі́я Олексі́ївна Каме́нських'
+    obfuscator = NewRelic::Agent::Obfuscator.new('potap')
+    encoded = obfuscator.obfuscate(str)
+    decoded = obfuscator.decode(encoded)
+    decoded.force_encoding( 'utf-8' ) if decoded.respond_to?( :force_encoding )
+    assert_equal str, decoded
+  end
+
   def assert_encoded(key_length, text, expected)
     output = obfuscator(key_length).obfuscate(text)
     assert_equal(expected, output)
