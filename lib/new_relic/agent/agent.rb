@@ -1034,6 +1034,8 @@ module NewRelic
           if connected?
             begin
               @service.request_timeout = 10
+
+              @events.notify(:before_shutdown)
               transmit_data(true)
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)

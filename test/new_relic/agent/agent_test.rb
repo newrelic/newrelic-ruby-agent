@@ -461,6 +461,16 @@ module NewRelic
           end
         end
       end
+
+      def test_graceful_disconnect_should_emit_before_disconnect_event
+        before_shutdown_call_count = 0
+        @agent.events.subscribe(:before_shutdown) do
+          before_shutdown_call_count += 1
+        end
+        @agent.stubs(:connected?).returns(true)
+        @agent.send(:graceful_disconnect)
+        assert_equal(1, before_shutdown_call_count)
+      end
     end
 
 
