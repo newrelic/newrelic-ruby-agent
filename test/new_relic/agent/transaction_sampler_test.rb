@@ -218,25 +218,11 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     segment = mock('segment')
     @sampler.expects(:builder).returns(builder).twice
     builder.expects(:current_segment).returns(segment)
-    segment.expects(:[]).with(key).returns(nil)
-    @sampler.expects(:append_new_message).with(nil, 'a message').returns('a message')
     NewRelic::Agent::TransactionSampler.expects(:truncate_message) \
       .with('a message').returns('truncated_message')
     segment.expects(:[]=).with(key, 'truncated_message')
     @sampler.expects(:append_backtrace).with(segment, 1.0)
     @sampler.send(:notice_extra_data, 'a message', 1.0, key)
-  end
-
-  def test_append_new_message_no_old_message
-    old_message = nil
-    new_message = 'a message'
-    assert_equal(new_message, @sampler.append_new_message(old_message, new_message))
-  end
-
-  def test_append_new_message_with_old_message
-    old_message = 'old message'
-    new_message = ' a message'
-    assert_equal("old message;\n a message", @sampler.append_new_message(old_message, new_message))
   end
 
   def test_append_backtrace_under_duration
@@ -751,13 +737,18 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.limit_segments' => 3) do
       run_sample_trace do
         @sampler.notice_push_scope
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'hallah'", {}, 0)
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'challah'", {}, 0)
         @sampler.notice_push_scope
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", {}, 0)
         @sampler.notice_pop_scope "a11"
         @sampler.notice_pop_scope "a1"
       end
       assert_equal 3, @sampler.last_sample.count_segments
+
+      expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
+      deepest_segment = find_last_transaction_segment(@sampler.last_sample)
+      assert_equal([], deepest_segment.called_segments)
+      assert_equal(expected_sql, deepest_segment[:sql])
     end
   end
 
