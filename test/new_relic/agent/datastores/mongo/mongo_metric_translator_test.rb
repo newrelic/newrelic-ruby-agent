@@ -6,6 +6,8 @@ require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 
 class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
+  include ::NewRelic::TestHelpers::MongoMetricBuilder
+
   def setup
     @database_name = 'multiverse'
     @collection_name = 'tribbles'
@@ -13,9 +15,31 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
 
   def test_metrics_for_insert
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:insert, { :collection => @collection_name })
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:insert], @collection_name
-    )
+    expected = build_test_metrics(:insert)
+
+    assert_equal expected, metrics
+  end
+
+  def test_build_metrics_includes_web
+    expected = [
+      'Datastore/statement/MongoDB/tribbles/test',
+      'Datastore/operation/MongoDB/test',
+      'Datastore/all',
+      'Datastore/allWeb'
+    ]
+    metrics = build_test_metrics('test')
+
+    assert_equal expected, metrics
+  end
+
+  def test_build_metrics_includes_other
+    expected = [
+      'Datastore/statement/MongoDB/tribbles/test',
+      'Datastore/operation/MongoDB/test',
+      'Datastore/all',
+      'Datastore/allOther'
+    ]
+    metrics = build_test_metrics('test', false)
 
     assert_equal expected, metrics
   end
@@ -26,9 +50,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                 :selector   => { "name" => "soterious johnson" } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:find], @collection_name
-    )
+    expected = build_test_metrics(:find)
 
     assert_equal expected, metrics
   end
@@ -40,9 +62,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                 :limit      => -1 }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:find_one], @collection_name
-    )
+    expected = build_test_metrics(:find_one)
 
     assert_equal expected, metrics
   end
@@ -53,9 +73,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                 :selector   => { "name" => "soterious johnson" } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:remove, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:remove], @collection_name
-    )
+    expected = build_test_metrics(:remove)
 
     assert_equal expected, metrics
   end
@@ -67,9 +85,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                 :document   => { "name" => "codemonkey" } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:update, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:update], @collection_name
-    )
+    expected = build_test_metrics(:update)
 
     assert_equal expected, metrics
   end
@@ -83,9 +99,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                                  :query    => nil } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:distinct, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:distinct], @collection_name
-    )
+    expected = build_test_metrics(:distinct)
 
     assert_equal expected, metrics
   end
@@ -99,9 +113,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                                  "fields" => nil } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:count], @collection_name
-    )
+    expected = build_test_metrics(:count)
 
     assert_equal expected, metrics
   end
@@ -115,9 +127,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                                  :update        => {"name" => "codemonkey" } } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:find_and_modify], @collection_name
-    )
+    expected = build_test_metrics(:find_and_modify)
 
     assert_equal expected, metrics
   end
@@ -131,9 +141,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                                  :remove        => true } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:find_and_remove], @collection_name
-    )
+    expected = build_test_metrics(:find_and_remove)
 
     assert_equal expected, metrics
   end
@@ -146,9 +154,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                                     :key  => { "name" => 1 } } ] }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:insert, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:create_index], @collection_name
-    )
+    expected = build_test_metrics(:create_index)
 
     assert_equal expected, metrics
   end
@@ -161,9 +167,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                                :index         => "*" } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:drop_indexes], @collection_name
-    )
+    expected = build_test_metrics(:drop_indexes)
 
     assert_equal expected, metrics
   end
@@ -176,9 +180,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                                :index => "name_1" } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:drop_index], @collection_name
-    )
+    expected = build_test_metrics(:drop_index)
 
     assert_equal expected, metrics
   end
@@ -190,9 +192,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                 :selector => { :reIndex=> @collection_name } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:re_index], @collection_name
-    )
+    expected = build_test_metrics(:re_index)
 
     assert_equal expected, metrics
   end

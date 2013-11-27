@@ -5,9 +5,11 @@
 require 'mongo'
 require 'newrelic_rpm'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','helpers','mongo_metric_builder'))
 
 class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Unit::TestCase
   include Mongo
+  include ::NewRelic::TestHelpers::MongoMetricBuilder
 
   def setup
     @client = MongoClient.new
@@ -36,9 +38,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_insert
     @collection.insert(@tribble)
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:insert], @collection_name
-    )
+    expected = build_test_metrics(:insert)
+
     assert_metrics_recorded(expected)
   end
 
@@ -46,9 +47,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     @collection.insert(@tribble)
     @collection.find(@tribble).to_a
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:find], @collection_name
-    )
+    expected = build_test_metrics(:find)
+
     assert_metrics_recorded(expected)
   end
 
@@ -56,9 +56,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     @collection.insert(@tribble)
     @collection.find_one
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:find_one], @collection_name
-    )
+    expected = build_test_metrics(:find_one)
+
     assert_metrics_recorded(expected)
   end
 
@@ -66,18 +65,16 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     @collection.insert(@tribble)
     @collection.remove(@tribble).to_a
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:remove], @collection_name
-    )
+    expected = build_test_metrics(:remove)
+
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_save
     @collection.save(@tribble)
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:save], @collection_name
-    )
+    expected = build_test_metrics(:save)
+
     assert_metrics_recorded(expected)
   end
 
@@ -87,27 +84,24 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     @collection.update(@tribble, updated)
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:update], @collection_name
-    )
+    expected = build_test_metrics(:update)
+
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_distinct
     @collection.distinct('name')
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:distinct], @collection_name
-    )
+    expected = build_test_metrics(:distinct)
+
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_count
     @collection.count
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:count], @collection_name
-    )
+    expected = build_test_metrics(:count)
+
     assert_metrics_recorded(expected)
   end
 
@@ -116,36 +110,32 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     updated['name'] = 'codemonkey'
     @collection.find_and_modify(query: @tribble, update: updated)
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:find_and_modify], @collection_name
-    )
+    expected = build_test_metrics(:find_and_modify)
+
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_find_and_remove
     @collection.find_and_modify(query: @tribble, remove: true)
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:find_and_remove], @collection_name
-    )
+    expected = build_test_metrics(:find_and_remove)
+
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_create_index
     @collection.create_index({'name' => Mongo::ASCENDING})
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:create_index], @collection_name
-    )
+    expected = build_test_metrics(:create_index)
+
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_ensure_index
     @collection.ensure_index({'name' => Mongo::ASCENDING})
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:ensure_index], @collection_name
-    )
+    expected = build_test_metrics(:ensure_index)
+
     assert_metrics_recorded(expected)
   end
 
@@ -154,9 +144,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     name = @collection.index_information.values.last['name']
     @collection.drop_index(name)
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:drop_index], @collection_name
-    )
+    expected = build_test_metrics(:drop_index)
+
     assert_metrics_recorded(expected)
   end
 
@@ -164,9 +153,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     @collection.create_index({'name' => Mongo::ASCENDING})
     @collection.drop_indexes
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:drop_indexes], @collection_name
-    )
+    expected = build_test_metrics(:drop_indexes)
+
     assert_metrics_recorded(expected)
   end
 
@@ -174,9 +162,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     @collection.create_index({'name' => Mongo::ASCENDING})
     @database.command({ :reIndex => @collection_name })
 
-    expected = NewRelic::Agent::MongoMetricTranslator.build_metrics(
-      NewRelic::Agent::MONGO_METRICS[:re_index], @collection_name
-    )
+    expected = build_test_metrics(:re_index)
+
     assert_metrics_recorded(expected)
   end
 

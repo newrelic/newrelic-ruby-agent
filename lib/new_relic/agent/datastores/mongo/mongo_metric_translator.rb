@@ -56,15 +56,26 @@ module NewRelic
           collection = payload[:selector][:reIndex]
         end
 
-        build_metrics(name, collection)
+        build_metrics(:name => name, :collection => collection)
       end
 
-      def self.build_metrics(name, collection)
-        [
+      def self.build_metrics(options)
+        name, collection = options[:name], options[:collection]
+        web_request = options.fetch(:web, true)
+
+        default_metrics = [
           "#{NewRelic::Agent::MONGO_METRICS[:statement]}#{collection}/#{name}",
           "#{NewRelic::Agent::MONGO_METRICS[:operation]}#{name}",
           NewRelic::Agent::MONGO_METRICS[:all]
         ]
+
+        if web_request
+          default_metrics << NewRelic::Agent::MONGO_METRICS[:web]
+        else
+          default_metrics << NewRelic::Agent::MONGO_METRICS[:other]
+        end
+
+        default_metrics
       end
 
       def self.find_one?(name, payload)
