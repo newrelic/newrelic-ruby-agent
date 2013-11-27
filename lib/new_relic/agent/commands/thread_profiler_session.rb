@@ -64,8 +64,8 @@ module NewRelic
           @backtrace_service.subscribed?(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
         end
 
-        def ready_to_harvest?(disconnecting=false)
-          (running? && disconnecting) || past_time? || stopped?
+        def ready_to_harvest?
+          past_time? || stopped?
         end
 
         def past_time?

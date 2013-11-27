@@ -32,6 +32,10 @@ module NewRelic
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
           @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
           @handlers['active_xray_sessions'] = Proc.new { |cmd| xray_session_collection.handle_active_xray_sessions(cmd) }
+
+          if event_listener
+            event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown))
+          end
         end
 
         def new_relic_service
@@ -55,12 +59,18 @@ module NewRelic
           commands.any? {|command| command.name == 'active_xray_sessions'}
         end
 
+        def on_before_shutdown(*args)
+          if self.thread_profiler_session.running?
+            self.thread_profiler_session.stop(true)
+          end
+        end
+
         NO_PROFILES_TO_SEND = {}.freeze
 
-        def harvest_data_to_send(disconnecting)
+        def harvest_data_to_send
           profiles = []
           profiles += harvest_from_xray_session_collection
-          profiles += harvest_from_thread_profiler_session(disconnecting)
+          profiles += harvest_from_thread_profiler_session
 
           format_harvest_data(profiles)
         end
@@ -69,8 +79,8 @@ module NewRelic
           self.xray_session_collection.harvest_thread_profiles
         end
 
-        def harvest_from_thread_profiler_session(disconnecting)
-          if self.thread_profiler_session.ready_to_harvest?(disconnecting)
+        def harvest_from_thread_profiler_session
+          if self.thread_profiler_session.ready_to_harvest?
             self.thread_profiler_session.stop(true)
             [self.thread_profiler_session.harvest]
           else

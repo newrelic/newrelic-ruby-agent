@@ -36,8 +36,9 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     @service = stub
     NewRelic::Agent.agent.stubs(:service).returns(@service)
     @calls = []
+    @events = NewRelic::Agent::EventListener.new
 
-    @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new
+    @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
     @agent_commands.handlers["bazzle"] = Proc.new { |args| handle_bazzle_command(args) }
     @agent_commands.handlers["boom"]   = Proc.new { |args| handle_boom_command(args) }
   end
@@ -109,18 +110,15 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
   if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
-    DISCONNECTING = true
-    NOT_DISCONNECTING = false
-
     def test_harvest_data_to_send_not_started
-      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      result = agent_commands.harvest_data_to_send
       assert_equal({}, result)
     end
 
     def test_harvest_data_to_send_with_profile_in_progress
       start_profile('duration' => 1.0)
 
-      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      result = agent_commands.harvest_data_to_send
       assert_equal({}, result)
     end
 
@@ -128,7 +126,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       start_profile('duration' => 1.0)
 
       advance_time(1.1)
-      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      result = agent_commands.harvest_data_to_send
 
       assert_not_nil result[:profile_data]
     end
@@ -139,7 +137,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       advance_time(1.1)
       agent_commands.thread_profiler_session.stop(true)
 
-      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      result = agent_commands.harvest_data_to_send
       assert_not_nil result[:profile_data]
     end
 
@@ -148,19 +146,21 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
       agent_commands.thread_profiler_session.stop(true)
 
-      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      result = agent_commands.harvest_data_to_send
       assert_not_nil result[:profile_data]
     end
 
-    def test_harvest_data_to_send_with_no_profile_disconnecting
-      result = agent_commands.harvest_data_to_send(DISCONNECTING)
+    def test_harvest_data_to_send_following_before_shutdown_with_no_profile
+      @events.notify(:before_shutdown)
+      result = agent_commands.harvest_data_to_send
       assert_nil result[:profile_data]
     end
 
-    def test_harvest_data_to_send_with_profile_in_progress_but_disconnecting
+    def test_harvest_data_to_send_following_before_shutdown_with_active_profile
       start_profile('duration' => 1.0)
 
-      result = agent_commands.harvest_data_to_send(DISCONNECTING)
+      @events.notify(:before_shutdown)
+      result = agent_commands.harvest_data_to_send
       assert_not_nil result[:profile_data]
     end
 
@@ -170,7 +170,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
       sample_on_profiles
 
-      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      result = agent_commands.harvest_data_to_send
 
       assert_equal 2, result[:profile_data].length
     end
@@ -183,7 +183,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
       sample_on_profiles
 
-      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      result = agent_commands.harvest_data_to_send
 
       assert_equal 2, result[:profile_data].length
     end
@@ -197,7 +197,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       sample_on_profiles
       advance_time(1.1)
 
-      result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+      result = agent_commands.harvest_data_to_send
 
       assert_equal 3, result[:profile_data].length
     end

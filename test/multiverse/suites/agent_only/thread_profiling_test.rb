@@ -113,6 +113,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   def issue_command(cmd)
     $collector.stub('get_agent_commands', cmd)
     agent.send(:check_for_and_handle_agent_commands)
+    $collector.stub('get_agent_commands', [])
   end
 
   # Runs a thread we expect to span entire test and be killed at the end
@@ -129,7 +130,8 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   end
 
   def harvest
-    agent.send(:transmit_data, true)
+    agent.events.notify(:before_shutdown)
+    agent.send(:transmit_data)
   end
 
   def assert_saw_traces(profile_data, type)

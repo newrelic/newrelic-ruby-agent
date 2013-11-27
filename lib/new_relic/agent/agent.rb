@@ -962,9 +962,9 @@ module NewRelic
           harvest_and_send_from_container(@transaction_sampler, :transaction_sample_data)
         end
 
-        def harvest_and_send_for_agent_commands(disconnecting=false)
+        def harvest_and_send_for_agent_commands
           begin
-            data = @agent_command_router.harvest_data_to_send(disconnecting)
+            data = @agent_command_router.harvest_data_to_send
           rescue => e
             NewRelic::Agent.logger.error("Error during harvest_data_to_send: ", e)
           else
@@ -992,15 +992,15 @@ module NewRelic
           end
         end
 
-        def transmit_data(disconnecting=false)
+        def transmit_data
           harvest_lock.synchronize do
-            transmit_data_already_locked(disconnecting)
+            transmit_data_already_locked
           end
         end
 
         # This method is expected to only be called with the harvest_lock
         # already held
-        def transmit_data_already_locked(disconnecting)
+        def transmit_data_already_locked
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
 
@@ -1013,7 +1013,7 @@ module NewRelic
             harvest_and_send_analytic_event_data
 
             check_for_and_handle_agent_commands
-            harvest_and_send_for_agent_commands(disconnecting)
+            harvest_and_send_for_agent_commands
           end
         ensure
           NewRelic::Agent::Database.close_connections
@@ -1036,7 +1036,7 @@ module NewRelic
               @service.request_timeout = 10
 
               @events.notify(:before_shutdown)
-              transmit_data(true)
+              transmit_data
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"
