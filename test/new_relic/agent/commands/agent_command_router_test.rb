@@ -112,14 +112,14 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
     def test_harvest_data_to_send_not_started
       result = agent_commands.harvest_data_to_send
-      assert_equal({}, result)
+      assert_equal([], result)
     end
 
     def test_harvest_data_to_send_with_profile_in_progress
       start_profile('duration' => 1.0)
 
       result = agent_commands.harvest_data_to_send
-      assert_equal({}, result)
+      assert_equal([], result)
     end
 
     def test_harvest_data_to_send_with_profile_completed
@@ -128,7 +128,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       advance_time(1.1)
       result = agent_commands.harvest_data_to_send
 
-      assert_not_nil result[:profile_data]
+      assert_not_empty result
     end
 
     def test_can_stop_multiple_times_safely
@@ -138,7 +138,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       agent_commands.thread_profiler_session.stop(true)
 
       result = agent_commands.harvest_data_to_send
-      assert_not_nil result[:profile_data]
+      assert_not_empty result
     end
 
     def test_transmits_after_forced_stop
@@ -147,13 +147,13 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       agent_commands.thread_profiler_session.stop(true)
 
       result = agent_commands.harvest_data_to_send
-      assert_not_nil result[:profile_data]
+      assert_not_empty result
     end
 
     def test_harvest_data_to_send_following_before_shutdown_with_no_profile
       @events.notify(:before_shutdown)
       result = agent_commands.harvest_data_to_send
-      assert_nil result[:profile_data]
+      assert_empty result
     end
 
     def test_harvest_data_to_send_following_before_shutdown_with_active_profile
@@ -161,7 +161,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
       @events.notify(:before_shutdown)
       result = agent_commands.harvest_data_to_send
-      assert_not_nil result[:profile_data]
+      assert_not_empty result
     end
 
     def test_harvest_data_to_send_with_xray_sessions_in_progress
@@ -172,7 +172,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
       result = agent_commands.harvest_data_to_send
 
-      assert_equal 2, result[:profile_data].length
+      assert_equal 2, result.length
     end
 
     def test_harvest_data_to_send_with_xray_sessions_and_thread_profile_in_progress
@@ -185,7 +185,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
       result = agent_commands.harvest_data_to_send
 
-      assert_equal 2, result[:profile_data].length
+      assert_equal 2, result.length
     end
 
     def test_harvest_data_to_send_with_xray_sessions_and_completed_thread_profile
@@ -199,7 +199,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
       result = agent_commands.harvest_data_to_send
 
-      assert_equal 3, result[:profile_data].length
+      assert_equal 3, result.length
     end
 
   end

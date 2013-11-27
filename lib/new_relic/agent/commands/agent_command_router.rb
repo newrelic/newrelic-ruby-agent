@@ -71,8 +71,8 @@ module NewRelic
           profiles = []
           profiles += harvest_from_xray_session_collection
           profiles += harvest_from_thread_profiler_session
-
-          format_harvest_data(profiles)
+          log_profiles(profiles)
+          profiles
         end
 
         def harvest_from_xray_session_collection
@@ -88,19 +88,13 @@ module NewRelic
           end
         end
 
-        def format_harvest_data(profiles)
-          if profiles.empty?
-            NewRelic::Agent.logger.debug "No thread profiles with data found to send."
-            NO_PROFILES_TO_SEND
-          else
-            log_profiles(profiles)
-            {:profile_data => profiles}
-          end
-        end
-
         def log_profiles(profiles)
-          profile_descriptions = profiles.map { |p| p.to_log_description }
-          ::NewRelic::Agent.logger.debug "Sending thread profiles [#{profile_descriptions.join(", ")}]"
+          if profiles.empty?
+            ::NewRelic::Agent.logger.debug "No thread profiles with data found to send."
+          else
+            profile_descriptions = profiles.map { |p| p.to_log_description }
+            ::NewRelic::Agent.logger.debug "Sending thread profiles [#{profile_descriptions.join(", ")}]"
+          end
         end
 
         def get_agent_commands

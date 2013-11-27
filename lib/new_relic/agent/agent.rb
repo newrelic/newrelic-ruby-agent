@@ -968,9 +968,7 @@ module NewRelic
           rescue => e
             NewRelic::Agent.logger.error("Error during harvest_data_to_send: ", e)
           else
-            data.each do |service_method, payload|
-              send_data_to_endpoint(service_method, payload)
-            end
+            send_data_to_endpoint(:profile_data, data) unless data.empty?
           end
         end
 
