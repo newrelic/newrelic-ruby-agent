@@ -963,13 +963,7 @@ module NewRelic
         end
 
         def harvest_and_send_for_agent_commands
-          begin
-            data = @agent_command_router.harvest_data_to_send
-          rescue => e
-            NewRelic::Agent.logger.error("Error during harvest_data_to_send: ", e)
-          else
-            send_data_to_endpoint(:profile_data, data) unless data.empty?
-          end
+          harvest_and_send_from_container(@agent_command_router, :profile_data)
         end
 
         def harvest_and_send_errors

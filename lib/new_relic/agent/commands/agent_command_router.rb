@@ -67,13 +67,20 @@ module NewRelic
 
         NO_PROFILES_TO_SEND = {}.freeze
 
-        def harvest_data_to_send
+        def harvest!
           profiles = []
           profiles += harvest_from_xray_session_collection
           profiles += harvest_from_thread_profiler_session
           log_profiles(profiles)
           profiles
         end
+
+        # We don't currently support merging thread profiles that failed to send
+        # back into the AgentCommandRouter, so we just no-op this method.
+        # Same with reset! - we don't support asynchronous cancellation of a
+        # running thread profile or X-Ray session currently.
+        def merge!(*args); end
+        def reset!; end
 
         def harvest_from_xray_session_collection
           self.xray_session_collection.harvest_thread_profiles

@@ -3,6 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','data_container_tests'))
+
 require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/commands/xray_session'
 
@@ -46,6 +48,23 @@ class AgentCommandRouterTest < Test::Unit::TestCase
   def teardown
     agent_commands.backtrace_service.worker_thread.join if agent_commands.backtrace_service.worker_thread
   end
+
+  # Helpers for DataContainerTests
+
+  def create_container
+    @agent_commands
+  end
+
+  def max_data_items
+    1
+  end
+
+  def populate_container(container, n)
+    start_profile('duration' => 1.0)
+    advance_time(1.1)
+  end
+
+  include NewRelic::BasicDataContainerTests
 
   # General command routing
 
@@ -110,23 +129,23 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
   if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
-    def test_harvest_data_to_send_not_started
-      result = agent_commands.harvest_data_to_send
+    def test_harvest_not_started
+      result = agent_commands.harvest!
       assert_equal([], result)
     end
 
-    def test_harvest_data_to_send_with_profile_in_progress
+    def test_harvest_with_profile_in_progress
       start_profile('duration' => 1.0)
 
-      result = agent_commands.harvest_data_to_send
+      result = agent_commands.harvest!
       assert_equal([], result)
     end
 
-    def test_harvest_data_to_send_with_profile_completed
+    def test_harvest_with_profile_completed
       start_profile('duration' => 1.0)
 
       advance_time(1.1)
-      result = agent_commands.harvest_data_to_send
+      result = agent_commands.harvest!
 
       assert_not_empty result
     end
@@ -137,7 +156,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       advance_time(1.1)
       agent_commands.thread_profiler_session.stop(true)
 
-      result = agent_commands.harvest_data_to_send
+      result = agent_commands.harvest!
       assert_not_empty result
     end
 
@@ -146,36 +165,36 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
       agent_commands.thread_profiler_session.stop(true)
 
-      result = agent_commands.harvest_data_to_send
+      result = agent_commands.harvest!
       assert_not_empty result
     end
 
-    def test_harvest_data_to_send_following_before_shutdown_with_no_profile
+    def test_harvest_following_before_shutdown_with_no_profile
       @events.notify(:before_shutdown)
-      result = agent_commands.harvest_data_to_send
+      result = agent_commands.harvest!
       assert_empty result
     end
 
-    def test_harvest_data_to_send_following_before_shutdown_with_active_profile
+    def test_harvest_following_before_shutdown_with_active_profile
       start_profile('duration' => 1.0)
 
       @events.notify(:before_shutdown)
-      result = agent_commands.harvest_data_to_send
+      result = agent_commands.harvest!
       assert_not_empty result
     end
 
-    def test_harvest_data_to_send_with_xray_sessions_in_progress
+    def test_harvest_with_xray_sessions_in_progress
       start_xray_session(123)
       start_xray_session(456)
 
       sample_on_profiles
 
-      result = agent_commands.harvest_data_to_send
+      result = agent_commands.harvest!
 
       assert_equal 2, result.length
     end
 
-    def test_harvest_data_to_send_with_xray_sessions_and_thread_profile_in_progress
+    def test_harvest_with_xray_sessions_and_thread_profile_in_progress
       start_xray_session(123)
       start_xray_session(456)
 
@@ -183,12 +202,12 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
       sample_on_profiles
 
-      result = agent_commands.harvest_data_to_send
+      result = agent_commands.harvest!
 
       assert_equal 2, result.length
     end
 
-    def test_harvest_data_to_send_with_xray_sessions_and_completed_thread_profile
+    def test_harvest_with_xray_sessions_and_completed_thread_profile
       start_xray_session(123)
       start_xray_session(456)
 
@@ -197,7 +216,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       sample_on_profiles
       advance_time(1.1)
 
-      result = agent_commands.harvest_data_to_send
+      result = agent_commands.harvest!
 
       assert_equal 3, result.length
     end
