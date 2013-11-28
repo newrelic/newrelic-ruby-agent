@@ -925,7 +925,7 @@ module NewRelic
           items
         end
 
-        def send_data_to_endpoint(endpoint, items, container=nil)
+        def send_data_to_endpoint(endpoint, items, container)
           NewRelic::Agent.logger.debug("Sending #{items.size} items to #{endpoint}")
           begin
             @service.send(endpoint, items)
@@ -934,12 +934,8 @@ module NewRelic
           rescue UnrecoverableServerException => e
             NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
           rescue => e
-            if container
-              NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
-              container.merge!(items)
-            else
-              NewRelic::Agent.logger.warn("Unable to send #{endpoint} data, discarding. Error: ", e)
-            end
+            NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
+            container.merge!(items)
           end
         end
 
