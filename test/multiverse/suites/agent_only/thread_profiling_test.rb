@@ -130,8 +130,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   end
 
   def harvest
-    agent.events.notify(:before_shutdown)
-    agent.send(:transmit_data)
+    agent.shutdown
   end
 
   def assert_saw_traces(profile_data, type)
