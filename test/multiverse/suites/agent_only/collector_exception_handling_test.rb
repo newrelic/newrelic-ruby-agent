@@ -17,7 +17,8 @@ class CollectorExceptionHandlingTest < MiniTest::Unit::TestCase
     $collector.stub_exception('metric_data', payload).once
 
     with_config(:data_report_period => 0) do
-      NewRelic::Agent.agent.worker_loop_options = { :limit => 1 }
+      worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 1)
+      NewRelic::Agent.agent.stubs(:create_worker_loop).returns(worker_loop)
       # there's a call to sleep in handle_force_restart that we want to skip
       NewRelic::Agent.agent.stubs(:sleep)
       NewRelic::Agent.agent.deferred_work!({})
@@ -30,8 +31,6 @@ class CollectorExceptionHandlingTest < MiniTest::Unit::TestCase
     metric_data_calls = $collector.calls_for('metric_data')
     assert_equal(2, metric_data_calls.size)
     refute_equal(metric_data_calls[0].run_id, metric_data_calls[1].run_id)
-  ensure
-    NewRelic::Agent.agent.worker_loop_options = {}
   end
 
   def test_should_stop_reporting_after_force_disconnect
