@@ -230,13 +230,16 @@ end
 def prompt_for_confirmation(target_pid, target_cmd)
   puts "Are you sure you want to attach to PID #{target_pid} ('#{target_cmd}')}?"
   puts ''
-  puts "Extracting debug information from this process may cause it to hang, crash,"
-  puts "or otherwise malfunction. It is highly recommended that you only run this"
-  puts "script against processes that are already unresponsive."
+  puts '************************** !WARNING! **************************'
+  puts "Extracting debug information from this process may cause it to CRASH OR HANG."
+  puts ''
+  puts "It is highly recommended that you only run this script against processes that"
+  puts "are already unresponsive."
   puts ''
   puts "Additionally, the output may contain sensitive information from the program's"
   puts "command line arguments, environment, or open file list. Please examine the"
   puts "output before sharing it."
+  puts '************************** !WARNING! **************************'
   puts ''
   puts "To continue, type 'continue':"
 
