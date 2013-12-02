@@ -65,8 +65,6 @@ module NewRelic
           end
         end
 
-        NO_PROFILES_TO_SEND = {}.freeze
-
         def harvest!
           profiles = []
           profiles += harvest_from_xray_session_collection
