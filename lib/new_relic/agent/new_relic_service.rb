@@ -329,14 +329,9 @@ module NewRelic
         response = nil
         http = http_connection
         http.read_timeout = nil
-        begin
-          NewRelic::TimerLib.timeout(@request_timeout) do
-            ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]}"
-            response = http.request(request)
-          end
-        rescue Timeout::Error
-          ::NewRelic::Agent.logger.warn "Timed out trying to post data to New Relic (timeout = #{@request_timeout} seconds)"
-          raise
+        NewRelic::TimerLib.timeout(@request_timeout) do
+          ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]}"
+          response = http.request(request)
         end
         case response
         when Net::HTTPSuccess
@@ -346,7 +341,6 @@ module NewRelic
         when Net::HTTPServiceUnavailable
           raise ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
         when Net::HTTPGatewayTimeOut
-          ::NewRelic::Agent.logger.warn("Timed out getting response: #{response.message}")
           raise Timeout::Error, response.message
         when Net::HTTPRequestEntityTooLarge
           raise UnrecoverableServerException, '413 Request Entity Too Large'
