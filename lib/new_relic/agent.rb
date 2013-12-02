@@ -139,9 +139,6 @@ module NewRelic
     # An unrecoverable client-side error that prevents the agent from continuing
     class UnrecoverableAgentException < ServerConnectionException; end
 
-    # Reserved for future use.  Meant to represent a problem on the server side.
-    class ServerError < StandardError; end
-
     class BackgroundLoadingError < StandardError; end
 
     # placeholder name used when we cannot determine a transaction's name

@@ -71,15 +71,6 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     end
   end
 
-  def test_task_error__server
-    expects_no_logging(:error)
-    expects_logging(:debug, any_parameters)
-    @worker_loop.run(0) do
-      @worker_loop.stop
-      raise NewRelic::Agent::ServerError, "Runtime Error Test"
-    end
-  end
-
   def test_worker_loop_propagates_errors_given_the_option
     @worker_loop = NewRelic::Agent::WorkerLoop.new(
       :limit => 2,

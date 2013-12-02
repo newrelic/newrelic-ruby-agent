@@ -32,6 +32,10 @@ module NewRelic
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
           @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
           @handlers['active_xray_sessions'] = Proc.new { |cmd| xray_session_collection.handle_active_xray_sessions(cmd) }
+
+          if event_listener
+            event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown))
+          end
         end
 
         def new_relic_service
@@ -55,22 +59,33 @@ module NewRelic
           commands.any? {|command| command.name == 'active_xray_sessions'}
         end
 
-        NO_PROFILES_TO_SEND = {}.freeze
+        def on_before_shutdown(*args)
+          if self.thread_profiler_session.running?
+            self.thread_profiler_session.stop(true)
+          end
+        end
 
-        def harvest_data_to_send(disconnecting)
+        def harvest!
           profiles = []
           profiles += harvest_from_xray_session_collection
-          profiles += harvest_from_thread_profiler_session(disconnecting)
-
-          format_harvest_data(profiles)
+          profiles += harvest_from_thread_profiler_session
+          log_profiles(profiles)
+          profiles
         end
+
+        # We don't currently support merging thread profiles that failed to send
+        # back into the AgentCommandRouter, so we just no-op this method.
+        # Same with reset! - we don't support asynchronous cancellation of a
+        # running thread profile or X-Ray session currently.
+        def merge!(*args); end
+        def reset!; end
 
         def harvest_from_xray_session_collection
           self.xray_session_collection.harvest_thread_profiles
         end
 
-        def harvest_from_thread_profiler_session(disconnecting)
-          if self.thread_profiler_session.ready_to_harvest?(disconnecting)
+        def harvest_from_thread_profiler_session
+          if self.thread_profiler_session.ready_to_harvest?
             self.thread_profiler_session.stop(true)
             [self.thread_profiler_session.harvest]
           else
@@ -78,19 +93,13 @@ module NewRelic
           end
         end
 
-        def format_harvest_data(profiles)
-          if profiles.empty?
-            NewRelic::Agent.logger.debug "No thread profiles with data found to send."
-            NO_PROFILES_TO_SEND
-          else
-            log_profiles(profiles)
-            {:profile_data => profiles}
-          end
-        end
-
         def log_profiles(profiles)
-          profile_descriptions = profiles.map { |p| p.to_log_description }
-          ::NewRelic::Agent.logger.debug "Sending thread profiles [#{profile_descriptions.join(", ")}]"
+          if profiles.empty?
+            ::NewRelic::Agent.logger.debug "No thread profiles with data found to send."
+          else
+            profile_descriptions = profiles.map { |p| p.to_log_description }
+            ::NewRelic::Agent.logger.debug "Sending thread profiles [#{profile_descriptions.join(", ")}]"
+          end
         end
 
         def get_agent_commands

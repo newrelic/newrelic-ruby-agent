@@ -57,6 +57,8 @@ module NewRelic
 
         @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
+
+        @worker_loop_options = {}
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -103,6 +105,8 @@ module NewRelic
         # the latter during harvest.
         attr_reader :transaction_rules
         attr_reader :harvest_lock
+
+        attr_accessor :worker_loop_options
 
         # fakes out a transaction that did not happen in this process
         # by creating apdex, summary metrics, and recording statistics
@@ -557,7 +561,7 @@ module NewRelic
           # Creates the worker loop and loads it with the instructions
           # it should run every @report_period seconds
           def create_and_run_worker_loop
-            @worker_loop = WorkerLoop.new
+            @worker_loop = WorkerLoop.new(worker_loop_options)
             @worker_loop.run(Agent.config[:data_report_period]) do
               transmit_data
             end
@@ -911,7 +915,7 @@ module NewRelic
         #  
         def harvest_and_send_from_container(container, endpoint)
           items = harvest_from_container(container, endpoint)
-          send_data_from_container(container, endpoint, items) unless items.empty?
+          send_data_to_endpoint(endpoint, items, container) unless items.empty?
         end
 
         def harvest_from_container(container, endpoint)
@@ -925,10 +929,12 @@ module NewRelic
           items
         end
 
-        def send_data_from_container(container, endpoint, items)
+        def send_data_to_endpoint(endpoint, items, container)
           NewRelic::Agent.logger.debug("Sending #{items.size} items to #{endpoint}")
           begin
             @service.send(endpoint, items)
+          rescue ForceRestartException, ForceDisconnectException
+            raise
           rescue UnrecoverableServerException => e
             NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
           rescue => e
@@ -956,11 +962,8 @@ module NewRelic
           harvest_and_send_from_container(@transaction_sampler, :transaction_sample_data)
         end
 
-        def harvest_and_send_for_agent_commands(disconnecting=false)
-          data = @agent_command_router.harvest_data_to_send(disconnecting)
-          data.each do |service_method, payload|
-            @service.send(service_method, payload)
-          end
+        def harvest_and_send_for_agent_commands
+          harvest_and_send_from_container(@agent_command_router, :profile_data)
         end
 
         def harvest_and_send_errors
@@ -972,18 +975,24 @@ module NewRelic
         end
 
         def check_for_and_handle_agent_commands
-          @agent_command_router.check_for_and_handle_agent_commands
+          begin
+            @agent_command_router.check_for_and_handle_agent_commands
+          rescue ForceRestartException, ForceDisconnectException
+            raise
+          rescue => e
+            NewRelic::Agent.logger.warn("Error during check_for_and_handle_agent_commands, will retry later: ", e)
+          end
         end
 
-        def transmit_data(disconnecting=false)
+        def transmit_data
           harvest_lock.synchronize do
-            transmit_data_already_locked(disconnecting)
+            transmit_data_already_locked
           end
         end
 
         # This method is expected to only be called with the harvest_lock
         # already held
-        def transmit_data_already_locked(disconnecting)
+        def transmit_data_already_locked
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
 
@@ -996,19 +1005,8 @@ module NewRelic
             harvest_and_send_analytic_event_data
 
             check_for_and_handle_agent_commands
-            harvest_and_send_for_agent_commands(disconnecting)
+            harvest_and_send_for_agent_commands
           end
-        rescue EOFError => e
-          ::NewRelic::Agent.logger.warn("EOFError after #{Time.now - now}s when transmitting data to New Relic Service.")
-          ::NewRelic::Agent.logger.debug(e)
-        rescue => e
-          retry_count ||= 0
-          retry_count += 1
-          if retry_count <= 1
-            ::NewRelic::Agent.logger.debug "retrying transmit_data after #{e}"
-            retry
-          end
-          raise e
         ensure
           NewRelic::Agent::Database.close_connections
           duration = (Time.now - now).to_f
@@ -1028,7 +1026,9 @@ module NewRelic
           if connected?
             begin
               @service.request_timeout = 10
-              transmit_data(true)
+
+              @events.notify(:before_shutdown)
+              transmit_data
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"

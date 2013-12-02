@@ -14,23 +14,61 @@ require 'json' if RUBY_VERSION >= '1.9'
 
 module NewRelic
   class FakeCollector < FakeServer
+    class Response
+      attr_reader :status, :body
+
+      def initialize(status, body)
+        @default_status = status
+        @default_body = body
+        @remaining = nil
+        revert
+      end
+
+      def override(status, body)
+        @status = status
+        @body = body
+        self
+      end
+
+      def revert
+        @status = @default_status
+        @body = @default_body
+        @remaining = nil
+      end
+
+      def once
+        @remaining = 1
+        self
+      end
+
+      def evaluate
+        if @remaining == 0
+          revert
+        elsif @remaining
+          @remaining -= 1
+        end
+        resolved_body = @body.respond_to?(:call) ? @body.call : @body
+        [@status, resolved_body]
+      end
+    end
+
     attr_accessor :agent_data, :mock
 
     def initialize
       super
       @id_counter = 0
-      @base_expectations = {
-        'get_redirect_host'       => [200, {'return_value' => 'localhost'}],
-        'connect'                 => [200, {'return_value' => {"agent_run_id" => agent_run_id}}],
-        'get_agent_commands'      => [200, {'return_value' => []}],
-        'agent_command_results'   => [200, {'return_value' => []}],
-        'metric_data'             => [200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}],
-        'sql_trace_data'          => [200, {'return_value' => nil}],
-        'transaction_sample_data' => [200, {'return_value' => nil}],
-        'error_data'              => [200, {'return_value' => nil}],
-        'profile_data'            => [200, {'return_value' => nil}],
-        'shutdown'                => [200, {'return_value' => nil}],
-        'analytic_event_data'     => [200, {'return_value' => nil}]
+      @mock = {
+        'get_redirect_host'       => Response.new(200, {'return_value' => 'localhost'}),
+        'connect'                 => Response.new(200, Proc.new { {'return_value' => {"agent_run_id" => agent_run_id}} }),
+        'get_agent_commands'      => Response.new(200, {'return_value' => []}),
+        'agent_command_results'   => Response.new(200, {'return_value' => []}),
+        'metric_data'             => Response.new(200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}),
+        'sql_trace_data'          => Response.new(200, {'return_value' => nil}),
+        'transaction_sample_data' => Response.new(200, {'return_value' => nil}),
+        'error_data'              => Response.new(200, {'return_value' => nil}),
+        'profile_data'            => Response.new(200, {'return_value' => nil}),
+        'shutdown'                => Response.new(200, {'return_value' => nil}),
+        'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
       }
       reset
     end
@@ -40,13 +78,23 @@ module NewRelic
     end
 
     def reset
-      @mock = @base_expectations.dup
+      @mock.each_value(&:revert)
       @id_counter = 0
       @agent_data = []
     end
 
+    def default_response
+      Response.new(200, {'return_value' => nil})
+    end
+
     def stub(method, return_value, status=200)
-      self.mock[method] = [status, {'return_value' => return_value}]
+      self.mock[method] ||= default_response
+      self.mock[method].override(status, {'return_value' => return_value})
+    end
+
+    def stub_exception(method, exception, status=200)
+      self.mock[method] ||= default_response
+      self.mock[method].override(status, {'exception' => exception})
     end
 
     def call(env)
@@ -58,11 +106,12 @@ module NewRelic
         method = $1
         format = json_format?(uri) && RUBY_VERSION >= '1.9' ? :json : :pruby
         if @mock.keys.include? method
-          res.status = @mock[method][0]
+          status, body = @mock[method].evaluate
+          res.status = status
           if format == :json
-            res.write JSON.dump(@mock[method][1])
+            res.write JSON.dump(body)
           else
-            res.write Marshal.dump(@mock[method][1])
+            res.write Marshal.dump(body)
           end
         else
           res.status = 500
@@ -285,7 +334,7 @@ if $0 == __FILE__
     end
 
     def test_get_redirect
-      @collector.mock['get_redirect_host'] = [200, 'test.example.com']
+      @collector.mock['get_redirect_host'].evaluate = [200, 'test.example.com']
       response = invoke('get_redirect_host')
 
       assert_equal 'test.example.com', response
@@ -401,9 +450,9 @@ if $0 == __FILE__
     end
 
     def test_reset
-      @collector.mock['get_redirect_host'] = [200, 'never!']
+      @collector.mock['get_redirect_host'].evaluate = [200, 'never!']
       @collector.reset
-      assert_equal [200, 'localhost'], @collector.mock['get_redirect_host']
+      assert_equal [200, 'localhost'], @collector.mock['get_redirect_host'].evaluate
     end
 
     def invoke(method, post={}, code=200)

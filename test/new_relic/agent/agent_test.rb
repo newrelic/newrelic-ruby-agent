@@ -162,9 +162,16 @@ module NewRelic
         @agent.send :check_for_and_handle_agent_commands
       end
 
+      def test_check_for_and_handle_agent_commands_with_error
+        @agent.service.expects(:get_agent_commands).raises('bad news')
+        assert_nothing_raised do
+          @agent.send :check_for_and_handle_agent_commands
+        end
+      end
+
       def test_harvest_and_send_for_agent_commands
         @agent.service.expects(:profile_data).with(any_parameters)
-        @agent.agent_command_router.stubs(:harvest_data_to_send).returns({:profile_data => Object.new})
+        @agent.agent_command_router.stubs(:harvest!).returns({:profile_data => [Object.new]})
         @agent.send :harvest_and_send_for_agent_commands
       end
 
@@ -422,6 +429,47 @@ module NewRelic
         @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises('other error')
         container.expects(:merge!).with([1,2,3])
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
+      end
+
+      def test_harvest_and_send_from_container_does_not_swallow_forced_errors
+        container = mock('data container')
+        container.stubs(:harvest!).returns([1])
+
+        error_classes = [
+          NewRelic::Agent::ForceRestartException,
+          NewRelic::Agent::ForceDisconnectException
+        ]
+
+        error_classes.each do |cls|
+          @agent.service.expects(:dummy_endpoint).with([1]).raises(cls.new)
+          assert_raise(cls) do
+            @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
+          end
+        end
+      end
+
+      def test_check_for_and_handle_agent_commands_does_not_swallow_forced_errors
+        error_classes = [
+          NewRelic::Agent::ForceRestartException,
+          NewRelic::Agent::ForceDisconnectException
+        ]
+
+        error_classes.each do |cls|
+          @agent.service.expects(:get_agent_commands).raises(cls.new)
+          assert_raise(cls) do
+            @agent.send(:check_for_and_handle_agent_commands)
+          end
+        end
+      end
+
+      def test_graceful_disconnect_should_emit_before_disconnect_event
+        before_shutdown_call_count = 0
+        @agent.events.subscribe(:before_shutdown) do
+          before_shutdown_call_count += 1
+        end
+        @agent.stubs(:connected?).returns(true)
+        @agent.send(:graceful_disconnect)
+        assert_equal(1, before_shutdown_call_count)
       end
     end
 

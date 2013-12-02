@@ -85,18 +85,8 @@ module NewRelic
         else
           begin
             @task.call
-          rescue ServerError => e
-            ::NewRelic::Agent.logger.debug "Server Error:", e
           rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException
             # blow out the loop
-            raise
-          rescue RuntimeError => e
-            # This is probably a server error which has been logged in the server along
-            # with your account name.
-            ::NewRelic::Agent.logger.error "Error running task in worker loop, likely a server error:", e
-          rescue Timeout::Error, NewRelic::Agent::ServerConnectionException
-            # Want to ignore these because they are handled already
-          rescue SystemExit, NoMemoryError, SignalException
             raise
           rescue => e
             # Don't blow out the stack for anything that hasn't already propagated
