@@ -46,7 +46,7 @@ module NewRelic::Rack
         !headers['Content-Disposition'].to_s.include?('attachment')
     end
 
-    X_UA_COMPATIBLE_RE = /<\s*meta[^>]+http-equiv=['"]x-ua-compatible['"][^>]*>/im.freeze
+    X_UA_COMPATIBLE_RE = /<\s*meta[^>]+http-equiv\s*=\s*['"]x-ua-compatible['"][^>]*>/im.freeze
 
     def autoinstrument_source(response, headers)
       source = gather_source(response)
