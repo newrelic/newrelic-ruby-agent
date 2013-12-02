@@ -75,7 +75,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   # Let base class override this without moving where we start the agent
   def setup_collector_mocks
-    $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
+    $collector.stub('connect', {"agent_run_id" => 666 }, 200)
   end
 
   def last_error
@@ -225,14 +225,14 @@ end
 
 class ErrorsWithSSCTest < ErrorsWithoutSSCTest
   def setup_collector_mocks
-    $collector.mock['connect'] = [200, {'return_value' => {
+    $collector.stub('connect', {
       "listen_to_server_config" => true,
       "agent_run_id" => 1,
       "error_collector.ignore_errors" => 'IgnoredError,ServerIgnoredError',
       "error_collector.enabled" => true,
       "error_collector.capture_source" => true,
       "collect_errors" => true
-    }}]
+    }, 200)
   end
 
   def test_should_notice_server_ignored_error_if_no_server_side_config

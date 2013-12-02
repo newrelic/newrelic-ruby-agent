@@ -12,7 +12,7 @@ class HttpResponseCodeTest < MiniTest::Unit::TestCase
   setup_and_teardown_agent
 
   def test_request_entity_too_large
-    $collector.mock['metric_data'] = [413, {'exception' => {'error_type' => 'RuntimeError', 'message' => 'too much'}}]
+    $collector.stub_exception('metric_data', {'error_type' => 'RuntimeError', 'message' => 'too much'}, 413)
 
     NewRelic::Agent.increment_metric('Custom/too_big')
     assert_metrics_recorded(['Custom/too_big'])
@@ -25,7 +25,7 @@ class HttpResponseCodeTest < MiniTest::Unit::TestCase
   end
 
   def test_unsupported_media_type
-    $collector.mock['metric_data'] = [415, {'exception' => {'error_type' => 'RuntimeError', 'message' => 'looks bad'}}]
+    $collector.stub_exception('metric_data', {'error_type' => 'RuntimeError', 'message' => 'looks bad'}, 415)
 
     NewRelic::Agent.increment_metric('Custom/too_big')
     assert_metrics_recorded(['Custom/too_big'])
