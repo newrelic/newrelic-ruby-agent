@@ -133,6 +133,7 @@ class RubyProcess
     backtrace_file = Tempfile.new('nrdebug_ruby_bt')
     File.chmod(0666, backtrace_file.path)
 
+    backtrace_gathering_code = 'Thread.list.each { |t| bt = t.backtrace rescue nil; puts \"#{t.inspect}\n#{bt && bt.join(\"\n\")}\n\n\" }'
     gdb_script_body = <<-END
       attach #{pid}
       t a a bt
@@ -141,6 +142,8 @@ class RubyProcess
       call (int)open("#{backtrace_file.path}", 2, 0)
       call (int)open("#{backtrace_file.path}", 2, 0)
       call (void)rb_backtrace()
+      call (void)fflush(0)
+      call (void)rb_eval_string_protect("#{backtrace_gathering_code}",(int*)0)
       call (void)fflush(0)
       quit
     END
@@ -212,7 +215,7 @@ class ProcessReport
           fail("Failed to attach to target process. Please try again with sudo.")
         end
         section(f, "C Backtraces")   { c_backtraces }
-        section(f, "Ruby Backtrace") { ruby_backtraces }
+        section(f, "Ruby Backtrace(s)") { ruby_backtraces }
       end
 
       section(f, "Open files") { @target.open_files }
