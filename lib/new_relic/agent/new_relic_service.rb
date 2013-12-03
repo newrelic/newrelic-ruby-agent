@@ -178,25 +178,35 @@ module NewRelic
       def session(&block)
         raise ArgumentError, "#{self.class}#shared_connection must be passed a block" unless block_given?
 
-        http = create_http_connection
-
         # Immediately open a TCP connection to the server and leave it open for
         # multiple requests.
         begin
           t0 = Time.now
-          ::NewRelic::Agent.logger.debug("Opening TCP connection to #{http.address}:#{http.port}")
-          NewRelic::TimerLib.timeout(@request_timeout) { http.start }
-          @shared_tcp_connection = http
+          @in_session = true
+          establish_shared_connection
           block.call
         rescue Timeout::Error
           elapsed = Time.now - t0
-          ::NewRelic::Agent.logger.warn "Timed out opening connection to #{http.address}:#{http.port} after #{elapsed} seconds. If this problem persists, please see http://status.newrelic.com"
+          ::NewRelic::Agent.logger.warn "Timed out opening connection to collector after #{elapsed} seconds. If this problem persists, please see http://status.newrelic.com"
           raise
         ensure
+          @in_session = false
+          close_shared_connection
+        end
+      end
+
+      def establish_shared_connection
+        connection = create_http_connection
+        NewRelic::Agent.logger.debug("Opening shared TCP connection to #{connection.address}:#{connection.port}")
+        NewRelic::TimerLib.timeout(@request_timeout) { connection.start }
+        @shared_tcp_connection = connection
+      end
+
+      def close_shared_connection
+        if @shared_tcp_connection
+          ::NewRelic::Agent.logger.debug("Closing shared TCP connection to #{@shared_tcp_connection.address}:#{@shared_tcp_connection.port}")
+          @shared_tcp_connection.finish if @shared_tcp_connection.started?
           @shared_tcp_connection = nil
-          # Close the TCP socket
-          ::NewRelic::Agent.logger.debug("Closing TCP connection to #{http.address}:#{http.port}")
-          http.finish if http.started?
         end
       end
 
@@ -204,7 +214,9 @@ module NewRelic
       # We'll reuse the same handle for cases where we're using keep-alive, or
       # otherwise create a new one.
       def http_connection
-        @shared_tcp_connection || create_http_connection
+        (@shared_tcp_connection ||
+          (@in_session && establish_shared_connection) ||
+          create_http_connection)
       end
 
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
@@ -350,8 +362,10 @@ module NewRelic
           raise ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
         end
         response
-      rescue SystemCallError, SocketError => e
-        # These include Errno connection errors
+      rescue Timeout::Error, EOFError, SystemCallError, SocketError => e
+        # These include Errno connection errors, and all signify that the
+        # connection may be in a bad state, so drop it and re-create if needed.
+        @shared_tcp_connection = nil
         raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to #{@collector}: #{e}"
       end
 
