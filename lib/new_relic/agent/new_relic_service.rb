@@ -365,7 +365,7 @@ module NewRelic
       rescue Timeout::Error, EOFError, SystemCallError, SocketError => e
         # These include Errno connection errors, and all signify that the
         # connection may be in a bad state, so drop it and re-create if needed.
-        @shared_tcp_connection = nil
+        close_shared_connection
         raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to #{@collector}: #{e}"
       end
 
