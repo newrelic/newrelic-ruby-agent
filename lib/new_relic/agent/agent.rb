@@ -57,8 +57,6 @@ module NewRelic
 
         @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
-
-        @worker_loop_options = {}
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -105,8 +103,6 @@ module NewRelic
         # the latter during harvest.
         attr_reader :transaction_rules
         attr_reader :harvest_lock
-
-        attr_accessor :worker_loop_options
 
         # fakes out a transaction that did not happen in this process
         # by creating apdex, summary metrics, and recording statistics
@@ -558,10 +554,12 @@ module NewRelic
             harvest_lock.unlock if harvest_lock.locked?
           end
 
-          # Creates the worker loop and loads it with the instructions
-          # it should run every @report_period seconds
+          def create_worker_loop
+            WorkerLoop.new
+          end
+
           def create_and_run_worker_loop
-            @worker_loop = WorkerLoop.new(worker_loop_options)
+            @worker_loop = create_worker_loop
             @worker_loop.run(Agent.config[:data_report_period]) do
               transmit_data
             end
