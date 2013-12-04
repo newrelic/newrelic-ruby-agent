@@ -166,6 +166,17 @@ module NewRelic
 
       private :notice_extra_data
 
+      # Truncates the message to `MAX_DATA_LENGTH` if needed, and
+      # appends an ellipsis because it makes the trucation clearer in
+      # the UI
+      def self.truncate_message(message)
+        if message.length > (MAX_DATA_LENGTH - 4)
+          message[0..MAX_DATA_LENGTH - 4] + '...'
+        else
+          message
+        end
+      end
+
       # Appends a backtrace to a segment if that segment took longer
       # than the specified duration
       def append_backtrace(segment, duration)
