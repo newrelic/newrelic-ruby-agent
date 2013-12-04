@@ -38,6 +38,7 @@ DependencyDetection.defer do
         trace_execution_scoped(metrics) do
           t0 = Time.now
           result = instrument_without_newrelic_trace(name, payload, &block)
+          payload[:operation] = name
           NewRelic::Agent.instance.transaction_sampler.notice_nosql_query(payload, (Time.now - t0).to_f)
           result
         end
@@ -62,7 +63,17 @@ DependencyDetection.defer do
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
-          result = save_without_newrelic_trace(doc, opts, &block)
+
+          transaction_state = NewRelic::Agent::TransactionState.get
+          transaction_state.push_traced(false)
+
+          begin
+            result = save_without_newrelic_trace(doc, opts, &block)
+          ensure
+            transaction_state.pop_traced
+          end
+
+          doc[:operation] = :save
           NewRelic::Agent.instance.transaction_sampler.notice_nosql_query(doc, (Time.now - t0).to_f)
           result
         end
@@ -83,7 +94,17 @@ DependencyDetection.defer do
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
-          result = ensure_index_without_newrelic_trace(spec, opts, &block)
+
+          transaction_state = NewRelic::Agent::TransactionState.get
+          transaction_state.push_traced(false)
+
+          begin
+            result = ensure_index_without_newrelic_trace(spec, opts, &block)
+          ensure
+            transaction_state.pop_traced
+          end
+
+          spec[:operation] = :ensureIndex
           NewRelic::Agent.instance.transaction_sampler.notice_nosql_query(spec, (Time.now - t0).to_f)
           result
         end

@@ -12,6 +12,16 @@ module NewRelic
           :web => web
         )
       end
+
+      def metrics_with_attributes(metrics, attributes)
+        metric_attributes = {}
+
+        metrics.each do |metric|
+          metric_attributes[metric] = attributes
+        end
+
+        metric_attributes
+      end
     end
   end
 end

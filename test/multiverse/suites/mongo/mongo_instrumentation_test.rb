@@ -19,6 +19,12 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     @collection = @database.collection(@collection_name)
 
     @tribble = {'name' => 'soterios johnson'}
+
+    NewRelic::Agent.drop_buffered_data
+  end
+
+  def teardown
+    NewRelic::Agent.drop_buffered_data
   end
 
   def after_tests
@@ -30,6 +36,11 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     @collection.insert(@tribble)
   end
 
+  def test_records_metrics_for_insert_only_once
+    @collection.insert(@tribble)
+    check_unscoped_metric_count(::NewRelic::Agent::MONGO_METRICS[:all], 1)
+  end
+
   def test_mongo_instrumentation_loaded
     logging_methods = ::Mongo::Logging.instance_methods
     assert logging_methods.include?(:instrument_with_newrelic_trace), "Expected #{logging_methods.inspect}\n to include :instrument_with_newrelic_trace."
@@ -38,34 +49,44 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_insert
     @collection.insert(@tribble)
 
-    expected = build_test_metrics(:insert)
+    metrics = build_test_metrics(:insert)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_find
     @collection.insert(@tribble)
+    NewRelic::Agent.drop_buffered_data
+
     @collection.find(@tribble).to_a
 
-    expected = build_test_metrics(:find)
+    metrics = build_test_metrics(:find)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_find_one
     @collection.insert(@tribble)
+    NewRelic::Agent.drop_buffered_data
+
     @collection.find_one
 
-    expected = build_test_metrics(:find_one)
+    metrics = build_test_metrics(:find_one)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_remove
     @collection.insert(@tribble)
+    NewRelic::Agent.drop_buffered_data
+
     @collection.remove(@tribble).to_a
 
-    expected = build_test_metrics(:remove)
+    metrics = build_test_metrics(:remove)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
@@ -73,9 +94,19 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_save
     @collection.save(@tribble)
 
-    expected = build_test_metrics(:save)
+    metrics = build_test_metrics(:save)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
+  end
+
+  def _test_save_does_not_record_insert
+    @collection.save(@tribble)
+
+    metrics = build_test_metrics(:save)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
+
+    assert_metrics_not_recorded(['Datastore/operation/MongoDB/insert'])
   end
 
   def test_records_metrics_for_update
@@ -84,7 +115,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     @collection.update(@tribble, updated)
 
-    expected = build_test_metrics(:update)
+    metrics = build_test_metrics(:update)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
@@ -92,7 +124,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_distinct
     @collection.distinct('name')
 
-    expected = build_test_metrics(:distinct)
+    metrics = build_test_metrics(:distinct)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
@@ -100,7 +133,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_count
     @collection.count
 
-    expected = build_test_metrics(:count)
+    metrics = build_test_metrics(:count)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
@@ -110,7 +144,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     updated['name'] = 'codemonkey'
     @collection.find_and_modify(query: @tribble, update: updated)
 
-    expected = build_test_metrics(:find_and_modify)
+    metrics = build_test_metrics(:find_and_modify)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
@@ -118,7 +153,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_find_and_remove
     @collection.find_and_modify(query: @tribble, remove: true)
 
-    expected = build_test_metrics(:find_and_remove)
+    metrics = build_test_metrics(:find_and_remove)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
@@ -126,7 +162,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_create_index
     @collection.create_index({'name' => Mongo::ASCENDING})
 
-    expected = build_test_metrics(:create_index)
+    metrics = build_test_metrics(:create_index)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
@@ -134,35 +171,51 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_ensure_index
     @collection.ensure_index({'name' => Mongo::ASCENDING})
 
-    expected = build_test_metrics(:ensure_index)
+    metrics = build_test_metrics(:ensure_index)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
+  end
+
+  def _test_ensure_index_does_not_record_insert
+    @collection.ensure_index({'name' => Mongo::ASCENDING})
+
+    assert_metrics_not_recorded(['Datastore/operation/MongoDB/insert'])
   end
 
   def test_records_metrics_for_drop_index
     @collection.create_index({'name' => Mongo::ASCENDING})
     name = @collection.index_information.values.last['name']
+    NewRelic::Agent.drop_buffered_data
+
     @collection.drop_index(name)
 
-    expected = build_test_metrics(:drop_index)
+    metrics = build_test_metrics(:drop_index)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_drop_indexes
     @collection.create_index({'name' => Mongo::ASCENDING})
+    NewRelic::Agent.drop_buffered_data
+
     @collection.drop_indexes
 
-    expected = build_test_metrics(:drop_indexes)
+    metrics = build_test_metrics(:drop_indexes)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
 
   def test_records_metrics_for_reindex
     @collection.create_index({'name' => Mongo::ASCENDING})
+    NewRelic::Agent.drop_buffered_data
+
     @database.command({ :reIndex => @collection_name })
 
-    expected = build_test_metrics(:re_index)
+    metrics = build_test_metrics(:re_index)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
   end
@@ -177,12 +230,61 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     expected = { :database   => 'multiverse',
                  :collection => 'tribbles',
+                 :operation  => :insert,
                  :documents  => [ { 'name' => 'soterios johnson' } ] }
 
     result = segment.params[:query]
     result[:documents].first.delete(:_id)
 
     assert_equal expected, result, "Expected result (#{result}) to be #{expected}"
+  end
+
+  def test_noticed_nosql_includes_operation
+    segment = nil
+
+    in_transaction do
+      @collection.insert(@tribble)
+      segment = find_last_transaction_segment
+    end
+
+    expected = :insert
+
+    query = segment.params[:query]
+    result = query[:operation]
+
+    assert_equal expected, result
+  end
+
+  def _test_noticed_nosql_includes_save_operation
+    segment = nil
+
+    in_transaction do
+      @collection.save(@tribble)
+      segment = find_last_transaction_segment
+    end
+
+    expected = :save
+
+    query = segment.params[:query]
+    result = query[:operation]
+
+    assert_equal expected, result
+  end
+
+  def _test_noticed_nosql_includes_ensure_index_operation
+    segment = nil
+
+    in_transaction do
+      @collection.ensure_index({'name' => Mongo::ASCENDING})
+      segment = find_last_transaction_segment
+    end
+
+    expected = :ensureIndex
+
+    query = segment.params[:query]
+    result = query[:operation]
+
+    assert_equal expected, result
   end
 
 end

@@ -261,7 +261,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_notice_nosql_query
-    @sampler.expects(:notice_extra_data).with('query data', 1.0, :key)
+    @sampler.expects(:notice_extra_data).with('query data', 1.0, :query)
     @sampler.notice_nosql_query('query data', 1.0)
   end
 
