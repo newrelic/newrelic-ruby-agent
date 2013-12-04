@@ -146,6 +146,7 @@ module NewRelic
         builder.set_transaction_cpu_time(cpu_time) if builder
       end
 
+      MAX_DATA_LENGTH = 16384
       # This method is used to record metadata into the currently
       # active segment like a sql query, memcache key, or Net::HTTP uri
       #
