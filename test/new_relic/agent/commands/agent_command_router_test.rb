@@ -62,6 +62,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
   def populate_container(container, n)
     start_profile('duration' => 1.0)
     advance_time(1.1)
+    agent_commands.backtrace_service.worker_thread.join if agent_commands.backtrace_service.worker_thread
   end
 
   # General command routing
