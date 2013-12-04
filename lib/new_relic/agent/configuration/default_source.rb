@@ -720,6 +720,12 @@ module NewRelic
           :type => String,
           :description => 'Type of JavaScript agent loader to use for browser monitoring instrumentation'
         },
+        :'browser_monitoring.loader_version' => {
+          :default => '',
+          :public => private,
+          :type => String,
+          :description => 'Version of JavaScript agent loader (returned from the New Relic data collection services)'
+        },
         :'browser_monitoring.debug' => {
           :default => false,
           :public => false,
