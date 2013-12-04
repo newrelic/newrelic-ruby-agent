@@ -64,8 +64,6 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     advance_time(1.1)
   end
 
-  include NewRelic::BasicDataContainerTests
-
   # General command routing
 
   def test_check_for_and_handle_agent_commands_dispatches_command
@@ -128,6 +126,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
   # Harvesting tests
 
   if NewRelic::Agent::Threading::BacktraceService.is_supported?
+    include NewRelic::BasicDataContainerTests
 
     def test_harvest_not_started
       result = agent_commands.harvest!
