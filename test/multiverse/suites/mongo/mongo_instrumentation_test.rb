@@ -18,7 +18,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     @collection_name = 'tribbles'
     @collection = @database.collection(@collection_name)
 
-    @tribble = {'name' => 'soterious johnson'}
+    @tribble = {'name' => 'soterios johnson'}
   end
 
   def after_tests
@@ -165,6 +165,24 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     expected = build_test_metrics(:re_index)
 
     assert_metrics_recorded(expected)
+  end
+
+  def test_notices_nosql
+    segment = nil
+
+    in_transaction do
+      @collection.insert(@tribble)
+      segment = find_last_transaction_segment
+    end
+
+    expected = { :database   => 'multiverse',
+                 :collection => 'tribbles',
+                 :documents  => [ { 'name' => 'soterios johnson' } ] }
+
+    result = segment.params[:query]
+    result[:documents].first.delete(:_id)
+
+    assert_equal expected, result, "Expected result (#{result}) to be #{expected}"
   end
 
 end

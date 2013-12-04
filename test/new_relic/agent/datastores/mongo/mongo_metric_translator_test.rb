@@ -47,7 +47,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
   def test_metrics_for_find
     payload = { :database   => @database_name,
                 :collection => @collection_name,
-                :selector   => { "name" => "soterious johnson" } }
+                :selector   => { "name" => "soterios johnson" } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
     expected = build_test_metrics(:find)
@@ -70,7 +70,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
   def test_metrics_for_remove
     payload = { :database   => @database_name,
                 :collection => @collection_name,
-                :selector   => { "name" => "soterious johnson" } }
+                :selector   => { "name" => "soterios johnson" } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:remove, payload)
     expected = build_test_metrics(:remove)
@@ -81,7 +81,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
   def test_metrics_for_update
     payload = { :database   => @database_name,
                 :collection => @collection_name,
-                :selector   => { "name" => "soterious johnson" },
+                :selector   => { "name" => "soterios johnson" },
                 :document   => { "name" => "codemonkey" } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:update, payload)
@@ -123,7 +123,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   => { :findandmodify => @collection_name,
-                                 :query         => { "name" => "soterious johnson" },
+                                 :query         => { "name" => "soterios johnson" },
                                  :update        => {"name" => "codemonkey" } } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)
@@ -137,7 +137,7 @@ class NewRelic::Agent::MongoMetricTranslatorTest < Test::Unit::TestCase
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   => { :findandmodify => @collection_name,
-                                 :query         => { "name" => "soterious johnson" },
+                                 :query         => { "name" => "soterios johnson" },
                                  :remove        => true } }
 
     metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:find, payload)

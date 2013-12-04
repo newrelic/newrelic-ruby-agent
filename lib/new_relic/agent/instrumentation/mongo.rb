@@ -38,7 +38,7 @@ DependencyDetection.defer do
         trace_execution_scoped(metrics) do
           t0 = Time.now
           result = instrument_without_newrelic_trace(name, payload, &block)
-          NewRelic::Agent.instance.transaction_sampler.notice_sql(payload.inspect, nil, (Time.now - t0).to_f)
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_query(payload, (Time.now - t0).to_f)
           result
         end
       end
@@ -63,7 +63,7 @@ DependencyDetection.defer do
         trace_execution_scoped(metrics) do
           t0 = Time.now
           result = save_without_newrelic_trace(doc, opts, &block)
-          NewRelic::Agent.instance.transaction_sampler.notice_sql(doc.inspect, nil, (Time.now - t0).to_f)
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_query(doc, (Time.now - t0).to_f)
           result
         end
       end
@@ -84,7 +84,7 @@ DependencyDetection.defer do
         trace_execution_scoped(metrics) do
           t0 = Time.now
           result = ensure_index_without_newrelic_trace(spec, opts, &block)
-          NewRelic::Agent.instance.transaction_sampler.notice_sql(spec.inspect, nil, (Time.now - t0).to_f)
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_query(spec, (Time.now - t0).to_f)
           result
         end
       end

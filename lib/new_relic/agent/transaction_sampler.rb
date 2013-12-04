@@ -218,6 +218,10 @@ module NewRelic
         notice_extra_data(key, duration, :key)
       end
 
+      def notice_nosql_query(query, duration)
+        notice_extra_data(query, duration, :query)
+      end
+
       # Set parameters on the current segment.
       def add_segment_parameters( params )
         return unless builder
