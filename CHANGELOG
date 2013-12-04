@@ -4,10 +4,20 @@
 
   * RUM injection updates
 
-  The Ruby agent's code for both automatically and manually injecting the Real
-  User Monitoring scripts has been updated.  This should not require
-  application changes, but does result in a different script being injected
-  than previous versions of the agent.
+  The Ruby agent's code for both automatic and manual injection of Real User
+  Monitoring scripts has been updated.  No application changes are required,
+  but the injected script is different than previous agent versions.
+
+  * More robust communication with New Relic
+
+  Failures when transmitting data to New Relic could cause data to be held over
+  unnecessarily to a later harvest. This has been improved both to handle
+  errors more robustly and consistently, and to send data as soon as possible.
+
+  * Blacklisting rake spec tasks
+
+  A blacklist helps the agent avoid starting during rake tasks. Some default
+  RSpec tasks were missing. Thanks for the contribution Kohei Hasegawa!
 
 ## v3.6.9 ##
 
