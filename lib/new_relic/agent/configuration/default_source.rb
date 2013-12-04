@@ -836,6 +836,12 @@ module NewRelic
           :type => Fixnum,
           :description => 'Maximum number of request events recorded by the analytics event sampling in a single harvest.'
         },
+        :'capture_attributes.traces' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :description => 'Include custom parameters in transaction traces and traced errors'
+        },
         :'capture_attributes.transaction_events' => {
           :default => true,
           :public => true,
