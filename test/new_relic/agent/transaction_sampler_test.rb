@@ -836,7 +836,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     end
     sample = NewRelic::Agent.agent.transaction_sampler.harvest![0]
     custom_params = sample.params[:custom_params]
-    refute(custom_params.keys.include?(:foo), "Expected no custom params on TT because capture_attributes.traces is false")
+    assert_false(custom_params.keys.include?(:foo))
   end
 
   def test_custom_params_included_if_config_says_so
