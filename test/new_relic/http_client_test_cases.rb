@@ -305,7 +305,16 @@ module HttpClientTestCases
   end
 
   def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
-    with_config(:'cross_application_tracer.enabled' => true, :cross_process_id => "") do
+    with_config(:'cross_application_tracer.enabled' => true,
+                :cross_process_id => "") do
+      get_response
+      assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
+    end
+  end
+
+  def test_agent_doesnt_add_a_request_header_if_empty_encoding_key
+    with_config(:'cross_application_tracer.enabled' => true,
+                :encoding_key => "") do
       get_response
       assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
     end

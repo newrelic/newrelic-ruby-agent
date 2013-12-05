@@ -113,15 +113,24 @@ module NewRelic
         NewRelic::Agent.logger.error "Uncaught exception while finishing an HTTP request trace", err
       end
 
-
       # Return +true+ if cross app tracing is enabled in the config.
       def cross_app_enabled?
-        NewRelic::Agent.config[:cross_process_id] &&
-          NewRelic::Agent.config[:cross_process_id].length > 0 &&
-          (NewRelic::Agent.config[:"cross_application_tracer.enabled"] ||
-           NewRelic::Agent.config[:cross_application_tracing])
+        valid_cross_process_id? &&
+          valid_encoding_key? &&
+          cross_application_tracer_enabled?
       end
 
+      def valid_cross_process_id?
+        NewRelic::Agent.config[:cross_process_id] && NewRelic::Agent.config[:cross_process_id].length > 0
+      end
+
+      def valid_encoding_key?
+        NewRelic::Agent.config[:encoding_key] && NewRelic::Agent.config[:encoding_key].length > 0
+      end
+
+      def cross_application_tracer_enabled?
+        NewRelic::Agent.config[:"cross_application_tracer.enabled"] || NewRelic::Agent.config[:cross_application_tracing]
+      end
 
       # Memoized fetcher for the cross app encoding key. Raises a
       # NewRelic::Agent::CrossAppTracing::Error if the key isn't configured.

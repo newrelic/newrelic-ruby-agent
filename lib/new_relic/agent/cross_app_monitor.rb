@@ -122,15 +122,7 @@ module NewRelic
       end
 
       def cross_app_enabled?
-        valid_cross_process_id? && cross_application_tracer_enabled?
-      end
-
-      def valid_cross_process_id?
-        NewRelic::Agent.config[:cross_process_id] && NewRelic::Agent.config[:cross_process_id].length > 0
-      end
-
-      def cross_application_tracer_enabled?
-        NewRelic::Agent.config[:"cross_application_tracer.enabled"] || NewRelic::Agent.config[:cross_application_tracing]
+        NewRelic::Agent::CrossAppTracing.cross_app_enabled?
       end
 
       # Expects an ID of format "12#345", and will only accept that!

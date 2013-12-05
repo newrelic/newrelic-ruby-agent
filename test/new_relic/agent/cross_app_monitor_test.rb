@@ -114,6 +114,13 @@ module NewRelic::Agent
       end
     end
 
+    def test_doesnt_add_header_if_missing_encoding_key
+      with_config( :encoding_key => '' ) do
+        when_request_runs
+        assert_nil response_app_data
+      end
+    end
+
     def test_includes_content_length
       with_default_timings
 
