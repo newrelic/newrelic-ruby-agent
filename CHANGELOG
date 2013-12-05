@@ -2,11 +2,18 @@
 
 ## v3.7.0 ##
 
+  * Official Rubinius support (for Rubinius >= 2.2.1)
+
+  We're happy to say that all known issues with the Ruby agent running on 
+  Rubinius have been resolved as of Rubinius version 2.2.1! See
+  http://docs.newrelic.com/docs/ruby/rubinius for the most up-to-date status.
+
   * RUM injection updates
 
   The Ruby agent's code for both automatic and manual injection of Real User
-  Monitoring scripts has been updated.  No application changes are required,
-  but the injected script is different than previous agent versions.
+  Monitoring scripts has been improved. No application changes are required, but
+  the new injection logic is simpler, faster, more robust, and paves the way for
+  future improvements to Real User Monitoring.
 
   * More robust communication with New Relic
 
