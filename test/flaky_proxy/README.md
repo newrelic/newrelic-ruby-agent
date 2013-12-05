@@ -55,15 +55,15 @@ If the `rules` file is omitted, the all requests will be transparently proxied t
 
 ### Available Actions
 
-`pass`
+#### pass
 
 Pass the request on to the backend server without modification.
 
-`close`
+#### close
 
 Close the TCP connection from the client before forwarding it on to the backend server.
 
-`respond(response_spec)`
+#### respond(response_spec)
 
 Respond to the client with a canned response, instead of forwarding the request on to the backend server. `response_spec` should be a `Hash` describing the canned response to be sent to the client. Recognized keys in the `response_spec` are:
 
@@ -71,7 +71,12 @@ Respond to the client with a canned response, instead of forwarding the request 
 * `:headers` - A `Hash` with response headers. Default: the `Content-Length` header will be automatically set based on the response body length.
 * `:body` - A `String` containing the HTTP response body. Default = `''`.
 
-`delay(amount)`
+#### delay(amount)
 
 Delay for `amount` seconds before forwarding the request on to the backend server.
 
+## Caveats
+
+* Totally single-threaded and non-evented, therefore cannot handle multiple client connections at once.
+* Errors introduced in the rules file will likely the process to crash instead of just printing an error.
+* Almost certainly doesn't handle string encodings correctly
