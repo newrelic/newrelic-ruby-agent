@@ -33,7 +33,7 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
 
       def instrument_with_newrelic_trace(name, payload = {}, &block)
-        metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(name, payload)
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(name, payload)
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
@@ -59,7 +59,7 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
 
       def save_with_newrelic_trace(doc, opts = {}, &block)
-        metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:save, { :collection => self.name })
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:save, { :collection => self.name })
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
@@ -90,7 +90,7 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
 
       def ensure_index_with_newrelic_trace(spec, opts = {}, &block)
-        metrics = NewRelic::Agent::MongoMetricTranslator.metrics_for(:ensure_index, { :collection => self.name })
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:ensure_index, { :collection => self.name })
 
         trace_execution_scoped(metrics) do
           t0 = Time.now

@@ -32,13 +32,8 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_generates_payload_metrics_for_an_operation
-    ::NewRelic::Agent::MongoMetricTranslator.expects(:metrics_for).with(:insert, has_entry(:database => @database_name, :collection => @collection_name))
+    ::NewRelic::Agent::Datastores::Mongo::MetricTranslator.expects(:metrics_for).with(:insert, has_entry(:database => @database_name, :collection => @collection_name))
     @collection.insert(@tribble)
-  end
-
-  def test_records_metrics_for_insert_only_once
-    @collection.insert(@tribble)
-    check_unscoped_metric_count(::NewRelic::Agent::MONGO_METRICS[:all], 1)
   end
 
   def test_mongo_instrumentation_loaded

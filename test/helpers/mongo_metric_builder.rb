@@ -6,7 +6,7 @@ module NewRelic
   module TestHelpers
     module MongoMetricBuilder
       def build_test_metrics(name, web = true)
-        NewRelic::Agent::MongoMetricTranslator.build_metrics(
+        NewRelic::Agent::Datastores::Mongo::MetricTranslator.build_metrics(
           :name => name,
           :collection => @collection_name,
           :web => web
