@@ -7,12 +7,12 @@ module NewRelic
     module Datastores
       module Mongo
         module MetricTranslator
-          def self.metrics_for(name, payload = {})
+          def self.metrics_for(name, payload)
             payload = {} if payload.nil?
 
             collection = payload[:collection]
 
-            if collection == '$cmd'
+            if collection == '$cmd' && payload[:selector]
               name_and_collection = payload[:selector].first
               name, collection = name_and_collection if name_and_collection
             end
