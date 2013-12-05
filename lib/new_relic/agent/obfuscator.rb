@@ -14,7 +14,7 @@ module NewRelic
 
       # RUM uses a shortened key, so just trim it up front
       def initialize(key, length=nil)
-        if key.nil?
+        if key.nil? || key.empty?
           @key_bytes = EMPTY_KEY_BYTES
         else
           @key_bytes = key.bytes.to_a
