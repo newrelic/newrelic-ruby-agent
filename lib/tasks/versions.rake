@@ -33,7 +33,7 @@ namespace :newrelic do
     def write_versions(title, type, erb, suppress_versions = false)
       anchor = title.downcase.gsub(" ", "_")
       versions = versions_for_type(type)
-      puts erb.result(binding)
+      puts erb.result(binding).gsub(/^ *$/, '')
     end
 
     VersionStruct = Struct.new(:name, :supported, :deprecated, :experimental, :notes)
