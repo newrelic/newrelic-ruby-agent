@@ -720,6 +720,12 @@ module NewRelic
           :type => String,
           :description => 'Type of JavaScript agent loader to use for browser monitoring instrumentation'
         },
+        :'browser_monitoring.loader_version' => {
+          :default => '',
+          :public => private,
+          :type => String,
+          :description => 'Version of JavaScript agent loader (returned from the New Relic data collection services)'
+        },
         :'browser_monitoring.debug' => {
           :default => false,
           :public => false,
@@ -829,6 +835,12 @@ module NewRelic
           :public => false,
           :type => Fixnum,
           :description => 'Maximum number of request events recorded by the analytics event sampling in a single harvest.'
+        },
+        :'capture_attributes.traces' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :description => 'Include custom parameters in transaction traces and traced errors'
         },
         :'capture_attributes.transaction_events' => {
           :default => true,

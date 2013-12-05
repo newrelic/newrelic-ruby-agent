@@ -58,6 +58,11 @@ class ErrorController < ApplicationController
   def middleware_error
     render :text => 'everything went great'
   end
+
+  def error_with_custom_params
+    NewRelic::Agent.add_custom_parameters(:texture => 'chunky')
+    raise 'bad things'
+  end
 end
 
 class IgnoredError < StandardError; end
@@ -202,7 +207,32 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     assert_error_reported_once('middleware error', nil, nil)
   end
 
+  # These really shouldn't be skipped for Rails 4, see RUBY-1242
+  if ::Rails::VERSION::MAJOR.to_i < 4
+    def test_captured_errors_should_include_custom_params
+      get '/error/error_with_custom_params'
+      assert_error_reported_once('bad things')
+      error = errors_with_message('bad things').first
+      custom_params = error.params[:custom_params]
+      assert_equal({:texture => 'chunky'}, custom_params)
+    end
+
+    def test_captured_errors_should_not_include_custom_params_if_config_says_no
+      with_config(:'capture_attributes.traces' => false) do
+        get '/error/error_with_custom_params'
+      end
+      assert_error_reported_once('bad things')
+      error = errors_with_message('bad things').first
+      custom_params = error.params[:custom_params]
+      assert_equal({}, custom_params)
+    end
+  end
+
  protected
+
+  def errors_with_message(message)
+    @error_collector.errors.select{|error| error.message == message}
+  end
 
   def assert_errors_reported(message, queued_count, total_count=queued_count, txn_name=nil, apdex_f=1)
     expected = { :call_count => total_count }
@@ -214,7 +244,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     end
 
     assert_equal(queued_count,
-      @error_collector.errors.select{|error| error.message == message}.size,
+      errors_with_message(message).size,
       "Wrong number of errors with message #{message.inspect} found")
   end
 

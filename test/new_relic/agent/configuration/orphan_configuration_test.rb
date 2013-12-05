@@ -18,7 +18,7 @@ class OrphanedConfigTest < Test::Unit::TestCase
       lines = File.read(file).split("\n")
 
       lines.each_with_index do |line, index|
-        config_match = line.match(/Agent\.config\[:([a-z\._]+)\]/)
+        config_match = line.match(/Agent\.config\[:['"]?([a-z\._]+)['"]?\]/)
         next unless config_match
 
         config_keys = config_match.captures.map do |key|

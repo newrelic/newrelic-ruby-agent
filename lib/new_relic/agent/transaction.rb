@@ -276,7 +276,6 @@ module NewRelic
 
       # Do not call this.  Invoke the class method instead.
       def notice_error(e, options={}) # :nodoc:
-        params = custom_parameters
         options[:referer] = referer if referer
         options[:request_params] = filtered_params if filtered_params
         options[:uri] = uri if uri

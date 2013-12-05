@@ -824,6 +824,36 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal([samples[1]], prepared)
   end
 
+  def test_custom_params_omitted_if_config_says_so
+    config = {
+      :'transaction_tracer.transaction_threshold' => 0.0,
+      :'capture_attributes.traces' => false
+    }
+    with_config(config) do
+      in_transaction do
+        NewRelic::Agent.add_custom_parameters(:foo => 'bar')
+      end
+    end
+    sample = NewRelic::Agent.agent.transaction_sampler.harvest![0]
+    custom_params = sample.params[:custom_params]
+    assert_false(custom_params.keys.include?(:foo))
+  end
+
+  def test_custom_params_included_if_config_says_so
+    config = {
+      :'transaction_tracer.transaction_threshold' => 0.0,
+      :'capture_attributes.traces' => true
+    }
+    with_config(config) do
+      in_transaction do
+        NewRelic::Agent.add_custom_parameters(:foo => 'bar')
+      end
+    end
+    sample = NewRelic::Agent.agent.transaction_sampler.harvest![0]
+    custom_params = sample.params[:custom_params]
+    assert(custom_params.keys.include?(:foo), "Expected custom param on TT because capture_attributes.traces is true")
+  end
+
   class Dummy
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     def run(n)

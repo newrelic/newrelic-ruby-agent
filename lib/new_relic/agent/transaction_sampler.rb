@@ -92,6 +92,14 @@ module NewRelic
         builder.trace_exit(scope, time.to_f)
       end
 
+      def custom_parameters_from_transaction(txn)
+        if Agent.config[:'capture_attributes.traces']
+          txn.custom_parameters
+        else
+          {}
+        end
+      end
+
       # This is called when we are done with the transaction.  We've
       # unwound the stack to the top level. It also clears the
       # transaction sample builder so that it won't continue to have
@@ -105,7 +113,7 @@ module NewRelic
 
         return unless last_builder
 
-        last_builder.finish_trace(time.to_f, txn.custom_parameters)
+        last_builder.finish_trace(time.to_f, custom_parameters_from_transaction(txn))
         clear_builder
         return if last_builder.ignored?
 
