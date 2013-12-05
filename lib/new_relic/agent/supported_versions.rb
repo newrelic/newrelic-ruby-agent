@@ -32,12 +32,9 @@ module NewRelic
       {
         :type        => :ruby,
         :name        => "Rubinius",
-        :experimental=> ["~> 2.1.1"],
+        :supported   => ["~> 2.2.1"],
         :url         => "http://rubini.us",
-        :feed        => "http://rubini.us/feed/atom.xml",
-        :notes       => [
-          "Support for Rubinius 2.x is considered experimental.",
-          "Consider using the latest for best results, and watch http://docs.newrelic.com/docs/ruby/rubinius for updates."]
+        :feed        => "http://rubini.us/feed/atom.xml"
       },
 
       # App servers
