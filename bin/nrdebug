@@ -133,6 +133,7 @@ class RubyProcess
     backtrace_file = Tempfile.new('nrdebug_ruby_bt')
     File.chmod(0666, backtrace_file.path)
 
+    backtrace_gathering_code = 'Thread.list.each { |t| bt = t.backtrace rescue nil; puts \"#{t.inspect}\n#{bt && bt.join(\"\n\")}\n\n\" }'
     gdb_script_body = <<-END
       attach #{pid}
       t a a bt
@@ -141,6 +142,8 @@ class RubyProcess
       call (int)open("#{backtrace_file.path}", 2, 0)
       call (int)open("#{backtrace_file.path}", 2, 0)
       call (void)rb_backtrace()
+      call (void)fflush(0)
+      call (void)rb_eval_string_protect("#{backtrace_gathering_code}",(int*)0)
       call (void)fflush(0)
       quit
     END
@@ -212,7 +215,7 @@ class ProcessReport
           fail("Failed to attach to target process. Please try again with sudo.")
         end
         section(f, "C Backtraces")   { c_backtraces }
-        section(f, "Ruby Backtrace") { ruby_backtraces }
+        section(f, "Ruby Backtrace(s)") { ruby_backtraces }
       end
 
       section(f, "Open files") { @target.open_files }
@@ -227,13 +230,16 @@ end
 def prompt_for_confirmation(target_pid, target_cmd)
   puts "Are you sure you want to attach to PID #{target_pid} ('#{target_cmd}')}?"
   puts ''
-  puts "Extracting debug information from this process may cause it to hang, crash,"
-  puts "or otherwise malfunction. It is highly recommended that you only run this"
-  puts "script against processes that are already unresponsive."
+  puts '************************** !WARNING! **************************'
+  puts "Extracting debug information from this process may cause it to CRASH OR HANG."
+  puts ''
+  puts "It is highly recommended that you only run this script against processes that"
+  puts "are already unresponsive."
   puts ''
   puts "Additionally, the output may contain sensitive information from the program's"
   puts "command line arguments, environment, or open file list. Please examine the"
   puts "output before sharing it."
+  puts '************************** !WARNING! **************************'
   puts ''
   puts "To continue, type 'continue':"
 
