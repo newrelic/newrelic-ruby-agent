@@ -14,6 +14,12 @@
   unnecessarily to a later harvest. This has been improved both to handle
   errors more robustly and consistently, and to send data as soon as possible.
 
+  * Fix for agent not restarting on server-side config changes
+
+  A bug in 3.6.9 caused the agent to not reset correctly after server-side
+  config changes. New settings would not be received without a full process
+  restart. This has been fixed.
+
   * Blacklisting rake spec tasks
 
   A blacklist helps the agent avoid starting during rake tasks. Some default
