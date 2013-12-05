@@ -48,6 +48,11 @@ class NewRelic::Agent::ObfuscatorTest < Test::Unit::TestCase
     assert_equal "", obfuscator.deobfuscate("")
   end
 
+  def test_decoding_empty_key
+    obfuscator = NewRelic::Agent::Obfuscator.new("")
+    assert_equal "querty", obfuscator.encode('querty')
+  end
+
   def test_encode_with_nil_uses_empty_key
     obfuscator = NewRelic::Agent::Obfuscator.new(nil)
     assert_equal "querty", obfuscator.encode('querty')
