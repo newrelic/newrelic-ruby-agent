@@ -46,7 +46,6 @@ module NewRelic
         return response
       end
 
-
       # Set up the necessary state for cross-application tracing before the
       # given +request+ goes out.
       #
@@ -118,6 +117,7 @@ module NewRelic
       # Return +true+ if cross app tracing is enabled in the config.
       def cross_app_enabled?
         NewRelic::Agent.config[:cross_process_id] &&
+          NewRelic::Agent.config[:cross_process_id].length > 0 &&
           (NewRelic::Agent.config[:"cross_application_tracer.enabled"] ||
            NewRelic::Agent.config[:cross_application_tracing])
       end
