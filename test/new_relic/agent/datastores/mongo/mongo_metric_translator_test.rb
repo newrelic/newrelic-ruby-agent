@@ -52,7 +52,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                 :limit      => -1 }
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:find_one)
+    expected = build_test_metrics(:findOne)
 
     assert_equal expected, metrics
   end
@@ -117,7 +117,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                                  :update        => {"name" => "codemonkey" } } }
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:find_and_modify)
+    expected = build_test_metrics(:findAndModify)
 
     assert_equal expected, metrics
   end
@@ -131,7 +131,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                                  :remove        => true } }
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:find_and_remove)
+    expected = build_test_metrics(:findAndRemove)
 
     assert_equal expected, metrics
   end
@@ -144,7 +144,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                                     :key  => { "name" => 1 } } ] }
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:insert, payload)
-    expected = build_test_metrics(:create_index)
+    expected = build_test_metrics(:createIndex)
 
     assert_equal expected, metrics
   end
@@ -157,7 +157,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                                :index         => "*" } }
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:drop_indexes)
+    expected = build_test_metrics(:dropIndexes)
 
     assert_equal expected, metrics
   end
@@ -170,7 +170,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                                :index => "name_1" } }
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:drop_index)
+    expected = build_test_metrics(:dropIndex)
 
     assert_equal expected, metrics
   end
@@ -182,7 +182,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                 :selector => { :reIndex=> @collection_name } }
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:re_index)
+    expected = build_test_metrics(:reIndex)
 
     assert_equal expected, metrics
   end

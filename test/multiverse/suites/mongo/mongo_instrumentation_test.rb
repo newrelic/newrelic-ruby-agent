@@ -68,7 +68,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     @collection.find_one
 
-    metrics = build_test_metrics(:find_one)
+    metrics = build_test_metrics(:findOne)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
@@ -139,7 +139,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     updated['name'] = 'codemonkey'
     @collection.find_and_modify(query: @tribble, update: updated)
 
-    metrics = build_test_metrics(:find_and_modify)
+    metrics = build_test_metrics(:findAndModify)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
@@ -148,7 +148,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_find_and_remove
     @collection.find_and_modify(query: @tribble, remove: true)
 
-    metrics = build_test_metrics(:find_and_remove)
+    metrics = build_test_metrics(:findAndRemove)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
@@ -157,7 +157,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_create_index
     @collection.create_index({'name' => Mongo::ASCENDING})
 
-    metrics = build_test_metrics(:create_index)
+    metrics = build_test_metrics(:createIndex)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
@@ -166,7 +166,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_ensure_index
     @collection.ensure_index({'name' => Mongo::ASCENDING})
 
-    metrics = build_test_metrics(:ensure_index)
+    metrics = build_test_metrics(:ensureIndex)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
@@ -185,7 +185,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     @collection.drop_index(name)
 
-    metrics = build_test_metrics(:drop_index)
+    metrics = build_test_metrics(:dropIndex)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
@@ -197,7 +197,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     @collection.drop_indexes
 
-    metrics = build_test_metrics(:drop_indexes)
+    metrics = build_test_metrics(:dropIndexes)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)
@@ -209,7 +209,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     @database.command({ :reIndex => @collection_name })
 
-    metrics = build_test_metrics(:re_index)
+    metrics = build_test_metrics(:reIndex)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
 
     assert_metrics_recorded(expected)

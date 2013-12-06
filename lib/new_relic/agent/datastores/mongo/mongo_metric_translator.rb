@@ -18,20 +18,20 @@ module NewRelic
             end
 
             if self.find_one?(name, payload)
-              name = 'find_one'
+              name = 'findOne'
             elsif self.find_and_remove?(name, payload)
-              name = 'find_and_remove'
+              name = 'findAndRemove'
             elsif self.find_and_modify?(name, payload)
-              name = 'find_and_modify'
+              name = 'findAndModify'
             elsif self.create_index?(name, payload)
-              name = 'create_index'
+              name = 'createIndex'
               collection = self.collection_name_from_index(payload)
             elsif self.drop_indexes?(name, payload)
-              name = 'drop_indexes'
+              name = 'dropIndexes'
             elsif self.drop_index?(name, payload)
-              name = 'drop_index'
+              name = 'dropIndex'
             elsif self.re_index?(name, payload)
-              name = 're_index'
+              name = 'reIndex'
               collection = payload[:selector][:reIndex]
             end
 

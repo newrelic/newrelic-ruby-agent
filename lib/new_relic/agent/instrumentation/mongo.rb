@@ -90,7 +90,7 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
 
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:ensure_index, { :collection => self.name })
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:ensureIndex, { :collection => self.name })
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
