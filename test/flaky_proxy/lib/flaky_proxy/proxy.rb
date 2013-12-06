@@ -3,9 +3,9 @@ require 'socket'
 module FlakyProxy
   class Proxy
     def initialize(options)
-      @listen_host = options[:listen_host]
-      @listen_port = options[:listen_port]
-      @backend_server = Server.new(options[:target_host], options[:target_port])
+      @listen_host = options.fetch(:listen_host)
+      @listen_port = options.fetch(:listen_port)
+      @backend_server = Server.new(options.fetch(:target_host), options.fetch(:target_port))
       @rules = RuleSet.build('')
       @rules_path = options[:rules_path]
       @listen_socket = nil
