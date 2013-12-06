@@ -10,6 +10,7 @@ require 'zlib'
 require 'stringio'
 require 'new_relic/agent/sampled_buffer'
 require 'new_relic/agent/autostart'
+require 'new_relic/agent/harvester'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
@@ -50,6 +51,7 @@ module NewRelic
         @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
         @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
+        @harvester             = NewRelic::Agent::Harvester.new(@events)
 
         @connect_state      = :pending
         @connect_attempts   = 0
@@ -160,6 +162,8 @@ module NewRelic
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
         def after_fork(options={})
+          @harvester.mark_started
+
           Agent.config.apply_config(NewRelic::Agent::Configuration::ManualSource.new(options), 1)
 
           if channel_id = options[:report_to_channel]
