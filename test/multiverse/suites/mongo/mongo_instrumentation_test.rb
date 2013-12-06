@@ -95,7 +95,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     assert_metrics_recorded(expected)
   end
 
-  def _test_save_does_not_record_insert
+  def test_save_does_not_record_insert
     @collection.save(@tribble)
 
     metrics = build_test_metrics(:save)
@@ -172,7 +172,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     assert_metrics_recorded(expected)
   end
 
-  def _test_ensure_index_does_not_record_insert
+  def test_ensure_index_does_not_record_insert
     @collection.ensure_index({'name' => Mongo::ASCENDING})
 
     assert_metrics_not_recorded(['Datastore/operation/MongoDB/insert'])
@@ -250,7 +250,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     assert_equal expected, result
   end
 
-  def _test_noticed_nosql_includes_save_operation
+  def test_noticed_nosql_includes_save_operation
     segment = nil
 
     in_transaction do
@@ -266,7 +266,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     assert_equal expected, result
   end
 
-  def _test_noticed_nosql_includes_ensure_index_operation
+  def test_noticed_nosql_includes_ensure_index_operation
     segment = nil
 
     in_transaction do
