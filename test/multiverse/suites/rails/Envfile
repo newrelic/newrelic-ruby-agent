@@ -1,6 +1,6 @@
 if RUBY_VERSION >= '1.9.3'
   gemfile <<-RB
-    gem 'rails', '~>4.0.1'
+    gem 'rails', '~>4.0.2'
     gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
   RB
 end
@@ -8,19 +8,19 @@ end
 omit_mocha!
 
 gemfile <<-RB
-  gem 'rails', '~>3.2.0'
+  gem 'rails', '~>3.2.16'
   gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
   gem 'minitest_tu_shim', :require => false
 RB
 
 gemfile <<-RB
-  gem 'rails', '~>3.1.0'
+  gem 'rails', '~>3.1.12'
   gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
   gem 'minitest_tu_shim', :require => false
 RB
 
 gemfile <<-RB
-  gem 'rails', '~>3.0.0'
+  gem 'rails', '~>3.0.20'
   gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
   gem 'minitest_tu_shim', :require => false
 RB
