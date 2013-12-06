@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require File.join(File.dirname(__FILE__), '..', 'lib', 'flaky_proxy')
+
+DEFAULTS = {
+  :listen_host => 'localhost',
+  :listen_port => 8888,
+  :target_host => 'localhost',
+  :target_port => 8081
+}
+
+options = DEFAULTS.dup
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: #{$0} [options] [<rules file>]"
+
+  opts.on("-l", "--listen [<HOST>:]<PORT>", "Specify the host and port to listen on") do |listen_spec|
+    if listen_spec =~ /^([^:]+):(\d+)$/
+      options[:listen_host] = $1
+      options[:listen_port] = $2.to_i
+    else
+      options[:listen_port] = listen_spec.to_i
+    end
+  end
+
+  opts.on("-t", "--target [<HOST>:]<PORT>", "Specify the host and port to forward to") do |target_spec|
+    if target_spec =~ /^([^:]+):(\d+)$/
+      options[:target_host] = $1
+      options[:target_port] = $2
+    else
+      options[:target_port] = target_spec.to_i
+    end
+  end
+end
+parser.parse!
+
+options[:rules_path] = ARGV[0] if ARGV[0]
+
+FlakyProxy::Proxy.new(options).run
