@@ -32,12 +32,12 @@ DependencyDetection.defer do
       include NewRelic::Agent::MethodTracer
       require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
 
-      def instrument_with_newrelic_trace(name, payload = {}, &block)
+      def instrument_with_new_relic_trace(name, payload = {}, &block)
         metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(name, payload)
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
-          result = instrument_without_newrelic_trace(name, payload, &block)
+          result = instrument_without_new_relic_trace(name, payload, &block)
           payload[:operation] = name
           NewRelic::Agent.instance.transaction_sampler.notice_nosql_query(payload, (Time.now - t0).to_f)
           result
@@ -48,8 +48,8 @@ DependencyDetection.defer do
       ::Mongo::Connection.class_eval { include Mongo::Logging; }
       ::Mongo::Cursor.class_eval { include Mongo::Logging; }
 
-      alias_method :instrument_without_newrelic_trace, :instrument
-      alias_method :instrument, :instrument_with_newrelic_trace
+      alias_method :instrument_without_new_relic_trace, :instrument
+      alias_method :instrument, :instrument_with_new_relic_trace
     end
   end
 
@@ -58,7 +58,7 @@ DependencyDetection.defer do
       include NewRelic::Agent::MethodTracer
       require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
 
-      def save_with_newrelic_trace(doc, opts = {}, &block)
+      def save_with_new_relic_trace(doc, opts = {}, &block)
         metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:save, { :collection => self.name })
 
         trace_execution_scoped(metrics) do
@@ -68,7 +68,7 @@ DependencyDetection.defer do
           transaction_state.push_traced(false)
 
           begin
-            result = save_without_newrelic_trace(doc, opts, &block)
+            result = save_without_new_relic_trace(doc, opts, &block)
           ensure
             transaction_state.pop_traced
           end
@@ -79,8 +79,8 @@ DependencyDetection.defer do
         end
       end
 
-      alias_method :save_without_newrelic_trace, :save
-      alias_method :save, :save_with_newrelic_trace
+      alias_method :save_without_new_relic_trace, :save
+      alias_method :save, :save_with_new_relic_trace
     end
   end
 
@@ -89,7 +89,7 @@ DependencyDetection.defer do
       include NewRelic::Agent::MethodTracer
       require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
 
-      def ensure_index_with_newrelic_trace(spec, opts = {}, &block)
+      def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
         metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:ensure_index, { :collection => self.name })
 
         trace_execution_scoped(metrics) do
@@ -99,7 +99,7 @@ DependencyDetection.defer do
           transaction_state.push_traced(false)
 
           begin
-            result = ensure_index_without_newrelic_trace(spec, opts, &block)
+            result = save_without_new_relic_trace(spec, opts, &block)
           ensure
             transaction_state.pop_traced
           end
@@ -110,8 +110,8 @@ DependencyDetection.defer do
         end
       end
 
-      alias_method :ensure_index_without_newrelic_trace, :ensure_index
-      alias_method :ensure_index, :ensure_index_with_newrelic_trace
+      alias_method :ensure_index_without_new_relic_trace, :ensure_index
+      alias_method :ensure_index, :ensure_index_with_new_relic_trace
     end
   end
 end

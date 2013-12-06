@@ -38,7 +38,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
   def test_mongo_instrumentation_loaded
     logging_methods = ::Mongo::Logging.instance_methods
-    assert logging_methods.include?(:instrument_with_newrelic_trace), "Expected #{logging_methods.inspect}\n to include :instrument_with_newrelic_trace."
+    assert logging_methods.include?(:instrument_with_new_relic_trace), "Expected #{logging_methods.inspect}\n to include :instrument_with_newrelic_trace."
   end
 
   def test_records_metrics_for_insert
