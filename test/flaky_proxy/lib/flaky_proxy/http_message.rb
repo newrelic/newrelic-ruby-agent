@@ -93,11 +93,9 @@ module FlakyProxy
         'Content-Length' => body.bytesize
       }
       headers = default_headers.merge(headers)
-      headers_string = ""
-      headers.each do |key, value|
-        headers_string << "#{key}: #{value}\r\n"
-      end
-      headers_string
+      headers.map do |key, value|
+        "#{key}: #{value}\r\n"
+      end.join
     end
   end
 end
