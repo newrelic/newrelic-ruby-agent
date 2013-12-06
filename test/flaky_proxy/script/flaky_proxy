@@ -34,8 +34,6 @@ parser = OptionParser.new do |opts|
 end
 parser.parse!
 
-rules_path = ARGV[0]
+options[:rules_path] = ARGV[0] if ARGV[0]
 
-proxy = FlakyProxy::Proxy.new(options[:listen_host], options[:listen_port], options[:target_host], options[:target_port])
-proxy.watch_rules_file(rules_path) if rules_path
-proxy.run
+FlakyProxy::Proxy.new(options).run
