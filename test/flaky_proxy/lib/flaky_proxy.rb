@@ -12,7 +12,7 @@ require 'flaky_proxy/proxy'
 module FlakyProxy
   @logger = Logger.new($stderr)
 
-  def self.log
+  def self.logger
     @logger
   end
 end

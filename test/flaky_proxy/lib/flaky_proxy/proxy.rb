@@ -18,7 +18,7 @@ module FlakyProxy
       if @rules_file_path
         mtime = File.stat(@rules_file_path).mtime
         if @last_rules_mtime.nil? || mtime > @last_rules_mtime
-          FlakyProxy.log.info("Reloading rules file at #{@rules_file_path}")
+          FlakyProxy.logger.info("Reloading rules file at #{@rules_file_path}")
           @rules = RuleSet.build(File.read(@rules_file_path))
           @last_rules_mtime = mtime
         end
@@ -26,15 +26,15 @@ module FlakyProxy
     end
 
     def run
-      FlakyProxy.log.info("Starting FlakyProxy on #{@bind_host}:#{@bind_port} -> #{@backend_server.to_s}")
+      FlakyProxy.logger.info("Starting FlakyProxy on #{@bind_host}:#{@bind_port} -> #{@backend_server.to_s}")
       @listen_socket = TCPServer.new(@bind_host, @bind_port)
       loop do
         client_socket = @listen_socket.accept
         reload_rules_file
-        FlakyProxy.log.info("Accepted connection from #{client_socket}")
+        FlakyProxy.logger.info("Accepted connection from #{client_socket}")
         connection = Connection.new(client_socket, @backend_server, @rules)
         connection.service
-        FlakyProxy.log.info("Finished servicing connection from #{client_socket}")
+        FlakyProxy.logger.info("Finished servicing connection from #{client_socket}")
       end
     end
   end

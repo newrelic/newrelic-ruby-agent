@@ -51,7 +51,7 @@ module FlakyProxy
 
     def evaluate(request, connection)
       action, *params = next_action
-      FlakyProxy.log.info("    [#{action.upcase}] #{request.request_method} #{request.request_url}")
+      FlakyProxy.logger.info("    [#{action.upcase}] #{request.request_method} #{request.request_url}")
       case action
       when :pass
         relay(request, connection)
