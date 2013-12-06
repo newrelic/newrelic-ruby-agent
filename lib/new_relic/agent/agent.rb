@@ -200,22 +200,38 @@ module NewRelic
         # Options:
         # :force_send  => (true/false) # force the agent to send data
         def shutdown(options={})
-          run_loop_before_exit = Agent.config[:force_send]
           return if not started?
-          if @worker_loop
-            @worker_loop.run_task if run_loop_before_exit
-            @worker_loop.stop
-          end
-
           ::NewRelic::Agent.logger.info "Starting Agent shutdown"
 
+          stop_worker_loop
+          trap_signals_for_litespeed
+          untraced_graceful_disconnect
+
+          NewRelic::Agent.config.remove_config do |config|
+            config.class == NewRelic::Agent::Configuration::ManualSource ||
+              config.class == NewRelic::Agent::Configuration::ServerSource
+          end
+          @started = nil
+          Control.reset
+        end
+
+        def stop_worker_loop
+          if @worker_loop
+            @worker_loop.run_task if Agent.config[:force_send]
+            @worker_loop.stop
+          end
+        end
+
+        def trap_signals_for_litespeed
           # if litespeed, then ignore all future SIGUSR1 - it's
           # litespeed trying to shut us down
           if Agent.config[:dispatcher] == :litespeed
             Signal.trap("SIGUSR1", "IGNORE")
             Signal.trap("SIGTERM", "IGNORE")
           end
+        end
 
+        def untraced_graceful_disconnect
           begin
             NewRelic::Agent.disable_all_tracing do
               graceful_disconnect
@@ -223,12 +239,6 @@ module NewRelic
           rescue => e
             ::NewRelic::Agent.logger.error e
           end
-          NewRelic::Agent.config.remove_config do |config|
-            config.class == NewRelic::Agent::Configuration::ManualSource ||
-              config.class == NewRelic::Agent::Configuration::ServerSource
-          end
-          @started = nil
-          Control.reset
         end
 
         # Tells the statistics engine we are starting a new transaction
