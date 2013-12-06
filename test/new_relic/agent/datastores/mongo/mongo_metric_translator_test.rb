@@ -21,27 +21,17 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
   end
 
   def test_build_metrics_includes_web
-    expected = [
-      'Datastore/statement/MongoDB/tribbles/test',
-      'Datastore/operation/MongoDB/test',
-      'Datastore/all',
-      'Datastore/allWeb'
-    ]
+    expected = 'Datastore/allWeb'
     metrics = build_test_metrics('test')
 
-    assert_equal expected, metrics
+    assert metrics.include? expected
   end
 
   def test_build_metrics_includes_other
-    expected = [
-      'Datastore/statement/MongoDB/tribbles/test',
-      'Datastore/operation/MongoDB/test',
-      'Datastore/all',
-      'Datastore/allOther'
-    ]
+    expected = 'Datastore/allOther'
     metrics = build_test_metrics('test', false)
 
-    assert_equal expected, metrics
+    assert metrics.include? expected
   end
 
   def test_metrics_for_find

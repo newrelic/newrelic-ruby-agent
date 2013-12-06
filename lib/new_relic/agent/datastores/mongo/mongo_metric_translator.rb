@@ -45,7 +45,7 @@ module NewRelic
             default_metrics = [
               "Datastore/statement/MongoDB/#{collection}/#{name}",
               "Datastore/operation/MongoDB/#{name}",
-              'Datastore/all'
+              'ActiveRecord/all'
             ]
 
             if web_request
