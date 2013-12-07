@@ -44,6 +44,7 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Test::Unit::TestCase
   end
 
   def set_jruby_version_constant(string)
+    Object.send(:remove_const, 'JRUBY_VERSION') if defined?(JRuby)
     Object.const_set('JRUBY_VERSION', string)
   end
 
