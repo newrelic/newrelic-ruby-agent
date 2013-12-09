@@ -422,6 +422,22 @@ module HttpClientTestCases
     assert_externals_recorded_for("localhost", "GET")
   end
 
+  # https://newrelic.atlassian.net/browse/RUBY-1244
+  def test_failure_to_add_tt_node_doesnt_append_params_to_wrong_segment
+    # Fake a failure in our start-up code...
+    NewRelic.stubs(:json_dump).raises("Boom!")
+
+    in_transaction do
+      with_config(:"cross_application_tracer.enabled" => true) do
+        get_response
+
+        last_segment = find_last_transaction_segment()
+        refute last_segment.params.key?(:uri)
+      end
+    end
+  end
+
+
   def test_still_records_tt_node_when_request_fails
     # This test does not work on older versions of Typhoeus, because the
     # on_complete callback is not reliably invoked. That said, it's a corner

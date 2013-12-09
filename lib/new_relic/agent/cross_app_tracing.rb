@@ -97,13 +97,16 @@ module NewRelic
             stats_engine.record_metrics(metrics, duration)
             stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
-            # Add TT custom parameters
-            segment.name = scoped_metric if segment
-            add_transaction_trace_parameters(request, response)
+            # If we don't have segment, something failed during start_trace so
+            # the current segment isn't the HTTP call it should have been.
+            if segment
+              segment.name = scoped_metric
+              add_transaction_trace_parameters(request, response)
+            end
           end
         ensure
-          # If we got a segment, pop the scope stack to avoid an inconsistent
-          # state, which will prevent tracing of the whole transaction.
+          # If we have a segment, always pop the scope stack to avoid an
+          # inconsistent state, which prevents tracing of whole transaction.
           stats_engine.pop_scope( segment, scoped_metric, t1 ) if segment
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
