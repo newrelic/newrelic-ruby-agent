@@ -36,11 +36,11 @@ module NewRelic
       def trace_http_request( request )
         return yield unless NewRelic::Agent.is_execution_traced?
 
-        t0, segment = start_trace( request )
         begin
+          t0, segment = start_trace( request )
           response = yield
         ensure
-          finish_trace( t0, segment, request, response ) if t0
+          finish_trace( t0, segment, request, response )
         end
 
         return response
@@ -60,16 +60,15 @@ module NewRelic
       # * []=(key, val) - Set an HTTP request header by name
       # * uri  - Full URI of the request
       def start_trace( request )
-        inject_request_headers( request ) if cross_app_enabled?
-
-        # Create a segment and time the call
         t0 = Time.now
+
+        inject_request_headers( request ) if cross_app_enabled?
         segment = stats_engine.push_scope( :net_http, t0 )
 
         return t0, segment
       rescue => err
         NewRelic::Agent.logger.error "Uncaught exception while tracing HTTP request", err
-        return nil
+        return t0, nil
       end
 
 
@@ -99,13 +98,13 @@ module NewRelic
             stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
             # Add TT custom parameters
-            segment.name = scoped_metric
+            segment.name = scoped_metric if segment
             add_transaction_trace_parameters(request, response)
           end
         ensure
-          # We always need to pop the scope stack to avoid an inconsistent
+          # If we got a segment, pop the scope stack to avoid an inconsistent
           # state, which will prevent tracing of the whole transaction.
-          stats_engine.pop_scope( segment, scoped_metric, t1 )
+          stats_engine.pop_scope( segment, scoped_metric, t1 ) if segment
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "while cross app tracing", err
@@ -132,7 +131,7 @@ module NewRelic
         NewRelic::Agent.config[:"cross_application_tracer.enabled"] || NewRelic::Agent.config[:cross_application_tracing]
       end
 
-      # Memoized fetcher for the cross app encoding key. Raises a
+      # Fetcher for the cross app encoding key. Raises a
       # NewRelic::Agent::CrossAppTracing::Error if the key isn't configured.
       def cross_app_encoding_key
         NewRelic::Agent.config[:encoding_key] or

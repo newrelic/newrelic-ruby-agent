@@ -410,6 +410,18 @@ module HttpClientTestCases
     end
   end
 
+  # https://newrelic.atlassian.net/browse/RUBY-1244
+  def test_failure_in_our_start_code_still_records_externals
+    # Fake a failure in our start-up code...
+    NewRelic.stubs(:json_dump).raises("Boom!")
+
+    with_config(:"cross_application_tracer.enabled" => true) do
+      get_response
+    end
+
+    assert_externals_recorded_for("localhost", "GET")
+  end
+
   def test_still_records_tt_node_when_request_fails
     # This test does not work on older versions of Typhoeus, because the
     # on_complete callback is not reliably invoked. That said, it's a corner
