@@ -116,12 +116,7 @@ module HttpClientTestCases
     res = get_response
 
     assert_match %r/<head>/i, body(res)
-    assert_metrics_recorded([
-      "External/all",
-      "External/localhost/#{client_name}/GET",
-      "External/allOther",
-      "External/localhost/all"
-    ])
+    assert_externals_recorded_for("localhost", "GET")
   end
 
   # Although rare, some clients do explicitly set the "host" header on their
@@ -134,12 +129,7 @@ module HttpClientTestCases
     res = get_response(uri.to_s, 'Host' => 'test.local')
 
     assert_match %r/<head>/i, body(res)
-    assert_metrics_recorded([
-      "External/all",
-      "External/test.local/#{client_name}/GET",
-      "External/allOther",
-      "External/test.local/all"
-    ])
+    assert_externals_recorded_for("test.local", "GET")
   end
 
   def test_get_with_host_header_lowercase
@@ -148,12 +138,7 @@ module HttpClientTestCases
     res = get_response(uri.to_s, 'host' => 'test.local')
 
     assert_match %r/<head>/i, body(res)
-    assert_metrics_recorded([
-      "External/all",
-      "External/test.local/#{client_name}/GET",
-      "External/allOther",
-      "External/test.local/all"
-    ])
+    assert_externals_recorded_for("test.local", "GET")
   end
 
   # Only some HTTP clients support explicit connection reuse, so this test
@@ -168,12 +153,7 @@ module HttpClientTestCases
       end
 
       expected = { :call_count => n }
-      assert_metrics_recorded(
-        "External/all" => expected,
-        "External/localhost/#{client_name}/GET" => expected,
-        "External/allOther" => expected,
-        "External/localhost/all" => expected
-      )
+      assert_externals_recorded_for("localhost", "GET", :counts => expected)
     end
   end
 
@@ -185,11 +165,8 @@ module HttpClientTestCases
     end
 
     assert_match %r/<head>/i, body(res)
+    assert_externals_recorded_for("localhost", "GET")
     assert_metrics_recorded([
-      "External/all",
-      "External/allOther",
-      "External/localhost/all",
-      "External/localhost/#{client_name}/GET",
       ["External/localhost/#{client_name}/GET", "OtherTransaction/Background/#{self.class.name}/task"],
       "OtherTransaction/Background/#{self.class.name}/task",
       "OtherTransaction/Background/all",
@@ -205,11 +182,8 @@ module HttpClientTestCases
     end
 
     assert_match %r/<head>/i, body(res)
+    assert_externals_recorded_for("localhost", "GET", :transaction_type => "Web")
     assert_metrics_recorded([
-      "External/all",
-      "External/localhost/#{client_name}/GET",
-      "External/allWeb",
-      "External/localhost/all",
       "Controller/#{self.class.name}/task"
     ])
 
@@ -240,46 +214,22 @@ module HttpClientTestCases
 
   def test_head
     res = head_response
-
-    assert_metrics_recorded([
-      "External/all",
-      "External/localhost/#{client_name}/HEAD",
-      "External/allOther",
-      "External/localhost/all"
-    ])
+    assert_externals_recorded_for("localhost", "HEAD")
   end
 
   def test_post
     post_response
-
-    assert_metrics_recorded([
-      "External/all",
-      "External/localhost/#{client_name}/POST",
-      "External/allOther",
-      "External/localhost/all"
-    ])
+    assert_externals_recorded_for("localhost", "POST")
   end
 
   def test_put
     put_response
-
-    assert_metrics_recorded([
-      "External/all",
-      "External/localhost/#{client_name}/PUT",
-      "External/allOther",
-      "External/localhost/all"
-    ])
+    assert_externals_recorded_for("localhost", "PUT")
   end
 
   def test_delete
     delete_response
-
-    assert_metrics_recorded([
-      "External/all",
-      "External/localhost/#{client_name}/DELETE",
-      "External/allOther",
-      "External/localhost/all"
-    ])
+    assert_externals_recorded_for("localhost", "DELETE")
   end
 
   # When an http call is made, the agent should add a request header named
@@ -329,13 +279,8 @@ module HttpClientTestCases
       end
     end
 
-    assert_metrics_recorded([
-      "External/all",
-      "External/allOther",
-      "External/localhost/all",
-      "External/localhost/#{client_name}/GET",
-      ["External/localhost/#{client_name}/GET", "test"]
-    ])
+    assert_externals_recorded_for("localhost", "GET")
+    assert_metrics_recorded([["External/localhost/#{client_name}/GET", "test"]])
   end
 
   def test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
@@ -346,13 +291,8 @@ module HttpClientTestCases
       get_response
     end
 
-    assert_metrics_recorded([
-      "External/all",
-      "External/allOther",
-      "External/localhost/all",
-      "External/localhost/#{client_name}/GET",
-       ["External/localhost/#{client_name}/GET", "test"]
-    ])
+    assert_externals_recorded_for("localhost", "GET")
+    assert_metrics_recorded([["External/localhost/#{client_name}/GET", "test"]])
   end
 
   def test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
@@ -413,13 +353,8 @@ module HttpClientTestCases
       end
     end
 
-    assert_metrics_recorded([
-      "External/all",
-      "External/allOther",
-      "External/localhost/#{client_name}/GET",
-      "External/localhost/all",
-      ["External/localhost/#{client_name}/GET", "test"]
-    ])
+    assert_externals_recorded_for("localhost", "GET")
+    assert_metrics_recorded([["External/localhost/#{client_name}/GET", "test"]])
   end
 
   def test_doesnt_affect_the_request_if_an_exception_is_raised_while_setting_up_tracing
@@ -507,6 +442,27 @@ module HttpClientTestCases
   def make_app_data_payload( *args )
     obfuscator = NewRelic::Agent::Obfuscator.new('gringletoes')
     return obfuscator.obfuscate( args.to_json ) + "\n"
+  end
+
+  def assert_externals_recorded_for(host, meth, opts={})
+    txn_type   = opts.fetch(:transaction_type, "Other")
+    counts     = opts.fetch(:counts, nil)
+
+    if counts.nil?
+      assert_metrics_recorded([
+        "External/all",
+        "External/all#{txn_type}",
+        "External/#{host}/#{client_name}/#{meth}",
+        "External/#{host}/all"
+      ])
+    else
+      assert_metrics_recorded(
+        "External/all"                            => counts,
+        "External/all#{txn_type}"                 => counts,
+        "External/#{host}/#{client_name}/#{meth}" => counts,
+        "External/#{host}/all"                    => counts
+      )
+    end
   end
 
 end
