@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module FlakyProxy
   class Rule
     class ActionBuilder
@@ -46,7 +50,7 @@ module FlakyProxy
     def relay(request, connection)
       request.relay_to(connection.server_socket)
       response = Response.read_from(connection.server_socket)
-      response.relay_to(connection.client_socket)      
+      response.relay_to(connection.client_socket)
     end
 
     def evaluate(request, connection)

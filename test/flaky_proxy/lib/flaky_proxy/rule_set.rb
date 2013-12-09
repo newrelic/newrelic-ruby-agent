@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module FlakyProxy
   class RuleSet
     class Builder
@@ -14,7 +18,7 @@ module FlakyProxy
     end
 
     def self.build(text=nil, &blk)
-      ruleset = self.new 
+      ruleset = self.new
       Builder.new(ruleset).instance_eval(text, &blk)
       ruleset
     end
