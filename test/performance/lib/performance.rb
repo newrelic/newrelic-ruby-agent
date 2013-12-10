@@ -6,6 +6,7 @@ require 'logger'
 
 $: << File.expand_path(File.dirname(__FILE__))
 
+require 'performance/platform'
 require 'performance/result'
 require 'performance/runner'
 require 'performance/test_case'
