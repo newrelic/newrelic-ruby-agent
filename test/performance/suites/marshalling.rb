@@ -8,14 +8,14 @@ class Marshalling < Performance::TestCase
     @tt_payload = build_transaction_trace_payload
   end
 
+  skip_test :test_basic_marshalling_json, :platforms => :mri_18
+
   def test_basic_marshalling_json(timer)
-    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      timer.measure do
-        (iterations / 100).times do
-          marshaller.dump(@payload)
-          marshaller.dump(@tt_payload)
-        end
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    timer.measure do
+      (iterations / 100).times do
+        marshaller.dump(@payload)
+        marshaller.dump(@tt_payload)
       end
     end
   end
