@@ -17,20 +17,15 @@ DependencyDetection.defer do
 
   executes do
     class Net::HTTP
-      # Instrument outgoing HTTP requests
-      #
-      # If request is called when not the connection isn't started, request
-      # will call back into itself (via a start block).
-      #
-      # Don't tracing until the inner call then to avoid double-counting.
       def request_with_newrelic_trace(request, *args, &block)
-        if started?
-          wrapped_request = NewRelic::Agent::HTTPClients::NetHTTPRequest.new(self, request)
-          NewRelic::Agent::CrossAppTracing.trace_http_request( wrapped_request ) do
+        wrapped_request = NewRelic::Agent::HTTPClients::NetHTTPRequest.new(self, request)
+
+        NewRelic::Agent::CrossAppTracing.trace_http_request( wrapped_request ) do
+          # RUBY-1244 Disable further tracing in request to avoid double
+          # counting if connection wasn't started (which calls request again).
+          NewRelic::Agent.disable_all_tracing do
             request_without_newrelic_trace( request, *args, &block )
           end
-        else
-          request_without_newrelic_trace( request, *args, &block )
         end
       end
 
