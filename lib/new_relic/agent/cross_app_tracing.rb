@@ -67,7 +67,7 @@ module NewRelic
         t0 = Time.now
 
         inject_request_headers( request ) if cross_app_enabled?
-        segment = stats_engine.push_scope( :net_http, t0 )
+        segment = stats_engine.push_scope( :http_request, t0 )
 
         return t0, segment
       rescue => err
