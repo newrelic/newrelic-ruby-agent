@@ -55,10 +55,14 @@ module NewRelic
       #          to make the request (e.g. 'Net::HTTP' or 'Typhoeus')
       # * host - Return a String with the hostname or IP of the host being
       #          communicated with.
-      # * method  - Return a String with the HTTP method name used for this request
+      # * method  - Return a String with the HTTP method name for this request
       # * [](key) - Lookup an HTTP request header by name
       # * []=(key, val) - Set an HTTP request header by name
       # * uri  - Full URI of the request
+      #
+      # This method MUST return a pair. The first item always returns the
+      # starting time of the trace, even if an error occurs. The second item is
+      # the transaction segment if it was sucessfully pushed.
       def start_trace( request )
         t0 = Time.now
 
