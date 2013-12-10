@@ -61,7 +61,10 @@ class Marshalling < Performance::TestCase
         :duration         => rand,
         :webDuration      => rand,
         :databaseDuration => rand,
-        :gcCumulative     => rand
+        :gcCumulative     => rand,
+        :color            => 'blue-green',
+        :shape            => 'squarish',
+        :texture          => 'sort of lumpy like a bag of frozen peas'
       }
       events << [event]
     end
