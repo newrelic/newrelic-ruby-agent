@@ -108,8 +108,7 @@ class NetHttpTest < MiniTest::Unit::TestCase
     http = create_http(default_uri)
     http.request(Net::HTTP::Get.new(default_uri.request_uri))
 
-    assert_metrics_recorded([
-      'External/localhost/Net::HTTP/GET'
-    ])
+    assert_metrics_recorded(
+      'External/localhost/Net::HTTP/GET' => { :call_count => 1 })
   end
 end
