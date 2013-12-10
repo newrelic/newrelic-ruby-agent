@@ -22,6 +22,7 @@ end
 
 platforms :rbx do
   gem "rubysl"
+  gem "rubysl-json"
   gem "racc"  # https://github.com/rubinius/rubinius/issues/2632
 end
 
