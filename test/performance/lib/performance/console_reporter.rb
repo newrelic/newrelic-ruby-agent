@@ -42,8 +42,12 @@ module Performance
       results.each do |failure|
         puts "FAILED: #{failure.identifier}"
         e = failure.exception
-        puts "#{e['class']}: #{e['message']}"
-        puts failure.exception['backtrace'].map { |l| "    #{l}" }.join("\n")
+        if e
+          puts "#{e['class']}: #{e['message']}"
+          puts failure.exception['backtrace'].map { |l| "    #{l}" }.join("\n")
+        else
+          puts "<No exception recorded>"
+        end
       end
       puts ''
     end
