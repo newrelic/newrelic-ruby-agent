@@ -6,9 +6,12 @@
 require 'rails/test_help'
 require 'fake_collector'
 require 'multiverse_helpers'
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'test_exception'))
 
 class ErrorController < ApplicationController
   include Rails.application.routes.url_helpers
+  include NewRelic::TestHelpers::Exceptions
+
   newrelic_ignore :only => :ignored_action
 
   def controller_error
@@ -32,11 +35,11 @@ class ErrorController < ApplicationController
   end
 
   def ignored_error
-    raise IgnoredError.new('this error should not be noticed')
+    raise NewRelic::TestHelpers::Exceptions::IgnoredError.new('this error should not be noticed')
   end
 
   def server_ignored_error
-    raise ServerIgnoredError.new('this is a server ignored error')
+    raise NewRelic::TestHelpers::Exceptions::ServerIgnoredError.new('this is a server ignored error')
   end
 
   def frozen_error
@@ -64,9 +67,6 @@ class ErrorController < ApplicationController
     raise 'bad things'
   end
 end
-
-class IgnoredError < StandardError; end
-class ServerIgnoredError < StandardError; end
 
 class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   extend Multiverse::Color
@@ -258,7 +258,7 @@ class ErrorsWithSSCTest < ErrorsWithoutSSCTest
     $collector.stub('connect', {
       "listen_to_server_config" => true,
       "agent_run_id" => 1,
-      "error_collector.ignore_errors" => 'IgnoredError,ServerIgnoredError',
+      "error_collector.ignore_errors" => 'NewRelic::TestHelpers::Exceptions::IgnoredError,NewRelic::TestHelpers::Exceptions::ServerIgnoredError',
       "error_collector.enabled" => true,
       "error_collector.capture_source" => true,
       "collect_errors" => true
@@ -272,7 +272,7 @@ class ErrorsWithSSCTest < ErrorsWithoutSSCTest
   def test_should_ignore_server_ignored_errors
     get '/error/server_ignored_error'
     assert(@error_collector.errors.empty?,
-           'Noticed an error that should have been ignored')
+           'Noticed an error that should have been ignored' + @error_collector.errors.join(', '))
   end
 
 end

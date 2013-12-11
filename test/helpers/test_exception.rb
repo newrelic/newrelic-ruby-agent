@@ -8,6 +8,8 @@ module NewRelic
       class TestException < StandardError; end
       class ParentException < Exception; end
       class ChildException < ParentException; end
+      class IgnoredError < StandardError; end
+      class ServerIgnoredError < StandardError; end
     end
   end
 end
