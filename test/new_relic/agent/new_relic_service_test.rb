@@ -379,7 +379,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
     end
   end
 
-  if NewRelic::LanguageSupport.using_version?('1.9')
+  if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
     def test_json_marshaller_handles_responses_from_collector
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       assert_equal ['beep', 'boop'], marshaller.load('{"return_value": ["beep","boop"]}')
@@ -403,6 +403,55 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
       assert_equal('NewRelic::Agent::NewRelicService::PrubyMarshaller',
                    @service.marshaller.class.name)
+    end
+
+    def test_normalize_string_returns_input_if_correctly_encoded_utf8
+      string = "i want a pony"
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      result = marshaller.normalize_string(string)
+      assert_same(string, result)
+      assert_equal(Encoding.find('UTF-8'), result.encoding)
+    end
+
+    def test_normalize_string_returns_munged_copy_if_ascii_8bit
+      string = (0..255).to_a.pack("C*")
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      result = marshaller.normalize_string(string)
+      assert_not_same(string, result)
+      assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
+      assert_equal(string, result.dup.force_encoding('ASCII-8BIT'))
+    end
+
+    def test_normalize_string_returns_munged_copy_if_invalid_utf8
+      string = (0..255).to_a.pack("C*").force_encoding('UTF-8')
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      result = marshaller.normalize_string(string)
+      assert_not_same(result, string)
+      assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
+      assert_equal(string, result.dup.force_encoding('UTF-8'))
+    end
+
+    def test_normalize_string_returns_munged_copy_if_other_convertible_encoding
+      string = "i want a pony".encode('UTF-16')
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      result = marshaller.normalize_string(string)
+      assert_not_same(result, string)
+      assert_equal(Encoding.find('UTF-8'), result.encoding)
+      assert_equal(string, result.encode('UTF-16'))
+    end
+
+    def test_normalize_string_returns_munged_copy_if_other_non_convertible_enocding
+      # Attempting to convert from UTF-7 to UTF-8 in Ruby will raise an
+      # Encoding::ConverterNotFoundError, which is what we're trying to
+      # replicate for this test case.
+      # The following UTF-7 string decodes to 'Jyväskylä', a city in Finland
+      string = "Jyv+AOQ-skyl+AOQ-".force_encoding("UTF-7")
+      assert string.valid_encoding?
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      result = marshaller.normalize_string(string)
+      assert_not_same(result, string)
+      assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
+      assert_equal('Jyv+AOQ-skyl+AOQ-'.force_encoding('ISO-8859-1'), result)
     end
   end
 

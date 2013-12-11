@@ -502,8 +502,30 @@ module NewRelic
 
       # Marshal collector protocol with JSON when available
       class JsonMarshaller < Marshaller
+        ASCII_8BIT_ENCODING = Encoding.find('ASCII-8BIT')
+        UTF8_ENCODING = Encoding.find('UTF-8')
+
         def initialize
           ::NewRelic::Agent.logger.debug 'Using JSON marshaller'
+        end
+
+        def normalize_string(s)
+          return s if (s.encoding == UTF8_ENCODING && s.valid_encoding?)
+
+          # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
+          # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
+          if s.encoding == ASCII_8BIT_ENCODING || !s.valid_encoding?
+            s.dup.force_encoding('ISO-8859-1')
+          else
+            # Encoding is valid and non-binary, so it might be cleanly convertible
+            # to UTF-8. Give it a try and fall back to ISO-8859-1 if it fails.
+            normalized = s.dup
+            begin
+              normalized.encode!('UTF-8')
+            rescue
+              normalized.force_encoding('ISO-8859-1')
+            end
+          end
         end
 
         def dump(ruby, opts={})
