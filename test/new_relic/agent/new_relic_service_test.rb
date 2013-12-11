@@ -405,6 +405,50 @@ class NewRelicServiceTest < Test::Unit::TestCase
                    @service.marshaller.class.name)
     end
 
+    def test_json_marshaller_handles_binary_strings
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      input_string = (0..255).to_a.pack("C*")
+      result = marshaller.dump({ 'return_value' => input_string })
+
+      roundtripped_string = marshaller.load(result)
+      assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
+
+      expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
+      assert_equal(expected, roundtripped_string)
+    end
+
+    def test_json_marshaller_handles_strings_with_incorrect_encoding
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      input_string = (0..255).to_a.pack("C*").force_encoding("UTF-8")
+      result = marshaller.dump({ 'return_value' => input_string })
+
+      roundtripped_string = marshaller.load(result)
+      assert_equal(Encoding.find('UTF-8'), input_string.encoding)
+
+      expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
+      assert_equal(expected, roundtripped_string)
+    end
+
+    def test_json_marshaller_should_handle_crazy_strings
+      strings = {}
+      root = { 'return_value' => strings }
+      encodings = Encoding.list
+      100.times do
+        key_string = generate_random_byte_sequence(255, encodings.sample)
+        value_string = generate_random_byte_sequence(255, encodings.sample)
+        strings[key_string] = value_string
+      end
+
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      result = marshaller.load(marshaller.dump(root))
+
+      # Note that there's technically a possibility of collision here:
+      # if two of the randomly-generated key strings happen to normalize to the
+      # same value, we might see <100 results, but the chances of this seem
+      # vanishingly small.
+      assert_equal(100, result.length)
+    end
+
     def test_normalize_string_returns_input_if_correctly_encoded_utf8
       string = "i want a pony"
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
@@ -580,6 +624,15 @@ class NewRelicServiceTest < Test::Unit::TestCase
     end
     hash.harvested_at = Time.now
     hash
+  end
+
+  def generate_random_byte_sequence(length=255, encoding=nil)
+    bytes = []
+    alphabet = (0..255).to_a
+    length.times { bytes << alphabet.sample }
+    string = bytes.pack("C*")
+    string.force_encoding(encoding) if encoding
+    string
   end
 
   class HTTPHandle

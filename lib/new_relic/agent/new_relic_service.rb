@@ -528,8 +528,28 @@ module NewRelic
           end
         end
 
+        def normalize_encodings(object)
+          if String === object
+            normalize_string(object)
+          elsif Array === object
+            return object if object.empty?
+            result = object.map { |x| normalize_encodings(x) }
+            result
+          elsif Hash === object
+            return object if object.empty?
+            hash = {}
+            object.each_pair do |k, v|
+              k = normalize_string(k) if k.is_a?(String)
+              hash[k] = normalize_encodings(v)
+            end
+            hash
+          else
+            object
+          end
+        end
+
         def dump(ruby, opts={})
-          JSON.dump(prepare(ruby, opts))
+          JSON.dump(prepare(normalize_encodings(ruby), opts))
         rescue => e
           ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered dumping agent data: #{ruby}"
           raise JsonError.new(e)
