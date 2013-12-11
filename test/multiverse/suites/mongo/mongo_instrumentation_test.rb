@@ -5,7 +5,7 @@
 require 'mongo'
 require 'newrelic_rpm'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','helpers','mongo_metric_builder'))
+require File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'mongo_metric_builder')
 
 class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Unit::TestCase
   include Mongo
@@ -25,20 +25,6 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
   def teardown
     NewRelic::Agent.drop_buffered_data
-  end
-
-  def after_tests
-    @client.drop_database(@database_name)
-  end
-
-  def test_generates_payload_metrics_for_an_operation
-    ::NewRelic::Agent::Datastores::Mongo::MetricTranslator.expects(:metrics_for).with(:insert, has_entry(:database => @database_name, :collection => @collection_name))
-    @collection.insert(@tribble)
-  end
-
-  def test_mongo_instrumentation_loaded
-    logging_methods = ::Mongo::Logging.instance_methods
-    assert logging_methods.include?(:instrument_with_new_relic_trace), "Expected #{logging_methods.inspect}\n to include :instrument_with_newrelic_trace."
   end
 
   def test_records_metrics_for_insert
@@ -137,7 +123,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   def test_records_metrics_for_find_and_modify
     updated = @tribble.dup
     updated['name'] = 'codemonkey'
-    @collection.find_and_modify(query: @tribble, update: updated)
+    @collection.find_and_modify(:query => @tribble, :update => updated)
 
     metrics = build_test_metrics(:findAndModify)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
@@ -146,7 +132,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_find_and_remove
-    @collection.find_and_modify(query: @tribble, remove: true)
+    @collection.find_and_modify(:query => @tribble, :remove =>true)
 
     metrics = build_test_metrics(:findAndRemove)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
@@ -155,7 +141,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_create_index
-    @collection.create_index({'name' => Mongo::ASCENDING})
+    @collection.create_index([["name", Mongo::ASCENDING]])
 
     metrics = build_test_metrics(:createIndex)
     expected = metrics_with_attributes(metrics, { :call_count => 1 })
@@ -179,8 +165,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_drop_index
-    @collection.create_index({'name' => Mongo::ASCENDING})
-    name = @collection.index_information.values.last['name']
+    name =  @collection.create_index([['name', Mongo::ASCENDING]])
     NewRelic::Agent.drop_buffered_data
 
     @collection.drop_index(name)
@@ -192,7 +177,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_drop_indexes
-    @collection.create_index({'name' => Mongo::ASCENDING})
+    @collection.create_index([['name', Mongo::ASCENDING]])
     NewRelic::Agent.drop_buffered_data
 
     @collection.drop_indexes
@@ -204,7 +189,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
   end
 
   def test_records_metrics_for_reindex
-    @collection.create_index({'name' => Mongo::ASCENDING})
+    @collection.create_index([['name', Mongo::ASCENDING]])
     NewRelic::Agent.drop_buffered_data
 
     @database.command({ :reIndex => @collection_name })
