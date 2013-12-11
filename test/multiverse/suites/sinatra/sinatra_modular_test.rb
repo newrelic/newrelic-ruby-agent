@@ -4,8 +4,11 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'sinatra_test_cases'))
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
 
 class SinatraModularTestApp < Sinatra::Base
+  include NewRelic::TestHelpers::Exceptions
+
   configure do
     # display exceptions so we see what's going on
     disable :show_exceptions
@@ -40,8 +43,8 @@ class SinatraModularTestApp < Sinatra::Base
     "I'm not a teapot."
   end
 
-  error(NewRelic::TestHelpers::Exceptions::TestException) { halt 200, 'nothing happened' }
-  condition { raise NewRelic::TestHelpers::Exceptions::TestException }
+  error(NewRelic::TestHelpers::Exceptions::TestError) { halt 200, 'nothing happened' }
+  condition { raise NewRelic::TestHelpers::Exceptions::TestError }
   get('/error') { }
 
   condition do

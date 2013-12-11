@@ -65,7 +65,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     expects_logging(:error, any_parameters)
     @worker_loop.run(0) do
       @worker_loop.stop
-      raise NewRelic::TestHelper::Exception::TestException, "oops"
+      raise NewRelic::TestHelper::Exception::TestError, "oops"
     end
   end
 
@@ -75,9 +75,9 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
       :propagate_errors => true
     )
 
-    assert_raises NewRelic::TestHelpers::Exceptions::TestException do
+    assert_raises NewRelic::TestHelpers::Exceptions::TestError do
       @worker_loop.run(0) do
-        raise NewRelic::TestHelpers::Exceptions::TestException
+        raise NewRelic::TestHelpers::Exceptions::TestError
       end
     end
   end

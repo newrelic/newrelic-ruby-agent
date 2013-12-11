@@ -6,7 +6,7 @@
 require 'rails/test_help'
 require 'fake_collector'
 require 'multiverse_helpers'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'test_exception'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
 
 class ErrorController < ApplicationController
   include Rails.application.routes.url_helpers

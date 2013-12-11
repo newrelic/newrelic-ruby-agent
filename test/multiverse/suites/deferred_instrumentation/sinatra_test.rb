@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'sinatra', 'sinatra_test_cases'))
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'test_exception'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
 
 require 'newrelic_rpm'
 require 'sinatra'
@@ -47,8 +47,8 @@ class DeferredSinatraTestApp < Sinatra::Base
     "I'm not a teapot."
   end
 
-  error(NewRelic::TestHelpers::Exceptions::TestException) { halt 200, 'nothing happened' }
-  condition { raise NewRelic::TestHelpers::Exceptions::TestException }
+  error(NewRelic::TestHelpers::Exceptions::TestError) { halt 200, 'nothing happened' }
+  condition { raise NewRelic::TestHelpers::Exceptions::TestError }
   get('/error') { }
 
   condition do

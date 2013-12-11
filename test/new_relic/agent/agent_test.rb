@@ -516,8 +516,8 @@ module NewRelic
       end
 
       def test_untraced_graceful_disconnect_logs_errors
-        NewRelic::Agent.stubs(:disable_all_tracing).raises(TestException, 'test')
-        ::NewRelic::Agent.logger.expects(:error).with(is_a(TestException))
+        NewRelic::Agent.stubs(:disable_all_tracing).raises(TestError, 'test')
+        ::NewRelic::Agent.logger.expects(:error).with(is_a(TestError))
 
         @agent.untraced_graceful_disconnect
       end

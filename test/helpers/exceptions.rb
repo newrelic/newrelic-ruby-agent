@@ -5,11 +5,12 @@
 module NewRelic
   module TestHelpers
     module Exceptions
-      class TestException < StandardError; end
-      class ParentException < Exception; end
-      class ChildException < ParentException; end
+      class TestError < StandardError; end
       class IgnoredError < StandardError; end
       class ServerIgnoredError < StandardError; end
+      class TestRuntimeError < RuntimeError; end
+      class ParentException < Exception; end
+      class ChildException < ParentException; end
     end
   end
 end
