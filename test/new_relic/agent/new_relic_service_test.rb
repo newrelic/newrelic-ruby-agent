@@ -393,16 +393,18 @@ class NewRelicServiceTest < Test::Unit::TestCase
       end
     end
 
-    def test_use_pruby_marshaller_if_error_using_json
-      json_marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      @service.instance_variable_set(:@marshaller, json_marshaller)
+    def test_raises_serialization_error_if_json_serialization_fails
       JSON.stubs(:dump).raises(RuntimeError.new('blah'))
-      @http_handle.respond_to(:transaction_sample_data, 'ok', :format => :pruby)
+      assert_raise(NewRelic::Agent::SerializationError) do
+        @service.send(:invoke_remote, 'wiggle', {})
+      end
+    end
 
-      @service.transaction_sample_data([])
-
-      assert_equal('NewRelic::Agent::NewRelicService::PrubyMarshaller',
-                   @service.marshaller.class.name)
+    def test_raises_serialization_error_if_enocding_normalization_fails
+      @service.marshaller.stubs(:normalize_encodings).raises(RuntimeError.new('blah'))
+      assert_raise(NewRelic::Agent::SerializationError) do
+        @service.send(:invoke_remote, 'wiggle', {})
+      end
     end
 
     def test_json_marshaller_handles_binary_strings
