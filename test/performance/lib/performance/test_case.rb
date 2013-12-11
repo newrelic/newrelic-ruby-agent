@@ -26,6 +26,14 @@ module Performance
     def setup; end
     def teardown; end
 
+    def self.skip_test(test_method_name, options={})
+      skip_specifiers << [test_method_name, options]
+    end
+
+    def self.skip_specifiers
+      @skip_specifiers ||= []
+    end
+
     def on(event, &action)
       @callbacks[event] ||= []
       @callbacks[event] << action
@@ -38,7 +46,14 @@ module Performance
     end
 
     def runnable_test_methods
-      self.methods.map { |m| m.to_s }.select { |m| m =~ /^test_/ }
+      results = self.methods.map(&:to_s).select { |m| m =~ /^test_/ }
+      self.class.skip_specifiers.each do |specifier|
+        method_name, options = *specifier
+        skipped_platforms = Array(options[:platforms])
+        skipped = Platform.current.match_any?(skipped_platforms)
+        results.delete(method_name.to_s) if skipped
+      end
+      results
     end
 
     def with_callbacks(name)
