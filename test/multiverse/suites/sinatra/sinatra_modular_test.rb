@@ -40,9 +40,8 @@ class SinatraModularTestApp < Sinatra::Base
     "I'm not a teapot."
   end
 
-  class Error < StandardError; end
-  error(Error) { halt 200, 'nothing happened' }
-  condition { raise Error }
+  error(NewRelic::TestHelpers::Exceptions::TestException) { halt 200, 'nothing happened' }
+  condition { raise NewRelic::TestHelpers::Exceptions::TestException }
   get('/error') { }
 
   condition do
