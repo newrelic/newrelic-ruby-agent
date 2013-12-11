@@ -6,7 +6,6 @@
 
 require 'sidekiq'
 require 'sidekiq/testing/inline'
-require 'test/unit'
 require 'newrelic_rpm'
 require 'fake_collector'
 require 'multiverse_helpers'

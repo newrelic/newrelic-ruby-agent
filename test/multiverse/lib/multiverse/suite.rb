@@ -107,6 +107,7 @@ module Multiverse
       return unless is_rbx?
 
       f.puts "gem 'rubysl', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .rubysl./
+      f.puts "gem 'rubysl-json', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .rubysl-json./
       f.puts "gem 'racc', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .racc./
     end
 

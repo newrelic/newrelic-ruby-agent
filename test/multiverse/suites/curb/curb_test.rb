@@ -5,7 +5,6 @@
 require 'curb'
 
 require 'newrelic_rpm'
-require 'test/unit'
 require 'http_client_test_cases'
 require 'new_relic/agent/http_clients/curb_wrappers'
 
