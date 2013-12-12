@@ -9,7 +9,7 @@ DependencyDetection.defer do
     return false unless defined? ::Mongo
 
     unless defined? ::Mongo::Logging
-      NewRelic::Agent.logger.debug 'Mongo instrumentation requires Mongo::Logging'
+      NewRelic::Agent.logger.info 'Mongo instrumentation requires Mongo::Logging'
       false
     else
       true
@@ -22,7 +22,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.debug 'Installing Mongo instrumentation'
+    NewRelic::Agent.logger.info 'Installing Mongo instrumentation'
     install_mongo_instrumentation
   end
 
