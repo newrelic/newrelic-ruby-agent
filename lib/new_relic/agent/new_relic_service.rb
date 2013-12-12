@@ -518,18 +518,19 @@ module NewRelic
 
           # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
           # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
+          normalized = s.dup
           if encoding == ASCII_8BIT_ENCODING || !s.valid_encoding?
-            s.dup.force_encoding('ISO-8859-1')
+            normalized.force_encoding(ISO_8859_1_ENCODING)
           else
             # Encoding is valid and non-binary, so it might be cleanly convertible
             # to UTF-8. Give it a try and fall back to ISO-8859-1 if it fails.
-            normalized = s.dup
             begin
-              normalized.encode!('UTF-8')
+              normalized.encode!(UTF8_ENCODING)
             rescue
-              normalized.force_encoding('ISO-8859-1')
+              normalized.force_encoding(ISO_8859_1_ENCODING)
             end
           end
+          normalized
         end
 
         def normalize_encodings(object)
