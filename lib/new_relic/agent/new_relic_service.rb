@@ -502,8 +502,8 @@ module NewRelic
 
       # Marshal collector protocol with JSON when available
       class JsonMarshaller < Marshaller
-        ASCII_8BIT_ENCODING = Encoding.find('ASCII-8BIT')
-        UTF8_ENCODING = Encoding.find('UTF-8')
+        ASCII_8BIT_ENCODING = (defined?(Encoding) && Encoding.find('ASCII-8BIT'))
+        UTF8_ENCODING = (defined?(Encoding) && Encoding.find('UTF-8'))
 
         def initialize
           ::NewRelic::Agent.logger.debug 'Using JSON marshaller'
