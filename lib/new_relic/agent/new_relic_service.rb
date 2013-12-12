@@ -534,13 +534,14 @@ module NewRelic
         end
 
         def normalize_encodings(object)
-          if String === object
+          case object
+          when String
             normalize_string(object)
-          elsif Array === object
+          when Array
             return object if object.empty?
             result = object.map { |x| normalize_encodings(x) }
             result
-          elsif Hash === object
+          when Hash
             return object if object.empty?
             hash = {}
             object.each_pair do |k, v|
