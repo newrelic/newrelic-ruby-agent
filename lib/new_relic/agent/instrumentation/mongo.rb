@@ -30,7 +30,7 @@ DependencyDetection.defer do
   def instrument_mongo_logging
     ::Mongo::Logging.class_eval do
       include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/mongo_metric_generator'
+      require 'new_relic/agent/datastores/mongo/metric_generator'
 
       def instrument_with_new_relic_trace(name, payload = {}, &block)
         metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(name, payload)
@@ -56,7 +56,7 @@ DependencyDetection.defer do
   def instrument_save
     ::Mongo::Collection.class_eval do
       include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/mongo_metric_generator'
+      require 'new_relic/agent/datastores/mongo/metric_generator'
 
       def save_with_new_relic_trace(doc, opts = {}, &block)
         metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:save, { :collection => self.name })
@@ -87,7 +87,7 @@ DependencyDetection.defer do
   def instrument_ensure_index
     ::Mongo::Collection.class_eval do
       include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/mongo_metric_generator'
+      require 'new_relic/agent/datastores/mongo/metric_generator'
 
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
         metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:ensureIndex, { :collection => self.name })
