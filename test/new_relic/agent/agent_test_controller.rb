@@ -11,6 +11,7 @@ class NewRelic::Agent::SuperclassController <  ActionController::Base
 end
 # This is a controller class used in testing controller instrumentation
 class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassController
+  include NewRelic::TestHelpers::Exceptions
   # filter_parameter_logging :social_security_number
 
   @@headers_to_add = nil
@@ -41,8 +42,6 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
   end
   def oops
     raise "error in before filter"
-  end
-  class TestException < RuntimeError
   end
 
   def rescue_action_locally(exception)

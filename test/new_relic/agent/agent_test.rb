@@ -7,6 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 module NewRelic
   module Agent
     class AgentTest < Test::Unit::TestCase
+      include NewRelic::TestHelpers::Exceptions
 
       def setup
         super
@@ -471,8 +472,72 @@ module NewRelic
         @agent.send(:graceful_disconnect)
         assert_equal(1, before_shutdown_call_count)
       end
-    end
 
+      def test_trap_signals_for_litespeed
+        Signal.expects(:trap).with('SIGUSR1', 'IGNORE')
+        Signal.expects(:trap).with('SIGTERM', 'IGNORE')
+
+        with_config(:dispatcher => :litespeed) do
+          @agent.trap_signals_for_litespeed
+        end
+      end
+
+      def test_stop_worker_loop_runs_loop_before_exit_with_force_send_config
+        fake_loop = mock
+        fake_loop.expects(:run_task)
+        fake_loop.stubs(:stop)
+
+        @agent.instance_variable_set(:@worker_loop, fake_loop)
+
+        with_config(:force_send => true) do
+          @agent.stop_worker_loop
+        end
+      end
+
+      def test_stop_worker_loop_doesnt_run_loop_if_force_send_is_false
+        fake_loop = mock
+        fake_loop.expects(:run_task).never
+        fake_loop.stubs(:stop)
+
+        @agent.instance_variable_set(:@worker_loop, fake_loop)
+
+        with_config(:force_send => false) do
+          @agent.stop_worker_loop
+        end
+      end
+
+      def test_stop_worker_loop_stops_the_loop
+        fake_loop = mock
+        fake_loop.expects(:stop)
+
+        @agent.instance_variable_set(:@worker_loop, fake_loop)
+
+        @agent.stop_worker_loop
+      end
+
+      def test_untraced_graceful_disconnect_logs_errors
+        NewRelic::Agent.stubs(:disable_all_tracing).raises(TestError, 'test')
+        ::NewRelic::Agent.logger.expects(:error).with(is_a(TestError))
+
+        @agent.untraced_graceful_disconnect
+      end
+
+      def test_revert_to_default_configuration_removes_manual_and_server_source
+        server_config = NewRelic::Agent::Configuration::ServerSource.new({})
+        Agent.config.apply_config(server_config, 1)
+
+        config_classes = NewRelic::Agent.config.config_stack.map(&:class)
+
+        assert_includes config_classes, NewRelic::Agent::Configuration::ManualSource
+        assert_includes config_classes, NewRelic::Agent::Configuration::ServerSource
+
+        @agent.revert_to_default_configuration
+
+        config_classes = NewRelic::Agent.config.config_stack.map(&:class)
+        refute config_classes.include? NewRelic::Agent::Configuration::ManualSource
+        refute config_classes.include? NewRelic::Agent::Configuration::ServerSource
+      end
+    end
 
     class AgentStartingTest < Test::Unit::TestCase
       def test_no_service_if_not_monitoring

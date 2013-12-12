@@ -15,7 +15,7 @@ common: &default_settings
   error_collector:
     enabled: true
     capture_source: true
-    ignore_errors: IgnoredError
+    ignore_errors: NewRelic::TestHelpers::Exceptions::IgnoredError
 
 development:
   <<: *default_settings

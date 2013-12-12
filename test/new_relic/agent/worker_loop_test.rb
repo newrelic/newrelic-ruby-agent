@@ -61,13 +61,11 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     assert done
   end
 
-  class Supernova < StandardError; end
-
   def test_task_error__exception
     expects_logging(:error, any_parameters)
     @worker_loop.run(0) do
       @worker_loop.stop
-      raise Supernova, "oops"
+      raise NewRelic::TestHelper::Exception::TestError, "oops"
     end
   end
 
@@ -77,9 +75,9 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
       :propagate_errors => true
     )
 
-    assert_raises Supernova do
+    assert_raises NewRelic::TestHelpers::Exceptions::TestError do
       @worker_loop.run(0) do
-        raise Supernova
+        raise NewRelic::TestHelpers::Exceptions::TestError
       end
     end
   end

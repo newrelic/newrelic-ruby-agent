@@ -5,6 +5,9 @@
 require 'sinatra'
 require File.expand_path(File.join(File.dirname(__FILE__), 'sinatra_test_cases'))
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
+
+include NewRelic::TestHelpers::Exceptions
 
 configure do
   # display exceptions so we see what's going on
@@ -40,9 +43,8 @@ get '/pass' do
   "I'm not a teapot."
 end
 
-class Error < StandardError; end
-error(Error) { halt 200, 'nothing happened' }
-set(:error_condition) { |_| condition { raise Error } }
+error(NewRelic::TestHelpers::Exceptions::TestError) { halt 200, 'nothing happened' }
+set(:error_condition) { |_| condition { raise NewRelic::TestHelpers::Exceptions::TestError } }
 get('/error', :error_condition => true) { }
 
 set(:precondition_check) do |_|
