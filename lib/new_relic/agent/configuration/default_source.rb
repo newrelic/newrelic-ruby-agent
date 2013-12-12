@@ -854,6 +854,12 @@ module NewRelic
           :type => Boolean,
           :description => 'Include TT custom params in real user monitoring script in outgoing responses.'
         },
+        :restart_thread_in_children => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Controls whether to check on running a transaction whether to respawn the harvest thread.'
+        },
       }.freeze
 
     end
