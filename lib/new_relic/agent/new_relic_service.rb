@@ -300,9 +300,6 @@ module NewRelic
                                 :encoding  => encoding,
                                 :collector => @collector)
         @marshaller.load(decompress_response(response))
-      rescue NewRelic::Agent::ForceRestartException => e
-        ::NewRelic::Agent.logger.debug e.message
-        raise
       ensure
         record_supportability_metrics(method, start_ts, serialize_finish_ts, size)
       end
