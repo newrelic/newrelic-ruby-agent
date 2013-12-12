@@ -44,6 +44,18 @@ class Marshalling < Performance::TestCase
     end
   end
 
+  def test_json_marshalling_latin1_strings(timer)
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    convert_strings_to_latin1(@payload)
+    convert_strings_to_latin1(@tt_payload)
+    timer.measure do
+      (iterations / 100).times do
+        marshaller.dump(@payload)
+        marshaller.dump(@tt_payload)
+      end
+    end
+  end
+
   def test_basic_marshalling_pruby(timer)
     marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
     timer.measure do
@@ -85,6 +97,12 @@ class Marshalling < Performance::TestCase
   def convert_strings_to_utf16(object)
     each_string(object) do |s|
       s.encode!('UTF-16')
+    end
+  end
+
+  def convert_strings_to_latin1(object)
+    each_string(object) do |s|
+      s.replace(generate_random_string(s.bytesize)).force_encoding('ISO-8859-1')
     end
   end
 

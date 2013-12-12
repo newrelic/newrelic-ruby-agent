@@ -504,17 +504,21 @@ module NewRelic
       class JsonMarshaller < Marshaller
         ASCII_8BIT_ENCODING = (defined?(Encoding) && Encoding.find('ASCII-8BIT'))
         UTF8_ENCODING = (defined?(Encoding) && Encoding.find('UTF-8'))
+        ISO_8859_1_ENCODING = (defined?(Encoding) && Encoding.find('ISO-8859-1'))
 
         def initialize
           ::NewRelic::Agent.logger.debug 'Using JSON marshaller'
         end
 
         def normalize_string(s)
-          return s if (s.encoding == UTF8_ENCODING && s.valid_encoding?)
+          encoding = s.encoding
+          if (encoding == UTF8_ENCODING || encoding == ISO_8859_1_ENCODING) && s.valid_encoding?
+            return s
+          end
 
           # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
           # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
-          if s.encoding == ASCII_8BIT_ENCODING || !s.valid_encoding?
+          if encoding == ASCII_8BIT_ENCODING || !s.valid_encoding?
             s.dup.force_encoding('ISO-8859-1')
           else
             # Encoding is valid and non-binary, so it might be cleanly convertible
