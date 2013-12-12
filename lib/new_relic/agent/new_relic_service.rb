@@ -304,7 +304,7 @@ module NewRelic
       def handle_serialization_error(method, e)
         NewRelic::Agent.increment_metric("Supportability/serialization_failure")
         NewRelic::Agent.increment_metric("Supportability/serialization_failure/#{method}")
-        msg = "Failed to serialize #{method} data using #{@marshaller}: #{e}"
+        msg = "Failed to serialize #{method} data using #{@marshaller.class.to_s}: #{e.inspect}"
         error = SerializationError.new(msg)
         error.set_backtrace(e.backtrace)
         raise error
@@ -421,9 +421,65 @@ module NewRelic
           end
         end
 
+        module Normalized
+          ASCII_8BIT_ENCODING = (defined?(Encoding) && Encoding.find('ASCII-8BIT'))
+          UTF8_ENCODING = (defined?(Encoding) && Encoding.find('UTF-8'))
+          ISO_8859_1_ENCODING = (defined?(Encoding) && Encoding.find('ISO-8859-1'))
+
+          def self.normalize_string(s)
+            encoding = s.encoding
+            if (encoding == UTF8_ENCODING || encoding == ISO_8859_1_ENCODING) && s.valid_encoding?
+              return s
+            end
+
+            # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
+            # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
+            normalized = s.dup
+            if encoding == ASCII_8BIT_ENCODING || !s.valid_encoding?
+              normalized.force_encoding(ISO_8859_1_ENCODING)
+            else
+              # Encoding is valid and non-binary, so it might be cleanly convertible
+              # to UTF-8. Give it a try and fall back to ISO-8859-1 if it fails.
+              begin
+                normalized.encode!(UTF8_ENCODING)
+              rescue
+                normalized.force_encoding(ISO_8859_1_ENCODING)
+              end
+            end
+            normalized
+          end
+
+          def self.encode(object)
+            case object
+            when String
+              normalize_string(object)
+            when Array
+              return object if object.empty?
+              result = object.map { |x| encode(x) }
+              result
+            when Hash
+              return object if object.empty?
+              hash = {}
+              object.each_pair do |k, v|
+                k = normalize_string(k) if k.is_a?(String)
+                hash[k] = encode(v)
+              end
+              hash
+            else
+              object
+            end
+          end
+        end
+
         module Base64CompressedJSON
           def self.encode(data)
-            Base64.encode64(Compressed.encode(JSON.dump(data)))
+            Base64.encode64(
+              Compressed.encode(
+                JSON.dump(
+                  Normalized.encode(data)
+                )
+              )
+            )
           end
         end
       end
@@ -510,60 +566,14 @@ module NewRelic
 
       # Marshal collector protocol with JSON when available
       class JsonMarshaller < Marshaller
-        ASCII_8BIT_ENCODING = (defined?(Encoding) && Encoding.find('ASCII-8BIT'))
-        UTF8_ENCODING = (defined?(Encoding) && Encoding.find('UTF-8'))
-        ISO_8859_1_ENCODING = (defined?(Encoding) && Encoding.find('ISO-8859-1'))
-
         def initialize
           ::NewRelic::Agent.logger.debug 'Using JSON marshaller'
         end
 
-        def normalize_string(s)
-          encoding = s.encoding
-          if (encoding == UTF8_ENCODING || encoding == ISO_8859_1_ENCODING) && s.valid_encoding?
-            return s
-          end
-
-          # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
-          # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
-          normalized = s.dup
-          if encoding == ASCII_8BIT_ENCODING || !s.valid_encoding?
-            normalized.force_encoding(ISO_8859_1_ENCODING)
-          else
-            # Encoding is valid and non-binary, so it might be cleanly convertible
-            # to UTF-8. Give it a try and fall back to ISO-8859-1 if it fails.
-            begin
-              normalized.encode!(UTF8_ENCODING)
-            rescue
-              normalized.force_encoding(ISO_8859_1_ENCODING)
-            end
-          end
-          normalized
-        end
-
-        def normalize_encodings(object)
-          case object
-          when String
-            normalize_string(object)
-          when Array
-            return object if object.empty?
-            result = object.map { |x| normalize_encodings(x) }
-            result
-          when Hash
-            return object if object.empty?
-            hash = {}
-            object.each_pair do |k, v|
-              k = normalize_string(k) if k.is_a?(String)
-              hash[k] = normalize_encodings(v)
-            end
-            hash
-          else
-            object
-          end
-        end
-
         def dump(ruby, opts={})
-          JSON.dump(prepare(normalize_encodings(ruby), opts))
+          prepared = prepare(ruby, opts)
+          normalized = Encoders::Normalized.encode(prepared)
+          JSON.dump(normalized)
         end
 
         def load(data)

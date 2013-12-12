@@ -400,49 +400,35 @@ class NewRelicServiceTest < Test::Unit::TestCase
       end
     end
 
-    def test_raises_serialization_error_if_enocding_normalization_fails
-      @service.marshaller.stubs(:normalize_encodings).raises(RuntimeError.new('blah'))
+    def test_raises_serialization_error_if_encoding_normalization_fails
+      @http_handle.respond_to(:wiggle, 'hi')
+      NewRelic::Agent::NewRelicService::Encoders::Normalized.stubs(:encode).raises('blah')
       assert_raise(NewRelic::Agent::SerializationError) do
         @service.send(:invoke_remote, 'wiggle', {})
       end
     end
 
     def test_json_marshaller_handles_binary_strings
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       input_string = (0..255).to_a.pack("C*")
-      result = marshaller.dump({ 'return_value' => input_string })
+      roundtripped_string = roundtrip_data(input_string)
 
-      roundtripped_string = marshaller.load(result)
       assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
-
       expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
       assert_equal(expected, roundtripped_string)
     end
 
     def test_json_marshaller_handles_strings_with_incorrect_encoding
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       input_string = (0..255).to_a.pack("C*").force_encoding("UTF-8")
-      result = marshaller.dump({ 'return_value' => input_string })
+      roundtripped_string = roundtrip_data(input_string)
 
-      roundtripped_string = marshaller.load(result)
       assert_equal(Encoding.find('UTF-8'), input_string.encoding)
-
       expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
       assert_equal(expected, roundtripped_string)
     end
 
     def test_json_marshaller_should_handle_crazy_strings
-      strings = {}
-      root = { 'return_value' => strings }
-      encodings = Encoding.list
-      100.times do
-        key_string = generate_random_byte_sequence(255, encodings.sample)
-        value_string = generate_random_byte_sequence(255, encodings.sample)
-        strings[key_string] = value_string
-      end
-
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      result = marshaller.load(marshaller.dump(root))
+      root = generate_object_graph_with_crazy_strings
+      result = roundtrip_data(root)
 
       # Note that there's technically a possibility of collision here:
       # if two of the randomly-generated key strings happen to normalize to the
@@ -451,18 +437,43 @@ class NewRelicServiceTest < Test::Unit::TestCase
       assert_equal(100, result.length)
     end
 
+    def test_normalization_should_account_for_to_collector_array
+      binary_string = generate_random_byte_sequence
+      data = DummyDataClass.new(binary_string, [])
+      result = roundtrip_data(data)
+
+      expected_string = binary_string.force_encoding('ISO-8859-1').encode('UTF-8')
+      assert_equal(expected_string, result[0])
+    end
+
+    def test_normalization_should_account_for_to_collector_array_with_nested_encodings
+      binary_string = generate_random_byte_sequence
+      data = DummyDataClass.new(binary_string, [binary_string])
+      result = roundtrip_data(data)
+
+      expected_string = binary_string.force_encoding('ISO-8859-1').encode('UTF-8')
+      assert_equal(expected_string, result[0])
+
+      base64_encoded_compressed_json_field = result[1]
+      compressed_json_field = Base64.decode64(base64_encoded_compressed_json_field)
+      json_field = Zlib::Inflate.inflate(compressed_json_field)
+      field = JSON.parse(json_field)
+
+      assert_equal([expected_string], field)
+    end
+
     def test_normalize_string_returns_input_if_correctly_encoded_utf8
       string = "i want a pony"
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      result = marshaller.normalize_string(string)
+      encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
+      result = encoder.normalize_string(string)
       assert_same(string, result)
       assert_equal(Encoding.find('UTF-8'), result.encoding)
     end
 
     def test_normalize_string_returns_munged_copy_if_ascii_8bit
       string = (0..255).to_a.pack("C*")
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      result = marshaller.normalize_string(string)
+      encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
+      result = encoder.normalize_string(string)
       assert_not_same(string, result)
       assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
       assert_equal(string, result.dup.force_encoding('ASCII-8BIT'))
@@ -470,8 +481,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
     def test_normalize_string_returns_munged_copy_if_invalid_utf8
       string = (0..255).to_a.pack("C*").force_encoding('UTF-8')
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      result = marshaller.normalize_string(string)
+      encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
+      result = encoder.normalize_string(string)
       assert_not_same(result, string)
       assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
       assert_equal(string, result.dup.force_encoding('UTF-8'))
@@ -479,8 +490,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
     def test_normalize_string_returns_munged_copy_if_other_convertible_encoding
       string = "i want a pony".encode('UTF-16')
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      result = marshaller.normalize_string(string)
+      encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
+      result = encoder.normalize_string(string)
       assert_not_same(result, string)
       assert_equal(Encoding.find('UTF-8'), result.encoding)
       assert_equal(string, result.encode('UTF-16'))
@@ -493,8 +504,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
       # The following UTF-7 string decodes to 'Jyväskylä', a city in Finland
       string = "Jyv+AOQ-skyl+AOQ-".force_encoding("UTF-7")
       assert string.valid_encoding?
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      result = marshaller.normalize_string(string)
+      encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
+      result = encoder.normalize_string(string)
       assert_not_same(result, string)
       assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
       assert_equal('Jyv+AOQ-skyl+AOQ-'.force_encoding('ISO-8859-1'), result)
@@ -637,6 +648,37 @@ class NewRelicServiceTest < Test::Unit::TestCase
     string
   end
 
+  def generate_object_graph_with_crazy_strings
+    strings = {}
+    encodings = Encoding.list
+    100.times do
+      key_string = generate_random_byte_sequence(255, encodings.sample)
+      value_string = generate_random_byte_sequence(255, encodings.sample)
+      strings[key_string] = value_string
+    end
+    strings
+  end
+
+  def roundtrip_data(data)
+    @http_handle.respond_to(:roundtrip, 'roundtrip')
+    @service.send(:invoke_remote, 'roundtrip', data)
+    @http_handle.last_request_payload[0]
+  end
+
+  class DummyDataClass
+    def initialize(string, object_graph)
+      @string = string
+      @object_graph = object_graph
+    end
+
+    def to_collector_array(encoder)
+      [
+        @string,
+        encoder.encode(@object_graph)
+      ]
+    end
+  end
+
   class HTTPHandle
     attr_accessor :read_timeout, :route_table
 
@@ -704,13 +746,18 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
     def last_request_payload
       return nil unless @last_request && @last_request.body
+
+      body = @last_request.body
+      content_encoding = @last_request['Content-Encoding']
+      body = Zlib::Inflate.inflate(body) if content_encoding == 'deflate'
+
       uri = URI.parse(@last_request.path)
       params = CGI.parse(uri.query)
       format = params['marshal_format'].first
       if format == 'json'
-        JSON.load(@last_request.body)
+        JSON.load(body)
       else
-        Marshal.load(@last_request.body)
+        Marshal.load(body)
       end
     end
   end
