@@ -281,10 +281,7 @@ module NewRelic
         begin
           data = @marshaller.dump(args)
         rescue => e
-          msg = "Failed to serialize #{method} data using #{@marshaller}: #{e}"
-          error = SerializationError.new(msg)
-          error.set_backtrace(e.backtrace)
-          raise error
+          handle_serialization_error(method, e)
         end
         serialize_finish_ts = Time.now
 
@@ -302,6 +299,15 @@ module NewRelic
         @marshaller.load(decompress_response(response))
       ensure
         record_supportability_metrics(method, start_ts, serialize_finish_ts, size)
+      end
+
+      def handle_serialization_error(method, e)
+        NewRelic::Agent.increment_metric("Supportability/serialization_failure")
+        NewRelic::Agent.increment_metric("Supportability/serialization_failure/#{method}")
+        msg = "Failed to serialize #{method} data using #{@marshaller}: #{e}"
+        error = SerializationError.new(msg)
+        error.set_backtrace(e.backtrace)
+        raise error
       end
 
       def record_supportability_metrics(method, start_ts, serialize_finish_ts, size)
