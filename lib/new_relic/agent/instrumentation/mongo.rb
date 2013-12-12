@@ -16,6 +16,11 @@ DependencyDetection.defer do
     end
   end
 
+  depends_on do
+    require 'new_relic/agent/datastores/mongo'
+    NewRelic::Agent::Datastores::Mongo.is_supported_version?
+  end
+
   executes do
     NewRelic::Agent.logger.debug 'Installing Mongo instrumentation'
     install_mongo_instrumentation
