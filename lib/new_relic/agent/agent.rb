@@ -206,13 +206,17 @@ module NewRelic
           stop_worker_loop
           trap_signals_for_litespeed
           untraced_graceful_disconnect
+          revert_to_default_configuration
 
+          @started = nil
+          Control.reset
+        end
+
+        def revert_to_default_configuration
           NewRelic::Agent.config.remove_config do |config|
             config.class == NewRelic::Agent::Configuration::ManualSource ||
               config.class == NewRelic::Agent::Configuration::ServerSource
           end
-          @started = nil
-          Control.reset
         end
 
         def stop_worker_loop

@@ -521,6 +521,22 @@ module NewRelic
 
         @agent.untraced_graceful_disconnect
       end
+
+      def test_revert_to_default_configuration_removes_manual_and_server_source
+        server_config = NewRelic::Agent::Configuration::ServerSource.new({})
+        Agent.config.apply_config(server_config, 1)
+
+        config_classes = NewRelic::Agent.config.config_stack.map(&:class)
+
+        assert_includes config_classes, NewRelic::Agent::Configuration::ManualSource
+        assert_includes config_classes, NewRelic::Agent::Configuration::ServerSource
+
+        @agent.revert_to_default_configuration
+
+        config_classes = NewRelic::Agent.config.config_stack.map(&:class)
+        refute config_classes.include? NewRelic::Agent::Configuration::ManualSource
+        refute config_classes.include? NewRelic::Agent::Configuration::ServerSource
+      end
     end
 
     class AgentStartingTest < Test::Unit::TestCase
