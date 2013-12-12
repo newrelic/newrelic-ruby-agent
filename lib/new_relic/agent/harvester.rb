@@ -19,7 +19,6 @@ module NewRelic
       end
 
       def on_transaction(*_)
-        puts "BOO #{Process.pid}"
         return unless restart_in_children_enabled? && needs_restart?
 
         needs_thread_start = false
