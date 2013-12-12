@@ -260,9 +260,9 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.notice_nosql('a key', 1.0)
   end
 
-  def test_notice_nosql_query
-    @sampler.expects(:notice_extra_data).with('query data', 1.0, :query)
-    @sampler.notice_nosql_query('query data', 1.0)
+  def test_notice_nosql_statement
+    @sampler.expects(:notice_extra_data).with('query data', 1.0, :statement)
+    @sampler.notice_nosql_statement('query data', 1.0)
   end
 
   def test_harvest_when_disabled

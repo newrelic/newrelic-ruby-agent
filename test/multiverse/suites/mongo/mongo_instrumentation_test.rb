@@ -214,7 +214,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
                  :operation  => :insert,
                  :documents  => [ { 'name' => 'soterios johnson' } ] }
 
-    result = segment.params[:query]
+    result = segment.params[:statement]
     result[:documents].first.delete(:_id)
 
     assert_equal expected, result, "Expected result (#{result}) to be #{expected}"
@@ -230,7 +230,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     expected = :insert
 
-    query = segment.params[:query]
+    query = segment.params[:statement]
     result = query[:operation]
 
     assert_equal expected, result
@@ -246,7 +246,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     expected = :save
 
-    query = segment.params[:query]
+    query = segment.params[:statement]
     result = query[:operation]
 
     assert_equal expected, result
@@ -262,7 +262,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     expected = :ensureIndex
 
-    query = segment.params[:query]
+    query = segment.params[:statement]
     result = query[:operation]
 
     assert_equal expected, result

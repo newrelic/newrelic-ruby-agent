@@ -39,7 +39,7 @@ DependencyDetection.defer do
           t0 = Time.now
           result = instrument_without_new_relic_trace(name, payload, &block)
           payload[:operation] = name
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_query(payload, (Time.now - t0).to_f)
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(payload, (Time.now - t0).to_f)
           result
         end
       end
@@ -74,7 +74,7 @@ DependencyDetection.defer do
           end
 
           doc[:operation] = :save
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_query(doc, (Time.now - t0).to_f)
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(doc, (Time.now - t0).to_f)
           result
         end
       end
@@ -105,7 +105,7 @@ DependencyDetection.defer do
           end
 
           spec[:operation] = :ensureIndex
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_query(spec, (Time.now - t0).to_f)
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(spec, (Time.now - t0).to_f)
           result
         end
       end
