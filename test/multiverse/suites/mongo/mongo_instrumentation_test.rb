@@ -14,8 +14,12 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include ::Mongo
     include ::NewRelic::TestHelpers::MongoMetricBuilder
 
+    def client
+      MongoClient.new
+    end
+
     def setup
-      @client = MongoClient.new
+      @client = client
       @database_name = 'multiverse'
       @database = @client.db(@database_name)
       @collection_name = 'tribbles'
@@ -270,5 +274,12 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       assert_equal expected, result
     end
 
+  end
+
+
+  class NewRelic::Agent::Instrumentation::MongoConnectionTest < NewRelic::Agent::Instrumentation::MongoInstrumentationTest
+    def client
+      Mongo::Connection.new
+    end
   end
 end
