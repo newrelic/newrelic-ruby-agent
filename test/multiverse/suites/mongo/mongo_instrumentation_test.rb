@@ -15,7 +15,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include ::NewRelic::TestHelpers::MongoMetricBuilder
 
     def client
-      MongoClient.new
+      MongoClient.new(ENV["MONGO_HOST"], ENV["MONGO_PORT"].to_i)
     end
 
     def setup
@@ -338,7 +338,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
   class NewRelic::Agent::Instrumentation::MongoConnectionTest < NewRelic::Agent::Instrumentation::MongoInstrumentationTest
     def client
-      Mongo::Connection.new
+      Mongo::Connection.new(ENV["MONGO_HOST"], ENV["MONGO_PORT"].to_i)
     end
   end
 end
