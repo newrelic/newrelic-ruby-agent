@@ -20,6 +20,7 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     @tribble = {'name' => 'soterios johnson'}
 
+    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
     NewRelic::Agent.drop_buffered_data
   end
 
@@ -265,6 +266,40 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     result = query[:operation]
 
     assert_equal expected, result
+  end
+
+  def test_web_requests_record_all_web_metric
+    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
+    @collection.insert(@tribble)
+
+    metrics = build_test_metrics(:insert)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
+
+    assert_metrics_recorded(expected)
+  end
+
+  def test_web_requests_do_not_record_all_other_metric
+    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
+    @collection.insert(@tribble)
+
+    assert_metrics_not_recorded(['Datastore/allOther'])
+  end
+
+  def test_other_requests_record_all_other_metric
+    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(false)
+    @collection.insert(@tribble)
+
+    metrics = build_test_metrics(:insert, :other)
+    expected = metrics_with_attributes(metrics, { :call_count => 1 })
+
+    assert_metrics_recorded(expected)
+  end
+
+  def test_other_requests_do_not_record_all_web_metric
+    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(false)
+    @collection.insert(@tribble)
+
+    assert_metrics_not_recorded(['Datastore/allWeb'])
   end
 
 end

@@ -29,7 +29,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
 
   def test_build_metrics_includes_other
     expected = 'Datastore/allOther'
-    metrics = build_test_metrics('test', false)
+    metrics = build_test_metrics('test', :other)
 
     assert metrics.include? expected
   end

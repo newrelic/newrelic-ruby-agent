@@ -5,11 +5,11 @@
 module NewRelic
   module TestHelpers
     module MongoMetricBuilder
-      def build_test_metrics(name, web = true)
+      def build_test_metrics(name, request_type = :web)
         NewRelic::Agent::Datastores::Mongo::MetricTranslator.build_metrics(
-          :name => name,
-          :collection => @collection_name,
-          :web => web
+          name,
+          @collection_name,
+          request_type
         )
       end
 
