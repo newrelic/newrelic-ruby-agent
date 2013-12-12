@@ -11,44 +11,69 @@ module NewRelic
 
       attr_reader :harvester
       def setup
-        @harvester = Harvester.new(nil)
-
-        # Make sure we don't actually start things up
-        NewRelic::Agent.stubs(:after_fork)
+        @after_forker = stub_everything
+        @harvester = Harvester.new(nil, @after_forker)
       end
 
       def test_marks_started_in_process
         pretend_started_in_another_process
-        harvester.on_transaction
 
-        assert harvester.started_in_current_process?
+        with_config(:restart_thread_in_children => true) do
+          harvester.on_transaction
+        end
+
+        assert_false harvester.needs_restart?
       end
 
       def test_skips_out_early_if_already_started
         harvester.mark_started
         ::Mutex.any_instance.expects(:synchronize).never
+
+        with_config(:restart_thread_in_children => true) do
+          harvester.on_transaction
+        end
+      end
+
+      def test_doesnt_call_to_restart_by_default
+        pretend_started_in_another_process
+        @after_forker.expects(:after_fork).never
+
         harvester.on_transaction
+      end
+
+      def test_doesnt_call_to_restart_if_explicitly_disabled
+        pretend_started_in_another_process
+        @after_forker.expects(:after_fork).never
+
+        with_config(:restart_thread_in_children => false) do
+          harvester.on_transaction
+        end
       end
 
       def test_calls_to_restart
         pretend_started_in_another_process
-        NewRelic::Agent.expects(:after_fork).once
-        harvester.on_transaction
+        @after_forker.expects(:after_fork).once
+
+        with_config(:restart_thread_in_children => true) do
+          harvester.on_transaction
+        end
       end
 
       def test_calls_to_restart_only_once
         pretend_started_in_another_process
-        NewRelic::Agent.expects(:after_fork).once
+        @after_forker.expects(:after_fork).once
 
-        threads = []
-        100.times do
-          threads << Thread.new do
-            harvester.on_transaction
+        with_config(:restart_thread_in_children => true) do
+          threads = []
+          100.times do
+            threads << Thread.new do
+              harvester.on_transaction
+            end
           end
-        end
 
-        threads.each do |thread|
-          thread.join
+          threads.each do |thread|
+            thread.join
+          end
         end
       end
 

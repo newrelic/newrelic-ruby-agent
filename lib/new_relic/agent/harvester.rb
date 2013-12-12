@@ -7,8 +7,10 @@ module NewRelic
     class Harvester
       attr_accessor :starting_pid
 
-      def initialize(events)
+      # Inject target for after_fork call to avoid spawning thread in tests
+      def initialize(events, after_forker=NewRelic::Agent)
         @starting_pid = Process.pid
+        @after_forker = after_forker
         @lock = Mutex.new
 
         if events
@@ -16,28 +18,37 @@ module NewRelic
         end
       end
 
-      def mark_started(pid = Process.pid)
-        @starting_pid = pid
-      end
-
-      def started_in_current_process?(pid = Process.pid)
-        @starting_pid == pid
-      end
-
       def on_transaction(*_)
-        return if started_in_current_process?
+        puts "BOO #{Process.pid}"
+        return unless restart_in_children_enabled? && needs_restart?
 
         needs_thread_start = false
         @lock.synchronize do
-          needs_thread_start = !started_in_current_process?
+          needs_thread_start = needs_restart?
           mark_started
         end
 
         if needs_thread_start
-          # Daemonize reports thread as still alive when it isn't... whack!
-          NewRelic::Agent.instance.instance_variable_set(:@worker_thread, nil)
-          NewRelic::Agent.after_fork(:force_reconnect => true)
+          restart_harvest_thread
         end
+      end
+
+      def mark_started(pid = Process.pid)
+        @starting_pid = pid
+      end
+
+      def needs_restart?(pid = Process.pid)
+        @starting_pid != pid
+      end
+
+      def restart_in_children_enabled?
+        NewRelic::Agent.config[:restart_thread_in_children]
+      end
+
+      def restart_harvest_thread
+        # Daemonize reports thread as still alive when it isn't... whack!
+        NewRelic::Agent.instance.instance_variable_set(:@worker_thread, nil)
+        @after_forker.after_fork(:force_reconnect => true)
       end
 
     end
