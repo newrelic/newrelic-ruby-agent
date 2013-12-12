@@ -30,16 +30,10 @@ DependencyDetection.defer do
   def instrument_mongo_logging
     ::Mongo::Logging.class_eval do
       include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
+      require 'new_relic/agent/datastores/mongo/mongo_metric_generator'
 
       def instrument_with_new_relic_trace(name, payload = {}, &block)
-        if NewRelic::Agent::Transaction.recording_web_transaction?
-          request_type = :web
-        else
-          request_type = :other
-        end
-
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(name, payload, request_type)
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(name, payload)
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
@@ -62,16 +56,10 @@ DependencyDetection.defer do
   def instrument_save
     ::Mongo::Collection.class_eval do
       include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
+      require 'new_relic/agent/datastores/mongo/mongo_metric_generator'
 
       def save_with_new_relic_trace(doc, opts = {}, &block)
-        if NewRelic::Agent::Transaction.recording_web_transaction?
-          request_type = :web
-        else
-          request_type = :other
-        end
-
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:save, { :collection => self.name }, request_type)
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:save, { :collection => self.name })
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
@@ -99,16 +87,10 @@ DependencyDetection.defer do
   def instrument_ensure_index
     ::Mongo::Collection.class_eval do
       include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
+      require 'new_relic/agent/datastores/mongo/mongo_metric_generator'
 
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
-        if NewRelic::Agent::Transaction.recording_web_transaction?
-          request_type = :web
-        else
-          request_type = :other
-        end
-
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:ensureIndex, { :collection => self.name }, request_type)
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:ensureIndex, { :collection => self.name })
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
