@@ -295,7 +295,7 @@ module NewRelic
 
       def initialize(opts={})
         super
-        @body[4] = unblob(@body[4]) if @format == :json
+        @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
       end
 
       def samples
