@@ -42,7 +42,7 @@ module NewRelic
         path = ensure_log_path
         if path
           @log = ::Logger.new(path)
-          @log.formatter = log_formatter
+          @log.formatter = create_log_formatter
           ::NewRelic::Agent.logger.info("Audit log enabled at '#{path}'")
         else
           @log = NewRelic::Agent::NullLogger.new
@@ -65,14 +65,11 @@ module NewRelic
         path
       end
 
-      def log_formatter
-        if @formatter.nil?
-          @formatter = Logger::Formatter.new
-          def @formatter.call(severity, time, progname, msg)
-            "[#{time} #{Socket.gethostname} (#{$$})] : #{msg}\n"
-          end
+      def create_log_formatter
+        @hostname = Socket.gethostname
+        Proc.new do |severity, time, progname, msg|
+          "[#{time} #{@hostname} (#{$$})] : #{msg}\n"
         end
-        @formatter
       end
     end
   end

@@ -12,7 +12,6 @@ class AuditLoggerTest < Test::Unit::TestCase
 
     @uri = "http://really.notreal"
     @marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
-    @hostname = 'dummyhost'
     @dummy_data = {
       'foo' => [1, 2, 3],
       'bar' => {
@@ -20,7 +19,6 @@ class AuditLoggerTest < Test::Unit::TestCase
         'jingle' => 'bells'
       }
     }
-    Socket.stubs(:gethostname).returns(@hostname)
   end
 
   def setup_fake_logger
@@ -53,11 +51,12 @@ class AuditLoggerTest < Test::Unit::TestCase
   end
 
   def test_log_formatter
-    formatter = NewRelic::Agent::AuditLogger.new.log_formatter
+    Socket.stubs(:gethostname).returns('dummyhost')
+    formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
     time = '2012-01-01 00:00:00'
     msg = 'hello'
     result = formatter.call(Logger::INFO, time, 'bleh', msg)
-    expected = "[2012-01-01 00:00:00 #{@hostname} (#{$$})] : hello\n"
+    expected = "[2012-01-01 00:00:00 dummyhost (#{$$})] : hello\n"
     assert_equal(expected, result)
   end
 
@@ -119,5 +118,14 @@ class AuditLoggerTest < Test::Unit::TestCase
       @logger.log_request(@uri, @dummy_data, json_marshaller)
       assert_log_contains_string(JSON.dump(@dummy_data))
     end
+  end
+
+  def test_should_cache_hostname
+    Socket.expects(:gethostname).once.returns('cachey-mccaherson')
+    setup_fake_logger
+    3.times do
+      @logger.log_request(@uri, @dummy_data, @marshaller)
+    end
+    assert_log_contains_string('cachey-mccaherson')
   end
 end
