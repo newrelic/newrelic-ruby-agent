@@ -534,8 +534,8 @@ module NewRelic
         @agent.revert_to_default_configuration
 
         config_classes = NewRelic::Agent.config.config_stack.map(&:class)
-        refute config_classes.include? NewRelic::Agent::Configuration::ManualSource
-        refute config_classes.include? NewRelic::Agent::Configuration::ServerSource
+        assert !config_classes.include?(NewRelic::Agent::Configuration::ManualSource)
+        assert !config_classes.include?(NewRelic::Agent::Configuration::ServerSource)
       end
     end
 
