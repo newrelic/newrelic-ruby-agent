@@ -7,7 +7,7 @@ module NewRelic
     module Datastores
       module Mongo
         module MetricTranslator
-          def self.metrics_for(name, payload)
+          def self.metrics_for(name, payload, request_type = :web)
             payload = {} if payload.nil?
 
             collection = payload[:collection]
@@ -35,20 +35,17 @@ module NewRelic
               collection = payload[:selector][:reIndex]
             end
 
-            build_metrics(:name => name, :collection => collection)
+            build_metrics(name, collection, request_type)
           end
 
-          def self.build_metrics(options)
-            name, collection = options[:name], options[:collection]
-            web_request = options.fetch(:web, true)
-
+          def self.build_metrics(name, collection, request_type = :web)
             default_metrics = [
               "Datastore/statement/MongoDB/#{collection}/#{name}",
               "Datastore/operation/MongoDB/#{name}",
               'ActiveRecord/all'
             ]
 
-            if web_request
+            if request_type == :web
               default_metrics << 'Datastore/allWeb'
             else
               default_metrics << 'Datastore/allOther'

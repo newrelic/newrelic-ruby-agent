@@ -2,16 +2,16 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
+require 'new_relic/agent/datastores/mongo/metric_translator'
 
 module NewRelic
   module TestHelpers
     module MongoMetricBuilder
-      def build_test_metrics(name, web = true)
+      def build_test_metrics(name, request_type = :web)
         NewRelic::Agent::Datastores::Mongo::MetricTranslator.build_metrics(
-          :name => name,
-          :collection => @collection_name,
-          :web => web
+          name,
+          @collection_name,
+          request_type
         )
       end
 

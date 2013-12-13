@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/datastores/mongo/mongo_metric_translator'
+require 'new_relic/agent/datastores/mongo/metric_translator'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 
 class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::TestCase
@@ -29,7 +29,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
 
   def test_build_metrics_includes_other
     expected = 'Datastore/allOther'
-    metrics = build_test_metrics('test', false)
+    metrics = build_test_metrics('test', :other)
 
     assert metrics.include? expected
   end
