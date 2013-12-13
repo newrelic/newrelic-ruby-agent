@@ -391,6 +391,14 @@ module NewRelic
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 
+      def test_harvest_and_send_from_container_does_not_merge_on_serialization_failure
+        container = mock('data container')
+        container.stubs(:harvest!).returns([1,2,3])
+        @agent.service.stubs(:dummy_endpoint).raises(SerializationError)
+        container.expects(:merge!).never
+        @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
+      end
+
       def test_harvest_and_send_from_container_does_not_merge_on_unrecoverable_failure
         container = mock('data container')
         container.stubs(:harvest!).returns([1,2,3])

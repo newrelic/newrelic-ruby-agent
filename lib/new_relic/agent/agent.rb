@@ -951,6 +951,8 @@ module NewRelic
             @service.send(endpoint, items)
           rescue ForceRestartException, ForceDisconnectException
             raise
+          rescue SerializationError => e
+            NewRelic::Agent.logger.warn("Failed to serialize data for #{endpoint}, discarding. Error: ", e)
           rescue UnrecoverableServerException => e
             NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
           rescue => e
