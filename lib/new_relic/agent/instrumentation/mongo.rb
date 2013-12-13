@@ -31,6 +31,7 @@ DependencyDetection.defer do
     ::Mongo::Logging.class_eval do
       include NewRelic::Agent::MethodTracer
       require 'new_relic/agent/datastores/mongo/metric_generator'
+      require 'new_relic/agent/datastores/mongo/statement_formatter'
 
       def instrument_with_new_relic_trace(name, payload = {}, &block)
         metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(name, payload)
@@ -39,7 +40,10 @@ DependencyDetection.defer do
           t0 = Time.now
           result = instrument_without_new_relic_trace(name, payload, &block)
           payload[:operation] = name
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(payload, (Time.now - t0).to_f)
+
+          statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+
           result
         end
       end
@@ -57,6 +61,7 @@ DependencyDetection.defer do
     ::Mongo::Collection.class_eval do
       include NewRelic::Agent::MethodTracer
       require 'new_relic/agent/datastores/mongo/metric_generator'
+      require 'new_relic/agent/datastores/mongo/statement_formatter'
 
       def save_with_new_relic_trace(doc, opts = {}, &block)
         metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:save, { :collection => self.name })
@@ -74,7 +79,8 @@ DependencyDetection.defer do
           end
 
           doc[:operation] = :save
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(doc, (Time.now - t0).to_f)
+          statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(doc)
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
           result
         end
       end
@@ -88,6 +94,7 @@ DependencyDetection.defer do
     ::Mongo::Collection.class_eval do
       include NewRelic::Agent::MethodTracer
       require 'new_relic/agent/datastores/mongo/metric_generator'
+      require 'new_relic/agent/datastores/mongo/statement_formatter'
 
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
         metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:ensureIndex, { :collection => self.name })
@@ -105,7 +112,8 @@ DependencyDetection.defer do
           end
 
           spec[:operation] = :ensureIndex
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(spec, (Time.now - t0).to_f)
+          statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(spec)
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
           result
         end
       end

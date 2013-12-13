@@ -211,11 +211,9 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
 
     expected = { :database   => 'multiverse',
                  :collection => 'tribbles',
-                 :operation  => :insert,
-                 :documents  => [ { 'name' => 'soterios johnson' } ] }
+                 :operation  => :insert}
 
     result = segment.params[:statement]
-    result[:documents].first.delete(:_id)
 
     assert_equal expected, result, "Expected result (#{result}) to be #{expected}"
   end
@@ -266,6 +264,19 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     result = query[:operation]
 
     assert_equal expected, result
+  end
+
+  def test_noticed_nosql_does_not_contain_documents
+    segment = nil
+
+    in_transaction do
+      @collection.insert({'name' => 'soterios johnson'})
+      segment = find_last_transaction_segment
+    end
+
+    statement = segment.params[:statement]
+
+    refute statement.keys.include?(:documents), "Noticed NoSQL should not include documents: #{statement}"
   end
 
   def test_web_requests_record_all_web_metric
