@@ -33,14 +33,24 @@ rescue Timeout::Error
   false
 end
 
+def wait_for_mongo
+  Timeout::timeout(10) do
+    until mongo_running? do
+      sleep(0.1)
+    end
+  end
+end
+
 before_suite do
   if mongo_running?
     $started_mongo = false
   else
-    $started_mongo = true
     puts "Starting Mongo for you, will shut down after tests"
     `mkdir -p tmp`
     `mongod --port #{ENV["MONGO_PORT"]} --pidfilepath tmp/mongo.pid &`
+    wait_for_mongo
+
+    $started_mongo = true
     puts "Mongo Mongo Mongo!"
   end
 end
