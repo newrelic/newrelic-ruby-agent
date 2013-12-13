@@ -143,9 +143,10 @@ module NewRelic
       end
 
       def set_log_format!
-        def @log.format_message(severity, timestamp, progname, msg)
-          prefix = @logdev.dev == STDOUT ? '** [NewRelic]' : ''
-          prefix + "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n"
+        @hostname = Socket.gethostname
+        @prefix = wants_stdout? ? '** [NewRelic]' : ''
+        @log.formatter = Proc.new do |severity, timestamp, progname, msg|
+          "#{@prefix}[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{@hostname} (#{$$})] #{severity} : #{msg}\n"
         end
       end
 

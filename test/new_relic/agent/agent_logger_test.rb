@@ -260,7 +260,15 @@ class AgentLoggerTest < Test::Unit::TestCase
     end
   end
 
-
+  def test_should_cache_hostname
+    Socket.expects(:gethostname).once.returns('cachey-mccaherson')
+    logger = create_basic_logger
+    logger.warn("one")
+    logger.warn("two")
+    logger.warn("three")
+    host_regex = /cachey-mccaherson/
+    assert_logged(host_regex, host_regex, host_regex)
+  end
 
   #
   # Helpers
