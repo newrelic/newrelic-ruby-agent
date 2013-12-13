@@ -17,4 +17,22 @@ class NewRelic::Agent::Datastores::Mongo::StatementFormatterTest < Test::Unit::T
 
     refute formatted.keys.include?(:documents), "Formatted statement should not include documents: #{formatted}"
   end
+
+  def test_statement_formatter_obfuscates_selectors
+    statement = { :database   => 'multiverse',
+                  :collection => 'tribbles',
+                  :selector   => { 'name'      => 'soterios johnson',
+                                    :operation => :find,
+                                    :_id       => "BSON::ObjectId('?')" } }
+
+    expected = { :database   => 'multiverse',
+                  :collection => 'tribbles',
+                  :selector   => { 'name'      => '?',
+                                    :operation => :find,
+                                    :_id       => '?' } }
+
+    obfuscated = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(statement)
+
+    assert_equal expected, obfuscated
+  end
 end

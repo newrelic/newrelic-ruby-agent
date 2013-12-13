@@ -16,8 +16,29 @@ class NewRelic::Agent::Datastores::Mongo::ObfuscatorTest < Test::Unit::TestCase
     expected = { :database   => 'multiverse',
                  :collection => 'tribbles',
                  :selector   => { 'name'     => '?',
-                                  :operation => '?',
+                                  :operation => :find,
                                   :_id       => '?' } }
+
+    obfuscated = NewRelic::Agent::Datastores::Mongo::Obfuscator.obfuscate_statement(statement)
+
+    assert_equal expected, obfuscated
+  end
+
+  def test_obfuscate_selector_values_skips_whitelisted_keys
+    fake_list = [:benign, :operation]
+    NewRelic::Agent::Datastores::Mongo::Obfuscator.stubs(:whitelist).returns(fake_list)
+
+    statement = { :database   => 'multiverse',
+                  :collection => 'tribbles',
+                  :selector   => { :benign      => 'bland data',
+                                   :operation => :find,
+                                   :_id       => "BSON::ObjectId('?')" } }
+
+    expected = { :database   => 'multiverse',
+                  :collection => 'tribbles',
+                  :selector   => { :benign    => 'bland data',
+                                   :operation => :find,
+                                   :_id       => '?' } }
 
     obfuscated = NewRelic::Agent::Datastores::Mongo::Obfuscator.obfuscate_statement(statement)
 

@@ -279,6 +279,20 @@ class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Uni
     refute statement.keys.include?(:documents), "Noticed NoSQL should not include documents: #{statement}"
   end
 
+  def test_noticed_nosql_does_not_contain_selector_values
+    @collection.insert({'password' => '$ecret'})
+    segment = nil
+
+    in_transaction do
+      @collection.remove({'password' => '$ecret'})
+      segment = find_last_transaction_segment
+    end
+
+    statement = segment.params[:statement]
+
+    assert_equal '?', statement[:selector]['password']
+  end
+
   def test_web_requests_record_all_web_metric
     NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
     @collection.insert(@tribble)
