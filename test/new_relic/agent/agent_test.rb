@@ -365,32 +365,7 @@ module NewRelic
         @agent.send(:harvest_from_container, container, 'digglewumpus')
       end
 
-      def send_data_from_container
-        service = @agent.service
-        items = [1, 2, 3]
-        service.expects(:dummy_endpoint).with(items)
-        @agent.send(:send_data_from_container, stub, 'dummy_endpoint', items)
-      end
-
-      def send_data_from_container_with_unrecoverable_server_error
-        service = @agent.service
-        container = mock('data container')
-        container.expects(:merge!).never
-        items = [1, 2, 3]
-        service.expects(:dummy_endpoint).raises(UnrecoverableServerException)
-        @agent.send(:send_data_from_container, container, 'dummy_endpoint', items)
-      end
-
-      def send_data_from_container_with_other_error
-        service = @agent.service
-        items = [1, 2, 3]
-        container = mock('data container')
-        container.expects(:merge!).with(items)
-        service.expects(:dummy_endpoint).raises('other errors')
-        @agent.send(:send_data_from_container, container, 'dummy_endpoint', items)
-      end
-
-      def harvest_and_send_from_container
+      def test_harvest_and_send_from_container
         container = mock('data container')
         items = [1, 2, 3]
         container.expects(:harvest!).returns(items)
@@ -399,7 +374,7 @@ module NewRelic
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 
-      def harvest_and_send_from_container_does_not_harvest_if_nothing_to_send
+      def test_harvest_and_send_from_container_does_not_harvest_if_nothing_to_send
         container = mock('data container')
         items = []
         container.expects(:harvest!).returns(items)
@@ -408,7 +383,7 @@ module NewRelic
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 
-      def harvest_and_send_from_container_resets_on_harvest_failure
+      def test_harvest_and_send_from_container_resets_on_harvest_failure
         container = mock('data container')
         container.stubs(:harvest!).raises('an error')
         container.expects(:reset!)
@@ -416,7 +391,7 @@ module NewRelic
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 
-      def harvest_and_send_from_container_does_not_merge_on_unrecoverable_failure
+      def test_harvest_and_send_from_container_does_not_merge_on_unrecoverable_failure
         container = mock('data container')
         container.stubs(:harvest!).returns([1,2,3])
         @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises(UnrecoverableServerException)
@@ -424,7 +399,7 @@ module NewRelic
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 
-      def harvest_and_send_from_container_merges_on_other_failure
+      def test_harvest_and_send_from_container_merges_on_other_failure
         container = mock('data container')
         container.stubs(:harvest!).returns([1,2,3])
         @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises('other error')
