@@ -13,7 +13,7 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include Mongo
 
     def setup
-      @client = Mongo::Connection.new("localhost")
+      @client = Mongo::Connection.new(ENV["MONGO_HOST"], ENV["MONGO_PORT"].to_i)
       @database_name = 'multiverse'
       @database = @client.db(@database_name)
       @collection_name = 'tribbles'
