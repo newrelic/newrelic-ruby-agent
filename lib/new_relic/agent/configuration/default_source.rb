@@ -630,6 +630,12 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable sequel instrumentation.'
         },
+        :disable_mongo => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable MongoDB instrumentation.'
+        },
         :'slow_sql.enabled' => {
           :default => DefaultSource.slow_sql_enabled,
           :public => true,
