@@ -138,6 +138,13 @@ module NewRelic
         :url         => "https://rubygems.org/gems/sequel",
         :feed        => "https://rubygems.org/gems/sequel/versions.atom"
       },
+      :mongo =>
+      {
+        :type        => :database,
+        :experimental=> ["~>1.8.0", "~>1.9.0"],
+        :url         => "https://rubygems.org/gems/mongo",
+        :feed        => "https://rubygems.org/gems/mongo/versions.atom"
+      },
 
       # Background Jobs
       :resque =>

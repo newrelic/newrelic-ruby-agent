@@ -1,10 +1,37 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.7.1 ##
+
+  * Experimental MongoDB support
+
+  The Ruby agent provides experimental support for the mongo gem, versions 1.8
+  and 1.9! Mongo calls are captured for transaction traces along with their
+  parameters, and time spent in Mongo shows up on the Database tab.
+
+  Support for more Mongo gems, and more UI goodness will be coming, so watch
+  http://docs.newrelic.com/docs/ruby/mongo for up-to-date status.
+
+  * Harvest thread restarts for forked and daemonized processes
+
+  Historically framework specific code was necessary for the Ruby agent to
+  successfully report data after an app forked or daemonized. This meant newer
+  apps (such as Puma) needed agent support or workarounds for daemonized modes.
+
+  With 3.7.1 setting `restart_thread_in_child: true` in your newrelic.yml
+  automatically restarts the agent in child processes without requiring custom
+  code. For now the feature is opt-in, but future releases may default it on.
+
+  * Fix for missing HTTP time
+
+  The agent previously did not include connection establishment time for
+  outgoing Net::HTTP requests. This has been corrected, and reported HTTP
+  timings should now be more accurate.
+
 ## v3.7.0 ##
 
   * Official Rubinius support (for Rubinius >= 2.2.1)
 
-  We're happy to say that all known issues with the Ruby agent running on 
+  We're happy to say that all known issues with the Ruby agent running on
   Rubinius have been resolved as of Rubinius version 2.2.1! See
   http://docs.newrelic.com/docs/ruby/rubinius for the most up-to-date status.
 
