@@ -13,9 +13,9 @@
 
   * Harvest thread restarts for forked and daemonized processes
 
-  Historically the Ruby agent required framework specific code to successfully
-  report after an app forked or daemonized. This meant newer applications (such
-  as Puma) had to wait for agent support to work in daemonized modes.
+  Historically framework specific code was necessary for the Ruby agent to
+  successfully report data after an app forked or daemonized. This meant newer
+  apps (such as Puma) needed agent support or workarounds for daemonized modes.
 
   With 3.7.1 setting `restart_thread_in_child: true` in your newrelic.yml
   automatically restarts the agent in child processes without requiring custom
@@ -23,9 +23,9 @@
 
   * Fix for missing HTTP time
 
-  Certain types of failed HTTP calls resulted in part or all of the time not
-  being properly noted at external time on graphs and in transaction traces.
-  These cases have been fixed.
+  The agent previously did not include connection establishment time for
+  outgoing Net::HTTP requests. This has been corrected, and reported HTTP
+  timings should now be more accurate.
 
 ## v3.7.0 ##
 
