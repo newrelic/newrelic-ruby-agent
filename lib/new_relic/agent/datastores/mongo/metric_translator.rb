@@ -33,6 +33,9 @@ module NewRelic
             elsif self.re_index?(name, payload)
               name = 'reIndex'
               collection = payload[:selector][:reIndex]
+            elsif self.group?(name, payload)
+              name = 'group'
+              collection = collection_name_from_group_selector(payload)
             end
 
             build_metrics(name, collection, request_type)
@@ -80,6 +83,14 @@ module NewRelic
 
           def self.re_index?(name, payload)
             name == :reIndex && payload[:selector] && payload[:selector][:reIndex]
+          end
+
+          def self.group?(name, payload)
+            name == "group"
+          end
+
+          def self.collection_name_from_group_selector(payload)
+            payload[:selector]["group"]["ns"]
           end
 
           def self.collection_name_from_index(payload)
