@@ -5,6 +5,7 @@
 require 'mongo'
 require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
+require 'securerandom'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 if NewRelic::Agent::Datastores::Mongo.is_supported_version?
@@ -219,6 +220,28 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       assert_metrics_recorded(expected)
     end
 
+    def test_rename_collection
+      with_unique_collection do
+        @collection.rename("renamed_#{@collection_name}")
+
+        metrics = build_test_metrics(:renameCollection)
+        expected = metrics_with_attributes(metrics, { :call_count => 1 })
+
+        assert_metrics_recorded(expected)
+      end
+    end
+
+    def test_rename_collection_via_db
+      with_unique_collection do
+        @database.rename_collection(@collection_name, "renamed_#{@collection_name}")
+
+        metrics = build_test_metrics(:renameCollection)
+        expected = metrics_with_attributes(metrics, { :call_count => 1 })
+
+        assert_metrics_recorded(expected)
+      end
+    end
+
     def test_notices_nosql
       segment = nil
 
@@ -345,6 +368,22 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       assert_metrics_not_recorded(['Datastore/allWeb'])
     end
 
+    def with_unique_collection
+      original_collection_name = @collection_name
+      original_collection = @collection
+
+      @collection_name = "coll#{SecureRandom.hex(10)}"
+      @collection = @database.collection(@collection_name)
+
+      # Insert to make sure the collection actually exists...
+      @collection.insert({:junk => "data"})
+      NewRelic::Agent.drop_buffered_data
+
+      yield
+    ensure
+      @collection_name = original_collection_name
+      @collection = original_collection
+    end
   end
 
   class NewRelic::Agent::Instrumentation::MongoConnectionTest < NewRelic::Agent::Instrumentation::MongoInstrumentationTest

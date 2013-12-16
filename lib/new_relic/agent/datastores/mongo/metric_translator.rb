@@ -36,6 +36,9 @@ module NewRelic
             elsif self.group?(name, payload)
               name = 'group'
               collection = collection_name_from_group_selector(payload)
+            elsif self.rename_collection?(name, payload)
+              name = 'renameCollection'
+              collection = collection_name_from_rename_selector(payload)
             end
 
             build_metrics(name, collection, request_type)
@@ -89,6 +92,10 @@ module NewRelic
             name == "group"
           end
 
+          def self.rename_collection?(name, payload)
+            name == :renameCollection
+          end
+
           def self.collection_name_from_group_selector(payload)
             payload[:selector]["group"]["ns"]
           end
@@ -99,6 +106,12 @@ module NewRelic
             else
               'system.indexes'
             end
+          end
+
+          def self.collection_name_from_rename_selector(payload)
+            parts = payload[:selector][:renameCollection].split('.')
+            parts.shift
+            parts.join('.')
           end
 
         end
