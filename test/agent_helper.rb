@@ -205,6 +205,10 @@ unless defined?( assert_false )
   end
 end
 
+unless defined? ( refute )
+  alias refute assert_false
+end
+
 # Mock up a transaction for testing purposes, optionally specifying a name and
 # transaction type. The given block will be executed within the context of the
 # dummy transaction.
