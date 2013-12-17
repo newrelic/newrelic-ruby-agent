@@ -10,23 +10,44 @@ module NewRelic
     module Datastores
       module Mongo
         module StatementFormatter
+
+          PLAINTEXT_KEYS = [
+            :database,
+            :collection,
+            :operation,
+            :fields,
+            :skip,
+            :limit,
+            :order
+          ]
+
+          OBFUSCATE_KEYS = [
+            :selector
+          ]
+
           def self.format(statement)
-            statement = statement.dup
-            modify_for_documents(statement)
-            modify_for_selector(statement)
-            statement
+            result = {}
+            PLAINTEXT_KEYS.each do |key|
+              result[key] = statement[key] if statement.key?(key)
+            end
+
+            OBFUSCATE_KEYS.each do |key|
+              if statement.key?(key)
+                obfuscated = obfuscate(statement[key])
+                result[key] = obfuscated if obfuscated
+              end
+            end
+            result
           end
 
-          def self.modify_for_documents(statement)
-            statement.delete(:documents)
-          end
-
-          def self.modify_for_selector(statement)
+          def self.obfuscate(statement)
             case NewRelic::Agent::Database.record_sql_method
             when :obfuscated
               Obfuscator.obfuscate_statement(statement)
-            when :off
-              statement.delete(:selector)
+            when :raw
+              statement
+            else
+              nil
             end
           end
         end

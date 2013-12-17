@@ -7,30 +7,20 @@ module NewRelic
     module Datastores
       module Mongo
         module Obfuscator
-          def self.whitelist
-            [:operation]
-          end
 
-          def self.obfuscate_statement(statement)
-            statement = self.obfuscate_selector_values(statement)
-          end
+          WHITELIST = [:operation].freeze
 
-          def self.obfuscate_selector_values(statement)
-            return statement unless selector = statement[:selector]
-
-            new_selector = {}
-            selector.each do |key, value|
-              unless self.whitelist.include?(key)
-                selector.delete(key)
-                value = '?'
+          def self.obfuscate_statement(source, whitelist=WHITELIST)
+            obfuscated = {}
+            source.each do |key, value|
+              if whitelist.include?(key)
+                obfuscated[key] = value
+              else
+                obfuscated[key] = '?'
               end
-
-              new_selector[key] = value
             end
 
-            statement[:selector] = new_selector
-
-            statement
+            obfuscated
           end
         end
       end

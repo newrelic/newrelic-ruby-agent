@@ -11,8 +11,14 @@ module NewRelic
       module Mongo
         class StatementFormatterTest < Test::Unit::TestCase
           DOC_STATEMENT = { :database   => "multiverse",
-                            :collection =>"tribbles",
+                            :collection => "tribbles",
                             :operation  => :insert,
+                            :fields     => ["field_name"],
+                            :skip       => 1,
+                            :limit      => -1,
+                            :order      => :ascending,
+
+                            :ignored    => "we're whitelisted!",
                             :documents  => [ { "name" => "soterios johnson",
                                                :_id   => "BSON::ObjectId()" } ] }.freeze
 
@@ -30,14 +36,13 @@ module NewRelic
 
           def test_statement_formatter_removes_documents
             formatted = StatementFormatter.format(DOC_STATEMENT)
-            assert_not_includes(formatted.keys, :documents,
-                                "Formatted statement should not include documents: #{formatted}")
+            assert_equal_unordered(formatted.keys, StatementFormatter::PLAINTEXT_KEYS)
           end
 
           def test_statement_formatter_obfuscates_selectors
             expected = { :database   => 'multiverse',
                          :collection => 'tribbles',
-                         :selector   => { 'name'      => '?',
+                         :selector   => { 'name'     => '?',
                                           :operation => :find,
                                           :_id       => '?' } }
 
