@@ -112,7 +112,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
-                :selector   => { "group" => { "ns"      => "tribbles",
+                :selector   => { "group" => { "ns"      => @collection_name,
                                               "$reduce" => stub("BSON::Code"),
                                               "cond"    => {},
                                               "initial" => {:count=>0},
@@ -203,6 +203,18 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
     assert_equal expected, metrics
   end
 
+  def test_metrics_for_drop_collection
+    payload = { :database   => @database_name,
+                :collection =>"$cmd",
+                :limit      => -1,
+                :selector   => { :drop => @collection_name } }
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
+    expected = build_test_metrics(:drop)
+
+    assert_equal expected, metrics
+  end
+
   def test_metrics_for_rename_collection
     payload = { :database   => @database_name,
                 :collection => "$cmd",
@@ -229,4 +241,17 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
 
     assert_equal expected, metrics
   end
+
+  def test_metrics_for_collstats
+    payload = { :database   => @database_name,
+                :collection =>"$cmd",
+                :limit      => -1,
+                :selector   => { :collstats => @collection_name } }
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
+    expected = build_test_metrics(:collstats)
+
+    assert_equal expected, metrics
+  end
+
 end

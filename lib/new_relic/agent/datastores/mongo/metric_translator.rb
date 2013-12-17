@@ -70,14 +70,19 @@ module NewRelic
           end
 
           NAMES_IN_SELECTOR = [
+            :findandmodify,
+
             "count",
             "group",
             :distinct,
-            :findandmodify,
+
             :deleteIndexes,
             :reIndex,
+
+            :ismaster,
+            :collstats,
             :renameCollection,
-            :ismaster
+            :drop,
           ]
 
           def self.name_key_from_selector(payload)
