@@ -202,4 +202,17 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
 
     assert_equal expected, metrics
   end
+
+  def test_metrics_for_rename_collection
+    payload = { :database   => @database_name,
+                :collection => "$cmd",
+                :limit      => -1,
+                :selector   => { :renameCollection => "#{@database_name}.#{@collection_name}",
+                                 :to=>"#{@database_name}.renamed_#{@collection_name}" } }
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
+    expected = build_test_metrics(:renameCollection)
+
+    assert_equal expected, metrics
+  end
 end
