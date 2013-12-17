@@ -43,6 +43,47 @@ module NewRelic
             obfuscated = Obfuscator.obfuscate_statement(selector, [:benign, :operation])
             assert_equal expected, obfuscated
           end
+
+          def test_obfuscate_nested_hashes
+            selector = {
+              "group" => {
+                "ns"      => "tribbles",
+                "$reduce" => stub("BSON::Code"),
+                "cond"    => {},
+                "initial" => { :count => 0 },
+                "key"     => { "name" => 1 }
+              }
+            }
+
+            expected = {
+              "group" => {
+                "ns"      => "?",
+                "$reduce" => "?",
+                "cond"    => {},
+                "initial" => { :count => "?" },
+                "key"     => { "name" => "?" }
+              }
+            }
+
+            obfuscated = Obfuscator.obfuscate_statement(selector)
+            assert_equal expected, obfuscated
+          end
+
+          def test_obfuscate_nested_arrays
+            selector = {
+              "aggregate" => "mongeese",
+              "pipeline"  => [{"$group"=>{:_id=>"$says", :total=>{"$sum"=>1}}}]
+            }
+
+            expected = {
+              "aggregate" => "?",
+              "pipeline"  => [{"$group"=>{:_id=>"?", :total=>{"$sum"=>"?"}}}]
+            }
+
+            obfuscated = Obfuscator.obfuscate_statement(selector)
+            assert_equal expected, obfuscated
+          end
+
         end
       end
     end

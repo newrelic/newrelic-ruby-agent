@@ -16,11 +16,21 @@ module NewRelic
               if whitelist.include?(key)
                 obfuscated[key] = value
               else
-                obfuscated[key] = '?'
+                obfuscated[key] = obfuscate_value(value, whitelist)
               end
             end
 
             obfuscated
+          end
+
+          def self.obfuscate_value(value, whitelist)
+            if value.is_a?(Hash)
+              obfuscate_statement(value, whitelist)
+            elsif value.is_a?(Array)
+              value.map {|v| obfuscate_value(v, whitelist)}
+            else
+              '?'
+            end
           end
         end
       end
