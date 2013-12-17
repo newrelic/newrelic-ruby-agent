@@ -12,7 +12,7 @@ module NewRelic
 
             collection = payload[:collection]
 
-            if look_in_selector?(collection, payload)
+            if collection_in_selector?(collection, payload)
               name_key = name_key_from_selector(payload)
               if name_key
                 name = name_key.to_sym
@@ -62,7 +62,7 @@ module NewRelic
             default_metrics
           end
 
-          def self.look_in_selector?(collection, payload)
+          def self.collection_in_selector?(collection, payload)
             collection == '$cmd' && payload[:selector]
           end
 
