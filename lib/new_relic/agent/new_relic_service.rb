@@ -424,59 +424,11 @@ module NewRelic
           end
         end
 
-        module Normalized
-          def self.normalize_string(s)
-            encoding = s.encoding
-            if (encoding == Encoding::UTF_8 || encoding == Encoding::ISO_8859_1) && s.valid_encoding?
-              return s
-            end
-
-            # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
-            # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
-            normalized = s.dup
-            if encoding == Encoding::ASCII_8BIT || !s.valid_encoding?
-              normalized.force_encoding(Encoding::ISO_8859_1)
-            else
-              # Encoding is valid and non-binary, so it might be cleanly convertible
-              # to UTF-8. Give it a try and fall back to ISO-8859-1 if it fails.
-              begin
-                normalized.encode!(Encoding::UTF_8)
-              rescue
-                normalized.force_encoding(Encoding::ISO_8859_1)
-              end
-            end
-            normalized
-          end
-
-          def self.encode(object)
-            case object
-            when String
-              normalize_string(object)
-            when Array
-              return object if object.empty?
-              result = object.map { |x| encode(x) }
-              result
-            when Hash
-              return object if object.empty?
-              hash = {}
-              object.each_pair do |k, v|
-                k = normalize_string(k) if k.is_a?(String)
-                hash[k] = encode(v)
-              end
-              hash
-            else
-              object
-            end
-          end
-        end
-
         module Base64CompressedJSON
           def self.encode(data)
             Base64.encode64(
               Compressed.encode(
-                JSON.dump(
-                  Normalized.encode(data)
-                )
+                ::NewRelic::JSONWrapper.dump(data, :normalize => true)
               )
             )
           end
@@ -571,12 +523,11 @@ module NewRelic
 
         def dump(ruby, opts={})
           prepared = prepare(ruby, opts)
-          normalized = Encoders::Normalized.encode(prepared)
-          JSON.dump(normalized)
+          NewRelic::JSONWrapper.dump(prepared, :normalize => true)
         end
 
         def load(data)
-          return_value(JSON.load(data)) if data && data != ''
+          return_value(NewRelic::JSONWrapper.load(data)) if data && data != ''
         rescue => e
           ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered loading collector response: #{data}"
           raise
@@ -591,7 +542,7 @@ module NewRelic
         end
 
         def self.is_supported?
-          NewRelic::LanguageSupport.stdlib_json_usable?
+          NewRelic::JSONWrapper.usable_for_collector_serialization?
         end
 
         def self.human_readable?

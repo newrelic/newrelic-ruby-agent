@@ -98,7 +98,7 @@ module NewRelic
       def browser_timing_config
         NewRelic::Agent::Transaction.freeze_name
         data = data_for_js_agent
-        json = NewRelic.json_dump(data)
+        json = NewRelic::JSONWrapper.dump(data)
         html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
       rescue => e
         ::NewRelic::Agent.logger.debug "Failure during browser_timing_config", e
@@ -153,7 +153,7 @@ module NewRelic
         return unless include_custom_parameters?
 
         params = event_params(current_transaction.custom_parameters)
-        json = NewRelic.json_dump(params)
+        json = NewRelic::JSONWrapper.dump(params)
         data[USER_ATTRIBUTES_KEY] = obfuscator.obfuscate(json)
       end
 

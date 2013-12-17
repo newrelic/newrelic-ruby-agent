@@ -394,7 +394,7 @@ class NewRelicServiceTest < MiniTest::Unit::TestCase
     end
 
     def test_raises_serialization_error_if_json_serialization_fails
-      JSON.stubs(:dump).raises(RuntimeError.new('blah'))
+      ::NewRelic::JSONWrapper.stubs(:dump).raises(RuntimeError.new('blah'))
       assert_raises(NewRelic::Agent::SerializationError) do
         @service.send(:invoke_remote, 'wiggle', {})
       end
@@ -402,7 +402,7 @@ class NewRelicServiceTest < MiniTest::Unit::TestCase
 
     def test_raises_serialization_error_if_encoding_normalization_fails
       @http_handle.respond_to(:wiggle, 'hi')
-      NewRelic::Agent::NewRelicService::Encoders::Normalized.stubs(:encode).raises('blah')
+      NewRelic::JSONWrapper.stubs(:normalize).raises('blah')
       assert_raises(NewRelic::Agent::SerializationError) do
         @service.send(:invoke_remote, 'wiggle', {})
       end
@@ -460,55 +460,6 @@ class NewRelicServiceTest < MiniTest::Unit::TestCase
       field = JSON.parse(json_field)
 
       assert_equal([expected_string], field)
-    end
-
-    def test_normalize_string_returns_input_if_correctly_encoded_utf8
-      string = "i want a pony"
-      encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
-      result = encoder.normalize_string(string)
-      assert_same(string, result)
-      assert_equal(Encoding.find('UTF-8'), result.encoding)
-    end
-
-    def test_normalize_string_returns_munged_copy_if_ascii_8bit
-      string = (0..255).to_a.pack("C*")
-      encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
-      result = encoder.normalize_string(string)
-      refute_same(string, result)
-      assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
-      assert_equal(string, result.dup.force_encoding('ASCII-8BIT'))
-    end
-
-    def test_normalize_string_returns_munged_copy_if_invalid_utf8
-      string = (0..255).to_a.pack("C*").force_encoding('UTF-8')
-      encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
-      result = encoder.normalize_string(string)
-      refute_same(result, string)
-      assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
-      assert_equal(string, result.dup.force_encoding('UTF-8'))
-    end
-
-    def test_normalize_string_returns_munged_copy_if_other_convertible_encoding
-      string = "i want a pony".encode('UTF-16LE')
-      encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
-      result = encoder.normalize_string(string)
-      refute_same(result, string)
-      assert_equal(Encoding.find('UTF-8'), result.encoding)
-      assert_equal(string, result.encode('UTF-16LE'))
-    end
-
-    def test_normalize_string_returns_munged_copy_if_other_non_convertible_enocding
-      # Attempting to convert from UTF-7 to UTF-8 in Ruby will raise an
-      # Encoding::ConverterNotFoundError, which is what we're trying to
-      # replicate for this test case.
-      # The following UTF-7 string decodes to 'Jyväskylä', a city in Finland
-      string = "Jyv+AOQ-skyl+AOQ-".force_encoding("UTF-7")
-      assert string.valid_encoding?
-      encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
-      result = encoder.normalize_string(string)
-      refute_same(result, string)
-      assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
-      assert_equal('Jyv+AOQ-skyl+AOQ-'.force_encoding('ISO-8859-1'), result)
     end
   end
 

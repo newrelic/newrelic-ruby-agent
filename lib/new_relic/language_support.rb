@@ -87,6 +87,10 @@ module NewRelic::LanguageSupport
     RUBY_VERSION >= '1.9.2'
   end
 
+  def supports_string_encodings?
+    RUBY_VERSION >= '1.9.0'
+  end
+
   def test_forkability
     child = Process.fork { exit! }
     # calling wait here doesn't seem like it should necessary, but it seems to

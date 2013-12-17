@@ -10,7 +10,7 @@ module NewRelic
 
     # confirm a string is correctly encoded (in >= 1.9)
     # If not force the encoding to ASCII-8BIT (binary)
-    if RUBY_VERSION >= '1.9'
+    if NewRelic::LanguageSupport.supports_string_encodings?
       def correctly_encoded(string)
         return string unless string.is_a? String
         # The .dup here is intentional, since force_encoding mutates the target,
@@ -51,32 +51,4 @@ module NewRelic
       milliseconds / 1000.0
     end
   end
-
-  # Load the JSON library from the standard library.
-  def self::load_stdlib_json
-    return false unless NewRelic::LanguageSupport.stdlib_json_usable?
-
-    require 'json'
-    define_method( :json_dump, &::JSON.method(:dump) )
-    define_method( :json_load, &::JSON.method(:parse) )
-
-    return true
-  rescue LoadError
-    NewRelic::Agent.logger.debug "%p while loading JSON library: %s" % [ err, err.message ] if
-      defined?( NewRelic::Agent ) && NewRelic::Agent.respond_to?( :logger )
-    return false
-  end
-
-
-  # Load the fallback JSON library
-  def self::load_okjson
-    require 'new_relic/okjson'
-    define_method( :json_dump, &::NewRelic::OkJson.method(:encode) )
-    define_method( :json_load, &::NewRelic::OkJson.method(:decode) )
-  end
-
-
-  load_stdlib_json or load_okjson
-  module_function :json_dump, :json_load
-
 end
