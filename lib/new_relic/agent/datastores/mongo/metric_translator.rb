@@ -12,9 +12,12 @@ module NewRelic
 
             collection = payload[:collection]
 
-            if collection == '$cmd' && payload[:selector]
-              name_and_collection = payload[:selector].first
-              name, collection = name_and_collection if name_and_collection
+            if look_in_selector?(collection, payload)
+              name_key = name_key_from_selector(payload)
+              if name_key
+                name = name_key.to_sym
+                collection = payload[:selector][name_key]
+              end
             end
 
             if self.find_one?(name, payload)
@@ -32,7 +35,6 @@ module NewRelic
               name = 'dropIndex'
             elsif self.re_index?(name, payload)
               name = 'reIndex'
-              collection = payload[:selector][:reIndex]
             elsif self.group?(name, payload)
               name = 'group'
               collection = collection_name_from_group_selector(payload)
@@ -58,6 +60,27 @@ module NewRelic
             end
 
             default_metrics
+          end
+
+          def self.look_in_selector?(collection, payload)
+            collection == '$cmd' && payload[:selector]
+          end
+
+          NAMES_IN_SELECTOR = [
+            "count",
+            "group",
+            :distinct,
+            :findandmodify,
+            :deleteIndexes,
+            :reIndex,
+            :renameCollection
+          ]
+
+          def self.name_key_from_selector(payload)
+            selector = payload[:selector]
+            NAMES_IN_SELECTOR.find do |check_name|
+              selector.key?(check_name)
+            end
           end
 
           def self.find_one?(name, payload)
@@ -89,15 +112,11 @@ module NewRelic
           end
 
           def self.group?(name, payload)
-            name == "group"
+            name == :group
           end
 
           def self.rename_collection?(name, payload)
             name == :renameCollection
-          end
-
-          def self.collection_name_from_group_selector(payload)
-            payload[:selector]["group"]["ns"]
           end
 
           def self.collection_name_from_index(payload)
@@ -106,6 +125,10 @@ module NewRelic
             else
               'system.indexes'
             end
+          end
+
+          def self.collection_name_from_group_selector(payload)
+            payload[:selector]["group"]["ns"]
           end
 
           def self.collection_name_from_rename_selector(payload)

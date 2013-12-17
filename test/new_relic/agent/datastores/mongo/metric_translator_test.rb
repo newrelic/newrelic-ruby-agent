@@ -210,7 +210,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                 :selector   => { :renameCollection => "#{@database_name}.#{@collection_name}",
                                  :to=>"#{@database_name}.renamed_#{@collection_name}" } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:renameCollection, payload)
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
     expected = build_test_metrics(:renameCollection)
 
     assert_equal expected, metrics
