@@ -660,6 +660,18 @@ module NewRelic
           :type => String,
           :description => "Obfuscation level for slow sql queries (e.g. 'obfuscated', 'raw', 'none')."
         },
+        :'mongo.capture_queries' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => "Enable or disable capturing Mongo queries in transaction traces."
+        },
+        :'mongo.obfuscate_queries' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => "Enable or disable obfuscation of Mongo queries in transaction traces."
+        },
         :'error_collector.enabled' => {
           :default => true,
           :public => true,

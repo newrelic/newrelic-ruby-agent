@@ -5,43 +5,87 @@
 require 'new_relic/agent/datastores/mongo/obfuscator'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 
-class NewRelic::Agent::Datastores::Mongo::ObfuscatorTest < Test::Unit::TestCase
-  def test_obfuscator_removes_values_from_statement
-    statement = { :database   => 'multiverse',
-                  :collection => 'tribbles',
-                  :selector   => { 'name'      => 'soterios johnson',
-                                    :operation => :find,
-                                    :_id       => "BSON::ObjectId('?')" } }
+module NewRelic
+  module Agent
+    module Datastores
+      module Mongo
+        class ObfuscatorTest < Test::Unit::TestCase
+          def test_obfuscator_removes_values_from_statement
+            selector = {
+              'name'     => 'soterios johnson',
+              :operation => :find,
+              :_id       => "BSON::ObjectId('?')"
+            }
 
-    expected = { :database   => 'multiverse',
-                 :collection => 'tribbles',
-                 :selector   => { 'name'     => '?',
-                                  :operation => :find,
-                                  :_id       => '?' } }
+            expected = {
+              'name'     => '?',
+              :operation => :find,
+              :_id       => '?'
+            }
 
-    obfuscated = NewRelic::Agent::Datastores::Mongo::Obfuscator.obfuscate_statement(statement)
+            obfuscated = Obfuscator.obfuscate_statement(selector)
+            assert_equal expected, obfuscated
+          end
 
-    assert_equal expected, obfuscated
-  end
+          def test_obfuscate_selector_values_skips_whitelisted_keys
+            selector   = {
+              :benign    => 'bland data',
+              :operation => :find,
+              :_id       => "BSON::ObjectId('?')"
+            }
 
-  def test_obfuscate_selector_values_skips_whitelisted_keys
-    fake_list = [:benign, :operation]
-    NewRelic::Agent::Datastores::Mongo::Obfuscator.stubs(:whitelist).returns(fake_list)
+            expected   = {
+              :benign    => 'bland data',
+              :operation => :find,
+              :_id       => '?'
+            }
 
-    statement = { :database   => 'multiverse',
-                  :collection => 'tribbles',
-                  :selector   => { :benign      => 'bland data',
-                                   :operation => :find,
-                                   :_id       => "BSON::ObjectId('?')" } }
+            obfuscated = Obfuscator.obfuscate_statement(selector, [:benign, :operation])
+            assert_equal expected, obfuscated
+          end
 
-    expected = { :database   => 'multiverse',
-                  :collection => 'tribbles',
-                  :selector   => { :benign    => 'bland data',
-                                   :operation => :find,
-                                   :_id       => '?' } }
+          def test_obfuscate_nested_hashes
+            selector = {
+              "group" => {
+                "ns"      => "tribbles",
+                "$reduce" => stub("BSON::Code"),
+                "cond"    => {},
+                "initial" => { :count => 0 },
+                "key"     => { "name" => 1 }
+              }
+            }
 
-    obfuscated = NewRelic::Agent::Datastores::Mongo::Obfuscator.obfuscate_statement(statement)
+            expected = {
+              "group" => {
+                "ns"      => "?",
+                "$reduce" => "?",
+                "cond"    => {},
+                "initial" => { :count => "?" },
+                "key"     => { "name" => "?" }
+              }
+            }
 
-    assert_equal expected, obfuscated
+            obfuscated = Obfuscator.obfuscate_statement(selector)
+            assert_equal expected, obfuscated
+          end
+
+          def test_obfuscate_nested_arrays
+            selector = {
+              "aggregate" => "mongeese",
+              "pipeline"  => [{"$group"=>{:_id=>"$says", :total=>{"$sum"=>1}}}]
+            }
+
+            expected = {
+              "aggregate" => "?",
+              "pipeline"  => [{"$group"=>{:_id=>"?", :total=>{"$sum"=>"?"}}}]
+            }
+
+            obfuscated = Obfuscator.obfuscate_statement(selector)
+            assert_equal expected, obfuscated
+          end
+
+        end
+      end
+    end
   end
 end
