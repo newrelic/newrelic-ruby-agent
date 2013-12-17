@@ -44,10 +44,12 @@ DependencyDetection.defer do
         trace_execution_scoped(metrics) do
           t0 = Time.now
           result = instrument_without_new_relic_trace(name, payload, &block)
-          payload[:operation] = name
 
+          payload[:operation] = name
           statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+          if statement
+            NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+          end
 
           result
         end
@@ -85,7 +87,10 @@ DependencyDetection.defer do
 
           doc[:operation] = :save
           statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(doc)
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+          if statement
+            NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+          end
+
           result
         end
       end
@@ -118,7 +123,10 @@ DependencyDetection.defer do
 
           spec[:operation] = :ensureIndex
           statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(spec)
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+          if statement
+            NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+          end
+
           result
         end
       end

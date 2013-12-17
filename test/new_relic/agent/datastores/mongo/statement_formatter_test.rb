@@ -39,6 +39,13 @@ module NewRelic
             assert_equal_unordered(formatted.keys, StatementFormatter::PLAINTEXT_KEYS)
           end
 
+          def test_can_disable_statement_capturing_queries
+            with_config(:'mongo.capture_queries' => false) do
+              formatted = StatementFormatter.format(DOC_STATEMENT)
+              assert_nil formatted
+            end
+          end
+
           def test_statement_formatter_obfuscates_selectors
             expected = { :database   => 'multiverse',
                          :collection => 'tribbles',

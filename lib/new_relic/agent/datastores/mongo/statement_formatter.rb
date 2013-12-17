@@ -26,6 +26,8 @@ module NewRelic
           ]
 
           def self.format(statement)
+            return nil unless NewRelic::Agent.config[:'mongo.capture_queries']
+
             result = {}
             PLAINTEXT_KEYS.each do |key|
               result[key] = statement[key] if statement.key?(key)
