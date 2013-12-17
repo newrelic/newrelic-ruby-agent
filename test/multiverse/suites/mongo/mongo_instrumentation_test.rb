@@ -128,6 +128,17 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       assert_metrics_recorded(expected)
     end
 
+    def test_records_metrics_for_group
+      @collection.group({:key => "name",
+                              :initial => {:count => 0},
+                              :reduce => "function(k,v) { v.count += 1; }" })
+
+      metrics = build_test_metrics(:group)
+      expected = metrics_with_attributes(metrics, { :call_count => 1 })
+
+      assert_metrics_recorded(expected)
+    end
+
     def test_records_metrics_for_find_and_modify
       updated = @tribble.dup
       updated['name'] = 'codemonkey'

@@ -108,6 +108,22 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
     assert_equal expected, metrics
   end
 
+  def test_metrics_for_group
+    payload = { :database   => @database_name,
+                :collection => "$cmd",
+                :limit      => -1,
+                :selector   => { "group" => { "ns"      => "tribbles",
+                                              "$reduce" => stub("BSON::Code"),
+                                              "cond"    => {},
+                                              "initial" => {:count=>0},
+                                              "key"     => {"name"=>1}}}}
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:group, payload)
+    expected = build_test_metrics(:group)
+
+    assert_equal expected, metrics
+  end
+
   def test_metrics_for_find_and_modify
     payload = { :database   => @database_name,
                 :collection => "$cmd",
