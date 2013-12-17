@@ -161,7 +161,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     end
 
     def test_records_metrics_for_create_index
-      @collection.create_index([["name", Mongo::ASCENDING]])
+      @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
 
       metrics = build_test_metrics(:createIndex)
       expected = metrics_with_attributes(metrics, { :call_count => 1 })
@@ -170,7 +170,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     end
 
     def test_records_metrics_for_ensure_index
-      @collection.ensure_index({'name' => Mongo::ASCENDING})
+      @collection.ensure_index({unique_field_name => Mongo::ASCENDING})
 
       metrics = build_test_metrics(:ensureIndex)
       expected = metrics_with_attributes(metrics, { :call_count => 1 })
@@ -179,13 +179,13 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     end
 
     def test_ensure_index_does_not_record_insert
-      @collection.ensure_index({'name' => Mongo::ASCENDING})
+      @collection.ensure_index({unique_field_name => Mongo::ASCENDING})
 
       assert_metrics_not_recorded(['Datastore/operation/MongoDB/insert'])
     end
 
     def test_records_metrics_for_drop_index
-      name =  @collection.create_index([['name', Mongo::ASCENDING]])
+      name =  @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
       NewRelic::Agent.drop_buffered_data
 
       @collection.drop_index(name)
@@ -197,7 +197,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     end
 
     def test_records_metrics_for_drop_indexes
-      @collection.create_index([['name', Mongo::ASCENDING]])
+      @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
       NewRelic::Agent.drop_buffered_data
 
       @collection.drop_indexes
@@ -209,7 +209,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     end
 
     def test_records_metrics_for_reindex
-      @collection.create_index([['name', Mongo::ASCENDING]])
+      @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
       NewRelic::Agent.drop_buffered_data
 
       @database.command({ :reIndex => @collection_name })
@@ -295,7 +295,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       segment = nil
 
       in_transaction do
-        @collection.ensure_index({'name' => Mongo::ASCENDING})
+        @collection.ensure_index({unique_field_name => Mongo::ASCENDING})
         segment = find_last_transaction_segment
       end
 
@@ -383,6 +383,10 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     ensure
       @collection_name = original_collection_name
       @collection = original_collection
+    end
+
+    def unique_field_name
+      "field#{SecureRandom.hex(10)}"
     end
   end
 
