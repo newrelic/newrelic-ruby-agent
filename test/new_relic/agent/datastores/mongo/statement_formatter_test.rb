@@ -34,7 +34,7 @@ module NewRelic
             assert_not_same DOC_STATEMENT, formatted
           end
 
-          def test_statement_formatter_removes_documents
+          def test_statement_formatter_removes_unwhitelisted_keys
             formatted = StatementFormatter.format(DOC_STATEMENT)
             assert_equal_unordered(formatted.keys, StatementFormatter::PLAINTEXT_KEYS)
           end
@@ -46,35 +46,24 @@ module NewRelic
             end
           end
 
-          def test_statement_formatter_obfuscates_selectors
+          def test_statement_formatter_obfuscates_by_default
             expected = { :database   => 'multiverse',
                          :collection => 'tribbles',
                          :selector   => { 'name'     => '?',
                                           :operation => :find,
                                           :_id       => '?' } }
 
-            with_config(:'transaction_tracer.record_sql' => "obfuscated") do
-              result = StatementFormatter.format(SELECTOR_STATEMENT)
-              assert_equal expected, result
-            end
+            result = StatementFormatter.format(SELECTOR_STATEMENT)
+            assert_equal expected, result
           end
 
           def test_statement_formatter_raw_selectors
-            with_config(:'transaction_tracer.record_sql' => "raw") do
+            with_config(:'mongo.obfuscate_queries' => false) do
               result = StatementFormatter.format(SELECTOR_STATEMENT)
               assert_equal SELECTOR_STATEMENT, result
             end
           end
 
-          def test_statement_formatter_recording_off
-            expected = { :database   => 'multiverse',
-                         :collection => 'tribbles' }
-
-            with_config(:'transaction_tracer.record_sql' => "off") do
-              result = StatementFormatter.format(SELECTOR_STATEMENT)
-              assert_equal expected, result
-            end
-          end
         end
       end
     end

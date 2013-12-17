@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/database'
 require 'new_relic/agent/datastores/mongo/obfuscator'
 
 module NewRelic
@@ -43,14 +42,8 @@ module NewRelic
           end
 
           def self.obfuscate(statement)
-            case NewRelic::Agent::Database.record_sql_method
-            when :obfuscated
-              Obfuscator.obfuscate_statement(statement)
-            when :raw
-              statement
-            else
-              nil
-            end
+            statement = Obfuscator.obfuscate_statement(statement) if NewRelic::Agent.config[:'mongo.obfuscate_queries']
+            statement
           end
         end
       end
