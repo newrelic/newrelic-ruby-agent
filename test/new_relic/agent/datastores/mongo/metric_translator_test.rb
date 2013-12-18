@@ -112,17 +112,46 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
-                :selector   => { "group" => { "ns"      => "tribbles",
+                :selector   => { "group" => { "ns"      => @collection_name,
                                               "$reduce" => stub("BSON::Code"),
                                               "cond"    => {},
                                               "initial" => {:count=>0},
                                               "key"     => {"name"=>1}}}}
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:group, payload)
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
     expected = build_test_metrics(:group)
 
     assert_equal expected, metrics
   end
+
+  def test_metrics_for_aggregate
+    payload = { :database   => @database_name,
+                :collection => "$cmd",
+                :limit      => -1,
+                :selector   =>  { "aggregate" => @collection_name,
+                                  "pipeline" => [{"$group" => {:_id => "$says", :total => {"$sum" => 1}}}]}}
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
+    expected = build_test_metrics(:aggregate)
+
+    assert_equal expected, metrics
+  end
+
+  def test_metrics_for_mapreduce
+    payload = { :database   => @database_name,
+                :collection => "$cmd",
+                :limit      => -1,
+                :selector   =>  { "mapreduce" => @collection_name,
+                                  "map" => stub("BSON::Code"),
+                                  "reduce" => stub("BSON::Code"),
+                                  :out => "results"}}
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
+    expected = build_test_metrics(:mapreduce)
+
+    assert_equal expected, metrics
+  end
+
 
   def test_metrics_for_find_and_modify
     payload = { :database   => @database_name,
@@ -203,6 +232,18 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
     assert_equal expected, metrics
   end
 
+  def test_metrics_for_drop_collection
+    payload = { :database   => @database_name,
+                :collection =>"$cmd",
+                :limit      => -1,
+                :selector   => { :drop => @collection_name } }
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
+    expected = build_test_metrics(:drop)
+
+    assert_equal expected, metrics
+  end
+
   def test_metrics_for_rename_collection
     payload = { :database   => @database_name,
                 :collection => "$cmd",
@@ -215,4 +256,46 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
 
     assert_equal expected, metrics
   end
+
+  def test_metrics_for_ismaster
+    payload = { :database   => @database_name,
+                :collection => "$cmd",
+                :limit      => -1,
+                :selector   => { :ismaster => 1 } }
+
+    @collection_name = "1"
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
+    expected = build_test_metrics(:ismaster)
+
+    assert_equal expected, metrics
+  end
+
+  def test_metrics_for_collstats
+    payload = { :database   => @database_name,
+                :collection =>"$cmd",
+                :limit      => -1,
+                :selector   => { :collstats => @collection_name } }
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
+    expected = build_test_metrics(:collstats)
+
+    assert_equal expected, metrics
+  end
+
+  def test_metrics_for_unknown_command
+    payload = { :database => @database_name,
+                :collection => "$cmd",
+                :limit => -1,
+                :selector => { :mongomongomongo => @collection_name } }
+
+    @collection_name = "UnknownCollection"
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
+    expected = build_test_metrics(:UnknownCommand)
+
+    assert_equal expected, metrics
+    assert_metrics_recorded(["Supportability/Mongo/UnknownCommand"])
+  end
+
 end

@@ -242,6 +242,26 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       end
     end
 
+    def test_drop_collection
+      with_unique_collection do
+        @database.drop_collection(@collection_name)
+
+        metrics = build_test_metrics(:drop)
+        expected = metrics_with_attributes(metrics, { :call_count => 1 })
+
+        assert_metrics_recorded(expected)
+      end
+    end
+
+    def test_collstats
+      @collection.stats
+
+      metrics = build_test_metrics(:collstats)
+      expected = metrics_with_attributes(metrics, { :call_count => 1 })
+
+      assert_metrics_recorded(expected)
+    end
+
     def test_notices_nosql
       segment = nil
 
