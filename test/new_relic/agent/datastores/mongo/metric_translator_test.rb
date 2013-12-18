@@ -254,4 +254,18 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
     assert_equal expected, metrics
   end
 
+  def test_metrics_for_unknown_command
+    payload = { :database => @database_name,
+                :collection => "$cmd",
+                :limit => -1,
+                :selector => { :mongomongomongo => @collection_name } }
+
+    @collection_name = "UnknownCollection"
+
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
+    expected = build_test_metrics(:UnknownCommand)
+
+    assert_equal expected, metrics
+  end
+
 end

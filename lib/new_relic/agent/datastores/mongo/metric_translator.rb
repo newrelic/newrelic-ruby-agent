@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/datastores/mongo/obfuscator'
+
 module NewRelic
   module Agent
     module Datastores
@@ -13,11 +15,7 @@ module NewRelic
             collection = payload[:collection]
 
             if collection_in_selector?(collection, payload)
-              name_key = name_key_from_selector(payload)
-              if name_key
-                name = name_key.to_sym
-                collection = payload[:selector][name_key]
-              end
+              name, collection = get_name_and_collection_from_selector(payload)
             end
 
             if self.find_one?(name, payload)
@@ -84,6 +82,20 @@ module NewRelic
             :renameCollection,
             :drop,
           ]
+
+          def self.get_name_and_collection_from_selector(payload)
+            name_key = name_key_from_selector(payload)
+            if name_key
+              name = name_key.to_sym
+              collection = payload[:selector][name_key]
+            else
+              name = "UnknownCommand"
+              collection = "UnknownCollection"
+              NewRelic::Agent.logger.debug("Unknown Mongo command: #{Obfuscator.obfuscate_statement(payload).inspect}")
+            end
+
+            return name, collection
+          end
 
           def self.name_key_from_selector(payload)
             selector = payload[:selector]
