@@ -15,7 +15,11 @@ module NewRelic
             collection = payload[:collection]
 
             if collection_in_selector?(collection, payload)
-              name, collection = get_name_and_collection_from_selector(payload)
+              command_key = command_key_from_selector(payload)
+
+              name = get_name_from_selector(command_key)
+              collection = get_collection_from_selector(command_key, payload)
+              log_if_unknown_command(command_key, payload)
             end
 
             if self.find_one?(name, payload)
@@ -86,24 +90,31 @@ module NewRelic
             :drop,
           ]
 
-          def self.get_name_and_collection_from_selector(payload)
-            name_key = name_key_from_selector(payload)
-            if name_key
-              name = name_key.to_sym
-              collection = payload[:selector][name_key]
-            else
-              name = "UnknownCommand"
-              collection = "UnknownCollection"
-              NewRelic::Agent.logger.debug("Unknown Mongo command: #{Obfuscator.obfuscate_statement(payload).inspect}")
-            end
+          UNKNOWN_COMMAND = "UnknownCommand"
+          UNKNOWN_COLLECTION = "UnknownCollection"
 
-            return name, collection
-          end
-
-          def self.name_key_from_selector(payload)
+          def self.command_key_from_selector(payload)
             selector = payload[:selector]
             NAMES_IN_SELECTOR.find do |check_name|
               selector.key?(check_name)
+            end
+          end
+
+          def self.get_name_from_selector(command_key)
+            return UNKNOWN_COMMAND unless command_key
+
+            command_key.to_sym
+          end
+
+          def self.get_collection_from_selector(command_key, payload)
+            return UNKNOWN_COLLECTION unless command_key
+
+            payload[:selector][command_key]
+          end
+
+          def self.log_if_unknown_command(command_key, payload)
+            unless command_key
+              NewRelic::Agent.logger.debug("Unknown Mongo command: #{Obfuscator.obfuscate_statement(payload).inspect}")
             end
           end
 
