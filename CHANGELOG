@@ -14,8 +14,8 @@
   * Harvest thread restarts for forked and daemonized processes
 
   Historically framework specific code was necessary for the Ruby agent to
-  successfully report data after an app forked or daemonized. This meant newer
-  apps (such as Puma) needed agent support or workarounds for daemonized modes.
+  successfully report data after an app forked or daemonized. Gems or scripts
+  with daemonizing modes had to wait for agent support or find workarounds.
 
   With 3.7.1 setting `restart_thread_in_child: true` in your newrelic.yml
   automatically restarts the agent in child processes without requiring custom
