@@ -70,8 +70,11 @@ module NewRelic
           NAMES_IN_SELECTOR = [
             :findandmodify,
 
+            "aggregate",
             "count",
             "group",
+            "mapreduce",
+
             :distinct,
 
             :deleteIndexes,
