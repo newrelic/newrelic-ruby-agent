@@ -33,6 +33,10 @@ class OrphanedConfigTest < Test::Unit::TestCase
     end
   end
 
+  AGENT_CONFIG_PATTERN      = /Agent\.config\[:['"]?([a-z\._]+)['"]?\]/
+  REGISTER_CALLBACK_PATTERN = /register_callback\(:['"]?([a-z\._]+)['"]?\)/
+  NAMED_DEPENDENCY_PATTERN  = /^\s*named[ (]+\:?([a-z\._]+).*$/
+
   def test_all_default_source_config_keys_are_used_in_the_agent
     non_test_files = all_rb_files.reject { |filename| filename.include? 'test.rb' }
 
@@ -41,8 +45,9 @@ class OrphanedConfigTest < Test::Unit::TestCase
 
       lines.each_with_index do |line, index|
         captures = []
-        captures << line.scan(/Agent\.config\[:['"]?([a-z\._]+)['"]?\]/)
-        captures << line.scan(/register_callback\(:['"]?([a-z\._]+)['"]?\)/)
+        captures << line.scan(AGENT_CONFIG_PATTERN)
+        captures << line.scan(REGISTER_CALLBACK_PATTERN)
+        captures << line.scan(NAMED_DEPENDENCY_PATTERN).map(&method(:disable_name))
 
         next if captures.empty?
 
@@ -53,5 +58,9 @@ class OrphanedConfigTest < Test::Unit::TestCase
     end
 
     assert_empty @default_keys
+  end
+
+  def disable_name(names)
+    names.map { |name| "disable_#{name}" }
   end
 end
