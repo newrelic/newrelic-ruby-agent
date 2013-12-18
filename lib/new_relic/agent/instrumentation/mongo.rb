@@ -47,6 +47,14 @@ DependencyDetection.defer do
           result = instrument_without_new_relic_trace(name, payload, &block)
 
           payload[:operation] = name
+
+          if @connection.pinned_pool && read == :secondary
+            host, port = @connection.pinned_pool[:pool].host, @connection.pinned_pool[:pool].port
+            puts '*'*80
+            p "#{host}:#{port}"
+            puts '*'*80
+          end
+
           statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
           if statement
             NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)

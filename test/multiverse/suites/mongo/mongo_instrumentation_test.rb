@@ -10,13 +10,15 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 if NewRelic::Agent::Datastores::Mongo.is_supported_version?
   require File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'mongo_metric_builder')
+  require File.join(File.dirname(__FILE__), 'helpers', 'servers')
 
   class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Unit::TestCase
     include Mongo
     include ::NewRelic::TestHelpers::MongoMetricBuilder
 
     def client
-      MongoClient.new(ENV["MONGO_HOST"], ENV["MONGO_PORT"].to_i)
+      server = MongoServer.first_single
+      MongoClient.new(server.host, server.port)
     end
 
     def setup
@@ -417,9 +419,4 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     end
   end
 
-  class NewRelic::Agent::Instrumentation::MongoConnectionTest < NewRelic::Agent::Instrumentation::MongoInstrumentationTest
-    def client
-      Mongo::Connection.new(ENV["MONGO_HOST"], ENV["MONGO_PORT"].to_i)
-    end
-  end
 end
