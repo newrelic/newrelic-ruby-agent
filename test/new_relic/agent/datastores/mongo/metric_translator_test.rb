@@ -295,6 +295,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
     expected = build_test_metrics(:UnknownCommand)
 
     assert_equal expected, metrics
+    assert_metrics_recorded(["Supportability/Mongo/UnknownCommand"])
   end
 
 end

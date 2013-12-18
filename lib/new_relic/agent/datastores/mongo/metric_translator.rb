@@ -115,6 +115,7 @@ module NewRelic
           def self.log_if_unknown_command(command_key, payload)
             unless command_key
               NewRelic::Agent.logger.debug("Unknown Mongo command: #{Obfuscator.obfuscate_statement(payload).inspect}")
+              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCommand")
             end
           end
 
