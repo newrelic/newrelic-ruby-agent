@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 
 # Test logic around detecting or configuring dispatcher
-class DispatcherTest < Test::Unit::TestCase
+class DispatcherTest < MiniTest::Unit::TestCase
 
   def setup
     NewRelic::Agent.shutdown

@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..', 'test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
-class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
+class NewRelic::Agent::StatsEngineTest < MiniTest::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent::StatsEngine.new
@@ -69,8 +69,8 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
 
     disney = @engine.lookup_stats("disney")
 
-    assert_not_same orlando_disney, anaheim_disney
-    assert_not_equal orlando_disney, anaheim_disney
+    refute_same orlando_disney, anaheim_disney
+    refute_equal orlando_disney, anaheim_disney
     assert_equal 1, orlando_disney.call_count
     assert_equal 1, anaheim_disney.call_count
     assert_equal 2, disney.call_count

@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
 module NewRelic::Agent
-  class CrossAppMonitorTest < Test::Unit::TestCase
+  class CrossAppMonitorTest < MiniTest::Unit::TestCase
     NEWRELIC_ID_HEADER        = NewRelic::Agent::CrossAppMonitor::NEWRELIC_ID_HEADER
     NEWRELIC_TXN_HEADER       = NewRelic::Agent::CrossAppMonitor::NEWRELIC_TXN_HEADER
 

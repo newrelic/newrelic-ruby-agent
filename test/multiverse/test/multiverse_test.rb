@@ -47,13 +47,13 @@ class MultiverseTest < Test::Unit::TestCase
 
   def test_failed_tests_mean_unsuccessful_exit_code_in_parent_with_fork_execute_mode
     run = run_suite('two')
-    assert_not_equal 0, run.exit_status, "Failed test should mean unsucessful " <<
+    refute_equal 0, run.exit_status, "Failed test should mean unsucessful " <<
                                          "exit status in parent \n" # + run.output
   end
 
   def test_failed_tests_mean_unsucessful_exit_code_in_parent_with_spawn_execute_mode
     run = run_suite('three')
-    assert_not_equal 0, run.exit_status, "Failed test in spawn mode should mean unsucessful " <<
+    refute_equal 0, run.exit_status, "Failed test in spawn mode should mean unsucessful " <<
                                          "exit status in parent \n" # + run.output
   end
 end

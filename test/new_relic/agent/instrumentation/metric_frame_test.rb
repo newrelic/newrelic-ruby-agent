@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
-class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
+class NewRelic::Agent::Instrumentation::MetricFrameTest < MiniTest::Unit::TestCase
 
   # These tests are just here to make sure that we're maintaining the required
   # old interface for folks. Real testing of the underlying functionality

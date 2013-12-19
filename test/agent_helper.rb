@@ -53,14 +53,14 @@ def assert_calls_metrics(*metrics)
   first_metrics = generate_metric_counts(*metrics)
   yield
   last_metrics = generate_metric_counts(*metrics)
-  assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
+  refute_equal first_metrics, last_metrics, "should have changed these metrics"
 end
 
 def assert_calls_unscoped_metrics(*metrics)
   first_metrics = generate_unscoped_metric_counts(*metrics)
   yield
   last_metrics = generate_unscoped_metric_counts(*metrics)
-  assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
+  refute_equal first_metrics, last_metrics, "should have changed these metrics"
 end
 
 def assert_has_error(error_class)
@@ -191,18 +191,22 @@ end
 
 def assert_truthy(expected, msg = nil)
   msg = build_message( msg, "Expected ? to be truthy", expected )
-  assert_block( msg ) { expected }
+  assert !!expected, msg
 end
 
 def assert_falsy(expected, msg = nil)
   msg = build_message( msg, "Expected ? to be falsy", expected )
-  assert_block( msg ) { !expected }
+  assert !expected, msg
 end
 
 unless defined?( assert_false )
   def assert_false(expected)
     assert_equal false, expected
   end
+end
+
+unless defined? ( refute )
+  alias refute assert_false
 end
 
 # Mock up a transaction for testing purposes, optionally specifying a name and

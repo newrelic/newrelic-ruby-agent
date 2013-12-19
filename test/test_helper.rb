@@ -29,7 +29,6 @@ if ENV["NO_RAILS"]
 else
   begin
     require 'config/environment'
-  #   require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
 
     # we need 'rails/test_help' for Rails 4
     # we need 'test_help' for Rails 2
@@ -46,8 +45,10 @@ else
     require 'newrelic_rpm'
   rescue LoadError => e
     puts "Running tests in standalone mode."
+
     require 'bundler'
     Bundler.require
+
     require 'rails/all'
     require 'newrelic_rpm'
 
@@ -63,18 +64,18 @@ else
   end
 end
 
-require 'test/unit'
+require 'minitest/autorun'
 begin
   require 'mocha/setup'
 rescue LoadError
   require 'mocha'
 end
 
-begin # 1.8.6
-  require 'mocha/integration/test_unit'
-  require 'mocha/integration/test_unit/assertion_counter'
-rescue LoadError
-end
+#begin # 1.8.6
+#  require 'mocha/integration/test_unit'
+#  require 'mocha/integration/test_unit/assertion_counter'
+#rescue LoadError
+#end
 
 require 'agent_helper'
 
@@ -103,17 +104,17 @@ def default_service(stubbed_method_overrides = {})
   service
 end
 
-class Test::Unit::TestCase
-  include Mocha::API
-
-  # we can delete this trick when we stop supporting rails2.0.x
-  if ENV['BRANCH'] != 'rails20'
-    # a hack because rails2.0.2 does not like double teardowns
-    def teardown
-      mocha_teardown
-    end
-  end
-end
+#class MiniTest::Unit::TestCase
+#  include Mocha::API
+#
+#  # we can delete this trick when we stop supporting rails2.0.x
+#  if ENV['BRANCH'] != 'rails20'
+#    # a hack because rails2.0.2 does not like double teardowns
+#    def teardown
+#      mocha_teardown
+#    end
+#  end
+#end
 
 def with_verbose_logging
   orig_logger = NewRelic::Agent.logger

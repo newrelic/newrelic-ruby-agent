@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'new_relic/cli/command'
 require 'new_relic/cli/deployments'
 
-class NewRelic::Cli::DeploymentsTest < Test::Unit::TestCase
+class NewRelic::Cli::DeploymentsTest < MiniTest::Unit::TestCase
 
   def setup
     NewRelic::Cli::Deployments.class_eval do
@@ -35,7 +35,7 @@ class NewRelic::Cli::DeploymentsTest < Test::Unit::TestCase
     end
   end
   def test_bad_command
-    assert_raise NewRelic::Cli::Command::CommandFailure do
+    assert_raises NewRelic::Cli::Command::CommandFailure do
       NewRelic::Cli::Deployments.new ["-foo", "bar"]
     end
   end
@@ -70,7 +70,7 @@ class NewRelic::Cli::DeploymentsTest < Test::Unit::TestCase
 
   def test_error_if_no_license_key
     with_config(:license_key => '') do
-      assert_raise NewRelic::Cli::Command::CommandFailure do
+      assert_raises NewRelic::Cli::Command::CommandFailure do
       deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
         deployment.run
       end

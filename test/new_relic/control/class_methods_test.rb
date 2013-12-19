@@ -10,7 +10,7 @@ class BaseClassMethods
   include NewRelic::Control::ClassMethods
 end
 
-class NewRelic::Control::ClassMethodsTest < Test::Unit::TestCase
+class NewRelic::Control::ClassMethodsTest < MiniTest::Unit::TestCase
   def setup
     @base = ::BaseClassMethods.new
     super
@@ -41,7 +41,7 @@ class NewRelic::Control::ClassMethodsTest < Test::Unit::TestCase
     # this is used to allow other people to insert frameworks without
     # having the file in our agent, i.e. define your own
     # NewRelic::Control::Framework::FooBar
-    assert_raise(NameError) do
+    assert_raises(NameError) do
       @base.load_framework_class('missing')
     end
   end

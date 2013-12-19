@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/request_sampler'
 
-class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
+class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
 
   def setup
     freeze_time

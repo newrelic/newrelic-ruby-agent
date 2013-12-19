@@ -45,7 +45,7 @@ end
 
 if !NewRelic::Agent::Threading::BacktraceService.is_supported?
 
-  class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
+  class ThreadProfilerUnsupportedTest < MiniTest::Unit::TestCase
     include ThreadProfilerSessionTestHelpers
 
     def setup
@@ -64,7 +64,7 @@ if !NewRelic::Agent::Threading::BacktraceService.is_supported?
 
     def test_wont_start_and_reports_error
       errors = nil
-      assert_raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
+      assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
         @profiler.handle_start_command(start_command)
       end
       assert_equal false, @profiler.running?
@@ -76,7 +76,7 @@ else
 
   require 'json'
 
-  class ThreadProfilerSessionTest < Test::Unit::TestCase
+  class ThreadProfilerSessionTest < MiniTest::Unit::TestCase
     include ThreadedTestCase
     include ThreadProfilerSessionTestHelpers
 
@@ -125,7 +125,7 @@ else
       @profiler.stop(true)
       assert_false @profiler.running?
 
-      assert_not_nil @profiler.harvest
+      refute_nil @profiler.harvest
     end
 
     def test_can_stop_a_running_profile_and_discard
@@ -149,7 +149,7 @@ else
 
     def test_config_can_disable_running
       with_config(:'thread_profiler.enabled' => false) do
-        assert_raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
+        assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
           @profiler.handle_start_command(start_command)
         end
         assert_false @profiler.running?
@@ -187,7 +187,7 @@ else
     def test_start_command_sent_twice_raises_error
       @profiler.handle_start_command(start_command)
 
-      assert_raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
+      assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
         @profiler.handle_start_command(start_command)
       end
     end

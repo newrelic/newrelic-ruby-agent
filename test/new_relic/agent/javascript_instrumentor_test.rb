@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require "new_relic/agent/javascript_instrumentor"
 require "base64"
 
-class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
+class NewRelic::Agent::JavascriptInstrumentorTest < MiniTest::Unit::TestCase
   attr_reader :instrumentor
 
   def setup

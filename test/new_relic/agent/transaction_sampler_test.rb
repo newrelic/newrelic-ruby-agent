@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
-class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
+class NewRelic::Agent::TransactionSamplerTest < MiniTest::Unit::TestCase
 
   module MockGCStats
 
@@ -102,7 +102,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     sample.expects(:finished).returns(true)
     @sampler.expects(:builder).returns(builder).twice
 
-    assert_raise(RuntimeError) do
+    assert_raises(RuntimeError) do
       @sampler.notice_pop_scope('a scope', Time.at(100))
     end
   end
@@ -635,7 +635,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       @sampler.notice_scope_empty(@txn)
       @sampler.notice_scope_empty(@txn)
 
-      assert_not_nil @sampler.harvest![0]
+      refute_nil @sampler.harvest![0]
     end
   end
 
@@ -756,9 +756,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.start_builder
     segment = @sampler.notice_push_scope
     segment.metric_name = 'External/www.google.com/Net::HTTP/GET'
-    assert_nothing_raised do
-      @sampler.notice_pop_scope( 'External/www.google.com/Net::HTTP/GET' )
-    end
+    @sampler.notice_pop_scope( 'External/www.google.com/Net::HTTP/GET' )
   end
 
   def test_adding_segment_parameters
@@ -777,10 +775,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     with_config(config) do
       run_long_sample_trace(110)
 
-      samples = nil
-      assert_nothing_raised do
-        samples = @sampler.harvest!
-      end
+      samples = @sampler.harvest!
       assert_equal(1, samples.size)
 
       # Verify that the TT stopped recording after 100 nodes
@@ -865,16 +860,16 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   # TODO: this test seems to be destabilizing CI in a way that I don't grok.
-  def sadly_do_not_test_harvest_during_transaction_safety
-    n = 3000
-    harvester = Thread.new do
-      n.times { @sampler.harvest! }
-    end
+  #def sadly_do_not_test_harvest_during_transaction_safety
+  #  n = 3000
+  #  harvester = Thread.new do
+  #    n.times { @sampler.harvest! }
+  #  end
 
-    assert_nothing_raised { Dummy.new.run(n) }
+  #  Dummy.new.run(n)
 
-    harvester.join
-  end
+  #  harvester.join
+  #end
 
   private
 

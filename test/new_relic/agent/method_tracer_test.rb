@@ -58,7 +58,7 @@ module TestModuleWithLog
   add_method_tracer :other_method, 'Custom/foo/bar'
 end
 
-class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
+class NewRelic::Agent::MethodTracerTest < MiniTest::Unit::TestCase
   attr_reader :stats_engine
 
   def setup
@@ -93,9 +93,8 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   end
 
   def test_record_metrics_does_not_raise_outside_transaction
-    assert_nothing_raised do
-      NewRelic::Agent::MethodTracer::TraceExecutionScoped.record_metrics('a', ['b'], 12, 10, :metric => true)
-    end
+    NewRelic::Agent::MethodTracer::TraceExecutionScoped.record_metrics('a', ['b'], 12, 10, :metric => true)
+
     expected = { :call_count => 1, :total_call_time => 12, :total_exclusive_time => 10 }
     assert_metrics_recorded('a' => expected, 'b' => expected)
   end
@@ -190,9 +189,9 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
 
     method_c1
 
-    assert_not_nil @stats_engine.lookup_stats("c1")
+    refute_nil @stats_engine.lookup_stats("c1")
     assert_nil @stats_engine.lookup_stats("c2")
-    assert_not_nil @stats_engine.lookup_stats("c3")
+    refute_nil @stats_engine.lookup_stats("c3")
 
     assert_equal ['c2', 'c1'], @scope_listener.scopes
   end
@@ -213,7 +212,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     stats = @stats_engine.get_stats("thrower")
     assert_equal 6, stats.call_count
     sample = @old_sampler.harvest!
-    assert_not_nil sample
+    refute_nil sample
   end
 
   def test_add_same_tracer_twice

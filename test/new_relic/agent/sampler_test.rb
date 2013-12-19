@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-class NewRelic::Agent::SamplerTest < Test::Unit::TestCase
+class NewRelic::Agent::SamplerTest < MiniTest::Unit::TestCase
   require 'new_relic/agent/sampler'
 
   def test_inherited_should_append_subclasses_to_sampler_classes

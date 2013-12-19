@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require 'new_relic/transaction_analysis'
-class NewRelic::TransactionAnalysisTest < Test::Unit::TestCase
+class NewRelic::TransactionAnalysisTest < MiniTest::Unit::TestCase
   include NewRelic::TransactionAnalysis
 
   # these are mostly stub tests just making sure that the API doesn't

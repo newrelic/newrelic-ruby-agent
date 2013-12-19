@@ -10,12 +10,12 @@ module NewRelic
     class Agent
       module MethodTracer
         module ClassMethods
-          class AddMethodTracerTest < Test::Unit::TestCase
+          class AddMethodTracerTest < MiniTest::Unit::TestCase
             #  require 'new_relic/agent/method_tracer'
             include NewRelic::Agent::MethodTracer::ClassMethods::AddMethodTracer
 
             def test_validate_options_nonhash
-              assert_raise(TypeError) do
+              assert_raises(TypeError) do
                 validate_options([])
               end
             end
@@ -99,7 +99,7 @@ module NewRelic
             end
 
             def test_check_for_illegal_keys_positive
-              assert_raise(RuntimeError) do
+              assert_raises(RuntimeError) do
                 check_for_illegal_keys!({:unknown_key => nil})
               end
             end
@@ -138,7 +138,7 @@ module NewRelic
             end
 
             def test_check_for_push_scope_and_metric_negative
-              assert_raise(RuntimeError) do
+              assert_raises(RuntimeError) do
                 check_for_push_scope_and_metric({:push_scope => false, :metric => false})
               end
             end

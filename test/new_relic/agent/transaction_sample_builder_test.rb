@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
+class NewRelic::Agent::TransationSampleBuilderTest < MiniTest::Unit::TestCase
 
   def setup
     freeze_time
@@ -211,10 +211,8 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
       6.times { |i| build_segment "s#{i}" }
       # now we should have a placeholder segment
       build_segment "this-should-be-truncated" do
-        assert_nothing_raised do
-          @builder.current_segment['eggs'] = 'ham'
-          @builder.current_segment.params.merge!('foo' => 'bar')
-        end
+        @builder.current_segment['eggs'] = 'ham'
+        @builder.current_segment.params.merge!('foo' => 'bar')
       end
     end
   end
@@ -235,21 +233,25 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
   end
 
   def test_has_correct_transaction_trace_threshold_when_default
-    NewRelic::Agent::TransactionState.get.transaction = stub()
-    NewRelic::Agent::TransactionState.get.transaction.stubs(:apdex_t).returns(1.5)
-    assert_equal 6.0, @builder.transaction_trace_threshold
+    in_transaction do
+      with_config(:apdex_t => 1.5) do
+        assert_equal 6.0, @builder.transaction_trace_threshold
+      end
 
-    NewRelic::Agent::TransactionState.get.transaction.stubs(:apdex_t).returns(2.0)
-    assert_equal 8.0, @builder.transaction_trace_threshold
+      with_config(:apdex_t => 2.0) do
+        assert_equal 8.0, @builder.transaction_trace_threshold
+      end
+    end
   end
 
   def test_has_correct_transaction_trace_threshold_when_explicitly_specified
     config = { :'transaction_tracer.transaction_threshold' => 4.0 }
 
-    with_config(config, :do_not_cast => true) do
-      NewRelic::Agent::TransactionState.get.transaction = stub()
-      NewRelic::Agent::TransactionState.get.transaction.stubs(:apdex_t).returns(1.5)
-      assert_equal 4.0, @builder.transaction_trace_threshold
+    in_transaction do
+      with_config(config, :do_not_cast => true) do
+        NewRelic::Agent::TransactionState.get.transaction.stubs(:apdex_t).returns(1.5)
+        assert_equal 4.0, @builder.transaction_trace_threshold
+      end
     end
   end
 

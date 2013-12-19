@@ -7,7 +7,7 @@ require 'new_relic/agent/cross_app_tracing'
 
 module NewRelic
   module Agent
-    class CrossAppTracingTest < Test::Unit::TestCase
+    class CrossAppTracingTest < MiniTest::Unit::TestCase
 
       attr_reader :segment, :request, :response
 
@@ -20,14 +20,14 @@ module NewRelic
 
       def test_start_trace
         t0, segment = CrossAppTracing.start_trace(request)
-        assert_not_nil t0
-        assert_not_nil segment
+        refute_nil t0
+        refute_nil segment
       end
 
       def test_start_trace_has_time_even_on_agent_failure
         NewRelic::Agent.instance.stats_engine.stubs(:push_scope).raises("Boom!")
         t0, segment = CrossAppTracing.start_trace(request)
-        assert_not_nil t0
+        refute_nil t0
         assert_nil segment
       end
 

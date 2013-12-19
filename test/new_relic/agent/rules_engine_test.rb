@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class RulesEngineTest < Test::Unit::TestCase
+class RulesEngineTest < MiniTest::Unit::TestCase
   def setup
     @engine = NewRelic::Agent::RulesEngine.new
   end

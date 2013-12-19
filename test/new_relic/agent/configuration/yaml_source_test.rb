@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/configuration/yaml_source'
 
 module NewRelic::Agent::Configuration
-  class YamlSourceTest < Test::Unit::TestCase
+  class YamlSourceTest < MiniTest::Unit::TestCase
     def setup
       @test_yml_path = File.expand_path(File.join(File.dirname(__FILE__),
                                                  '..','..','..',
@@ -37,7 +37,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_load_the_config_for_the_correct_env
-      assert_not_equal 'the.wrong.host', @source[:host]
+      refute_equal 'the.wrong.host', @source[:host]
     end
 
     def test_should_convert_to_dot_notation

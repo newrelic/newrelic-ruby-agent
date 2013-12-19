@@ -11,7 +11,7 @@ rescue LoadError
   require 'mocha'
 end
 
-class LoadTest < Test::Unit::TestCase
+class LoadTest < MiniTest::Unit::TestCase
   def test_loading_agent_when_disabled_does_not_resolv_addresses
     ::Resolv.expects(:getaddress).never
     ::IPSocket.expects(:getaddress).never

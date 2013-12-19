@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
 require 'new_relic/environment_report'
 
-class EnvironmentReportTest < Test::Unit::TestCase
+class EnvironmentReportTest < MiniTest::Unit::TestCase
   def setup
     @old_logic = ::NewRelic::EnvironmentReport.registered_reporters.dup
     @report = ::NewRelic::EnvironmentReport.new
@@ -31,12 +31,10 @@ class EnvironmentReportTest < Test::Unit::TestCase
   end
 
   def test_report_on_handles_errors_gracefully
-    assert_nothing_raised do
-      ::NewRelic::EnvironmentReport.report_on("What time is it?") do
-        raise ArgumentError, "woah! something blew up"
-      end
-      assert_nil ::NewRelic::EnvironmentReport.new["What time is it?"]
+    ::NewRelic::EnvironmentReport.report_on("What time is it?") do
+      raise ArgumentError, "woah! something blew up"
     end
+    assert_nil ::NewRelic::EnvironmentReport.new["What time is it?"]
   end
 
   def test_it_does_not_set_keys_for_nil_values

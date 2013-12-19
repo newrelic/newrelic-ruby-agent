@@ -8,7 +8,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','data_contai
 require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/commands/xray_session'
 
-class AgentCommandRouterTest < Test::Unit::TestCase
+class AgentCommandRouterTest < MiniTest::Unit::TestCase
 
   DEFAULT_ARGS = {
     "profile_id" => 42
@@ -147,7 +147,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       advance_time(1.1)
       result = agent_commands.harvest!
 
-      assert_not_empty result
+      refute_empty result
     end
 
     def test_can_stop_multiple_times_safely
@@ -157,7 +157,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       agent_commands.thread_profiler_session.stop(true)
 
       result = agent_commands.harvest!
-      assert_not_empty result
+      refute_empty result
     end
 
     def test_transmits_after_forced_stop
@@ -166,7 +166,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       agent_commands.thread_profiler_session.stop(true)
 
       result = agent_commands.harvest!
-      assert_not_empty result
+      refute_empty result
     end
 
     def test_harvest_following_before_shutdown_with_no_profile
@@ -180,7 +180,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
       @events.notify(:before_shutdown)
       result = agent_commands.harvest!
-      assert_not_empty result
+      refute_empty result
     end
 
     def test_harvest_with_xray_sessions_in_progress

@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
-class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
+class NewRelic::Agent::MetricStatsTest < MiniTest::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent.instance.stats_engine
@@ -23,12 +23,12 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     s2 = @engine.get_stats "a"
     s3 = @engine.get_stats "b"
 
-    assert_not_nil s1
-    assert_not_nil s2
-    assert_not_nil s3
+    refute_nil s1
+    refute_nil s2
+    refute_nil s3
 
     assert s1 == s2
-    assert_not_same(s1, s3)
+    refute_same(s1, s3)
   end
 
   def test_harvest

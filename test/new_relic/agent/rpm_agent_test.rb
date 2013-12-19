@@ -4,7 +4,7 @@
 
 require File.expand_path('../../../test_helper', __FILE__)
 
-class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase
+class NewRelic::Agent::RpmAgentTest < MiniTest::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
@@ -17,13 +17,13 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase
 
   def test_agent_setup
     assert(NewRelic::Agent.instance.class == NewRelic::Agent::Agent)
-    assert_raise(RuntimeError) do
+    assert_raises(RuntimeError) do
       NewRelic::Control.instance.init_plugin(:agent_enabled => false)
     end
   end
 
   def test_public_apis
-    assert_raise(RuntimeError) do
+    assert_raises(RuntimeError) do
       NewRelic::Agent.set_sql_obfuscator(:unknown) { |sql| puts sql }
     end
 

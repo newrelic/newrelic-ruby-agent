@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
 # look through the source code to enforce some simple rules that help us keep
 # our license data up to date.
-class LicenseTest < Test::Unit::TestCase
+class LicenseTest < MiniTest::Unit::TestCase
   include NewRelic::TestHelpers::FileSearching
 
   # A list of regexs that will likely match license info
@@ -80,7 +80,7 @@ class LicenseTest < Test::Unit::TestCase
       next if should_skip?(filename)
 
       first_thousand_bytes = File.read(filename, 1000)
-      assert_not_nil first_thousand_bytes, "#{filename} is shorter than 1000 bytes."
+      refute_nil first_thousand_bytes, "#{filename} is shorter than 1000 bytes."
 
       first_four_lines = first_thousand_bytes.split("\n")[0...4]
 

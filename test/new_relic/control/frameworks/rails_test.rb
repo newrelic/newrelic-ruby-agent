@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'/../../../test_helper'))
 
-class NewRelic::Control::Frameworks::RailsTest < Test::Unit::TestCase
+class NewRelic::Control::Frameworks::RailsTest < MiniTest::Unit::TestCase
   def test_install_browser_monitoring
     require 'new_relic/rack/browser_monitoring'
     middleware = stub('middleware config')

@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
+class NewRelic::Agent::WorkerLoopTest < MiniTest::Unit::TestCase
   def setup
     @worker_loop = NewRelic::Agent::WorkerLoop.new
   end

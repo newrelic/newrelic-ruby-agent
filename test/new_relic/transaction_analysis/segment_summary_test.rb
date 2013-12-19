@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
 require 'new_relic/transaction_analysis/segment_summary'
-class NewRelic::TransactionAnalysis::SegmentSummaryTest < Test::Unit::TestCase
+class NewRelic::TransactionAnalysis::SegmentSummaryTest < MiniTest::Unit::TestCase
 
   def setup
     @sample = mock('sample')
@@ -28,7 +28,7 @@ class NewRelic::TransactionAnalysis::SegmentSummaryTest < Test::Unit::TestCase
   def test_insert_error
     segment = mock('segment')
     segment.expects(:metric_name).returns('Controller/bar').twice
-    assert_raise(ArgumentError) do
+    assert_raises(ArgumentError) do
       @ss << segment
     end
   end

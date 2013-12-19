@@ -10,7 +10,7 @@ require 'new_relic/rack/browser_monitoring'
 
 ENV['RACK_ENV'] = 'test'
 
-class BrowserMonitoringTest < Test::Unit::TestCase
+class BrowserMonitoringTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
 
   class TestApp

@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/transaction/pop'
-class NewRelic::Agent::Transaction::PopTest < Test::Unit::TestCase
+class NewRelic::Agent::Transaction::PopTest < MiniTest::Unit::TestCase
   include NewRelic::Agent::Transaction::Pop
 
   attr_reader :agent

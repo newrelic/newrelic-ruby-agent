@@ -16,6 +16,10 @@ module NewRelic
         @samplers.each(&blk)
       end
 
+      def clear()
+        @samplers.clear
+      end
+
       def sampler_class_registered?(sampler_class)
         self.any? { |s| s.class == sampler_class }
       end

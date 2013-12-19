@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'new_relic/agent/audit_logger'
 require 'new_relic/agent/null_logger'
 
-class AuditLoggerTest < Test::Unit::TestCase
+class AuditLoggerTest < MiniTest::Unit::TestCase
   def setup
     NewRelic::Agent.config.apply_config(:'audit_log.enabled' => true)
 
@@ -73,10 +73,9 @@ class AuditLoggerTest < Test::Unit::TestCase
     NewRelic::Agent::NullLogger.expects(:new).returns(null_logger)
     logger = NewRelic::Agent::AuditLogger.new
     logger.stubs(:ensure_log_path).returns(nil)
-    assert_nothing_raised do
-      logger.setup_logger
-      logger.log_request(@uri, 'whatever', @marshaller)
-    end
+
+    logger.setup_logger
+    logger.log_request(@uri, 'whatever', @marshaller)
   end
 
   def test_log_request_captures_system_call_errors
@@ -90,9 +89,7 @@ class AuditLoggerTest < Test::Unit::TestCase
     # This just silences that output to keep the test output uncluttered.
     Logger::LogDevice.any_instance.stubs(:warn)
 
-    assert_nothing_raised do
-      logger.log_request(@uri, 'whatever', @marshaller)
-    end
+    logger.log_request(@uri, 'whatever', @marshaller)
   end
 
   def test_prepares_data_with_identity_encoder

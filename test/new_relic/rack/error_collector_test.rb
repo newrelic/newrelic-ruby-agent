@@ -8,7 +8,7 @@ require 'rack/test'
 require 'new_relic/rack/error_collector'
 
 module NewRelic::Rack
-  class ErrorCollectorTest < Test::Unit::TestCase
+  class ErrorCollectorTest < MiniTest::Unit::TestCase
     include Rack::Test::Methods
 
     class TestApp
@@ -41,7 +41,7 @@ module NewRelic::Rack
     end
 
     def test_notice_and_reraise_errors
-      assert_raise RuntimeError do
+      assert_raises RuntimeError do
         get '/'
       end
 
@@ -53,7 +53,7 @@ module NewRelic::Rack
         !error.kind_of?(RuntimeError)
       end
 
-      assert_raise RuntimeError do
+      assert_raises RuntimeError do
         get '/'
       end
 
@@ -63,7 +63,7 @@ module NewRelic::Rack
 
     if defined?(::Rails)
       def test_ignore_errors_from_ignored_actions
-        assert_raise RuntimeError do
+        assert_raises RuntimeError do
           get '/ignored'
         end
 
@@ -84,7 +84,7 @@ module NewRelic::Rack
         Rack::Request.stubs(:new).returns(bad_request)
       end
 
-      assert_raise RuntimeError do
+      assert_raises RuntimeError do
         get '/'
       end
 
@@ -100,7 +100,7 @@ module NewRelic::Rack
       if defined?(ActionDispatch::Request)
         ActionDispatch::Request.stubs(:new).raises('bad news')
 
-        assert_raise RuntimeError do
+        assert_raises RuntimeError do
           get '/foo/bar?q=12'
         end
 
@@ -110,7 +110,7 @@ module NewRelic::Rack
     end
 
     def test_captures_parameters_with_rails
-      assert_raise RuntimeError do
+      assert_raises RuntimeError do
         get '/?foo=bar&baz=qux'
       end
 
@@ -121,7 +121,7 @@ module NewRelic::Rack
 
     def test_captures_parameters_without_rails
       undefine_constant(:'ActionDispatch::Request') do
-        assert_raise RuntimeError do
+        assert_raises RuntimeError do
           get '/?foo=bar&baz=qux'
         end
       end

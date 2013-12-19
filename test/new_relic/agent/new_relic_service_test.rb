@@ -8,7 +8,7 @@ require 'new_relic/agent/commands/thread_profiler_session'
 
 # Tests of HTTP Keep Alive implementation that require a different setup and
 # set of mocks.
-class NewRelicServiceKeepAliveTest < Test::Unit::TestCase
+class NewRelicServiceKeepAliveTest < MiniTest::Unit::TestCase
   def setup
     @server = NewRelic::Control::Server.new('somewhere.example.com',
                                             30303, '10.10.10.10')
@@ -80,7 +80,7 @@ class NewRelicServiceKeepAliveTest < Test::Unit::TestCase
 
 end
 
-class NewRelicServiceTest < Test::Unit::TestCase
+class NewRelicServiceTest < MiniTest::Unit::TestCase
   def initialize(*_)
     [ :HTTPSuccess,
       :HTTPUnauthorized,
@@ -330,7 +330,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_should_throw_received_errors
-    assert_raise NewRelic::Agent::ServerConnectionException do
+    assert_raises NewRelic::Agent::ServerConnectionException do
       @service.send(:invoke_remote, :bogus_method)
     end
   end
@@ -356,7 +356,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   def test_should_raise_exception_on_401
     @http_handle.reset
     @http_handle.respond_to(:get_redirect_host, 'bad license', :code => 401)
-    assert_raise NewRelic::Agent::LicenseException do
+    assert_raises NewRelic::Agent::LicenseException do
       @service.get_redirect_host
     end
   end
@@ -364,7 +364,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   # protocol 9
   def test_should_raise_exception_on_413
     @http_handle.respond_to(:metric_data, 'too big', :code => 413)
-    assert_raise NewRelic::Agent::UnrecoverableServerException do
+    assert_raises NewRelic::Agent::UnrecoverableServerException do
       stats_hash = NewRelic::Agent::StatsHash.new
       @service.metric_data(stats_hash)
     end
@@ -373,7 +373,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   # protocol 9
   def test_should_raise_exception_on_415
     @http_handle.respond_to(:metric_data, 'too big', :code => 415)
-    assert_raise NewRelic::Agent::UnrecoverableServerException do
+    assert_raises NewRelic::Agent::UnrecoverableServerException do
       stats_hash = NewRelic::Agent::StatsHash.new
       @service.metric_data(stats_hash)
     end
@@ -387,7 +387,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
     def test_json_marshaller_handles_errors_from_collector
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      assert_raise(NewRelic::Agent::NewRelicService::CollectorError,
+      assert_raises(NewRelic::Agent::NewRelicService::CollectorError,
                    'JavaCrash: error message') do
         marshaller.load('{"exception": {"message": "error message", "error_type": "JavaCrash"}}')
       end
@@ -408,7 +408,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_pruby_marshaller_handles_errors_from_collector
     marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    assert_raise(NewRelic::Agent::NewRelicService::CollectorError, 'error message') do
+    assert_raises(NewRelic::Agent::NewRelicService::CollectorError, 'error message') do
       marshaller.load(Marshal.dump({"exception" => {"message" => "error message",
                                        "error_type" => "JavaCrash"}}))
     end

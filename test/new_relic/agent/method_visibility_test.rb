@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-class MethodVisibilityTest < Test::Unit::TestCase
+class MethodVisibilityTest < MiniTest::Unit::TestCase
 
   class InstrumentedClass
     include NewRelic::Agent::MethodTracer

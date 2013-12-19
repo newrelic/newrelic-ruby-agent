@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
 
-class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
+class NewRelic::Agent::StatsHashTest < MiniTest::Unit::TestCase
   def setup
     @hash = NewRelic::Agent::StatsHash.new
     NewRelic::Agent.instance.error_collector.errors.clear

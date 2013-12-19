@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/threading/agent_thread'
 
 module NewRelic::Agent::Threading
-  class AgentThreadTest < Test::Unit::TestCase
+  class AgentThreadTest < MiniTest::Unit::TestCase
 
     def test_sets_label
       t = AgentThread.new("labelled") {}
@@ -92,9 +92,7 @@ module NewRelic::Agent::Threading
     def test_scrub_backtrace_handles_errors_during_backtrace
       dummy_thread = stub
       dummy_thread.stubs(:backtrace).raises(StandardError.new('nah'))
-      assert_nothing_raised do
-        AgentThread.scrub_backtrace(dummy_thread, true)
-      end
+      AgentThread.scrub_backtrace(dummy_thread, true)
     end
 
     def test_scrub_backtrace_handles_nil_backtrace

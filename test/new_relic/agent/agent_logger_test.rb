@@ -20,7 +20,7 @@ class ArrayLogDevice
 end
 
 
-class AgentLoggerTest < Test::Unit::TestCase
+class AgentLoggerTest < MiniTest::Unit::TestCase
 
   LEVELS = [:fatal, :error, :warn, :info, :debug]
 
@@ -91,9 +91,7 @@ class AgentLoggerTest < Test::Unit::TestCase
   def test_wont_log_if_agent_not_enabled
     with_config(:agent_enabled => false) do
       logger = NewRelic::Agent::AgentLogger.new
-      assert_nothing_raised do
-        logger.warn('hi there')
-      end
+      logger.warn('hi there')
 
       assert_kind_of NewRelic::Agent::NullLogger, logger.instance_variable_get( :@log )
     end
@@ -250,9 +248,7 @@ class AgentLoggerTest < Test::Unit::TestCase
 
     logger = NewRelic::Agent::AgentLogger.new
     with_config(:agent_enabled => false) do
-      assert_nothing_raised do
-        logger.debug('hi!')
-      end
+      logger.debug('hi!')
     end
   ensure
     Kernel.module_eval do
