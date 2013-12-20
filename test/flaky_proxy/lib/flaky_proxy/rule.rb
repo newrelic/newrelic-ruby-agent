@@ -31,8 +31,10 @@ module FlakyProxy
 
     def initialize(url_regex=nil, &blk)
       @url_regex = url_regex
+      @action = blk
       @actions = []
-      ActionBuilder.new(self).instance_eval(&blk)
+      @builder = ActionBuilder.new(self)
+      @default_action = [:pass]
     end
 
     def match?(request)
@@ -40,11 +42,7 @@ module FlakyProxy
     end
 
     def next_action
-      if @actions.size > 1
-        @actions.shift
-      else
-        @actions.last
-      end
+      @actions.shift || @default_action
     end
 
     def relay(request, connection)
@@ -54,6 +52,7 @@ module FlakyProxy
     end
 
     def evaluate(request, connection)
+      @builder.instance_exec(request, connection, &@action)
       action, *params = next_action
       FlakyProxy.logger.info("    [#{action.upcase}] #{request.request_method} #{request.request_url}")
       case action
