@@ -631,7 +631,7 @@ module NewRelic
           :description => 'Enable or disable sequel instrumentation.'
         },
         :disable_mongo => {
-          :default => true,
+          :default => false,
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable MongoDB instrumentation.'
