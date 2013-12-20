@@ -5,35 +5,33 @@
 module FlakyProxy
   class Rule
     class ActionBuilder
-      def initialize(rule)
+      attr_reader :actions
+
+      def initialize
         @actions = []
-        @rule = rule
       end
 
       def pass
-        @rule.actions << [:pass]
+        @actions << [:pass]
       end
 
       def respond(response_spec)
-        @rule.actions << [:respond, response_spec]
+        @actions << [:respond, response_spec]
       end
 
       def delay(amount)
-        @rule.actions << [:delay, amount]
+        @actions << [:delay, amount]
       end
 
       def close
-        @rule.actions << [:close]
+        @actions << [:close]
       end
     end
 
-    attr_reader :actions
-
-    def initialize(url_regex=nil, &blk)
+    def initialize(url_regex=nil, builder=nil, &blk)
       @url_regex = url_regex
       @action = blk
-      @actions = []
-      @builder = ActionBuilder.new(self)
+      @builder = builder || ActionBuilder.new
       @default_action = [:pass]
     end
 
@@ -42,7 +40,7 @@ module FlakyProxy
     end
 
     def next_action
-      @actions.shift || @default_action
+      @builder.actions.shift || @default_action
     end
 
     def relay(request, connection)
@@ -52,7 +50,7 @@ module FlakyProxy
     end
 
     def evaluate(request, connection)
-      @builder.instance_exec(request, connection, &@action)
+      @builder.instance_exec(request, connection, &@action) if @action
       action, *params = next_action
       FlakyProxy.logger.info("    [#{action.upcase}] #{request.request_method} #{request.request_url}")
       case action
