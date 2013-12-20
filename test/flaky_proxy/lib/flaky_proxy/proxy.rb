@@ -24,6 +24,8 @@ module FlakyProxy
           @last_rules_mtime = mtime
         end
       end
+    rescue => e
+      FlakyProxy.logger.error("Error reloading rules file at #{@rules_path}: #{e}\n#{e.backtrace.join("\n")}")
     end
 
     def run
