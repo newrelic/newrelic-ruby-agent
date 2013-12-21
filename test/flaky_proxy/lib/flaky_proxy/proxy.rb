@@ -28,16 +28,24 @@ module FlakyProxy
       FlakyProxy.logger.error("Error reloading rules file at #{@rules_path}: #{e}\n#{e.backtrace.join("\n")}")
     end
 
+    def with_connection_logging(client_socket)
+      peer_info = client_socket.peeraddr(:hostname)
+      client_str = "#{peer_info[2]}:#{peer_info[1]}"
+      FlakyProxy.logger.info("Accepted connection from #{client_str}")
+      yield
+      FlakyProxy.logger.info("Finished servicing connection from #{client_str}")
+    end
+
     def run
       FlakyProxy.logger.info("Starting FlakyProxy on #{@listen_host}:#{@listen_port} -> #{@backend_server.to_s}")
       @listen_socket = TCPServer.new(@listen_host, @listen_port)
       loop do
         client_socket = @listen_socket.accept
         reload_rules_file
-        FlakyProxy.logger.info("Accepted connection from #{client_socket}")
-        connection = Connection.new(client_socket, @backend_server, @rules)
-        connection.service
-        FlakyProxy.logger.info("Finished servicing connection from #{client_socket}")
+        with_connection_logging(client_socket) do
+          connection = Connection.new(client_socket, @backend_server, @rules)
+          connection.service
+        end
       end
     end
   end
