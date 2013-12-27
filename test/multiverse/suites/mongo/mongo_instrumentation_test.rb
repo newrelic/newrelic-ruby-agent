@@ -184,6 +184,19 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       assert_metrics_not_recorded(['Datastore/operation/MongoDB/insert'])
     end
 
+    def test_ensure_index_does_call_ensure_index
+      require 'minitest/mock'
+      spec = {unique_field_name => Mongo::ASCENDING}
+      opts = {}
+      mock = MiniTest::Mock.new.expect(:call, nil, [spec, opts])
+
+      @collection.stub(:ensure_index_without_new_relic_trace, mock) do
+        @collection.ensure_index(spec)
+      end
+
+      assert mock.verify
+    end
+
     def test_records_metrics_for_drop_index
       name =  @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
       NewRelic::Agent.drop_buffered_data

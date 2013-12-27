@@ -117,7 +117,7 @@ DependencyDetection.defer do
           transaction_state.push_traced(false)
 
           begin
-            result = save_without_new_relic_trace(spec, opts, &block)
+            result = ensure_index_without_new_relic_trace(spec, opts, &block)
           ensure
             transaction_state.pop_traced
           end
