@@ -170,7 +170,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     end
 
     def test_records_metrics_for_ensure_index
-      @collection.ensure_index({unique_field_name => Mongo::ASCENDING})
+      @collection.ensure_index([[unique_field_name, Mongo::ASCENDING]])
 
       metrics = build_test_metrics(:ensureIndex)
       expected = metrics_with_attributes(metrics, { :call_count => 1 })
@@ -179,22 +179,16 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     end
 
     def test_ensure_index_does_not_record_insert
-      @collection.ensure_index({unique_field_name => Mongo::ASCENDING})
+      @collection.ensure_index([[unique_field_name, Mongo::ASCENDING]])
 
       assert_metrics_not_recorded(['Datastore/operation/MongoDB/insert'])
     end
 
     def test_ensure_index_does_call_ensure_index
-      require 'minitest/mock'
-      spec = {unique_field_name => Mongo::ASCENDING}
-      opts = {}
-      mock = MiniTest::Mock.new.expect(:call, nil, [spec, opts])
+      options = [[unique_field_name, Mongo::ASCENDING]]
 
-      @collection.stub(:ensure_index_without_new_relic_trace, mock) do
-        @collection.ensure_index(spec)
-      end
-
-      assert mock.verify
+      @collection.expects(:ensure_index_without_new_relic_trace).with(options, any_parameters).once
+      @collection.ensure_index(options)
     end
 
     def test_records_metrics_for_drop_index
@@ -328,7 +322,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       segment = nil
 
       in_transaction do
-        @collection.ensure_index({unique_field_name => Mongo::ASCENDING})
+        @collection.ensure_index([[unique_field_name, Mongo::ASCENDING]])
         segment = find_last_transaction_segment
       end
 

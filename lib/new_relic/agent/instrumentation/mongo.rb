@@ -122,7 +122,9 @@ DependencyDetection.defer do
             transaction_state.pop_traced
           end
 
+          spec = spec.is_a?(Array) ? Hash[spec] : spec.dup
           spec[:operation] = :ensureIndex
+
           statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(spec)
           if statement
             NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
