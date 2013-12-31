@@ -7,6 +7,7 @@
 
 if RUBY_VERSION >= '1.9'
 
+require 'thread'
 require 'multiverse_helpers'
 
 class ThreadProfilingTest < MiniTest::Unit::TestCase
@@ -60,10 +61,10 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   # go only let a few cycles through, so we check less than 10
 
   def test_thread_profiling
-    issue_command(START_COMMAND)
-
     run_thread { NewRelic::Agent::Transaction.start(:controller, :request => stub) }
     run_thread { NewRelic::Agent::Transaction.start(:task) }
+
+    issue_command(START_COMMAND)
 
     let_it_finish
 
@@ -79,10 +80,10 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
 
   def test_thread_profiling_with_pruby_marshaller
     with_config(:marshaller => 'pruby') do
-      issue_command(START_COMMAND)
-
       run_thread { NewRelic::Agent::Transaction.start(:controller, :request => stub) }
       run_thread { NewRelic::Agent::Transaction.start(:task) }
+
+      issue_command(START_COMMAND)
 
       let_it_finish
     end
@@ -118,15 +119,29 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
 
   # Runs a thread we expect to span entire test and be killed at the end
   def run_thread
-    Thread.new do
+    q = Queue.new
+    @threads ||= []
+    @threads << Thread.new do
       yield
-      sleep(10)
+      q.push('.')
+      sleep # sleep until explicitly woken in join_background_threads
     end
+    q.pop # block until the thread has had a chance to start up
   end
 
   def let_it_finish
     wait_for_backtrace_service_poll(:timeout => 10.0, :iterations => 10)
     harvest
+    join_background_threads
+  end
+
+  def join_background_threads
+    if @threads
+      @threads.each do |thread|
+        thread.run
+        thread.join
+      end
+    end
   end
 
   def harvest
