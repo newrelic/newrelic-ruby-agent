@@ -27,6 +27,12 @@
   outgoing Net::HTTP requests. This has been corrected, and reported HTTP
   timings should now be more accurate.
 
+  * Fix for Mongo ensure_index instrumentation (3.7.1.182)
+
+  The Mongo instrumentation for ensure_index in 3.7.1.180 was not properly
+  calling through to the uninstrumented version of this method. This has been
+  fixed in 3.7.1.182. Thanks to Yuki Miyauchi for the fix!
+
 ## v3.7.0 ##
 
   * Official Rubinius support (for Rubinius >= 2.2.1)
