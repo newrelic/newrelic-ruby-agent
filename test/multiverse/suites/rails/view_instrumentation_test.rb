@@ -15,6 +15,12 @@ class ViewsController < ApplicationController
     render 'index'
   end
 
+  def render_with_delays
+    freeze_time
+    @delay = 1
+    render 'index'
+  end
+
   def deep_partial_render
     render 'deep_partial'
   end
@@ -186,6 +192,23 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
       text_segment = sample.root_segment.called_segments.first.called_segments.first
       assert_equal 'View/file/Rendering', text_segment.metric_name
+    end
+
+    def test_exclusive_time_for_template_render_metrics_should_not_include_partial_rendering_time
+      get 'views/render_with_delays'
+
+      assert_metrics_recorded(
+        'View/views/_a_partial.html.erb/Partial' => {
+          :call_count           => 3,
+          :total_call_time      => 3.0,
+          :total_exclusive_time => 3.0
+        },
+        'View/views/index.html.erb/Rendering' => {
+          :call_count           => 1,
+          :total_call_time      => 4.0,
+          :total_exclusive_time => 1.0  # top-level template takes 1s itself
+        }
+      )
     end
   end
 end
