@@ -13,10 +13,16 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
   class TyphoeusTest < MiniTest::Unit::TestCase
     include HttpClientTestCases
 
-    USE_SSL_VERIFYPEER_VERSION = NewRelic::VersionNumber.new("0.5.0")
+    USE_SSL_VERIFYPEER_VERSION  = NewRelic::VersionNumber.new("0.5.0")
+
+    # Starting in version 0.6.4, Typhoeus supports passing URI instances instead
+    # of String URLs. Make sure we don't break that.
+    SUPPORTS_URI_OBJECT_VERSION = NewRelic::VersionNumber.new("0.6.4")
+
+    CURRENT_TYPHOEUS_VERSION = NewRelic::VersionNumber.new(Typhoeus::VERSION)
 
     def ssl_option
-      if NewRelic::VersionNumber.new(Typhoeus::VERSION) >= USE_SSL_VERIFYPEER_VERSION
+      if CURRENT_TYPHOEUS_VERSION >= USE_SSL_VERIFYPEER_VERSION
         { :ssl_verifypeer => false }
       else
         { :disable_ssl_peer_verification => true }
@@ -71,6 +77,14 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
 
         last_segment = find_last_transaction_segment()
         assert_equal "External/Multiple/Typhoeus::Hydra/run", last_segment.metric_name
+      end
+    end
+
+    if CURRENT_TYPHOEUS_VERSION > SUPPORTS_URI_OBJECT_VERSION
+      def test_get_with_uri
+        res = get_response(default_uri)
+        assert_match %r/<head>/i, body(res)
+        assert_externals_recorded_for("localhost", "GET")
       end
     end
   end

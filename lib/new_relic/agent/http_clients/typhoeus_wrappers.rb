@@ -38,7 +38,7 @@ module NewRelic
       class TyphoeusHTTPRequest
         def initialize(request)
           @request = request
-          @uri = URI.parse(request.url)
+          @uri = URI.parse(request.url.to_s)
         end
 
         def type
