@@ -5,8 +5,6 @@ if RUBY_VERSION >= '1.9.3'
   RB
 end
 
-omit_mocha!
-
 gemfile <<-RB
   gem 'rails', '~>3.2.16'
   gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3

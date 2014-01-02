@@ -5,7 +5,6 @@
 require "newrelic_rpm"
 require "fake_external_server"
 require "evil_server"
-require 'mocha'
 require 'multiverse_helpers'
 
 module HttpClientTestCases
