@@ -80,7 +80,7 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
       end
     end
 
-    if CURRENT_TYPHOEUS_VERSION > SUPPORTS_URI_OBJECT_VERSION
+    if CURRENT_TYPHOEUS_VERSION >= SUPPORTS_URI_OBJECT_VERSION
       def test_get_with_uri
         res = get_response(default_uri)
         assert_match %r/<head>/i, body(res)
