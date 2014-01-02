@@ -76,6 +76,7 @@ module Multiverse
         rbx_gemfile_lines(f, gemfile_text)
 
         f.puts "  gem 'mocha', '0.14.0', :require => false"
+        f.puts "  gem 'pry'"
 
         # Need to get Rubinius' debugger wired in, but MRI's doesn't work
         if include_debugger
