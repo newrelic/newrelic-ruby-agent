@@ -21,15 +21,11 @@ module MultiverseHelpers
 
   def setup_and_teardown_agent(opts = {}, &block)
     define_method(:setup) do
-      before_setup if respond_to?(:before_setup)
       setup_agent(opts, &block)
-      after_setup if respond_to?(:after_setup)
     end
 
     define_method(:teardown) do
-      before_teardown if respond_to?(:before_teardown)
       teardown_agent
-      after_teardown if respond_to?(:after_teardown)
     end
   end
 
