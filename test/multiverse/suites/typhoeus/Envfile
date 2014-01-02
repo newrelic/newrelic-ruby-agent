@@ -10,7 +10,7 @@ suite_condition("Typhoeus not supported in 1.8.6 and excluded on 1.8.7 non-REE")
 end
 
 gemfile <<-RB
-  gem 'typhoeus', '~> 0.6.3'
+  gem 'typhoeus', '~> 0.6.5'
   gem 'rack'
   if RUBY_VERSION < '1.9.0'
     gem 'json'
