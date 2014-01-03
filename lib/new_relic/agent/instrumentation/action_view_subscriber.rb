@@ -25,19 +25,24 @@ module NewRelic
           event = pop_event(id)
 
           if NewRelic::Agent.is_execution_traced? && event.recordable?
-            record_metrics(event)
-            NewRelic::Agent.instance.stats_engine \
+            scope = NewRelic::Agent.instance.stats_engine \
               .pop_scope(event.scope, event.metric_name, event.end)
+            record_metrics(event, scope)
           end
         rescue => e
           log_notification_error(e, name, 'finish')
         end
 
-        def record_metrics(event)
+        def record_metrics(event, scope)
+          exclusive = event.duration - scope.children_time
+          metric_specs = [
+            NewRelic::MetricSpec.new(event.metric_name),
+            NewRelic::MetricSpec.new(event.metric_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
+          ]
           NewRelic::Agent.instance.stats_engine \
-            .record_metrics(event.metric_name,
-                            event.duration,
-                            :scoped => true)
+            .record_metrics_internal(metric_specs,
+                                     event.duration,
+                                     exclusive)
         end
 
         class RenderEvent < Event

@@ -197,17 +197,27 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     def test_exclusive_time_for_template_render_metrics_should_not_include_partial_rendering_time
       get 'views/render_with_delays'
 
+      expected_stats_partial = {
+        :call_count           => 3,
+        :total_call_time      => 3.0,
+        :total_exclusive_time => 3.0
+      }
+
+      expected_stats_template = {
+        :call_count           => 1,
+        :total_call_time      => 4.0,
+        :total_exclusive_time => 1.0  # top-level template takes 1s itself
+      }
+
+      scope = 'Controller/views/render_with_delays'
+      partial_metric  = 'View/views/_a_partial.html.erb/Partial'
+      template_metric = 'View/views/index.html.erb/Rendering'
+
       assert_metrics_recorded(
-        'View/views/_a_partial.html.erb/Partial' => {
-          :call_count           => 3,
-          :total_call_time      => 3.0,
-          :total_exclusive_time => 3.0
-        },
-        'View/views/index.html.erb/Rendering' => {
-          :call_count           => 1,
-          :total_call_time      => 4.0,
-          :total_exclusive_time => 1.0  # top-level template takes 1s itself
-        }
+         partial_metric           => expected_stats_partial,
+         template_metric          => expected_stats_template,
+         [partial_metric, scope]  => expected_stats_partial,
+         [template_metric, scope] => expected_stats_template
       )
     end
   end
