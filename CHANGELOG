@@ -17,7 +17,7 @@
   successfully report data after an app forked or daemonized. Gems or scripts
   with daemonizing modes had to wait for agent support or find workarounds.
 
-  With 3.7.1 setting `restart_thread_in_child: true` in your newrelic.yml
+  With 3.7.1 setting `restart_thread_in_children: true` in your newrelic.yml
   automatically restarts the agent in child processes without requiring custom
   code. For now the feature is opt-in, but future releases may default it on.
 
