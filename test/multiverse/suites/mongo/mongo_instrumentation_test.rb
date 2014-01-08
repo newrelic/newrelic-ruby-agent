@@ -17,8 +17,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include ::NewRelic::TestHelpers::MongoMetricBuilder
 
     def client
-      server = MongoServer.first_single
-      MongoClient.new(server.host, server.port)
+      MongoServer.single.connect
     end
 
     def setup

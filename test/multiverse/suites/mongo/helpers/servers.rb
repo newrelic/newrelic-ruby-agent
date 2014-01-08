@@ -7,8 +7,44 @@ require 'socket'
 require 'mongo'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
 
+module MongoServerHelpers
+  def retry_on_exception(options)
+    exception = options.fetch(:exception, StandardError)
+    message = options[:message]
+    maximum_tries = options.fetch(:tries, 3)
+
+    tries = 0
+
+    begin
+      result = yield
+    rescue exception => e
+      if message
+        raise e unless e.message.include? message
+      end
+
+      sleep 0.1
+      tries += 1
+      retry unless tries > maximum_tries
+      raise e
+    end
+  end
+
+  def debug_print(message)
+    print message if debug?
+  end
+
+  def debug_puts(message)
+    print message if debug?
+  end
+
+  def debug?
+    ENV['MONGO_DEBUG']
+  end
+end
+
 class MongoReplicaSet
   include Mongo
+  include MongoServerHelpers
 
   attr_reader :master
   attr_accessor :servers, :client, :state, :connection
@@ -26,14 +62,14 @@ class MongoReplicaSet
 
   def connect
     start
-    print "Waiting for Mongo servers to come online."
+    debug_print "Waiting for Mongo servers to come online."
 
     retry_on_exception(exception: Mongo::ConnectionFailure, tries: 100) do
-      print "."
+      debug_print "."
       self.connection = ReplSetConnection.new(server_addresses, :read => :secondary)
     end
 
-    puts '.'
+    debug_puts '.'
     self.connection
   end
 
@@ -77,7 +113,7 @@ class MongoReplicaSet
     end
   rescue Mongo::OperationFailure => e
     raise e unless e.message.include? 'already initialized'
-    puts "Already initiated replica set."
+    debug_puts "Already initiated replica set."
   end
 
   def status
@@ -92,27 +128,6 @@ class MongoReplicaSet
     self.servers.map(&:address)
   end
 
-  def retry_on_exception(options)
-    exception = options.fetch(:exception, StandardError)
-    message = options[:message]
-    maximum_tries = options.fetch(:tries, 3)
-
-    tries = 0
-
-    begin
-      result = yield
-    rescue exception => e
-      if message
-        raise e unless e.message.include? message
-      end
-
-      sleep 0.1
-      tries += 1
-      retry unless tries > maximum_tries
-      raise e
-    end
-  end
-
   def replica_set_config
     config = { :_id => 'multiverse', :members => [] }
 
@@ -125,10 +140,14 @@ class MongoReplicaSet
 end
 
 class MongoServer
+  include Mongo
+  include MongoServerHelpers
   extend NewRelic::TestHelpers::FileSearching
 
   attr_reader :host, :port, :pidfile_path, :logfile_path, :lockfile_path,
               :db_path, :type, :portlock_path
+
+  attr_accessor :connection
 
   def initialize(options = {})
     @host = options.fetch(:host, 'localhost')
@@ -162,8 +181,9 @@ class MongoServer
     end
   end
 
-  def self.first_single
-    self.all.select { |server| server.type == :single }.first
+  def self.single
+    server = self.all.select { |server| server.type == :single }.first
+    server || MongoServer.new
   end
 
   def self.pidfiles
@@ -183,9 +203,9 @@ class MongoServer
   def self.shutdown_all_servers!
     pids = self.fetch_pids
     if pids.empty?
-      puts "No PIDs to shutdown."
+      debug_puts "No PIDs to shutdown."
     else
-      puts "Shutting down PIDs #{pids.join(', ')}."
+      debug_puts "Shutting down PIDs #{pids.join(', ')}."
     end
 
     pids.each do |pid|
@@ -201,6 +221,19 @@ class MongoServer
 
   def self.locked_ports
     Dir.glob("#{MongoServer.tmp_path}/ports/*.lock").map { |filename| File.read(filename).strip }
+  end
+
+  def connect
+    start
+    debug_print "Waiting for Mongo server to come online."
+
+    retry_on_exception(exception: Mongo::ConnectionFailure, tries: 100) do
+      debug_print "."
+      self.connection = MongoClient.new(self.host, self.port)
+    end
+
+    debug_puts '.'
+    self.connection
   end
 
   def address
@@ -232,8 +265,8 @@ class MongoServer
       end
     end
   rescue => e
-    puts "Server could not be started."
-    puts `cat #{self.logfile_path}`
+    debug_puts "Server could not be started."
+    debug_puts `cat #{self.logfile_path}`
     raise e
   end
 
@@ -253,7 +286,7 @@ class MongoServer
         end
       end
     rescue Timeout::Error
-      puts "Timed out checking for port #{port} on #{host}."
+      debug_puts "Timed out checking for port #{port} on #{host}."
     end
 
     return false
@@ -265,14 +298,14 @@ class MongoServer
 
   def start
     if single_instance_already_started?
-      puts "Single Mongo instance already started #{server_info}"
-      puts "Use :type => :replica for a replica set."
+      debug_puts "Single Mongo instance already started #{server_info}"
+      debug_puts "Use :type => :replica for a replica set."
       return nil
     end
 
     if running?
-      puts "Tried to start Mongo (#{self.pid}) - #{self.host}:#{self.port}"
-      puts "Server is already running."
+      debug_puts "Tried to start Mongo (#{self.pid}) - #{self.host}:#{self.port}"
+      debug_puts "Server is already running."
     else
       make_db_directory
       lock_port
@@ -280,7 +313,7 @@ class MongoServer
       cmd = `#{startup_command}`
 
       wait_for_startup
-      puts "Started Mongo (#{self.pid}) - #{self.host}:#{self.port}"
+      debug_puts "Started Mongo (#{self.pid}) - #{self.host}:#{self.port}"
       pid
     end
   end
@@ -331,11 +364,11 @@ class MongoServer
     if running?
       `kill #{self.pid}`
       unlock_port
-      puts "Stopped Mongo (#{self.pid}) - #{self.host}:#{self.port}"
+      debug_puts "Stopped Mongo (#{self.pid}) - #{self.host}:#{self.port}"
       `rm #{self.pidfile_path}`
     else
-      puts "Tried to stop Mongo (#{self.pid}) - #{self.host}:#{self.port}"
-      puts "Server isn't running."
+      debug_puts "Tried to stop Mongo (#{self.pid}) - #{self.host}:#{self.port}"
+      debug_puts "Server isn't running."
     end
 
     nil

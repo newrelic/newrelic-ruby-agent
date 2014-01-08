@@ -8,16 +8,19 @@ require 'new_relic/agent/datastores/mongo'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
+  require File.join(File.dirname(__FILE__), 'helpers', 'servers')
 
   class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Unit::TestCase
     include Mongo
 
     def setup
-      @client = Mongo::Connection.new(ENV["MONGO_HOST"], ENV["MONGO_PORT"].to_i)
-      @database_name = 'multiverse'
-      @database = @client.db(@database_name)
-      @collection_name = 'tribbles'
-      @collection = @database.collection(@collection_name)
+      server = MongoServer.single
+      server.start
+      client = Mongo::Connection.new(server.host, server.port)
+      database_name = 'multiverse'
+      database = client.db(database_name)
+      collection_name = 'tribbles'
+      @collection = database.collection(collection_name)
 
       @tribble = {'name' => 'soterios johnson'}
 

@@ -13,16 +13,3 @@ gemfile <<-RB
   gem 'mongo', '~>1.7.1'
   gem 'bson_ext', :platforms => :ruby
 RB
-
-require './helpers/servers'
-
-@server = nil
-
-before_suite do
-  @server = MongoServer.new
-  @server.start
-end
-
-after_suite do
-  @server.stop
-end
