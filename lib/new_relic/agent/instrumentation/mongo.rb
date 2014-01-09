@@ -40,20 +40,19 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/statement_formatter'
 
       def instrument_with_new_relic_trace(name, payload = {}, &block)
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(name, payload)
+        host = port = nil
+
+        if @connection.pinned_pool
+          host, port = @connection.pinned_pool.host, @connection.pinned_pool.port
+        end
+
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(name, payload, host, port)
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
           result = instrument_without_new_relic_trace(name, payload, &block)
 
           payload[:operation] = name
-
-          if @connection.pinned_pool && read == :secondary
-            host, port = @connection.pinned_pool[:pool].host, @connection.pinned_pool[:pool].port
-            puts '*'*80
-            p "#{host}:#{port}"
-            puts '*'*80
-          end
 
           statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
           if statement

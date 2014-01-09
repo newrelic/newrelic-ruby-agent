@@ -40,4 +40,19 @@ class NewRelic::Agent::Datastores::Mongo::MetricGeneratorTest < Test::Unit::Test
     refute metrics.include? 'Datastore/allWeb'
   end
 
+  def test_generate_metrics_for_includes_instance_metric_given_host_and_port
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:insert, @payload, 'localhost', '27017')
+    assert_includes metrics, 'Datastore/instance/MongoDB/localhost:27017/multiverse'
+  end
+
+  def test_generate_metrics_for_does_not_include_instance_metric_without_host
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:insert, @payload, nil, '27017')
+    assert_empty metrics.select { |metric| metric if metric.include? 'Datastore/instance' }
+  end
+
+  def test_generate_metrics_for_does_not_include_instance_metric_without_port
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:insert, @payload, 'localhost', nil)
+    assert_empty metrics.select { |metric| metric if metric.include? 'Datastore/instance' }
+  end
+
 end

@@ -67,6 +67,10 @@ module NewRelic
             default_metrics
           end
 
+          def self.instance_metric(host, port)
+            "Datastore/instance/MongoDB/#{host}:#{port}/multiverse"
+          end
+
           def self.collection_in_selector?(collection, payload)
             collection == '$cmd' && payload[:selector]
           end

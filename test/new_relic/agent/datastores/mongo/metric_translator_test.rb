@@ -298,4 +298,9 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
     assert_metrics_recorded(["Supportability/Mongo/UnknownCommand"])
   end
 
+  def test_instance_metric
+    metric = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric('localhost', '27017')
+    assert_equal 'Datastore/instance/MongoDB/localhost:27017/multiverse', metric
+  end
+
 end

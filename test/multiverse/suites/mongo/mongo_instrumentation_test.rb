@@ -17,10 +17,11 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include ::NewRelic::TestHelpers::MongoMetricBuilder
 
     def client
-      MongoServer.single.connect
+      @server.connect
     end
 
     def setup
+      @server = MongoServer.single
       @client = client
       @database_name = 'multiverse'
       @database = @client.db(@database_name)
@@ -396,6 +397,11 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       assert_metrics_not_recorded(['Datastore/allWeb'])
     end
 
+    def test_records_instance_metric
+      @collection.insert(@tribble)
+      assert_metrics_recorded(["Datastore/instance/MongoDB/#{@server.address}/#{@database_name}"])
+    end
+
     def with_unique_collection
       original_collection_name = @collection_name
       original_collection = @collection
@@ -418,4 +424,9 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     end
   end
 
+  class NewRelic::Agent::Instrumentation::MongoConnectionTest < NewRelic::Agent::Instrumentation::MongoInstrumentationTest
+    def client
+      Mongo::Connection.new(@server.host, @server.port)
+    end
+  end
 end
