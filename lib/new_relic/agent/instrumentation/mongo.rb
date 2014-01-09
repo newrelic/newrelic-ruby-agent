@@ -42,8 +42,10 @@ DependencyDetection.defer do
       def instrument_with_new_relic_trace(name, payload = {}, &block)
         host = port = nil
 
-        if @connection.pinned_pool
+        if @connection && @connection.pinned_pool
           host, port = @connection.pinned_pool.host, @connection.pinned_pool.port
+        elsif @connection
+          host, port = @connection.instance_variable_get(:@host), @connection.instance_variable_get(:@port)
         end
 
         metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(name, payload, host, port)
