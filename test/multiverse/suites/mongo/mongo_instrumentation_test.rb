@@ -16,12 +16,17 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include Mongo
     include ::NewRelic::TestHelpers::MongoMetricBuilder
 
+    def server
+      MongoServer.single
+    end
+
     def client
       @server.connect
     end
 
     def setup
-      @server = MongoServer.single
+      @server = server
+      @server.start
       @client = client
       @database_name = 'multiverse'
       @database = @client.db(@database_name)
@@ -426,7 +431,13 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
   class NewRelic::Agent::Instrumentation::MongoConnectionTest < NewRelic::Agent::Instrumentation::MongoInstrumentationTest
     def client
-      Mongo::Connection.new(@server.host, @server.port)
+      @server.legacy_connect
+    end
+  end
+
+  class NewRelic::Agent::Instrumentation::MongoReplicaSetTest < NewRelic::Agent::Instrumentation::MongoInstrumentationTest
+    def server
+      MongoReplicaSet.new
     end
   end
 end

@@ -16,7 +16,7 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
     def setup
       server = MongoServer.single
       server.start
-      client = Mongo::Connection.new(server.host, server.port)
+      client = server.connect
       database_name = 'multiverse'
       database = client.db(database_name)
       collection_name = 'tribbles'

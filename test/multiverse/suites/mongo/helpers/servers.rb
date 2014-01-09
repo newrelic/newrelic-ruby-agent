@@ -8,6 +8,10 @@ require 'mongo'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
 
 module MongoServerHelpers
+  def self.included(base)
+    base.extend(self)
+  end
+
   def retry_on_exception(options)
     exception = options.fetch(:exception, StandardError)
     message = options[:message]
@@ -40,6 +44,14 @@ module MongoServerHelpers
   def debug?
     ENV['MONGO_DEBUG']
   end
+
+  def status
+    if self.client
+      self.client['admin'].command( { replSetGetStatus: 1 } )
+    else
+      "No client connected."
+    end
+  end
 end
 
 class MongoReplicaSet
@@ -49,15 +61,17 @@ class MongoReplicaSet
   attr_reader :master
   attr_accessor :servers, :client, :state, :connection
 
-  def initialize
+  def initialize(servers = nil)
     @state = :stopped
     @client = nil
 
-    @servers = Array.new(3) do 
+    servers ||= Array.new(3) do
       server = MongoServer.new(type: :replica)
       server.lock_port
       server
     end
+
+    @servers = servers
   end
 
   def connect
@@ -186,6 +200,16 @@ class MongoServer
     server || MongoServer.new
   end
 
+  def self.replica
+    servers = self.all.select { |server| server.type == :replica }
+
+    if servers.empty?
+      MongoReplicaSet.new
+    else
+      MongoReplicaSet.new(servers)
+    end
+  end
+
   def self.pidfiles
     Dir.glob("#{MongoServer.tmp_path}/pids/*")
   end
@@ -223,16 +247,30 @@ class MongoServer
     Dir.glob("#{MongoServer.tmp_path}/ports/*.lock").map { |filename| File.read(filename).strip }
   end
 
-  def connect
+  def connect(client_class = nil)
+    if defined? MongoClient
+      client_class ||= MongoClient
+    else
+      client_class ||= Mongo::Connection
+    end
+
     start
     debug_print "Waiting for Mongo server to come online."
 
     retry_on_exception(exception: Mongo::ConnectionFailure, tries: 100) do
       debug_print "."
-      self.connection = MongoClient.new(self.host, self.port)
+      self.connection = client_class.new(self.host, self.port)
     end
 
     debug_puts '.'
+    self.connection
+  end
+
+  def legacy_connect
+    connect(Mongo::Connection)
+  end
+
+  def client
     self.connection
   end
 
@@ -248,6 +286,8 @@ class MongoServer
   def unlock_port
     File.delete(self.portlock_path)
     self.port
+  rescue Errno::ENOENT => e
+    raise e unless e.message.include? 'No such file or directory'
   end
 
   def locked_port?(port_number)
