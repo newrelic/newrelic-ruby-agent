@@ -1,3 +1,4 @@
+require 'fileutils'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
 
 class MongoServer
@@ -64,6 +65,7 @@ class MongoServer
   def start
     lock_port
     `#{startup_command}`
+    self
   end
 
   def startup_command
@@ -87,6 +89,7 @@ class MongoServer
   def stop
     Process.kill('TERM', pid)
     release_port
+    self
   rescue Errno::ESRCH => e
     raise e unless e.message == 'No such process'
   end
