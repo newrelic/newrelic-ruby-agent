@@ -87,6 +87,7 @@ class MongoServer
   end
 
   def stop
+    return self unless pid
     Process.kill('TERM', pid)
     release_port
     self
@@ -103,7 +104,7 @@ class MongoServer
   end
 
   def pid
-    File.read(pid_path).to_i
+    File.read(pid_path).to_i if File.exists? pid_path
   end
 
   def next_available_port
