@@ -11,6 +11,7 @@ class MongoServerTest < Test::Unit::TestCase
 
   def teardown
     @server.release_port
+    @server.stop
   end
 
   def port_lock_path
@@ -36,7 +37,7 @@ class MongoServerTest < Test::Unit::TestCase
   def test_release_port_deletes_the_port_lock_file
     @server.lock_port
     @server.release_port
-    refute File.exists?(File.join(gem_root, 'tmp', 'ports', "#{@server.port}.lock"))
+    refute File.exists?(port_lock_path)
   end
 
   def test_all_port_lock_files_returns_all_file_names
@@ -47,5 +48,23 @@ class MongoServerTest < Test::Unit::TestCase
   def test_start_creates_a_mongod_process
     @server.start
     assert_equal 1, `ps aux | grep mongo[d]`.split("\n").length
+  end
+
+  def test_server_is_running_after_start
+    @server.start
+    assert @server.running?
+  end
+
+  def test_stop_kills_a_mongod_process
+    @server.start
+    @server.stop
+    assert_equal 0, `ps aux | grep mongo[d]`.split("\n").length
+  end
+
+  def test_stop_releases_port
+    @server.start
+    assert File.exists?(port_lock_path)
+    @server.stop
+    refute File.exists?(port_lock_path)
   end
 end

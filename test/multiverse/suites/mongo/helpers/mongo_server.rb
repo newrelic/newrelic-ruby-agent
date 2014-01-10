@@ -9,6 +9,8 @@ class MongoServer
   def initialize(type = :single)
     @type = type
     @port = next_available_port
+
+    make_directories
   end
 
   def make_directories
@@ -19,6 +21,7 @@ class MongoServer
       log_directory,
       db_path
     ]
+
     FileUtils.mkdir_p(directories)
   end
 
@@ -59,9 +62,8 @@ class MongoServer
   end
 
   def start
-    puts startup_command
-    result = `#{startup_command}`
-    puts result
+    lock_port
+    `#{startup_command}`
   end
 
   def startup_command
@@ -80,6 +82,25 @@ class MongoServer
     elsif self.type == :replica
       "mongod #{repl_set} #{base} &"
     end
+  end
+
+  def stop
+    Process.kill('TERM', pid)
+    release_port
+  rescue Errno::ESRCH => e
+    raise e unless e.message == 'No such process'
+  end
+
+  def running?
+    return false unless pid
+    Process.kill(0, pid) == 1
+  rescue Errno::ESRCH => e
+    raise e unless e.message == 'No such process'
+    false
+  end
+
+  def pid
+    File.read(pid_path).to_i
   end
 
   def next_available_port
