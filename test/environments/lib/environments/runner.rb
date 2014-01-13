@@ -43,9 +43,12 @@ module Environments
         Bundler.with_clean_env do
           dir = File.expand_path(dir)
           puts "", yellow("Running tests for #{dir}")
-          bundle(dir)
-          create_database(dir)
-          status = run(dir)
+          status = bundle(dir)
+          if status.success?
+            create_database(dir)
+            status = run(dir)
+          end
+
           if !status.success?
             overall_status += 1
             failures << dir
@@ -99,6 +102,7 @@ module Environments
 
       bundling = red(bundling) unless $?.success?
       puts bundling
+      $?
     end
 
     # Would be nice to get our unit tests decoupled from the actual DB, but
