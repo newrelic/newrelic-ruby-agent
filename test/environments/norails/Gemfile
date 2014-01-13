@@ -1,4 +1,4 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 
 gem 'rake'
 
@@ -9,7 +9,7 @@ gem 'rack-test'
 platforms :rbx do
   gem "rubysl"
   gem "rubysl-test-unit"
-  gem "rubysl-json"
+  gem "json"
   gem "psych"
   gem "racc"  # https://github.com/rubinius/rubinius/issues/2632
 end
