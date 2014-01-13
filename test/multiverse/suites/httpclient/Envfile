@@ -8,8 +8,6 @@ httpclient_versions.each do |httpclient_version|
   gemfile <<-RB
     gem 'httpclient', '~> #{httpclient_version}'
     gem 'rack'
-    if RUBY_VERSION < '1.9.0'
-      gem 'json'
-    end
+    gem 'json', :platforms => [:rbx, :mri_18]
   RB
 end
