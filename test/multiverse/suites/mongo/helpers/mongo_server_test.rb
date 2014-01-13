@@ -50,6 +50,13 @@ class MongoServerTest < Test::Unit::TestCase
     assert_equal 1, `ps aux | grep mongo[d]`.split("\n").length
   end
 
+  def test_starting_twice_only_creates_one_process
+    @server.start
+    @server.start
+    result = `ps aux | grep mongo[d]`.split("\n")
+    assert_equal 1, result.length
+  end
+
   def test_server_is_running_after_start
     @server.start
     assert @server.running?
@@ -58,7 +65,8 @@ class MongoServerTest < Test::Unit::TestCase
   def test_stop_kills_a_mongod_process
     @server.start
     @server.stop
-    assert_equal 0, `ps aux | grep mongo[d]`.split("\n").length
+    result = `ps aux | grep mongo[d]`.split("\n")
+    assert_equal 0, result.length
   end
 
   def test_stop_releases_port

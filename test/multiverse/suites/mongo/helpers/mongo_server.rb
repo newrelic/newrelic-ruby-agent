@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'timeout'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
 
 class MongoServer
@@ -63,8 +64,14 @@ class MongoServer
   end
 
   def start
-    lock_port
-    `#{startup_command}`
+    unless running?
+      lock_port
+
+      Timeout.timeout(1) do
+        `#{startup_command}` until running?
+      end
+    end
+
     self
   end
 
@@ -88,7 +95,12 @@ class MongoServer
 
   def stop
     return self unless pid
+
     Process.kill('TERM', pid)
+    Timeout.timeout(1) do
+      sleep 0.01 while running?
+    end
+
     release_port
     self
   rescue Errno::ESRCH => e
