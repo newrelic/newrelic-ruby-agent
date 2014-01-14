@@ -81,4 +81,16 @@ class MongoServerTest < Test::Unit::TestCase
     @server.start
     assert_equal previous_server_count + 1, MongoServer.count
   end
+
+  def test_server_count_test_returns_number_of_mongo_processes_started_by_mongo_server
+    test_pid_path = File.join(@server.tmp_directory, 'test.pid')
+    `mongod --pidfilepath #{test_pid_path} &`
+    pid = File.read(test_pid_path).to_i
+    @server.start
+    result = MongoServer.count(:children)
+    Process.kill('TERM', pid)
+    FileUtils.rm(test_pid_path)
+
+    assert_equal 1, result
+  end
 end

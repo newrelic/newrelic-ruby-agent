@@ -15,8 +15,10 @@ class MongoServer
     make_directories
   end
 
-  def self.count
-    `ps aux | grep mongo[d]`.split("\n").length
+  def self.count(type = :all)
+    count = `ps aux | grep mongo[d]`.split("\n").length
+    count -= Dir.glob(File.join(new.pid_directory, '*.pid')).length if type == :children
+    count
   end
 
   def make_directories
