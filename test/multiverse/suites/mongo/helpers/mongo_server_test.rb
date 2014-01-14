@@ -97,4 +97,14 @@ class MongoServerTest < Test::Unit::TestCase
 
     assert_equal 1, result
   end
+
+  def test_replica_set_servers_include_fork_flag
+    replica = MongoServer.new(:replica)
+    assert_includes replica.startup_command, '--fork'
+  end
+
+  def test_replica_set_servers_include_repl_set
+    replica = MongoServer.new(:replica)
+    assert_includes replica.startup_command, '--replSet'
+  end
 end
