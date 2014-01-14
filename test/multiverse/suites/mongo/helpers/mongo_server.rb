@@ -14,6 +14,14 @@ class MongoReplicaSet
     create_servers
   end
 
+  def start
+    self.servers.each { |server| server.start }
+  end
+
+  def stop
+    self.servers.each { |server| server.stop }
+  end
+
   def create_servers
     self.servers = Array.new(3) { MongoServer.new(:replica) }
   end

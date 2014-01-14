@@ -138,7 +138,22 @@ class MongoReplicaSetTest < Test::Unit::TestCase
     @replica = MongoReplicaSet.new
   end
 
+  def teardown
+    @replica.stop
+  end
+
   def test_replica_is_created_with_three_servers
     assert_equal 3, @replica.servers.length
+  end
+
+  def test_start_starts_all_servers
+    @replica.start
+    assert_equal [true], @replica.servers.map(&:running?).uniq
+  end
+
+  def test_stop_stops_all_servers
+    @replica.start
+    @replica.stop
+    assert_equal [false], @replica.servers.map(&:running?).uniq
   end
 end
