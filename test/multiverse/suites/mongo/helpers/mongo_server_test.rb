@@ -165,6 +165,13 @@ class MongoReplicaSetTest < Test::Unit::TestCase
   def test_running_returns_false_for_stopped_replica_set
     @replica.start
     @replica.stop
-    assert @replica.running?
+    refute @replica.running?
+  end
+
+  def test_status_does_not_raise_an_error_for_uninitiated_replica_set
+    @replica.start
+    assert_nothing_raised Mongo::OperationFailure do
+      @replica.status
+    end
   end
 end

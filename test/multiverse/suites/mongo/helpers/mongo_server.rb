@@ -14,6 +14,10 @@ class MongoReplicaSet
     create_servers
   end
 
+  def create_servers
+    self.servers = Array.new(3) { MongoServer.new(:replica) }
+  end
+
   def start
     self.servers.each { |server| server.start }
   end
@@ -23,12 +27,15 @@ class MongoReplicaSet
   end
 
   def running?
-    servers_online = self.servers.keep_if(&:running?)
-    servers_online == self.servers
+    server_running_statuses = self.servers.map(&:running?).uniq
+    server_running_statuses.length == 1 && server_running_statuses.first
   end
 
-  def create_servers
-    self.servers = Array.new(3) { MongoServer.new(:replica) }
+  def status
+    return nil unless running?
+    self.servers.first.client['admin'].command( { 'replSetGetStatus' => 1 } )
+  rescue Mongo::OperationFailure => e
+    raise e unless e.message.include? 'EMPTYCONFIG'
   end
 end
 
