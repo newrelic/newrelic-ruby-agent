@@ -102,15 +102,20 @@ class MongoServer
   def stop
     return self unless pid
 
-    Process.kill('TERM', pid)
+    begin
+      Process.kill('TERM', pid)
+    rescue Errno::ESRCH => e
+      raise e unless e.message == 'No such process'
+    end
+
     Timeout.timeout(1) do
       sleep 0.01 while running?
     end
 
+    FileUtils.rm(pid_path)
+
     release_port
     self
-  rescue Errno::ESRCH => e
-    raise e unless e.message == 'No such process'
   end
 
   def running?
