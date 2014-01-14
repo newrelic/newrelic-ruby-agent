@@ -113,4 +113,22 @@ class MongoServerTest < Test::Unit::TestCase
     @server.start
     assert @server.client
   end
+
+  def test_ping_returns_ok_for_started_server
+    @server.start
+    ok_status = { "ok" => 1.0 }
+    assert_equal ok_status, @server.ping
+  end
+
+  def test_stop_sets_client_to_nil
+    @server.start
+    @server.stop
+    assert_nil @server.client
+  end
+
+  def test_ping_returns_nil_for_stopped_server
+    @server.start
+    @server.stop
+    assert_nil @server.ping
+  end
 end

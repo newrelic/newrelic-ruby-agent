@@ -27,6 +27,11 @@ class MongoServer
     count
   end
 
+  def ping
+    return unless self.client
+    self.client['admin'].command( { 'ping' => 1 } )
+  end
+
   def make_directories
     directories = [
       port_lock_directory,
@@ -132,8 +137,9 @@ class MongoServer
     end
 
     FileUtils.rm(pid_path)
-
+    self.client = nil
     release_port
+
     self
   end
 
