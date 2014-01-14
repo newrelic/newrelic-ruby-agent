@@ -22,6 +22,11 @@ class MongoReplicaSet
     self.servers.each { |server| server.stop }
   end
 
+  def running?
+    servers_online = self.servers.keep_if(&:running?)
+    servers_online == self.servers
+  end
+
   def create_servers
     self.servers = Array.new(3) { MongoServer.new(:replica) }
   end
