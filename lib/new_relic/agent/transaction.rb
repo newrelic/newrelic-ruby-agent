@@ -270,6 +270,9 @@ module NewRelic
         if current
           current.notice_error(e, options)
         else
+          if finished_txn = NewRelic::Agent::TransactionState.get.transaction
+            options = options.merge(:custom_params => finished_txn.custom_parameters)
+          end
           agent.error_collector.notice_error(e, options)
         end
       end
