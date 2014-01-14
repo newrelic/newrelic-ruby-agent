@@ -23,4 +23,11 @@ class StartUpTest < MiniTest::Unit::TestCase
 
     assert_equal '', output.chomp
   end
+
+  def test_instrumentation_loads_clean_even_without_dependencies
+    output = `bundle exec ruby script/loading.rb`
+
+    problems = output.scan(/ERROR : .*/)
+    assert_empty problems
+  end
 end
