@@ -26,9 +26,9 @@ class MongoServerTest < Test::Unit::TestCase
 
   def test_creating_a_new_server_after_locking_port_uses_the_next_port
     @server.lock_port
-    new_server = MongoServer.new
+    new_server_port = MongoServer.new.port
     @server.release_port
-    assert_equal @server.port + 1, new_server.port
+    assert_equal @server.port + 1, new_server_port
   end
 
   def test_release_port_deletes_the_port_lock_file
@@ -46,14 +46,13 @@ class MongoServerTest < Test::Unit::TestCase
 
   def test_start_creates_a_mongod_process
     @server.start
-    assert_equal 1, `ps aux | grep mongo[d]`.split("\n").length
+    assert_equal 1, MongoServer.count
   end
 
   def test_starting_twice_only_creates_one_process
     @server.start
     @server.start
-    result = `ps aux | grep mongo[d]`.split("\n")
-    assert_equal 1, result.length
+    assert_equal 1, MongoServer.count
   end
 
   def test_server_is_running_after_start
@@ -64,8 +63,7 @@ class MongoServerTest < Test::Unit::TestCase
   def test_stop_kills_a_mongod_process
     @server.start
     @server.stop
-    result = `ps aux | grep mongo[d]`.split("\n")
-    assert_equal 0, result.length
+    assert_equal 0, MongoServer.count
   end
 
   def test_stop_releases_port
