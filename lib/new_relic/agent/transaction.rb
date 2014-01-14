@@ -288,6 +288,7 @@ module NewRelic
           custom_params = options.fetch(:custom_params, {})
           custom_params.merge!(finished_txn.custom_parameters)
           options = options.merge(:custom_params => custom_params)
+          options[:metric] = finished_txn.name
         end
         options
       end
