@@ -92,10 +92,11 @@ class MongoServerTest < Test::Unit::TestCase
     pid = File.read(test_pid_path).to_i
     @server.start
     result = MongoServer.count(:children)
-    Process.kill('TERM', pid)
-    FileUtils.rm(test_pid_path)
 
     assert_equal 1, result
+  ensure
+    Process.kill('TERM', pid)
+    FileUtils.rm(test_pid_path)
   end
 
   def test_replica_set_servers_include_fork_flag
@@ -106,5 +107,10 @@ class MongoServerTest < Test::Unit::TestCase
   def test_replica_set_servers_include_repl_set
     replica = MongoServer.new(:replica)
     assert_includes replica.startup_command, '--replSet'
+  end
+
+  def test_starting_a_server_creates_a_client
+    @server.start
+    assert @server.client
   end
 end

@@ -12,7 +12,7 @@ class MongoServer
   include NewRelic::TestHelpers::FileSearching
 
   attr_reader :type
-  attr_accessor :port
+  attr_accessor :port, :client
 
   def initialize(type = :single)
     @type = type
@@ -82,6 +82,8 @@ class MongoServer
       Timeout.timeout(1) do
         `#{startup_command}` until running?
       end
+
+      create_client
     end
 
     self
@@ -102,6 +104,17 @@ class MongoServer
       "mongod #{base} &"
     elsif self.type == :replica
       "mongod #{repl_set} #{base} &"
+    end
+  end
+
+  def create_client
+    Timeout.timeout(1) do
+      begin
+        self.client = MongoClient.new('localhost', self.port)
+      rescue Mongo::ConnectionFailure => e
+        raise e unless message = "Failed to connect to a master node at localhost:#{port}"
+        retry
+      end
     end
   end
 
