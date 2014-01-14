@@ -10,12 +10,7 @@ class MongoServerTest < Test::Unit::TestCase
   end
 
   def teardown
-    @server.release_port
     @server.stop
-  end
-
-  def port_lock_path
-    File.join(gem_root, 'tmp', 'ports', "#{@server.port}.lock")
   end
 
   def test_creating_a_new_server_without_locking_port_uses_the_same_port
@@ -25,24 +20,28 @@ class MongoServerTest < Test::Unit::TestCase
 
   def test_lock_port_creates_a_lock_file
     @server.lock_port
-    assert File.exists?(port_lock_path)
+    assert File.exists?(@server.port_lock_path)
+    @server.release_port
   end
 
   def test_creating_a_new_server_after_locking_port_uses_the_next_port
     @server.lock_port
     new_server = MongoServer.new
+    @server.release_port
     assert_equal @server.port + 1, new_server.port
   end
 
   def test_release_port_deletes_the_port_lock_file
     @server.lock_port
     @server.release_port
-    refute File.exists?(port_lock_path)
+    refute File.exists?(@server.port_lock_path)
   end
 
   def test_all_port_lock_files_returns_all_file_names
-    File.write(port_lock_path, @server.port)
-    assert_equal [port_lock_path], @server.all_port_lock_files
+    File.write(@server.port_lock_path, @server.port)
+    result = @server.all_port_lock_files
+    @server.release_port
+    assert_equal [@server.port_lock_path], result
   end
 
   def test_start_creates_a_mongod_process
@@ -71,9 +70,16 @@ class MongoServerTest < Test::Unit::TestCase
 
   def test_stop_releases_port
     @server.start
-    assert File.exists?(port_lock_path)
+    assert File.exists?(@server.port_lock_path)
     @server.stop
-    refute File.exists?(port_lock_path)
+    refute File.exists?(@server.port_lock_path)
+  end
+
+  def test_stop_deletes_pid_file
+    @server.start
+    assert File.exists?(@server.pid_path)
+    @server.stop
+    refute File.exists?(@server.pid_path)
   end
 
   def test_server_count_returns_the_number_of_mongo_processes
