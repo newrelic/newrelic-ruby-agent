@@ -352,6 +352,20 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     assert_equal({ :custom => "parameter" }, error.params[:custom_params])
   end
 
+  def test_notice_error_after_current_transcation_doesnt_tromp_passed_params
+    in_transaction('failing') do
+      NewRelic::Agent.add_custom_parameters(:custom => "parameter")
+    end
+    NewRelic::Agent::Transaction.notice_error("", :custom_params => { :passing => true })
+
+    error = NewRelic::Agent.instance.error_collector.errors.first
+    expected = {
+      :custom => "parameter",
+      :passing => true,
+    }
+    assert_equal(expected, error.params[:custom_params])
+  end
+
   def test_notice_error_without_transaction_notifies_error_collector
     cleanup_transaction
     NewRelic::Agent::Transaction.notice_error("")
