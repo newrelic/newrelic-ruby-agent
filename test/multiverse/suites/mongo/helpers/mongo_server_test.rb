@@ -75,4 +75,10 @@ class MongoServerTest < Test::Unit::TestCase
     @server.stop
     refute File.exists?(port_lock_path)
   end
+
+  def test_server_count_returns_the_number_of_mongo_processes
+    previous_server_count = `ps aux | grep mongo[d]`.split("\n").length
+    @server.start
+    assert_equal previous_server_count + 1, MongoServer.count
+  end
 end

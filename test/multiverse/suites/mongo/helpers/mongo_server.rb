@@ -15,6 +15,10 @@ class MongoServer
     make_directories
   end
 
+  def self.count
+    `ps aux | grep mongo[d]`.split("\n").length
+  end
+
   def make_directories
     directories = [
       port_lock_directory,
