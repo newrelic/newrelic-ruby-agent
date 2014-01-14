@@ -7,6 +7,18 @@ require 'timeout'
 require 'mongo'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
 
+class MongoReplicaSet
+  attr_accessor :servers
+
+  def initialize
+    create_servers
+  end
+
+  def create_servers
+    self.servers = Array.new(3) { MongoServer.new(:replica) }
+  end
+end
+
 class MongoServer
   include Mongo
   include NewRelic::TestHelpers::FileSearching

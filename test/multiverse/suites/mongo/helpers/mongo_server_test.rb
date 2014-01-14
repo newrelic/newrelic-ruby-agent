@@ -132,3 +132,13 @@ class MongoServerTest < Test::Unit::TestCase
     assert_nil @server.ping
   end
 end
+
+class MongoReplicaSetTest < Test::Unit::TestCase
+  def setup
+    @replica = MongoReplicaSet.new
+  end
+
+  def test_replica_is_created_with_three_servers
+    assert_equal 3, @replica.servers.length
+  end
+end
