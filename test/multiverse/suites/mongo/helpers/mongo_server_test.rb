@@ -106,11 +106,13 @@ class MongoServerTest < Test::Unit::TestCase
   def test_replica_set_servers_include_fork_flag
     replica = MongoServer.new(:replica)
     assert_includes replica.startup_command, '--fork'
+    replica.stop
   end
 
   def test_replica_set_servers_include_repl_set
     replica = MongoServer.new(:replica)
     assert_includes replica.startup_command, '--replSet'
+    replica.stop
   end
 
   def test_starting_a_server_creates_a_client
@@ -177,5 +179,11 @@ class MongoReplicaSetTest < Test::Unit::TestCase
     assert_nothing_raised Mongo::OperationFailure do
       @replica.status
     end
+  end
+
+  def test_config_returns_nil_unless_servers_are_running
+    @replica.start
+    @replica.stop
+    assert_nil @replica.config
   end
 end

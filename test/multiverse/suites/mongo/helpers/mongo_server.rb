@@ -37,6 +37,10 @@ class MongoReplicaSet
   rescue Mongo::OperationFailure => e
     raise e unless e.message.include? 'EMPTYCONFIG'
   end
+
+  def config
+    return unless running?
+  end
 end
 
 class MongoServer
