@@ -131,6 +131,12 @@ class MongoServer
     self
   end
 
+  def wait_until(seconds = 1)
+    Timeout.timeout(seconds) do
+      sleep 0.1 until yield
+    end
+  end
+
   def startup_command
     pid_file = "--pidfilepath #{pid_path}"
     log_file = "--logpath #{log_path} "
@@ -161,22 +167,22 @@ class MongoServer
   end
 
   def stop
-    return self unless pid
+    if pid
+      begin
+        Process.kill('TERM', pid)
+      rescue Errno::ESRCH => e
+        raise e unless e.message == 'No such process'
+      end
 
-    begin
-      Process.kill('TERM', pid)
-    rescue Errno::ESRCH => e
-      raise e unless e.message == 'No such process'
+      wait_until do
+        !running?
+      end
+
+      FileUtils.rm(pid_path)
+      self.client = nil
     end
 
-    Timeout.timeout(1) do
-      sleep 0.01 while running?
-    end
-
-    FileUtils.rm(pid_path)
-    self.client = nil
     release_port
-
     self
   end
 
