@@ -13,34 +13,38 @@ class MongoServerTest < Test::Unit::TestCase
     @server.stop
   end
 
-  def test_creating_a_new_server_without_locking_port_uses_the_same_port
-    new_server = MongoServer.new
-    assert_equal @server.port, new_server.port
-  end
-
-  def test_lock_port_creates_a_lock_file
-    @server.lock_port
+  def test_new_server_has_a_locked_port
     assert File.exists?(@server.port_lock_path)
-    @server.release_port
   end
 
   def test_creating_a_new_server_after_locking_port_uses_the_next_port
-    @server.lock_port
-    new_server_port = MongoServer.new.port
-    @server.release_port
+    new_server = MongoServer.new
+    new_server_port = new_server.port
     assert_equal @server.port + 1, new_server_port
+  ensure
+    new_server.stop
+  end
+
+  def test_pid_path_is_unique_for_two_servers
+    new_server = MongoServer.new
+    pid_path1 = @server.start.pid_path
+    pid_path2 = new_server.start.pid_path
+
+    refute_equal pid_path1, pid_path2
+  ensure
+    new_server.stop
   end
 
   def test_release_port_deletes_the_port_lock_file
-    @server.lock_port
+    path = @server.port_lock_path
+    assert File.exists?(path)
     @server.release_port
-    refute File.exists?(@server.port_lock_path)
+    refute File.exists?(path)
   end
 
   def test_all_port_lock_files_returns_all_file_names
     File.write(@server.port_lock_path, @server.port)
     result = @server.all_port_lock_files
-    @server.release_port
     assert_equal [@server.port_lock_path], result
   end
 

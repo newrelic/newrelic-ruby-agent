@@ -48,7 +48,7 @@ class MongoServer
 
   def initialize(type = :single)
     @type = type
-    @port = next_available_port
+    lock_port
 
     make_directories
   end
@@ -116,11 +116,13 @@ class MongoServer
   end
 
   def start
-    unless running?
-      lock_port
+    lock_port
 
-      Timeout.timeout(1) do
-        `#{startup_command}` until running?
+    unless running?
+      `#{startup_command}`
+
+      wait_until do
+        running?
       end
 
       create_client
@@ -207,10 +209,16 @@ class MongoServer
   end
 
   def lock_port
-    File.write(port_lock_path, self.port)
+    return if self.port
+
+    make_port_lock_directory
+    port = next_available_port
+    self.port = port
+    File.write(port_lock_path, port)
   end
 
   def release_port
     FileUtils.rm port_lock_path, force: true
+    self.port = nil
   end
 end
