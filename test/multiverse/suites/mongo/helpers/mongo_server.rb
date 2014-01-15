@@ -41,7 +41,7 @@ end
 
 class MongoServer
   include Mongo
-  include NewRelic::TestHelpers::FileSearching
+  extend NewRelic::TestHelpers::FileSearching
 
   attr_reader :type
   attr_accessor :port, :client
@@ -55,8 +55,28 @@ class MongoServer
 
   def self.count(type = :all)
     count = `ps aux | grep mongo[d]`.split("\n").length
-    count -= Dir.glob(File.join(new.pid_directory, '*.pid')).length if type == :children
+    count -= Dir.glob(File.join(MongoServer.pid_directory, '*.pid')).length if type == :children
     count
+  end
+
+  def self.tmp_directory
+    File.join(gem_root, 'tmp')
+  end
+
+  def self.port_lock_directory
+    File.join(tmp_directory, 'ports')
+  end
+
+  def self.pid_directory
+    File.join(tmp_directory, 'pids')
+  end
+
+  def self.db_directory
+    File.join(tmp_directory, 'db')
+  end
+
+  def self.log_directory
+    File.join(tmp_directory, 'log')
   end
 
   def ping
@@ -66,50 +86,33 @@ class MongoServer
 
   def make_directories
     directories = [
-      port_lock_directory,
-      pid_directory,
-      db_directory,
-      log_directory,
+      MongoServer.pid_directory,
+      MongoServer.db_directory,
+      MongoServer.log_directory,
       db_path
     ]
 
     FileUtils.mkdir_p(directories)
   end
 
-  def tmp_directory
-    File.join(gem_root, 'tmp')
-  end
-
-  def port_lock_directory
-    File.join(tmp_directory, 'ports')
+  def make_port_lock_directory
+    FileUtils.mkdir_p(MongoServer.port_lock_directory)
   end
 
   def port_lock_path
-    File.join(port_lock_directory, "#{self.port}.lock")
-  end
-
-  def pid_directory
-    File.join(tmp_directory, 'pids')
+    File.join(MongoServer.port_lock_directory, "#{self.port}.lock")
   end
 
   def pid_path
-    File.join(pid_directory, "#{self.port}.pid")
-  end
-
-  def db_directory
-    File.join(tmp_directory, 'db')
+    File.join(MongoServer.pid_directory, "#{self.port}-#{self.object_id}-#{Process.pid}.pid")
   end
 
   def db_path
-    File.join(db_directory, "data_#{self.port}")
-  end
-
-  def log_directory
-    File.join(tmp_directory, 'log')
+    File.join(MongoServer.db_directory, "data_#{self.port}")
   end
 
   def log_path
-    File.join(log_directory, "#{self.port}.log")
+    File.join(MongoServer.log_directory, "#{self.port}.log")
   end
 
   def start
@@ -200,7 +203,7 @@ class MongoServer
   end
 
   def all_port_lock_files
-    Dir.glob(File.join(port_lock_directory, '*.lock'))
+    Dir.glob(File.join(MongoServer.port_lock_directory, '*.lock'))
   end
 
   def lock_port
