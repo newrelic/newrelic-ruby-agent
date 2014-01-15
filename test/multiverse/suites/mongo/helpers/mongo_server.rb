@@ -40,6 +40,14 @@ class MongoReplicaSet
 
   def config
     return unless running?
+
+    config = { :_id => 'multiverse', :members => [] }
+
+    self.servers.each_with_index do |server, index|
+      config[:members] << { :_id => index, :host => "localhost:#{server.port}" }
+    end
+
+    config
   end
 end
 

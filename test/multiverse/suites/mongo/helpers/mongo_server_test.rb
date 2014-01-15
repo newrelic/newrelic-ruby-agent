@@ -186,4 +186,19 @@ class MongoReplicaSetTest < Test::Unit::TestCase
     @replica.stop
     assert_nil @replica.config
   end
+
+  def test_started_replica_set_servers_have_unique_ports
+    @replica.start
+
+    assert_equal 3, @replica.servers.map(&:port).uniq.length
+  end
+
+  def test_config_includes_replica_set_member_strings_with_correct_ports
+    @replica.start
+
+    result = @replica.config[:members].map { |member| member[:host].split(':').last.to_i }
+    expected = @replica.servers.map(&:port)
+
+    assert_equal expected, result
+  end
 end
