@@ -212,7 +212,7 @@ class MongoServer
 
   def next_available_port
     used_ports = all_port_lock_files.map do |filename|
-      File.read(filename).to_i
+      File.basename(filename, '.lock').to_i
     end
 
     if used_ports.empty?
@@ -230,9 +230,32 @@ class MongoServer
     return if self.port
 
     make_port_lock_directory
-    port = next_available_port
-    self.port = port
-    File.write(port_lock_path, port)
+
+    retry_on_exception(:exception => Errno::EEXIST, :tries => 10) do
+      self.port = next_available_port
+      File.new(port_lock_path, File::CREAT|File::EXCL)
+    end
+  end
+
+  def retry_on_exception(options)
+    exception = options.fetch(:exception, StandardError)
+    message = options[:message]
+    maximum_tries = options.fetch(:tries, 3)
+
+    tries = 0
+
+    begin
+      result = yield
+    rescue exception => e
+      if message
+        raise e unless e.message.include? message
+      end
+
+      sleep 0.1
+      tries += 1
+      retry unless tries > maximum_tries
+      raise e
+    end
   end
 
   def release_port

@@ -137,6 +137,22 @@ class MongoServerTest < Test::Unit::TestCase
     @server.stop
     assert_nil @server.ping
   end
+
+  def test_servers_in_different_threads_use_unique_ports
+    threads = []
+
+    20.times do
+      threads << Thread.new do
+        MongoServer.new
+      end
+    end
+
+    servers = threads.map(&:value)
+
+    assert_equal 20, servers.map(&:port).uniq.length
+  ensure
+    servers.each(&:stop)
+  end
 end
 
 class MongoReplicaSetTest < Test::Unit::TestCase
