@@ -12,11 +12,17 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     @txn = NewRelic::Agent::Transaction.new
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.reset!
+    NewRelic::Agent.instance.error_collector.reset!
   end
 
   def teardown
     # Failed transactions can leave partial stack, so pave it for next test
+    cleanup_transaction
+  end
+
+  def cleanup_transaction
     NewRelic::Agent::Transaction.stack.clear
+    NewRelic::Agent::TransactionState.clear
   end
 
   def test_request_parsing__none
@@ -319,6 +325,60 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
       assert_has_custom_parameter(:set_class)
       assert_has_custom_parameter(:indexer_class)
     end
+  end
+
+  def test_notice_error_in_current_transaction_saves_it_for_finishing
+    in_transaction('failing') do
+      NewRelic::Agent::Transaction.notice_error("")
+      assert_equal 1, NewRelic::Agent::Transaction.current.exceptions.count
+    end
+  end
+
+  def test_notice_error_after_current_transaction_notifies_error_collector
+    in_transaction('failing') do
+      # no-op
+    end
+    NewRelic::Agent::Transaction.notice_error("")
+    assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
+  end
+
+  def test_notice_error_after_current_transaction_gets_custom_params
+    in_transaction('failing') do
+      NewRelic::Agent.add_custom_parameters(:custom => "parameter")
+    end
+    NewRelic::Agent::Transaction.notice_error("")
+
+    error = NewRelic::Agent.instance.error_collector.errors.first
+    assert_equal({ :custom => "parameter" }, error.params[:custom_params])
+  end
+
+  def test_notice_error_after_current_transcation_doesnt_tromp_passed_params
+    in_transaction('failing') do
+      NewRelic::Agent.add_custom_parameters(:custom => "parameter")
+    end
+    NewRelic::Agent::Transaction.notice_error("", :custom_params => { :passing => true })
+
+    error = NewRelic::Agent.instance.error_collector.errors.first
+    expected = {
+      :custom => "parameter",
+      :passing => true,
+    }
+    assert_equal(expected, error.params[:custom_params])
+  end
+
+  def test_notice_error_after_current_transaction_gets_name
+    in_transaction('failing') do
+      #no-op
+    end
+    NewRelic::Agent::Transaction.notice_error("")
+    error = NewRelic::Agent.instance.error_collector.errors.first
+    assert_equal 'failing', error.path
+  end
+
+  def test_notice_error_without_transaction_notifies_error_collector
+    cleanup_transaction
+    NewRelic::Agent::Transaction.notice_error("")
+    assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
   end
 
   def assert_has_custom_parameter(key, value = key)

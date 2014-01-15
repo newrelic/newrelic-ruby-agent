@@ -262,16 +262,35 @@ module NewRelic
       # Anything left over is treated as custom params
 
       def self.notice_error(e, options={})
+        options = extract_request_options(options)
+        if current
+          current.notice_error(e, options)
+        else
+          options = extract_finished_transaction_options(options)
+          agent.error_collector.notice_error(e, options)
+        end
+      end
+
+      def self.extract_request_options(options)
         request = options.delete(:request)
         if request
           options[:referer] = referer_from_request(request)
           options[:uri] = uri_from_request(request)
         end
-        if current
-          current.notice_error(e, options)
-        else
-          agent.error_collector.notice_error(e, options)
+        options
+      end
+
+      # If we aren't currently in a transaction, but found the remains of one
+      # just finished in the TransactionState, use those custom params!
+      def self.extract_finished_transaction_options(options)
+        finished_txn = NewRelic::Agent::TransactionState.get.transaction
+        if finished_txn
+          custom_params = options.fetch(:custom_params, {})
+          custom_params.merge!(finished_txn.custom_parameters)
+          options = options.merge(:custom_params => custom_params)
+          options[:metric] = finished_txn.name
         end
+        options
       end
 
       # Do not call this.  Invoke the class method instead.

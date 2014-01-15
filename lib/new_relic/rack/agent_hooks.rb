@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/event_listener'
+require 'new_relic/rack/transaction_reset'
 
 module NewRelic::Rack
   # This middleware is used by the agent internally, and is usually injected
@@ -16,6 +17,8 @@ module NewRelic::Rack
       @app = app
     end
 
+    include TransactionReset
+
     FIRED_FORMATS = {
       :before_call => "newrelic.agent_hooks_before_fired",
       :after_call  => "newrelic.agent_hooks_after_fired"
@@ -24,6 +27,7 @@ module NewRelic::Rack
     # method required by Rack interface
     # [status, headers, response]
     def call(env)
+      ensure_transaction_reset(env)
       notify(:before_call, env)
       result = @app.call(env)
       notify(:after_call, env, result)
