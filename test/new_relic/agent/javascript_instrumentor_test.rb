@@ -144,7 +144,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
 
   def test_data_for_js_agent_extra_parameter
     in_transaction do
-      with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
+      with_config(CAPTURE_ATTRIBUTES => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_equal({:boo => "hoo"}, instrumentor.data_for_js_agent_extra_parameter)
       end
@@ -152,7 +152,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   end
 
   def test_data_for_js_agent_extra_parameter_outside_transaction
-    with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
+    with_config(CAPTURE_ATTRIBUTES => true) do
       NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
       assert_empty instrumentor.data_for_js_agent_extra_parameter
     end
@@ -188,7 +188,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   def test_config_data_for_js_agent
     freeze_time
     in_transaction do
-      with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
+      with_config(CAPTURE_ATTRIBUTES => true) do
         NewRelic::Agent.set_user_attributes(:user => "user")
 
         txn = NewRelic::Agent::Transaction.current
@@ -244,7 +244,8 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  CAPTURE_ATTRIBUTES_PAGE_EVENTS = :'capture_attributes.page_view_events'
+  CAPTURE_ATTRIBUTES = :'browser_monitoring.capture_attributes'
+  CAPTURE_ATTRIBUTES_DEPRECATED = :'capture_attributes.page_view_events'
 
   def test_data_for_js_agent_doesnt_pick_up_extras_by_default
     in_transaction do
@@ -255,7 +256,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
 
   def test_data_for_js_agent_picks_up_extras_when_configured
     in_transaction do
-      with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
+      with_config(CAPTURE_ATTRIBUTES => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("boo=hoo")
       end
@@ -264,9 +265,19 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
 
   def test_data_for_js_agent_ignores_extras_if_not_allowed_in_page
     in_transaction do
-      with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => false) do
+      with_config(CAPTURE_ATTRIBUTES => false) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("")
+      end
+    end
+  end
+
+  def test_data_for_js_agent_picks_up_extras_when_configured_with_deprecated_key
+    in_transaction do
+      with_config(CAPTURE_ATTRIBUTES => false,
+                  CAPTURE_ATTRIBUTES_DEPRECATED => true) do
+        NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+        assert_extra_data_is("boo=hoo")
       end
     end
   end

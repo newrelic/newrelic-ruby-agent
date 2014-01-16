@@ -757,6 +757,18 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable HTTPS instrumentation by JavaScript agent on HTTP pages.'
         },
+        :'browser_monitoring.capture_attributes' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Include custom parameters in real user monitoring script in outgoing responses.'
+        },
+        :'capture_attributes.page_view_events' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Deprecated setting that is still in use by a few clients. Correct setting is browser_monitoring.capture_attributes.'
+        },
         :js_agent_loader => {
           :default => '',
           :public => false,
@@ -865,12 +877,6 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Include custom parameters in transaction traces and traced errors'
-        },
-        :'capture_attributes.page_view_events' => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :description => 'Include TT custom params in real user monitoring script in outgoing responses.'
         },
         :restart_thread_in_children => {
           :default => false,
