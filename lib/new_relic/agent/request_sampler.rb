@@ -12,9 +12,6 @@ class NewRelic::Agent::RequestSampler
   include NewRelic::Coerce,
           MonitorMixin
 
-  # The namespace and keys of config values
-  ENABLED_KEY                = :'analytics_events.enabled'
-
   # The type field of the sample
   SAMPLE_TYPE              = 'Transaction'
 
@@ -102,7 +99,7 @@ class NewRelic::Agent::RequestSampler
       self.reset!
     end
 
-    NewRelic::Agent.config.register_callback(ENABLED_KEY) do |enabled|
+    NewRelic::Agent.config.register_callback(:'analytics_events.enabled') do |enabled|
       NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ enabled ? 'En' : 'Dis' ]
       @enabled = enabled
     end

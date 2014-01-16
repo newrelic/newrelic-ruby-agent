@@ -244,7 +244,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  ANALYTICS_ENABLED = :'analytics_events.enabled'
   CAPTURE_ATTRIBUTES_PAGE_EVENTS = :'capture_attributes.page_view_events'
 
   def test_data_for_js_agent_doesnt_pick_up_extras_by_default
@@ -256,28 +255,16 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
 
   def test_data_for_js_agent_picks_up_extras_when_configured
     in_transaction do
-      with_config(ANALYTICS_ENABLED => true,
-                  CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
+      with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("boo=hoo")
       end
     end
   end
 
-  def test_data_for_js_agent_ignores_extras_if_no_analytics
-    in_transaction do
-      with_config(ANALYTICS_ENABLED => false,
-                  CAPTURE_ATTRIBUTES_PAGE_EVENTS => true) do
-        NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-        assert_extra_data_is("")
-      end
-    end
-  end
-
   def test_data_for_js_agent_ignores_extras_if_not_allowed_in_page
     in_transaction do
-      with_config(ANALYTICS_ENABLED => true,
-                  CAPTURE_ATTRIBUTES_PAGE_EVENTS => false) do
+      with_config(CAPTURE_ATTRIBUTES_PAGE_EVENTS => false) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
         assert_extra_data_is("")
       end
