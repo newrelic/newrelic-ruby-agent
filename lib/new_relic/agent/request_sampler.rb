@@ -117,7 +117,7 @@ class NewRelic::Agent::RequestSampler
     # The order in which these are merged is important.  We want to ensure that
     # custom parameters can't override required fields (e.g. type)
     sample = {}
-    if ::NewRelic::Agent.config[:'capture_attributes.transaction_events']
+    if ::NewRelic::Agent.config[:'analytics_events.capture_attributes']
       sample.merge!(event_params(payload[:custom_params] || {}))
     end
     sample.merge!(payload[:overview_metrics] || {})
