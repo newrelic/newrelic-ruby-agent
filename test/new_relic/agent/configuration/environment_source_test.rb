@@ -107,6 +107,18 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_set_values_from_new_relic_environment_variables_warns_unknowns
+      ENV['NEWRELIC_DOESNT_USE_THIS_VALUE'] = "true"
+      expects_logging(:info, includes("NEWRELIC_DOESNT_USE_THIS_VALUE"))
+      @environment_source.set_values_from_new_relic_environment_variables
+    end
+
+    def test_set_values_from_new_relic_environment_variables_ignores_NEW_RELIC_LOG
+      ENV['NEW_RELIC_LOG'] = "STDOUT"
+      expects_no_logging(:info)
+      @environment_source.set_values_from_new_relic_environment_variables
+    end
+
     def test_set_value_from_environment_variable
       ENV['NEW_RELIC_LICENSE_KEY'] = 'super rad'
       @environment_source.set_value_from_environment_variable('NEW_RELIC_LICENSE_KEY')
