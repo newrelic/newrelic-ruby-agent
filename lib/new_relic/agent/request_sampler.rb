@@ -114,20 +114,30 @@ class NewRelic::Agent::RequestSampler
   def on_transaction_finished(payload)
     return unless @enabled
     return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
-    # The order in which these are merged is important.  We want to ensure that
-    # custom parameters can't override required fields (e.g. type)
-    sample = {}
-    if ::NewRelic::Agent.config[:'analytics_events.capture_attributes']
-      sample.merge!(event_params(payload[:custom_params] || {}))
-    end
-    sample.merge!(payload[:overview_metrics] || {})
+
+    main_event = create_main_event(payload)
+    custom_params = create_custom_parameters(payload)
+
+    is_full = self.synchronize { @samples.append([main_event, custom_params]) }
+    notify_full if is_full && !@notified_full
+  end
+
+  def create_main_event(payload)
+    sample = payload[:overview_metrics] || {}
     sample.merge!({
         TIMESTAMP_KEY     => float(payload[:start_timestamp]),
         NAME_KEY          => string(payload[:name]),
         DURATION_KEY      => float(payload[:duration]),
         TYPE_KEY          => SAMPLE_TYPE,
       })
-    is_full = self.synchronize { @samples.append(sample) }
-    notify_full if is_full && !@notified_full
   end
+
+  def create_custom_parameters(payload)
+    custom_params = {}
+    if ::NewRelic::Agent.config[:'analytics_events.capture_attributes']
+      custom_params.merge!(event_params(payload[:custom_params] || {}))
+    end
+    custom_params
+  end
+
 end

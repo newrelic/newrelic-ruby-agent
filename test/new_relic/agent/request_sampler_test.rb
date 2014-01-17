@@ -38,12 +38,15 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
+  EVENT_DATA_INDEX = 0
+  CUSTOM_ATTRIBUTES_INDEX = 1
+
   def test_custom_parameters_in_event_are_normalized_to_string_keys
     with_sampler_config do
       generate_request('whatever', :custom_params => {:bing => 2, 1 => 3})
-      txn_event = @sampler.samples.first
-      assert_equal 2, txn_event['bing']
-      assert_equal 3, txn_event['1']
+      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
+      assert_equal 2, custom_attrs['bing']
+      assert_equal 3, custom_attrs['1']
     end
   end
 
@@ -51,16 +54,16 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def test_includes_custom_parameters_in_event
     with_sampler_config do
       generate_request('whatever', :custom_params => {'bing' => 2})
-      txn_event = @sampler.samples.first
-      assert_equal 2, txn_event['bing']
+      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
+      assert_equal 2, custom_attrs['bing']
     end
   end
 
   def test_doesnt_include_custom_parameters_in_event_when_configured_not_to
     with_sampler_config('analytics_events.capture_attributes' => false) do
       generate_request('whatever', :custom_params => {'bing' => 2})
-      txn_event = @sampler.samples.first
-      assert_equal nil, txn_event['bing']
+      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
+      assert_equal nil, custom_attrs['bing']
     end
   end
 
@@ -70,17 +73,22 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
         :overview_metrics => {'webDuration' => 0.01},
         :custom_params => {'type' => 'giraffe', 'duration' => 'hippo', 'webDuration' => 'zebra'}
       )
-      txn_event = @sampler.samples.first
+      txn_event = single_sample[EVENT_DATA_INDEX]
       assert_equal 'Transaction', txn_event['type']
       assert_equal 0.1, txn_event['duration']
       assert_equal 0.01, txn_event['webDuration']
+
+      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
+      assert_equal 'giraffe', custom_attrs['type']
+      assert_equal 'hippo', custom_attrs['duration']
+      assert_equal 'zebra', custom_attrs['webDuration']
     end
   end
 
   def test_samples_on_transaction_finished_event_includes_overview_metrics
     with_sampler_config do
       generate_request('name', :overview_metrics => {:foo => :bar})
-      assert_equal :bar, @sampler.samples.first[:foo]
+      assert_equal :bar, single_sample[EVENT_DATA_INDEX][:foo]
     end
   end
 
@@ -186,11 +194,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   end
 
   def with_sampler_config(options = {})
-    defaults =
-    {
-      :'analytics_events.max_samples_stored' => 100
-    }
-
+    defaults = { :'analytics_events.max_samples_stored' => 100 }
     defaults.merge!(options)
     with_config(defaults) do
       @event_listener.notify( :finished_configuring )
@@ -198,9 +202,9 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
-  def assert_is_valid_transaction_sample( sample )
-    assert_kind_of Hash, sample
-    assert_equal 'Transaction', sample['type']
+  def single_sample
+    assert_equal 1, @sampler.samples.size
+    @sampler.samples.first
   end
 
 end
