@@ -62,6 +62,7 @@ module NewRelic
           nr_env_var_keys = collect_new_relic_environment_variable_keys
 
           nr_env_var_keys.each do |key|
+            next if key.upcase == 'NEW_RELIC_LOG'
             set_value_from_environment_variable(key)
           end
         end
