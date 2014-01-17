@@ -93,7 +93,7 @@ module NewRelic
       end
 
       def custom_parameters_from_transaction(txn)
-        if Agent.config[:'capture_attributes.traces']
+        if Agent.config[:'transaction_tracer.capture_attributes']
           txn.custom_parameters
         else
           {}

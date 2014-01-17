@@ -218,7 +218,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     end
 
     def test_captured_errors_should_not_include_custom_params_if_config_says_no
-      with_config(:'capture_attributes.traces' => false) do
+      with_config(:'error_collector.capture_attributes' => false) do
         get '/error/error_with_custom_params'
       end
       assert_error_reported_once('bad things')
