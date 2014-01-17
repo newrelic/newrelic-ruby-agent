@@ -93,7 +93,7 @@ end
 unless defined?( assert_not_includes )
   def assert_not_includes( collection, member, msg=nil )
     msg = build_message( msg, "Expected ? not to include ?", collection, member )
-    assert_block( msg ) { !collection.include?(member) }
+    assert !collection.include?(member), msg
   end
 end
 
