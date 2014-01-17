@@ -349,7 +349,7 @@ module NewRelic
         when Net::HTTPSuccess
           true # fall through
         when Net::HTTPUnauthorized
-          raise LicenseException, 'Invalid license key, please contact support@newrelic.com'
+          raise LicenseException, 'Invalid license key, please visit support.newrelic.com'
         when Net::HTTPServiceUnavailable
           raise ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
         when Net::HTTPGatewayTimeOut
