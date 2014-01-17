@@ -124,10 +124,11 @@ module NewRelic
           APPLICATION_TIME_KEY => timings.app_time_in_millis,
           TT_GUID_KEY          => state.request_guid_to_include,
           AGENT_TOKEN_KEY      => state.request_token,
-          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
-          USER_ATTRIBUTES_KEY  => obfuscator.obfuscate(formatted_user_attributes)
+          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file]
         }
+
         add_ssl_for_http(data)
+        add_user_attributes(data)
 
         data
       end
@@ -139,23 +140,27 @@ module NewRelic
         end
       end
 
-      # NOTE: Internal prototyping may override this, so leave name stable!
-      def js_agent_user_attributes
-        return {} unless include_custom_parameters?
-        current_transaction.custom_parameters.dup
+      def add_user_attributes(data)
+        return unless include_custom_parameters?
+
+        params = event_params(current_transaction.custom_parameters)
+        json = NewRelic.json_dump(params)
+        data[USER_ATTRIBUTES_KEY] = obfuscator.obfuscate(json)
       end
 
       # Still support deprecated capture_attributes.page_view_events for
       # clients that use it. Could potentially be removed if we don't have
       # anymore users with it set according to zeitgeist.
       def include_custom_parameters?
-        current_transaction &&
+        has_custom_parameters? &&
           (NewRelic::Agent.config[:'browser_monitoring.capture_attributes'] ||
            NewRelic::Agent.config[:'capture_attributes.page_view_events'])
       end
 
-      def formatted_user_attributes
-        NewRelic.json_dump(event_params(js_agent_user_attributes))
+      def has_custom_parameters?
+        current_transaction &&
+          current_transaction.custom_parameters &&
+          !current_transaction.custom_parameters.empty?
       end
 
       def html_safe_if_needed(string)
