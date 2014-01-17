@@ -40,6 +40,13 @@ class CollectorExceptionHandlingTest < MiniTest::Unit::TestCase
     assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
   end
 
+  def test_handles_mis_encoded_custom_params_on_analytics_events
+    in_transaction(:type => :controller) do
+      NewRelic::Agent.add_custom_parameters(:foo => bad_string)
+    end
+    assert_endpoint_received_string('analytic_event_data', normalized_bad_string)
+  end
+
   def test_handles_mis_encoded_custom_params_on_errors
     NewRelic::Agent.notice_error('bad news', :custom_params => {'foo' => bad_string})
     assert_endpoint_received_string('error_data', normalized_bad_string)
