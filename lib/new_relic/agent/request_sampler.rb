@@ -115,6 +115,14 @@ class NewRelic::Agent::RequestSampler
     return unless @enabled
     return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
 
+    main_event = create_main_event(payload)
+    custom_params = create_custom_parameters(payload)
+
+    is_full = self.synchronize { @samples.append([main_event, custom_params]) }
+    notify_full if is_full && !@notified_full
+  end
+
+  def create_main_event(payload)
     sample = payload[:overview_metrics] || {}
     sample.merge!({
         TIMESTAMP_KEY     => float(payload[:start_timestamp]),
@@ -122,13 +130,14 @@ class NewRelic::Agent::RequestSampler
         DURATION_KEY      => float(payload[:duration]),
         TYPE_KEY          => SAMPLE_TYPE,
       })
+  end
 
+  def create_custom_parameters(payload)
     custom_params = {}
     if ::NewRelic::Agent.config[:'analytics_events.capture_attributes']
       custom_params.merge!(event_params(payload[:custom_params] || {}))
     end
-
-    is_full = self.synchronize { @samples.append([sample, custom_params]) }
-    notify_full if is_full && !@notified_full
+    custom_params
   end
+
 end
