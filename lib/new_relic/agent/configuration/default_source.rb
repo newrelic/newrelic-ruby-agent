@@ -761,7 +761,7 @@ module NewRelic
           :default => false,
           :public => false,
           :type => Boolean,
-          :description => 'Include custom parameters in real user monitoring script in outgoing responses.'
+          :description => 'Include custom attributes in real user monitoring script in outgoing responses.'
         },
         :'capture_attributes.page_view_events' => {
           :default => false,
@@ -870,13 +870,13 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Include custom parameters in analytics event data.'
+          :description => 'Include custom attributes in analytics event data.'
         },
         :'capture_attributes.traces' => {
           :default => true,
           :public => false,
           :type => Boolean,
-          :description => 'Include custom parameters in transaction traces and traced errors'
+          :description => 'Include custom attributes in transaction traces and traced errors'
         },
         :restart_thread_in_children => {
           :default => false,
