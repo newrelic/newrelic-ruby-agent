@@ -72,6 +72,16 @@ class CollectorExceptionHandlingTest < MiniTest::Unit::TestCase
     assert_endpoint_received_string('transaction_sample_data', expected_transaction_name)
   end
 
+  def test_handles_mis_encoded_strings_in_environment_report
+    $collector.reset
+    ::NewRelic::EnvironmentReport.report_on('Dummy') do
+      bad_string
+    end
+    agent.instance_variable_set(:@environment_report, agent.environment_for_connect)
+    agent.connect_to_server
+    assert_endpoint_received_string('connect', normalized_bad_string)
+  end
+
   def assert_endpoint_received_string(endpoint, string)
     agent.send(:transmit_data)
     requests = $collector.calls_for(endpoint)
