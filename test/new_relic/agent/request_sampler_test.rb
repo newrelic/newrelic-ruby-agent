@@ -39,14 +39,14 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   end
 
   EVENT_DATA_INDEX = 0
-  CUSTOM_PARAMS_INDEX = 1
+  CUSTOM_ATTRIBUTES_INDEX = 1
 
   def test_custom_parameters_in_event_are_normalized_to_string_keys
     with_sampler_config do
       generate_request('whatever', :custom_params => {:bing => 2, 1 => 3})
-      txn_event = single_sample[CUSTOM_PARAMS_INDEX]
-      assert_equal 2, txn_event['bing']
-      assert_equal 3, txn_event['1']
+      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
+      assert_equal 2, custom_attrs['bing']
+      assert_equal 3, custom_attrs['1']
     end
   end
 
@@ -54,16 +54,16 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def test_includes_custom_parameters_in_event
     with_sampler_config do
       generate_request('whatever', :custom_params => {'bing' => 2})
-      txn_event = single_sample[CUSTOM_PARAMS_INDEX]
-      assert_equal 2, txn_event['bing']
+      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
+      assert_equal 2, custom_attrs['bing']
     end
   end
 
   def test_doesnt_include_custom_parameters_in_event_when_configured_not_to
     with_sampler_config('analytics_events.capture_attributes' => false) do
       generate_request('whatever', :custom_params => {'bing' => 2})
-      txn_event = single_sample[CUSTOM_PARAMS_INDEX]
-      assert_equal nil, txn_event['bing']
+      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
+      assert_equal nil, custom_attrs['bing']
     end
   end
 
@@ -78,10 +78,10 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       assert_equal 0.1, txn_event['duration']
       assert_equal 0.01, txn_event['webDuration']
 
-      custom_params = single_sample[CUSTOM_PARAMS_INDEX]
-      assert_equal 'giraffe', custom_params['type']
-      assert_equal 'hippo', custom_params['duration']
-      assert_equal 'zebra', custom_params['webDuration']
+      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
+      assert_equal 'giraffe', custom_attrs['type']
+      assert_equal 'hippo', custom_attrs['duration']
+      assert_equal 'zebra', custom_attrs['webDuration']
     end
   end
 
