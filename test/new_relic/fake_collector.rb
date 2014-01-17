@@ -270,7 +270,6 @@ module NewRelic
       class SubmittedTransactionTraceTree
         def initialize(body, format)
           @body = body
-          @body = AgentPost.unblob(@body) if format == :json
         end
 
         def request_params
@@ -295,7 +294,7 @@ module NewRelic
 
       def initialize(opts={})
         super
-        @body[4] = unblob(@body[4]) if @format == :json
+        @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
       end
 
       def samples

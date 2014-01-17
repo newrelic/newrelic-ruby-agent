@@ -275,15 +275,15 @@ module NewRelic
       # enough to be worth compressing, and handles any errors the
       # server may return
       def invoke_remote(method, *args)
-        now = Time.now
+        start_ts = Time.now
 
-        data, size = nil
+        data, size, serialize_finish_ts = nil
         begin
           data = @marshaller.dump(args)
-        rescue JsonError
-          @marshaller = PrubyMarshaller.new
-          retry
+        rescue => e
+          handle_serialization_error(method, e)
         end
+        serialize_finish_ts = Time.now
 
         data, encoding = compress_request_if_needed(data)
         size = data.size
@@ -297,20 +297,31 @@ module NewRelic
                                 :encoding  => encoding,
                                 :collector => @collector)
         @marshaller.load(decompress_response(response))
-      rescue NewRelic::Agent::ForceRestartException => e
-        ::NewRelic::Agent.logger.debug e.message
-        raise
       ensure
-        record_supportability_metrics(method, now, size)
+        record_supportability_metrics(method, start_ts, serialize_finish_ts, size)
       end
 
-      def record_supportability_metrics(method, now, size)
-        duration = (Time.now - now).to_f
-        NewRelic::Agent.record_metric('Supportability/invoke_remote', duration)
-        NewRelic::Agent.record_metric('Supportability/invoke_remote/' + method.to_s, duration)
+      def handle_serialization_error(method, e)
+        NewRelic::Agent.increment_metric("Supportability/serialization_failure")
+        NewRelic::Agent.increment_metric("Supportability/serialization_failure/#{method}")
+        msg = "Failed to serialize #{method} data using #{@marshaller.class.to_s}: #{e.inspect}"
+        error = SerializationError.new(msg)
+        error.set_backtrace(e.backtrace)
+        raise error
+      end
+
+      def record_supportability_metrics(method, start_ts, serialize_finish_ts, size)
+        serialize_time = serialize_finish_ts && (serialize_finish_ts - start_ts)
+        duration = (Time.now - start_ts).to_f
+        NewRelic::Agent.record_metric("Supportability/invoke_remote", duration)
+        NewRelic::Agent.record_metric("Supportability/invoke_remote/#{method.to_s}", duration)
+        if serialize_time
+          NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize", serialize_time)
+          NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize/#{method.to_s}", serialize_time)
+        end
         if size
-          NewRelic::Agent.record_metric('Supportability/invoke_remote_size', size)
-          NewRelic::Agent.record_metric('Supportability/invoke_remote_size/' + method.to_s, size)
+          NewRelic::Agent.record_metric("Supportability/invoke_remote_size", size)
+          NewRelic::Agent.record_metric("Supportability/invoke_remote_size/#{method.to_s}", size)
         end
       end
 
@@ -410,18 +421,67 @@ module NewRelic
           end
         end
 
+        module Normalized
+          def self.normalize_string(s)
+            encoding = s.encoding
+            if (encoding == Encoding::UTF_8 || encoding == Encoding::ISO_8859_1) && s.valid_encoding?
+              return s
+            end
+
+            # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
+            # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
+            normalized = s.dup
+            if encoding == Encoding::ASCII_8BIT || !s.valid_encoding?
+              normalized.force_encoding(Encoding::ISO_8859_1)
+            else
+              # Encoding is valid and non-binary, so it might be cleanly convertible
+              # to UTF-8. Give it a try and fall back to ISO-8859-1 if it fails.
+              begin
+                normalized.encode!(Encoding::UTF_8)
+              rescue
+                normalized.force_encoding(Encoding::ISO_8859_1)
+              end
+            end
+            normalized
+          end
+
+          def self.encode(object)
+            case object
+            when String
+              normalize_string(object)
+            when Array
+              return object if object.empty?
+              result = object.map { |x| encode(x) }
+              result
+            when Hash
+              return object if object.empty?
+              hash = {}
+              object.each_pair do |k, v|
+                k = normalize_string(k) if k.is_a?(String)
+                hash[k] = encode(v)
+              end
+              hash
+            else
+              object
+            end
+          end
+        end
+
         module Base64CompressedJSON
           def self.encode(data)
-            Base64.encode64(Compressed.encode(JSON.dump(data)))
+            Base64.encode64(
+              Compressed.encode(
+                JSON.dump(
+                  Normalized.encode(data)
+                )
+              )
+            )
           end
         end
       end
 
       # Used to wrap errors reported to agent by the collector
       class CollectorError < StandardError; end
-
-      # Used to wrap any problem with the JSON marshaller
-      class JsonError < StandardError; end
 
       class Marshaller
         def parsed_error(error)
@@ -507,10 +567,9 @@ module NewRelic
         end
 
         def dump(ruby, opts={})
-          JSON.dump(prepare(ruby, opts))
-        rescue => e
-          ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered dumping agent data: #{ruby}"
-          raise JsonError.new(e)
+          prepared = prepare(ruby, opts)
+          normalized = Encoders::Normalized.encode(prepared)
+          JSON.dump(normalized)
         end
 
         def load(data)
