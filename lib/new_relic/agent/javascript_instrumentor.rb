@@ -145,9 +145,13 @@ module NewRelic
         current_transaction.custom_parameters.dup
       end
 
+      # Still support deprecated capture_attributes.page_view_events for
+      # clients that use it. Could potentially be removed if we don't have
+      # anymore users with it set according to zeitgeist.
       def include_custom_parameters_in_extra?
         current_transaction &&
-          NewRelic::Agent.config[:'capture_attributes.page_view_events']
+          (NewRelic::Agent.config[:'browser_monitoring.capture_attributes'] ||
+           NewRelic::Agent.config[:'capture_attributes.page_view_events'])
       end
 
       def formatted_extra_parameter_for_js_agent

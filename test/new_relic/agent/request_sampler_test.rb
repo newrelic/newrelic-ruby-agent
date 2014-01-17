@@ -57,7 +57,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   end
 
   def test_doesnt_include_custom_parameters_in_event_when_configured_not_to
-    with_sampler_config('capture_attributes.transaction_events' => false) do
+    with_sampler_config('analytics_events.capture_attributes' => false) do
       generate_request('whatever', :custom_params => {'bing' => 2})
       txn_event = @sampler.samples.first
       assert_equal nil, txn_event['bing']
