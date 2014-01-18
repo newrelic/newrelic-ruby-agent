@@ -145,7 +145,7 @@ module NewRelic
         end
 
         def apply_rules_to_metric_data(rules_engine, stats_hash)
-          renamed_stats = NewRelic::Agent::StatsHash.new
+          renamed_stats = NewRelic::Agent::StatsHash.new(stats_hash.created_at)
           stats_hash.each do |spec, stats|
             new_name = rules_engine.rename(spec.name)
             new_spec = NewRelic::MetricSpec.new(new_name, spec.scope)
