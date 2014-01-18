@@ -109,11 +109,23 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
     assert_equal(1, hash1[specs[3]].call_count)
   end
 
+  def test_merge_re_sets_created_at_if_needed
+    t0 = Time.at(0)
+    t1 = Time.at(100)
+
+    hash0 = NewRelic::Agent::StatsHash.new(t0)
+    hash1 = NewRelic::Agent::StatsHash.new(t1)
+
+    hash1.merge!(hash0)
+    assert_equal(t0, hash1.created_at)
+  end
+
   def test_marshal_dump
     @hash.record('foo', 1)
     @hash.record('bar', 2)
     copy = Marshal.load(Marshal.dump(@hash))
     assert_equal(@hash, copy)
+    assert_equal(@hash.created_at, copy.created_at)
   end
 
   def test_borked_default_proc_can_record_metric
