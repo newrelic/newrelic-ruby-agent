@@ -26,7 +26,7 @@ class HarvestTimestampsTest < MiniTest::Unit::TestCase
     assert_equal(t2.to_f, end_ts)
   end
 
-  def test_created_at_timestamps_maintained_on_harvest_failure
+  def test_start_timestamp_maintained_on_harvest_failure
     t0 = freeze_time.to_f
 
     NewRelic::Agent.after_fork

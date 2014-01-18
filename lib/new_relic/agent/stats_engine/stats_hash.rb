@@ -18,19 +18,19 @@ require 'new_relic/agent/internal_agent_error'
 module NewRelic
   module Agent
     class StatsHash < ::Hash
-      attr_accessor :created_at, :harvested_at
+      attr_accessor :started_at, :harvested_at
 
-      def initialize(created_at=Time.now)
-        @created_at = created_at
+      def initialize(started_at=Time.now)
+        @started_at = started_at
         super() { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
       end
 
       def marshal_dump
-        [@created_at, Hash[self]]
+        [@started_at, Hash[self]]
       end
 
       def marshal_load(data)
-        @created_at = data.shift
+        @started_at = data.shift
         self.merge!(data.shift)
       end
 
@@ -88,8 +88,8 @@ module NewRelic
       end
 
       def merge!(other)
-        if other.is_a?(StatsHash) && other.created_at < @created_at
-          @created_at = other.created_at
+        if other.is_a?(StatsHash) && other.started_at < @started_at
+          @started_at = other.started_at
         end
         other.each do |key,val|
           begin

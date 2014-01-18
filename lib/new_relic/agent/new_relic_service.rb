@@ -110,7 +110,7 @@ module NewRelic
       end
 
       def metric_data(stats_hash)
-        timeslice_start = stats_hash.created_at
+        timeslice_start = stats_hash.started_at
         timeslice_end  = stats_hash.harvested_at || Time.now
         metric_data_array = build_metric_data_array(stats_hash)
         result = invoke_remote(
