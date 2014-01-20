@@ -95,6 +95,14 @@ class MongoServerTest < Test::Unit::TestCase
     assert @server.pingable?
   end
 
+  def test_server_start_times_out_if_it_isnt_pingable
+    @server.stubs(:pingable?).returns false
+
+    assert_raise Timeout::Error do
+      @server.start
+    end
+  end
+
   def test_server_count_returns_the_number_of_mongo_processes
     previous_server_count = `ps aux | grep mongo[d]`.split("\n").length
     @server.start

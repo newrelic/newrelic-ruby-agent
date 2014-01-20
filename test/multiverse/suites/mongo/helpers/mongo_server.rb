@@ -142,6 +142,10 @@ class MongoServer
       end
 
       create_client
+
+      wait_until do
+        pingable?
+      end
     end
 
     self
