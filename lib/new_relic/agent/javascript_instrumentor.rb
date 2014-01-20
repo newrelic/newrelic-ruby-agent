@@ -106,7 +106,7 @@ module NewRelic
       TT_GUID_KEY          = "ttGuid".freeze
       AGENT_TOKEN_KEY      = "agentToken".freeze
       AGENT_KEY            = "agent".freeze
-      EXTRA_KEY            = "extra".freeze
+      USER_ATTRIBUTES_KEY  = "userAttributes".freeze
       SSL_FOR_HTTP_KEY     = "sslForHttp".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
@@ -124,10 +124,11 @@ module NewRelic
           APPLICATION_TIME_KEY => timings.app_time_in_millis,
           TT_GUID_KEY          => state.request_guid_to_include,
           AGENT_TOKEN_KEY      => state.request_token,
-          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file],
-          EXTRA_KEY            => obfuscator.obfuscate(formatted_extra_parameter_for_js_agent)
+          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file]
         }
+
         add_ssl_for_http(data)
+        add_user_attributes(data)
 
         data
       end
@@ -139,46 +140,27 @@ module NewRelic
         end
       end
 
-      # NOTE: Internal prototyping may override this, so leave name stable!
-      def data_for_js_agent_extra_parameter
-        return {} unless include_custom_parameters_in_extra?
-        current_transaction.custom_parameters.dup
+      def add_user_attributes(data)
+        return unless include_custom_parameters?
+
+        params = event_params(current_transaction.custom_parameters)
+        json = NewRelic.json_dump(params)
+        data[USER_ATTRIBUTES_KEY] = obfuscator.obfuscate(json)
       end
 
       # Still support deprecated capture_attributes.page_view_events for
       # clients that use it. Could potentially be removed if we don't have
       # anymore users with it set according to zeitgeist.
-      def include_custom_parameters_in_extra?
-        current_transaction &&
+      def include_custom_parameters?
+        has_custom_parameters? &&
           (NewRelic::Agent.config[:'browser_monitoring.capture_attributes'] ||
            NewRelic::Agent.config[:'capture_attributes.page_view_events'])
       end
 
-      def formatted_extra_parameter_for_js_agent
-        format_extra_data(data_for_js_agent_extra_parameter)
-      end
-
-      # Format the props using semicolon separated pairs separated by '=':
-      #   product=pro;user=bill@microsoft.com
-      def format_extra_data(extra_props)
-        event_params(extra_props).
-          map {|k,v| format_pair(k, v)}.
-          join(';')
-      end
-
-      def format_pair(key, value)
-        key = escape_special_characters(key)
-        value = format_value(value)
-        "#{key}=#{value}"
-      end
-
-      def escape_special_characters(string)
-        string.to_s.tr("\";=", "':-" )
-      end
-
-      def format_value(v)
-        v = "##{v}" if v.is_a?(Numeric)
-        escape_special_characters(v)
+      def has_custom_parameters?
+        current_transaction &&
+          current_transaction.custom_parameters &&
+          !current_transaction.custom_parameters.empty?
       end
 
       def html_safe_if_needed(string)

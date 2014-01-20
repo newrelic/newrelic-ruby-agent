@@ -142,49 +142,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
-  def test_data_for_js_agent_extra_parameter
-    in_transaction do
-      with_config(CAPTURE_ATTRIBUTES => true) do
-        NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-        assert_equal({:boo => "hoo"}, instrumentor.data_for_js_agent_extra_parameter)
-      end
-    end
-  end
-
-  def test_data_for_js_agent_extra_parameter_outside_transaction
-    with_config(CAPTURE_ATTRIBUTES => true) do
-      NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-      assert_empty instrumentor.data_for_js_agent_extra_parameter
-    end
-  end
-
-  def test_format
-    assert_formatted({:a => "1", "b" => 2}, "a=1", "b=#2")
-  end
-
-  def test_format_extra_data_escaping
-    assert_formatted({"semi;colon" => "gets;escaped"}, "semi:colon=gets:escaped")
-    assert_formatted({"equal=key" => "equal=value"}, "equal-key=equal-value")
-    assert_formatted({'"quoted"' => '"marks"'}, %Q['quoted'='marks'])
-  end
-
-  def test_format_extra_data_disallowed_types
-    assert_formatted_empty({"nested" => { "hashes?" => "nope" }})
-    assert_formatted_empty({"lists" => ["are", "they", "allowed?", "nope"]})
-  end
-
-  def assert_formatted(data, *expected)
-    result = instrumentor.format_extra_data(data).split(";")
-    expected.each do |expect|
-      assert_includes(result, expect)
-    end
-  end
-
-  def assert_formatted_empty(data)
-    result = instrumentor.format_extra_data(data)
-    assert_equal("", result)
-  end
-
   def test_config_data_for_js_agent
     freeze_time
     in_transaction do
@@ -212,7 +169,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
           "ttGuid"          => "ABC",
           "agentToken"      => "0123456789ABCDEF",
           "agent"           => "",
-          "extra"           => pack("user=user")
+          "userAttributes"  => pack('{"user":"user"}')
         }
 
         assert_equal(expected, data)
@@ -227,7 +184,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
 
   def test_ssl_for_http_not_included_by_default
     data = instrumentor.data_for_js_agent
-    assert_false data.include?("sslForHttp")
+    assert_not_includes data, "sslForHttp"
   end
 
   def test_ssl_for_http_enabled
@@ -247,37 +204,45 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
   CAPTURE_ATTRIBUTES = :'browser_monitoring.capture_attributes'
   CAPTURE_ATTRIBUTES_DEPRECATED = :'capture_attributes.page_view_events'
 
-  def test_data_for_js_agent_doesnt_pick_up_extras_by_default
+  def test_data_for_js_agent_doesnt_get_custom_parameters_by_default
     in_transaction do
       NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-      assert_extra_data_is("")
+      assert_user_attributes_missing
     end
   end
 
-  def test_data_for_js_agent_picks_up_extras_when_configured
+  def test_data_for_js_agent_doesnt_get_custom_parameters_outside_transaction
+    with_config(CAPTURE_ATTRIBUTES => true) do
+      NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
+      assert_user_attributes_missing
+    end
+  end
+
+
+  def test_data_for_js_agent_gets_custom_parameters_when_configured
     in_transaction do
       with_config(CAPTURE_ATTRIBUTES => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-        assert_extra_data_is("boo=hoo")
+        assert_user_attributes_are('{"boo":"hoo"}')
       end
     end
   end
 
-  def test_data_for_js_agent_ignores_extras_if_not_allowed_in_page
+  def test_data_for_js_agent_ignores_custom_parameters_by_config
     in_transaction do
       with_config(CAPTURE_ATTRIBUTES => false) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-        assert_extra_data_is("")
+        assert_user_attributes_missing
       end
     end
   end
 
-  def test_data_for_js_agent_picks_up_extras_when_configured_with_deprecated_key
+  def test_data_for_js_agent_gets_custom_parameters_with_deprecated_key
     in_transaction do
       with_config(CAPTURE_ATTRIBUTES => false,
                   CAPTURE_ATTRIBUTES_DEPRECATED => true) do
         NewRelic::Agent.add_custom_parameters({:boo => "hoo"})
-        assert_extra_data_is("boo=hoo")
+        assert_user_attributes_are('{"boo":"hoo"}')
       end
     end
   end
@@ -316,9 +281,14 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     assert(footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
   end
 
-  def assert_extra_data_is(expected)
+  def assert_user_attributes_are(expected)
     data = instrumentor.data_for_js_agent
-    assert_equal pack(expected), data["extra"]
+    assert_equal pack(expected), data["userAttributes"]
+  end
+
+  def assert_user_attributes_missing
+    data = instrumentor.data_for_js_agent
+    assert_not_includes data, "userAttributes"
   end
 
   def pack(text)
