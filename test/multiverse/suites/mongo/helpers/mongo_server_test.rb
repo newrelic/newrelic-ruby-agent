@@ -5,6 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'mongo_server'))
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
 require 'test/unit'
+require 'mocha/setup'
 
 class MongoServerTest < Test::Unit::TestCase
   include NewRelic::TestHelpers::FileSearching
@@ -86,6 +87,12 @@ class MongoServerTest < Test::Unit::TestCase
     assert File.exists?(@server.pid_path)
     @server.stop
     refute File.exists?(@server.pid_path)
+  end
+
+  def test_pingable_returns_true_if_ping_is_ok
+    ok_status = { "ok" => 1.0 }
+    @server.stubs(:ping).returns ok_status
+    assert @server.pingable?
   end
 
   def test_server_count_returns_the_number_of_mongo_processes
