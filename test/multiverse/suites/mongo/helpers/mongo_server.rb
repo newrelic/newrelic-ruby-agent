@@ -49,6 +49,11 @@ class MongoReplicaSet
 
     config
   end
+
+  def initiate
+    return nil unless running?
+    self.servers.first.client['admin'].command( { 'replSetInitiate' => config } )
+  end
 end
 
 class MongoServer

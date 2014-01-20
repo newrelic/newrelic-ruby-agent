@@ -236,4 +236,12 @@ class MongoReplicaSetTest < Test::Unit::TestCase
 
     assert_equal expected, result
   end
+
+  def test_initiating_a_replica_set_sends_the_config
+    @replica.start
+    exception = assert_raise Mongo::OperationFailure do
+      @replica.initiate
+    end
+    assert exception.message.match(/(Received replSetInitiate|already initialized)/)
+  end
 end
