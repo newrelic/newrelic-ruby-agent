@@ -489,7 +489,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
     end
 
     def test_normalize_string_returns_munged_copy_if_other_convertible_encoding
-      string = "i want a pony".encode('UTF-16')
+      string = "i want a pony".encode('UTF-16LE')
       encoder = NewRelic::Agent::NewRelicService::Encoders::Normalized
       result = encoder.normalize_string(string)
       assert_not_same(result, string)
