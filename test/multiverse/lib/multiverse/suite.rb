@@ -74,13 +74,7 @@ module Multiverse
 
         rbx_gemfile_lines(f, gemfile_text)
 
-        # We currently pin usage of mocha at the 0.9.x line for compatibility
-        # 0.10.x had issues with the integration handlers and MiniTest on old Rubies
-        # 0.11.x introduced syntax that breaks 1.8.6 entirely :(
-        #
-        # If we want to move forward to MiniTest 5.0.x, this will need to be
-        # resolved in some fashion at that point
-        f.puts "  gem 'mocha', '~> 0.9.8', :require => false" unless environments.omit_mocha
+        f.puts "  gem 'mocha', '0.14.0', :require => false"
 
         # Need to get Rubinius' debugger wired in, but MRI's doesn't work
         if include_debugger
@@ -106,7 +100,7 @@ module Multiverse
       return unless is_rbx?
 
       f.puts "gem 'rubysl', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .rubysl./
-      f.puts "gem 'rubysl-json', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .rubysl-json./
+      f.puts "gem 'json', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .json./
       f.puts "gem 'racc', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .racc./
     end
 
@@ -245,17 +239,8 @@ module Multiverse
 
     def configure_child_environment
       require 'minitest/unit'
-      patch_minitest_for_old_mocha
       prevent_minitest_auto_run
       require_mocha
-    end
-
-    def patch_minitest_for_old_mocha
-      # We use mocha 0.9 for compatibility with old Rubies
-      # Its MiniTest integration isn't quite ok for 4.7.5, though, so patch it
-      unless defined?(::MiniTest::Unit::TestCase::SUPPORTS_INFO_SIGNAL)
-        ::MiniTest::Unit::TestCase.const_set("SUPPORTS_INFO_SIGNAL", false)
-      end
     end
 
     # Rails and minitest_tu_shim both want to do MiniTest::Unit.autorun for us
@@ -269,10 +254,7 @@ module Multiverse
     end
 
     def require_mocha
-      # We use an older version of mocha, so we just require mocha instead of mocha/setup
-      unless environments.omit_mocha
-        require 'mocha'
-      end
+      require 'mocha/setup'
     end
 
     def disable_harvest_thread

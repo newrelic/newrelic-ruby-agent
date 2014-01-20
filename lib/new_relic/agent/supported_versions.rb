@@ -11,9 +11,8 @@ module NewRelic
       {
         :type        => :ruby,
         :name        => "MRI",
-        :supported   => ["1.8.7", "1.9.2", "1.9.3", "2.0.0"],
+        :supported   => ["1.8.7", "1.9.2", "1.9.3", "2.0.0", "2.1.0"],
         :deprecated  => ["1.8.6"],
-        :experimental=> [">= 2.1.0"],
         :url         => "https://www.ruby-lang.org",
         :feed        => "https://www.ruby-lang.org/en/feeds/news.rss",
         :notes       => [
@@ -141,7 +140,7 @@ module NewRelic
       :mongo =>
       {
         :type        => :database,
-        :experimental=> ["~>1.8.0", "~>1.9.0"],
+        :supported   => ["~>1.8.0", "~>1.9.0"],
         :url         => "https://rubygems.org/gems/mongo",
         :feed        => "https://rubygems.org/gems/mongo/versions.atom"
       },

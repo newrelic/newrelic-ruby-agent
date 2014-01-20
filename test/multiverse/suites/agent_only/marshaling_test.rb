@@ -33,15 +33,13 @@ class MarshalingTest < MiniTest::Unit::TestCase
     agent.service.connect
     agent.send(:harvest_and_send_transaction_traces)
 
-    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    else
-      marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    end
+    marshaller = agent.service.marshaller
 
-    assert_equal('666', $collector.calls_for('transaction_sample_data')[0].run_id)
-    assert_equal(expected_sample.to_collector_array(marshaller.default_encoder),
-                 $collector.calls_for('transaction_sample_data')[0][1][0])
+    transaction_sample_data_post = $collector.calls_for('transaction_sample_data')[0]
+    assert_equal('666', transaction_sample_data_post.run_id)
+    encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
+    assert_equal(expected_sample.to_collector_array(encoder),
+                 transaction_sample_data_post[1][0])
   end
 
   def test_metric_data_marshalling

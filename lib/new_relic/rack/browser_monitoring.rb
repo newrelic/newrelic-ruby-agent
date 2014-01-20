@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'rack'
+require 'new_relic/rack/transaction_reset'
 
 module NewRelic::Rack
   # This middleware is used by the agent for the Real user monitoring (RUM)
@@ -18,8 +19,11 @@ module NewRelic::Rack
       @app = app
     end
 
+    include TransactionReset
+
     # method required by Rack interface
     def call(env)
+      ensure_transaction_reset(env)
       result = @app.call(env)   # [status, headers, response]
 
       if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1])

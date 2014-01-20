@@ -1,0 +1,66 @@
+gemfile <<-RB
+  gem 'mongo', '1.9.2'
+  gem 'bson_ext', :platforms => :ruby
+RB
+
+gemfile <<-RB
+  gem 'mongo', '~>1.8.6'
+  gem 'bson_ext', :platforms => :ruby
+RB
+
+# Newest unsupported version of the driver!
+gemfile <<-RB
+  gem 'mongo', '~>1.7.1'
+  gem 'bson_ext', :platforms => :ruby
+RB
+
+require 'timeout'
+require 'socket'
+
+ENV["MONGO_HOST"] = "localhost" unless ENV["MONGO_HOST"]
+ENV["MONGO_PORT"] = "27017" unless ENV["MONGO_PORT"]
+
+def mongo_running?
+  Timeout::timeout(1) do
+    begin
+      TCPSocket.new(ENV["MONGO_HOST"], ENV["MONGO_PORT"].to_i).close
+      true
+    rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+      false
+    end
+  end
+rescue Timeout::Error
+  false
+end
+
+def wait_for_mongo
+  Timeout::timeout(10) do
+    until mongo_running? do
+      sleep(0.1)
+    end
+  end
+end
+
+before_suite do
+  if mongo_running?
+    $started_mongo = false
+  else
+    puts "Starting Mongo for you, will shut down after tests"
+    `mkdir -p tmp`
+    `mongod --port #{ENV["MONGO_PORT"]} --pidfilepath tmp/mongo.pid &`
+    wait_for_mongo
+
+    $started_mongo = true
+    puts "Mongo Mongo Mongo!"
+  end
+end
+
+after_suite do
+  if $started_mongo
+    puts "Shutting down test initiated Mongo."
+    mongo_pid = `cat tmp/mongo.pid`
+    `kill -9 #{mongo_pid}`
+    `rm tmp/mongo.pid`
+    puts "Mongo Mongo Mongo!"
+  end
+end

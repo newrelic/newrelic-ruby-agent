@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/rack/transaction_reset'
+
 module NewRelic::Rack
   # This middleware is used by the agent in order to capture exceptions that
   # occur within your web application. It will normally be injected into the
@@ -14,6 +16,8 @@ module NewRelic::Rack
     def initialize(app, options={})
       @app = app
     end
+
+    include TransactionReset
 
     def params_from_env(env)
       if defined?(ActionDispatch::Request)
@@ -47,6 +51,7 @@ module NewRelic::Rack
     end
 
     def call(env)
+      ensure_transaction_reset(env)
       @app.call(env)
     rescue Exception => exception
       NewRelic::Agent.logger.debug "collecting %p: %s" % [ exception.class, exception.message ]

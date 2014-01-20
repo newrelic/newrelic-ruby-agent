@@ -6,8 +6,9 @@ require 'rack'
 require 'rack/request'
 require 'rack/response'
 require 'rack/file'
-require 'new_relic/metric_parser/metric_parser'
 require 'new_relic/collection_helper'
+require 'new_relic/metric_parser/metric_parser'
+require 'new_relic/rack/transaction_reset'
 
 module NewRelic
   module Rack
@@ -33,12 +34,14 @@ module NewRelic
 
 
       include NewRelic::DeveloperModeHelper
+      include TransactionReset
 
       def initialize(app)
         @app = app
       end
 
       def call(env)
+        ensure_transaction_reset(env)
         return @app.call(env) unless /^\/newrelic/ =~ ::Rack::Request.new(env).path_info
         dup._call(env)
       end

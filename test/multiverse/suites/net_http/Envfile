@@ -1,6 +1,4 @@
 gemfile <<-RB
   gem 'rack'
-  if RUBY_VERSION < '1.9.0'
-    gem 'json'
-  end
+  gem 'json', :platforms => [:rbx, :mri_18]
 RB

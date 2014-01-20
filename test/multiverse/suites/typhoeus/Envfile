@@ -10,11 +10,9 @@ suite_condition("Typhoeus not supported in 1.8.6 and excluded on 1.8.7 non-REE")
 end
 
 gemfile <<-RB
-  gem 'typhoeus', '~> 0.6.3'
+  gem 'typhoeus', '~> 0.6.5'
   gem 'rack'
-  if RUBY_VERSION < '1.9.0'
-    gem 'json'
-  end
+  gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
 gemfile <<-RB
@@ -23,9 +21,7 @@ gemfile <<-RB
 
   gem 'typhoeus', '~> 0.5.4'
   gem 'rack'
-  if RUBY_VERSION < '1.9.0'
-    gem 'json'
-  end
+  gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
 # Earliest supported version
@@ -35,9 +31,7 @@ gemfile <<-RB
 
   gem 'typhoeus', '0.5.3'
   gem 'rack'
-  if RUBY_VERSION < '1.9.0'
-    gem 'json'
-  end
+  gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
 # Prior to supported versions
@@ -47,7 +41,5 @@ gemfile <<-RB
 
   gem 'typhoeus', '0.5.2'
   gem 'rack'
-  if RUBY_VERSION < '1.9.0'
-    gem 'json'
-  end
+  gem 'json', :platforms => [:rbx, :mri_18]
 RB

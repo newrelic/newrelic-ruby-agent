@@ -5,15 +5,11 @@ end
 gemfile <<-RB
   gem 'curb', '0.8.1'
   gem 'rack'
-  if RUBY_VERSION < '1.9.0'
-    gem 'json'
-  end
+  gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
 gemfile <<-RB
   gem 'curb', '~> 0.8.4'
   gem 'rack'
-  if RUBY_VERSION < '1.9.0'
-    gem 'json'
-  end
+  gem 'json', :platforms => [:rbx, :mri_18]
 RB

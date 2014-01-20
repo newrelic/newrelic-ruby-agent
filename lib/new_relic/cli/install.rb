@@ -57,7 +57,7 @@ you receive upon registration.
     EOF
     puts <<-EOF unless quiet
 
-E-mail support@newrelic.com with any problems or questions.
+Visit support.newrelic.com if you are experiencing installation issues.
     EOF
 
   end

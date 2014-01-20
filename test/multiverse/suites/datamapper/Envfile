@@ -5,7 +5,7 @@ end
 omit_collector!
 
 gemfile <<-RB
+  gem 'json', '>= 1.8.1'
   gem 'datamapper'
   gem 'dm-sqlite-adapter'
 RB
-

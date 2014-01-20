@@ -139,6 +139,9 @@ module NewRelic
     # An unrecoverable client-side error that prevents the agent from continuing
     class UnrecoverableAgentException < ServerConnectionException; end
 
+    # An error while serializing data for the collector
+    class SerializationError < StandardError; end
+
     class BackgroundLoadingError < StandardError; end
 
     # placeholder name used when we cannot determine a transaction's name

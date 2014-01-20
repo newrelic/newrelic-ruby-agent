@@ -403,8 +403,26 @@ module NewRelic
           # returns an eval-able string that contains the tracing code
           # for a fully traced metric including scoping
           def method_with_push_scope(method_name, metric_name_code, options)
-            klass = (self === Module) ? "self" : "self.class"
-
+            # At this point, we expect 'self' to point to a Class or Module that
+            # has included the NewRelic::Agent::MethodTracer module, which means
+            # it should have an instance method defined called
+            # 'trace_execution_scoped'.
+            #
+            # If this is not the case, assume that
+            # we're relying on the fact that MethodTracer is included into the
+            # Module class by init_plugin, and try to call
+            # trace_execution_scoped as a class rather than instance method.
+            #
+            # The inclusion of MethodTracer into Module will be going away in
+            # the future, so if we detect people relying on that behavior, warn
+            # and record a supportability metric.
+            if self.method_defined?(:trace_execution_scoped)
+              klass = 'self'
+            else
+              NewRelic::Agent.logger.warn("Called add_method_tracer from #{self} without including the NewRelic::Agent::MethodTracer module. This is deprecated and will stop working in the future. Please see http://docs.newrelic.com/docs/ruby/ruby-custom-metric-collection for examples of correct add_method_tracer usage.")
+              NewRelic::Agent.increment_metric("Supportability/usage/improper_add_method_tracer")
+              klass = 'self.class'
+            end
             "def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
               #{options[:code_header]}
               result = #{klass}.trace_execution_scoped(\"#{metric_name_code}\",

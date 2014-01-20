@@ -79,15 +79,20 @@ class RequestStatsTest < ActionController::TestCase
       assert_kind_of Array, post.body
       assert_kind_of Array, post.body.first
 
-      sample = post.body.first.first
+      sample = post.body.first[0]
       assert_kind_of Hash, sample
 
       assert_equal 'Controller/request_stats/stats_action_with_custom_params', sample['name']
       assert_encoding 'utf-8', sample['name']
       assert_equal 'Transaction', sample['type']
-      assert_equal 'blue', sample['color']
-      assert_equal 'bar', sample['1']
-      assert_false sample.has_key?('bad')
+      ['blue', 'bar', 'bad'].each do |key|
+        assert_not_includes(sample, key)
+      end
+
+      custom_params = post.body.first[1]
+      assert_equal 'blue', custom_params['color']
+      assert_equal 'bar', custom_params['1']
+      assert_false custom_params.has_key?('bad')
     end
   end
 

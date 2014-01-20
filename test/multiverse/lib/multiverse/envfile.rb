@@ -7,7 +7,7 @@ module Multiverse
   # bundler
   class Envfile
     attr_accessor :file_path, :condition
-    attr_reader :before, :after, :mode, :skip_message, :omit_mocha, :omit_collector
+    attr_reader :before, :after, :mode, :skip_message, :omit_collector
 
     def initialize(file_path)
       self.file_path = file_path
@@ -27,10 +27,6 @@ module Multiverse
 
     def gemfile(content)
       @gemfiles.push content
-    end
-
-    def omit_mocha!
-      @omit_mocha = true
     end
 
     def omit_collector!

@@ -34,7 +34,7 @@ can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-fra
 
 Any Rack based framework should work but may not be tested.  Install
 the Ruby Agent as a gem and add the Developer Mode middleware if
-desired.  Report any problems to support@newrelic.com.
+desired.  Report any problems by visiting support.newrelic.com.
 
 You can also monitor non-web applications. Refer to the "Other
 Environments" section under "Getting Started".

@@ -2,13 +2,13 @@
 
 ## v3.7.1 ##
 
-  * Experimental MongoDB support
+  * MongoDB support
 
-  The Ruby agent provides experimental support for the mongo gem, versions 1.8
-  and 1.9! Mongo calls are captured for transaction traces along with their
-  parameters, and time spent in Mongo shows up on the Database tab.
+  The Ruby agent provides support for the mongo gem, versions 1.8 and 1.9!
+  Mongo calls are captured for transaction traces along with their parameters,
+  and time spent in Mongo shows up on the Database tab.
 
-  Support for more Mongo gems, and more UI goodness will be coming, so watch
+  Support for more Mongo gems and more UI goodness will be coming, so watch
   http://docs.newrelic.com/docs/ruby/mongo for up-to-date status.
 
   * Harvest thread restarts for forked and daemonized processes
@@ -17,7 +17,7 @@
   successfully report data after an app forked or daemonized. Gems or scripts
   with daemonizing modes had to wait for agent support or find workarounds.
 
-  With 3.7.1 setting `restart_thread_in_child: true` in your newrelic.yml
+  With 3.7.1 setting `restart_thread_in_children: true` in your newrelic.yml
   automatically restarts the agent in child processes without requiring custom
   code. For now the feature is opt-in, but future releases may default it on.
 
@@ -26,6 +26,12 @@
   The agent previously did not include connection establishment time for
   outgoing Net::HTTP requests. This has been corrected, and reported HTTP
   timings should now be more accurate.
+
+  * Fix for Mongo ensure_index instrumentation (3.7.1.182)
+
+  The Mongo instrumentation for ensure_index in 3.7.1.180 was not properly
+  calling through to the uninstrumented version of this method. This has been
+  fixed in 3.7.1.182. Thanks to Yuki Miyauchi for the fix!
 
 ## v3.7.0 ##
 
