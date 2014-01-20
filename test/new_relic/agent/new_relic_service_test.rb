@@ -494,7 +494,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
       result = encoder.normalize_string(string)
       assert_not_same(result, string)
       assert_equal(Encoding.find('UTF-8'), result.encoding)
-      assert_equal(string, result.encode('UTF-16'))
+      assert_equal(string, result.encode('UTF-16LE'))
     end
 
     def test_normalize_string_returns_munged_copy_if_other_non_convertible_enocding
