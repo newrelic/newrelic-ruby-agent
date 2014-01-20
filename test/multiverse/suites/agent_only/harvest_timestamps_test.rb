@@ -45,6 +45,27 @@ class HarvestTimestampsTest < MiniTest::Unit::TestCase
     assert_equal([t0, t2], second_post[1..2])
   end
 
+  def test_timestamps_updated_even_if_filling_metric_id_cache_fails
+    t0 = freeze_time.to_f
+
+    NewRelic::Agent.after_fork
+
+    # Induce a failure in filling the metric ID cache by handing back a bogus
+    # response to the first metric_data post.
+    $collector.stub('metric_data', [[[[]]]], 200)
+    t1 = advance_time(10).to_f
+    trigger_metric_data_post
+    first_post = last_metric_data_post
+
+    $collector.reset
+    t2 = advance_time(10).to_f
+    trigger_metric_data_post
+    second_post = last_metric_data_post
+
+    assert_equal([t0, t1], first_post[1..2])
+    assert_equal([t1, t2], second_post[1..2])
+  end
+
   def trigger_metric_data_post
     NewRelic::Agent.agent.send(:transmit_data)
   end

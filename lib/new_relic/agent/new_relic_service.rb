@@ -87,6 +87,11 @@ module NewRelic
                                        metric_spec_hash['scope'])
           metric_id_cache[metric_spec] = metric_id
         end
+      rescue => e
+        # If we've gotten this far, we don't want this error to propagate and
+        # make this post appear to have been non-successful, which would trigger
+        # re-aggregation of the same metric data into the next post, so just log
+        NewRelic::Agent.logger.error("Failed to fill metric ID cache from response, error details follow ", e)
       end
 
       # The collector wants to recieve metric data in a format that's different
