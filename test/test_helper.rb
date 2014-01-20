@@ -14,6 +14,9 @@ $LOAD_PATH.uniq!
 
 require 'rubygems'
 require 'rake'
+
+gem 'minitest', '4.7.5'
+
 Dir.glob('test/helpers/*').each { |f| require f }
 
 Dir.glob(File.join(NEWRELIC_PLUGIN_DIR,'test/helpers/*.rb')).each do |helper|
@@ -65,17 +68,7 @@ else
 end
 
 require 'minitest/autorun'
-begin
-  require 'mocha/setup'
-rescue LoadError
-  require 'mocha'
-end
-
-#begin # 1.8.6
-#  require 'mocha/integration/test_unit'
-#  require 'mocha/integration/test_unit/assertion_counter'
-#rescue LoadError
-#end
+require 'mocha/setup'
 
 require 'agent_helper'
 
@@ -103,18 +96,6 @@ def default_service(stubbed_method_overrides = {})
   service.stubs(:session).yields
   service
 end
-
-#class MiniTest::Unit::TestCase
-#  include Mocha::API
-#
-#  # we can delete this trick when we stop supporting rails2.0.x
-#  if ENV['BRANCH'] != 'rails20'
-#    # a hack because rails2.0.2 does not like double teardowns
-#    def teardown
-#      mocha_teardown
-#    end
-#  end
-#end
 
 def with_verbose_logging
   orig_logger = NewRelic::Agent.logger
