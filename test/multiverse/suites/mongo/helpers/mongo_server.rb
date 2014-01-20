@@ -131,10 +131,16 @@ class MongoServer
     end
   end
 
-  def create_client
+  def create_client(client_class = nil)
+    if defined? MongoClient
+      client_class ||= MongoClient
+    else
+      client_class ||= Mongo::Connection
+    end
+
     Timeout.timeout(1) do
       begin
-        self.client = MongoClient.new('localhost', self.port)
+        self.client = client_class.new('localhost', self.port)
       rescue Mongo::ConnectionFailure => e
         raise e unless message = "Failed to connect to a master node at localhost:#{port}"
         retry

@@ -10,24 +10,20 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 if NewRelic::Agent::Datastores::Mongo.is_supported_version?
   require File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'mongo_metric_builder')
-  require File.join(File.dirname(__FILE__), 'helpers', 'servers')
+  require File.join(File.dirname(__FILE__), 'helpers', 'mongo_server')
 
   class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Unit::TestCase
     include Mongo
     include ::NewRelic::TestHelpers::MongoMetricBuilder
 
     def server
-      MongoServer.single
-    end
-
-    def client
-      @server.connect
+      MongoServer.new
     end
 
     def setup
       @server = server
       @server.start
-      @client = client
+      @client = @server.client
       @database_name = 'multiverse'
       @database = @client.db(@database_name)
       @collection_name = 'tribbles'
@@ -41,6 +37,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     def teardown
       NewRelic::Agent.drop_buffered_data
+      @server.stop
     end
 
     def test_records_metrics_for_insert
@@ -404,7 +401,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     def test_records_instance_metric
       @collection.insert(@tribble)
-      assert_metrics_recorded(["Datastore/instance/MongoDB/#{@server.address}/#{@database_name}"])
+      assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@server.port}/#{@database_name}"])
     end
 
     def with_unique_collection
@@ -426,18 +423,6 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     def unique_field_name
       "field#{SecureRandom.hex(10)}"
-    end
-  end
-
-  class NewRelic::Agent::Instrumentation::MongoConnectionTest < NewRelic::Agent::Instrumentation::MongoInstrumentationTest
-    def client
-      @server.legacy_connect
-    end
-  end
-
-  class NewRelic::Agent::Instrumentation::MongoReplicaSetTest < NewRelic::Agent::Instrumentation::MongoInstrumentationTest
-    def server
-      MongoReplicaSet.new
     end
   end
 end
