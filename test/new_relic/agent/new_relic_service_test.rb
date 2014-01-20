@@ -252,20 +252,20 @@ class NewRelicServiceTest < Test::Unit::TestCase
     assert_equal(42, results.first.metric_id)
   end
 
-  def test_metric_data_tracks_last_harvest_time
+  def test_metric_data_harvest_time_based_on_stats_hash_creation
     t0 = freeze_time
+    dummy_rsp = 'met rick date uhh'
+    @http_handle.respond_to(:metric_data, dummy_rsp)
 
-    @http_handle.respond_to(:metric_data, [])
+    advance_time 10
+    stats_hash = NewRelic::Agent::StatsHash.new
+    advance_time 1
+    stats_hash.harvested_at = Time.now
 
-    hash = build_stats_hash('a' => 1)
-    advance_time(1)
-    @service.metric_data(hash)
-    assert_equal(t0, @service.last_metric_harvest_time)
+    @service.metric_data(stats_hash)
 
-    t1 = advance_time(60)
-    hash = build_stats_hash('a' => 1)
-    @service.metric_data(hash)
-    assert_equal(t1, @service.last_metric_harvest_time)
+    timeslice_start = @http_handle.last_request_payload[1]
+    assert timeslice_start >= t0.to_f + 10
   end
 
   def test_error_data
