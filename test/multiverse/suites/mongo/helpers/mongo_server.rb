@@ -7,55 +7,6 @@ require 'timeout'
 require 'mongo'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
 
-class MongoReplicaSet
-  attr_accessor :servers
-
-  def initialize
-    create_servers
-  end
-
-  def create_servers
-    self.servers = Array.new(3) { MongoServer.new(:replica) }
-  end
-
-  def start
-    self.servers.each { |server| server.start }
-  end
-
-  def stop
-    self.servers.each { |server| server.stop }
-  end
-
-  def running?
-    server_running_statuses = self.servers.map(&:running?).uniq
-    server_running_statuses.length == 1 && server_running_statuses.first
-  end
-
-  def status
-    return nil unless running?
-    self.servers.first.client['admin'].command( { 'replSetGetStatus' => 1 } )
-  rescue Mongo::OperationFailure => e
-    raise e unless e.message.include? 'EMPTYCONFIG'
-  end
-
-  def config
-    return unless running?
-
-    config = { :_id => 'multiverse', :members => [] }
-
-    self.servers.each_with_index do |server, index|
-      config[:members] << { :_id => index, :host => "localhost:#{server.port}" }
-    end
-
-    config
-  end
-
-  def initiate
-    return nil unless running?
-    self.servers.first.client['admin'].command( { 'replSetInitiate' => config } )
-  end
-end
-
 class MongoServer
   include Mongo
   extend NewRelic::TestHelpers::FileSearching
