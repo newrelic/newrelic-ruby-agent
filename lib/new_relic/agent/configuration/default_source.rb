@@ -606,6 +606,12 @@ module NewRelic
           :type => String,
           :description => "Obfuscation level for sql queries reported in transaction trace segments (e.g. 'obfuscated', 'raw', 'none')."
         },
+        :'transaction_tracer.capture_attributes' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable collection of custom attributes on transaction traces.'
+        },
         :'transaction_tracer.limit_segments' => {
           :default => 4000,
           :public => true,
@@ -683,6 +689,12 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable collection of source code for errors that support it.'
+        },
+        :'error_collector.capture_attributes' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable collection of custom attributes on errors.'
         },
         :'error_collector.ignore_errors' => {
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
@@ -871,12 +883,6 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :description => 'Include custom attributes in analytics event data.'
-        },
-        :'capture_attributes.traces' => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :description => 'Include custom attributes in transaction traces and traced errors'
         },
         :restart_thread_in_children => {
           :default => false,
