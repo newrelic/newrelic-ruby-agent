@@ -16,18 +16,10 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include Mongo
     include ::NewRelic::TestHelpers::MongoMetricBuilder
 
-    def server
-      MongoServer.new
-    end
-
-    def client
-      @server.client
-    end
-
     def setup
-      @server = server
+      @server = MongoServer.new
       @server.start
-      @client = client
+      @client = @server.client
       @database_name = 'multiverse'
       @database = @client.db(@database_name)
       @collection_name = 'tribbles'
@@ -427,6 +419,23 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     def unique_field_name
       "field#{SecureRandom.hex(10)}"
+    end
+  end
+
+  class NewRelic::Agent::Instrumentation::MongoConnectionTest < NewRelic::Agent::Instrumentation::MongoInstrumentationTest
+    def setup
+      @server = MongoServer.new
+      @server.start
+      @client = Mongo::Connection.new('localhost', @server.port)
+      @database_name = 'multiverse'
+      @database = @client.db(@database_name)
+      @collection_name = 'tribbles'
+      @collection = @database.collection(@collection_name)
+
+      @tribble = {'name' => 'soterios johnson'}
+
+      NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
+      NewRelic::Agent.drop_buffered_data
     end
   end
 end
