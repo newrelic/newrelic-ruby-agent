@@ -11,8 +11,6 @@ require File.join(File.dirname(__FILE__), 'boot')
 GC.enable_stats if GC.respond_to?(:enable_stats)
 
 Rails::Initializer.run do |config|
-  gem 'ci_reporter'
-  gem 'newrelic_rpm'
   config.time_zone = 'UTC'
   if defined?(JRuby)
     gem 'activerecord-jdbcmysql-adapter'

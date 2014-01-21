@@ -14,6 +14,7 @@ module NewRelic
       def setup
         @segment = stub_everything
         @request = stub_everything(:uri => URI.parse("http://newrelic.com"),
+                                   :type => "Fake",
                                    :method => "GET")
         @response = stub_everything
       end

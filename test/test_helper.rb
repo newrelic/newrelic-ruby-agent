@@ -15,7 +15,8 @@ $LOAD_PATH.uniq!
 require 'rubygems'
 require 'rake'
 
-gem 'minitest', '4.7.5'
+require 'minitest/autorun'
+require 'mocha/setup'
 
 Dir.glob('test/helpers/*').each { |f| require f }
 
@@ -32,19 +33,6 @@ if ENV["NO_RAILS"]
 else
   begin
     require 'config/environment'
-
-    # we need 'rails/test_help' for Rails 4
-    # we need 'test_help' for Rails 2
-    # we need neither for Rails 3
-    begin
-      require 'rails/test_help'
-    rescue LoadError
-      begin
-        require 'test_help'
-      rescue LoadError
-        # ignore load problems on test help - it doesn't exist in rails 3
-      end
-    end
     require 'newrelic_rpm'
   rescue LoadError => e
     puts "Running tests in standalone mode."
@@ -66,9 +54,6 @@ else
     MyApp.initialize!
   end
 end
-
-require 'minitest/autorun'
-require 'mocha/setup'
 
 require 'agent_helper'
 

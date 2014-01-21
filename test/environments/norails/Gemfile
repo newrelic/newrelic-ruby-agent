@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gem 'rake'
 
-gem 'minitest'
+gem 'minitest', '~>4.7.5'
 gem 'mocha', :require => false
 gem 'rack'
 gem 'rack-test'
