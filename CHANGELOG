@@ -33,6 +33,12 @@
   calling through to the uninstrumented version of this method. This has been
   fixed in 3.7.1.182. Thanks to Yuki Miyauchi for the fix!
 
+  * Correct first reported metric timespan for forking dispatchers (3.7.1.188)
+
+  The first time a newly-forked process (in some configurations) reported metric
+  data, it would use the startup time of the parent process as the start time
+  for that metric data instead of its own start time. This has been fixed.
+
 ## v3.7.0 ##
 
   * Official Rubinius support (for Rubinius >= 2.2.1)
