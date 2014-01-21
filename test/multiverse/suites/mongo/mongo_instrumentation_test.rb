@@ -20,10 +20,14 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       MongoServer.new
     end
 
+    def client
+      @server.client
+    end
+
     def setup
       @server = server
       @server.start
-      @client = @server.client
+      @client = client
       @database_name = 'multiverse'
       @database = @client.db(@database_name)
       @collection_name = 'tribbles'

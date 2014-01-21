@@ -14,9 +14,9 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include Mongo
 
     def setup
-      server = MongoServer.new
-      server.start
-      client = server.client
+      @server = MongoServer.new
+      @server.start
+      client = @server.client
       database_name = 'multiverse'
       database = client.db(database_name)
       collection_name = 'tribbles'
@@ -29,6 +29,7 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     def teardown
       NewRelic::Agent.drop_buffered_data
+      @server.stop
     end
 
     def test_records_metrics_for_insert
