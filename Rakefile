@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'rake/testtask'
-require "#{File.dirname(__FILE__)}/lib/new_relic/version.rb"
 require "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
 
 task :default => :test
