@@ -128,14 +128,15 @@ module Multiverse
 
     def execute_child_environment(env_index)
       with_clean_env do
-      configure_before_bundling
+        configure_before_bundling
 
-      gemfile_text = environments[env_index]
-      load_dependencies(gemfile_text, env_index)
+        gemfile_text = environments[env_index]
+        load_dependencies(gemfile_text, env_index)
 
-      configure_child_environment
-      execute_ruby_files
-      trigger_test_run
+        configure_child_environment
+        execute_ruby_files
+        trigger_test_run
+      end
     end
 
     def should_serialize?
