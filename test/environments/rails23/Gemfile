@@ -4,7 +4,7 @@ gem "test-unit"
 
 gem "rails", "~> 2.3.18"
 
-gem "mocha", "0.9.8"
+gem "mocha"
 gem 'rack'
 gem 'rack-test'
 gem 'rdoc'
