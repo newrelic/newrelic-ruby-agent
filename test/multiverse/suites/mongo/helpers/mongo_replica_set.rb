@@ -25,7 +25,7 @@ class MongoReplicaSet
     self.servers.each { |server| server.start }
     initiate
 
-    retry_on_exception(:exception => Mongo::ConnectionFailure) do
+    retry_on_exception(:exception => Mongo::ConnectionFailure, :tries => 100) do
       self.client = MongoReplicaSetClient.new(server_connections)
     end
 
