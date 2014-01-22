@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'logger'
+require 'new_relic/agent/hostname'
 
 module NewRelic
   module Agent
@@ -161,7 +162,7 @@ module NewRelic
       end
 
       def set_log_format!
-        @hostname = Socket.gethostname
+        @hostname = NewRelic::Agent::Hostname.get
         @prefix = wants_stdout? ? '** [NewRelic]' : ''
         @log.formatter = Proc.new do |severity, timestamp, progname, msg|
           "#{@prefix}[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{@hostname} (#{$$})] #{severity} : #{msg}\n"

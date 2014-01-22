@@ -8,6 +8,7 @@
 require 'yaml'
 require 'net/http'
 require 'rexml/document'
+require 'new_relic/agent/hostname'
 
 # We need to use the Control object but we don't want to load
 # the rails/merb environment.  The defined? clause is so that
@@ -59,7 +60,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       create_params = {}
       {
             :application_id => @appname,
-            :host => Socket.gethostname,
+            :host => NewRelic::Agent::Hostname.get,
             :description => @description,
             :user => @user,
             :revision => @revision,

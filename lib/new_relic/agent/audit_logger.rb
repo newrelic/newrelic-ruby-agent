@@ -4,6 +4,7 @@
 
 require 'logger'
 require 'fileutils'
+require 'new_relic/agent/hostname'
 
 module NewRelic
   module Agent
@@ -66,7 +67,7 @@ module NewRelic
       end
 
       def create_log_formatter
-        @hostname = Socket.gethostname
+        @hostname = NewRelic::Agent::Hostname.get
         Proc.new do |severity, time, progname, msg|
           "[#{time} #{@hostname} (#{$$})] : #{msg}\n"
         end
