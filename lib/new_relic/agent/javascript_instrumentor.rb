@@ -71,6 +71,9 @@ module NewRelic
         else
           true
         end
+      rescue => e
+        ::NewRelic::Agent.logger.debug "Failure during insert_js", e
+        false
       end
 
       def missing_config?(key)
@@ -86,6 +89,9 @@ module NewRelic
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def browser_timing_loader
         html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
+      rescue => e
+        ::NewRelic::Agent.logger.debug "Failure during browser_timing_loader", e
+        ""
       end
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
@@ -94,6 +100,9 @@ module NewRelic
         data = data_for_js_agent
         json = NewRelic.json_dump(data)
         html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
+      rescue => e
+        ::NewRelic::Agent.logger.debug "Failure during browser_timing_config", e
+        ""
       end
 
       BEACON_KEY           = "beacon".freeze

@@ -142,6 +142,30 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Test::Unit::TestCase
     end
   end
 
+  def test_browser_timing_header_safe_when_insert_js_fails
+    in_transaction do
+      NewRelic::Agent.stubs(:config).raises("Hahahaha")
+      assert_equal "", instrumentor.browser_timing_header
+    end
+  ensure
+    # Teardown touches config, so make sure we're clean before we bail here
+    NewRelic::Agent.unstub(:config)
+  end
+
+  def test_browser_timing_loaderg_safe_when_fails
+    in_transaction do
+      instrumentor.stubs(:html_safe_if_needed).raises("Hahahaha")
+      assert_equal "", instrumentor.browser_timing_loader
+    end
+  end
+
+  def test_browser_timing_config_safe_when_json_dump_fails
+    in_transaction do
+      NewRelic.stubs(:json_dump).raises("Serialize? Hahahaha")
+      assert_equal "", instrumentor.browser_timing_config
+    end
+  end
+
   def test_config_data_for_js_agent
     freeze_time
     in_transaction do
