@@ -12,6 +12,16 @@ module NewRelic
         Socket.stubs(:gethostname).returns('Rivendell')
         assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
       end
+
+      def test_get_includes_dyno_name_if_dyno_env_var_is_set
+        Socket.stubs(:gethostname).returns('Rivendell')
+        ENV['DYNO'] = 'Imladris'
+
+        expected = 'heroku_dyno:Imladris|Rivendell'
+        assert_equal expected, NewRelic::Agent::Hostname.get
+      ensure
+        ENV.delete('DYNO')
+      end
     end
   end
 end
