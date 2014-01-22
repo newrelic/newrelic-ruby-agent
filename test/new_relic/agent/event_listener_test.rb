@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class EventListenerTest < Test::Unit::TestCase
+class EventListenerTest < MiniTest::Unit::TestCase
 
   def setup
     @events = NewRelic::Agent::EventListener.new

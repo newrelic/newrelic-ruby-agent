@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
+class NewRelic::Agent::Agent::StartTest < MiniTest::Unit::TestCase
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::Start
 

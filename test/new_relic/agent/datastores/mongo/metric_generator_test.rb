@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 require 'new_relic/agent/datastores/mongo/metric_generator'
 
-class NewRelic::Agent::Datastores::Mongo::MetricGeneratorTest < Test::Unit::TestCase
+class NewRelic::Agent::Datastores::Mongo::MetricGeneratorTest < MiniTest::Unit::TestCase
   include ::NewRelic::TestHelpers::MongoMetricBuilder
 
   def setup

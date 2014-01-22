@@ -9,7 +9,7 @@ module NewRelic
   # mostly this class just passes through to the active agent
   # through the agent method or the control instance through
   # NewRelic::Control.instance . But it's nice to make sure.
-  class MainAgentTest < Test::Unit::TestCase
+  class MainAgentTest < MiniTest::Unit::TestCase
     include NewRelic::Agent::MethodTracer
 
     def setup
@@ -18,7 +18,6 @@ module NewRelic
     end
 
     def teardown
-      super
       NewRelic::Agent::TransactionState.clear
     end
 
@@ -108,7 +107,7 @@ module NewRelic
     def test_agent_not_started
       old_agent = NewRelic::Agent.agent
       NewRelic::Agent.instance_eval { @agent = nil }
-      assert_raise(RuntimeError) do
+      assert_raises(RuntimeError) do
         NewRelic::Agent.agent
       end
       NewRelic::Agent.instance_eval { @agent = old_agent }

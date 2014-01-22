@@ -4,7 +4,7 @@
 
 require File.expand_path('../../test_helper.rb', __FILE__)
 
-class NewRelic::TransactionSampleTest < Test::Unit::TestCase
+class NewRelic::TransactionSampleTest < MiniTest::Unit::TestCase
   include TransactionSampleTestHelper
   ::SQL_STATEMENT = "SELECT * from sandwiches WHERE meat='bacon'"
   ::OBFUSCATED_SQL_STATEMENT = "SELECT * from sandwiches WHERE meat=?"
@@ -30,7 +30,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_be_recorded
-    assert_not_nil @t
+    refute_nil @t
   end
 
   def test_prepare_to_send_strips_sql_if_record_sql_is_off_or_none_or_false
@@ -104,9 +104,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
 
     @connection_stub.expects(:execute).raises
     with_config(config) do
-      assert_nothing_raised do
-        @t.prepare_to_send!
-      end
+      @t.prepare_to_send!
     end
   end
 
@@ -162,7 +160,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   def test_to_s_with_bad_object
     @t.prepare_to_send!
     @t.params[:fake] = Hat.new
-    assert_raise(RuntimeError) do
+    assert_raises(RuntimeError) do
       @t.to_s
     end
   end

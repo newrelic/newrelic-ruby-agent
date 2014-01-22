@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class NewRelic::Rack::DeferredInstrumentationTest < Test::Unit::TestCase
+class NewRelic::Rack::DeferredInstrumentationTest < MiniTest::Unit::TestCase
   class TestApp
     def call(env)
       [200, {}, ["whatever"]]
@@ -19,7 +19,7 @@ class NewRelic::Rack::DeferredInstrumentationTest < Test::Unit::TestCase
     # On Ruby 1.8.7, this will cause the file to be evaluated multiple times.
     path1 = "new_relic/agent/instrumentation/rack"
     path2 = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'lib', 'new_relic', 'agent', 'instrumentation', 'rack'))
-    assert_not_equal(path2, path1)
+    refute_equal(path2, path1)
 
     require path1
     require path2
@@ -28,8 +28,6 @@ class NewRelic::Rack::DeferredInstrumentationTest < Test::Unit::TestCase
       run(::NewRelic::Rack::DeferredInstrumentationTest::TestApp.new)
     end
 
-    assert_nothing_raised do
-      builder.to_app
-    end
+    builder.to_app
   end
 end

@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
 
-class NewRelic::ControlTest < Test::Unit::TestCase
+class NewRelic::ControlTest < MiniTest::Unit::TestCase
   attr_reader :control
 
   def setup
@@ -35,7 +35,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_settings_accessor
-    assert_not_nil control.settings
+    refute_nil control.settings
   end
 
   def test_root
@@ -179,7 +179,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_init_plugin_loads_samplers_enabled
-    NewRelic::Agent.shutdown
+    reset_agent
     with_config(:disable_samplers => false, :agent_enabled => true) do
       NewRelic::Control.instance.init_plugin
       assert NewRelic::Agent.instance.harvest_samplers.any?
@@ -187,10 +187,15 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_init_plugin_loads_samplers_disabled
-    NewRelic::Agent.shutdown
+    reset_agent
     with_config(:disable_samplers => true, :agent_enabled => true) do
       NewRelic::Control.instance.init_plugin
       assert !NewRelic::Agent.instance.harvest_samplers.any?
     end
+  end
+
+  def reset_agent
+    NewRelic::Agent.shutdown
+    NewRelic::Agent.instance.harvest_samplers.clear
   end
 end

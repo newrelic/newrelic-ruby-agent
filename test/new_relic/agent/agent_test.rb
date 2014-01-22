@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 module NewRelic
   module Agent
-    class AgentTest < Test::Unit::TestCase
+    class AgentTest < MiniTest::Unit::TestCase
       include NewRelic::TestHelpers::Exceptions
 
       def setup
@@ -115,9 +115,7 @@ module NewRelic
         @agent.service.stubs(:transaction_sample_data).raises("wat")
         @agent.transaction_sampler.expects(:merge!).with(traces)
 
-        assert_nothing_raised do
-          @agent.send :harvest_and_send_transaction_traces
-        end
+        @agent.send :harvest_and_send_transaction_traces
       end
 
       def test_harvest_and_send_errors_merges_back_on_failure
@@ -127,9 +125,7 @@ module NewRelic
         @agent.service.stubs(:error_data).raises('wat')
         @agent.error_collector.expects(:merge!).with(errors)
 
-        assert_nothing_raised do
-          @agent.send :harvest_and_send_errors
-        end
+        @agent.send :harvest_and_send_errors
       end
 
       # This test asserts nothing about correctness of logging data from multiple
@@ -142,20 +138,18 @@ module NewRelic
         nthreads = 10
         nmetrics = 100
 
-        assert_nothing_raised do
-          nthreads.times do |tid|
-            t = Thread.new do
-              nmetrics.times do |mid|
-                @agent.stats_engine.get_stats("m#{mid}").record_data_point(1)
-              end
+        nthreads.times do |tid|
+          t = Thread.new do
+            nmetrics.times do |mid|
+              @agent.stats_engine.get_stats("m#{mid}").record_data_point(1)
             end
-            t.abort_on_exception = true
-            threads << t
           end
-
-          100.times { @agent.send(:harvest_and_send_timeslice_data) }
-          threads.each { |t| t.join }
+          t.abort_on_exception = true
+          threads << t
         end
+
+        100.times { @agent.send(:harvest_and_send_timeslice_data) }
+        threads.each { |t| t.join }
       end
 
       def test_handle_for_agent_commands
@@ -165,9 +159,7 @@ module NewRelic
 
       def test_check_for_and_handle_agent_commands_with_error
         @agent.service.expects(:get_agent_commands).raises('bad news')
-        assert_nothing_raised do
-          @agent.send :check_for_and_handle_agent_commands
-        end
+        @agent.send :check_for_and_handle_agent_commands
       end
 
       def test_harvest_and_send_for_agent_commands
@@ -226,9 +218,7 @@ module NewRelic
         @agent.service.stubs(:metric_data).raises('wat')
         @agent.stats_engine.expects(:merge!).with(timeslices)
 
-        assert_nothing_raised do
-          @agent.send(:harvest_and_send_timeslice_data)
-        end
+        @agent.send(:harvest_and_send_timeslice_data)
       end
 
       def test_connect_retries_on_timeout
@@ -426,7 +416,7 @@ module NewRelic
 
         error_classes.each do |cls|
           @agent.service.expects(:dummy_endpoint).with([1]).raises(cls.new)
-          assert_raise(cls) do
+          assert_raises(cls) do
             @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
           end
         end
@@ -440,7 +430,7 @@ module NewRelic
 
         error_classes.each do |cls|
           @agent.service.expects(:get_agent_commands).raises(cls.new)
-          assert_raise(cls) do
+          assert_raises(cls) do
             @agent.send(:check_for_and_handle_agent_commands)
           end
         end
@@ -506,6 +496,9 @@ module NewRelic
       end
 
       def test_revert_to_default_configuration_removes_manual_and_server_source
+        manual_source = NewRelic::Agent::Configuration::ManualSource.new(:manual => "source")
+        Agent.config.apply_config(manual_source)
+
         server_config = NewRelic::Agent::Configuration::ServerSource.new({})
         Agent.config.apply_config(server_config, 1)
 
@@ -522,7 +515,7 @@ module NewRelic
       end
     end
 
-    class AgentStartingTest < Test::Unit::TestCase
+    class AgentStartingTest < MiniTest::Unit::TestCase
       def test_no_service_if_not_monitoring
         with_config(:monitor_mode => false) do
           agent = NewRelic::Agent::Agent.new

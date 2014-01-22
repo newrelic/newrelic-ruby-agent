@@ -7,7 +7,7 @@ require 'net/http'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/cross_app_tracing'
 
-class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::TestCase
+class NewRelic::Agent::Instrumentation::NetInstrumentationTest < MiniTest::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start(
       :"cross_application_tracer.enabled" => false,
@@ -25,11 +25,9 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
   def test_scope_stack_integrity_maintained_on_request_failure
     @socket.stubs(:write).raises('fake network error')
     with_config(:"cross_application_tracer.enabled" => true) do
-      assert_nothing_raised do
-        expected = @engine.push_scope('dummy')
-        Net::HTTP.get(URI.parse('http://www.google.com/index.html')) rescue nil
-        @engine.pop_scope(expected, 42)
-      end
+      expected = @engine.push_scope('dummy')
+      Net::HTTP.get(URI.parse('http://www.google.com/index.html')) rescue nil
+      @engine.pop_scope(expected, 42)
     end
   end
 

@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
+class NewRelic::Agent::Agent::StartWorkerThreadTest < MiniTest::Unit::TestCase
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::StartWorkerThread
 

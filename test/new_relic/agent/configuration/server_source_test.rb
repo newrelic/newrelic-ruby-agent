@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/configuration/server_source'
 
 module NewRelic::Agent::Configuration
-  class ServerSourceTest < Test::Unit::TestCase
+  class ServerSourceTest < MiniTest::Unit::TestCase
     def setup
       config = {
         'agent_config' => {

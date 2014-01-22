@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class SamplerCollectionTest < Test::Unit::TestCase
+class SamplerCollectionTest < MiniTest::Unit::TestCase
 
   class DummySampler
     attr_reader :id
@@ -45,7 +45,7 @@ class SamplerCollectionTest < Test::Unit::TestCase
 
   def test_add_sampler_swallows_exceptions_during_sampler_creation
     DummySampler.stubs(:new).raises(StandardError)
-    assert_nothing_raised { @collection.add_sampler(DummySampler) }
+    @collection.add_sampler(DummySampler)
     assert_equal(0, @collection.to_a.size)
   end
 
@@ -61,7 +61,7 @@ class SamplerCollectionTest < Test::Unit::TestCase
     @collection.add_sampler(DummySampler2)
     good_sampler, bad_sampler = @collection.to_a
     bad_sampler.stubs(:poll).raises('boo')
-    assert_nothing_raised { @collection.poll_samplers }
+    @collection.poll_samplers
     assert_equal(1, @collection.to_a.size)
     assert_equal([good_sampler], @collection.to_a)
   end

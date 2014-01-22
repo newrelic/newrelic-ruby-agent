@@ -9,7 +9,7 @@ module NewRelic
   module Agent
     module Datastores
       module Mongo
-        class ObfuscatorTest < Test::Unit::TestCase
+        class ObfuscatorTest < MiniTest::Unit::TestCase
           def test_obfuscator_removes_values_from_statement
             selector = {
               'name'     => 'soterios johnson',

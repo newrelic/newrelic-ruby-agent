@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
-class DependencyDetectionTest < Test::Unit::TestCase
+class DependencyDetectionTest < MiniTest::Unit::TestCase
 
   def setup
     @original_items = DependencyDetection.items

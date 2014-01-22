@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 # Specifies gem version of Rails to use when vendor/rails is not present
-RAILS_GEM_VERSION = '2.1.2' #unless defined? RAILS_GEM_VERSION
+RAILS_GEM_VERSION = '2.1.2'
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')
@@ -11,8 +11,6 @@ require File.join(File.dirname(__FILE__), 'boot')
 GC.enable_stats if GC.respond_to?(:enable_stats)
 
 Rails::Initializer.run do |config|
-  config.gem 'ci_reporter', :lib => false
-  config.gem "newrelic_rpm"
   config.time_zone = 'UTC'
 
   if defined?(JRuby)

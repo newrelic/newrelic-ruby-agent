@@ -2,8 +2,8 @@ source 'http://rubygems.org'
 
 gem "rails", "~>2.1.2"
 
-gem "ci_reporter", "1.6.0"
-gem "mocha"
+gem 'minitest', '~>4.7.5'
+gem "mocha", :require => false
 gem "jeweler", "1.4.0"
 gem "rdoc"
 

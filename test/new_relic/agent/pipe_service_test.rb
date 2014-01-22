@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
-class PipeServiceTest < Test::Unit::TestCase
+class PipeServiceTest < MiniTest::Unit::TestCase
   def setup
     NewRelic::Agent::PipeChannelManager.listener.stop
     NewRelic::Agent::PipeChannelManager.register_report_channel(:pipe_service_test)
@@ -33,9 +33,7 @@ class PipeServiceTest < Test::Unit::TestCase
     ::NewRelic::Agent.logger.expects(:error) \
       .with(regexp_matches(/No communication channel to parent process/)).once
     service = NewRelic::Agent::PipeService.new(:non_existant)
-    assert_nothing_raised do
-      service.metric_data({})
-    end
+    service.metric_data({})
   end
 
   if NewRelic::LanguageSupport.can_fork? &&

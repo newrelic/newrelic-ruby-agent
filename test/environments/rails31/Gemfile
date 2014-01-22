@@ -1,9 +1,9 @@
 source 'http://rubygems.org'
 
-gem 'test-unit'
 gem 'rails', '~>3.1.12'
 gem 'newrelic_rpm', :path => '../../..'
-gem "mocha"
+gem 'minitest', '~>4.7.5'
+gem 'mocha', :require => false
 gem 'rack'
 gem 'rack-test'
 

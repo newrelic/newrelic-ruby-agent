@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/transaction_sample/segment'
-class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
+class NewRelic::TransactionSample::SegmentTest < MiniTest::Unit::TestCase
   def test_segment_creation
     # basic smoke test
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
@@ -321,18 +321,14 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s.params = {:sql => statement}
     connection = mock('connection')
     NewRelic::Agent::Database.expects(:get_connection).with(config).raises(RuntimeError.new("whee"))
-    assert_nothing_raised do
-      s.explain_sql
-    end
+    s.explain_sql
   end
 
   def test_explain_sql_can_handle_missing_config
     # If TT segment came over from Resque child, might not be a Statement
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     s.params = { :sql => "SELECT * FROM galaxy" }
-    assert_nothing_raised do
-      s.explain_sql
-    end
+    s.explain_sql
   end
 
   def test_explain_sql_can_use_already_existing_plan

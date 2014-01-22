@@ -8,7 +8,7 @@ require 'new_relic/agent/configuration/mask_defaults'
 require 'new_relic/agent/threading/backtrace_service'
 
 module NewRelic::Agent::Configuration
-  class ManagerTest < Test::Unit::TestCase
+  class ManagerTest < MiniTest::Unit::TestCase
     def setup
       # Defaults look up against the shared config, so reset and use it
       NewRelic::Agent.reset_config
@@ -52,7 +52,7 @@ module NewRelic::Agent::Configuration
       test_source[:baz] = 'baz'
       @manager.apply_config(test_source)
 
-      assert_not_equal test_source, @manager.source(:foo)
+      refute_equal test_source, @manager.source(:foo)
       assert_equal test_source, @manager.source(:bar)
       assert_equal test_source, @manager.source(:baz)
 
@@ -162,7 +162,7 @@ module NewRelic::Agent::Configuration
       reported_config = @manager.to_collector_hash
 
       if supported
-        assert_not_nil reported_config[:'thread_profiler.enabled']
+        refute_nil reported_config[:'thread_profiler.enabled']
       else
         assert_equal nil, reported_config[:'thread_profiler.enabled']
       end

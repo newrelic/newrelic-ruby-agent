@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/commands/xray_session_collection'
 
 module NewRelic::Agent::Commands
-  class XraySessionCollectionTest < Test::Unit::TestCase
+  class XraySessionCollectionTest < MiniTest::Unit::TestCase
 
     attr_reader :sessions, :service
 
@@ -145,13 +145,13 @@ module NewRelic::Agent::Commands
       handle_command_for(SECOND_ID)
 
       session = sessions[SECOND_ID]
-      assert_not_nil session.xray_session_name
-      assert_not_nil session.requested_trace_count
-      assert_not_nil session.duration
-      assert_not_nil session.sample_period
-      assert_not_nil session.run_profiler?
-      assert_not_nil session.key_transaction_name
-      assert_not_nil session.active?
+      refute_nil session.xray_session_name
+      refute_nil session.requested_trace_count
+      refute_nil session.duration
+      refute_nil session.sample_period
+      refute_nil session.run_profiler?
+      refute_nil session.key_transaction_name
+      refute_nil session.active?
     end
 
     def test_doesnt_recall_metadata_for_already_active_sessions
@@ -273,12 +273,12 @@ module NewRelic::Agent::Commands
 
         handle_command_for(SECOND_ID)
         assert_equal true, sessions.include?(SECOND_ID)
-        assert_not_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
+        refute_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
 
         handle_command_for(ANOTHER_ID_FOR_SECOND)
         assert_equal false, sessions.include?(SECOND_ID)
         assert_equal true, sessions.include?(ANOTHER_ID_FOR_SECOND)
-        assert_not_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
+        refute_nil @backtrace_service.profiles[SECOND_TRANSACTION_NAME]
       end
 
       def test_concurrency_on_access_to_sessions

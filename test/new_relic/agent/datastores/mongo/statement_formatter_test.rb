@@ -9,7 +9,7 @@ module NewRelic
   module Agent
     module Datastores
       module Mongo
-        class StatementFormatterTest < Test::Unit::TestCase
+        class StatementFormatterTest < MiniTest::Unit::TestCase
           DOC_STATEMENT = { :database   => "multiverse",
                             :collection => "tribbles",
                             :operation  => :insert,
@@ -31,7 +31,7 @@ module NewRelic
 
           def test_doesnt_modify_incoming_statement
             formatted = StatementFormatter.format(DOC_STATEMENT)
-            assert_not_same DOC_STATEMENT, formatted
+            refute_same DOC_STATEMENT, formatted
           end
 
           def test_statement_formatter_removes_unwhitelisted_keys

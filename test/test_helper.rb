@@ -14,6 +14,10 @@ $LOAD_PATH.uniq!
 
 require 'rubygems'
 require 'rake'
+
+require 'minitest/autorun'
+require 'mocha/setup'
+
 Dir.glob('test/helpers/*').each { |f| require f }
 
 Dir.glob(File.join(NEWRELIC_PLUGIN_DIR,'test/helpers/*.rb')).each do |helper|
@@ -29,25 +33,13 @@ if ENV["NO_RAILS"]
 else
   begin
     require 'config/environment'
-  #   require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
-
-    # we need 'rails/test_help' for Rails 4
-    # we need 'test_help' for Rails 2
-    # we need neither for Rails 3
-    begin
-      require 'rails/test_help'
-    rescue LoadError
-      begin
-        require 'test_help'
-      rescue LoadError
-        # ignore load problems on test help - it doesn't exist in rails 3
-      end
-    end
     require 'newrelic_rpm'
   rescue LoadError => e
     puts "Running tests in standalone mode."
+
     require 'bundler'
     Bundler.require
+
     require 'rails/all'
     require 'newrelic_rpm'
 
@@ -61,19 +53,6 @@ else
     end
     MyApp.initialize!
   end
-end
-
-require 'test/unit'
-begin
-  require 'mocha/setup'
-rescue LoadError
-  require 'mocha'
-end
-
-begin # 1.8.6
-  require 'mocha/integration/test_unit'
-  require 'mocha/integration/test_unit/assertion_counter'
-rescue LoadError
 end
 
 require 'agent_helper'
@@ -101,18 +80,6 @@ def default_service(stubbed_method_overrides = {})
   # When session gets called yield to the given block.
   service.stubs(:session).yields
   service
-end
-
-class Test::Unit::TestCase
-  include Mocha::API
-
-  # we can delete this trick when we stop supporting rails2.0.x
-  if ENV['BRANCH'] != 'rails20'
-    # a hack because rails2.0.2 does not like double teardowns
-    def teardown
-      mocha_teardown
-    end
-  end
 end
 
 def with_verbose_logging

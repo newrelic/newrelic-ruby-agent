@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/configuration/environment_source'
 
 module NewRelic::Agent::Configuration
-  class EnvironmentSourceTest < Test::Unit::TestCase
+  class EnvironmentSourceTest < MiniTest::Unit::TestCase
 
     def setup
       @original_env = {}
@@ -141,7 +141,7 @@ module NewRelic::Agent::Configuration
 
     def test_does_not_set_key_without_new_relic_related_prefix
       ENV['CONFIG_PATH'] = 'boom'
-      assert_not_equal 'boom', EnvironmentSource.new[:config_path]
+      refute_equal 'boom', EnvironmentSource.new[:config_path]
     end
 
     def test_convert_environment_key_to_config_key

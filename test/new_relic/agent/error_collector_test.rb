@@ -6,19 +6,21 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/internal_agent_error'
 
-class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
+class NewRelic::Agent::ErrorCollectorTest < MiniTest::Unit::TestCase
   def setup
-    super
     @test_config = { :capture_params => true }
     NewRelic::Agent.config.apply_config(@test_config)
+
     @error_collector = NewRelic::Agent::ErrorCollector.new
     @error_collector.stubs(:enabled).returns(true)
 
+    NewRelic::Agent::TransactionState.clear
     NewRelic::Agent.instance.stats_engine.reset!
   end
 
   def teardown
     super
+    NewRelic::Agent::TransactionState.clear
     NewRelic::Agent.config.remove_config(@test_config)
   end
 
@@ -266,7 +268,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     err = @error_collector.errors.first
     assert_equal "NewRelic/AgentError", err.path
     assert_kind_of Hash, err.params
-    assert_not_nil err.params[:stack_trace]
+    refute_nil err.params[:stack_trace]
   end
 
   def test_notice_agent_error_uses_exception_backtrace_if_present

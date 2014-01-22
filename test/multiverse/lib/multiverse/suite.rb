@@ -61,7 +61,6 @@ module Multiverse
       puts bundler_out if verbose? || $? != 0
       raise "bundle command failed with (#{$?})" unless $? == 0
       Bundler.require
-
     end
 
     def generate_gemfile(gemfile_text, env_index, local = true)
@@ -128,6 +127,7 @@ module Multiverse
     end
 
     def execute_child_environment(env_index)
+      with_clean_env do
       configure_before_bundling
 
       gemfile_text = environments[env_index]

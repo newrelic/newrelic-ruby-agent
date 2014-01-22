@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','..','test_helper'))
 require 'new_relic/agent/samplers/cpu_sampler'
 
-class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
+class NewRelic::Agent::StatsEngine::SamplersTest < MiniTest::Unit::TestCase
 
   class OurSamplers
     include NewRelic::Agent::StatsEngine::Samplers
@@ -85,7 +85,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
   def test_memory__windows
     return if defined? JRuby
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'win32'
-    assert_raise NewRelic::Agent::Sampler::Unsupported do
+    assert_raises NewRelic::Agent::Sampler::Unsupported do
       NewRelic::Agent::Samplers::MemorySampler.new
     end
   end

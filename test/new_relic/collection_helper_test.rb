@@ -7,7 +7,7 @@ require 'ostruct'
 require 'active_record_fixtures' if defined?(::ActiveRecord)
 
 require 'new_relic/collection_helper'
-class NewRelic::CollectionHelperTest < Test::Unit::TestCase
+class NewRelic::CollectionHelperTest < MiniTest::Unit::TestCase
 
   def setup
     NewRelic::Agent.manual_start

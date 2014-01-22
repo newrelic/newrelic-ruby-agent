@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'new_relic/agent/transaction_timings'
 
 module NewRelic::Agent
-  class TransactionTimingsTest < Test::Unit::TestCase
+  class TransactionTimingsTest < MiniTest::Unit::TestCase
 
     def setup
       @start_time = freeze_time

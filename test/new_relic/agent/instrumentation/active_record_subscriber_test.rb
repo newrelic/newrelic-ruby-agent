@@ -9,7 +9,7 @@ if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= MIN_RAILS_VERSION && !Ne
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 
-class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit::TestCase
+class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < MiniTest::Unit::TestCase
   class Order; end
 
   def setup
@@ -124,7 +124,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
 
   def test_should_not_raise_due_to_an_exception_during_instrumentation_callback
     @subscriber.stubs(:record_metrics).raises(StandardError)
-    assert_nothing_raised { simulate_query }
+    simulate_query
   end
 
   def simulate_query(duration=nil)

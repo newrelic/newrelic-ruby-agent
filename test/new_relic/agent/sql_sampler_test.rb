@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
-class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
+class NewRelic::Agent::SqlSamplerTest < MiniTest::Unit::TestCase
   def setup
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
@@ -36,7 +36,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   def test_notice_first_scope_push
     assert_nil @sampler.transaction_data
     @sampler.notice_first_scope_push nil
-    assert_not_nil @sampler.transaction_data
+    refute_nil @sampler.transaction_data
     @sampler.notice_scope_empty('txn')
     assert_nil @sampler.transaction_data
   end
@@ -52,7 +52,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     @sampler.notice_sql "select * from test2", "Database/test2/select", nil, 1.3
     # this sql will not be captured
     @sampler.notice_sql "select * from test", "Database/test/select", nil, 0
-    assert_not_nil @sampler.transaction_data
+    refute_nil @sampler.transaction_data
     assert_equal 2, @sampler.transaction_data.sql_data.size
   end
 
@@ -235,9 +235,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
       @sampler.harvest_slow_sql(data)
       sql_traces = @sampler.harvest!
 
-      assert_nothing_raised do
-        Marshal.dump(sql_traces)
-      end
+      Marshal.dump(sql_traces)
     end
   end
 

@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
-class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::TestCase
+class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < MiniTest::Unit::TestCase
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
   def run_task_inner(n)
@@ -112,8 +112,8 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
     assert_metrics_not_recorded(['Controller'])
 
     sample = @agent.transaction_sampler.last_sample
-    assert_not_nil(sample)
-    assert_not_nil(sample.params[:custom_params][:cpu_time], "cpu time nil: \n#{sample}")
+    refute_nil(sample)
+    refute_nil(sample.params[:custom_params][:cpu_time], "cpu time nil: \n#{sample}")
     assert((sample.params[:custom_params][:cpu_time] >= 0), "cpu time: #{sample.params[:cpu_time]},\n#{sample}")
     assert_equal('10', sample.params[:request_params][:level])
   end
@@ -137,13 +137,13 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
 
     assert_metrics_recorded(['Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/hello'])
     sample = @agent.transaction_sampler.last_sample
-    assert_not_nil(sample)
+    refute_nil(sample)
     assert_equal(account, sample.params[:request_params][:account])
   end
 
   def test_errors_are_noticed_and_not_swallowed
     @agent.error_collector.expects(:notice_error).once
-    assert_raise(RuntimeError) { run_task_exception }
+    assert_raises(RuntimeError) { run_task_exception }
   end
 
   def test_error_collector_captures_custom_params
@@ -154,8 +154,8 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
     assert_equal(1, errors.size)
     error = errors.first
     assert_equal("Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/run_task_exception", error.path)
-    assert_not_nil(error.params[:stack_trace])
-    assert_not_nil(error.params[:custom_params])
+    refute_nil(error.params[:stack_trace])
+    refute_nil(error.params[:custom_params])
   end
 
   def test_instrument_background_job

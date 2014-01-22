@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-class NewRelic::Agent::BusyCalculatorTest < Test::Unit::TestCase
+class NewRelic::Agent::BusyCalculatorTest < MiniTest::Unit::TestCase
   attr_reader :now
   def setup
     @now = Time.now.to_f
@@ -92,9 +92,7 @@ class NewRelic::Agent::BusyCalculatorTest < Test::Unit::TestCase
 
   def test_finishing_without_starting_doesnt_raise
     NewRelic::Agent::TransactionState.clear
-    assert_nothing_raised do
-      NewRelic::Agent::BusyCalculator.dispatcher_finish
-    end
+    NewRelic::Agent::BusyCalculator.dispatcher_finish
   end
 
 end

@@ -10,7 +10,7 @@ require 'new_relic/rack/browser_monitoring'
 
 ENV['RACK_ENV'] = 'test'
 
-class BrowserMonitoringTest < Test::Unit::TestCase
+class BrowserMonitoringTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
 
   class TestApp
@@ -75,7 +75,9 @@ EOL
   end
 
   def test_make_sure_header_is_set
-    assert NewRelic::Agent.browser_timing_header.size > 0
+    in_transaction do
+      assert NewRelic::Agent.browser_timing_header.size > 0
+    end
   end
 
   def test_should_only_instrument_successfull_html_requests

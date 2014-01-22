@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
+class NewRelic::Agent::ErrorCollector::NoticeErrorTest < MiniTest::Unit::TestCase
   require 'new_relic/agent/error_collector'
   include NewRelic::Agent::ErrorCollector::NoticeError
 

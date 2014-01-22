@@ -7,7 +7,7 @@ require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction_state'
 
 module NewRelic::Agent
-  class TransactionStateTest < Test::Unit::TestCase
+  class TransactionStateTest < MiniTest::Unit::TestCase
     attr_reader :state
 
     def setup

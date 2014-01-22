@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
-class NewRelic::Agent::StatsEngine::GCProfilerTest < Test::Unit::TestCase
+class NewRelic::Agent::StatsEngine::GCProfilerTest < MiniTest::Unit::TestCase
   def test_init_profiler_for_rails_bench
     return unless defined?(::GC) && ::GC.respond_to?(:collections)
 

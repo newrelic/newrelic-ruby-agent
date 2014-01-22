@@ -10,7 +10,7 @@ require 'new_relic/agent/threading/threaded_test_case'
 if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
   module NewRelic::Agent::Threading
-    class BacktraceServiceTest < Test::Unit::TestCase
+    class BacktraceServiceTest < MiniTest::Unit::TestCase
       include ThreadedTestCase
 
       def setup
@@ -87,7 +87,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         assert(profile1)
         assert(profile2)
-        assert_not_same(profile1, profile2)
+        refute_same(profile1, profile2)
       end
 
       def test_harvest_passes_on_original_args_to_new_thread_profiles
@@ -504,7 +504,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
     # These tests do not use ThreadedTestCase as FakeThread is synchronous and
     # prevents the detection of concurrency issues.
-    class BacktraceServiceConcurrencyTest < Test::Unit::TestCase
+    class BacktraceServiceConcurrencyTest < MiniTest::Unit::TestCase
       def setup
         NewRelic::Agent.instance.stats_engine.clear_stats
         @service = BacktraceService.new
@@ -535,7 +535,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
   end
 else
   module NewRelic::Agent::Threading
-    class BacktraceServiceUnsupportedTest < Test::Unit::TestCase
+    class BacktraceServiceUnsupportedTest < MiniTest::Unit::TestCase
       def test_is_not_supported?
         assert_false BacktraceService.is_supported?
       end

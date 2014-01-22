@@ -1,4 +1,3 @@
-# run unit tests for the NewRelic Agent
 namespace :newrelic do
   desc "Install a default config/newrelic.yml file"
   task :install do

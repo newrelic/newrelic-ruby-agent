@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 require 'new_relic/coerce'
 
-class CoerceTest < Test::Unit::TestCase
+class CoerceTest < MiniTest::Unit::TestCase
 
   include NewRelic::Coerce
 

@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 module NewRelic
   module Agent
-    class ShimAgentTest < Test::Unit::TestCase
+    class ShimAgentTest < MiniTest::Unit::TestCase
 
       def setup
         super
