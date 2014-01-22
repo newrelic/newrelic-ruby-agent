@@ -23,8 +23,8 @@ module NewRelic
         end
 
         def start(name, id, payload)
-          payload[:request] = TransactionState.get.request
-          event = ControllerEvent.new(name, Time.now, nil, id, payload)
+          request = TransactionState.get.request
+          event = ControllerEvent.new(name, Time.now, nil, id, payload, request)
           push_event(event)
 
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
@@ -96,7 +96,7 @@ module NewRelic
 
         def start_transaction(event)
           txn = Transaction.start(:controller,
-                                  :request => event.payload[:request],
+                                  :request => event.request,
                                   :filtered_params => filter(event.payload[:params]))
           txn.apdex_start = (event.queue_start || event.time)
           txn.name = event.metric_name
@@ -120,16 +120,18 @@ module NewRelic
 
       class ControllerEvent < Event
         attr_accessor :parent, :scope
-        attr_reader :queue_start
+        attr_reader :queue_start, :request
 
-        def initialize(name, start, ending, transaction_id, payload)
-          super
+        def initialize(name, start, ending, transaction_id, payload, request)
+          # We have a different initialize parameter list, so be explicit
+          super(name, start, ending, transaction_id, payload)
 
+          @request = request
           @controller_class = payload[:controller].split('::') \
             .inject(Object){|m,o| m.const_get(o)}
 
-          if payload[:request] && payload[:request].respond_to?(:env)
-            @queue_start = QueueTime.parse_frontend_timestamp(payload[:request].env, self.time)
+          if request && request.respond_to?(:env)
+            @queue_start = QueueTime.parse_frontend_timestamp(request.env, self.time)
           end
         end
 
