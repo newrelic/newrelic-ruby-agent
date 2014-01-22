@@ -9,14 +9,17 @@ class CollectorExceptionHandlingTest < MiniTest::Unit::TestCase
 
   setup_and_teardown_agent
 
-
-  def test_handles_mis_encoded_database_queries
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0,
-      :'transaction_tracer.record_sql' => :raw) do
-      in_transaction do
-        agent.transaction_sampler.notice_sql(bad_string, nil, 42)
+  # We're hitting a Rubinius bug when running this test there:
+  # https://github.com/rubinius/rubinius/issues/2899
+  unless NewRelic::LanguageSupport.rubinius?
+    def test_handles_mis_encoded_database_queries
+      with_config(:'transaction_tracer.transaction_threshold' => 0.0,
+        :'transaction_tracer.record_sql' => :raw) do
+        in_transaction do
+          agent.transaction_sampler.notice_sql(bad_string, nil, 42)
+        end
+        assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
       end
-      assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
     end
   end
 
