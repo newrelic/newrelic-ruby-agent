@@ -363,6 +363,16 @@ module MongoOperationTests
     assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@server.port}/#{@database_name}"])
   end
 
+  def test_save_records_instance_metric
+    @collection.save(@tribble)
+    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@server.port}/#{@database_name}"])
+  end
+
+  def test_ensure_index_records_instance_metric
+    @collection.ensure_index([[unique_field_name, Mongo::ASCENDING]])
+    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@server.port}/#{@database_name}"])
+  end
+
   def with_unique_collection
     original_collection_name = @collection_name
     original_collection = @collection

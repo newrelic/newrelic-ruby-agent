@@ -28,9 +28,23 @@ DependencyDetection.defer do
   end
 
   def install_mongo_instrumentation
+    add_new_relic_host_port
     instrument_mongo_logging
     instrument_save
     instrument_ensure_index
+  end
+
+  def add_new_relic_host_port
+    ::Mongo::Logging.class_eval do
+      def new_relic_host_port
+        host = port = nil
+        if @connection && @connection.pinned_pool
+          host, port = @connection.pinned_pool.host, @connection.pinned_pool.port
+        elsif @connection
+          host, port = @connection.instance_variable_get(:@host), @connection.instance_variable_get(:@port)
+        end
+      end
+    end
   end
 
   def instrument_mongo_logging
@@ -40,13 +54,7 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/statement_formatter'
 
       def instrument_with_new_relic_trace(name, payload = {}, &block)
-        host = port = nil
-
-        if @connection && @connection.pinned_pool
-          host, port = @connection.pinned_pool.host, @connection.pinned_pool.port
-        elsif @connection
-          host, port = @connection.instance_variable_get(:@host), @connection.instance_variable_get(:@port)
-        end
+        host, port = new_relic_host_port
 
         metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(name, payload, host, port)
 
@@ -81,7 +89,9 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/statement_formatter'
 
       def save_with_new_relic_trace(doc, opts = {}, &block)
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:save, { :collection => self.name })
+        host, port = new_relic_host_port
+
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:save, { :collection => self.name }, host, port)
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
@@ -117,7 +127,9 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/statement_formatter'
 
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:ensureIndex, { :collection => self.name })
+        host, port = new_relic_host_port
+
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:ensureIndex, { :collection => self.name }, host, port)
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
