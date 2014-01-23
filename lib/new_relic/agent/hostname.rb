@@ -7,7 +7,7 @@ module NewRelic
     module Hostname
       def self.get
         if dyno_name = ENV['DYNO']
-          "heroku_dyno:#{dyno_name}|#{Socket.gethostname}"
+          dyno_name
         else
           Socket.gethostname
         end
