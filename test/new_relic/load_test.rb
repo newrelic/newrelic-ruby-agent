@@ -5,7 +5,7 @@
 require 'resolv'
 require 'mocha/setup'
 
-class LoadTest < MiniTest::Unit::TestCase
+class LoadTest < Minitest::Test
   def test_loading_agent_when_disabled_does_not_resolv_addresses
     ::Resolv.expects(:getaddress).never
     ::IPSocket.expects(:getaddress).never

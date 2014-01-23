@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
 require 'new_relic/environment_report'
 
-class EnvironmentReportTest < MiniTest::Unit::TestCase
+class EnvironmentReportTest < Minitest::Test
   def setup
     @old_logic = ::NewRelic::EnvironmentReport.registered_reporters.dup
     @report = ::NewRelic::EnvironmentReport.new

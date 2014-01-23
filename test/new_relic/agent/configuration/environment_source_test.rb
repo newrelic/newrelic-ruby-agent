@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/configuration/environment_source'
 
 module NewRelic::Agent::Configuration
-  class EnvironmentSourceTest < MiniTest::Unit::TestCase
+  class EnvironmentSourceTest < Minitest::Test
 
     def setup
       @original_env = {}

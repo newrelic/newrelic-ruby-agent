@@ -58,7 +58,7 @@ module TestModuleWithLog
   add_method_tracer :other_method, 'Custom/foo/bar'
 end
 
-class NewRelic::Agent::MethodTracerTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::MethodTracerTest < Minitest::Test
   attr_reader :stats_engine
 
   def setup

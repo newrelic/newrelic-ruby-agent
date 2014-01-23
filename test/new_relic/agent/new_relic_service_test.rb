@@ -8,7 +8,7 @@ require 'new_relic/agent/commands/thread_profiler_session'
 
 # Tests of HTTP Keep Alive implementation that require a different setup and
 # set of mocks.
-class NewRelicServiceKeepAliveTest < MiniTest::Unit::TestCase
+class NewRelicServiceKeepAliveTest < Minitest::Test
   def setup
     @server = NewRelic::Control::Server.new('somewhere.example.com',
                                             30303, '10.10.10.10')
@@ -80,7 +80,7 @@ class NewRelicServiceKeepAliveTest < MiniTest::Unit::TestCase
 
 end
 
-class NewRelicServiceTest < MiniTest::Unit::TestCase
+class NewRelicServiceTest < Minitest::Test
   def initialize(*_)
     [ :HTTPSuccess,
       :HTTPUnauthorized,

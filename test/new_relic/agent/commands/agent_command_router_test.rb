@@ -8,7 +8,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','data_contai
 require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/commands/xray_session'
 
-class AgentCommandRouterTest < MiniTest::Unit::TestCase
+class AgentCommandRouterTest < Minitest::Test
 
   DEFAULT_ARGS = {
     "profile_id" => 42

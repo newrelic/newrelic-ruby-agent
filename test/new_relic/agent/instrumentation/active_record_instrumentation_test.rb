@@ -6,7 +6,7 @@ if defined?(::Rails)
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
-class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minitest::Test
   require 'active_record_fixtures'
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
@@ -617,7 +617,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < MiniTe
 end
 
 
-class ActiveRecordQueryEncodingTest < MiniTest::Unit::TestCase
+class ActiveRecordQueryEncodingTest < Minitest::Test
 
   class DatabaseAdapter
     # we patch in here

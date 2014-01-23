@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
 
-class NewRelic::ControlTest < MiniTest::Unit::TestCase
+class NewRelic::ControlTest < Minitest::Test
   attr_reader :control
 
   def setup

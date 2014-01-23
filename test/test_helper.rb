@@ -18,6 +18,10 @@ require 'rake'
 require 'minitest/autorun'
 require 'mocha/setup'
 
+unless defined?(Minitest::Test)
+  Minitest::Test = MiniTest::Unit::TestCase
+end
+
 Dir.glob('test/helpers/*').each { |f| require f }
 
 Dir.glob(File.join(NEWRELIC_PLUGIN_DIR,'test/helpers/*.rb')).each do |helper|

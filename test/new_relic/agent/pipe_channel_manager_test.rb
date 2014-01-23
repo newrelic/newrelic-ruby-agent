@@ -6,7 +6,7 @@ require 'timeout'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/pipe_channel_manager'
 
-#class NewRelic::Agent::PipeChannelManagerTest < MiniTest::Unit::TestCase
+#class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 #  include TransactionSampleTestHelper
 #
 #  def setup

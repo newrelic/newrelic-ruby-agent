@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/commands/agent_command'
 
 module NewRelic::Agent::Commands
-  class AgentCommandTest < MiniTest::Unit::TestCase
+  class AgentCommandTest < Minitest::Test
     ID = 123
     NAME = 'nuke_it_from_orbit'
     ARGUMENTS = { "profile_id" => 42 }

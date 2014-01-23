@@ -9,7 +9,7 @@ module NewRelic
   module Agent
     module Datastores
       module Mongo
-        class StatementFormatterTest < MiniTest::Unit::TestCase
+        class StatementFormatterTest < Minitest::Test
           DOC_STATEMENT = { :database   => "multiverse",
                             :collection => "tribbles",
                             :operation  => :insert,

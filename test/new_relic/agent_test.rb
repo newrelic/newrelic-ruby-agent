@@ -9,7 +9,7 @@ module NewRelic
   # mostly this class just passes through to the active agent
   # through the agent method or the control instance through
   # NewRelic::Control.instance . But it's nice to make sure.
-  class MainAgentTest < MiniTest::Unit::TestCase
+  class MainAgentTest < Minitest::Test
     include NewRelic::Agent::MethodTracer
 
     def setup

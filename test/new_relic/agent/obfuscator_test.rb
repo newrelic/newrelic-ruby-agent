@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require "new_relic/agent/obfuscator"
 
-class NewRelic::Agent::ObfuscatorTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::ObfuscatorTest < Minitest::Test
 
   OBFUSCATION_KEY = (1..40).to_a.pack('c*')
   RUM_KEY_LENGTH  = 13

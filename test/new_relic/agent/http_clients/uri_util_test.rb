@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/http_clients/uri_util'
 
-class URIUtilTest < MiniTest::Unit::TestCase
+class URIUtilTest < Minitest::Test
 
   def test_filter_uri
     assert_filtered("http://foo.com/bar/baz",

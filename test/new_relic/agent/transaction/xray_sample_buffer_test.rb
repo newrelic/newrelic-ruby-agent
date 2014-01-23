@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
 class NewRelic::Agent::Transaction
-  class XraySampleBufferTest < MiniTest::Unit::TestCase
+  class XraySampleBufferTest < Minitest::Test
 
     XRAY_SESSION_ID = 123
     MATCHING_TRANSACTION = "Matching/transaction/name"

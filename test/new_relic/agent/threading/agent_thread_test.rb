@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/threading/agent_thread'
 
 module NewRelic::Agent::Threading
-  class AgentThreadTest < MiniTest::Unit::TestCase
+  class AgentThreadTest < Minitest::Test
 
     def test_sets_label
       t = AgentThread.new("labelled") {}

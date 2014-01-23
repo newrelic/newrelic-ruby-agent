@@ -3,10 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
-require 'test/unit'
 require 'newrelic_rpm'
 
-class JSONWrapperTest < Test::Unit::TestCase
+class JSONWrapperTest < Minitest::Test
   def test_json_roundtrip
     obj = [
       99, 'luftballons',
@@ -32,7 +31,7 @@ class JSONWrapperTest < Test::Unit::TestCase
     def test_normalize_string_returns_munged_copy_if_ascii_8bit
       string = (0..255).to_a.pack("C*")
       result = NewRelic::JSONWrapper.normalize_string(string)
-      assert_not_same(string, result)
+      refute_same(string, result)
       assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
       assert_equal(string, result.dup.force_encoding('ASCII-8BIT'))
     end
@@ -40,7 +39,7 @@ class JSONWrapperTest < Test::Unit::TestCase
     def test_normalize_string_returns_munged_copy_if_invalid_utf8
       string = (0..255).to_a.pack("C*").force_encoding('UTF-8')
       result = NewRelic::JSONWrapper.normalize_string(string)
-      assert_not_same(result, string)
+      refute_same(result, string)
       assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
       assert_equal(string, result.dup.force_encoding('UTF-8'))
     end
@@ -48,7 +47,7 @@ class JSONWrapperTest < Test::Unit::TestCase
     def test_normalize_string_returns_munged_copy_if_other_convertible_encoding
       string = "i want a pony".encode('UTF-16LE')
       result = NewRelic::JSONWrapper.normalize_string(string)
-      assert_not_same(result, string)
+      refute_same(result, string)
       assert_equal(Encoding.find('UTF-8'), result.encoding)
       assert_equal(string, result.encode('UTF-16LE'))
     end
@@ -61,7 +60,7 @@ class JSONWrapperTest < Test::Unit::TestCase
       string = "Jyv+AOQ-skyl+AOQ-".force_encoding("UTF-7")
       assert string.valid_encoding?
       result = NewRelic::JSONWrapper.normalize_string(string)
-      assert_not_same(result, string)
+      refute_same(result, string)
       assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
       assert_equal('Jyv+AOQ-skyl+AOQ-'.force_encoding('ISO-8859-1'), result)
     end

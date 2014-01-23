@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
-class NewRelic::Agent::MetricStatsTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::MetricStatsTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent.instance.stats_engine
