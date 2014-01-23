@@ -21,20 +21,8 @@ module NewRelic
         when /darwin/, /freebsd/
           `sysctl -n hw.ncpu`.to_i
         when /linux/
-          cpuinfo = ''
-          proc_file = '/proc/cpuinfo'
-          File.open(proc_file) do |f|
-            loop do
-              begin
-                cpuinfo << f.read_nonblock(4096).strip
-              rescue EOFError
-                break
-              rescue Errno::EWOULDBLOCK, Errno::EAGAIN
-                cpuinfo = ''
-                break # don't select file handle, just give up
-              end
-            end
-          end
+          cpuinfo = proc_try_read('/proc/cpuinfo')
+          return unless cpuinfo
           processors = cpuinfo.split("\n").select {|line| line =~ /^processor\s*:/ }.size
           processors == 0 ? nil : processors
         end
@@ -47,7 +35,29 @@ module NewRelic
       end
 
       def self.os_version
-        `uname -v` rescue nil
+        proc_try_read('/proc/version')
+      end
+
+      # A File.read against /(proc|sysfs)/* can hang with some older Linuxes.
+      # See https://bugzilla.redhat.com/show_bug.cgi?id=604887 and
+      # https://github.com/opscode/ohai/commit/518d56a6cb7d021b47ed3d691ecf7fba7f74a6a7
+      # for details on why we do it this way.
+      def self.proc_try_read(path)
+        return nil unless File.exist?(path)
+        content = ''
+        File.open(path) do |f|
+          loop do
+            begin
+              content << f.read_nonblock(4096)
+            rescue EOFError
+              break
+            rescue Errno::EWOULDBLOCK, Errno::EAGAIN
+              content = nil
+              break # don't select file handle, just give up
+            end
+          end
+        end
+        content
       end
     end
   end
