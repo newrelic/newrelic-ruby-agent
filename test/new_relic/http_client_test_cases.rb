@@ -412,7 +412,7 @@ module HttpClientTestCases
   # https://newrelic.atlassian.net/browse/RUBY-1244
   def test_failure_in_our_start_code_still_records_externals
     # Fake a failure in our start-up code...
-    NewRelic.stubs(:json_dump).raises("Boom!")
+    NewRelic::JSONWrapper.stubs(:dump).raises("Boom!")
 
     with_config(:"cross_application_tracer.enabled" => true) do
       get_response
@@ -424,7 +424,7 @@ module HttpClientTestCases
   # https://newrelic.atlassian.net/browse/RUBY-1244
   def test_failure_to_add_tt_node_doesnt_append_params_to_wrong_segment
     # Fake a failure in our start-up code...
-    NewRelic.stubs(:json_dump).raises("Boom!")
+    NewRelic::JSONWrapper.stubs(:dump).raises("Boom!")
 
     in_transaction do
       with_config(:"cross_application_tracer.enabled" => true) do

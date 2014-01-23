@@ -154,7 +154,7 @@ module NewRelic
         cross_app_id = NewRelic::Agent.config[:cross_process_id] or
           raise NewRelic::Agent::CrossAppTracing::Error, "no cross app ID configured"
         txn_guid = NewRelic::Agent::TransactionState.get.request_guid
-        txn_data = NewRelic.json_dump([ txn_guid, false ])
+        txn_data = NewRelic::JSONWrapper.dump([ txn_guid, false ])
 
         request[ NR_ID_HEADER ]  = obfuscator.obfuscate( cross_app_id )
         request[ NR_TXN_HEADER ] = obfuscator.obfuscate( txn_data )
@@ -273,7 +273,7 @@ module NewRelic
         decoded_appdata.set_encoding( ::Encoding::UTF_8 ) if
           decoded_appdata.respond_to?( :set_encoding )
 
-        return NewRelic.json_load( decoded_appdata )
+        return NewRelic::JSONWrapper.load( decoded_appdata )
       end
 
 

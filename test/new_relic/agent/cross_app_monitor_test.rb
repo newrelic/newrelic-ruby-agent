@@ -218,7 +218,7 @@ module NewRelic::Agent
 
     def for_id(id)
       encoded_id = id == "" ? "" : Base64.encode64(id)
-      encoded_txn_info = Base64.encode64( NewRelic.json_dump([ REF_TRANSACTION_GUID, false ]) )
+      encoded_txn_info = Base64.encode64( NewRelic::JSONWrapper.dump([ REF_TRANSACTION_GUID, false ]) )
 
       return {
         NEWRELIC_ID_HEADER => encoded_id,
@@ -232,7 +232,7 @@ module NewRelic::Agent
 
     def unpacked_response
       return nil unless response_app_data
-      NewRelic.json_load(Base64.decode64(response_app_data))
+      NewRelic::JSONWrapper.load(Base64.decode64(response_app_data))
     end
 
   end

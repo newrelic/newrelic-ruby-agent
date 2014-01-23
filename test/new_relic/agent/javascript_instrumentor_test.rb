@@ -161,7 +161,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < MiniTest::Unit::TestCase
 
   def test_browser_timing_config_safe_when_json_dump_fails
     in_transaction do
-      NewRelic.stubs(:json_dump).raises("Serialize? Hahahaha")
+      NewRelic::JSONWrapper.stubs(:dump).raises("Serialize? Hahahaha")
       assert_equal "", instrumentor.browser_timing_config
     end
   end
