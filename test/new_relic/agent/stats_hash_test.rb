@@ -141,7 +141,7 @@ class NewRelic::Agent::StatsHashTest < MiniTest::Unit::TestCase
 
     @hash.record(DEFAULT_SPEC, 1)
 
-    assert_has_error NewRelic::Agent::StatsHash::CorruptedDefaultProcError
+    assert_has_error NewRelic::Agent::StatsHash::StatsHashLookupError
   end
 
   # We can only fix up the default proc on Rubies that let us set it

@@ -38,9 +38,9 @@ module NewRelic
         Hash[self] == Hash[other]
       end
 
-      class CorruptedDefaultProcError < NewRelic::Agent::InternalAgentError
-        def initialize(hash, metric_spec)
-          super("Corrupted default proc for StatsHash. Falling back adding #{metric_spec.inspect}")
+      class StatsHashLookupError < NewRelic::Agent::InternalAgentError
+        def initialize(original_error, hash, metric_spec)
+          super("Lookup error in StatsHash: #{original_error.class}: #{original_error.message}. Falling back adding #{metric_spec.inspect}")
         end
       end
 
@@ -53,7 +53,7 @@ module NewRelic
             # This only happen in the case of a corrupted default_proc
             # Side-step it manually, notice the issue, and carry on....
             NewRelic::Agent.instance.error_collector. \
-              notice_agent_error(CorruptedDefaultProcError.new(self, metric_spec))
+              notice_agent_error(StatsHashLookupError.new(e, self, metric_spec))
 
             stats = NewRelic::Agent::Stats.new
             self[metric_spec] = stats
