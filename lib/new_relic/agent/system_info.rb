@@ -39,7 +39,7 @@ module NewRelic
       end
 
       # A File.read against /(proc|sysfs)/* can hang with some older Linuxes.
-      # See https://bugzilla.redhat.com/show_bug.cgi?id=604887 and
+      # See https://bugzilla.redhat.com/show_bug.cgi?id=604887, RUBY-736, and
       # https://github.com/opscode/ohai/commit/518d56a6cb7d021b47ed3d691ecf7fba7f74a6a7
       # for details on why we do it this way.
       def self.proc_try_read(path)
