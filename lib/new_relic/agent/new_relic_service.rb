@@ -426,11 +426,9 @@ module NewRelic
 
         module Base64CompressedJSON
           def self.encode(data)
-            Base64.encode64(
-              Compressed.encode(
-                ::NewRelic::JSONWrapper.dump(data, :normalize => true)
-              )
-            )
+            json = ::NewRelic::JSONWrapper.dump(data,
+              :normalize => Agent.config[:normalize_json_string_encodings])
+            Base64.encode64(Compressed.encode(json))
           end
         end
       end
@@ -523,7 +521,8 @@ module NewRelic
 
         def dump(ruby, opts={})
           prepared = prepare(ruby, opts)
-          NewRelic::JSONWrapper.dump(prepared, :normalize => true)
+          NewRelic::JSONWrapper.dump(prepared,
+            :normalize => Agent.config[:normalize_json_string_encodings])
         end
 
         def load(data)
