@@ -63,11 +63,11 @@ module NewRelic
           def self.build_metrics(name, collection, request_type = :web)
             default_metrics = [
               "Datastore/statement/MongoDB/#{collection}/#{name}",
-              "Datastore/operation/MongoDB/#{name}",
-              'ActiveRecord/all'
+              "Datastore/operation/MongoDB/#{name}"
             ]
 
             if request_type == :web
+              default_metrics << 'ActiveRecord/all'
               default_metrics << 'Datastore/allWeb'
             else
               default_metrics << 'Datastore/allOther'
