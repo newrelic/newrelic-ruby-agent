@@ -19,10 +19,8 @@ module NewRelic
 
             if collection_in_selector?(collection, payload)
               command_key = command_key_from_selector(payload)
-
-              name = get_name_from_selector(command_key)
-              collection = get_collection_from_selector(command_key, payload)
-              log_if_unknown_command(command_key, payload)
+              name        = get_name_from_selector(command_key, payload)
+              collection  = get_collection_from_selector(command_key, payload)
             end
 
             if self.find_one?(name, payload)
@@ -103,8 +101,7 @@ module NewRelic
             :drop,
           ]
 
-          UNKNOWN_COMMAND = "UnknownCommand"
-          UNKNOWN_COLLECTION = "UnknownCollection"
+          NO_COLLECTION = "NoCollection"
 
           def self.command_key_from_selector(payload)
             selector = payload[:selector]
@@ -113,23 +110,24 @@ module NewRelic
             end
           end
 
-          def self.get_name_from_selector(command_key)
-            return UNKNOWN_COMMAND unless command_key
-
-            command_key.to_sym
+          def self.get_name_from_selector(command_key, payload)
+            if command_key
+              command_key.to_sym
+            else
+              log_unknown_collection(payload)
+              payload[:selector].first.first unless command_key
+            end
           end
 
           def self.get_collection_from_selector(command_key, payload)
-            return UNKNOWN_COLLECTION unless command_key
+            return NO_COLLECTION unless command_key
 
             payload[:selector][command_key]
           end
 
-          def self.log_if_unknown_command(command_key, payload)
-            unless command_key
-              NewRelic::Agent.logger.debug("Unknown Mongo command: #{Obfuscator.obfuscate_statement(payload).inspect}")
-              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCommand")
-            end
+          def self.log_unknown_collection(payload)
+            NewRelic::Agent.logger.debug("Unable to determine collection for Mongo command: #{Obfuscator.obfuscate_statement(payload).inspect}")
+            NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCollection")
           end
 
           def self.find_one?(name, payload)
