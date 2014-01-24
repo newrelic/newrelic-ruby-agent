@@ -44,9 +44,6 @@ module NewRelic
             elsif self.rename_collection?(name, payload)
               name = 'renameCollection'
               collection = collection_name_from_rename_selector(payload)
-            elsif self.ismaster?(name, payload)
-              name = 'ismaster'
-              collection = collection_name_from_ismaster_selector(payload)
             end
 
             metrics = build_metrics(name, collection, request_type)
@@ -95,7 +92,6 @@ module NewRelic
             :deleteIndexes,
             :reIndex,
 
-            :ismaster,
             :collstats,
             :renameCollection,
             :drop,
@@ -164,10 +160,6 @@ module NewRelic
             name == :renameCollection
           end
 
-          def self.ismaster?(name, payload)
-            name == :ismaster
-          end
-
           def self.collection_name_from_index(payload)
             if payload[:documents] && payload[:documents].first[:ns]
               payload[:documents].first[:ns].split('.').last
@@ -184,10 +176,6 @@ module NewRelic
             parts = payload[:selector][:renameCollection].split('.')
             parts.shift
             parts.join('.')
-          end
-
-          def self.collection_name_from_ismaster_selector(payload)
-            payload[:selector][:ismaster]
           end
 
         end
