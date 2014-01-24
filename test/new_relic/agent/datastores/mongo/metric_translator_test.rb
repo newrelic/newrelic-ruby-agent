@@ -289,7 +289,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                 :limit => -1,
                 :selector => { :mongomongomongo => @collection_name } }
 
-    @collection_name = "NoCollection"
+    @collection_name = "$cmd"
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
     expected = build_test_metrics(:mongomongomongo)

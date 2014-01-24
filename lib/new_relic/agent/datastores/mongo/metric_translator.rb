@@ -101,8 +101,6 @@ module NewRelic
             :drop,
           ]
 
-          NO_COLLECTION = "NoCollection"
-
           def self.command_key_from_selector(payload)
             selector = payload[:selector]
             NAMES_IN_SELECTOR.find do |check_name|
@@ -114,20 +112,20 @@ module NewRelic
             if command_key
               command_key.to_sym
             else
-              log_unknown_collection(payload)
+              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCollection")
               payload[:selector].first.first unless command_key
             end
           end
 
+          CMD_COLLECTION = "$cmd".freeze
+
           def self.get_collection_from_selector(command_key, payload)
-            return NO_COLLECTION unless command_key
-
-            payload[:selector][command_key]
-          end
-
-          def self.log_unknown_collection(payload)
-            NewRelic::Agent.logger.debug("Unable to determine collection for Mongo command: #{Obfuscator.obfuscate_statement(payload).inspect}")
-            NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCollection")
+            if command_key
+              payload[:selector][command_key]
+            else
+              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCollection")
+              CMD_COLLECTION
+            end
           end
 
           def self.find_one?(name, payload)
