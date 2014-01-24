@@ -28,14 +28,18 @@ DependencyDetection.defer do
   end
 
   def install_mongo_instrumentation
-    add_new_relic_host_port
+    setup_logging_for_instrumentation
     instrument_mongo_logging
     instrument_save
     instrument_ensure_index
   end
 
-  def add_new_relic_host_port
+  def setup_logging_for_instrumentation
     ::Mongo::Logging.class_eval do
+      include NewRelic::Agent::MethodTracer
+      require 'new_relic/agent/datastores/mongo/metric_generator'
+      require 'new_relic/agent/datastores/mongo/statement_formatter'
+
       def new_relic_host_port
         host = port = nil
         if @connection && @connection.pinned_pool
@@ -44,19 +48,23 @@ DependencyDetection.defer do
           host, port = @connection.instance_variable_get(:@host), @connection.instance_variable_get(:@port)
         end
       end
+
+      def new_relic_generate_metrics(operation, payload = nil)
+        host, port = new_relic_host_port
+        payload ||= { :collection => self.name, :database => self.db.name }
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(operation, payload, host, port)
+      end
+
+      ::Mongo::Collection.class_eval { include Mongo::Logging; }
+      ::Mongo::Connection.class_eval { include Mongo::Logging; }
+      ::Mongo::Cursor.class_eval { include Mongo::Logging; }
     end
   end
 
   def instrument_mongo_logging
     ::Mongo::Logging.class_eval do
-      include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/metric_generator'
-      require 'new_relic/agent/datastores/mongo/statement_formatter'
-
       def instrument_with_new_relic_trace(name, payload = {}, &block)
-        host, port = new_relic_host_port
-
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(name, payload, host, port)
+        metrics = new_relic_generate_metrics(name, payload)
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
@@ -73,10 +81,6 @@ DependencyDetection.defer do
         end
       end
 
-      ::Mongo::Collection.class_eval { include Mongo::Logging; }
-      ::Mongo::Connection.class_eval { include Mongo::Logging; }
-      ::Mongo::Cursor.class_eval { include Mongo::Logging; }
-
       alias_method :instrument_without_new_relic_trace, :instrument
       alias_method :instrument, :instrument_with_new_relic_trace
     end
@@ -84,14 +88,8 @@ DependencyDetection.defer do
 
   def instrument_save
     ::Mongo::Collection.class_eval do
-      include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/metric_generator'
-      require 'new_relic/agent/datastores/mongo/statement_formatter'
-
       def save_with_new_relic_trace(doc, opts = {}, &block)
-        host, port = new_relic_host_port
-
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:save, { :collection => self.name }, host, port)
+        metrics = new_relic_generate_metrics(:save)
 
         trace_execution_scoped(metrics) do
           t0 = Time.now
@@ -122,14 +120,8 @@ DependencyDetection.defer do
 
   def instrument_ensure_index
     ::Mongo::Collection.class_eval do
-      include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/metric_generator'
-      require 'new_relic/agent/datastores/mongo/statement_formatter'
-
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
-        host, port = new_relic_host_port
-
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:ensureIndex, { :collection => self.name }, host, port)
+        metrics = new_relic_generate_metrics(:ensureIndex)
 
         trace_execution_scoped(metrics) do
           t0 = Time.now

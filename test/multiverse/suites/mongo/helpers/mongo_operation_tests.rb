@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module MongoOperationTests
   def test_records_metrics_for_insert
     @collection.insert(@tribble)

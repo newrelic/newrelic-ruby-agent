@@ -9,7 +9,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricGeneratorTest < Test::Unit::Test
   include ::NewRelic::TestHelpers::MongoMetricBuilder
 
   def setup
-    @payload = { :collection => 'tribbles' }
+    @payload = { :collection => 'tribbles', :database => 'enterprise' }
   end
 
   def test_generate_metrics_for_includes_all_web_for_web_requests
@@ -42,7 +42,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricGeneratorTest < Test::Unit::Test
 
   def test_generate_metrics_for_includes_instance_metric_given_host_and_port
     metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:insert, @payload, 'localhost', '27017')
-    assert_includes metrics, 'Datastore/instance/MongoDB/localhost:27017/multiverse'
+    assert_includes metrics, 'Datastore/instance/MongoDB/localhost:27017/enterprise'
   end
 
   def test_generate_metrics_for_does_not_include_instance_metric_without_host

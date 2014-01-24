@@ -16,13 +16,8 @@ module NewRelic
               request_type = :other
             end
 
-            metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(name, payload, request_type)
-
-            if host && port
-              metrics << NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric(host, port)
-            end
-
-            metrics
+            options = { :request_type => request_type, :host => host, :port => port }
+            NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(name, payload, options)
           end
         end
       end

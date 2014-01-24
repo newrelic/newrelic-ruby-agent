@@ -9,9 +9,12 @@ module NewRelic
     module Datastores
       module Mongo
         module MetricTranslator
-          def self.metrics_for(name, payload, request_type = :web)
-            payload = {} if payload.nil?
+          def self.metrics_for(name, payload, options = {})
+            payload ||= {}
 
+            request_type = options.fetch(:request_type, :web)
+            host, port = options[:host], options[:port]
+            database = payload[:database]
             collection = payload[:collection]
 
             if collection_in_selector?(collection, payload)
@@ -48,7 +51,13 @@ module NewRelic
               collection = collection_name_from_ismaster_selector(payload)
             end
 
-            build_metrics(name, collection, request_type)
+            metrics = build_metrics(name, collection, request_type)
+
+            if host && port && database
+              metrics << instance_metric(host, port, database)
+            end
+
+            metrics
           end
 
           def self.build_metrics(name, collection, request_type = :web)
@@ -67,8 +76,8 @@ module NewRelic
             default_metrics
           end
 
-          def self.instance_metric(host, port)
-            "Datastore/instance/MongoDB/#{host}:#{port}/multiverse"
+          def self.instance_metric(host, port, database)
+            "Datastore/instance/MongoDB/#{host}:#{port}/#{database}"
           end
 
           def self.collection_in_selector?(collection, payload)
