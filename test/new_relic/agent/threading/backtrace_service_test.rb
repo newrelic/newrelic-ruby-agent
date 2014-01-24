@@ -461,7 +461,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
 
       def assert_has_default_period
-        assert_equal 0.1, @service.worker_loop.period
+        assert_in_delta(0.1, @service.worker_loop.period, 0.001)
       end
 
       def fake_last_poll_took(last_poll_length)
