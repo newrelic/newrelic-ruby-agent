@@ -84,14 +84,14 @@ module NewRelic
       def browser_timing_header
         return "" unless insert_js?
         browser_timing_config + browser_timing_loader
+      rescue => e
+        ::NewRelic::Agent.logger.debug "Failure during RUM browser_timing_header construction", e
+        ""
       end
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def browser_timing_loader
         html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
-      rescue => e
-        ::NewRelic::Agent.logger.debug "Failure during browser_timing_loader", e
-        ""
       end
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
@@ -100,9 +100,6 @@ module NewRelic
         data = data_for_js_agent
         json = NewRelic::JSONWrapper.dump(data)
         html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
-      rescue => e
-        ::NewRelic::Agent.logger.debug "Failure during browser_timing_config", e
-        ""
       end
 
       BEACON_KEY           = "beacon".freeze
