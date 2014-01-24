@@ -152,17 +152,17 @@ class NewRelic::Agent::JavascriptInstrumentorTest < MiniTest::Unit::TestCase
     NewRelic::Agent.unstub(:config)
   end
 
-  def test_browser_timing_loaderg_safe_when_fails
+  def test_browser_timing_header_safe_when_loader_generation_fails
     in_transaction do
       instrumentor.stubs(:html_safe_if_needed).raises("Hahahaha")
-      assert_equal "", instrumentor.browser_timing_loader
+      assert_equal "", instrumentor.browser_timing_header
     end
   end
 
-  def test_browser_timing_config_safe_when_json_dump_fails
+  def test_browser_timing_header_safe_when_json_dump_fails
     in_transaction do
       NewRelic::JSONWrapper.stubs(:dump).raises("Serialize? Hahahaha")
-      assert_equal "", instrumentor.browser_timing_config
+      assert_equal "", instrumentor.browser_timing_header
     end
   end
 
