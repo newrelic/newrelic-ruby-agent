@@ -19,10 +19,8 @@ module NewRelic
 
             if collection_in_selector?(collection, payload)
               command_key = command_key_from_selector(payload)
-
-              name = get_name_from_selector(command_key)
-              collection = get_collection_from_selector(command_key, payload)
-              log_if_unknown_command(command_key, payload)
+              name        = get_name_from_selector(command_key, payload)
+              collection  = get_collection_from_selector(command_key, payload)
             end
 
             if self.find_one?(name, payload)
@@ -46,9 +44,6 @@ module NewRelic
             elsif self.rename_collection?(name, payload)
               name = 'renameCollection'
               collection = collection_name_from_rename_selector(payload)
-            elsif self.ismaster?(name, payload)
-              name = 'ismaster'
-              collection = collection_name_from_ismaster_selector(payload)
             end
 
             metrics = build_metrics(name, collection, request_type)
@@ -97,14 +92,10 @@ module NewRelic
             :deleteIndexes,
             :reIndex,
 
-            :ismaster,
             :collstats,
             :renameCollection,
             :drop,
           ]
-
-          UNKNOWN_COMMAND = "UnknownCommand"
-          UNKNOWN_COLLECTION = "UnknownCollection"
 
           def self.command_key_from_selector(payload)
             selector = payload[:selector]
@@ -113,22 +104,23 @@ module NewRelic
             end
           end
 
-          def self.get_name_from_selector(command_key)
-            return UNKNOWN_COMMAND unless command_key
-
-            command_key.to_sym
+          def self.get_name_from_selector(command_key, payload)
+            if command_key
+              command_key.to_sym
+            else
+              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCollection")
+              payload[:selector].first.first unless command_key
+            end
           end
+
+          CMD_COLLECTION = "$cmd".freeze
 
           def self.get_collection_from_selector(command_key, payload)
-            return UNKNOWN_COLLECTION unless command_key
-
-            payload[:selector][command_key]
-          end
-
-          def self.log_if_unknown_command(command_key, payload)
-            unless command_key
-              NewRelic::Agent.logger.debug("Unknown Mongo command: #{Obfuscator.obfuscate_statement(payload).inspect}")
-              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCommand")
+            if command_key
+              payload[:selector][command_key]
+            else
+              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCollection")
+              CMD_COLLECTION
             end
           end
 
@@ -168,10 +160,6 @@ module NewRelic
             name == :renameCollection
           end
 
-          def self.ismaster?(name, payload)
-            name == :ismaster
-          end
-
           def self.collection_name_from_index(payload)
             if payload[:documents] && payload[:documents].first[:ns]
               payload[:documents].first[:ns].split('.').last
@@ -188,10 +176,6 @@ module NewRelic
             parts = payload[:selector][:renameCollection].split('.')
             parts.shift
             parts.join('.')
-          end
-
-          def self.collection_name_from_ismaster_selector(payload)
-            payload[:selector][:ismaster]
           end
 
         end

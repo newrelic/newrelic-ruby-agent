@@ -269,7 +269,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                 :limit      => -1,
                 :selector   => { :ismaster => 1 } }
 
-    @collection_name = "1"
+    @collection_name = "$cmd"
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
     expected = build_test_metrics(:ismaster)
@@ -295,13 +295,13 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                 :limit => -1,
                 :selector => { :mongomongomongo => @collection_name } }
 
-    @collection_name = "UnknownCollection"
+    @collection_name = "$cmd"
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:UnknownCommand)
+    expected = build_test_metrics(:mongomongomongo)
 
     assert_equal expected, metrics
-    assert_metrics_recorded(["Supportability/Mongo/UnknownCommand"])
+    assert_metrics_recorded(["Supportability/Mongo/UnknownCollection"])
   end
 
   def test_instance_metric
