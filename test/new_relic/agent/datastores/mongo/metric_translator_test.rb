@@ -21,17 +21,23 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
   end
 
   def test_build_metrics_includes_web
-    expected = 'Datastore/allWeb'
     metrics = build_test_metrics('test')
-
-    assert metrics.include? expected
+    assert_includes metrics, 'Datastore/allWeb'
   end
 
   def test_build_metrics_includes_other
-    expected = 'Datastore/allOther'
     metrics = build_test_metrics('test', :other)
+    assert_includes metrics, 'Datastore/allOther'
+  end
 
-    assert metrics.include? expected
+  def test_build_metrics_includes_activerecord_all_on_web
+    metrics = build_test_metrics('test', :web)
+    assert_includes metrics, 'ActiveRecord/all'
+  end
+
+  def test_build_metrics_doesnt_include_activerecord_all_on_other
+    metrics = build_test_metrics('test', :other)
+    assert_not_includes metrics, 'ActiveRecord/all'
   end
 
   def test_metrics_for_find
@@ -263,7 +269,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                 :limit      => -1,
                 :selector   => { :ismaster => 1 } }
 
-    @collection_name = "1"
+    @collection_name = "$cmd"
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
     expected = build_test_metrics(:ismaster)
@@ -289,13 +295,13 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
                 :limit => -1,
                 :selector => { :mongomongomongo => @collection_name } }
 
-    @collection_name = "UnknownCollection"
+    @collection_name = "$cmd"
 
     metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:UnknownCommand)
+    expected = build_test_metrics(:mongomongomongo)
 
     assert_equal expected, metrics
-    assert_metrics_recorded(["Supportability/Mongo/UnknownCommand"])
+    assert_metrics_recorded(["Supportability/Mongo/UnknownCollection"])
   end
 
   def test_instance_metric
