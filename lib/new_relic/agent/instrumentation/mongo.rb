@@ -40,7 +40,7 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/metric_generator'
       require 'new_relic/agent/datastores/mongo/statement_formatter'
 
-      def new_relic_instance_metric
+      def new_relic_build_instance_metric
         Proc.new do
           if @pool
             host, port = @pool.host, @pool.port
@@ -69,7 +69,7 @@ DependencyDetection.defer do
       def instrument_with_new_relic_trace(name, payload = {}, &block)
         metrics = new_relic_generate_metrics(name, payload)
 
-        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric) do
+        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_build_instance_metric) do
           t0 = Time.now
           result = instrument_without_new_relic_trace(name, payload, &block)
           payload[:operation] = name
@@ -92,7 +92,7 @@ DependencyDetection.defer do
     ::Mongo::Collection.class_eval do
       def save_with_new_relic_trace(doc, opts = {}, &block)
         metrics = new_relic_generate_metrics(:save)
-        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric) do
+        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_build_instance_metric) do
           t0 = Time.now
 
           transaction_state = NewRelic::Agent::TransactionState.get
@@ -123,7 +123,7 @@ DependencyDetection.defer do
     ::Mongo::Collection.class_eval do
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
         metrics = new_relic_generate_metrics(:ensureIndex)
-        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric) do
+        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_build_instance_metric) do
           t0 = Time.now
 
           transaction_state = NewRelic::Agent::TransactionState.get
