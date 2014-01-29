@@ -149,6 +149,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < MiniTe
       ActiveRecord/ActiveRecordFixtures::Order/find
       ActiveRecord/ActiveRecordFixtures::Order/create
       Database/SQL/other
+      Database/SQL/show
       RemoteService/sql/#{adapter}/localhost]
 
     if NewRelic::Control.instance.rails_version < '2.1.0'
