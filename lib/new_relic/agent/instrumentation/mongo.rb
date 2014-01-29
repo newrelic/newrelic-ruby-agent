@@ -41,14 +41,16 @@ DependencyDetection.defer do
       require 'new_relic/agent/datastores/mongo/statement_formatter'
 
       def new_relic_instance_metric
-        if @pool
-          host, port = @pool.host, @pool.port
-        elsif @connection && (primary = @connection.primary)
-          host, port = primary[0], primary[1]
-        end
+        Proc.new do
+          if @pool
+            host, port = @pool.host, @pool.port
+          elsif @connection && (primary = @connection.primary)
+            host, port = primary[0], primary[1]
+          end
 
-        database_name = @db.name if @db
-        NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_instance_metric_for(host, port, database_name)
+          database_name = @db.name if @db
+          NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_instance_metric_for(host, port, database_name)
+        end
       end
 
       def new_relic_generate_metrics(operation, payload = nil)
@@ -66,14 +68,10 @@ DependencyDetection.defer do
     ::Mongo::Logging.class_eval do
       def instrument_with_new_relic_trace(name, payload = {}, &block)
         metrics = new_relic_generate_metrics(name, payload)
-        instance_metric = nil
-        add_instance_metric = Proc.new { instance_metric }
 
-        trace_execution_scoped(metrics, :additional_metrics_callback => add_instance_metric) do
+        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric) do
           t0 = Time.now
           result = instrument_without_new_relic_trace(name, payload, &block)
-          instance_metric = new_relic_instance_metric
-
           payload[:operation] = name
 
           statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
@@ -94,10 +92,7 @@ DependencyDetection.defer do
     ::Mongo::Collection.class_eval do
       def save_with_new_relic_trace(doc, opts = {}, &block)
         metrics = new_relic_generate_metrics(:save)
-        instance_metric = nil
-        add_instance_metric = Proc.new { instance_metric }
-
-        trace_execution_scoped(metrics, :additional_metrics_callback => add_instance_metric) do
+        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric) do
           t0 = Time.now
 
           transaction_state = NewRelic::Agent::TransactionState.get
@@ -105,7 +100,6 @@ DependencyDetection.defer do
 
           begin
             result = save_without_new_relic_trace(doc, opts, &block)
-            instance_metric = new_relic_instance_metric
           ensure
             transaction_state.pop_traced
           end
@@ -129,10 +123,7 @@ DependencyDetection.defer do
     ::Mongo::Collection.class_eval do
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
         metrics = new_relic_generate_metrics(:ensureIndex)
-        instance_metric = nil
-        add_instance_metric = Proc.new { instance_metric }
-
-        trace_execution_scoped(metrics, :additional_metrics_callback => add_instance_metric) do
+        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric) do
           t0 = Time.now
 
           transaction_state = NewRelic::Agent::TransactionState.get
@@ -140,7 +131,6 @@ DependencyDetection.defer do
 
           begin
             result = ensure_index_without_new_relic_trace(spec, opts, &block)
-            instance_metric = new_relic_instance_metric
           ensure
             transaction_state.pop_traced
           end
