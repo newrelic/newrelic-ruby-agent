@@ -624,12 +624,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable sequel instrumentation.'
         },
-        :override_sql_obfuscation_adapter => {
-          :default => '',
-          :public => true,
-          :type => String,
-          :description => "Override for the sql obfuscation adapter."
-        },
         :disable_database_instrumentation => {
           :default => false,
           :public => true,
