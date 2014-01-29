@@ -211,9 +211,6 @@ module NewRelic
           statement.adapter = config[:adapter]
           statement.config = config
         end
-        if Agent.config[:override_sql_obfuscation_adapter]
-          statement.adapter = Agent.config[:override_sql_obfuscation_adapter]
-        end
         statement.explainer = explainer
 
         statement
