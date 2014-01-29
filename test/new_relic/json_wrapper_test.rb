@@ -31,7 +31,7 @@ class JSONWrapperTest < MiniTest::Unit::TestCase
     def test_normalize_string_returns_munged_copy_if_ascii_8bit
       string = (0..255).to_a.pack("C*")
       result = NewRelic::JSONWrapper.normalize_string(string)
-      assert_not_same(string, result)
+      refute_same(string, result)
       assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
       assert_equal(string, result.dup.force_encoding('ASCII-8BIT'))
     end
@@ -39,7 +39,7 @@ class JSONWrapperTest < MiniTest::Unit::TestCase
     def test_normalize_string_returns_munged_copy_if_invalid_utf8
       string = (0..255).to_a.pack("C*").force_encoding('UTF-8')
       result = NewRelic::JSONWrapper.normalize_string(string)
-      assert_not_same(result, string)
+      refute_same(result, string)
       assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
       assert_equal(string, result.dup.force_encoding('UTF-8'))
     end
@@ -47,7 +47,7 @@ class JSONWrapperTest < MiniTest::Unit::TestCase
     def test_normalize_string_returns_munged_copy_if_other_convertible_encoding
       string = "i want a pony".encode('UTF-16LE')
       result = NewRelic::JSONWrapper.normalize_string(string)
-      assert_not_same(result, string)
+      refute_same(result, string)
       assert_equal(Encoding.find('UTF-8'), result.encoding)
       assert_equal(string, result.encode('UTF-16LE'))
     end
@@ -60,7 +60,7 @@ class JSONWrapperTest < MiniTest::Unit::TestCase
       string = "Jyv+AOQ-skyl+AOQ-".force_encoding("UTF-7")
       assert string.valid_encoding?
       result = NewRelic::JSONWrapper.normalize_string(string)
-      assert_not_same(result, string)
+      refute_same(result, string)
       assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
       assert_equal('Jyv+AOQ-skyl+AOQ-'.force_encoding('ISO-8859-1'), result)
     end
