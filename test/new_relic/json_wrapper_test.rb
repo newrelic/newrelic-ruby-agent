@@ -3,10 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
-require 'test/unit'
 require 'newrelic_rpm'
 
-class JSONWrapperTest < Test::Unit::TestCase
+class JSONWrapperTest < MiniTest::Unit::TestCase
   def test_json_roundtrip
     obj = [
       99, 'luftballons',
