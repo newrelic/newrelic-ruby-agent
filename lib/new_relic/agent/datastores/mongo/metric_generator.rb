@@ -9,15 +9,19 @@ module NewRelic
     module Datastores
       module Mongo
         module MetricGenerator
-          def self.generate_metrics_for(name, payload, host = nil, port = nil)
+          def self.generate_metrics_for(name, payload)
             if NewRelic::Agent::Transaction.recording_web_transaction?
               request_type = :web
             else
               request_type = :other
             end
 
-            options = { :request_type => request_type, :host => host, :port => port }
-            NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(name, payload, options)
+            NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(name, payload, request_type)
+          end
+
+          def self.generate_instance_metric_for(host, port, database_name)
+            return unless host && port && database_name
+            NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric(host, port, database_name)
           end
         end
       end

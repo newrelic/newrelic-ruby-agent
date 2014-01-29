@@ -308,10 +308,4 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Test::Unit::Tes
     metric = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric('localhost', '27017', @database_name)
     assert_equal 'Datastore/instance/MongoDB/localhost:27017/multiverse', metric
   end
-
-  def test_instance_metric_includes_given_collection
-    metric = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric('localhost', '27017', 'testdb')
-    assert_equal 'Datastore/instance/MongoDB/localhost:27017/testdb', metric
-  end
-
 end

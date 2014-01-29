@@ -362,7 +362,7 @@ module MongoOperationTests
     assert_metrics_not_recorded(['Datastore/allWeb'])
   end
 
-  def test_records_instance_metric
+  def test_insert_records_instance_metric
     @collection.insert(@tribble)
     assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@server.port}/#{@database_name}"])
   end

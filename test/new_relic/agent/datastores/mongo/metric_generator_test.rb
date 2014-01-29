@@ -40,19 +40,23 @@ class NewRelic::Agent::Datastores::Mongo::MetricGeneratorTest < Test::Unit::Test
     refute metrics.include? 'Datastore/allWeb'
   end
 
-  def test_generate_metrics_for_includes_instance_metric_given_host_and_port
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:insert, @payload, 'localhost', '27017')
-    assert_includes metrics, 'Datastore/instance/MongoDB/localhost:27017/enterprise'
+  def test_generate_instance_metric_for_returns_instance_metric_for_given_attributes
+    result = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_instance_metric_for('host', 'port', 'database')
+    assert_equal 'Datastore/instance/MongoDB/host:port/database', result
   end
 
   def test_generate_metrics_for_does_not_include_instance_metric_without_host
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:insert, @payload, nil, '27017')
-    assert_empty metrics.select { |metric| metric if metric.include? 'Datastore/instance' }
+    result = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_instance_metric_for(nil, 'port', 'database')
+    assert_nil result
   end
 
   def test_generate_metrics_for_does_not_include_instance_metric_without_port
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:insert, @payload, 'localhost', nil)
-    assert_empty metrics.select { |metric| metric if metric.include? 'Datastore/instance' }
+    result = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_instance_metric_for('host', nil, 'database')
+    assert_nil result
   end
 
+  def test_generate_metrics_for_does_not_include_instance_metric_without_database_name
+    result = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_instance_metric_for('host', 'port', nil)
+    assert_nil result
+  end
 end

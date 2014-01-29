@@ -9,11 +9,9 @@ module NewRelic
     module Datastores
       module Mongo
         module MetricTranslator
-          def self.metrics_for(name, payload, options = {})
+          def self.metrics_for(name, payload, request_type = :web)
             payload ||= {}
 
-            request_type = options.fetch(:request_type, :web)
-            host, port = options[:host], options[:port]
             database = payload[:database]
             collection = payload[:collection]
 
@@ -47,10 +45,6 @@ module NewRelic
             end
 
             metrics = build_metrics(name, collection, request_type)
-
-            if host && port && database
-              metrics << instance_metric(host, port, database)
-            end
 
             metrics
           end
