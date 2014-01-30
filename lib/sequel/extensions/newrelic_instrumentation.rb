@@ -67,6 +67,9 @@ module Sequel
       engine.record_metrics( metrics, duration, :scoped => false )
     end
 
+    THREAD_SAFE_CONNECTION_POOL_CLASSES = [
+      (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool),
+    ].compact.freeze
 
     # Record the given +sql+ within a new scope, using the given +start+ and
     # +finish+ times.
@@ -77,12 +80,13 @@ module Sequel
 
       begin
         scope = agent.stats_engine.push_scope( :sequel, start )
-        agent.transaction_sampler.notice_sql( sql, self.opts, duration ) do |*|
-          self[ sql ].explain
+        explainer = Proc.new do |*|
+          if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
+            self[ sql ].explain
+          end
         end
-        agent.sql_sampler.notice_sql( sql, metric, self.opts, duration ) do |*|
-          self[ sql ].explain
-        end
+        agent.transaction_sampler.notice_sql( sql, self.opts, duration, &explainer )
+        agent.sql_sampler.notice_sql( sql, metric, self.opts, duration, &explainer )
       ensure
         agent.stats_engine.pop_scope( scope, metric, finish )
       end
