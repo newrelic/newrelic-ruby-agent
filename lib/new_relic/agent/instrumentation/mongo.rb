@@ -135,7 +135,15 @@ DependencyDetection.defer do
             transaction_state.pop_traced
           end
 
-          spec = spec.is_a?(Array) ? Hash[spec] : spec.dup
+          spec = case spec
+                 when Array
+                   Hash[spec]
+                 when String, Symbol
+                   { spec => 1 }
+                 else
+                   spec.dup
+                 end
+
           spec[:operation] = :ensureIndex
 
           statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(spec)
