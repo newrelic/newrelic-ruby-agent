@@ -185,10 +185,21 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     end
 
     def test_ensure_index_does_call_ensure_index
-      options = [[unique_field_name, Mongo::ASCENDING]]
 
-      @collection.expects(:ensure_index_without_new_relic_trace).with(options, any_parameters).once
-      @collection.ensure_index(options)
+      [ 
+        unique_field_name.to_s,
+        unique_field_name.to_sym,
+        [[unique_field_name, Mongo::ASCENDING]],
+        { unique_field_name => Mongo::ASCENDING }
+      ].each { |options|
+
+        @collection.expects(:ensure_index_without_new_relic_trace).with(options, any_parameters).once
+        @collection.ensure_index(options)
+
+        NewRelic::Agent.drop_buffered_data
+
+      }
+
     end
 
     def test_records_metrics_for_drop_index
