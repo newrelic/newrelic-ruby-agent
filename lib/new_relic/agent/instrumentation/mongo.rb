@@ -53,6 +53,18 @@ DependencyDetection.defer do
         end
       end
 
+      # It's key that this method eats all exceptions, as it rests between the
+      # Mongo operation the called and us returning them the data. Be safe!
+      def new_relic_notice_statement(t0, payload, operation)
+        payload[:operation] = operation
+        statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
+        if statement
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+        end
+      rescue => e
+        NewRelic::Agent.logger.debug("Exception during Mongo statement gathering", e)
+      end
+
       def new_relic_generate_metrics(operation, payload = nil)
         payload ||= { :collection => self.name, :database => self.db.name }
         metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(operation, payload)
@@ -72,13 +84,7 @@ DependencyDetection.defer do
         trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_build_instance_metric) do
           t0 = Time.now
           result = instrument_without_new_relic_trace(name, payload, &block)
-          payload[:operation] = name
-
-          statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
-          if statement
-            NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
-          end
-
+          new_relic_notice_statement(t0, payload, name)
           result
         end
       end
@@ -104,12 +110,7 @@ DependencyDetection.defer do
             transaction_state.pop_traced
           end
 
-          doc[:operation] = :save
-          statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(doc)
-          if statement
-            NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
-          end
-
+          new_relic_notice_statement(t0, doc, :save)
           result
         end
       end
@@ -144,13 +145,7 @@ DependencyDetection.defer do
                    spec.dup
                  end
 
-          spec[:operation] = :ensureIndex
-
-          statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(spec)
-          if statement
-            NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
-          end
-
+          new_relic_notice_statement(t0, spec, :ensureIndex)
           result
         end
       end
