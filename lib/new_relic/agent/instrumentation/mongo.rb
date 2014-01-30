@@ -122,6 +122,10 @@ DependencyDetection.defer do
             transaction_state.pop_traced
           end
 
+          if spec.is_a?(String) || spec.is_a?(Symbol)
+            spec = { spec => Mongo::ASCENDING }
+          end
+
           spec = spec.is_a?(Array) ? Hash[spec] : spec.dup
           spec[:operation] = :ensureIndex
 
