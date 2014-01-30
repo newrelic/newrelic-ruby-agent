@@ -111,6 +111,14 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     assert_equal 1, stats.call_count
   end
 
+  def test_trace_execution_scoped_with_no_metrics_skips_out
+    self.class.trace_execution_scoped([]) do
+      advance_time 0.05
+    end
+
+    assert_empty @stats_engine.metrics
+  end
+
   def test_trace_execution_scoped_records_metric_data_from_callback
     metric = "hello"
     callback_metric = "goodbye"
