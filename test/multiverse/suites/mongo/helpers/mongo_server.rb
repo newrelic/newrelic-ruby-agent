@@ -4,11 +4,9 @@
 
 require 'fileutils'
 require 'timeout'
-require 'mongo'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
 
 class MongoServer
-  include Mongo
   extend NewRelic::TestHelpers::FileSearching
 
   attr_reader :type
@@ -87,7 +85,7 @@ class MongoServer
     File.join(MongoServer.log_directory, "#{self.port}.log")
   end
 
-  def start
+  def start(wait_for_startup = true)
     lock_port
 
     unless running?
@@ -97,10 +95,11 @@ class MongoServer
         running?
       end
 
-      create_client
-
-      wait_until do
-        pingable?
+      if wait_for_startup
+        create_client
+        wait_until do
+          pingable?
+        end
       end
     end
 
@@ -132,6 +131,7 @@ class MongoServer
   end
 
   def create_client(client_class = nil)
+    require 'mongo'
     if defined? MongoClient
       client_class ||= MongoClient
     else
