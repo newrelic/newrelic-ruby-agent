@@ -39,8 +39,9 @@
 
   * Sequel single threaded mode fix
 
-  Explain plan generation from the Ruby agent caused crashes when Sequel was
-  configured to use a single-threaded connection pool. This has been fixed.
+  The agent will no longer attempt to run EXPLAIN queries for slow SQL
+  statements issued using the Sequel gem in single-threaded mode, since
+  doing so could potentially cause crashes.
 
   * Additional functionality for add_custom_parameters
 
