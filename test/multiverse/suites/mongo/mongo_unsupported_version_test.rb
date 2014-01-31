@@ -10,15 +10,17 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_server')
 
-  class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Unit::TestCase
+  class NewRelic::Agent::Instrumentation::MongoUnsupportedVersionTest < MiniTest::Unit::TestCase
     include Mongo
 
+    @@server = MongoServer.new
+    @@server.start
+    at_exit { @@server.stop }
+
     def setup
-      @server = MongoServer.new
-      @server.start
-      client = @server.client
-      database_name = 'multiverse'
-      database = client.db(database_name)
+      @client = @@server.client
+      @database_name = 'multiverse'
+      database = @client.db(@database_name)
       collection_name = 'tribbles'
       @collection = database.collection(collection_name)
 
@@ -29,7 +31,7 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     def teardown
       NewRelic::Agent.drop_buffered_data
-      @server.stop
+      @client.drop_database(@database_name)
     end
 
     def test_records_metrics_for_insert

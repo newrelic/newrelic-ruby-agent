@@ -19,10 +19,12 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include ::NewRelic::TestHelpers::MongoMetricBuilder
     include ::MongoOperationTests
 
+    @@server = MongoServer.new
+    @@server.start
+    at_exit { @@server.stop }
+
     def setup
-      @server = MongoServer.new
-      @server.start
-      @client = @server.client
+      @client = @@server.client
       @database_name = 'multiverse'
       @database = @client.db(@database_name)
       @collection_name = 'tribbles'
@@ -36,7 +38,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     def teardown
       NewRelic::Agent.drop_buffered_data
-      @server.stop
+      @client.drop_database(@database_name)
     end
   end
 end

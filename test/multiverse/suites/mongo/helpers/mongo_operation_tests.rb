@@ -228,6 +228,8 @@ module MongoOperationTests
   end
 
   def test_collstats
+    @collection.insert(@tribble)
+    NewRelic::Agent.drop_buffered_data
     @collection.stats
 
     metrics = build_test_metrics(:collstats)
@@ -364,17 +366,17 @@ module MongoOperationTests
 
   def test_insert_records_instance_metric
     @collection.insert(@tribble)
-    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@server.port}/#{@database_name}"])
+    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@client.port}/#{@database_name}"])
   end
 
   def test_save_records_instance_metric
     @collection.save(@tribble)
-    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@server.port}/#{@database_name}"])
+    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@client.port}/#{@database_name}"])
   end
 
   def test_ensure_index_records_instance_metric
     @collection.ensure_index([[unique_field_name, Mongo::ASCENDING]])
-    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@server.port}/#{@database_name}"])
+    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@client.port}/#{@database_name}"])
   end
 
   def with_unique_collection
