@@ -158,7 +158,7 @@ class MongoServer
         !running?
       end
 
-      FileUtils.rm(pid_path)
+      cleanup_files
       self.client = nil
     end
 
@@ -228,5 +228,12 @@ class MongoServer
   def release_port
     FileUtils.rm port_lock_path, :force => true
     self.port = nil
+  end
+
+  # PID file needs to be cleaned up for our process checking logic
+  # DB needs to get cleaned up because it's massive
+  def cleanup_files
+    FileUtils.rm(pid_path)
+    FileUtils.rm_rf(db_path)
   end
 end
