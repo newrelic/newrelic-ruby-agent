@@ -107,7 +107,7 @@ class MongoServer
     self
   end
 
-  def wait_until(seconds = 1)
+  def wait_until(seconds = 10)
     Timeout.timeout(seconds) do
       sleep 0.1 until yield
     end
