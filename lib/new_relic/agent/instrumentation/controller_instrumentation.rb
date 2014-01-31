@@ -418,22 +418,32 @@ module NewRelic
         def perform_action_with_newrelic_profile(args)
           txn = _start_transaction(block_given? ? args : [])
           val = nil
-          NewRelic::Agent.trace_execution_scoped txn.metric_name do
-            NewRelic::Agent.disable_all_tracing do
-              # turn on profiling
-              profile = RubyProf.profile do
-                if block_given?
-                  val = yield
-                else
-                  val = perform_action_without_newrelic_trace(*args)
-                end
+          options = { :metric => true }
+
+          _, expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
+
+          NewRelic::Agent.disable_all_tracing do
+            # turn on profiling
+            profile = RubyProf.profile do
+              if block_given?
+                val = yield
+              else
+                val = perform_action_without_newrelic_trace(*args)
               end
-              NewRelic::Agent.instance.transaction_sampler.notice_profile profile
             end
+            NewRelic::Agent.instance.transaction_sampler.notice_profile profile
           end
+
           return val
         ensure
-          txn.pop
+          end_time = Time.now
+          txn.freeze_name
+          metric_names = Array(recorded_metrics(txn))
+          txn_name = metric_names.shift
+
+          NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
+
+          txn = Transaction.stop(txn_name, end_time)
         end
 
         # Write a transaction onto a thread local if there isn't already one there.
