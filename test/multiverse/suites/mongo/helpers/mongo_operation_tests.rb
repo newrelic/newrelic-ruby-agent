@@ -145,6 +145,24 @@ module MongoOperationTests
     assert_metrics_recorded(expected)
   end
 
+  def test_records_metrics_for_ensure_index_with_symbol
+    @collection.ensure_index(unique_field_name.to_sym)
+
+    metrics = build_test_metrics(:ensureIndex)
+    expected = metrics_with_attributes(metrics)
+
+    assert_metrics_recorded(expected)
+  end
+
+  def test_records_metrics_for_ensure_index_with_string
+    @collection.ensure_index(unique_field_name)
+
+    metrics = build_test_metrics(:ensureIndex)
+    expected = metrics_with_attributes(metrics)
+
+    assert_metrics_recorded(expected)
+  end
+
   def test_ensure_index_does_not_record_insert
     @collection.ensure_index([[unique_field_name, Mongo::ASCENDING]])
 
@@ -295,12 +313,36 @@ module MongoOperationTests
       segment = find_last_transaction_segment
     end
 
-    expected = :ensureIndex
+    assert_ensure_index_in_transaction_segment(segment)
+  end
 
+  def test_noticed_nosql_includes_ensure_index_operation_with_symbol
+    segment = nil
+
+    in_transaction do
+      @collection.ensure_index(unique_field_name.to_sym)
+      segment = find_last_transaction_segment
+    end
+
+    assert_ensure_index_in_transaction_segment(segment)
+  end
+
+  def test_noticed_nosql_includes_ensure_index_operation_with_string
+    segment = nil
+
+    in_transaction do
+      @collection.ensure_index(unique_field_name)
+      segment = find_last_transaction_segment
+    end
+
+    assert_ensure_index_in_transaction_segment(segment)
+  end
+
+  def assert_ensure_index_in_transaction_segment(segment)
     query = segment.params[:statement]
     result = query[:operation]
 
-    assert_equal expected, result
+    assert_equal :ensureIndex, result
   end
 
   def test_noticed_nosql_does_not_contain_documents

@@ -40,6 +40,13 @@ class NewRelic::Agent::Datastores::Mongo::MetricGeneratorTest < Test::Unit::Test
     refute metrics.include? 'Datastore/allWeb'
   end
 
+  def test_generate_metrics_for_is_graceful_if_exceptions_are_raised
+    NewRelic::Agent::Datastores::Mongo::MetricTranslator.stubs(:metrics_for).raises("Booom")
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:insert, @payload)
+
+    assert_empty metrics
+  end
+
   def test_generate_instance_metric_for_returns_instance_metric_for_given_attributes
     result = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_instance_metric_for('host', 'port', 'database')
     assert_equal 'Datastore/instance/MongoDB/host:port/database', result
