@@ -151,7 +151,7 @@ class MongoServer
       begin
         Process.kill('TERM', pid)
       rescue Errno::ESRCH => e
-        raise e unless e.message == 'No such process'
+        # fine if we're already gone...
       end
 
       wait_until do
@@ -170,7 +170,6 @@ class MongoServer
     return false unless pid
     Process.kill(0, pid) == 1
   rescue Errno::ESRCH => e
-    raise e unless e.message == 'No such process'
     false
   end
 
