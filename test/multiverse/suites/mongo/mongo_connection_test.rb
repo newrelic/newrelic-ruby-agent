@@ -14,7 +14,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_replica_set')
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_operation_tests')
 
-  class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Unit::TestCase
+  class NewRelic::Agent::Instrumentation::MongoConnectionTest
     include Mongo
     include ::NewRelic::TestHelpers::MongoMetricBuilder
     include ::MongoOperationTests
@@ -24,7 +24,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     at_exit { @@server.stop }
 
     def setup
-      @client = @@server.client
+      @client = Mongo::Connection.new('localhost', @@server.port)
       @database_name = 'multiverse'
       @database = @client.db(@database_name)
       @collection_name = 'tribbles'
