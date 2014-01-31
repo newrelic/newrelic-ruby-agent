@@ -229,7 +229,7 @@ class MongoServer
   end
 
   def release_port
-    FileUtils.rm port_lock_path, force: true
+    FileUtils.rm port_lock_path, :force => true
     self.port = nil
   end
 end
