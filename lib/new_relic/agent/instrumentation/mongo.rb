@@ -54,7 +54,7 @@ DependencyDetection.defer do
       end
 
       # It's key that this method eats all exceptions, as it rests between the
-      # Mongo operation the called and us returning them the data. Be safe!
+      # Mongo operation the user called and us returning them the data. Be safe!
       def new_relic_notice_statement(t0, payload, operation)
         payload[:operation] = operation
         statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
