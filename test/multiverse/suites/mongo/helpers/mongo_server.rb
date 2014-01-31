@@ -28,7 +28,7 @@ class MongoServer
   end
 
   def self.tmp_directory
-    File.join(gem_root, 'tmp')
+    ENV["MULTIVERSE_TMP"] || File.join(gem_root, 'tmp')
   end
 
   def self.port_lock_directory
