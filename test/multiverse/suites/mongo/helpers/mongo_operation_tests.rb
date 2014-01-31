@@ -213,36 +213,40 @@ module MongoOperationTests
   end
 
   def test_rename_collection
-    with_unique_collection do
-      @collection.rename("renamed_#{@collection_name}")
+    ensure_collection_exists
 
-      metrics = build_test_metrics(:renameCollection)
-      expected = metrics_with_attributes(metrics)
+    @collection.rename("renamed_#{@collection_name}")
 
-      assert_metrics_recorded(expected)
-    end
+    metrics = build_test_metrics(:renameCollection)
+    expected = metrics_with_attributes(metrics)
+
+    assert_metrics_recorded(expected)
+  ensure
+    @collection_name = "renamed_#{@collection_name}"
   end
 
   def test_rename_collection_via_db
-    with_unique_collection do
-      @database.rename_collection(@collection_name, "renamed_#{@collection_name}")
+    ensure_collection_exists
 
-      metrics = build_test_metrics(:renameCollection)
-      expected = metrics_with_attributes(metrics)
+    @database.rename_collection(@collection_name, "renamed_#{@collection_name}")
 
-      assert_metrics_recorded(expected)
-    end
+    metrics = build_test_metrics(:renameCollection)
+    expected = metrics_with_attributes(metrics)
+
+    assert_metrics_recorded(expected)
+  ensure
+    @collection_name = "renamed_#{@collection_name}"
   end
 
   def test_drop_collection
-    with_unique_collection do
-      @database.drop_collection(@collection_name)
+    ensure_collection_exists
 
-      metrics = build_test_metrics(:drop)
-      expected = metrics_with_attributes(metrics)
+    @database.drop_collection(@collection_name)
 
-      assert_metrics_recorded(expected)
-    end
+    metrics = build_test_metrics(:drop)
+    expected = metrics_with_attributes(metrics)
+
+    assert_metrics_recorded(expected)
   end
 
   def test_collstats
@@ -264,8 +268,8 @@ module MongoOperationTests
       segment = find_last_transaction_segment
     end
 
-    expected = { :database   => 'multiverse',
-                 :collection => 'tribbles',
+    expected = { :database   => @database_name,
+                 :collection => @collection_name,
                  :operation  => :insert}
 
     result = segment.params[:statement]
@@ -421,24 +425,13 @@ module MongoOperationTests
     assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@client.port}/#{@database_name}"])
   end
 
-  def with_unique_collection
-    original_collection_name = @collection_name
-    original_collection = @collection
-
-    @collection_name = "coll#{SecureRandom.hex(10)}"
-    @collection = @database.collection(@collection_name)
-
-    # Insert to make sure the collection actually exists...
-    @collection.insert({:junk => "data"})
-    NewRelic::Agent.drop_buffered_data
-
-    yield
-  ensure
-    @collection_name = original_collection_name
-    @collection = original_collection
-  end
-
   def unique_field_name
     "field#{SecureRandom.hex(10)}"
   end
+
+  def ensure_collection_exists
+    @collection.insert(:junk => "data")
+    NewRelic::Agent.drop_buffered_data
+  end
+
 end

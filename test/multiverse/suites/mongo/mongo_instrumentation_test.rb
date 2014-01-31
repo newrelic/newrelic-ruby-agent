@@ -19,15 +19,11 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include ::NewRelic::TestHelpers::MongoMetricBuilder
     include ::MongoOperationTests
 
-    @@server = MongoServer.new
-    @@server.start
-    at_exit { @@server.stop }
-
     def setup
-      @client = @@server.client
-      @database_name = 'multiverse'
+      @client = Mongo::MongoClient.new($mongo.host, $mongo.port)
+      @database_name = "multiverse"
       @database = @client.db(@database_name)
-      @collection_name = 'tribbles'
+      @collection_name = "tribbles-#{SecureRandom.uuid}"
       @collection = @database.collection(@collection_name)
 
       @tribble = {'name' => 'soterios johnson'}
@@ -38,7 +34,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     def teardown
       NewRelic::Agent.drop_buffered_data
-      @client.drop_database(@database_name)
+      @database.drop_collection(@collection_name)
     end
   end
 end
