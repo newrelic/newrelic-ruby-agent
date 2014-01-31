@@ -14,6 +14,9 @@ gemfile <<-RB
   gem 'bson_ext', :platforms => :ruby
 RB
 
+require 'timeout'
+require 'socket'
+
 class PreExistingMongo
   attr_reader :host, :port
 
