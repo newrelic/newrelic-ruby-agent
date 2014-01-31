@@ -23,7 +23,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
       @client = Mongo::MongoClient.new($mongo.host, $mongo.port)
       @database_name = "multiverse"
       @database = @client.db(@database_name)
-      @collection_name = "tribbles-#{SecureRandom.uuid}"
+      @collection_name = "tribbles-#{SecureRandom.hex(16)}"
       @collection = @database.collection(@collection_name)
 
       @tribble = {'name' => 'soterios johnson'}
