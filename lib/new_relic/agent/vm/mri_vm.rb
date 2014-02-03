@@ -2,12 +2,16 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/vm/vm_base'
-
 module NewRelic
   module Agent
     module VM
-      class MriVM < VMBase
+      class MriVM
+        def snapshot
+          snap = Snapshot.new
+          gather_stats(snap)
+          snap
+        end
+
         def gather_stats(snap)
           gather_gc_stats(snap)
           gather_ruby_vm_stats(snap)
