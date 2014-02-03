@@ -2,12 +2,32 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/vm/snapshot'
+
 module NewRelic
   module Agent
     module VM
       class JRubyVM
+        def snapshot
+          snap = Snapshot.new
+          gather_stats(snap)
+          snap
+        end
+
         def gather_stats(snap)
-          # TODO: Which can we gather here?
+          if supports?(:gc_runs)
+            gc_stats = GC.stat
+            snap.gc_runs = gc_stats[:count]
+          end
+        end
+
+        def supports?(key)
+          case key
+          when :gc_runs
+            true
+          else
+            false
+          end
         end
       end
     end
