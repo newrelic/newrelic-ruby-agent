@@ -24,7 +24,7 @@ module NewRelic
         def supports?(key)
           case key
           when :gc_runs
-            true
+            RUBY_VERSION < "1.9.2"
           else
             false
           end
