@@ -7,7 +7,7 @@ require 'fake_collector'
 require './testing_app'
 require 'multiverse_helpers'
 
-class CrossApplicationTracingTest < MiniTest::Unit::TestCase
+class CrossApplicationTracingTest < Minitest::Test
 
   # Important because the hooks are global that we only wire one AgentHooks up
   @@app = TestingApp.new

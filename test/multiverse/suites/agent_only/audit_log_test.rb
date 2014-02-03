@@ -7,7 +7,7 @@
 require 'newrelic_rpm'
 require 'multiverse_helpers'
 
-class AuditLogTest < MiniTest::Unit::TestCase
+class AuditLogTest < Minitest::Test
   include MultiverseHelpers
 
   def setup

@@ -10,7 +10,7 @@ require 'new_relic/agent/http_clients/curb_wrappers'
 
 require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
-class CurbTest < MiniTest::Unit::TestCase
+class CurbTest < Minitest::Test
 
   #
   # Tests

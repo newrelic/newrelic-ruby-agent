@@ -27,7 +27,7 @@ class DummyConnection
   include NewRelic::Agent::Instrumentation::DataMapperInstrumentation
 end
 
-class DataMapperTest < MiniTest::Unit::TestCase
+class DataMapperTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent

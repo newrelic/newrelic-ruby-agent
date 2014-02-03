@@ -91,7 +91,7 @@ module Sinatra
   end
 end
 
-class SinatraClassicTest < MiniTest::Unit::TestCase
+class SinatraClassicTest < Minitest::Test
   include SinatraTestCases
 
   def app

@@ -81,7 +81,7 @@ class SinatraModularTestApp < Sinatra::Base
   end
 end
 
-class SinatraModularTest < MiniTest::Unit::TestCase
+class SinatraModularTest < Minitest::Test
   include SinatraTestCases
 
   def app

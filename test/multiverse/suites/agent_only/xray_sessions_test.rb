@@ -11,7 +11,7 @@ require 'rack/test'
 require 'multiverse_helpers'
 require './testing_app'
 
-class XraySessionsTest < MiniTest::Unit::TestCase
+class XraySessionsTest < Minitest::Test
 
   AGENT_RUN_ID = 123
 

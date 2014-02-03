@@ -246,8 +246,17 @@ module Multiverse
 
     def configure_child_environment
       require 'minitest/unit'
+      patch_minitest_base_for_old_versions
       prevent_minitest_auto_run
       require_mocha
+    end
+
+    def patch_minitest_base_for_old_versions
+      unless defined?(Minitest::Test)
+        ::Minitest.class_eval do
+          const_set(:Test, ::MiniTest::Unit::TestCase)
+        end
+      end
     end
 
     # Rails and minitest_tu_shim both want to do MiniTest::Unit.autorun for us

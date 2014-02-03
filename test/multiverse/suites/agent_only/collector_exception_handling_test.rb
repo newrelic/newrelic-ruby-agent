@@ -5,7 +5,7 @@
 # RUBY-839 make sure there is no STDOUT chatter
 require 'open3'
 
-class CollectorExceptionHandlingTest < MiniTest::Unit::TestCase
+class CollectorExceptionHandlingTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent

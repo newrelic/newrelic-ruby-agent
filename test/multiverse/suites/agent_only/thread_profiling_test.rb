@@ -10,7 +10,7 @@ if RUBY_VERSION >= '1.9'
 require 'thread'
 require 'multiverse_helpers'
 
-class ThreadProfilingTest < MiniTest::Unit::TestCase
+class ThreadProfilingTest < Minitest::Test
 
   include MultiverseHelpers
 

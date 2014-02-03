@@ -11,7 +11,7 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 if NewRelic::Agent::Datastores::Mongo.is_supported_version?
   require File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'mongo_metric_builder')
 
-  class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Unit::TestCase
+  class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < Minitest::Test
     include Mongo
     include ::NewRelic::TestHelpers::MongoMetricBuilder
 

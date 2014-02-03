@@ -6,7 +6,7 @@
 require 'fake_collector'
 require 'multiverse_helpers'
 
-class HttpResponseCodeTest < MiniTest::Unit::TestCase
+class HttpResponseCodeTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent
