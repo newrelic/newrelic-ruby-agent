@@ -624,12 +624,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable sequel instrumentation.'
         },
-        :override_sql_obfuscation_adapter => {
-          :default => '',
-          :public => true,
-          :type => String,
-          :description => "Override for the sql obfuscation adapter."
-        },
         :disable_database_instrumentation => {
           :default => false,
           :public => true,
@@ -890,6 +884,12 @@ module NewRelic
           :type => Boolean,
           :description => 'Controls whether to check on running a transaction whether to respawn the harvest thread.'
         },
+        :normalize_json_string_encodings => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :description => 'Controls whether to normalize string encodings prior to serializing data for the collector to JSON.'
+        }
       }.freeze
 
     end

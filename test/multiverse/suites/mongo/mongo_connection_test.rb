@@ -14,13 +14,13 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_replica_set')
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_operation_tests')
 
-  class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < Minitest::Test
+  class NewRelic::Agent::Instrumentation::MongoConnectionTest
     include Mongo
     include ::NewRelic::TestHelpers::MongoMetricBuilder
     include ::MongoOperationTests
 
     def setup
-      @client = Mongo::MongoClient.new($mongo.host, $mongo.port)
+      @client = Mongo::Connection.new($mongo.host, $mongo.port)
       @database_name = "multiverse"
       @database = @client.db(@database_name)
       @collection_name = "tribbles-#{SecureRandom.hex(16)}"

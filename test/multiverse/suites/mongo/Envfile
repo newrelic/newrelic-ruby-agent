@@ -17,13 +17,24 @@ RB
 require 'timeout'
 require 'socket'
 
-ENV["MONGO_HOST"] = "localhost" unless ENV["MONGO_HOST"]
-ENV["MONGO_PORT"] = "27017" unless ENV["MONGO_PORT"]
+class PreExistingMongo
+  attr_reader :host, :port
+
+  def initialize(host, port)
+    @host = host
+    @port = port
+  end
+
+  def stop(*_)
+  end
+end
+
+$mongo = PreExistingMongo.new("localhost", 27017)
 
 def mongo_running?
   Timeout::timeout(1) do
     begin
-      TCPSocket.new(ENV["MONGO_HOST"], ENV["MONGO_PORT"].to_i).close
+      TCPSocket.new($mongo.host, $mongo.port).close
       true
     rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
       false
@@ -33,34 +44,14 @@ rescue Timeout::Error
   false
 end
 
-def wait_for_mongo
-  Timeout::timeout(10) do
-    until mongo_running? do
-      sleep(0.1)
-    end
-  end
-end
-
 before_suite do
-  if mongo_running?
-    $started_mongo = false
-  else
-    puts "Starting Mongo for you, will shut down after tests"
-    `mkdir -p tmp`
-    `mongod --port #{ENV["MONGO_PORT"]} --pidfilepath tmp/mongo.pid &`
-    wait_for_mongo
-
-    $started_mongo = true
-    puts "Mongo Mongo Mongo!"
+  if !mongo_running?
+    require File.join(File.dirname(__FILE__), 'helpers', 'mongo_server')
+    $mongo = MongoServer.new
+    $mongo.start(false)
   end
 end
 
 after_suite do
-  if $started_mongo
-    puts "Shutting down test initiated Mongo."
-    mongo_pid = `cat tmp/mongo.pid`
-    `kill -9 #{mongo_pid}`
-    `rm tmp/mongo.pid`
-    puts "Mongo Mongo Mongo!"
-  end
+  $mongo.stop
 end

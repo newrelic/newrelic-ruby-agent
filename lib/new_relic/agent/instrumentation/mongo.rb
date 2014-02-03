@@ -28,37 +28,66 @@ DependencyDetection.defer do
   end
 
   def install_mongo_instrumentation
+    setup_logging_for_instrumentation
     instrument_mongo_logging
     instrument_save
     instrument_ensure_index
   end
 
-  def instrument_mongo_logging
+  def setup_logging_for_instrumentation
     ::Mongo::Logging.class_eval do
       include NewRelic::Agent::MethodTracer
       require 'new_relic/agent/datastores/mongo/metric_generator'
       require 'new_relic/agent/datastores/mongo/statement_formatter'
 
-      def instrument_with_new_relic_trace(name, payload = {}, &block)
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(name, payload)
-
-        trace_execution_scoped(metrics) do
-          t0 = Time.now
-          result = instrument_without_new_relic_trace(name, payload, &block)
-
-          payload[:operation] = name
-          statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
-          if statement
-            NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+      def new_relic_instance_metric_builder
+        Proc.new do
+          if @pool
+            host, port = @pool.host, @pool.port
+          elsif @connection && (primary = @connection.primary)
+            host, port = primary[0], primary[1]
           end
 
-          result
+          database_name = @db.name if @db
+          NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_instance_metric_for(host, port, database_name)
         end
+      end
+
+      # It's key that this method eats all exceptions, as it rests between the
+      # Mongo operation the user called and us returning them the data. Be safe!
+      def new_relic_notice_statement(t0, payload, operation)
+        payload[:operation] = operation
+        statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
+        if statement
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+        end
+      rescue => e
+        NewRelic::Agent.logger.debug("Exception during Mongo statement gathering", e)
+      end
+
+      def new_relic_generate_metrics(operation, payload = nil)
+        payload ||= { :collection => self.name, :database => self.db.name }
+        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(operation, payload)
       end
 
       ::Mongo::Collection.class_eval { include Mongo::Logging; }
       ::Mongo::Connection.class_eval { include Mongo::Logging; }
       ::Mongo::Cursor.class_eval { include Mongo::Logging; }
+    end
+  end
+
+  def instrument_mongo_logging
+    ::Mongo::Logging.class_eval do
+      def instrument_with_new_relic_trace(name, payload = {}, &block)
+        metrics = new_relic_generate_metrics(name, payload)
+
+        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
+          t0 = Time.now
+          result = instrument_without_new_relic_trace(name, payload, &block)
+          new_relic_notice_statement(t0, payload, name)
+          result
+        end
+      end
 
       alias_method :instrument_without_new_relic_trace, :instrument
       alias_method :instrument, :instrument_with_new_relic_trace
@@ -67,14 +96,9 @@ DependencyDetection.defer do
 
   def instrument_save
     ::Mongo::Collection.class_eval do
-      include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/metric_generator'
-      require 'new_relic/agent/datastores/mongo/statement_formatter'
-
       def save_with_new_relic_trace(doc, opts = {}, &block)
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:save, { :collection => self.name })
-
-        trace_execution_scoped(metrics) do
+        metrics = new_relic_generate_metrics(:save)
+        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
           t0 = Time.now
 
           transaction_state = NewRelic::Agent::TransactionState.get
@@ -86,12 +110,7 @@ DependencyDetection.defer do
             transaction_state.pop_traced
           end
 
-          doc[:operation] = :save
-          statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(doc)
-          if statement
-            NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
-          end
-
+          new_relic_notice_statement(t0, doc, :save)
           result
         end
       end
@@ -103,14 +122,9 @@ DependencyDetection.defer do
 
   def instrument_ensure_index
     ::Mongo::Collection.class_eval do
-      include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/metric_generator'
-      require 'new_relic/agent/datastores/mongo/statement_formatter'
-
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(:ensureIndex, { :collection => self.name })
-
-        trace_execution_scoped(metrics) do
+        metrics = new_relic_generate_metrics(:ensureIndex)
+        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
           t0 = Time.now
 
           transaction_state = NewRelic::Agent::TransactionState.get
@@ -122,14 +136,16 @@ DependencyDetection.defer do
             transaction_state.pop_traced
           end
 
-          spec = spec.is_a?(Array) ? Hash[spec] : spec.dup
-          spec[:operation] = :ensureIndex
+          spec = case spec
+                 when Array
+                   Hash[spec]
+                 when String, Symbol
+                   { spec => 1 }
+                 else
+                   spec.dup
+                 end
 
-          statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(spec)
-          if statement
-            NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
-          end
-
+          new_relic_notice_statement(t0, spec, :ensureIndex)
           result
         end
       end

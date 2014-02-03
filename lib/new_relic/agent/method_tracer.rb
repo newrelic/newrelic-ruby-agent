@@ -267,13 +267,20 @@ module NewRelic
       #
       def trace_execution_scoped(metric_names, options={})
         return yield if trace_disabled?(options)
-        set_if_nil(options, :metric)
-        set_if_nil(options, :deduct_call_time_from_parent)
+
         metric_names = Array(metric_names)
         first_name = metric_names.shift
+        return yield if first_name.nil?
+
+        set_if_nil(options, :metric)
+        set_if_nil(options, :deduct_call_time_from_parent)
+        additional_metrics_callback = options[:additional_metrics_callback]
         start_time, expected_scope = trace_execution_scoped_header(options)
+
         begin
-          yield
+          result = yield
+          metric_names += Array(additional_metrics_callback.call) if additional_metrics_callback
+          result
         ensure
           trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, options)
         end

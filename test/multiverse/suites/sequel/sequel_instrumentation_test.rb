@@ -210,6 +210,22 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
     end
   end
 
+  def test_no_explain_plans_with_single_threaded_connection
+    connect_opts = DB.opts
+    single_threaded_db = Sequel.connect(connect_opts.merge(:single_threaded => true))
+    create_tables(single_threaded_db)
+    model_class = Class.new(Sequel::Model(single_threaded_db[:posts]))
+
+    with_config(:'transaction_tracer.explain_threshold' => -0.01,
+                :'transaction_tracer.record_sql' => 'raw') do
+      segment = last_segment_for do
+        model_class[11]
+      end
+      assert_match %r{select \* from `posts` where `id` = 11}i, segment.params[:sql]
+      assert_equal([], segment.params[:explain_plan], "Should not capture explain plan with single-threaded connection pool")
+    end
+  end
+
   def test_queries_can_get_explain_plan_with_obfuscated_sql
     config = {
       :'transaction_tracer.explain_threshold' => -0.01,

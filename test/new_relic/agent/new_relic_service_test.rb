@@ -408,6 +408,14 @@ class NewRelicServiceTest < Minitest::Test
       end
     end
 
+    def test_skips_normalization_if_configured_to
+      @http_handle.respond_to(:wiggle, 'hello')
+      with_config(:normalize_json_string_encodings => false) do
+        NewRelic::JSONWrapper.expects(:normalize).never
+        @service.send(:invoke_remote, 'wiggle', { 'foo' => 'bar' })
+      end
+    end
+
     def test_json_marshaller_handles_binary_strings
       input_string = (0..255).to_a.pack("C*")
       roundtripped_string = roundtrip_data(input_string)

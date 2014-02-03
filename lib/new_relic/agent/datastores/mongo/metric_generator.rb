@@ -17,6 +17,14 @@ module NewRelic
             end
 
             NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(name, payload, request_type)
+          rescue => e
+            NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
+            []
+          end
+
+          def self.generate_instance_metric_for(host, port, database_name)
+            return unless host && port && database_name
+            NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric(host, port, database_name)
           end
         end
       end

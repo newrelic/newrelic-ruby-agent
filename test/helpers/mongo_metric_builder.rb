@@ -15,7 +15,7 @@ module NewRelic
         )
       end
 
-      def metrics_with_attributes(metrics, attributes)
+      def metrics_with_attributes(metrics, attributes = { :call_count => 1 })
         metric_attributes = {}
 
         metrics.each do |metric|
