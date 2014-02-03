@@ -4,11 +4,9 @@
 
 require 'fileutils'
 require 'timeout'
-require 'mongo'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
 
 class MongoServer
-  include Mongo
   extend NewRelic::TestHelpers::FileSearching
 
   attr_reader :type
@@ -28,7 +26,7 @@ class MongoServer
   end
 
   def self.tmp_directory
-    File.join(gem_root, 'tmp')
+    ENV["MULTIVERSE_TMP"] || File.join(gem_root, 'tmp')
   end
 
   def self.port_lock_directory
@@ -87,7 +85,7 @@ class MongoServer
     File.join(MongoServer.log_directory, "#{self.port}.log")
   end
 
-  def start
+  def start(wait_for_startup = true)
     lock_port
 
     unless running?
@@ -97,17 +95,18 @@ class MongoServer
         running?
       end
 
-      create_client
-
-      wait_until do
-        pingable?
+      if wait_for_startup
+        create_client
+        wait_until do
+          pingable?
+        end
       end
     end
 
     self
   end
 
-  def wait_until(seconds = 1)
+  def wait_until(seconds = 10)
     Timeout.timeout(seconds) do
       sleep 0.1 until yield
     end
@@ -132,6 +131,7 @@ class MongoServer
   end
 
   def create_client(client_class = nil)
+    require 'mongo'
     if defined? MongoClient
       client_class ||= MongoClient
     else
@@ -151,14 +151,14 @@ class MongoServer
       begin
         Process.kill('TERM', pid)
       rescue Errno::ESRCH => e
-        raise e unless e.message == 'No such process'
+        # fine if we're already gone...
       end
 
       wait_until do
         !running?
       end
 
-      FileUtils.rm(pid_path)
+      cleanup_files
       self.client = nil
     end
 
@@ -170,7 +170,6 @@ class MongoServer
     return false unless pid
     Process.kill(0, pid) == 1
   rescue Errno::ESRCH => e
-    raise e unless e.message == 'No such process'
     false
   end
 
@@ -229,5 +228,12 @@ class MongoServer
   def release_port
     FileUtils.rm port_lock_path, :force => true
     self.port = nil
+  end
+
+  # PID file needs to be cleaned up for our process checking logic
+  # DB needs to get cleaned up because it's massive
+  def cleanup_files
+    FileUtils.rm(pid_path)
+    FileUtils.rm_rf(db_path)
   end
 end

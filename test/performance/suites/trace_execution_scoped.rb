@@ -9,7 +9,7 @@ class TestClass
   end
 
   def method_2
-    callback = -> { ['c', 'd'] }
+    callback = Proc.new { ['c', 'd'] }
     trace_execution_scoped(['a', 'b'], { :additional_metrics_callback => callback }) do
     end
   end
