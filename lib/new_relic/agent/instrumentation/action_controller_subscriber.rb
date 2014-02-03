@@ -9,11 +9,6 @@ module NewRelic
       class ActionControllerSubscriber < EventedSubscriber
         def initialize
           super
-          initialize_request_reset
-          initialize_profiling
-        end
-
-        def initialize_request_reset
           NewRelic::Agent.instance.events.subscribe(:before_call) do |env|
 
             request = begin
@@ -24,21 +19,6 @@ module NewRelic
                         nil
                       end
             TransactionState.reset(request)
-          end
-        end
-
-        def initialize_profiling
-          return unless defined?(::RubyProf)
-
-          NewRelic::Agent.instance.events.subscribe(:start_transaction) do
-            ::RubyProf.start if NewRelic::Control.instance.profiling?
-          end
-
-          NewRelic::Agent.instance.events.subscribe(:transaction_finishing) do
-            if NewRelic::Control.instance.profiling?
-              profile = ::RubyProf.stop
-              NewRelic::Agent.instance.transaction_sampler.notice_profile(profile)
-            end
           end
         end
 
