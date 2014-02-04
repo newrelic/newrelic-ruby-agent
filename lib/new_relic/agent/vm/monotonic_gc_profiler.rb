@@ -13,8 +13,13 @@ module NewRelic
   module Agent
     module VM
       class MonotonicGCProfiler
+        def initialize
+          @total_time = 0
+        end
+
         def total_time
-          0
+          @total_time += ::GC::Profiler.total_time
+          @total_time
         end
       end
     end

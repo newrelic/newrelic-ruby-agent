@@ -6,8 +6,21 @@ require File.expand_path(File.join(__FILE__, "..", "..", "..", "..", "test_helpe
 require 'new_relic/agent/vm/monotonic_gc_profiler'
 
 class MonotonicGCProfilerTest < MiniTest::Unit::TestCase
+  attr_reader :profiler
+
+  def setup
+    @profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
+  end
+
   def test_total_time_isnt_nil
-    result = NewRelic::Agent::VM::MonotonicGCProfiler.new.total_time
-    refute_nil result
+    refute_nil profiler.total_time
+  end
+
+  def test_total_time_reads_from_gc_profiler
+    GC::Profiler.stubs(:total_time).returns(0)
+    assert_equal 0, profiler.total_time
+
+    GC::Profiler.stubs(:total_time).returns(100)
+    assert_equal 100, profiler.total_time
   end
 end
