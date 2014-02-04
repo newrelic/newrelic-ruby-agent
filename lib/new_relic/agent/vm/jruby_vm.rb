@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'thread'
 require 'new_relic/agent/vm/snapshot'
 
 module NewRelic
@@ -19,12 +20,16 @@ module NewRelic
             gc_stats = GC.stat
             snap.gc_runs = gc_stats[:count]
           end
+
+          snap.thread_count = Thread.list.size
         end
 
         def supports?(key)
           case key
           when :gc_runs
-            RUBY_VERSION < "1.9.2"
+            RUBY_VERSION >= "1.9.2"
+          when :thread_count
+            true
           else
             false
           end
