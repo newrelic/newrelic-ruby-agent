@@ -23,4 +23,31 @@ class NewRelic::LanguageSupportTest < MiniTest::Unit::TestCase
     return unless rubinius?
     assert_falsy NewRelic::LanguageSupport.object_space_usable?
   end
+
+  def test_gc_profiler_disabled_without_constant
+    undefine_constant(:'GC::Profiler') do
+      assert_equal false, NewRelic::LanguageSupport.gc_profiler_enabled?
+    end
+  end
+
+  def test_gc_profiler_disabled_when_enabled_is_falsy
+    return unless defined?(::GC::Profiler)
+
+    ::GC::Profiler.stubs(:enabled?).returns(false)
+    assert_equal false, NewRelic::LanguageSupport.gc_profiler_enabled?
+  end
+
+  def test_gc_profiler_enabled
+    return unless defined?(::GC::Profiler)
+
+    ::GC::Profiler.stubs(:enabled?).returns(true)
+    assert_equal true, NewRelic::LanguageSupport.gc_profiler_enabled?
+  end
+
+  def test_gc_profiler_enabled_when_response_is_only_truthy
+    return unless defined?(::GC::Profiler)
+
+    ::GC::Profiler.stubs(:enabled?).returns(0)
+    assert_equal true, NewRelic::LanguageSupport.gc_profiler_enabled?
+  end
 end
