@@ -6,8 +6,24 @@ module NewRelic
   module Agent
     module VM
       class RubiniusVM
+        def snapshot
+          snap = Snapshot.new
+          gather_stats(snap)
+          snap
+        end
+
         def gather_stats(snap)
-          # TODO: Which can we gather here?
+          snap.gc_runs = GC.count
+
+          gc_stats = GC.stat[:gc]
+          snap.major_gc_count = gc_stats[:full][:count] if gc_stats[:full]
+          snap.minor_gc_count = gc_stats[:young][:count] if gc_stats[:young]
+        end
+
+        SUPPORTED_KEYS = [:gc_runs, :major_gc_count, :minor_gc_count].freeze
+
+        def supports?(key)
+          SUPPORTED_KEYS.include?(key)
         end
       end
     end
