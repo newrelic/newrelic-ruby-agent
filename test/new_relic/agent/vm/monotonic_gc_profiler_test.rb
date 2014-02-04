@@ -13,21 +13,23 @@ class MonotonicGCProfilerTest < MiniTest::Unit::TestCase
     NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(true)
   end
 
-  def test_total_time_isnt_nil
-    refute_nil profiler.total_time
-  end
+  unless RUBY_VERSION < '1.9.2'
+    def test_total_time_isnt_nil
+      refute_nil profiler.total_time
+    end
 
-  def test_total_time_reads_from_gc_profiler
-    GC::Profiler.stubs(:total_time).returns(0)
-    assert_equal 0, profiler.total_time
+    def test_total_time_reads_from_gc_profiler
+      GC::Profiler.stubs(:total_time).returns(0)
+      assert_equal 0, profiler.total_time
 
-    GC::Profiler.stubs(:total_time).returns(100)
-    assert_equal 100, profiler.total_time
-  end
+      GC::Profiler.stubs(:total_time).returns(100)
+      assert_equal 100, profiler.total_time
+    end
 
-  def test_total_time_resets_underlying_gc_profiler
-    GC::Profiler.expects(:clear).once
-    profiler.total_time
+    def test_total_time_resets_underlying_gc_profiler
+      GC::Profiler.expects(:clear).once
+      profiler.total_time
+    end
   end
 
   def test_total_time_raises_if_called_when_not_enabled
