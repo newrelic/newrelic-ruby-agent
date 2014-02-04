@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'thread'
+require 'new_relic/agent/vm/snapshot'
 
 module NewRelic
   module Agent
@@ -32,6 +33,12 @@ module NewRelic
           end
         end
 
+        def gather_gc_time(snap)
+          if supports?(:gc_total_time)
+            snap.gc_total_time = NewRelic::Agent.instance.monotonic_gc_profiler.total_time
+          end
+        end
+
         def gather_ruby_vm_stats(snap)
           if supports?(:method_cache_invalidations)
             vm_stats = RubyVM.stat
@@ -48,6 +55,8 @@ module NewRelic
           case key
           when :gc_runs
             RUBY_VERSION >= '1.9.2'
+          when :gc_total_time
+            NewRelic::LanguageSupport.gc_profiler_enabled?
           when :total_allocated_object
             RUBY_VERSION >= '2.0.0'
           when :major_gc_count

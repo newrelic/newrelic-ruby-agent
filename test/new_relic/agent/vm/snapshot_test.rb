@@ -5,7 +5,4 @@
 require 'new_relic/agent/vm/snapshot'
 
 class NewRelic::Agent::VM::SnapshotTestCase < MiniTest::Unit::TestCase
-  def test_fail
-    #assert false
-  end
 end
