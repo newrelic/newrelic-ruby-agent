@@ -10,6 +10,7 @@ class MonotonicGCProfilerTest < MiniTest::Unit::TestCase
 
   def setup
     @profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
+    NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(true)
   end
 
   def test_total_time_isnt_nil
@@ -27,5 +28,13 @@ class MonotonicGCProfilerTest < MiniTest::Unit::TestCase
   def test_total_time_resets_underlying_gc_profiler
     GC::Profiler.expects(:clear).once
     profiler.total_time
+  end
+
+  def test_total_time_raises_if_called_when_not_enabled
+    NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(false)
+
+    assert_raises(NewRelic::Agent::VM::MonotonicGCProfiler::ProfilerNotEnabledError) do
+      profiler.total_time
+    end
   end
 end

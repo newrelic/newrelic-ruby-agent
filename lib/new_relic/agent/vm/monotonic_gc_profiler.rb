@@ -17,7 +17,15 @@ module NewRelic
           @total_time = 0
         end
 
+        class ProfilerNotEnabledError < StandardError
+          def initialize
+            super("total_time is not available if GC::Profiler isn't enabled")
+          end
+        end
+
         def total_time
+          raise ProfilerNotEnabledError.new unless NewRelic::LanguageSupport.gc_profiler_enabled?
+
           @total_time += ::GC::Profiler.total_time
           ::GC::Profiler.clear
           @total_time
