@@ -41,7 +41,6 @@ module NewRelic::Agent
 
       NewRelic::Agent.config.apply_config( @config )
       @monitor.on_finished_configuring
-      NewRelic::Agent::TransactionState.get.request_guid = TRANSACTION_GUID
     end
 
     def teardown
@@ -195,7 +194,10 @@ module NewRelic::Agent
     def when_request_runs(request=for_id(REQUEST_CROSS_APP_ID))
       event_listener = NewRelic::Agent.instance.events
       event_listener.notify(:before_call, request)
-      event_listener.notify(:start_transaction, 'a name')
+      in_transaction('transaction') do
+        # nothing
+      end
+      NewRelic::Agent::TransactionState.get.request_guid = TRANSACTION_GUID
       event_listener.notify(:after_call, request, [200, @response, ''])
     end
 

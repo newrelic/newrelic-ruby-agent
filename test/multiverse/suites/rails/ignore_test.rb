@@ -24,10 +24,11 @@ class IgnoredController < ApplicationController
 end
 
 class IgnoredActionsTest < ActionDispatch::IntegrationTest
-
   include MultiverseHelpers
 
-  setup_and_teardown_agent
+  setup_and_teardown_agent(:cross_process_id => "boo",
+                           :encoding_key => "\0",
+                           :trusted_account_ids => [1])
 
   def after_setup
     # Make sure we've got a blank slate for doing easier metric comparisons
@@ -45,4 +46,8 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
     assert_metrics_not_recorded(["Apdex"])
   end
 
+  def test_should_not_write_cat_response_headers_for_ignored_transactions
+    get 'ignored/action_to_ignore', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
+    assert_nil @response.headers["X-NewRelic-App-Data"]
+  end
 end
