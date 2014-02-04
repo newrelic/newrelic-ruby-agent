@@ -23,4 +23,9 @@ class MonotonicGCProfilerTest < MiniTest::Unit::TestCase
     GC::Profiler.stubs(:total_time).returns(100)
     assert_equal 100, profiler.total_time
   end
+
+  def test_total_time_resets_underlying_gc_profiler
+    GC::Profiler.expects(:clear).once
+    profiler.total_time
+  end
 end

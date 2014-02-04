@@ -19,6 +19,7 @@ module NewRelic
 
         def total_time
           @total_time += ::GC::Profiler.total_time
+          ::GC::Profiler.clear
           @total_time
         end
       end
