@@ -11,7 +11,7 @@ require 'fake_collector'
 require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
-class ResqueTest < MiniTest::Unit::TestCase
+class ResqueTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent

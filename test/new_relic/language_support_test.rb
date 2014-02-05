@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
-class NewRelic::LanguageSupportTest < MiniTest::Unit::TestCase
+class NewRelic::LanguageSupportTest < Minitest::Test
   include ::NewRelic::TestHelpers::RuntimeDetection
 
   def test_object_space_usable_on_jruby_with_object_space_enabled

@@ -4,7 +4,7 @@
 
 require 'multiverse_helpers'
 
-class SSLTest < MiniTest::Unit::TestCase
+class SSLTest < Minitest::Test
 
   include MultiverseHelpers
 

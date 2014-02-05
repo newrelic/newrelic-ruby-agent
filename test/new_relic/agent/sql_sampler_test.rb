@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
-class NewRelic::Agent::SqlSamplerTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def setup
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new

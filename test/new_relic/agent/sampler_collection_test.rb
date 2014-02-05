@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class SamplerCollectionTest < MiniTest::Unit::TestCase
+class SamplerCollectionTest < Minitest::Test
 
   class DummySampler
     attr_reader :id

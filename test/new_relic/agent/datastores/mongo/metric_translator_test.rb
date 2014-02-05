@@ -5,7 +5,7 @@
 require 'new_relic/agent/datastores/mongo/metric_translator'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 
-class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   include ::NewRelic::TestHelpers::MongoMetricBuilder
 
   def setup

@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
-class NewRelic::Agent::NoticedErrorTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   include NewRelic::TestHelpers::Exceptions
 
   def setup

@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', 'test_helper'))
 
-class NewRelic::Agent::StatsTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::StatsTest < Minitest::Test
   def mock_plusequals(first, second, method, first_value, second_value)
     first.expects(method).returns(first_value)
     second.expects(method).returns(second_value)

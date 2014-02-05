@@ -9,7 +9,7 @@ if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= MIN_RAILS_VERSION && !Ne
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 
-class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::Test
   class Order; end
 
   def setup

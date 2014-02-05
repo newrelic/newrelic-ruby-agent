@@ -11,7 +11,7 @@ if Sequel.const_defined?( :MAJOR ) &&
 require 'newrelic_rpm'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
-class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Test
 
   def setup
     super

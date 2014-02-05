@@ -14,7 +14,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version?
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_replica_set')
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_operation_tests')
 
-  class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < MiniTest::Unit::TestCase
+  class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < Minitest::Test
     include Mongo
     include ::NewRelic::TestHelpers::MongoMetricBuilder
     include ::MongoOperationTests

@@ -5,7 +5,7 @@
 require 'newrelic_rpm'
 require 'multiverse_helpers'
 
-class HarvestTimestampsTest < MiniTest::Unit::TestCase
+class HarvestTimestampsTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent

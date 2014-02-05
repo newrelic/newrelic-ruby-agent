@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/configuration/default_source'
 
 module NewRelic::Agent::Configuration
-  class DefaultSourceTest < MiniTest::Unit::TestCase
+  class DefaultSourceTest < Minitest::Test
     def setup
       @default_source = DefaultSource.new
       @defaults = ::NewRelic::Agent::Configuration::DEFAULTS

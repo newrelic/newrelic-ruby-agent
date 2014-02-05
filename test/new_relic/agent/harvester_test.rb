@@ -7,7 +7,7 @@ require 'new_relic/agent/harvester'
 
 module NewRelic
   module Agent
-    class HarvesterTest < MiniTest::Unit::TestCase
+    class HarvesterTest < Minitest::Test
 
       attr_reader :harvester
       def setup

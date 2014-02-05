@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/instrumentation/sinatra'
 
-class NewRelic::Agent::Instrumentation::SinatraTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
 
   # This fake app is not an actual Sinatra app to avoid having our unit tests
   # take a dependency directly on it. If you need actual Sinatra classes, go

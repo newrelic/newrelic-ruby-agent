@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
 # look through the source code to enforce some simple rules that help us keep
 # our license data up to date.
-class LicenseTest < MiniTest::Unit::TestCase
+class LicenseTest < Minitest::Test
   include NewRelic::TestHelpers::FileSearching
 
   # A list of regexs that will likely match license info

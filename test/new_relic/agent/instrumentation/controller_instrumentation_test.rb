@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
-class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest::Test
   require 'new_relic/agent/instrumentation/controller_instrumentation'
   class TestObject
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation

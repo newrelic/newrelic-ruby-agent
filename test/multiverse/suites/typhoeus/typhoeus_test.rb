@@ -10,7 +10,7 @@ require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
 if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
 
-  class TyphoeusTest < MiniTest::Unit::TestCase
+  class TyphoeusTest < Minitest::Test
     include HttpClientTestCases
 
     USE_SSL_VERIFYPEER_VERSION  = NewRelic::VersionNumber.new("0.5.0")
@@ -91,7 +91,7 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
 
 else
 
-  class TyphoeusNotInstrumented < MiniTest::Unit::TestCase
+  class TyphoeusNotInstrumented < Minitest::Test
     def test_works_without_instrumentation
       # Typhoeus.get wasn't supported back before 0.5.x
       Typhoeus::Request.get("http://localhost/not/there")

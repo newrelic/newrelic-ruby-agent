@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/threading/backtrace_node'
 
 module NewRelic::Agent::Threading
-  class BacktraceNodeTest < MiniTest::Unit::TestCase
+  class BacktraceNodeTest < Minitest::Test
     SINGLE_LINE = "irb.rb:69:in `catch'"
 
     def setup

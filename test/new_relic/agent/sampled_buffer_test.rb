@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class NewRelic::Agent::SampledBufferTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::SampledBufferTest < Minitest::Test
   def test_should_keep_all_samples_up_to_capacity
     buffer = NewRelic::Agent::SampledBuffer.new(100)
     all = []

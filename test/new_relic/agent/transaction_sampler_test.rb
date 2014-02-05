@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
-class NewRelic::Agent::TransactionSamplerTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   module MockGCStats
 

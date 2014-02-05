@@ -10,7 +10,7 @@ class BaseClassMethods
   include NewRelic::Control::ClassMethods
 end
 
-class NewRelic::Control::ClassMethodsTest < MiniTest::Unit::TestCase
+class NewRelic::Control::ClassMethodsTest < Minitest::Test
   def setup
     @base = ::BaseClassMethods.new
     super

@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/autostart'
 
-class AutostartTest < MiniTest::Unit::TestCase
+class AutostartTest < Minitest::Test
 
   def test_typically_the_agent_should_autostart
     assert ::NewRelic::Agent::Autostart.agent_should_start?

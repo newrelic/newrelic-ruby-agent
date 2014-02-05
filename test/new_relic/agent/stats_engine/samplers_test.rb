@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','..','test_helper'))
 require 'new_relic/agent/samplers/cpu_sampler'
 
-class NewRelic::Agent::StatsEngine::SamplersTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::StatsEngine::SamplersTest < Minitest::Test
 
   class OurSamplers
     include NewRelic::Agent::StatsEngine::Samplers

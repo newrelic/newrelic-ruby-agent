@@ -4,7 +4,7 @@
 
 require File.expand_path('../../../test_helper', __FILE__)
 
-class NewRelic::Agent::RpmAgentTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance

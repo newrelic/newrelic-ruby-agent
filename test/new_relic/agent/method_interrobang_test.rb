@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/method_tracer'
 
-class MethodInterrobangTest < MiniTest::Unit::TestCase
+class MethodInterrobangTest < Minitest::Test
 	include NewRelic::Agent::MethodTracer
 
 	def interrogate?

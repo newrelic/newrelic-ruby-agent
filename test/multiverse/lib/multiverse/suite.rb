@@ -7,7 +7,6 @@
 # version of Minitest, which we use throughout, not the one in stdlib on
 # Rubies starting with 1.9.x
 require 'rubygems'
-gem 'minitest', '~> 4.7.5'
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 
@@ -131,6 +130,7 @@ module Multiverse
         configure_before_bundling
 
         gemfile_text = environments[env_index]
+
         load_dependencies(gemfile_text, env_index)
 
         configure_child_environment
@@ -222,7 +222,13 @@ module Multiverse
       options << "--name=/#{names.map {|n| n + ".*"}.join("|")}/" unless names == []
 
       original_options = options.dup
-      test_run = ::MiniTest::Unit.new.run(options)
+
+      # MiniTest 5.0 moved things around, so choose which way to run it
+      if ::MiniTest.respond_to?(:run)
+        test_run = ::MiniTest.run(options)
+      else
+        test_run = ::MiniTest::Unit.new.run(options)
+      end
 
       if test_run
         exit(test_run)
@@ -240,14 +246,31 @@ module Multiverse
 
     def configure_child_environment
       require 'minitest/unit'
+      patch_minitest_base_for_old_versions
       prevent_minitest_auto_run
       require_mocha
+    end
+
+    def patch_minitest_base_for_old_versions
+      unless defined?(Minitest::Test)
+        ::Minitest.class_eval do
+          const_set(:Test, ::MiniTest::Unit::TestCase)
+        end
+      end
     end
 
     # Rails and minitest_tu_shim both want to do MiniTest::Unit.autorun for us
     # We can't sidestep, so just gut the method to avoid doubled test runs
     def prevent_minitest_auto_run
+      # MiniTest 4.x
       ::MiniTest::Unit.class_eval do
+        def self.autorun
+          # NO-OP
+        end
+      end
+
+      # MiniTest 5.x
+      ::MiniTest.class_eval do
         def self.autorun
           # NO-OP
         end

@@ -4,7 +4,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/active_record_helper'
 
-class NewRelic::Agent::Instrumentation::ActiveRecordHelperTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::ActiveRecordHelperTest < Minitest::Test
   include NewRelic::Agent::Instrumentation
 
   def test_metric_for_name_find
