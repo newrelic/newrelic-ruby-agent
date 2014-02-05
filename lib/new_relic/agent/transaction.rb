@@ -24,6 +24,9 @@ module NewRelic
       attr_reader :name
       attr_reader :stats_hash
 
+      # Populated with the trace sample once this transaction is completed.
+      attr_reader :transaction_trace
+
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
       # as a Rack::Request or an ActionController::AbstractRequest.
@@ -188,8 +191,6 @@ module NewRelic
 
         # these record metrics so need to be done before merging stats
         if self.root?
-          send_transaction_finishing_event(start_time)
-
           # this one records metrics and wants to happen
           # before the transaction sampler is finished
           if traced?
@@ -209,17 +210,6 @@ module NewRelic
           send_transaction_finished_event(start_time, end_time, overview_metrics)
           agent.stats_engine.end_transaction
         end
-      end
-
-      # This event is fired when we know we WILL end the transaction, but
-      # haven't actually started shutting it down. Subscribers still have time
-      # to influence the sampling, attach extra information, etc.
-      def send_transaction_finishing_event(start_time)
-        agent.events.notify(:transaction_finishing, {
-          :name            => @name,
-          :type            => @type,
-          :start_timestamp => start_time.to_f
-        })
       end
 
       # This event is fired when the transaction is fully completed. The metric
