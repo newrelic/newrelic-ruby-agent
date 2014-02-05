@@ -145,11 +145,6 @@ module NewRelic
         builder.ignore_transaction if builder
       end
 
-      # For developer mode profiling support - delegates to the builder
-      def notice_profile(profile)
-        builder.set_profile(profile) if builder
-      end
-
       # Sets the CPU time used by a transaction, delegates to the builder
       def notice_transaction_cpu_time(cpu_time)
         builder.set_transaction_cpu_time(cpu_time) if builder
