@@ -139,10 +139,6 @@ module NewRelic
         depth
       end
 
-      def set_profile(profile)
-        @sample.profile = profile
-      end
-
       def set_transaction_info(uri, params)
         if Agent.config[:capture_params]
           params = normalize_params params

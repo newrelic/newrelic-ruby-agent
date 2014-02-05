@@ -121,8 +121,15 @@ module NewRelic
         render(:explain_sql)
       end
 
+      PROFILE_CONFIG = { :'profiling.enabled' => true }
+
       def profile
-        NewRelic::Control.instance.profiling = params['start'] == 'true'
+        if params['start'] == 'true'
+          NewRelic::Agent.config.apply_config(PROFILE_CONFIG) unless NewRelic::Agent.config[:'profiling.enabled']
+        else
+          NewRelic::Agent.config.remove_config(PROFILE_CONFIG) if NewRelic::Agent.config[:'profiling.enabled']
+        end
+
         index
       end
 

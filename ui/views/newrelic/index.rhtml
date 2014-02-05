@@ -35,9 +35,9 @@
 
         <%= link_to_if @samples.size > 0, "Clear Transactions (#{@samples.size})", 'reset' %><br/>
         <%= link_to "List Threads", 'threads' %><br/>
-		<% if NewRelic::Control.instance.profiling_available? %>
+		<% if NewRelic::Agent.config[:'profiling.available'] %>
 		  <p><b>Profiling available:</b>
-		  <% if NewRelic::Control.instance.profiling? %>
+		  <% if NewRelic::Agent.config[:'profiling.enabled'] %>
             <%= link_to "Stop Profiling", 'profile?stop=true'%>
 	      <% else %>
             <%= link_to "Start Profiling", 'profile?start=true' %>

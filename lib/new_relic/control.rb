@@ -16,7 +16,6 @@ require 'socket'
 require 'net/https'
 require 'logger'
 require 'new_relic/control/frameworks'
-require 'new_relic/control/profiling'
 require 'new_relic/control/server_methods'
 require 'new_relic/control/instrumentation'
 require 'new_relic/control/class_methods'
@@ -24,7 +23,6 @@ require 'new_relic/control/instance_methods'
 
 require 'new_relic/agent'
 require 'new_relic/delayed_job_injection'
-
 
 module NewRelic
 
@@ -39,12 +37,8 @@ module NewRelic
     # done in a subfile for load order purposes
     # extend ClassMethods
     # include InstanceMethods
-    # include Profiling
     # include Configuration
     # include ServerMethods
     # include Instrumentation
-
-
-
   end
 end
