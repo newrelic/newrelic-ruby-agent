@@ -78,6 +78,8 @@ def _normalize_metric_expectations(expectations)
     # Just assert that the metric is present, nothing about the attributes
     expectations.each { |k| hash[k] = { } }
     hash
+  when String
+    { expectations => {} }
   else
     expectations
   end
