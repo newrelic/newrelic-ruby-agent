@@ -34,11 +34,10 @@ module NewRelic
         def metric_for_sql(sql)
           metric = NewRelic::Agent::Transaction.database_metric_name
           if metric.nil?
-            if sql =~ /^(select|update|insert|delete|show)/i
-              # Could not determine the model/operation so let's find a better
-              # metric.  If it doesn't match the regex, it's probably a show
-              # command or some DDL which we'll ignore.
-              metric = "Database/SQL/#{$1.downcase}"
+            operation = NewRelic::Agent::Database.parse_operation_from_query(sql)
+            if operation
+              # Could not determine the model/operation so use a fallback metric
+              metric = "Database/SQL/#{operation}"
             else
               metric = "Database/SQL/other"
             end
