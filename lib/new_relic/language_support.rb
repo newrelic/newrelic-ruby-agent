@@ -64,8 +64,16 @@ module NewRelic::LanguageSupport
     end
   end
 
+  def gc_profiler_usable?
+    if defined?(::GC::Profiler) && !jruby?
+      true
+    else
+      false
+    end
+  end
+
   def gc_profiler_enabled?
-    if defined?(::GC::Profiler) && ::GC::Profiler.enabled?
+    if gc_profiler_usable? && ::GC::Profiler.enabled?
       true
     else
       false
@@ -80,6 +88,10 @@ module NewRelic::LanguageSupport
     else
       false
     end
+  end
+
+  def jruby?
+    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
   end
 
   def rubinius?

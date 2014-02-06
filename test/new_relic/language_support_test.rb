@@ -24,30 +24,44 @@ class NewRelic::LanguageSupportTest < Minitest::Test
     assert_falsy NewRelic::LanguageSupport.object_space_usable?
   end
 
+  def test_gc_profiler_unavailable_without_constant
+    undefine_constant(:'GC::Profiler') do
+      assert_equal false, NewRelic::LanguageSupport.gc_profiler_usable?
+    end
+  end
+
+  def test_gc_profiler_unavailable_on_jruby
+    return unless jruby?
+    assert_equal false, NewRelic::LanguageSupport.gc_profiler_usable?
+  end
+
   def test_gc_profiler_disabled_without_constant
     undefine_constant(:'GC::Profiler') do
       assert_equal false, NewRelic::LanguageSupport.gc_profiler_enabled?
     end
   end
 
-  def test_gc_profiler_disabled_when_enabled_is_falsy
-    return unless defined?(::GC::Profiler)
+  if NewRelic::LanguageSupport.gc_profiler_usable?
+    def test_gc_profiler_disabled_when_enabled_is_falsy
+      ::GC::Profiler.stubs(:enabled?).returns(false)
+      assert_equal false, NewRelic::LanguageSupport.gc_profiler_enabled?
+    end
 
-    ::GC::Profiler.stubs(:enabled?).returns(false)
-    assert_equal false, NewRelic::LanguageSupport.gc_profiler_enabled?
+    def test_gc_profiler_enabled
+      ::GC::Profiler.stubs(:enabled?).returns(true)
+      assert_equal true, NewRelic::LanguageSupport.gc_profiler_enabled?
+    end
+
+    def test_gc_profiler_enabled_when_response_is_only_truthy
+      ::GC::Profiler.stubs(:enabled?).returns(0)
+      assert_equal true, NewRelic::LanguageSupport.gc_profiler_enabled?
+    end
   end
 
-  def test_gc_profiler_enabled
-    return unless defined?(::GC::Profiler)
+  def test_gc_profiler_disabled_on_jruby
+    return unless defined?(::GC::Profiler) && jruby?
 
     ::GC::Profiler.stubs(:enabled?).returns(true)
-    assert_equal true, NewRelic::LanguageSupport.gc_profiler_enabled?
-  end
-
-  def test_gc_profiler_enabled_when_response_is_only_truthy
-    return unless defined?(::GC::Profiler)
-
-    ::GC::Profiler.stubs(:enabled?).returns(0)
-    assert_equal true, NewRelic::LanguageSupport.gc_profiler_enabled?
+    assert_equal false, NewRelic::LanguageSupport.gc_profiler_enabled?
   end
 end

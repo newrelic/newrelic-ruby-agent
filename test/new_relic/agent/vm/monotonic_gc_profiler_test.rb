@@ -13,7 +13,7 @@ class MonotonicGCProfilerTest < MiniTest::Unit::TestCase
     NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(true)
   end
 
-  unless RUBY_VERSION < '1.9.2'
+  if NewRelic::LanguageSupport.gc_profiler_usable?
     def test_total_time_isnt_nil
       refute_nil profiler.total_time
     end
