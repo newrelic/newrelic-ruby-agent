@@ -64,6 +64,14 @@ module NewRelic::LanguageSupport
     end
   end
 
+  def gc_profiler_enabled?
+    if defined?(::GC::Profiler) && ::GC::Profiler.enabled?
+      true
+    else
+      false
+    end
+  end
+
   def object_space_usable?
     if defined?(::JRuby) && JRuby.respond_to?(:runtime)
       JRuby.runtime.is_object_space_enabled

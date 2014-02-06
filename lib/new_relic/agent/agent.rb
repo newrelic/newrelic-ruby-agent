@@ -21,6 +21,7 @@ require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/request_sampler'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
+require 'new_relic/agent/vm/monotonic_gc_profiler'
 require 'new_relic/environment_report'
 
 module NewRelic
@@ -52,6 +53,7 @@ module NewRelic
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
         @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
         @harvester             = NewRelic::Agent::Harvester.new(@events)
+        @monotonic_gc_profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
 
         @connect_state      = :pending
         @connect_attempts   = 0
@@ -105,6 +107,8 @@ module NewRelic
         # the latter during harvest.
         attr_reader :transaction_rules
         attr_reader :harvest_lock
+        # GC::Profiler.total_time is not monotonic so we wrap it.
+        attr_reader :monotonic_gc_profiler
 
         # fakes out a transaction that did not happen in this process
         # by creating apdex, summary metrics, and recording statistics
