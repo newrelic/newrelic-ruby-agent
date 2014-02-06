@@ -80,9 +80,8 @@ task :record_build, [ :build_number, :stage ] do |t, args|
 end
 
 task :console do
-  require 'irb'
-  require 'irb/completion'
+  require 'pry'
   require 'newrelic_rpm'
   ARGV.clear
-  IRB.start
+  Pry.start
 end
