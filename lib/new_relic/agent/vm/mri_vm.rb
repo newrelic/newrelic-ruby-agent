@@ -23,8 +23,11 @@ module NewRelic
 
         def gather_gc_stats(snap)
           if supports?(:gc_runs)
+            snap.gc_runs = GC.count
+          end
+
+          if GC.respond_to?(:stat)
             gc_stats = GC.stat
-            snap.gc_runs = gc_stats[:count]
             snap.total_allocated_object = gc_stats[:total_allocated_object]
             snap.major_gc_count = gc_stats[:major_gc_count]
             snap.minor_gc_count = gc_stats[:minor_gc_count]
@@ -64,9 +67,9 @@ module NewRelic
           when :minor_gc_count
             RUBY_VERSION >= '2.1.0'
           when :heap_live
-            RUBY_VERSION >= '1.9.2'
+            RUBY_VERSION >= '1.9.3'
           when :heap_free
-            RUBY_VERSION >= '1.9.2'
+            RUBY_VERSION >= '1.9.3'
           when :method_cache_invalidations
             RUBY_VERSION >= '2.1.0'
           when :constant_cache_invalidations
