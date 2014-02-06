@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/rack/agent_hooks'
 
-class AgentHooksTest < MiniTest::Unit::TestCase
+class AgentHooksTest < Minitest::Test
 
   def setup
     @app = stub_everything

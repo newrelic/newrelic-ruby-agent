@@ -24,6 +24,9 @@ module NewRelic
       attr_reader :name
       attr_reader :stats_hash
 
+      # Populated with the trace sample once this transaction is completed.
+      attr_reader :transaction_trace
+
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
       # as a Rack::Request or an ActionController::AbstractRequest.
@@ -209,6 +212,8 @@ module NewRelic
         end
       end
 
+      # This event is fired when the transaction is fully completed. The metric
+      # values and sampler can't be successfully modified from this event.
       def send_transaction_finished_event(start_time, end_time, overview_metrics)
         payload = {
           :name             => @name,

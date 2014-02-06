@@ -10,7 +10,7 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_server')
 
-  class NewRelic::Agent::Instrumentation::MongoUnsupportedVersionTest < MiniTest::Unit::TestCase
+  class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < Minitest::Test
     include Mongo
 
     def setup

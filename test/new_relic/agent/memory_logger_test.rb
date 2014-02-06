@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/memory_logger'
 
-class MemoryLoggerTest < MiniTest::Unit::TestCase
+class MemoryLoggerTest < Minitest::Test
   LEVELS = [:fatal, :error, :warn, :info, :debug]
 
   def setup

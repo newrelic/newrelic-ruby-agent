@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
-class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
   def run_task_inner(n)

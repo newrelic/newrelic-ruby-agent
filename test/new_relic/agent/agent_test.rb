@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 module NewRelic
   module Agent
-    class AgentTest < MiniTest::Unit::TestCase
+    class AgentTest < Minitest::Test
       include NewRelic::TestHelpers::Exceptions
 
       def setup
@@ -515,7 +515,7 @@ module NewRelic
       end
     end
 
-    class AgentStartingTest < MiniTest::Unit::TestCase
+    class AgentStartingTest < Minitest::Test
       def test_no_service_if_not_monitoring
         with_config(:monitor_mode => false) do
           agent = NewRelic::Agent::Agent.new

@@ -8,7 +8,7 @@ require 'new_relic/agent/transaction_state'
 
 module NewRelic
   module Rack
-    class TransactionResetTest < MiniTest::Unit::TestCase
+    class TransactionResetTest < Minitest::Test
       class ExampleMiddleware
         include TransactionReset
       end

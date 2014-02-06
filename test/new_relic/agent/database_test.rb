@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..',
                                    'test_helper'))
 require 'new_relic/agent/database'
-class NewRelic::Agent::DatabaseTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::DatabaseTest < Minitest::Test
   def setup
     @explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
   end

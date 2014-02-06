@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
-class PipeServiceTest < MiniTest::Unit::TestCase
+class PipeServiceTest < Minitest::Test
   def setup
     NewRelic::Agent::PipeChannelManager.listener.stop
     NewRelic::Agent::PipeChannelManager.register_report_channel(:pipe_service_test)

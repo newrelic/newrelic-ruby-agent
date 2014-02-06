@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class NewRelic::Agent::TransactionTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::TransactionTest < Minitest::Test
 
   attr_reader :txn
 

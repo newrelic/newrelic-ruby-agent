@@ -1,0 +1,26 @@
+mysql: &mysql
+  adapter: mysql
+  socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
+  username: root
+  host: localhost
+  database: <%= db = "#{ENV['RUBY_VERSION']}#{ENV['BRANCH']}"; db.empty? ? "rails_blog" : db %>
+
+sqlite3: &sqlite3
+<% if defined?(JRuby) %>
+  adapter: jdbcsqlite3
+<% else %>
+  adapter: sqlite3
+<% end %>
+  database: db/all.sqlite3
+  pool: 5
+  timeout: 5000
+  host: localhost
+
+development:
+  <<: *sqlite3
+
+test:
+  <<: *mysql
+
+production:
+  <<: *mysql

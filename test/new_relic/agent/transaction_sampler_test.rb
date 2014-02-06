@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
-class NewRelic::Agent::TransactionSamplerTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   module MockGCStats
 
@@ -170,20 +170,6 @@ class NewRelic::Agent::TransactionSamplerTest < MiniTest::Unit::TestCase
     builder.expects(:ignore_transaction)
     @sampler.expects(:builder).returns(builder).twice
     @sampler.ignore_transaction
-  end
-
-  def test_notice_profile_no_builder
-    @sampler.expects(:builder).returns(nil).once
-    @sampler.notice_profile(nil)
-  end
-
-  def test_notice_profile_with_builder
-    profile = mock('profile')
-    builder = mock('builder')
-    @sampler.expects(:builder).returns(builder).twice
-    builder.expects(:set_profile).with(profile)
-
-    @sampler.notice_profile(profile)
   end
 
   def test_notice_transaction_cpu_time_no_builder

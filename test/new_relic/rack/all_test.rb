@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/developer_mode'
-class NewRelic::Rack::AllTest < MiniTest::Unit::TestCase
+class NewRelic::Rack::AllTest < Minitest::Test
   # just here to load the files above
 
   def test_truth

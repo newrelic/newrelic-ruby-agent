@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', 'test_helper'))
-class NewRelic::MetricParser::MetricParserTest < MiniTest::Unit::TestCase
+class NewRelic::MetricParser::MetricParserTest < Minitest::Test
   class ::AnApplicationClass
   end
 

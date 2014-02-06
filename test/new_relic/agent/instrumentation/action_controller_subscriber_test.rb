@@ -7,7 +7,7 @@ if defined?(::Rails)
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/action_controller_subscriber'
 
-class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minitest::Test
   class TestController
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 

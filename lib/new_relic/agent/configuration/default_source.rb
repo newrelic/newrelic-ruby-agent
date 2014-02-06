@@ -147,6 +147,17 @@ module NewRelic
           Proc.new { NewRelic::Agent.config[:developer] }
         end
 
+        def self.profiling_available
+          Proc.new {
+            begin
+              require 'ruby-prof'
+              true
+            rescue LoadError
+              false
+            end
+          }
+        end
+
         def self.monitor_mode
           Proc.new { NewRelic::Agent.config[:enabled] }
         end
@@ -282,6 +293,18 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Alternative method of enabling developer_mode.'
+        },
+        :'profiling.available' => {
+          :default => DefaultSource.profiling_available,
+          :public => false,
+          :type => Boolean,
+          :description => 'Determines if ruby-prof is available for developer mode profiling.'
+        },
+        :'profiling.enabled' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Determines at runtime whether developer mode should be profiling or not.'
         },
         :apdex_t => {
           :default => 0.5,

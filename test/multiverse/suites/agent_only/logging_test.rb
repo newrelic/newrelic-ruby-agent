@@ -11,7 +11,7 @@ require 'newrelic_rpm'
 require 'fake_collector'
 require 'multiverse_helpers'
 
-class LoggingTest < MiniTest::Unit::TestCase
+class LoggingTest < Minitest::Test
 
   include MultiverseHelpers
 

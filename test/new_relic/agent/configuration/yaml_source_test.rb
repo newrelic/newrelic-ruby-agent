@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/configuration/yaml_source'
 
 module NewRelic::Agent::Configuration
-  class YamlSourceTest < MiniTest::Unit::TestCase
+  class YamlSourceTest < Minitest::Test
     def setup
       @test_yml_path = File.expand_path(File.join(File.dirname(__FILE__),
                                                  '..','..','..',

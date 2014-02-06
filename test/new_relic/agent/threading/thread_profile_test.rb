@@ -11,7 +11,7 @@ require 'new_relic/agent/threading/threaded_test_case'
 if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
   module NewRelic::Agent::Threading
-    class ThreadProfileTest < MiniTest::Unit::TestCase
+    class ThreadProfileTest < Minitest::Test
       include ThreadedTestCase
 
       def setup

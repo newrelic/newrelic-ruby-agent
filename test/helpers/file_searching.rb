@@ -6,7 +6,7 @@ module NewRelic
   module TestHelpers
     module FileSearching
       def all_rb_files
-        pattern = File.expand_path(gem_root + "/**/*.rb")
+        pattern = File.expand_path(gem_root + "/**/*.{rb,rhtml}")
         Dir[pattern]
       end
 

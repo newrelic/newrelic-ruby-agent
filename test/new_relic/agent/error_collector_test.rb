@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/internal_agent_error'
 
-class NewRelic::Agent::ErrorCollectorTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def setup
     @test_config = { :capture_params => true }
     NewRelic::Agent.config.apply_config(@test_config)

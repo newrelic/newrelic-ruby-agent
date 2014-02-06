@@ -7,7 +7,7 @@ if defined?(::Rails)
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/action_view_subscriber'
 
-class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Test
   def setup
     @subscriber = NewRelic::Agent::Instrumentation::ActionViewSubscriber.new
     @stats_engine = NewRelic::Agent.instance.stats_engine

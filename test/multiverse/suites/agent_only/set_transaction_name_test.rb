@@ -4,7 +4,7 @@
 
 require 'multiverse_helpers'
 
-class SetTransactionNameTest < MiniTest::Unit::TestCase
+class SetTransactionNameTest < Minitest::Test
   include NewRelic::Agent::MethodTracer
 
   include MultiverseHelpers

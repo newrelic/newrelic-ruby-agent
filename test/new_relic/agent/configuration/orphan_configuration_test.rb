@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
-class OrphanedConfigTest < MiniTest::Unit::TestCase
+class OrphanedConfigTest < Minitest::Test
   include NewRelic::TestHelpers::FileSearching
 
   def setup
