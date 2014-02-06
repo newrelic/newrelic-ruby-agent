@@ -8,9 +8,9 @@ require 'new_relic/agent/vm'
 module NewRelic
   module Agent
     module Samplers
-      class VMSampler
-        def self.supported_on_this_platform?
-          true
+      class VMSampler < Sampler
+        def initialize
+          super :vm
         end
 
         def poll
