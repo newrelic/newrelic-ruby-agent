@@ -1,0 +1,165 @@
+[
+  {
+    "testname":"replace first",
+    "rules":[{"match_expression":"(psi)", "replacement":"gamma", "ignore":false, "eval_order":0}],
+    "tests":
+    [
+      {"input":"/alpha/psi/beta", "expected":"/alpha/gamma/beta"},
+      {"input":"/psi/beta",       "expected":"/gamma/beta"},
+      {"input":"/alpha/psi",      "expected":"/alpha/gamma"}
+    ]
+  },
+  {
+    "testname":"resource normalization rule",
+    "rules":[{"match_expression":"(.*)/[^/]*.(bmp|css|gif|ico|jpg|jpeg|js|png)$", "replacement":"\\1/*.\\2", "ignore":false, "eval_order":1}],
+    "tests":
+    [
+      {"input":"/test/dude/flower.jpg", "expected":"/test/dude/*.jpg"},
+      {"input":"/DUDE.ICO",             "expected":"/*.ICO"}
+    ]
+  },
+  {
+    "testname":"replace first",
+    "rules":[{"match_expression":"^/userid/.*/folderid",          "replacement":"/userid/*/folderid/*",          "ignore":false, "eval_order":1},
+             {"match_expression":"/need_not_be_first_segment/.*", "replacement":"*/need_not_be_first_segment/*", "ignore":false, "eval_order":2}],
+    "tests":
+    [
+      {"input":"/userid/123abc/folderid/qwerty8855",    "expected":"/userid/*/folderid/*/qwerty8855"},
+      {"input":"/first/need_not_be_first_segment/uiop", "expected":"/first*/need_not_be_first_segment/*"}
+    ]
+  },
+  {
+    "testname":"ignore rule",
+    "rules":[{"match_expression":"^/artists/az/(.*)/(.*)$", "replacement":"/artists/az/*/\\2", "ignore":true, "eval_order":11}],
+    "tests":
+    [
+      {"input":"/artists/az/veritas/truth.jhtml", "expected":null}
+    ]
+  },
+  {
+    "testname":"hexadecimal each segment rule",
+    "rules":[{"match_expression":"^[0-9a-f]*[0-9][0-9a-f]*$", "replacement":"*", "ignore":false, "eval_order":1, "each_segment":true}],
+    "tests":
+    [
+      {"input":"/test/1axxx/4babe/cafe222/bad/a1b2c3d3e4f5/ABC123/x999/111", "expected":"/test/1axxx/*/*/bad/*/*/x999/*"},
+      {"input":"/test/4/dude",                                               "expected":"/test/*/dude"},
+      {"input":"/test/babe4/999x",                                           "expected":"/test/*/999x"},
+      {"input":"/glass/resource/vase/images/9ae1283",                        "expected":"/glass/resource/vase/images/*"},
+      {"input":"/test/4/dude.jsp",                                           "expected":"/test/*/dude.jsp"},
+      {"input":"/glass/resource/vase/images/add",                            "expected":"/glass/resource/vase/images/add"}
+    ]
+  },
+  {
+    "testname":"url encoded segments rule",
+    "rules":[{"match_expression":"(.*)%(.*)", "replacement":"*", "ignore":false, "eval_order":1, "each_segment":true, "terminate_chain":false, "replace_all":false}],
+    "tests":
+    [
+      {"input":"/test/%%%/bad%%/a1b2%c3%d3e4f5/x999/111%", "expected":"/test/*/*/*/x999/*"},
+      {"input":"/add-resource/vmqoiearks%1B%3R",           "expected":"/add-resource/*"}
+    ]
+  },
+  {
+    "testname":"remove all ticks",
+    "rules":[{"match_expression":"([^']*)'+", "replacement":"\\1", "ignore":false, "eval_order":1, "each_segment":false, "replace_all":true}],
+    "tests":
+    [
+      {"input":"/test/'''/b'a''d''/a1b2'c3'd3e4f5/x999/111'", "expected":"/test//bad/a1b2c3d3e4f5/x999/111"}
+    ]
+  },
+  {
+    "testname":"number rule",
+    "rules":[{"match_expression":"\\d+", "replacement":"*", "ignore":false, "eval_order":1, "each_segment":false, "replace_all":true}],
+    "tests":
+    [
+      {"input":"/solr/shard03/select", "expected":"/solr/shard*/select"},
+      {"input":"/hey/r2d2",            "expected":"/hey/r*d*"}
+    ]
+  },
+  {
+    "testname":"custom rules",
+    "rules":
+    [
+      {"match_expression":"^/([^/]*=[^/]*&?)+",                                   "replacement":"/all_params",           "ignore":false, "eval_order":0,  "each_segment":false, "terminate_chain":true},
+      {"match_expression":"^/.*/PARAMS/(article|legacy_article|post|product)/.*", "replacement":"/*/PARAMS/\\1/*",       "ignore":false, "eval_order":14, "each_segment":false, "terminate_chain":true},
+      {"match_expression":"^/test/(.*)",                                          "replacement":"/dude",                 "ignore":false, "eval_order":1,  "each_segment":false, "terminate_chain":true},
+      {"match_expression":"^/blah/(.*)",                                          "replacement":"/\\1",                  "ignore":false, "eval_order":2,  "each_segment":false, "terminate_chain":true},
+      {"match_expression":"/.*(dude|man)",                                        "replacement":"/*.\\1",                "ignore":false, "eval_order":3,  "each_segment":false, "terminate_chain":true},
+      {"match_expression":"^/(bob)",                                              "replacement":"/\\1ert/\\1/\\1ertson", "ignore":false, "eval_order":4,  "each_segment":false, "terminate_chain":true},
+      {"match_expression":"/foo(.*)",                                                                                    "ignore":true,  "eval_order":5,  "each_segment":false, "terminate_chain":true}
+    ],
+    "tests":
+    [
+      {"input":"/xs=zs&fly=*&row=swim&id=*&",   "expected":"/all_params"},
+      {"input":"/zip-zap/PARAMS/article/*",     "expected":"/*/PARAMS/article/*"},
+      {"input":"/bob",                          "expected":"/bobert/bob/bobertson"},
+      {"input":"/test/foobar",                  "expected":"/dude"},
+      {"input":"/bar/test",                     "expected":"/bar/test"},
+      {"input":"/blah/test/man",                "expected":"/test/man"},
+      {"input":"/oh/hey.dude",                  "expected":"/*.dude"},
+      {"input":"/oh/hey/what/up.man",           "expected":"/*.man"},
+      {"input":"/foo",                          "expected":null},
+      {"input":"/foo/foobar",                   "expected":null}
+    ]
+  },
+  {
+    "testname":"chained rules",
+    "rules":
+    [
+      {"match_expression":"^[0-9a-f]*[0-9][0-9a-f]*$", "replacement":"*",            "ignore":false, "eval_order":1,  "each_segment":true,  "terminate_chain":false},
+      {"match_expression":"(.*)/fritz/(.*)",           "replacement":"\\1/karl/\\2", "ignore":false, "eval_order":11, "each_segment":false, "terminate_chain":true}
+    ],
+    "tests":
+    [
+      {"input":"/test/1axxx/4babe/fritz/x999/111", "expected":"/test/1axxx/*/karl/x999/*"}
+    ]
+  },
+  {
+    "testname":"rule ordering (two rules match, but only one is applied due to ordering)",
+    "rules":
+    [
+      {"match_expression":"/test/(.*)", "replacement":"/el_duderino", "ignore":false, "eval_order":37},
+      {"match_expression":"/test/(.*)", "replacement":"/dude",        "ignore":false, "eval_order":1},
+      {"match_expression":"/blah/(.*)", "replacement":"/$1",          "ignore":false, "eval_order":2},
+      {"match_expression":"/foo(.*)",                                 "ignore":true,  "eval_order":3}
+    ],
+    "tests":
+    [
+      {"input":"/test/foobar", "expected":"/dude"}
+    ]
+  },
+  {
+    "testname":"stable rule sorting",
+    "rules":
+    [
+      {"match_expression":"/test/(.*)", "replacement":"/you_first",        "ignore":false, "eval_order":0},
+      {"match_expression":"/test/(.*)", "replacement":"/no_you",           "ignore":false, "eval_order":0},
+      {"match_expression":"/test/(.*)", "replacement":"/please_after_you", "ignore":false, "eval_order":0}
+    ],
+    "tests":
+    [
+      {"input":"/test/polite_seattle_drivers", "expected":"/you_first"}
+    ]
+  },
+  {
+    "testname":"custom rule chaining",
+    "rules":
+    [
+      {"match_expression":"(.*)/robertson(.*)", "replacement":"\\1/LAST_NAME\\2", "ignore":false, "eval_order":0, "terminate_chain":false},
+      {"match_expression":"^/robert(.*)",       "replacement":"/bob\\1",          "ignore":false, "eval_order":1, "terminate_chain":true},
+      {"match_expression":"/LAST_NAME",         "replacement":"/fail",            "ignore":false, "eval_order":2, "terminate_chain":true}
+    ],
+    "tests":
+    [
+      {"input":"/robert/robertson", "expected":"/bob/LAST_NAME"}
+    ]
+  },
+  {
+    "testname":"saxon's test",
+    "rules":[{"match_expression":"^(?!account|application).*", "replacement":"*", "ignore":false, "eval_order":0, "each_segment":true}],
+    "tests":
+    [
+      {"input":"/account/myacc/application/test",    "expected":"/account/*/application/*"},
+      {"input":"/oh/dude/account/myacc/application", "expected":"/*/*/account/*/application"}
+    ]
+  }
+]
