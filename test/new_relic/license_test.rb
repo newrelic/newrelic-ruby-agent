@@ -26,6 +26,7 @@ class LicenseTest < Minitest::Test
   # unless listed here the expectation is that these terms will not occur in
   # the source code.
   EXPECTED_LICENSE_OCCURRENCES = {
+    ['/newrelic_rpm.gemspec', 'MIT'] => 1, # licenses specificiation, which includes MIT for MIT-licensed portions of code
     ['/lib/new_relic/okjson.rb', '(c)'] => 3, # methods arguments like (c)
     ['/test/new_relic/agent/instrumentation/active_record_instrumentation_test.rb', '(c)'] => 2, # methods arguments like (c)
     ['/lib/new_relic/okjson.rb', 'Copyright'] => 3, # okjson license info
