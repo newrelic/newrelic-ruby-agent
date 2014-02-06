@@ -66,11 +66,6 @@ module NewRelic
             ::GC.respond_to?(:time) && ::GC.respond_to?(:collections)
           end
 
-          # microseconds spent in GC
-          def call_time
-            ::GC.time # this should already be microseconds
-          end
-
           def call_count
             ::GC.collections
           end
@@ -82,23 +77,17 @@ module NewRelic
 
         class CoreGCProfiler < Profiler
           def self.enabled?
-            !NewRelic::LanguageSupport.using_engine?('jruby') &&
-              defined?(::GC::Profiler) && ::GC::Profiler.enabled?
+            NewRelic::LanguageSupport.gc_profiler_enabled?
           end
 
           # microseconds spent in GC
           # 1.9 total_time returns seconds.  Don't trust the docs.  It's seconds.
           def call_time
-            ::GC::Profiler.total_time * 1_000_000.0 # convert seconds to microseconds
+            NewRelic::Agent.instance.monotonic_gc_profiler.total_time * 1_000_000.0 # convert seconds to microseconds
           end
 
           def call_count
             ::GC.count
-          end
-
-          def reset
-            ::GC::Profiler.clear
-            @last_timestamp = 0
           end
         end
 
