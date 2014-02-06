@@ -78,3 +78,10 @@ task :record_build, [ :build_number, :stage ] do |t, args|
     f.write("module NewRelic; module VERSION; BUILD='#{build_string}'; end; end\n")
   end
 end
+
+task :console do
+  require 'pry'
+  require 'newrelic_rpm'
+  ARGV.clear
+  Pry.start
+end
