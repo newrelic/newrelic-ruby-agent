@@ -105,14 +105,9 @@ class PipeServiceTest < Minitest::Test
 
   def read_from_pipe
     pipe = NewRelic::Agent::PipeChannelManager.channels[:pipe_service_test]
-    pipe.in.close
     data = {}
-    while payload = pipe.out.gets("\n\n")
-      got = Marshal.load(payload)
-      if got == 'EOF'
-        got = {:EOF => 'EOF'}
-      end
-      data.merge!(got)
+    while payload = pipe.read
+      data.merge!(Marshal.load(payload))
     end
     data
   end
