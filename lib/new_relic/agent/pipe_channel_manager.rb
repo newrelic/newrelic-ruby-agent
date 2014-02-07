@@ -46,8 +46,18 @@ module NewRelic
       # This class provides message framing (separation of individual messages),
       # but not serialization. Serialization / deserialization is the
       # responsibility of clients.
+      #
+      # Message framing works like this:
+      #
+      # Each message sent across the pipe is preceded by a length tag that
+      # specifies the length of the message that immediately follows, in bytes.
+      # The length tags are serialized as unsigned big-endian long values, (4
+      # bytes each). This means that the maximum theoretical message size is
+      # 4 GB - much larger than we'd ever need or want for this application.
+      #
       class Pipe
         READY_MARKER = "READY"
+        NUM_LENGTH_BYTES = 4
 
         attr_accessor :in, :out
         attr_reader :last_read, :parent_pid
@@ -66,16 +76,33 @@ module NewRelic
           @in.close unless @in.closed?
         end
 
+        def serialize_message_length(data)
+          [data.bytesize].pack("L>")
+        end
+
+        def deserialize_message_length(data)
+          data.unpack("L>").first
+        end
+
         def write(data)
           @out.close unless @out.closed?
+          @in << serialize_message_length(data)
           @in << data
-          @in << "\n\n"
         end
 
         def read
           @in.close unless @in.closed?
           @last_read = Time.now
-          @out.gets("\n\n")
+          length_bytes = @out.read(NUM_LENGTH_BYTES)
+          if length_bytes
+            message_length = deserialize_message_length(length_bytes)
+            if message_length
+              @out.read(message_length)
+            else
+              NewRelic::Agent.logger.error("Failed to deserialize message length from pipe.")
+              nil
+            end
+          end
         end
 
         def eof?

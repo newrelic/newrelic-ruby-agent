@@ -70,6 +70,14 @@ class PipeServiceTest < Minitest::Test
       assert_equal ['sql'], received_data[:sql_traces]
     end
 
+    def test_transaction_sample_data_with_newlines
+      payload_with_newline = "foo\n\nbar"
+      received_data = data_from_forked_process do
+        @service.transaction_sample_data([payload_with_newline])
+      end
+      assert_equal [payload_with_newline], received_data[:transaction_traces]
+    end
+
     def test_multiple_writes_to_pipe
       pid = Process.fork do
         metric_data0 = generate_metric_data('Custom/something')
