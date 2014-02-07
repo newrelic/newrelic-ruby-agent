@@ -66,8 +66,14 @@ module NewRelic
 
       private
 
+      def marshal_payload(data)
+        NewRelic::LanguageSupport.with_cautious_gc do
+          Marshal.dump(data)
+        end
+      end
+
       def write_to_pipe(data)
-        @pipe.write(data) if @pipe
+        @pipe.write(marshal_payload(data)) if @pipe
       end
     end
   end

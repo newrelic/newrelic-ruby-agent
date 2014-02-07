@@ -42,6 +42,10 @@ module NewRelic
       # pipe in the parent and child processes is essential in order for the EOF
       # to be correctly triggered. The ready marker mechanism is used because
       # there's no easy hook for after_fork in the parent process.
+      #
+      # This class provides message framing (separation of individual messages),
+      # but not serialization. Serialization / deserialization is the
+      # responsibility of clients.
       class Pipe
         READY_MARKER = "READY"
 
@@ -64,9 +68,7 @@ module NewRelic
 
         def write(data)
           @out.close unless @out.closed?
-          @in << NewRelic::LanguageSupport.with_cautious_gc do
-            Marshal.dump(data)
-          end
+          @in << data
           @in << "\n\n"
         end
 
@@ -176,15 +178,16 @@ module NewRelic
         def merge_data_from_pipe(pipe_handle)
           pipe = find_pipe_for_handle(pipe_handle)
           raw_payload = pipe.read
-
           if raw_payload && !raw_payload.empty?
-            payload = unmarshal(raw_payload)
-            if payload == Pipe::READY_MARKER
+            if raw_payload == Pipe::READY_MARKER
               pipe.after_fork_in_parent
-            elsif payload
-              NewRelic::Agent.agent.merge_data_from([payload[:stats],
-                                                     payload[:transaction_traces],
-                                                     payload[:error_traces]])
+            else
+              payload = unmarshal(raw_payload)
+              if payload
+                NewRelic::Agent.agent.merge_data_from([payload[:stats],
+                                                       payload[:transaction_traces],
+                                                       payload[:error_traces]])
+              end
             end
           end
 
