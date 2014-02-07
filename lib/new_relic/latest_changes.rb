@@ -1,8 +1,6 @@
-#!/usr/bin/ruby
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-
 
 module NewRelic
   module LatestChanges
@@ -10,26 +8,57 @@ module NewRelic
       File.join(File.dirname(__FILE__), '..', '..', 'CHANGELOG')
     end
 
-    def self.read(changelog=default_changelog)
-      footer = <<'EOS'
-See https://github.com/newrelic/rpm/blob/master/CHANGELOG for a full list of
-changes.
+    FOOTER = <<'EOS'
+    See https://github.com/newrelic/rpm/blob/master/CHANGELOG for a full list of
+    changes.
 EOS
 
-      return footer unless File.exists?(changelog)
+    def self.read(changelog=default_changelog)
+      changes = extract_latest_changes(File.read(changelog))
+      changes << FOOTER
 
-      version_count = 0
+      changes.join("\n")
+    end
+
+    # Patches are expected to have the format of our normal item, with the
+    # precise version number included in the line in parens. For example:
+    #
+    # * This is a patch item (3.7.1.188)
+    def self.read_patch(patch_level, changelog=default_changelog)
+      latest = extract_latest_changes(File.read(changelog))
+      changes = ["## v#{patch_level} ##", ""]
+
+      current_item = nil
+      latest.each do |line|
+        if line.match /^\s*\*.*/
+          if line.match /\(#{patch_level}\)/
+            # Found a patch level item, so start tracking the lines!
+            current_item = line
+          else
+            # Found an item that isn't our patch level, so don't grab it
+            current_item = nil
+          end
+        end
+
+        if current_item
+          changes << line
+        end
+      end
+
+      changes.join("\n")
+    end
+
+    def self.extract_latest_changes(contents)
       changes = []
-      File.read(changelog).each_line do |line|
+      version_count = 0
+      contents.each_line do |line|
         if line.match(/##\s+v[\d.]+\s+##/)
           version_count += 1
         end
         break if version_count >= 2
         changes << line.sub(/^  \* /, "* ").chomp
       end
-
-      changes << footer
-      change_message =  changes.join("\n")
+      changes
     end
   end
 end
