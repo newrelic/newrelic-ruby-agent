@@ -97,9 +97,13 @@ module MongoOperationTests
   end
 
   def test_records_metrics_for_group
-    @collection.group({:key => "name",
-                       :initial => {:count => 0},
-                       :reduce => "function(k,v) { v.count += 1; }" })
+    begin
+      @collection.group({:key => "name",
+                        :initial => {:count => 0},
+                        :reduce => "function(k,v) { v.count += 1; }" })
+    rescue Mongo::OperationFailure
+      # We get occasional group failures, but should still record metrics
+    end
 
     metrics = build_test_metrics(:group)
     expected = metrics_with_attributes(metrics)
