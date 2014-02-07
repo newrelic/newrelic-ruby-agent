@@ -104,16 +104,6 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       assert_equal(2, NewRelic::Agent.agent.error_collector.errors.size)
     end
 
-    def pipe_finished?(id)
-      (!NewRelic::Agent::PipeChannelManager.channels[id] ||
-        NewRelic::Agent::PipeChannelManager.channels[id].closed?)
-    end
-
-    def assert_pipe_finished(id)
-      assert(pipe_finished?(id),
-        "Expected pipe with ID #{id} to be nil or closed")
-    end
-
     def test_close_pipe_on_child_explicit_close
       listener = start_listener_with_pipe(669)
       pid = Process.fork do
@@ -142,6 +132,16 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       end
       Process.wait(pid)
       listener.stop
+    end
+
+    def pipe_finished?(id)
+      (!NewRelic::Agent::PipeChannelManager.channels[id] ||
+        NewRelic::Agent::PipeChannelManager.channels[id].closed?)
+    end
+
+    def assert_pipe_finished(id)
+      assert(pipe_finished?(id),
+        "Expected pipe with ID #{id} to be nil or closed")
     end
   end
 
