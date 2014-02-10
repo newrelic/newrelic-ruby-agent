@@ -287,10 +287,23 @@ class NewRelic::Agent::TransactionTest < MiniTest::Unit::TestCase
     end
 
     in_transaction do
-      # Nothing to set, will just check we get a value generated
+      NewRelic::Agent::TransactionState.get.is_cross_app = true
     end
 
     refute_empty guid
+  end
+
+  def test_end_fires_a_transaction_finished_event_without_transaction_guid_if_not_cross_app
+    found_guid = :untouched
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      found_guid = payload.key?(:guid)
+    end
+
+    in_transaction do
+      NewRelic::Agent::TransactionState.get.is_cross_app = false
+    end
+
+    refute found_guid
   end
 
   def test_end_fires_a_transaction_finished_event_with_referring_transaction_guid

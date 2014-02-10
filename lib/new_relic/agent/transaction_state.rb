@@ -58,7 +58,16 @@ module NewRelic
 
       # Cross app tracing
       # Because we need values from headers before the transaction actually starts
-      attr_accessor :client_cross_app_id, :referring_transaction_info
+      attr_accessor :client_cross_app_id, :referring_transaction_info, :is_cross_app
+
+      def is_cross_app?
+        @is_cross_app
+      end
+
+      def request_guid_for_event
+        return nil unless referring_transaction_info || is_cross_app? || include_guid?
+        request_guid
+      end
 
       # Request data
       attr_accessor :request, :request_token, :request_guid, :request_ignore_enduser

@@ -225,8 +225,9 @@ module NewRelic
       end
 
       def append_guid_to(payload)
-        if @transaction_trace && @transaction_trace.guid
-          payload[:guid] = @transaction_trace.guid
+        guid = NewRelic::Agent::TransactionState.get.request_guid_for_event
+        if guid
+          payload[:guid] = guid
         end
       end
 
