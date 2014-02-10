@@ -115,5 +115,50 @@ module NewRelic::Agent
         assert_equal "", state.request_guid_to_include
       end
     end
+
+    def test_no_request_guid_for_event
+      state.request_guid = GUID
+      state.request_token = nil
+      state.is_cross_app_caller = false
+      state.referring_transaction_info = nil
+      state.transaction = NewRelic::Agent::Transaction.new
+
+      assert_nil state.request_guid_for_event
+    end
+
+    def test_request_guid_for_event
+      state.request_guid = GUID
+      state.request_token = nil
+      state.is_cross_app_caller = true
+      state.referring_transaction_info = nil
+      state.transaction = NewRelic::Agent::Transaction.new
+
+      assert_equal GUID, state.request_guid_for_event
+    end
+
+    def test_request_guid_for_event_if_referring_transaction
+      state.request_guid = GUID
+      state.request_token = nil
+      state.is_cross_app_caller = false
+      state.referring_transaction_info = ["another"]
+      state.transaction = NewRelic::Agent::Transaction.new
+
+      assert_equal GUID, state.request_guid_for_event
+    end
+
+    def test_request_guid_for_event_if_there_for_rum
+      with_config(:apdex_t => 2.0) do
+        state.request_guid = GUID
+        state.request_token = "token"
+        state.is_cross_app_caller = false
+        state.transaction = NewRelic::Agent::Transaction.new
+
+        advance_time(10.0)
+
+        assert_equal GUID, state.request_guid_for_event
+      end
+    end
+
+
   end
 end

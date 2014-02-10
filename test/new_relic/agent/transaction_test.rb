@@ -280,6 +280,59 @@ class NewRelic::Agent::TransactionTest < MiniTest::Unit::TestCase
     assert_equal 'barz', options['fooz']
   end
 
+  def test_end_fires_a_transaction_finished_event_with_transaction_guid
+    guid = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      guid = payload[:guid]
+    end
+
+    in_transaction do
+      NewRelic::Agent::TransactionState.get.is_cross_app_caller = true
+    end
+
+    refute_empty guid
+  end
+
+  def test_end_fires_a_transaction_finished_event_without_transaction_guid_if_not_cross_app
+    found_guid = :untouched
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      found_guid = payload.key?(:guid)
+    end
+
+    in_transaction do
+      NewRelic::Agent::TransactionState.get.is_cross_app_caller = false
+    end
+
+    refute found_guid
+  end
+
+  def test_end_fires_a_transaction_finished_event_with_referring_transaction_guid
+    referring_guid = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      referring_guid = payload[:referring_transaction_guid]
+    end
+
+    in_transaction do
+      NewRelic::Agent::TransactionState.get.referring_transaction_info = ["GUID"]
+    end
+
+    assert_equal "GUID", referring_guid
+  end
+
+  def test_end_fires_a_transaction_finished_event_without_referring_guid_if_not_present
+    found_referring_guid = :untouched
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      found_referring_guid = payload.key?(:referring_transaction_guid)
+    end
+
+    in_transaction do
+      # Make sure we don't have referring transaction state floating around
+      NewRelic::Agent::TransactionState.get.referring_transaction_info = nil
+    end
+
+    refute found_referring_guid
+  end
+
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
     expects_logging(:warn, includes("add_custom_parameters"))
     NewRelic::Agent::Transaction.start(:controller)
