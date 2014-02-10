@@ -218,6 +218,7 @@ module NewRelic
           :overview_metrics => overview_metrics,
           :custom_params    => custom_parameters
         }
+        payload[:guid] = @transaction_trace.guid if @transaction_trace && @transaction_trace.guid
         agent.events.notify(:transaction_finished, payload)
       end
 

@@ -280,6 +280,19 @@ class NewRelic::Agent::TransactionTest < MiniTest::Unit::TestCase
     assert_equal 'barz', options['fooz']
   end
 
+  def test_end_fires_a_transaction_finished_event_with_transaction_guid
+    guid = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      guid = payload[:guid]
+    end
+
+    in_transaction do
+      # Nothing to set, will just check we get a value generated
+    end
+
+    refute_empty guid
+  end
+
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
     expects_logging(:warn, includes("add_custom_parameters"))
     NewRelic::Agent::Transaction.start(:controller)

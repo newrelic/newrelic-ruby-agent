@@ -20,6 +20,7 @@ class NewRelic::Agent::RequestSampler
   TIMESTAMP_KEY            = 'timestamp'
   NAME_KEY                 = 'name'
   DURATION_KEY             = 'duration'
+  GUID_KEY                 = 'guid'
 
   def initialize( event_listener )
     super()
@@ -129,6 +130,7 @@ class NewRelic::Agent::RequestSampler
         NAME_KEY          => string(payload[:name]),
         DURATION_KEY      => float(payload[:duration]),
         TYPE_KEY          => SAMPLE_TYPE,
+        GUID_KEY          => string(payload[:guid]),
       })
   end
 

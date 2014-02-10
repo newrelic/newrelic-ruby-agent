@@ -50,7 +50,6 @@ class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
     end
   end
 
-
   def test_includes_custom_parameters_in_event
     with_sampler_config do
       generate_request('whatever', :custom_params => {'bing' => 2})
@@ -89,6 +88,13 @@ class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
     with_sampler_config do
       generate_request('name', :overview_metrics => {:foo => :bar})
       assert_equal :bar, single_sample[EVENT_DATA_INDEX][:foo]
+    end
+  end
+
+  def test_samples_on_transaction_finished_event_includes_guid
+    with_sampler_config do
+      generate_request()
+      assert_equal "GUID", single_sample[EVENT_DATA_INDEX]["guid"]
     end
   end
 
@@ -188,7 +194,8 @@ class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
       :start_timestamp => Time.now.to_f,
       :duration => 0.1,
       :overview_metrics => {},
-      :custom_params => {}
+      :custom_params => {},
+      :guid => "GUID"
     }.merge(options)
     @event_listener.notify(:transaction_finished, payload)
   end
