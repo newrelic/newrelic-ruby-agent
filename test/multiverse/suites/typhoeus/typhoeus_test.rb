@@ -68,6 +68,40 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
       NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(Typhoeus::Response.new(:response_headers => headers))
     end
 
+    def test_maintains_on_complete_callback_ordering
+      invocations = []
+
+      req = Typhoeus::Request.new(default_url, ssl_option)
+      req.on_complete { |rsp| invocations << :first }
+      req.on_complete { |rsp| invocations << :second }
+      req.run
+
+      assert_equal([:first, :second], invocations)
+    end
+
+    def test_tracing_succeeds_if_user_set_on_complete_callback_raises
+      caught_exception = nil
+      in_transaction("test") do
+        req = Typhoeus::Request.new(default_url, ssl_option)
+        req.on_complete { |rsp| raise 'noodle' }
+
+        begin
+          req.run
+        rescue => e
+          if e.message == 'noodle'
+            caught_exception = e
+          else
+            raise
+          end
+        end
+
+        refute_nil(caught_exception)
+        assert_equal('noodle', caught_exception.message)
+
+        last_segment = find_last_transaction_segment
+        assert_equal "External/localhost/Typhoeus/GET", last_segment.metric_name
+      end
+    end
 
     def test_hydra
       in_transaction("test") do
