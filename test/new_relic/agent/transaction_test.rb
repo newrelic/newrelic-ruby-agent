@@ -287,7 +287,7 @@ class NewRelic::Agent::TransactionTest < MiniTest::Unit::TestCase
     end
 
     in_transaction do
-      NewRelic::Agent::TransactionState.get.is_cross_app = true
+      NewRelic::Agent::TransactionState.get.is_cross_app_caller = true
     end
 
     refute_empty guid
@@ -300,7 +300,7 @@ class NewRelic::Agent::TransactionTest < MiniTest::Unit::TestCase
     end
 
     in_transaction do
-      NewRelic::Agent::TransactionState.get.is_cross_app = false
+      NewRelic::Agent::TransactionState.get.is_cross_app_caller = false
     end
 
     refute found_guid

@@ -154,7 +154,7 @@ module NewRelic
         cross_app_id = NewRelic::Agent.config[:cross_process_id] or
           raise NewRelic::Agent::CrossAppTracing::Error, "no cross app ID configured"
 
-        NewRelic::Agent::TransactionState.get.is_cross_app = true
+        NewRelic::Agent::TransactionState.get.is_cross_app_caller = true
         txn_guid = NewRelic::Agent::TransactionState.get.request_guid
         txn_data = NewRelic::JSONWrapper.dump([ txn_guid, false ])
 
