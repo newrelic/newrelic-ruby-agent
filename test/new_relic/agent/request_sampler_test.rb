@@ -93,8 +93,15 @@ class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
 
   def test_samples_on_transaction_finished_event_includes_guid
     with_sampler_config do
-      generate_request()
+      generate_request('name', :guid => "GUID")
       assert_equal "GUID", single_sample[EVENT_DATA_INDEX]["guid"]
+    end
+  end
+
+  def test_samples_on_transaction_finished_event_includes_referring_transaction_guid
+    with_sampler_config do
+      generate_request('name', :referring_transaction_guid=> "REFER")
+      assert_equal "REFER", single_sample[EVENT_DATA_INDEX]["referringTransactionGuid"]
     end
   end
 
@@ -194,8 +201,7 @@ class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
       :start_timestamp => Time.now.to_f,
       :duration => 0.1,
       :overview_metrics => {},
-      :custom_params => {},
-      :guid => "GUID"
+      :custom_params => {}
     }.merge(options)
     @event_listener.notify(:transaction_finished, payload)
   end

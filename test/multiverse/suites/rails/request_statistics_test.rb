@@ -64,6 +64,8 @@ class RequestStatsTest < ActionController::TestCase
       assert_equal 'Transaction', sample['type']
       assert_kind_of Float, sample['duration']
       assert_kind_of Float, sample['timestamp']
+      assert_kind_of String, sample['guid']
+      assert_nil sample['referringTransactionGuid']
     end
   end
 
