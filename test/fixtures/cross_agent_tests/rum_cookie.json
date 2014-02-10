@@ -1,0 +1,17 @@
+[
+  {"testname":"empty cookie",        "input":"",                      "expected":""},
+  {"testname":"long cookie",         "input":"tk=0123456789ABCDEFAA", "expected":""},
+  {"testname":"short cookie",        "input":"tk=0123456789ABC",      "expected":""},
+  {"testname":"improper cookie",     "input":"t==0123456789ABCDEF",   "expected":""},
+  {"testname":"improper cookie",     "input":"tk-0123456789ABCDEF",   "expected":""},
+  {"testname":"invalid character",   "input":"tk=0123456789ABCDE\"",  "expected":""},
+  {"testname":"invalid character",   "input":"tk=0123456789ABCDE<",   "expected":""},
+  {"testname":"invalid character",   "input":"tk=0123456789ABCDE'",   "expected":""},
+  {"testname":"invalid character",   "input":"tk=0123456789ABCDE>",   "expected":""},
+  {"testname":"invalid character",   "input":"tk=0123456789ABCDE]",   "expected":""},
+  {"testname":"invalid character",   "input":"tk=0123456789ABCDE+",   "expected":""},
+  {"testname":"good cookie",         "input":"tk=0123456789ABCDEF",   "expected":"0123456789ABCDEF"},
+  {"testname":"good cookie a-z",     "input":"tk=aaaaaaznnzzazzzz",   "expected":"aaaaaaznnzzazzzz"},
+  {"testname":"good cookie A-Z",     "input":"tk=AAAAAAZNNZZAZZZZ",   "expected":"AAAAAAZNNZZAZZZZ"},
+  {"testname":"good cookie numbers", "input":"tk=0123456789567891",   "expected":"0123456789567891"}
+]

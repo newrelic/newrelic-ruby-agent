@@ -157,11 +157,32 @@ module NewRelic
         end
       end
 
+      KNOWN_OPERATIONS = [
+        'alter',
+        'select',
+        'update',
+        'delete',
+        'insert',
+        'create',
+        'show',
+        'set',
+        'exec',
+        'execute',
+        'call'
+      ]
+
+      SQL_COMMENT_REGEX = Regexp.new('/\*.*?\*/', Regexp::MULTILINE).freeze
+
+      def parse_operation_from_query(sql)
+        sql = sql.gsub(SQL_COMMENT_REGEX, '')
+        if sql =~ /(\w+)/
+          op = $1.downcase
+          return op if KNOWN_OPERATIONS.include?(op)
+        end
+      end
+
       def is_select?(statement)
-        # split the string into at most two segments on the
-        # system-defined field separator character
-        first_word, rest_of_statement = statement.split($;, 2)
-        (first_word.upcase == 'SELECT')
+        parse_operation_from_query(statement) == 'select'
       end
 
       def parameterized?(statement)
