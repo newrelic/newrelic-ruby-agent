@@ -199,7 +199,6 @@ module NewRelic
           end
           @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_time)
           sql_sampler.notice_scope_empty(@name)
-          overview_metrics = transaction_overview_metrics
         end
 
         record_exceptions
@@ -207,20 +206,20 @@ module NewRelic
 
         # these tear everything down so need to be done after merging stats
         if self.root?
-          send_transaction_finished_event(start_time, end_time, overview_metrics)
+          send_transaction_finished_event(start_time, end_time)
           agent.stats_engine.end_transaction
         end
       end
 
       # This event is fired when the transaction is fully completed. The metric
       # values and sampler can't be successfully modified from this event.
-      def send_transaction_finished_event(start_time, end_time, overview_metrics)
+      def send_transaction_finished_event(start_time, end_time)
         payload = {
           :name             => @name,
           :type             => @type,
           :start_timestamp  => start_time.to_f,
           :duration         => end_time.to_f - start_time.to_f,
-          :overview_metrics => overview_metrics,
+          :metrics          => @stats_hash,
           :custom_params    => custom_parameters
         }
         append_guid_to(payload)
@@ -253,24 +252,6 @@ module NewRelic
           options[:metric] = @name
           agent.error_collector.notice_error(exception, options)
         end
-      end
-
-      OVERVIEW_SPECS = [
-        [:webDuration,      MetricSpec.new('HttpDispatcher')],
-        [:queueDuration,    MetricSpec.new('WebFrontend/QueueTime')],
-        [:externalDuration, MetricSpec.new('External/allWeb')],
-        [:databaseDuration, MetricSpec.new('ActiveRecord/all')],
-        [:gcCumulative,     MetricSpec.new("GC/cumulative")],
-        [:memcacheDuration, MetricSpec.new('Memcache/allWeb')]
-      ]
-
-      def transaction_overview_metrics
-        metrics = {}
-        stats = @stats_hash
-        OVERVIEW_SPECS.each do |(dest_key, spec)|
-          metrics[dest_key] = stats[spec].total_call_time if stats.key?(spec)
-        end
-        metrics
       end
 
       # If we have an active transaction, notice the error and increment the error metric.

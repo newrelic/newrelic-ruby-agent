@@ -123,8 +123,37 @@ class NewRelic::Agent::RequestSampler
     notify_full if is_full && !@notified_full
   end
 
+  OVERVIEW_SPECS = {
+    ::NewRelic::MetricSpec.new('HttpDispatcher')        => \
+      { :total_call_time => :webDuration },
+    ::NewRelic::MetricSpec.new('WebFrontend/QueueTime') => \
+      { :total_call_time => :queueDuration },
+    ::NewRelic::MetricSpec.new('External/allWeb')       => \
+      { :total_call_time => :externalDuration },
+    ::NewRelic::MetricSpec.new('ActiveRecord/all')      => \
+      { :total_call_time => :databaseDuration },
+    ::NewRelic::MetricSpec.new("GC/cumulative")         => \
+      { :total_call_time => :gcCumulative },
+    ::NewRelic::MetricSpec.new('Memcache/allWeb')       => \
+      { :total_call_time => :memcacheDuration }
+  }
+
+  def extract_metrics(stats_hash)
+    result = {}
+    if stats_hash
+      OVERVIEW_SPECS.each do |(metric_spec, extracted_values)|
+        if stats_hash.has_key?(metric_spec)
+          extracted_values.each do |value_name, key_name|
+            result[key_name.to_s] = stats_hash[metric_spec].send(value_name)
+          end
+        end
+      end
+    end
+    result
+  end
+
   def create_main_event(payload)
-    sample = payload[:overview_metrics] || {}
+    sample = extract_metrics(payload[:metrics])
     sample.merge!({
         TIMESTAMP_KEY     => float(payload[:start_timestamp]),
         NAME_KEY          => string(payload[:name]),
