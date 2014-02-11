@@ -151,4 +151,31 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     listener.register_pipe(pipe_id)
     listener
   end
+
+  def test_pipe_read_length_failure
+    write_pipe = stub(:set_encoding => nil, :closed? => false, :close => nil)
+
+    # If we only read three bytes, it isn't valid.
+    # We can't tell whether any four bytes or more are a "good" length or not.
+    read_pipe = stub(:read => "jrc")
+    IO.stubs(:pipe).returns([read_pipe, write_pipe])
+
+    # Includes the failed bytes
+    expects_logging(:error, includes("[6a 72 63]"))
+
+    pipe = NewRelic::Agent::PipeChannelManager::Pipe.new
+    assert_nil pipe.read
+  end
+
+  def test_pipe_read_length_nil_fails
+    write_pipe = stub(:set_encoding => nil, :closed? => false, :close => nil)
+
+    # No length at all returned on pipe, also a failure.
+    read_pipe = stub(:read => nil)
+    IO.stubs(:pipe).returns([read_pipe, write_pipe])
+
+    pipe = NewRelic::Agent::PipeChannelManager::Pipe.new
+    assert_nil pipe.read
+  end
+
 end

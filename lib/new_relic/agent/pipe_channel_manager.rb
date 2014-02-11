@@ -99,9 +99,13 @@ module NewRelic
             if message_length
               @out.read(message_length)
             else
-              NewRelic::Agent.logger.error("Failed to deserialize message length from pipe.")
+              length_hex = length_bytes.bytes.map { |b| b.to_s(16) }.join(' ')
+              NewRelic::Agent.logger.error("Failed to deserialize message length from pipe. Bytes: [#{length_hex}]")
               nil
             end
+          else
+            NewRelic::Agent.logger.error("Failed to read bytes for length from pipe.")
+            nil
           end
         end
 
