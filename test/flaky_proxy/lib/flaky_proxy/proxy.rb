@@ -15,6 +15,14 @@ module FlakyProxy
       @listen_socket = nil
     end
 
+    def service_connection(client_socket)
+      with_connection_logging(client_socket) do
+        Connection.new(client_socket, @backend_server, @rules).service
+      end
+    rescue => e
+      FlakyProxy.logger.error("Error servicing connection: #{e}, from #{e.backtrace.join("\n")}")
+    end
+
     def reload_rules_file
       if @rules_path
         mtime = File.stat(@rules_path).mtime
@@ -41,11 +49,8 @@ module FlakyProxy
       @listen_socket = TCPServer.new(@listen_host, @listen_port)
       loop do
         client_socket = @listen_socket.accept
+        service_connection(client_socket)
         reload_rules_file
-        with_connection_logging(client_socket) do
-          connection = Connection.new(client_socket, @backend_server, @rules)
-          connection.service
-        end
       end
     end
   end
