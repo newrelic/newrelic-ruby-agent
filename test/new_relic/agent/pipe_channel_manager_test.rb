@@ -47,7 +47,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         NewRelic::Agent.after_fork
         new_engine = NewRelic::Agent::StatsEngine.new
         new_engine.get_stats_no_scope(metric).record_data_point(2.0)
-        listener.pipes[666].write(:stats => new_engine.harvest!)
+        service = NewRelic::Agent::PipeService.new(666)
+        service.metric_data(new_engine.harvest!)
       end
       Process.wait(pid)
       listener.stop
@@ -66,7 +67,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         NewRelic::Agent.after_fork
         with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
           sample = run_sample_trace_on(sampler)
-          listener.pipes[667].write(:transaction_traces => sampler.harvest!)
+          service = NewRelic::Agent::PipeService.new(667)
+          service.transaction_sample_data(sampler.harvest!)
         end
       end
       Process.wait(pid)
@@ -93,22 +95,13 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
                                  :metric => 'path', :referer => 'test_referer',
                                  :request_params => {:x => 'y'})
-        listener.pipes[668].write(:error_traces => new_sampler.harvest!)
+        service = NewRelic::Agent::PipeService.new(668)
+        service.error_data(new_sampler.harvest!)
       end
       Process.wait(pid)
       listener.stop
 
       assert_equal(2, NewRelic::Agent.agent.error_collector.errors.size)
-    end
-
-    def pipe_finished?(id)
-      (!NewRelic::Agent::PipeChannelManager.channels[id] ||
-        NewRelic::Agent::PipeChannelManager.channels[id].closed?)
-    end
-
-    def assert_pipe_finished(id)
-      assert(pipe_finished?(id),
-        "Expected pipe with ID #{id} to be nil or closed")
     end
 
     def test_close_pipe_on_child_explicit_close
@@ -140,6 +133,16 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       Process.wait(pid)
       listener.stop
     end
+
+    def pipe_finished?(id)
+      (!NewRelic::Agent::PipeChannelManager.channels[id] ||
+        NewRelic::Agent::PipeChannelManager.channels[id].closed?)
+    end
+
+    def assert_pipe_finished(id)
+      assert(pipe_finished?(id),
+        "Expected pipe with ID #{id} to be nil or closed")
+    end
   end
 
   def start_listener_with_pipe(pipe_id)
@@ -148,4 +151,31 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     listener.register_pipe(pipe_id)
     listener
   end
+
+  def test_pipe_read_length_failure
+    write_pipe = stub(:set_encoding => nil, :closed? => false, :close => nil)
+
+    # If we only read three bytes, it isn't valid.
+    # We can't tell whether any four bytes or more are a "good" length or not.
+    read_pipe = stub(:read => "jrc")
+    IO.stubs(:pipe).returns([read_pipe, write_pipe])
+
+    # Includes the failed bytes
+    expects_logging(:error, includes("[6a 72 63]"))
+
+    pipe = NewRelic::Agent::PipeChannelManager::Pipe.new
+    assert_nil pipe.read
+  end
+
+  def test_pipe_read_length_nil_fails
+    write_pipe = stub(:set_encoding => nil, :closed? => false, :close => nil)
+
+    # No length at all returned on pipe, also a failure.
+    read_pipe = stub(:read => nil)
+    IO.stubs(:pipe).returns([read_pipe, write_pipe])
+
+    pipe = NewRelic::Agent::PipeChannelManager::Pipe.new
+    assert_nil pipe.read
+  end
+
 end
