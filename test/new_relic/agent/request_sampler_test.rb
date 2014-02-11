@@ -105,6 +105,14 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     end
   end
 
+  def test_records_background_tasks
+    with_sampler_config do
+      generate_request('a', :type => :controller)
+      generate_request('b', :type => :background)
+      assert_equal 2, @sampler.samples.size
+    end
+  end
+
   def test_can_disable_sampling_for_analytics
     with_sampler_config( :'analytics_events.enabled' => false ) do
       generate_request
@@ -165,14 +173,6 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
       assert_equal 100, samples_after.size
 
       assert_equal 0, (samples_before & samples_after).size
-    end
-  end
-
-  def test_does_not_record_requests_from_background_tasks
-    with_sampler_config do
-      generate_request('a', :type => :controller)
-      generate_request('b', :type => :background)
-      assert_equal 1, @sampler.samples.size
     end
   end
 

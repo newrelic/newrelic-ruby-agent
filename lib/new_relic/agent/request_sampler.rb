@@ -115,7 +115,6 @@ class NewRelic::Agent::RequestSampler
   # Event handler for the :transaction_finished event.
   def on_transaction_finished(payload)
     return unless @enabled
-    return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
 
     main_event = create_main_event(payload)
     custom_params = create_custom_parameters(payload)
