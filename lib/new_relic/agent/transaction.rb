@@ -223,7 +223,24 @@ module NewRelic
           :overview_metrics => overview_metrics,
           :custom_params    => custom_parameters
         }
+        append_guid_to(payload)
+        append_referring_transaction_guid_to(payload)
+
         agent.events.notify(:transaction_finished, payload)
+      end
+
+      def append_guid_to(payload)
+        guid = NewRelic::Agent::TransactionState.get.request_guid_for_event
+        if guid
+          payload[:guid] = guid
+        end
+      end
+
+      def append_referring_transaction_guid_to(payload)
+        referring_guid = NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_guid
+        if referring_guid
+          payload[:referring_transaction_guid] = referring_guid
+        end
       end
 
       def merge_stats_hash
