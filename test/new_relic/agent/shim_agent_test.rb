@@ -12,8 +12,8 @@ module NewRelic
         @agent = NewRelic::Agent::ShimAgent.new
       end
 
-      def test_merge_data_from
-        assert_equal(nil, @agent.merge_data_from(mock('metric data')))
+      def test_merge_data_for_endpoint
+        assert_equal(nil, @agent.merge_data_for_endpoint(:diggle, mock('metric data')))
       end
     end
   end
