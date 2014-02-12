@@ -70,6 +70,13 @@ class PipeServiceTest < Minitest::Test
       assert_equal ['sql'], received_data[:sql_trace_data]
     end
 
+    def test_analytic_event_data
+      received_data = data_from_forked_process do
+        @service.analytic_event_data(['events'])
+      end
+      assert_equal ['events'], received_data[:analytic_event_data]
+    end
+
     def test_transaction_sample_data_with_newlines
       payload_with_newline = "foo\n\nbar"
       received_data = data_from_forked_process do

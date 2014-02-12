@@ -846,6 +846,7 @@ module NewRelic
               when :metric_data             then @stats_engine
               when :transaction_sample_data then @transaction_sampler
               when :error_data              then @error_collector
+              when :analytic_event_data     then @request_sampler
               end
             container.merge!(data)
           end

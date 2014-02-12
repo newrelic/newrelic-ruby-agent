@@ -28,8 +28,8 @@ module NewRelic
         []
       end
 
-      def analytic_event_data(data)
-        nil
+      def analytic_event_data(events)
+        write_to_pipe(:analytic_event_data, events) if events
       end
 
       def metric_data(unsent_timeslice_data)
