@@ -68,26 +68,61 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
 
   def test_custom_parameters_in_event_cant_override_reserved_attributes
     with_sampler_config do
+      metrics = NewRelic::Agent::StatsHash.new()
+      metrics.record(NewRelic::MetricSpec.new('HttpDispatcher'), 0.01)
+
       generate_request('whatever',
-        :overview_metrics => {'webDuration' => 0.01},
-        :custom_params => {'type' => 'giraffe', 'duration' => 'hippo', 'webDuration' => 'zebra'}
+        :metrics => metrics,
+        :custom_params => {'type' => 'giraffe', 'duration' => 'hippo'}
       )
       txn_event = single_sample[EVENT_DATA_INDEX]
       assert_equal 'Transaction', txn_event['type']
       assert_equal 0.1, txn_event['duration']
-      assert_equal 0.01, txn_event['webDuration']
 
       custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
       assert_equal 'giraffe', custom_attrs['type']
       assert_equal 'hippo', custom_attrs['duration']
-      assert_equal 'zebra', custom_attrs['webDuration']
     end
   end
 
-  def test_samples_on_transaction_finished_event_includes_overview_metrics
+  def test_samples_on_transaction_finished_event_includes_expected_web_metrics
+    stats_hash = NewRelic::Agent::StatsHash.new
+    stats_hash.record(NewRelic::MetricSpec.new('WebFrontend/QueueTime'), 13)
+    stats_hash.record(NewRelic::MetricSpec.new('External/allWeb'), 14)
+    stats_hash.record(NewRelic::MetricSpec.new('ActiveRecord/all'), 15)
+    stats_hash.record(NewRelic::MetricSpec.new("GC/cumulative"), 16)
+    stats_hash.record(NewRelic::MetricSpec.new('Memcache/allWeb'), 17)
+
     with_sampler_config do
-      generate_request('name', :overview_metrics => {:foo => :bar})
-      assert_equal :bar, single_sample[EVENT_DATA_INDEX][:foo]
+      generate_request('name', :metrics => stats_hash)
+      event_data = single_sample[EVENT_DATA_INDEX]
+      assert_equal 13, event_data["queueDuration"]
+      assert_equal 14, event_data["externalDuration"]
+      assert_equal 15, event_data["databaseDuration"]
+      assert_equal 16, event_data["gcCumulative"]
+      assert_equal 17, event_data["memcacheDuration"]
+
+      assert_equal 1, event_data["externalCallCount"]
+      assert_equal 1, event_data["databaseCallCount"]
+    end
+  end
+
+  def test_samples_on_transaction_finished_includes_expected_background_metrics
+    stats_hash = NewRelic::Agent::StatsHash.new
+    stats_hash.record(NewRelic::MetricSpec.new('External/allOther'), 12)
+    stats_hash.record(NewRelic::MetricSpec.new('Datastore/allOther'), 13)
+    stats_hash.record(NewRelic::MetricSpec.new('Memcache/allOther'), 14)
+
+    with_sampler_config do
+      generate_request('name', :metrics => stats_hash)
+
+      event_data = single_sample[EVENT_DATA_INDEX]
+      assert_equal 12, event_data["externalDuration"]
+      assert_equal 13, event_data["databaseDuration"]
+      assert_equal 14, event_data["memcacheDuration"]
+
+      assert_equal 1, event_data["databaseCallCount"]
+      assert_equal 1, event_data["externalCallCount"]
     end
   end
 
@@ -102,6 +137,22 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     with_sampler_config do
       generate_request('name', :referring_transaction_guid=> "REFER")
       assert_equal "REFER", single_sample[EVENT_DATA_INDEX]["referringTransactionGuid"]
+    end
+  end
+
+  def test_samples_on_transaction_finished_event_includes_hostname
+    NewRelic::Agent.instance.stubs(:local_host).returns("BEES")
+    with_sampler_config do
+      generate_request('name')
+      assert_equal "BEES", single_sample[EVENT_DATA_INDEX]["host"]
+    end
+  end
+
+  def test_records_background_tasks
+    with_sampler_config do
+      generate_request('a', :type => :controller)
+      generate_request('b', :type => :background)
+      assert_equal 2, @sampler.samples.size
     end
   end
 
@@ -168,14 +219,6 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     end
   end
 
-  def test_does_not_record_requests_from_background_tasks
-    with_sampler_config do
-      generate_request('a', :type => :controller)
-      generate_request('b', :type => :background)
-      assert_equal 1, @sampler.samples.size
-    end
-  end
-
   def test_does_not_drop_samples_when_used_from_multiple_threads
     with_sampler_config( :'analytics_events.max_samples_stored' => 100 * 100 ) do
       threads = []
@@ -200,7 +243,6 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
       :type => :controller,
       :start_timestamp => Time.now.to_f,
       :duration => 0.1,
-      :overview_metrics => {},
       :custom_params => {}
     }.merge(options)
     @event_listener.notify(:transaction_finished, payload)

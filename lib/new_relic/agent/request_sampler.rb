@@ -20,6 +20,7 @@ class NewRelic::Agent::RequestSampler
   TIMESTAMP_KEY                  = 'timestamp'
   NAME_KEY                       = 'name'
   DURATION_KEY                   = 'duration'
+  HOST_KEY                       = 'host'
   GUID_KEY                       = 'guid'
   REFERRING_TRANSACTION_GUID_KEY = 'referringTransactionGuid'
 
@@ -115,7 +116,6 @@ class NewRelic::Agent::RequestSampler
   # Event handler for the :transaction_finished event.
   def on_transaction_finished(payload)
     return unless @enabled
-    return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
 
     main_event = create_main_event(payload)
     custom_params = create_custom_parameters(payload)
@@ -124,13 +124,61 @@ class NewRelic::Agent::RequestSampler
     notify_full if is_full && !@notified_full
   end
 
+  def self.map_metric(metric_name, to_add={})
+    to_add.values.each(&:freeze)
+
+    spec = ::NewRelic::MetricSpec.new(metric_name)
+    mappings = OVERVIEW_SPECS.fetch(spec, {})
+    mappings.merge!(to_add)
+
+    OVERVIEW_SPECS[spec] = mappings
+  end
+
+  OVERVIEW_SPECS = {}
+
+  # Web Metrics
+  map_metric('WebFrontend/QueueTime', :total_call_time => "queueDuration")
+  map_metric("GC/cumulative",         :total_call_time => "gcCumulative")
+  map_metric('Memcache/allWeb',       :total_call_time => "memcacheDuration")
+
+  map_metric('External/allWeb',       :total_call_time => "externalDuration")
+  map_metric('External/allWeb',       :call_count      => "externalCallCount")
+
+  map_metric('ActiveRecord/all',      :total_call_time => "databaseDuration")
+  map_metric('ActiveRecord/all',      :call_count      => "databaseCallCount")
+
+  # Background Metrics
+  map_metric('Memcache/allOther',     :total_call_time => "memcacheDuration")
+
+  map_metric('External/allOther',     :total_call_time => "externalDuration")
+  map_metric('External/allOther',     :call_count      => "externalCallCount")
+
+  map_metric('Datastore/allOther',    :total_call_time => "databaseDuration")
+  map_metric('Datastore/allOther',    :call_count      => "databaseCallCount")
+
+  def extract_metrics(stats_hash)
+    result = {}
+    if stats_hash
+      OVERVIEW_SPECS.each do |(metric_spec, extracted_values)|
+        if stats_hash.has_key?(metric_spec)
+          stat = stats_hash[metric_spec]
+          extracted_values.each do |value_name, key_name|
+            result[key_name] = stat.send(value_name)
+          end
+        end
+      end
+    end
+    result
+  end
+
   def create_main_event(payload)
-    sample = payload[:overview_metrics] || {}
+    sample = extract_metrics(payload[:metrics])
     sample.merge!({
         TIMESTAMP_KEY     => float(payload[:start_timestamp]),
         NAME_KEY          => string(payload[:name]),
         DURATION_KEY      => float(payload[:duration]),
         TYPE_KEY          => SAMPLE_TYPE,
+        HOST_KEY          => string(::NewRelic::Agent.instance.local_host),
       })
     optionally_append(GUID_KEY, :guid, sample, payload)
     optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
