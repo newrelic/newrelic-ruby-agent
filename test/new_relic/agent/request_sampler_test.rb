@@ -146,6 +146,14 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     end
   end
 
+  def test_samples_on_transaction_finished_event_includes_hostname
+    NewRelic::Agent.instance.stubs(:local_host).returns("BEES")
+    with_sampler_config do
+      generate_request('name')
+      assert_equal "BEES", single_sample[EVENT_DATA_INDEX]["host"]
+    end
+  end
+
   def test_records_background_tasks
     with_sampler_config do
       generate_request('a', :type => :controller)

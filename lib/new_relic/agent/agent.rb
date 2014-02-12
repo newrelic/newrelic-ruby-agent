@@ -109,6 +109,8 @@ module NewRelic
         attr_reader :harvest_lock
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
+        # Allow access to hostname we gather for attaching to events
+        attr_reader :local_host
 
         # fakes out a transaction that did not happen in this process
         # by creating apdex, summary metrics, and recording statistics

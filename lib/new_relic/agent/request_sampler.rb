@@ -20,6 +20,7 @@ class NewRelic::Agent::RequestSampler
   TIMESTAMP_KEY                  = 'timestamp'
   NAME_KEY                       = 'name'
   DURATION_KEY                   = 'duration'
+  HOST_KEY                       = 'host'
   GUID_KEY                       = 'guid'
   REFERRING_TRANSACTION_GUID_KEY = 'referringTransactionGuid'
 
@@ -179,6 +180,7 @@ class NewRelic::Agent::RequestSampler
         NAME_KEY          => string(payload[:name]),
         DURATION_KEY      => float(payload[:duration]),
         TYPE_KEY          => SAMPLE_TYPE,
+        HOST_KEY          => string(::NewRelic::Agent.instance.local_host),
       })
     optionally_append(GUID_KEY, :guid, sample, payload)
     optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
