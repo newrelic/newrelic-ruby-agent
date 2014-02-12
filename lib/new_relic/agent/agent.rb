@@ -840,15 +840,19 @@ module NewRelic
         end
         include Connect
 
+        def container_for_endpoint(endpoint)
+          case endpoint
+          when :metric_data             then @stats_engine
+          when :transaction_sample_data then @transaction_sampler
+          when :error_data              then @error_collector
+          when :analytic_event_data     then @request_sampler
+          when :sql_trace_data          then @sql_sampler
+          end
+        end
+
         def merge_data_for_endpoint(endpoint, data)
           if data && !data.empty?
-            container = case endpoint
-              when :metric_data             then @stats_engine
-              when :transaction_sample_data then @transaction_sampler
-              when :error_data              then @error_collector
-              when :analytic_event_data     then @request_sampler
-              end
-            container.merge!(data)
+            container_for_endpoint(endpoint).merge!(data)
           end
         rescue => e
           NewRelic::Agent.logger.error("Error while merging #{endpoint} data from child: ", e)

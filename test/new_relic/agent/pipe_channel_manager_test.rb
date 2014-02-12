@@ -124,6 +124,23 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       assert_equal(1, request_sampler.samples.size)
     end
 
+    def test_listener_merges_sql_traces
+      sampler = NewRelic::Agent.agent.sql_sampler
+      create_sql_sample(sampler)
+
+      listener = start_listener_with_pipe(667)
+      pid = Process.fork do
+        NewRelic::Agent.after_fork
+        create_sql_sample(sampler)
+        service = NewRelic::Agent::PipeService.new(667)
+        service.sql_trace_data(sampler.harvest!)
+      end
+      Process.wait(pid)
+      listener.stop
+
+      assert_equal(2, sampler.harvest!.size)
+    end
+
     def test_close_pipe_on_child_explicit_close
       listener = start_listener_with_pipe(669)
       pid = Process.fork do
@@ -162,6 +179,12 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     def assert_pipe_finished(id)
       assert(pipe_finished?(id),
         "Expected pipe with ID #{id} to be nil or closed")
+    end
+
+    def create_sql_sample(sampler)
+      sampler.notice_first_scope_push(Time.now)
+      sampler.notice_sql("SELECT * FROM table", "ActiveRecord/Widgets/find", nil, 100)
+      sampler.notice_scope_empty('noodles', Time.now)
     end
   end
 
