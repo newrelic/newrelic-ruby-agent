@@ -105,6 +105,9 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
       assert_equal 15, event_data["databaseDuration"]
       assert_equal 16, event_data["gcCumulative"]
       assert_equal 17, event_data["memcacheDuration"]
+
+      assert_equal 1, event_data["externalCallCount"]
+      assert_equal 1, event_data["databaseCallCount"]
     end
   end
 
@@ -121,6 +124,9 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
       assert_equal 12, event_data["externalDuration"]
       assert_equal 13, event_data["databaseDuration"]
       assert_equal 14, event_data["memcacheDuration"]
+
+      assert_equal 1, event_data["databaseCallCount"]
+      assert_equal 1, event_data["externalCallCount"]
 
       refute event_data.key?("webDuration")
     end
