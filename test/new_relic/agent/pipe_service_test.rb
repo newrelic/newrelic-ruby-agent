@@ -115,7 +115,8 @@ class PipeServiceTest < Minitest::Test
     pipe = NewRelic::Agent::PipeChannelManager.channels[:pipe_service_test]
     data = {}
     while payload = pipe.read
-      data.merge!(Marshal.load(payload))
+      endpoint, data_for_endpoint = Marshal.load(payload)
+      data.merge!(endpoint => data_for_endpoint)
     end
     data
   end

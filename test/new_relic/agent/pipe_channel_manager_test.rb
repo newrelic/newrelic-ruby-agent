@@ -83,7 +83,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
                            :metric => 'path', :referer => 'test_referer',
                            :request_params => {:x => 'y'})
-      NewRelic::Agent.agent.merge_data_from([nil, nil, sampler.errors])
+      NewRelic::Agent.agent.merge_data_for_endpoint(:error_data, sampler.errors)
 
       assert_equal(1, NewRelic::Agent.agent.error_collector.errors.size)
 

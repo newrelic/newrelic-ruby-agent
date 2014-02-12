@@ -62,7 +62,7 @@ module NewRelic
 
           errors = []
           errors << NewRelic::NoticedError.new("", {}, Exception.new("boo"))
-          @agent.merge_data_from([{}, [], errors])
+          @agent.merge_data_for_endpoint(:error_data, errors)
 
           @agent.after_fork(:report_to_channel => 123)
 
@@ -168,11 +168,13 @@ module NewRelic
         @agent.send :harvest_and_send_for_agent_commands
       end
 
-      def test_merge_data_from_empty
+      def test_merge_data_for_endpoint_empty
         @agent.stats_engine.expects(:merge!).never
         @agent.error_collector.expects(:merge!).never
         @agent.transaction_sampler.expects(:merge!).never
-        @agent.merge_data_from([])
+        @agent.merge_data_for_endpoint(:metric_data, [])
+        @agent.merge_data_for_endpoint(:transaction_sample_data, [])
+        @agent.merge_data_for_endpoint(:error_data, [])
       end
 
       def test_merge_data_traces
@@ -181,14 +183,14 @@ module NewRelic
           @transaction_sampler = transaction_sampler
         }
         transaction_sampler.expects(:merge!).with([1,2,3])
-        @agent.merge_data_from([{}, [1,2,3], []])
+        @agent.merge_data_for_endpoint(:transaction_sample_data, [1,2,3])
       end
 
-      def test_merge_data_from_abides_by_error_queue_limit
+      def test_merge_data_for_endpoint_abides_by_error_queue_limit
         errors = []
         40.times { |i| errors << NewRelic::NoticedError.new("", {}, Exception.new("boo #{i}")) }
 
-        @agent.merge_data_from([{}, [], errors])
+        @agent.merge_data_for_endpoint(:error_data, errors)
 
         assert_equal 20, @agent.error_collector.errors.length
 

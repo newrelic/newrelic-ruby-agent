@@ -840,23 +840,20 @@ module NewRelic
         end
         include Connect
 
-        # Accepts an array of (metrics, transaction_traces, errors) and merges
-        # it into our current collection of data to send. Can be
-        # dangerous if we re-merge the same data more than once - it
-        # will be sent multiple times.
-        def merge_data_from(data)
-          metrics, transaction_traces, errors = data
-          @stats_engine.merge!(metrics) if metrics
-          if transaction_traces && transaction_traces.respond_to?(:any?) &&
-              transaction_traces.any?
-            @transaction_sampler.merge!(transaction_traces)
+        def merge_data_for_endpoint(endpoint, data)
+          if data && !data.empty?
+            container = case endpoint
+              when :metric_data             then @stats_engine
+              when :transaction_sample_data then @transaction_sampler
+              when :error_data              then @error_collector
+              end
+            container.merge!(data)
           end
-          if errors && errors.respond_to?(:each)
-            @error_collector.merge!(errors)
-          end
+        rescue => e
+          NewRelic::Agent.logger.error("Error while merging #{endpoint} data from child: ", e)
         end
 
-        public :merge_data_from
+        public :merge_data_for_endpoint
 
         # Connect to the server and validate the license.  If successful,
         # connected? returns true when finished.  If not successful, you can

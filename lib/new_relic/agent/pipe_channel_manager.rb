@@ -215,9 +215,8 @@ module NewRelic
             else
               payload = unmarshal(raw_payload)
               if payload
-                NewRelic::Agent.agent.merge_data_from([payload[:metric_data],
-                                                       payload[:transaction_sample_data],
-                                                       payload[:error_data]])
+                endpoint, items = payload
+                NewRelic::Agent.agent.merge_data_for_endpoint(endpoint, items)
               end
             end
           end
