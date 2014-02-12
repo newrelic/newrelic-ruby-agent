@@ -123,20 +123,27 @@ class NewRelic::Agent::RequestSampler
     notify_full if is_full && !@notified_full
   end
 
-  OVERVIEW_SPECS = {
-    ::NewRelic::MetricSpec.new('HttpDispatcher')        => \
-      { :total_call_time => :webDuration },
-    ::NewRelic::MetricSpec.new('WebFrontend/QueueTime') => \
-      { :total_call_time => :queueDuration },
-    ::NewRelic::MetricSpec.new('External/allWeb')       => \
-      { :total_call_time => :externalDuration },
-    ::NewRelic::MetricSpec.new('ActiveRecord/all')      => \
-      { :total_call_time => :databaseDuration },
-    ::NewRelic::MetricSpec.new("GC/cumulative")         => \
-      { :total_call_time => :gcCumulative },
-    ::NewRelic::MetricSpec.new('Memcache/allWeb')       => \
-      { :total_call_time => :memcacheDuration }
-  }
+  def self.map_metric(name, mappings={})
+    mappings.values.each do |value|
+      value.freeze if value.respond_to?(:freeze)
+    end
+    OVERVIEW_SPECS[::NewRelic::MetricSpec.new(name)] = mappings
+  end
+
+  OVERVIEW_SPECS = {}
+
+  # Web Metrics
+  map_metric('HttpDispatcher',        :total_call_time => "webDuration")
+  map_metric('WebFrontend/QueueTime', :total_call_time => "queueDuration")
+  map_metric('External/allWeb',       :total_call_time => "externalDuration")
+  map_metric('ActiveRecord/all',      :total_call_time => "databaseDuration")
+  map_metric("GC/cumulative",         :total_call_time => "gcCumulative")
+  map_metric('Memcache/allWeb',       :total_call_time => "memcacheDuration")
+
+  # Background Metrics
+  map_metric('External/allOther',     :total_call_time => "externalDuration")
+  map_metric('Datastore/allOther',    :total_call_time => "databaseDuration")
+  map_metric('Memcache/allOther',     :total_call_time => "memcacheDuration")
 
   def extract_metrics(stats_hash)
     result = {}
@@ -144,7 +151,7 @@ class NewRelic::Agent::RequestSampler
       OVERVIEW_SPECS.each do |(metric_spec, extracted_values)|
         if stats_hash.has_key?(metric_spec)
           extracted_values.each do |value_name, key_name|
-            result[key_name.to_s] = stats_hash[metric_spec].send(value_name)
+            result[key_name] = stats_hash[metric_spec].send(value_name)
           end
         end
       end
