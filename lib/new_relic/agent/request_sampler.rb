@@ -161,8 +161,9 @@ class NewRelic::Agent::RequestSampler
     if stats_hash
       OVERVIEW_SPECS.each do |(metric_spec, extracted_values)|
         if stats_hash.has_key?(metric_spec)
+          stat = stats_hash[metric_spec]
           extracted_values.each do |value_name, key_name|
-            result[key_name] = stats_hash[metric_spec].send(value_name)
+            result[key_name] = stat.send(value_name)
           end
         end
       end
