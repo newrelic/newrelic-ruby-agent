@@ -124,12 +124,10 @@ class NewRelic::Agent::RequestSampler
     notify_full if is_full && !@notified_full
   end
 
-  def self.map_metric(name, to_add={})
-    to_add.values.each do |value|
-      value.freeze if value.respond_to?(:freeze)
-    end
+  def self.map_metric(metric_name, to_add={})
+    to_add.values.each(&:freeze)
 
-    spec = ::NewRelic::MetricSpec.new(name)
+    spec = ::NewRelic::MetricSpec.new(metric_name)
     mappings = OVERVIEW_SPECS.fetch(spec, {})
     mappings.merge!(to_add)
 
