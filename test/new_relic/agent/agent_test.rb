@@ -172,9 +172,13 @@ module NewRelic
         @agent.stats_engine.expects(:merge!).never
         @agent.error_collector.expects(:merge!).never
         @agent.transaction_sampler.expects(:merge!).never
+        @agent.instance_variable_get(:@request_sampler).expects(:merge!).never
+        @agent.sql_sampler.expects(:merge!).never
         @agent.merge_data_for_endpoint(:metric_data, [])
         @agent.merge_data_for_endpoint(:transaction_sample_data, [])
         @agent.merge_data_for_endpoint(:error_data, [])
+        @agent.merge_data_for_endpoint(:sql_trace_data, [])
+        @agent.merge_data_for_endpoint(:analytic_event_data, [])
       end
 
       def test_merge_data_traces
