@@ -16,12 +16,10 @@ class NewRelic::Agent::RequestSampler
   SAMPLE_TYPE              = 'Transaction'
 
   # Strings for static keys of the sample structure
-  TYPE_KEY                       = 'type'
-  TIMESTAMP_KEY                  = 'timestamp'
-  NAME_KEY                       = 'name'
-  DURATION_KEY                   = 'duration'
-  GUID_KEY                       = 'guid'
-  REFERRING_TRANSACTION_GUID_KEY = 'referringTransactionGuid'
+  TYPE_KEY                 = 'type'
+  TIMESTAMP_KEY            = 'timestamp'
+  NAME_KEY                 = 'name'
+  DURATION_KEY             = 'duration'
 
   def initialize( event_listener )
     super()
@@ -132,15 +130,6 @@ class NewRelic::Agent::RequestSampler
         DURATION_KEY      => float(payload[:duration]),
         TYPE_KEY          => SAMPLE_TYPE,
       })
-    optionally_append(GUID_KEY, :guid, sample, payload)
-    optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
-    sample
-  end
-
-  def optionally_append(sample_key, payload_key, sample, payload)
-    if payload.include?(payload_key)
-      sample[sample_key] = string(payload[payload_key])
-    end
   end
 
   def create_custom_parameters(payload)

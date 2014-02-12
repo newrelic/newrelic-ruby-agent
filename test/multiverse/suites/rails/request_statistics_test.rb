@@ -17,11 +17,6 @@ class RequestStatsController < ApplicationController
     render :text => 'some stuff'
   end
 
-  def cross_app_action
-    NewRelic::Agent::TransactionState.get.is_cross_app_caller = true
-    render :text => 'some stuff'
-  end
-
   def stats_action_with_custom_params
     ::NewRelic::Agent.add_custom_parameters('color' => 'blue', 1 => :bar, 'bad' => {})
     render :text => 'some stuff'
@@ -69,28 +64,6 @@ class RequestStatsTest < ActionController::TestCase
       assert_equal 'Transaction', sample['type']
       assert_kind_of Float, sample['duration']
       assert_kind_of Float, sample['timestamp']
-
-      assert_nil sample['guid']
-      assert_nil sample['referringTransactionGuid']
-    end
-  end
-
-  def test_request_should_include_guid_if_cross_app
-    with_config( :'analytics_events.enabled' => true ) do
-      20.times { get :cross_app_action }
-
-      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
-
-      post = $collector.calls_for('analytic_event_data').first
-
-      refute_nil( post )
-      assert_kind_of Array, post.body
-      assert_kind_of Array, post.body.first
-
-      sample = post.body.first.first
-      assert_kind_of Hash, sample
-
-      assert_kind_of String, sample['guid']
     end
   end
 
