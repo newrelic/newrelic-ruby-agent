@@ -45,7 +45,7 @@ class PipeServiceTest < Minitest::Test
         @service.metric_data(metric_data0)
       end
 
-      assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
+      assert_equal 'Custom/something', received_data[:metric_data].keys.sort[0].name
     end
 
     def test_transaction_sample_data
@@ -53,21 +53,21 @@ class PipeServiceTest < Minitest::Test
         @service.transaction_sample_data(['txn'])
       end
 
-      assert_equal ['txn'], received_data[:transaction_traces]
+      assert_equal ['txn'], received_data[:transaction_sample_data]
     end
 
     def test_error_data
       received_data = data_from_forked_process do
         @service.error_data(['err'])
       end
-      assert_equal ['err'], received_data[:error_traces]
+      assert_equal ['err'], received_data[:error_data]
     end
 
     def test_sql_trace_data
       received_data = data_from_forked_process do
         @service.sql_trace_data(['sql'])
       end
-      assert_equal ['sql'], received_data[:sql_traces]
+      assert_equal ['sql'], received_data[:sql_trace_data]
     end
 
     def test_transaction_sample_data_with_newlines
@@ -75,7 +75,7 @@ class PipeServiceTest < Minitest::Test
       received_data = data_from_forked_process do
         @service.transaction_sample_data([payload_with_newline])
       end
-      assert_equal [payload_with_newline], received_data[:transaction_traces]
+      assert_equal [payload_with_newline], received_data[:transaction_sample_data]
     end
 
     def test_multiple_writes_to_pipe
@@ -91,9 +91,9 @@ class PipeServiceTest < Minitest::Test
 
       received_data = read_from_pipe
 
-      assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
-      assert_equal ['txn0'], received_data[:transaction_traces]
-      assert_equal ['err0'], received_data[:error_traces].sort
+      assert_equal 'Custom/something', received_data[:metric_data].keys.sort[0].name
+      assert_equal ['txn0'], received_data[:transaction_sample_data]
+      assert_equal ['err0'], received_data[:error_data].sort
     end
 
     def test_shutdown_closes_pipe
