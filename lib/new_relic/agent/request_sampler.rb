@@ -139,7 +139,6 @@ class NewRelic::Agent::RequestSampler
   OVERVIEW_SPECS = {}
 
   # Web Metrics
-  map_metric('HttpDispatcher',        :total_call_time => "webDuration")
   map_metric('WebFrontend/QueueTime', :total_call_time => "queueDuration")
   map_metric("GC/cumulative",         :total_call_time => "gcCumulative")
   map_metric('Memcache/allWeb',       :total_call_time => "memcacheDuration")

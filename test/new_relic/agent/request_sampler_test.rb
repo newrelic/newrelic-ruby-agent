@@ -73,23 +73,20 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
 
       generate_request('whatever',
         :metrics => metrics,
-        :custom_params => {'type' => 'giraffe', 'duration' => 'hippo', 'webDuration' => 'zebra'}
+        :custom_params => {'type' => 'giraffe', 'duration' => 'hippo'}
       )
       txn_event = single_sample[EVENT_DATA_INDEX]
       assert_equal 'Transaction', txn_event['type']
       assert_equal 0.1, txn_event['duration']
-      assert_equal 0.01, txn_event['webDuration']
 
       custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
       assert_equal 'giraffe', custom_attrs['type']
       assert_equal 'hippo', custom_attrs['duration']
-      assert_equal 'zebra', custom_attrs['webDuration']
     end
   end
 
   def test_samples_on_transaction_finished_event_includes_expected_web_metrics
     stats_hash = NewRelic::Agent::StatsHash.new
-    stats_hash.record(NewRelic::MetricSpec.new('HttpDispatcher'), 12)
     stats_hash.record(NewRelic::MetricSpec.new('WebFrontend/QueueTime'), 13)
     stats_hash.record(NewRelic::MetricSpec.new('External/allWeb'), 14)
     stats_hash.record(NewRelic::MetricSpec.new('ActiveRecord/all'), 15)
@@ -99,7 +96,6 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     with_sampler_config do
       generate_request('name', :metrics => stats_hash)
       event_data = single_sample[EVENT_DATA_INDEX]
-      assert_equal 12, event_data['webDuration']
       assert_equal 13, event_data["queueDuration"]
       assert_equal 14, event_data["externalDuration"]
       assert_equal 15, event_data["databaseDuration"]
@@ -127,8 +123,6 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
 
       assert_equal 1, event_data["databaseCallCount"]
       assert_equal 1, event_data["externalCallCount"]
-
-      refute event_data.key?("webDuration")
     end
   end
 
