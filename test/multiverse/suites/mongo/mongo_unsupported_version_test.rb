@@ -32,7 +32,7 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     def test_records_metrics_for_insert
       @collection.insert(@tribble)
-      assert_metrics_not_recorded(["Datastore/allWeb", "Datastore/allOther"])
+      assert_metrics_not_recorded(["Datastore/all", "Datastore/allWeb", "Datastore/allOther"])
     end
   end
 end
