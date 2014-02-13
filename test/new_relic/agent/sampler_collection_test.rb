@@ -49,6 +49,13 @@ class SamplerCollectionTest < Minitest::Test
     assert_equal(0, @collection.to_a.size)
   end
 
+  def test_add_sampler_calls_setup_events_with_event_listener_if_present
+    sampler = DummySampler.new
+    DummySampler.stubs(:new).returns(sampler)
+    sampler.expects(:setup_events).with(@events)
+    @collection.add_sampler(DummySampler)
+  end
+
   def test_poll_samplers_polls_samplers
     @collection.add_sampler(DummySampler)
     @collection.add_sampler(DummySampler2)
