@@ -12,8 +12,16 @@ module FlakyProxy
         @rules = []
       end
 
-      def match(criteria, &blk)
-        @ruleset.rules << Rule.new(criteria, &blk)
+      def match(criteria, sequence=nil, &blk)
+        if blk
+          @ruleset.rules << Rule.new(criteria, &blk)
+        else
+          @ruleset.rules << Rule.new(criteria, sequence.builder)
+        end
+      end
+
+      def sequence(&blk)
+        Sequence.new(&blk)
       end
     end
 
