@@ -83,6 +83,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     # transaction type - it returns 'SQL' instead of 'Foo Create', for example.
     return if rails3? || !defined?(JRuby)
     expected = %W[
+      Datastore/all
       ActiveRecord/all
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/find
@@ -114,6 +115,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if rails3? || !isSqlite? || defined?(JRuby)
 
     expected = %W[
+      Datastore/all
       ActiveRecord/all
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/find
@@ -143,6 +145,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if defined?(JRuby) || isSqlite?
 
     expected = %W[
+      Datastore/all
       ActiveRecord/all
       ActiveRecord/find
       ActiveRecord/create
@@ -188,6 +191,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if rails3?
 
     expected_metrics = %W[
+    Datastore/all
     ActiveRecord/all
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
@@ -225,6 +229,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return unless isSqlite?
 
     expected_metrics = %W[
+    Datastore/all
     ActiveRecord/all
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
@@ -262,6 +267,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if defined?(JRuby) || isSqlite?
 
     expected_metrics = %W[
+    Datastore/all
     ActiveRecord/all
     RemoteService/sql/#{adapter}/localhost
     ActiveRecord/destroy
@@ -303,6 +309,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     assert_equal 0, NewRelic::Agent.instance.stats_engine.metrics.size, NewRelic::Agent.instance.stats_engine.metrics.inspect
 
     expected_metrics = %W[
+    Datastore/all
     ActiveRecord/all
     Database/SQL/select
     RemoteService/sql/#{adapter}/localhost
@@ -321,6 +328,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
 
   def test_other_sql
     expected_metrics = %W[
+    Datastore/all
     ActiveRecord/all
     Database/SQL/other
     RemoteService/sql/#{adapter}/localhost
@@ -342,7 +350,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if isSqlite?
     return if isPostgres?
 
-    expected_metrics = %W[ActiveRecord/all Database/SQL/show RemoteService/sql/#{adapter}/localhost]
+    expected_metrics = %W[
+      Datastore/all
+      ActiveRecord/all
+      Database/SQL/show
+      RemoteService/sql/#{adapter}/localhost
+    ]
     assert_calls_metrics(*expected_metrics) do
       ActiveRecordFixtures::Order.connection.execute "show tables"
     end
@@ -537,6 +550,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     end
 
     assert_metrics_recorded(
+      'Datastore/all' => { :call_count => 1 },
       'ActiveRecord/all' => { :call_count => 1 },
       'Database/SQL/select' => { :call_count => 1 }
     )
