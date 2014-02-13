@@ -58,7 +58,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordHelperTest < Minitest::Test
     NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(false)
     base_metric = 'ActiveRecord/Namespace::Model/find'
     rollup_metrics = ActiveRecordHelper.rollup_metrics_for(base_metric)
-    assert_equal(['Datastore/all', 'ActiveRecord/find'], rollup_metrics)
+    assert_equal(['Datastore/all', 'Datastore/allOther', 'ActiveRecord/find'], rollup_metrics)
   end
 
   def test_remote_service_metric

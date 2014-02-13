@@ -58,6 +58,8 @@ module NewRelic
           # from polluting the metrics used to drive overview graphs.
           if NewRelic::Agent::Transaction.recording_web_transaction?
             metrics << "ActiveRecord/all"
+          else
+            metrics << "Datastore/allOther"
           end
           metrics << "ActiveRecord/#{$1}" if metric =~ /ActiveRecord\/[\w|\:]+\/(\w+)/
 

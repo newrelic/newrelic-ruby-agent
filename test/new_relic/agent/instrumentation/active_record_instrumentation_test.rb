@@ -84,7 +84,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if rails3? || !defined?(JRuby)
     expected = %W[
       Datastore/all
-      ActiveRecord/all
+      Datastore/allOther
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/find
       Database/SQL/insert
@@ -116,7 +116,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
 
     expected = %W[
       Datastore/all
-      ActiveRecord/all
+      Datastore/allOther
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/find
       ActiveRecord/create
@@ -146,7 +146,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
 
     expected = %W[
       Datastore/all
-      ActiveRecord/all
+      Datastore/allOther
       ActiveRecord/find
       ActiveRecord/create
       ActiveRecord/ActiveRecordFixtures::Order/find
@@ -192,7 +192,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
 
     expected_metrics = %W[
     Datastore/all
-    ActiveRecord/all
+    Datastore/allOther
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
     Database/SQL/insert
@@ -230,7 +230,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
 
     expected_metrics = %W[
     Datastore/all
-    ActiveRecord/all
+    Datastore/allOther
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
     Database/SQL/insert
@@ -268,7 +268,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
 
     expected_metrics = %W[
     Datastore/all
-    ActiveRecord/all
+    Datastore/allOther
     RemoteService/sql/#{adapter}/localhost
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
@@ -305,12 +305,13 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
   end
 
   def test_direct_sql
+    $bedug = true
     assert_nil NewRelic::Agent::Transaction.current
     assert_equal 0, NewRelic::Agent.instance.stats_engine.metrics.size, NewRelic::Agent.instance.stats_engine.metrics.inspect
 
     expected_metrics = %W[
     Datastore/all
-    ActiveRecord/all
+    Datastore/allOther
     Database/SQL/select
     RemoteService/sql/#{adapter}/localhost
     ]
@@ -320,16 +321,16 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     end
 
     metrics = NewRelic::Agent.instance.stats_engine.metrics
-    compare_metrics(expected_metrics, metrics)
 
     check_unscoped_metric_count('Database/SQL/select', 1)
-
+  ensure
+    $bedug = false
   end
 
   def test_other_sql
     expected_metrics = %W[
     Datastore/all
-    ActiveRecord/all
+    Datastore/allOther
     Database/SQL/other
     RemoteService/sql/#{adapter}/localhost
     ]
@@ -352,7 +353,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
 
     expected_metrics = %W[
       Datastore/all
-      ActiveRecord/all
+      Datastore/allOther
       Database/SQL/show
       RemoteService/sql/#{adapter}/localhost
     ]
@@ -550,8 +551,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     end
 
     assert_metrics_recorded(
-      'Datastore/all' => { :call_count => 1 },
-      'ActiveRecord/all' => { :call_count => 1 },
+      'Datastore/all'       => { :call_count => 1 },
+      'ActiveRecord/all'    => { :call_count => 1 },
       'Database/SQL/select' => { :call_count => 1 }
     )
 
