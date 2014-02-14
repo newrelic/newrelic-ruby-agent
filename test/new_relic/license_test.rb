@@ -28,7 +28,6 @@ class LicenseTest < Minitest::Test
   EXPECTED_LICENSE_OCCURRENCES = {
     ['/newrelic_rpm.gemspec', 'MIT'] => 1, # licenses specificiation, which includes MIT for MIT-licensed portions of code
     ['/lib/new_relic/okjson.rb', '(c)'] => 3, # methods arguments like (c)
-    ['/test/new_relic/agent/instrumentation/active_record_instrumentation_test.rb', '(c)'] => 2, # methods arguments like (c)
     ['/lib/new_relic/okjson.rb', 'Copyright'] => 3, # okjson license info
     ['/lib/new_relic/timer_lib.rb', '(c)'] => 1, # timer_lib license info
     ['/lib/new_relic/timer_lib.rb', 'Copyright'] => 1, # timer_lib license info
