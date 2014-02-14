@@ -18,6 +18,16 @@ module NewRelic
           assert VMSampler.supported_on_this_platform?
         end
 
+        def test_records_transaction_count
+          @sampler.setup_events(NewRelic::Agent.instance.events)
+
+          10.times do
+            in_transaction('txn') { }
+          end
+
+          assert_equal(10, @sampler.transaction_count)
+        end
+
         def test_poll_records_thread_count
           fakeshot = NewRelic::Agent::VM::Snapshot.new
           fakeshot.thread_count = 2

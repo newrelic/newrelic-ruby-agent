@@ -9,8 +9,20 @@ module NewRelic
   module Agent
     module Samplers
       class VMSampler < Sampler
+        attr_reader :transaction_count
+
         def initialize
           super :vm
+          @lock = Mutex.new
+          @transaction_count = 0
+        end
+
+        def setup_events(event_listener)
+          event_listener.subscribe(:transaction_finished, &method(:on_transaction_finished))
+        end
+
+        def on_transaction_finished(*_)
+          @lock.synchronize { @transaction_count += 1 }
         end
 
         def poll
