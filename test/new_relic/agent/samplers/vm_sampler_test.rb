@@ -24,6 +24,7 @@ module NewRelic
           )
           @sampler = VMSampler.new
           @sampler.setup_events(NewRelic::Agent.instance.events)
+          NewRelic::Agent.drop_buffered_data
         end
 
         def test_supported_on_this_platform?
@@ -121,6 +122,38 @@ module NewRelic
             'RubyVM/CacheInvalidations/constant' => {
               :call_count      => 50, # number of transactions
               :total_call_time => 200 # number of constant cache invalidations
+            }
+          )
+        end
+
+        def test_poll_gracefully_handles_missing_fields
+          stub_snapshot({}) # snapshot will be empty
+          @sampler.poll
+
+          assert_metrics_not_recorded([
+            'RubyVM/GC/runs',
+            'RubyVM/GC/total_allocated_object',
+            'RubyVM/GC/major_gc_count',
+            'RubyVM/GC/minor_gc_count',
+            'RubyVM/GC/heap_live',
+            'RubyVM/GC/heap_free',
+            'RubyVM/CacheInvalidations/method',
+            'RubyVM/CacheInvalidations/constant'
+          ])
+        end
+
+        def test_poll_handles_missing_gc_time_but_present_gc_count
+          # We were able to determine the number of GC runs, but not the total
+          # GC time. This will be the case if GC::Profiler is not available.
+          stub_snapshot(:gc_runs => 10)
+          generate_transactions(50)
+          @sampler.poll
+
+          assert_metrics_recorded(
+            'RubyVM/GC/runs' => {
+              :call_count      => 50,    # number of transactions
+              :total_call_time => 10,    # number of GC runs
+              :total_exclusive_time => 0 # total GC time
             }
           )
         end
