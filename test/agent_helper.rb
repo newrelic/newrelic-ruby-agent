@@ -264,6 +264,17 @@ def find_last_transaction_segment(transaction_sample=nil)
   return last_segment
 end
 
+def find_segment_by_name(transaction_sample, name)
+  first_segment = nil
+  transaction_sample.root_segment.each_segment do |s|
+    if s.metric_name == name
+      first_segment = s
+      break
+    end
+  end
+  first_segment
+end
+
 def with_config(config_hash, opts={})
   opts = { :level => 0, :do_not_cast => false }.merge(opts)
   if opts[:do_not_cast]
