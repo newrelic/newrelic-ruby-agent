@@ -158,6 +158,56 @@ module NewRelic
           )
         end
 
+        def test_poll_records_deltas_not_cumulative_values
+          stub_snapshot(
+            :gc_runs                      => 10,
+            :gc_total_time                => 10,
+            :total_allocated_object       => 10,
+            :major_gc_count               => 10,
+            :minor_gc_count               => 10,
+            :method_cache_invalidations   => 10,
+            :constant_cache_invalidations => 10
+          )
+          @sampler.poll
+
+          expected = {
+            'RubyVM/GC/runs' => {
+              :total_call_time      => 10,
+              :total_exclusive_time => 10
+            },
+            'RubyVM/GC/total_allocated_object' => {
+              :total_call_time => 10
+            },
+            'RubyVM/GC/major_gc_count' => {
+              :total_call_time => 10
+            },
+            'RubyVM/GC/minor_gc_count' => {
+              :total_call_time => 10
+            },
+            'RubyVM/CacheInvalidations/method' => {
+              :total_call_time => 10
+            },
+            'RubyVM/CacheInvalidations/constant' => {
+              :total_call_time => 10
+            }
+          }
+
+          assert_metrics_recorded(expected)
+
+          stub_snapshot(
+            :gc_runs                      => 20,
+            :gc_total_time                => 20,
+            :total_allocated_object       => 20,
+            :major_gc_count               => 20,
+            :minor_gc_count               => 20,
+            :method_cache_invalidations   => 20,
+            :constant_cache_invalidations => 20
+          )
+          @sampler.poll
+
+          assert_metrics_recorded(expected)
+        end
+
         def generate_transactions(n)
           n.times do
             in_transaction('txn') { }
