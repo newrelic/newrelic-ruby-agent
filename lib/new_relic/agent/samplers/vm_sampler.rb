@@ -56,11 +56,43 @@ module NewRelic
 
         def record_object_allocations_metric(snapshot, txn_count)
           if snapshot.total_allocated_object
-            object_allocations = snapshot.total_allocated_object - @last_snapshot.total_allocated_object
+            delta = snapshot.total_allocated_object - @last_snapshot.total_allocated_object
             NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/GC/total_allocated_object') do |stats|
               stats.call_count      = txn_count
-              stats.total_call_time = object_allocations
+              stats.total_call_time = delta
             end
+          end
+        end
+
+        def record_major_gc_count(snapshot, txn_count)
+          if snapshot.major_gc_count
+            delta = snapshot.major_gc_count - @last_snapshot.major_gc_count
+            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/GC/major_gc_count') do |stats|
+              stats.call_count      = txn_count
+              stats.total_call_time = delta
+            end
+          end
+        end
+
+        def record_minor_gc_count(snapshot, txn_count)
+          if snapshot.minor_gc_count
+            delta = snapshot.minor_gc_count - @last_snapshot.minor_gc_count
+            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/GC/minor_gc_count') do |stats|
+              stats.call_count      = txn_count
+              stats.total_call_time = delta
+            end
+          end
+        end
+
+        def record_heap_live_metric(snapshot)
+          if snapshot.heap_live
+            NewRelic::Agent.record_metric('RubyVM/GC/heap_live', :count => snapshot.heap_live)
+          end
+        end
+
+        def record_heap_free_metric(snapshot)
+          if snapshot.heap_free
+            NewRelic::Agent.record_metric('RubyVM/GC/heap_free', :count => snapshot.heap_free)
           end
         end
 
@@ -70,6 +102,10 @@ module NewRelic
 
           record_gc_runs_metric(snapshot, txn_count)
           record_object_allocations_metric(snapshot, txn_count)
+          record_major_gc_count(snapshot, txn_count)
+          record_minor_gc_count(snapshot, txn_count)
+          record_heap_live_metric(snapshot)
+          record_heap_free_metric(snapshot)
           NewRelic::Agent.record_metric('RubyVM/Threads/all', :count => snapshot.thread_count)
 
           @last_snapshot = snapshot
