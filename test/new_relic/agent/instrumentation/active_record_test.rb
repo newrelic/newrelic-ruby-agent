@@ -274,6 +274,15 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
     end
   end
 
+  def test_records_metrics_on_background_transaction
+    in_transaction('back it up') do
+      ActiveRecordFixtures::Order.create(:name => 'bob')
+    end
+
+    assert_metrics_recorded(['Datastore/allOther'])
+    assert_metrics_not_recorded(['ActiveRecord/all'])
+  end
+
   def test_remote_service_metric_respects_dynamic_connection_config
     if supports_remote_service_metrics?
       q = "SELECT * FROM #{ActiveRecordFixtures::Shipment.table_name} LIMIT 1"
@@ -349,14 +358,16 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
     assert_metrics_recorded([
       "ActiveRecord/all",
       "ActiveRecord/#{operation}",
-      "ActiveRecord/#{model}/#{operation}"
+      "ActiveRecord/#{model}/#{operation}",
+      "Datastore/all"
     ])
   end
 
   def assert_generic_rollup_metrics(operation)
     assert_metrics_recorded([
       "ActiveRecord/all",
-      "Database/SQL/#{operation}"
+      "Database/SQL/#{operation}",
+      "Datastore/all"
     ])
   end
 
