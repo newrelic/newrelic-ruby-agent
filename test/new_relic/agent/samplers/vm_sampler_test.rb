@@ -11,7 +11,11 @@ module NewRelic
     module Samplers
       class VMSamplerTest < Minitest::Test
         def setup
-          stub_snapshot(:gc_runs => 0, :gc_total_time => 0)
+          stub_snapshot(
+            :gc_runs => 0,
+            :gc_total_time => 0,
+            :total_allocated_object => 0
+          )
           @sampler = VMSampler.new
           @sampler.setup_events(NewRelic::Agent.instance.events)
         end
@@ -51,6 +55,19 @@ module NewRelic
               :call_count           => 50, # number of transactions
               :total_call_time      => 10, # number of GC runs
               :total_exclusive_time => 100 # total GC time
+            }
+          )
+        end
+
+        def test_poll_records_total_allocated_object
+          stub_snapshot(:total_allocated_object => 25)
+          generate_transactions(50)
+          @sampler.poll
+
+          assert_metrics_recorded(
+            'RubyVM/GC/total_allocated_object' => {
+              :call_count      => 50, # number of transactions
+              :total_call_time => 25 # number of allocated objects
             }
           )
         end

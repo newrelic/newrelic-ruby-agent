@@ -47,9 +47,19 @@ module NewRelic
               gc_runs = snapshot.gc_runs - @last_snapshot.gc_runs
             end
             NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/GC/runs') do |stats|
-              stats.call_count           = count
+              stats.call_count           = txn_count
               stats.total_call_time      = gc_runs if gc_runs
               stats.total_exclusive_time = gc_time if gc_time
+            end
+          end
+        end
+
+        def record_object_allocations_metric(snapshot, txn_count)
+          if snapshot.total_allocated_object
+            object_allocations = snapshot.total_allocated_object - @last_snapshot.total_allocated_object
+            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/GC/total_allocated_object') do |stats|
+              stats.call_count      = txn_count
+              stats.total_call_time = object_allocations
             end
           end
         end
@@ -59,6 +69,7 @@ module NewRelic
           txn_count = reset_transaction_count
 
           record_gc_runs_metric(snapshot, txn_count)
+          record_object_allocations_metric(snapshot, txn_count)
           NewRelic::Agent.record_metric('RubyVM/Threads/all', :count => snapshot.thread_count)
 
           @last_snapshot = snapshot
