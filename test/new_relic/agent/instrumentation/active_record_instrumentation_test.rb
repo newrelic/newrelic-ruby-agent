@@ -305,7 +305,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
   end
 
   def test_direct_sql
-    $bedug = true
     assert_nil NewRelic::Agent::Transaction.current
     assert_equal 0, NewRelic::Agent.instance.stats_engine.metrics.size, NewRelic::Agent.instance.stats_engine.metrics.inspect
 
@@ -323,8 +322,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     metrics = NewRelic::Agent.instance.stats_engine.metrics
 
     check_unscoped_metric_count('Database/SQL/select', 1)
-  ensure
-    $bedug = false
   end
 
   def test_other_sql
