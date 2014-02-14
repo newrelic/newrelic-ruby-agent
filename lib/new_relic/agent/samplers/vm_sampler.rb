@@ -54,30 +54,11 @@ module NewRelic
           end
         end
 
-        def record_object_allocations_metric(snapshot, txn_count)
-          if snapshot.total_allocated_object
-            delta = snapshot.total_allocated_object - @last_snapshot.total_allocated_object
-            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/GC/total_allocated_object') do |stats|
-              stats.call_count      = txn_count
-              stats.total_call_time = delta
-            end
-          end
-        end
-
-        def record_major_gc_count(snapshot, txn_count)
-          if snapshot.major_gc_count
-            delta = snapshot.major_gc_count - @last_snapshot.major_gc_count
-            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/GC/major_gc_count') do |stats|
-              stats.call_count      = txn_count
-              stats.total_call_time = delta
-            end
-          end
-        end
-
-        def record_minor_gc_count(snapshot, txn_count)
-          if snapshot.minor_gc_count
-            delta = snapshot.minor_gc_count - @last_snapshot.minor_gc_count
-            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/GC/minor_gc_count') do |stats|
+        def record_delta(snapshot, key, metric, txn_count)
+          value = snapshot.send(key)
+          if value
+            delta = value - @last_snapshot.send(key)
+            NewRelic::Agent.agent.stats_engine.record_metrics(metric) do |stats|
               stats.call_count      = txn_count
               stats.total_call_time = delta
             end
@@ -96,41 +77,21 @@ module NewRelic
           end
         end
 
-        def record_method_cache_invalidations(snapshot, txn_count)
-          if snapshot.method_cache_invalidations
-            delta = snapshot.method_cache_invalidations - @last_snapshot.method_cache_invalidations
-            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/CacheInvalidations/method') do |stats|
-              stats.call_count      = txn_count
-              stats.total_call_time = delta
-            end
-          end
-        end
-
-        def record_constant_cache_invalidations(snapshot, txn_count)
-          if snapshot.constant_cache_invalidations
-            delta = snapshot.constant_cache_invalidations - @last_snapshot.constant_cache_invalidations
-            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/CacheInvalidations/constant') do |stats|
-              stats.call_count      = txn_count
-              stats.total_call_time = delta
-            end
-          end
-        end
-
         def poll
-          snapshot = take_snapshot
-          txn_count = reset_transaction_count
+          snap = take_snapshot
+          tcount = reset_transaction_count
 
-          record_gc_runs_metric(snapshot, txn_count)
-          record_object_allocations_metric(snapshot, txn_count)
-          record_major_gc_count(snapshot, txn_count)
-          record_minor_gc_count(snapshot, txn_count)
-          record_method_cache_invalidations(snapshot, txn_count)
-          record_constant_cache_invalidations(snapshot, txn_count)
-          record_heap_live_metric(snapshot)
-          record_heap_free_metric(snapshot)
-          NewRelic::Agent.record_metric('RubyVM/Threads/all', :count => snapshot.thread_count)
+          record_gc_runs_metric(snap, tcount)
+          record_delta(snap, :total_allocated_object, 'RubyVM/GC/total_allocated_object', tcount)
+          record_delta(snap, :major_gc_count, 'RubyVM/GC/major_gc_count', tcount)
+          record_delta(snap, :minor_gc_count, 'RubyVM/GC/minor_gc_count', tcount)
+          record_delta(snap, :method_cache_invalidations, 'RubyVM/CacheInvalidations/method', tcount)
+          record_delta(snap, :constant_cache_invalidations, 'RubyVM/CacheInvalidations/constant', tcount)
+          record_heap_live_metric(snap)
+          record_heap_free_metric(snap)
+          NewRelic::Agent.record_metric('RubyVM/Threads/all', :count => snap.thread_count)
 
-          @last_snapshot = snapshot
+          @last_snapshot = snap
         end
       end
     end
