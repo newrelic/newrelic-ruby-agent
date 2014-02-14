@@ -22,7 +22,8 @@ module ActiveRecordFixtures
 
   class Order < ActiveRecord::Base
     self.table_name = 'newrelic_test_orders'
-    has_and_belongs_to_many :shipments, :class_name => 'ActiveRecordFixtures::Shipment'
+    has_and_belongs_to_many :shipments, :class_name => 'ActiveRecordFixtures::Shipment',
+                                        :join_table => 'orders_shipments'
 
     def self.setup
       unless check_for_table
@@ -57,7 +58,8 @@ module ActiveRecordFixtures
 
   class Shipment < ActiveRecord::Base
     self.table_name = 'newrelic_test_shipment'
-    has_and_belongs_to_many :orders, :class_name => 'ActiveRecordFixtures::Order'
+    has_and_belongs_to_many :orders, :class_name => 'ActiveRecordFixtures::Order',
+                                     :join_table => 'orders_shipments'
 
     def self.setup
       unless check_for_table

@@ -56,7 +56,7 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
   def test_metrics_for_find
     in_web_transaction do
       if active_record_major_version >= 4
-        ActiveRecordFixtures::Order.find(:where => { :name => 'foo' }).load
+        ActiveRecordFixtures::Order.where(:name => 'foo').load
       else
         ActiveRecordFixtures::Order.find_all_by_name('foo')
       end
