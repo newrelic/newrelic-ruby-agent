@@ -64,7 +64,7 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
 
   def test_metrics_for_find_by_id
     in_web_transaction do
-      order = ActiveRecordFixtures::Order.create(:name => 'kathy')  
+      order = ActiveRecordFixtures::Order.create(:name => 'kathy')
       ActiveRecordFixtures::Order.find(order.id)
     end
 
@@ -85,7 +85,7 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
 
   def test_metrics_for_find_all
     in_web_transaction do
-      case 
+      case
       when active_record_major_version >= 4
         ActiveRecordFixtures::Order.all.load
       when active_record_major_version >= 3
@@ -127,7 +127,11 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
       ActiveRecordFixtures::Order.exists?(["name=?", "jeff"])
     end
 
-    assert_activerecord_metrics(ActiveRecordFixtures::Order, 'find')
+    if active_record_version >= NewRelic::VersionNumber.new("3.2")
+      assert_activerecord_metrics(ActiveRecordFixtures::Order, 'find')
+    else
+      assert_generic_rollup_metrics('select')
+    end
     assert_remote_service_metrics
   end
 
@@ -242,7 +246,7 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
     refute_nil(sql.explainer)
   end
 
-  def test_records_transaction_trace_nodes
+  def test_gathers_explain_plans
     with_config(:'transaction_tracer.explain_threshold' => 0) do
       in_web_transaction do
         ActiveRecordFixtures::Order.first
@@ -318,6 +322,14 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
     end
   end
 
+  def active_record_version
+    if defined?(::ActiveRecord::VERSION::MINOR)
+      NewRelic::VersionNumber.new(::ActiveRecord::VERSION::STRING)
+    else
+      NewRelic::VersionNumber.new("2.1.0")  # Can't tell between 2.1 and 2.2. Meh.
+    end
+  end
+
   def assert_activerecord_metrics(model, operation)
     assert_metrics_recorded([
       "ActiveRecord/all",
@@ -327,12 +339,10 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
   end
 
   def assert_generic_rollup_metrics(operation)
-    if [:mysql, :postgres].include?(adapter)
-      assert_metrics_recorded([
-        "ActiveRecord/all",
-        "Database/SQL/#{operation}"
-      ])
-    end
+    assert_metrics_recorded([
+      "ActiveRecord/all",
+      "Database/SQL/#{operation}"
+    ])
   end
 
   def assert_remote_service_metrics(host='localhost')
