@@ -35,13 +35,20 @@ module NewRelic
         end
 
         def test_poll_records_thread_count
-          fakeshot = NewRelic::Agent::VM::Snapshot.new
-          fakeshot.thread_count = 2
-          NewRelic::Agent::VM.stubs(:snapshot).returns(fakeshot)
+          stub_snapshot(:thread_count => 2)
 
           @sampler.poll
           expected = { 'RubyVM/Threads/all' => { :call_count => 2 } }
           assert_metrics_recorded(expected)
+        end
+
+        def stub_snapshot(values)
+          fakeshot = NewRelic::Agent::VM::Snapshot.new
+          values.each do |key, value|
+            fakeshot.send("#{key}=", value)
+          end
+          NewRelic::Agent::VM.stubs(:snapshot).returns(fakeshot)
+          fakeshot
         end
       end
     end
