@@ -89,7 +89,7 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     stats_hash = NewRelic::Agent::StatsHash.new
     stats_hash.record(NewRelic::MetricSpec.new('WebFrontend/QueueTime'), 13)
     stats_hash.record(NewRelic::MetricSpec.new('External/allWeb'), 14)
-    stats_hash.record(NewRelic::MetricSpec.new('ActiveRecord/all'), 15)
+    stats_hash.record(NewRelic::MetricSpec.new('Datastore/all'), 15)
     stats_hash.record(NewRelic::MetricSpec.new("GC/cumulative"), 16)
     stats_hash.record(NewRelic::MetricSpec.new('Memcache/allWeb'), 17)
 
@@ -110,7 +110,7 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
   def test_samples_on_transaction_finished_includes_expected_background_metrics
     stats_hash = NewRelic::Agent::StatsHash.new
     stats_hash.record(NewRelic::MetricSpec.new('External/allOther'), 12)
-    stats_hash.record(NewRelic::MetricSpec.new('Datastore/allOther'), 13)
+    stats_hash.record(NewRelic::MetricSpec.new('Datastore/all'), 13)
     stats_hash.record(NewRelic::MetricSpec.new('Memcache/allOther'), 14)
 
     with_sampler_config do

@@ -83,7 +83,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     # transaction type - it returns 'SQL' instead of 'Foo Create', for example.
     return if rails3? || !defined?(JRuby)
     expected = %W[
-      ActiveRecord/all
+      Datastore/all
+      Datastore/allOther
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/find
       Database/SQL/insert
@@ -114,7 +115,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if rails3? || !isSqlite? || defined?(JRuby)
 
     expected = %W[
-      ActiveRecord/all
+      Datastore/all
+      Datastore/allOther
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/find
       ActiveRecord/create
@@ -143,7 +145,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if defined?(JRuby) || isSqlite?
 
     expected = %W[
-      ActiveRecord/all
+      Datastore/all
+      Datastore/allOther
       ActiveRecord/find
       ActiveRecord/create
       ActiveRecord/ActiveRecordFixtures::Order/find
@@ -188,7 +191,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if rails3?
 
     expected_metrics = %W[
-    ActiveRecord/all
+    Datastore/all
+    Datastore/allOther
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
     Database/SQL/insert
@@ -225,7 +229,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return unless isSqlite?
 
     expected_metrics = %W[
-    ActiveRecord/all
+    Datastore/all
+    Datastore/allOther
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
     Database/SQL/insert
@@ -262,7 +267,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if defined?(JRuby) || isSqlite?
 
     expected_metrics = %W[
-    ActiveRecord/all
+    Datastore/all
+    Datastore/allOther
     RemoteService/sql/#{adapter}/localhost
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
@@ -303,36 +309,36 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     assert_equal 0, NewRelic::Agent.instance.stats_engine.metrics.size, NewRelic::Agent.instance.stats_engine.metrics.inspect
 
     expected_metrics = %W[
-    ActiveRecord/all
+    Datastore/all
+    Datastore/allOther
     Database/SQL/select
     RemoteService/sql/#{adapter}/localhost
     ]
 
-    assert_calls_unscoped_metrics(*expected_metrics) do
+    assert_calls_metrics(*expected_metrics) do
       ActiveRecordFixtures::Order.connection.select_rows "select * from #{ActiveRecordFixtures::Order.table_name}"
     end
 
     metrics = NewRelic::Agent.instance.stats_engine.metrics
-    compare_metrics(expected_metrics, metrics)
 
-    check_unscoped_metric_count('Database/SQL/select', 1)
-
+    check_metric_count('Database/SQL/select', 1)
   end
 
   def test_other_sql
     expected_metrics = %W[
-    ActiveRecord/all
+    Datastore/all
+    Datastore/allOther
     Database/SQL/other
     RemoteService/sql/#{adapter}/localhost
     ]
-    assert_calls_unscoped_metrics(*expected_metrics) do
+    assert_calls_metrics(*expected_metrics) do
       ActiveRecordFixtures::Order.connection.execute "begin"
     end
 
     metrics = NewRelic::Agent.instance.stats_engine.metrics
 
     compare_metrics expected_metrics, metrics
-    check_unscoped_metric_count('Database/SQL/other', 1)
+    check_metric_count('Database/SQL/other', 1)
   ensure
     # Make sure we get the transaction closed up for other tests
     ActiveRecordFixtures::Order.connection.execute "commit"
@@ -342,13 +348,18 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     return if isSqlite?
     return if isPostgres?
 
-    expected_metrics = %W[ActiveRecord/all Database/SQL/show RemoteService/sql/#{adapter}/localhost]
+    expected_metrics = %W[
+      Datastore/all
+      Datastore/allOther
+      Database/SQL/show
+      RemoteService/sql/#{adapter}/localhost
+    ]
     assert_calls_metrics(*expected_metrics) do
       ActiveRecordFixtures::Order.connection.execute "show tables"
     end
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     compare_metrics expected_metrics, metrics
-    check_unscoped_metric_count('Database/SQL/show', 1)
+    check_metric_count('Database/SQL/show', 1)
   end
 
   def test_blocked_instrumentation
@@ -537,7 +548,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     end
 
     assert_metrics_recorded(
-      'ActiveRecord/all' => { :call_count => 1 },
+      'Datastore/all'       => { :call_count => 1 },
+      'ActiveRecord/all'    => { :call_count => 1 },
       'Database/SQL/select' => { :call_count => 1 }
     )
 
@@ -618,6 +630,34 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     end
     last
   end
+
+  def check_metric_time(metric, value, delta)
+    time = NewRelic::Agent.get_stats(metric).total_call_time
+    assert_in_delta(value, time, delta)
+  end
+
+  def check_metric_count(metric, value)
+    count = NewRelic::Agent.get_stats(metric).call_count
+    assert_equal(value, count, "should have the correct number of calls")
+  end
+
+  def generate_metric_counts(*metrics)
+    metrics.inject({}) do |sum, metric|
+      stat = NewRelic::Agent.instance.stats_engine.lookup_stats(metric)
+      sum[metric] = (stat && stat.call_count) || nil
+      sum
+    end
+  end
+
+  def assert_calls_metrics(*metrics)
+    first_metrics = generate_metric_counts(*metrics)
+    yield
+    last_metrics = generate_metric_counts(*metrics)
+    metrics.each do |metric|
+      refute_equal first_metrics[metric], last_metrics[metric], "Expected metric #{metric} to have changed"
+    end
+  end
+
 end
 
 
