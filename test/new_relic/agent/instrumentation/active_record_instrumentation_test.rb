@@ -643,8 +643,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
 
   def generate_metric_counts(*metrics)
     metrics.inject({}) do |sum, metric|
-      stat = NewRelic::Agent.instance.stats_engine.lookup_stats(metric)
-      sum[metric] = (stat && stat.call_count) || nil
+      sum[metric] = NewRelic::Agent.get_stats(metric).call_count
       sum
     end
   end
@@ -653,9 +652,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Minite
     first_metrics = generate_metric_counts(*metrics)
     yield
     last_metrics = generate_metric_counts(*metrics)
-    metrics.each do |metric|
-      refute_equal first_metrics[metric], last_metrics[metric], "Expected metric #{metric} to have changed"
-    end
+    refute_equal first_metrics, last_metrics, "should have changed some metrics"
   end
 
 end
