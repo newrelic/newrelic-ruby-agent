@@ -96,6 +96,26 @@ module NewRelic
           end
         end
 
+        def record_method_cache_invalidations(snapshot, txn_count)
+          if snapshot.method_cache_invalidations
+            delta = snapshot.method_cache_invalidations - @last_snapshot.method_cache_invalidations
+            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/CacheInvalidations/method') do |stats|
+              stats.call_count      = txn_count
+              stats.total_call_time = delta
+            end
+          end
+        end
+
+        def record_constant_cache_invalidations(snapshot, txn_count)
+          if snapshot.constant_cache_invalidations
+            delta = snapshot.constant_cache_invalidations - @last_snapshot.constant_cache_invalidations
+            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/CacheInvalidations/constant') do |stats|
+              stats.call_count      = txn_count
+              stats.total_call_time = delta
+            end
+          end
+        end
+
         def poll
           snapshot = take_snapshot
           txn_count = reset_transaction_count
@@ -104,6 +124,8 @@ module NewRelic
           record_object_allocations_metric(snapshot, txn_count)
           record_major_gc_count(snapshot, txn_count)
           record_minor_gc_count(snapshot, txn_count)
+          record_method_cache_invalidations(snapshot, txn_count)
+          record_constant_cache_invalidations(snapshot, txn_count)
           record_heap_live_metric(snapshot)
           record_heap_free_metric(snapshot)
           NewRelic::Agent.record_metric('RubyVM/Threads/all', :count => snapshot.thread_count)

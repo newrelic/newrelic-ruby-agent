@@ -12,13 +12,15 @@ module NewRelic
       class VMSamplerTest < Minitest::Test
         def setup
           stub_snapshot(
-            :gc_runs                => 0,
-            :gc_total_time          => 0,
-            :total_allocated_object => 0,
-            :major_gc_count         => 0,
-            :minor_gc_count         => 0,
-            :heap_live              => 0,
-            :heap_free              => 0
+            :gc_runs                      => 0,
+            :gc_total_time                => 0,
+            :total_allocated_object       => 0,
+            :major_gc_count               => 0,
+            :minor_gc_count               => 0,
+            :heap_live                    => 0,
+            :heap_free                    => 0,
+            :method_cache_invalidations   => 0,
+            :constant_cache_invalidations => 0
           )
           @sampler = VMSampler.new
           @sampler.setup_events(NewRelic::Agent.instance.events)
@@ -100,6 +102,26 @@ module NewRelic
           assert_metrics_recorded(
             'RubyVM/GC/heap_live' => { :call_count => 100 },
             'RubyVM/GC/heap_free' => { :call_count => 25  }
+          )
+        end
+
+        def test_poll_records_vm_cache_invalidations
+          stub_snapshot(
+            :method_cache_invalidations   => 100,
+            :constant_cache_invalidations => 200
+          )
+          generate_transactions(50)
+          @sampler.poll
+
+          assert_metrics_recorded(
+            'RubyVM/CacheInvalidations/method' => {
+              :call_count      => 50, # number of transactions
+              :total_call_time => 100 # number of method cache invalidations
+            },
+            'RubyVM/CacheInvalidations/constant' => {
+              :call_count      => 50, # number of transactions
+              :total_call_time => 200 # number of constant cache invalidations
+            }
           )
         end
 
