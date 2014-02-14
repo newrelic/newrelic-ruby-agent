@@ -28,25 +28,25 @@ module NewRelic
         []
       end
 
-      def analytic_event_data(data)
-        nil
+      def analytic_event_data(events)
+        write_to_pipe(:analytic_event_data, events) if events
       end
 
       def metric_data(unsent_timeslice_data)
-        write_to_pipe(:stats => unsent_timeslice_data)
+        write_to_pipe(:metric_data, unsent_timeslice_data)
         {}
       end
 
       def transaction_sample_data(transactions)
-        write_to_pipe(:transaction_traces => transactions) if transactions
+        write_to_pipe(:transaction_sample_data, transactions) if transactions
       end
 
       def error_data(errors)
-        write_to_pipe(:error_traces => errors) if errors
+        write_to_pipe(:error_data, errors) if errors
       end
 
       def sql_trace_data(sql)
-        write_to_pipe(:sql_traces => sql) if sql
+        write_to_pipe(:sql_trace_data, sql) if sql
       end
 
       def shutdown(time)
@@ -72,8 +72,8 @@ module NewRelic
         end
       end
 
-      def write_to_pipe(data)
-        @pipe.write(marshal_payload(data)) if @pipe
+      def write_to_pipe(endpoint, data)
+        @pipe.write(marshal_payload([endpoint, data])) if @pipe
       end
     end
   end

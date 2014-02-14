@@ -12,6 +12,7 @@ require 'flaky_proxy/http_message'
 require 'flaky_proxy/rule'
 require 'flaky_proxy/rule_set'
 require 'flaky_proxy/proxy'
+require 'flaky_proxy/sequence'
 
 module FlakyProxy
   @logger = Logger.new($stderr)

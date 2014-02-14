@@ -47,17 +47,19 @@ module NewRelic
 
         # Given a metric name such as "ActiveRecord/model/action" this
         # returns an array of rollup metrics:
-        # [ "ActiveRecord/all", "ActiveRecord/action" ]
+        # [ "Datastore/all", "ActiveRecord/all", "ActiveRecord/action" ]
         # If the metric name is in the form of "ActiveRecord/action"
-        # this returns merely: [ "ActiveRecord/all" ]
+        # this returns merely: [ "Datastore/all", "ActiveRecord/all" ]
         def rollup_metrics_for(metric)
-          metrics = []
+          metrics = ["Datastore/all"]
 
           # If we're outside of a web transaction, don't record any rollup
           # database metrics. This is to prevent metrics from background tasks
           # from polluting the metrics used to drive overview graphs.
           if NewRelic::Agent::Transaction.recording_web_transaction?
             metrics << "ActiveRecord/all"
+          else
+            metrics << "Datastore/allOther"
           end
           metrics << "ActiveRecord/#{$1}" if metric =~ /ActiveRecord\/[\w|\:]+\/(\w+)/
 
