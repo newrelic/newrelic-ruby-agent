@@ -34,7 +34,11 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
       ActiveRecordFixtures::Order.create(:name => 'bob')
     end
 
-    assert_generic_rollup_metrics('insert')
+    if active_record_major_version >= 3
+      assert_generic_rollup_metrics('insert')
+    else
+      assert_activerecord_metrics(ActiveRecordFixtures::Order, 'create')
+    end
     assert_remote_service_metrics
   end
 
@@ -127,10 +131,11 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
       ActiveRecordFixtures::Order.exists?(["name=?", "jeff"])
     end
 
-    if active_record_version >= NewRelic::VersionNumber.new("3.2")
-      assert_activerecord_metrics(ActiveRecordFixtures::Order, 'find')
-    else
+    if active_record_major_version == 3 && [0,1].include?(active_record_minor_version)
+      # Bugginess in Rails 3.0 and 3.1 doesn't let us get ActiveRecord/find
       assert_generic_rollup_metrics('select')
+    else
+      assert_activerecord_metrics(ActiveRecordFixtures::Order, 'find')
     end
     assert_remote_service_metrics
   end
@@ -142,7 +147,11 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
       order.save
     end
 
-    assert_generic_rollup_metrics('update')
+    if active_record_major_version >= 3
+      assert_generic_rollup_metrics('update')
+    else
+      assert_activerecord_metrics(ActiveRecordFixtures::Order, 'save')
+    end
     assert_remote_service_metrics
   end
 
@@ -152,7 +161,11 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
       order.destroy
     end
 
-    assert_generic_rollup_metrics('delete')
+    if active_record_major_version >= 3
+      assert_generic_rollup_metrics('delete')
+    else
+      assert_activerecord_metrics(ActiveRecordFixtures::Order, 'destroy')
+    end
     assert_remote_service_metrics
   end
 
@@ -319,6 +332,14 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
       ::ActiveRecord::VERSION::MAJOR.to_i
     else
       2
+    end
+  end
+
+  def active_record_minor_version
+    if defined?(::ActiveRecord::VERSION::MINOR)
+      ::ActiveRecord::VERSION::MINOR.to_i
+    else
+      1
     end
   end
 
