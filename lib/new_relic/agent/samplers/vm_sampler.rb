@@ -15,6 +15,11 @@ module NewRelic
           super :vm
           @lock = Mutex.new
           @transaction_count = 0
+          @last_snapshot = take_snapshot
+        end
+
+        def take_snapshot
+          NewRelic::Agent::VM.snapshot
         end
 
         def setup_events(event_listener)
@@ -33,10 +38,30 @@ module NewRelic
           end
         end
 
+        def record_gc_runs_metric(snapshot, txn_count)
+          if snapshot.gc_total_time || snapshot.gc_runs
+            if snapshot.gc_total_time
+              gc_time = snapshot.gc_total_time - @last_snapshot.gc_total_time
+            end
+            if snapshot.gc_runs
+              gc_runs = snapshot.gc_runs - @last_snapshot.gc_runs
+            end
+            NewRelic::Agent.agent.stats_engine.record_metrics('RubyVM/GC/runs') do |stats|
+              stats.call_count           = count
+              stats.total_call_time      = gc_runs if gc_runs
+              stats.total_exclusive_time = gc_time if gc_time
+            end
+          end
+        end
+
         def poll
-          snapshot = NewRelic::Agent::VM.snapshot
-          reset_transaction_count
+          snapshot = take_snapshot
+          txn_count = reset_transaction_count
+
+          record_gc_runs_metric(snapshot, txn_count)
           NewRelic::Agent.record_metric('RubyVM/Threads/all', :count => snapshot.thread_count)
+
+          @last_snapshot = snapshot
         end
       end
     end

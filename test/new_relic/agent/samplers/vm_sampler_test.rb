@@ -11,7 +11,9 @@ module NewRelic
     module Samplers
       class VMSamplerTest < Minitest::Test
         def setup
+          stub_snapshot(:gc_runs => 0, :gc_total_time => 0)
           @sampler = VMSampler.new
+          @sampler.setup_events(NewRelic::Agent.instance.events)
         end
 
         def test_supported_on_this_platform?
@@ -19,15 +21,12 @@ module NewRelic
         end
 
         def test_records_transaction_count
-          @sampler.setup_events(NewRelic::Agent.instance.events)
-          10.times { in_transaction('txn') { } }
-
+          generate_transactions(10)
           assert_equal(10, @sampler.transaction_count)
         end
 
         def test_reset_transaction_count
-          @sampler.setup_events(NewRelic::Agent.instance.events)
-          10.times { in_transaction('txn') { } }
+          generate_transactions(10)
 
           old_count = @sampler.reset_transaction_count
           assert_equal(10, old_count)
@@ -40,6 +39,26 @@ module NewRelic
           @sampler.poll
           expected = { 'RubyVM/Threads/all' => { :call_count => 2 } }
           assert_metrics_recorded(expected)
+        end
+
+        def test_poll_records_gc_runs_metric
+          stub_snapshot(:gc_runs => 10, :gc_total_time => 100)
+          generate_transactions(50)
+          @sampler.poll
+
+          assert_metrics_recorded(
+            'RubyVM/GC/runs' => {
+              :call_count           => 50, # number of transactions
+              :total_call_time      => 10, # number of GC runs
+              :total_exclusive_time => 100 # total GC time
+            }
+          )
+        end
+
+        def generate_transactions(n)
+          n.times do
+            in_transaction('txn') { }
+          end
         end
 
         def stub_snapshot(values)
