@@ -20,12 +20,18 @@ module NewRelic
 
         def test_records_transaction_count
           @sampler.setup_events(NewRelic::Agent.instance.events)
-
-          10.times do
-            in_transaction('txn') { }
-          end
+          10.times { in_transaction('txn') { } }
 
           assert_equal(10, @sampler.transaction_count)
+        end
+
+        def test_reset_transaction_count
+          @sampler.setup_events(NewRelic::Agent.instance.events)
+          10.times { in_transaction('txn') { } }
+
+          old_count = @sampler.reset_transaction_count
+          assert_equal(10, old_count)
+          assert_equal(0, @sampler.transaction_count)
         end
 
         def test_poll_records_thread_count

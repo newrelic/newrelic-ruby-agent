@@ -25,8 +25,17 @@ module NewRelic
           @lock.synchronize { @transaction_count += 1 }
         end
 
+        def reset_transaction_count
+          @lock.synchronize do
+            old_count = @transaction_count
+            @transaction_count = 0
+            old_count
+          end
+        end
+
         def poll
           snapshot = NewRelic::Agent::VM.snapshot
+          reset_transaction_count
           NewRelic::Agent.record_metric('RubyVM/Threads/all', :count => snapshot.thread_count)
         end
       end
