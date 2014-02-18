@@ -48,6 +48,11 @@
   Calling add_custom_parameters adds parameters to the system codenamed
   Rubicon. For more information, see http://newrelic.com/software-analytics
 
+  * Update gem signing cert (3.7.2.195)
+
+  The certificate used to sign newrelic_rpm expired in February. This patch
+  updates that for clients installing with verification.
+
 ## v3.7.1 ##
 
   * MongoDB support
