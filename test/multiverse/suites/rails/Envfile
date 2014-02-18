@@ -1,6 +1,6 @@
 if RUBY_VERSION >= '1.9.3'
   gemfile <<-RB
-    gem 'rails', '~>4.1.0.beta1'
+    gem 'rails', '~>4.1.0.rc1'
     gem 'minitest', '~>5.0'
 
     # Load error with beta haml + rails, so hold require until test needs it.
