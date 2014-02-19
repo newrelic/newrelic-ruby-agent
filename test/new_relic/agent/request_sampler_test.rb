@@ -129,14 +129,14 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
   def test_samples_on_transaction_finished_event_includes_guid
     with_sampler_config do
       generate_request('name', :guid => "GUID")
-      assert_equal "GUID", single_sample[EVENT_DATA_INDEX]["guid"]
+      assert_equal "GUID", single_sample[EVENT_DATA_INDEX]["nr.guid"]
     end
   end
 
   def test_samples_on_transaction_finished_event_includes_referring_transaction_guid
     with_sampler_config do
       generate_request('name', :referring_transaction_guid=> "REFER")
-      assert_equal "REFER", single_sample[EVENT_DATA_INDEX]["referringTransactionGuid"]
+      assert_equal "REFER", single_sample[EVENT_DATA_INDEX]["nr.referringTransactionGuid"]
     end
   end
 
