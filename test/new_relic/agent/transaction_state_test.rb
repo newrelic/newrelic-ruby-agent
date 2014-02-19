@@ -72,6 +72,12 @@ module NewRelic::Agent
       assert_equal transaction.name, timings.transaction_name
     end
 
+    def test_guid_from_transaction
+      txn = NewRelic::Agent::Transaction.new
+      state.transaction = txn
+      assert_equal state.request_guid, txn.guid
+    end
+
     GUID = "goo-id"
 
     def test_request_guid_to_include
@@ -79,12 +85,11 @@ module NewRelic::Agent
         freeze_time
 
         state.request_token = "token"
-        state.request_guid = GUID
         state.transaction = NewRelic::Agent::Transaction.new
 
         advance_time(4.0)
 
-        assert_equal GUID, state.request_guid_to_include
+        assert_equal state.transaction.guid, state.request_guid_to_include
       end
     end
 
@@ -93,7 +98,6 @@ module NewRelic::Agent
         freeze_time
 
         state.request_token = "token"
-        state.request_guid = GUID
         state.transaction = NewRelic::Agent::Transaction.new
 
         advance_time(1.0)
@@ -107,7 +111,6 @@ module NewRelic::Agent
         freeze_time
 
         state.request_token = nil
-        state.request_guid = GUID
         state.transaction = NewRelic::Agent::Transaction.new
 
         advance_time(4.0)
@@ -117,7 +120,6 @@ module NewRelic::Agent
     end
 
     def test_no_request_guid_for_event
-      state.request_guid = GUID
       state.request_token = nil
       state.is_cross_app_caller = false
       state.referring_transaction_info = nil
@@ -127,35 +129,32 @@ module NewRelic::Agent
     end
 
     def test_request_guid_for_event
-      state.request_guid = GUID
       state.request_token = nil
       state.is_cross_app_caller = true
       state.referring_transaction_info = nil
       state.transaction = NewRelic::Agent::Transaction.new
 
-      assert_equal GUID, state.request_guid_for_event
+      assert_equal state.transaction.guid, state.request_guid_for_event
     end
 
     def test_request_guid_for_event_if_referring_transaction
-      state.request_guid = GUID
       state.request_token = nil
       state.is_cross_app_caller = false
       state.referring_transaction_info = ["another"]
       state.transaction = NewRelic::Agent::Transaction.new
 
-      assert_equal GUID, state.request_guid_for_event
+      assert_equal state.transaction.guid, state.request_guid_for_event
     end
 
     def test_request_guid_for_event_if_there_for_rum
       with_config(:apdex_t => 2.0) do
-        state.request_guid = GUID
         state.request_token = "token"
         state.is_cross_app_caller = false
         state.transaction = NewRelic::Agent::Transaction.new
 
         advance_time(10.0)
 
-        assert_equal GUID, state.request_guid_for_event
+        assert_equal state.transaction.guid, state.request_guid_for_event
       end
     end
 

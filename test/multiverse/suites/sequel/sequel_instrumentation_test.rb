@@ -274,7 +274,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
     yield if block_given?
 
     sampler.notice_pop_scope "Controller/sandwiches/index"
-    sampler.notice_scope_empty(stub('txn', :name => '/', :custom_parameters => {}))
+    sampler.notice_scope_empty(stub('txn', :name => '/', :custom_parameters => {}, :guid => 'a guid'))
     [sampler.last_sample]
   end
 

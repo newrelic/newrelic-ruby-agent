@@ -21,7 +21,9 @@ module NewRelic
       # we can find a request header for the queue entry time
       attr_accessor(:type, :exceptions, :filtered_params, :force_flag,
                     :jruby_cpu_start, :process_cpu_start, :database_metric_name)
+
       attr_reader :name
+      attr_reader :guid
       attr_reader :stats_hash
 
       # Populated with the trace sample once this transaction is completed.
@@ -105,6 +107,7 @@ module NewRelic
         @request = options[:request]
         @exceptions = {}
         @stats_hash = StatsHash.new
+        @guid = generate_guid
         TransactionState.get.transaction = self
       end
 
@@ -469,6 +472,18 @@ module NewRelic
       def sql_sampler
         agent.sql_sampler
       end
+
+      HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
+
+      # generate a random 64 bit uuid
+      def generate_guid
+        guid = ''
+        HEX_DIGITS.each do |a|
+          guid << HEX_DIGITS[rand(16)]
+        end
+        guid
+      end
+
     end
   end
 end

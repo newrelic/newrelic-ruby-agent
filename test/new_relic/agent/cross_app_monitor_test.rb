@@ -195,9 +195,9 @@ module NewRelic::Agent
       event_listener = NewRelic::Agent.instance.events
       event_listener.notify(:before_call, request)
       in_transaction('transaction') do
-        # nothing
+        # Fake out our GUID for easier comparison in tests
+        NewRelic::Agent::Transaction.current.stubs(:guid).returns(TRANSACTION_GUID)
       end
-      NewRelic::Agent::TransactionState.get.request_guid = TRANSACTION_GUID
       event_listener.notify(:after_call, request, [200, @response, ''])
     end
 

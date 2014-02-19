@@ -216,7 +216,7 @@ module TransactionSampleTestHelper
     sleep 0.02
     yield if block_given?
     sampler.notice_pop_scope "a"
-    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}))
+    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}, :guid => 'a guid'))
 
     sampler.last_sample
   end
@@ -234,7 +234,7 @@ module TransactionSampleTestHelper
     sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
     sampler.notice_pop_scope "lew"
     sampler.notice_pop_scope "Controller/sandwiches/index"
-    sampler.notice_scope_empty(stub('txn', :name => path, :custom_parameters => {}))
+    sampler.notice_scope_empty(stub('txn', :name => path, :custom_parameters => {}, :guid => 'a guid'))
     sampler.last_sample
   end
 end

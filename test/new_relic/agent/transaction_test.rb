@@ -203,6 +203,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert txn.name_set?
   end
 
+  def test_generates_guid_on_initialization
+    refute_empty txn.guid
+  end
+
   def test_start_adds_controller_context_to_txn_stack
     NewRelic::Agent::Transaction.start(:controller)
     assert_equal 1, NewRelic::Agent::Transaction.stack.size
