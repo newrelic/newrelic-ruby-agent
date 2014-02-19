@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/vm'
 
-class NewRelic::Agent::VMTestCase < MiniTest::Unit::TestCase
+class NewRelic::Agent::VMTestCase < Minitest::Test
   attr_reader :vm, :snapshot
 
   def setup

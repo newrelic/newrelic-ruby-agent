@@ -4,5 +4,5 @@
 
 require 'new_relic/agent/vm/snapshot'
 
-class NewRelic::Agent::VM::SnapshotTestCase < MiniTest::Unit::TestCase
+class NewRelic::Agent::VM::SnapshotTestCase < Minitest::Test
 end

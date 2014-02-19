@@ -5,7 +5,7 @@
 require File.expand_path(File.join(__FILE__, "..", "..", "..", "..", "test_helper"))
 require 'new_relic/agent/vm/monotonic_gc_profiler'
 
-class MonotonicGCProfilerTest < MiniTest::Unit::TestCase
+class MonotonicGCProfilerTest < Minitest::Test
   attr_reader :profiler
 
   def setup

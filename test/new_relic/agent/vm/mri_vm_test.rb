@@ -9,7 +9,7 @@ unless NewRelic::LanguageSupport.jruby? || NewRelic::LanguageSupport.rubinius?
   module NewRelic
     module Agent
       module VM
-        class MriVMTest < MiniTest::Unit::TestCase
+        class MriVMTest < Minitest::Test
           def setup
             @snap = Snapshot.new
             @vm = MriVM.new
