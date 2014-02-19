@@ -70,8 +70,8 @@ class RequestStatsTest < ActionController::TestCase
       assert_kind_of Float, sample['duration']
       assert_kind_of Float, sample['timestamp']
 
-      assert_nil sample['guid']
-      assert_nil sample['referringTransactionGuid']
+      assert_nil sample['nr.guid']
+      assert_nil sample['nr.referringTransactionGuid']
     end
   end
 
@@ -90,7 +90,7 @@ class RequestStatsTest < ActionController::TestCase
       sample = post.body.first.first
       assert_kind_of Hash, sample
 
-      assert_kind_of String, sample['guid']
+      assert_kind_of String, sample['nr.guid']
     end
   end
 

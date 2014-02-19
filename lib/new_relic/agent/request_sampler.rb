@@ -20,8 +20,8 @@ class NewRelic::Agent::RequestSampler
   TIMESTAMP_KEY                  = 'timestamp'
   NAME_KEY                       = 'name'
   DURATION_KEY                   = 'duration'
-  GUID_KEY                       = 'guid'
-  REFERRING_TRANSACTION_GUID_KEY = 'referringTransactionGuid'
+  GUID_KEY                       = 'nr.guid'
+  REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
 
   def initialize( event_listener )
     super()
