@@ -474,11 +474,12 @@ module NewRelic
       end
 
       HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
+      GUID_LENGTH = 16
 
       # generate a random 64 bit uuid
       def generate_guid
         guid = ''
-        HEX_DIGITS.each do |a|
+        GUID_LENGTH.times do |a|
           guid << HEX_DIGITS[rand(16)]
         end
         guid

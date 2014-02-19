@@ -78,7 +78,7 @@ module NewRelic
       attr_accessor :request, :request_token, :request_ignore_enduser
 
       def request_guid
-        return "" unless transaction
+        return nil unless transaction
         transaction.guid
       end
 

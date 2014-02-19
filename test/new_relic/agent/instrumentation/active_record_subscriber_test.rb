@@ -97,7 +97,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     sampler.notice_push_scope('Controller/sandwiches/index')
     simulate_query(2)
     sampler.notice_pop_scope('Controller/sandwiches/index')
-    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}))
+    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}, :guid => 'a guid'))
 
     last_segment = nil
     sampler.last_sample.root_segment.each_segment{|s| last_segment = s }
