@@ -50,6 +50,8 @@ module NewRelic
         @request_token = BrowserToken.get_token(request)
         @request_guid = ""
         @request_ignore_enduser = false
+        @is_cross_app_caller = false
+        @referring_transaction_info = nil
       end
 
       def timings
