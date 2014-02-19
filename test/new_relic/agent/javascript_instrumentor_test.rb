@@ -175,11 +175,11 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
         txn = NewRelic::Agent::Transaction.current
         txn.stubs(:queue_time).returns(0)
         txn.stubs(:start_time).returns(Time.now - 10)
+        txn.stubs(:guid).returns('ABC')
         txn.name = 'most recent transaction'
 
         state = NewRelic::Agent::TransactionState.get
         state.request_token = '0123456789ABCDEF'
-        state.request_guid = 'ABC'
 
         data = instrumentor.data_for_js_agent
         expected = {

@@ -36,7 +36,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }
     NewRelic::Agent.config.apply_config(@test_config)
-    @txn = stub('txn', :name => '/path', :custom_parameters => {})
+    @txn = stub('txn', :name => '/path', :custom_parameters => {}, :guid => 'a guid')
   end
 
   def teardown
@@ -142,7 +142,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     builder = mock('builder')
     @sampler.stubs(:builder).returns(builder)
 
-
     builder.expects(:finish_trace).with(100.0, {})
     @sampler.expects(:clear_builder)
 
@@ -151,6 +150,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     builder.expects(:set_transaction_name).returns(true)
 
     sample = mock('sample')
+    sample.expects(:guid=)
     builder.expects(:sample).returns(sample)
     @sampler.expects(:store_sample).with(sample)
 
@@ -158,6 +158,20 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @sampler.notice_scope_empty(@txn, Time.at(100))
 
     assert_equal(sample, @sampler.instance_variable_get('@last_sample'))
+  end
+
+  def test_notice_scope_empty_passes_guid_along
+    builder = stub_everything('builder')
+    @sampler.stubs(:builder).returns(builder)
+
+    @txn.stubs(:guid).returns('a guid')
+
+    sample = stub_everything('sample')
+    sample.expects(:guid=).with(@txn.guid)
+    builder.stubs(:sample).returns(sample)
+
+    @sampler.notice_transaction(nil, {})
+    @sampler.notice_scope_empty(@txn, Time.at(100))
   end
 
   def test_ignore_transaction_no_builder

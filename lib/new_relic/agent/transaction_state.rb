@@ -48,7 +48,6 @@ module NewRelic
 
         @request = request
         @request_token = BrowserToken.get_token(request)
-        @request_guid = ""
         @request_ignore_enduser = false
         @is_cross_app_caller = false
         @referring_transaction_info = nil
@@ -76,7 +75,12 @@ module NewRelic
       end
 
       # Request data
-      attr_accessor :request, :request_token, :request_guid, :request_ignore_enduser
+      attr_accessor :request, :request_token, :request_ignore_enduser
+
+      def request_guid
+        return nil unless transaction
+        transaction.guid
+      end
 
       def request_guid_to_include
         return "" unless include_guid?
