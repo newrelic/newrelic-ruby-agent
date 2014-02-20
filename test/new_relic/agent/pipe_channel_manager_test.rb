@@ -43,15 +43,13 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
       listener = start_listener_with_pipe(666)
 
-      pid = Process.fork do
+      run_child(666) do
         NewRelic::Agent.after_fork
         new_engine = NewRelic::Agent::StatsEngine.new
         new_engine.get_stats_no_scope(metric).record_data_point(2.0)
         service = NewRelic::Agent::PipeService.new(666)
         service.metric_data(new_engine.harvest!)
       end
-      Process.wait(pid)
-      listener.stop
 
       assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
       engine.reset!
@@ -63,7 +61,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       assert_equal(1, sampler.count)
 
       listener = start_listener_with_pipe(667)
-      pid = Process.fork do
+      run_child(667) do
         NewRelic::Agent.after_fork
         with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
           sample = run_sample_trace_on(sampler)
@@ -71,8 +69,6 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
           service.transaction_sample_data(sampler.harvest!)
         end
       end
-      Process.wait(pid)
-      listener.stop
 
       assert_equal(2, sampler.count)
     end
@@ -88,7 +84,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
       listener = start_listener_with_pipe(668)
 
-      pid = Process.fork do
+      run_child(668) do
         NewRelic::Agent.after_fork
         new_sampler = NewRelic::Agent::ErrorCollector.new
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
@@ -97,8 +93,6 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         service = NewRelic::Agent::PipeService.new(668)
         service.error_data(new_sampler.harvest!)
       end
-      Process.wait(pid)
-      listener.stop
 
       assert_equal(2, NewRelic::Agent.agent.error_collector.errors.size)
     end
@@ -108,7 +102,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
       listener = start_listener_with_pipe(699)
       NewRelic::Agent.agent.stubs(:connected?).returns(true)
-      pid = Process.fork do
+      run_child(699) do
         NewRelic::Agent.after_fork(:report_to_channel => 699)
         request_sampler.on_transaction_finished({
           :start_timestamp => Time.now,
@@ -118,8 +112,6 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         })
         NewRelic::Agent.agent.send(:transmit_data)
       end
-      Process.wait(pid)
-      listener.stop
 
       assert_equal(1, request_sampler.samples.size)
     end
@@ -129,14 +121,12 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       create_sql_sample(sampler)
 
       listener = start_listener_with_pipe(667)
-      pid = Process.fork do
+      run_child(667) do
         NewRelic::Agent.after_fork
         create_sql_sample(sampler)
         service = NewRelic::Agent::PipeService.new(667)
         service.sql_trace_data(sampler.harvest!)
       end
-      Process.wait(pid)
-      listener.stop
 
       assert_equal(2, sampler.harvest!.size)
     end
@@ -221,4 +211,14 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     assert_nil pipe.read
   end
 
+  def run_child(channel_id)
+    pid = Process.fork do
+      yield
+    end
+
+    Process.wait(pid)
+    until pipe_finished?(channel_id)
+      sleep 0.01
+    end
+  end
 end
