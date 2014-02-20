@@ -107,13 +107,6 @@ module NewRelic
     def check_for_mongrel
       return unless defined?(::Mongrel) && defined?(::Mongrel::HttpServer)
       @discovered_dispatcher = :mongrel
-
-      # Get the port from the server if it's started
-      if mongrel && mongrel.respond_to?(:port)
-      end
-
-      # Might not have server yet, so allow one more check later on first request
-      @looked_for_mongrel = false
     end
 
     def check_for_unicorn
