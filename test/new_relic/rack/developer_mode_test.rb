@@ -11,7 +11,7 @@ require 'new_relic/rack/developer_mode'
 
 ENV['RACK_ENV'] = 'test'
 
-class DeveloperModeTest < MiniTest::Unit::TestCase
+class DeveloperModeTest < Minitest::Test
   include Rack::Test::Methods
   include TransactionSampleTestHelper
 

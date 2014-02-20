@@ -20,8 +20,8 @@ class NewRelic::Agent::RequestSampler
   TIMESTAMP_KEY                  = 'timestamp'
   NAME_KEY                       = 'name'
   DURATION_KEY                   = 'duration'
-  GUID_KEY                       = 'guid'
-  REFERRING_TRANSACTION_GUID_KEY = 'referringTransactionGuid'
+  GUID_KEY                       = 'nr.guid'
+  REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
 
   def initialize( event_listener )
     super()
@@ -115,7 +115,6 @@ class NewRelic::Agent::RequestSampler
   # Event handler for the :transaction_finished event.
   def on_transaction_finished(payload)
     return unless @enabled
-    return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
 
     main_event = create_main_event(payload)
     custom_params = create_custom_parameters(payload)
@@ -124,8 +123,55 @@ class NewRelic::Agent::RequestSampler
     notify_full if is_full && !@notified_full
   end
 
+  def self.map_metric(metric_name, to_add={})
+    to_add.values.each(&:freeze)
+
+    spec = ::NewRelic::MetricSpec.new(metric_name)
+    mappings = OVERVIEW_SPECS.fetch(spec, {})
+    mappings.merge!(to_add)
+
+    OVERVIEW_SPECS[spec] = mappings
+  end
+
+  OVERVIEW_SPECS = {}
+
+  # All Transactions
+  # Don't need to use the transaction-type specific metrics since this is
+  # scoped to just one transaction, so Datastore/all has what we want.
+  map_metric('Datastore/all',         :total_call_time => "databaseDuration")
+  map_metric('Datastore/all',         :call_count      => "databaseCallCount")
+
+  # Web Metrics
+  map_metric('WebFrontend/QueueTime', :total_call_time => "queueDuration")
+  map_metric("GC/cumulative",         :total_call_time => "gcCumulative")
+  map_metric('Memcache/allWeb',       :total_call_time => "memcacheDuration")
+
+  map_metric('External/allWeb',       :total_call_time => "externalDuration")
+  map_metric('External/allWeb',       :call_count      => "externalCallCount")
+
+  # Background Metrics
+  map_metric('Memcache/allOther',     :total_call_time => "memcacheDuration")
+
+  map_metric('External/allOther',     :total_call_time => "externalDuration")
+  map_metric('External/allOther',     :call_count      => "externalCallCount")
+
+  def extract_metrics(stats_hash)
+    result = {}
+    if stats_hash
+      OVERVIEW_SPECS.each do |(metric_spec, extracted_values)|
+        if stats_hash.has_key?(metric_spec)
+          stat = stats_hash[metric_spec]
+          extracted_values.each do |value_name, key_name|
+            result[key_name] = stat.send(value_name)
+          end
+        end
+      end
+    end
+    result
+  end
+
   def create_main_event(payload)
-    sample = payload[:overview_metrics] || {}
+    sample = extract_metrics(payload[:metrics])
     sample.merge!({
         TIMESTAMP_KEY     => float(payload[:start_timestamp]),
         NAME_KEY          => string(payload[:name]),

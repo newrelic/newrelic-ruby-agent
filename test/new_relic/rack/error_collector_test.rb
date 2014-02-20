@@ -8,7 +8,7 @@ require 'rack/test'
 require 'new_relic/rack/error_collector'
 
 module NewRelic::Rack
-  class ErrorCollectorTest < MiniTest::Unit::TestCase
+  class ErrorCollectorTest < Minitest::Test
     include Rack::Test::Methods
 
     class TestApp

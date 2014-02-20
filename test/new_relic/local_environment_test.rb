@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
-class NewRelic::LocalEnvironmentTest < MiniTest::Unit::TestCase
+class NewRelic::LocalEnvironmentTest < Minitest::Test
 
   def self.teardown
     # To remove mock server instances from ObjectSpace

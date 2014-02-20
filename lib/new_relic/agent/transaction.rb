@@ -21,8 +21,13 @@ module NewRelic
       # we can find a request header for the queue entry time
       attr_accessor(:type, :exceptions, :filtered_params, :force_flag,
                     :jruby_cpu_start, :process_cpu_start, :database_metric_name)
+
       attr_reader :name
+      attr_reader :guid
       attr_reader :stats_hash
+
+      # Populated with the trace sample once this transaction is completed.
+      attr_reader :transaction_trace
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -102,6 +107,7 @@ module NewRelic
         @request = options[:request]
         @exceptions = {}
         @stats_hash = StatsHash.new
+        @guid = generate_guid
         TransactionState.get.transaction = self
       end
 
@@ -196,7 +202,6 @@ module NewRelic
           end
           @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_time)
           sql_sampler.notice_scope_empty(@name)
-          overview_metrics = transaction_overview_metrics
         end
 
         record_exceptions
@@ -204,18 +209,20 @@ module NewRelic
 
         # these tear everything down so need to be done after merging stats
         if self.root?
-          send_transaction_finished_event(start_time, end_time, overview_metrics)
+          send_transaction_finished_event(start_time, end_time)
           agent.stats_engine.end_transaction
         end
       end
 
-      def send_transaction_finished_event(start_time, end_time, overview_metrics)
+      # This event is fired when the transaction is fully completed. The metric
+      # values and sampler can't be successfully modified from this event.
+      def send_transaction_finished_event(start_time, end_time)
         payload = {
           :name             => @name,
           :type             => @type,
           :start_timestamp  => start_time.to_f,
           :duration         => end_time.to_f - start_time.to_f,
-          :overview_metrics => overview_metrics,
+          :metrics          => @stats_hash,
           :custom_params    => custom_parameters
         }
         append_guid_to(payload)
@@ -248,24 +255,6 @@ module NewRelic
           options[:metric] = @name
           agent.error_collector.notice_error(exception, options)
         end
-      end
-
-      OVERVIEW_SPECS = [
-        [:webDuration,      MetricSpec.new('HttpDispatcher')],
-        [:queueDuration,    MetricSpec.new('WebFrontend/QueueTime')],
-        [:externalDuration, MetricSpec.new('External/allWeb')],
-        [:databaseDuration, MetricSpec.new('ActiveRecord/all')],
-        [:gcCumulative,     MetricSpec.new("GC/cumulative")],
-        [:memcacheDuration, MetricSpec.new('Memcache/allWeb')]
-      ]
-
-      def transaction_overview_metrics
-        metrics = {}
-        stats = @stats_hash
-        OVERVIEW_SPECS.each do |(dest_key, spec)|
-          metrics[dest_key] = stats[spec].total_call_time if stats.key?(spec)
-        end
-        metrics
       end
 
       # If we have an active transaction, notice the error and increment the error metric.
@@ -483,6 +472,19 @@ module NewRelic
       def sql_sampler
         agent.sql_sampler
       end
+
+      HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
+      GUID_LENGTH = 16
+
+      # generate a random 64 bit uuid
+      def generate_guid
+        guid = ''
+        GUID_LENGTH.times do |a|
+          guid << HEX_DIGITS[rand(16)]
+        end
+        guid
+      end
+
     end
   end
 end

@@ -8,7 +8,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','ui',
                                    'helpers','developer_mode_helper.rb'))
 
 ENV['RACK_ENV'] = 'test'
-class DeveloperModeTest < MiniTest::Unit::TestCase
+class DeveloperModeTest < Minitest::Test
   include NewRelic::DeveloperModeHelper
 
 

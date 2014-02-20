@@ -18,7 +18,7 @@ class SinatraErrorTracingTestApp < Sinatra::Base
   end
 end
 
-class SinatraErrorTracingTest < MiniTest::Unit::TestCase
+class SinatraErrorTracingTest < Minitest::Test
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
 

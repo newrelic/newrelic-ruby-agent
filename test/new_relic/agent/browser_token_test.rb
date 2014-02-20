@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'new_relic/agent/browser_token'
 
 module NewRelic::Agent
-  class BrowserTokenTest < MiniTest::Unit::TestCase
+  class BrowserTokenTest < Minitest::Test
     def assert_token(expected, cookies)
       request = stub(:cookies => cookies)
       assert_equal(expected, BrowserToken.get_token(request))

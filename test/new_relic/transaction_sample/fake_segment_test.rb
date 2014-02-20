@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/transaction_sample/fake_segment'
-class NewRelic::TransactionSample::FakeSegmentTest < MiniTest::Unit::TestCase
+class NewRelic::TransactionSample::FakeSegmentTest < Minitest::Test
   def test_fake_segment_creation
     NewRelic::TransactionSample::FakeSegment.new(0.1, 'Custom/test/metric', nil)
   end

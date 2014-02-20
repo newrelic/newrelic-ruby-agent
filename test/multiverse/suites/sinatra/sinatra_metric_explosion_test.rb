@@ -25,7 +25,7 @@ class SinatraTestApp < Sinatra::Base
   end
 end
 
-class SinatraMetricExplosionTest < MiniTest::Unit::TestCase
+class SinatraMetricExplosionTest < Minitest::Test
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
 

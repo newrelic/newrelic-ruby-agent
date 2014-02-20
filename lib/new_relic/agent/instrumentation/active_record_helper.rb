@@ -34,11 +34,10 @@ module NewRelic
         def metric_for_sql(sql)
           metric = NewRelic::Agent::Transaction.database_metric_name
           if metric.nil?
-            if sql =~ /^(select|update|insert|delete|show)/i
-              # Could not determine the model/operation so let's find a better
-              # metric.  If it doesn't match the regex, it's probably a show
-              # command or some DDL which we'll ignore.
-              metric = "Database/SQL/#{$1.downcase}"
+            operation = NewRelic::Agent::Database.parse_operation_from_query(sql)
+            if operation
+              # Could not determine the model/operation so use a fallback metric
+              metric = "Database/SQL/#{operation}"
             else
               metric = "Database/SQL/other"
             end
@@ -48,17 +47,19 @@ module NewRelic
 
         # Given a metric name such as "ActiveRecord/model/action" this
         # returns an array of rollup metrics:
-        # [ "ActiveRecord/all", "ActiveRecord/action" ]
+        # [ "Datastore/all", "ActiveRecord/all", "ActiveRecord/action" ]
         # If the metric name is in the form of "ActiveRecord/action"
-        # this returns merely: [ "ActiveRecord/all" ]
+        # this returns merely: [ "Datastore/all", "ActiveRecord/all" ]
         def rollup_metrics_for(metric)
-          metrics = []
+          metrics = ["Datastore/all"]
 
           # If we're outside of a web transaction, don't record any rollup
           # database metrics. This is to prevent metrics from background tasks
           # from polluting the metrics used to drive overview graphs.
           if NewRelic::Agent::Transaction.recording_web_transaction?
             metrics << "ActiveRecord/all"
+          else
+            metrics << "Datastore/allOther"
           end
           metrics << "ActiveRecord/#{$1}" if metric =~ /ActiveRecord\/[\w|\:]+\/(\w+)/
 

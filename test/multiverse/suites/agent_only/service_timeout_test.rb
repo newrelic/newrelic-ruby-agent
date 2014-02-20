@@ -4,7 +4,7 @@
 
 require 'socket'
 
-class ServiceTimeoutTest < MiniTest::Unit::TestCase
+class ServiceTimeoutTest < Minitest::Test
 
   def setup
     hk = TCPServer.new('127.0.0.1',0)

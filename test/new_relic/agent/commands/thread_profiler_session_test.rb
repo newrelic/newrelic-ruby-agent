@@ -45,7 +45,7 @@ end
 
 if !NewRelic::Agent::Threading::BacktraceService.is_supported?
 
-  class ThreadProfilerUnsupportedTest < MiniTest::Unit::TestCase
+  class ThreadProfilerUnsupportedTest < Minitest::Test
     include ThreadProfilerSessionTestHelpers
 
     def setup
@@ -76,7 +76,7 @@ else
 
   require 'json'
 
-  class ThreadProfilerSessionTest < MiniTest::Unit::TestCase
+  class ThreadProfilerSessionTest < Minitest::Test
     include ThreadedTestCase
     include ThreadProfilerSessionTestHelpers
 

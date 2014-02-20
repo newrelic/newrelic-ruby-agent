@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..', 'test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
-class NewRelic::Agent::StatsEngineTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent::StatsEngine.new

@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
-class TransactionInterrobangTest < MiniTest::Unit::TestCase
+class TransactionInterrobangTest < Minitest::Test
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
   def interrogate?

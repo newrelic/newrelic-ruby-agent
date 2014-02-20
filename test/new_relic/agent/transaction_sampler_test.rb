@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
-class NewRelic::Agent::TransactionSamplerTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   module MockGCStats
 
@@ -36,7 +36,7 @@ class NewRelic::Agent::TransactionSamplerTest < MiniTest::Unit::TestCase
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }
     NewRelic::Agent.config.apply_config(@test_config)
-    @txn = stub('txn', :name => '/path', :custom_parameters => {})
+    @txn = stub('txn', :name => '/path', :custom_parameters => {}, :guid => 'a guid')
   end
 
   def teardown
@@ -142,7 +142,6 @@ class NewRelic::Agent::TransactionSamplerTest < MiniTest::Unit::TestCase
     builder = mock('builder')
     @sampler.stubs(:builder).returns(builder)
 
-
     builder.expects(:finish_trace).with(100.0, {})
     @sampler.expects(:clear_builder)
 
@@ -151,6 +150,7 @@ class NewRelic::Agent::TransactionSamplerTest < MiniTest::Unit::TestCase
     builder.expects(:set_transaction_name).returns(true)
 
     sample = mock('sample')
+    sample.expects(:guid=)
     builder.expects(:sample).returns(sample)
     @sampler.expects(:store_sample).with(sample)
 
@@ -158,6 +158,20 @@ class NewRelic::Agent::TransactionSamplerTest < MiniTest::Unit::TestCase
     @sampler.notice_scope_empty(@txn, Time.at(100))
 
     assert_equal(sample, @sampler.instance_variable_get('@last_sample'))
+  end
+
+  def test_notice_scope_empty_passes_guid_along
+    builder = stub_everything('builder')
+    @sampler.stubs(:builder).returns(builder)
+
+    @txn.stubs(:guid).returns('a guid')
+
+    sample = stub_everything('sample')
+    sample.expects(:guid=).with(@txn.guid)
+    builder.stubs(:sample).returns(sample)
+
+    @sampler.notice_transaction(nil, {})
+    @sampler.notice_scope_empty(@txn, Time.at(100))
   end
 
   def test_ignore_transaction_no_builder
@@ -170,20 +184,6 @@ class NewRelic::Agent::TransactionSamplerTest < MiniTest::Unit::TestCase
     builder.expects(:ignore_transaction)
     @sampler.expects(:builder).returns(builder).twice
     @sampler.ignore_transaction
-  end
-
-  def test_notice_profile_no_builder
-    @sampler.expects(:builder).returns(nil).once
-    @sampler.notice_profile(nil)
-  end
-
-  def test_notice_profile_with_builder
-    profile = mock('profile')
-    builder = mock('builder')
-    @sampler.expects(:builder).returns(builder).twice
-    builder.expects(:set_profile).with(profile)
-
-    @sampler.notice_profile(profile)
   end
 
   def test_notice_transaction_cpu_time_no_builder

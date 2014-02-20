@@ -7,7 +7,7 @@ require 'new_relic/agent/cross_app_tracing'
 
 module NewRelic
   module Agent
-    class CrossAppTracingTest < MiniTest::Unit::TestCase
+    class CrossAppTracingTest < Minitest::Test
 
       attr_reader :segment, :request, :response
 

@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class NewRelic::Agent::TransationSampleBuilderTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::TransationSampleBuilderTest < Minitest::Test
 
   def setup
     freeze_time

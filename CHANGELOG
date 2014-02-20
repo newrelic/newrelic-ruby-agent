@@ -25,7 +25,7 @@
 
   * Improved Unicorn 4.8.0 compatibility
 
-  A rare issue that could lead to spurrious traced errors on app startup for
+  A rare issue that could lead to spurious traced errors on app startup for
   applications using Unicorn 4.8.0 has been fixed.
 
   * meta_request gem compatibility

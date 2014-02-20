@@ -7,7 +7,7 @@ require 'new_relic/rack/browser_monitoring'
 require './testing_app'
 require 'multiverse_helpers'
 
-class RumAutoTest < MiniTest::Unit::TestCase
+class RumAutoTest < Minitest::Test
 
   attr_reader :app
 

@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require 'new_relic/metric_data'
-class NewRelic::MetricDataTest < MiniTest::Unit::TestCase
+class NewRelic::MetricDataTest < Minitest::Test
   def test_initialize_basic
     spec = mock('metric_spec')
     stats = mock('stats')

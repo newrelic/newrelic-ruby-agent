@@ -11,7 +11,7 @@ if Sequel.const_defined?( :MAJOR ) &&
 require 'newrelic_rpm'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
-class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Test
 
   def setup
     super
@@ -274,7 +274,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Un
     yield if block_given?
 
     sampler.notice_pop_scope "Controller/sandwiches/index"
-    sampler.notice_scope_empty(stub('txn', :name => '/', :custom_parameters => {}))
+    sampler.notice_scope_empty(stub('txn', :name => '/', :custom_parameters => {}, :guid => 'a guid'))
     [sampler.last_sample]
   end
 

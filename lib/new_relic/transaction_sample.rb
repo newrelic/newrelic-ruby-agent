@@ -31,9 +31,6 @@ module NewRelic
       @segment_count = -1
       @root_segment = create_segment 0.0, "ROOT"
       @prepared = false
-
-      @guid = generate_guid
-      NewRelic::Agent::TransactionState.get.request_guid = @guid
     end
 
     def prepared?
@@ -208,16 +205,6 @@ module NewRelic
     end
 
   private
-
-    HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
-    # generate a random 64 bit uuid
-    def generate_guid
-      guid = ''
-      HEX_DIGITS.each do |a|
-        guid << HEX_DIGITS[rand(16)]
-      end
-      guid
-    end
 
     # This is badly in need of refactoring
     def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)

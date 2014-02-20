@@ -42,8 +42,22 @@ module NewRelic
       # pipe in the parent and child processes is essential in order for the EOF
       # to be correctly triggered. The ready marker mechanism is used because
       # there's no easy hook for after_fork in the parent process.
+      #
+      # This class provides message framing (separation of individual messages),
+      # but not serialization. Serialization / deserialization is the
+      # responsibility of clients.
+      #
+      # Message framing works like this:
+      #
+      # Each message sent across the pipe is preceded by a length tag that
+      # specifies the length of the message that immediately follows, in bytes.
+      # The length tags are serialized as unsigned big-endian long values, (4
+      # bytes each). This means that the maximum theoretical message size is
+      # 4 GB - much larger than we'd ever need or want for this application.
+      #
       class Pipe
         READY_MARKER = "READY"
+        NUM_LENGTH_BYTES = 4
 
         attr_accessor :in, :out
         attr_reader :last_read, :parent_pid
@@ -62,18 +76,37 @@ module NewRelic
           @in.close unless @in.closed?
         end
 
+        def serialize_message_length(data)
+          [data.bytesize].pack("L>")
+        end
+
+        def deserialize_message_length(data)
+          data.unpack("L>").first
+        end
+
         def write(data)
           @out.close unless @out.closed?
-          @in << NewRelic::LanguageSupport.with_cautious_gc do
-            Marshal.dump(data)
-          end
-          @in << "\n\n"
+          @in << serialize_message_length(data)
+          @in << data
         end
 
         def read
           @in.close unless @in.closed?
           @last_read = Time.now
-          @out.gets("\n\n")
+          length_bytes = @out.read(NUM_LENGTH_BYTES)
+          if length_bytes
+            message_length = deserialize_message_length(length_bytes)
+            if message_length
+              @out.read(message_length)
+            else
+              length_hex = length_bytes.bytes.map { |b| b.to_s(16) }.join(' ')
+              NewRelic::Agent.logger.error("Failed to deserialize message length from pipe. Bytes: [#{length_hex}]")
+              nil
+            end
+          else
+            NewRelic::Agent.logger.error("Failed to read bytes for length from pipe.")
+            nil
+          end
         end
 
         def eof?
@@ -176,15 +209,15 @@ module NewRelic
         def merge_data_from_pipe(pipe_handle)
           pipe = find_pipe_for_handle(pipe_handle)
           raw_payload = pipe.read
-
           if raw_payload && !raw_payload.empty?
-            payload = unmarshal(raw_payload)
-            if payload == Pipe::READY_MARKER
+            if raw_payload == Pipe::READY_MARKER
               pipe.after_fork_in_parent
-            elsif payload
-              NewRelic::Agent.agent.merge_data_from([payload[:stats],
-                                                     payload[:transaction_traces],
-                                                     payload[:error_traces]])
+            else
+              payload = unmarshal(raw_payload)
+              if payload
+                endpoint, items = payload
+                NewRelic::Agent.agent.merge_data_for_endpoint(endpoint, items)
+              end
             end
           end
 

@@ -20,7 +20,7 @@ class ArrayLogDevice
 end
 
 
-class AgentLoggerTest < MiniTest::Unit::TestCase
+class AgentLoggerTest < Minitest::Test
 
   LEVELS = [:fatal, :error, :warn, :info, :debug]
 

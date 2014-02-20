@@ -10,7 +10,7 @@ module NewRelic
     module Instrumentation
       module Sinatra
 
-        class TransactionNamerTest < MiniTest::Unit::TestCase
+        class TransactionNamerTest < Minitest::Test
 
           def test_transaction_name_for_route
             env = { "newrelic.last_route" => /^\/the_route$/}

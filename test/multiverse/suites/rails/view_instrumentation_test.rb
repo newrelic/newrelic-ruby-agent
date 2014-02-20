@@ -4,6 +4,7 @@
 
 require './app'
 require 'rails/test_help'
+require 'haml'
 require 'multiverse_helpers'
 
 ActionController::Base.view_paths = ['app/views']

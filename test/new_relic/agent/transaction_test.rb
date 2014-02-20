@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class NewRelic::Agent::TransactionTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::TransactionTest < Minitest::Test
 
   attr_reader :txn
 
@@ -203,6 +203,10 @@ class NewRelic::Agent::TransactionTest < MiniTest::Unit::TestCase
     assert txn.name_set?
   end
 
+  def test_generates_guid_on_initialization
+    refute_empty txn.guid
+  end
+
   def test_start_adds_controller_context_to_txn_stack
     NewRelic::Agent::Transaction.start(:controller)
     assert_equal 1, NewRelic::Agent::Transaction.stack.size
@@ -257,14 +261,14 @@ class NewRelic::Agent::TransactionTest < MiniTest::Unit::TestCase
   def test_end_fires_a_transaction_finished_event_with_overview_metrics
     options = nil
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-      options = payload[:overview_metrics]
+      options = payload[:metrics]
     end
 
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.record_metric("HttpDispatcher", 2.1)
     NewRelic::Agent::Transaction.stop('txn')
 
-    assert_equal 2.1, options[:webDuration]
+    assert_equal 2.1, options[NewRelic::MetricSpec.new('HttpDispatcher')].total_call_time
   end
 
   def test_end_fires_a_transaction_finished_event_with_custom_params

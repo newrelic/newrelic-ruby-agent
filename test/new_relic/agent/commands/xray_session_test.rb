@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/commands/xray_session'
 
 module NewRelic::Agent::Commands
-  class XraySessionTest < MiniTest::Unit::TestCase
+  class XraySessionTest < Minitest::Test
     def test_run_profiler
       session = XraySession.new('run_profiler' => true)
       assert session.run_profiler?

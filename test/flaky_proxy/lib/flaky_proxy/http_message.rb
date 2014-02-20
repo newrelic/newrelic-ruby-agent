@@ -51,6 +51,8 @@ module FlakyProxy
           end
         end
       end
+    rescue Errno::ECONNRESET
+      FlakyProxy::Logger.warn("Connection reset by peer when reading from #{io}")
     end
 
     def complete?

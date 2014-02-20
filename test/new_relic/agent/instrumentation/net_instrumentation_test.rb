@@ -7,7 +7,7 @@ require 'net/http'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/cross_app_tracing'
 
-class NewRelic::Agent::Instrumentation::NetInstrumentationTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start(
       :"cross_application_tracer.enabled" => false,

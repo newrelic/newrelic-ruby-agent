@@ -7,7 +7,7 @@
 require 'ostruct'
 require 'multiverse_helpers'
 
-class MarshalingTest < MiniTest::Unit::TestCase
+class MarshalingTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent(:'transaction_tracer.transaction_threshold' => 0.0) do |collector|

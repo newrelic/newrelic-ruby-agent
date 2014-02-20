@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'new_relic/cli/command'
 require 'new_relic/cli/deployments'
 
-class NewRelic::Cli::DeploymentsTest < MiniTest::Unit::TestCase
+class NewRelic::Cli::DeploymentsTest < Minitest::Test
 
   def setup
     NewRelic::Cli::Deployments.class_eval do

@@ -8,7 +8,7 @@ require 'new_relic/agent/configuration/mask_defaults'
 require 'new_relic/agent/threading/backtrace_service'
 
 module NewRelic::Agent::Configuration
-  class ManagerTest < MiniTest::Unit::TestCase
+  class ManagerTest < Minitest::Test
     def setup
       # Defaults look up against the shared config, so reset and use it
       NewRelic::Agent.reset_config

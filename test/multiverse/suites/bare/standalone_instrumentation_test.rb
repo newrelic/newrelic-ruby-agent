@@ -10,7 +10,7 @@
 
 require 'new_relic/agent/method_tracer' 
 
-class StandaloneInstrumentationTest < MiniTest::Unit::TestCase
+class StandaloneInstrumentationTest < Minitest::Test
   class InstrumentedClass
     def instance_method(*args)
       args

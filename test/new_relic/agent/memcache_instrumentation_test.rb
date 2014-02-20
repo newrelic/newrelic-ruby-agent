@@ -28,7 +28,7 @@ rescue Errno::ETIMEDOUT
 end
 
 if memcached_ready
-  class NewRelic::Agent::MemcacheInstrumentationTest < MiniTest::Unit::TestCase
+  class NewRelic::Agent::MemcacheInstrumentationTest < Minitest::Test
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
     def setup

@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..',
                                    'test_helper'))
 require 'new_relic/agent/database'
-class NewRelic::Agent::DatabaseTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::DatabaseTest < Minitest::Test
   def setup
     @explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
   end
@@ -236,6 +236,14 @@ class NewRelic::Agent::DatabaseTest < MiniTest::Unit::TestCase
     captured = NewRelic::Agent::Database.capture_query(query)
     assert_equal(original_encoding, encoding_from_string(query)) # input query encoding should remain untouched
     assert_equal(expected_query, captured)
+  end
+
+  sql_parsing_tests = load_cross_agent_test('sql_parsing')
+  sql_parsing_tests.each_with_index do |test_case, i|
+    define_method("test_sql_parsing_#{i}") do
+      result = NewRelic::Agent::Database.parse_operation_from_query(test_case['input'])
+      assert_equal(test_case['operation'], result)
+    end
   end
 
   # Ruby 1.8 doesn't have String#encoding

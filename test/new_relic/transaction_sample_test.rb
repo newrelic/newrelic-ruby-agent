@@ -4,7 +4,7 @@
 
 require File.expand_path('../../test_helper.rb', __FILE__)
 
-class NewRelic::TransactionSampleTest < MiniTest::Unit::TestCase
+class NewRelic::TransactionSampleTest < Minitest::Test
   include TransactionSampleTestHelper
   ::SQL_STATEMENT = "SELECT * from sandwiches WHERE meat='bacon'"
   ::OBFUSCATED_SQL_STATEMENT = "SELECT * from sandwiches WHERE meat=?"

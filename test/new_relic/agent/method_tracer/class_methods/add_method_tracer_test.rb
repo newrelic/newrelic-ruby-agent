@@ -10,7 +10,7 @@ module NewRelic
     class Agent
       module MethodTracer
         module ClassMethods
-          class AddMethodTracerTest < MiniTest::Unit::TestCase
+          class AddMethodTracerTest < Minitest::Test
             #  require 'new_relic/agent/method_tracer'
             include NewRelic::Agent::MethodTracer::ClassMethods::AddMethodTracer
 

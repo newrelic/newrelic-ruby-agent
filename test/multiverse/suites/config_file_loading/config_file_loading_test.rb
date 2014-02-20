@@ -16,7 +16,7 @@
 
 require 'multiverse_helpers'
 
-class ConfigFileLoadingTest < MiniTest::Unit::TestCase
+class ConfigFileLoadingTest < Minitest::Test
   include MultiverseHelpers
 
   def setup

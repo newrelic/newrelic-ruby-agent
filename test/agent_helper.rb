@@ -13,56 +13,6 @@ def assert_in_delta(expected, actual, delta)
   assert_between((expected - delta), (expected + delta), actual)
 end
 
-def check_metric_time(metric, value, delta)
-  time = NewRelic::Agent.get_stats(metric).total_call_time
-  assert_in_delta(value, time, delta)
-end
-
-def check_metric_count(metric, value)
-  count = NewRelic::Agent.get_stats(metric).call_count
-  assert_equal(value, count, "should have the correct number of calls")
-end
-
-def check_unscoped_metric_count(metric, value)
-  count = NewRelic::Agent.get_stats_unscoped(metric).call_count
-  assert_equal(value, count, "should have the correct number of calls")
-end
-
-def generate_unscoped_metric_counts(*metrics)
-  metrics.inject({}) do |sum, metric|
-    sum[metric] = NewRelic::Agent.get_stats_no_scope(metric).call_count
-    sum
-  end
-end
-
-def generate_metric_counts(*metrics)
-  metrics.inject({}) do |sum, metric|
-    sum[metric] = NewRelic::Agent.get_stats(metric).call_count
-    sum
-  end
-end
-
-def assert_does_not_call_metrics(*metrics)
-  first_metrics = generate_metric_counts(*metrics)
-  yield
-  last_metrics = generate_metric_counts(*metrics)
-  assert_equal first_metrics, last_metrics, "should not have changed these metrics"
-end
-
-def assert_calls_metrics(*metrics)
-  first_metrics = generate_metric_counts(*metrics)
-  yield
-  last_metrics = generate_metric_counts(*metrics)
-  refute_equal first_metrics, last_metrics, "should have changed these metrics"
-end
-
-def assert_calls_unscoped_metrics(*metrics)
-  first_metrics = generate_unscoped_metric_counts(*metrics)
-  yield
-  last_metrics = generate_unscoped_metric_counts(*metrics)
-  refute_equal first_metrics, last_metrics, "should have changed these metrics"
-end
-
 def assert_has_error(error_class)
   assert \
     NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_constant == error_class} != nil, \
@@ -262,6 +212,17 @@ def find_last_transaction_segment(transaction_sample=nil)
   root_segment.each_segment {|s| last_segment = s }
 
   return last_segment
+end
+
+def find_segment_by_name(transaction_sample, name)
+  first_segment = nil
+  transaction_sample.root_segment.each_segment do |s|
+    if s.metric_name == name
+      first_segment = s
+      break
+    end
+  end
+  first_segment
 end
 
 def with_config(config_hash, opts={})

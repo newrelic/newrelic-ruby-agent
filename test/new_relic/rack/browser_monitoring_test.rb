@@ -10,7 +10,7 @@ require 'new_relic/rack/browser_monitoring'
 
 ENV['RACK_ENV'] = 'test'
 
-class BrowserMonitoringTest < MiniTest::Unit::TestCase
+class BrowserMonitoringTest < Minitest::Test
   include Rack::Test::Methods
 
   class TestApp
@@ -170,7 +170,7 @@ EOL
 
   def test_guid_is_set_in_footer_when_token_is_set
     guid = 'abcdefgfedcba'
-    NewRelic::TransactionSample.any_instance.stubs(:generate_guid).returns(guid)
+    NewRelic::Agent::Transaction.any_instance.stubs(:guid).returns(guid)
     set_cookie "NRAGENT=tk=token"
     with_config(:apdex_t => 0.0001) do
       get '/'

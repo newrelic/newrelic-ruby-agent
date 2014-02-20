@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
-class NewRelic::VersionNumberTest < MiniTest::Unit::TestCase
+class NewRelic::VersionNumberTest < Minitest::Test
 
   def test_comparison__first
     versions = %w[1.0.0 0.1.0 0.0.1 10.0.1 1.10.0].map {|s| NewRelic::VersionNumber.new s }

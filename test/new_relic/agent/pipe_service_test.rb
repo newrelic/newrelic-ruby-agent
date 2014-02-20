@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
-class PipeServiceTest < MiniTest::Unit::TestCase
+class PipeServiceTest < Minitest::Test
   def setup
     NewRelic::Agent::PipeChannelManager.listener.stop
     NewRelic::Agent::PipeChannelManager.register_report_channel(:pipe_service_test)
@@ -45,7 +45,7 @@ class PipeServiceTest < MiniTest::Unit::TestCase
         @service.metric_data(metric_data0)
       end
 
-      assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
+      assert_equal 'Custom/something', received_data[:metric_data].keys.sort[0].name
     end
 
     def test_transaction_sample_data
@@ -53,21 +53,36 @@ class PipeServiceTest < MiniTest::Unit::TestCase
         @service.transaction_sample_data(['txn'])
       end
 
-      assert_equal ['txn'], received_data[:transaction_traces]
+      assert_equal ['txn'], received_data[:transaction_sample_data]
     end
 
     def test_error_data
       received_data = data_from_forked_process do
         @service.error_data(['err'])
       end
-      assert_equal ['err'], received_data[:error_traces]
+      assert_equal ['err'], received_data[:error_data]
     end
 
     def test_sql_trace_data
       received_data = data_from_forked_process do
         @service.sql_trace_data(['sql'])
       end
-      assert_equal ['sql'], received_data[:sql_traces]
+      assert_equal ['sql'], received_data[:sql_trace_data]
+    end
+
+    def test_analytic_event_data
+      received_data = data_from_forked_process do
+        @service.analytic_event_data(['events'])
+      end
+      assert_equal ['events'], received_data[:analytic_event_data]
+    end
+
+    def test_transaction_sample_data_with_newlines
+      payload_with_newline = "foo\n\nbar"
+      received_data = data_from_forked_process do
+        @service.transaction_sample_data([payload_with_newline])
+      end
+      assert_equal [payload_with_newline], received_data[:transaction_sample_data]
     end
 
     def test_multiple_writes_to_pipe
@@ -83,9 +98,9 @@ class PipeServiceTest < MiniTest::Unit::TestCase
 
       received_data = read_from_pipe
 
-      assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
-      assert_equal ['txn0'], received_data[:transaction_traces]
-      assert_equal ['err0'], received_data[:error_traces].sort
+      assert_equal 'Custom/something', received_data[:metric_data].keys.sort[0].name
+      assert_equal ['txn0'], received_data[:transaction_sample_data]
+      assert_equal ['err0'], received_data[:error_data].sort
     end
 
     def test_shutdown_closes_pipe
@@ -105,14 +120,10 @@ class PipeServiceTest < MiniTest::Unit::TestCase
 
   def read_from_pipe
     pipe = NewRelic::Agent::PipeChannelManager.channels[:pipe_service_test]
-    pipe.in.close
     data = {}
-    while payload = pipe.out.gets("\n\n")
-      got = Marshal.load(payload)
-      if got == 'EOF'
-        got = {:EOF => 'EOF'}
-      end
-      data.merge!(got)
+    while payload = pipe.read
+      endpoint, data_for_endpoint = Marshal.load(payload)
+      data.merge!(endpoint => data_for_endpoint)
     end
     data
   end

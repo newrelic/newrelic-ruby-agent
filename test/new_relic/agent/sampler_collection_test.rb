@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class SamplerCollectionTest < MiniTest::Unit::TestCase
+class SamplerCollectionTest < Minitest::Test
 
   class DummySampler
     attr_reader :id
@@ -47,6 +47,13 @@ class SamplerCollectionTest < MiniTest::Unit::TestCase
     DummySampler.stubs(:new).raises(StandardError)
     @collection.add_sampler(DummySampler)
     assert_equal(0, @collection.to_a.size)
+  end
+
+  def test_add_sampler_calls_setup_events_with_event_listener_if_present
+    sampler = DummySampler.new
+    DummySampler.stubs(:new).returns(sampler)
+    sampler.expects(:setup_events).with(@events)
+    @collection.add_sampler(DummySampler)
   end
 
   def test_poll_samplers_polls_samplers

@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require "new_relic/agent/javascript_instrumentor"
 require "base64"
 
-class NewRelic::Agent::JavascriptInstrumentorTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   attr_reader :instrumentor
 
   def setup
@@ -175,11 +175,11 @@ class NewRelic::Agent::JavascriptInstrumentorTest < MiniTest::Unit::TestCase
         txn = NewRelic::Agent::Transaction.current
         txn.stubs(:queue_time).returns(0)
         txn.stubs(:start_time).returns(Time.now - 10)
+        txn.stubs(:guid).returns('ABC')
         txn.name = 'most recent transaction'
 
         state = NewRelic::Agent::TransactionState.get
         state.request_token = '0123456789ABCDEF'
-        state.request_guid = 'ABC'
 
         data = instrumentor.data_for_js_agent
         expected = {

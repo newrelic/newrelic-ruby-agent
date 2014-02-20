@@ -9,7 +9,7 @@ if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= MIN_RAILS_VERSION && !Ne
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 
-class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::Test
   class Order; end
 
   def setup
@@ -97,7 +97,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < MiniTest::U
     sampler.notice_push_scope('Controller/sandwiches/index')
     simulate_query(2)
     sampler.notice_pop_scope('Controller/sandwiches/index')
-    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}))
+    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}, :guid => 'a guid'))
 
     last_segment = nil
     sampler.last_sample.root_segment.each_segment{|s| last_segment = s }

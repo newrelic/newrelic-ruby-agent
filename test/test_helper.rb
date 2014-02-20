@@ -18,6 +18,10 @@ require 'rake'
 require 'minitest/autorun'
 require 'mocha/setup'
 
+unless defined?(Minitest::Test)
+  Minitest::Test = MiniTest::Unit::TestCase
+end
+
 Dir.glob('test/helpers/*').each { |f| require f }
 
 Dir.glob(File.join(NEWRELIC_PLUGIN_DIR,'test/helpers/*.rb')).each do |helper|
@@ -156,6 +160,15 @@ def fixture_tcp_socket( response )
   return socket
 end
 
+def cross_agent_tests_dir
+  File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'cross_agent_tests'))
+end
+
+def load_cross_agent_test(name)
+  test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
+  data = File.read(test_file_path)
+  NewRelic::JSONWrapper.load(data)
+end
 
 class ArrayLogDevice
   def initialize( array=[] )
@@ -203,7 +216,7 @@ module TransactionSampleTestHelper
     sleep 0.02
     yield if block_given?
     sampler.notice_pop_scope "a"
-    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}))
+    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}, :guid => 'a guid'))
 
     sampler.last_sample
   end
@@ -221,7 +234,7 @@ module TransactionSampleTestHelper
     sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
     sampler.notice_pop_scope "lew"
     sampler.notice_pop_scope "Controller/sandwiches/index"
-    sampler.notice_scope_empty(stub('txn', :name => path, :custom_parameters => {}))
+    sampler.notice_scope_empty(stub('txn', :name => path, :custom_parameters => {}, :guid => 'a guid'))
     sampler.last_sample
   end
 end

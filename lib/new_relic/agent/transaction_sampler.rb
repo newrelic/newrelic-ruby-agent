@@ -119,6 +119,7 @@ module NewRelic
 
         @samples_lock.synchronize do
           @last_sample = last_builder.sample
+          @last_sample.guid = txn.guid
           @last_sample.set_custom_param(:gc_time, gc_time) if gc_time
           store_sample(@last_sample)
           @last_sample
@@ -143,11 +144,6 @@ module NewRelic
       # outside of the sampler
       def ignore_transaction
         builder.ignore_transaction if builder
-      end
-
-      # For developer mode profiling support - delegates to the builder
-      def notice_profile(profile)
-        builder.set_profile(profile) if builder
       end
 
       # Sets the CPU time used by a transaction, delegates to the builder
