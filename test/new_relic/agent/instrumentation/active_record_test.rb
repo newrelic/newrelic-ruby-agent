@@ -254,7 +254,7 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
   end
 
   def test_gathers_explain_plans
-    with_config(:'transaction_tracer.explain_threshold' => 0) do
+    with_config(:'transaction_tracer.explain_threshold' => -0.1) do
       in_web_transaction do
         ActiveRecordFixtures::Order.first
       end
