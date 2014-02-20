@@ -6,11 +6,23 @@ require 'set'
 require 'new_relic/version'
 
 module NewRelic
-  # An instance of LocalEnvironment is responsible for determining the 'dispatcher'
-  # in use by the current process.
+  # This class is responsible for determining the 'dispatcher' in use by the
+  # current process. The dispatcher might be a recognized web server such as
+  # unicorn or passenger, a background job processor such as resque or sidekiq,
+  # or nil for unknown.
   #
-  # A dispatcher might be a recognized web server such as unicorn or passenger,
-  # a background job processor such as resque or sidekiq, or nil for unknown.
+  # Dispatcher detection is best-effort, and serves two purposes:
+  #
+  # 1. For some dispatchers, we need to apply specific workarounds in order for
+  #    the agent to work correctly.
+  # 2. When reading logs, since multiple processes on a given host might write
+  #    into the same log, it's useful to be able to identify what kind of
+  #    process a given PID mapped to.
+  #
+  # Overriding the dispatcher is possible via the NEW_RELIC_DISPATCHER
+  # environment variable, but this should not generally be necessary unless
+  # you're on a dispatcher that falls into category 1 above, and our detection
+  # logic isn't working correctly.
   #
   # If the environment can't be determined, it will be set to nil.
   #
@@ -61,10 +73,24 @@ module NewRelic
 
     private
 
-    # Although you can override the dispatcher with NEWRELIC_DISPATCHER this
-    # is not advisable since it implies certain api's being available.
     def discover_dispatcher
-      dispatchers = %w[passenger torquebox trinidad glassfish resque sidekiq delayed_job thin mongrel litespeed webrick fastcgi rainbows unicorn]
+      dispatchers = %w[
+        passenger
+        torquebox
+        trinidad
+        glassfish
+        resque
+        sidekiq
+        delayed_job
+        puma
+        thin
+        mongrel
+        litespeed
+        webrick
+        fastcgi
+        rainbows
+        unicorn
+      ]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -120,6 +146,12 @@ module NewRelic
       if (defined?(::Rainbows) && defined?(::Rainbows::HttpServer)) && NewRelic::LanguageSupport.object_space_usable?
         v = find_class_in_object_space(::Rainbows::HttpServer)
         @discovered_dispatcher = :rainbows if v
+      end
+    end
+
+    def check_for_puma
+      if defined?(::Puma) && File.basename($0) == 'puma'
+        @discovered_dispatcher = :puma
       end
     end
 
