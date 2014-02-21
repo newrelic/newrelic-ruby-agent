@@ -225,8 +225,27 @@ module NewRelic
         end
       end
 
+      module ObfuscationHelpers
+        def remove_escaped_quotes(sql)
+          sql.gsub(/\\"/, '').gsub(/\\'/, '')
+        end
+
+        def obfuscate_single_quote_literals(sql)
+          sql.gsub(/'(?:[^']|'')*'/, '?')
+        end
+
+        def obfuscate_double_quote_literals(sql)
+          sql.gsub(/"(?:[^"]|"")*"/, '?')
+        end
+
+        def obfuscate_numeric_literals(sql)
+          sql.gsub(/\b\d+\b/, "?")
+        end
+      end
+
       class Obfuscator
         include Singleton
+        include ObfuscationHelpers
 
         attr_reader :obfuscator
 
@@ -275,22 +294,6 @@ module NewRelic
           end
           obfuscated = obfuscate_numeric_literals(obfuscated)
           obfuscated.to_s # return back to a regular String
-        end
-
-        def remove_escaped_quotes(sql)
-          sql.gsub(/\\"/, '').gsub(/\\'/, '')
-        end
-
-        def obfuscate_single_quote_literals(sql)
-          sql.gsub(/'(?:[^']|'')*'/, '?')
-        end
-
-        def obfuscate_double_quote_literals(sql)
-          sql.gsub(/"(?:[^"]|"")*"/, '?')
-        end
-
-        def obfuscate_numeric_literals(sql)
-          sql.gsub(/\b\d+\b/, "?")
         end
       end
 
