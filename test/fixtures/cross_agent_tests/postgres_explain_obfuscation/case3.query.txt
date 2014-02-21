@@ -1,1 +1,1 @@
-SELECT * FROM blogs WHERE blogs.title='][\^|)/('
+SELECT * FROM blogs WHERE blogs.title='][^|)/('
