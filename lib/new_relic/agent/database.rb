@@ -228,6 +228,7 @@ module NewRelic
       module ObfuscationHelpers
         NUMERICS = /\b\d+\b/
         SINGLE_QUOTES = /'((?:[^']|'')*)'/
+        DOUBLE_QUOTES = /"(?:[^"]|"")*"/
 
         def remove_escaped_quotes(sql)
           sql.gsub(/\\"/, '').gsub(/\\'/, '')
@@ -238,7 +239,7 @@ module NewRelic
         end
 
         def obfuscate_double_quote_literals(sql)
-          sql.gsub(/"(?:[^"]|"")*"/, '?')
+          sql.gsub(DOUBLE_QUOTES, '?')
         end
 
         def obfuscate_numeric_literals(sql)
