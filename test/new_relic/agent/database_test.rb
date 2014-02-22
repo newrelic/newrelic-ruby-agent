@@ -66,9 +66,27 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     connection.expects(:execute).returns(plan)
     NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
     assert_equal([['QUERY PLAN'],
-                  [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
-                   ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
+                  # The rows=1 unfortunately gets obfuscated here
+                  [["Limit  (cost=11.75..11.76 rows=? width=4)"],
+                   ["  ->  Aggregate  (cost=11.75..11.76 rows=? width=4)"],
                    ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]],
+                 NewRelic::Agent::Database.explain_sql(sql, config, &@explainer))
+  end
+
+  def test_explain_sql_obfuscates_for_postgres
+    config = {:adapter => 'postgresql'}
+    config.default('val')
+    sql = "SELECT * FROM blogs WHERE blogs.id=1234 AND blogs.title='sensitive text'"
+    connection = stub('pg connection', :disconnect! => true)
+    plan = [{"QUERY PLAN"=>" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"},
+            {"QUERY PLAN"=>"   Index Cond: (id = 1234)"},
+            {"QUERY PLAN"=>"   Filter: ((title)::text = 'sensitive text'::text)"}]
+    connection.expects(:execute).returns(plan)
+    NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
+    assert_equal([['QUERY PLAN'],
+                  [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
+                   ["   Index Cond: (id = ?)"],
+                   ["   Filter: ((title)::text = ?::text)"]]],
                  NewRelic::Agent::Database.explain_sql(sql, config, &@explainer))
   end
 

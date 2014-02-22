@@ -9,10 +9,6 @@ module NewRelic::Agent::Database
   class ExplainObfuscatorTest < Minitest::Test
     attr_reader :obfuscator
 
-    def setup
-      @obfuscator = ExplainObfuscator.new
-    end
-
     def self.query_files
       fixture_dir = File.join(cross_agent_tests_dir, "postgres_explain_obfuscation")
       Dir["#{fixture_dir}/*.query.txt"]
@@ -33,7 +29,7 @@ module NewRelic::Agent::Database
         explain = File.read(explain_filename(query_file))
         obfuscated = File.read(obfuscated_filename(query_file))
 
-        result = @obfuscator.obfuscate(query, explain)
+        result = ExplainObfuscator.obfuscate(query, explain)
         assert_equal(obfuscated, result)
       end
     end
@@ -45,7 +41,7 @@ module NewRelic::Agent::Database
         query   = File.read(query_file)
         explain = File.read(explain_filename(query_file))
 
-        result = @obfuscator.obfuscate(query, explain)
+        result = ExplainObfuscator.obfuscate(query, explain)
         assert_equal('', result, build_message(query, explain))
       end
     end

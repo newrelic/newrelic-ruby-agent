@@ -3,12 +3,15 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/database'
+require 'new_relic/agent/database/obfuscation_helpers'
 
 module NewRelic
   module Agent
     module Database
-      class ExplainObfuscator
-        include ObfuscationHelpers
+      module ExplainObfuscator
+        extend self
+
+        extend ObfuscationHelpers
 
         # PostgreSQL supports a variety of different escape syntaxes in string
         # constants, described in detail in the manual here:

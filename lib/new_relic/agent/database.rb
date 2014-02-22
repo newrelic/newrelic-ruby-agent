@@ -3,6 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'singleton'
+require 'new_relic/agent/database/obfuscation_helpers'
+require 'new_relic/agent/database/explain_obfuscator'
 
 module NewRelic
   # columns for a mysql explain plan
@@ -119,30 +121,32 @@ module NewRelic
           start = Time.now
           plan = explainer.call(config, statement)
           ::NewRelic::Agent.record_metric("Supportability/Database/execute_explain_plan", Time.now - start)
-          return process_resultset(plan, adapter) if plan
+          return process_resultset(statement, plan, adapter) if plan
         end
       end
 
-      def process_resultset(results, adapter)
+      def process_resultset(query, results, adapter)
         case adapter.to_s
         when 'postgres', 'postgresql'
-          process_explain_results_postgres(results)
+          process_explain_results_postgres(query, results)
         when 'mysql2'
-          process_explain_results_mysql2(results)
+          process_explain_results_mysql2(query, results)
         when 'mysql'
-          process_explain_results_mysql(results)
+          process_explain_results_mysql(query, results)
         end
       end
 
       QUERY_PLAN = 'QUERY PLAN'.freeze
 
-      def process_explain_results_postgres(results)
-        values = []
-        results.each { |row| values << [row[QUERY_PLAN]] }
+      def process_explain_results_postgres(query, results)
+        lines = []
+        results.each { |row| lines << row[QUERY_PLAN] }
+        obfuscated_query_plan = NewRelic::Agent::Database::ExplainObfuscator.obfuscate(query, lines.join("\n"))
+        values = obfuscated_query_plan.split("\n").map { |line| [line] }
         [[QUERY_PLAN], values]
       end
 
-      def process_explain_results_mysql(results)
+      def process_explain_results_mysql(query, results)
         headers = []
         values  = []
         results.each_hash do |row|
@@ -152,7 +156,7 @@ module NewRelic
         [headers, values]
       end
 
-      def process_explain_results_mysql2(results)
+      def process_explain_results_mysql2(query, results)
         headers = results.fields
         values  = []
         results.each { |row| values << row }
@@ -237,34 +241,6 @@ module NewRelic
           end
 
           @connections = {}
-        end
-      end
-
-      module ObfuscationHelpers
-        NUMERICS = /\b\d+\b/
-        SINGLE_QUOTES = /'((?:[^']|'')*)'/
-        DOUBLE_QUOTES = /"(?:[^"]|"")*"/
-
-        def remove_escaped_quotes(sql)
-          sql.gsub(/\\"/, '').gsub(/\\'/, '')
-        end
-
-        def obfuscate_single_quote_literals(sql)
-          sql.gsub(SINGLE_QUOTES, '?')
-        end
-
-        def obfuscate_double_quote_literals(sql)
-          sql.gsub(DOUBLE_QUOTES, '?')
-        end
-
-        def obfuscate_numeric_literals(sql)
-          sql.gsub(NUMERICS, "?")
-        end
-
-        def find_literals(sql)
-          literals = sql.scan(NUMERICS)
-          literals << sql.scan(SINGLE_QUOTES)
-          literals.flatten
         end
       end
 
