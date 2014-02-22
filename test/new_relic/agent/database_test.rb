@@ -14,12 +14,6 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     NewRelic::Agent::Database::Obfuscator.instance.reset
   end
 
-  def test_process_resultset
-    resultset = [["column"]]
-    assert_equal([nil, [["column"]]],
-                 NewRelic::Agent::Database.process_resultset(resultset))
-  end
-
   def test_explain_sql_select_with_mysql_connection
     config = {:adapter => 'mysql'}
     config.default('val')
@@ -38,6 +32,27 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     result = NewRelic::Agent::Database.explain_sql(sql, config, &@explainer)
     assert_equal(plan.keys.sort, result[0].sort)
     assert_equal(plan.values.compact.sort, result[1][0].compact.sort)
+  end
+
+  def test_explain_sql_select_with_mysql2_connection
+    config = {:adapter => 'mysql2'}
+    config.default('val')
+    sql = 'SELECT foo'
+    connection = mock('mysql connection')
+
+    plan_fields = ["select_type", "key_len", "table", "id", "possible_keys", "type", "Extra", "rows", "ref", "key"]
+    plan_row =    ["SIMPLE",       nil,      "blogs", "1",   nil,            "ALL",  "",      "2",     nil,   nil ]
+
+    result = mock('explain plan')
+    result.expects(:fields).returns(plan_fields)
+    result.expects(:each).yields(plan_row)
+
+    # two rows, two columns
+    connection.expects(:execute).with('EXPLAIN SELECT foo').returns(result)
+    NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
+    result = NewRelic::Agent::Database.explain_sql(sql, config, &@explainer)
+    assert_equal(plan_fields.sort, result[0].sort)
+    assert_equal(plan_row.compact.sort, result[1][0].compact.sort)
   end
 
   def test_explain_sql_one_select_with_pg_connection
@@ -92,7 +107,18 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     sql = 'SELECT * FROM table WHERE id IN (1,2,3,4,5...'
     assert_equal [], NewRelic::Agent::Database.explain_sql(sql, config)
+  end
 
+  def test_dont_collect_explain_if_adapter_not_recognized
+    config = {:adapter => 'dorkdb'}
+    config.default('val')
+    connection = mock('connection')
+    connection.expects(:execute).never
+    NewRelic::Agent::Database.stubs(:get_connection).with(config).returns(connection)
+    expects_logging(:debug, "Not collecting explain plan because an unknown connection adapter ('dorkdb') was used.")
+
+    sql = 'SELECT * FROM table WHERE id IN (1,2,3,4,5)'
+    assert_equal [], NewRelic::Agent::Database.explain_sql(sql, config)
   end
 
   def test_explain_sql_no_sql

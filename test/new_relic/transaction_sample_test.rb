@@ -13,7 +13,7 @@ class NewRelic::TransactionSampleTest < Minitest::Test
     @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
-    @connection_stub.stubs(:execute).returns([['QUERY RESULT']])
+    @connection_stub.stubs(:execute).returns(dummy_mysql_explain_result({'foo' => 'bar'}))
 
     NewRelic::Agent::Database.stubs(:get_connection).returns @connection_stub
     @t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
@@ -124,7 +124,7 @@ class NewRelic::TransactionSampleTest < Minitest::Test
         explanation = segment.params[:explain_plan]
 
         assert_kind_of Array, explanation
-        assert_equal([nil, [["QUERY RESULT"]]], explanation)
+        assert_equal([['foo'], [['bar']]], explanation)
       end
     end
   end

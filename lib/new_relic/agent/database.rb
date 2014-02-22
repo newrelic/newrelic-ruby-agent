@@ -94,6 +94,8 @@ module NewRelic
         return explain_plan || []
       end
 
+      SUPPORTED_ADAPTERS_FOR_EXPLAIN = %w[postgres postgresql mysql2 mysql].freeze
+
       def explain_statement(statement, config, &explainer)
         return unless is_select?(statement)
 
@@ -107,40 +109,53 @@ module NewRelic
           return
         end
 
+        adapter = config[:adapter].to_s
+        if !SUPPORTED_ADAPTERS_FOR_EXPLAIN.include?(adapter)
+          NewRelic::Agent.logger.debug("Not collecting explain plan because an unknown connection adapter ('#{adapter}') was used.")
+          return
+        end
+
         handle_exception_in_explain do
           start = Time.now
           plan = explainer.call(config, statement)
           ::NewRelic::Agent.record_metric("Supportability/Database/execute_explain_plan", Time.now - start)
-          return process_resultset(plan) if plan
+          return process_resultset(plan, adapter) if plan
         end
       end
 
-      def process_resultset(items)
-        # The resultset type varies for different drivers.  Only thing you can count on is
-        # that it implements each.  Also: can't use select_rows because the native postgres
-        # driver doesn't know that method.
-
-        headers = []
-        values = []
-        if items.respond_to?(:each_hash)
-          items.each_hash do |row|
-            headers = row.keys
-            values << headers.map{|h| row[h] }
-          end
-        elsif items.respond_to?(:each)
-          items.each do |row|
-            if row.kind_of?(Hash)
-              headers = row.keys
-              values << headers.map{|h| row[h] }
-            else
-              values << row
-            end
-          end
-        else
-          values = [items]
+      def process_resultset(results, adapter)
+        case adapter.to_s
+        when 'postgres', 'postgresql'
+          process_explain_results_postgres(results)
+        when 'mysql2'
+          process_explain_results_mysql2(results)
+        when 'mysql'
+          process_explain_results_mysql(results)
         end
+      end
 
-        headers = nil if headers.empty?
+      QUERY_PLAN = 'QUERY PLAN'.freeze
+
+      def process_explain_results_postgres(results)
+        values = []
+        results.each { |row| values << [row[QUERY_PLAN]] }
+        [[QUERY_PLAN], values]
+      end
+
+      def process_explain_results_mysql(results)
+        headers = []
+        values  = []
+        results.each_hash do |row|
+          headers = row.keys
+          values << headers.map { |h| row[h] }
+        end
+        [headers, values]
+      end
+
+      def process_explain_results_mysql2(results)
+        headers = results.fields
+        values  = []
+        results.each { |row| values << row }
         [headers, values]
       end
 
