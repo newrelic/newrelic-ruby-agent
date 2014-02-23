@@ -73,6 +73,25 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
                  NewRelic::Agent::Database.explain_sql(sql, config, &@explainer))
   end
 
+  def test_explain_sql_one_select_with_pg_connection_string
+    config = {:adapter => 'postgresql'}
+    config.default('val')
+    sql = 'select count(id) from blogs limit 1'
+    connection = stub('pg connection', :disconnect! => true)
+    plan = "Limit  (cost=11.75..11.76 rows=1 width=4)
+  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)
+        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"
+
+    connection.expects(:execute).returns(plan)
+    NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
+    assert_equal([['QUERY PLAN'],
+                  # The rows=1 unfortunately gets obfuscated here
+                  [["Limit  (cost=11.75..11.76 rows=? width=4)"],
+                   ["  ->  Aggregate  (cost=11.75..11.76 rows=? width=4)"],
+                   ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]],
+                 NewRelic::Agent::Database.explain_sql(sql, config, &@explainer))
+  end
+
   def test_explain_sql_obfuscates_for_postgres
     config = {:adapter => 'postgresql'}
     config.default('val')

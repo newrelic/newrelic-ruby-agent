@@ -142,9 +142,14 @@ module NewRelic
       QUERY_PLAN = 'QUERY PLAN'.freeze
 
       def process_explain_results_postgres(query, results)
-        lines = []
-        results.each { |row| lines << row[QUERY_PLAN] }
-        obfuscated_query_plan = NewRelic::Agent::Database::ExplainObfuscator.obfuscate(query, lines.join("\n"))
+        if results.is_a?(String)
+          query_plan_string = results
+        else
+          lines = []
+          results.each { |row| lines << row[QUERY_PLAN] }
+          query_plan_string = lines.join("\n")
+        end
+        obfuscated_query_plan = NewRelic::Agent::Database::ExplainObfuscator.obfuscate(query, query_plan_string)
         values = obfuscated_query_plan.split("\n").map { |line| [line] }
         [[QUERY_PLAN], values]
       end
