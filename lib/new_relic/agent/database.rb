@@ -97,7 +97,7 @@ module NewRelic
         return explain_plan || []
       end
 
-      SUPPORTED_ADAPTERS_FOR_EXPLAIN = %w[postgres postgresql mysql2 mysql].freeze
+      SUPPORTED_ADAPTERS_FOR_EXPLAIN = %w[postgres postgresql mysql2 mysql sqlite].freeze
 
       def explain_statement(statement, config, &explainer)
         return unless is_select?(statement)
@@ -134,6 +134,8 @@ module NewRelic
           process_explain_results_mysql2(query, results)
         when 'mysql'
           process_explain_results_mysql(query, results)
+        when 'sqlite'
+          process_explain_results_sqlite(query, results)
         end
       end
 
@@ -161,6 +163,21 @@ module NewRelic
         headers = results.fields
         values  = []
         results.each { |row| values << row }
+        [headers, values]
+      end
+
+      def process_explain_results_sqlite(query, results)
+        headers = []
+        values  = []
+        if results.is_a?(String)
+          # Sequel returns explain plans as just one big pre-formatted String
+          values = [results]
+        else
+          results.each do |row|
+            headers = row.keys.select { |k| k.is_a?(String) }
+            values << headers.map { |h| row[h] }
+          end
+        end
         [headers, values]
       end
 

@@ -265,26 +265,13 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
     end
   end
 
-  def with_controller_scope
-    sampler = NewRelic::Agent.instance.transaction_sampler
-    sampler.notice_first_scope_push Time.now.to_f
-    sampler.notice_transaction('/', {})
-    sampler.notice_push_scope "Controller/sandwiches/index"
-
-    yield if block_given?
-
-    sampler.notice_pop_scope "Controller/sandwiches/index"
-    sampler.notice_scope_empty(stub('txn', :name => '/', :custom_parameters => {}, :guid => 'a guid'))
-    [sampler.last_sample]
-  end
-
   def last_segment_for(options={})
-      transaction_samples = with_controller_scope do
+      in_transaction('sandwiches/index') do
         yield
       end
-
-      sample = transaction_samples.first.prepare_to_send!
-      last_segment( sample )
+      sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+      sample.prepare_to_send!
+      last_segment(sample)
   end
 
   def last_segment(txn_sample)
