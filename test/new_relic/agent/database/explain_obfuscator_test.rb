@@ -14,11 +14,6 @@ module NewRelic::Agent::Database
       Dir["#{fixture_dir}/*.query.txt"]
     end
 
-    def self.query_files_with_escapes
-      fixture_dir = File.join(cross_agent_tests_dir, "postgres_explain_obfuscation", "with_escape_sequences")
-      Dir["#{fixture_dir}/*.query.txt"]
-    end
-
     def self.name_for_query_file(query_file)
       File.basename(query_file, ".query.txt")
     end
@@ -31,18 +26,6 @@ module NewRelic::Agent::Database
 
         result = ExplainObfuscator.obfuscate(query, explain)
         assert_equal(obfuscated, result)
-      end
-    end
-
-    query_files_with_escapes.each do |query_file|
-      # For tests in this category, we just punt on obfuscation and drop the
-      # whole thing.
-      define_method("test_#{name_for_query_file(query_file)}_escaped_explain_plan_obfuscation") do
-        query   = File.read(query_file)
-        explain = File.read(explain_filename(query_file))
-
-        result = ExplainObfuscator.obfuscate(query, explain)
-        assert_equal('', result, build_message(query, explain))
       end
     end
 
