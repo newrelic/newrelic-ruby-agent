@@ -149,8 +149,12 @@ module NewRelic
           results.each { |row| lines << row[QUERY_PLAN] }
           query_plan_string = lines.join("\n")
         end
-        obfuscated_query_plan = NewRelic::Agent::Database::ExplainObfuscator.obfuscate(query, query_plan_string)
-        values = obfuscated_query_plan.split("\n").map { |line| [line] }
+
+        unless record_sql_method == :raw
+          query_plan_string = NewRelic::Agent::Database::ExplainObfuscator.obfuscate(query, query_plan_string)
+        end
+        values = query_plan_string.split("\n").map { |line| [line] }
+
         [[QUERY_PLAN], values]
       end
 
