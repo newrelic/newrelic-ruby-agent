@@ -151,7 +151,7 @@ module NewRelic
         end
 
         unless record_sql_method == :raw
-          query_plan_string = NewRelic::Agent::Database::ExplainObfuscator.obfuscate(query, query_plan_string)
+          query_plan_string = NewRelic::Agent::Database::ExplainObfuscator.obfuscate(query_plan_string)
         end
         values = query_plan_string.split("\n").map { |line| [line] }
 

@@ -103,8 +103,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       assert_equal([['QUERY PLAN'],
                     [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
-                     ["   Index Cond: (id = ?)"],
-                     ["   Filter: ((title)::text = ?::text)"]]],
+                     ["   Index Cond: ?"],
+                     ["   Filter: ?"]]],
                    NewRelic::Agent::Database.explain_sql(sql, config, &@explainer))
     end
   end

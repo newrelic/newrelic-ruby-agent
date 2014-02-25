@@ -13,15 +13,34 @@ module NewRelic
 
         extend ObfuscationHelpers
 
-        SINGLE_QUOTE_REGEX = /'([^']|'')*'/.freeze
+        SINGLE_OR_DOUBLE_QUOTES = Regexp.new([
+          ObfuscationHelpers::SINGLE_QUOTES.source,
+          ObfuscationHelpers::DOUBLE_QUOTES.source
+        ].join('|')).freeze
         LABEL_LINE_REGEX   = /^([^:\n]*:\s+).*$/.freeze
 
-        # The general strategy here is to identify string and numeric constants
-        # from the original query that we obfuscated, and then mask out
-        # occurrences of those constants from the explain output as well.
         def obfuscate(explain)
-          explain = explain.gsub(SINGLE_QUOTE_REGEX, '?')
-          explain = explain.gsub(LABEL_LINE_REGEX,   '\1?')
+          # First, we replace all single-quoted strings.
+          # This is necessary in order to deal with multi-line string constants
+          # embedded in the explain output.
+          #
+          # Note that we look for both single or double quotes but do not
+          # replace double quotes in order to avoid accidentally latching onto a
+          # single quote character embedded within a quoted identifier (such as
+          # a table name).
+          #
+          # Note also that we make no special provisions for backslash-escaped
+          # single quotes (\') because these are canonicalized to two single
+          # quotes ('') in the explain output.
+          explain.gsub!(SINGLE_OR_DOUBLE_QUOTES) do |match|
+            match[0] == '"' ? match : '?'
+          end
+
+          # Now, mask anything after the first colon (:).
+          # All parts of the query that can appear in the explain output are
+          # prefixed with "<label>: ", so we want to preserve the label, but
+          # remove the rest of the line.
+          explain.gsub!(LABEL_LINE_REGEX,   '\1?')
           explain
         end
       end
