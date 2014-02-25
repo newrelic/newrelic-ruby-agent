@@ -5,7 +5,7 @@
 require 'singleton'
 require 'new_relic/agent/database/obfuscation_helpers'
 require 'new_relic/agent/database/obfuscator'
-require 'new_relic/agent/database/explain_obfuscator'
+require 'new_relic/agent/database/postgres_explain_obfuscator'
 
 module NewRelic
   # columns for a mysql explain plan
@@ -151,7 +151,7 @@ module NewRelic
         end
 
         unless record_sql_method == :raw
-          query_plan_string = NewRelic::Agent::Database::ExplainObfuscator.obfuscate(query_plan_string)
+          query_plan_string = NewRelic::Agent::Database::PostgresExplainObfuscator.obfuscate(query_plan_string)
         end
         values = query_plan_string.split("\n").map { |line| [line] }
 

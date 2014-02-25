@@ -8,7 +8,7 @@ require 'new_relic/agent/database/obfuscation_helpers'
 module NewRelic
   module Agent
     module Database
-      module ExplainObfuscator
+      module PostgresExplainObfuscator
         extend self
 
         extend ObfuscationHelpers

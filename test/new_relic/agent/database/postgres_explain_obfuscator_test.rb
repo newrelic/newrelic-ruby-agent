@@ -3,10 +3,10 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
-require 'new_relic/agent/database/explain_obfuscator'
+require 'new_relic/agent/database/postgres_explain_obfuscator'
 
 module NewRelic::Agent::Database
-  class ExplainObfuscatorTest < Minitest::Test
+  class PostgresExplainObfuscatorTest < Minitest::Test
     attr_reader :obfuscator
 
     def self.query_files
@@ -23,7 +23,7 @@ module NewRelic::Agent::Database
         explain = File.read(explain_filename(query_file))
         obfuscated = File.read(obfuscated_filename(query_file))
 
-        result = ExplainObfuscator.obfuscate(explain)
+        result = PostgresExplainObfuscator.obfuscate(explain)
         assert_equal(obfuscated, result)
       end
     end
