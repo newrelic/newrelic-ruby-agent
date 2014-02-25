@@ -122,26 +122,26 @@ module NewRelic
           start = Time.now
           plan = explainer.call(config, statement)
           ::NewRelic::Agent.record_metric("Supportability/Database/execute_explain_plan", Time.now - start)
-          return process_resultset(statement, plan, adapter) if plan
+          return process_resultset(plan, adapter) if plan
         end
       end
 
-      def process_resultset(query, results, adapter)
+      def process_resultset(results, adapter)
         case adapter.to_s
         when 'postgres', 'postgresql'
-          process_explain_results_postgres(query, results)
+          process_explain_results_postgres(results)
         when 'mysql2'
-          process_explain_results_mysql2(query, results)
+          process_explain_results_mysql2(results)
         when 'mysql'
-          process_explain_results_mysql(query, results)
+          process_explain_results_mysql(results)
         when 'sqlite'
-          process_explain_results_sqlite(query, results)
+          process_explain_results_sqlite(results)
         end
       end
 
       QUERY_PLAN = 'QUERY PLAN'.freeze
 
-      def process_explain_results_postgres(query, results)
+      def process_explain_results_postgres(results)
         if results.is_a?(String)
           query_plan_string = results
         else
@@ -158,7 +158,7 @@ module NewRelic
         [[QUERY_PLAN], values]
       end
 
-      def process_explain_results_mysql(query, results)
+      def process_explain_results_mysql(results)
         headers = []
         values  = []
         results.each_hash do |row|
@@ -168,14 +168,14 @@ module NewRelic
         [headers, values]
       end
 
-      def process_explain_results_mysql2(query, results)
+      def process_explain_results_mysql2(results)
         headers = results.fields
         values  = []
         results.each { |row| values << row }
         [headers, values]
       end
 
-      def process_explain_results_sqlite(query, results)
+      def process_explain_results_sqlite(results)
         headers = []
         values  = []
         if results.is_a?(String)
