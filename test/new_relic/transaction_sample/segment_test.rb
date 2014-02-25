@@ -314,7 +314,7 @@ class NewRelic::TransactionSample::SegmentTest < Minitest::Test
 
   def test_explain_sql_raising_an_error
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    config = mock('config')
+    config = { :adapter => 'mysql' }
     statement = NewRelic::Agent::Database::Statement.new('SELECT')
     statement.config = config
     statement.explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER

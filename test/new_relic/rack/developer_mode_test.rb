@@ -55,7 +55,7 @@ class DeveloperModeTest < Minitest::Test
   def test_explain_sql_displays_query_plan
     sample = @sampler.dev_mode_sample_buffer.samples[0]
     sql_segment = sample.sql_segments[0]
-    explain_results = NewRelic::Agent::Database.process_resultset(example_explain_as_hashes)
+    explain_results = NewRelic::Agent::Database.process_resultset(dummy_mysql_explain_result, 'mysql')
 
     NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns(explain_results)
     get "/newrelic/explain_sql?id=#{sample.sample_id}&segment=#{sql_segment.segment_id}"
@@ -64,23 +64,6 @@ class DeveloperModeTest < Minitest::Test
     assert last_response.body.include?('PRIMARY')
     assert last_response.body.include?('Key Length')
     assert last_response.body.include?('Using index')
-  end
-
-  private
-
-  def example_explain_as_hashes
-    [{
-      'Id' => '1',
-      'Select Type' => 'SIMPLE',
-      'Table' => 'sandwiches',
-      'Type' => 'range',
-      'Possible Keys' => 'PRIMARY',
-      'Key' => 'PRIMARY',
-      'Key Length' => '4',
-      'Ref' => '',
-      'Rows' => '1',
-      'Extra' => 'Using index'
-    }]
   end
 end
 

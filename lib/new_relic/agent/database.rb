@@ -3,6 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'singleton'
+require 'new_relic/agent/database/obfuscation_helpers'
+require 'new_relic/agent/database/obfuscator'
+require 'new_relic/agent/database/postgres_explain_obfuscator'
 
 module NewRelic
   # columns for a mysql explain plan
@@ -94,6 +97,8 @@ module NewRelic
         return explain_plan || []
       end
 
+      SUPPORTED_ADAPTERS_FOR_EXPLAIN = %w[postgres postgresql mysql2 mysql sqlite].freeze
+
       def explain_statement(statement, config, &explainer)
         return unless is_select?(statement)
 
@@ -107,40 +112,88 @@ module NewRelic
           return
         end
 
+        adapter = config[:adapter].to_s
+        if !SUPPORTED_ADAPTERS_FOR_EXPLAIN.include?(adapter)
+          NewRelic::Agent.logger.debug("Not collecting explain plan because an unknown connection adapter ('#{adapter}') was used.")
+          return
+        end
+
         handle_exception_in_explain do
           start = Time.now
           plan = explainer.call(config, statement)
           ::NewRelic::Agent.record_metric("Supportability/Database/execute_explain_plan", Time.now - start)
-          return process_resultset(plan) if plan
+          return process_resultset(plan, adapter) if plan
         end
       end
 
-      def process_resultset(items)
-        # The resultset type varies for different drivers.  Only thing you can count on is
-        # that it implements each.  Also: can't use select_rows because the native postgres
-        # driver doesn't know that method.
+      def process_resultset(results, adapter)
+        case adapter.to_s
+        when 'postgres', 'postgresql'
+          process_explain_results_postgres(results)
+        when 'mysql2'
+          process_explain_results_mysql2(results)
+        when 'mysql'
+          process_explain_results_mysql(results)
+        when 'sqlite'
+          process_explain_results_sqlite(results)
+        end
+      end
 
-        headers = []
-        values = []
-        if items.respond_to?(:each_hash)
-          items.each_hash do |row|
-            headers = row.keys
-            values << headers.map{|h| row[h] }
-          end
-        elsif items.respond_to?(:each)
-          items.each do |row|
-            if row.kind_of?(Hash)
-              headers = row.keys
-              values << headers.map{|h| row[h] }
-            else
-              values << row
-            end
-          end
+      QUERY_PLAN = 'QUERY PLAN'.freeze
+
+      def process_explain_results_postgres(results)
+        if results.is_a?(String)
+          query_plan_string = results
         else
-          values = [items]
+          lines = []
+          results.each { |row| lines << row[QUERY_PLAN] }
+          query_plan_string = lines.join("\n")
         end
 
-        headers = nil if headers.empty?
+        unless record_sql_method == :raw
+          query_plan_string = NewRelic::Agent::Database::PostgresExplainObfuscator.obfuscate(query_plan_string)
+        end
+        values = query_plan_string.split("\n").map { |line| [line] }
+
+        [[QUERY_PLAN], values]
+      end
+
+      # Sequel returns explain plans as just one big pre-formatted String
+      # In that case, we send a nil headers array, and the single string
+      # wrapped in an array for the values.
+      # Note that we don't use this method for Postgres explain plans, since
+      # they need to be passed through the explain plan obfuscator first.
+      def string_explain_plan_results(results)
+        [nil, [results]]
+      end
+
+      def process_explain_results_mysql(results)
+        return string_explain_plan_results(results) if results.is_a?(String)
+        headers = []
+        values  = []
+        results.each_hash do |row|
+          headers = row.keys
+          values << headers.map { |h| row[h] }
+        end
+        [headers, values]
+      end
+
+      def process_explain_results_mysql2(results)
+        return string_explain_plan_results(results) if results.is_a?(String)
+        headers = results.fields
+        values  = []
+        results.each { |row| values << row }
+        [headers, values]
+      end
+
+      def process_explain_results_sqlite(results)
+        return string_explain_plan_results(results) if results.is_a?(String)
+        headers = []
+        values  = []
+        results.each do |row|
+          headers = row.keys.select { |k| k.is_a?(String) }
+          values << headers.map { |h| row[h] }
+        end
         [headers, values]
       end
 
@@ -222,75 +275,6 @@ module NewRelic
           end
 
           @connections = {}
-        end
-      end
-
-      class Obfuscator
-        include Singleton
-
-        attr_reader :obfuscator
-
-        def initialize
-          reset
-        end
-
-        def reset
-          @obfuscator = method(:default_sql_obfuscator)
-        end
-
-        # Sets the sql obfuscator used to clean up sql when sending it
-        # to the server. Possible types are:
-        #
-        # :before => sets the block to run before the existing
-        # obfuscators
-        #
-        # :after => sets the block to run after the existing
-        # obfuscator(s)
-        #
-        # :replace => removes the current obfuscator and replaces it
-        # with the provided block
-        def set_sql_obfuscator(type, &block)
-          if type == :before
-            @obfuscator = NewRelic::ChainedCall.new(block, @obfuscator)
-          elsif type == :after
-            @obfuscator = NewRelic::ChainedCall.new(@obfuscator, block)
-          elsif type == :replace
-            @obfuscator = block
-          else
-            fail "unknown sql_obfuscator type #{type}"
-          end
-        end
-
-        def default_sql_obfuscator(sql)
-          if sql[-3,3] == '...'
-            return "Query too large (over 16k characters) to safely obfuscate"
-          end
-
-          stmt = sql.kind_of?(Statement) ? sql : Statement.new(sql)
-          adapter = stmt.adapter
-          obfuscated = remove_escaped_quotes(stmt)
-          obfuscated = obfuscate_single_quote_literals(obfuscated)
-          if !(adapter.to_s =~ /postgres/ || adapter.to_s =~ /sqlite/)
-            obfuscated = obfuscate_double_quote_literals(obfuscated)
-          end
-          obfuscated = obfuscate_numeric_literals(obfuscated)
-          obfuscated.to_s # return back to a regular String
-        end
-
-        def remove_escaped_quotes(sql)
-          sql.gsub(/\\"/, '').gsub(/\\'/, '')
-        end
-
-        def obfuscate_single_quote_literals(sql)
-          sql.gsub(/'(?:[^']|'')*'/, '?')
-        end
-
-        def obfuscate_double_quote_literals(sql)
-          sql.gsub(/"(?:[^"]|"")*"/, '?')
-        end
-
-        def obfuscate_numeric_literals(sql)
-          sql.gsub(/\b\d+\b/, "?")
         end
       end
 

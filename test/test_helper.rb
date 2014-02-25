@@ -203,6 +203,23 @@ ensure
   NewRelic::Agent.logger = orig_logger
 end
 
+def dummy_mysql_explain_result(hash=nil)
+  hash ||= {
+    'Id' => '1',
+    'Select Type' => 'SIMPLE',
+    'Table' => 'sandwiches',
+    'Type' => 'range',
+    'Possible Keys' => 'PRIMARY',
+    'Key' => 'PRIMARY',
+    'Key Length' => '4',
+    'Ref' => '',
+    'Rows' => '1',
+    'Extra' => 'Using index'
+  }
+  explain_result = mock('explain result')
+  explain_result.stubs(:each_hash).yields(hash)
+  explain_result
+end
 
 module TransactionSampleTestHelper
   module_function
@@ -212,7 +229,7 @@ module TransactionSampleTestHelper
     sampler.notice_transaction(nil, :jim => "cool")
     sampler.notice_push_scope "a"
     explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
-    sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0, &explainer) }
+    sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "mysql"}, 0, &explainer) }
     sleep 0.02
     yield if block_given?
     sampler.notice_pop_scope "a"

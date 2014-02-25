@@ -139,23 +139,24 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_harvest_should_collect_explain_plans
     @connection.expects(:execute).with("EXPLAIN select * from test") \
-     .returns([{"header0" => 'foo0', "header1" => 'foo1', "header2" => 'foo2'}])
+     .returns(dummy_mysql_explain_result({"header0" => 'foo0', "header1" => 'foo1', "header2" => 'foo2'}))
     @connection.expects(:execute).with("EXPLAIN select * from test2") \
-     .returns([{"header0" => 'bar0', "header1" => 'bar1', "header2" => 'bar2'}])
+     .returns(dummy_mysql_explain_result({"header0" => 'bar0', "header1" => 'bar1', "header2" => 'bar2'}))
 
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info("/c/a", {}, 'guid')
     data.set_transaction_name("WebTransaction/Controller/c/a")
     explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
+    config = { :adapter => 'mysql' }
     queries = [
                NewRelic::Agent::SlowSql.new("select * from test",
-                                            "Database/test/select", {},
+                                            "Database/test/select", config,
                                             1.5, nil, &explainer),
                NewRelic::Agent::SlowSql.new("select * from test",
-                                            "Database/test/select", {},
+                                            "Database/test/select", config,
                                             1.2, nil, &explainer),
                NewRelic::Agent::SlowSql.new("select * from test2",
-                                            "Database/test2/select", {},
+                                            "Database/test2/select", config,
                                             1.1, nil, &explainer)
               ]
     data.sql_data.concat(queries)
