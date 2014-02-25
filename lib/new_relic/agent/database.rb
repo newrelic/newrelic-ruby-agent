@@ -158,7 +158,17 @@ module NewRelic
         [[QUERY_PLAN], values]
       end
 
+      # Sequel returns explain plans as just one big pre-formatted String
+      # In that case, we send a nil headers array, and the single string
+      # wrapped in an array for the values.
+      # Note that we don't use this method for Postgres explain plans, since
+      # they need to be passed through the explain plan obfuscator first.
+      def string_explain_plan_results(results)
+        [nil, [results]]
+      end
+
       def process_explain_results_mysql(results)
+        return string_explain_plan_results(results) if results.is_a?(String)
         headers = []
         values  = []
         results.each_hash do |row|
@@ -169,6 +179,7 @@ module NewRelic
       end
 
       def process_explain_results_mysql2(results)
+        return string_explain_plan_results(results) if results.is_a?(String)
         headers = results.fields
         values  = []
         results.each { |row| values << row }
@@ -176,16 +187,12 @@ module NewRelic
       end
 
       def process_explain_results_sqlite(results)
+        return string_explain_plan_results(results) if results.is_a?(String)
         headers = []
         values  = []
-        if results.is_a?(String)
-          # Sequel returns explain plans as just one big pre-formatted String
-          values = [results]
-        else
-          results.each do |row|
-            headers = row.keys.select { |k| k.is_a?(String) }
-            values << headers.map { |h| row[h] }
-          end
+        results.each do |row|
+          headers = row.keys.select { |k| k.is_a?(String) }
+          values << headers.map { |h| row[h] }
         end
         [headers, values]
       end

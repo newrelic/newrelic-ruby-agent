@@ -34,6 +34,52 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal(plan.values.compact.sort, result[1][0].compact.sort)
   end
 
+  def test_explain_sql_select_with_mysql2_connection_sequel
+    config = { :adapter => 'mysql2' }
+    config.default('val')
+    sql = 'SELECT * FROM items'
+
+    # Sequel returns explain plans to us as one giant preformatted string rather
+    # than individual rows.
+    plan_string = [
+      "+--+-----------+-----+----+-------------+---+-------+---+----+-----+",
+      "|id|select_type|table|type|possible_keys|key|key_len|ref|rows|Extra|",
+      "+--+-----------+-----+----+-------------+---+-------+---+----+-----+",
+      "| 1|SIMPLE     |items|ALL |             |   |       |   |   3|     |",
+      "+--+-----------+-----+----+-------------+---+-------+---+----+-----+"
+    ].join("\n")
+
+    connection = mock('mysql connection')
+    connection.expects(:execute).with('EXPLAIN SELECT * FROM items').returns(plan_string)
+    NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
+    result = NewRelic::Agent::Database.explain_sql(sql, config, &@explainer)
+    assert_nil(result[0])
+    assert_equal([plan_string], result[1])
+  end
+
+  def test_explain_sql_select_with_mysql_connection_sequel
+    config = { :adapter => 'mysql' }
+    config.default('val')
+    sql = 'SELECT * FROM items'
+
+    # Sequel returns explain plans to us as one giant preformatted string rather
+    # than individual rows.
+    plan_string = [
+      "+--+-----------+-----+----+-------------+---+-------+---+----+-----+",
+      "|id|select_type|table|type|possible_keys|key|key_len|ref|rows|Extra|",
+      "+--+-----------+-----+----+-------------+---+-------+---+----+-----+",
+      "| 1|SIMPLE     |items|ALL |             |   |       |   |   3|     |",
+      "+--+-----------+-----+----+-------------+---+-------+---+----+-----+"
+    ].join("\n")
+
+    connection = mock('mysql connection')
+    connection.expects(:execute).with('EXPLAIN SELECT * FROM items').returns(plan_string)
+    NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
+    result = NewRelic::Agent::Database.explain_sql(sql, config, &@explainer)
+    assert_nil(result[0])
+    assert_equal([plan_string], result[1])
+  end
+
   def test_explain_sql_select_with_mysql2_connection
     config = {:adapter => 'mysql2'}
     config.default('val')
