@@ -20,11 +20,10 @@ module NewRelic::Agent::Database
 
     query_files.each do |query_file|
       define_method("test_#{name_for_query_file(query_file)}_explain_plan_obfuscation") do
-        query   = File.read(query_file)
         explain = File.read(explain_filename(query_file))
         obfuscated = File.read(obfuscated_filename(query_file))
 
-        result = ExplainObfuscator.obfuscate(query, explain)
+        result = ExplainObfuscator.obfuscate(explain)
         assert_equal(obfuscated, result)
       end
     end
@@ -38,7 +37,7 @@ module NewRelic::Agent::Database
     end
 
     def obfuscated_filename(query_file)
-      query_file.gsub(".query.", ".obfuscated.")
+      query_file.gsub(".query.", ".colon_obfuscated.")
     end
   end
 end
