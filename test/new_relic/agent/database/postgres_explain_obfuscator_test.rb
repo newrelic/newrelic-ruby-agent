@@ -9,35 +9,26 @@ module NewRelic::Agent::Database
   class PostgresExplainObfuscatorTest < Minitest::Test
     attr_reader :obfuscator
 
-    def self.query_files
+    def self.input_files
       fixture_dir = File.join(cross_agent_tests_dir, "postgres_explain_obfuscation")
-      Dir["#{fixture_dir}/*.query.txt"]
+      Dir["#{fixture_dir}/*.explain.txt"]
     end
 
-    def self.name_for_query_file(query_file)
-      File.basename(query_file, ".query.txt")
+    def self.name_for_input_file(input_file)
+      File.basename(input_file, ".explain.txt")
     end
 
-    query_files.each do |query_file|
-      define_method("test_#{name_for_query_file(query_file)}_explain_plan_obfuscation") do
-        explain = File.read(explain_filename(query_file))
-        obfuscated = File.read(obfuscated_filename(query_file))
-
-        result = PostgresExplainObfuscator.obfuscate(explain)
-        assert_equal(obfuscated, result)
+    input_files.each do |input_file|
+      define_method("test_#{name_for_input_file(input_file)}_explain_plan_obfuscation") do
+        explain             = File.read(input_file)
+        expected_obfuscated = File.read(obfuscated_filename(input_file))
+        actual_obfuscated   = PostgresExplainObfuscator.obfuscate(explain)
+        assert_equal(expected_obfuscated, actual_obfuscated)
       end
     end
 
-    def build_message(query, explain, obfuscated=nil)
-      "Failed to correctly obfuscate explain for query:\n#{query}"
-    end
-
-    def explain_filename(query_file)
-      query_file.gsub(".query.", ".explain.")
-    end
-
     def obfuscated_filename(query_file)
-      query_file.gsub(".query.", ".colon_obfuscated.")
+      query_file.gsub(".explain.", ".colon_obfuscated.")
     end
   end
 end
