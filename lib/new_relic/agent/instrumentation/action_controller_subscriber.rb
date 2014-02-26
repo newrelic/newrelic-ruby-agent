@@ -18,7 +18,7 @@ module NewRelic
                         Agent.logger.debug("Error creating Rack::Request object: #{e}")
                         nil
                       end
-            TransactionState.reset(request)
+            TransactionState.request = request
           end
         end
 

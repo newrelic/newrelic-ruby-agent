@@ -12,7 +12,7 @@ module NewRelic
       def ensure_transaction_reset(env)
         return if env.has_key?(RESET_KEY)
 
-        NewRelic::Agent::TransactionState.reset(nil)
+        NewRelic::Agent::TransactionState.reset
         env[RESET_KEY] = true
       end
     end

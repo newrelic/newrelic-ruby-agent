@@ -48,7 +48,7 @@ module NewRelic::Agent
     def test_timings_without_transaction
       freeze_time
 
-      state.reset(nil)
+      state.reset
       timings = state.timings
 
       assert_equal 0.0, timings.queue_time_in_seconds
@@ -165,7 +165,7 @@ module NewRelic::Agent
       assert_equal(true, state.is_cross_app_callee?)
       assert_equal(true, state.is_cross_app_caller?)
 
-      state.reset(nil)
+      state.reset
 
       assert_equal(false, state.is_cross_app_caller?)
       assert_equal(false, state.is_cross_app_callee?)

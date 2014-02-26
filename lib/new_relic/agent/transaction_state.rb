@@ -29,28 +29,40 @@ module NewRelic
       end
 
       # This starts the timer for the transaction.
-      def self.reset(request=nil)
-        self.get.reset(request)
+      def self.reset
+        self.get.reset
+      end
+
+      def self.request=(request)
+        self.get.request = request
       end
 
       def initialize
         @stats_scope_stack = []
       end
 
-      def reset(request)
+      def request=(request)
+        reset unless reset?
+        @request = request
+        @request_token = BrowserToken.get_token(request)
+      end
+
+      def reset
         # We almost always want to use the transaction time, but in case it's
         # not available, we track the last reset. No accessor, as only the
         # TransactionState class should use it.
         @last_reset_time = Time.now
-
-        @transaction = Transaction.current
+        @transaction = nil
         @timings = nil
-
-        @request = request
-        @request_token = BrowserToken.get_token(request)
+        @request = nil
+        @request_token = nil
         @request_ignore_enduser = false
         @is_cross_app_caller = false
         @referring_transaction_info = nil
+      end
+
+      def reset?
+        @transaction.nil?
       end
 
       def timings
@@ -75,7 +87,8 @@ module NewRelic
       end
 
       # Request data
-      attr_accessor :request, :request_token, :request_ignore_enduser
+      attr_reader :request
+      attr_accessor :request_token, :request_ignore_enduser
 
       def request_guid
         return nil unless transaction
