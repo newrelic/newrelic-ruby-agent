@@ -171,9 +171,20 @@ module NewRelic
         return string_explain_plan_results(results) if results.is_a?(String)
         headers = []
         values  = []
-        results.each_hash do |row|
-          headers = row.keys
-          values << headers.map { |h| row[h] }
+        if results.is_a?(Array)
+          # We're probably using the jdbc-mysql gem for JRuby, which will give
+          # us an array of hashes.
+          headers = results.first.keys
+          results.each do |row|
+            values << headers.map { |h| row[h] }
+          end
+        else
+          # We're probably using the native mysql driver gem, which will give us
+          # a Mysql::Result object that responds to each_hash
+          results.each_hash do |row|
+            headers = row.keys
+            values << headers.map { |h| row[h] }
+          end
         end
         [headers, values]
       end
