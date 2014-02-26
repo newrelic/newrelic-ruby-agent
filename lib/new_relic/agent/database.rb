@@ -186,12 +186,13 @@ module NewRelic
         [headers, values]
       end
 
+      SQLITE_EXPLAIN_COLUMNS = %w[addr opcode p1 p2 p3 p4 p5 comment]
+
       def process_explain_results_sqlite(results)
         return string_explain_plan_results(results) if results.is_a?(String)
-        headers = []
+        headers = SQLITE_EXPLAIN_COLUMNS
         values  = []
         results.each do |row|
-          headers = row.keys.select { |k| k.is_a?(String) }
           values << headers.map { |h| row[h] }
         end
         [headers, values]
