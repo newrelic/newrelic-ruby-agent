@@ -33,7 +33,7 @@ module NewRelic
           # single quotes (\') because these are canonicalized to two single
           # quotes ('') in the explain output.
           explain.gsub!(SINGLE_OR_DOUBLE_QUOTES) do |match|
-            match[0] == '"' ? match : '?'
+            match.start_with?('"') ? match : '?'
           end
 
           # Now, mask anything after the first colon (:).
