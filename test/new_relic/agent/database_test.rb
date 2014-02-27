@@ -14,6 +14,31 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     NewRelic::Agent::Database::Obfuscator.instance.reset
   end
 
+  def test_adapter_from_config_string
+    config = { :adapter => 'mysql' }
+    assert_equal('mysql', NewRelic::Agent::Database.adapter_from_config(config))
+  end
+
+  def test_adapter_from_config_symbol
+    config = { :adapter => :mysql }
+    assert_equal('mysql', NewRelic::Agent::Database.adapter_from_config(config))
+  end
+
+  def test_adapter_from_config_uri_jdbc_postgresql
+    config = { :uri=>"jdbc:postgresql://host/database?user=posgres" }
+    assert_equal('postgresql', NewRelic::Agent::Database.adapter_from_config(config))
+  end
+
+  def test_adapter_from_config_uri_jdbc_mysql
+    config = { :uri=>"jdbc:mysql://host/database" }
+    assert_equal('mysql', NewRelic::Agent::Database.adapter_from_config(config))
+  end
+
+  def test_adapter_from_config_uri_jdbc_sqlite
+    config = { :uri => "jdbc:sqlite::memory" }
+    assert_equal('sqlite', NewRelic::Agent::Database.adapter_from_config(config))
+  end
+
   def test_explain_sql_select_with_mysql_connection
     config = {:adapter => 'mysql'}
     config.default('val')
