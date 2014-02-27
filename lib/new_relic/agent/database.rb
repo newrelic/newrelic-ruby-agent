@@ -81,6 +81,18 @@ module NewRelic
         ConnectionManager.instance.close_connections
       end
 
+      # This takes a connection config hash from ActiveRecord or Sequel and
+      # returns a string describing the associated database adapter
+      def adapter_from_config(config)
+        if config[:adapter]
+          return config[:adapter].to_s
+        elsif config[:uri] && config[:uri].to_s =~ /^jdbc:([^:]+):/
+          # This case is for Sequel with the jdbc-mysql, jdbc-postgres, or
+          # jdbc-sqlite3 gems.
+          return $1
+        end
+      end
+
       # Perform this in the runtime environment of a managed
       # application, to explain the sql statement executed within a
       # segment of a transaction sample. Returns an array of
@@ -112,7 +124,7 @@ module NewRelic
           return
         end
 
-        adapter = config[:adapter].to_s
+        adapter = adapter_from_config(config)
         if !SUPPORTED_ADAPTERS_FOR_EXPLAIN.include?(adapter)
           NewRelic::Agent.logger.debug("Not collecting explain plan because an unknown connection adapter ('#{adapter}') was used.")
           return
