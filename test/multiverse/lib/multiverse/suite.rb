@@ -112,7 +112,7 @@ module Multiverse
     end
 
     def minitest_line
-      "gem 'minitest', '~> 4.7.5'"
+      "gem 'minitest', '~> 4.7.5', :require => false"
     end
 
     def print_environment
