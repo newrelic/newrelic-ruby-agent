@@ -4,7 +4,7 @@ gem 'rake'
 
 gem 'rails', '~>4.1.0.rc1'
 
-gem 'minitest', '~>5.0'
+gem 'minitest', '5.2.3'
 gem 'mocha', :require => false
 gem 'rack'
 gem 'rack-test'
