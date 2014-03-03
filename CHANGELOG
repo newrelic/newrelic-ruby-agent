@@ -1,5 +1,26 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.7.3 ##
+
+  * Obfuscation for PostgreSQL explain plans
+
+  Fixes an agent bug with PostgreSQL where parameters from the original query
+  could appear in explain plans sent to New Relic servers, even when SQL
+  obfuscation was enabled. Parameters from the query are now masked in explain
+  plans prior to transmission when transaction_tracer.record_sql is set to
+  'obfuscated' (the default setting).
+
+  * More accurate categorization of SQL statements
+
+  Some SQL SELECT statements that were previously being mis-categorized as
+  'SQL - OTHER' will now correctly be tagged as 'SQL - SELECT'. This
+  particularly affected ActiveRecord users using PostgreSQL.
+
+  * More reliable Typhoeus instrumentation
+
+  Fixed an issue where an exception raised from a user-specified on_complete
+  block would cause our Typhoeus instrumentation to fail to record the request.
+
 ## v3.7.2 ##
 
   * Mongo instrumentation improvements
