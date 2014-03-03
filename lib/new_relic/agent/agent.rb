@@ -173,9 +173,9 @@ module NewRelic
           if channel_id = options[:report_to_channel]
             @service = NewRelic::Agent::PipeService.new(channel_id)
             if connected?
-              @connected_pid = $$
+              @connected_pid = Process.pid
             else
-              ::NewRelic::Agent.logger.debug("Child process #{$$} not reporting to non-connected parent.")
+              ::NewRelic::Agent.logger.debug("Child process #{Process.pid} not reporting to non-connected parent (process #{Process.ppid}).")
               @service.shutdown(Time.now)
               disconnect
             end
@@ -934,7 +934,7 @@ module NewRelic
         #  #merge!(items)
         #    merge the given items back into the internal buffer of the
         #    container, so that they may be harvested again later.
-        #  
+        #
         def harvest_and_send_from_container(container, endpoint)
           items = harvest_from_container(container, endpoint)
           send_data_to_endpoint(endpoint, items, container) unless items.empty?
