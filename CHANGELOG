@@ -10,6 +10,9 @@
   plans prior to transmission when transaction_tracer.record_sql is set to
   'obfuscated' (the default setting).
 
+  For more information, see:
+  https://docs.newrelic.com/docs/traces/security-for-postgresql-explain-plans
+
   * More accurate categorization of SQL statements
 
   Some SQL SELECT statements that were previously being mis-categorized as
