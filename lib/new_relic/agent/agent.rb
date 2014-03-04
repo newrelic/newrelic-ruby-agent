@@ -763,9 +763,20 @@ module NewRelic
             Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
+          # We've seen objects in the environment report (Rails.env in
+          # particular) that can't seralize to JSON. Cope with that here and
+          # clear out so downstream code doesn't have to check again.
+          def sanitize_environment_report
+            if !@service.valid_to_marshal?(@environment_report)
+              NewRelic::Agent.logger.warn("Unable to marshal environment report on connect.")
+              @environment_report = []
+            end
+          end
+
           # Initializes the hash of settings that we send to the
           # server. Returns a literal hash containing the options
           def connect_settings
+            sanitize_environment_report
             {
               :pid => $$,
               :host => @local_host,
