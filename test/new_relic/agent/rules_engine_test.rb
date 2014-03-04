@@ -89,4 +89,17 @@ class RulesEngineTest < Minitest::Test
 
     assert_equal('foo/*/bar/*', @engine.rename('foo/1/bar/22'))
   end
+
+  load_cross_agent_test('rules').each do |testcase|
+    define_method("test_#{testcase['testname']}") do
+      testcase["rules"].each do |rule|
+        @engine << NewRelic::Agent::RulesEngine::Rule.new(rule)
+      end
+
+      testcase["tests"].each do |test|
+        assert_equal(test["expected"], @engine.rename(test["input"]))
+      end
+    end
+  end
+
 end
