@@ -255,6 +255,13 @@ module NewRelic
         File.expand_path(File.join(control.newrelic_root, 'cert', 'cacert.pem'))
       end
 
+      def valid_to_marshal?(data)
+        @marshaller.dump(data)
+        true
+      rescue StandardError, SystemStackError
+        false
+      end
+
       private
 
       # A shorthand for NewRelic::Control.instance

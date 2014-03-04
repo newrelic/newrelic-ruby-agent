@@ -589,6 +589,20 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal(spec1, metric_data.metric_spec)
   end
 
+  def test_valid_to_marshal
+    assert @service.valid_to_marshal?({})
+  end
+
+  def test_not_valid_to_marshal
+    @service.marshaller.stubs(:dump).raises(StandardError.new("Failed to marshal"))
+    refute @service.valid_to_marshal?({})
+  end
+
+  def test_not_valid_to_marshal_with_system_stack_error
+    @service.marshaller.stubs(:dump).raises(SystemStackError.new)
+    refute @service.valid_to_marshal?({})
+  end
+
   def build_stats_hash(items={})
     hash = NewRelic::Agent::StatsHash.new
     items.each do |key, value|
