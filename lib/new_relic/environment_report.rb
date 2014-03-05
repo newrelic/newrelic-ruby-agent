@@ -80,7 +80,7 @@ module NewRelic
     end
     report_on 'Rails Env' do
       if defined? ::Rails and ::Rails.respond_to?(:env)
-        ::Rails.env
+        ::Rails.env.to_s
       else
         ENV['RAILS_ENV']
       end

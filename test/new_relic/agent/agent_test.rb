@@ -273,6 +273,22 @@ module NewRelic
         @agent.send(:connect, :force_reconnect => true)
       end
 
+      def test_connect_settings
+        settings = @agent.connect_settings
+        assert settings.include?(:pid)
+        assert settings.include?(:host)
+        assert settings.include?(:app_name)
+        assert settings.include?(:language)
+        assert settings.include?(:agent_version)
+        assert settings.include?(:environment)
+        assert settings.include?(:settings)
+      end
+
+      def test_connect_settings_checks_environment_report_can_marshal
+        @agent.service.stubs(:valid_to_marshal?).returns(false)
+        assert_equal [], @agent.connect_settings[:environment]
+      end
+
       def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started_and_forkable
         NewRelic::LanguageSupport.stubs(:can_fork?).returns(true)
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)

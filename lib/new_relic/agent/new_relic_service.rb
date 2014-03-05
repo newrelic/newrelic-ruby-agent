@@ -255,6 +255,16 @@ module NewRelic
         File.expand_path(File.join(control.newrelic_root, 'cert', 'cacert.pem'))
       end
 
+      def valid_to_marshal?(data)
+        @marshaller.dump(data)
+        true
+      rescue StandardError, SystemStackError => e
+        messages = ["Unable to marshal environment report on connect.", e]
+        messages << caller.join("\n  ") if e.is_a?(SystemStackError)
+        NewRelic::Agent.logger.warn(*messages)
+        false
+      end
+
       private
 
       # A shorthand for NewRelic::Control.instance

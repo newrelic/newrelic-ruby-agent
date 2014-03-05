@@ -21,6 +21,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     @stats_engine = NewRelic::Agent::StatsEngine.new
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
+    NewRelic::Agent.instance.service = @service
     @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
   end
