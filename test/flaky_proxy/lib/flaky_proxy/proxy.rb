@@ -13,6 +13,7 @@ module FlakyProxy
       @rules = RuleSet.build('')
       @rules_path = options[:rules_path]
       @listen_socket = nil
+      reload_rules_file
     end
 
     def service_connection(client_socket)
