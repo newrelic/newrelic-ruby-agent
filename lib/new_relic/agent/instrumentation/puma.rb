@@ -17,7 +17,9 @@ DependencyDetection.defer do
   end
 
   executes do
-    Puma.cli_config.options[:worker_boot] << Proc.new do
+    hooks = Puma.cli_config.options[:worker_boot] || Puma.cli_config.options[:before_worker_boot] 
+
+    hooks << Proc.new do
       ::NewRelic::Agent.after_fork(:force_reconnect => true)
     end
   end
