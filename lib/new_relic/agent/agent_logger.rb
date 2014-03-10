@@ -54,13 +54,23 @@ module NewRelic
       def log_exception(level, e, backtrace_level=level)
         @log.send(level, "%p: %s" % [ e.class, e.message ])
         @log.send(backtrace_level) do
-          backtrace = e.backtrace
+          backtrace = backtrace_from_exception(e)
           if backtrace
             "Debugging backtrace:\n" + backtrace.join("\n  ")
           else
             "No backtrace available."
           end
         end
+      end
+
+      def backtrace_from_exception(e)
+        # We've seen that often the backtrace on a SystemStackError is bunk
+        # so massage the caller instead at a known depth.
+        #
+        # Tests keep us honest about minmum method depth our log calls add.
+        return caller.drop(5) if e.is_a?(SystemStackError)
+
+        e.backtrace
       end
 
       # Allows for passing exceptions in explicitly, which format with backtrace

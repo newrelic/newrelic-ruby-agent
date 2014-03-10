@@ -259,9 +259,7 @@ module NewRelic
         @marshaller.dump(data)
         true
       rescue StandardError, SystemStackError => e
-        messages = ["Unable to marshal environment report on connect.", e]
-        messages << caller.join("\n  ") if e.is_a?(SystemStackError)
-        NewRelic::Agent.logger.warn(*messages)
+        NewRelic::Agent.logger.warn("Unable to marshal environment report on connect.", e)
         false
       end
 
