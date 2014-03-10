@@ -24,6 +24,12 @@
   Fixed an issue where an exception raised from a user-specified on_complete
   block would cause our Typhoeus instrumentation to fail to record the request.
 
+  * Fix for Puma 2.8.0 cluster mode (3.7.3.202)
+
+  Puma's 2.8.0 release renamed a hook New Relic used to support Puma's cluster
+  mode.  This resulted in missing data for users running Puma. Thanks Benjamin
+  Kudria for the fix!
+
 ## v3.7.2 ##
 
   * Mongo instrumentation improvements
