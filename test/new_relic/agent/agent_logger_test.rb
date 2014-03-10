@@ -228,6 +228,23 @@ class AgentLoggerTest < Minitest::Test
                   /INFO : Debugging backtrace:\n.*wiggle\s+wobble\s+topple/)
   end
 
+  def recursion_is_an_antipattern
+    recursion_is_an_antipattern
+  end
+
+  def test_log_exception_gets_backtrace_for_system_stack_error
+    logger = create_basic_logger
+
+    begin
+      recursion_is_an_antipattern
+    rescue SystemStackError => e
+      logger.log_exception(:error, e)
+    end
+
+    assert_logged(/ERROR : /,
+                  /ERROR : Debugging backtrace:\n.*#{__method__}/)
+  end
+
   def test_logs_to_stdout_if_fails_on_file
     Logger::LogDevice.any_instance.stubs(:open).raises(Errno::EACCES)
 
@@ -289,9 +306,9 @@ class AgentLoggerTest < Minitest::Test
   end
 
   def assert_logged(*args)
-    assert_equal(args.length, logged_lines.length)
+    assert_equal(args.length, logged_lines.length, "Unexpected log length #{logged_lines}")
     logged_lines.each_with_index do |line, index|
-      assert_match(args[index], line)
+      assert_match(args[index], line, "Missing match for #{args[index]}")
     end
   end
 end
