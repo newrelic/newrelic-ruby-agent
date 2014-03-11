@@ -164,11 +164,9 @@ module NewRelic::Agent
     def test_writes_metric
       with_default_timings
 
-      expected_metric_name = "ClientApplication/#{REQUEST_CROSS_APP_ID}/all"
-      NewRelic::Agent.instance.stats_engine.expects(:record_metrics). \
-        with(expected_metric_name, APP_TIME)
-
       when_request_runs
+
+      assert_metrics_recorded(["ClientApplication/#{REQUEST_CROSS_APP_ID}/all"])
     end
 
     def test_doesnt_write_metric_if_id_blank

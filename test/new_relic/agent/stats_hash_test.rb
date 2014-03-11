@@ -117,7 +117,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     hash1 = NewRelic::Agent::StatsHash.new(t1)
 
     hash1.merge!(hash0)
-    assert_equal(t0, hash1.started_at)
+    assert_equal(t0.to_f, hash1.started_at)
   end
 
   def test_marshal_dump

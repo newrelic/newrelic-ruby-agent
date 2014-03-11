@@ -233,6 +233,11 @@ class AgentLoggerTest < Minitest::Test
   end
 
   def test_log_exception_gets_backtrace_for_system_stack_error
+    # This facility compensates for poor SystemStackError traces on MRI.
+    # JRuby raises different Java exceptions (with good backtraces), so don't
+    # bother with this test.
+    return if jruby?
+
     logger = create_basic_logger
 
     begin

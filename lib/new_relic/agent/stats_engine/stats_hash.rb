@@ -21,7 +21,7 @@ module NewRelic
       attr_accessor :started_at, :harvested_at
 
       def initialize(started_at=Time.now)
-        @started_at = started_at
+        @started_at = started_at.to_f
         super() { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
       end
 
