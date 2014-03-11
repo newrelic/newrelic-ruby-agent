@@ -44,26 +44,11 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
 
       define_mongrel
 
-      # One call from LocalEnvironment's initialize, second from first #mongrel call.
-      # All the rest shouldn't call into ObjectSpace
-      ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).twice
+      ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).once
 
       e = NewRelic::LocalEnvironment.new
       5.times { e.mongrel }
       assert_nil e.mongrel
-    ensure
-      Object.send(:remove_const, :Mongrel) if defined?(Mongrel)
-    end
-
-    def test_check_for_mongrel_allows_one_more_check
-      return unless NewRelic::LanguageSupport.object_space_usable?
-
-      define_mongrel
-
-      ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).at_least(2)
-
-      e = NewRelic::LocalEnvironment.new
-      e.send(:check_for_mongrel)
     ensure
       Object.send(:remove_const, :Mongrel) if defined?(Mongrel)
     end
