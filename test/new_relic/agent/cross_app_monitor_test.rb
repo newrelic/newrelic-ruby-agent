@@ -172,9 +172,9 @@ module NewRelic::Agent
     def test_doesnt_write_metric_if_id_blank
       with_default_timings
 
-      NewRelic::Agent.instance.stats_engine.expects(:record_metrics).never
-
       when_request_runs(for_id(''))
+
+      assert_metrics_recorded_exclusive([])
     end
 
     def test_setting_response_headers_freezes_transaction_name
