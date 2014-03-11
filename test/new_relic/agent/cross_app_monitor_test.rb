@@ -29,6 +29,7 @@ module NewRelic::Agent
 
     def setup
       NewRelic::Agent.reset_config
+      NewRelic::Agent.instance.stats_engine.clear_stats
       NewRelic::Agent.instance.events.clear
       @response = {}
 
