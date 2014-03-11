@@ -1,5 +1,40 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.7.3 ##
+
+  * Obfuscation for PostgreSQL explain plans
+
+  Fixes an agent bug with PostgreSQL where parameters from the original query
+  could appear in explain plans sent to New Relic servers, even when SQL
+  obfuscation was enabled. Parameters from the query are now masked in explain
+  plans prior to transmission when transaction_tracer.record_sql is set to
+  'obfuscated' (the default setting).
+
+  For more information, see:
+  https://docs.newrelic.com/docs/traces/security-for-postgresql-explain-plans
+
+  * More accurate categorization of SQL statements
+
+  Some SQL SELECT statements that were previously being mis-categorized as
+  'SQL - OTHER' will now correctly be tagged as 'SQL - SELECT'. This
+  particularly affected ActiveRecord users using PostgreSQL.
+
+  * More reliable Typhoeus instrumentation
+
+  Fixed an issue where an exception raised from a user-specified on_complete
+  block would cause our Typhoeus instrumentation to fail to record the request.
+
+  * Fix for Puma 2.8.0 cluster mode (3.7.3.204)
+
+  Puma's 2.8.0 release renamed a hook New Relic used to support Puma's cluster
+  mode.  This resulted in missing data for users running Puma. Thanks Benjamin
+  Kudria for the fix!
+
+  * Fix for deployment command bug (3.7.3.204)
+
+  Problems with file loading order could result in `newrelic deployments`
+  failing with an unrecognized command error. This has been fixed.
+
 ## v3.7.2 ##
 
   * Mongo instrumentation improvements
