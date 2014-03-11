@@ -100,37 +100,36 @@ EOL
   end
 
   # RUM header auto-insertion testing
-  # We read *.source.html files from the test/rum directory, and then
-  # compare the results of them to *.result.html files.
+  # We read *.html files from the rum_loader_insertion_location directory in
+  # cross_agent_tests, strip out the placeholder tokens representing the RUM
+  # header manually, and then re-insert, verifying that it ends up in the right
+  # place.
 
-  source_files = Dir[File.join(File.dirname(__FILE__), "..", "..", "rum", "*.source.html")]
+  source_files = Dir[File.join(cross_agent_tests_dir, 'rum_loader_insertion_location', "*.html")]
 
-  RUM_LOADER = "|||I AM THE RUM HEADER|||"
-  RUM_CONFIG = "|||I AM THE RUM FOOTER|||"
+  RUM_PLACEHOLDER = "EXPECTED_RUM_LOADER_LOCATION"
 
   source_files.each do |source_file|
     source_filename = File.basename(source_file).gsub(".", "_")
-    source_html = File.read(source_file)
-
-    result_file = source_file.gsub(".source.", ".result.")
+    instrumented_html = File.read(source_file)
+    uninstrumented_html = instrumented_html.gsub(RUM_PLACEHOLDER, '')
 
     define_method("test_#{source_filename}") do
-      TestApp.doc = source_html
-      NewRelic::Agent.stubs(:browser_timing_header).returns(RUM_CONFIG + RUM_LOADER)
+      TestApp.doc = uninstrumented_html
+      NewRelic::Agent.stubs(:browser_timing_header).returns(RUM_PLACEHOLDER)
 
       get '/'
 
-      expected_content = File.read(result_file)
-      assert_equal(expected_content, last_response.body)
+      assert_equal(instrumented_html, last_response.body)
     end
 
     define_method("test_dont_touch_#{source_filename}") do
-      TestApp.doc = source_html
+      TestApp.doc = uninstrumented_html
       NewRelic::Rack::BrowserMonitoring.any_instance.stubs(:should_instrument?).returns(false)
 
       get '/'
 
-      assert_equal(source_html, last_response.body)
+      assert_equal(uninstrumented_html, last_response.body)
     end
   end
 
