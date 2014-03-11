@@ -24,11 +24,16 @@
   Fixed an issue where an exception raised from a user-specified on_complete
   block would cause our Typhoeus instrumentation to fail to record the request.
 
-  * Fix for Puma 2.8.0 cluster mode (3.7.3.202)
+  * Fix for Puma 2.8.0 cluster mode (3.7.3.203)
 
   Puma's 2.8.0 release renamed a hook New Relic used to support Puma's cluster
   mode.  This resulted in missing data for users running Puma. Thanks Benjamin
   Kudria for the fix!
+
+  * Fix for deployment command bug (3.7.3.203)
+
+  Problems with file loading order could result in `newrelic deployments`
+  failing with an unrecognized command error. This has been fixed.
 
 ## v3.7.2 ##
 
