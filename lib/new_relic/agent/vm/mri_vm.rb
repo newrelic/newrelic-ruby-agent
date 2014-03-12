@@ -19,6 +19,7 @@ module NewRelic
           gather_gc_stats(snap)
           gather_ruby_vm_stats(snap)
           gather_thread_stats(snap)
+          gather_gc_time(snap)
         end
 
         def gather_gc_stats(snap)
