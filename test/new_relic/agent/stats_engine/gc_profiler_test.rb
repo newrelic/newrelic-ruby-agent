@@ -38,9 +38,11 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Minitest::Test
     return if NewRelic::LanguageSupport.using_engine?('jruby')
 
     GC.disable
-    if NewRelic::LanguageSupport.using_version?('1.9')
+    if NewRelic::LanguageSupport.gc_profiler_usable?
+      profiler = NewRelic::Agent.instance.monotonic_gc_profiler
+      profiler.stubs(:total_time).returns(1.0, 4.0)
+
       ::GC::Profiler.stubs(:enabled?).returns(true)
-      ::GC::Profiler.stubs(:total_time).returns(1.0, 4.0)
       ::GC.stubs(:count).returns(1, 3)
       ::GC::Profiler.stubs(:clear).returns(nil)
     elsif NewRelic::LanguageSupport.using_version?('1.8.7') &&
