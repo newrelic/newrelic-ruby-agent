@@ -28,6 +28,13 @@ unless NewRelic::LanguageSupport.jruby? || NewRelic::LanguageSupport.rubinius?
             @vm.gather_gc_time(@snap)
             assert_nil @snap.gc_total_time
           end
+
+          def test_gather_stats_records_gc_time_if_available
+            NewRelic::Agent.instance.monotonic_gc_profiler.stubs(:total_time).returns(999)
+            NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(true)
+            @vm.gather_stats(@snap)
+            assert_equal(999, @snap.gc_total_time)
+          end
         end
       end
     end
