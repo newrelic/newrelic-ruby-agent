@@ -97,7 +97,7 @@ class RulesEngineTest < Minitest::Test
       end
 
       testcase["tests"].each do |test|
-        assert_equal(test["expected"], @engine.rename(test["input"]))
+        assert_equal(test["expected"], @engine.rename(test["input"]), "Input: #{test['input'].inspect}")
       end
     end
   end
