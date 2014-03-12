@@ -62,7 +62,7 @@ module NewRelic
             raise ArgumentError.new('must specify replacement when ignore is false')
           end
 
-          @match_expression = Regexp.new(options['match_expression'])
+          @match_expression = Regexp.new(options['match_expression'], Regexp::IGNORECASE)
           @replacement      = options['replacement']
           @ignore           = options['ignore'] || false
           @eval_order       = options['eval_order'] || 0

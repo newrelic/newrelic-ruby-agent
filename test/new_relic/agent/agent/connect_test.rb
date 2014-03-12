@@ -214,9 +214,9 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
     rules = NewRelic::Agent.instance.transaction_rules
     assert_equal 2, rules.size
-    assert(rules.find{|r| r.match_expression == /88/ && r.replacement == '**' },
+    assert(rules.find{|r| r.match_expression == /88/i && r.replacement == '**' },
            "rule not found among #{rules}")
-    assert(rules.find{|r| r.match_expression == /xx/ && r.replacement == 'XX' },
+    assert(rules.find{|r| r.match_expression == /xx/i && r.replacement == 'XX' },
            "rule not found among #{rules}")
   ensure
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
@@ -236,9 +236,9 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
     rules = @stats_engine.metric_rules
     assert_equal 2, rules.size
-    assert(rules.find{|r| r.match_expression == /77/ && r.replacement == '&&' },
+    assert(rules.find{|r| r.match_expression == /77/i && r.replacement == '&&' },
            "rule not found among #{rules}")
-    assert(rules.find{|r| r.match_expression == /yy/ && r.replacement == 'YY' },
+    assert(rules.find{|r| r.match_expression == /yy/i && r.replacement == 'YY' },
            "rule not found among #{rules}")
   ensure
     NewRelic::Agent.instance.instance_variable_set(:@metric_rules,
