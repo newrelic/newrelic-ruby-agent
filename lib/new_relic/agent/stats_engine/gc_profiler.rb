@@ -66,6 +66,11 @@ module NewRelic
             ::GC.respond_to?(:time) && ::GC.respond_to?(:collections)
           end
 
+          # microseconds spent in GC
+          def call_time
+            ::GC.time # this should already be microseconds
+          end
+
           def call_count
             ::GC.collections
           end
