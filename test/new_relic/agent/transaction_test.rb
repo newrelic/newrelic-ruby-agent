@@ -228,7 +228,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent.instance.transaction_rules << rule
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.set_transaction_name('foo/1/bar/22')
-    NewRelic::Agent::Transaction.freeze_name
+    NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
     txn = NewRelic::Agent::Transaction.stop('txn')
     assert_equal 'Controller/foo/*/bar/*', txn.name
   ensure
@@ -249,7 +249,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::Transaction.start(:controller)
     advance_time(5)
     NewRelic::Agent.set_transaction_name('foo/1/bar/22')
-    NewRelic::Agent::Transaction.freeze_name
+    NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
     NewRelic::Agent::Transaction.stop('txn')
 
     assert_equal 'Controller/foo/1/bar/22', name

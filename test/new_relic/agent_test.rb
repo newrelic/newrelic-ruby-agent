@@ -316,8 +316,9 @@ module NewRelic
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.txn do
-        NewRelic::Agent::Transaction.current.freeze_name
-        NewRelic::Agent.set_transaction_name('new_name')
+        NewRelic::Agent::Transaction.current.freeze_name_and_execute_if_not_ignored do
+          NewRelic::Agent.set_transaction_name('new_name')
+        end
       end
       assert_nil engine.lookup_stats('Controller/new_name')
     end

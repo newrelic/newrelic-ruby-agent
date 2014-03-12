@@ -50,8 +50,8 @@ module MultiverseHelpers
     NewRelic::Agent.config.reset_to_defaults
 
     # Renaming rules don't get cleared on connect--only appended to
-    NewRelic::Agent.instance.transaction_rules.rules.clear
-    NewRelic::Agent.instance.stats_engine.metric_rules.rules.clear
+    NewRelic::Agent.instance.transaction_rules.clear
+    NewRelic::Agent.instance.stats_engine.metric_rules.clear
 
     # Clear out lingering stats we didn't transmit
     NewRelic::Agent.drop_buffered_data
