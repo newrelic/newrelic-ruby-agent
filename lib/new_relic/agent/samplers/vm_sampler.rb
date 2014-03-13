@@ -51,7 +51,7 @@ module NewRelic
         def record_gc_runs_metric(snapshot, txn_count)
           if snapshot.gc_total_time || snapshot.gc_runs
             if snapshot.gc_total_time
-              gc_time = snapshot.gc_total_time - @last_snapshot.gc_total_time
+              gc_time = snapshot.gc_total_time - @last_snapshot.gc_total_time.to_f
             end
             if snapshot.gc_runs
               gc_runs = snapshot.gc_runs - @last_snapshot.gc_runs
