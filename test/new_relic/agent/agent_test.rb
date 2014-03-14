@@ -70,7 +70,7 @@ module NewRelic
         end
       end
 
-      def test_after_fork_should_replace_stats_engine
+      def test_after_fork_should_mark_as_started
         with_config(:monitor_mode => true) do
           refute @agent.started?
           @agent.after_fork
