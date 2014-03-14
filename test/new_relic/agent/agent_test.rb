@@ -70,6 +70,14 @@ module NewRelic
         end
       end
 
+      def test_after_fork_should_replace_stats_engine
+        with_config(:monitor_mode => true) do
+          refute @agent.started?
+          @agent.after_fork
+          assert @agent.started?
+        end
+      end
+
       def test_transmit_data_should_emit_before_harvest_event
         got_it = false
         @agent.events.subscribe(:before_harvest) { got_it = true }

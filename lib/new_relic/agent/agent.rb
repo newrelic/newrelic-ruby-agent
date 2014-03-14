@@ -193,6 +193,10 @@ module NewRelic
           # Clear out stats that are left over from parent process
           drop_buffered_data
 
+          # If after_fork was called manually from client code, then we might
+          # not have gotten through Agent#start which marks us started before
+          @started = true
+
           generate_environment_report unless @service.is_a?(NewRelic::Agent::PipeService)
           start_worker_thread(options)
         end
@@ -513,7 +517,6 @@ module NewRelic
           return unless agent_should_start?
 
           @started = true
-          @local_host = determine_host
           log_startup
           check_config_and_start_agent
           log_version_and_pid
@@ -778,7 +781,7 @@ module NewRelic
             sanitize_environment_report
             {
               :pid => $$,
-              :host => @local_host,
+              :host => local_host,
               :app_name => Agent.config.app_names,
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
@@ -920,6 +923,10 @@ module NewRelic
         # Who am I? Well, this method can tell you your hostname.
         def determine_host
           Socket.gethostname
+        end
+
+        def local_host
+          @local_host ||= determine_host
         end
 
         # Delegates to the control class to determine the root
