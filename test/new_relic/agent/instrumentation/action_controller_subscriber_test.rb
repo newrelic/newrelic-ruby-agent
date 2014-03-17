@@ -204,25 +204,46 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_record_queue_time_metrics
-    t0 = Time.now
-    Time.stubs(:now).returns(t0)
+    t0 = freeze_time
     env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_f.to_s }
     NewRelic::Agent.instance.events.notify(:before_call, env)
 
-    Time.stubs(:now).returns(t0, t0 + 2)
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    advance_time(2)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    metric = @stats_engine.lookup_stats('WebFrontend/QueueTime')
-    assert_equal 1, metric.call_count
-    assert_in_delta(5.0, metric.total_call_time, 0.1)
+    assert_metrics_recorded(
+      'WebFrontend/QueueTime' => {
+        :call_count => 1,
+        :total_call_time => 5.0
+      }
+    )
   end
 
   def test_dont_record_queue_time_if_no_header
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert_nil @stats_engine.lookup_stats('WebFrontend/QueueTime')
+    assert_metrics_not_recorded('WebFrontend/QueueTime')
+  end
+
+  def test_dont_record_queue_time_in_nested_transaction
+    t0 = freeze_time
+
+    env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_f.to_s }
+    NewRelic::Agent.instance.events.notify(:before_call, env)
+
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+
+    assert_metrics_recorded(
+      'WebFrontend/QueueTime' => {
+        :call_count => 1,
+        :total_call_time => 5.0
+      }
+    )
   end
 
   def test_records_request_params_in_txn

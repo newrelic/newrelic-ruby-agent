@@ -91,6 +91,7 @@ module NewRelic
 
         def record_queue_time(event)
           return unless event.queue_start
+          return unless NewRelic::Agent::Transaction.current.root?
           QueueTime.record_frontend_metrics(event.queue_start, event.time)
         end
 

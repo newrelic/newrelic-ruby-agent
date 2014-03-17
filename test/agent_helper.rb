@@ -189,7 +189,7 @@ def in_transaction(*args)
   NewRelic::Agent.instance.stats_engine.transaction_sampler = \
     NewRelic::Agent.instance.transaction_sampler
   NewRelic::Agent::Transaction.start(transaction_type, opts || {})
-  val = yield
+  val = yield NewRelic::Agent::Transaction.current
   NewRelic::Agent::Transaction.stop(name)
   val
 end

@@ -431,7 +431,7 @@ module NewRelic
           txn = Transaction.start(category, options)
           txn.name = TransactionNamer.new(self).name(options)
 
-          txn.apdex_start = _detect_upstream_wait(txn.start_time)
+          txn.apdex_start = _detect_upstream_wait(txn)
           _record_queue_length
 
           return txn
@@ -468,7 +468,9 @@ module NewRelic
         # Return a Time instance representing the upstream start time.
         # now is a Time instance to fall back on if no other candidate
         # for the start time is found.
-        def _detect_upstream_wait(now)
+        def _detect_upstream_wait(txn)
+          now = txn.start_time
+          return now unless txn.root?
           if newrelic_request_headers
             queue_start = QueueTime.parse_frontend_timestamp(newrelic_request_headers, now)
             QueueTime.record_frontend_metrics(queue_start, now) if queue_start

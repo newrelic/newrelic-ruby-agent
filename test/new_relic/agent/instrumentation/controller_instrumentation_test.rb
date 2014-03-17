@@ -23,36 +23,47 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
 
   def setup
     @object = TestObject.new
+    @dummy_headers = { :request => 'headers' }
     @txn_namer = NewRelic::Agent::Instrumentation:: \
       ControllerInstrumentation::TransactionNamer.new(@object)
   end
 
-  def test_detect_upstream_wait_basic
-    start_time = Time.now
-    # should return the start time above by default
-    @object.expects(:newrelic_request_headers).returns({:request => 'headers'}).twice
-    NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp) \
-      .with({:request => 'headers'}, start_time).returns(start_time)
-    assert_equal(start_time, @object.send(:_detect_upstream_wait, start_time))
+  def test_detect_upstream_wait_returns_transaction_start_time_if_nothing_from_headers
+    @object.stubs(:newrelic_request_headers).returns(@dummy_headers)
+    in_transaction do |txn|
+      NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp) \
+        .with(@dummy_headers, txn.start_time).returns(txn.start_time)
+      assert_equal(txn.start_time, @object.send(:_detect_upstream_wait, txn))
+    end
   end
 
-  def test_detect_upstream_wait_with_upstream
-    start_time = Time.now
-    runs_at = start_time + 1
-    @object = TestObject.new
-    @object.expects(:newrelic_request_headers).returns(true).twice
-    NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp) \
-      .with(true, runs_at).returns(start_time)
-    assert_equal(start_time, @object.send(:_detect_upstream_wait, runs_at))
+  def test_detect_upstream_wait_returns_parsed_timestamp_from_headers
+    @object.stubs(:newrelic_request_headers).returns(@dummy_headers)
+    in_transaction do |txn|
+      earlier_time = txn.start_time - 1
+      NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp) \
+        .with(@dummy_headers, txn.start_time).returns(earlier_time)
+      assert_equal(earlier_time, @object.send(:_detect_upstream_wait, txn))
+    end
   end
 
   def test_detect_upstream_wait_swallows_errors
-    start_time = Time.now
-    # should return the start time above when an error is raised
-    @object.expects(:newrelic_request_headers).returns({:request => 'headers'}).twice
-    NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp) \
-      .with({:request => 'headers'}, start_time).raises("an error")
-    assert_equal(start_time, @object.send(:_detect_upstream_wait, start_time))
+    @object.stubs(:newrelic_request_headers).returns(@dummy_headers)
+    in_transaction do |txn|
+      NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp) \
+        .with(@dummy_headers, txn.start_time).raises("an error")
+      assert_equal(txn.start_time, @object.send(:_detect_upstream_wait, txn))
+    end
+  end
+
+  def test_detect_upsteam_wait_does_not_parse_timestamp_in_nested_transaction
+    @object.stubs(:newrelic_request_headers).returns(@dummy_headers)
+    in_transaction do |outer|
+      in_transaction do |inner|
+        NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp).never
+        assert_equal(inner.start_time, @object.send(:_detect_upstream_wait, inner))
+      end
+    end
   end
 
   def test_transaction_name_calls_newrelic_metric_path
