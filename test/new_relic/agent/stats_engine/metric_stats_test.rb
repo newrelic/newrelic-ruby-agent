@@ -82,6 +82,24 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     assert_equal(3, merged.call_count)
   end
 
+  def test_apply_rules_to_metric_data_respects_ignore_rules
+    rule = NewRelic::Agent::RulesEngine::Rule.new(
+      'match_expression' => 'bar',
+      'ignore'           => 'true'
+    )
+    rules_engine = NewRelic::Agent::RulesEngine.new([rule])
+
+    stats_hash = NewRelic::Agent::StatsHash.new
+
+    stats_hash.record(NewRelic::MetricSpec.new('foo'), 90210)
+    stats_hash.record(NewRelic::MetricSpec.new('bar'), 90210)
+
+    renamed = @engine.apply_rules_to_metric_data(rules_engine, stats_hash)
+
+    assert_equal(1    , renamed.size)
+    assert_equal('foo', renamed.keys.first.name)
+  end
+
   def test_harvest_with_merge
     s = @engine.get_stats "a"
     s.trace_call 1
