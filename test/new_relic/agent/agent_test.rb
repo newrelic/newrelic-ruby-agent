@@ -34,9 +34,11 @@ module NewRelic
       end
 
       def test_after_fork_reporting_to_channel_should_not_collect_environment_report
-        @agent.stubs(:connected?).returns(true)
-        @agent.expects(:generate_environment_report).never
-        @agent.after_fork(:report_to_channel => 123)
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+          @agent.expects(:generate_environment_report).never
+          @agent.after_fork(:report_to_channel => 123)
+        end
       end
 
       def test_after_fork_should_close_pipe_if_parent_not_connected
