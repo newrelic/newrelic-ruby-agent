@@ -452,6 +452,32 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal(42, trace.params[:custom_params][:gc_time])
   end
 
+  def test_freeze_name_and_execute_if_not_ignored_executes_given_block_if_not_ignored
+    NewRelic::Agent.instance.transaction_rules.expects(:rename)
+                                              .returns('non-ignored-transaction')
+    in_transaction('non-ignored-transaction') do
+      block_was_called = false
+      NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored do
+        block_was_called = true
+      end
+
+      assert block_was_called
+    end
+  end
+
+  def test_freeze_name_and_execute_if_not_ignored_ignores_given_block_if_transaction_ignored
+    NewRelic::Agent.instance.transaction_rules.expects(:rename)
+                                              .returns(nil)
+    in_transaction('ignored-transaction') do
+      block_was_called = false
+      NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored do
+        block_was_called = true
+      end
+
+      refute block_was_called
+    end
+  end
+
   def assert_has_custom_parameter(key, value = key)
     assert_equal(value, NewRelic::Agent::Transaction.current.custom_parameters[key])
   end
