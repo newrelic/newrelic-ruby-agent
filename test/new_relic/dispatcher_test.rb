@@ -12,6 +12,11 @@ class DispatcherTest < Minitest::Test
     NewRelic::Agent.reset_config
   end
 
+  def teardown
+    NewRelic::Agent.reset_config
+    NewRelic::Control.reset
+  end
+
   def assert_dispatcher_reported_to_environment_report(dispatcher)
     assert_equal dispatcher.to_s, NewRelic::EnvironmentReport.new["Dispatcher"]
   end

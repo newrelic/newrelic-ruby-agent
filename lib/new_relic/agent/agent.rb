@@ -472,6 +472,8 @@ module NewRelic
           def check_config_and_start_agent
             return unless monitoring? && has_correct_license_key?
             return if using_forking_dispatcher?
+
+            @started = true
             generate_environment_report
             connect_in_foreground if Agent.config[:sync_startup]
             start_worker_thread
@@ -516,7 +518,6 @@ module NewRelic
         def start
           return unless agent_should_start?
 
-          @started = true
           log_startup
           check_config_and_start_agent
           log_version_and_pid

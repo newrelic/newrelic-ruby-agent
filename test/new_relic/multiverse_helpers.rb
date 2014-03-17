@@ -65,6 +65,9 @@ module MultiverseHelpers
     NewRelic::Agent.instance.transaction_sampler.reset!
 
     NewRelic::Agent.shutdown
+
+    # If we didn't start up right, our Control might not have reset on shutdown
+    NewRelic::Control.reset
   end
 
   def run_agent(options={}, &block)

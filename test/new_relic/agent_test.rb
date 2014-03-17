@@ -28,14 +28,14 @@ module NewRelic
     end
 
     def test_shutdown_removes_manual_startup_config
-      NewRelic::Agent.manual_start(:some_absurd_setting => true)
+      NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40, :some_absurd_setting => true)
       assert NewRelic::Agent.config[:some_absurd_setting]
       NewRelic::Agent.shutdown
       assert !NewRelic::Agent.config[:some_absurd_setting]
     end
 
     def test_shutdown_removes_server_config
-      NewRelic::Agent.manual_start
+      NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40)
       NewRelic::Agent.instance.service = default_service
       NewRelic::Agent.instance.finish_setup('agent_config' =>
                                             { :some_absurd_setting => true })
