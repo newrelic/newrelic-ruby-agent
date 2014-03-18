@@ -2,7 +2,7 @@ source 'http://rubygems.org'
 
 gem 'rake'
 
-gem 'rails', '~>4.0.1'
+gem 'rails', '~>4.0.4'
 
 # Do not automatically require minitest, since this will break with rbx-2.2.5.
 # rbx-2.2.5 helpfully bundles minitest-5.3.0.
