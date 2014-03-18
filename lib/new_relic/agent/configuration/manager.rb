@@ -76,7 +76,11 @@ module NewRelic
             YamlSource
           end
 
-          config_stack_index_for(source_class)
+          if config_stack_index_for(source_class)
+            true
+          else
+            false
+          end
         end
 
         def source(key)
