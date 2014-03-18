@@ -19,9 +19,10 @@ DependencyDetection.defer do
     ActiveMerchant::Billing::Gateway.implementations.each do |gateway|
       gateway.class_eval do
         implemented_methods = public_instance_methods(false)
+        implemented_methods.map!(&:to_sym) if RUBY_VERSION < '1.9.0'
         gateway_name = self.name.split('::').last
-        [:authorize, :purchase, :credit, :void, :capture, :recurring].each do |operation|
-          if implemented_methods.include?(operation.to_s)
+        [:authorize, :purchase, :credit, :void, :capture, :recurring, :store, :unstore, :update].each do |operation|
+          if implemented_methods.include?(operation)
             add_method_tracer operation, "ActiveMerchant/gateway/#{gateway_name}/#{operation}", :scoped_metric_only => true
             add_method_tracer operation, "ActiveMerchant/gateway/#{gateway_name}", :push_scope => false
             add_method_tracer operation, "ActiveMerchant/operation/#{operation}", :push_scope => false
