@@ -47,15 +47,14 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
       assert (not @agent.started?)
       @agent.start
       assert !@agent.started?
+
       # this installs the real agent:
-      NewRelic::Agent.manual_start
+      NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
       @agent = NewRelic::Agent.instance
       assert @agent != NewRelic::Agent::ShimAgent.instance
       assert @agent.started?
       @agent.shutdown
       assert !@agent.started?
-      @agent.start
-      assert @agent.started?
       NewRelic::Agent.shutdown
     end
   end

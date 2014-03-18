@@ -69,7 +69,7 @@ bazbangbarn:
 
   def assert_config_read_from(path)
     setup_config(path)
-    assert NewRelic::Agent.config[:foo] == "success!!", "Failed to read yaml config from #{path.inspect}\n\n#{NewRelic::Agent.config.inspect}"
+    assert NewRelic::Agent.config[:foo] == "success!!", "Failed to read yaml config from #{path.inspect[0..100]}\n\n#{NewRelic::Agent.config.inspect[0..100]}"
   end
 
   def assert_config_not_read_from(path)

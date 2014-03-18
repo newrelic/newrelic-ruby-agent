@@ -188,13 +188,11 @@ module NewRelic
 
           ::NewRelic::Agent.logger.debug "Starting the worker thread in #{$$} after forking."
 
+          # Clear out locks and stats left over from parent process
           reset_objects_with_locks
-
-          # Clear out stats that are left over from parent process
           drop_buffered_data
 
-          generate_environment_report unless @service.is_a?(NewRelic::Agent::PipeService)
-          start_worker_thread(options)
+          setup_and_start_agent(options)
         end
 
         # True if we have initialized and completed 'start'
@@ -468,9 +466,18 @@ module NewRelic
           def check_config_and_start_agent
             return unless monitoring? && has_correct_license_key?
             return if using_forking_dispatcher?
-            generate_environment_report
+            setup_and_start_agent
+          end
+
+          # This is the shared method between the main agent startup and the
+          # after_fork call restarting the thread in deferred dispatchers.
+          #
+          # Treatment of @started and env report is important to get right.
+          def setup_and_start_agent(options={})
+            @started = true
+            generate_environment_report unless @service.is_a?(NewRelic::Agent::PipeService)
             connect_in_foreground if Agent.config[:sync_startup]
-            start_worker_thread
+            start_worker_thread(options)
             install_exit_handler
           end
         end
@@ -512,8 +519,6 @@ module NewRelic
         def start
           return unless agent_should_start?
 
-          @started = true
-          @local_host = determine_host
           log_startup
           check_config_and_start_agent
           log_version_and_pid
@@ -778,7 +783,7 @@ module NewRelic
             sanitize_environment_report
             {
               :pid => $$,
-              :host => @local_host,
+              :host => local_host,
               :app_name => Agent.config.app_names,
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
@@ -920,6 +925,10 @@ module NewRelic
         # Who am I? Well, this method can tell you your hostname.
         def determine_host
           Socket.gethostname
+        end
+
+        def local_host
+          @local_host ||= determine_host
         end
 
         # Delegates to the control class to determine the root

@@ -23,6 +23,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
     NewRelic::Agent.instance.service = @service
     @test_config = { :developer_mode => true }
+    @local_host = nil
     NewRelic::Agent.config.apply_config(@test_config)
   end
 
@@ -38,6 +39,10 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
       end
     end
     fake_control
+  end
+
+  def local_host
+    @local_host
   end
 
   def test_should_connect_if_pending
@@ -100,11 +105,16 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_connect_settings
-    NewRelic::Agent.config.expects(:app_names)
-    keys = %w(pid host app_name language agent_version environment settings)
-    value = connect_settings
+    NewRelic::Agent.config.expects(:app_names).returns(["apps"])
+    @local_host = "lo-calhost"
+    @environment_report = {}
+
+    keys = %w(pid host app_name language agent_version environment settings).map(&:to_sym)
+
+    settings = connect_settings
     keys.each do |k|
-      assert(value.has_key?(k.to_sym), "should include the key #{k}")
+      assert_includes(settings.keys, k)
+      refute_nil(settings[k], "expected a value for #{k}")
     end
   end
 
