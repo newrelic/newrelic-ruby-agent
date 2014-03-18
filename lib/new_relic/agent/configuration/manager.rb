@@ -62,8 +62,8 @@ module NewRelic
           @config_stack.map{|s| s.class}.index(source_class)
         end
 
-        def contains_source?(source_type)
-          source_class = case source_type
+        def source_class_for(source_type)
+          case source_type
           when :environment
             EnvironmentSource
           when :default
@@ -75,6 +75,10 @@ module NewRelic
           when :yaml
             YamlSource
           end
+        end
+
+        def contains_source?(source_type)
+          source_class = source_class_for(source_type)
 
           if config_stack_index_for(source_class)
             true
