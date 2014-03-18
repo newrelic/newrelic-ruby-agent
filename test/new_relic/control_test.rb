@@ -16,7 +16,6 @@ class NewRelic::ControlTest < Minitest::Test
     NewRelic::Agent.shutdown
   end
 
-
   def test_test_config
     if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 4
       assert_equal :rails4, control.app
