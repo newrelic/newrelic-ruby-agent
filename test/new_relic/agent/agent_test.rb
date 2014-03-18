@@ -15,6 +15,13 @@ module NewRelic
         @agent.service = default_service
         @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
+
+        @config = { :license_key => "a" * 40 }
+        NewRelic::Agent.config.apply_config(@config)
+      end
+
+      def teardown
+        NewRelic::Agent.config.remove_config(@config)
       end
 
       def test_after_fork_reporting_to_channel
@@ -27,9 +34,11 @@ module NewRelic
       end
 
       def test_after_fork_reporting_to_channel_should_not_collect_environment_report
-        @agent.stubs(:connected?).returns(true)
-        @agent.expects(:generate_environment_report).never
-        @agent.after_fork(:report_to_channel => 123)
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+          @agent.expects(:generate_environment_report).never
+          @agent.after_fork(:report_to_channel => 123)
+        end
       end
 
       def test_after_fork_should_close_pipe_if_parent_not_connected
@@ -302,7 +311,7 @@ module NewRelic
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
           @agent.start
         end
 
@@ -312,8 +321,7 @@ module NewRelic
       def test_doesnt_defer_start_if_resque_dispatcher_and_channel_manager_started
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(true)
 
-        # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
           @agent.start
         end
 
@@ -325,7 +333,7 @@ module NewRelic
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
           @agent.start
         end
 
