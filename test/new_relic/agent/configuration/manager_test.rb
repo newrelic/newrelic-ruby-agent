@@ -265,6 +265,14 @@ module NewRelic::Agent::Configuration
       assert_equal nil, @manager.config_stack_index_for(YamlSource)
     end
 
+    def test_contains_source?
+      assert @manager.contains_source? :environment
+      assert @manager.contains_source? :default
+      refute @manager.contains_source? :manual
+      refute @manager.contains_source? :server
+      refute @manager.contains_source? :yaml
+    end
+
     class TestSource < ::Hash
       def test_config_accessor
         'some value'
