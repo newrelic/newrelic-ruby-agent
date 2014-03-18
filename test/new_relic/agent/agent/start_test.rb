@@ -7,6 +7,10 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::Start
 
+  def setup
+    @harvester = stub("dummy harvester")
+  end
+
   def test_already_started_positive
     dummy_logger = mock
     dummy_logger.expects(:error).with("Agent Started Already!")
@@ -163,6 +167,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_using_forking_dispatcher_positive
     with_config(:dispatcher => :passenger) do
+      @harvester.expects(:mark_to_restart)
       assert using_forking_dispatcher?
     end
   end

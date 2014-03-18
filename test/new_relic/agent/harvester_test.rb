@@ -25,6 +25,11 @@ module NewRelic
         assert_false harvester.needs_restart?
       end
 
+      def test_marks_to_restart
+        harvester.mark_to_restart
+        assert harvester.needs_restart?
+      end
+
       def test_skips_out_early_if_already_started
         harvester.mark_started
         ::Mutex.any_instance.expects(:synchronize).never
@@ -34,11 +39,20 @@ module NewRelic
         end
       end
 
-      def test_doesnt_call_to_restart_by_default
+      def test_calls_to_restart_by_default
         pretend_started_in_another_process
-        @after_forker.expects(:after_fork).never
+        @after_forker.expects(:after_fork).once
 
         harvester.on_transaction
+      end
+
+      def test_calls_to_restart_if_explicitly_enabled
+        pretend_started_in_another_process
+        @after_forker.expects(:after_fork).once
+
+        with_config(:restart_thread_in_children => true) do
+          harvester.on_transaction
+        end
       end
 
       def test_doesnt_call_to_restart_if_explicitly_disabled
@@ -46,15 +60,6 @@ module NewRelic
         @after_forker.expects(:after_fork).never
 
         with_config(:restart_thread_in_children => false) do
-          harvester.on_transaction
-        end
-      end
-
-      def test_calls_to_restart
-        pretend_started_in_another_process
-        @after_forker.expects(:after_fork).once
-
-        with_config(:restart_thread_in_children => true) do
           harvester.on_transaction
         end
       end

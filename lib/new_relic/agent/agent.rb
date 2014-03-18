@@ -445,6 +445,7 @@ module NewRelic
           def using_forking_dispatcher?
             if [:passenger, :rainbows, :unicorn].include? Agent.config[:dispatcher]
               ::NewRelic::Agent.logger.info 'Connecting workers after forking.'
+              @harvester.mark_to_restart
               true
             else
               false

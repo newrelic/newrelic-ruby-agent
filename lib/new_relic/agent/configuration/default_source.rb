@@ -902,7 +902,7 @@ module NewRelic
           :description => 'Include custom attributes in analytics event data.'
         },
         :restart_thread_in_children => {
-          :default => false,
+          :default => true,
           :public => false,
           :type => Boolean,
           :description => 'Controls whether to check on running a transaction whether to respawn the harvest thread.'

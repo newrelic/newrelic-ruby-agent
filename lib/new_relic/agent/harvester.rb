@@ -36,6 +36,10 @@ module NewRelic
         @starting_pid = pid
       end
 
+      def mark_to_restart
+        @starting_pid = nil
+      end
+
       def needs_restart?(pid = Process.pid)
         @starting_pid != pid
       end
