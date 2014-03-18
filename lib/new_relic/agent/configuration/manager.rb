@@ -52,6 +52,13 @@ module NewRelic
           log_config(:remove, source)
         end
 
+        def remove_config_by_type(source_type)
+          source_class = source_class_for(source_type)
+          index = config_stack_index_for(source_class)
+
+          remove_config(@config_stack[index])
+        end
+
         def replace_or_add_config(source, level=0)
           index = config_stack_index_for(source.class)
           @config_stack.delete_at(index) if index
