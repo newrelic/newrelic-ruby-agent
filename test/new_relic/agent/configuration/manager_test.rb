@@ -281,20 +281,6 @@ module NewRelic::Agent::Configuration
       assert_equal YamlSource, @manager.source_class_for(:yaml)
     end
 
-    def test_remove_config_all_configs_of_type
-      assert @manager.contains_source? :environment
-      @manager.remove_all_configs_of_type(:environment)
-      refute @manager.contains_source? :environment
-    end
-
-    def test_remove_config_all_configs_of_type_removes_all_instances_of_a_type
-      @manager.replace_or_add_config(NewRelic::Agent::Configuration::ManualSource.new({}))
-      @manager.replace_or_add_config(NewRelic::Agent::Configuration::ManualSource.new({}))
-      assert @manager.contains_source? :manual
-      @manager.remove_all_configs_of_type(:manual)
-      refute @manager.contains_source? :manual
-    end
-
     class TestSource < ::Hash
       def test_config_accessor
         'some value'

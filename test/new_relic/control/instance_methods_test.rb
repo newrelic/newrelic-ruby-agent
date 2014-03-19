@@ -11,17 +11,18 @@ end
 
 class NewRelic::Control::InstanceMethodsTest < Minitest::Test
   def setup
+    NewRelic::Agent.config.reset_to_defaults
     @test = ::TestClass.new(nil)
   end
 
   def test_configure_agent_adds_the_yaml_config
-    NewRelic::Agent.config.remove_config_by_type :yaml
+    refute NewRelic::Agent.config.contains_source? :yaml
     @test.configure_agent('test', {})
     assert NewRelic::Agent.config.contains_source? :yaml
   end
 
   def test_configure_agent_adds_the_manual_config
-    NewRelic::Agent.config.remove_config_by_type :manual
+    refute NewRelic::Agent.config.contains_source? :manual
     @test.configure_agent('test', {})
     assert NewRelic::Agent.config.contains_source? :manual
   end
