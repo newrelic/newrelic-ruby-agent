@@ -1,0 +1,16 @@
+gemfile <<-RB
+  gem 'activemerchant', '~>1.42.7'
+  gem 'rack'
+
+  if RUBY_VERSION <= '1.9.2'
+    # Very special versioning to keep us running on 1.8.7 versions of Ruby
+    gem 'activesupport', '~>2.3.14', :require => 'active_support'
+    gem 'nokogiri', '~>1.4.7'
+  else
+    gem 'activesupport', '~>4.0.4'
+    gem 'nokogiri', '~>1.6.1'
+  end
+
+  # Need to load newrelic_rpm after ActiveMerchant Gateways are required
+  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+RB
