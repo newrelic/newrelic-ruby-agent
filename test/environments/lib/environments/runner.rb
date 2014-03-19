@@ -11,12 +11,12 @@ module Environments
     include Multiverse::Color
 
     BLACKLIST = {
+      "1.9"         => ["rails21", "rails22"],
+      "2"           => ["rails21", "rails22", "rails23"],
+
       "1.8.7"       => ["rails40", "rails41"],
+      "1.9.2"       => ["rails40", "rails41"],
       "ree"         => ["rails40", "rails41"],
-      "1.9.2"       => ["rails21", "rails22", "rails40"],
-      "1.9.3"       => ["rails21", "rails22"],
-      "2.0.0"       => ["rails21", "rails22", "rails23"],
-      "2.1.0"       => ["rails21", "rails22", "rails23"],
       "jruby-1.6"   => ["rails40", "rails41"],
       "jruby-1.7"   => ["rails21", "rails22", "rails23"],
       "rbx-2.0"     => ["rails21", "rails22", "rails23", "rails30", "rails31", "rails32"],
@@ -71,9 +71,10 @@ module Environments
       version = "jruby-#{JRUBY_VERSION[0..2]}" if defined?(JRUBY_VERSION)
       version = "rbx-2.0" if defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
 
-      blacklist = BLACKLIST[version] || []
-      blacklist.each do |blacklisted|
-        dirs.delete_if {|d| File.basename(d) == blacklisted }
+      BLACKLIST.each do |check_version, blacklisted|
+        if version.start_with?(check_version)
+          dirs.reject! {|d| blacklisted.include?(File.basename(d)) }
+        end
       end
 
       dirs
