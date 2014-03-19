@@ -16,6 +16,10 @@ DependencyDetection.defer do
   end
 
   executes do
+    class ActiveMerchant::Billing::Gateway
+      include NewRelic::Agent::MethodTracer
+    end
+
     ActiveMerchant::Billing::Gateway.implementations.each do |gateway|
       gateway.class_eval do
         implemented_methods = public_instance_methods(false).map(&:to_sym)
