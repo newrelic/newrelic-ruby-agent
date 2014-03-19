@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/control/instance_methods'
+require 'new_relic/agent/configuration/yaml_source'
 
 class TestClass
   include NewRelic::Control::InstanceMethods
@@ -16,14 +17,14 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
   end
 
   def test_configure_agent_adds_the_yaml_config
-    refute NewRelic::Agent.config.contains_source? :yaml
+    refute NewRelic::Agent.config.config_stack_index_for NewRelic::Agent::Configuration::YamlSource
     @test.configure_agent('test', {})
-    assert NewRelic::Agent.config.contains_source? :yaml
+    assert NewRelic::Agent.config.config_stack_index_for NewRelic::Agent::Configuration::YamlSource
   end
 
   def test_configure_agent_adds_the_manual_config
-    refute NewRelic::Agent.config.contains_source? :manual
+    refute NewRelic::Agent.config.config_stack_index_for NewRelic::Agent::Configuration::ManualSource
     @test.configure_agent('test', {})
-    assert NewRelic::Agent.config.contains_source? :manual
+    assert NewRelic::Agent.config.config_stack_index_for NewRelic::Agent::Configuration::ManualSource
   end
 end

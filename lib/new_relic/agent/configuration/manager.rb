@@ -62,31 +62,6 @@ module NewRelic
           @config_stack.map{|s| s.class}.index(source_class)
         end
 
-        def source_class_for(source_type)
-          case source_type
-          when :environment
-            EnvironmentSource
-          when :default
-            DefaultSource
-          when :manual
-            ManualSource
-          when :server
-            ServerSource
-          when :yaml
-            YamlSource
-          end
-        end
-
-        def contains_source?(source_type)
-          source_class = source_class_for(source_type)
-
-          if config_stack_index_for(source_class)
-            true
-          else
-            false
-          end
-        end
-
         def source(key)
           @config_stack.each do |config|
             if config.respond_to?(key.to_sym) || config.has_key?(key.to_sym)
