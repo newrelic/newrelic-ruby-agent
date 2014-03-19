@@ -6,6 +6,12 @@
 # require complains of redefine on certain Rubies, (looking at you REE)
 ActiveMerchant::Billing::BogusGateway
 
+class ActiveMerchant::Billing::BogusGateway
+  # Testing class doesn't have this, but we instrument it for other gateways
+  def update(*_)
+  end
+end
+
 require 'newrelic_rpm'
 
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper.rb')
@@ -22,7 +28,7 @@ class ActiveMerchantTest < Minitest::Test
   end
 
   # Methods with parameters (money, paysource) can just be added to this list
-  [:authorize, :purchase, :credit, :capture, :recurring].each do |operation|
+  [:authorize, :purchase, :credit, :capture, :recurring, :update].each do |operation|
     define_method("test_#{operation}") do
       assert_merchant_transaction(operation)
     end
@@ -30,22 +36,27 @@ class ActiveMerchantTest < Minitest::Test
 
   # Tests for methods that require more specific parameters should go here
   def test_void
-    assert_merchant_transaction(:void) do
-      gateway.void(REFERENCE)
-    end
+    assert_merchant_transaction(:void, REFERENCE)
+  end
+
+  def test_store
+    assert_merchant_transaction(:store, PAYSOURCE)
+  end
+
+  def test_unstore
+    assert_merchant_transaction(:unstore, "1")
   end
 
   # Helper
   PAYSOURCE = 1
   REFERENCE = 3
 
-  def assert_merchant_transaction(operation)
+  def assert_merchant_transaction(operation, *args)
     in_transaction('txn') do
-      if block_given?
-        yield
-      else
-        gateway.send(operation, 100, PAYSOURCE)
-      end
+      # Default arguments if not provided by test
+      args = [100, PAYSOURCE] if args.empty?
+
+      gateway.send(operation, *args)
     end
     assert_metrics_recorded([["ActiveMerchant/gateway/BogusGateway/#{operation}", "txn"],
                               "ActiveMerchant/gateway/BogusGateway",
