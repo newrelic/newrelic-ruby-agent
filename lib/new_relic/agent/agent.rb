@@ -106,6 +106,8 @@ module NewRelic
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
         attr_reader :transaction_rules
+        # Responsbile for restarting the harvest thread
+        attr_reader :harvester
         attr_reader :harvest_lock
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
@@ -166,6 +168,8 @@ module NewRelic
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
         def after_fork(options={})
+          # Mark started early because if we've explicitly called after_fork,
+          # we should be ready to run and shouldn't restarting if we can't.
           @harvester.mark_started
 
           Agent.config.apply_config(NewRelic::Agent::Configuration::ManualSource.new(options), 1)
@@ -475,6 +479,7 @@ module NewRelic
           # Treatment of @started and env report is important to get right.
           def setup_and_start_agent(options={})
             @started = true
+            @harvester.mark_started
             generate_environment_report unless @service.is_a?(NewRelic::Agent::PipeService)
             connect_in_foreground if Agent.config[:sync_startup]
             start_worker_thread(options)

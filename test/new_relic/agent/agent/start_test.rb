@@ -7,6 +7,10 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::Start
 
+  def setup
+    @harvester = stub("dummy harvester")
+  end
+
   def test_already_started_positive
     dummy_logger = mock
     dummy_logger.expects(:error).with("Agent Started Already!")
@@ -51,7 +55,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   end
 
   def test_check_config_and_start_agent_normal
-
+    @harvester.expects(:mark_started)
     self.expects(:generate_environment_report)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
@@ -61,6 +65,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   end
 
   def test_check_config_and_start_agent_sync
+    @harvester.expects(:mark_started)
     self.expects(:generate_environment_report)
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)
