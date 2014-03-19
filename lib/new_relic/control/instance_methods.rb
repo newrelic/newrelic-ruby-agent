@@ -52,10 +52,7 @@ module NewRelic
         Agent.logger.info("Starting the New Relic agent in #{env.inspect} environment.")
         Agent.logger.info("To prevent agent startup add a NEWRELIC_ENABLE=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
 
-        yaml = Agent::Configuration::YamlSource.new(@config_file_path, env)
-        Agent.config.replace_or_add_config(yaml, 1)
-
-        Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
+        configure_agent(env, options)
 
         # Be sure to only create once! RUBY-1020
         if ::NewRelic::Agent.logger.is_startup_logger?
@@ -80,6 +77,13 @@ module NewRelic
         elsif !Agent.config[:agent_enabled]
           install_shim
         end
+      end
+
+      def configure_agent(env, options)
+        yaml = Agent::Configuration::YamlSource.new(@config_file_path, env)
+        Agent.config.replace_or_add_config(yaml, 1)
+
+        Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
       end
 
       # Install the real agent into the Agent module, and issue the start command.

@@ -257,6 +257,14 @@ module NewRelic::Agent::Configuration
       @manager.remove_config(config)
     end
 
+    def test_config_stack_index_for
+      assert_equal 0, @manager.config_stack_index_for(EnvironmentSource)
+      assert_equal 1, @manager.config_stack_index_for(DefaultSource)
+      assert_equal nil, @manager.config_stack_index_for(ManualSource)
+      assert_equal nil, @manager.config_stack_index_for(ServerSource)
+      assert_equal nil, @manager.config_stack_index_for(YamlSource)
+    end
+
     class TestSource < ::Hash
       def test_config_accessor
         'some value'
