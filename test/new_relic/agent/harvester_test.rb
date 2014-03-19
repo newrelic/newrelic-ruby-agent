@@ -10,9 +10,14 @@ module NewRelic
     class HarvesterTest < Minitest::Test
 
       attr_reader :harvester
+
       def setup
         @after_forker = stub_everything
         @harvester = Harvester.new(nil, @after_forker)
+      end
+
+      def test_doesnt_mark_started_process_on_initialize
+        assert_nil harvester.starting_pid
       end
 
       def test_marks_started_in_process
@@ -23,11 +28,6 @@ module NewRelic
         end
 
         assert_false harvester.needs_restart?
-      end
-
-      def test_marks_to_restart
-        harvester.mark_to_restart
-        assert harvester.needs_restart?
       end
 
       def test_skips_out_early_if_already_started

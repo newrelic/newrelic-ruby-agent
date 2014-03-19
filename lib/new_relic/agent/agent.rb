@@ -445,7 +445,6 @@ module NewRelic
           def using_forking_dispatcher?
             if [:passenger, :rainbows, :unicorn].include? Agent.config[:dispatcher]
               ::NewRelic::Agent.logger.info 'Connecting workers after forking.'
-              @harvester.mark_to_restart
               true
             else
               false
@@ -476,6 +475,7 @@ module NewRelic
           # Treatment of @started and env report is important to get right.
           def setup_and_start_agent(options={})
             @started = true
+            @harvester.mark_started
             generate_environment_report unless @service.is_a?(NewRelic::Agent::PipeService)
             connect_in_foreground if Agent.config[:sync_startup]
             start_worker_thread(options)

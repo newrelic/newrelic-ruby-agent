@@ -55,7 +55,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   end
 
   def test_check_config_and_start_agent_normal
-
+    @harvester.expects(:mark_started)
     self.expects(:generate_environment_report)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
@@ -65,6 +65,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   end
 
   def test_check_config_and_start_agent_sync
+    @harvester.expects(:mark_started)
     self.expects(:generate_environment_report)
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)
@@ -167,7 +168,6 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_using_forking_dispatcher_positive
     with_config(:dispatcher => :passenger) do
-      @harvester.expects(:mark_to_restart)
       assert using_forking_dispatcher?
     end
   end
