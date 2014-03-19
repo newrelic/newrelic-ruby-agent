@@ -7,43 +7,48 @@ module NewRelic
   module Agent
     class StatsEngine
       module GCProfiler
+        GCSnapshot = Struct.new(:gc_time_s, :gc_call_count)
+
         def self.init
-          @profiler = RailsBenchProfiler.new if RailsBenchProfiler.enabled?
-          @profiler = CoreGCProfiler.new if CoreGCProfiler.enabled?
-          @profiler = LegacyRubiniusProfiler.new if LegacyRubiniusProfiler.enabled?
+          return @profiler if @initialized
+          @profiler = if RailsBenchProfiler.enabled?
+            RailsBenchProfiler.new
+          elsif CoreGCProfiler.enabled?
+            CoreGCProfiler.new
+          elsif LegacyRubiniusProfiler.enabled?
+            LegacyRubiniusProfiler.new
+          end
+          @initialized = true
           @profiler
         end
 
-        def self.capture
-          @profiler.capture if @profiler
+        def self.reset
+          @profiler    = nil
+          @initialized = nil
+        end
+
+        def self.take_snapshot
+          init
+          if @profiler
+            GCSnapshot.new(@profiler.call_time_s, @profiler.call_count)
+          else
+            nil
+          end
+        end
+
+        def self.record_delta(start_snapshot, end_snapshot)
+          if @profiler && start_snapshot && end_snapshot
+            elapsed_gc_time_s = end_snapshot.gc_time_s     - start_snapshot.gc_time_s
+            num_calls         = end_snapshot.gc_call_count - start_snapshot.gc_call_count
+
+            @profiler.record_gc_metric(num_calls, elapsed_gc_time_s)
+            @profiler.reset
+            elapsed_gc_time_s
+          end
         end
 
         class Profiler
-          def initialize
-            if self.class.enabled?
-              @last_timestamp = call_time
-              @last_count = call_count
-            end
-          end
-
-          def capture
-            return unless self.class.enabled?
-            return if !scope_stack.empty? && scope_stack.last.name == "GC/cumulative"
-
-            num_calls = call_count - @last_count
-            # microseconds to seconds
-            elapsed = (call_time - @last_timestamp).to_f / 1_000_000.0
-            @last_timestamp = call_time
-            @last_count = call_count
-            reset
-
-            record_gc_metric(num_calls, elapsed)
-            elapsed
-          end
-
           def reset; end
-
-          protected
 
           def record_gc_metric(num_calls, elapsed)
             if num_calls > 0
@@ -55,10 +60,6 @@ module NewRelic
               end
             end
           end
-
-          def scope_stack
-            NewRelic::Agent::TransactionState.get.stats_scope_stack
-          end
         end
 
         class RailsBenchProfiler < Profiler
@@ -66,9 +67,8 @@ module NewRelic
             ::GC.respond_to?(:time) && ::GC.respond_to?(:collections)
           end
 
-          # microseconds spent in GC
-          def call_time
-            ::GC.time # this should already be microseconds
+          def call_time_s
+            ::GC.time / 1_000_000 # this value is reported in us, so convert to s
           end
 
           def call_count
@@ -85,10 +85,10 @@ module NewRelic
             NewRelic::LanguageSupport.gc_profiler_enabled?
           end
 
-          # microseconds spent in GC
-          # 1.9 total_time returns seconds.  Don't trust the docs.  It's seconds.
-          def call_time
-            NewRelic::Agent.instance.monotonic_gc_profiler.total_time * 1_000_000.0 # convert seconds to microseconds
+          # In 1.9+, GC::Profiler.total_time returns seconds.
+          # Don't trust the docs. It's seconds.
+          def call_time_s
+            NewRelic::Agent.instance.monotonic_gc_profiler.total_time
           end
 
           def call_count
@@ -110,8 +110,8 @@ module NewRelic
             defined?(::GC::Profiler)
           end
 
-          def call_time
-            ::Rubinius::GC.time * 1000
+          def call_time_s
+            ::Rubinius::GC.time / 1000
           end
 
           def call_count

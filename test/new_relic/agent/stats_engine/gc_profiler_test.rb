@@ -5,14 +5,27 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
 class NewRelic::Agent::StatsEngine::GCProfilerTest < Minitest::Test
+  PROFILER = NewRelic::Agent::StatsEngine::GCProfiler
+
+  def setup
+    NewRelic::Agent.drop_buffered_data
+
+    stub_gc_profiling_enabled
+    PROFILER.reset
+  end
+
+  def teardown
+    PROFILER.reset
+  end
+
   def test_init_profiler_for_rails_bench
     return unless defined?(::GC) && ::GC.respond_to?(:collections)
 
     ::GC.stubs(:time)
     ::GC.stubs(:collections)
 
-    assert_equal(NewRelic::Agent::StatsEngine::GCProfiler::RailsBenchProfiler,
-                 NewRelic::Agent::StatsEngine::GCProfiler.init.class)
+    assert_equal(PROFILER::RailsBenchProfiler,
+                 PROFILER.init.class)
   end
 
   def test_init_profiler_for_ruby_19_and_greater
@@ -20,49 +33,115 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Minitest::Test
     return if NewRelic::LanguageSupport.using_engine?('jruby')
 
     ::GC::Profiler.stubs(:enabled?).returns(true)
-    ::GC::Profiler.stubs(:total_time).returns(0)
-    ::GC.stubs(:count).returns(0)
 
-    assert_equal(NewRelic::Agent::StatsEngine::GCProfiler::CoreGCProfiler,
-                 NewRelic::Agent::StatsEngine::GCProfiler.init.class)
+    assert_equal(PROFILER::CoreGCProfiler,
+                 PROFILER.init.class)
   end
 
   def test_init_profiler_for_rbx_uses_stdlib
     return unless defined?(::Rubinius::GC)
 
-    assert_equal(NewRelic::Agent::StatsEngine::GCProfiler::CoreGCProfiler,
-                 NewRelic::Agent::StatsEngine::GCProfiler.init.class)
+    assert_equal(PROFILER::CoreGCProfiler,
+                 PROFILER.init.class)
+  end
+
+  def test_record_delta_returns_nil_when_snapshots_are_nil
+    result = PROFILER.record_delta(nil, nil)
+    assert_nil(result)
+    assert_metrics_not_recorded('GC/cumulative')
+  end
+
+  def test_record_delta_returns_delta_in_seconds
+    PROFILER.init
+    start_snapshot = PROFILER::GCSnapshot.new(1.0, 1)
+    end_snapshot   = PROFILER::GCSnapshot.new(2.5, 3)
+
+    result = PROFILER.record_delta(start_snapshot, end_snapshot)
+    assert_equal(1.5, result)
+  end
+
+  def test_record_delta_records_gc_time_and_call_count_in_metric
+    PROFILER.init
+    start_snapshot = PROFILER::GCSnapshot.new(1.0, 1)
+    end_snapshot   = PROFILER::GCSnapshot.new(2.5, 3)
+
+    PROFILER.record_delta(start_snapshot, end_snapshot)
+
+    assert_metrics_recorded(
+      'GC/cumulative' => {
+        :call_count      => 2,
+        :total_call_time => 1.5
+      }
+    )
+  end
+
+  def test_take_snapshot_should_return_snapshot
+    stub_gc_timer(5.0)
+    stub_gc_count(10)
+
+    snapshot = PROFILER.take_snapshot
+
+    assert_equal( 5.0, snapshot.gc_time_s)
+    assert_equal(10  , snapshot.gc_call_count)
   end
 
   def test_collect_gc_data
     return if NewRelic::LanguageSupport.using_engine?('jruby')
 
-    GC.disable
-    if NewRelic::LanguageSupport.gc_profiler_usable?
-      profiler = NewRelic::Agent.instance.monotonic_gc_profiler
-      profiler.stubs(:total_time).returns(1.0, 4.0)
-
-      ::GC::Profiler.stubs(:enabled?).returns(true)
-      ::GC.stubs(:count).returns(1, 3)
-      ::GC::Profiler.stubs(:clear).returns(nil)
-    elsif NewRelic::LanguageSupport.using_version?('1.8.7') &&
-        RUBY_DESCRIPTION =~ /Ruby Enterprise Edition/
-      ::GC.stubs(:time).returns(1000000, 4000000)
-      ::GC.stubs(:collections).returns(1, 3)
-    else
-      return true # no need to test if we're not collecting GC metrics
-    end
+    stub_gc_timer(1.0)
+    stub_gc_count(1)
 
     with_config(:'transaction_tracer.enabled' => true) do
-      in_transaction { }
+      in_transaction do
+        stub_gc_timer(4.0)
+        stub_gc_count(3)
+      end
     end
 
-    engine = NewRelic::Agent.instance.stats_engine
-    tracer = NewRelic::Agent.instance.transaction_sampler
+    assert_metrics_recorded(
+      'GC/cumulative' => {
+        :call_count      => 2,
+        :total_call_time => 3.0
+      }
+    )
 
-    gc_stats = engine.get_stats('GC/cumulative')
-    assert_equal 2, gc_stats.call_count
-    assert_equal 3.0, gc_stats.total_call_time
+    tracer = NewRelic::Agent.instance.transaction_sampler
     assert_equal(3.0, tracer.last_sample.params[:custom_params][:gc_time])
+  end
+
+  # gc_timer_value should be specified in seconds
+  def stub_gc_timer(gc_timer_value_s)
+    profiler = PROFILER.init
+
+    gc_timer_value_ms = gc_timer_value_s * 1_000
+    gc_timer_value_us = gc_timer_value_s * 1_000_000
+
+    case profiler
+    when PROFILER::CoreGCProfiler
+      NewRelic::Agent.instance.monotonic_gc_profiler.stubs(:total_time).returns(gc_timer_value_s)
+    when PROFILER::RailsBenchProfiler
+      ::GC.stubs(:time).returns(gc_timer_value_us)
+    when PROFILER::LegacyRubiniusProfiler
+      ::Rubinius::GC.stubs(:time).returns(gc_timer_value_ms)
+    end
+  end
+
+  def stub_gc_count(gc_count)
+    profiler = PROFILER.init
+
+    case profiler
+    when PROFILER::CoreGCProfiler
+      ::GC.stubs(:count).returns(gc_count)
+    when PROFILER::RailsBenchProfiler
+      ::GC.stubs(:collections).returns(gc_count)
+    when PROFILER::LegacyRubiniusProfiler
+      ::Rubinius::GC.stubs(:count).returns(gc_count)
+    end
+  end
+
+  def stub_gc_profiling_enabled
+    if defined?(::GC::Profiler)
+      ::GC::Profiler.stubs(:enabled?).returns(true)
+    end
   end
 end

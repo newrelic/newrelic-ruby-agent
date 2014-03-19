@@ -26,8 +26,24 @@ module NewRelic
         def total_time
           raise ProfilerNotEnabledError.new unless NewRelic::LanguageSupport.gc_profiler_enabled?
 
+          # There's a race here if the next two lines don't execute as an atomic
+          # unit - we may end up double-counting some GC time in that scenario.
+          #
+          # The window during which this race can exhibit is small: two
+          # transactions must be starting or ending at exactly the same time.
+          #
+          # The likelihood of the race exhibiting is low enough, and the fallout
+          # (slightly over-counted GC time) small enough that we've decided for
+          # now to not introduce a lock here that would wrap these two lines and
+          # prevent the race.
+          #
+          # The thinking is that the overhead of acquiring / releasing the lock
+          # would have just as much of a distorting effect on the data we're
+          # gathering as would the race itself.
+          #
           @total_time += ::GC::Profiler.total_time
           ::GC::Profiler.clear
+
           @total_time
         end
       end

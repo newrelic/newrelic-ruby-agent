@@ -438,6 +438,20 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
   end
 
+  def test_records_gc_time
+    gc_start = mock('gc start')
+    gc_end   = mock('gc end')
+    NewRelic::Agent::StatsEngine::GCProfiler.stubs(:take_snapshot).returns(gc_start, gc_end)
+
+    txn = in_transaction do
+      NewRelic::Agent::StatsEngine::GCProfiler.expects(:record_delta).with(gc_start, gc_end).returns(42)
+      NewRelic::Agent::Transaction.current
+    end
+
+    trace = txn.transaction_trace
+    assert_equal(42, trace.params[:custom_params][:gc_time])
+  end
+
   def assert_has_custom_parameter(key, value = key)
     assert_equal(value, NewRelic::Agent::Transaction.current.custom_parameters[key])
   end
