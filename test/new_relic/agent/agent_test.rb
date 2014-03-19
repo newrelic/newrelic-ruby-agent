@@ -87,6 +87,16 @@ module NewRelic
         end
       end
 
+      def test_after_fork_should_prevent_further_thread_restart_attempts
+        with_config(:monitor_mode => true) do
+          # Disconnecting will tell us not to restart the thread
+          @agent.disconnect
+          @agent.after_fork
+
+          refute @agent.harvester.needs_restart?
+        end
+      end
+
       def test_transmit_data_should_emit_before_harvest_event
         got_it = false
         @agent.events.subscribe(:before_harvest) { got_it = true }
