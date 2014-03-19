@@ -29,6 +29,8 @@ end
 
 class QueueTimeTest < ActionDispatch::IntegrationTest
 
+  REQUEST_START_HEADER = 'HTTP_X_REQUEST_START'
+
   include MultiverseHelpers
 
   setup_and_teardown_agent(:beacon => "beacon", :browser_key => "key", :js_agent_loader => "loader")
@@ -67,9 +69,8 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   end
 
   def get_path(path, queue_start_time)
-    header = 'HTTP_X_REQUEST_START'
     value = "t=#{(queue_start_time.to_f * 1_000_000).to_i}"
-    get(path, nil, header => value)
+    get(path, nil, REQUEST_START_HEADER => value)
   end
 
   def extract_queue_time_from_response
