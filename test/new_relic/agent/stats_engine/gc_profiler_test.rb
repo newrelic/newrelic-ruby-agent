@@ -126,7 +126,7 @@ class NewRelic::Agent::StatsEngine
       assert_operator count_before_allocations, :<,  count_after_allocations
       assert_operator count_after_allocations,  :<=, count_after_clear
     ensure
-      GC::Profiler.disable
+      GC::Profiler.disable if defined?(::GC::Profiler)
     end
 
     # gc_timer_value should be specified in seconds
