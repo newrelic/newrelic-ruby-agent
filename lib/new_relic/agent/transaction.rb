@@ -25,6 +25,7 @@ module NewRelic
       attr_reader :name
       attr_reader :guid
       attr_reader :stats_hash
+      attr_reader :gc_start_snapshot
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -102,6 +103,7 @@ module NewRelic
         @apdex_start = @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
+        @gc_start_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         @filtered_params = options[:filtered_params] || {}
         @force_flag = options[:force]
         @request = options[:request]
@@ -157,7 +159,6 @@ module NewRelic
         transaction_sampler.notice_first_scope_push(start_time)
         sql_sampler.notice_first_scope_push(start_time)
 
-        NewRelic::Agent::StatsEngine::GCProfiler.init
         agent.stats_engine.start_transaction
         transaction_sampler.notice_transaction(uri, filtered_params)
         sql_sampler.notice_transaction(uri, filtered_params)
@@ -198,9 +199,11 @@ module NewRelic
           # before the transaction sampler is finished
           if traced?
             record_transaction_cpu
-            gc_time = NewRelic::Agent::StatsEngine::GCProfiler.capture
+            gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
+            gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
+                gc_start_snapshot, gc_stop_snapshot)
           end
-          @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_time)
+          @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_delta)
           sql_sampler.notice_scope_empty(@name)
         end
 

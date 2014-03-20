@@ -37,6 +37,7 @@ class GCRailsInstrumentationTest < ActionController::TestCase
   include MultiverseHelpers
 
   setup_and_teardown_agent do
+    NewRelic::Agent::StatsEngine::GCProfiler.reset
     enable_gc_stats
     @controller = GcController.new
   end
