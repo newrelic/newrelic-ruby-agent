@@ -98,6 +98,10 @@ module NewRelic::LanguageSupport
     defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
   end
 
+  def ree?
+    defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Ruby Enterprise Edition/
+  end
+
   def using_version?(version)
     numbers = version.split('.')
     numbers == ::RUBY_VERSION.split('.')[0, numbers.size]
