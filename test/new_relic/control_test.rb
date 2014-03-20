@@ -16,23 +16,6 @@ class NewRelic::ControlTest < Minitest::Test
     NewRelic::Agent.shutdown
   end
 
-  def test_test_config
-    if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 4
-      assert_equal :rails4, control.app
-    elsif defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
-      assert_equal :rails3, control.app
-    elsif defined?(::Rails)
-      assert_equal :rails, control.app
-    else
-      assert_equal :test, control.app
-    end
-    assert_equal :test, control.framework
-    assert("" == NewRelic::Agent.config[:dispatcher].to_s,
-           "Expected dispatcher to be empty, but was #{NewRelic::Agent.config[:dispatcher].to_s}")
-    assert !NewRelic::Agent.config[:monitor_mode]
-    control.local_env
-  end
-
   def test_settings_accessor
     refute_nil control.settings
   end
