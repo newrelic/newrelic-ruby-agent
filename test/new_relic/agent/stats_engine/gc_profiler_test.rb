@@ -109,6 +109,27 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Minitest::Test
     assert_equal(3.0, tracer.last_sample.params[:custom_params][:gc_time])
   end
 
+  # This test is asserting that the implementation of GC::Profiler provided by
+  # the language implementation currently in use behaves in the way we assume.
+  # Specifically, we expect that GC::Profiler.clear will *not* reset GC.count.
+  def test_gc_profiler_clear_does_not_reset_count
+    return unless defined?(::GC::Profiler)
+
+    GC::Profiler.enable
+
+    count_before_allocations = GC.count
+    100000.times { String.new }
+    GC.start
+    count_after_allocations = GC.count
+    GC::Profiler.clear
+    count_after_clear = GC.count
+
+    assert_operator count_before_allocations, :<,  count_after_allocations
+    assert_operator count_after_allocations,  :<=, count_after_clear
+  ensure
+    GC::Profiler.disable
+  end
+
   # gc_timer_value should be specified in seconds
   def stub_gc_timer(gc_timer_value_s)
     profiler = PROFILER.init
