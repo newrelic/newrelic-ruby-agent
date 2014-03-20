@@ -57,11 +57,7 @@ module NewRelic
           end
         end
 
-        class Profiler
-          def reset; end
-        end
-
-        class RailsBenchProfiler < Profiler
+        class RailsBenchProfiler
           def self.enabled?
             ::GC.respond_to?(:time) && ::GC.respond_to?(:collections)
           end
@@ -79,7 +75,7 @@ module NewRelic
           end
         end
 
-        class CoreGCProfiler < Profiler
+        class CoreGCProfiler
           def self.enabled?
             NewRelic::LanguageSupport.gc_profiler_enabled?
           end
@@ -91,6 +87,13 @@ module NewRelic
           def call_count
             ::GC.count
           end
+
+          # When using GC::Profiler, it's important to periodically call
+          # GC::Profiler.clear in order to avoid unbounded growth in the number
+          # of GC recordds that are stored. However, we actually do this
+          # internally within MonotonicGCProfiler on calls to #total_time_s,
+          # so the reset here is a no-op.
+          def reset; end
         end
       end
     end
