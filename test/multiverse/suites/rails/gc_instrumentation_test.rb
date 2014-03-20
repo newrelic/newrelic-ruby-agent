@@ -6,8 +6,8 @@ require './app'
 require 'multiverse_helpers'
 
 # GC instrumentation only works with REE or MRI >= 1.9.2
-if (defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise/) ||
-    (RUBY_VERSION >= '1.9.2' && !NewRelic::LanguageSupport.using_engine?('jruby'))
+if NewRelic::LanguageSupport.ree? ||
+    (RUBY_VERSION >= '1.9.2' && !NewRelic::LanguageSupport.jruby?)
 
 class GcController < ApplicationController
   include Rails.application.routes.url_helpers
@@ -72,7 +72,7 @@ class GCRailsInstrumentationTest < ActionController::TestCase
   end
 
   def enable_gc_stats
-    if RUBY_DESCRIPTION =~ /Enterprise/
+    if NewRelic::LanguageSupport.ree?
       GC.enable_stats
     elsif RUBY_VERSION >= '1.9.2'
       GC::Profiler.enable

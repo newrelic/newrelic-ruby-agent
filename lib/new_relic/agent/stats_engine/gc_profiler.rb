@@ -63,7 +63,7 @@ module NewRelic
           end
 
           def call_time_s
-            ::GC.time / 1_000_000 # this value is reported in us, so convert to s
+            ::GC.time.to_f / 1_000_000 # this value is reported in us, so convert to s
           end
 
           def call_count
