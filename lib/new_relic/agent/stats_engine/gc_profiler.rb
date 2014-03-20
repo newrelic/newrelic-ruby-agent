@@ -15,8 +15,6 @@ module NewRelic
             RailsBenchProfiler.new
           elsif CoreGCProfiler.enabled?
             CoreGCProfiler.new
-          elsif LegacyRubiniusProfiler.enabled?
-            LegacyRubiniusProfiler.new
           end
           @initialized = true
           @profiler
@@ -93,29 +91,6 @@ module NewRelic
 
           def call_count
             ::GC.count
-          end
-        end
-
-        # Only present for legacy support of Rubinius < 2.0.0
-        class LegacyRubiniusProfiler < Profiler
-          def self.enabled?
-            self.has_rubinius_profiler? && !has_core_profiler?
-          end
-
-          def self.has_rubinius_profiler?
-            defined?(::Rubinius) && defined?(::Rubinius::GC) && ::Rubinius::GC.respond_to?(:count)
-          end
-
-          def self.has_core_profiler?
-            defined?(::GC::Profiler)
-          end
-
-          def call_time_s
-            ::Rubinius::GC.time / 1000
-          end
-
-          def call_count
-            ::Rubinius::GC.count
           end
         end
       end

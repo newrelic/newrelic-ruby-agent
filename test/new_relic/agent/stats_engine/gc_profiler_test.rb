@@ -134,7 +134,6 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Minitest::Test
   def stub_gc_timer(gc_timer_value_s)
     profiler = PROFILER.init
 
-    gc_timer_value_ms = gc_timer_value_s * 1_000
     gc_timer_value_us = gc_timer_value_s * 1_000_000
 
     case profiler
@@ -142,8 +141,6 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Minitest::Test
       NewRelic::Agent.instance.monotonic_gc_profiler.stubs(:total_time).returns(gc_timer_value_s)
     when PROFILER::RailsBenchProfiler
       ::GC.stubs(:time).returns(gc_timer_value_us)
-    when PROFILER::LegacyRubiniusProfiler
-      ::Rubinius::GC.stubs(:time).returns(gc_timer_value_ms)
     end
   end
 
@@ -155,8 +152,6 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Minitest::Test
       ::GC.stubs(:count).returns(gc_count)
     when PROFILER::RailsBenchProfiler
       ::GC.stubs(:collections).returns(gc_count)
-    when PROFILER::LegacyRubiniusProfiler
-      ::Rubinius::GC.stubs(:count).returns(gc_count)
     end
   end
 
