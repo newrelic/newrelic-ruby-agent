@@ -138,7 +138,7 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Minitest::Test
 
     case profiler
     when PROFILER::CoreGCProfiler
-      NewRelic::Agent.instance.monotonic_gc_profiler.stubs(:total_time).returns(gc_timer_value_s)
+      NewRelic::Agent.instance.monotonic_gc_profiler.stubs(:total_time_s).returns(gc_timer_value_s)
     when PROFILER::RailsBenchProfiler
       ::GC.stubs(:time).returns(gc_timer_value_us)
     end

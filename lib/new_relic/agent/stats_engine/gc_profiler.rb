@@ -84,10 +84,8 @@ module NewRelic
             NewRelic::LanguageSupport.gc_profiler_enabled?
           end
 
-          # In 1.9+, GC::Profiler.total_time returns seconds.
-          # Don't trust the docs. It's seconds.
           def call_time_s
-            NewRelic::Agent.instance.monotonic_gc_profiler.total_time
+            NewRelic::Agent.instance.monotonic_gc_profiler.total_time_s
           end
 
           def call_count

@@ -15,8 +15,8 @@ module NewRelic
     module VM
       class MonotonicGCProfiler
         def initialize
-          @total_time = 0
-          @lock       = Mutex.new
+          @total_time_s = 0
+          @lock         = Mutex.new
         end
 
         class ProfilerNotEnabledError < StandardError
@@ -25,7 +25,7 @@ module NewRelic
           end
         end
 
-        def total_time
+        def total_time_s
           raise ProfilerNotEnabledError.new unless NewRelic::LanguageSupport.gc_profiler_enabled?
 
           # There's a race here if the next two lines don't execute as an atomic
@@ -33,11 +33,14 @@ module NewRelic
           # Locking around them guarantees atomicity of the read/increment/reset
           # sequence.
           @lock.synchronize do
-            @total_time += ::GC::Profiler.total_time
+            # The Ruby 1.9.x docs claim that GC::Profiler.total_time returns
+            # a value in milliseconds. They are incorrect - both 1.9.x and 2.x
+            # return values in seconds.
+            @total_time_s += ::GC::Profiler.total_time
             ::GC::Profiler.clear
           end
 
-          @total_time
+          @total_time_s
         end
       end
     end

@@ -39,7 +39,7 @@ module NewRelic
 
         def gather_gc_time(snap)
           if supports?(:gc_total_time)
-            snap.gc_total_time = NewRelic::Agent.instance.monotonic_gc_profiler.total_time
+            snap.gc_total_time = NewRelic::Agent.instance.monotonic_gc_profiler.total_time_s
           end
         end
 
