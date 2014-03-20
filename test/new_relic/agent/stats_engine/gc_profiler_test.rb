@@ -50,83 +50,83 @@ class NewRelic::Agent::StatsEngine
       assert_metrics_not_recorded('GC/cumulative')
     end
 
-    def test_record_delta_returns_delta_in_seconds
-      GCProfiler.init
-      start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
-      end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
+    unless NewRelic::LanguageSupport.jruby?
+      def test_record_delta_returns_delta_in_seconds
+        GCProfiler.init
+        start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
+        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
 
-      result = GCProfiler.record_delta(start_snapshot, end_snapshot)
-      assert_equal(1.5, result)
-    end
-
-    def test_record_delta_records_gc_time_and_call_count_in_metric
-      GCProfiler.init
-      start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
-      end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
-
-      GCProfiler.record_delta(start_snapshot, end_snapshot)
-
-      assert_metrics_recorded(
-        'GC/cumulative' => {
-          :call_count      => 2,
-          :total_call_time => 1.5
-        }
-      )
-    end
-
-    def test_take_snapshot_should_return_snapshot
-      stub_gc_timer(5.0)
-      stub_gc_count(10)
-
-      snapshot = GCProfiler.take_snapshot
-
-      assert_equal( 5.0, snapshot.gc_time_s)
-      assert_equal(10  , snapshot.gc_call_count)
-    end
-
-    def test_collect_gc_data
-      return if NewRelic::LanguageSupport.using_engine?('jruby')
-
-      stub_gc_timer(1.0)
-      stub_gc_count(1)
-
-      with_config(:'transaction_tracer.enabled' => true) do
-        in_transaction do
-          stub_gc_timer(4.0)
-          stub_gc_count(3)
-        end
+        result = GCProfiler.record_delta(start_snapshot, end_snapshot)
+        assert_equal(1.5, result)
       end
 
-      assert_metrics_recorded(
-        'GC/cumulative' => {
-          :call_count      => 2,
-          :total_call_time => 3.0
-        }
-      )
+      def test_record_delta_records_gc_time_and_call_count_in_metric
+        GCProfiler.init
+        start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
+        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
 
-      tracer = NewRelic::Agent.instance.transaction_sampler
-      assert_equal(3.0, tracer.last_sample.params[:custom_params][:gc_time])
-    end
+        GCProfiler.record_delta(start_snapshot, end_snapshot)
 
-    # This test is asserting that the implementation of GC::Profiler provided by
-    # the language implementation currently in use behaves in the way we assume.
-    # Specifically, we expect that GC::Profiler.clear will *not* reset GC.count.
-    def test_gc_profiler_clear_does_not_reset_count
-      return unless defined?(::GC::Profiler)
+        assert_metrics_recorded(
+          'GC/cumulative' => {
+            :call_count      => 2,
+            :total_call_time => 1.5
+          }
+        )
+      end
 
-      GC::Profiler.enable
+      # This test is asserting that the implementation of GC::Profiler provided by
+      # the language implementation currently in use behaves in the way we assume.
+      # Specifically, we expect that GC::Profiler.clear will *not* reset GC.count.
+      def test_gc_profiler_clear_does_not_reset_count
+        return unless defined?(::GC::Profiler)
 
-      count_before_allocations = GC.count
-      100000.times { String.new }
-      GC.start
-      count_after_allocations = GC.count
-      GC::Profiler.clear
-      count_after_clear = GC.count
+        GC::Profiler.enable
 
-      assert_operator count_before_allocations, :<,  count_after_allocations
-      assert_operator count_after_allocations,  :<=, count_after_clear
-    ensure
-      GC::Profiler.disable if defined?(::GC::Profiler)
+        count_before_allocations = GC.count
+        100000.times { String.new }
+        GC.start
+        count_after_allocations = GC.count
+        GC::Profiler.clear
+        count_after_clear = GC.count
+
+        assert_operator count_before_allocations, :<,  count_after_allocations
+        assert_operator count_after_allocations,  :<=, count_after_clear
+      ensure
+        GC::Profiler.disable if defined?(::GC::Profiler)
+      end
+
+      def test_take_snapshot_should_return_snapshot
+        stub_gc_timer(5.0)
+        stub_gc_count(10)
+
+        snapshot = GCProfiler.take_snapshot
+
+        assert_equal( 5.0, snapshot.gc_time_s)
+        assert_equal(10  , snapshot.gc_call_count)
+      end
+
+      def test_collect_gc_data
+        stub_gc_timer(1.0)
+        stub_gc_count(1)
+
+        with_config(:'transaction_tracer.enabled' => true) do
+          in_transaction do
+            stub_gc_timer(4.0)
+            stub_gc_count(3)
+          end
+        end
+
+        assert_metrics_recorded(
+          'GC/cumulative' => {
+            :call_count      => 2,
+            :total_call_time => 3.0
+          }
+        )
+
+        tracer = NewRelic::Agent.instance.transaction_sampler
+        assert_equal(3.0, tracer.last_sample.params[:custom_params][:gc_time])
+      end
     end
 
     # gc_timer_value should be specified in seconds
