@@ -9,12 +9,14 @@
 # This class comes to the rescue. It relies on being the only party to reset
 # the underlying GC::Profiler, but otherwise gives us a steadily increasing
 # total time.
+
 module NewRelic
   module Agent
     module VM
       class MonotonicGCProfiler
         def initialize
           @total_time = 0
+          @lock       = Mutex.new
         end
 
         class ProfilerNotEnabledError < StandardError
@@ -28,21 +30,12 @@ module NewRelic
 
           # There's a race here if the next two lines don't execute as an atomic
           # unit - we may end up double-counting some GC time in that scenario.
-          #
-          # The window during which this race can exhibit is small: two
-          # transactions must be starting or ending at exactly the same time.
-          #
-          # The likelihood of the race exhibiting is low enough, and the fallout
-          # (slightly over-counted GC time) small enough that we've decided for
-          # now to not introduce a lock here that would wrap these two lines and
-          # prevent the race.
-          #
-          # The thinking is that the overhead of acquiring / releasing the lock
-          # would have just as much of a distorting effect on the data we're
-          # gathering as would the race itself.
-          #
-          @total_time += ::GC::Profiler.total_time
-          ::GC::Profiler.clear
+          # Locking around them guarantees atomicity of the read/increment/reset
+          # sequence.
+          @lock.synchronize do
+            @total_time += ::GC::Profiler.total_time
+            ::GC::Profiler.clear
+          end
 
           @total_time
         end
