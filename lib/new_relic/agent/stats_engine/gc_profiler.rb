@@ -39,25 +39,26 @@ module NewRelic
             elapsed_gc_time_s = end_snapshot.gc_time_s     - start_snapshot.gc_time_s
             num_calls         = end_snapshot.gc_call_count - start_snapshot.gc_call_count
 
-            @profiler.record_gc_metric(num_calls, elapsed_gc_time_s)
+            record_gc_metric(num_calls, elapsed_gc_time_s)
+
             @profiler.reset
             elapsed_gc_time_s
           end
         end
 
-        class Profiler
-          def reset; end
-
-          def record_gc_metric(num_calls, elapsed)
-            if num_calls > 0
-              # GC stats are collected into a blamed metric which allows
-              # us to show the stats controller by controller
-              NewRelic::Agent.instance.stats_engine \
-                .record_metrics('GC/cumulative', nil, :scoped => true) do |stat|
-                stat.record_multiple_data_points(elapsed, num_calls)
-              end
+        def self.record_gc_metric(num_calls, elapsed)
+          if num_calls > 0
+            # GC stats are collected into a blamed metric which allows
+            # us to show the stats controller by controller
+            NewRelic::Agent.instance.stats_engine \
+              .record_metrics('GC/cumulative', nil, :scoped => true) do |stat|
+              stat.record_multiple_data_points(elapsed, num_calls)
             end
           end
+        end
+
+        class Profiler
+          def reset; end
         end
 
         class RailsBenchProfiler < Profiler
