@@ -48,8 +48,12 @@ module NewRelic
           stub_snapshot(:thread_count => 2)
 
           @sampler.poll
-          expected = { 'RubyVM/Threads/all' => { :call_count => 2 } }
-          assert_metrics_recorded(expected)
+          assert_metrics_recorded(
+            'RubyVM/Threads/all' => {
+              :call_count      => 1,
+              :total_call_time => 2
+            }
+          )
         end
 
         def test_poll_records_gc_runs_metric
@@ -101,8 +105,14 @@ module NewRelic
           @sampler.poll
 
           assert_metrics_recorded(
-            'RubyVM/GC/heap_live' => { :call_count => 100 },
-            'RubyVM/GC/heap_free' => { :call_count => 25  }
+            'RubyVM/GC/heap_live' => {
+              :call_count      => 1,
+              :total_call_time => 100
+            },
+            'RubyVM/GC/heap_free' => {
+              :call_count      => 1,
+              :total_call_time => 25
+            }
           )
         end
 

@@ -75,15 +75,28 @@ module NewRelic
           end
         end
 
+        def record_gauge_metric(metric_name, value)
+          NewRelic::Agent.agent.stats_engine.record_metrics(metric_name) do |stats|
+            stats.call_count      = 1
+            stats.total_call_time = value
+          end
+        end
+
         def record_heap_live_metric(snapshot)
           if snapshot.heap_live
-            NewRelic::Agent.record_metric(HEAP_LIVE_METRIC, :count => snapshot.heap_live)
+            record_gauge_metric(HEAP_LIVE_METRIC, snapshot.heap_live)
           end
         end
 
         def record_heap_free_metric(snapshot)
           if snapshot.heap_free
-            NewRelic::Agent.record_metric(HEAP_FREE_METRIC, :count => snapshot.heap_free)
+            record_gauge_metric(HEAP_FREE_METRIC, snapshot.heap_free)
+          end
+        end
+
+        def record_thread_count_metric(snapshot)
+          if snapshot.thread_count
+            record_gauge_metric(THREAD_COUNT_METRIC, snapshot.thread_count)
           end
         end
 
@@ -99,7 +112,7 @@ module NewRelic
           record_delta(snap, :constant_cache_invalidations, CONSTANT_INVALIDATIONS_METRIC, tcount)
           record_heap_live_metric(snap)
           record_heap_free_metric(snap)
-          NewRelic::Agent.record_metric(THREAD_COUNT_METRIC, :count => snap.thread_count)
+          record_thread_count_metric(snap)
 
           @last_snapshot = snap
         end
