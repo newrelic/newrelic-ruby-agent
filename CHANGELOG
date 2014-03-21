@@ -9,10 +9,9 @@
   configurations). The agent's background thread will be automatically restarted
   after the first transaction processed within each child process.
 
-  This behavior was previously controlled by the restart_thread_in_children
-  configuration setting, which is now enabled by default. You may revert to the
-  previous agent behavior by setting 'restart_thread_in_children: false' in your
-  agent configuration file.
+  This change means it's no longer necessary to set the
+  'restart_thread_in_children setting' in your agent configuration file if you
+  were doing so previously.
 
   * More accurate GC measurements on multi-threaded web servers
 
