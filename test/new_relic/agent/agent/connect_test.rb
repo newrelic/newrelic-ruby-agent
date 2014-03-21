@@ -22,12 +22,15 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
     NewRelic::Agent.instance.service = @service
-    @test_config = { :developer_mode => true }
     @local_host = nil
+
+    @test_config = { :developer_mode => true }
+    NewRelic::Agent.reset_config
     NewRelic::Agent.config.apply_config(@test_config)
   end
 
   def teardown
+    NewRelic::Agent.reset_config
     NewRelic::Agent.config.remove_config(@test_config)
   end
 
@@ -261,6 +264,20 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     end
   end
 
+  def test_finish_setup_replaces_server_config
+    finish_setup(:boo => "boo")
+    finish_setup(:hoo => true)
+
+    assert_equal 1, server_layers.length
+
+    assert NewRelic::Agent.config[:hoo]
+    assert_nil NewRelic::Agent.config[:boo]
+  end
+
+  def server_layers
+    stack = NewRelic::Agent.config.config_stack
+    stack.select{|layer| layer.class == NewRelic::Agent::Configuration::ServerSource}
+  end
 
   def test_logging_collector_messages
     NewRelic::Agent.manual_start
