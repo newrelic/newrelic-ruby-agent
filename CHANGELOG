@@ -1,5 +1,56 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.7.4 ##
+
+  * Better support for forking and daemonizing dispatchers (e.g. Puma, Unicorn)
+
+  The agent should now work out-of-the box with no special configuration on
+  servers that fork or daemonize themselves (such as Unicorn or Puma in some
+  configurations). The agent's background thread will be automatically restarted
+  after the first transaction processed within each child process.
+
+  This behavior was previously controlled by the restart_thread_in_children
+  configuration setting, which is now enabled by default. You may revert to the
+  previous agent behavior by setting 'restart_thread_in_children: false' in your
+  agent configuration file.
+
+  * More accurate GC measurements on multi-threaded web servers
+
+  The agent could previously have reported inaccurate GC times on multi-threaded
+  web servers such as Puma. It will now correctly report GC timings in
+  multi-threaded contexts.
+
+  * Improved ActiveMerchant instrumentation
+
+  The agent will now trace the store, unstore, and update methods on
+  ActiveMerchant gateways. In addition, a bug preventing ActiveMerchant
+  instrumentation from working on Ruby 1.9+ has been fixed.
+
+  Thanks to Troex Nevelin for the contribution!
+
+  * More robust Real User Monitoring script injection with charset meta tags
+
+  Previous versions of the agent with Real User Monitoring enabled could have
+  injected JavaScript code into the page above a charset meta tag. By the HTML5
+  spec, the charset tag must appear in the first 1024 bytes of the page, so the
+  Ruby agent will now attempt to inject RUM script after a charset tag, if one
+  is present.
+
+  * More robust connection sequence with New Relic servers
+
+  A rare bug that could cause the agent's initial connection handshake with
+  New Relic servers to silently fail has been fixed, and better logging has been
+  added to the related code path to ease diagnosis of any future issues.
+
+  * Prevent non-root transactions from recording queue time
+
+  When using add_transaction_tracer on methods called from within a Rails or
+  Sinatra action, it was previously possible to get inflated queue time
+  measurements, because queue time would be recorded for both the outer
+  transaction (the Rails or Sinatra action) and the inner transaction (the
+  method given to add_transaction_tracer). This has been fixed, so only the
+  outermost transaction will now record queue time.
+
 ## v3.7.3 ##
 
   * Obfuscation for PostgreSQL explain plans
