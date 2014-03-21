@@ -17,10 +17,13 @@ DependencyDetection.defer do
 
   executes do
     ActionView::PartialTemplate.class_eval do
+      include NewRelic::Agent::MethodTracer
       add_method_tracer :render, 'View/#{path_without_extension[%r{^(/.*/)?(.*)$},2]}.#{@view.template_format}.#{extension}/Partial'
     end
+
     # this is for template rendering, as opposed to partial rendering.
     ActionView::Template.class_eval do
+      include NewRelic::Agent::MethodTracer
       add_method_tracer :render, 'View/#{(path_without_extension || @view.controller.newrelic_metric_path)[%r{^(/.*/)?(.*)$},2]}.#{@view.template_format}.#{extension}/Rendering'
     end
   end
@@ -41,9 +44,9 @@ DependencyDetection.defer do
 
   executes do
     ActionController::Base.class_eval do
+      include NewRelic::Agent::MethodTracer
       add_method_tracer :render, 'View/#{newrelic_metric_path}/Rendering'
     end
-
   end
 end
 
@@ -62,9 +65,12 @@ DependencyDetection.defer do
 
   executes do
     ActionView::RenderablePartial.module_eval do
+      include NewRelic::Agent::MethodTracer
       add_method_tracer :render_partial, 'View/#{path[%r{^(/.*/)?(.*)$},2]}/Partial'
     end
+
     ActionView::Template.class_eval do
+      include NewRelic::Agent::MethodTracer
       add_method_tracer :render, 'View/#{path[%r{^(/.*/)?(.*)$},2]}/Rendering'
     end
   end
