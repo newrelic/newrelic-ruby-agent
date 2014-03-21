@@ -42,7 +42,7 @@
   New Relic servers to silently fail has been fixed, and better logging has been
   added to the related code path to ease diagnosis of any future issues.
 
-  * Prevent non-root transactions from recording queue time
+  * Prevent over-counting of queue time with nested transactions
 
   When using add_transaction_tracer on methods called from within a Rails or
   Sinatra action, it was previously possible to get inflated queue time
