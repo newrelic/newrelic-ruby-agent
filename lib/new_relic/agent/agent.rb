@@ -831,7 +831,7 @@ module NewRelic
 
             ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
             server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, Agent.config)
-            Agent.config.apply_config(server_config, 1)
+            Agent.config.replace_or_add_config(server_config, 1)
             log_connection!(config_data) if @service
 
             @transaction_rules = RulesEngine.from_specs(config_data['transaction_name_rules'])
