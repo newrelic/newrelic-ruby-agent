@@ -3,9 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 # https://newrelic.atlassian.net/browse/RUBY-747
-require 'rails/test_help'
+require './app'
 require 'fake_collector'
-require 'multiverse_helpers'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
 
 class ErrorController < ApplicationController
