@@ -51,10 +51,21 @@ module NewRelic
             # GC stats are collected into a blamed metric which allows
             # us to show the stats controller by controller
             NewRelic::Agent.instance.stats_engine \
-              .record_metrics('GC/cumulative', nil, :scoped => true) do |stat|
+              .record_metrics(gc_metric_name, nil, :scoped => true) do |stat|
               stat.record_multiple_data_points(elapsed, num_calls)
             end
           end
+        end
+
+        GC_OTHER = 'GC/Transaction/allOther'
+        GC_WEB   = 'GC/Transaction/allWeb'
+
+        def self.gc_metric_name
+          stat_name = if NewRelic::Agent::Transaction.recording_web_transaction?
+                        GC_WEB
+                      else
+                        GC_OTHER
+                      end
         end
 
         class RailsBenchProfiler

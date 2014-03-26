@@ -47,7 +47,7 @@ class NewRelic::Agent::StatsEngine
     def test_record_delta_returns_nil_when_snapshots_are_nil
       result = GCProfiler.record_delta(nil, nil)
       assert_nil(result)
-      assert_metrics_not_recorded('GC/cumulative')
+      assert_metrics_not_recorded([GCProfiler::GC_WEB, GCProfiler::GC_OTHER])
     end
 
     using_jruby       = NewRelic::LanguageSupport.jruby?
@@ -75,7 +75,7 @@ class NewRelic::Agent::StatsEngine
         GCProfiler.record_delta(start_snapshot, end_snapshot)
 
         assert_metrics_recorded(
-          'GC/cumulative' => {
+          GCProfiler::GC_OTHER => {
             :call_count      => 2,
             :total_call_time => 1.5
           }
@@ -125,7 +125,7 @@ class NewRelic::Agent::StatsEngine
         end
 
         assert_metrics_recorded(
-          'GC/cumulative' => {
+          GCProfiler::GC_OTHER => {
             :call_count      => 2,
             :total_call_time => 3.0
           }
@@ -134,6 +134,24 @@ class NewRelic::Agent::StatsEngine
         tracer = NewRelic::Agent.instance.transaction_sampler
         assert_equal(3.0, tracer.last_sample.params[:custom_params][:gc_time])
       end
+    end
+
+    def test_collect_gc_data_web
+      stub_gc_timer(1.0)
+      stub_gc_count(1)
+
+      with_config(:'transaction_tracer.enabled' => true) do
+        in_web_transaction do
+          stub_gc_timer(4.0)
+          stub_gc_count(3)
+        end
+      end
+
+      assert_metrics_recorded(
+        GCProfiler::GC_WEB => {
+          :call_count      => 2,
+          :total_call_time => 3.0
+        })
     end
 
     # gc_timer_value should be specified in seconds
