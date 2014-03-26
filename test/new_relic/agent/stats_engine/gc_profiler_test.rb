@@ -130,6 +130,7 @@ class NewRelic::Agent::StatsEngine
             :total_call_time => 3.0
           }
         )
+        assert_metrics_not_recorded(GCProfiler::GC_WEB)
 
         tracer = NewRelic::Agent.instance.transaction_sampler
         assert_equal(3.0, tracer.last_sample.params[:custom_params][:gc_time])
@@ -152,6 +153,8 @@ class NewRelic::Agent::StatsEngine
           :call_count      => 2,
           :total_call_time => 3.0
         })
+
+      assert_metrics_not_recorded(GCProfiler::GC_OTHER)
     end
 
     # gc_timer_value should be specified in seconds

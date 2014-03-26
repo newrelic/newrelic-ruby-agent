@@ -57,8 +57,8 @@ module NewRelic
           end
         end
 
-        GC_OTHER = 'GC/Transaction/allOther'
-        GC_WEB   = 'GC/Transaction/allWeb'
+        GC_OTHER = 'GC/Transaction/allOther'.freeze
+        GC_WEB   = 'GC/Transaction/allWeb'.freeze
 
         def self.gc_metric_name
           stat_name = if NewRelic::Agent::Transaction.recording_web_transaction?
