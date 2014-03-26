@@ -4,9 +4,7 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-927
 
-require 'rails/test_help'
 require './app'
-require 'multiverse_helpers'
 
 class QueueController < ApplicationController
   include Rails.application.routes.url_helpers

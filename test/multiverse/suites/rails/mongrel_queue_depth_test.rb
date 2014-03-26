@@ -7,9 +7,7 @@
 # Mongrel is only supported on older versions, so don't check for queue depth
 if Rails::VERSION::MAJOR.to_i < 4
 
-require 'rails/test_help'
 require './app'
-require 'multiverse_helpers'
 require 'ostruct'
 
 class MongrelController < ApplicationController
