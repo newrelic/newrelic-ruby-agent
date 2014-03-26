@@ -60,6 +60,7 @@ module NewRelic
               stats.call_count           = txn_count
               stats.total_call_time      = gc_runs if gc_runs
               stats.total_exclusive_time = gc_time if gc_time
+              stats.sum_of_squares       = 1
             end
           end
         end
@@ -77,8 +78,8 @@ module NewRelic
 
         def record_gauge_metric(metric_name, value)
           NewRelic::Agent.agent.stats_engine.record_metrics(metric_name) do |stats|
-            stats.call_count      = 1
-            stats.total_call_time = value
+            stats.call_count      = value
+            stats.sum_of_squares  = 1
           end
         end
 
