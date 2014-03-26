@@ -3,8 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require './app'
-require 'rails/test_help'
-require 'multiverse_helpers'
 
 class BadInstrumentationController < ApplicationController
   include Rails.application.routes.url_helpers

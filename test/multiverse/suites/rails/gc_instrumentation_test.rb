@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require './app'
-require 'multiverse_helpers'
 
 # GC instrumentation only works with REE or MRI >= 1.9.2
 if NewRelic::LanguageSupport.ree? ||
