@@ -47,7 +47,7 @@ class NewRelic::Agent::StatsEngine
     def test_record_delta_returns_nil_when_snapshots_are_nil
       result = GCProfiler.record_delta(nil, nil)
       assert_nil(result)
-      assert_metrics_not_recorded([GCProfiler::GC_WEB, GCProfiler::GC_OTHER])
+      assert_metrics_not_recorded([GCProfiler::GC_ROLLUP, GCProfiler::GC_WEB, GCProfiler::GC_OTHER])
     end
 
     using_jruby       = NewRelic::LanguageSupport.jruby?
@@ -74,12 +74,8 @@ class NewRelic::Agent::StatsEngine
 
         GCProfiler.record_delta(start_snapshot, end_snapshot)
 
-        assert_metrics_recorded(
-          GCProfiler::GC_OTHER => {
-            :call_count      => 1,
-            :total_call_time => 1.5
-          }
-        )
+        assert_gc_metrics(GCProfiler::GC_OTHER,
+                          :call_count => 1, :total_call_time => 1.5)
       end
 
       def test_record_delta_call_count_is_number_of_times_profiled
@@ -92,12 +88,8 @@ class NewRelic::Agent::StatsEngine
           GCProfiler.record_delta(start_snapshot, end_snapshot)
         end
 
-        assert_metrics_recorded(
-          GCProfiler::GC_OTHER => {
-            :call_count      => 4,
-            :total_call_time => 6
-          }
-        )
+        assert_gc_metrics(GCProfiler::GC_OTHER,
+                          :call_count => 4, :total_call_time => 6)
       end
 
       # This test is asserting that the implementation of GC::Profiler provided by
@@ -140,12 +132,8 @@ class NewRelic::Agent::StatsEngine
           end
         end
 
-        assert_metrics_recorded(
-          GCProfiler::GC_OTHER => {
-            :call_count      => 1,
-            :total_call_time => 3.0
-          }
-        )
+        assert_gc_metrics(GCProfiler::GC_OTHER,
+                          :call_count => 1, :total_call_time => 3.0)
         assert_metrics_not_recorded(GCProfiler::GC_WEB)
 
         tracer = NewRelic::Agent.instance.transaction_sampler
@@ -162,13 +150,16 @@ class NewRelic::Agent::StatsEngine
         end
       end
 
-      assert_metrics_recorded(
-        GCProfiler::GC_WEB => {
-          :call_count      => 1,
-          :total_call_time => 3.0
-        })
-
+      assert_gc_metrics(GCProfiler::GC_WEB,
+                        :call_count => 1, :total_call_time => 3.0)
       assert_metrics_not_recorded(GCProfiler::GC_OTHER)
+    end
+
+    def assert_gc_metrics(name, expected_values={})
+      assert_metrics_recorded(
+        GCProfiler::GC_ROLLUP => expected_values,
+        name => expected_values
+      )
     end
 
     # gc_timer_value should be specified in seconds

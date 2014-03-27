@@ -45,19 +45,20 @@ module NewRelic
         end
 
         def self.record_gc_metric(elapsed)
-          NewRelic::Agent.instance.stats_engine.record_metrics(gc_metric_name,
+          NewRelic::Agent.instance.stats_engine.record_metrics(gc_metric_names,
                                                                elapsed,
                                                                :scoped => true)
         end
 
-        GC_OTHER = 'GC/Transaction/allOther'.freeze
-        GC_WEB   = 'GC/Transaction/allWeb'.freeze
+        GC_ROLLUP = 'GC/Transaction/all'.freeze
+        GC_OTHER  = 'GC/Transaction/allOther'.freeze
+        GC_WEB    = 'GC/Transaction/allWeb'.freeze
 
-        def self.gc_metric_name
+        def self.gc_metric_names
           if NewRelic::Agent::Transaction.recording_web_transaction?
-            GC_WEB
+            [GC_ROLLUP, GC_WEB]
           else
-            GC_OTHER
+            [GC_ROLLUP, GC_OTHER]
           end
         end
 
