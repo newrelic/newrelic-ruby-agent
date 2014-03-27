@@ -139,20 +139,20 @@ class NewRelic::Agent::StatsEngine
         tracer = NewRelic::Agent.instance.transaction_sampler
         assert_equal(3.0, tracer.last_sample.params[:custom_params][:gc_time])
       end
-    end
 
-    def test_collect_gc_data_web
-      stub_gc_timer(1.0)
+      def test_collect_gc_data_web
+        stub_gc_timer(1.0)
 
-      with_config(:'transaction_tracer.enabled' => true) do
-        in_web_transaction do
-          stub_gc_timer(4.0)
+        with_config(:'transaction_tracer.enabled' => true) do
+          in_web_transaction do
+            stub_gc_timer(4.0)
+          end
         end
-      end
 
-      assert_gc_metrics(GCProfiler::GC_WEB,
-                        :call_count => 1, :total_call_time => 3.0)
-      assert_metrics_not_recorded(GCProfiler::GC_OTHER)
+        assert_gc_metrics(GCProfiler::GC_WEB,
+                          :call_count => 1, :total_call_time => 3.0)
+        assert_metrics_not_recorded(GCProfiler::GC_OTHER)
+      end
     end
 
     def assert_gc_metrics(name, expected_values={})
