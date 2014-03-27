@@ -38,10 +38,7 @@ module NewRelic
       class TyphoeusHTTPRequest
         def initialize(request)
           @request = request
-          @uri = case request.url
-            when ::URI then request.url
-            else ::URI.parse(request.url.to_s)
-            end
+          @uri = request.url
         end
 
         def type
@@ -49,7 +46,12 @@ module NewRelic
         end
 
         def host
-          self['host'] || self['Host'] || @uri.host
+          self['host'] || self['Host'] || uri_host
+        end
+
+        def uri_host
+          return @uri.host if uri.respond_to? :host
+          URI.parse(@uri).host
         end
 
         def method
