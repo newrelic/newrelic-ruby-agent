@@ -46,8 +46,8 @@ class GCRailsInstrumentationTest < ActionController::TestCase
     get :gc_action
     elapsed = Time.now.to_f - start.to_f
 
-    assert_in_range(elapsed, get_call_time('GC/cumulative'))
-    assert_in_range(elapsed, get_call_time('GC/cumulative', 'Controller/gc/gc_action'))
+    assert_in_range(elapsed, get_call_time('GC/Transaction/allWeb'))
+    assert_in_range(elapsed, get_call_time('GC/Transaction/allWeb', 'Controller/gc/gc_action'))
   end
 
   def test_records_transaction_param_for_gc_activity
