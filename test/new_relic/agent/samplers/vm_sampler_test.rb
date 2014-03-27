@@ -50,8 +50,8 @@ module NewRelic
           @sampler.poll
           assert_metrics_recorded(
             'RubyVM/Threads/all' => {
-              :call_count      => 1,
-              :total_call_time => 2
+              :call_count => 2,
+              :sum_of_squares => 1
             }
           )
         end
@@ -63,9 +63,10 @@ module NewRelic
 
           assert_metrics_recorded(
             'RubyVM/GC/runs' => {
-              :call_count           => 50, # number of transactions
-              :total_call_time      => 10, # number of GC runs
-              :total_exclusive_time => 100 # total GC time
+              :call_count           => 50,  # number of transactions
+              :total_call_time      => 10,  # number of GC runs
+              :total_exclusive_time => 100, # total GC time
+              :sum_of_squares       => 1    # proxy for number of instances
             }
           )
         end
@@ -106,12 +107,12 @@ module NewRelic
 
           assert_metrics_recorded(
             'RubyVM/GC/heap_live' => {
-              :call_count      => 1,
-              :total_call_time => 100
+              :call_count     => 100,
+              :sum_of_squares => 1
             },
             'RubyVM/GC/heap_free' => {
-              :call_count      => 1,
-              :total_call_time => 25
+              :call_count      => 25,
+              :sum_of_squares  => 1
             }
           )
         end
@@ -161,9 +162,10 @@ module NewRelic
 
           assert_metrics_recorded(
             'RubyVM/GC/runs' => {
-              :call_count      => 50,    # number of transactions
-              :total_call_time => 10,    # number of GC runs
-              :total_exclusive_time => 0 # total GC time
+              :call_count      => 50,     # number of transactions
+              :total_call_time => 10,     # number of GC runs
+              :total_exclusive_time => 0, # total GC time
+              :sum_of_squares       => 1  # proxy for number of instances
             }
           )
         end
@@ -183,7 +185,8 @@ module NewRelic
           expected = {
             'RubyVM/GC/runs' => {
               :total_call_time      => 10,
-              :total_exclusive_time => 10
+              :total_exclusive_time => 10,
+              :sum_of_squares       => 1
             },
             'RubyVM/GC/total_allocated_object' => {
               :total_call_time => 10
