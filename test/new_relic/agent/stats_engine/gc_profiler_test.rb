@@ -155,9 +155,10 @@ class NewRelic::Agent::StatsEngine
 
     def assert_gc_metrics(name, expected_values={})
       assert_metrics_recorded(
-        GCProfiler::GC_ROLLUP => expected_values,
+        [GCProfiler::GC_ROLLUP, ''] => expected_values,
         name => expected_values
       )
+      assert_metrics_not_recorded([[GCProfiler::GC_ROLLUP, 'dummy']])
     end
 
     # gc_timer_value should be specified in seconds
