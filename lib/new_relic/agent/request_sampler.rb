@@ -143,7 +143,7 @@ class NewRelic::Agent::RequestSampler
 
   # Web Metrics
   map_metric('WebFrontend/QueueTime', :total_call_time => "queueDuration")
-  map_metric("GC/cumulative",         :total_call_time => "gcCumulative")
+  map_metric('GC/Transaction/allWeb', :total_call_time => "gcCumulative")
   map_metric('Memcache/allWeb',       :total_call_time => "memcacheDuration")
 
   map_metric('External/allWeb',       :total_call_time => "externalDuration")
