@@ -60,8 +60,8 @@ class NewRelic::Agent::StatsEngine
       def test_record_delta_returns_delta_in_seconds
         GCProfiler.init
 
-        start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
-        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
+        start_snapshot = 1.0
+        end_snapshot   = 2.5
 
         result = GCProfiler.record_delta(start_snapshot, end_snapshot)
         assert_equal(1.5, result)
@@ -69,8 +69,8 @@ class NewRelic::Agent::StatsEngine
 
       def test_record_delta_records_gc_time_and_call_count_in_metric
         GCProfiler.init
-        start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
-        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
+        start_snapshot = 1.0
+        end_snapshot   = 2.5
 
         GCProfiler.record_delta(start_snapshot, end_snapshot)
 
@@ -81,8 +81,8 @@ class NewRelic::Agent::StatsEngine
       def test_record_delta_call_count_is_number_of_times_profiled
         GCProfiler.init
 
-        start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
-        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
+        start_snapshot = 1.0
+        end_snapshot   = 2.5
 
         4.times do
           GCProfiler.record_delta(start_snapshot, end_snapshot)
@@ -115,12 +115,10 @@ class NewRelic::Agent::StatsEngine
 
       def test_take_snapshot_should_return_snapshot
         stub_gc_timer(5.0)
-        stub_gc_count(10)
 
         snapshot = GCProfiler.take_snapshot
 
-        assert_equal(5.0, snapshot.gc_time_s)
-        assert_equal(10,  snapshot.gc_call_count)
+        assert_equal(5.0, snapshot)
       end
 
       def test_collect_gc_data
@@ -173,17 +171,6 @@ class NewRelic::Agent::StatsEngine
         NewRelic::Agent.instance.monotonic_gc_profiler.stubs(:total_time_s).returns(gc_timer_value_s)
       when GCProfiler::RailsBenchProfiler
         ::GC.stubs(:time).returns(gc_timer_value_us)
-      end
-    end
-
-    def stub_gc_count(gc_count)
-      profiler = GCProfiler.init
-
-      case profiler
-      when GCProfiler::CoreGCProfiler
-        ::GC.stubs(:count).returns(gc_count)
-      when GCProfiler::RailsBenchProfiler
-        ::GC.stubs(:collections).returns(gc_count)
       end
     end
 

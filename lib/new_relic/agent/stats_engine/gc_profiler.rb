@@ -7,8 +7,6 @@ module NewRelic
   module Agent
     class StatsEngine
       module GCProfiler
-        GCSnapshot = Struct.new(:gc_time_s, :gc_call_count)
-
         def self.init
           return @profiler if @initialized
           @profiler = if RailsBenchProfiler.enabled?
@@ -28,15 +26,15 @@ module NewRelic
         def self.take_snapshot
           init
           if @profiler
-            GCSnapshot.new(@profiler.call_time_s, @profiler.call_count)
+            @profiler.call_time_s
           else
             nil
           end
         end
 
-        def self.record_delta(start_snapshot, end_snapshot)
-          if @profiler && start_snapshot && end_snapshot
-            elapsed_gc_time_s = end_snapshot.gc_time_s - start_snapshot.gc_time_s
+        def self.record_delta(start_time_s, end_time_s)
+          if @profiler && start_time_s && end_time_s
+            elapsed_gc_time_s = end_time_s - start_time_s
             record_gc_metric(elapsed_gc_time_s)
 
             @profiler.reset
@@ -71,10 +69,6 @@ module NewRelic
             ::GC.time.to_f / 1_000_000 # this value is reported in us, so convert to s
           end
 
-          def call_count
-            ::GC.collections
-          end
-
           def reset
             ::GC.clear_stats
           end
@@ -87,10 +81,6 @@ module NewRelic
 
           def call_time_s
             NewRelic::Agent.instance.monotonic_gc_profiler.total_time_s
-          end
-
-          def call_count
-            ::GC.count
           end
 
           # When using GC::Profiler, it's important to periodically call
