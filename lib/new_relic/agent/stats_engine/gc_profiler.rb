@@ -36,36 +36,29 @@ module NewRelic
 
         def self.record_delta(start_snapshot, end_snapshot)
           if @profiler && start_snapshot && end_snapshot
-            elapsed_gc_time_s = end_snapshot.gc_time_s     - start_snapshot.gc_time_s
-            num_calls         = end_snapshot.gc_call_count - start_snapshot.gc_call_count
-
-            record_gc_metric(num_calls, elapsed_gc_time_s)
+            elapsed_gc_time_s = end_snapshot.gc_time_s - start_snapshot.gc_time_s
+            record_gc_metric(elapsed_gc_time_s)
 
             @profiler.reset
             elapsed_gc_time_s
           end
         end
 
-        def self.record_gc_metric(num_calls, elapsed)
-          if num_calls > 0
-            # GC stats are collected into a blamed metric which allows
-            # us to show the stats controller by controller
-            NewRelic::Agent.instance.stats_engine \
-              .record_metrics(gc_metric_name, nil, :scoped => true) do |stat|
-              stat.record_multiple_data_points(elapsed, num_calls)
-            end
-          end
+        def self.record_gc_metric(elapsed)
+          NewRelic::Agent.instance.stats_engine.record_metrics(gc_metric_name,
+                                                               elapsed,
+                                                               :scoped => true)
         end
 
         GC_OTHER = 'GC/Transaction/allOther'.freeze
         GC_WEB   = 'GC/Transaction/allWeb'.freeze
 
         def self.gc_metric_name
-          stat_name = if NewRelic::Agent::Transaction.recording_web_transaction?
-                        GC_WEB
-                      else
-                        GC_OTHER
-                      end
+          if NewRelic::Agent::Transaction.recording_web_transaction?
+            GC_WEB
+          else
+            GC_OTHER
+          end
         end
 
         class RailsBenchProfiler
