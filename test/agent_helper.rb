@@ -124,7 +124,7 @@ def assert_metrics_recorded_exclusive(expected, options={})
     recorded_metrics = recorded_metrics.select { |m| m.match(options[:filter]) }
   end
   expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s).to_s }
-  unexpected_metrics = recorded_metrics.select{|m| m !~ /GC\/cumulative/}
+  unexpected_metrics = recorded_metrics.select { |m| m !~ /GC\/Transaction/ }
   unexpected_metrics -= expected_metrics
   assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: [#{unexpected_metrics.join(', ')}]")
 end
