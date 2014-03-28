@@ -3,9 +3,14 @@ suite_condition("SideKiq requires MRI 1.9.3 or JRuby 1.6 in 1.9 mode") do
 end
 
 gemfile <<-RB
-  # Latest version
   gem 'json'
-  gem 'sidekiq', '~> 2.17.0'
+  gem 'sidekiq', '~> 3.0.0'
+  gem 'rack'
+RB
+
+gemfile <<-RB
+  gem 'json'
+  gem 'sidekiq', '~> 2.17.7'
   gem 'rack'
 RB
 
