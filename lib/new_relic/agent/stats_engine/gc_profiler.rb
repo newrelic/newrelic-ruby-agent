@@ -60,10 +60,14 @@ module NewRelic
         GC_WEB_SCOPED_SPEC   = NewRelic::MetricSpec.new(GC_WEB, SCOPE_PLACEHOLDER)
 
         def self.gc_metric_specs
+          # The .dup call on the scoped MetricSpec here is necessary because
+          # metric specs with non-empty scopes will have their scopes mutated
+          # when the metrics are merged into the global stats hash, and we don't
+          # want to mutate the original MetricSpec.
           if NewRelic::Agent::Transaction.recording_web_transaction?
-            [GC_ROLLUP_SPEC, GC_WEB_SPEC, GC_WEB_SCOPED_SPEC]
+            [GC_ROLLUP_SPEC, GC_WEB_SPEC, GC_WEB_SCOPED_SPEC.dup]
           else
-            [GC_ROLLUP_SPEC, GC_OTHER_SPEC, GC_OTHER_SCOPED_SPEC]
+            [GC_ROLLUP_SPEC, GC_OTHER_SPEC, GC_OTHER_SCOPED_SPEC.dup]
           end
         end
 
