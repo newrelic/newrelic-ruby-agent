@@ -138,7 +138,7 @@ module NewRelic
             env['newrelic.ignored'] = true
             return dispatch_without_newrelic
           elsif NewRelic::Agent::Transaction.current
-            return dispatch_without_newrelic
+            return dispatch_and_notice_errors_with_newrelic
           end
 
           name = TransactionNamer.initial_transaction_name(request)
