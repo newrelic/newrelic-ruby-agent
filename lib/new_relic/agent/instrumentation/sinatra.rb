@@ -125,7 +125,7 @@ module NewRelic
         def route_eval_with_newrelic(*args, &block)
           begin
             txn_name = TransactionNamer.transaction_name_for_route(env, request)
-            ::NewRelic::Agent.set_transaction_name("#{self.class.name}/#{txn_name}") unless txn_name.nil?
+            ::NewRelic::Agent.set_transaction_name("#{self.class.name}/#{txn_name}", :category => :sinatra) unless txn_name.nil?
           rescue => e
             ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
           end
