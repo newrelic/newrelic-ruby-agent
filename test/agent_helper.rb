@@ -59,7 +59,7 @@ def assert_equal_unordered(left, right)
 end
 
 def compare_metrics(expected, actual)
-  actual.delete_if {|a| a.include?('GC/cumulative') } # in case we are in REE
+  actual.delete_if {|a| a.include?('GC/Transaction/') }
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
@@ -124,7 +124,7 @@ def assert_metrics_recorded_exclusive(expected, options={})
     recorded_metrics = recorded_metrics.select { |m| m.match(options[:filter]) }
   end
   expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s).to_s }
-  unexpected_metrics = recorded_metrics.select{|m| m !~ /GC\/cumulative/}
+  unexpected_metrics = recorded_metrics.select { |m| m !~ /GC\/Transaction/ }
   unexpected_metrics -= expected_metrics
   assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: [#{unexpected_metrics.join(', ')}]")
 end

@@ -13,10 +13,10 @@ class GcController < ApplicationController
   def gc_action
     begin
       profiler = NewRelic::Agent::StatsEngine::GCProfiler.init
-      gc_count = profiler.call_count
+      initial_gc_count = current_gc_count
 
       Timeout.timeout(5) do
-        until profiler.call_count > gc_count
+        until current_gc_count > initial_gc_count
           long_string = "01234567" * 100_000
           long_string = nil
           another_long_string = "01234567" * 100_000
@@ -28,6 +28,14 @@ class GcController < ApplicationController
 
     render :text => 'ha'
   end
+
+  def current_gc_count
+    if NewRelic::LanguageSupport.ree?
+      ::GC.collections
+    elsif RUBY_VERSION >= '1.9.2'
+      ::GC.count
+    end
+  end
 end
 
 class GCRailsInstrumentationTest < ActionController::TestCase
@@ -36,6 +44,7 @@ class GCRailsInstrumentationTest < ActionController::TestCase
   include MultiverseHelpers
 
   setup_and_teardown_agent do
+    NewRelic::Agent.drop_buffered_data
     NewRelic::Agent::StatsEngine::GCProfiler.reset
     enable_gc_stats
     @controller = GcController.new
@@ -46,8 +55,8 @@ class GCRailsInstrumentationTest < ActionController::TestCase
     get :gc_action
     elapsed = Time.now.to_f - start.to_f
 
-    assert_in_range(elapsed, get_call_time('GC/cumulative'))
-    assert_in_range(elapsed, get_call_time('GC/cumulative', 'Controller/gc/gc_action'))
+    assert_in_range(elapsed, get_call_time('GC/Transaction/allWeb'))
+    assert_in_range(elapsed, get_call_time('GC/Transaction/allWeb', 'Controller/gc/gc_action'))
   end
 
   def test_records_transaction_param_for_gc_activity

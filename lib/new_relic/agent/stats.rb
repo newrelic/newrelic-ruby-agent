@@ -76,21 +76,6 @@ module NewRelic
 
       alias trace_call record_data_point
 
-      # Records multiple data points as one method call - this handles
-      # all the aggregation that would be done with multiple
-      # record_data_point calls
-      def record_multiple_data_points(total_value, count=1)
-        return record_data_point(total_value) if count == 1
-        @call_count += count
-        @total_call_time += total_value
-        avg_val = total_value / count
-        @min_call_time = avg_val if avg_val < @min_call_time || @call_count == count
-        @max_call_time = avg_val if avg_val > @max_call_time
-        @total_exclusive_time += total_value
-        @sum_of_squares += (avg_val * avg_val) * count
-        self
-      end
-
       # increments the call_count by one
       def increment_count(value = 1)
         @call_count += value

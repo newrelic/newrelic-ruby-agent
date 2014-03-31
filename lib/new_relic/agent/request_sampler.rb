@@ -140,10 +140,10 @@ class NewRelic::Agent::RequestSampler
   # scoped to just one transaction, so Datastore/all has what we want.
   map_metric('Datastore/all',         :total_call_time => "databaseDuration")
   map_metric('Datastore/all',         :call_count      => "databaseCallCount")
+  map_metric('GC/Transaction/all',    :total_call_time => "gcCumulative")
 
   # Web Metrics
   map_metric('WebFrontend/QueueTime', :total_call_time => "queueDuration")
-  map_metric("GC/cumulative",         :total_call_time => "gcCumulative")
   map_metric('Memcache/allWeb',       :total_call_time => "memcacheDuration")
 
   map_metric('External/allWeb',       :total_call_time => "externalDuration")
