@@ -90,7 +90,7 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     stats_hash.record(NewRelic::MetricSpec.new('WebFrontend/QueueTime'), 13)
     stats_hash.record(NewRelic::MetricSpec.new('External/allWeb'), 14)
     stats_hash.record(NewRelic::MetricSpec.new('Datastore/all'), 15)
-    stats_hash.record(NewRelic::MetricSpec.new("GC/Transaction/allWeb"), 16)
+    stats_hash.record(NewRelic::MetricSpec.new("GC/Transaction/all"), 16)
     stats_hash.record(NewRelic::MetricSpec.new('Memcache/allWeb'), 17)
 
     with_sampler_config do
@@ -111,7 +111,8 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     stats_hash = NewRelic::Agent::StatsHash.new
     stats_hash.record(NewRelic::MetricSpec.new('External/allOther'), 12)
     stats_hash.record(NewRelic::MetricSpec.new('Datastore/all'), 13)
-    stats_hash.record(NewRelic::MetricSpec.new('Memcache/allOther'), 14)
+    stats_hash.record(NewRelic::MetricSpec.new("GC/Transaction/all"), 14)
+    stats_hash.record(NewRelic::MetricSpec.new('Memcache/allOther'), 15)
 
     with_sampler_config do
       generate_request('name', :metrics => stats_hash)
@@ -119,7 +120,8 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
       event_data = single_sample[EVENT_DATA_INDEX]
       assert_equal 12, event_data["externalDuration"]
       assert_equal 13, event_data["databaseDuration"]
-      assert_equal 14, event_data["memcacheDuration"]
+      assert_equal 14, event_data["gcCumulative"]
+      assert_equal 15, event_data["memcacheDuration"]
 
       assert_equal 1, event_data["databaseCallCount"]
       assert_equal 1, event_data["externalCallCount"]
