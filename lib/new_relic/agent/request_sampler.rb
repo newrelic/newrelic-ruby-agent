@@ -150,10 +150,10 @@ class NewRelic::Agent::RequestSampler
   map_metric('External/allWeb',       :call_count      => "externalCallCount")
 
   # Background Metrics
-  map_metric('Memcache/allOther',       :total_call_time => "memcacheDuration")
+  map_metric('Memcache/allOther',     :total_call_time => "memcacheDuration")
 
-  map_metric('External/allOther',       :total_call_time => "externalDuration")
-  map_metric('External/allOther',       :call_count      => "externalCallCount")
+  map_metric('External/allOther',     :total_call_time => "externalDuration")
+  map_metric('External/allOther',     :call_count      => "externalCallCount")
 
   def extract_metrics(stats_hash)
     result = {}
