@@ -768,7 +768,7 @@ module NewRelic
           def connect_settings
             {
               :pid => $$,
-              :host => @local_host,
+              :host => determine_host,
               :app_name => Agent.config.app_names,
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
