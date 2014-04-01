@@ -22,7 +22,7 @@ class NewRelic::NoticedError
     @exception_class_constant = exception.class
 
     if exception.respond_to?('original_exception')
-      @message = exception.original_exception.message.to_s
+      @message = (exception.original_exception || exception).message.to_s
     else
       @message = (exception || '<no message>').to_s
     end
