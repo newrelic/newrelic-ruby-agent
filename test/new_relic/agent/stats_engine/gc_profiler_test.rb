@@ -60,8 +60,8 @@ class NewRelic::Agent::StatsEngine
       def test_record_delta_returns_delta_in_seconds
         GCProfiler.init
 
-        start_snapshot = 1.0
-        end_snapshot   = 2.5
+        start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
+        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
 
         result = GCProfiler.record_delta(start_snapshot, end_snapshot)
         assert_equal(1.5, result)
@@ -69,27 +69,13 @@ class NewRelic::Agent::StatsEngine
 
       def test_record_delta_records_gc_time_and_call_count_in_metric
         GCProfiler.init
-        start_snapshot = 1.0
-        end_snapshot   = 2.5
+        start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
+        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
 
         GCProfiler.record_delta(start_snapshot, end_snapshot)
 
         assert_gc_metrics(GCProfiler::GC_OTHER,
-                          :call_count => 1, :total_call_time => 1.5)
-      end
-
-      def test_record_delta_call_count_is_number_of_times_profiled
-        GCProfiler.init
-
-        start_snapshot = 1.0
-        end_snapshot   = 2.5
-
-        4.times do
-          GCProfiler.record_delta(start_snapshot, end_snapshot)
-        end
-
-        assert_gc_metrics(GCProfiler::GC_OTHER,
-                          :call_count => 4, :total_call_time => 6)
+                          :call_count => 2, :total_call_time => 1.5)
       end
 
       # This test is asserting that the implementation of GC::Profiler provided by
@@ -115,23 +101,27 @@ class NewRelic::Agent::StatsEngine
 
       def test_take_snapshot_should_return_snapshot
         stub_gc_timer(5.0)
+        stub_gc_count(10)
 
         snapshot = GCProfiler.take_snapshot
 
-        assert_equal(5.0, snapshot)
+        assert_equal(5.0, snapshot.gc_time_s)
+        assert_equal(10,  snapshot.gc_call_count)
       end
 
       def test_collect_gc_data
         stub_gc_timer(1.0)
+        stub_gc_count(1)
 
         with_config(:'transaction_tracer.enabled' => true) do
           in_transaction do
             stub_gc_timer(4.0)
+            stub_gc_count(3)
           end
         end
 
         assert_gc_metrics(GCProfiler::GC_OTHER,
-                          :call_count => 1, :total_call_time => 3.0)
+                          :call_count => 2, :total_call_time => 3.0)
         assert_metrics_not_recorded(GCProfiler::GC_WEB)
 
         tracer = NewRelic::Agent.instance.transaction_sampler
@@ -140,15 +130,17 @@ class NewRelic::Agent::StatsEngine
 
       def test_collect_gc_data_web
         stub_gc_timer(1.0)
+        stub_gc_count(1)
 
         with_config(:'transaction_tracer.enabled' => true) do
           in_web_transaction do
             stub_gc_timer(4.0)
+            stub_gc_count(3)
           end
         end
 
         assert_gc_metrics(GCProfiler::GC_WEB,
-                          :call_count => 1, :total_call_time => 3.0)
+                          :call_count => 2, :total_call_time => 3.0)
         assert_metrics_not_recorded(GCProfiler::GC_OTHER)
       end
     end
@@ -172,6 +164,17 @@ class NewRelic::Agent::StatsEngine
         NewRelic::Agent.instance.monotonic_gc_profiler.stubs(:total_time_s).returns(gc_timer_value_s)
       when GCProfiler::RailsBenchProfiler
         ::GC.stubs(:time).returns(gc_timer_value_us)
+      end
+    end
+
+    def stub_gc_count(gc_count)
+      profiler = GCProfiler.init
+
+      case profiler
+      when GCProfiler::CoreGCProfiler
+        ::GC.stubs(:count).returns(gc_count)
+      when GCProfiler::RailsBenchProfiler
+        ::GC.stubs(:collections).returns(gc_count)
       end
     end
 
