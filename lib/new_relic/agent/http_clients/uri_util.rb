@@ -15,14 +15,54 @@ module NewRelic
       module URIUtil
 
         def self.filter_uri(original)
-          filtered = original.dup
-          filtered.user = nil
-          filtered.password = nil
-          filtered.query = nil
-          filtered.fragment = nil
-          filtered.to_s
+          uri = FilteredUri.new original
+          uri.to_s
         end
 
+        class FilteredUri
+          class << self
+            attr_accessor :default_filters
+          end
+          self.default_filters = [ :user, :password, :query, :fragment ]
+
+          attr_accessor :original
+          private :original=, :original
+
+          attr_accessor :filter_attributes
+          private :filter_attributes=, :filter_attributes
+
+          def initialize original, filter_attributes = nil
+            self.original = original
+            self.filter_attributes = filter_attributes || default_filters
+          end
+
+          def to_s
+            filtered = parsed_uri
+            setters.each { |setter| filtered.send setter, nil }
+            filtered.to_s
+          end
+
+          def default_filters
+            self.class.default_filters
+          end
+          private :default_filters
+
+          def setters
+            filter_attributes.map { |a| "#{a}=" }
+          end
+          private :setters
+
+          def parsed_uri
+            return original.dup if filterable?
+            URI.parse original.to_s
+          end
+          private :parsed_uri
+
+          def filterable?
+            setters.all? { |setter| original.respond_to? setter }
+          end
+          private :filterable?
+        end
       end
     end
   end
