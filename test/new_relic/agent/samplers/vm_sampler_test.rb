@@ -12,6 +12,7 @@ module NewRelic
       class VMSamplerTest < Minitest::Test
         def setup
           stub_snapshot(
+            :taken_at                     => 0,
             :gc_runs                      => 0,
             :gc_total_time                => 0,
             :total_allocated_object       => 0,
@@ -57,7 +58,7 @@ module NewRelic
         end
 
         def test_poll_records_gc_runs_metric
-          stub_snapshot(:gc_runs => 10, :gc_total_time => 100)
+          stub_snapshot(:gc_runs => 10, :gc_total_time => 100, :taken_at => 200)
           generate_transactions(50)
           @sampler.poll
 
@@ -66,7 +67,7 @@ module NewRelic
               :call_count           => 50,  # number of transactions
               :total_call_time      => 10,  # number of GC runs
               :total_exclusive_time => 100, # total GC time
-              :sum_of_squares       => 1    # proxy for number of instances
+              :sum_of_squares       => 200  # total wall clock time
             }
           )
         end
@@ -156,16 +157,16 @@ module NewRelic
         def test_poll_handles_missing_gc_time_but_present_gc_count
           # We were able to determine the number of GC runs, but not the total
           # GC time. This will be the case if GC::Profiler is not available.
-          stub_snapshot(:gc_runs => 10)
+          stub_snapshot(:gc_runs => 10, :taken_at => 60)
           generate_transactions(50)
           @sampler.poll
 
           assert_metrics_recorded(
             'RubyVM/GC/runs' => {
-              :call_count      => 50,     # number of transactions
-              :total_call_time => 10,     # number of GC runs
-              :total_exclusive_time => 0, # total GC time
-              :sum_of_squares       => 1  # proxy for number of instances
+              :call_count           => 50, # number of transactions
+              :total_call_time      => 10, # number of GC runs
+              :total_exclusive_time => 0,  # total GC time
+              :sum_of_squares       => 60  # total wall clock time
             }
           )
         end
@@ -185,8 +186,7 @@ module NewRelic
           expected = {
             'RubyVM/GC/runs' => {
               :total_call_time      => 10,
-              :total_exclusive_time => 10,
-              :sum_of_squares       => 1
+              :total_exclusive_time => 10
             },
             'RubyVM/GC/total_allocated_object' => {
               :total_call_time => 10
@@ -207,6 +207,8 @@ module NewRelic
 
           assert_metrics_recorded(expected)
 
+          NewRelic::Agent.drop_buffered_data
+
           stub_snapshot(
             :gc_runs                      => 20,
             :gc_total_time                => 20,
@@ -219,6 +221,88 @@ module NewRelic
           @sampler.poll
 
           assert_metrics_recorded(expected)
+        end
+
+        # This test simulates multiple poll cycles without a metric reset
+        # between them. This can happen, for example, when the agent fails to
+        # post metric data to the collector.
+        def test_poll_aggregates_multiple_polls
+          stub_snapshot(
+            :gc_runs                      => 10,
+            :gc_total_time                => 10,
+            :total_allocated_object       => 10,
+            :major_gc_count               => 10,
+            :minor_gc_count               => 10,
+            :method_cache_invalidations   => 10,
+            :constant_cache_invalidations => 10,
+            :taken_at                     => 10
+          )
+          generate_transactions(10)
+          @sampler.poll
+
+          stub_snapshot(
+            :gc_runs                      => 20,
+            :gc_total_time                => 20,
+            :total_allocated_object       => 20,
+            :major_gc_count               => 20,
+            :minor_gc_count               => 20,
+            :method_cache_invalidations   => 20,
+            :constant_cache_invalidations => 20,
+            :taken_at                     => 20
+          )
+          generate_transactions(10)
+          @sampler.poll
+
+          assert_metrics_recorded(
+            'RubyVM/GC/runs' => {
+              :call_count           => 20,
+              :total_call_time      => 20,
+              :total_exclusive_time => 20,
+              :sum_of_squares       => 20
+            },
+            'RubyVM/GC/total_allocated_object' => {
+              :call_count      => 20,
+              :total_call_time => 20
+            },
+            'RubyVM/GC/major_gc_count' => {
+              :call_count      => 20,
+              :total_call_time => 20
+            },
+            'RubyVM/GC/minor_gc_count' => {
+              :call_count      => 20,
+              :total_call_time => 20
+            },
+            'RubyVM/CacheInvalidations/method' => {
+              :call_count      => 20,
+              :total_call_time => 20
+            },
+            'RubyVM/CacheInvalidations/constant' => {
+              :call_count      => 20,
+              :total_call_time => 20
+            }
+          )
+        end
+
+        def test_poll_records_wall_clock_time_for_gc_runs_metric
+          stub_snapshot(:gc_runs => 10, :gc_total_time => 10, :taken_at => 60)
+          @sampler.poll
+
+          assert_metrics_recorded(
+            'RubyVM/GC/runs' => {
+              :total_exclusive_time => 10, # total GC time
+              :sum_of_squares       => 60  # total wall clock time
+            }
+          )
+
+          stub_snapshot(:gc_runs => 10, :gc_total_time => 15, :taken_at => 120)
+          @sampler.poll
+
+          assert_metrics_recorded(
+            'RubyVM/GC/runs' => {
+              :total_exclusive_time => 15, # total GC time
+              :sum_of_squares       => 120 # total wall clock time
+            }
+          )
         end
 
         def generate_transactions(n)
