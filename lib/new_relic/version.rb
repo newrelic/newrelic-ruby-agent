@@ -11,8 +11,8 @@ module NewRelic
     end
 
     MAJOR = 3
-    MINOR = 7
-    TINY  = 4
+    MINOR = 8
+    TINY  = 0
 
     begin
       require File.join(File.dirname(__FILE__), 'build')
