@@ -56,11 +56,12 @@ module NewRelic
             if snapshot.gc_runs
               gc_runs = snapshot.gc_runs - @last_snapshot.gc_runs
             end
+            wall_clock_time = snapshot.taken_at - @last_snapshot.taken_at
             NewRelic::Agent.agent.stats_engine.record_metrics(GC_RUNS_METRIC) do |stats|
-              stats.call_count           = txn_count
-              stats.total_call_time      = gc_runs if gc_runs
-              stats.total_exclusive_time = gc_time if gc_time
-              stats.sum_of_squares       = 1
+              stats.call_count           += txn_count
+              stats.total_call_time      += gc_runs if gc_runs
+              stats.total_exclusive_time += gc_time if gc_time
+              stats.sum_of_squares       += wall_clock_time
             end
           end
         end
@@ -70,8 +71,8 @@ module NewRelic
           if value
             delta = value - @last_snapshot.send(key)
             NewRelic::Agent.agent.stats_engine.record_metrics(metric) do |stats|
-              stats.call_count      = txn_count
-              stats.total_call_time = delta
+              stats.call_count      += txn_count
+              stats.total_call_time += delta
             end
           end
         end

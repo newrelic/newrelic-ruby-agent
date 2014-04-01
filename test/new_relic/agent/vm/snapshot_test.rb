@@ -5,4 +5,9 @@
 require 'new_relic/agent/vm/snapshot'
 
 class NewRelic::Agent::VM::SnapshotTestCase < Minitest::Test
+  def test_records_taken_at_on_initialization
+    t = freeze_time
+    snap = NewRelic::Agent::VM::Snapshot.new
+    assert_equal(t.to_f, snap.taken_at)
+  end
 end
