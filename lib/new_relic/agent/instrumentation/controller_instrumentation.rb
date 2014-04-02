@@ -385,7 +385,8 @@ module NewRelic
         def newrelic_response_code; end
 
         def newrelic_request_headers
-          self.respond_to?(:request) && self.request.respond_to?(:headers) && self.request.headers
+          request = NewRelic::Agent::TransactionState.get.request
+          request && request.respond_to?(:headers) && request.headers
         end
 
         # overrideable method to determine whether to trace an action
