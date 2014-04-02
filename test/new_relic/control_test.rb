@@ -172,7 +172,19 @@ class NewRelic::ControlTest < Minitest::Test
     reset_agent
     with_config(:disable_samplers => true, :agent_enabled => true) do
       NewRelic::Control.instance.init_plugin
-      assert !NewRelic::Agent.instance.harvest_samplers.any?
+      refute NewRelic::Agent.instance.harvest_samplers.any?
+    end
+  end
+
+  def test_agent_not_starting_does_not_load_samplers
+    reset_agent
+
+    NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(true)
+
+    with_config(:disable_samplers => false, :agent_enabled => true) do
+      NewRelic::Control.instance.init_plugin
+      refute NewRelic::Agent.instance.already_started?
+      refute NewRelic::Agent.instance.harvest_samplers.any?
     end
   end
 
