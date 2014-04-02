@@ -197,8 +197,27 @@ class NewRelic::ControlTest < Minitest::Test
     end
   end
 
+  def test_agent_starting_after_fork_does_load_samplers
+    reset_agent
+
+    NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(true)
+
+    with_config(:disable_samplers => false,
+                :agent_enabled    => true,
+                :monitor_mode     => true,
+                :license_key      => 'a'*40) do
+      NewRelic::Control.instance.init_plugin
+      NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(false)
+      NewRelic::Agent.after_fork
+      assert NewRelic::Agent.instance.already_started?
+      assert NewRelic::Agent.instance.harvest_samplers.any?
+    end
+  end
+
   def reset_agent
     NewRelic::Agent.shutdown
     NewRelic::Agent.instance.harvest_samplers.clear
+    NewRelic::Agent.instance.instance_variable_set(:@connect_state, :pending)
+    NewRelic::Agent.instance.instance_variable_set(:@worker_thread, nil)
   end
 end
