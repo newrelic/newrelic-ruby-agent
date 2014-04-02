@@ -9,10 +9,10 @@ module NewRelic
   module Agent
     module Samplers
       class VMSampler < Sampler
-        GC_RUNS_METRIC      = 'RubyVM/GC/runs'.freeze
-        HEAP_LIVE_METRIC    = 'RubyVM/GC/heap_live'.freeze
-        HEAP_FREE_METRIC    = 'RubyVM/GC/heap_free'.freeze
-        THREAD_COUNT_METRIC = 'RubyVM/Threads/all'.freeze
+        GC_RUNS_METRIC                = 'RubyVM/GC/runs'.freeze
+        HEAP_LIVE_METRIC              = 'RubyVM/GC/heap_live'.freeze
+        HEAP_FREE_METRIC              = 'RubyVM/GC/heap_free'.freeze
+        THREAD_COUNT_METRIC           = 'RubyVM/Threads/all'.freeze
         OBJECT_ALLOCATIONS_METRIC     = 'RubyVM/GC/total_allocated_object'.freeze
         MAJOR_GC_METRIC               = 'RubyVM/GC/major_gc_count'.freeze
         MINOR_GC_METRIC               = 'RubyVM/GC/minor_gc_count'.freeze
@@ -61,6 +61,7 @@ module NewRelic
               stats.call_count           += txn_count
               stats.total_call_time      += gc_runs if gc_runs
               stats.total_exclusive_time += gc_time if gc_time
+              stats.max_call_time         = (gc_time.nil? ? 0 : 1)
               stats.sum_of_squares       += wall_clock_time
             end
           end
