@@ -21,11 +21,14 @@ class NewRelic::NoticedError
     @exception_class_name = exception.is_a?(Exception) ? exception.class.name : 'Error'
     @exception_class_constant = exception.class
 
-    if exception.respond_to?('original_exception')
-      @message = exception.original_exception.message.to_s
-    else
-      @message = (exception || '<no message>').to_s
+    if exception.nil?
+      @message = '<no message>'
+    elsif exception.respond_to?('original_exception')
+      @message = (exception.original_exception || exception).to_s
+    else # exception is not nil, but does not respond to original_exception
+      @message = exception.to_s
     end
+
 
     unless @message.is_a?(String)
       # In pre-1.9.3, Exception.new({}).to_s.class != String
