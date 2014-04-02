@@ -484,6 +484,7 @@ module NewRelic
             connect_in_foreground if Agent.config[:sync_startup]
             start_worker_thread(options)
             install_exit_handler
+            @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
           end
         end
 
@@ -527,8 +528,6 @@ module NewRelic
           log_startup
           check_config_and_start_agent
           log_version_and_pid
-
-          load_samplers unless Agent.config[:disable_samplers]
         end
 
         # Clear out the metric data, errors, and transaction traces, etc.
@@ -551,19 +550,6 @@ module NewRelic
         def reset_objects_with_locks
           @stats_engine = NewRelic::Agent::StatsEngine.new
           reset_harvest_locks
-        end
-
-        # adds samplers to the stats engine so that they run every
-        # minute. This is dynamically recognized by any class that
-        # subclasses NewRelic::Agent::Sampler
-        def load_samplers
-          Sampler.sampler_classes.each do |subclass|
-            add_harvest_sampler(subclass)
-          end
-        end
-
-        def add_harvest_sampler(subclass)
-          @harvest_samplers.add_sampler(subclass)
         end
 
         private

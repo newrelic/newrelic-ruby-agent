@@ -162,7 +162,10 @@ class NewRelic::ControlTest < Minitest::Test
 
   def test_init_plugin_loads_samplers_enabled
     reset_agent
-    with_config(:disable_samplers => false, :agent_enabled => true) do
+    with_config(:disable_samplers => false,
+                :agent_enabled    => true,
+                :monitor_mode     => true,
+                :license_key      => 'a'*40) do
       NewRelic::Control.instance.init_plugin
       assert NewRelic::Agent.instance.harvest_samplers.any?
     end
@@ -170,7 +173,10 @@ class NewRelic::ControlTest < Minitest::Test
 
   def test_init_plugin_loads_samplers_disabled
     reset_agent
-    with_config(:disable_samplers => true, :agent_enabled => true) do
+    with_config(:disable_samplers => true,
+                :agent_enabled    => true,
+                :monitor_mode     => true,
+                :license_key      => 'a'*40) do
       NewRelic::Control.instance.init_plugin
       refute NewRelic::Agent.instance.harvest_samplers.any?
     end
@@ -181,7 +187,10 @@ class NewRelic::ControlTest < Minitest::Test
 
     NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(true)
 
-    with_config(:disable_samplers => false, :agent_enabled => true) do
+    with_config(:disable_samplers => false,
+                :agent_enabled    => true,
+                :monitor_mode     => true,
+                :license_key      => 'a'*40) do
       NewRelic::Control.instance.init_plugin
       refute NewRelic::Agent.instance.already_started?
       refute NewRelic::Agent.instance.harvest_samplers.any?
