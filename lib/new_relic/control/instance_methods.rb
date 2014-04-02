@@ -73,7 +73,6 @@ module NewRelic
         if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
           start_agent
           install_instrumentation
-          load_samplers unless Agent.config[:disable_samplers]
         elsif !Agent.config[:agent_enabled]
           install_shim
         end
