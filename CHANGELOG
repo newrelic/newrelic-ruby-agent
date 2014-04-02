@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes #
 
-## v3.7.4 ##
+## v3.8.0 ##
 
   * Better support for forking and daemonizing dispatchers (e.g. Puma, Unicorn)
 
