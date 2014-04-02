@@ -305,6 +305,24 @@ module NewRelic
           )
         end
 
+        def test_poll_records_one_in_gc_runs_max_if_gc_time_available
+          stub_snapshot(:gc_runs => 10, :gc_total_time => 10)
+          @sampler.poll
+
+          assert_metrics_recorded(
+            'RubyVM/GC/runs' => { :max_call_time => 1 }
+          )
+        end
+
+        def test_poll_records_zero_in_gc_runs_max_if_gc_time_not_available
+          stub_snapshot(:gc_runs => 10)
+          @sampler.poll
+
+          assert_metrics_recorded(
+            'RubyVM/GC/runs' => { :max_call_time => 0 }
+          )
+        end
+
         def generate_transactions(n)
           n.times do
             in_transaction('txn') { }
