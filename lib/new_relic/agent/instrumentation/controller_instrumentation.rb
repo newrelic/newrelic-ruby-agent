@@ -386,7 +386,13 @@ module NewRelic
 
         def newrelic_request_headers
           request = NewRelic::Agent::TransactionState.get.request
-          request && request.respond_to?(:headers) && request.headers
+          if request
+            if request.respond_to?(:headers)
+              request.headers
+            elsif request.respond_to?(:env)
+              request.env
+            end
+          end
         end
 
         # overrideable method to determine whether to trace an action
