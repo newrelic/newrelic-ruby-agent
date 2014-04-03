@@ -85,6 +85,15 @@ module NewRelic
         ENV['RAILS_ENV']
       end
     end
+    report_on('Ruby GC settings') do
+      gc_setting_names = ENV.keys.select do |name|
+        name =~ /^(RUBY_GC_.*|RUBY_HEAP_MIN_SLOTS|RUBY_FREE_MIN)$/
+      end
+      gc_setting_names.map do |name|
+        "#{name}=#{ENV[name]}"
+      end
+    end
+
     # end reporting logic
     ####################################
 

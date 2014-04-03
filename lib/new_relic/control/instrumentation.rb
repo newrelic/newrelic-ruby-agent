@@ -52,15 +52,6 @@ module NewRelic
         _install_instrumentation
       end
 
-      # adds samplers to the stats engine so that they run every
-      # minute. This is dynamically recognized by any class that
-      # subclasses NewRelic::Agent::Sampler
-      def load_samplers
-        NewRelic::Agent::Sampler.sampler_classes.each do | subclass |
-          NewRelic::Agent.instance.add_harvest_sampler(subclass)
-        end
-      end
-
       private
 
       def _install_instrumentation

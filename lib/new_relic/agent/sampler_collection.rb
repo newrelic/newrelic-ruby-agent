@@ -25,6 +25,16 @@ module NewRelic
         self.any? { |s| s.class == sampler_class }
       end
 
+      # adds samplers to the sampler collection so that they run every
+      # minute. This is dynamically recognized by any class that
+      # subclasses NewRelic::Agent::Sampler
+      def load_samplers
+        Sampler.sampler_classes.each do |subclass|
+          add_sampler(subclass)
+        end
+      end
+
+
       def poll_samplers
         @samplers.delete_if do |sampler|
           begin
