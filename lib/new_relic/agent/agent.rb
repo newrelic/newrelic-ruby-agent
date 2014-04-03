@@ -464,6 +464,10 @@ module NewRelic
               !NewRelic::Agent::PipeChannelManager.listener.started?
           end
 
+          def in_resque_child_process?
+            @service.is_a?(NewRelic::Agent::PipeService)
+          end
+
           # Sanity-check the agent configuration and start the agent,
           # setting up the worker thread and the exit handler to shut
           # down the agent
@@ -480,11 +484,15 @@ module NewRelic
           def setup_and_start_agent(options={})
             @started = true
             @harvester.mark_started
-            generate_environment_report unless @service.is_a?(NewRelic::Agent::PipeService)
+
+            unless in_resque_child_process?
+              generate_environment_report
+              install_exit_handler
+              @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
+            end
+
             connect_in_foreground if Agent.config[:sync_startup]
             start_worker_thread(options)
-            install_exit_handler
-            @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
           end
         end
 
