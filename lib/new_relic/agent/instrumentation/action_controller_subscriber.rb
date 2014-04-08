@@ -45,15 +45,16 @@ module NewRelic
           set_enduser_ignore if event.enduser_ignored?
 
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
-            if event.finalize_metric_name!.nil?
-              Agent.instance.pop_trace_execution_flag
-            else
+            # event.finalize_metric_name! returns nil when this
+            # transaction is being ignored, which means we shouldn't
+            # record any metrics for it
+            if event.finalize_metric_name!
               record_queue_time(event)
               record_metrics(event)
               record_apdex(event)
               record_instance_busy(event)
-              stop_transaction(event)
             end
+            stop_transaction(event)
           else
             Agent.instance.pop_trace_execution_flag
           end

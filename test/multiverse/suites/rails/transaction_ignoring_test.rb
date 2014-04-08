@@ -12,12 +12,11 @@ class TransactionIgnorerController < ApplicationController
   include Rails.application.routes.url_helpers
 
   def run_transaction
+    NewRelic::Agent.set_transaction_name(params[:txn_name])
+    NewRelic::Agent.notice_error(params[:error_msg]) if params[:error_msg]
     render :text => 'some stuff'
   end
 
-  def run_transaction_with_error
-    ????
-  end
 
 end
 
@@ -26,12 +25,13 @@ class TransactionIgnoringTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
   include TransactionIgnoringTestCases
 
-  def trigger_transaction(name)
-    get '/transaction_ignorer/run_transaction'
+  def trigger_transaction(txn_name)
+    get '/transaction_ignorer/run_transaction', :txn_name => txn_name
   end
 
   def trigger_transaction_with_error(txn_name, error_msg)
-    get '/transaction_ignorer/run_transaction_with_error' ????
+    get '/transaction_ignorer/run_transaction', :txn_name  => txn_name,
+                                                :error_msg => error_msg
   end
 
 end

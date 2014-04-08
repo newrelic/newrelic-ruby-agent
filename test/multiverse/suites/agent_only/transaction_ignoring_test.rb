@@ -11,8 +11,8 @@ class TransactionIgnoringTest < Minitest::Test
   include MultiverseHelpers
   include TransactionIgnoringTestCases
 
-  def trigger_transaction(name)
-    TestWidget.new.run_transaction(name)
+  def trigger_transaction(txn_name)
+    TestWidget.new.run_transaction(txn_name)
   end
 
   def trigger_transaction_with_error(txn_name, error_msg)
@@ -24,8 +24,8 @@ class TransactionIgnoringTest < Minitest::Test
   class TestWidget
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-    def run_transaction(name)
-      NewRelic::Agent.set_transaction_name(name)
+    def run_transaction(txn_name)
+      NewRelic::Agent.set_transaction_name(txn_name)
       yield if block_given?
     end
 
