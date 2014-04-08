@@ -22,7 +22,13 @@ class RumAutoTest < Minitest::Test
   setup_and_teardown_agent(:application_id => 'appId',
                            :beacon => 'beacon',
                            :browser_key => 'browserKey',
-                           :js_agent_loader => JS_AGENT_LOADER)
+                           :js_agent_loader => JS_AGENT_LOADER) do |collector|
+    collector.stub('connect', {
+      'transaction_name_rules' => [{"match_expression" => "ignored_transaction",
+                                    "ignore"           => true}],
+      'agent_run_id' => 1,
+    })
+  end
 
   def after_setup
     @inner_app = TestingApp.new
@@ -73,6 +79,13 @@ class RumAutoTest < Minitest::Test
     @inner_app.response = body
     @inner_app.headers["Content-Type"] = "text/xml"
     get '/'
+    assert_equal(last_response.body, body)
+  end
+
+  def test_rum_headers_are_not_injected_in_ignored_txn
+    body = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
+    @inner_app.response = body
+    get '/', 'transaction_name' => 'ignored_transaction'
     assert_equal(last_response.body, body)
   end
 
