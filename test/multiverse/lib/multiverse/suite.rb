@@ -13,18 +13,21 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 module Multiverse
   class Suite
     include Color
-    attr_accessor :directory, :seed, :names, :debug
+    attr_accessor :directory, :seed, :names, :debug, :filter_env
 
     def suite
       File.basename(directory)
     end
 
     def initialize(directory, opts={})
-      self.directory = directory
-      self.debug = opts.fetch(:debug, false)
-      self.seed = opts.fetch(:seed, "")
-      self.names = opts.fetch(:names, [])
-      ENV["VERBOSE"] = '1' if opts[:verbose]
+      self.directory  = directory
+      self.debug      = opts.fetch(:debug, false)
+      self.seed       = opts.fetch(:seed, "")
+      self.names      = opts.fetch(:names, [])
+      ENV["VERBOSE"]  = '1' if opts[:verbose]
+
+      self.filter_env = opts.fetch(:env, nil)
+      self.filter_env = filter_env.to_i if filter_env
     end
 
     def clean_gemfiles(env_index)
@@ -166,7 +169,8 @@ module Multiverse
       end
 
       label = should_serialize? ? 'serial' : 'parallel'
-      puts yellow("\nRunning #{directory.inspect} in #{environments.size} environments in #{label}")
+      env_count = filter_env ? 1 : environments.size
+      puts yellow("\nRunning #{directory.inspect} in #{env_count} environments in #{label}")
 
       environments.before.call if environments.before
       if should_serialize?
@@ -179,6 +183,8 @@ module Multiverse
 
     def execute_serial
       environments.each_with_index do |gemfile_text, i|
+        next unless should_run_environment?(i)
+
         if debug
           execute_in_foreground(i)
         else
@@ -190,9 +196,15 @@ module Multiverse
     def execute_parallel
       threads = []
       environments.each_with_index do |gemfile_text, i|
+        next unless should_run_environment?(i)
         threads << Thread.new { execute_in_background(i) }
       end
       threads.each {|t| t.join}
+    end
+
+    def should_run_environment?(index)
+      return true unless filter_env
+      return filter_env == index
     end
 
     def with_clean_env

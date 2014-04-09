@@ -23,11 +23,7 @@ namespace :test do
   task :multiverse, [:suite, :param1, :param2, :param3, :param4] => [] do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'multiverse', 'lib', 'multiverse', 'environment'))
     opts = Multiverse::Runner.parse_args(args)
-    if opts.key?(:run_one)
-      Multiverse::Runner.run_one(args.suite, opts)
-    else
-      Multiverse::Runner.run(args.suite, opts)
-    end
+    Multiverse::Runner.run(args.suite, opts)
   end
 
   desc "Test the multiverse testing framework by executing tests in test/multiverse/test. Get meta with it."
