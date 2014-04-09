@@ -7,27 +7,48 @@
 # version of Minitest, which we use throughout, not the one in stdlib on
 # Rubies starting with 1.9.x
 require 'rubygems'
+require 'base64'
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 
 module Multiverse
   class Suite
     include Color
-    attr_accessor :directory, :seed, :names, :debug, :filter_env
+    attr_accessor :directory, :opts
+
+    def initialize(directory, opts={})
+      self.directory  = directory
+      self.opts       = opts
+      ENV["VERBOSE"]  = '1' if opts[:verbose]
+    end
+
+    def self.encode_options(decoded_opts)
+      Base64.encode64(Marshal.dump(decoded_opts)).gsub("\n", "")
+    end
+
+    def self.decode_options(encoded_opts)
+      Marshal.load(Base64.decode64(encoded_opts))
+    end
 
     def suite
       File.basename(directory)
     end
 
-    def initialize(directory, opts={})
-      self.directory  = directory
-      self.debug      = opts.fetch(:debug, false)
-      self.seed       = opts.fetch(:seed, "")
-      self.names      = opts.fetch(:names, [])
-      ENV["VERBOSE"]  = '1' if opts[:verbose]
+    def seed
+      opts.fetch(:seed, "")
+    end
 
-      self.filter_env = opts.fetch(:env, nil)
-      self.filter_env = filter_env.to_i if filter_env
+    def debug
+      opts.fetch(:debug, false)
+    end
+
+    def names
+      opts.fetch(:names, [])
+    end
+
+    def filter_env
+      value = opts.fetch(:env, nil)
+      value = value.to_i if value
     end
 
     def clean_gemfiles(env_index)
@@ -236,7 +257,7 @@ module Multiverse
     end
 
     def child_command_line(env)
-      "#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'"
+      "#{__FILE__} #{directory} #{env} '#{Suite.encode_options(opts)}'"
     end
 
     def check_for_failure(env)
@@ -371,7 +392,8 @@ if $0 == __FILE__ && $already_running.nil?
   $stderr.reopen($stdout)
 
   # Ugly, but seralized args passed along to #popen when kicking child off
-  dir, env_index, seed, names, _ = *ARGV
-  suite = Multiverse::Suite.new(dir, {:seed => seed, :names => names.split(",")})
+  dir, env_index, encoded_opts, _ = *ARGV
+  opts = Multiverse::Suite.decode_options(encoded_opts)
+  suite = Multiverse::Suite.new(dir, opts)
   suite.execute_child_environment(env_index.to_i)
 end
