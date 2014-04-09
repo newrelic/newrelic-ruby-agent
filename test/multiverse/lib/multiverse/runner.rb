@@ -25,7 +25,8 @@ module Multiverse
     end
 
     # Args without a = are turned into just opts[key] = true
-    # Args with = get split, then assigned as key + value
+    # Args with = get split, then assigned as key + value. Repeats overwrite
+    # Args with name= will tally up rather than overwriting
     # :suite gets ignored
     def parse_args(args)
       opts = {}
@@ -66,15 +67,6 @@ module Multiverse
 
       OutputCollector.overall_report
       exit exit_status
-    end
-
-    # run_one is used to run a suite directly in process
-    # Pipe shenanigans in the typical Suite runner interferes with the debugger
-    def run_one(filter="", opts={})
-      dir = Dir.new(SUITES_DIRECTORY).entries.find { |d| d.include?(filter) }
-      full_path = File.join(SUITES_DIRECTORY, dir)
-      $stderr.reopen($stdout)
-      Suite.new(full_path, opts).execute_child_environment(opts.fetch(:env, "0").to_i)
     end
   end
 end

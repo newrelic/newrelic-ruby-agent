@@ -7,20 +7,52 @@
 # version of Minitest, which we use throughout, not the one in stdlib on
 # Rubies starting with 1.9.x
 require 'rubygems'
+require 'base64'
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 
 module Multiverse
   class Suite
     include Color
-    attr_accessor :directory, :include_debugger, :seed, :names
+    attr_accessor :directory, :opts
 
     def initialize(directory, opts={})
-      self.directory = directory
-      self.include_debugger = opts.fetch(:run_one, false)
-      self.seed = opts.fetch(:seed, "")
-      self.names = opts.fetch(:names, [])
-      ENV["VERBOSE"] = '1' if opts[:verbose]
+      self.directory  = directory
+      self.opts       = opts
+      ENV["VERBOSE"]  = '1' if opts[:verbose]
+    end
+
+    def self.encode_options(decoded_opts)
+      Base64.encode64(Marshal.dump(decoded_opts)).gsub("\n", "")
+    end
+
+    def self.decode_options(encoded_opts)
+      Marshal.load(Base64.decode64(encoded_opts))
+    end
+
+    def suite
+      File.basename(directory)
+    end
+
+    def seed
+      opts.fetch(:seed, "")
+    end
+
+    def debug
+      opts.fetch(:debug, false)
+    end
+
+    def names
+      opts.fetch(:names, [])
+    end
+
+    def filter_env
+      value = opts.fetch(:env, nil)
+      value = value.to_i if value
+    end
+
+    def filter_file
+      opts.fetch(:file, nil)
     end
 
     def clean_gemfiles(env_index)
@@ -75,13 +107,8 @@ module Multiverse
 
         f.puts "  gem 'mocha', '0.14.0', :require => false"
 
-        # Need to get Rubinius' debugger wired in, but MRI's doesn't work
-        if include_debugger
-          if RUBY_VERSION > '1.8.7'
-            f.puts "  gem 'debugger', :platforms => [:mri]"
-          else
-            f.puts "  gem 'ruby-debug', :platforms => [:mri]"
-          end
+        if debug
+          f.puts "  gem 'pry'"
         end
       end
       puts yellow("Gemfile.#{env_index} set to:") if verbose?
@@ -127,6 +154,7 @@ module Multiverse
 
     def execute_child_environment(env_index)
       with_clean_env do
+        log_test_running_process
         configure_before_bundling
 
         gemfile_text = environments[env_index]
@@ -139,8 +167,12 @@ module Multiverse
       end
     end
 
+    def log_test_running_process
+      puts yellow("Starting tests in child PID #{Process.pid}\n")
+    end
+
     def should_serialize?
-      ENV['SERIALIZE']
+      ENV['SERIALIZE'] || debug
     end
 
     # Load the test suite's environment and execute it.
@@ -156,7 +188,8 @@ module Multiverse
       end
 
       label = should_serialize? ? 'serial' : 'parallel'
-      puts yellow("\nRunning #{directory.inspect} in #{environments.size} environments in #{label}")
+      env_count = filter_env ? 1 : environments.size
+      puts yellow("\nRunning #{directory.inspect} in #{env_count} environments in #{label}")
 
       environments.before.call if environments.before
       if should_serialize?
@@ -168,17 +201,33 @@ module Multiverse
     end
 
     def execute_serial
-      environments.each_with_index do |gemfile_text, i|
-        execute_with_pipe(i)
+      with_each_environment do |_, i|
+        if debug
+          execute_in_foreground(i)
+        else
+          execute_in_background(i)
+        end
       end
     end
 
     def execute_parallel
       threads = []
-      environments.each_with_index do |gemfile_text, i|
-        threads << Thread.new { execute_with_pipe(i) }
+      with_each_environment do |_, i|
+        threads << Thread.new { execute_in_background(i) }
       end
       threads.each {|t| t.join}
+    end
+
+    def with_each_environment
+      environments.each_with_index do |gemfile_text, i|
+        next unless should_run_environment?(i)
+        yield gemfile_text, i
+      end
+    end
+
+    def should_run_environment?(index)
+      return true unless filter_env
+      return filter_env == index
     end
 
     def with_clean_env
@@ -191,12 +240,19 @@ module Multiverse
       end
     end
 
-    def execute_with_pipe(env)
+    def execute_in_foreground(env)
       with_clean_env do
-        suite = File.basename(directory)
-        IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'") do |io|
-          OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
-          OutputCollector.write(suite, env, yellow("Starting tests in child PID #{io.pid}\n"))
+        puts yellow("Running #{suite.inspect} for Envfile entry #{env}\n")
+        system(child_command_line(env))
+        check_for_failure(env)
+      end
+    end
+
+    def execute_in_background(env)
+      with_clean_env do
+        OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
+
+        IO.popen(child_command_line(env)) do |io|
           until io.eof do
             chars = io.read
             OutputCollector.write(suite, env, chars)
@@ -204,11 +260,20 @@ module Multiverse
           OutputCollector.suite_report(suite, env)
         end
 
-        if $? != 0
-          OutputCollector.failed(suite, env)
-        end
-        Multiverse::Runner.notice_exit_status $?
+        check_for_failure(env)
       end
+    end
+
+    def child_command_line(env)
+      "#{__FILE__} #{directory} #{env} '#{Suite.encode_options(opts)}'"
+    end
+
+    def check_for_failure(env)
+      if $? != 0
+        OutputCollector.write(suite, env, red("#{suite.inspect} for Envfile entry #{env} failed!"))
+        OutputCollector.failed(suite, env)
+      end
+      Multiverse::Runner.notice_exit_status $?
     end
 
     def trigger_test_run
@@ -312,6 +377,10 @@ module Multiverse
       files.delete(before)
       files.delete(after)
 
+      # Important that we filter after removing before/after so they don't get
+      # tromped for not matching our pattern!
+      files.select! {|file| file.include?(filter_file) } if filter_file
+
       files.insert(0, before) if before
       files.insert(-1, after) if after
 
@@ -335,7 +404,8 @@ if $0 == __FILE__ && $already_running.nil?
   $stderr.reopen($stdout)
 
   # Ugly, but seralized args passed along to #popen when kicking child off
-  dir, env_index, seed, names, _ = *ARGV
-  suite = Multiverse::Suite.new(dir, {:seed => seed, :names => names.split(",")})
+  dir, env_index, encoded_opts, _ = *ARGV
+  opts = Multiverse::Suite.decode_options(encoded_opts)
+  suite = Multiverse::Suite.new(dir, opts)
   suite.execute_child_environment(env_index.to_i)
 end
