@@ -13,11 +13,15 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 module Multiverse
   class Suite
     include Color
-    attr_accessor :directory, :include_debugger, :seed, :names
+    attr_accessor :directory, :seed, :names, :debug
+
+    def suite
+      File.basename(directory)
+    end
 
     def initialize(directory, opts={})
       self.directory = directory
-      self.include_debugger = opts.fetch(:run_one, false)
+      self.debug = opts.fetch(:debug, false)
       self.seed = opts.fetch(:seed, "")
       self.names = opts.fetch(:names, [])
       ENV["VERBOSE"] = '1' if opts[:verbose]
@@ -76,12 +80,13 @@ module Multiverse
         f.puts "  gem 'mocha', '0.14.0', :require => false"
 
         # Need to get Rubinius' debugger wired in, but MRI's doesn't work
-        if include_debugger
+        if debug
           if RUBY_VERSION > '1.8.7'
             f.puts "  gem 'debugger', :platforms => [:mri]"
           else
             f.puts "  gem 'ruby-debug', :platforms => [:mri]"
           end
+          f.puts "  gem 'pry'"
         end
       end
       puts yellow("Gemfile.#{env_index} set to:") if verbose?
@@ -127,6 +132,7 @@ module Multiverse
 
     def execute_child_environment(env_index)
       with_clean_env do
+        log_test_running_process
         configure_before_bundling
 
         gemfile_text = environments[env_index]
@@ -139,8 +145,12 @@ module Multiverse
       end
     end
 
+    def log_test_running_process
+      puts yellow("Starting tests in child PID #{Process.pid}\n")
+    end
+
     def should_serialize?
-      ENV['SERIALIZE']
+      ENV['SERIALIZE'] || debug
     end
 
     # Load the test suite's environment and execute it.
@@ -169,14 +179,18 @@ module Multiverse
 
     def execute_serial
       environments.each_with_index do |gemfile_text, i|
-        execute_with_pipe(i)
+        if debug
+          execute_in_foreground(i)
+        else
+          execute_in_background(i)
+        end
       end
     end
 
     def execute_parallel
       threads = []
       environments.each_with_index do |gemfile_text, i|
-        threads << Thread.new { execute_with_pipe(i) }
+        threads << Thread.new { execute_in_background(i) }
       end
       threads.each {|t| t.join}
     end
@@ -191,12 +205,19 @@ module Multiverse
       end
     end
 
-    def execute_with_pipe(env)
+    def execute_in_foreground(env)
       with_clean_env do
-        suite = File.basename(directory)
-        IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'") do |io|
-          OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
-          OutputCollector.write(suite, env, yellow("Starting tests in child PID #{io.pid}\n"))
+        puts yellow("Running #{suite.inspect} for Envfile entry #{env}\n")
+        system(child_command_line(env))
+        check_for_failure(env)
+      end
+    end
+
+    def execute_in_background(env)
+      with_clean_env do
+        OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
+
+        IO.popen(child_command_line(env)) do |io|
           until io.eof do
             chars = io.read
             OutputCollector.write(suite, env, chars)
@@ -204,11 +225,20 @@ module Multiverse
           OutputCollector.suite_report(suite, env)
         end
 
-        if $? != 0
-          OutputCollector.failed(suite, env)
-        end
-        Multiverse::Runner.notice_exit_status $?
+        check_for_failure(env)
       end
+    end
+
+    def child_command_line(env)
+      "#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'"
+    end
+
+    def check_for_failure(env)
+      if $? != 0
+        OutputCollector.write(suite, env, red("#{suite.inspect} for Envfile entry #{env} failed!"))
+        OutputCollector.failed(suite, env)
+      end
+      Multiverse::Runner.notice_exit_status $?
     end
 
     def trigger_test_run
