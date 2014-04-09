@@ -14,6 +14,9 @@ class TransactionIgnorerController < ApplicationController
   def run_transaction
     NewRelic::Agent.set_transaction_name(params[:txn_name])
     NewRelic::Agent.notice_error(params[:error_msg]) if params[:error_msg]
+    NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
+                                 "Database/test/select",
+                                 nil, 1.5) if params[:slow_sql]
     render :text => 'some stuff'
   end
 
@@ -26,12 +29,17 @@ class TransactionIgnoringTest < ActionDispatch::IntegrationTest
   include TransactionIgnoringTestCases
 
   def trigger_transaction(txn_name)
-    get '/transaction_ignorer/run_transaction', :txn_name => txn_name
+    get '/transaction_ignorer/run_transaction', :txn_name  => txn_name
   end
 
   def trigger_transaction_with_error(txn_name, error_msg)
     get '/transaction_ignorer/run_transaction', :txn_name  => txn_name,
                                                 :error_msg => error_msg
+  end
+
+  def trigger_transaction_with_slow_sql(txn_name)
+    get '/transaction_ignorer/run_transaction', :txn_name  => txn_name,
+                                                :slow_sql  => 'true'
   end
 
 end

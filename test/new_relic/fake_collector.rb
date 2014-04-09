@@ -243,6 +243,10 @@ module NewRelic
         super
         @body[0][0][9] = unblob(@body[0][0][9]) if @format == :json
       end
+
+      def traces
+        @body[0]
+      end
     end
 
     class TransactionSampleDataPost < AgentPost

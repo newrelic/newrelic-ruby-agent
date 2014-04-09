@@ -21,6 +21,7 @@ module TransactionIgnoringTestCases
   # Test classes that include this module are expected to define:
   #   trigger_transaction(txn_name)
   #   trigger_transaction_with_error(txn_name, error_msg)
+  #   trigger_transaction_with_slow_sql(txn_name)
 
 
   def test_does_not_record_metrics_for_ignored_transaction
@@ -76,6 +77,28 @@ module TransactionIgnoringTestCases
 
     assert_equal(1, events.size)
     assert_equal(TXN_PREFIX+'accepted_transaction', events.first[0]['name'])
+  end
+
+  def test_does_not_record_sql_traces_for_ignored_transactions
+    trigger_transaction_with_slow_sql('ignored_transaction')
+    trigger_transaction_with_slow_sql('accepted_transaction')
+
+    NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
+
+    posts = $collector.calls_for('sql_trace_data')
+    assert_equal(1, posts.size)
+
+    traces = posts.first.traces
+
+    assert_equal(1, traces.size)
+
+    trace = traces.first
+
+    # From SqlTrace#to_collector_array
+    # 0 -> path
+    # 5 -> call_count
+    assert_equal(TXN_PREFIX+'accepted_transaction', trace[0])
+    assert_equal(1, trace[5])
   end
 
 end
