@@ -201,9 +201,7 @@ module Multiverse
     end
 
     def execute_serial
-      environments.each_with_index do |gemfile_text, i|
-        next unless should_run_environment?(i)
-
+      with_each_environment do |_, i|
         if debug
           execute_in_foreground(i)
         else
@@ -214,11 +212,17 @@ module Multiverse
 
     def execute_parallel
       threads = []
-      environments.each_with_index do |gemfile_text, i|
-        next unless should_run_environment?(i)
+      with_each_environment do |_, i|
         threads << Thread.new { execute_in_background(i) }
       end
       threads.each {|t| t.join}
+    end
+
+    def with_each_environment
+      environments.each_with_index do |gemfile_text, i|
+        next unless should_run_environment?(i)
+        yield gemfile_text, i
+      end
     end
 
     def should_run_environment?(index)
