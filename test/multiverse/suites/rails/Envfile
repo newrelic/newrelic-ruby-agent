@@ -1,6 +1,6 @@
 if RUBY_VERSION >= '1.9.3'
   gemfile <<-RB
-    gem 'rails', '~>4.1.0.rc1'
+    gem 'rails', '~>4.1.0'
     # Multiverse has an incompatibility with Minitest 5.3.0, so lock here for
     # now
     gem 'minitest', '5.2.3'
