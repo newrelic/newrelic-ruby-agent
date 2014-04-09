@@ -51,6 +51,10 @@ module Multiverse
       value = value.to_i if value
     end
 
+    def filter_file
+      opts.fetch(:file, nil)
+    end
+
     def clean_gemfiles(env_index)
       FileUtils.rm_rf File.join(directory, "Gemfile.#{env_index}")
       FileUtils.rm_rf File.join(directory, "Gemfile.#{env_index}.lock")
@@ -368,6 +372,10 @@ module Multiverse
 
       files.delete(before)
       files.delete(after)
+
+      # Important that we filter after removing before/after so they don't get
+      # tromped for not matching our pattern!
+      files.select! {|file| file.include?(filter_file) } if filter_file
 
       files.insert(0, before) if before
       files.insert(-1, after) if after
