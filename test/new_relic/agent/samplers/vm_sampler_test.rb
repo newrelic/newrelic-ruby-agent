@@ -32,6 +32,12 @@ module NewRelic
           assert VMSampler.supported_on_this_platform?
         end
 
+        def test_enabled_should_return_false_if_disabled_via_config_setting
+          with_config(:disable_vm_sampler => true) do
+            refute VMSampler.enabled?
+          end
+        end
+
         def test_records_transaction_count
           generate_transactions(10)
           assert_equal(10, @sampler.transaction_count)

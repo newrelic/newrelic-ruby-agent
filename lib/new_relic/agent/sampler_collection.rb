@@ -48,7 +48,9 @@ module NewRelic
       end
 
       def add_sampler(sampler_class)
-        if sampler_class.supported_on_this_platform?
+        supported = sampler_class.supported_on_this_platform?
+        enabled   = sampler_class.enabled?
+        if supported && enabled
           if !sampler_class_registered?(sampler_class)
             sampler = sampler_class.new
             sampler.setup_events(@event_listener) if sampler.respond_to?(:setup_events)

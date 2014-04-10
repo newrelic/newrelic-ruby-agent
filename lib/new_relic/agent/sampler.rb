@@ -19,6 +19,14 @@ module NewRelic
       attr_reader :id
       @sampler_classes = []
 
+      def self.named(new_name)
+        @name = new_name
+      end
+
+      def self.name
+        @name
+      end
+
       def self.inherited(subclass)
         @sampler_classes << subclass
       end
@@ -28,12 +36,24 @@ module NewRelic
         true
       end
 
+      def self.enabled?
+        if @name
+          config_key = "disable_#{@name}_sampler"
+          !(Agent.config[config_key])
+        else
+          true
+        end
+      end
+
       def self.sampler_classes
         @sampler_classes
       end
 
-      def initialize(id)
-        @id = id
+      # The ID passed in here is unused by our code, but is preserved in case
+      # we have clients who are defining their own subclasses of this class, and
+      # expecting to be able to call super with an ID.
+      def initialize(id=nil)
+        @id = id || self.class.name
       end
 
       def poll

@@ -9,8 +9,10 @@ module NewRelic
     module Samplers
       class CpuSampler < NewRelic::Agent::Sampler
         attr_reader :last_time
+
+        named :cpu
+
         def initialize
-          super :cpu
           @processor_count = NewRelic::Agent::SystemInfo.processor_count
           if @processor_count.nil?
             NewRelic::Agent.logger.warn("Failed to determine processor count, assuming 1")

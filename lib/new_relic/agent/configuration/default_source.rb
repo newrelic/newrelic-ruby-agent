@@ -912,6 +912,90 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Controls whether to normalize string encodings prior to serializing data for the collector to JSON.'
+        },
+        :disable_vm_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the Ruby VM sampler is enabled. This sampler periodically gathers performance measurements from the Ruby VM.'
+        },
+        :disable_memory_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the memory sampler is enabled. This sampler periodically measures the memory usage of the host process.'
+        },
+        :disable_cpu_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the CPU sampler is enabled. This sampler periodically samples the CPU usage of the host process.'
+        },
+        :disable_delayed_job_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the Delayed Job sampler is enabled. This sampler periodically measures the depth of Delayed Job queues.'
+        },
+        :disable_active_record_4 => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for ActiveRecord 4 will be installed by the agent.'
+        },
+        :disable_curb => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for the curb gem will be installed by the agent.'
+        },
+        :disable_excon => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for the excon gem will be installed by the agent.'
+        },
+        :disable_httpclient => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for the httpclient gem will be installed by the agent.'
+        },
+        :disable_mongo => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for the mongo gem will be installed by the agent.'
+        },
+        :disable_rack => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => "Controls whether the agent will hook into Rack::Builder's to_app method in order to look for gems to instrument during application startup."
+        },
+        :disable_rubyprof => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the agent will make use of RubyProf in developer mode if it is present.'
+        },
+        :disable_typhoeus => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for the typhoeus gem will be installed by the agent.'
         }
       }.freeze
 
