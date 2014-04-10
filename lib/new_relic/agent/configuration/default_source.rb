@@ -912,6 +912,34 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Controls whether to normalize string encodings prior to serializing data for the collector to JSON.'
+        },
+        :disable_vm_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the Ruby VM sampler is enabled. This sampler periodically gathers performance measurements from the Ruby VM.'
+        },
+        :disable_memory_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the memory sampler is enabled. This sampler periodically measures the memory usage of the host process.'
+        },
+        :disable_cpu_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the CPU sampler is enabled. This sampler periodically samples the CPU usage of the host process.'
+        },
+        :disable_delayed_job_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the Delayed Job sampler is enabled. This sampler periodically measures the depth of Delayed Job queues.'
         }
       }.freeze
 
