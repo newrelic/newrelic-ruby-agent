@@ -45,6 +45,7 @@ module NewRelic
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
+        # @api public
         module ClassMethods
           # Have NewRelic ignore actions in this controller.  Specify the actions as hash options
           # using :except and :only.  If no actions are specified, all actions are ignored.
