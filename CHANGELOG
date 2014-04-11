@@ -13,6 +13,12 @@
   'restart_thread_in_children setting' in your agent configuration file if you
   were doing so previously.
 
+  * Rails 4.1 support
+
+  Rails 4.1 has shipped, and the Ruby agent is ready for it! We've been running
+  our test suites against the release candidates with no significant issues, so
+  we're happy to announce full compatibility with this new release of Rails.
+
   * More accurate GC measurements on multi-threaded web servers
 
   The agent could previously have reported inaccurate GC times on multi-threaded
