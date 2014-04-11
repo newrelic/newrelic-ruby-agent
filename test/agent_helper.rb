@@ -187,8 +187,15 @@ def in_transaction(*args)
   NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
                         NewRelic::Agent::TransactionSampler.new)
   NewRelic::Agent::Transaction.start(transaction_type, opts || {})
-  val = yield NewRelic::Agent::Transaction.current
-  NewRelic::Agent::Transaction.stop(name)
+
+  val = nil
+
+  begin
+    val = yield NewRelic::Agent::Transaction.current
+  ensure
+    NewRelic::Agent::Transaction.stop(name)
+  end
+
   val
 end
 
