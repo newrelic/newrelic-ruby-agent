@@ -255,11 +255,6 @@ module NewRelic
           end
         end
 
-        # Tells the statistics engine we are starting a new transaction
-        def start_transaction
-          @stats_engine.start_transaction
-        end
-
         # Tells the statistics engine we are ending a transaction
         def end_transaction
           @stats_engine.end_transaction

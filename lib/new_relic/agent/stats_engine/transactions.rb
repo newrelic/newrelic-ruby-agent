@@ -25,7 +25,6 @@ module Agent
       # Defines methods that stub out the stats engine methods
       # when the agent is disabled
       module Shim # :nodoc:
-        def start_transaction(*args); end
         def end_transaction; end
         def push_scope(*args); end
         def transaction_sampler=(*args); end
@@ -76,11 +75,6 @@ module Agent
 
       def transaction_sampler
         Agent.instance.transaction_sampler
-      end
-
-      # Start a new transaction, unless one is already in progress
-      def start_transaction
-        NewRelic::Agent.instance.events.notify(:start_transaction)
       end
 
       # Try to clean up gracefully, otherwise we leave things hanging around on thread locals.

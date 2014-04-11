@@ -159,7 +159,7 @@ module NewRelic
         transaction_sampler.notice_first_scope_push(start_time)
         sql_sampler.notice_first_scope_push(start_time)
 
-        agent.stats_engine.start_transaction
+        NewRelic::Agent.instance.events.notify(:start_transaction)
         transaction_sampler.notice_transaction(uri, filtered_params)
         sql_sampler.notice_transaction(uri, filtered_params)
       end

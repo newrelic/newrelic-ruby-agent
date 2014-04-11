@@ -145,17 +145,6 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     assert_in_delta((t6 - t2), scope.children_time, 0.0001)
   end
 
-  def test_simple_start_transaction
-    assert @engine.scope_stack.empty?
-    scope = @engine.push_scope :tag
-    @engine.start_transaction
-    assert !@engine.scope_stack.empty?
-    @engine.pop_scope(scope, "name")
-    assert @engine.scope_stack.empty?
-    @engine.end_transaction
-    assert @engine.scope_stack.empty?
-  end
-
 
   # test for when the scope stack contains an element only used for tts and not metrics
   def test_simple_tt_only_scope
