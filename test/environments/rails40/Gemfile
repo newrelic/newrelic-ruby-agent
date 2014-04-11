@@ -40,3 +40,5 @@ platforms :rbx do
 end
 
 gem "newrelic_rpm", :path => "../../.."
+
+gem 'pry'
