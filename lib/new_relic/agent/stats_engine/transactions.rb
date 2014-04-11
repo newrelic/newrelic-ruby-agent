@@ -78,11 +78,6 @@ module Agent
         Agent.instance.transaction_sampler
       end
 
-      # deprecated--used to add transaction sampler, now we always look to the agent
-      def transaction_sampler= sampler
-        NewRelic::Agent.logger.warn("NewRelic::Agent::StatsEngine#transaction_sampler is deprecated")
-      end
-
       # Start a new transaction, unless one is already in progress
       def start_transaction
         NewRelic::Agent.instance.events.notify(:start_transaction)

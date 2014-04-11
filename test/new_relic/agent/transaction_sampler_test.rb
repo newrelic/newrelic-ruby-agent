@@ -31,7 +31,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     stats_engine = NewRelic::Agent::StatsEngine.new
     agent.stubs(:stats_engine).returns(stats_engine)
     @sampler = NewRelic::Agent::TransactionSampler.new
-    stats_engine.transaction_sampler = @sampler
     @old_sampler = NewRelic::Agent.instance.transaction_sampler
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }

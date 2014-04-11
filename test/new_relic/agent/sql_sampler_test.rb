@@ -174,7 +174,6 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_sql_trace_should_include_transaction_guid
     txn_sampler = NewRelic::Agent::TransactionSampler.new
-    NewRelic::Agent.instance.stats_engine.transaction_sampler = txn_sampler
     txn_sampler.start_builder(Time.now)
     @sampler.create_transaction_data
     @sampler.notice_transaction('a uri', {:some => :params})
