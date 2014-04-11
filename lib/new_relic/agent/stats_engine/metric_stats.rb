@@ -189,6 +189,10 @@ module NewRelic
         def in_transaction?
           !!transaction_stats_hash
         end
+
+        def transaction_stats_hash
+          Transaction.current && Transaction.current.stats_hash
+        end
       end
     end
   end

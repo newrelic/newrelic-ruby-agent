@@ -4,7 +4,6 @@
 
 require 'new_relic/agent/stats_engine/metric_stats'
 require 'new_relic/agent/stats_engine/samplers'
-require 'new_relic/agent/stats_engine/transactions'
 require 'new_relic/agent/stats_engine/gc_profiler'
 require 'new_relic/agent/stats_engine/stats_hash'
 
@@ -14,15 +13,12 @@ module NewRelic
     class StatsEngine
       include MetricStats
       include Samplers
-      include Transactions
 
       attr_accessor :metric_rules
 
       def initialize
-        # Makes the unit tests happy
-        NewRelic::Agent::TransactionState.get.clear_stats_scope_stack
-        @stats_lock = Mutex.new
-        @stats_hash = StatsHash.new
+        @stats_lock   = Mutex.new
+        @stats_hash   = StatsHash.new
         @metric_rules = RulesEngine.new
       end
 

@@ -213,7 +213,6 @@ module NewRelic
         # these tear everything down so need to be done after merging stats
         if self.root?
           send_transaction_finished_event(start_time, end_time)
-          agent.stats_engine.end_transaction
         end
       end
 

@@ -102,13 +102,13 @@ module NewRelic
           txn.apdex_start = (event.queue_start || event.time)
           txn.name = event.metric_name
 
-          event.scope = Agent.instance.stats_engine \
-            .push_scope(:action_controller, event.time)
+          event.node = NewRelic::Agent::TransactionState.get.tt_node_stack \
+            .push_node(:action_controller, event.time)
         end
 
         def stop_transaction(event)
-          Agent.instance.stats_engine \
-            .pop_scope(event.scope, event.metric_name, event.end)
+          NewRelic::Agent::TransactionState.get.tt_node_stack \
+            .pop_node(event.node, event.metric_name, event.end)
         ensure
           Transaction.stop
         end
@@ -120,7 +120,7 @@ module NewRelic
       end
 
       class ControllerEvent < Event
-        attr_accessor :parent, :scope
+        attr_accessor :parent
         attr_reader :queue_start, :request
 
         def initialize(name, start, ending, transaction_id, payload, request)

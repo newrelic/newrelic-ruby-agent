@@ -18,16 +18,15 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
 
     @socket = fixture_tcp_socket( @response )
 
-    @engine = NewRelic::Agent.instance.stats_engine
-    @engine.clear_stats
+    NewRelic::Agent.instance.stats_engine.clear_stats
   end
 
   def test_scope_stack_integrity_maintained_on_request_failure
     @socket.stubs(:write).raises('fake network error')
     with_config(:"cross_application_tracer.enabled" => true) do
-      expected = @engine.push_scope('dummy')
+      expected = NewRelic::Agent::TransactionState.get.tt_node_stack.push_node('dummy')
       Net::HTTP.get(URI.parse('http://www.google.com/index.html')) rescue nil
-      @engine.pop_scope(expected, 42)
+      NewRelic::Agent::TransactionState.get.tt_node_stack.pop_node(expected, 42)
     end
   end
 

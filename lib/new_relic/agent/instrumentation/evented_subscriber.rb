@@ -68,7 +68,7 @@ module NewRelic
       # name information useful when recording metrics.
       class Event
         attr_reader :name, :time, :transaction_id, :payload, :children
-        attr_accessor :end, :parent, :scope
+        attr_accessor :end, :parent, :node
 
         def initialize(name, start, ending, transaction_id, payload)
           @name           = name

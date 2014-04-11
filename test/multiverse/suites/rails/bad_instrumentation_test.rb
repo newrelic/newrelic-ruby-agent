@@ -8,12 +8,12 @@ class BadInstrumentationController < ApplicationController
   include Rails.application.routes.url_helpers
 
   # This action is intended to simulate a chunk of instrumentation that pushes
-  # a TT scope, but then never pops it. Such a situation will break
+  # a TT node, but then never pops it. Such a situation will break
   # instrumentation of that request, but should not actually cause the request
   # to fail.
   # https://newrelic.atlassian.net/browse/RUBY-1158
   def failwhale
-    NewRelic::Agent.instance.stats_engine.push_scope('failwhale', Time.now)
+    NewRelic::Agent::TransactionState.get.tt_node_stack.push_node('failwhale', Time.now)
     render :text => 'everything went great'
   end
 end

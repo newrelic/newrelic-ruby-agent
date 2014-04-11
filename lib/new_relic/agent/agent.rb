@@ -255,11 +255,6 @@ module NewRelic
           end
         end
 
-        # Tells the statistics engine we are ending a transaction
-        def end_transaction
-          @stats_engine.end_transaction
-        end
-
         # Sets a thread local variable as to whether we should or
         # should not record sql in the current thread. Returns the
         # previous value, if there is one
