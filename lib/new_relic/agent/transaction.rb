@@ -162,6 +162,8 @@ module NewRelic
         NewRelic::Agent.instance.events.notify(:start_transaction)
         transaction_sampler.notice_transaction(uri, filtered_params)
         sql_sampler.notice_transaction(uri, filtered_params)
+
+        NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
       end
 
       # Indicate that you don't want to keep the currently saved transaction
@@ -192,6 +194,7 @@ module NewRelic
         @name = fallback_name unless name_set? || name_frozen?
         freeze_name
         log_underflow if @type.nil?
+        NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
         # these record metrics so need to be done before merging stats
         if self.root?

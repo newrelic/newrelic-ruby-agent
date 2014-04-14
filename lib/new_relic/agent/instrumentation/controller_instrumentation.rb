@@ -331,7 +331,6 @@ module NewRelic
             _, expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
 
             begin
-              NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
               if block_given?
                 yield
               else
@@ -350,7 +349,6 @@ module NewRelic
             txn_name = metric_names.shift
 
             NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
-            NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
             txn.record_apdex(end_time) unless ignore_apdex?
             txn = Transaction.stop(txn_name, end_time)
 

@@ -49,7 +49,6 @@ module NewRelic
             record_queue_time(event)
             record_metrics(event)
             record_apdex(event)
-            record_instance_busy(event)
             stop_transaction(event)
           else
             Agent.instance.pop_trace_execution_flag
@@ -82,11 +81,6 @@ module NewRelic
         def record_apdex(event)
           return if event.apdex_ignored?
           Transaction.record_apdex(event.end, event.exception_encountered?)
-        end
-
-        def record_instance_busy(event)
-          BusyCalculator.dispatcher_start(event.time)
-          BusyCalculator.dispatcher_finish(event.end)
         end
 
         def record_queue_time(event)

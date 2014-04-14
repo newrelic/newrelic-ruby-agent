@@ -25,6 +25,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def setup
+    freeze_time
     @subscriber = NewRelic::Agent::Instrumentation::ActionControllerSubscriber.new
     NewRelic::Agent.instance.stats_engine.clear_stats
     @entry_payload = {
@@ -49,7 +50,6 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_record_controller_metrics
-    freeze_time
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     advance_time(2)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
@@ -62,7 +62,6 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_record_apdex_metrics
-    freeze_time
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     advance_time(1.5)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
@@ -168,10 +167,11 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_record_busy_time
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    advance_time(1)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_metrics_recorded('Instance/Busy' => { :call_count => 1 })
+    assert_metrics_recorded('Instance/Busy' => { :call_count => 1, :total_call_time => 1.0 })
   end
 
   def test_creates_transaction
@@ -204,7 +204,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_record_queue_time_metrics
-    t0 = freeze_time
+    t0 = Time.now
     env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_f.to_s }
     NewRelic::Agent.instance.events.notify(:before_call, env)
 
@@ -228,7 +228,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_dont_record_queue_time_in_nested_transaction
-    t0 = freeze_time
+    t0 = Time.now
 
     env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_f.to_s }
     NewRelic::Agent.instance.events.notify(:before_call, env)
