@@ -13,6 +13,29 @@
   'restart_thread_in_children setting' in your agent configuration file if you
   were doing so previously.
 
+  * Rails 4.1 support
+
+  Rails 4.1 has shipped, and the Ruby agent is ready for it! We've been running
+  our test suites against the release candidates with no significant issues, so
+  we're happy to announce full compatibility with this new release of Rails.
+
+  * Ruby VM measurements
+
+  The Ruby agent now records more detailed information about the performance and
+  behavior of the Ruby VM, mainly focused around Ruby's garbage collector. This
+  information is exposed on the new 'Ruby VM' tab in the UI. For details about
+  what is recorded, see:
+
+  http://docs.newrelic.com/docs/ruby/ruby-vm-stats
+
+  * Separate in-transaction GC timings for web and background processes
+
+  Previously, an application with GC instrumentation enabled, and both web and
+  background processes reporting in to it would show an overly inflated GC band
+  on the application overview graph, because data from both web and non-web
+  transactions would be included. This has been fixed, and GC time during web
+  and non-web transactions is now tracked separately.
+
   * More accurate GC measurements on multi-threaded web servers
 
   The agent could previously have reported inaccurate GC times on multi-threaded

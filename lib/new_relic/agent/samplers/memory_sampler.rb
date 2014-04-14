@@ -9,10 +9,11 @@ module NewRelic
     module Samplers
 
       class MemorySampler < NewRelic::Agent::Sampler
+        named :memory
+
         attr_accessor :sampler
 
         def initialize
-          super :memory
           # macos, linux, solaris
           if defined? JRuby
             @sampler = JavaHeapSampler.new

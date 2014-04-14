@@ -21,8 +21,9 @@ module NewRelic
 
         attr_reader :transaction_count
 
+        named :vm
+
         def initialize
-          super :vm
           @lock = Mutex.new
           @transaction_count = 0
           @last_snapshot = take_snapshot
