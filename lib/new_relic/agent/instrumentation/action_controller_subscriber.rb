@@ -51,7 +51,6 @@ module NewRelic
             if event.finalize_metric_name!
               record_queue_time(event)
               record_metrics(event)
-              record_apdex(event)
             end
             stop_transaction(event)
           else
@@ -82,11 +81,6 @@ module NewRelic
           NewRelic::Agent::Transaction.parent.stats_hash.record(metric, time)
         end
 
-        def record_apdex(event)
-          return if event.apdex_ignored?
-          Transaction.record_apdex(event.end, event.exception_encountered?)
-        end
-
         def record_queue_time(event)
           return unless event.queue_start
           return unless NewRelic::Agent::Transaction.current.root?
@@ -108,7 +102,9 @@ module NewRelic
           NewRelic::Agent::TransactionState.get.tt_node_stack \
             .pop_node(event.node, event.metric_name, event.end)
         ensure
-          Transaction.stop
+          Transaction.stop(nil, Time.now,
+                           :exception_encountered => event.exception_encountered?,
+                           :ignore_apdex          => event.apdex_ignored?)
         end
 
         def filter(params)

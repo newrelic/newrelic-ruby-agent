@@ -113,53 +113,51 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_update_apdex_records_correct_apdex_for_key_transaction
-    config = {
+  KEY_TRANSACTION_CONFIG = {
       :web_transactions_apdex => {
         'Controller/slow/txn' => 4,
-        'Controller/fast/txn' => 0.1,
       },
       :apdex => 1
-    }
+  }
 
-    freeze_time
-    t0 = Time.now
+  def test_update_apdex_records_correct_apdex_for_key_transaction
+    t0 = freeze_time
 
-    # Setting the transaction name from within the in_transaction block seems
-    # like cheating, but it mimics the way things are actually done, where we
-    # finalize the transaction name before recording the Apdex metrics.
-    with_config(config, :do_not_cast => true) do
+    with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/slow/txn') do
+        # Needs transaction name set before apdex lookups
         NewRelic::Agent::Transaction.current.name = 'Controller/slow/txn'
+
         NewRelic::Agent::Transaction.record_apdex(t0 + 3.5,  false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 5.5,  false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 16.5, false)
       end
-      assert_metrics_recorded(
-        'Apdex'          => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-        'Apdex/slow/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
-      )
 
-      in_web_transaction('Controller/fast/txn') do
-        NewRelic::Agent::Transaction.current.name = 'Controller/fast/txn'
-        NewRelic::Agent::Transaction.record_apdex(t0 + 0.05, false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 0.2,  false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 0.5,  false)
-      end
+      # apdex_s is 2 because the transaction itself records apdex
       assert_metrics_recorded(
-        'Apdex'          => { :apdex_s => 2, :apdex_t => 2, :apdex_f => 2 },
-        'Apdex/fast/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+        'Apdex'          => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
+        'Apdex/slow/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
       )
+    end
+  end
 
+  def test_update_apdex_records_correct_apdex_for_non_key_transaction
+    t0 = freeze_time
+
+    with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/other/txn') do
+        # Needs transaction name set before apdex lookups
         NewRelic::Agent::Transaction.current.name = 'Controller/other/txn'
+
         NewRelic::Agent::Transaction.record_apdex(t0 + 0.5, false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 2,   false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 5,   false)
       end
+
+      # apdex_s is 2 because the transaction itself records apdex
       assert_metrics_recorded(
-        'Apdex'           => { :apdex_s => 3, :apdex_t => 3, :apdex_f => 3 },
-        'Apdex/other/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+        'Apdex'           => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
+        'Apdex/other/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
       )
     end
   end

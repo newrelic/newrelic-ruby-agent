@@ -73,6 +73,19 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     )
   end
 
+  def test_record_apdex_metrics_with_error
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    advance_time(1.5)
+    @exit_payload[:exception] = StandardError.new("boo")
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+
+    expected_values = { :apdex_f => 1, :apdex_t => 0, :apdex_s => 0 }
+    assert_metrics_recorded(
+      'Apdex/test/index' => expected_values,
+      'Apdex' => expected_values
+    )
+  end
+
   def test_records_scoped_metrics_for_evented_child_txn
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.start('process_action.action_controller', :id, @entry_payload \

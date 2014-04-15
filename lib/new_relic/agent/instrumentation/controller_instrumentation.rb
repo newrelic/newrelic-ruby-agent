@@ -349,8 +349,7 @@ module NewRelic
             txn_name = metric_names.shift
 
             NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
-            txn.record_apdex(end_time) unless ignore_apdex?
-            txn = Transaction.stop(txn_name, end_time)
+            txn = Transaction.stop(txn_name, end_time, :ignore_apdex => ignore_apdex?)
 
             NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
           end

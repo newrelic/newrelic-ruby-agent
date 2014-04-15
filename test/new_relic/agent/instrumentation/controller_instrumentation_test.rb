@@ -28,6 +28,21 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
       ControllerInstrumentation::TransactionNamer.new(@object)
   end
 
+  def teardown
+    NewRelic::Agent.instance.stats_engine.clear_stats
+  end
+
+  def test_apdex_recorded
+    @object.public_transaction
+    assert_metrics_recorded("Apdex")
+  end
+
+  def test_apdex_ignored
+    @object.stubs(:ignore_apdex?).returns(true)
+    @object.public_transaction
+    assert_metrics_not_recorded("Apdex")
+  end
+
   def test_detect_upstream_wait_returns_transaction_start_time_if_nothing_from_headers
     @object.stubs(:newrelic_request_headers).returns(@dummy_headers)
     in_transaction do |txn|

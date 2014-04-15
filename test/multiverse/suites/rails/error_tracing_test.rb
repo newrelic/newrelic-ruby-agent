@@ -136,7 +136,9 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       get '/error/controller_error'
     end
 
-    assert_errors_reported('this is an uncaught controller error', 20, 40, nil, 40)
+    assert_errors_reported('this is an uncaught controller error',
+                           NewRelic::Agent::ErrorCollector::MAX_ERROR_QUEUE_LENGTH,
+                           40, nil, 40)
   end
 
   def test_should_capture_manually_noticed_error
