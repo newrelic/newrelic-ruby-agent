@@ -453,8 +453,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_freeze_name_and_execute_if_not_ignored_executes_given_block_if_not_ignored
-    NewRelic::Agent.instance.transaction_rules.expects(:rename)
-                                              .returns('non-ignored-transaction')
+    NewRelic::Agent.instance.transaction_rules.expects(:rename).
+                                               returns('non-ignored-transaction')
     in_transaction('non-ignored-transaction') do
       block_was_called = false
       NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored do
@@ -466,8 +466,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_freeze_name_and_execute_if_not_ignored_ignores_given_block_if_transaction_ignored
-    NewRelic::Agent.instance.transaction_rules.expects(:rename)
-                                              .returns(nil)
+    NewRelic::Agent.instance.transaction_rules.expects(:rename).
+                                               returns(nil)
     in_transaction('ignored-transaction') do
       block_was_called = false
       NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored do
