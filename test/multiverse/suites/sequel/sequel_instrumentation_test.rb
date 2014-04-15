@@ -252,7 +252,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
   # This is particular to sqlite plans currently. To abstract it up, we'd need to
   # be able to specify a flavor (e.g., :sqlite, :postgres, :mysql, etc.)
   def assert_segment_has_explain_plan( segment, msg=nil )
-    msg = build_message( msg, "Expected ? to have an explain plan", segment )
+    msg = "Expected #{segment.inspect} to have an explain plan"
     assert_block( msg ) { segment.params[:explain_plan].join =~ SQLITE_EXPLAIN_PLAN_COLUMNS_RE }
   end
 
