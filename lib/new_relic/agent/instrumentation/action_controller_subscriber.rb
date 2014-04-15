@@ -42,8 +42,6 @@ module NewRelic
           event = pop_event(id)
           event.payload.merge!(payload)
 
-          set_enduser_ignore if event.enduser_ignored?
-
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
             # event.finalize_metric_name! returns nil when this
             # transaction is being ignored, which means we shouldn't
@@ -58,10 +56,6 @@ module NewRelic
           end
         rescue => e
           log_notification_error(e, name, 'finish')
-        end
-
-        def set_enduser_ignore
-          TransactionState.get.request_ignore_enduser = true
         end
 
         def record_metrics(event)
@@ -104,7 +98,9 @@ module NewRelic
         ensure
           Transaction.stop(nil, Time.now,
                            :exception_encountered => event.exception_encountered?,
-                           :ignore_apdex          => event.apdex_ignored?)
+                           :ignore_apdex          => event.apdex_ignored?,
+                           :ignore_enduser        => event.enduser_ignored?
+                          )
         end
 
         def filter(params)

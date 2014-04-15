@@ -224,7 +224,9 @@ module NewRelic
             end
             @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_delta)
             sql_sampler.notice_scope_empty(@name)
+
             record_apdex(end_time, opts[:exception_encountered]) unless opts[:ignore_apdex]
+            NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if opts[:ignore_enduser]
           end
 
           record_exceptions
