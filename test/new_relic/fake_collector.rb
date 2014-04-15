@@ -185,6 +185,8 @@ module NewRelic
           TransactionSampleDataPost.new(opts)
         when 'analytic_event_data'
           AnalyticEventDataPost.new(opts)
+        when 'error_data'
+          ErrorDataPost.new(opts)
         else
           new(opts)
         end
@@ -240,6 +242,10 @@ module NewRelic
       def initialize(opts={})
         super
         @body[0][0][9] = unblob(@body[0][0][9]) if @format == :json
+      end
+
+      def traces
+        @body[0]
       end
     end
 
@@ -305,14 +311,40 @@ module NewRelic
         samples.first.metric_name
       end
     end
+
     class AnalyticEventDataPost < AgentPost
 
-      def initialize(opts={})
-        opts[:run_id] = opts[:body].shift
-        opts[:body] = opts[:body].shift
+      attr_reader :events
 
+      def initialize(opts={})
         super
+
+        @events = @body[1]
       end
+    end
+
+    class ErrorDataPost < AgentPost
+
+      attr_reader :errors
+
+      def initialize(opts={})
+        super
+        @errors = @body[1].map { |e| SubmittedError.new(e) }
+      end
+    end
+
+    class SubmittedError
+
+      attr_reader :timestamp, :path, :message, :exception_class_name, :params
+
+      def initialize(error_info)
+        @timestamp            = error_info[0]
+        @path                 = error_info[1]
+        @message              = error_info[2]
+        @exception_class_name = error_info[3]
+        @params               = error_info[4]
+      end
+
     end
   end
 

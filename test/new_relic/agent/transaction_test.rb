@@ -228,7 +228,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent.instance.transaction_rules << rule
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.set_transaction_name('foo/1/bar/22')
-    NewRelic::Agent::Transaction.freeze_name
+    NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
     txn = NewRelic::Agent::Transaction.stop('txn')
     assert_equal 'Controller/foo/*/bar/*', txn.name
   ensure
@@ -249,7 +249,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::Transaction.start(:controller)
     advance_time(5)
     NewRelic::Agent.set_transaction_name('foo/1/bar/22')
-    NewRelic::Agent::Transaction.freeze_name
+    NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
     NewRelic::Agent::Transaction.stop('txn')
 
     assert_equal 'Controller/foo/1/bar/22', name
@@ -450,6 +450,32 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     trace = txn.transaction_trace
     assert_equal(42, trace.params[:custom_params][:gc_time])
+  end
+
+  def test_freeze_name_and_execute_if_not_ignored_executes_given_block_if_not_ignored
+    NewRelic::Agent.instance.transaction_rules.expects(:rename)
+                                              .returns('non-ignored-transaction')
+    in_transaction('non-ignored-transaction') do
+      block_was_called = false
+      NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored do
+        block_was_called = true
+      end
+
+      assert block_was_called
+    end
+  end
+
+  def test_freeze_name_and_execute_if_not_ignored_ignores_given_block_if_transaction_ignored
+    NewRelic::Agent.instance.transaction_rules.expects(:rename)
+                                              .returns(nil)
+    in_transaction('ignored-transaction') do
+      block_was_called = false
+      NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored do
+        block_was_called = true
+      end
+
+      refute block_was_called
+    end
   end
 
   def assert_has_custom_parameter(key, value = key)

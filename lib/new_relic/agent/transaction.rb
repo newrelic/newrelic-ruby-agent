@@ -79,8 +79,8 @@ module NewRelic
         NewRelic::Agent.instance
       end
 
-      def self.freeze_name
-        self.current && self.current.freeze_name
+      def self.freeze_name_and_execute_if_not_ignored
+        self.current && self.current.freeze_name_and_execute_if_not_ignored { yield if block_given? }
       end
 
       @@java_classes_loaded = false
@@ -110,6 +110,7 @@ module NewRelic
         @exceptions = {}
         @stats_hash = StatsHash.new
         @guid = generate_guid
+        @ignore_this_transaction = false
         TransactionState.get.transaction = self
       end
 
@@ -129,14 +130,29 @@ module NewRelic
         @name && @name != NewRelic::Agent::UNKNOWN_METRIC
       end
 
-      def freeze_name
-        return if name_frozen?
-        @name = NewRelic::Agent.instance.transaction_rules.rename(@name)
-        @name_frozen = true
+      def freeze_name_and_execute_if_not_ignored
+        if !name_frozen?
+          name = NewRelic::Agent.instance.transaction_rules.rename(@name)
+          @name_frozen = true
+
+          if name.nil?
+            @ignore_this_transaction = true
+          else
+            @name = name
+          end
+        end
+
+        if block_given? && !@ignore_this_transaction
+          yield
+        end
       end
 
       def name_frozen?
         @name_frozen
+      end
+
+      def ignored?
+        @ignore_this_transaction
       end
 
       def parent
@@ -192,30 +208,28 @@ module NewRelic
       # does the appropriate wrapup of the context.
       def stop(fallback_name=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now)
         @name = fallback_name unless name_set? || name_frozen?
-        freeze_name
         log_underflow if @type.nil?
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
-        # these record metrics so need to be done before merging stats
-        if self.root?
-          # this one records metrics and wants to happen
-          # before the transaction sampler is finished
-          if traced?
-            record_transaction_cpu
-            gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
-            gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
-                gc_start_snapshot, gc_stop_snapshot)
+        freeze_name_and_execute_if_not_ignored do
+          # these record metrics so need to be done before merging stats
+          if self.root?
+            # this one records metrics and wants to happen
+            # before the transaction sampler is finished
+            if traced?
+              record_transaction_cpu
+              gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
+              gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
+                  gc_start_snapshot, gc_stop_snapshot)
+            end
+            @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_delta)
+            sql_sampler.notice_scope_empty(@name)
           end
-          @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_delta)
-          sql_sampler.notice_scope_empty(@name)
-        end
 
-        record_exceptions
-        merge_stats_hash
+          record_exceptions
+          merge_stats_hash
 
-        # these tear everything down so need to be done after merging stats
-        if self.root?
-          send_transaction_finished_event(start_time, end_time)
+          send_transaction_finished_event(start_time, end_time) if self.root?
         end
       end
 
@@ -335,17 +349,18 @@ module NewRelic
       def record_apdex(end_time=Time.now, is_error=nil)
         return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
 
-        freeze_name
-        action_duration = end_time - start_time
-        total_duration  = end_time - apdex_start
-        is_error = is_error.nil? ? !exceptions.empty? : is_error
+        freeze_name_and_execute_if_not_ignored do
+          action_duration = end_time - start_time
+          total_duration  = end_time - apdex_start
+          is_error = is_error.nil? ? !exceptions.empty? : is_error
 
-        apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
-        apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
+          apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
+          apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
 
-        @stats_hash.record(APDEX_METRIC_SPEC, apdex_bucket_global, apdex_t)
-        txn_apdex_metric = NewRelic::MetricSpec.new(@name.gsub(/^[^\/]+\//, 'Apdex/'))
-        @stats_hash.record(txn_apdex_metric, apdex_bucket_txn, apdex_t)
+          @stats_hash.record(APDEX_METRIC_SPEC, apdex_bucket_global, apdex_t)
+          txn_apdex_metric = NewRelic::MetricSpec.new(@name.gsub(/^[^\/]+\//, 'Apdex/'))
+          @stats_hash.record(txn_apdex_metric, apdex_bucket_txn, apdex_t)
+        end
       end
 
       def apdex_t

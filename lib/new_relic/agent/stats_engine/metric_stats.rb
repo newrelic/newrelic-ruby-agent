@@ -148,8 +148,10 @@ module NewRelic
           renamed_stats = NewRelic::Agent::StatsHash.new(stats_hash.started_at)
           stats_hash.each do |spec, stats|
             new_name = rules_engine.rename(spec.name)
-            new_spec = NewRelic::MetricSpec.new(new_name, spec.scope)
-            renamed_stats[new_spec].merge!(stats)
+            unless new_name.nil?
+              new_spec = NewRelic::MetricSpec.new(new_name, spec.scope)
+              renamed_stats[new_spec].merge!(stats)
+            end
           end
           renamed_stats
         end

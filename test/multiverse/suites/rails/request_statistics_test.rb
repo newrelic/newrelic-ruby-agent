@@ -54,10 +54,10 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       post = $collector.calls_for('analytic_event_data').first
 
       refute_nil( post )
-      assert_kind_of Array, post.body
-      assert_kind_of Array, post.body.first
+      assert_kind_of Array, post.events
+      assert_kind_of Array, post.events.first
 
-      sample = post.body.first.first
+      sample = post.events.first.first
       assert_kind_of Hash, sample
 
       assert_equal 'Controller/request_stats/stats_action', sample['name']
@@ -80,10 +80,10 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       post = $collector.calls_for('analytic_event_data').first
 
       refute_nil( post )
-      assert_kind_of Array, post.body
-      assert_kind_of Array, post.body.first
+      assert_kind_of Array, post.events
+      assert_kind_of Array, post.events.first
 
-      sample = post.body.first.first
+      sample = post.events.first.first
       assert_kind_of Hash, sample
 
       assert_kind_of String, sample['nr.guid']
@@ -106,10 +106,10 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       post = $collector.calls_for('analytic_event_data').first
 
       refute_nil( post )
-      assert_kind_of Array, post.body
-      assert_kind_of Array, post.body.first
+      assert_kind_of Array, post.events
+      assert_kind_of Array, post.events.first
 
-      sample = post.body.first.first
+      sample = post.events.first.first
 
       assert_kind_of Hash, sample
       assert_kind_of String, sample['nr.guid']
@@ -126,10 +126,10 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       post = $collector.calls_for('analytic_event_data').first
 
       refute_nil( post )
-      assert_kind_of Array, post.body
-      assert_kind_of Array, post.body.first
+      assert_kind_of Array, post.events
+      assert_kind_of Array, post.events.first
 
-      sample = post.body.first[0]
+      sample = post.events.first[0]
       assert_kind_of Hash, sample
 
       assert_equal 'Controller/request_stats/stats_action_with_custom_params', sample['name']
@@ -139,7 +139,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
         assert_not_includes(sample, key)
       end
 
-      custom_params = post.body.first[1]
+      custom_params = post.events.first[1]
       assert_equal 'blue', custom_params['color']
       assert_equal 'bar', custom_params['1']
       assert_false custom_params.has_key?('bad')
@@ -160,7 +160,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
       post = $collector.calls_for('analytic_event_data').last
 
-      samples = post.body
+      samples = post.events
       assert_equal(5, samples.size)
       samples.each do |sample|
         # undo the extra layer of wrapping that the collector wants
