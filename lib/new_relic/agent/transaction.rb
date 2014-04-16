@@ -17,8 +17,8 @@ module NewRelic
       attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
       # we can find a request header for the queue entry time
-      attr_accessor(:type, :exceptions, :filtered_params, :force_flag,
-                    :jruby_cpu_start, :process_cpu_start, :database_metric_name)
+      attr_accessor :type, :exceptions, :filtered_params,
+                    :jruby_cpu_start, :process_cpu_start, :database_metric_name
 
       attr_reader :name
       attr_reader :guid
@@ -104,7 +104,6 @@ module NewRelic
         @process_cpu_start = process_cpu
         @gc_start_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         @filtered_params = options[:filtered_params] || {}
-        @force_flag = options[:force]
         @request = options[:request]
         @exceptions = {}
         @stats_hash = StatsHash.new

@@ -334,7 +334,7 @@ module NewRelic
             txn = Transaction.start(txn_options[:category], txn_options)
             _record_queue_length
 
-            options = { :force                        => txn.force_flag,
+            options = { :force                        => txn_options[:force],
                         :metric                       => true,
                         :transaction                  => true,
                         :deduct_call_time_from_parent => true
