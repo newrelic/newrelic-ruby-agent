@@ -502,7 +502,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_jruby_cpu_burn_negative
-    @jruby_cpu_start = nil
+    @txn.instance_variable_set(:@jruby_cpu_start, nil)
     @txn.expects(:jruby_cpu_time).never
     assert_equal nil, @txn.jruby_cpu_burn
   end
