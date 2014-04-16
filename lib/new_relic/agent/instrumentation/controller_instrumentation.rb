@@ -324,10 +324,12 @@ module NewRelic
 
           txn = _start_transaction(block_given? ? args : [])
           begin
-            options = { :force => txn.force_flag, :transaction => true }
-            return yield if !(NewRelic::Agent.is_execution_traced? || options[:force])
-            options[:metric] = true if options[:metric].nil?
-            options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
+            return yield if !(NewRelic::Agent.is_execution_traced? || txn.force_flag)
+            options = { :force                        => txn.force_flag,
+                        :metric                       => true,
+                        :transaction                  => true,
+                        :deduct_call_time_from_parent => true
+                      }
             _, expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
 
             begin
