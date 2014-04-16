@@ -328,8 +328,7 @@ module NewRelic
           return yield unless (NewRelic::Agent.is_execution_traced? || txn_options[:force])
 
           begin
-            category = txn_options[:category] || :controller
-            txn = Transaction.start(category, txn_options)
+            txn = Transaction.start(txn_options[:category], txn_options)
             txn.name = TransactionNamer.new(self).name(txn_options)
 
             txn.apdex_start = _detect_upstream_wait(txn)

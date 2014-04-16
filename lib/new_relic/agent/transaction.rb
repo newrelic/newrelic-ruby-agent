@@ -94,8 +94,8 @@ module NewRelic
 
       attr_reader :depth
 
-      def initialize(type=:controller, options={})
-        @type = type
+      def initialize(type=nil, options={})
+        @type = type || :controller
         @start_time = Time.now
         @apdex_start = @start_time
         @jruby_cpu_start = jruby_cpu_time
