@@ -95,6 +95,7 @@ module NewRelic
       attr_reader :depth
 
       def initialize(type=nil, options={})
+        @name = options[:transaction_name] || NewRelic::Agent::UNKNOWN_METRIC
         @type = type || :controller
         @start_time = Time.now
         @apdex_start = @start_time
@@ -167,8 +168,6 @@ module NewRelic
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
       def start(transaction_type)
-        @name = NewRelic::Agent::UNKNOWN_METRIC
-
         transaction_sampler.notice_first_scope_push(start_time)
         sql_sampler.notice_first_scope_push(start_time)
 

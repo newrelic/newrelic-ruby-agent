@@ -83,10 +83,10 @@ module NewRelic
 
         def start_transaction(event)
           txn = Transaction.start(:controller,
-                                  :request => event.request,
-                                  :filtered_params => filter(event.payload[:params]))
+                                  :request          => event.request,
+                                  :filtered_params  => filter(event.payload[:params]),
+                                  :transaction_name => event.metric_name)
           txn.apdex_start = (event.queue_start || event.time)
-          txn.name = event.metric_name
 
           event.node = NewRelic::Agent::TransactionState.get.tt_node_stack \
             .push_node(:action_controller, event.time)

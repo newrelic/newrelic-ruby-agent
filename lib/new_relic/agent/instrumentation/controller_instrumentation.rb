@@ -328,10 +328,11 @@ module NewRelic
           return yield unless (NewRelic::Agent.is_execution_traced? || txn_options[:force])
 
           begin
+            txn_options[:transaction_name] = TransactionNamer.new(self).name(txn_options)
             txn = Transaction.start(txn_options[:category], txn_options)
-            txn.name = TransactionNamer.new(self).name(txn_options)
 
             txn.apdex_start = _detect_upstream_wait(txn)
+
             _record_queue_length
 
             options = { :force                        => txn.force_flag,
