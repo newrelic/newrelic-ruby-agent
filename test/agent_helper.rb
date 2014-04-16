@@ -149,7 +149,7 @@ unless defined?( assert_false )
   end
 end
 
-unless defined? ( refute )
+unless defined?(refute)
   alias refute assert_false
 end
 
@@ -173,7 +173,7 @@ end
 #
 def in_transaction(*args)
   opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
-  name = args.first || 'dummy'
+  opts[:transaction_name] = args.first || 'dummy'
   transaction_type = (opts && opts.delete(:type)) || :other
 
   NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
@@ -185,7 +185,7 @@ def in_transaction(*args)
   begin
     val = yield NewRelic::Agent::Transaction.current
   ensure
-    NewRelic::Agent::Transaction.stop(name)
+    NewRelic::Agent::Transaction.stop()
   end
 
   val

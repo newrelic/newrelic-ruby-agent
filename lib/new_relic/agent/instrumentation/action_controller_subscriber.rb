@@ -43,7 +43,6 @@ module NewRelic
           event.payload.merge!(payload)
 
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
-            event.finalize_metric_name!
             stop_transaction(event)
           else
             Agent.instance.pop_trace_execution_flag
@@ -61,7 +60,7 @@ module NewRelic
         end
 
         def stop_transaction(event)
-          Transaction.stop(event.metric_name, Time.now,
+          Transaction.stop(Time.now,
                            :metric_names          => ['HttpDispatcher'],
                            :exception_encountered => event.exception_encountered?,
                            :ignore_apdex          => event.apdex_ignored?,
@@ -93,23 +92,6 @@ module NewRelic
 
         def metric_name
           @metric_name || "Controller/#{metric_path}/#{metric_action}"
-        end
-
-        def finalize_metric_name!
-          txn = NewRelic::Agent::Transaction.current
-
-          # the event provides the default name but the transaction has the final say
-          txn.name ||= metric_name
-
-          # this applies the transaction name rules if not already applied
-          name = nil
-
-          txn.freeze_name_and_execute_if_not_ignored do
-            @metric_name = txn.name
-            name = @metric_name
-          end
-
-          return name
         end
 
         def metric_path

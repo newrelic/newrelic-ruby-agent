@@ -346,10 +346,7 @@ module NewRelic
             end
 
           ensure
-            end_time = Time.now
-            txn.freeze_name_and_execute_if_not_ignored
-
-            Transaction.stop(txn.name, end_time,
+            Transaction.stop(Time.now,
                              :metric_names   => recorded_metrics(txn),
                              :ignore_apdex   => ignore_apdex?,
                              :ignore_enduser => ignore_enduser?)

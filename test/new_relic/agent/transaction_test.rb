@@ -177,12 +177,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     )
   end
 
-  def test_stop_sets_name
-    NewRelic::Agent::Transaction.start(:controller)
-    txn = NewRelic::Agent::Transaction.stop('new_name')
-    assert_equal 'new_name', txn.name
-  end
-
   def test_name_is_unset_if_nil
     txn = NewRelic::Agent::Transaction.new
     txn.name = nil
@@ -212,10 +206,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::Transaction.start(:controller)
     assert_equal 2, NewRelic::Agent::Transaction.stack.size
 
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
     assert_equal 1, NewRelic::Agent::Transaction.stack.size
 
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
     assert_equal 0, NewRelic::Agent::Transaction.stack.size
   end
 
@@ -227,7 +221,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.set_transaction_name('foo/1/bar/22')
     NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
-    txn = NewRelic::Agent::Transaction.stop('txn')
+    txn = NewRelic::Agent::Transaction.stop()
     assert_equal 'Controller/foo/*/bar/*', txn.name
   ensure
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
@@ -248,7 +242,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     advance_time(5)
     NewRelic::Agent.set_transaction_name('foo/1/bar/22')
     NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
 
     assert_equal 'Controller/foo/1/bar/22', name
     assert_equal start_time.to_f, timestamp
@@ -264,7 +258,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.record_metric("HttpDispatcher", 2.1)
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
 
     assert_equal 2.1, options[NewRelic::MetricSpec.new('HttpDispatcher')].total_call_time
   end
@@ -277,7 +271,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.add_custom_parameters('fooz' => 'barz')
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
 
     assert_equal 'barz', options['fooz']
   end
@@ -339,7 +333,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     expects_logging(:warn, includes("add_custom_parameters"))
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.add_custom_parameters('fooz')
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
   end
 
   def test_parent_returns_parent_transaction_if_there_is_one

@@ -49,9 +49,9 @@ module NewRelic
         return txn
       end
 
-      def self.stop(metric_name=nil, end_time=Time.now, opts={})
+      def self.stop(end_time=Time.now, opts={})
         txn = self.stack.last
-        txn.stop(metric_name, end_time, opts) if txn
+        txn.stop(end_time, opts) if txn
         return self.stack.pop
       end
 
@@ -210,16 +210,17 @@ module NewRelic
 
       # Unwind one stack level.  It knows if it's back at the outermost caller and
       # does the appropriate wrapup of the context.
-      def stop(fallback_name=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now, opts={})
+      def stop(end_time=Time.now, opts={})
+        freeze_name_and_execute_if_not_ignored
+
         NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
           start_time.to_f,
-          fallback_name,
+          @name,
           opts[:metric_names],
           @expected_scope,
           @trace_options,
           end_time.to_f)
 
-        @name = fallback_name unless name_set? || name_frozen?
         log_underflow if @type.nil?
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
