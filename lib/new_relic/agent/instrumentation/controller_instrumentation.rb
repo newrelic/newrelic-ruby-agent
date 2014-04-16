@@ -322,9 +322,19 @@ module NewRelic
             end
           end
 
-          txn = _start_transaction(block_given? ? args : [])
+          # If a block was passed in, then the arguments represent options for
+          # the instrumentation, not app method arguments.
+          txn_options = create_transaction_options(block_given? ? args : [])
+          return yield unless (NewRelic::Agent.is_execution_traced? || txn_options[:force])
+
           begin
-            return yield if !(NewRelic::Agent.is_execution_traced? || txn.force_flag)
+            category = txn_options[:category] || :controller
+            txn = Transaction.start(category, txn_options)
+            txn.name = TransactionNamer.new(self).name(txn_options)
+
+            txn.apdex_start = _detect_upstream_wait(txn)
+            _record_queue_length
+
             options = { :force                        => txn.force_flag,
                         :metric                       => true,
                         :transaction                  => true,
@@ -416,32 +426,21 @@ module NewRelic
 
         private
 
-        # Write a transaction onto a thread local if there isn't already one there.
-        # If there is one, just update it.
-        def _start_transaction(args) # :nodoc:
-          # If a block was passed in, then the arguments represent options for the instrumentation,
-          # not app method arguments.
-          options = {}
-          if args.any?
-            if args.last.is_a?(Hash)
-              options = args.pop
+        def create_transaction_options(txn_args)
+          txn_options = {}
+          if txn_args.any?
+            if txn_args.last.is_a?(Hash)
+              txn_options = txn_args.pop
             end
-            available_params = options[:params] || {}
-            options[:name] ||= args.first
+            available_params = txn_options[:params] || {}
+            txn_options[:name] ||= txn_args.first
           else
             available_params = self.respond_to?(:params) ? self.params : {}
           end
 
-          options[:request] ||= self.request if self.respond_to? :request
-          options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
-          category = options[:category] || :controller
-          txn = Transaction.start(category, options)
-          txn.name = TransactionNamer.new(self).name(options)
-
-          txn.apdex_start = _detect_upstream_wait(txn)
-          _record_queue_length
-
-          return txn
+          txn_options[:request] ||= self.request if self.respond_to? :request
+          txn_options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+          txn_options
         end
 
         # Filter out a request if it matches one of our parameters for
