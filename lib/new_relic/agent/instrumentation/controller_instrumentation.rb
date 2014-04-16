@@ -327,12 +327,11 @@ module NewRelic
           txn_options = create_transaction_options(block_given? ? args : [])
           return yield unless (NewRelic::Agent.is_execution_traced? || txn_options[:force])
 
+          txn_options[:transaction_name] = TransactionNamer.new(self).name(txn_options)
+          txn_options[:apdex_start_time] = detect_queue_start_time
+
           begin
-            txn_options[:transaction_name] = TransactionNamer.new(self).name(txn_options)
             txn = Transaction.start(txn_options[:category], txn_options)
-
-            txn.apdex_start = _detect_upstream_wait(txn)
-
             _record_queue_length
 
             options = { :force                        => txn.force_flag,
@@ -471,20 +470,10 @@ module NewRelic
           end
         end
 
-        # Return a Time instance representing the upstream start time.
-        # now is a Time instance to fall back on if no other candidate
-        # for the start time is found.
-        def _detect_upstream_wait(txn)
-          now = txn.start_time
-          return now unless txn.root?
+        def detect_queue_start_time
           if newrelic_request_headers
-            queue_start = QueueTime.parse_frontend_timestamp(newrelic_request_headers, now)
-            QueueTime.record_frontend_metrics(queue_start, now) if queue_start
+            QueueTime.parse_frontend_timestamp(newrelic_request_headers)
           end
-          queue_start || now
-        rescue => e
-          ::NewRelic::Agent.logger.error("Error detecting upstream wait time:", e)
-          now
         end
       end
     end

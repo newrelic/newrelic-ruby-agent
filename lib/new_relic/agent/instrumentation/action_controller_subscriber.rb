@@ -47,7 +47,6 @@ module NewRelic
             # transaction is being ignored, which means we shouldn't
             # record any metrics for it
             if event.finalize_metric_name!
-              record_queue_time(event)
               record_metrics(event)
             end
             stop_transaction(event)
@@ -75,18 +74,12 @@ module NewRelic
           NewRelic::Agent::Transaction.parent.stats_hash.record(metric, time)
         end
 
-        def record_queue_time(event)
-          return unless event.queue_start
-          return unless NewRelic::Agent::Transaction.current.root?
-          QueueTime.record_frontend_metrics(event.queue_start, event.time)
-        end
-
         def start_transaction(event)
           txn = Transaction.start(:controller,
                                   :request          => event.request,
                                   :filtered_params  => filter(event.payload[:params]),
+                                  :apdex_start_time => event.queue_start,
                                   :transaction_name => event.metric_name)
-          txn.apdex_start = (event.queue_start || event.time)
 
           event.node = NewRelic::Agent::TransactionState.get.tt_node_stack \
             .push_node(:action_controller, event.time)

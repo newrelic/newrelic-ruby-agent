@@ -43,44 +43,6 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
     assert_metrics_not_recorded("Apdex")
   end
 
-  def test_detect_upstream_wait_returns_transaction_start_time_if_nothing_from_headers
-    @object.stubs(:newrelic_request_headers).returns(@dummy_headers)
-    in_transaction do |txn|
-      NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp) \
-        .with(@dummy_headers, txn.start_time).returns(txn.start_time)
-      assert_equal(txn.start_time, @object.send(:_detect_upstream_wait, txn))
-    end
-  end
-
-  def test_detect_upstream_wait_returns_parsed_timestamp_from_headers
-    @object.stubs(:newrelic_request_headers).returns(@dummy_headers)
-    in_transaction do |txn|
-      earlier_time = txn.start_time - 1
-      NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp) \
-        .with(@dummy_headers, txn.start_time).returns(earlier_time)
-      assert_equal(earlier_time, @object.send(:_detect_upstream_wait, txn))
-    end
-  end
-
-  def test_detect_upstream_wait_swallows_errors
-    @object.stubs(:newrelic_request_headers).returns(@dummy_headers)
-    in_transaction do |txn|
-      NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp) \
-        .with(@dummy_headers, txn.start_time).raises("an error")
-      assert_equal(txn.start_time, @object.send(:_detect_upstream_wait, txn))
-    end
-  end
-
-  def test_detect_upsteam_wait_does_not_parse_timestamp_in_nested_transaction
-    @object.stubs(:newrelic_request_headers).returns(@dummy_headers)
-    in_transaction do |outer|
-      in_transaction do |inner|
-        NewRelic::Agent::Instrumentation::QueueTime.expects(:parse_frontend_timestamp).never
-        assert_equal(inner.start_time, @object.send(:_detect_upstream_wait, inner))
-      end
-    end
-  end
-
   def test_transaction_name_calls_newrelic_metric_path
     @object.stubs(:newrelic_metric_path).returns('some/wacky/path')
     assert_equal('Controller/some/wacky/path', @txn_namer.name)

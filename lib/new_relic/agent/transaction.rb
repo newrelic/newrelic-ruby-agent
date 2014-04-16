@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/transaction_timings'
+require 'new_relic/agent/instrumentation/queue_time'
 
 module NewRelic
   module Agent
@@ -98,7 +99,7 @@ module NewRelic
         @name = options[:transaction_name] || NewRelic::Agent::UNKNOWN_METRIC
         @type = type || :controller
         @start_time = Time.now
-        @apdex_start = @start_time
+        @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
         @gc_start_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
@@ -222,6 +223,7 @@ module NewRelic
             sql_sampler.notice_scope_empty(@name)
 
             record_apdex(end_time, opts[:exception_encountered]) unless opts[:ignore_apdex]
+            NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
             NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if opts[:ignore_enduser]
           end
 
