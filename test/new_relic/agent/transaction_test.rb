@@ -476,6 +476,49 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_record_transaction_cpu_positive
+    @txn.expects(:cpu_burn).once.returns(1.0)
+    NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).with(1.0)
+    @txn.record_transaction_cpu
+  end
+
+  def test_record_transaction_cpu_negative
+    @txn.expects(:cpu_burn).once.returns(nil)
+    # should not be called for the nil case
+    NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).never
+    @txn.record_transaction_cpu
+  end
+
+  def test_normal_cpu_burn_positive
+    @txn.instance_variable_set(:@process_cpu_start, 3)
+    @txn.expects(:process_cpu).returns(4)
+    assert_equal 1, @txn.normal_cpu_burn
+  end
+
+  def test_normal_cpu_burn_negative
+    @txn.instance_variable_set(:@process_cpu_start, nil)
+    @txn.expects(:process_cpu).never
+    assert_equal nil, @txn.normal_cpu_burn
+  end
+
+  def test_jruby_cpu_burn_negative
+    @jruby_cpu_start = nil
+    @txn.expects(:jruby_cpu_time).never
+    assert_equal nil, @txn.jruby_cpu_burn
+  end
+
+  def test_cpu_burn_normal
+    @txn.expects(:normal_cpu_burn).returns(1)
+    @txn.expects(:jruby_cpu_burn).never
+    assert_equal 1, @txn.cpu_burn
+  end
+
+  def test_cpu_burn_jruby
+    @txn.expects(:normal_cpu_burn).returns(nil)
+    @txn.expects(:jruby_cpu_burn).returns(2)
+    assert_equal 2, @txn.cpu_burn
+  end
+
   def assert_has_custom_parameter(key, value = key)
     assert_equal(value, NewRelic::Agent::Transaction.current.custom_parameters[key])
   end

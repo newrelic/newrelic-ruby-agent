@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/transaction/pop'
 require 'new_relic/agent/transaction_timings'
 
 module NewRelic
@@ -12,8 +11,6 @@ module NewRelic
     #
     # @api public
     class Transaction
-      # helper module refactored out of the `pop` method
-      include Pop
 
       attr_accessor :start_time  # A Time instance for the start time, never nil
       attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
@@ -216,7 +213,7 @@ module NewRelic
           if self.root?
             # this one records metrics and wants to happen
             # before the transaction sampler is finished
-            if traced?
+            if NewRelic::Agent.is_execution_traced?
               record_transaction_cpu
               gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
               gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
@@ -265,6 +262,10 @@ module NewRelic
         if referring_guid
           payload[:referring_transaction_guid] = referring_guid
         end
+      end
+
+      def log_underflow
+        NewRelic::Agent.logger.error "Underflow in transaction: #{caller.join("\n   ")}"
       end
 
       def merge_stats_hash
@@ -469,6 +470,25 @@ module NewRelic
         end
       end
 
+      def cpu_burn
+        normal_cpu_burn || jruby_cpu_burn
+      end
+
+      def normal_cpu_burn
+        return unless @process_cpu_start
+        process_cpu - @process_cpu_start
+      end
+
+      def jruby_cpu_burn
+        return unless @jruby_cpu_start
+        jruby_cpu_time - @jruby_cpu_start
+      end
+
+      def record_transaction_cpu
+        burn = cpu_burn
+        transaction_sampler.notice_transaction_cpu_time(burn) if burn
+      end
+
       private
 
       def process_cpu
@@ -477,7 +497,7 @@ module NewRelic
         p.stime + p.utime
       end
 
-      def jruby_cpu_time # :nodoc:
+      def jruby_cpu_time
         return nil unless @@java_classes_loaded
         threadMBean = ManagementFactory.getThreadMXBean()
         java_utime = threadMBean.getCurrentThreadUserTime()  # ns
