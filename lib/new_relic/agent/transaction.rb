@@ -44,7 +44,7 @@ module NewRelic
 
       def self.start(transaction_type, options={})
         txn = Transaction.new(transaction_type, options)
-        txn.start(transaction_type)
+        txn.start(transaction_type, options)
         self.stack.push(txn)
         return txn
       end
@@ -167,7 +167,7 @@ module NewRelic
 
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
-      def start(transaction_type)
+      def start(transaction_type, txn_options)
         transaction_sampler.notice_first_scope_push(start_time)
         sql_sampler.notice_first_scope_push(start_time)
 
@@ -176,6 +176,14 @@ module NewRelic
         sql_sampler.notice_transaction(uri, filtered_params)
 
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
+
+        @trace_options = {
+                    :force                        => txn_options[:force],
+                    :metric                       => true,
+                    :transaction                  => true,
+                    :deduct_call_time_from_parent => true
+                  }
+        _, @expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(@trace_options, start_time.to_f)
       end
 
       # Indicate that you don't want to keep the currently saved transaction
@@ -203,6 +211,14 @@ module NewRelic
       # Unwind one stack level.  It knows if it's back at the outermost caller and
       # does the appropriate wrapup of the context.
       def stop(fallback_name=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now, opts={})
+        NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
+          start_time.to_f,
+          fallback_name,
+          opts[:metric_names],
+          @expected_scope,
+          @trace_options,
+          end_time.to_f)
+
         @name = fallback_name unless name_set? || name_frozen?
         log_underflow if @type.nil?
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)

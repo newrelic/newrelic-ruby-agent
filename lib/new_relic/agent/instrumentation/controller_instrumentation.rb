@@ -334,13 +334,6 @@ module NewRelic
             txn = Transaction.start(txn_options[:category], txn_options)
             _record_queue_length
 
-            options = { :force                        => txn_options[:force],
-                        :metric                       => true,
-                        :transaction                  => true,
-                        :deduct_call_time_from_parent => true
-                      }
-            _, expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
-
             begin
               if block_given?
                 yield
@@ -354,13 +347,10 @@ module NewRelic
 
           ensure
             end_time = Time.now
-
             txn.freeze_name_and_execute_if_not_ignored
-            metric_names = Array(recorded_metrics(txn))
-            txn_name = metric_names.shift
 
-            NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
-            Transaction.stop(txn_name, end_time,
+            Transaction.stop(txn.name, end_time,
+                             :metric_names   => recorded_metrics(txn),
                              :ignore_apdex   => ignore_apdex?,
                              :ignore_enduser => ignore_enduser?)
           end
@@ -368,7 +358,7 @@ module NewRelic
 
         def recorded_metrics(txn)
           metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(txn.name)
-          metrics = [txn.name]
+          metrics = []
           metrics += metric_parser.summary_metrics unless txn.has_parent?
           metrics
         end

@@ -43,12 +43,7 @@ module NewRelic
           event.payload.merge!(payload)
 
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
-            # event.finalize_metric_name! returns nil when this
-            # transaction is being ignored, which means we shouldn't
-            # record any metrics for it
-            if event.finalize_metric_name!
-              record_metrics(event)
-            end
+            event.finalize_metric_name!
             stop_transaction(event)
           else
             Agent.instance.pop_trace_execution_flag
@@ -57,43 +52,20 @@ module NewRelic
           log_notification_error(e, name, 'finish')
         end
 
-        def record_metrics(event)
-          controller_metric = MetricSpec.new(event.metric_name)
-          txn = Transaction.current
-          metrics = [ 'HttpDispatcher']
-          if txn.has_parent?
-            parent_metric = MetricSpec.new(event.metric_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
-            record_metric_on_parent_transaction(parent_metric, event.duration)
-          end
-          metrics << controller_metric.dup
-
-          Agent.instance.stats_engine.record_metrics(metrics, event.duration)
-        end
-
-        def record_metric_on_parent_transaction(metric, time)
-          NewRelic::Agent::Transaction.parent.stats_hash.record(metric, time)
-        end
-
         def start_transaction(event)
-          txn = Transaction.start(:controller,
-                                  :request          => event.request,
-                                  :filtered_params  => filter(event.payload[:params]),
-                                  :apdex_start_time => event.queue_start,
-                                  :transaction_name => event.metric_name)
-
-          event.node = NewRelic::Agent::TransactionState.get.tt_node_stack \
-            .push_node(:action_controller, event.time)
+          Transaction.start(:controller,
+                            :request          => event.request,
+                            :filtered_params  => filter(event.payload[:params]),
+                            :apdex_start_time => event.queue_start,
+                            :transaction_name => event.metric_name)
         end
 
         def stop_transaction(event)
-          NewRelic::Agent::TransactionState.get.tt_node_stack \
-            .pop_node(event.node, event.metric_name, event.end)
-        ensure
-          Transaction.stop(nil, Time.now,
+          Transaction.stop(event.metric_name, Time.now,
+                           :metric_names          => ['HttpDispatcher'],
                            :exception_encountered => event.exception_encountered?,
                            :ignore_apdex          => event.apdex_ignored?,
-                           :ignore_enduser        => event.enduser_ignored?
-                          )
+                           :ignore_enduser        => event.enduser_ignored?)
         end
 
         def filter(params)
