@@ -182,7 +182,7 @@ module NewRelic
         def trace_execution_scoped_header(options, t0=Time.now.to_f)
           frame = log_errors("trace_execution_scoped header") do
             push_flag!(options[:force])
-            NewRelic::Agent::TransactionState.get.traced_method_stack.push_frame(:method_tracer, t0, options[:deduct_call_time_from_parent])
+            NewRelic::Agent::TracedMethodStack.push_frame(:method_tracer, t0, options[:deduct_call_time_from_parent])
           end
           # needed in case we have an error, above, to always return
           # the start time.
@@ -243,8 +243,7 @@ module NewRelic
           log_errors("trace_method_execution footer") do
             pop_flag!(options[:force])
             if expected_frame
-              frame = NewRelic::Agent::TransactionState.get.traced_method_stack \
-                     .pop_frame(expected_frame, first_name, t1)
+              frame = NewRelic::Agent::TracedMethodStack.pop_frame(expected_frame, first_name, t1)
               duration = t1 - t0
               exclusive = duration - frame.children_time
               record_metrics(first_name, metric_names, duration, exclusive, options)

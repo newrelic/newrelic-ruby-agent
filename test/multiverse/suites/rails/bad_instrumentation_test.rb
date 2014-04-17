@@ -13,7 +13,7 @@ class BadInstrumentationController < ApplicationController
   # to fail.
   # https://newrelic.atlassian.net/browse/RUBY-1158
   def failwhale
-    NewRelic::Agent::TransactionState.get.traced_method_stack.push_frame('failwhale', Time.now)
+    NewRelic::Agent::TracedMethodStack.push_frame('failwhale', Time.now)
     render :text => 'everything went great'
   end
 end

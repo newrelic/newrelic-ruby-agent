@@ -79,7 +79,7 @@ module Sequel
       duration = finish - start
 
       begin
-        frame = NewRelic::Agent::TransactionState.get.traced_method_stack.push_frame( :sequel, start )
+        frame = NewRelic::Agent::TracedMethodStack.push_frame( :sequel, start )
         explainer = Proc.new do |*|
           if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
             self[ sql ].explain
@@ -91,7 +91,7 @@ module Sequel
         agent.transaction_sampler.notice_sql( sql, self.opts, duration, &explainer )
         agent.sql_sampler.notice_sql( sql, metric, self.opts, duration, &explainer )
       ensure
-        NewRelic::Agent::TransactionState.get.traced_method_stack.pop_frame( frame, metric, finish )
+        NewRelic::Agent::TracedMethodStack.pop_frame( frame, metric, finish )
       end
     end
 

@@ -232,8 +232,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     options = {:force => false, :deduct_call_time_from_parent => false}
     self.expects(:log_errors).with('trace_execution_scoped header').yields
     self.expects(:push_flag!).with(false)
-    NewRelic::Agent::TransactionState.get.traced_method_stack \
-        .expects(:push_frame).with(:method_tracer, 1.0, false)
+    NewRelic::Agent::TracedMethodStack.expects(:push_frame).with(:method_tracer, 1.0, false)
     trace_execution_scoped_header(options, 1.0)
   end
 

@@ -67,7 +67,7 @@ module NewRelic
         t0 = Time.now
 
         inject_request_headers(request) if cross_app_enabled?
-        segment = NewRelic::Agent::TransactionState.get.traced_method_stack.push_frame(:http_request, t0)
+        segment = NewRelic::Agent::TracedMethodStack.push_frame(:http_request, t0)
 
         return t0, segment
       rescue => err
@@ -111,7 +111,7 @@ module NewRelic
         ensure
           # If we have a segment, always pop the traced method stack to avoid
           # an inconsistent state, which prevents tracing of whole transaction.
-          NewRelic::Agent::TransactionState.get.traced_method_stack.pop_frame( segment, scoped_metric, t1 ) if segment
+          NewRelic::Agent::TracedMethodStack.pop_frame( segment, scoped_metric, t1 ) if segment
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "while cross app tracing", err
