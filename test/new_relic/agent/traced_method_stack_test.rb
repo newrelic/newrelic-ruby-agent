@@ -2,15 +2,13 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..', 'test_helper'))
+require 'new_relic/agent/traced_method_stack'
 
-
-class NewRelic::Agent::TransactionTraceNodeStackTest < Minitest::Test
+class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
   def setup
-    @node_stack = NewRelic::Agent::TransactionTraceNodeStack.new
+    @frame_stack = NewRelic::Agent::TracedMethodStack.new
   end
-
 
   def test_scope__overlap
     freeze_time
@@ -40,26 +38,26 @@ class NewRelic::Agent::TransactionTraceNodeStackTest < Minitest::Test
 
 
   def test_scope_failure
-    scope1 = @node_stack.push_node(:scope1)
-    scope2 = @node_stack.push_node(:scope2)
+    scope1 = @frame_stack.push_frame(:scope1)
+    scope2 = @frame_stack.push_frame(:scope2)
     assert_raises(RuntimeError) do
-      @node_stack.pop_node(scope1, "name 1")
+      @frame_stack.pop_frame(scope1, "name 1")
     end
   end
 
   def test_children_time
     t1 = freeze_time
-    expected1 = @node_stack.push_node(:a)
+    expected1 = @frame_stack.push_frame(:a)
     advance_time(0.001)
     t2 = Time.now
 
-    expected2 = @node_stack.push_node(:b)
+    expected2 = @frame_stack.push_frame(:b)
     advance_time(0.002)
     t3 = Time.now
 
-    expected = @node_stack.push_node(:c)
+    expected = @frame_stack.push_frame(:c)
     advance_time(0.003)
-    scope = @node_stack.pop_node(expected, "metric c")
+    scope = @frame_stack.pop_frame(expected, "metric c")
 
     t4 = Time.now
     assert_equal 0, scope.children_time
@@ -67,20 +65,20 @@ class NewRelic::Agent::TransactionTraceNodeStackTest < Minitest::Test
     advance_time(0.001)
     t5 = Time.now
 
-    expected = @node_stack.push_node(:d)
+    expected = @frame_stack.push_frame(:d)
     advance_time(0.002)
-    scope = @node_stack.pop_node(expected, "metric d")
+    scope = @frame_stack.pop_frame(expected, "metric d")
 
     t6 = Time.now
 
     assert_equal 0, scope.children_time
 
-    scope = @node_stack.pop_node(expected2, "metric b")
+    scope = @frame_stack.pop_frame(expected2, "metric b")
     assert_equal 'metric b', scope.name
 
     assert_in_delta((t4 - t3) + (t6 - t5), scope.children_time, 0.0001)
 
-    scope = @node_stack.pop_node(expected1, "metric a")
+    scope = @frame_stack.pop_frame(expected1, "metric a")
     assert_equal scope.name, 'metric a'
 
     assert_in_delta((t6 - t2), scope.children_time, 0.0001)
@@ -89,38 +87,38 @@ class NewRelic::Agent::TransactionTraceNodeStackTest < Minitest::Test
 
   # test for when the scope stack contains an element only used for tts and not metrics
   def test_simple_tt_only_scope
-    node1 = @node_stack.push_node(:a, 0, true)
-    node2 = @node_stack.push_node(:b, 10, false)
-    node3 = @node_stack.push_node(:c, 20, true)
+    node1 = @frame_stack.push_frame(:a, 0, true)
+    node2 = @frame_stack.push_frame(:b, 10, false)
+    node3 = @frame_stack.push_frame(:c, 20, true)
 
-    @node_stack.pop_node(node3, "name a", 30)
-    @node_stack.pop_node(node2, "name b", 20)
-    @node_stack.pop_node(node1, "name c", 10)
+    @frame_stack.pop_frame(node3, "name a", 30)
+    @frame_stack.pop_frame(node2, "name b", 20)
+    @frame_stack.pop_frame(node1, "name c", 10)
 
     assert_equal 0, node3.children_time
     assert_equal 10, node2.children_time
     assert_equal 10, node1.children_time
 
-    assert @node_stack.empty?
+    assert @frame_stack.empty?
   end
 
   def test_double_tt_only_scope
-    node1 = @node_stack.push_node(:a,  0, true)
-    node2 = @node_stack.push_node(:b, 10, false)
-    node3 = @node_stack.push_node(:c, 20, false)
-    node4 = @node_stack.push_node(:d, 30, true)
+    node1 = @frame_stack.push_frame(:a,  0, true)
+    node2 = @frame_stack.push_frame(:b, 10, false)
+    node3 = @frame_stack.push_frame(:c, 20, false)
+    node4 = @frame_stack.push_frame(:d, 30, true)
 
-    @node_stack.pop_node(node4, "name d", 40)
-    @node_stack.pop_node(node3, "name c", 30)
-    @node_stack.pop_node(node2, "name b", 20)
-    @node_stack.pop_node(node1, "name a", 10)
+    @frame_stack.pop_frame(node4, "name d", 40)
+    @frame_stack.pop_frame(node3, "name c", 30)
+    @frame_stack.pop_frame(node2, "name b", 20)
+    @frame_stack.pop_frame(node1, "name a", 10)
 
     assert_equal  0, node4.children_time.round
     assert_equal 10, node3.children_time.round
     assert_equal 10, node2.children_time.round
     assert_equal 10, node1.children_time.round
 
-    assert @node_stack.empty?
+    assert @frame_stack.empty?
   end
 
   def test_sampler_enabling
@@ -133,7 +131,7 @@ class NewRelic::Agent::TransactionTraceNodeStackTest < Minitest::Test
 
   def assert_sampler_enabled_with(expected, opts={})
     with_config(opts) do
-      assert_equal expected, @node_stack.sampler_enabled?
+      assert_equal expected, @frame_stack.sampler_enabled?
     end
   end
 

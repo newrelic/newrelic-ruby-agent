@@ -71,7 +71,7 @@ module Sequel
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool),
     ].compact.freeze
 
-    # Record the given +sql+ within a new node, using the given +start+ and
+    # Record the given +sql+ within a new frame, using the given +start+ and
     # +finish+ times.
     def notice_sql( sql, args, start, finish )
       metric   = primary_metric_for( sql, args )
@@ -79,7 +79,7 @@ module Sequel
       duration = finish - start
 
       begin
-        node = NewRelic::Agent::TransactionState.get.tt_node_stack.push_node( :sequel, start )
+        frame = NewRelic::Agent::TransactionState.get.traced_method_stack.push_frame( :sequel, start )
         explainer = Proc.new do |*|
           if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
             self[ sql ].explain
@@ -91,7 +91,7 @@ module Sequel
         agent.transaction_sampler.notice_sql( sql, self.opts, duration, &explainer )
         agent.sql_sampler.notice_sql( sql, metric, self.opts, duration, &explainer )
       ensure
-        NewRelic::Agent::TransactionState.get.tt_node_stack.pop_node( node, metric, finish )
+        NewRelic::Agent::TransactionState.get.traced_method_stack.pop_frame( frame, metric, finish )
       end
     end
 

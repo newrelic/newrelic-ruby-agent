@@ -174,19 +174,19 @@ module NewRelic
 
         # provides the header for our traced execution scoped
         # method - gets the initial time, sets the tracing flag if
-        # needed, and pushes the node onto the metric stack
+        # needed, and pushes the frame onto the metric stack
         # logs any errors that occur and returns the start time and
-        # the node so that we can check for it later, to maintain
-        # sanity. If the node stack becomes unbalanced, this
+        # the frame so that we can check for it later, to maintain
+        # sanity. If the frame stack becomes unbalanced, this
         # transaction loses meaning.
         def trace_execution_scoped_header(options, t0=Time.now.to_f)
-          node = log_errors("trace_execution_scoped header") do
+          frame = log_errors("trace_execution_scoped header") do
             push_flag!(options[:force])
-            NewRelic::Agent::TransactionState.get.tt_node_stack.push_node(:method_tracer, t0, options[:deduct_call_time_from_parent])
+            NewRelic::Agent::TransactionState.get.traced_method_stack.push_frame(:method_tracer, t0, options[:deduct_call_time_from_parent])
           end
           # needed in case we have an error, above, to always return
           # the start time.
-          [t0, node]
+          [t0, frame]
         end
 
         def metrics_for_current_transaction(first_name, other_names, options)
@@ -239,14 +239,14 @@ module NewRelic
         # this method fails safely if the header does not manage to
         # push the scope onto the stack - it simply does not trace
         # any metrics.
-        def trace_execution_scoped_footer(t0, first_name, metric_names, expected_node, options, t1=Time.now.to_f)
+        def trace_execution_scoped_footer(t0, first_name, metric_names, expected_frame, options, t1=Time.now.to_f)
           log_errors("trace_method_execution footer") do
             pop_flag!(options[:force])
-            if expected_node
-              node = NewRelic::Agent::TransactionState.get.tt_node_stack \
-                     .pop_node(expected_node, first_name, t1)
+            if expected_frame
+              frame = NewRelic::Agent::TransactionState.get.traced_method_stack \
+                     .pop_frame(expected_frame, first_name, t1)
               duration = t1 - t0
-              exclusive = duration - node.children_time
+              exclusive = duration - frame.children_time
               record_metrics(first_name, metric_names, duration, exclusive, options)
             end
           end

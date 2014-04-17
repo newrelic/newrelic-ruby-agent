@@ -42,7 +42,7 @@ module NewRelic
           metric = base_metric(event)
 
           # enter transaction trace segment
-          node = NewRelic::Agent::TransactionState.get.tt_node_stack.push_node(:active_record, event.time)
+          frame = NewRelic::Agent::TransactionState.get.traced_method_stack.push_frame(:active_record, event.time)
 
           NewRelic::Agent.instance.transaction_sampler \
             .notice_sql(event.payload[:sql], config,
@@ -55,7 +55,7 @@ module NewRelic
                         &method(:get_explain_plan))
 
           # exit transaction trace segment
-          NewRelic::Agent::TransactionState.get.tt_node_stack.pop_node(node, metric, event.end)
+          NewRelic::Agent::TransactionState.get.traced_method_stack.pop_frame(frame, metric, event.end)
         end
 
         def record_metrics(event)
