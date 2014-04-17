@@ -45,11 +45,15 @@ module NewRelic
           set_enduser_ignore if event.enduser_ignored?
 
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
-            event.finalize_metric_name!
-            record_queue_time(event)
-            record_metrics(event)
-            record_apdex(event)
-            record_instance_busy(event)
+            # event.finalize_metric_name! returns nil when this
+            # transaction is being ignored, which means we shouldn't
+            # record any metrics for it
+            if event.finalize_metric_name!
+              record_queue_time(event)
+              record_metrics(event)
+              record_apdex(event)
+              record_instance_busy(event)
+            end
             stop_transaction(event)
           else
             Agent.instance.pop_trace_execution_flag
@@ -147,9 +151,14 @@ module NewRelic
           txn.name ||= metric_name
 
           # this applies the transaction name rules if not already applied
-          txn.freeze_name
-          @metric_name = txn.name
-          return @metric_name
+          name = nil
+
+          txn.freeze_name_and_execute_if_not_ignored do
+            @metric_name = txn.name
+            name = @metric_name
+          end
+
+          return name
         end
 
         def metric_path

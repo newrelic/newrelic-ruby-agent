@@ -106,13 +106,15 @@ module NewRelic
 
       def insert_response_header(request_headers, response_headers)
         unless client_cross_app_id.nil?
-          unless NewRelic::Agent::TransactionState.get.transaction.nil?
-            NewRelic::Agent::Transaction.freeze_name
-            timings = NewRelic::Agent::TransactionState.get.timings
-            content_length = content_length_from_request(request_headers)
+          txn = NewRelic::Agent::TransactionState.get.transaction
+          unless txn.nil?
+            txn.freeze_name_and_execute_if_not_ignored do
+              timings = NewRelic::Agent::TransactionState.get.timings
+              content_length = content_length_from_request(request_headers)
 
-            set_response_headers(response_headers, timings, content_length)
-            set_metrics(client_cross_app_id, timings)
+              set_response_headers(response_headers, timings, content_length)
+              set_metrics(client_cross_app_id, timings)
+            end
           end
           clear_client_cross_app_id
         end

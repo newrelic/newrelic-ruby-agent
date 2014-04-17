@@ -345,7 +345,7 @@ module NewRelic
           ensure
             end_time = Time.now
 
-            txn.freeze_name
+            txn.freeze_name_and_execute_if_not_ignored
             metric_names = Array(recorded_metrics(txn))
             txn_name = metric_names.shift
 

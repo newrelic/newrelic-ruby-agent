@@ -8,9 +8,7 @@ module NewRelic
       include Enumerable
       extend Forwardable
 
-      def_delegators :@rules, :size, :<<, :inspect, :each
-
-      attr_accessor :rules
+      def_delegators :@rules, :size, :inspect, :each, :clear
 
       def self.from_specs(specs)
         rules = (specs || []).map { |spec| Rule.new(spec) }
@@ -18,19 +16,36 @@ module NewRelic
       end
 
       def initialize(rules=[])
-        @rules = rules
+        @rules = rules.sort
+      end
+
+      def << rule
+        @rules << rule
+        @rules.sort!
+        @rules
       end
 
       def rename(original_string)
-        @rules.sort.inject(original_string) do |string,rule|
+        @rules.inject(original_string) do |string,rule|
           if rule.each_segment
-            result, matched = rule.map_to_list(string.split('/'))
-            result = result.join('/')
+            segments = string.split('/')
+
+            # If string looks like '/foo/bar', we want to
+            # ignore the empty string preceding the first slash.
+            add_preceding_slash = false
+            if segments[0] == ''
+              segments.shift
+              add_preceding_slash = true
+            end
+
+            result, matched = rule.map_to_list(segments)
+            result = result.join('/') if !result.nil?
+            result = '/'+result if add_preceding_slash
           else
             result, matched = rule.apply(string)
           end
 
-          break result if matched && rule.terminate_chain
+          break result if (matched && rule.terminate_chain) || result.nil?
           result
         end
       end
@@ -47,7 +62,7 @@ module NewRelic
             raise ArgumentError.new('must specify replacement when ignore is false')
           end
 
-          @match_expression = Regexp.new(options['match_expression'])
+          @match_expression = Regexp.new(options['match_expression'], Regexp::IGNORECASE)
           @replacement      = options['replacement']
           @ignore           = options['ignore'] || false
           @eval_order       = options['eval_order'] || 0
@@ -57,9 +72,18 @@ module NewRelic
         end
 
         def apply(string)
-          method = @replace_all ? :gsub : :sub
-          result = string.send(method, @match_expression, @replacement)
-          [result, result != string]
+          if @ignore
+            if string.match @match_expression
+              [nil, true]
+            else
+              [string, false]
+            end
+          else
+            method = @replace_all ? :gsub : :sub
+            result = string.send(method, @match_expression, @replacement)
+            match_found = ($~ != nil)
+            [result, match_found]
+          end
         end
 
         def map_to_list(list)
