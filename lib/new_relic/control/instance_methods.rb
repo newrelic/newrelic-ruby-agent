@@ -50,7 +50,7 @@ module NewRelic
       def init_plugin(options={})
         env = options[:env] || self.env
         Agent.logger.info("Starting the New Relic agent in #{env.inspect} environment.")
-        Agent.logger.info("To prevent agent startup add a NEWRELIC_ENABLE=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
+        Agent.logger.info("To prevent agent startup add a NEWRELIC_AGENT_ENABLED=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
 
         configure_agent(env, options)
 
