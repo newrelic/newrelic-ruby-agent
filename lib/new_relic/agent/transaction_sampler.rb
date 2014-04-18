@@ -22,7 +22,7 @@ module NewRelic
         def on_start_transaction(*args); end
         def notice_push_scope(*args); end
         def notice_pop_scope(*args); end
-        def notice_scope_empty(*args); end
+        def on_finishing_transaction(*args); end
       end
 
       attr_reader :last_sample, :dev_mode_sample_buffer, :xray_sample_buffer
@@ -102,11 +102,11 @@ module NewRelic
       # This is called when we are done with the transaction.  We've
       # unwound the stack to the top level. It also clears the
       # transaction sample builder so that it won't continue to have
-      # scopes appended to it.
+      # frames appended to it.
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def notice_scope_empty(txn, time=Time.now, gc_time=nil)
+      def on_finishing_transaction(txn, time=Time.now, gc_time=nil)
         last_builder = builder
         last_builder.set_transaction_name(txn.name) if enabled? && last_builder
 

@@ -91,7 +91,7 @@ class AuditLogTest < Minitest::Test
     NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
                                  "Database/test/select",
                                  nil, 1.5)
-    NewRelic::Agent.instance.sql_sampler.notice_scope_empty('txn')
+    NewRelic::Agent.instance.sql_sampler.on_finishing_transaction('txn')
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
   end
 end

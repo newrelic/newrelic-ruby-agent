@@ -16,7 +16,7 @@ module NewRelic
       # Module defining methods stubbed out when the agent is disabled
       module Shim
         def on_start_transaction(*args); end
-        def notice_scope_empty(*args); end
+        def on_finishing_transaction(*args); end
       end
 
       attr_reader :disabled
@@ -62,7 +62,7 @@ module NewRelic
       end
 
       # This is called when we are done with the transaction.
-      def notice_scope_empty(name, time=Time.now)
+      def on_finishing_transaction(name, time=Time.now)
         data = transaction_data
         data.set_transaction_name(name)
         clear_transaction_data

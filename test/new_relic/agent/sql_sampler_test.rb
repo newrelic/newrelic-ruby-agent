@@ -25,7 +25,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     n.times do |i|
       sampler.on_start_transaction nil
       sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", nil, 1)
-      sampler.notice_scope_empty('txn')
+      sampler.on_finishing_transaction('txn')
     end
   end
 
@@ -37,7 +37,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     assert_nil @sampler.transaction_data
     @sampler.on_start_transaction nil
     refute_nil @sampler.transaction_data
-    @sampler.notice_scope_empty('txn')
+    @sampler.on_finishing_transaction('txn')
     assert_nil @sampler.transaction_data
   end
 

@@ -18,7 +18,7 @@ class NewRelic::Agent::MockScopeListener
     @scopes << scope
   end
 
-  def notice_scope_empty(time)
+  def on_finishing_transaction(time)
   end
 
   def enabled?
