@@ -87,7 +87,7 @@ class AuditLogTest < Minitest::Test
   def perform_actions
     reset_collector
 
-    NewRelic::Agent.instance.sql_sampler.notice_first_scope_push(nil)
+    NewRelic::Agent.instance.sql_sampler.on_start_transaction(nil)
     NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
                                  "Database/test/select",
                                  nil, 1.5)

@@ -11,9 +11,6 @@ class NewRelic::Agent::MockScopeListener
     @scopes = []
   end
 
-  def notice_first_scope_push(time)
-  end
-
   def notice_push_scope(time)
   end
 

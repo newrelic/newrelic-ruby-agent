@@ -19,8 +19,7 @@ module NewRelic
 
       # Module defining methods stubbed out when the agent is disabled
       module Shim #:nodoc:
-        def notice_transaction(*args); end
-        def notice_first_scope_push(*args); end
+        def on_start_transaction(*args); end
         def notice_push_scope(*args); end
         def notice_pop_scope(*args); end
         def notice_scope_empty(*args); end
@@ -63,11 +62,11 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
 
-      # Creates a new transaction sample builder, unless the
-      # transaction sampler is disabled. Takes a time parameter for
-      # the start of the transaction sample
-      def notice_first_scope_push(time)
-        start_builder(time.to_f) if enabled?
+      def on_start_transaction(start_time, uri=nil, params={})
+        if enabled?
+          start_builder(start_time.to_f)
+          builder.set_transaction_info(uri, params) if builder
+        end
       end
 
       # This delegates to the builder to create a new open transaction
@@ -130,12 +129,6 @@ module NewRelic
         @sample_buffers.each do |sample_buffer|
           sample_buffer.store(sample)
         end
-      end
-
-      # Delegates to the builder to store the uri, and
-      # parameters if the sampler is active
-      def notice_transaction(uri=nil, params={})
-        builder.set_transaction_info(uri, params) if enabled? && builder
       end
 
       # Tells the builder to ignore a transaction, if we are currently

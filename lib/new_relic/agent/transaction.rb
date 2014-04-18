@@ -168,13 +168,9 @@ module NewRelic
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
       def start(transaction_type, txn_options)
-        transaction_sampler.notice_first_scope_push(start_time)
-        sql_sampler.notice_first_scope_push(start_time)
-
+        transaction_sampler.on_start_transaction(start_time, uri, filtered_params)
+        sql_sampler.on_start_transaction(start_time, uri, filtered_params)
         NewRelic::Agent.instance.events.notify(:start_transaction)
-        transaction_sampler.notice_transaction(uri, filtered_params)
-        sql_sampler.notice_transaction(uri, filtered_params)
-
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
         @trace_options = {

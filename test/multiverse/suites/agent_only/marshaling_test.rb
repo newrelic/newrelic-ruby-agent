@@ -18,8 +18,7 @@ class MarshalingTest < Minitest::Test
     # create fake transaction trace
     time = freeze_time
     sampler = agent.transaction_sampler
-    sampler.notice_first_scope_push time
-    sampler.notice_transaction nil, {}
+    sampler.on_start_transaction time, nil, {}
     sampler.notice_push_scope "a"
     sampler.notice_push_scope "ab"
     advance_time 1
@@ -69,7 +68,7 @@ class MarshalingTest < Minitest::Test
   end
 
   def test_sql_trace_data_marshalling
-    agent.sql_sampler.notice_first_scope_push(nil)
+    agent.sql_sampler.on_start_transaction(nil)
     agent.sql_sampler.notice_sql("select * from test",
                                   "Database/test/select",
                                   nil, 1.5)
