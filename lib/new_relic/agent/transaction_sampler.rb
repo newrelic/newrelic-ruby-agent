@@ -20,8 +20,8 @@ module NewRelic
       # Module defining methods stubbed out when the agent is disabled
       module Shim #:nodoc:
         def on_start_transaction(*args); end
-        def notice_push_scope(*args); end
-        def notice_pop_scope(*args); end
+        def notice_push_frame(*args); end
+        def notice_pop_frame(*args); end
         def on_finishing_transaction(*args); end
       end
 
@@ -69,13 +69,12 @@ module NewRelic
         end
       end
 
-      # This delegates to the builder to create a new open transaction
-      # segment for the specified scope, beginning at the optionally
-      # specified time.
+      # This delegates to the builder to create a new open transaction segment
+      # for the frame, beginning at the optionally specified time.
       #
       # Note that in developer mode, this captures a stacktrace for
       # the beginning of each segment, which can be fairly slow
-      def notice_push_scope(time=Time.now)
+      def notice_push_frame(time=Time.now)
         return unless builder
 
         segment = builder.trace_entry(time.to_f)
@@ -83,12 +82,11 @@ module NewRelic
         return segment
       end
 
-      # Informs the transaction sample builder about the end of a
-      # traced scope
-      def notice_pop_scope(scope, time = Time.now)
+      # Informs the transaction sample builder about the end of a traced frame
+      def notice_pop_frame(frame, time = Time.now)
         return unless builder
         raise "finished already???" if builder.sample.finished
-        builder.trace_exit(scope, time.to_f)
+        builder.trace_exit(frame, time.to_f)
       end
 
       def custom_parameters_from_transaction(txn)

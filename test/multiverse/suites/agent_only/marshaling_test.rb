@@ -19,11 +19,11 @@ class MarshalingTest < Minitest::Test
     time = freeze_time
     sampler = agent.transaction_sampler
     sampler.on_start_transaction time, nil, {}
-    sampler.notice_push_scope "a"
-    sampler.notice_push_scope "ab"
+    sampler.notice_push_frame "a"
+    sampler.notice_push_frame "ab"
     advance_time 1
-    sampler.notice_pop_scope "ab"
-    sampler.notice_pop_scope "a"
+    sampler.notice_pop_frame "ab"
+    sampler.notice_pop_frame "a"
     sampler.on_finishing_transaction(OpenStruct.new(:name => 'path',
                                                :custom_parameters => {}))
 

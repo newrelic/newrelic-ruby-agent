@@ -75,26 +75,26 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
   end
 
-  def test_notice_push_scope_no_builder
+  def test_notice_push_frame_no_builder
     @sampler.expects(:builder)
-    assert_equal(nil, @sampler.notice_push_scope())
+    assert_equal(nil, @sampler.notice_push_frame())
   end
 
-  def test_notice_push_scope_with_builder
+  def test_notice_push_frame_with_builder
     with_config(:developer_mode => false) do
       builder = mock('builder')
       builder.expects(:trace_entry).with(100.0)
       @sampler.expects(:builder).returns(builder).twice
-      @sampler.notice_push_scope(Time.at(100))
+      @sampler.notice_push_frame(Time.at(100))
     end
   end
 
-  def test_notice_pop_scope_no_builder
+  def test_notice_pop_frame_no_builder
     @sampler.expects(:builder).returns(nil)
-    assert_equal(nil, @sampler.notice_pop_scope('a scope', Time.at(100)))
+    assert_equal(nil, @sampler.notice_pop_frame('a frame', Time.at(100)))
   end
 
-  def test_notice_pop_scope_with_finished_sample
+  def test_notice_pop_frame_with_finished_sample
     builder = mock('builder')
     sample = mock('sample')
     builder.expects(:sample).returns(sample)
@@ -102,19 +102,19 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @sampler.expects(:builder).returns(builder).twice
 
     assert_raises(RuntimeError) do
-      @sampler.notice_pop_scope('a scope', Time.at(100))
+      @sampler.notice_pop_frame('a frame', Time.at(100))
     end
   end
 
-  def test_notice_pop_scope_builder_delegation
+  def test_notice_pop_frame_builder_delegation
     builder = mock('builder')
-    builder.expects(:trace_exit).with('a scope', 100.0)
+    builder.expects(:trace_exit).with('a frame', 100.0)
     sample = mock('sample')
     builder.expects(:sample).returns(sample)
     sample.expects(:finished).returns(false)
     @sampler.expects(:builder).returns(builder).times(3)
 
-    @sampler.notice_pop_scope('a scope', Time.at(100))
+    @sampler.notice_pop_frame('a frame', Time.at(100))
   end
 
   def test_on_finishing_transaction_no_builder
@@ -496,17 +496,17 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_sample_tree
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       @sampler.on_start_transaction(Time.now, nil, {})
-      @sampler.notice_push_scope
+      @sampler.notice_push_frame
 
-      @sampler.notice_push_scope
-      @sampler.notice_pop_scope "b"
+      @sampler.notice_push_frame
+      @sampler.notice_pop_frame "b"
 
-      @sampler.notice_push_scope
-      @sampler.notice_push_scope
-      @sampler.notice_pop_scope "d"
-      @sampler.notice_pop_scope "c"
+      @sampler.notice_push_frame
+      @sampler.notice_push_frame
+      @sampler.notice_pop_frame "d"
+      @sampler.notice_pop_frame "c"
 
-      @sampler.notice_pop_scope "a"
+      @sampler.notice_pop_frame "a"
       @sampler.on_finishing_transaction(@txn)
       sample = @sampler.harvest!.first
       assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
@@ -521,17 +521,17 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       @sampler.on_start_transaction(Time.now, nil, {})
-      @sampler.notice_push_scope
+      @sampler.notice_push_frame
 
-      @sampler.notice_push_scope
-      @sampler.notice_pop_scope "b"
+      @sampler.notice_push_frame
+      @sampler.notice_pop_frame "b"
 
-      @sampler.notice_push_scope
-      @sampler.notice_push_scope
-      @sampler.notice_pop_scope "d"
-      @sampler.notice_pop_scope "c"
+      @sampler.notice_push_frame
+      @sampler.notice_push_frame
+      @sampler.notice_pop_frame "d"
+      @sampler.notice_pop_frame "c"
 
-      @sampler.notice_pop_scope "a"
+      @sampler.notice_pop_frame "a"
       @sampler.on_finishing_transaction(@txn)
 
       sample = @sampler.harvest!.first
@@ -604,18 +604,18 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_sample_with_parallel_paths
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       @sampler.on_start_transaction(Time.now, nil, {})
-      @sampler.notice_push_scope
+      @sampler.notice_push_frame
 
       assert_equal 1, @sampler.builder.scope_depth
 
-      @sampler.notice_pop_scope "a"
+      @sampler.notice_pop_frame "a"
       @sampler.on_finishing_transaction(@txn)
 
       assert_nil @sampler.builder
 
       @sampler.on_start_transaction(Time.now, nil, {})
-      @sampler.notice_push_scope
-      @sampler.notice_pop_scope "a"
+      @sampler.notice_push_frame
+      @sampler.notice_pop_frame "a"
       @sampler.on_finishing_transaction(@txn)
 
       assert_nil @sampler.builder
@@ -624,11 +624,11 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
   end
 
-  def test_double_scope_stack_empty
+  def test_double_traced_method_stack_empty
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       @sampler.on_start_transaction(Time.now, nil, {})
-      @sampler.notice_push_scope
-      @sampler.notice_pop_scope "a"
+      @sampler.notice_push_frame
+      @sampler.notice_pop_frame "a"
       @sampler.on_finishing_transaction(@txn)
       @sampler.on_finishing_transaction(@txn)
       @sampler.on_finishing_transaction(@txn)
@@ -651,7 +651,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_nil segment[:sql]
   end
 
-  def test_stack_trace__sql
+  def test_stack_trace_sql
     with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
       @sampler.on_start_transaction Time.now.to_f
       @sampler.notice_sql("test", {}, 1)
@@ -662,11 +662,11 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
   end
 
-  def test_stack_trace__scope
+  def test_stack_trace_scope
     with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
       t = Time.now
       @sampler.on_start_transaction t.to_f
-      @sampler.notice_push_scope((t+1).to_f)
+      @sampler.notice_push_frame((t+1).to_f)
 
       segment = @sampler.send(:builder).current_segment
       assert segment[:backtrace]
@@ -704,7 +704,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_segment_obfuscated
     @sampler.on_start_transaction Time.now.to_f
-    @sampler.notice_push_scope
+    @sampler.notice_push_frame
 
     orig_sql = "SELECT * from Jim where id=66"
 
@@ -714,7 +714,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     assert_equal orig_sql, segment[:sql]
     assert_equal "SELECT * from Jim where id=?", segment.obfuscated_sql
-    @sampler.notice_pop_scope "foo"
+    @sampler.notice_pop_frame "foo"
   end
 
   def test_param_capture
@@ -734,12 +734,12 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_should_not_collect_segments_beyond_limit
     with_config(:'transaction_tracer.limit_segments' => 3) do
       run_sample_trace do
-        @sampler.notice_push_scope
+        @sampler.notice_push_frame
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'challah'", {}, 0)
-        @sampler.notice_push_scope
+        @sampler.notice_push_frame
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", {}, 0)
-        @sampler.notice_pop_scope "a11"
-        @sampler.notice_pop_scope "a1"
+        @sampler.notice_pop_frame "a11"
+        @sampler.notice_pop_frame "a1"
       end
       assert_equal 3, @sampler.last_sample.count_segments
 
@@ -752,14 +752,14 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_renaming_current_segment_midflight
     @sampler.start_builder
-    segment = @sampler.notice_push_scope
+    segment = @sampler.notice_push_frame
     segment.metric_name = 'External/www.google.com/Net::HTTP/GET'
-    @sampler.notice_pop_scope( 'External/www.google.com/Net::HTTP/GET' )
+    @sampler.notice_pop_frame( 'External/www.google.com/Net::HTTP/GET' )
   end
 
   def test_adding_segment_parameters
     @sampler.start_builder
-    @sampler.notice_push_scope
+    @sampler.notice_push_frame
     @sampler.add_segment_parameters( :transaction_guid => '97612F92E6194080' )
     assert_equal '97612F92E6194080', @sampler.builder.current_segment[:transaction_guid]
   end
@@ -904,25 +904,25 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def run_long_sample_trace(n)
     @sampler.on_start_transaction(Time.now, nil, {})
     n.times do |i|
-      @sampler.notice_push_scope
+      @sampler.notice_push_frame
       yield if block_given?
-      @sampler.notice_pop_scope "node#{i}"
+      @sampler.notice_pop_frame "node#{i}"
     end
     @sampler.on_finishing_transaction(@txn, Time.now.to_f)
   end
 
   def run_sample_trace(start = Time.now.to_f, stop = nil)
     @sampler.on_start_transaction(start, nil, {})
-    @sampler.notice_push_scope
+    @sampler.notice_push_frame
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0)
-    @sampler.notice_push_scope
+    @sampler.notice_push_frame
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0)
     yield if block_given?
-    @sampler.notice_pop_scope "ab"
-    @sampler.notice_push_scope
+    @sampler.notice_pop_frame "ab"
+    @sampler.notice_push_frame
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
-    @sampler.notice_pop_scope "ac"
-    @sampler.notice_pop_scope "a"
+    @sampler.notice_pop_frame "ac"
+    @sampler.notice_pop_frame "a"
     @sampler.on_finishing_transaction(@txn, (stop || Time.now.to_f))
   end
 end

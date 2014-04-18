@@ -15,6 +15,10 @@ module NewRelic
       end
     end
 
+    # TracedMethodStack is responsible for tracking the push and pop of methods
+    # that we are tracing, notifying the transaction sampler, and calculating
+    # exclusive time when a method is complete. This is allowed whether a
+    # transaction is in progress not.
     class TracedMethodStack
       def initialize
         @stack = []
@@ -31,24 +35,26 @@ module NewRelic
       end
 
       # Pushes a frame onto the transaction stack - this generates a
-      # TransactionSample::Segment at the end of transaction execution
-      # The generated segment will not be named until the corresponding
-      # pop_frame call is made.
-      # +tag+ should be a Symbol, and is only used for debugging purposes to
+      # TransactionSample::Segment at the end of transaction execution.
+      #
+      # The generated segment won't be named until pop_frame is called.
+      #
+      # +tag+ should be a Symbol, and is only for debugging purposes to
       # identify this frame if the stack gets corrupted.
       def push_frame(tag, time = Time.now.to_f, deduct_call_time_from_parent = true)
-        transaction_sampler.notice_push_scope(time) if sampler_enabled?
+        transaction_sampler.notice_push_frame(time) if sampler_enabled?
         frame = TracedMethodFrame.new(tag, time, deduct_call_time_from_parent)
         @stack.push frame
         frame
       end
 
-      # Pops a frame off the transaction stack - this updates the
-      # transaction sampler that we've finished execution of a traced method
-      # +expected_frame+ should be the TracedMethodFrame that was returned by
-      # the corresponding push_frame call.
-      # +name+ is the name that will be applied to the generated transaction
-      # trace segment.
+      # Pops a frame off the transaction stack - this updates the transaction
+      # sampler that we've finished execution of a traced method.
+      #
+      # +expected_frame+ should be TracedMethodFrame from the corresponding
+      # push_frame call.
+      #
+      # +name+ will be applied to the generated transaction trace segment.
       def pop_frame(expected_frame, name, time=Time.now.to_f)
         frame = @stack.pop
         fail "unbalanced pop from blame stack, got #{frame ? frame.tag : 'nil'}, expected #{expected_frame ? expected_frame.tag : 'nil'}" if frame != expected_frame
@@ -60,7 +66,7 @@ module NewRelic
             @stack.last.children_time += frame.children_time
           end
         end
-        transaction_sampler.notice_pop_scope(name, time) if sampler_enabled?
+        transaction_sampler.notice_pop_frame(name, time) if sampler_enabled?
         frame.name = name
         frame
       end
