@@ -26,9 +26,9 @@ class Insider
       # sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
       sampler = "<none>"
       begin
-        @stats_engine.transaction_sampler = sampler
         fail "This should not have worked."
-        rescue; end
+      rescue
+      end
     else
       thrower(level-1)
     end

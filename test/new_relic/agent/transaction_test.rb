@@ -113,53 +113,51 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_update_apdex_records_correct_apdex_for_key_transaction
-    config = {
+  KEY_TRANSACTION_CONFIG = {
       :web_transactions_apdex => {
         'Controller/slow/txn' => 4,
-        'Controller/fast/txn' => 0.1,
       },
       :apdex => 1
-    }
+  }
 
-    freeze_time
-    t0 = Time.now
+  def test_update_apdex_records_correct_apdex_for_key_transaction
+    t0 = freeze_time
 
-    # Setting the transaction name from within the in_transaction block seems
-    # like cheating, but it mimics the way things are actually done, where we
-    # finalize the transaction name before recording the Apdex metrics.
-    with_config(config, :do_not_cast => true) do
+    with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/slow/txn') do
+        # Needs transaction name set before apdex lookups
         NewRelic::Agent::Transaction.current.name = 'Controller/slow/txn'
+
         NewRelic::Agent::Transaction.record_apdex(t0 + 3.5,  false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 5.5,  false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 16.5, false)
       end
-      assert_metrics_recorded(
-        'Apdex'          => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-        'Apdex/slow/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
-      )
 
-      in_web_transaction('Controller/fast/txn') do
-        NewRelic::Agent::Transaction.current.name = 'Controller/fast/txn'
-        NewRelic::Agent::Transaction.record_apdex(t0 + 0.05, false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 0.2,  false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 0.5,  false)
-      end
+      # apdex_s is 2 because the transaction itself records apdex
       assert_metrics_recorded(
-        'Apdex'          => { :apdex_s => 2, :apdex_t => 2, :apdex_f => 2 },
-        'Apdex/fast/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+        'Apdex'          => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
+        'Apdex/slow/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
       )
+    end
+  end
 
+  def test_update_apdex_records_correct_apdex_for_non_key_transaction
+    t0 = freeze_time
+
+    with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/other/txn') do
+        # Needs transaction name set before apdex lookups
         NewRelic::Agent::Transaction.current.name = 'Controller/other/txn'
+
         NewRelic::Agent::Transaction.record_apdex(t0 + 0.5, false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 2,   false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 5,   false)
       end
+
+      # apdex_s is 2 because the transaction itself records apdex
       assert_metrics_recorded(
-        'Apdex'           => { :apdex_s => 3, :apdex_t => 3, :apdex_f => 3 },
-        'Apdex/other/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+        'Apdex'           => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
+        'Apdex/other/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
       )
     end
   end
@@ -177,12 +175,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       'Apdex' => expected,
       'Apdex/some/txn' => expected
     )
-  end
-
-  def test_stop_sets_name
-    NewRelic::Agent::Transaction.start(:controller)
-    txn = NewRelic::Agent::Transaction.stop('new_name')
-    assert_equal 'new_name', txn.name
   end
 
   def test_name_is_unset_if_nil
@@ -214,10 +206,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::Transaction.start(:controller)
     assert_equal 2, NewRelic::Agent::Transaction.stack.size
 
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
     assert_equal 1, NewRelic::Agent::Transaction.stack.size
 
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
     assert_equal 0, NewRelic::Agent::Transaction.stack.size
   end
 
@@ -229,7 +221,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.set_transaction_name('foo/1/bar/22')
     NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
-    txn = NewRelic::Agent::Transaction.stop('txn')
+    txn = NewRelic::Agent::Transaction.stop()
     assert_equal 'Controller/foo/*/bar/*', txn.name
   ensure
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
@@ -250,7 +242,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     advance_time(5)
     NewRelic::Agent.set_transaction_name('foo/1/bar/22')
     NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
 
     assert_equal 'Controller/foo/1/bar/22', name
     assert_equal start_time.to_f, timestamp
@@ -266,7 +258,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.record_metric("HttpDispatcher", 2.1)
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
 
     assert_equal 2.1, options[NewRelic::MetricSpec.new('HttpDispatcher')].total_call_time
   end
@@ -279,7 +271,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.add_custom_parameters('fooz' => 'barz')
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
 
     assert_equal 'barz', options['fooz']
   end
@@ -341,7 +333,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     expects_logging(:warn, includes("add_custom_parameters"))
     NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.add_custom_parameters('fooz')
-    NewRelic::Agent::Transaction.stop('txn')
+    NewRelic::Agent::Transaction.stop()
   end
 
   def test_parent_returns_parent_transaction_if_there_is_one
@@ -476,6 +468,49 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
       refute block_was_called
     end
+  end
+
+  def test_record_transaction_cpu_positive
+    @txn.expects(:cpu_burn).once.returns(1.0)
+    NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).with(1.0)
+    @txn.record_transaction_cpu
+  end
+
+  def test_record_transaction_cpu_negative
+    @txn.expects(:cpu_burn).once.returns(nil)
+    # should not be called for the nil case
+    NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).never
+    @txn.record_transaction_cpu
+  end
+
+  def test_normal_cpu_burn_positive
+    @txn.instance_variable_set(:@process_cpu_start, 3)
+    @txn.expects(:process_cpu).returns(4)
+    assert_equal 1, @txn.normal_cpu_burn
+  end
+
+  def test_normal_cpu_burn_negative
+    @txn.instance_variable_set(:@process_cpu_start, nil)
+    @txn.expects(:process_cpu).never
+    assert_equal nil, @txn.normal_cpu_burn
+  end
+
+  def test_jruby_cpu_burn_negative
+    @txn.instance_variable_set(:@jruby_cpu_start, nil)
+    @txn.expects(:jruby_cpu_time).never
+    assert_equal nil, @txn.jruby_cpu_burn
+  end
+
+  def test_cpu_burn_normal
+    @txn.expects(:normal_cpu_burn).returns(1)
+    @txn.expects(:jruby_cpu_burn).never
+    assert_equal 1, @txn.cpu_burn
+  end
+
+  def test_cpu_burn_jruby
+    @txn.expects(:normal_cpu_burn).returns(nil)
+    @txn.expects(:jruby_cpu_burn).returns(2)
+    assert_equal 2, @txn.cpu_burn
   end
 
   def assert_has_custom_parameter(key, value = key)

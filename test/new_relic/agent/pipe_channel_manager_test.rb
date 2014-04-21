@@ -172,9 +172,9 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     end
 
     def create_sql_sample(sampler)
-      sampler.notice_first_scope_push(Time.now)
+      sampler.on_start_transaction(Time.now)
       sampler.notice_sql("SELECT * FROM table", "ActiveRecord/Widgets/find", nil, 100)
-      sampler.notice_scope_empty('noodles', Time.now)
+      sampler.on_finishing_transaction('noodles', Time.now)
     end
   end
 

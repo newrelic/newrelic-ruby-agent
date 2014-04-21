@@ -322,16 +322,19 @@ module NewRelic
             end
           end
 
-          txn = _start_transaction(block_given? ? args : [])
+          # If a block was passed in, then the arguments represent options for
+          # the instrumentation, not app method arguments.
+          txn_options = create_transaction_options(block_given? ? args : [])
+          return yield unless (NewRelic::Agent.is_execution_traced? || txn_options[:force])
+
+          txn_options[:transaction_name] = TransactionNamer.new(self).name(txn_options)
+          txn_options[:apdex_start_time] = detect_queue_start_time
+
           begin
-            options = { :force => txn.force_flag, :transaction => true }
-            return yield if !(NewRelic::Agent.is_execution_traced? || options[:force])
-            options[:metric] = true if options[:metric].nil?
-            options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
-            _, expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
+            txn = Transaction.start(txn_options[:category], txn_options)
+            _record_queue_length
 
             begin
-              NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
               if block_given?
                 yield
               else
@@ -343,24 +346,16 @@ module NewRelic
             end
 
           ensure
-            end_time = Time.now
-
-            txn.freeze_name_and_execute_if_not_ignored
-            metric_names = Array(recorded_metrics(txn))
-            txn_name = metric_names.shift
-
-            NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
-            NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
-            txn.record_apdex(end_time) unless ignore_apdex?
-            txn = Transaction.stop(txn_name, end_time)
-
-            NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
+            Transaction.stop(Time.now,
+                             :metric_names   => recorded_metrics(txn),
+                             :ignore_apdex   => ignore_apdex?,
+                             :ignore_enduser => ignore_enduser?)
           end
         end
 
         def recorded_metrics(txn)
           metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(txn.name)
-          metrics = [txn.name]
+          metrics = []
           metrics += metric_parser.summary_metrics unless txn.has_parent?
           metrics
         end
@@ -417,32 +412,21 @@ module NewRelic
 
         private
 
-        # Write a transaction onto a thread local if there isn't already one there.
-        # If there is one, just update it.
-        def _start_transaction(args) # :nodoc:
-          # If a block was passed in, then the arguments represent options for the instrumentation,
-          # not app method arguments.
-          options = {}
-          if args.any?
-            if args.last.is_a?(Hash)
-              options = args.pop
+        def create_transaction_options(txn_args)
+          txn_options = {}
+          if txn_args.any?
+            if txn_args.last.is_a?(Hash)
+              txn_options = txn_args.pop
             end
-            available_params = options[:params] || {}
-            options[:name] ||= args.first
+            available_params = txn_options[:params] || {}
+            txn_options[:name] ||= txn_args.first
           else
             available_params = self.respond_to?(:params) ? self.params : {}
           end
 
-          options[:request] ||= self.request if self.respond_to? :request
-          options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
-          category = options[:category] || :controller
-          txn = Transaction.start(category, options)
-          txn.name = TransactionNamer.new(self).name(options)
-
-          txn.apdex_start = _detect_upstream_wait(txn)
-          _record_queue_length
-
-          return txn
+          txn_options[:request] ||= self.request if self.respond_to? :request
+          txn_options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+          txn_options
         end
 
         # Filter out a request if it matches one of our parameters for
@@ -473,20 +457,10 @@ module NewRelic
           end
         end
 
-        # Return a Time instance representing the upstream start time.
-        # now is a Time instance to fall back on if no other candidate
-        # for the start time is found.
-        def _detect_upstream_wait(txn)
-          now = txn.start_time
-          return now unless txn.root?
+        def detect_queue_start_time
           if newrelic_request_headers
-            queue_start = QueueTime.parse_frontend_timestamp(newrelic_request_headers, now)
-            QueueTime.record_frontend_metrics(queue_start, now) if queue_start
+            QueueTime.parse_frontend_timestamp(newrelic_request_headers)
           end
-          queue_start || now
-        rescue => e
-          ::NewRelic::Agent.logger.error("Error detecting upstream wait time:", e)
-          now
         end
       end
     end

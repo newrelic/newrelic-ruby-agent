@@ -14,8 +14,7 @@ module NewRelic
           push_event(event)
 
           if NewRelic::Agent.is_execution_traced? && event.recordable?
-            event.scope = NewRelic::Agent.instance.stats_engine \
-              .push_scope(:action_view, event.time)
+            event.frame = NewRelic::Agent::TracedMethodStack.push_frame(:action_view, event.time)
           end
         rescue => e
           log_notification_error(e, name, 'start')
@@ -25,16 +24,15 @@ module NewRelic
           event = pop_event(id)
 
           if NewRelic::Agent.is_execution_traced? && event.recordable?
-            scope = NewRelic::Agent.instance.stats_engine \
-              .pop_scope(event.scope, event.metric_name, event.end)
-            record_metrics(event, scope)
+            frame = NewRelic::Agent::TracedMethodStack.pop_frame(event.frame, event.metric_name, event.end)
+            record_metrics(event, frame)
           end
         rescue => e
           log_notification_error(e, name, 'finish')
         end
 
-        def record_metrics(event, scope)
-          exclusive = event.duration - scope.children_time
+        def record_metrics(event, frame)
+          exclusive = event.duration - frame.children_time
           metric_specs = [
             NewRelic::MetricSpec.new(event.metric_name),
             NewRelic::MetricSpec.new(event.metric_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)

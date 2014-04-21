@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/transaction/pop'
 require 'new_relic/agent/transaction_timings'
+require 'new_relic/agent/instrumentation/queue_time'
 
 module NewRelic
   module Agent
@@ -12,15 +12,13 @@ module NewRelic
     #
     # @api public
     class Transaction
-      # helper module refactored out of the `pop` method
-      include Pop
 
       attr_accessor :start_time  # A Time instance for the start time, never nil
       attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
       # we can find a request header for the queue entry time
-      attr_accessor(:type, :exceptions, :filtered_params, :force_flag,
-                    :jruby_cpu_start, :process_cpu_start, :database_metric_name)
+      attr_accessor :type, :exceptions, :filtered_params,
+                    :jruby_cpu_start, :process_cpu_start, :database_metric_name
 
       attr_reader :name
       attr_reader :guid
@@ -46,14 +44,14 @@ module NewRelic
 
       def self.start(transaction_type, options={})
         txn = Transaction.new(transaction_type, options)
-        txn.start(transaction_type)
+        txn.start(transaction_type, options)
         self.stack.push(txn)
         return txn
       end
 
-      def self.stop(metric_name=nil, end_time=Time.now)
+      def self.stop(end_time=Time.now, opts={})
         txn = self.stack.last
-        txn.stop(metric_name, end_time) if txn
+        txn.stop(end_time, opts) if txn
         return self.stack.pop
       end
 
@@ -97,15 +95,15 @@ module NewRelic
 
       attr_reader :depth
 
-      def initialize(type=:controller, options={})
-        @type = type
+      def initialize(type=nil, options={})
+        @name = options[:transaction_name] || NewRelic::Agent::UNKNOWN_METRIC
+        @type = type || :controller
         @start_time = Time.now
-        @apdex_start = @start_time
+        @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
         @gc_start_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         @filtered_params = options[:filtered_params] || {}
-        @force_flag = options[:force]
         @request = options[:request]
         @exceptions = {}
         @stats_hash = StatsHash.new
@@ -169,15 +167,19 @@ module NewRelic
 
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
-      def start(transaction_type)
-        @name = NewRelic::Agent::UNKNOWN_METRIC
+      def start(transaction_type, txn_options)
+        transaction_sampler.on_start_transaction(start_time, uri, filtered_params)
+        sql_sampler.on_start_transaction(start_time, uri, filtered_params)
+        NewRelic::Agent.instance.events.notify(:start_transaction)
+        NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
-        transaction_sampler.notice_first_scope_push(start_time)
-        sql_sampler.notice_first_scope_push(start_time)
-
-        agent.stats_engine.start_transaction
-        transaction_sampler.notice_transaction(uri, filtered_params)
-        sql_sampler.notice_transaction(uri, filtered_params)
+        @trace_options = {
+                    :force                        => txn_options[:force],
+                    :metric                       => true,
+                    :transaction                  => true,
+                    :deduct_call_time_from_parent => true
+                  }
+        _, @expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(@trace_options, start_time.to_f)
       end
 
       # Indicate that you don't want to keep the currently saved transaction
@@ -204,23 +206,37 @@ module NewRelic
 
       # Unwind one stack level.  It knows if it's back at the outermost caller and
       # does the appropriate wrapup of the context.
-      def stop(fallback_name=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now)
-        @name = fallback_name unless name_set? || name_frozen?
+      def stop(end_time=Time.now, opts={})
+        freeze_name_and_execute_if_not_ignored
+
+        NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
+          start_time.to_f,
+          @name,
+          opts[:metric_names],
+          @expected_scope,
+          @trace_options,
+          end_time.to_f)
+
         log_underflow if @type.nil?
+        NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
         freeze_name_and_execute_if_not_ignored do
           # these record metrics so need to be done before merging stats
           if self.root?
             # this one records metrics and wants to happen
             # before the transaction sampler is finished
-            if traced?
+            if NewRelic::Agent.is_execution_traced?
               record_transaction_cpu
               gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
               gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
                   gc_start_snapshot, gc_stop_snapshot)
             end
-            @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_delta)
-            sql_sampler.notice_scope_empty(@name)
+            @transaction_trace = transaction_sampler.on_finishing_transaction(self, Time.now, gc_delta)
+            sql_sampler.on_finishing_transaction(@name)
+
+            record_apdex(end_time, opts[:exception_encountered]) unless opts[:ignore_apdex]
+            NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
+            NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if opts[:ignore_enduser]
           end
 
           record_exceptions
@@ -228,9 +244,6 @@ module NewRelic
 
           send_transaction_finished_event(start_time, end_time) if self.root?
         end
-
-        # these tear everything down so need to be done after merging stats
-        agent.stats_engine.end_transaction if self.root?
       end
 
       # This event is fired when the transaction is fully completed. The metric
@@ -262,6 +275,10 @@ module NewRelic
         if referring_guid
           payload[:referring_transaction_guid] = referring_guid
         end
+      end
+
+      def log_underflow
+        NewRelic::Agent.logger.error "Underflow in transaction: #{caller.join("\n   ")}"
       end
 
       def merge_stats_hash
@@ -466,6 +483,25 @@ module NewRelic
         end
       end
 
+      def cpu_burn
+        normal_cpu_burn || jruby_cpu_burn
+      end
+
+      def normal_cpu_burn
+        return unless @process_cpu_start
+        process_cpu - @process_cpu_start
+      end
+
+      def jruby_cpu_burn
+        return unless @jruby_cpu_start
+        jruby_cpu_time - @jruby_cpu_start
+      end
+
+      def record_transaction_cpu
+        burn = cpu_burn
+        transaction_sampler.notice_transaction_cpu_time(burn) if burn
+      end
+
       private
 
       def process_cpu
@@ -474,7 +510,7 @@ module NewRelic
         p.stime + p.utime
       end
 
-      def jruby_cpu_time # :nodoc:
+      def jruby_cpu_time
         return nil unless @@java_classes_loaded
         threadMBean = ManagementFactory.getThreadMXBean()
         java_utime = threadMBean.getCurrentThreadUserTime()  # ns

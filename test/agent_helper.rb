@@ -19,14 +19,6 @@ def assert_has_error(error_class)
     "Didn't find error of class #{error_class}"
 end
 
-
-unless defined?( build_message )
-  def build_message(head, template=nil, *arguments)
-    template &&= template.chomp
-    template.gsub(/\?/) { mu_pp(arguments.shift) }
-  end
-end
-
 unless defined?( assert_block )
   def assert_block(*msgs)
     assert yield, *msgs
@@ -35,14 +27,14 @@ end
 
 unless defined?( assert_includes )
   def assert_includes( collection, member, msg=nil )
-    msg = build_message( msg, "Expected ? to include ?", collection, member )
+    msg = "Expected #{collection.inspect} to include #{member.inspect}"
     assert_block( msg ) { collection.include?(member) }
   end
 end
 
 unless defined?( assert_not_includes )
   def assert_not_includes( collection, member, msg=nil )
-    msg = build_message( msg, "Expected ? not to include ?", collection, member )
+    msg = "Expected #{collection.inspect} not to include #{member.inspect}"
     assert !collection.include?(member), msg
   end
 end
@@ -142,12 +134,12 @@ def assert_metrics_not_recorded(not_expected)
 end
 
 def assert_truthy(expected, msg = nil)
-  msg = build_message( msg, "Expected ? to be truthy", expected )
+  msg = "Expected #{expected.inspect} to be truthy"
   assert !!expected, msg
 end
 
 def assert_falsy(expected, msg = nil)
-  msg = build_message( msg, "Expected ? to be falsy", expected )
+  msg = "Expected #{expected.inspect} to be falsy"
   assert !expected, msg
 end
 
@@ -157,7 +149,7 @@ unless defined?( assert_false )
   end
 end
 
-unless defined? ( refute )
+unless defined?(refute)
   alias refute assert_false
 end
 
@@ -181,16 +173,21 @@ end
 #
 def in_transaction(*args)
   opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
-  name = args.first || 'dummy'
+  opts[:transaction_name] = args.first || 'dummy'
   transaction_type = (opts && opts.delete(:type)) || :other
 
   NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
                         NewRelic::Agent::TransactionSampler.new)
-  NewRelic::Agent.instance.stats_engine.transaction_sampler = \
-    NewRelic::Agent.instance.transaction_sampler
   NewRelic::Agent::Transaction.start(transaction_type, opts || {})
-  val = yield NewRelic::Agent::Transaction.current
-  NewRelic::Agent::Transaction.stop(name)
+
+  val = nil
+
+  begin
+    val = yield NewRelic::Agent::Transaction.current
+  ensure
+    NewRelic::Agent::Transaction.stop()
+  end
+
   val
 end
 

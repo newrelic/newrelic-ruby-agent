@@ -23,9 +23,9 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def populate_container(sampler, n)
     n.times do |i|
-      sampler.notice_first_scope_push nil
+      sampler.on_start_transaction nil
       sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", nil, 1)
-      sampler.notice_scope_empty('txn')
+      sampler.on_finishing_transaction('txn')
     end
   end
 
@@ -33,11 +33,11 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   # Tests
 
-  def test_notice_first_scope_push
+  def test_on_start_transaction
     assert_nil @sampler.transaction_data
-    @sampler.notice_first_scope_push nil
+    @sampler.on_start_transaction nil
     refute_nil @sampler.transaction_data
-    @sampler.notice_scope_empty('txn')
+    @sampler.on_finishing_transaction('txn')
     assert_nil @sampler.transaction_data
   end
 
@@ -47,7 +47,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_notice_sql
-    @sampler.notice_first_scope_push nil
+    @sampler.on_start_transaction nil
     @sampler.notice_sql "select * from test", "Database/test/select", nil, 1.5
     @sampler.notice_sql "select * from test2", "Database/test2/select", nil, 1.3
     # this sql will not be captured
@@ -57,7 +57,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_notice_sql_truncates_query
-    @sampler.notice_first_scope_push nil
+    @sampler.on_start_transaction nil
     message = 'a' * 17_000
     @sampler.notice_sql(message, "Database/test/select", nil, 1.5)
     assert_equal('a' * 16_381 + '...', @sampler.transaction_data.sql_data[0].sql)
@@ -174,10 +174,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_sql_trace_should_include_transaction_guid
     txn_sampler = NewRelic::Agent::TransactionSampler.new
-    NewRelic::Agent.instance.stats_engine.transaction_sampler = txn_sampler
     txn_sampler.start_builder(Time.now)
-    @sampler.create_transaction_data
-    @sampler.notice_transaction('a uri', {:some => :params})
+    @sampler.on_start_transaction(Time.now, 'a uri', {:some => :params})
 
     assert_equal(NewRelic::Agent.instance.transaction_sampler.builder.sample.guid,
                  NewRelic::Agent.instance.sql_sampler.transaction_data.guid)

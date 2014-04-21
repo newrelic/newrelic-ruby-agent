@@ -26,7 +26,7 @@ module NewRelic
       end
 
       def test_start_trace_has_time_even_on_agent_failure
-        NewRelic::Agent.instance.stats_engine.stubs(:push_scope).raises("Boom!")
+        NewRelic::Agent::TracedMethodStack.stubs(:push_frame).raises("Boom!")
         t0, segment = CrossAppTracing.start_trace(request)
         refute_nil t0
         assert_nil segment
@@ -42,19 +42,19 @@ module NewRelic
 
       def test_finish_trace_allows_nil_request
         expects_no_logging(:error)
-        expects_pop_scope
+        expects_pop_frame
         CrossAppTracing.finish_trace(Time.now, segment, nil, response)
       end
 
       def test_finish_trace_allows_nil_response
         expects_no_logging(:error)
-        expects_pop_scope
+        expects_pop_frame
         CrossAppTracing.finish_trace(Time.now, segment, request, nil)
       end
 
 
-      def expects_pop_scope
-        NewRelic::Agent.instance.stats_engine.stubs(:pop_scope).once
+      def expects_pop_frame
+        NewRelic::Agent::TracedMethodStack.stubs(:pop_frame).once
       end
     end
   end

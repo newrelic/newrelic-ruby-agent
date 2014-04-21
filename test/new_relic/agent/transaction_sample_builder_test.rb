@@ -52,22 +52,12 @@ class NewRelic::Agent::TransationSampleBuilderTest < Minitest::Test
       build_segment "aa"
     end
 
-    begin
-      builder.sample
-      assert false
-    rescue => e
-      # expected
-    end
-
     @builder.finish_trace(Time.now.to_f)
 
     validate_builder
 
-    begin
+    assert_raises(TypeError) do
       build_segment "b"
-      assert false
-    rescue TypeError => e
-      # expected
     end
   end
 

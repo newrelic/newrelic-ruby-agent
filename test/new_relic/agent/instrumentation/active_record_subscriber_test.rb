@@ -89,19 +89,13 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   def test_creates_txn_segment
     freeze_time
 
-    NewRelic::Agent.manual_start
-    @stats_engine.start_transaction
-    sampler = NewRelic::Agent.instance.transaction_sampler
-    sampler.notice_first_scope_push(Time.now.to_f)
-    sampler.notice_transaction('/path', {})
-    sampler.notice_push_scope('Controller/sandwiches/index')
-    simulate_query(2)
-    sampler.notice_pop_scope('Controller/sandwiches/index')
-    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}, :guid => 'a guid'))
+    in_transaction do
+      simulate_query(2)
+    end
 
     last_segment = nil
+    sampler = NewRelic::Agent.instance.transaction_sampler
     sampler.last_sample.root_segment.each_segment{|s| last_segment = s }
-    NewRelic::Agent.shutdown
 
     assert_equal('ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
                  last_segment.metric_name)
@@ -110,16 +104,17 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_creates_slow_sql_node
-    NewRelic::Agent.manual_start
-    sampler = NewRelic::Agent.instance.sql_sampler
-    sampler.notice_first_scope_push nil
     freeze_time
 
-    simulate_query(2)
+    sampler = NewRelic::Agent.instance.sql_sampler
+    sql = nil
 
-    assert_equal 'SELECT * FROM sandwiches', sampler.transaction_data.sql_data[0].sql
-  ensure
-    NewRelic::Agent.shutdown
+    in_transaction do
+      simulate_query(2)
+      sql = sampler.transaction_data.sql_data[0].sql
+    end
+
+    assert_equal 'SELECT * FROM sandwiches', sql
   end
 
   def test_should_not_raise_due_to_an_exception_during_instrumentation_callback

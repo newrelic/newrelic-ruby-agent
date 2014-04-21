@@ -63,11 +63,11 @@ module NewRelic
       # This method MUST return a pair. The first item always returns the
       # starting time of the trace, even if an error occurs. The second item is
       # the transaction segment if it was sucessfully pushed.
-      def start_trace( request )
+      def start_trace(request)
         t0 = Time.now
 
-        inject_request_headers( request ) if cross_app_enabled?
-        segment = stats_engine.push_scope( :http_request, t0 )
+        inject_request_headers(request) if cross_app_enabled?
+        segment = NewRelic::Agent::TracedMethodStack.push_frame(:http_request, t0)
 
         return t0, segment
       rescue => err
@@ -109,9 +109,9 @@ module NewRelic
             end
           end
         ensure
-          # If we have a segment, always pop the scope stack to avoid an
-          # inconsistent state, which prevents tracing of whole transaction.
-          stats_engine.pop_scope( segment, scoped_metric, t1 ) if segment
+          # If we have a segment, always pop the traced method stack to avoid
+          # an inconsistent state, which prevents tracing of whole transaction.
+          NewRelic::Agent::TracedMethodStack.pop_frame( segment, scoped_metric, t1 ) if segment
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "while cross app tracing", err

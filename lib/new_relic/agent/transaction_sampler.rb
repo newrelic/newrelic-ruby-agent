@@ -19,11 +19,10 @@ module NewRelic
 
       # Module defining methods stubbed out when the agent is disabled
       module Shim #:nodoc:
-        def notice_transaction(*args); end
-        def notice_first_scope_push(*args); end
-        def notice_push_scope(*args); end
-        def notice_pop_scope(*args); end
-        def notice_scope_empty(*args); end
+        def on_start_transaction(*args); end
+        def notice_push_frame(*args); end
+        def notice_pop_frame(*args); end
+        def on_finishing_transaction(*args); end
       end
 
       attr_reader :last_sample, :dev_mode_sample_buffer, :xray_sample_buffer
@@ -63,20 +62,19 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
 
-      # Creates a new transaction sample builder, unless the
-      # transaction sampler is disabled. Takes a time parameter for
-      # the start of the transaction sample
-      def notice_first_scope_push(time)
-        start_builder(time.to_f) if enabled?
+      def on_start_transaction(start_time, uri=nil, params={})
+        if enabled?
+          start_builder(start_time.to_f)
+          builder.set_transaction_info(uri, params) if builder
+        end
       end
 
-      # This delegates to the builder to create a new open transaction
-      # segment for the specified scope, beginning at the optionally
-      # specified time.
+      # This delegates to the builder to create a new open transaction segment
+      # for the frame, beginning at the optionally specified time.
       #
       # Note that in developer mode, this captures a stacktrace for
       # the beginning of each segment, which can be fairly slow
-      def notice_push_scope(time=Time.now)
+      def notice_push_frame(time=Time.now)
         return unless builder
 
         segment = builder.trace_entry(time.to_f)
@@ -84,12 +82,11 @@ module NewRelic
         return segment
       end
 
-      # Informs the transaction sample builder about the end of a
-      # traced scope
-      def notice_pop_scope(scope, time = Time.now)
+      # Informs the transaction sample builder about the end of a traced frame
+      def notice_pop_frame(frame, time = Time.now)
         return unless builder
         raise "finished already???" if builder.sample.finished
-        builder.trace_exit(scope, time.to_f)
+        builder.trace_exit(frame, time.to_f)
       end
 
       def custom_parameters_from_transaction(txn)
@@ -103,11 +100,11 @@ module NewRelic
       # This is called when we are done with the transaction.  We've
       # unwound the stack to the top level. It also clears the
       # transaction sample builder so that it won't continue to have
-      # scopes appended to it.
+      # frames appended to it.
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def notice_scope_empty(txn, time=Time.now, gc_time=nil)
+      def on_finishing_transaction(txn, time=Time.now, gc_time=nil)
         last_builder = builder
         last_builder.set_transaction_name(txn.name) if enabled? && last_builder
 
@@ -130,12 +127,6 @@ module NewRelic
         @sample_buffers.each do |sample_buffer|
           sample_buffer.store(sample)
         end
-      end
-
-      # Delegates to the builder to store the uri, and
-      # parameters if the sampler is active
-      def notice_transaction(uri=nil, params={})
-        builder.set_transaction_info(uri, params) if enabled? && builder
       end
 
       # Tells the builder to ignore a transaction, if we are currently

@@ -18,14 +18,13 @@ class MarshalingTest < Minitest::Test
     # create fake transaction trace
     time = freeze_time
     sampler = agent.transaction_sampler
-    sampler.notice_first_scope_push time
-    sampler.notice_transaction nil, {}
-    sampler.notice_push_scope "a"
-    sampler.notice_push_scope "ab"
+    sampler.on_start_transaction time, nil, {}
+    sampler.notice_push_frame "a"
+    sampler.notice_push_frame "ab"
     advance_time 1
-    sampler.notice_pop_scope "ab"
-    sampler.notice_pop_scope "a"
-    sampler.notice_scope_empty(OpenStruct.new(:name => 'path',
+    sampler.notice_pop_frame "ab"
+    sampler.notice_pop_frame "a"
+    sampler.on_finishing_transaction(OpenStruct.new(:name => 'path',
                                                :custom_parameters => {}))
 
     expected_sample = sampler.last_sample
@@ -69,11 +68,11 @@ class MarshalingTest < Minitest::Test
   end
 
   def test_sql_trace_data_marshalling
-    agent.sql_sampler.notice_first_scope_push(nil)
+    agent.sql_sampler.on_start_transaction(nil)
     agent.sql_sampler.notice_sql("select * from test",
                                   "Database/test/select",
                                   nil, 1.5)
-    agent.sql_sampler.notice_scope_empty('txn')
+    agent.sql_sampler.on_finishing_transaction('txn')
 
     agent.service.connect
     agent.send(:harvest_and_send_slowest_sql)

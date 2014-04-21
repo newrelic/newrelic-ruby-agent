@@ -215,13 +215,13 @@ class NewRelic::TransactionSampleTest < Minitest::Test
 
   def test_count_segments
     transaction = run_sample_trace_on(NewRelic::Agent::TransactionSampler.new) do |sampler|
-      sampler.notice_push_scope "level0"
-      sampler.notice_push_scope "level-1"
-      sampler.notice_push_scope "level-2"
+      sampler.notice_push_frame "level0"
+      sampler.notice_push_frame "level-1"
+      sampler.notice_push_frame "level-2"
       sampler.notice_sql(::SQL_STATEMENT, {}, 0)
-      sampler.notice_pop_scope "level-2"
-      sampler.notice_pop_scope "level-1"
-      sampler.notice_pop_scope "level0"
+      sampler.notice_pop_frame "level-2"
+      sampler.notice_pop_frame "level-1"
+      sampler.notice_pop_frame "level0"
     end
     assert_equal 6, transaction.count_segments
   end

@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/browser_token'
+require 'new_relic/agent/traced_method_stack'
 
 module NewRelic
   module Agent
@@ -38,7 +39,7 @@ module NewRelic
       end
 
       def initialize
-        @stats_scope_stack = []
+        @traced_method_stack = TracedMethodStack.new
       end
 
       def request=(request)
@@ -196,12 +197,7 @@ module NewRelic
 
       # Scope stack tracking from NewRelic::StatsEngine::Transactions
       # Should not be nil--this class manages its initialization and resetting
-      attr_accessor :stats_scope_stack
-
-      def clear_stats_scope_stack
-        @stats_scope_stack = []
-      end
-
+      attr_reader :traced_method_stack
     end
   end
 end
