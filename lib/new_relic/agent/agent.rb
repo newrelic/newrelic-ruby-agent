@@ -912,7 +912,7 @@ module NewRelic
           log_error(e)
           if opts[:keep_retrying]
             note_connect_failure
-            ::NewRelic::Agent.logger.warn "Will re-attempt in #{connect_retry_period} seconds"
+            ::NewRelic::Agent.logger.info "Will re-attempt in #{connect_retry_period} seconds"
             sleep connect_retry_period
             retry
           else
@@ -1023,7 +1023,7 @@ module NewRelic
           rescue ForceRestartException, ForceDisconnectException
             raise
           rescue => e
-            NewRelic::Agent.logger.warn("Error during check_for_and_handle_agent_commands, will retry later: ", e)
+            NewRelic::Agent.logger.info("Error during check_for_and_handle_agent_commands, will retry later: ", e)
           end
         end
 
