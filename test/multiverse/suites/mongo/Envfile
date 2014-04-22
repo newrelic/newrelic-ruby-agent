@@ -1,8 +1,10 @@
 # Versions >= 1.10.0 are not supported at this time.
-gemfile <<-RB
-  gem 'mongo', '1.10.0'
-  gem 'bson_ext', :platforms => :ruby
-RB
+if defined?(RUBY_ENGINE) && RUBY_ENGINE != 'jruby'
+  gemfile <<-RB
+    gem 'mongo', '1.10.0'
+    gem 'bson_ext', :platforms => :ruby
+  RB
+end
 
 gemfile <<-RB
   gem 'mongo', '1.9.2'
