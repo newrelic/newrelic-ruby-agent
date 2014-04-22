@@ -1,3 +1,9 @@
+# Versions >= 1.10.0 are not supported at this time.
+gemfile <<-RB
+  gem 'mongo', '1.10.0'
+  gem 'bson_ext', :platforms => :ruby
+RB
+
 gemfile <<-RB
   gem 'mongo', '1.9.2'
   gem 'bson_ext', :platforms => :ruby
@@ -8,7 +14,7 @@ gemfile <<-RB
   gem 'bson_ext', :platforms => :ruby
 RB
 
-# Newest unsupported version of the driver!
+# Versions <= 1.7.1 are not supported and never will be.
 gemfile <<-RB
   gem 'mongo', '~>1.7.1'
   gem 'bson_ext', :platforms => :ruby
