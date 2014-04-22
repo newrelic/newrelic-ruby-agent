@@ -1,4 +1,9 @@
 gemfile <<-RB
+  gem 'mongo', '1.10.0'
+  gem 'bson_ext', :platforms => :ruby
+RB
+
+gemfile <<-RB
   gem 'mongo', '1.9.2'
   gem 'bson_ext', :platforms => :ruby
 RB
