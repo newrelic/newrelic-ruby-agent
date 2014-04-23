@@ -11,38 +11,32 @@ module NewRelic::Agent
     attr_reader :state
 
     def setup
-      @state = TransactionState.new
+      TransactionState.clear
+      @state = TransactionState.get
+    end
+
+    def teardown
+      TransactionState.clear
     end
 
     def test_without_transaction_stack_on_thread
-      state.current_transaction_stack = nil
       assert_equal false, state.in_background_transaction?
       assert_equal false, state.in_request_transaction?
     end
 
     def test_in_background_transaction
-      state.current_transaction_stack = [NewRelic::Agent::Transaction.new]
-
-      assert state.in_background_transaction?
+      in_transaction(:type => :task) do |txn|
+        txn.request = nil # this makes it a "background transaction"
+        assert state.in_background_transaction?
+      end
     end
 
     def test_in_request_tranasction
-      transaction = NewRelic::Agent::Transaction.new
-      transaction.request = stub()
+      in_transaction do |txn|
+        txn.request = stub()
 
-      state.current_transaction_stack = [transaction]
-
-      assert state.in_request_transaction?
-    end
-
-    def test_in_request_transaction_checks_last
-      earlier_transaction = NewRelic::Agent::Transaction.new
-      transaction = NewRelic::Agent::Transaction.new
-      transaction.request = stub()
-
-      state.current_transaction_stack = [earlier_transaction, transaction]
-
-      assert state.in_request_transaction?
+        assert state.in_request_transaction?
+      end
     end
 
     def test_timings_without_transaction
@@ -58,24 +52,25 @@ module NewRelic::Agent
 
     def test_timings_with_transaction
       earliest_time = freeze_time
-      transaction = NewRelic::Agent::Transaction.new
-      transaction.apdex_start = earliest_time
-      transaction.start_time = earliest_time + 5
-      transaction.name = "Transaction/name"
-      state.transaction = transaction
 
-      advance_time(10.0)
-      timings = state.timings
+      in_transaction do |txn|
+        txn.apdex_start = earliest_time
+        txn.start_time = earliest_time + 5
+        txn.name = "Transaction/name"
 
-      assert_equal 5.0, timings.queue_time_in_seconds
-      assert_equal 5.0, timings.app_time_in_seconds
-      assert_equal transaction.name, timings.transaction_name
+        advance_time(10.0)
+        timings = state.timings
+
+        assert_equal 5.0, timings.queue_time_in_seconds
+        assert_equal 5.0, timings.app_time_in_seconds
+        assert_equal txn.name, timings.transaction_name
+      end
     end
 
     def test_guid_from_transaction
-      txn = NewRelic::Agent::Transaction.new
-      state.transaction = txn
-      assert_equal state.request_guid, txn.guid
+      in_transaction do |txn|
+        assert_equal state.request_guid, txn.guid
+      end
     end
 
     GUID = "goo-id"
@@ -85,11 +80,11 @@ module NewRelic::Agent
         freeze_time
 
         state.request_token = "token"
-        state.transaction = NewRelic::Agent::Transaction.new
 
-        advance_time(4.0)
-
-        assert_equal state.transaction.guid, state.request_guid_to_include
+        in_transaction do |txn|
+          advance_time(4.0)
+          assert_equal state.transaction.guid, state.request_guid_to_include
+        end
       end
     end
 
@@ -98,11 +93,10 @@ module NewRelic::Agent
         freeze_time
 
         state.request_token = "token"
-        state.transaction = NewRelic::Agent::Transaction.new
-
-        advance_time(1.0)
-
-        assert_equal "", state.request_guid_to_include
+        in_transaction do |txn|
+          advance_time(1.0)
+          assert_equal "", state.request_guid_to_include
+        end
       end
     end
 
@@ -111,11 +105,10 @@ module NewRelic::Agent
         freeze_time
 
         state.request_token = nil
-        state.transaction = NewRelic::Agent::Transaction.new
-
-        advance_time(4.0)
-
-        assert_equal "", state.request_guid_to_include
+        in_transaction do |txn|
+          advance_time(4.0)
+          assert_equal "", state.request_guid_to_include
+        end
       end
     end
 
@@ -123,38 +116,37 @@ module NewRelic::Agent
       state.request_token = nil
       state.is_cross_app_caller = false
       state.referring_transaction_info = nil
-      state.transaction = NewRelic::Agent::Transaction.new
-
-      assert_nil state.request_guid_for_event
+      in_transaction do
+        assert_nil state.request_guid_for_event
+      end
     end
 
     def test_request_guid_for_event
       state.request_token = nil
       state.is_cross_app_caller = true
       state.referring_transaction_info = nil
-      state.transaction = NewRelic::Agent::Transaction.new
-
-      assert_equal state.transaction.guid, state.request_guid_for_event
+      in_transaction do
+        assert_equal state.transaction.guid, state.request_guid_for_event
+      end
     end
 
     def test_request_guid_for_event_if_referring_transaction
       state.request_token = nil
       state.is_cross_app_caller = false
       state.referring_transaction_info = ["another"]
-      state.transaction = NewRelic::Agent::Transaction.new
-
-      assert_equal state.transaction.guid, state.request_guid_for_event
+      in_transaction do
+        assert_equal state.transaction.guid, state.request_guid_for_event
+      end
     end
 
     def test_request_guid_for_event_if_there_for_rum
       with_config(:apdex_t => 2.0) do
         state.request_token = "token"
         state.is_cross_app_caller = false
-        state.transaction = NewRelic::Agent::Transaction.new
-
-        advance_time(10.0)
-
-        assert_equal state.transaction.guid, state.request_guid_for_event
+        in_transaction do
+          advance_time(10.0)
+          assert_equal state.transaction.guid, state.request_guid_for_event
+        end
       end
     end
 
