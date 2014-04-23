@@ -246,6 +246,13 @@ module NewRelic
         end
       end
 
+      def recorded_metrics
+        metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(name)
+        metrics = []
+        metrics += metric_parser.summary_metrics unless has_parent?
+        metrics
+      end
+
       # This event is fired when the transaction is fully completed. The metric
       # values and sampler can't be successfully modified from this event.
       def send_transaction_finished_event(start_time, end_time)
