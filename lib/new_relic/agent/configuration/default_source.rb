@@ -525,7 +525,7 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable agent middleware for sinatra. This middleware is responsible for instrumenting advanced feature support for sinatra (e.g. Cross-application tracing, Real User Monitoring, Error collection).'
+          :description => 'Enable or disable agent middleware for sinatra. This middleware is responsible for instrumenting advanced feature support for Sinatra; for example, cross application tracing, page load timing (sometimes referred to as real user monitoring or RUM), and error collection.'
         },
         :disable_view_instrumentation => {
           :default => false,
@@ -657,7 +657,7 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable MongoDB instrumentation.'
+          :description => 'Controls whether instrumentation for the mongo gem will be installed by the agent.'
         },
         :'slow_sql.enabled' => {
           :default => DefaultSource.slow_sql_enabled,
@@ -723,7 +723,7 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable real user monitoring.'
+          :description => 'Enable or disable page load timing (sometimes referred to as real user monitoring or RUM).'
         },
         :browser_key => {
           :default => '',
@@ -759,7 +759,7 @@ module NewRelic
           :default => DefaultSource.browser_monitoring_auto_instrument,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable automatic insertion of the real user monitoring header and footer into outgoing responses.'
+          :description => 'Enable or disable automatic insertion of the JavaScript header into outgoing responses for page load timing (sometimes referred to as real user monitoring or RUM).'
         },
         :'browser_monitoring.loader' => {
           :default => DefaultSource.browser_monitoring_loader,
@@ -820,7 +820,7 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable cross-application tracing.'
+          :description => 'Enable or disable cross application tracing.'
         },
         :cross_application_tracing => {
           :default => nil,
