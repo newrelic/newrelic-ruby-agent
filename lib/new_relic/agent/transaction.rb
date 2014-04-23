@@ -89,7 +89,7 @@ module NewRelic
           java_import 'java.lang.management.ManagementFactory'
           java_import 'com.sun.management.OperatingSystemMXBean'
           @@java_classes_loaded = true
-        rescue => e
+        rescue
         end
       end
 
@@ -321,10 +321,10 @@ module NewRelic
       end
 
       def self.extract_request_options(options)
-        request = options.delete(:request)
-        if request
-          options[:referer] = referer_from_request(request)
-          options[:uri] = uri_from_request(request)
+        req = options.delete(:request)
+        if req
+          options[:referer] = referer_from_request(req)
+          options[:uri] = uri_from_request(req)
         end
         options
       end
@@ -453,22 +453,22 @@ module NewRelic
 
       # Make a safe attempt to get the referer from a request object, generally successful when
       # it's a Rack request.
-      def self.referer_from_request(request)
-        if request && request.respond_to?(:referer)
-          request.referer.to_s.split('?').first
+      def self.referer_from_request(req)
+        if req && req.respond_to?(:referer)
+          req.referer.to_s.split('?').first
         end
       end
 
       # Make a safe attempt to get the URI, without the host and query string.
-      def self.uri_from_request(request)
+      def self.uri_from_request(req)
         approximate_uri = case
-                          when request.respond_to?(:fullpath) then request.fullpath
-                          when request.respond_to?(:path) then request.path
-                          when request.respond_to?(:request_uri) then request.request_uri
-                          when request.respond_to?(:uri) then request.uri
-                          when request.respond_to?(:url) then request.url
+                          when req.respond_to?(:fullpath   ) then req.fullpath
+                          when req.respond_to?(:path       ) then req.path
+                          when req.respond_to?(:request_uri) then req.request_uri
+                          when req.respond_to?(:uri        ) then req.uri
+                          when req.respond_to?(:url        ) then req.url
                           end
-        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri # '
+        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
       end
 
 
