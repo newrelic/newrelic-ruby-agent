@@ -83,7 +83,7 @@ module NewRelic::Agent
 
         in_transaction do |txn|
           advance_time(4.0)
-          assert_equal state.transaction.guid, state.request_guid_to_include
+          assert_equal state.current_transaction.guid, state.request_guid_to_include
         end
       end
     end
@@ -126,7 +126,7 @@ module NewRelic::Agent
       state.is_cross_app_caller = true
       state.referring_transaction_info = nil
       in_transaction do
-        assert_equal state.transaction.guid, state.request_guid_for_event
+        assert_equal state.current_transaction.guid, state.request_guid_for_event
       end
     end
 
@@ -135,7 +135,7 @@ module NewRelic::Agent
       state.is_cross_app_caller = false
       state.referring_transaction_info = ["another"]
       in_transaction do
-        assert_equal state.transaction.guid, state.request_guid_for_event
+        assert_equal state.current_transaction.guid, state.request_guid_for_event
       end
     end
 
@@ -145,7 +145,7 @@ module NewRelic::Agent
         state.is_cross_app_caller = false
         in_transaction do
           advance_time(10.0)
-          assert_equal state.transaction.guid, state.request_guid_for_event
+          assert_equal state.current_transaction.guid, state.request_guid_for_event
         end
       end
     end

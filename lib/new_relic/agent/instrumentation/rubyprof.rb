@@ -18,7 +18,7 @@ DependencyDetection.defer do
 
     NewRelic::Agent.instance.events.subscribe(:transaction_finished) do
       if NewRelic::Agent.config[:'profiling.enabled']
-        trace = NewRelic::Agent::TransactionState.get.transaction.transaction_trace
+        trace = NewRelic::Agent::TransactionState.get.most_recent_transaction.transaction_trace
         trace.profile = ::RubyProf.stop
       end
     end

@@ -63,6 +63,18 @@ module NewRelic
         !self.stack.empty?
       end
 
+      def parent
+        has_parent? && self.class.stack[-2]
+      end
+
+      def root?
+        self.class.stack.size == 1
+      end
+
+      def has_parent?
+        self.class.stack.size > 1
+      end
+
       # This is the name of the model currently assigned to database
       # measurements, overriding the default.
       def self.database_metric_name
@@ -109,7 +121,7 @@ module NewRelic
         @stats_hash = StatsHash.new
         @guid = generate_guid
         @ignore_this_transaction = false
-        TransactionState.get.transaction = self
+        TransactionState.get.most_recent_transaction = self
       end
 
       def noticed_error_ids
@@ -151,18 +163,6 @@ module NewRelic
 
       def ignored?
         @ignore_this_transaction
-      end
-
-      def parent
-        has_parent? && self.class.stack[-2]
-      end
-
-      def root?
-        self.class.stack.size == 1
-      end
-
-      def has_parent?
-        self.class.stack.size > 1
       end
 
       # Indicate that we are entering a measured controller action or task.
@@ -332,7 +332,7 @@ module NewRelic
       # If we aren't currently in a transaction, but found the remains of one
       # just finished in the TransactionState, use those custom params!
       def self.extract_finished_transaction_options(options)
-        finished_txn = NewRelic::Agent::TransactionState.get.transaction
+        finished_txn = NewRelic::Agent::TransactionState.get.most_recent_transaction
         if finished_txn
           custom_params = options.fetch(:custom_params, {})
           custom_params.merge!(finished_txn.custom_parameters)
