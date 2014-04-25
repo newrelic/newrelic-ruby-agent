@@ -175,7 +175,7 @@ module NewRelic::Agent
 
       when_request_runs(for_id(''))
 
-      assert_metrics_recorded_exclusive([])
+      assert_metrics_recorded_exclusive(['transaction'])
     end
 
     def test_setting_response_headers_freezes_transaction_name

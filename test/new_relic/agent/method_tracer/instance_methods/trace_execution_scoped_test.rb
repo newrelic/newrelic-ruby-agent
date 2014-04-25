@@ -76,16 +76,17 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      'foo' => expected_values,
-      'bar' => expected_values
+      'foo'   => expected_values,
+      'bar'   => expected_values,
+      'outer' => expected_values,
     )
   end
 
   def test_metric_recording_in_non_root_transaction
     options = { :transaction => true }
     self.stubs(:has_parent?).returns(true)
-    in_transaction('outer') do
-      in_transaction('inner') do
+    in_transaction('outer_txn') do
+      in_transaction('inner_txn') do
         trace_execution_scoped(['inner', 'bar'], options) do
           # erm
         end
@@ -94,9 +95,12 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      'inner'            => expected_values,
-      ['inner', 'outer'] => expected_values,
-      'bar'              => expected_values
+      'outer_txn'                => expected_values,
+      'inner_txn'                => expected_values,
+      ['inner_txn', 'outer_txn'] => expected_values,
+      ['inner'    , 'outer_txn'] => expected_values,
+      'inner'                    => expected_values,
+      'bar'                      => expected_values,
     )
   end
 
@@ -112,9 +116,10 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
+      'outer'          => expected_values,
       'foo'            => expected_values,
       ['foo', 'outer'] => expected_values,
-      'bar'            => expected_values
+      'bar'            => expected_values,
     )
   end
 
@@ -130,9 +135,10 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
+      'outer'          => expected_values,
       'foo'            => expected_values,
       ['foo', 'outer'] => expected_values,
-      'bar'            => expected_values
+      'bar'            => expected_values,
     )
   end
 
@@ -148,7 +154,8 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      'bar' => expected_values
+      'outer' => expected_values,
+      'bar'   => expected_values,
     )
   end
 
@@ -164,7 +171,8 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      ['foo', 'outer'] => expected_values
+      'outer'          => expected_values,
+      ['foo', 'outer'] => expected_values,
     )
   end
 
@@ -248,10 +256,29 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     end
 
     assert_metrics_recorded_exclusive(
-      'parent' => { :call_count => 1, :total_call_time => 20, :total_exclusive_time => 10 },
-      ['parent', 'txn'] => { :call_count => 1, :total_call_time => 20, :total_exclusive_time => 10 },
-      'child'  => { :call_count => 1, :total_call_time => 10, :total_exclusive_time => 10 },
-      ['child', 'txn']  => { :call_count => 1, :total_call_time => 10, :total_exclusive_time => 10 }
+      'txn'    => {
+        :call_count           =>  1,
+      },
+      'parent' => {
+        :call_count           =>  1,
+        :total_call_time      => 20,
+        :total_exclusive_time => 10,
+      },
+      ['parent', 'txn'] => {
+        :call_count           =>  1,
+        :total_call_time      => 20,
+        :total_exclusive_time => 10,
+      },
+      'child'  => {
+        :call_count           =>  1,
+        :total_call_time      => 10,
+        :total_exclusive_time => 10,
+      },
+      ['child', 'txn']  => {
+        :call_count           =>  1,
+        :total_call_time      => 10,
+        :total_exclusive_time => 10,
+      },
     )
   end
 
