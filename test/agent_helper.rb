@@ -185,7 +185,7 @@ def in_transaction(*args)
   begin
     val = yield NewRelic::Agent::Transaction.current
   ensure
-    NewRelic::Agent::Transaction.stop(Time.now, :metric_names => txn.recorded_metrics)
+    NewRelic::Agent::Transaction.stop(Time.now)
   end
 
   val

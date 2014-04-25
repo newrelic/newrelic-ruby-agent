@@ -347,7 +347,6 @@ module NewRelic
 
           ensure
             Transaction.stop(Time.now,
-                             :metric_names   => txn.recorded_metrics,
                              :ignore_apdex   => ignore_apdex?,
                              :ignore_enduser => ignore_enduser?)
           end

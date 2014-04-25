@@ -130,7 +130,7 @@ module NewRelic
 
       def name=(name)
         if !@name_frozen
-          @name = name
+          @name = Helper.correctly_encoded(name)
         else
           NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@name}'.")
         end
@@ -203,6 +203,14 @@ module NewRelic
         transaction_sampler.ignore_transaction
       end
 
+      def summary_metrics
+        if has_parent?
+          []
+        else
+          metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@name)
+          metric_parser.summary_metrics
+        end
+      end
 
       # Unwind one stack level.  It knows if it's back at the outermost caller and
       # does the appropriate wrapup of the context.
@@ -212,7 +220,7 @@ module NewRelic
         NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
           start_time.to_f,
           @name,
-          opts[:metric_names],
+          summary_metrics,
           @expected_scope,
           @trace_options,
           end_time.to_f)
@@ -244,13 +252,6 @@ module NewRelic
 
           send_transaction_finished_event(start_time, end_time) if self.root?
         end
-      end
-
-      def recorded_metrics
-        metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(name)
-        metrics = []
-        metrics += metric_parser.summary_metrics unless has_parent?
-        metrics
       end
 
       # This event is fired when the transaction is fully completed. The metric

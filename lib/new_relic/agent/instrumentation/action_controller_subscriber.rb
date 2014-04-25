@@ -61,7 +61,6 @@ module NewRelic
 
         def stop_transaction(event)
           Transaction.stop(Time.now,
-                           :metric_names          => ['HttpDispatcher'],
                            :exception_encountered => event.exception_encountered?,
                            :ignore_apdex          => event.apdex_ignored?,
                            :ignore_enduser        => event.enduser_ignored?)
