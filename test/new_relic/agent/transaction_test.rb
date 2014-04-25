@@ -6,10 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 class NewRelic::Agent::TransactionTest < Minitest::Test
 
-  attr_reader :txn
-
   def setup
-    @txn = NewRelic::Agent::Transaction.new
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.reset!
     NewRelic::Agent.instance.error_collector.reset!
@@ -21,59 +18,74 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def cleanup_transaction
-    NewRelic::Agent::Transaction.stack.clear
     NewRelic::Agent::TransactionState.clear
   end
 
   def test_request_parsing__none
-    assert_nil txn.uri
-    assert_nil txn.referer
+    in_transaction do |txn|
+      assert_nil txn.uri
+      assert_nil txn.referer
+    end
   end
 
   def test_request_parsing__path
-    request = stub(:path => '/path?hello=bob#none')
-    txn.request = request
-    assert_equal "/path", txn.uri
+    in_transaction do |txn|
+      request = stub(:path => '/path?hello=bob#none')
+      txn.request = request
+      assert_equal "/path", txn.uri
+    end
   end
 
   def test_request_parsing__fullpath
-    request = stub(:fullpath => '/path?hello=bob#none')
-    txn.request = request
-    assert_equal "/path", txn.uri
+    in_transaction do |txn|
+      request = stub(:fullpath => '/path?hello=bob#none')
+      txn.request = request
+      assert_equal "/path", txn.uri
+    end
   end
 
   def test_request_parsing__referer
-    request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar')
-    txn.request = request
-    assert_nil txn.uri
-    assert_equal "https://www.yahoo.com:8080/path/hello", txn.referer
+    in_transaction do |txn|
+      request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar')
+      txn.request = request
+      assert_nil txn.uri
+      assert_equal "https://www.yahoo.com:8080/path/hello", txn.referer
+    end
   end
 
   def test_request_parsing__uri
-    request = stub(:uri => 'http://creature.com/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
-    txn.request = request
-    assert_equal "/path", txn.uri
-    assert_equal "/path/hello", txn.referer
+    in_transaction do |txn|
+      request = stub(:uri => 'http://creature.com/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
+      txn.request = request
+      assert_equal "/path", txn.uri
+      assert_equal "/path/hello", txn.referer
+    end
   end
 
   def test_request_parsing__hostname_only
-    request = stub(:uri => 'http://creature.com')
-    txn.request = request
-    assert_equal "/", txn.uri
-    assert_nil txn.referer
+    in_transaction do |txn|
+      request = stub(:uri => 'http://creature.com')
+      txn.request = request
+      assert_equal "/", txn.uri
+      assert_nil txn.referer
+    end
   end
 
   def test_request_parsing__slash
-    request = stub(:uri => 'http://creature.com/')
-    txn.request = request
-    assert_equal "/", txn.uri
-    assert_nil txn.referer
+    in_transaction do |txn|
+      request = stub(:uri => 'http://creature.com/')
+      txn.request = request
+      assert_equal "/", txn.uri
+      assert_nil txn.referer
+    end
   end
 
   def test_queue_time
-    txn.apdex_start = 1000
-    txn.start_time = 1500
-    assert_equal 500, txn.queue_time
+    in_transaction do |txn|
+      txn.apdex_start = 1000
+      txn.start_time = 1500
+      assert_equal 500, txn.queue_time
+    end
   end
 
   def test_apdex_bucket_counts_errors_as_frustrating
@@ -105,11 +117,13 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     }
 
     with_config(config, :do_not_cast => true) do
-      txn.name = 'Controller/foo/bar'
-      assert_equal 1.5, txn.apdex_t
+      in_transaction do |txn|
+        txn.name = 'Controller/foo/bar'
+        assert_equal 1.5, txn.apdex_t
 
-      txn.name = 'Controller/some/other'
-      assert_equal 2.0, txn.apdex_t
+        txn.name = 'Controller/some/other'
+        assert_equal 2.0, txn.apdex_t
+      end
     end
   end
 
@@ -178,51 +192,41 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_name_is_unset_if_nil
-    txn = NewRelic::Agent::Transaction.new
-    txn.name = nil
-    assert !txn.name_set?
+    in_transaction do |txn|
+      txn.name = nil
+      assert !txn.name_set?
+    end
   end
 
   def test_name_is_unset_if_unknown
-    txn = NewRelic::Agent::Transaction.new
-    txn.name = NewRelic::Agent::UNKNOWN_METRIC
-    assert !txn.name_set?
+    in_transaction do |txn|
+      txn.name = NewRelic::Agent::UNKNOWN_METRIC
+      assert !txn.name_set?
+    end
   end
 
   def test_name_set_if_anything_else
-    txn = NewRelic::Agent::Transaction.new
-    txn.name = "anything else"
-    assert txn.name_set?
+    in_transaction do |txn|
+      txn.name = "anything else"
+      assert txn.name_set?
+    end
   end
 
   def test_generates_guid_on_initialization
-    refute_empty txn.guid
-  end
-
-  def test_start_adds_controller_context_to_txn_stack
-    NewRelic::Agent::Transaction.start(:controller)
-    assert_equal 1, NewRelic::Agent::Transaction.stack.size
-
-    NewRelic::Agent::Transaction.start(:controller)
-    assert_equal 2, NewRelic::Agent::Transaction.stack.size
-
-    NewRelic::Agent::Transaction.stop()
-    assert_equal 1, NewRelic::Agent::Transaction.stack.size
-
-    NewRelic::Agent::Transaction.stop()
-    assert_equal 0, NewRelic::Agent::Transaction.stack.size
+    in_transaction do |txn|
+      refute_empty txn.guid
+    end
   end
 
   def test_end_applies_transaction_name_rules
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
-                                                  'replacement'      => '*',
-                                                  'replace_all'      => true)
-    NewRelic::Agent.instance.transaction_rules << rule
-    NewRelic::Agent::Transaction.start(:controller)
-    NewRelic::Agent.set_transaction_name('foo/1/bar/22')
-    NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
-    txn = NewRelic::Agent::Transaction.stop()
-    assert_equal 'Controller/foo/*/bar/*', txn.name
+    in_transaction('Controller/foo/1/bar/22') do |txn|
+      rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
+                                                    'replacement'      => '*',
+                                                    'replace_all'      => true)
+      NewRelic::Agent.instance.transaction_rules << rule
+      NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
+      assert_equal 'Controller/foo/*/bar/*', txn.name
+    end
   ensure
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
                                               NewRelic::Agent::RulesEngine.new)
@@ -238,11 +242,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     start_time = freeze_time
-    NewRelic::Agent::Transaction.start(:controller)
-    advance_time(5)
-    NewRelic::Agent.set_transaction_name('foo/1/bar/22')
-    NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
-    NewRelic::Agent::Transaction.stop()
+    in_web_transaction('Controller/foo/1/bar/22') do
+      advance_time(5)
+      NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
+    end
 
     assert_equal 'Controller/foo/1/bar/22', name
     assert_equal start_time.to_f, timestamp
@@ -256,9 +259,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       options = payload[:metrics]
     end
 
-    NewRelic::Agent::Transaction.start(:controller)
-    NewRelic::Agent.record_metric("HttpDispatcher", 2.1)
-    NewRelic::Agent::Transaction.stop()
+    in_web_transaction('Controller/foo/1/bar/22') do
+      NewRelic::Agent.record_metric("HttpDispatcher", 2.1)
+    end
 
     assert_equal 2.1, options[NewRelic::MetricSpec.new('HttpDispatcher')].total_call_time
   end
@@ -269,9 +272,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       options = payload[:custom_params]
     end
 
-    NewRelic::Agent::Transaction.start(:controller)
-    NewRelic::Agent.add_custom_parameters('fooz' => 'barz')
-    NewRelic::Agent::Transaction.stop()
+    in_web_transaction('Controller/foo/1/bar/22') do
+      NewRelic::Agent.add_custom_parameters('fooz' => 'barz')
+    end
 
     assert_equal 'barz', options['fooz']
   end
@@ -331,9 +334,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
     expects_logging(:warn, includes("add_custom_parameters"))
-    NewRelic::Agent::Transaction.start(:controller)
-    NewRelic::Agent.add_custom_parameters('fooz')
-    NewRelic::Agent::Transaction.stop()
+    in_transaction do
+      NewRelic::Agent.add_custom_parameters('fooz')
+    end
   end
 
   def test_parent_returns_parent_transaction_if_there_is_one
@@ -471,46 +474,60 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_record_transaction_cpu_positive
-    @txn.expects(:cpu_burn).once.returns(1.0)
-    NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).with(1.0)
-    @txn.record_transaction_cpu
+    in_transaction do |txn|
+      txn.expects(:cpu_burn).twice.returns(1.0)
+      NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).twice.with(1.0)
+      txn.record_transaction_cpu
+    end
   end
 
   def test_record_transaction_cpu_negative
-    @txn.expects(:cpu_burn).once.returns(nil)
-    # should not be called for the nil case
-    NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).never
-    @txn.record_transaction_cpu
+    in_transaction do |txn|
+      txn.expects(:cpu_burn).twice.returns(nil)
+      # should not be called for the nil case
+      NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).never
+      txn.record_transaction_cpu
+    end
   end
 
   def test_normal_cpu_burn_positive
-    @txn.instance_variable_set(:@process_cpu_start, 3)
-    @txn.expects(:process_cpu).returns(4)
-    assert_equal 1, @txn.normal_cpu_burn
+    in_transaction do |txn|
+      txn.instance_variable_set(:@process_cpu_start, 3)
+      txn.expects(:process_cpu).twice.returns(4)
+      assert_equal 1, txn.normal_cpu_burn
+    end
   end
 
   def test_normal_cpu_burn_negative
-    @txn.instance_variable_set(:@process_cpu_start, nil)
-    @txn.expects(:process_cpu).never
-    assert_equal nil, @txn.normal_cpu_burn
+    in_transaction do |txn|
+      txn.instance_variable_set(:@process_cpu_start, nil)
+      txn.expects(:process_cpu).never
+      assert_equal nil, txn.normal_cpu_burn
+    end
   end
 
   def test_jruby_cpu_burn_negative
-    @txn.instance_variable_set(:@jruby_cpu_start, nil)
-    @txn.expects(:jruby_cpu_time).never
-    assert_equal nil, @txn.jruby_cpu_burn
+    in_transaction do |txn|
+      txn.instance_variable_set(:@jruby_cpu_start, nil)
+      txn.expects(:jruby_cpu_time).never
+      assert_equal nil, txn.jruby_cpu_burn
+    end
   end
 
   def test_cpu_burn_normal
-    @txn.expects(:normal_cpu_burn).returns(1)
-    @txn.expects(:jruby_cpu_burn).never
-    assert_equal 1, @txn.cpu_burn
+    in_transaction do |txn|
+      txn.expects(:normal_cpu_burn).twice.returns(1)
+      txn.expects(:jruby_cpu_burn).never
+      assert_equal 1, txn.cpu_burn
+    end
   end
 
   def test_cpu_burn_jruby
-    @txn.expects(:normal_cpu_burn).returns(nil)
-    @txn.expects(:jruby_cpu_burn).returns(2)
-    assert_equal 2, @txn.cpu_burn
+    in_transaction do |txn|
+      txn.expects(:normal_cpu_burn).twice.returns(nil)
+      txn.expects(:jruby_cpu_burn).twice.returns(2)
+      assert_equal 2, txn.cpu_burn
+    end
   end
 
   def assert_has_custom_parameter(key, value = key)

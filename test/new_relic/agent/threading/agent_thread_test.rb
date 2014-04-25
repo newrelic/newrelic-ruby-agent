@@ -24,39 +24,38 @@ module NewRelic::Agent::Threading
     end
 
     def test_bucket_thread_as_request
-      t = ::Thread.new {
-        txn = NewRelic::Agent::Transaction.new
-        txn.request = "has a request"
+      q = Queue.new
 
-        NewRelic::Agent::TransactionState.get.current_transaction_stack = [txn]
-      }.join
+      t = Thread.new do
+        in_transaction do |txn|
+          txn.request = 'whatever'
+          q.push 'go ahead, other thread'
+          sleep
+        end
+      end
 
+      q.pop # wait until thread pushes to q
       assert_equal :request, AgentThread.bucket_thread(t, DONT_CARE)
+
+      t.run
+      t.join
     end
 
     def test_bucket_thread_as_background
-      t = ::Thread.new {
-        txn = NewRelic::Agent::Transaction.new
-        NewRelic::Agent::TransactionState.get.current_transaction_stack = [txn]
-      }.join
+      q = Queue.new
 
+      t = ::Thread.new do
+        in_transaction do
+          q.push 'go ahead, other thread'
+          sleep
+        end
+      end
+
+      q.pop # wait until thread pushes to q
       assert_equal :background, AgentThread.bucket_thread(t, DONT_CARE)
-    end
 
-    def test_bucket_thread_as_other_empty_txn_stack
-      t = ::Thread.new {
-        NewRelic::Agent::TransactionState.get.current_transaction_stack = []
-      }.join
-
-      assert_equal :other, AgentThread.bucket_thread(t, DONT_CARE)
-    end
-
-    def test_bucket_thread_as_other_no_txn_stack
-      t = ::Thread.new {
-        NewRelic::Agent::TransactionState.get.current_transaction_stack = nil
-      }.join
-
-      assert_equal :other, AgentThread.bucket_thread(t, DONT_CARE)
+      t.run
+      t.join
     end
 
     def test_bucket_thread_as_other

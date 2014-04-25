@@ -63,7 +63,7 @@ class LicenseTest < Minitest::Test
       # skip directories
       !File.file?(path) ||
       # skip binary files
-      %w| .sqlite3 .log .png .ico .gif .gem |.include?(File.extname(path)) ||
+      %w| .sqlite3 .log .png .ico .gif .pdf .gem |.include?(File.extname(path)) ||
       # skip this file
       File.expand_path(__FILE__) == path ||
       # skip rpm_test_app and other stuff that ends up in tmp
@@ -71,7 +71,9 @@ class LicenseTest < Minitest::Test
       # skip the auto-generated build.rb file
       path =~ %r{lib/new_relic/build\.rb} ||
       # skip tags file
-      path =~ %r{/tags$}i
+      path =~ %r{/tags$}i ||
+      # skip multiverse auto-generated gemfiles
+      path =~ %r{/test/multiverse/suites/.*/Gemfile\.\d+(\.lock)?$}
     )
   end
 

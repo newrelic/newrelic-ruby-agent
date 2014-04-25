@@ -40,6 +40,7 @@ module NewRelic
 
       def initialize
         @traced_method_stack = TracedMethodStack.new
+        @current_transaction_stack = []
       end
 
       def request=(request)
@@ -53,7 +54,7 @@ module NewRelic
         # not available, we track the last reset. No accessor, as only the
         # TransactionState class should use it.
         @last_reset_time = Time.now
-        @transaction = nil
+        @most_recent_transaction = nil
         @timings = nil
         @request = nil
         @request_token = nil
@@ -63,7 +64,7 @@ module NewRelic
       end
 
       def reset?
-        @transaction.nil?
+        @most_recent_transaction.nil?
       end
 
       def timings
@@ -92,8 +93,8 @@ module NewRelic
       attr_accessor :request_token, :request_ignore_enduser
 
       def request_guid
-        return nil unless transaction
-        transaction.guid
+        return nil unless most_recent_transaction
+        most_recent_transaction.guid
       end
 
       def request_guid_to_include
@@ -102,40 +103,35 @@ module NewRelic
       end
 
       def include_guid?
-        request_token && timings.app_time_in_seconds > transaction.apdex_t
+        request_token && timings.app_time_in_seconds > most_recent_transaction.apdex_t
       end
 
       # Current transaction stack and sample building
-      attr_accessor :transaction, :transaction_sample_builder
-      attr_writer   :current_transaction_stack
+      attr_accessor :most_recent_transaction, :transaction_sample_builder
+      attr_reader   :current_transaction_stack
 
-      # Returns and initializes the transaction stack if necessary
-      #
-      # We don't default in the initializer so non-transaction threads retain
-      # a nil stack, and methods in this class use has_current_transction?
-      # instead of this accessor to see if we're a transaction thread or not
-      def current_transaction_stack
-        @current_transaction_stack ||= []
+      def current_transaction
+        current_transaction_stack.last
       end
 
       def transaction_start_time
-        if transaction.nil?
+        if most_recent_transaction.nil?
           @last_reset_time
         else
-          transaction.start_time
+          most_recent_transaction.start_time
         end
       end
 
       def transaction_queue_time
-        transaction.nil? ? 0.0 : transaction.queue_time
+        most_recent_transaction.nil? ? 0.0 : most_recent_transaction.queue_time
       end
 
       def transaction_name
-        transaction.nil? ? nil : transaction.name
+        most_recent_transaction.nil? ? nil : most_recent_transaction.name
       end
 
       def transaction_noticed_error_ids
-        transaction.nil? ? [] : transaction.noticed_error_ids
+        most_recent_transaction.nil? ? [] : most_recent_transaction.noticed_error_ids
       end
 
       def self.in_background_transaction?(thread)
@@ -152,14 +148,6 @@ module NewRelic
 
       def in_request_transaction?
         !current_transaction.nil? && !current_transaction.request.nil?
-      end
-
-      def current_transaction
-        current_transaction_stack.last if has_current_transaction?
-      end
-
-      def has_current_transaction?
-        !@current_transaction_stack.nil?
       end
 
       # Execution tracing on current thread

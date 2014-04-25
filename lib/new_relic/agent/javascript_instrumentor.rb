@@ -36,7 +36,7 @@ module NewRelic
       end
 
       def current_transaction
-        NewRelic::Agent::TransactionState.get.transaction
+        NewRelic::Agent::TransactionState.get.most_recent_transaction
       end
 
       def insert_js?
@@ -99,7 +99,7 @@ module NewRelic
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def browser_timing_config
-        txn = TransactionState.get.transaction
+        txn = TransactionState.get.most_recent_transaction
         return '' if txn.nil?
 
         txn.freeze_name_and_execute_if_not_ignored do

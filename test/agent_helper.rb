@@ -178,7 +178,7 @@ def in_transaction(*args)
 
   NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
                         NewRelic::Agent::TransactionSampler.new)
-  NewRelic::Agent::Transaction.start(transaction_type, opts || {})
+  NewRelic::Agent::Transaction.start(transaction_type, opts)
 
   val = nil
 

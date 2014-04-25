@@ -63,6 +63,18 @@ module NewRelic
         !self.stack.empty?
       end
 
+      def parent
+        has_parent? && self.class.stack[-2]
+      end
+
+      def root?
+        self.class.stack.size == 1
+      end
+
+      def has_parent?
+        self.class.stack.size > 1
+      end
+
       # This is the name of the model currently assigned to database
       # measurements, overriding the default.
       def self.database_metric_name
@@ -89,7 +101,7 @@ module NewRelic
           java_import 'java.lang.management.ManagementFactory'
           java_import 'com.sun.management.OperatingSystemMXBean'
           @@java_classes_loaded = true
-        rescue => e
+        rescue
         end
       end
 
@@ -109,7 +121,7 @@ module NewRelic
         @stats_hash = StatsHash.new
         @guid = generate_guid
         @ignore_this_transaction = false
-        TransactionState.get.transaction = self
+        TransactionState.get.most_recent_transaction = self
       end
 
       def noticed_error_ids
@@ -151,18 +163,6 @@ module NewRelic
 
       def ignored?
         @ignore_this_transaction
-      end
-
-      def parent
-        has_parent? && self.class.stack[-2]
-      end
-
-      def root?
-        self.class.stack.size == 1
-      end
-
-      def has_parent?
-        self.class.stack.size > 1
       end
 
       # Indicate that we are entering a measured controller action or task.
@@ -246,6 +246,13 @@ module NewRelic
         end
       end
 
+      def recorded_metrics
+        metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(name)
+        metrics = []
+        metrics += metric_parser.summary_metrics unless has_parent?
+        metrics
+      end
+
       # This event is fired when the transaction is fully completed. The metric
       # values and sampler can't be successfully modified from this event.
       def send_transaction_finished_event(start_time, end_time)
@@ -314,10 +321,10 @@ module NewRelic
       end
 
       def self.extract_request_options(options)
-        request = options.delete(:request)
-        if request
-          options[:referer] = referer_from_request(request)
-          options[:uri] = uri_from_request(request)
+        req = options.delete(:request)
+        if req
+          options[:referer] = referer_from_request(req)
+          options[:uri] = uri_from_request(req)
         end
         options
       end
@@ -325,7 +332,7 @@ module NewRelic
       # If we aren't currently in a transaction, but found the remains of one
       # just finished in the TransactionState, use those custom params!
       def self.extract_finished_transaction_options(options)
-        finished_txn = NewRelic::Agent::TransactionState.get.transaction
+        finished_txn = NewRelic::Agent::TransactionState.get.most_recent_transaction
         if finished_txn
           custom_params = options.fetch(:custom_params, {})
           custom_params.merge!(finished_txn.custom_parameters)
@@ -446,22 +453,22 @@ module NewRelic
 
       # Make a safe attempt to get the referer from a request object, generally successful when
       # it's a Rack request.
-      def self.referer_from_request(request)
-        if request && request.respond_to?(:referer)
-          request.referer.to_s.split('?').first
+      def self.referer_from_request(req)
+        if req && req.respond_to?(:referer)
+          req.referer.to_s.split('?').first
         end
       end
 
       # Make a safe attempt to get the URI, without the host and query string.
-      def self.uri_from_request(request)
+      def self.uri_from_request(req)
         approximate_uri = case
-                          when request.respond_to?(:fullpath) then request.fullpath
-                          when request.respond_to?(:path) then request.path
-                          when request.respond_to?(:request_uri) then request.request_uri
-                          when request.respond_to?(:uri) then request.uri
-                          when request.respond_to?(:url) then request.url
+                          when req.respond_to?(:fullpath   ) then req.fullpath
+                          when req.respond_to?(:path       ) then req.path
+                          when req.respond_to?(:request_uri) then req.request_uri
+                          when req.respond_to?(:uri        ) then req.uri
+                          when req.respond_to?(:url        ) then req.url
                           end
-        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri # '
+        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
       end
 
 

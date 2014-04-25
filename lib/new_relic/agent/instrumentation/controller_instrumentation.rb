@@ -347,17 +347,10 @@ module NewRelic
 
           ensure
             Transaction.stop(Time.now,
-                             :metric_names   => recorded_metrics(txn),
+                             :metric_names   => txn.recorded_metrics,
                              :ignore_apdex   => ignore_apdex?,
                              :ignore_enduser => ignore_enduser?)
           end
-        end
-
-        def recorded_metrics(txn)
-          metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(txn.name)
-          metrics = []
-          metrics += metric_parser.summary_metrics unless txn.has_parent?
-          metrics
         end
 
         protected
