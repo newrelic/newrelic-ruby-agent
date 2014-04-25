@@ -168,6 +168,8 @@ module NewRelic
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
       def start(transaction_type, txn_options)
+        return if !NewRelic::Agent.is_execution_traced?
+
         transaction_sampler.on_start_transaction(start_time, uri, filtered_params)
         sql_sampler.on_start_transaction(start_time, uri, filtered_params)
         NewRelic::Agent.instance.events.notify(:start_transaction)
@@ -215,6 +217,8 @@ module NewRelic
       # Unwind one stack level.  It knows if it's back at the outermost caller and
       # does the appropriate wrapup of the context.
       def stop(end_time=Time.now, opts={})
+        return if !NewRelic::Agent.is_execution_traced?
+
         freeze_name_and_execute_if_not_ignored
 
         NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
@@ -233,12 +237,10 @@ module NewRelic
           if self.root?
             # this one records metrics and wants to happen
             # before the transaction sampler is finished
-            if NewRelic::Agent.is_execution_traced?
-              record_transaction_cpu
-              gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
-              gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
-                  gc_start_snapshot, gc_stop_snapshot)
-            end
+            record_transaction_cpu
+            gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
+            gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
+                gc_start_snapshot, gc_stop_snapshot)
             @transaction_trace = transaction_sampler.on_finishing_transaction(self, Time.now, gc_delta)
             sql_sampler.on_finishing_transaction(@name)
 
