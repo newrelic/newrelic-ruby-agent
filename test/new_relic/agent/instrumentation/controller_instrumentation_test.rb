@@ -22,6 +22,7 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
   end
 
   def setup
+    NewRelic::Agent.drop_buffered_data
     @object = TestObject.new
     @dummy_headers = { :request => 'headers' }
     @txn_namer = NewRelic::Agent::Instrumentation:: \
