@@ -176,7 +176,6 @@ module NewRelic
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
         @trace_options = {
-                    :force                        => txn_options[:force],
                     :metric                       => true,
                     :transaction                  => true,
                     :deduct_call_time_from_parent => true

@@ -82,22 +82,6 @@ module NewRelic
               assert !val[:deduct_call_time_from_parent]
             end
 
-            def test_unrecognized_keys_positive
-              assert_equal [:unrecognized, :keys].to_set, unrecognized_keys([:hello, :world], {:unrecognized => nil, :keys => nil}).to_set
-            end
-
-            def test_unrecognized_keys_negative
-              assert_equal [], unrecognized_keys([:hello, :world], {:hello => nil, :world => nil})
-            end
-
-            def test_any_unrecognized_keys_positive
-              assert any_unrecognized_keys?([:one], {:one => nil, :two => nil})
-            end
-
-            def test_any_unrecognized_keys_negative
-              assert !any_unrecognized_keys?([:one], {:one => nil})
-            end
-
             def test_check_for_illegal_keys_positive
               assert_raises(RuntimeError) do
                 check_for_illegal_keys!({:unknown_key => nil})
@@ -107,6 +91,16 @@ module NewRelic
             def test_check_for_illegal_keys_negative
               test_keys = Hash[*ALLOWED_KEYS.map {|x| [x, nil]}.flatten]
               check_for_illegal_keys!(test_keys)
+            end
+
+            def test_check_for_illegal_keys_deprecated
+              log = with_array_logger do
+                check_for_illegal_keys!(:force => true)
+              end.array
+
+              assert_equal(1, log.size)
+
+              assert_match(/Deprecated options in add_method_tracer call: force/, log[0])
             end
 
             def test_traced_method_exists_positive
@@ -119,11 +113,6 @@ module NewRelic
               self.expects(:_traced_method_name)
               self.expects(:method_defined?).returns(false)
               assert !traced_method_exists?(nil, nil)
-            end
-
-            def test_assemble_code_header_forced
-              opts = {:force => true, :code_header => 'CODE HEADER'}
-              assert_equal "CODE HEADER", assemble_code_header('test_method', 'Custom/Test/test_method', opts)
             end
 
             def test_assemble_code_header_unforced

@@ -11,24 +11,6 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     NewRelic::Agent.agent.stats_engine.clear_stats
   end
 
-  def test_trace_disabled_negative
-    self.expects(:traced?).returns(false)
-    options = {:force => false}
-    assert trace_disabled?(options)
-  end
-
-  def test_trace_disabled_forced
-    self.expects(:traced?).returns(false)
-    options = {:force => true}
-    assert !(trace_disabled?(options))
-  end
-
-  def test_trace_disabled_positive
-    self.expects(:traced?).returns(true)
-    options = {:force => false}
-    assert !(trace_disabled?(options))
-  end
-
   def test_get_stats_unscoped
     fake_engine = mocked_object('stat_engine')
     fake_engine.expects(:get_stats_no_scope).with('foob').returns('fakestats')
@@ -185,28 +167,6 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     assert !h[:bar]
   end
 
-  def test_push_flag_true
-    fake_agent = mocked_object('agent_instance')
-    fake_agent.expects(:push_trace_execution_flag).with(true)
-    push_flag!(true)
-  end
-
-  def test_push_flag_false
-    self.expects(:agent_instance).never
-    push_flag!(false)
-  end
-
-  def test_pop_flag_true
-    fake_agent = mocked_object('agent_instance')
-    fake_agent.expects(:pop_trace_execution_flag)
-    pop_flag!(true)
-  end
-
-  def test_pop_flag_false
-    self.expects(:agent_instance).never
-    pop_flag!(false)
-  end
-
   def test_log_errors_base
     ran = false
     log_errors("name") do
@@ -239,7 +199,6 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   def test_trace_execution_scoped_header
     options = {:force => false, :deduct_call_time_from_parent => false}
     self.expects(:log_errors).with('trace_execution_scoped header').yields
-    self.expects(:push_flag!).with(false)
     NewRelic::Agent::TracedMethodStack.expects(:push_frame).with(:method_tracer, 1.0, false)
     trace_execution_scoped_header(options, 1.0)
   end
@@ -282,24 +241,8 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     )
   end
 
-  def test_force_flag_enables_metric_recording_in_ignored_transaction
-    NewRelic::Agent.instance.push_trace_execution_flag(false)
-    in_transaction('txn') do
-      trace_execution_scoped(['foo'], :force => true) do
-        # whatever, man
-      end
-    end
-
-    assert_metrics_recorded_exclusive(
-      'foo'          => { :call_count => 1 },
-      ['foo', 'txn'] => { :call_count => 1 }
-    )
-  ensure
-    NewRelic::Agent.instance.pop_trace_execution_flag()
-  end
-
   def test_trace_execution_scoped_disabled
-    self.expects(:trace_disabled?).returns(true)
+    self.expects(:traced?).returns(false)
     # make sure the method doesn't beyond the abort
     self.expects(:set_if_nil).never
     ran = false
