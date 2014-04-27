@@ -4,7 +4,7 @@ New Relic is a performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  It provides you with deep
 information about the performance of your Rails or Ruby
 application as it runs in production. The New Relic Ruby Agent is
-dual-purposed as a either a Rails plugin or a Gem, hosted on
+dual-purposed as a either a Gem or a Rails plugin, hosted on
 [github](http://github.com/newrelic/rpm/tree/master).
 
 The New Relic Ruby Agent runs in one of two modes:
@@ -51,11 +51,7 @@ and avoid breaking your code with future changes to the agent.
 
 ## Getting Started
 
-Install the Ruby Agent as a gem.
-
-    gem install newrelic_rpm
-
-Or add it to your project's Gemfile.
+Add the Ruby Agent to your project's Gemfile.
 
     gem 'newrelic_rpm'
 
@@ -182,7 +178,8 @@ You can find more detailed documentation [on our website](http://newrelic.com/do
 and specifically in the [Ruby category](http://newrelic.com/docs/ruby).
 
 If you can't find what you're looking for there, reach out to us on our [support
-site](http://support.newrelic.com/) and we'll be happy to help you.
+site](http://support.newrelic.com/) or our [community forum](http://forum.newrelic.com)
+and we'll be happy to help you.
 
 Also available is community support on IRC: we generally use #newrelic
 on irc.freenode.net
