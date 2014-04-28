@@ -34,7 +34,7 @@ make_notify_task = Proc.new do
         user        = fetch(:newrelic_user)        if exists?(:newrelic_user)
         license_key = fetch(:newrelic_license_key) if exists?(:newrelic_license_key)
 
-        unless scm == :none
+        unless scm.to_sym == :none
           changelog = lookup_changelog(changelog)
           rev       = lookup_rev(rev)
         end
@@ -76,7 +76,7 @@ make_notify_task = Proc.new do
         logger.debug "Getting log of changes for New Relic Deployment details"
         from_revision = source.next_revision(current_revision)
 
-        if scm == :git
+        if scm.to_sym == :git
           log_command = "git log --no-color --pretty=format:'  * %an: %s' " +
             "--abbrev-commit --no-merges #{previous_revision}..#{real_revision}"
         else
@@ -95,7 +95,7 @@ make_notify_task = Proc.new do
           `#{cmd}`
         end
 
-        rev = rev[0..6] if scm == :git
+        rev = rev[0..6] if scm.to_sym == :git
       end
       rev
     end
