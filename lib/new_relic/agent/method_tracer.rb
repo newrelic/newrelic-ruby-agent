@@ -267,16 +267,18 @@ module NewRelic
           # NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer
           # method is called with improper keys. This aids in
           # debugging new instrumentation by failing fast
-          def check_for_illegal_keys!(options)
+          def check_for_illegal_keys!(method_name, options)
             unrecognized_keys = options.keys - ALLOWED_KEYS
             deprecated_keys   = options.keys & DEPRECATED_KEYS
 
             if unrecognized_keys.any?
-              raise "Unrecognized options in add_method_tracer call: #{unrecognized_keys.join(', ')}"
+              raise "Unrecognized options when adding method tracer to #{method_name}: " +
+                    unrecognized_keys.join(', ')
             end
 
             if deprecated_keys.any?
-              NewRelic::Agent.logger.warn("Deprecated options in add_method_tracer call: #{deprecated_keys.join(', ')}")
+              NewRelic::Agent.logger.warn("Deprecated options when adding method tracer to #{method_name}: "+
+                deprecated_keys.join(', '))
             end
           end
 
@@ -305,9 +307,11 @@ module NewRelic
           # sense. Raises an error if the options are incorrect to
           # assist with debugging, so that errors occur at class
           # construction time rather than instrumentation run time
-          def validate_options(options)
-            raise TypeError.new("provided options must be a Hash") unless options.is_a?(Hash)
-            check_for_illegal_keys!(options)
+          def validate_options(method_name, options)
+            unless options.is_a?(Hash)
+              raise TypeError.new("Error adding method tracer to #{method_name}: provided options must be a Hash")
+            end
+            check_for_illegal_keys!(method_name, options)
             options = set_deduct_call_time_based_on_metric(DEFAULT_SETTINGS.merge(options))
             check_for_push_scope_and_metric(options)
             options
@@ -345,7 +349,11 @@ module NewRelic
           # instrumentation into effectively one method call overhead
           # when the agent is disabled
           def assemble_code_header(method_name, metric_name_code, options)
-              "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.is_execution_traced?\n" + options[:code_header].to_s
+              header = "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.is_execution_traced?\n"
+
+              header += options[:code_header].to_s
+
+              header
           end
 
           # returns an eval-able string that contains the traced
@@ -404,7 +412,7 @@ module NewRelic
           # Decides which code snippet we should be eval'ing in this
           # context, based on the options.
           def code_to_eval(method_name, metric_name_code, options)
-            options = validate_options(options)
+            options = validate_options(method_name, options)
             if options[:push_scope]
               method_with_push_scope(method_name, metric_name_code, options)
             else

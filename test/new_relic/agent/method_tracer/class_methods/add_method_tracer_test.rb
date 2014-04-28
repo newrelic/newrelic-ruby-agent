@@ -16,7 +16,7 @@ module NewRelic
 
             def test_validate_options_nonhash
               assert_raises(TypeError) do
-                validate_options([])
+                validate_options(:fluttershy, [])
               end
             end
 
@@ -24,14 +24,14 @@ module NewRelic
               self.expects(:check_for_illegal_keys!)
               self.expects(:set_deduct_call_time_based_on_metric).with(DEFAULT_SETTINGS)
               self.expects(:check_for_push_scope_and_metric)
-              validate_options({})
+              validate_options(:applejack, {})
             end
 
             def test_validate_options_override
               opts = {:push_scope => false, :metric => false, :force => true}
               self.expects(:check_for_illegal_keys!)
               self.expects(:check_for_push_scope_and_metric)
-              val = validate_options(opts)
+              val = validate_options(:pinkie_pie, opts)
               assert val.is_a?(Hash)
               assert (val[:push_scope] == false), val.inspect
               assert (val[:metric] == false), val.inspect
@@ -84,23 +84,23 @@ module NewRelic
 
             def test_check_for_illegal_keys_positive
               assert_raises(RuntimeError) do
-                check_for_illegal_keys!({:unknown_key => nil})
+                check_for_illegal_keys!(:twilight_sparkle, {:unknown_key => nil})
               end
             end
 
             def test_check_for_illegal_keys_negative
               test_keys = Hash[*ALLOWED_KEYS.map {|x| [x, nil]}.flatten]
-              check_for_illegal_keys!(test_keys)
+              check_for_illegal_keys!(:rainbow_dash, test_keys)
             end
 
             def test_check_for_illegal_keys_deprecated
               log = with_array_logger do
-                check_for_illegal_keys!(:force => true)
+                check_for_illegal_keys!(:rarity, :force => true)
               end.array
 
               assert_equal(1, log.size)
 
-              assert_match(/Deprecated options in add_method_tracer call: force/, log[0])
+              assert_match(/Deprecated options when adding method tracer to rarity: force/, log[0])
             end
 
             def test_traced_method_exists_positive

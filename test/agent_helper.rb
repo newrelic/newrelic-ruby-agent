@@ -178,14 +178,14 @@ def in_transaction(*args)
 
   NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
                         NewRelic::Agent::TransactionSampler.new)
-  txn = NewRelic::Agent::Transaction.start(transaction_type, opts)
+  NewRelic::Agent::Transaction.start(transaction_type, opts)
 
   val = nil
 
   begin
     val = yield NewRelic::Agent::Transaction.current
   ensure
-    NewRelic::Agent::Transaction.stop(Time.now)
+    NewRelic::Agent::Transaction.stop()
   end
 
   val
