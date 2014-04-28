@@ -287,6 +287,38 @@ class AgentLoggerTest < Minitest::Test
     assert_logged(host_regex, host_regex, host_regex)
   end
 
+  def test_should_not_evaluate_blocks_unless_log_level_is_high_enough
+    with_config(:log_level => 'warn') do
+      logger = create_basic_logger
+
+      block_was_evalutated = false
+      logger.info do
+        block_was_evalutated = true
+      end
+
+      refute block_was_evalutated
+    end
+  end
+
+  def test_should_allow_blocks_that_return_a_single_string
+    logger = create_basic_logger
+    logger.warn { "Surely you jest!" }
+
+    assert_logged(/WARN : Surely you jest!/)
+  end
+
+  def test_should_allow_blocks_that_return_an_array
+    logger = create_basic_logger
+    logger.warn do
+      ["You must be joking!", "You can't be serious!"]
+    end
+
+    assert_logged(
+      /WARN : You must be joking!/,
+      /WARN : You can't be serious!/
+    )
+  end
+
   #
   # Helpers
   #

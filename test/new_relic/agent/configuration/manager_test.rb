@@ -245,16 +245,24 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_log_when_applying
-      expects_logging(:debug, anything, includes("asdf"))
-      @manager.apply_config(:test => "asdf")
+      log = with_array_logger(:debug) do
+        @manager.apply_config(:test => "asdf")
+      end
+
+      log_lines = log.array
+      assert_match(/DEBUG.*asdf/, log_lines[0])
     end
 
     def test_should_log_when_removing
       config = { :test => "asdf" }
       @manager.apply_config(config)
 
-      expects_logging(:debug, anything, Not(includes("asdf")))
-      @manager.remove_config(config)
+      log = with_array_logger(:debug) do
+        @manager.remove_config(config)
+      end
+
+      log_lines = log.array
+      refute_match(/DEBUG.*asdf/, log_lines[0])
     end
 
     def test_config_stack_index_for
