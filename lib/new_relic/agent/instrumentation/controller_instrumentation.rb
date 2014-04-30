@@ -294,8 +294,6 @@ module NewRelic
         #
         # Seldomly used options:
         #
-        # * <tt>:force => true</tt> indicates you should capture all
-        #   metrics even if the #newrelic_ignore directive was specified
         # * <tt>:class_name => aClass.name</tt> is used to override the name
         #   of the class when used inside the metric name.  Default is the
         #   current class.
@@ -325,7 +323,7 @@ module NewRelic
           # If a block was passed in, then the arguments represent options for
           # the instrumentation, not app method arguments.
           txn_options = create_transaction_options(block_given? ? args : [])
-          return yield unless (NewRelic::Agent.is_execution_traced? || txn_options[:force])
+          return yield unless NewRelic::Agent.is_execution_traced?
 
           txn_options[:transaction_name] = TransactionNamer.new(self).name(txn_options)
           txn_options[:apdex_start_time] = detect_queue_start_time
@@ -347,7 +345,6 @@ module NewRelic
 
           ensure
             Transaction.stop(Time.now,
-                             :metric_names   => txn.recorded_metrics,
                              :ignore_apdex   => ignore_apdex?,
                              :ignore_enduser => ignore_enduser?)
           end

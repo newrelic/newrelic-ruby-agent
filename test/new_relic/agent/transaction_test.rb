@@ -254,6 +254,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_end_fires_a_transaction_finished_event_with_overview_metrics
+    freeze_time
     options = nil
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
       options = payload[:metrics]

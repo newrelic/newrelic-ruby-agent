@@ -130,7 +130,7 @@ module NewRelic
 
       def name=(name)
         if !@name_frozen
-          @name = name
+          @name = Helper.correctly_encoded(name)
         else
           NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@name}'.")
         end
@@ -168,13 +168,14 @@ module NewRelic
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
       def start(transaction_type, txn_options)
+        return if !NewRelic::Agent.is_execution_traced?
+
         transaction_sampler.on_start_transaction(start_time, uri, filtered_params)
         sql_sampler.on_start_transaction(start_time, uri, filtered_params)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
         @trace_options = {
-                    :force                        => txn_options[:force],
                     :metric                       => true,
                     :transaction                  => true,
                     :deduct_call_time_from_parent => true
@@ -203,16 +204,26 @@ module NewRelic
         transaction_sampler.ignore_transaction
       end
 
+      def summary_metrics
+        if has_parent?
+          []
+        else
+          metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@name)
+          metric_parser.summary_metrics
+        end
+      end
 
       # Unwind one stack level.  It knows if it's back at the outermost caller and
       # does the appropriate wrapup of the context.
       def stop(end_time=Time.now, opts={})
+        return if !NewRelic::Agent.is_execution_traced?
+
         freeze_name_and_execute_if_not_ignored
 
         NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
           start_time.to_f,
           @name,
-          opts[:metric_names],
+          summary_metrics,
           @expected_scope,
           @trace_options,
           end_time.to_f)
@@ -225,12 +236,10 @@ module NewRelic
           if self.root?
             # this one records metrics and wants to happen
             # before the transaction sampler is finished
-            if NewRelic::Agent.is_execution_traced?
-              record_transaction_cpu
-              gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
-              gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
-                  gc_start_snapshot, gc_stop_snapshot)
-            end
+            record_transaction_cpu
+            gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
+            gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
+                gc_start_snapshot, gc_stop_snapshot)
             @transaction_trace = transaction_sampler.on_finishing_transaction(self, Time.now, gc_delta)
             sql_sampler.on_finishing_transaction(@name)
 
@@ -244,13 +253,6 @@ module NewRelic
 
           send_transaction_finished_event(start_time, end_time) if self.root?
         end
-      end
-
-      def recorded_metrics
-        metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(name)
-        metrics = []
-        metrics += metric_parser.summary_metrics unless has_parent?
-        metrics
       end
 
       # This event is fired when the transaction is fully completed. The metric
