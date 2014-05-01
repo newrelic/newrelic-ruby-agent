@@ -177,27 +177,9 @@ module NewRelic
           metrics
         end
 
-        def has_parent?
-          !NewRelic::Agent::Transaction.parent.nil?
-        end
-
-        def metrics_for_parent_transaction(first_name, options)
-          if has_parent? && options[:metric] && options[:transaction]
-            [NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)]
-          else
-            []
-          end
-        end
-
         def record_metrics(first_name, other_names, duration, exclusive, options)
           metrics = metrics_for_current_transaction(first_name, other_names, options)
           stat_engine.record_metrics_internal(metrics, duration, exclusive)
-
-          parent_metrics = metrics_for_parent_transaction(first_name, options)
-          parent_metrics.each do |metric|
-            parent_txn = NewRelic::Agent::Transaction.parent
-            parent_txn.stats_hash.record(metric, duration, exclusive)
-          end
         end
 
         # Handles the end of the #trace_execution_scoped method -

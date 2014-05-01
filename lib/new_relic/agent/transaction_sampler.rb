@@ -106,7 +106,7 @@ module NewRelic
       # depending on which settings are active. See `store_sample`
       def on_finishing_transaction(txn, time=Time.now, gc_time=nil)
         last_builder = builder
-        last_builder.set_transaction_name(txn.name) if enabled? && last_builder
+        last_builder.set_transaction_name(txn.best_name) if enabled? && last_builder
 
         return unless last_builder
 

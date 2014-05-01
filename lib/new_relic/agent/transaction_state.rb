@@ -40,11 +40,10 @@ module NewRelic
 
       def initialize
         @traced_method_stack = TracedMethodStack.new
-        @current_transaction_stack = []
+        @current_transaction = nil
       end
 
       def request=(request)
-        reset unless reset?
         @request = request
         @request_token = BrowserToken.get_token(request)
       end
@@ -61,10 +60,6 @@ module NewRelic
         @request_ignore_enduser = false
         @is_cross_app_caller = false
         @referring_transaction_info = nil
-      end
-
-      def reset?
-        @most_recent_transaction.nil?
       end
 
       def timings
@@ -107,12 +102,8 @@ module NewRelic
       end
 
       # Current transaction stack and sample building
-      attr_accessor :most_recent_transaction, :transaction_sample_builder
-      attr_reader   :current_transaction_stack
-
-      def current_transaction
-        current_transaction_stack.last
-      end
+      attr_accessor :most_recent_transaction, :transaction_sample_builder,
+                    :current_transaction
 
       def transaction_start_time
         if most_recent_transaction.nil?
@@ -127,7 +118,7 @@ module NewRelic
       end
 
       def transaction_name
-        most_recent_transaction.nil? ? nil : most_recent_transaction.name
+        most_recent_transaction.nil? ? nil : most_recent_transaction.best_name
       end
 
       def transaction_noticed_error_ids
