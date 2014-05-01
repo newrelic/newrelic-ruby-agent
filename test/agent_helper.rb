@@ -83,14 +83,14 @@ def assert_metrics_recorded(expected)
     expected_spec = metric_spec_from_specish(specish)
     actual_stats = NewRelic::Agent.instance.stats_engine.lookup_stats(*Array(specish))
     if !actual_stats
-      all_specs = NewRelic::Agent.instance.stats_engine.metric_specs
+      all_specs = NewRelic::Agent.instance.stats_engine.metric_specs.sort
       matches = all_specs.select { |spec| spec.name == expected_spec.name }
       matches.map! { |m| "  #{m.inspect}" }
       msg = "Did not find stats for spec #{expected_spec.inspect}."
       msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
 
       msg += "\nAll specs in there were: [\n#{all_specs.map do |s|
-        "#{s.name} (#{s.scope.empty? ? '<unscoped>' : s.scope})"
+        "  #{s.name} (#{s.scope.empty? ? '<unscoped>' : s.scope})"
       end.join(",\n")}\n]"
 
       assert(actual_stats, msg)
