@@ -118,7 +118,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'outer'          => expected_values,
       'foo'            => expected_values,
       ['foo', 'outer'] => expected_values,
-      'bar'            => expected_values,
+      'bar'            => expected_values
     )
   end
 
@@ -136,7 +136,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'outer'          => expected_values,
       'foo'            => expected_values,
       ['foo', 'outer'] => expected_values,
-      'bar'            => expected_values,
+      'bar'            => expected_values
     )
   end
 
@@ -152,7 +152,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
       'outer' => expected_values,
-      'bar'   => expected_values,
+      'bar'   => expected_values
     )
   end
 
@@ -168,7 +168,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
       'outer'          => expected_values,
-      ['foo', 'outer'] => expected_values,
+      ['foo', 'outer'] => expected_values
     )
   end
 
@@ -251,7 +251,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
         :call_count           =>  1,
         :total_call_time      => 10,
         :total_exclusive_time => 10,
-      },
+      }
     )
   end
 
