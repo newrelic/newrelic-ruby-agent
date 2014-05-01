@@ -27,16 +27,23 @@ module NewRelic
           result
         end
 
+        def self.config_search_paths
+          Proc.new {
+            paths = [
+              File.join("config","newrelic.yml"),
+              File.join("newrelic.yml")
+            ]
+            if ENV["HOME"]
+              paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
+              paths << File.join(ENV["HOME"], "newrelic.yml")
+            end
+            paths
+          }
+        end
+
         def self.config_path
           Proc.new {
-            files = []
-            files << File.join("config","newrelic.yml")
-            files << File.join("newrelic.yml")
-            if ENV["HOME"]
-              files << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
-              files << File.join(ENV["HOME"], "newrelic.yml")
-            end
-            found_path = files.detect do |file|
+            found_path = NewRelic::Agent.config[:config_search_paths].detect do |file|
               File.expand_path(file) if File.exists? file
             end
             found_path || ""
@@ -226,6 +233,12 @@ module NewRelic
           :public => true,
           :type => String,
           :description => "Path to newrelic.yml. When omitted the agent will check (in order) 'config/newrelic.yml', 'newrelic.yml', $HOME/.newrelic/newrelic.yml' and $HOME/newrelic.yml."
+        },
+        :config_search_paths => {
+          :default => DefaultSource.config_search_paths,
+          :public => false,
+          :type => Array,
+          :description => "An array of candidate locations for the agent's configuration file."
         },
         :app_name => {
           :default => DefaultSource.app_name,

@@ -102,7 +102,6 @@ class NewRelic::Agent::RequestSampler
     end
 
     NewRelic::Agent.config.register_callback(:'analytics_events.enabled') do |enabled|
-      NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ enabled ? 'En' : 'Dis' ]
       @enabled = enabled
     end
   end

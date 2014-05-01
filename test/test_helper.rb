@@ -171,39 +171,6 @@ def load_cross_agent_test(name)
   NewRelic::JSONWrapper.load(data)
 end
 
-class ArrayLogDevice
-  def initialize( array=[] )
-    @array = array
-  end
-  attr_reader :array
-
-  def write( message )
-    @array << message
-  end
-
-  def close; end
-end
-
-def with_array_logger( level=:info )
-  orig_logger = NewRelic::Agent.logger
-  config = {
-    :log_file_path => nil,
-    :log_file_name => nil,
-    :log_level => level,
-  }
-  logdev = ArrayLogDevice.new
-  override_logger = Logger.new( logdev )
-
-  with_config(config) do
-    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new("", override_logger)
-    yield
-  end
-
-  return logdev
-ensure
-  NewRelic::Agent.logger = orig_logger
-end
-
 def dummy_mysql_explain_result(hash=nil)
   hash ||= {
     'Id' => '1',

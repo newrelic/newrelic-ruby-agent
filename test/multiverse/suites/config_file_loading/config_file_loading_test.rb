@@ -64,11 +64,12 @@ bazbangbarn:
   i_am: "bazbangbarn"
       YAML
     end
+
     setup_agent(manual_config_options)
   end
 
-  def assert_config_read_from(path)
-    setup_config(path)
+  def assert_config_read_from(path, manual_config_options={})
+    setup_config(path, manual_config_options)
     assert NewRelic::Agent.config[:foo] == "success!!", "Failed to read yaml config from #{path.inspect[0..100]}\n\n#{NewRelic::Agent.config.inspect[0..100]}"
   end
 
@@ -91,6 +92,22 @@ bazbangbarn:
 
   def test_config_loads_from_home_dot_newrelic_newrelic_yml
     assert_config_read_from(ENV['HOME'] + "/.newrelic/newrelic.yml")
+  end
+
+  def test_config_loads_from_config_path_option_to_manual_start
+    path = File.join(File.dirname(__FILE__), 'otherplace', 'newrelic.yml')
+    assert_config_read_from(path, :config_path => path)
+  end
+
+  def test_warning_logged_when_no_config_file
+    teardown_agent
+    setup_agent
+
+    log = with_array_logger do
+      NewRelic::Agent.manual_start
+    end
+
+    $stderr.puts log.array.join("\n")
   end
 
   def test_config_loads_from_env_NRCONFIG
