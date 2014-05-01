@@ -104,29 +104,9 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       ])
   end
 
-  def test_metric_recording_in_root_non_transaction
-    options = { :transaction => false }
-
+  def test_metric_recording_inside_transaction
     in_transaction('outer') do
-      trace_execution_scoped(['foo', 'bar'], options) do
-        # erm
-      end
-    end
-
-    expected_values = { :call_count => 1 }
-    assert_metrics_recorded_exclusive(
-      'outer'          => expected_values,
-      'foo'            => expected_values,
-      ['foo', 'outer'] => expected_values,
-      'bar'            => expected_values
-    )
-  end
-
-  def test_metric_recording_in_non_root_non_transaction
-    options = { :transaction => false }
-
-    in_transaction('outer') do
-      trace_execution_scoped(['foo', 'bar'], options) do
+      trace_execution_scoped(['foo', 'bar']) do
         # erm
       end
     end
@@ -141,7 +121,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_metric_recording_without_metric_option
-    options = { :metric => false, :transaction => true }
+    options = { :metric => false, :no_scoped_metric => true }
 
     in_transaction('outer') do
       trace_execution_scoped(['foo', 'bar'], options) do
@@ -157,7 +137,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_metric_recording_with_scoped_metric_only_option
-    options = { :transaction => false, :scoped_metric_only => true }
+    options = { :scoped_metric_only => true }
 
     in_transaction('outer') do
       trace_execution_scoped(['foo', 'bar'], options) do

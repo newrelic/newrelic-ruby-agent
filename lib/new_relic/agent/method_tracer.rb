@@ -169,7 +169,7 @@ module NewRelic
             if !options[:scoped_metric_only]
               metrics << NewRelic::MetricSpec.new(first_name)
             end
-            if NewRelic::Agent::Transaction.in_transaction? && !options[:transaction]
+            if NewRelic::Agent::Transaction.in_transaction? && !options[:no_scoped_metric]
               metrics << NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
             end
           end
