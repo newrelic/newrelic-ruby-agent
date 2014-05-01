@@ -58,14 +58,21 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     run_task_inner(1)
     assert_metrics_recorded_exclusive(
       [
-        [
-          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
-          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1'
-        ],
         'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
-        'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1'
+
+        'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
+        [
+          'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
+          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'
+        ],
+
+        'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1',
+        [
+          'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1',
+          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'
+        ],
       ],
-      :filter => /^Controller/
+      :filter => /^(Sub)?Controller/
     )
   end
 
@@ -73,32 +80,41 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     run_task_inner(3)
     assert_metrics_recorded_exclusive(
       [
-        [
-          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
-          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1'
-        ],
-        [
-          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1',
-          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_2'
-        ],
-        [
-          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_2',
-          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_3'
-        ],
         'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
-        'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1',
-        'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_2',
-        'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_3'
+
+        'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
+        [
+          'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
+          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'
+        ],
+
+        'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1',
+        [
+          'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1',
+          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'
+        ],
+
+        'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_2',
+        [
+          'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_2',
+          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'
+        ],
+
+        'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_3',
+        [
+          'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_3',
+          'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'
+        ],
       ],
-      :filter => /^Controller/
+      :filter => /^(Sub)?Controller/
     )
   end
 
   def test_should_handle_nested_task_invocations
     run_task_outer(3)
     assert_metrics_recorded({
-      'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task'   => { :call_count => 1 },
-      'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0' => { :call_count => 2 }
+      'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task' => { :call_count => 1 },
+      'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'  => { :call_count => 1 }
     })
   end
 
@@ -106,8 +122,8 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     run_task_outer(10)
 
     assert_metrics_recorded({
-      'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task'   => { :call_count => 1 },
-      'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0' => { :call_count => 2 }
+      'SubController/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task'   => { :call_count => 1 },
+      'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0' => { :call_count => 1 }
     })
     assert_metrics_not_recorded(['Controller'])
 

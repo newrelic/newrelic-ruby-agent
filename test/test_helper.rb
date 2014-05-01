@@ -233,7 +233,7 @@ module TransactionSampleTestHelper
     sleep 0.02
     yield if block_given?
     sampler.notice_pop_frame "a"
-    sampler.on_finishing_transaction(stub('txn', :name => '/path', :custom_parameters => {}, :guid => 'a guid'))
+    sampler.on_finishing_transaction(stub('txn', :best_name => '/path', :custom_parameters => {}, :guid => 'a guid'))
 
     sampler.last_sample
   end
@@ -250,7 +250,7 @@ module TransactionSampleTestHelper
     sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
     sampler.notice_pop_frame "lew"
     sampler.notice_pop_frame "Controller/sandwiches/index"
-    sampler.on_finishing_transaction(stub('txn', :name => path, :custom_parameters => {}, :guid => 'a guid'))
+    sampler.on_finishing_transaction(stub('txn', :best_name => path, :custom_parameters => {}, :guid => 'a guid'))
     sampler.last_sample
   end
 end

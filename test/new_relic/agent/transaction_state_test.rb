@@ -53,17 +53,16 @@ module NewRelic::Agent
     def test_timings_with_transaction
       earliest_time = freeze_time
 
-      in_transaction do |txn|
+      in_transaction("Transaction/name") do |txn|
         txn.apdex_start = earliest_time
         txn.start_time = earliest_time + 5
-        txn.name = "Transaction/name"
 
         advance_time(10.0)
         timings = state.timings
 
         assert_equal 5.0, timings.queue_time_in_seconds
         assert_equal 5.0, timings.app_time_in_seconds
-        assert_equal txn.name, timings.transaction_name
+        assert_equal txn.best_name, timings.transaction_name
       end
     end
 
