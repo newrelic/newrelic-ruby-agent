@@ -121,7 +121,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_metric_recording_without_metric_option
-    options = { :metric => false, :no_scoped_metric => true }
+    options = { :metric => false, :scoped_metric => false }
 
     in_transaction('outer') do
       trace_execution_scoped(['foo', 'bar'], options) do

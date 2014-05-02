@@ -259,7 +259,7 @@ module NewRelic
 
         @trace_options = {
                     :metric                       => true,
-                    :no_scoped_metric             => true,
+                    :scoped_metric                => false,
                     :deduct_call_time_from_parent => true
                   }
         _, @expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(@trace_options, start_time.to_f)
@@ -301,7 +301,7 @@ module NewRelic
         if @name_from_child
           name = Transaction.add_subtransaction_prefix(@default_name)
           metrics << @frozen_name
-          @trace_options[:no_scoped_metric] = false
+          @trace_options[:scoped_metric] = true
         end
 
         NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
