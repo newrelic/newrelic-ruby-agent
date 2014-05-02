@@ -99,10 +99,13 @@ module NewRelic
         else
           nested_frame = txn.frame_stack.pop
 
+          # Parent transaction inherits the name of the first child
+          # to complete, if they are both/neither web transactions.
           nested_is_web_type = transaction_type_is_web?(nested_frame.type)
           txn_is_web_type    = transaction_type_is_web?(txn.type)
 
           if (nested_is_web_type == txn_is_web_type)
+            # first child to finish wins
             txn.name_from_child ||= nested_frame.name
           end
 
