@@ -23,11 +23,10 @@ class DeveloperModeTest < Minitest::Test
   def setup
     @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
-    @sampler = NewRelic::Agent::TransactionSampler.new
-    run_sample_trace_on(@sampler, '/here')
-    run_sample_trace_on(@sampler, '/there')
-    run_sample_trace_on(@sampler, '/somewhere')
-    NewRelic::Agent.instance.stubs(:transaction_sampler).returns(@sampler)
+    run_sample_trace('/here')
+    run_sample_trace('/there')
+    run_sample_trace('/somewhere')
+    @sampler = NewRelic::Agent.instance.transaction_sampler
   end
 
   def teardown

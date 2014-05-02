@@ -12,6 +12,9 @@ class NewRelic::TransactionSampleTest < Minitest::Test
   def setup
     @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
+
+    NewRelic::Agent.agent.transaction_sampler.reset!
+
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
     @connection_stub.stubs(:execute).returns(dummy_mysql_explain_result({'foo' => 'bar'}))
 
@@ -23,6 +26,7 @@ class NewRelic::TransactionSampleTest < Minitest::Test
     else
       @marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
     end
+
   end
 
   def teardown
@@ -130,6 +134,8 @@ class NewRelic::TransactionSampleTest < Minitest::Test
   end
 
   def test_not_record_transactions
+    NewRelic::Agent.instance.transaction_sampler.reset!
+
     NewRelic::Agent.disable_transaction_tracing do
       t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
       assert t.nil?
@@ -214,7 +220,7 @@ class NewRelic::TransactionSampleTest < Minitest::Test
   end
 
   def test_count_segments
-    transaction = run_sample_trace_on(NewRelic::Agent::TransactionSampler.new) do |sampler|
+    transaction = run_sample_trace do |sampler|
       sampler.notice_push_frame "level0"
       sampler.notice_push_frame "level-1"
       sampler.notice_push_frame "level-2"
@@ -223,6 +229,7 @@ class NewRelic::TransactionSampleTest < Minitest::Test
       sampler.notice_pop_frame "level-1"
       sampler.notice_pop_frame "level0"
     end
+
     assert_equal 6, transaction.count_segments
   end
 
