@@ -159,9 +159,13 @@ module NewRelic
         end
 
         def log_config(direction, source)
-          ::NewRelic::Agent.logger.debug(
-            "Updating config (#{direction}) from #{source.class}. Results:",
-            flattened.inspect)
+          # Just generating this log message (specifically calling
+          # flattened.inspect) is expensive enough that we don't want to do it
+          # unless we're actually going to be logging the message based on our
+          # current log level.
+          ::NewRelic::Agent.logger.debug do
+            "Updating config (#{direction}) from #{source.class}. Results: #{flattened.inspect}"
+          end
         end
 
         private

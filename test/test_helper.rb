@@ -187,15 +187,15 @@ end
 def with_array_logger( level=:info )
   orig_logger = NewRelic::Agent.logger
   config = {
-      :log_file_path => nil,
-      :log_file_name => nil,
-      :log_level => level,
-    }
+    :log_file_path => nil,
+    :log_file_name => nil,
+    :log_level => level,
+  }
   logdev = ArrayLogDevice.new
   override_logger = Logger.new( logdev )
-  NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new("", override_logger)
 
   with_config(config) do
+    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new("", override_logger)
     yield
   end
 
