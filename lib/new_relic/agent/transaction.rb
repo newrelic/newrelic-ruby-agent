@@ -215,8 +215,14 @@ module NewRelic
       def best_name
         return @frozen_name     if @frozen_name
         return @name_from_api   if @name_from_api
-        return @name_from_child if @name_from_child
-        return @default_name    if @default_name
+
+        if @name_from_child
+          return @name_from_child
+        elsif !@frame_stack.empty?
+          return @frame_stack.last.name
+        end
+
+        return @default_name if @default_name
 
         NewRelic::Agent::UNKNOWN_METRIC
       end

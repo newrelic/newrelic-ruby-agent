@@ -511,6 +511,16 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_recorded(['Controller/parent'])
   end
 
+  def test_transaction_should_take_child_name_if_frozen_early
+    in_transaction('Controller/parent', :type => :sinatra) do
+      in_transaction('Controller/child', :type => :controller) do |txn|
+        txn.freeze_name_and_execute_if_not_ignored
+      end
+    end
+
+    assert_metrics_recorded(['Controller/child'])
+  end
+
   def assert_has_custom_parameter(key, value = key)
     assert_equal(value, NewRelic::Agent::Transaction.current.custom_parameters[key])
   end
