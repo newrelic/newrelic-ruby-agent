@@ -95,7 +95,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     assert_metrics_recorded(
-      ['Controller/test/child', 'Controller/test/index'] => { :call_count => 1 }
+      ['SubController/test/child', 'Controller/test/child'] => { :call_count => 1 }
     )
   end
 
@@ -111,13 +111,13 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     end
 
     assert_metrics_recorded(
-      ['Controller/test/child', 'Controller/test/index'] => { :call_count => 1 }
+      ['SubController/test/child', 'Controller/test/child'] => { :call_count => 1 }
     )
   end
 
   def test_sets_default_transaction_name_on_start
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    assert_equal 'Controller/test/index', NewRelic::Agent::Transaction.current.name
+    assert_equal 'Controller/test/index', NewRelic::Agent::Transaction.current.best_name
   ensure
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
   end
@@ -126,13 +126,13 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     txn = NewRelic::Agent::Transaction.current
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
-    assert_equal 'Controller/test/index', txn.name
+    assert_equal 'Controller/test/index', txn.best_name
   end
 
   def test_sets_transaction_name
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     NewRelic::Agent.set_transaction_name('something/else')
-    assert_equal 'Controller/something/else', NewRelic::Agent::Transaction.current.name
+    assert_equal 'Controller/something/else', NewRelic::Agent::Transaction.current.best_name
   ensure
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
   end
@@ -142,7 +142,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     txn = NewRelic::Agent::Transaction.current
     NewRelic::Agent.set_transaction_name('something/else')
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
-    assert_equal 'Controller/something/else', txn.name
+    assert_equal 'Controller/something/else', txn.best_name
   end
 
   def test_record_nothing_for_ignored_action

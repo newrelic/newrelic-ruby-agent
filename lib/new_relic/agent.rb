@@ -148,6 +148,9 @@ module NewRelic
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
 
+    # for nested transactions
+    SUBTRANSACTION_PREFIX = 'Sub'.freeze
+
     @agent = nil
 
     # The singleton Agent instance.  Used internally.
@@ -505,11 +508,7 @@ module NewRelic
     # @api public
     #
     def set_transaction_name(name, options={})
-      if Transaction.current
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(self)
-        Transaction.current.type = options[:category] if options[:category]
-        Transaction.current.name = "#{namer.category_name(options[:category])}/#{name}"
-      end
+      Transaction.set_overriding_transaction_name(name, options)
     end
 
     # Get the name of the current running transaction.  This is useful if you
@@ -519,8 +518,8 @@ module NewRelic
     #
     def get_transaction_name
       if Transaction.current
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(self)
-        Transaction.current.name.sub(Regexp.new("\\A#{Regexp.escape(namer.category_name)}/"), '')
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
+        Transaction.current.best_name.sub(Regexp.new("\\A#{Regexp.escape(namer.category_name)}/"), '')
       end
     end
 

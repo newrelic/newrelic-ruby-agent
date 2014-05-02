@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     class TracedMethodFrame
       attr_reader :deduct_call_time_from_parent, :tag
-      attr_accessor :name, :start_time, :children_time
+      attr_accessor :name, :start_time, :children_time, :type
       def initialize(tag, start_time, deduct_call_time)
         @tag = tag
         @start_time = start_time

@@ -117,11 +117,11 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     }
 
     with_config(config, :do_not_cast => true) do
-      in_transaction do |txn|
-        txn.name = 'Controller/foo/bar'
+      in_transaction('Controller/foo/bar') do |txn|
         assert_equal 1.5, txn.apdex_t
+      end
 
-        txn.name = 'Controller/some/other'
+      in_transaction('Controller/some/other') do |txn|
         assert_equal 2.0, txn.apdex_t
       end
     end
@@ -139,9 +139,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/slow/txn') do
-        # Needs transaction name set before apdex lookups
-        NewRelic::Agent::Transaction.current.name = 'Controller/slow/txn'
-
         NewRelic::Agent::Transaction.record_apdex(t0 + 3.5,  false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 5.5,  false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 16.5, false)
@@ -160,9 +157,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/other/txn') do
-        # Needs transaction name set before apdex lookups
-        NewRelic::Agent::Transaction.current.name = 'Controller/other/txn'
-
         NewRelic::Agent::Transaction.record_apdex(t0 + 0.5, false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 2,   false)
         NewRelic::Agent::Transaction.record_apdex(t0 + 5,   false)
@@ -179,7 +173,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_record_apdex_stores_apdex_t_in_min_and_max
     with_config(:apdex_t => 2.5) do
       in_web_transaction('Controller/some/txn') do
-        NewRelic::Agent::Transaction.current.name = 'Controller/some/txn'
         NewRelic::Agent::Transaction.record_apdex(Time.now, false)
       end
     end
@@ -193,21 +186,13 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_name_is_unset_if_nil
     in_transaction do |txn|
-      txn.name = nil
-      assert !txn.name_set?
-    end
-  end
-
-  def test_name_is_unset_if_unknown
-    in_transaction do |txn|
-      txn.name = NewRelic::Agent::UNKNOWN_METRIC
+      txn.default_name = nil
       assert !txn.name_set?
     end
   end
 
   def test_name_set_if_anything_else
-    in_transaction do |txn|
-      txn.name = "anything else"
+    in_transaction("anything else") do |txn|
       assert txn.name_set?
     end
   end
@@ -225,7 +210,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
                                                     'replace_all'      => true)
       NewRelic::Agent.instance.transaction_rules << rule
       NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
-      assert_equal 'Controller/foo/*/bar/*', txn.name
+      assert_equal 'Controller/foo/*/bar/*', txn.best_name
     end
   ensure
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
@@ -338,29 +323,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction do
       NewRelic::Agent.add_custom_parameters('fooz')
     end
-  end
-
-  def test_parent_returns_parent_transaction_if_there_is_one
-    txn, outer_txn = nil
-    in_transaction('outer') do
-      outer_txn = NewRelic::Agent::Transaction.current
-      in_transaction('inner') do
-        txn = NewRelic::Agent::Transaction.parent
-      end
-    end
-    assert_same(outer_txn, txn)
-  end
-
-  def test_parent_returns_nil_if_there_is_no_parent
-    txn = 'this is a non-nil placeholder'
-    in_transaction('outer') do
-      txn = NewRelic::Agent::Transaction.parent
-    end
-    assert_nil(txn)
-  end
-
-  def test_parent_returns_nil_if_outside_transaction_entirely
-    assert_nil(NewRelic::Agent::Transaction.parent)
   end
 
   def test_user_attributes_alias_to_custom_parameters
@@ -529,6 +491,34 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       txn.expects(:jruby_cpu_burn).twice.returns(2)
       assert_equal 2, txn.cpu_burn
     end
+  end
+
+  def test_transaction_takes_child_name_if_similar_type
+    in_transaction('Controller/parent', :type => :sinatra) do
+      in_transaction('Controller/child', :type => :controller) do
+      end
+    end
+
+    assert_metrics_recorded(['Controller/child'])
+  end
+
+  def test_transaction_doesnt_take_child_name_if_different_type
+    in_transaction('Controller/parent', :type => :sinatra) do
+      in_transaction('Whatever/child', :type => :task) do
+      end
+    end
+
+    assert_metrics_recorded(['Controller/parent'])
+  end
+
+  def test_transaction_should_take_child_name_if_frozen_early
+    in_transaction('Controller/parent', :type => :sinatra) do
+      in_transaction('Controller/child', :type => :controller) do |txn|
+        txn.freeze_name_and_execute_if_not_ignored
+      end
+    end
+
+    assert_metrics_recorded(['Controller/child'])
   end
 
   def assert_has_custom_parameter(key, value = key)

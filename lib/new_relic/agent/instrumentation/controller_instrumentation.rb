@@ -187,20 +187,7 @@ module NewRelic
         end
 
         class TransactionNamer
-          def initialize(traced_obj)
-            @traced_obj = traced_obj
-            if (@traced_obj.is_a?(Class) || @traced_obj.is_a?(Module))
-              @traced_class_name = @traced_obj.name
-            else
-              @traced_class_name = @traced_obj.class.name
-            end
-          end
-
-          def name(options={})
-            name = "#{category_name(options[:category])}/#{path_name(options)}"
-          end
-
-          def category_name(type = nil)
+          def self.category_name(type = nil)
             type ||= Transaction.current && Transaction.current.type
             case type
             when :controller, nil then 'Controller'
@@ -211,6 +198,19 @@ module NewRelic
               # for internal use only
             else type.to_s
             end
+          end
+
+          def initialize(traced_obj)
+            @traced_obj = traced_obj
+            if (@traced_obj.is_a?(Class) || @traced_obj.is_a?(Module))
+              @traced_class_name = @traced_obj.name
+            else
+              @traced_class_name = @traced_obj.class.name
+            end
+          end
+
+          def name(options={})
+            name = "#{self.class.category_name(options[:category])}/#{path_name(options)}"
           end
 
           def path_name(options={})

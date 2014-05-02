@@ -46,30 +46,26 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     )
   end
 
-  def test_metric_recording_in_root_transaction
-    options = { :transaction => true }
-    self.stubs(:has_parent?).returns(false)
-
+  def test_metric_recording_in_non_nested_transaction
     in_transaction('outer') do
-      trace_execution_scoped(['foo', 'bar'], options) do
+      trace_execution_scoped(['foo', 'bar']) do
         # erm
       end
     end
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      'foo'   => expected_values,
-      'bar'   => expected_values,
-      'outer' => expected_values
+      ['foo', 'outer'] => expected_values,
+      'foo'            => expected_values,
+      'bar'            => expected_values,
+      'outer'          => expected_values
     )
   end
 
-  def test_metric_recording_in_non_root_transaction
-    options = { :transaction => true }
-    self.stubs(:has_parent?).returns(true)
-    in_transaction('outer_txn') do
-      in_transaction('inner_txn') do
-        trace_execution_scoped(['inner', 'bar'], options) do
+  def test_metric_recording_in_nested_transactions
+    in_transaction('Controller/outer_txn') do
+      in_transaction('Controller/inner_txn') do
+        trace_execution_scoped(['foo', 'bar']) do
           # erm
         end
       end
@@ -77,40 +73,40 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      'outer_txn'                => expected_values,
-      'inner_txn'                => expected_values,
-      ['inner_txn', 'outer_txn'] => expected_values,
-      ['inner'    , 'outer_txn'] => expected_values,
-      'inner'                    => expected_values,
-      'bar'                      => expected_values
+      'HttpDispatcher'                                    => expected_values,
+      'Controller/inner_txn'                              => expected_values,
+
+      'SubController/inner_txn'                           => expected_values,
+      ['SubController/inner_txn', 'Controller/inner_txn'] => expected_values,
+      'SubController/outer_txn'                           => expected_values,
+      ['SubController/outer_txn', 'Controller/inner_txn'] => expected_values,
+
+      ['foo'                    , 'Controller/inner_txn'] => expected_values,
+      'foo'                                               => expected_values,
+      'bar'                                               => expected_values
     )
   end
 
-  def test_metric_recording_in_root_non_transaction
-    options = { :transaction => false }
-    self.stubs(:has_parent?).returns(false)
-
-    in_transaction('outer') do
-      trace_execution_scoped(['foo', 'bar'], options) do
-        # erm
+  def test_metric_recording_in_3_nested_transactions
+    in_transaction('Controller/outer_txn') do
+      in_transaction('Controller/middle_txn') do
+        in_transaction('Controller/inner_txn') do
+          # erm
+        end
       end
     end
 
-    expected_values = { :call_count => 1 }
-    assert_metrics_recorded_exclusive(
-      'outer'          => expected_values,
-      'foo'            => expected_values,
-      ['foo', 'outer'] => expected_values,
-      'bar'            => expected_values
-    )
+    assert_metrics_recorded([
+      'Controller/inner_txn',
+      'SubController/inner_txn',
+      'SubController/middle_txn',
+      'SubController/outer_txn'
+      ])
   end
 
-  def test_metric_recording_in_non_root_non_transaction
-    options = { :transaction => false }
-    self.stubs(:has_parent?).returns(false)
-
+  def test_metric_recording_inside_transaction
     in_transaction('outer') do
-      trace_execution_scoped(['foo', 'bar'], options) do
+      trace_execution_scoped(['foo', 'bar']) do
         # erm
       end
     end
@@ -125,8 +121,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_metric_recording_without_metric_option
-    options = { :metric => false, :transaction => true }
-    self.stubs(:has_parent?).returns(false)
+    options = { :metric => false, :scoped_metric => false }
 
     in_transaction('outer') do
       trace_execution_scoped(['foo', 'bar'], options) do
@@ -142,8 +137,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_metric_recording_with_scoped_metric_only_option
-    options = { :transaction => false, :scoped_metric_only => true }
-    self.stubs(:has_parent?).returns(false)
+    options = { :scoped_metric_only => true }
 
     in_transaction('outer') do
       trace_execution_scoped(['foo', 'bar'], options) do
