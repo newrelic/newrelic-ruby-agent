@@ -225,32 +225,38 @@ end
 module TransactionSampleTestHelper
   module_function
   def make_sql_transaction(*sql)
-    sampler = NewRelic::Agent::TransactionSampler.new
-    sampler.on_start_transaction(Time.now.to_f, nil, :jim => "cool")
-    sampler.notice_push_frame "a"
-    explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
-    sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "mysql"}, 0, &explainer) }
-    sleep 0.02
-    yield if block_given?
-    sampler.notice_pop_frame "a"
-    sampler.on_finishing_transaction(stub('txn', :best_name => '/path', :custom_parameters => {}, :guid => 'a guid'))
+    sampler = nil
 
-    sampler.last_sample
+    in_transaction('/path') do
+      sampler = NewRelic::Agent.instance.transaction_sampler
+      sampler.notice_push_frame "a"
+      explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
+      sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "mysql"}, 0, &explainer) }
+      sleep 0.02
+      yield if block_given?
+      sampler.notice_pop_frame "a"
+    end
+
+    return sampler.last_sample
   end
 
-  def run_sample_trace_on(sampler, path='/path')
-    sampler.on_start_transaction(Time.now.to_f, path, {})
-    sampler.notice_push_frame "Controller/sandwiches/index"
-    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0)
-    sampler.notice_push_frame "ab"
-    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0)
-    yield sampler if block_given?
-    sampler.notice_pop_frame "ab"
-    sampler.notice_push_frame "lew"
-    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
-    sampler.notice_pop_frame "lew"
-    sampler.notice_pop_frame "Controller/sandwiches/index"
-    sampler.on_finishing_transaction(stub('txn', :best_name => path, :custom_parameters => {}, :guid => 'a guid'))
-    sampler.last_sample
+  def run_sample_trace(path='/path')
+    sampler = nil
+
+    request = stub(:uri => path)
+
+    in_transaction("Controller/sandwiches/index", :request => request) do
+      sampler = NewRelic::Agent.instance.transaction_sampler
+      sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0)
+      sampler.notice_push_frame "ab"
+      sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0)
+      yield sampler if block_given?
+      sampler.notice_pop_frame "ab"
+      sampler.notice_push_frame "lew"
+      sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
+      sampler.notice_pop_frame "lew"
+    end
+
+    return sampler.last_sample
   end
 end
