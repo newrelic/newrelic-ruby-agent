@@ -44,15 +44,8 @@ module NewRelic
       def self.set_default_transaction_name(name, options = {})
         txn = current
 
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(NewRelic::Agent.instance)
-        name = "#{namer.category_name(options[:category])}/#{name}"
-
-        if txn.frame_stack.empty?
-          txn.default_name = name
-          txn.type = options[:category] if options[:category]
-        else
-          txn.frame_stack.last.name = name
-          txn.frame_stack.last.type = options[:category] if options[:category]
+        set_transaction_name_helper(txn, name, options) do |new_name|
+          txn.default_name = new_name
         end
       end
 
@@ -60,11 +53,17 @@ module NewRelic
         txn = current
         return unless txn
 
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(NewRelic::Agent.instance)
+        set_transaction_name_helper(txn, name, options) do |new_name|
+          txn.name_from_api = new_name
+        end
+      end
+
+      def self.set_transaction_name_helper(txn, name, options)
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
         name = "#{namer.category_name(options[:category])}/#{name}"
 
         if txn.frame_stack.empty?
-          txn.name_from_api = name
+          yield name
           txn.type = options[:category] if options[:category]
         else
           txn.frame_stack.last.name = name
