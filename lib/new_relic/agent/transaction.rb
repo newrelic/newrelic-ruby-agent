@@ -77,11 +77,7 @@ module NewRelic
         txn = current
 
         if txn
-          trace_options = {
-                            :metric                       => true,
-                            :deduct_call_time_from_parent => true
-                          }
-          _, nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(trace_options, Time.now.to_f)
+          _, nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header({:deduct_call_time_from_parent => true}, Time.now.to_f)
           nested_frame.name = options[:transaction_name]
           nested_frame.type = transaction_type
           txn.frame_stack << nested_frame
@@ -115,7 +111,7 @@ module NewRelic
             add_subtransaction_prefix(nested_frame.name),
             [],
             nested_frame,
-            {:metric => true, :deduct_call_time_from_parent => true},
+            {:metric => true},
             end_time.to_f)
         end
 
@@ -213,8 +209,8 @@ module NewRelic
       end
 
       def best_name
-        return @frozen_name     if @frozen_name
-        return @name_from_api   if @name_from_api
+        return @frozen_name   if @frozen_name
+        return @name_from_api if @name_from_api
 
         if @name_from_child
           return @name_from_child
