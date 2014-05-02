@@ -493,6 +493,24 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_transaction_takes_child_name_if_similar_type
+    in_transaction('Controller/parent', :type => :sinatra) do
+      in_transaction('Controller/child', :type => :controller) do
+      end
+    end
+
+    assert_metrics_recorded(['Controller/child'])
+  end
+
+  def test_transaction_doesnt_take_child_name_if_different_type
+    in_transaction('Controller/parent', :type => :sinatra) do
+      in_transaction('Whatever/child', :type => :task) do
+      end
+    end
+
+    assert_metrics_recorded(['Controller/parent'])
+  end
+
   def assert_has_custom_parameter(key, value = key)
     assert_equal(value, NewRelic::Agent::Transaction.current.custom_parameters[key])
   end

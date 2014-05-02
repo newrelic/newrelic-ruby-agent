@@ -102,7 +102,11 @@ module NewRelic
           TransactionState.get.current_transaction = nil
         else
           nested_frame = txn.frame_stack.pop
-          if (nested_frame.type == txn.type)
+
+          nested_is_web_type = transaction_type_is_web?(nested_frame.type)
+          txn_is_web_type    = transaction_type_is_web?(txn.type)
+
+          if (nested_is_web_type == txn_is_web_type)
             txn.name_from_child ||= nested_frame.name
           end
 
