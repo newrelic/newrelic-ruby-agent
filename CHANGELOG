@@ -10,7 +10,7 @@
   transaction names in the New Relic UI (one for the middleware, and one for
   the inner application).
 
-  As of this release, it will instead unify these two parts into a single
+  As of this release, the agent will instead unify these two parts into a single
   transaction in the UI. The unified name will be the name assigned to the
   inner-most traced transaction by default. Calls to
   NewRelic::Agent.set_transaction_name will continue to override the default
@@ -23,8 +23,8 @@
   * Allow setting configuration file path via an option to manual_start
 
   Previously, passing the :config_path option to NewRelic::Agent.manual_start
-  would not actually affect the location that the agent would look for its
-  configuration file in. This has been fixed, and the log messages emitted when
+  would not actually affect the location that the agent would use to look for
+  its configuration file. This has been fixed, and the log messages emitted when
   a configuration file is not found should now be more helpful.
 
 ## v3.8.0 ##
