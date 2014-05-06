@@ -155,7 +155,8 @@ bazbangbarn:
 
     log = with_array_logger { NewRelic::Agent.manual_start }
 
-    assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml.*:4/)
+    assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml/)
+    assert_log_contains(log, /\(erb\):4/)
   end
 
   def test_config_loads_from_env_NRCONFIG
