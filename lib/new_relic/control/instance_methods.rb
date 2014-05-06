@@ -83,9 +83,9 @@ module NewRelic
         Agent.config.replace_or_add_config(manual, 1)
 
         config_file_path = @config_file_override || Agent.config[:config_path]
-        Agent.config.remove_config(manual)
-
         Agent.config.replace_or_add_config(Agent::Configuration::YamlSource.new(config_file_path, env), 1)
+
+        Agent.config.remove_config(manual)
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
       end
 

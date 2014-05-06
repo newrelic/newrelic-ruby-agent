@@ -103,11 +103,35 @@ bazbangbarn:
     teardown_agent
     setup_agent
 
+    log = with_array_logger { NewRelic::Agent.manual_start }
+
+    assert_log_contains(log, /WARN.*No configuration file found/)
+    assert_log_contains(log, /WARN.*Looked in these locations.*based on defaults/)
+  end
+
+  def test_warning_logged_when_no_config_file_manual_config
+    teardown_agent
+    setup_agent
+
     log = with_array_logger do
-      NewRelic::Agent.manual_start
+      NewRelic::Agent.manual_start(:config_path => 'otherplace/newrelic.yml')
     end
 
-    $stderr.puts log.array.join("\n")
+    assert_log_contains(log, /WARN.*No configuration file found/)
+    assert_log_contains(log, /WARN.*Looked in these locations.*based on API call.*otherplace\/newrelic\.yml/)
+  end
+
+  def test_warning_logged_when_no_config_file_environment_variable
+    ENV['NRCONFIG'] = 'otherplace/newrelic.yml'
+    teardown_agent
+    setup_agent
+
+    log = with_array_logger { NewRelic::Agent.manual_start }
+
+    assert_log_contains(log, /WARN.*No configuration file found/)
+    assert_log_contains(log, /WARN.*Looked in these locations.*based on environment variable.*otherplace\/newrelic\.yml/)
+  ensure
+    ENV['NRCONFIG'] = nil
   end
 
   def test_config_loads_from_env_NRCONFIG
@@ -128,5 +152,11 @@ bazbangbarn:
     # load that section of newrelic.yml
     setup_config(path, {:env => 'bazbangbarn'} )
     assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], "Agent.config did not load bazbangbarn config as requested"
+  end
+
+  def assert_log_contains(log, message)
+    lines = log.array
+    failure_message = "Did not find '#{message}' in log. Log contained:\n#{lines.join('')}"
+    assert (lines.any? { |line| line.match(message) }), failure_message
   end
 end
