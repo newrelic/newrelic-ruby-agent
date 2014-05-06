@@ -106,6 +106,14 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
     obj = TestObject.new
   end
 
+  def test_add_transaction_tracer_defines_with_method
+    assert TestObject.method_defined? :public_transaction_with_newrelic_transaction_trace
+  end
+
+  def test_add_transaction_tracer_defines_without_method
+    assert TestObject.method_defined? :public_transaction_without_newrelic_transaction_trace
+  end
+
   def test_parse_punctuation
     ['?', '!', '='].each do |punctuation_mark|
       result = TestObject.parse_punctuation("foo#{punctuation_mark}")

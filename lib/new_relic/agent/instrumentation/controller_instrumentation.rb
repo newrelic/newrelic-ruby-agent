@@ -160,9 +160,9 @@ module NewRelic
             end
 
             class_eval <<-EOC
-              def #{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}(*args, &block)
+              def #{with_method_name}(*args, &block)
                 perform_action_with_newrelic_trace(#{argument_list.join(',')}) do
-                  #{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}(*args, &block)
+                  #{without_method_name}(*args, &block)
                  end
               end
             EOC
