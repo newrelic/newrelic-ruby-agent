@@ -148,23 +148,9 @@ module NewRelic
             # The metric path:
             options[:name] ||= method.to_s
             # create the argument list:
-            options_arg = []
-            options.each do |key, value|
-              valuestr = case
-                         when value.is_a?(Symbol)
-                           value.inspect
-                         when key == :params
-                           value.to_s
-                         else
-                           %Q["#{value.to_s}"]
-                         end
-              options_arg << %Q[:#{key} => #{valuestr}]
-            end
-
-            visibility = NewRelic::Helper.instance_method_visibility self, method
+            argument_list = generate_argument_list(options)
 
             traced_method, punctuation = parse_punctuation(method)
-
             without_method_name = "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"
             with_method_name = "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
 
@@ -175,11 +161,13 @@ module NewRelic
 
             class_eval <<-EOC
               def #{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}(*args, &block)
-                perform_action_with_newrelic_trace(#{options_arg.join(',')}) do
+                perform_action_with_newrelic_trace(#{argument_list.join(',')}) do
                   #{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}(*args, &block)
                  end
               end
             EOC
+
+            visibility = NewRelic::Helper.instance_method_visibility self, method
 
             alias_method without_method_name, method.to_s
             alias_method method.to_s, with_method_name
@@ -190,6 +178,20 @@ module NewRelic
 
           def parse_punctuation(method)
             [method.to_s.sub(/([?!=])$/, ''), $1]
+          end
+
+          def generate_argument_list(options)
+            options.map do |key, value|
+              value = if value.is_a?(Symbol)
+                value.inspect
+              elsif key == :params
+                value.to_s
+              else
+                %Q["#{value.to_s}"]
+              end
+
+              %Q[:#{key} => #{value}]
+            end
           end
         end
 

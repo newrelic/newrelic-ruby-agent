@@ -112,4 +112,11 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
       assert_equal ['foo', punctuation_mark], result
     end
   end
+
+  def test_argument_list
+    options = {:foo => :bar, :params => {:fizz => :buzz}, :far => 7}
+    result = TestObject.generate_argument_list(options)
+    expected = [":foo => :bar", ":params => {:fizz=>:buzz}", ":far => \"7\""]
+    assert_equal expected, result
+  end
 end
