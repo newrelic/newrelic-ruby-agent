@@ -107,13 +107,13 @@ class LoggingTest < Minitest::Test
   def test_logs_missing_license_key
     running_agent_writes_to_log(
       { :license_key => false },
-      "No license key found in newrelic.yml config.")
+      "No license key found.")
   end
 
   def test_logs_blank_license_key
     running_agent_writes_to_log(
       { :license_key => '' },
-      "No license key found in newrelic.yml config.")
+      "No license key found.")
   end
 
   def test_logs_invalid_license_key

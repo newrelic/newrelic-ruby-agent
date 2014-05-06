@@ -409,8 +409,8 @@ module NewRelic
             if Agent.config[:license_key] && Agent.config[:license_key].length > 0
               true
             else
-              ::NewRelic::Agent.logger.warn("No license key found in newrelic.yml config. " +
-                "This often means your newrelic.yml is missing a section for the running environment '#{NewRelic::Control.instance.env}'")
+              ::NewRelic::Agent.logger.warn("No license key found. " +
+                "This often means your newrelic.yml file was not found, or it lacks a section for the running environment, '#{NewRelic::Control.instance.env}'.")
               false
             end
           end

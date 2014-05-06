@@ -5,6 +5,19 @@
 # These helpers should not have any gem dependencies except on newrelic_rpm
 # itself, and should be usable from within any multiverse suite.
 
+class ArrayLogDevice
+  def initialize( array=[] )
+    @array = array
+  end
+  attr_reader :array
+
+  def write( message )
+    @array << message
+  end
+
+  def close; end
+end
+
 def assert_between(floor, ceiling, value, message="expected #{floor} <= #{value} <= #{ceiling}")
   assert((floor <= value && value <= ceiling), message)
 end
@@ -314,4 +327,24 @@ def wait_for_backtrace_service_poll(opts={})
       raise "Timed out waiting #{opts[:timeout]} s for backtrace service poll"
     end
   end
+end
+
+def with_array_logger(level=:info)
+  orig_logger = NewRelic::Agent.logger
+  config = {
+      :log_file_path => nil,
+      :log_file_name => nil,
+      :log_level => level,
+    }
+  logdev = ArrayLogDevice.new
+  override_logger = Logger.new(logdev)
+
+  with_config(config) do
+    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    yield
+  end
+
+  return logdev
+ensure
+  NewRelic::Agent.logger = orig_logger
 end

@@ -79,9 +79,13 @@ module NewRelic
       end
 
       def configure_agent(env, options)
-        yaml = Agent::Configuration::YamlSource.new(@config_file_path, env)
-        Agent.config.replace_or_add_config(yaml, 1)
+        manual = Agent::Configuration::ManualSource.new(options)
+        Agent.config.replace_or_add_config(manual, 1)
 
+        config_file_path = @config_file_override || Agent.config[:config_path]
+        Agent.config.replace_or_add_config(Agent::Configuration::YamlSource.new(config_file_path, env), 1)
+
+        Agent.config.remove_config(manual)
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
       end
 
@@ -122,7 +126,7 @@ module NewRelic
       def initialize(local_env, config_file_override=nil)
         @local_env = local_env
         @instrumentation_files = []
-        @config_file_path = config_file_override || Agent.config[:config_path]
+        @config_file_override = config_file_override
       end
 
       def root

@@ -42,11 +42,14 @@ module NewRelic
         end
 
         def remove_config(source=nil)
-          if block_given?
-            @config_stack.delete_if {|c| yield c }
-          else
-            @config_stack.delete(source)
+          @config_stack.delete_if do |c|
+            if block_given?
+              yield c
+            else
+              c.class == source.class && c == source
+            end
           end
+
           reset_cache
           invoke_callbacks(:remove, source)
           log_config(:remove, source)

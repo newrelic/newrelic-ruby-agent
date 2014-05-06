@@ -49,26 +49,31 @@ class ConfigFileLoadingTest < Minitest::Test
     FakeFS.deactivate!
   end
 
-  def setup_config(path, manual_config_options = {})
+  def setup_config(path, manual_config_options = {}, config_file_content=nil)
     teardown_agent
 
     FileUtils.mkdir_p(File.dirname(path))
     Dir.chdir @cwd
     File.open(path, 'w') do |f|
-      f.print <<-YAML
+      if config_file_content
+        f.write(config_file_content)
+      else
+        f.print <<-YAML
 development:
   foo: "success!!"
 test:
   foo: "success!!"
 bazbangbarn:
   i_am: "bazbangbarn"
-      YAML
+        YAML
+      end
     end
+
     setup_agent(manual_config_options)
   end
 
-  def assert_config_read_from(path)
-    setup_config(path)
+  def assert_config_read_from(path, manual_config_options={})
+    setup_config(path, manual_config_options)
     assert NewRelic::Agent.config[:foo] == "success!!", "Failed to read yaml config from #{path.inspect[0..100]}\n\n#{NewRelic::Agent.config.inspect[0..100]}"
   end
 
@@ -93,6 +98,66 @@ bazbangbarn:
     assert_config_read_from(ENV['HOME'] + "/.newrelic/newrelic.yml")
   end
 
+  def test_config_loads_from_config_path_option_to_manual_start
+    path = File.join(File.dirname(__FILE__), 'otherplace', 'newrelic.yml')
+    assert_config_read_from(path, :config_path => path)
+  end
+
+  def test_warning_logged_when_no_config_file
+    teardown_agent
+    setup_agent
+
+    log = with_array_logger { NewRelic::Agent.manual_start }
+
+    assert_log_contains(log, /WARN.*No configuration file found/)
+    assert_log_contains(log, /WARN.*Looked in these locations.*based on defaults/)
+  end
+
+  def test_warning_logged_when_no_config_file_manual_config
+    teardown_agent
+    setup_agent
+
+    log = with_array_logger do
+      NewRelic::Agent.manual_start(:config_path => 'otherplace/newrelic.yml')
+    end
+
+    assert_log_contains(log, /WARN.*No configuration file found/)
+    assert_log_contains(log, /WARN.*Looked in these locations.*based on API call.*otherplace\/newrelic\.yml/)
+  end
+
+  def test_warning_logged_when_no_config_file_environment_variable
+    ENV['NRCONFIG'] = 'otherplace/newrelic.yml'
+    teardown_agent
+    setup_agent
+
+    log = with_array_logger { NewRelic::Agent.manual_start }
+
+    assert_log_contains(log, /WARN.*No configuration file found/)
+    assert_log_contains(log, /WARN.*Looked in these locations.*based on environment variable.*otherplace\/newrelic\.yml/)
+  ensure
+    ENV['NRCONFIG'] = nil
+  end
+
+  def test_warning_logged_when_config_file_yaml_parsing_error
+    path = File.join(File.dirname(__FILE__), 'config', 'newrelic.yml')
+    setup_config(path, {}, '<< bogus junk')
+    setup_agent
+
+    log = with_array_logger { NewRelic::Agent.manual_start }
+
+    assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml/)
+  end
+
+  def test_warning_logged_when_config_file_erb_error
+    path = File.join(File.dirname(__FILE__), 'config', 'newrelic.yml')
+    setup_config(path, {}, "\n\n\n<%= this is not ruby %>") # the error is on line 4
+    setup_agent
+
+    log = with_array_logger { NewRelic::Agent.manual_start }
+
+    assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml.*:4/)
+  end
+
   def test_config_loads_from_env_NRCONFIG
     ENV["NRCONFIG"] = "/tmp/foo/bar.yml"
     assert_config_read_from("/tmp/foo/bar.yml")
@@ -111,5 +176,11 @@ bazbangbarn:
     # load that section of newrelic.yml
     setup_config(path, {:env => 'bazbangbarn'} )
     assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], "Agent.config did not load bazbangbarn config as requested"
+  end
+
+  def assert_log_contains(log, message)
+    lines = log.array
+    failure_message = "Did not find '#{message}' in log. Log contained:\n#{lines.join('')}"
+    assert (lines.any? { |line| line.match(message) }), failure_message
   end
 end
