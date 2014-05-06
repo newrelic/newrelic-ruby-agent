@@ -105,4 +105,11 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
     end
     obj = TestObject.new
   end
+
+  def test_parse_punctuation
+    ['?', '!', '='].each do |punctuation_mark|
+      result = TestObject.parse_punctuation("foo#{punctuation_mark}")
+      assert_equal ['foo', punctuation_mark], result
+    end
+  end
 end
