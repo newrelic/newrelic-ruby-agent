@@ -152,7 +152,10 @@ module NewRelic
             traced_method, punctuation = parse_punctuation(method)
             with_method_name, without_method_name = build_method_names(traced_method, punctuation)
 
-            return if already_added_transaction_tracer?(self, method, with_method_name)
+            if already_added_transaction_tracer?(self, with_method_name)
+              ::NewRelic::Agent.logger.warn("Transaction tracer already in place for class = #{self.name}, method = #{method.to_s}, skipping")
+              return
+            end
 
             class_eval <<-EOC
               def #{with_method_name}(*args, &block)
@@ -194,9 +197,8 @@ module NewRelic
               "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}" ]
           end
 
-          def already_added_transaction_tracer?(target, method, with_method_name)
+          def already_added_transaction_tracer?(target, with_method_name)
             if NewRelic::Helper.instance_methods_include?(target, with_method_name)
-              ::NewRelic::Agent.logger.warn("Transaction tracer already in place for class = #{target.name}, method = #{method.to_s}, skipping")
               true
             else
               false

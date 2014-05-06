@@ -136,6 +136,6 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
 
   def test_already_added_transaction_tracer_returns_true_if_with_method_defined
     with_method_name = 'public_transaction_with_newrelic_transaction_trace'
-    assert TestObject.already_added_transaction_tracer?(TestObject, 'public_transaction', with_method_name)
+    assert TestObject.already_added_transaction_tracer?(TestObject, with_method_name)
   end
 end
