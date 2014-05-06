@@ -133,4 +133,9 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
     expected = ["foo_with_newrelic_transaction_trace?", "foo_without_newrelic_transaction_trace?"]
     assert_equal expected, result
   end
+
+  def test_already_added_transaction_tracer_returns_true_if_with_method_defined
+    with_method_name = 'public_transaction_with_newrelic_transaction_trace'
+    assert TestObject.already_added_transaction_tracer?(TestObject, 'public_transaction', with_method_name)
+  end
 end
