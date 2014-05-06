@@ -69,10 +69,14 @@ DependencyDetection.defer do
         payload ||= { :collection => self.name, :database => self.db.name }
         metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(operation, payload)
       end
+    end
 
-      ::Mongo::Collection.class_eval { include Mongo::Logging; }
-      ::Mongo::Connection.class_eval { include Mongo::Logging; }
-      ::Mongo::Cursor.class_eval { include Mongo::Logging; }
+    ::Mongo::Collection.class_eval { include ::Mongo::Logging }
+    ::Mongo::Connection.class_eval { include ::Mongo::Logging }
+    ::Mongo::Cursor.class_eval     { include ::Mongo::Logging }
+
+    if defined?(::Mongo::CollectionOperationWriter)
+      ::Mongo::CollectionOperationWriter.class_eval { include ::Mongo::Logging }
     end
   end
 
