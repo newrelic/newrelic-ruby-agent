@@ -329,7 +329,7 @@ def wait_for_backtrace_service_poll(opts={})
   end
 end
 
-def with_array_logger( level=:info )
+def with_array_logger(level=:info)
   orig_logger = NewRelic::Agent.logger
   config = {
       :log_file_path => nil,
@@ -337,10 +337,10 @@ def with_array_logger( level=:info )
       :log_level => level,
     }
   logdev = ArrayLogDevice.new
-  override_logger = Logger.new( logdev )
-  NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+  override_logger = Logger.new(logdev)
 
   with_config(config) do
+    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new("", override_logger)
     yield
   end
 
