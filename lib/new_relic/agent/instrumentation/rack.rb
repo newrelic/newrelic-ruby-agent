@@ -130,7 +130,13 @@ DependencyDetection.defer do
           Rack::Builder._nr_deferred_detection_ran = true
         end
 
-        to_app_without_newrelic
+        result = to_app_without_newrelic
+
+        result.class.class_eval do
+          include NewRelic::Agent::Instrumentation::Rack
+        end
+
+        result
       end
 
       alias_method :to_app_without_newrelic, :to_app
