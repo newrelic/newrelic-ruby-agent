@@ -49,13 +49,17 @@ class RackAutoInstrumentationTest < Minitest::Test
     assert_equal 'A barebones rack app.', last_response.body
   end
 
-  def test_first_middleware_records_a_metric
+  def test_middlewares_record_metrics
     get '/'
     assert_metrics_recorded_exclusive([
       "Apdex",
+      "HttpDispatcher",
       "Apdex/Rack/MiddlewareOne",
+      ["Controller/Rack/MiddlewareOne", "Controller/Rack/MiddlewareOne"],
+      ["Controller/Rack/MiddlewareTwo", "Controller/Rack/MiddlewareOne"],
+      "Controller/Rack/MiddlewareTwo",
       "Controller/Rack/MiddlewareOne",
-      "HttpDispatcher"
+      "Controller/Rack/MiddlewareTwo"
     ])
   end
 end

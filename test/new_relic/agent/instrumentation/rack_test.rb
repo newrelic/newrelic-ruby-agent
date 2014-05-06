@@ -18,7 +18,6 @@ class MinimalRackApp
 end
 
 class NewRelic::Agent::Instrumentation::RackTest < Minitest::Test
-
   def test_basic_rack_app
     # should return what we send in, even when instrumented
     x = MinimalRackApp.new([200, {}, ["whee"]])
