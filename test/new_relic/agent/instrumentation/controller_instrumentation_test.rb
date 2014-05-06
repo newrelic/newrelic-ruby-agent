@@ -127,4 +127,10 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
     expected = [":foo => :bar", ":params => {:fizz=>:buzz}", ":far => \"7\""]
     assert_equal expected, result
   end
+
+  def test_build_method_names
+    result = TestObject.build_method_names('foo', '?')
+    expected = ["foo_with_newrelic_transaction_trace?", "foo_without_newrelic_transaction_trace?"]
+    assert_equal expected, result
+  end
 end

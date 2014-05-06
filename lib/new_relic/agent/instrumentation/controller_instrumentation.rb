@@ -147,12 +147,10 @@ module NewRelic
           def add_transaction_tracer(method, options={})
             # The metric path:
             options[:name] ||= method.to_s
-            # create the argument list:
-            argument_list = generate_argument_list(options)
 
+            argument_list = generate_argument_list(options)
             traced_method, punctuation = parse_punctuation(method)
-            without_method_name = "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"
-            with_method_name = "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
+            with_method_name, without_method_name = build_method_names(traced_method, punctuation)
 
             if NewRelic::Helper.instance_methods_include?(self, with_method_name)
               ::NewRelic::Agent.logger.warn("Transaction tracer already in place for class = #{self.name}, method = #{method.to_s}, skipping")
@@ -192,6 +190,11 @@ module NewRelic
 
               %Q[:#{key} => #{value}]
             end
+          end
+
+          def build_method_names(traced_method, punctuation)
+            [ "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}",
+              "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}" ]
           end
         end
 
