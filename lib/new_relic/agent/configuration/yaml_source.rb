@@ -32,7 +32,7 @@ module NewRelic
 
             config = merge!(confighash[env] || {})
           rescue ScriptError, StandardError => e
-            ::NewRelic::Agent.logger.error("Unable to read configuration file #{path}: #{e}")
+            ::NewRelic::Agent.logger.error("Failed to read or parse configuration file at #{path}: #{e}")
           end
 
           if config['transaction_tracer'] &&

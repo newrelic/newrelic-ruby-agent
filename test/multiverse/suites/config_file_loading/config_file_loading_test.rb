@@ -49,20 +49,24 @@ class ConfigFileLoadingTest < Minitest::Test
     FakeFS.deactivate!
   end
 
-  def setup_config(path, manual_config_options = {})
+  def setup_config(path, manual_config_options = {}, config_file_content=nil)
     teardown_agent
 
     FileUtils.mkdir_p(File.dirname(path))
     Dir.chdir @cwd
     File.open(path, 'w') do |f|
-      f.print <<-YAML
+      if config_file_content
+        f.write(config_file_content)
+      else
+        f.print <<-YAML
 development:
   foo: "success!!"
 test:
   foo: "success!!"
 bazbangbarn:
   i_am: "bazbangbarn"
-      YAML
+        YAML
+      end
     end
 
     setup_agent(manual_config_options)
@@ -132,6 +136,26 @@ bazbangbarn:
     assert_log_contains(log, /WARN.*Looked in these locations.*based on environment variable.*otherplace\/newrelic\.yml/)
   ensure
     ENV['NRCONFIG'] = nil
+  end
+
+  def test_warning_logged_when_config_file_yaml_parsing_error
+    path = File.join(File.dirname(__FILE__), 'config', 'newrelic.yml')
+    setup_config(path, {}, '<< bogus junk')
+    setup_agent
+
+    log = with_array_logger { NewRelic::Agent.manual_start }
+
+    assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml/)
+  end
+
+  def test_warning_logged_when_config_file_erb_error
+    path = File.join(File.dirname(__FILE__), 'config', 'newrelic.yml')
+    setup_config(path, {}, "\n\n\n<%= this is not ruby %>") # the error is on line 4
+    setup_agent
+
+    log = with_array_logger { NewRelic::Agent.manual_start }
+
+    assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml.*:4/)
   end
 
   def test_config_loads_from_env_NRCONFIG
