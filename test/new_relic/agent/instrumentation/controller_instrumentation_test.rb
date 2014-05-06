@@ -122,10 +122,10 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
   end
 
   def test_argument_list
-    options = {:foo => :bar, :params => {:fizz => :buzz}, :far => 7}
+    options = {:foo => :bar, :params => '{ :account_name => args[0].name }', :far => 7}
     result = TestObject.generate_argument_list(options)
-    expected = [":foo => :bar", ":params => {:fizz=>:buzz}", ":far => \"7\""]
-    assert_equal expected, result
+    expected = [":far => \"7\"", ":foo => :bar", ":params => { :account_name => args[0].name }"]
+    assert_equal expected.sort, result.sort
   end
 
   def test_build_method_names
