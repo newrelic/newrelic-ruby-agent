@@ -147,42 +147,62 @@ module NewRelic
           def add_transaction_tracer(method, options={})
             # The metric path:
             options[:name] ||= method.to_s
-            # create the argument list:
-            options_arg = []
-            options.each do |key, value|
-              valuestr = case
-                         when value.is_a?(Symbol)
-                           value.inspect
-                         when key == :params
-                           value.to_s
-                         else
-                           %Q["#{value.to_s}"]
-                         end
-              options_arg << %Q[:#{key} => #{valuestr}]
-            end
-            traced_method, punctuation = method.to_s.sub(/([?!=])$/, ''), $1
-            visibility = NewRelic::Helper.instance_method_visibility self, method
 
-            without_method_name = "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"
-            with_method_name = "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
+            argument_list = generate_argument_list(options)
+            traced_method, punctuation = parse_punctuation(method)
+            with_method_name, without_method_name = build_method_names(traced_method, punctuation)
 
-            if NewRelic::Helper.instance_methods_include?(self, with_method_name)
+            if already_added_transaction_tracer?(self, with_method_name)
               ::NewRelic::Agent.logger.warn("Transaction tracer already in place for class = #{self.name}, method = #{method.to_s}, skipping")
               return
             end
 
             class_eval <<-EOC
-              def #{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}(*args, &block)
-                perform_action_with_newrelic_trace(#{options_arg.join(',')}) do
-                  #{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}(*args, &block)
+              def #{with_method_name}(*args, &block)
+                perform_action_with_newrelic_trace(#{argument_list.join(',')}) do
+                  #{without_method_name}(*args, &block)
                  end
               end
             EOC
+
+            visibility = NewRelic::Helper.instance_method_visibility self, method
+
             alias_method without_method_name, method.to_s
             alias_method method.to_s, with_method_name
             send visibility, method
             send visibility, with_method_name
             ::NewRelic::Agent.logger.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
+          end
+
+          def parse_punctuation(method)
+            [method.to_s.sub(/([?!=])$/, ''), $1]
+          end
+
+          def generate_argument_list(options)
+            options.map do |key, value|
+              value = if value.is_a?(Symbol)
+                value.inspect
+              elsif key == :params
+                value.to_s
+              else
+                %Q["#{value.to_s}"]
+              end
+
+              %Q[:#{key} => #{value}]
+            end
+          end
+
+          def build_method_names(traced_method, punctuation)
+            [ "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}",
+              "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}" ]
+          end
+
+          def already_added_transaction_tracer?(target, with_method_name)
+            if NewRelic::Helper.instance_methods_include?(target, with_method_name)
+              true
+            else
+              false
+            end
           end
         end
 

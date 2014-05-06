@@ -105,4 +105,37 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
     end
     obj = TestObject.new
   end
+
+  def test_add_transaction_tracer_defines_with_method
+    assert TestObject.method_defined? :public_transaction_with_newrelic_transaction_trace
+  end
+
+  def test_add_transaction_tracer_defines_without_method
+    assert TestObject.method_defined? :public_transaction_without_newrelic_transaction_trace
+  end
+
+  def test_parse_punctuation
+    ['?', '!', '='].each do |punctuation_mark|
+      result = TestObject.parse_punctuation("foo#{punctuation_mark}")
+      assert_equal ['foo', punctuation_mark], result
+    end
+  end
+
+  def test_argument_list
+    options = {:foo => :bar, :params => {:fizz => :buzz}, :far => 7}
+    result = TestObject.generate_argument_list(options)
+    expected = [":foo => :bar", ":params => {:fizz=>:buzz}", ":far => \"7\""]
+    assert_equal expected, result
+  end
+
+  def test_build_method_names
+    result = TestObject.build_method_names('foo', '?')
+    expected = ["foo_with_newrelic_transaction_trace?", "foo_without_newrelic_transaction_trace?"]
+    assert_equal expected, result
+  end
+
+  def test_already_added_transaction_tracer_returns_true_if_with_method_defined
+    with_method_name = 'public_transaction_with_newrelic_transaction_trace'
+    assert TestObject.already_added_transaction_tracer?(TestObject, with_method_name)
+  end
 end
