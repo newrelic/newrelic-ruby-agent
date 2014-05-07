@@ -16,15 +16,17 @@ class SetTransactionNameTest < Minitest::Test
 
   class TestTransactor
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-    def parent_txn
+    def parent_txn(child_category=nil)
       NewRelic::Agent.set_transaction_name('TestTransactor/parent')
       yield if block_given?
-      child_txn
+      child_txn(child_category)
     end
     add_transaction_tracer :parent_txn
 
-    def child_txn
-      NewRelic::Agent.set_transaction_name('TestTransactor/child', :category => :task)
+    def child_txn(category)
+      opts = {}
+      opts[:category] = category if category
+      NewRelic::Agent.set_transaction_name('TestTransactor/child', opts)
     end
     add_transaction_tracer :child_txn
 
@@ -34,8 +36,8 @@ class SetTransactionNameTest < Minitest::Test
     end
   end
 
-  def test_apply_to_metric_names
-    TestTransactor.new.parent_txn
+  def test_metric_names_when_child_has_different_category
+    TestTransactor.new.parent_txn(:task)
 
     assert_metrics_recorded([
       'Controller/TestTransactor/parent',
@@ -45,17 +47,31 @@ class SetTransactionNameTest < Minitest::Test
       'Apdex/TestTransactor/parent'])
   end
 
+  def test_apply_to_metric_names
+    TestTransactor.new.parent_txn
+
+    assert_metrics_recorded([
+      'Controller/TestTransactor/child',
+      'SubController/TestTransactor/child',
+      'SubController/TestTransactor/parent',
+      ['SubController/TestTransactor/child',
+        'Controller/TestTransactor/child'],
+      ['SubController/TestTransactor/parent',
+        'Controller/TestTransactor/child'],
+      'Apdex/TestTransactor/child'])
+  end
+
   def test_apply_to_metric_scopes
     TestTransactor.new.parent_txn do
       trace_execution_scoped('Custom/something') {}
     end
     assert_metrics_recorded(['Custom/something',
-                             'Controller/TestTransactor/parent'])
+                             'Controller/TestTransactor/child'])
   end
 
   def test_apply_to_traced_transactions
     TestTransactor.new.parent_txn
-    assert_equal('Controller/TestTransactor/parent',
+    assert_equal('Controller/TestTransactor/child',
                  NewRelic::Agent.instance.transaction_sampler.last_sample \
                    .params[:path])
   end
@@ -64,16 +80,16 @@ class SetTransactionNameTest < Minitest::Test
     TestTransactor.new.parent_txn do
       NewRelic::Agent.notice_error(RuntimeError.new('toot'))
     end
-    assert_equal('Controller/TestTransactor/parent',
+    assert_equal('Controller/TestTransactor/child',
                  NewRelic::Agent.instance.error_collector.errors.last.path)
   end
 
   def test_set_name_is_subject_to_txn_name_rules
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => 'parent',
-                                                  'replacement'      => 'dad')
+    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => 'child',
+                                                  'replacement'      => 'kid')
     NewRelic::Agent.instance.transaction_rules << rule
     TestTransactor.new.parent_txn
-    assert_metrics_recorded(['Controller/TestTransactor/dad'])
+    assert_metrics_recorded(['Controller/TestTransactor/kid'])
   end
 
   def test_does_not_overwrite_name_when_set_by_RUM
