@@ -43,7 +43,7 @@ module NewRelic
 
       def self.set_default_transaction_name(name, options = {})
         txn  = current
-        name = make_long_name_from_category(name, options[:category])
+        name = make_transaction_name(name, options[:category])
 
         if txn.frame_stack.empty?
           txn.default_name = name
@@ -58,7 +58,7 @@ module NewRelic
         txn = current
         return unless txn
 
-        name = make_long_name_from_category(name, options[:category])
+        name = make_transaction_name(name, options[:category])
 
         if txn.frame_stack.empty?
           txn.default_name  = name
@@ -79,7 +79,7 @@ module NewRelic
         end
       end
 
-      def self.make_long_name_from_category(name, category)
+      def self.make_transaction_name(name, category=nil)
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
         "#{namer.category_name(category)}/#{name}"
       end
