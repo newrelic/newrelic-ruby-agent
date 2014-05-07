@@ -12,6 +12,11 @@ module NewRelic
           def self.metrics_for(name, payload, request_type = :web)
             payload ||= {}
 
+            # The 1.10.0 version of the mongo driver renamed 'remove' to
+            # 'delete', but for metric consistency with previous versions we
+            # want to keep it as 'remove'.
+            name = 'remove' if name.to_s == 'delete'
+
             collection = payload[:collection]
 
             if collection_in_selector?(collection, payload)
