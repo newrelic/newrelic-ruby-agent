@@ -134,10 +134,25 @@ module MongoOperationTests
   def test_records_metrics_for_create_index
     @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
 
-    metrics = build_test_metrics(:createIndex)
-    expected = metrics_with_attributes(metrics)
+    metrics = metrics_with_attributes(build_test_metrics(:createIndex))
 
-    assert_metrics_recorded(expected)
+    # The createIndexes command was added to the mongo server in version 2.6.
+    # As of version 1.10.0 of the Ruby driver, the driver will attempt to
+    # service a create_index call by first issuing a createIndexes command to
+    # the server. If the server replies that it doesn't know this command, the
+    # driver will re-issue an equivalent createIndex command.
+    #
+    # So, if we're running with version 1.10.0 or later of the driver, we expect
+    # some additional metrics to be recorded.
+    if NewRelic::Agent::Datastores::Mongo.is_version_1_10_or_later?
+      metrics["Datastore/statement/MongoDB/#{@collection_name}/createIndexes"] = { :call_count => 1 }
+      metrics['Datastore/operation/MongoDB/createIndexes']                     = { :call_count => 1 }
+      metrics['ActiveRecord/all'][:call_count] += 1
+      metrics['Datastore/allWeb'][:call_count] += 1
+      metrics['Datastore/all'][:call_count]    += 1
+    end
+
+    assert_metrics_recorded(metrics)
   end
 
   def test_records_metrics_for_ensure_index
