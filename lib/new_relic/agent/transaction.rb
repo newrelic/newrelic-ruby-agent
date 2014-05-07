@@ -42,10 +42,15 @@ module NewRelic
       end
 
       def self.set_default_transaction_name(name, options = {})
-        txn = current
+        txn  = current
+        name = make_transaction_name(name, options[:category])
 
-        set_transaction_name_helper(txn, name, options) do |new_name|
-          txn.default_name = new_name
+        if txn.frame_stack.empty?
+          txn.default_name = name
+          txn.type = options[:category] if options[:category]
+        else
+          txn.frame_stack.last.name = name
+          txn.frame_stack.last.type = options[:category] if options[:category]
         end
       end
 
@@ -53,22 +58,30 @@ module NewRelic
         txn = current
         return unless txn
 
-        set_transaction_name_helper(txn, name, options) do |new_name|
-          txn.name_from_api = new_name
-        end
-      end
-
-      def self.set_transaction_name_helper(txn, name, options)
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        name = "#{namer.category_name(options[:category])}/#{name}"
+        name = make_transaction_name(name, options[:category])
 
         if txn.frame_stack.empty?
-          yield name
+          txn.default_name  = name
+          txn.name_from_api = name
           txn.type = options[:category] if options[:category]
         else
           txn.frame_stack.last.name = name
           txn.frame_stack.last.type = options[:category] if options[:category]
+
+          # Parent transaction also takes this name, but only if they
+          # are both/neither web transactions.
+          child_is_web_type = transaction_type_is_web?(txn.frame_stack.last.type)
+          txn_is_web_type   = transaction_type_is_web?(txn.type)
+
+          if (child_is_web_type == txn_is_web_type)
+            txn.name_from_api = name
+          end
         end
+      end
+
+      def self.make_transaction_name(name, category=nil)
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
+        "#{namer.category_name(category)}/#{name}"
       end
 
       def self.start(transaction_type, options)
@@ -207,6 +220,7 @@ module NewRelic
         if @frozen_name
           NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@frozen_name}'.")
         end
+
         @name_from_api = Helper.correctly_encoded(name)
       end
 
