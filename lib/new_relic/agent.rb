@@ -148,9 +148,6 @@ module NewRelic
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
 
-    # for nested transactions
-    SUBTRANSACTION_PREFIX = 'Sub'.freeze
-
     @agent = nil
 
     # The singleton Agent instance.  Used internally.

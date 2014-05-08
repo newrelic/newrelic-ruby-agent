@@ -13,6 +13,9 @@ module NewRelic
     # @api public
     class Transaction
 
+      # for nested transactions
+      SUBTRANSACTION_PREFIX = 'Nested'.freeze
+
       attr_accessor :start_time  # A Time instance for the start time, never nil
       attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
@@ -123,7 +126,7 @@ module NewRelic
 
           NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
             nested_frame.start_time.to_f,
-            add_subtransaction_prefix(nested_frame.name),
+            nested_transaction_name(nested_frame.name),
             [],
             nested_frame,
             {:metric => true},
@@ -137,9 +140,9 @@ module NewRelic
         !TransactionState.get.current_transaction.nil?
       end
 
-      def self.add_subtransaction_prefix(name)
+      def self.nested_transaction_name(name)
         if name =~ /^Controller\//
-          NewRelic::Agent::SUBTRANSACTION_PREFIX + name
+          "#{SUBTRANSACTION_PREFIX}/#{name}"
         else
           name
         end
@@ -321,7 +324,7 @@ module NewRelic
         metrics = summary_metrics
 
         if @name_from_child
-          name = Transaction.add_subtransaction_prefix(@default_name)
+          name = Transaction.nested_transaction_name(@default_name)
           metrics << @frozen_name
           @trace_options[:scoped_metric] = true
         end
