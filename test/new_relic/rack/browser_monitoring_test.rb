@@ -30,6 +30,7 @@ class BrowserMonitoringTest < Minitest::Test
     end
 
     def call(env)
+      advance_time(0.1)
       @@doc ||= <<-EOL
 <html>
   <head>
@@ -56,6 +57,8 @@ EOL
 
   def setup
     super
+    freeze_time
+
     @config = {
       :application_id => 5,
       :beacon => 'beacon',

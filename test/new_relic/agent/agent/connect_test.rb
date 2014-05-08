@@ -190,7 +190,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_connect_gets_config
     NewRelic::Agent.manual_start
-    NewRelic::Agent::Agent.instance.service = default_service(
+    NewRelic::Agent.instance.service = default_service(
       :connect => {'agent_run_id' => 23, 'config' => 'a lot'})
 
     response = NewRelic::Agent.agent.connect_to_server
@@ -281,7 +281,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_logging_collector_messages
     NewRelic::Agent.manual_start
-    NewRelic::Agent::Agent.instance.service = default_service(
+    NewRelic::Agent.instance.service = default_service(
       :connect => {
         'messages' => [{ 'message' => 'beep boop', 'level' => 'INFO' },
                        { 'message' => 'ha cha cha', 'level' => 'WARN' }]
