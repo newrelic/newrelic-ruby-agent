@@ -122,7 +122,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_to_collector_hash
-      @manager.instance_variable_set(:@config_stack, [])
+      @manager.delete_all_configs_for_testing
       @manager.apply_config(:eins => Proc.new { self[:one] })
       @manager.apply_config(:one => 1)
       @manager.apply_config(:two => 2)
@@ -135,7 +135,7 @@ module NewRelic::Agent::Configuration
 
     # Necessary to keep the pruby marshaller happy
     def test_to_collector_hash_returns_bare_hash
-      @manager.instance_variable_set(:@config_stack, [])
+      @manager.delete_all_configs_for_testing
       @manager.apply_config(:eins => Proc.new { self[:one] })
 
       assert_equal(::Hash, @manager.to_collector_hash.class)
@@ -175,9 +175,7 @@ module NewRelic::Agent::Configuration
       @manager.replace_or_add_config(new_config)
 
       assert_equal 'right', @manager[:test]
-      assert_equal 3, @manager.config_stack.size
-      assert_equal 1, @manager.config_stack.map{|s| s.class} \
-        .index(NewRelic::Agent::Configuration::ManualSource)
+      assert_equal 3, @manager.num_configs_for_testing
     end
 
     def test_registering_a_callback

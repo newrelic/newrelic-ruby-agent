@@ -550,14 +550,14 @@ module NewRelic
         server_config = NewRelic::Agent::Configuration::ServerSource.new({})
         Agent.config.apply_config(server_config, 1)
 
-        config_classes = NewRelic::Agent.config.config_stack.map(&:class)
+        config_classes = NewRelic::Agent.config.config_classes_for_testing
 
         assert_includes config_classes, NewRelic::Agent::Configuration::ManualSource
         assert_includes config_classes, NewRelic::Agent::Configuration::ServerSource
 
         @agent.revert_to_default_configuration
 
-        config_classes = NewRelic::Agent.config.config_stack.map(&:class)
+        config_classes = NewRelic::Agent.config.config_classes_for_testing
         assert !config_classes.include?(NewRelic::Agent::Configuration::ManualSource)
         assert !config_classes.include?(NewRelic::Agent::Configuration::ServerSource)
       end

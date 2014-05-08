@@ -15,7 +15,7 @@ module NewRelic
       class Manager
         extend Forwardable
         def_delegators :@cache, :[], :has_key?, :keys
-        attr_reader :config_stack, :stripped_exceptions_whitelist
+        attr_reader :stripped_exceptions_whitelist
 
         def initialize
           reset_to_defaults
@@ -169,6 +169,18 @@ module NewRelic
           ::NewRelic::Agent.logger.debug do
             "Updating config (#{direction}) from #{source.class}. Results: #{flattened.inspect}"
           end
+        end
+
+        def delete_all_configs_for_testing
+          @config_stack = []
+        end
+
+        def num_configs_for_testing
+          @config_stack.size
+        end
+
+        def config_classes_for_testing
+          @config_stack.map(&:class)
         end
 
         private

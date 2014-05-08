@@ -268,15 +268,8 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     finish_setup(:boo => "boo")
     finish_setup(:hoo => true)
 
-    assert_equal 1, server_layers.length
-
     assert NewRelic::Agent.config[:hoo]
     assert_nil NewRelic::Agent.config[:boo]
-  end
-
-  def server_layers
-    stack = NewRelic::Agent.config.config_stack
-    stack.select{|layer| layer.class == NewRelic::Agent::Configuration::ServerSource}
   end
 
   def test_logging_collector_messages
