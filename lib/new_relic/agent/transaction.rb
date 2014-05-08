@@ -148,8 +148,12 @@ module NewRelic
         end
       end
 
-      def root?
-        true
+      def self.ignore!
+        current && current.ignore!
+      end
+
+      def self.ignore?
+        current && current.ignore?
       end
 
       # This is the name of the model currently assigned to database
@@ -207,6 +211,10 @@ module NewRelic
         TransactionState.get.most_recent_transaction = self
       end
 
+      def root?
+        true
+      end
+
       def noticed_error_ids
         @noticed_error_ids ||= []
       end
@@ -252,7 +260,7 @@ module NewRelic
           @name_frozen = true
 
           if name.nil?
-            @ignore_this_transaction = true
+            ignore!
             @frozen_name = best_name
           else
             @frozen_name = name
@@ -617,6 +625,14 @@ module NewRelic
       def record_transaction_cpu
         burn = cpu_burn
         transaction_sampler.notice_transaction_cpu_time(burn) if burn
+      end
+
+      def ignore!
+        @ignore_this_transaction = true
+      end
+
+      def ignore?
+        @ignore_this_transaction
       end
 
       private

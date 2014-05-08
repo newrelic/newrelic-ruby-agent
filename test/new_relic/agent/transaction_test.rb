@@ -521,6 +521,21 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_recorded(['Controller/child'])
   end
 
+  def test_ignored_returns_true_for_an_ignored_transaction
+    in_transaction('Controller/test', :type => :sinatra) do
+      NewRelic::Agent::Transaction.ignore!
+      assert NewRelic::Agent::Transaction.ignore?
+    end
+  end
+
+  def test_ignored_transactions_do_not_record_metrics
+    in_transaction('Controller/test', :type => :sinatra) do
+      NewRelic::Agent::Transaction.ignore!
+    end
+
+    assert_metrics_not_recorded(['Controller/test'])
+  end
+
   def assert_has_custom_parameter(key, value = key)
     assert_equal(value, NewRelic::Agent::Transaction.current.custom_parameters[key])
   end
