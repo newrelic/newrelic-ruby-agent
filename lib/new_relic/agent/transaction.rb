@@ -109,7 +109,7 @@ module NewRelic
         txn = current
 
         if txn.frame_stack.empty?
-          txn.stop(end_time, opts)
+          txn.stop(end_time)
           TransactionState.get.current_transaction = nil
         else
           nested_frame = txn.frame_stack.pop
@@ -353,7 +353,7 @@ module NewRelic
         metric_parser.summary_metrics
       end
 
-      def stop(end_time, opts)
+      def stop(end_time)
         return if !NewRelic::Agent.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
 
