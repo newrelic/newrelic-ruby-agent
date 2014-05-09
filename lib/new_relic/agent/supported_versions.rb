@@ -140,7 +140,7 @@ module NewRelic
       :mongo =>
       {
         :type        => :database,
-        :supported   => ["~>1.8.0", "~>1.9.0"],
+        :supported   => ["~>1.8.0", "~>1.9.0", "~>1.10.0"],
         :url         => "https://rubygems.org/gems/mongo",
         :feed        => "https://rubygems.org/gems/mongo/versions.atom"
       },

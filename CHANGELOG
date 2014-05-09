@@ -20,6 +20,11 @@
   of the 'inner' application in cases where one instrumented app is wrapped in
   another that's implemented as a middleware.
 
+  * Support for mongo-1.10.0
+
+  The Ruby agent now instruments version 1.10.0 of the mongo gem (versions 1.8.x
+  and 1.9.x were already supported, and continue to be).
+
   * Allow setting configuration file path via an option to manual_start
 
   Previously, passing the :config_path option to NewRelic::Agent.manual_start

@@ -19,7 +19,7 @@ module NewRelic
         metric_attributes = {}
 
         metrics.each do |metric|
-          metric_attributes[metric] = attributes
+          metric_attributes[metric] = attributes.dup
         end
 
         metric_attributes

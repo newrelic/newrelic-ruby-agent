@@ -33,7 +33,7 @@ module NewRelic
             end
 
             OBFUSCATE_KEYS.each do |key|
-              if statement.key?(key)
+              if statement.key?(key) && statement[key]
                 obfuscated = obfuscate(statement[key])
                 result[key] = obfuscated if obfuscated
               end
