@@ -139,9 +139,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/slow/txn') do
-        NewRelic::Agent::Transaction.record_apdex(t0 + 3.5,  false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 5.5,  false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 16.5, false)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 3.5)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 5.5)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 16.5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
@@ -157,9 +157,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/other/txn') do
-        NewRelic::Agent::Transaction.record_apdex(t0 + 0.5, false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 2,   false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 5,   false)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 0.5)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 2)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
@@ -173,7 +173,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_record_apdex_stores_apdex_t_in_min_and_max
     with_config(:apdex_t => 2.5) do
       in_web_transaction('Controller/some/txn') do
-        NewRelic::Agent::Transaction.record_apdex(Time.now, false)
+        NewRelic::Agent::Transaction.record_apdex(Time.now)
       end
     end
 

@@ -620,8 +620,8 @@ module NewRelic
 
 
 
-      def self.record_apdex(end_time, is_error)
-        current && current.record_apdex(end_time, is_error)
+      def self.record_apdex(end_time)
+        current && current.record_apdex(end_time)
       end
 
       def self.apdex_bucket(duration, failed, apdex_t)
