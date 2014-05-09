@@ -112,42 +112,6 @@ module NewRelic
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
 
-        # fakes out a transaction that did not happen in this process
-        # by creating apdex, summary metrics, and recording statistics
-        # for the transaction
-        #
-        # This method is *deprecated* - it may be removed in future
-        # versions of the agent
-        def record_transaction(duration_seconds, options={})
-          is_error = options['is_error'] || options['error_message'] || options['exception']
-          metric = options['metric']
-          metric ||= options['uri'] # normalize this with url rules
-          raise "metric or uri arguments required" unless metric
-          metric_info = NewRelic::MetricParser::MetricParser.for_metric_named(metric)
-
-          if metric_info.is_web_transaction?
-            NewRelic::Agent::Transaction.record_apdex(metric_info, duration_seconds, duration_seconds, is_error)
-          end
-          metrics = metric_info.summary_metrics
-
-          metrics << metric
-          metrics.each do |name|
-            NewRelic::Agent.record_metric(name, duration_seconds)
-          end
-
-          if is_error
-            if options['exception']
-              e = options['exception']
-            elsif options['error_message']
-              e = StandardError.new options['error_message']
-            else
-              e = StandardError.new 'Unknown Error'
-            end
-            error_collector.notice_error e, :uri => options['uri'], :metric => metric
-          end
-          # busy time ?
-        end
-
         # This method should be called in a forked process after a fork.
         # It assumes the parent process initialized the agent, but does
         # not assume the agent started.

@@ -105,12 +105,6 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
     assert_match /\d\.\d+\.\d+/, NewRelic::VERSION::STRING
   end
 
-  def test_record_transaction_should_reject_empty_arguments
-    assert_raises RuntimeError do
-      NewRelic::Agent.record_transaction 0.5
-    end
-  end
-
   def test_record_transaction
     NewRelic::Agent.record_transaction 0.5, 'uri' => "/users/create?foo=bar"
   end
