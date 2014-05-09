@@ -259,27 +259,39 @@ def advance_time(seconds)
   freeze_time(Time.now + seconds)
 end
 
-def define_constant(constant_symbol, implementation)
-  if Object.const_defined?(constant_symbol)
-    existing_implementation = Object.send(:remove_const, constant_symbol)
+def with_constant_defined(constant_symbol, implementation)
+  const_path = constant_path(constant_symbol.to_s)
+  parent = (const_path && const_path[-2])
+
+  if const_path
+    parent = const_path[-2]
+    constant_symbol = const_path[-2]
+    existing_implementation = parent.send(:remove_const, constant_symbol)
+  else
+    const_path = constant_path(constant_symbol.to_s, :allow_partial => true)
+    parent = const_path[-1]
+    constant_symbol = constant_symbol.to_s.split('::').last.to_sym
   end
 
-  Object.const_set(constant_symbol, implementation)
+  parent.const_set(constant_symbol, implementation)
 
   yield
 ensure
-  Object.send(:remove_const, constant_symbol)
+  parent.send(:remove_const, constant_symbol)
 
   if existing_implementation
-    Object.const_set(constant_symbol, existing_implementation)
+    parent.const_set(constant_symbol, existing_implementation)
   end
 end
 
-def constant_path(name)
+def constant_path(name, opts={})
+  allow_partial = opts[:allow_partial]
   path = [Object]
   parts = name.gsub(/^::/, '').split('::')
   parts.each do |part|
-    return nil unless path.last.const_defined?(part)
+    if !path.last.const_defined?(part)
+      return allow_partial ? path : nil
+    end
     path << path.last.const_get(part)
   end
   path
