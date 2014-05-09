@@ -54,12 +54,12 @@ class RackAutoInstrumentationTest < Minitest::Test
     assert_metrics_recorded_exclusive([
       "Apdex",
       "HttpDispatcher",
-      "Apdex/Rack/MiddlewareOne",
-      ["Controller/Rack/MiddlewareOne", "Controller/Rack/MiddlewareOne"],
-      ["Controller/Rack/MiddlewareTwo", "Controller/Rack/MiddlewareOne"],
-      "Controller/Rack/MiddlewareTwo",
-      "Controller/Rack/MiddlewareOne",
-      "Controller/Rack/MiddlewareTwo"
+      "Apdex/Rack/MiddlewareTwo/call",
+      "Controller/Rack/MiddlewareTwo/call",
+      "SubController/Rack/MiddlewareOne/call",
+      "SubController/Rack/MiddlewareTwo/call",
+      ["SubController/Rack/MiddlewareOne/call", "Controller/Rack/MiddlewareTwo/call"],
+      ["SubController/Rack/MiddlewareTwo/call", "Controller/Rack/MiddlewareTwo/call"]
     ])
   end
 end

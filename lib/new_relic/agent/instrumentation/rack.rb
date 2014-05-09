@@ -126,7 +126,7 @@ DependencyDetection.defer do
       self._nr_deferred_detection_ran = false
 
       def to_app_with_newrelic_deferred_dependency_detection
-        @use = add_new_relic_tracing_to_middlewares(@use)
+        @use = add_new_relic_tracing_to_middlewares(@use) if @use
 
         unless Rack::Builder._nr_deferred_detection_ran
           NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
@@ -134,13 +134,7 @@ DependencyDetection.defer do
           Rack::Builder._nr_deferred_detection_ran = true
         end
 
-        result = to_app_without_newrelic
-
-        result.class.class_eval do
-          include NewRelic::Agent::Instrumentation::Rack
-        end
-
-        result
+        to_app_without_newrelic
       end
 
       def add_new_relic_tracing_to_middlewares(middlewares)
@@ -157,20 +151,13 @@ DependencyDetection.defer do
       end
 
       def add_new_relic_tracing_to_middleware(middleware_class)
-        klass = Kernel.const_get(middleware_class.to_s)
-        new_call = Proc.new do |env|
-          class << self
-            include ::NewRelic::Agent::MethodTracer
-          end
+        return if middleware_class.instance_variable_get(:@_nr_traced_flag)
+        middleware_class.instance_variable_set(:@_nr_traced_flag, true)
 
-          trace_execution_scoped("Middleware/Rack/#{middleware_class}") do
-            call_without_new_relic_tracing(env)
-          end
+        middleware_class.instance_eval do
+          include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+          add_transaction_tracer(:call, :category => :rack, :request => '::Rack::Request.new(args.first)')
         end
-
-        klass.send(:define_method, :call_with_new_relic_tracing, new_call)
-        klass.send(:alias_method, :call_without_new_relic_tracing, :call)
-        klass.send(:alias_method, :call, :call_with_new_relic_tracing)
       end
 
       alias_method :to_app_without_newrelic, :to_app
