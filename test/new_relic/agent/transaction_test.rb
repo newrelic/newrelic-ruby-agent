@@ -521,10 +521,42 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_recorded(['Controller/child'])
   end
 
+  def test_ignored_returns_false_if_a_transaction_is_not_ignored
+    in_transaction('Controller/test', :type => :sinatra) do
+      refute NewRelic::Agent::Transaction.ignore?
+    end
+  end
+
   def test_ignored_returns_true_for_an_ignored_transaction
     in_transaction('Controller/test', :type => :sinatra) do
       NewRelic::Agent::Transaction.ignore!
       assert NewRelic::Agent::Transaction.ignore?
+    end
+  end
+
+  def test_ignore_apdex_returns_true_if_apdex_is_ignored
+    in_transaction('Controller/test', :type => :sinatra) do
+      NewRelic::Agent::Transaction.ignore_apdex!
+      assert NewRelic::Agent::Transaction.ignore_apdex?
+    end
+  end
+
+  def test_ignore_apdex_returns_false_if_apdex_is_not_ignored
+    in_transaction('Controller/test', :type => :sinatra) do
+      refute NewRelic::Agent::Transaction.ignore_apdex?
+    end
+  end
+
+  def test_ignore_enduser_returns_true_if_enduser_is_ignored
+    in_transaction('Controller/test', :type => :sinatra) do
+      NewRelic::Agent::Transaction.ignore_enduser!
+      assert NewRelic::Agent::Transaction.ignore_enduser?
+    end
+  end
+
+  def test_ignore_enduser_returns_false_if_enduser_is_not_ignored
+    in_transaction('Controller/test', :type => :sinatra) do
+      refute NewRelic::Agent::Transaction.ignore_enduser?
     end
   end
 
@@ -534,6 +566,28 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     assert_metrics_not_recorded(['Controller/test'])
+  end
+
+  def test_nested_transactions_are_ignored_if_nested_transaction_is_ignored
+    in_transaction('Controller/parent', :type => :sinatra) do
+      in_transaction('Controller/child', :type => :controller) do
+        NewRelic::Agent::Transaction.ignore!
+      end
+    end
+
+    assert_metrics_not_recorded(['Controller/sinatra', 'Controller/child'])
+  end
+
+  def test_nested_transactions_are_ignored_if_double_nested_transaction_is_ignored
+    in_transaction('Controller/parent', :type => :sinatra) do
+      in_transaction('Controller/toddler', :type => :controller) do
+        in_transaction('Controller/infant', :type => :controller) do
+          NewRelic::Agent::Transaction.ignore!
+        end
+      end
+    end
+
+    assert_metrics_not_recorded(['Controller/sinatra', 'Controller/toddler', 'Controller/infant'])
   end
 
   def assert_has_custom_parameter(key, value = key)

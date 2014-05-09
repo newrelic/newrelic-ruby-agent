@@ -114,6 +114,10 @@ module NewRelic
         else
           nested_frame = txn.frame_stack.pop
 
+          ignore_apdex! if opts[:ignore_apdex]
+          ignore_enduser! if opts[:ignore_enduser]
+          exception_encountered if opts[:exception_encountered]
+
           # Parent transaction inherits the name of the first child
           # to complete, if they are both/neither web transactions.
           nested_is_web_type = transaction_type_is_web?(nested_frame.type)
@@ -154,6 +158,30 @@ module NewRelic
 
       def self.ignore?
         current && current.ignore?
+      end
+
+      def self.ignore_apdex!
+        current && current.ignore_apdex!
+      end
+
+      def self.ignore_apdex?
+        current && current.ignore_apdex?
+      end
+
+      def self.ignore_enduser!
+        current && current.ignore_enduser!
+      end
+
+      def self.ignore_enduser?
+        current && current.ignore_enduser?
+      end
+
+      def self.exception_encountered!
+        current && current.encountered!
+      end
+
+      def self.exception_encountered?
+        current && current.exception_encountered?
       end
 
       # This is the name of the model currently assigned to database
@@ -207,7 +235,12 @@ module NewRelic
         @exceptions = {}
         @stats_hash = StatsHash.new
         @guid = generate_guid
+
         @ignore_this_transaction = false
+        @ignore_apdex = false
+        @ignore_enduser = false
+        @exception_encountered = false
+
         TransactionState.get.most_recent_transaction = self
       end
 
@@ -360,9 +393,9 @@ module NewRelic
           @transaction_trace = transaction_sampler.on_finishing_transaction(self, Time.now, gc_delta)
           sql_sampler.on_finishing_transaction(@frozen_name)
 
-          record_apdex(end_time, opts[:exception_encountered]) unless opts[:ignore_apdex]
+          record_apdex(end_time, opts[:exception_encountered]) unless ignore_apdex?
           NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
-          NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if opts[:ignore_enduser]
+          NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
 
           record_exceptions
           merge_stats_hash
@@ -633,6 +666,30 @@ module NewRelic
 
       def ignore?
         @ignore_this_transaction
+      end
+
+      def ignore_apdex!
+        @ignore_apdex = true
+      end
+
+      def ignore_apdex?
+        @ignore_apdex
+      end
+
+      def ignore_enduser!
+        @ignore_enduser = true
+      end
+
+      def ignore_enduser?
+        @ignore_enduser
+      end
+
+      def exception_encountered!
+        @exception_encountered = false
+      end
+
+      def exception_encountered?
+        @exception_encountered
       end
 
       private
