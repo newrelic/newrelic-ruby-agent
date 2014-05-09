@@ -60,10 +60,10 @@ module NewRelic
         end
 
         def stop_transaction(event)
-          Transaction.stop(Time.now,
-                           :exception_encountered => event.exception_encountered?,
-                           :ignore_apdex          => event.apdex_ignored?,
-                           :ignore_enduser        => event.enduser_ignored?)
+          Transaction.ignore_apdex! if event.apdex_ignored?
+          Transaction.ignore_enduser! if event.enduser_ignored?
+          Transaction.exception_encountered! if event.exception_encountered?
+          Transaction.stop
         end
 
         def filter(params)

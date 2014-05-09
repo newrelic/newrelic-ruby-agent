@@ -105,12 +105,8 @@ module NewRelic
         txn
       end
 
-      def self.stop(end_time=Time.now, opts={})
+      def self.stop(end_time=Time.now)
         txn = current
-
-        ignore_apdex! if opts[:ignore_apdex]
-        ignore_enduser! if opts[:ignore_enduser]
-        exception_encountered if opts[:exception_encountered]
 
         if txn.frame_stack.empty?
           txn.stop(end_time, opts)
@@ -393,7 +389,7 @@ module NewRelic
           @transaction_trace = transaction_sampler.on_finishing_transaction(self, Time.now, gc_delta)
           sql_sampler.on_finishing_transaction(@frozen_name)
 
-          record_apdex(end_time, opts[:exception_encountered]) unless ignore_apdex?
+          record_apdex(end_time) unless ignore_apdex?
           NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
           NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
 
@@ -521,13 +517,13 @@ module NewRelic
 
       APDEX_METRIC_SPEC = NewRelic::MetricSpec.new('Apdex').freeze
 
-      def record_apdex(end_time=Time.now, is_error=nil)
+      def record_apdex(end_time=Time.now)
         return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
           action_duration = end_time - start_time
           total_duration  = end_time - apdex_start
-          is_error = is_error.nil? ? !exceptions.empty? : is_error
+          is_error = exception_encountered? || !exceptions.empty?
 
           apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
           apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
