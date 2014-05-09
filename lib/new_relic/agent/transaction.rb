@@ -173,7 +173,7 @@ module NewRelic
       end
 
       def self.exception_encountered!
-        current && current.encountered!
+        current && current.exception_encountered!
       end
 
       def self.exception_encountered?
