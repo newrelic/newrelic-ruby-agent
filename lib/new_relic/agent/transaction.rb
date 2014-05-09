@@ -108,15 +108,15 @@ module NewRelic
       def self.stop(end_time=Time.now, opts={})
         txn = current
 
+        ignore_apdex! if opts[:ignore_apdex]
+        ignore_enduser! if opts[:ignore_enduser]
+        exception_encountered if opts[:exception_encountered]
+
         if txn.frame_stack.empty?
           txn.stop(end_time, opts)
           TransactionState.get.current_transaction = nil
         else
           nested_frame = txn.frame_stack.pop
-
-          ignore_apdex! if opts[:ignore_apdex]
-          ignore_enduser! if opts[:ignore_enduser]
-          exception_encountered if opts[:exception_encountered]
 
           # Parent transaction inherits the name of the first child
           # to complete, if they are both/neither web transactions.
