@@ -52,11 +52,11 @@ class SetTransactionNameTest < Minitest::Test
 
     assert_metrics_recorded([
       'Controller/TestTransactor/child',
-      'SubController/TestTransactor/child',
-      'SubController/TestTransactor/parent',
-      ['SubController/TestTransactor/child',
+      'Nested/Controller/TestTransactor/child',
+      'Nested/Controller/TestTransactor/parent',
+      ['Nested/Controller/TestTransactor/child',
         'Controller/TestTransactor/child'],
-      ['SubController/TestTransactor/parent',
+      ['Nested/Controller/TestTransactor/parent',
         'Controller/TestTransactor/child'],
       'Apdex/TestTransactor/child'])
   end

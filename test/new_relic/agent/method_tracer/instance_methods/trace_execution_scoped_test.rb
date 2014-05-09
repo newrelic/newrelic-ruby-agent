@@ -76,10 +76,10 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'HttpDispatcher'                                    => expected_values,
       'Controller/inner_txn'                              => expected_values,
 
-      'SubController/inner_txn'                           => expected_values,
-      ['SubController/inner_txn', 'Controller/inner_txn'] => expected_values,
-      'SubController/outer_txn'                           => expected_values,
-      ['SubController/outer_txn', 'Controller/inner_txn'] => expected_values,
+      'Nested/Controller/inner_txn'                           => expected_values,
+      ['Nested/Controller/inner_txn', 'Controller/inner_txn'] => expected_values,
+      'Nested/Controller/outer_txn'                           => expected_values,
+      ['Nested/Controller/outer_txn', 'Controller/inner_txn'] => expected_values,
 
       ['foo'                    , 'Controller/inner_txn'] => expected_values,
       'foo'                                               => expected_values,
@@ -98,9 +98,9 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     assert_metrics_recorded([
       'Controller/inner_txn',
-      'SubController/inner_txn',
-      'SubController/middle_txn',
-      'SubController/outer_txn'
+      'Nested/Controller/inner_txn',
+      'Nested/Controller/middle_txn',
+      'Nested/Controller/outer_txn'
       ])
   end
 

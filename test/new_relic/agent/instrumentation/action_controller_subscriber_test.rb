@@ -95,7 +95,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     assert_metrics_recorded(
-      ['SubController/test/child', 'Controller/test/child'] => { :call_count => 1 }
+      ['Nested/Controller/test/child', 'Controller/test/child'] => { :call_count => 1 }
     )
   end
 
@@ -111,7 +111,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     end
 
     assert_metrics_recorded(
-      ['SubController/test/child', 'Controller/test/child'] => { :call_count => 1 }
+      ['Nested/Controller/test/child', 'Controller/test/child'] => { :call_count => 1 }
     )
   end
 
