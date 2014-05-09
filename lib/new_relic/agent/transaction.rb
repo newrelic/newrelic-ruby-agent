@@ -681,7 +681,7 @@ module NewRelic
       end
 
       def exception_encountered!
-        @exception_encountered = false
+        @exception_encountered = true
       end
 
       def exception_encountered?
