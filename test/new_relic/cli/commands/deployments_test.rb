@@ -16,8 +16,9 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
       def just_exit(status=0); @exit_status ||= status; end
     end
     @config = { :license_key => 'a' * 40 }
-    NewRelic::Agent.config.apply_config(@config)
+    NewRelic::Agent.config.add_config_for_testing(@config)
   end
+
   def teardown
     super
     return unless @deployment
@@ -26,19 +27,23 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
     puts @deployment.exit_status
     NewRelic::Agent.config.remove_config(@config)
   end
+
+
   def test_help
     begin
       NewRelic::Cli::Deployments.new "-h"
       fail "should have thrown"
     rescue NewRelic::Cli::Command::CommandFailure => c
-      assert_match /^Usage/, c.message
+      assert_match(/^Usage/, c.message)
     end
   end
+
   def test_bad_command
     assert_raises NewRelic::Cli::Command::CommandFailure do
       NewRelic::Cli::Deployments.new ["-foo", "bar"]
     end
   end
+
   def test_interactive
     mock_the_connection
     @deployment = NewRelic::Cli::Deployments.new(:appname => 'APP',

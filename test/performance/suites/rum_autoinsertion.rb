@@ -21,7 +21,7 @@ class RumAutoInsertion < Performance::TestCase
       :episodes_file          => 'this_is_my_file',
       :license_key            => 'a' * 40
     }
-    NewRelic::Agent.config.apply_config(@config)
+    NewRelic::Agent.config.add_config_for_testing(@config)
 
     @browser_monitor = NewRelic::Rack::BrowserMonitoring.new(nil)
     @html = "<html><head>#{'<script>alert("boo");</script>' * 1_000}</head><body></body></html>"

@@ -8,7 +8,7 @@ require 'new_relic/agent/null_logger'
 
 class AuditLoggerTest < Minitest::Test
   def setup
-    NewRelic::Agent.config.apply_config(:'audit_log.enabled' => true)
+    NewRelic::Agent.config.add_config_for_testing(:'audit_log.enabled' => true)
 
     @uri = "http://really.notreal"
     @marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
@@ -19,6 +19,10 @@ class AuditLoggerTest < Minitest::Test
         'jingle' => 'bells'
       }
     }
+  end
+
+  def teardown
+    NewRelic::Agent.config.reset_to_defaults
   end
 
   def setup_fake_logger

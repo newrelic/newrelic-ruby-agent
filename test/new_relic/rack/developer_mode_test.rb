@@ -22,7 +22,7 @@ class DeveloperModeTest < Minitest::Test
 
   def setup
     @test_config = { :developer_mode => true }
-    NewRelic::Agent.config.apply_config(@test_config)
+    NewRelic::Agent.config.add_config_for_testing(@test_config)
     run_sample_trace('/here')
     run_sample_trace('/there')
     run_sample_trace('/somewhere')

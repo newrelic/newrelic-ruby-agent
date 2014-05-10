@@ -19,6 +19,10 @@ class LoggingTest < Minitest::Test
     NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
   end
 
+  def teardown
+    NewRelic::Agent.config.reset_to_defaults
+  end
+
   def test_logs_app_name
     running_agent_writes_to_log(
        {:app_name => "My App"},
@@ -50,7 +54,7 @@ class LoggingTest < Minitest::Test
       {:'transaction_tracer.record_sql' => 'obfuscated'},
       "Agent is configured to send raw SQL to the service") do
 
-      NewRelic::Agent.config.apply_config(:'transaction_tracer.record_sql' => 'raw')
+      NewRelic::Agent.config.add_config_for_testing(:'transaction_tracer.record_sql' => 'raw')
     end
 
   end
@@ -60,7 +64,7 @@ class LoggingTest < Minitest::Test
       {:ssl => true},
       "Agent is configured not to use SSL when communicating with New Relic's servers") do
 
-      NewRelic::Agent.config.apply_config(:ssl => false)
+      NewRelic::Agent.config.add_config_for_testing(:ssl => false)
     end
   end
 
@@ -69,7 +73,7 @@ class LoggingTest < Minitest::Test
       {:'error_collector.enabled' => false},
       "Errors will be sent") do
 
-      NewRelic::Agent.config.apply_config(:'error_collector.enabled' => true)
+      NewRelic::Agent.config.add_config_for_testing(:'error_collector.enabled' => true)
     end
   end
 
@@ -78,7 +82,7 @@ class LoggingTest < Minitest::Test
       {:'error_collector.enabled' => true},
       "Errors will not be sent") do
 
-      NewRelic::Agent.config.apply_config(:'error_collector.enabled' => false)
+      NewRelic::Agent.config.add_config_for_testing(:'error_collector.enabled' => false)
     end
   end
 

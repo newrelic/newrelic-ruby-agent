@@ -80,13 +80,10 @@ module NewRelic
 
       def configure_agent(env, options)
         manual = Agent::Configuration::ManualSource.new(options)
-        Agent.config.replace_or_add_config(manual, 1)
+        Agent.config.replace_or_add_config(manual)
 
         config_file_path = @config_file_override || Agent.config[:config_path]
-        Agent.config.replace_or_add_config(Agent::Configuration::YamlSource.new(config_file_path, env), 1)
-
-        Agent.config.remove_config(manual)
-        Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
+        Agent.config.replace_or_add_config(Agent::Configuration::YamlSource.new(config_file_path, env))
       end
 
       # Install the real agent into the Agent module, and issue the start command.

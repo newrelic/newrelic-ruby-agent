@@ -67,7 +67,7 @@ EOL
       :license_key => 'a' * 40,
       :js_agent_loader => 'loader',
     }
-    NewRelic::Agent.config.apply_config(@config)
+    NewRelic::Agent.config.add_config_for_testing(@config)
   end
 
   def teardown

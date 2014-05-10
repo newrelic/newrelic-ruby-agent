@@ -242,7 +242,7 @@ def with_config(config_hash, opts={})
   else
     config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
   end
-  NewRelic::Agent.config.apply_config(config, opts[:level])
+  NewRelic::Agent.config.add_config_for_testing(config, opts[:level])
   begin
     yield
   ensure

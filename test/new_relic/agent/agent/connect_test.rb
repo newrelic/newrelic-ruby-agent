@@ -26,7 +26,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
     @test_config = { :developer_mode => true }
     NewRelic::Agent.reset_config
-    NewRelic::Agent.config.apply_config(@test_config)
+    NewRelic::Agent.config.add_config_for_testing(@test_config)
   end
 
   def teardown

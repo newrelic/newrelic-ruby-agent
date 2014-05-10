@@ -34,7 +34,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @old_sampler = NewRelic::Agent.instance.transaction_sampler
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }
-    NewRelic::Agent.config.apply_config(@test_config)
+    NewRelic::Agent.config.add_config_for_testing(@test_config)
     @txn = stub('txn', :best_name => '/path', :custom_parameters => {}, :guid => 'a guid')
   end
 

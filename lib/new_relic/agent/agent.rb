@@ -172,7 +172,7 @@ module NewRelic
           # we should be ready to run and shouldn't restarting if we can't.
           @harvester.mark_started
 
-          Agent.config.apply_config(NewRelic::Agent::Configuration::ManualSource.new(options), 1)
+          Agent.config.replace_or_add_config(NewRelic::Agent::Configuration::ManualSource.new(options))
 
           if channel_id = options[:report_to_channel]
             @service = NewRelic::Agent::PipeService.new(channel_id)
@@ -223,10 +223,8 @@ module NewRelic
         end
 
         def revert_to_default_configuration
-          NewRelic::Agent.config.remove_config do |config|
-            config.class == NewRelic::Agent::Configuration::ManualSource ||
-              config.class == NewRelic::Agent::Configuration::ServerSource
-          end
+          NewRelic::Agent.config.remove_config_type(:manual)
+          NewRelic::Agent.config.remove_config_type(:server)
         end
 
         def stop_worker_loop
@@ -826,7 +824,7 @@ module NewRelic
 
             ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
             server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, Agent.config)
-            Agent.config.replace_or_add_config(server_config, 1)
+            Agent.config.replace_or_add_config(server_config)
             log_connection!(config_data) if @service
 
             @transaction_rules = RulesEngine.from_specs(config_data['transaction_name_rules'])
