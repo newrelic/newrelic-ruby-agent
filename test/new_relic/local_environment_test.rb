@@ -10,22 +10,17 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_passenger
-    class << self
-      module ::PhusionPassenger
-      end
-    end
-    NewRelic::Agent.reset_config
-    e = NewRelic::LocalEnvironment.new
-    assert_equal :passenger, e.discovered_dispatcher
-    assert_equal :passenger, NewRelic::Agent.config[:dispatcher]
-
-    with_config(:app_name => 'myapp') do
+    with_constant_defined(:PhusionPassenger, Module.new) do
+      NewRelic::Agent.reset_config
       e = NewRelic::LocalEnvironment.new
       assert_equal :passenger, e.discovered_dispatcher
-    end
+      assert_equal :passenger, NewRelic::Agent.config[:dispatcher]
 
-  ensure
-    Object.send(:remove_const, :PhusionPassenger)
+      with_config(:app_name => 'myapp') do
+        e = NewRelic::LocalEnvironment.new
+        assert_equal :passenger, e.discovered_dispatcher
+      end
+    end
   end
 
   # LocalEnvironment won't talk to ObjectSpace on JRuby, and these tests are
@@ -34,22 +29,13 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
     def test_mongrel_only_checks_once
       return unless NewRelic::LanguageSupport.object_space_usable?
 
-      define_mongrel
+      with_constant_defined(:'Mongrel', Module.new) do
+        with_constant_defined(:'Mongrel::HttpServer', Class.new) do
+          ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).once
 
-      ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).once
-
-      e = NewRelic::LocalEnvironment.new
-      5.times { e.mongrel }
-      assert_nil e.mongrel
-    ensure
-      Object.send(:remove_const, :Mongrel) if defined?(Mongrel)
-    end
-  end
-
-  def define_mongrel
-    class << self
-      module ::Mongrel
-        class HttpServer
+          e = NewRelic::LocalEnvironment.new
+          5.times { e.mongrel }
+          assert_nil e.mongrel
         end
       end
     end
