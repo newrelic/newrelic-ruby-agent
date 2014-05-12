@@ -261,26 +261,21 @@ end
 
 def with_constant_defined(constant_symbol, implementation)
   const_path = constant_path(constant_symbol.to_s)
-  parent = (const_path && const_path[-2])
 
   if const_path
-    parent = const_path[-2]
-    constant_symbol = const_path[-2]
-    existing_implementation = parent.send(:remove_const, constant_symbol)
+    # Constant is already defined, nothing to do
+    return yield
   else
     const_path = constant_path(constant_symbol.to_s, :allow_partial => true)
     parent = const_path[-1]
     constant_symbol = constant_symbol.to_s.split('::').last.to_sym
   end
 
-  parent.const_set(constant_symbol, implementation)
-
-  yield
-ensure
-  parent.send(:remove_const, constant_symbol)
-
-  if existing_implementation
-    parent.const_set(constant_symbol, existing_implementation)
+  begin
+    parent.const_set(constant_symbol, implementation)
+    yield
+  ensure
+    parent.send(:remove_const, constant_symbol)
   end
 end
 
