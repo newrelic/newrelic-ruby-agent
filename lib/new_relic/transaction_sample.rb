@@ -16,7 +16,7 @@ module NewRelic
   class TransactionSample
 
     attr_accessor :params, :root_segment, :profile, :force_persist, :guid,
-                  :threshold, :finished, :xray_session_id
+                  :threshold, :finished, :xray_session_id, :start_time
     attr_reader :root_segment, :params, :sample_id
     attr_writer :prepared
 
@@ -84,10 +84,6 @@ module NewRelic
       ]
     end
 
-    def start_time
-      Time.at(@start_time)
-    end
-
     def path_string
       @root_segment.path_string
     end
@@ -139,7 +135,7 @@ module NewRelic
     end
 
     def to_s
-      s = "Transaction Sample collected at #{start_time}\n"
+      s = "Transaction Sample collected at #{Time.at(start_time)}\n"
       s << "  {\n"
       s << "  Path: #{params[:path]} \n"
 

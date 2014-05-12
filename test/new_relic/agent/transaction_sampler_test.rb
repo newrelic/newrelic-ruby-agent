@@ -574,15 +574,15 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def test_prepare_to_send
+    t0 = freeze_time
     sample = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      run_sample_trace { sleep 0.002 }
+      run_sample_trace { advance_time(2.0) }
       @sampler.harvest![0]
     end
 
     ready_to_send = sample.prepare_to_send!
-    assert sample.duration == ready_to_send.duration
-
-    assert ready_to_send.start_time.is_a?(Time)
+    assert_equal 2.0, ready_to_send.duration
+    assert_equal t0.to_f, ready_to_send.start_time
   end
 
   def test_multithread

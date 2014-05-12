@@ -15,7 +15,7 @@
   </tr>
   <tr>
     <th>Start Time:</th>
-    <td><%= format_timestamp(@sample.start_time) %></td>
+    <td><%= format_timestamp(Time.at(@sample.start_time)) %></td>
   </tr>
   <tr>
     <th>Duration:</th>
