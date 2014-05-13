@@ -182,7 +182,7 @@ module NewRelic
             options.map do |key, value|
               value = if value.is_a?(Symbol)
                 value.inspect
-              elsif key == :params || :request
+              elsif key == :params || key == :request
                 value.to_s
               else
                 %Q["#{value.to_s}"]
