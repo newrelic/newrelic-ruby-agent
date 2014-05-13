@@ -28,17 +28,23 @@ DependencyDetection.defer do
   end
 
   def install_mongo_instrumentation
-    setup_logging_for_instrumentation
-    instrument_mongo_logging
+    require 'new_relic/agent/datastores/mongo/metric_generator'
+    require 'new_relic/agent/datastores/mongo/statement_formatter'
+
+    instrument_via_mongo_logging
     instrument_save
     instrument_ensure_index
   end
 
-  def setup_logging_for_instrumentation
-    ::Mongo::Logging.class_eval do
+  def instrument_via_mongo_logging
+    hook_instrument_method(::Mongo::Collection)
+    hook_instrument_method(::Mongo::Connection)
+    hook_instrument_method(::Mongo::Cursor)
+  end
+
+  def hook_instrument_method(target_class)
+    target_class.class_eval do
       include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/metric_generator'
-      require 'new_relic/agent/datastores/mongo/statement_formatter'
 
       def new_relic_instance_metric_builder
         Proc.new do
@@ -67,21 +73,9 @@ DependencyDetection.defer do
 
       def new_relic_generate_metrics(operation, payload = nil)
         payload ||= { :collection => self.name, :database => self.db.name }
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(operation, payload)
+        NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(operation, payload)
       end
-    end
 
-    ::Mongo::Collection.class_eval { include ::Mongo::Logging }
-    ::Mongo::Connection.class_eval { include ::Mongo::Logging }
-    ::Mongo::Cursor.class_eval     { include ::Mongo::Logging }
-
-    if defined?(::Mongo::CollectionOperationWriter)
-      ::Mongo::CollectionOperationWriter.class_eval { include ::Mongo::Logging }
-    end
-  end
-
-  def instrument_mongo_logging
-    ::Mongo::Logging.class_eval do
       def instrument_with_new_relic_trace(name, payload = {}, &block)
         metrics = new_relic_generate_metrics(name, payload)
 
