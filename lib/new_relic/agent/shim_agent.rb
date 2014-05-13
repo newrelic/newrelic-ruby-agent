@@ -11,6 +11,7 @@ module NewRelic
       def self.instance
         @instance ||= self.new
       end
+
       def initialize
         super
         @stats_engine.extend NewRelic::Agent::StatsEngine::Shim
@@ -18,6 +19,7 @@ module NewRelic
         @sql_sampler.extend NewRelic::Agent::SqlSampler::Shim
         @error_collector.extend NewRelic::Agent::ErrorCollector::Shim
       end
+
       def after_fork *args; end
       def start *args; end
       def shutdown *args; end
