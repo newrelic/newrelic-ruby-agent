@@ -21,7 +21,7 @@ DependencyDetection.defer do
 
               klass.class_eval do
                 include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-                add_transaction_tracer(:call, :category => :rack)
+                add_transaction_tracer(:call, :category => :rack, :request => '::Rack::Request.new(args.first)')
               end
             end
 
