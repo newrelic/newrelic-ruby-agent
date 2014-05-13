@@ -293,13 +293,27 @@ module MongoOperationTests
       segment = find_last_transaction_segment
     end
 
-    expected = { :database   => @database_name,
-                 :collection => @collection_name,
-                 :operation  => :insert}
+    if server_is_2_6_or_later?
+      expected = {
+        :database   => @database_name,
+        :collection => '$cmd',
+        :limit      => -1,
+        :selector   => {
+          :insert    => @collection_name,
+          :writeConcern => { :w => '?' },
+          :ordered      => true
+        }
+      }
+    else
+      expected = {
+        :database   => @database_name,
+        :collection => @collection_name,
+        :operation  => :insert
+      }
+    end
 
     result = segment.params[:statement]
-
-    assert_equal expected, result, "Expected result (#{result}) to be #{expected}"
+    assert_equal expected, result
   end
 
   def test_noticed_nosql_includes_operation
@@ -310,12 +324,33 @@ module MongoOperationTests
       segment = find_last_transaction_segment
     end
 
-    expected = :insert
+    query = segment.params[:statement]
+
+    if server_is_2_6_or_later?
+      assert query[:selector].key?(:insert)
+    else
+      assert_equal :insert, query[:operation]
+    end
+  end
+
+  def test_noticed_nosql_includes_update_operation
+    segment = nil
+
+    in_transaction do
+      updated = @tribble.dup
+      updated['name'] = 't-rex'
+      @collection.update(@tribble, updated)
+
+      segment = find_last_transaction_segment
+    end
 
     query = segment.params[:statement]
-    result = query[:operation]
 
-    assert_equal expected, result
+    if server_is_2_6_or_later?
+      assert query[:selector].key?(:update)
+    else
+      assert_equal :update, query[:operation]
+    end
   end
 
   def test_noticed_nosql_includes_save_operation
@@ -326,12 +361,8 @@ module MongoOperationTests
       segment = find_last_transaction_segment
     end
 
-    expected = :save
-
     query = segment.params[:statement]
-    result = query[:operation]
-
-    assert_equal expected, result
+    assert_equal :save, query[:operation]
   end
 
   def test_noticed_nosql_includes_ensure_index_operation
@@ -398,7 +429,13 @@ module MongoOperationTests
 
     statement = segment.params[:statement]
 
-    assert_equal '?', statement[:selector]['password']
+    refute statement.inspect.include?('$secret')
+
+    if server_is_2_6_or_later?
+      assert_equal '?', statement[:selector][:deletes][0][:q]['password']
+    else
+      assert_equal '?', statement[:selector]['password']
+    end
   end
 
   def test_web_requests_record_all_web_metric
