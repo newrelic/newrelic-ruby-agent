@@ -453,4 +453,9 @@ module MongoOperationTests
     NewRelic::Agent.drop_buffered_data
   end
 
+  def server_is_2_6_or_later?
+    client = @collection.db.respond_to?(:client) && @collection.db.client
+    return false unless client
+    client.respond_to?(:max_wire_version) && client.max_wire_version >= 2
+  end
 end
