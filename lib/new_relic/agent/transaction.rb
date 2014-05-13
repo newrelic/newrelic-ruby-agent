@@ -240,10 +240,6 @@ module NewRelic
         TransactionState.get.most_recent_transaction = self
       end
 
-      def root?
-        true
-      end
-
       def noticed_error_ids
         @noticed_error_ids ||= []
       end
