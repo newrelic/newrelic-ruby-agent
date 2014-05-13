@@ -123,10 +123,11 @@ class MongoServer
 
     base = "#{port_flag} #{pid_file} #{log_file} #{small_mongo} #{dbpath}"
 
+    mongod_path = ENV['MONGOD_PATH'] || 'mongod'
     if self.type == :single
-      "mongod #{base} &"
+      "#{mongod_path} #{base} &"
     elsif self.type == :replica
-      "mongod #{repl_set} #{base} &"
+      "#{mongod_path} #{repl_set} #{base} &"
     end
   end
 
