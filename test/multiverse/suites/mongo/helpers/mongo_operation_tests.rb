@@ -290,27 +290,15 @@ module MongoOperationTests
 
     in_transaction do
       @collection.insert(@tribble)
+
       segment = find_last_transaction_segment
     end
 
-    if server_is_2_6_or_later?
-      expected = {
-        :database   => @database_name,
-        :collection => '$cmd',
-        :limit      => -1,
-        :selector   => {
-          :insert    => @collection_name,
-          :writeConcern => { :w => '?' },
-          :ordered      => true
-        }
-      }
-    else
-      expected = {
-        :database   => @database_name,
-        :collection => @collection_name,
-        :operation  => :insert
-      }
-    end
+    expected = {
+      :database   => @database_name,
+      :collection => @collection_name,
+      :operation  => :insert
+    }
 
     result = segment.params[:statement]
     assert_equal expected, result
@@ -326,11 +314,7 @@ module MongoOperationTests
 
     query = segment.params[:statement]
 
-    if server_is_2_6_or_later?
-      assert query[:selector].key?(:insert)
-    else
-      assert_equal :insert, query[:operation]
-    end
+    assert_equal :insert, query[:operation]
   end
 
   def test_noticed_nosql_includes_update_operation
@@ -346,11 +330,7 @@ module MongoOperationTests
 
     query = segment.params[:statement]
 
-    if server_is_2_6_or_later?
-      assert query[:selector].key?(:update)
-    else
-      assert_equal :update, query[:operation]
-    end
+    assert_equal :update, query[:operation]
   end
 
   def test_noticed_nosql_includes_save_operation
@@ -431,11 +411,7 @@ module MongoOperationTests
 
     refute statement.inspect.include?('$secret')
 
-    if server_is_2_6_or_later?
-      assert_equal '?', statement[:selector][:deletes][0][:q]['password']
-    else
-      assert_equal '?', statement[:selector]['password']
-    end
+    assert_equal '?', statement[:selector]['password']
   end
 
   def test_web_requests_record_all_web_metric

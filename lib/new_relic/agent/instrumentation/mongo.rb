@@ -40,6 +40,7 @@ DependencyDetection.defer do
     hook_instrument_method(::Mongo::Collection)
     hook_instrument_method(::Mongo::Connection)
     hook_instrument_method(::Mongo::Cursor)
+    hook_instrument_method(::Mongo::CollectionWriter) if defined?(::Mongo::CollectionWriter)
   end
 
   def hook_instrument_method(target_class)
@@ -80,7 +81,11 @@ DependencyDetection.defer do
 
         trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
           t0 = Time.now
-          result = instrument_without_new_relic_trace(name, payload, &block)
+
+          result = NewRelic::Agent.disable_all_tracing do
+            instrument_without_new_relic_trace(name, payload, &block)
+          end
+
           new_relic_notice_statement(t0, payload, name)
           result
         end
@@ -98,13 +103,8 @@ DependencyDetection.defer do
         trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
           t0 = Time.now
 
-          transaction_state = NewRelic::Agent::TransactionState.get
-          transaction_state.push_traced(false)
-
-          begin
-            result = save_without_new_relic_trace(doc, opts, &block)
-          ensure
-            transaction_state.pop_traced
+          result = NewRelic::Agent.disable_all_tracing do
+            save_without_new_relic_trace(doc, opts, &block)
           end
 
           new_relic_notice_statement(t0, doc, :save)
@@ -124,13 +124,8 @@ DependencyDetection.defer do
         trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
           t0 = Time.now
 
-          transaction_state = NewRelic::Agent::TransactionState.get
-          transaction_state.push_traced(false)
-
-          begin
-            result = ensure_index_without_new_relic_trace(spec, opts, &block)
-          ensure
-            transaction_state.pop_traced
+          result = NewRelic::Agent.disable_all_tracing do
+            ensure_index_without_new_relic_trace(spec, opts, &block)
           end
 
           spec = case spec
