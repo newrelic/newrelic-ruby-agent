@@ -74,7 +74,7 @@ class SinatraMetricExplosionTest < Minitest::Test
     name_beginnings_to_ignore = [
       "Supportability",
       "GC/Transaction",
-      "SubController"
+      "Nested/Controller"
     ]
     metric_names.delete_if do|metric|
       name_beginnings_to_ignore.any? {|name| metric.start_with?(name)}

@@ -56,10 +56,10 @@ class RackAutoInstrumentationTest < Minitest::Test
       "HttpDispatcher",
       "Apdex/Rack/MiddlewareTwo/call",
       "Controller/Rack/MiddlewareTwo/call",
-      "SubController/Rack/MiddlewareOne/call",
-      "SubController/Rack/MiddlewareTwo/call",
-      ["SubController/Rack/MiddlewareOne/call", "Controller/Rack/MiddlewareTwo/call"],
-      ["SubController/Rack/MiddlewareTwo/call", "Controller/Rack/MiddlewareTwo/call"]
+      "Nested/Controller/Rack/MiddlewareOne/call",
+      "Nested/Controller/Rack/MiddlewareTwo/call",
+      ["Nested/Controller/Rack/MiddlewareOne/call", "Controller/Rack/MiddlewareTwo/call"],
+      ["Nested/Controller/Rack/MiddlewareTwo/call", "Controller/Rack/MiddlewareTwo/call"]
     ])
   end
 end
