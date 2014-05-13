@@ -12,18 +12,18 @@ module NewRelic
           def self.metrics_for(name, payload, request_type = :web)
             payload ||= {}
 
+            if collection_in_selector?(payload)
+              command_key = command_key_from_selector(payload)
+              name        = get_name_from_selector(command_key, payload)
+              collection  = get_collection_from_selector(command_key, payload)
+            else
+              collection = payload[:collection]
+            end
+
             # The 1.10.0 version of the mongo driver renamed 'remove' to
             # 'delete', but for metric consistency with previous versions we
             # want to keep it as 'remove'.
             name = 'remove' if name.to_s == 'delete'
-
-            collection = payload[:collection]
-
-            if collection_in_selector?(collection, payload)
-              command_key = command_key_from_selector(payload)
-              name        = get_name_from_selector(command_key, payload)
-              collection  = get_collection_from_selector(command_key, payload)
-            end
 
             if self.find_one?(name, payload)
               name = 'findOne'
@@ -74,8 +74,8 @@ module NewRelic
             "Datastore/instance/MongoDB/#{host}:#{port}/#{database}"
           end
 
-          def self.collection_in_selector?(collection, payload)
-            collection == '$cmd' && payload[:selector]
+          def self.collection_in_selector?(payload)
+            payload[:collection] == '$cmd' && payload[:selector]
           end
 
           NAMES_IN_SELECTOR = [
