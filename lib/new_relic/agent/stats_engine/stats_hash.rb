@@ -49,7 +49,7 @@ module NewRelic
           stats = nil
           begin
             stats = self[metric_spec]
-          rescue => e
+          rescue NoMethodError => e
             # This only happen in the case of a corrupted default_proc
             # Side-step it manually, notice the issue, and carry on....
             NewRelic::Agent.instance.error_collector. \
