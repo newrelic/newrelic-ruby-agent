@@ -78,8 +78,10 @@ module NewRelic
         return unless builder
 
         segment = builder.trace_entry(time.to_f)
-        @sample_buffers.each { |sample_buffer| sample_buffer.visit_segment(segment) }
-        return segment
+        if @dev_mode_sample_buffer
+          @dev_mode_sample_buffer.visit_segment(segment)
+        end
+        segment
       end
 
       # Informs the transaction sample builder about the end of a traced frame
