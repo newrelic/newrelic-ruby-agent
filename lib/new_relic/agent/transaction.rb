@@ -97,6 +97,8 @@ module NewRelic
         txn = current
 
         if txn
+          txn.filtered_params = options[:filtered_params]
+
           _, nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(Time.now.to_f)
           nested_frame.name = options[:transaction_name]
           nested_frame.type = transaction_type
