@@ -26,17 +26,13 @@ class NewRelic::MetricSpec
   end
 
   def eql? o
-    self.class == o.class &&
-    name.eql?(o.name) &&
-    # coerce scope to a string and compare
-     scope.to_s == o.scope.to_s
+    @name == o.name && @scope == o.scope
   end
 
   def hash
-    h = name.hash
-    h ^= scope.hash unless scope.nil?
-    h
+    @name.hash ^ @scope.hash
   end
+
   # return a new metric spec if the given regex
   # matches the name or scope.
   def sub(pattern, replacement, apply_to_scope = true)
