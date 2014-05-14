@@ -17,6 +17,8 @@ module NewRelic
       SUBTRANSACTION_PREFIX = 'Nested/'.freeze
       CONTROLLER_PREFIX     = 'Controller/'.freeze
 
+      WEB_TRANSACTION_TYPES = [:controller, :uri, :rack, :sinatra].freeze
+
       attr_accessor :start_time  # A Time instance for the start time, never nil
       attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
@@ -588,7 +590,7 @@ module NewRelic
       end
 
       def self.transaction_type_is_web?(type)
-        [:controller, :uri, :rack, :sinatra].include?(type)
+        WEB_TRANSACTION_TYPES.include?(type)
       end
 
       def recording_web_transaction?
