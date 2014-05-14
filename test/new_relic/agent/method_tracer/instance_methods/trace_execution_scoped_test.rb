@@ -136,22 +136,6 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     )
   end
 
-  def test_metric_recording_with_scoped_metric_only_option
-    options = { :scoped_metric_only => true }
-
-    in_transaction('outer') do
-      trace_execution_scoped(['foo', 'bar'], options) do
-        # erm
-      end
-    end
-
-    expected_values = { :call_count => 1 }
-    assert_metrics_recorded_exclusive(
-      'outer'          => expected_values,
-      ['foo', 'outer'] => expected_values
-    )
-  end
-
   def test_set_if_nil
     h = {}
     set_if_nil(h, :foo)

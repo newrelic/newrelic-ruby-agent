@@ -163,16 +163,10 @@ module NewRelic
           # if it was unset.
           record_scoped_metric = options.has_key?(:scoped_metric) ? options[:scoped_metric] : true
 
-          metrics = []
-
-          if !options[:scoped_metric_only]
-            other_names.each { |n| metrics << NewRelic::MetricSpec.new(n) }
-          end
+          metrics = other_names.map { |n| NewRelic::MetricSpec.new(n) }
 
           if options[:metric]
-            if !options[:scoped_metric_only]
-              metrics << NewRelic::MetricSpec.new(first_name)
-            end
+            metrics << NewRelic::MetricSpec.new(first_name)
             if NewRelic::Agent::Transaction.in_transaction? && record_scoped_metric
               metrics << NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
             end
@@ -245,9 +239,9 @@ module NewRelic
       module ClassMethods
         # contains methods refactored out of the #add_method_tracer method
         module AddMethodTracer
-          ALLOWED_KEYS = [:force, :metric, :push_scope, :deduct_call_time_from_parent, :code_header, :code_footer, :scoped_metric_only].freeze
+          ALLOWED_KEYS = [:force, :metric, :push_scope, :deduct_call_time_from_parent, :code_header, :code_footer].freeze
 
-          DEPRECATED_KEYS = [:force].freeze
+          DEPRECATED_KEYS = [:force, :scoped_metric_only].freeze
 
           # raises an error when the
           # NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer
@@ -287,7 +281,7 @@ module NewRelic
             end
           end
 
-          DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => "", :code_footer => "", :scoped_metric_only => false}.freeze
+          DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => "", :code_footer => "" }.freeze
 
           # Checks the provided options to make sure that they make
           # sense. Raises an error if the options are incorrect to
@@ -386,8 +380,7 @@ module NewRelic
               #{options[:code_header]}
               result = #{klass}.trace_execution_scoped(\"#{metric_name_code}\",
                         :metric => #{options[:metric]},
-                        :deduct_call_time_from_parent => #{options[:deduct_call_time_from_parent]},
-                        :scoped_metric_only => #{options[:scoped_metric_only]}) do
+                        :deduct_call_time_from_parent => #{options[:deduct_call_time_from_parent]}) do
                 #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
               end
               #{options[:code_footer]}
@@ -423,14 +416,6 @@ module NewRelic
         #
         # === Uncommon Options
         #
-        # * <tt>:scoped_metric_only => true</tt> indicates that the unscoped metric
-        #   should not be recorded.  Normally two metrics are potentially created
-        #   on every invocation: the aggregate method where statistics for all calls
-        #   of that metric are stored, and the "scoped metric" which records the
-        #   statistics for invocations in a particular scope--generally a controller
-        #   action.  This option indicates that only the second type should be recorded.
-        #   The effect is similar to <tt>:metric => false</tt> but in addition you
-        #   will also see the invocation in breakdown pie charts.
         # * <tt>:deduct_call_time_from_parent => false</tt> indicates that the method invocation
         #   time should never be deducted from the time reported as 'exclusive' in the
         #   caller.  You would want to use this if you are tracing a recursive method
