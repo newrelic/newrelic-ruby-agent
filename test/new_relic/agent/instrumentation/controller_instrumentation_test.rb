@@ -25,8 +25,7 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
     NewRelic::Agent.drop_buffered_data
     @object = TestObject.new
     @dummy_headers = { :request => 'headers' }
-    @txn_namer = NewRelic::Agent::Instrumentation:: \
-      ControllerInstrumentation::TransactionNamer.new(@object)
+    @txn_namer = NewRelic::Agent::Instrumentation::ControllerInstrumentation::TransactionNamer
   end
 
   def teardown
@@ -46,53 +45,60 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
 
   def test_transaction_name_calls_newrelic_metric_path
     @object.stubs(:newrelic_metric_path).returns('some/wacky/path')
-    assert_equal('Controller/some/wacky/path', @txn_namer.name)
+    assert_equal('Controller/some/wacky/path', @txn_namer.name(@object))
   end
 
   def test_transaction_name_applies_category_and_path
     assert_equal('Controller/metric/path',
-                 @txn_namer.name(:category => :controller,
+                 @txn_namer.name(@object,
+                                 :category => :controller,
                                  :path => 'metric/path'))
     assert_equal('OtherTransaction/Background/metric/path',
-                 @txn_namer.name(:category => :task,
+                 @txn_namer.name(@object,
+                                 :category => :task,
                                  :path => 'metric/path'))
     assert_equal('Controller/Rack/metric/path',
-                 @txn_namer.name(:category => :rack,
+                 @txn_namer.name(@object,
+                                 :category => :rack,
                                  :path => 'metric/path'))
     assert_equal('Controller/metric/path',
-                 @txn_namer.name(:category => :uri,
+                 @txn_namer.name(@object,
+                                 :category => :uri,
                                  :path => 'metric/path'))
     assert_equal('Controller/Sinatra/metric/path',
-                 @txn_namer.name(:category => :sinatra,
+                 @txn_namer.name(@object,
+                                 :category => :sinatra,
                                  :path => 'metric/path'))
     assert_equal('Blarg/metric/path',
-                 @txn_namer.name(:category => 'Blarg',
+                 @txn_namer.name(@object,
+                                 :category => 'Blarg',
                                  :path => 'metric/path'))
   end
 
   def test_transaction_name_uses_class_name_if_path_not_specified
     assert_equal('Controller/NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject',
-                 @txn_namer.name(:category => :controller))
+                 @txn_namer.name(@object, :category => :controller))
   end
 
   def test_transaction_name_applies_action_name_if_specified_and_not_path
     assert_equal('Controller/NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/action',
-                 @txn_namer.name(:category => :controller,
+                 @txn_namer.name(@object,
+                                 :category => :controller,
                                  :name => 'action'))
   end
 
   def test_transaction_path_name
-    result = @txn_namer.path_name
+    result = @txn_namer.path_name(@object)
     assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject", result)
   end
 
   def test_transaction_path_name_with_name
-    result = @txn_namer.path_name(:name => "test")
+    result = @txn_namer.path_name(@object, :name => "test")
     assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/test", result)
   end
 
   def test_transaction_path_name_with_overridden_class_name
-    result = @txn_namer.path_name(:name => "perform", :class_name => 'Resque')
+    result = @txn_namer.path_name(@object, :name => "perform", :class_name => 'Resque')
     assert_equal("Resque/perform", result)
   end
 
