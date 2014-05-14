@@ -7,8 +7,8 @@ require 'new_relic/agent/internal_agent_error'
 # this struct uniquely defines a metric, optionally inside
 # the call scope of another metric
 class NewRelic::MetricSpec
-  attr_accessor   :name
-  attr_accessor   :scope
+  attr_reader   :name
+  attr_accessor :scope
 
   # the maximum length of a metric name or metric scope
   MAX_LENGTH = 255
@@ -17,7 +17,7 @@ class NewRelic::MetricSpec
   # jruby) for sending responses to ruby agents from the java collector.
   #
   def initialize(metric_name = '', metric_scope = nil)
-    self.name = (metric_name || '') && metric_name.to_s[LENGTH_RANGE]
+    @name = (metric_name || '') && metric_name.to_s[LENGTH_RANGE]
     if metric_scope
       self.scope = metric_scope && metric_scope.to_s[LENGTH_RANGE]
     else
