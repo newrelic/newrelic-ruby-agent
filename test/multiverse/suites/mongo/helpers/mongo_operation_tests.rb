@@ -134,8 +134,6 @@ module MongoOperationTests
   def test_records_metrics_for_create_index
     @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
 
-    metrics = metrics_with_attributes(build_test_metrics(:createIndex))
-
     # The createIndexes command was added to the mongo server in version 2.6.
     # As of version 1.10.0 of the Ruby driver, the driver will attempt to
     # service a create_index call by first issuing a createIndexes command to
@@ -144,12 +142,20 @@ module MongoOperationTests
     #
     # So, if we're running with version 1.10.0 or later of the driver, we expect
     # some additional metrics to be recorded.
-    if NewRelic::Agent::Datastores::Mongo.is_version_1_10_or_later?
-      metrics["Datastore/statement/MongoDB/#{@collection_name}/createIndexes"] = { :call_count => 1 }
-      metrics['Datastore/operation/MongoDB/createIndexes']                     = { :call_count => 1 }
+    client_is_1_10_or_later = NewRelic::Agent::Datastores::Mongo.is_version_1_10_or_later?
+
+    create_index_metrics   = metrics_with_attributes(build_test_metrics(:createIndex))
+    create_indexes_metrics = metrics_with_attributes(build_test_metrics(:createIndexes))
+
+    if !client_is_1_10_or_later
+      metrics = create_index_metrics
+    elsif client_is_1_10_or_later && !server_is_2_6_or_later?
+      metrics = create_index_metrics.merge(create_indexes_metrics)
       metrics['ActiveRecord/all'][:call_count] += 1
       metrics['Datastore/allWeb'][:call_count] += 1
       metrics['Datastore/all'][:call_count]    += 1
+    elsif client_is_1_10_or_later && server_is_2_6_or_later?
+      metrics = create_indexes_metrics
     end
 
     assert_metrics_recorded(metrics)
@@ -284,16 +290,18 @@ module MongoOperationTests
 
     in_transaction do
       @collection.insert(@tribble)
+
       segment = find_last_transaction_segment
     end
 
-    expected = { :database   => @database_name,
-                 :collection => @collection_name,
-                 :operation  => :insert}
+    expected = {
+      :database   => @database_name,
+      :collection => @collection_name,
+      :operation  => :insert
+    }
 
     result = segment.params[:statement]
-
-    assert_equal expected, result, "Expected result (#{result}) to be #{expected}"
+    assert_equal expected, result
   end
 
   def test_noticed_nosql_includes_operation
@@ -304,12 +312,25 @@ module MongoOperationTests
       segment = find_last_transaction_segment
     end
 
-    expected = :insert
+    query = segment.params[:statement]
+
+    assert_equal :insert, query[:operation]
+  end
+
+  def test_noticed_nosql_includes_update_operation
+    segment = nil
+
+    in_transaction do
+      updated = @tribble.dup
+      updated['name'] = 't-rex'
+      @collection.update(@tribble, updated)
+
+      segment = find_last_transaction_segment
+    end
 
     query = segment.params[:statement]
-    result = query[:operation]
 
-    assert_equal expected, result
+    assert_equal :update, query[:operation]
   end
 
   def test_noticed_nosql_includes_save_operation
@@ -320,12 +341,8 @@ module MongoOperationTests
       segment = find_last_transaction_segment
     end
 
-    expected = :save
-
     query = segment.params[:statement]
-    result = query[:operation]
-
-    assert_equal expected, result
+    assert_equal :save, query[:operation]
   end
 
   def test_noticed_nosql_includes_ensure_index_operation
@@ -392,6 +409,8 @@ module MongoOperationTests
 
     statement = segment.params[:statement]
 
+    refute statement.inspect.include?('$secret')
+
     assert_equal '?', statement[:selector]['password']
   end
 
@@ -453,4 +472,9 @@ module MongoOperationTests
     NewRelic::Agent.drop_buffered_data
   end
 
+  def server_is_2_6_or_later?
+    client = @collection.db.respond_to?(:client) && @collection.db.client
+    return false unless client
+    client.respond_to?(:max_wire_version) && client.max_wire_version >= 2
+  end
 end

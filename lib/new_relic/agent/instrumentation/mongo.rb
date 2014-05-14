@@ -28,17 +28,24 @@ DependencyDetection.defer do
   end
 
   def install_mongo_instrumentation
-    setup_logging_for_instrumentation
-    instrument_mongo_logging
+    require 'new_relic/agent/datastores/mongo/metric_generator'
+    require 'new_relic/agent/datastores/mongo/statement_formatter'
+
+    instrument_via_mongo_logging
     instrument_save
     instrument_ensure_index
   end
 
-  def setup_logging_for_instrumentation
-    ::Mongo::Logging.class_eval do
+  def instrument_via_mongo_logging
+    hook_instrument_method(::Mongo::Collection)
+    hook_instrument_method(::Mongo::Connection)
+    hook_instrument_method(::Mongo::Cursor)
+    hook_instrument_method(::Mongo::CollectionWriter) if defined?(::Mongo::CollectionWriter)
+  end
+
+  def hook_instrument_method(target_class)
+    target_class.class_eval do
       include NewRelic::Agent::MethodTracer
-      require 'new_relic/agent/datastores/mongo/metric_generator'
-      require 'new_relic/agent/datastores/mongo/statement_formatter'
 
       def new_relic_instance_metric_builder
         Proc.new do
@@ -55,9 +62,8 @@ DependencyDetection.defer do
 
       # It's key that this method eats all exceptions, as it rests between the
       # Mongo operation the user called and us returning them the data. Be safe!
-      def new_relic_notice_statement(t0, payload, operation)
-        payload[:operation] = operation
-        statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload)
+      def new_relic_notice_statement(t0, payload, name)
+        statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload, name)
         if statement
           NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
         end
@@ -67,27 +73,19 @@ DependencyDetection.defer do
 
       def new_relic_generate_metrics(operation, payload = nil)
         payload ||= { :collection => self.name, :database => self.db.name }
-        metrics = NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(operation, payload)
+        NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(operation, payload)
       end
-    end
 
-    ::Mongo::Collection.class_eval { include ::Mongo::Logging }
-    ::Mongo::Connection.class_eval { include ::Mongo::Logging }
-    ::Mongo::Cursor.class_eval     { include ::Mongo::Logging }
-
-    if defined?(::Mongo::CollectionOperationWriter)
-      ::Mongo::CollectionOperationWriter.class_eval { include ::Mongo::Logging }
-    end
-  end
-
-  def instrument_mongo_logging
-    ::Mongo::Logging.class_eval do
       def instrument_with_new_relic_trace(name, payload = {}, &block)
         metrics = new_relic_generate_metrics(name, payload)
 
         trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
           t0 = Time.now
-          result = instrument_without_new_relic_trace(name, payload, &block)
+
+          result = NewRelic::Agent.disable_all_tracing do
+            instrument_without_new_relic_trace(name, payload, &block)
+          end
+
           new_relic_notice_statement(t0, payload, name)
           result
         end
@@ -105,13 +103,8 @@ DependencyDetection.defer do
         trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
           t0 = Time.now
 
-          transaction_state = NewRelic::Agent::TransactionState.get
-          transaction_state.push_traced(false)
-
-          begin
-            result = save_without_new_relic_trace(doc, opts, &block)
-          ensure
-            transaction_state.pop_traced
+          result = NewRelic::Agent.disable_all_tracing do
+            save_without_new_relic_trace(doc, opts, &block)
           end
 
           new_relic_notice_statement(t0, doc, :save)
@@ -131,13 +124,8 @@ DependencyDetection.defer do
         trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
           t0 = Time.now
 
-          transaction_state = NewRelic::Agent::TransactionState.get
-          transaction_state.push_traced(false)
-
-          begin
-            result = ensure_index_without_new_relic_trace(spec, opts, &block)
-          ensure
-            transaction_state.pop_traced
+          result = NewRelic::Agent.disable_all_tracing do
+            ensure_index_without_new_relic_trace(spec, opts, &block)
           end
 
           spec = case spec

@@ -24,10 +24,11 @@ module NewRelic
             :selector
           ]
 
-          def self.format(statement)
+          def self.format(statement, operation)
             return nil unless NewRelic::Agent.config[:'mongo.capture_queries']
 
-            result = {}
+            result = { :operation => operation }
+
             PLAINTEXT_KEYS.each do |key|
               result[key] = statement[key] if statement.key?(key)
             end
