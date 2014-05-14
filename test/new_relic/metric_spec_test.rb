@@ -75,24 +75,6 @@ class NewRelic::MetricSpecTest < Minitest::Test
     assert_equal("b" * 255, spec.scope, "should have shortened the scope")
   end
 
-  def test_invalid_name_setting_nil
-    NewRelic::Agent.instance.error_collector.errors.clear
-
-    spec = NewRelic::MetricSpec.new
-    spec.scope = nil
-
-    assert_has_error(NewRelic::MetricSpec::InvalidScopeSettingError)
-  end
-
-  def test_invalid_name_setting_false
-    NewRelic::Agent.instance.error_collector.errors.clear
-
-    spec = NewRelic::MetricSpec.new
-    spec.scope = false
-
-    assert_has_error(NewRelic::MetricSpec::InvalidScopeSettingError)
-  end
-
   private
 
   def compare_spec(spec, import)

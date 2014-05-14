@@ -2,8 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/internal_agent_error'
-
 # this struct uniquely defines a metric, optionally inside
 # the call scope of another metric
 class NewRelic::MetricSpec
@@ -13,29 +11,13 @@ class NewRelic::MetricSpec
   # the maximum length of a metric name or metric scope
   MAX_LENGTH = 255
   LENGTH_RANGE = (0...MAX_LENGTH)
-  # Need a "zero-arg" constructor so it can be instantiated from java (using
-  # jruby) for sending responses to ruby agents from the java collector.
-  #
-  def initialize(metric_name = '', metric_scope = nil)
-    @name = (metric_name || '') && metric_name.to_s[LENGTH_RANGE]
+
+  def initialize(metric_name='', metric_scope=nil)
+    @name = metric_name.to_s[LENGTH_RANGE]
     if metric_scope
-      self.scope = metric_scope && metric_scope.to_s[LENGTH_RANGE]
+      @scope = metric_scope.to_s[LENGTH_RANGE]
     else
-      self.scope = ''
-    end
-  end
-
-  class InvalidScopeSettingError < NewRelic::Agent::InternalAgentError
-    def initialize(name, scope)
-      super("Attempted to set scope for #{name} to #{scope.inspect}, ignoring.")
-    end
-  end
-
-  def scope=(s)
-    if s.nil? || s == false
-      NewRelic::Agent.instance.error_collector.notice_agent_error(InvalidScopeSettingError.new(@name, s))
-    else
-      @scope = s
+      @scope = ''
     end
   end
 
