@@ -166,7 +166,7 @@ module NewRelic
           metrics = []
 
           if !options[:scoped_metric_only]
-            metrics += other_names.map { |n| NewRelic::MetricSpec.new(n) }
+            other_names.each { |n| metrics << NewRelic::MetricSpec.new(n) }
           end
 
           if options[:metric]
