@@ -10,26 +10,34 @@ module NewRelic
       # which can be set on the request.
       module QueueTime
         unless defined?(REQUEST_START_HEADER)
-          REQUEST_START_HEADER    = 'HTTP_X_REQUEST_START'
-          QUEUE_START_HEADER      = 'HTTP_X_QUEUE_START'
-          QUEUE_DURATION_HEADER   = 'HTTP_X_QUEUE_TIME'
-          MIDDLEWARE_START_HEADER = 'HTTP_X_MIDDLEWARE_START'
-          ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'
+          REQUEST_START_HEADER    = 'HTTP_X_REQUEST_START'.freeze
+          QUEUE_START_HEADER      = 'HTTP_X_QUEUE_START'.freeze
+          MIDDLEWARE_START_HEADER = 'HTTP_X_MIDDLEWARE_START'.freeze
+          ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'.freeze
           # any timestamps before this are thrown out and the parser
           # will try again with a larger unit (2000/1/1 UTC)
           EARLIEST_ACCEPTABLE_TIMESTAMP = 946684800
         end
 
+        CANDIDATE_HEADERS = [
+          REQUEST_START_HEADER,
+          QUEUE_START_HEADER,
+          MIDDLEWARE_START_HEADER
+        ].freeze
+
         module_function
 
         def parse_frontend_timestamp(headers, now=Time.now)
-          candidate_headers = [ REQUEST_START_HEADER, QUEUE_START_HEADER,
-                                MIDDLEWARE_START_HEADER ]
-          earliest = candidate_headers.map do |header|
+          earliest = nil
+
+          CANDIDATE_HEADERS.each do |header|
             if headers[header]
-              parse_timestamp(timestamp_string_from_header_value(headers[header]))
+              parsed = parse_timestamp(timestamp_string_from_header_value(headers[header]))
+              if parsed && (!earliest || parsed < earliest)
+                earliest = parsed
+              end
             end
-          end.compact.min
+          end
 
           if earliest && earliest > now
             NewRelic::Agent.logger.debug("Negative queue time detected, treating as zero: start=#{earliest.to_f} > now=#{now.to_f}")
