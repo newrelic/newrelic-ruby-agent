@@ -39,12 +39,6 @@ class NewRelic::MetricSpec
     end
   end
 
-  # truncates the name and scope to the MAX_LENGTH
-  def truncate!
-    self.name = name[LENGTH_RANGE] if name && name.size > MAX_LENGTH
-    self.scope = scope[LENGTH_RANGE] if scope && scope.size > MAX_LENGTH
-  end
-
   def ==(o)
     self.eql?(o)
   end

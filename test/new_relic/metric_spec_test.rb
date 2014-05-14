@@ -67,11 +67,10 @@ class NewRelic::MetricSpecTest < Minitest::Test
     puts "Skipping tests in #{__FILE__} because ActiveSupport is unavailable"
   end
 
-  def test_truncate!
-    spec = NewRelic::MetricSpec.new('a', 'b')
-    spec.name = "a" * 300
-    spec.scope = "b" * 300
-    spec.truncate!
+  def test_initialize_truncates_name_and_scope
+    long_name = "a" * 300
+    long_scope = "b" * 300
+    spec = NewRelic::MetricSpec.new(long_name, long_scope)
     assert_equal("a" * 255, spec.name, "should have shortened the name")
     assert_equal("b" * 255, spec.scope, "should have shortened the scope")
   end
