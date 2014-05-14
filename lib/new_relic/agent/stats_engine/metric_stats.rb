@@ -9,7 +9,7 @@ module NewRelic
     class StatsEngine
       # Handles methods related to actual Metric collection
       module MetricStats
-        SCOPE_PLACEHOLDER = :__SCOPE__
+        SCOPE_PLACEHOLDER = '__SCOPE__'.freeze
 
         # Lookup and write to the named metric in a single call.
         #
