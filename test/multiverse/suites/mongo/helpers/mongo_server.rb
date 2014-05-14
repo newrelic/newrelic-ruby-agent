@@ -115,19 +115,20 @@ class MongoServer
   def startup_command
     pid_file = "--pidfilepath #{pid_path}"
     log_file = "--logpath #{log_path} "
+    fork     = "--fork"
 
     dbpath = "--dbpath #{db_path}"
     port_flag = "--port #{self.port}"
     small_mongo = "--oplogSize 128 --smallfiles"
-    repl_set = "--fork --replSet multiverse"
+    repl_set = "--replSet multiverse"
 
-    base = "#{port_flag} #{pid_file} #{log_file} #{small_mongo} #{dbpath}"
+    base = "#{port_flag} #{fork} #{pid_file} #{log_file} #{small_mongo} #{dbpath}"
 
     mongod_path = ENV['MONGOD_PATH'] || 'mongod'
     if self.type == :single
-      "#{mongod_path} #{base} &"
+      "#{mongod_path} #{base}"
     elsif self.type == :replica
-      "#{mongod_path} #{repl_set} #{base} &"
+      "#{mongod_path} #{repl_set} #{base}"
     end
   end
 
