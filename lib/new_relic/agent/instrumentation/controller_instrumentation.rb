@@ -182,7 +182,7 @@ module NewRelic
             options.map do |key, value|
               value = if value.is_a?(Symbol)
                 value.inspect
-              elsif key == :params
+              elsif key == :params || key == :request
                 value.to_s
               else
                 %Q["#{value.to_s}"]
@@ -364,9 +364,9 @@ module NewRelic
             end
 
           ensure
-            Transaction.stop(Time.now,
-                             :ignore_apdex   => ignore_apdex?,
-                             :ignore_enduser => ignore_enduser?)
+            Transaction.ignore_apdex! if ignore_apdex?
+            Transaction.ignore_enduser! if ignore_enduser?
+            Transaction.stop
           end
         end
 

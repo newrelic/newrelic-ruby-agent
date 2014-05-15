@@ -139,9 +139,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/slow/txn') do
-        NewRelic::Agent::Transaction.record_apdex(t0 + 3.5,  false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 5.5,  false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 16.5, false)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 3.5)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 5.5)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 16.5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
@@ -157,9 +157,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/other/txn') do
-        NewRelic::Agent::Transaction.record_apdex(t0 + 0.5, false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 2,   false)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 5,   false)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 0.5)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 2)
+        NewRelic::Agent::Transaction.record_apdex(t0 + 5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
@@ -173,7 +173,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_record_apdex_stores_apdex_t_in_min_and_max
     with_config(:apdex_t => 2.5) do
       in_web_transaction('Controller/some/txn') do
-        NewRelic::Agent::Transaction.record_apdex(Time.now, false)
+        NewRelic::Agent::Transaction.record_apdex(Time.now)
       end
     end
 
@@ -519,6 +519,88 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     assert_metrics_recorded(['Controller/child'])
+  end
+
+  def test_ignored_returns_false_if_a_transaction_is_not_ignored
+    in_transaction('Controller/test', :type => :sinatra) do
+      refute NewRelic::Agent::Transaction.ignore?
+    end
+  end
+
+  def test_ignored_returns_true_for_an_ignored_transaction
+    in_transaction('Controller/test', :type => :sinatra) do
+      NewRelic::Agent::Transaction.ignore!
+      assert NewRelic::Agent::Transaction.ignore?
+    end
+  end
+
+  def test_ignore_apdex_returns_true_if_apdex_is_ignored
+    in_transaction('Controller/test', :type => :sinatra) do
+      NewRelic::Agent::Transaction.ignore_apdex!
+      assert NewRelic::Agent::Transaction.ignore_apdex?
+    end
+  end
+
+  def test_ignore_apdex_returns_false_if_apdex_is_not_ignored
+    in_transaction('Controller/test', :type => :sinatra) do
+      refute NewRelic::Agent::Transaction.ignore_apdex?
+    end
+  end
+
+  def test_exception_encountered_returns_true_if_exception_encountered
+    in_transaction('Controller/test', :type => :sinatra) do
+      NewRelic::Agent::Transaction.exception_encountered!
+      assert NewRelic::Agent::Transaction.exception_encountered?
+    end
+  end
+
+  def test_exception_encountered_returns_false_if_no_exception
+    in_transaction('Controller/test', :type => :sinatra) do
+      refute NewRelic::Agent::Transaction.exception_encountered?
+    end
+  end
+
+  def test_ignore_enduser_returns_true_if_enduser_is_ignored
+    in_transaction('Controller/test', :type => :sinatra) do
+      NewRelic::Agent::Transaction.ignore_enduser!
+      assert NewRelic::Agent::Transaction.ignore_enduser?
+    end
+  end
+
+  def test_ignore_enduser_returns_false_if_enduser_is_not_ignored
+    in_transaction('Controller/test', :type => :sinatra) do
+      refute NewRelic::Agent::Transaction.ignore_enduser?
+    end
+  end
+
+  def test_ignored_transactions_do_not_record_metrics
+    in_transaction('Controller/test', :type => :sinatra) do
+      NewRelic::Agent::Transaction.ignore!
+    end
+
+    assert_metrics_not_recorded(['Controller/test'])
+  end
+
+  def test_nested_transactions_are_ignored_if_nested_transaction_is_ignored
+    in_transaction('Controller/parent', :type => :sinatra) do
+      in_transaction('Controller/child', :type => :controller) do
+        NewRelic::Agent::Transaction.ignore!
+      end
+    end
+
+    assert_metrics_not_recorded(['Controller/sinatra', 'Controller/child'])
+  end
+
+  def test_nested_transactions_are_ignored_if_double_nested_transaction_is_ignored
+    in_transaction('Controller/parent', :type => :sinatra) do
+      in_transaction('Controller/toddler', :type => :controller) do
+        in_transaction('Controller/infant', :type => :controller) do
+          NewRelic::Agent::Transaction.ignore!
+        end
+      end
+    end
+
+    assert_metrics_not_recorded(['Controller/sinatra', 'Controller/toddler', 'Controller/infant'])
   end
 
   def assert_has_custom_parameter(key, value = key)

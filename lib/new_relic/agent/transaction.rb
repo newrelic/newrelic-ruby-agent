@@ -105,11 +105,11 @@ module NewRelic
         txn
       end
 
-      def self.stop(end_time=Time.now, opts={})
+      def self.stop(end_time=Time.now)
         txn = current
 
         if txn.frame_stack.empty?
-          txn.stop(end_time, opts)
+          txn.stop(end_time)
           TransactionState.get.current_transaction = nil
         else
           nested_frame = txn.frame_stack.pop
@@ -148,8 +148,36 @@ module NewRelic
         end
       end
 
-      def root?
-        true
+      def self.ignore!
+        current && current.ignore!
+      end
+
+      def self.ignore?
+        current && current.ignore?
+      end
+
+      def self.ignore_apdex!
+        current && current.ignore_apdex!
+      end
+
+      def self.ignore_apdex?
+        current && current.ignore_apdex?
+      end
+
+      def self.ignore_enduser!
+        current && current.ignore_enduser!
+      end
+
+      def self.ignore_enduser?
+        current && current.ignore_enduser?
+      end
+
+      def self.exception_encountered!
+        current && current.exception_encountered!
+      end
+
+      def self.exception_encountered?
+        current && current.exception_encountered?
       end
 
       # This is the name of the model currently assigned to database
@@ -203,7 +231,12 @@ module NewRelic
         @exceptions = {}
         @stats_hash = StatsHash.new
         @guid = generate_guid
+
         @ignore_this_transaction = false
+        @ignore_apdex = false
+        @ignore_enduser = false
+        @exception_encountered = false
+
         TransactionState.get.most_recent_transaction = self
       end
 
@@ -252,7 +285,7 @@ module NewRelic
           @name_frozen = true
 
           if name.nil?
-            @ignore_this_transaction = true
+            ignore!
             @frozen_name = best_name
           else
             @frozen_name = name
@@ -316,7 +349,7 @@ module NewRelic
         metric_parser.summary_metrics
       end
 
-      def stop(end_time, opts)
+      def stop(end_time)
         return if !NewRelic::Agent.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
 
@@ -352,9 +385,9 @@ module NewRelic
           @transaction_trace = transaction_sampler.on_finishing_transaction(self, Time.now, gc_delta)
           sql_sampler.on_finishing_transaction(@frozen_name)
 
-          record_apdex(end_time, opts[:exception_encountered]) unless opts[:ignore_apdex]
+          record_apdex(end_time) unless ignore_apdex?
           NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
-          NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if opts[:ignore_enduser]
+          NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
 
           record_exceptions
           merge_stats_hash
@@ -480,13 +513,13 @@ module NewRelic
 
       APDEX_METRIC_SPEC = NewRelic::MetricSpec.new('Apdex').freeze
 
-      def record_apdex(end_time=Time.now, is_error=nil)
+      def record_apdex(end_time=Time.now)
         return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
           action_duration = end_time - start_time
           total_duration  = end_time - apdex_start
-          is_error = is_error.nil? ? !exceptions.empty? : is_error
+          is_error = exception_encountered? || !exceptions.empty?
 
           apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
           apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
@@ -583,8 +616,8 @@ module NewRelic
 
 
 
-      def self.record_apdex(end_time, is_error)
-        current && current.record_apdex(end_time, is_error)
+      def self.record_apdex(end_time)
+        current && current.record_apdex(end_time)
       end
 
       def self.apdex_bucket(duration, failed, apdex_t)
@@ -617,6 +650,38 @@ module NewRelic
       def record_transaction_cpu
         burn = cpu_burn
         transaction_sampler.notice_transaction_cpu_time(burn) if burn
+      end
+
+      def ignore!
+        @ignore_this_transaction = true
+      end
+
+      def ignore?
+        @ignore_this_transaction
+      end
+
+      def ignore_apdex!
+        @ignore_apdex = true
+      end
+
+      def ignore_apdex?
+        @ignore_apdex
+      end
+
+      def ignore_enduser!
+        @ignore_enduser = true
+      end
+
+      def ignore_enduser?
+        @ignore_enduser
+      end
+
+      def exception_encountered!
+        @exception_encountered = true
+      end
+
+      def exception_encountered?
+        @exception_encountered
       end
 
       private
