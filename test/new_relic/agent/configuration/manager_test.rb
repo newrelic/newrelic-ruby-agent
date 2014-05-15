@@ -45,7 +45,7 @@ module NewRelic::Agent::Configuration
 
     def test_sources_applied_in_correct_order
       # in order of precedence
-      server_source = ServerSource.new(:foo => 'foo' ,              )
+      server_source = ServerSource.new(:foo => 'foo'                )
       manual_source = ManualSource.new(:foo => 'bad' , :bar => 'bar')
 
       # load them out of order, just to prove that load order
