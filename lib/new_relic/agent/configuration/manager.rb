@@ -13,9 +13,21 @@ module NewRelic
   module Agent
     module Configuration
       class Manager
-        extend Forwardable
-        def_delegators :@cache, :[], :has_key?, :keys
         attr_reader :stripped_exceptions_whitelist
+
+        # Defining these explicitly saves object allocations that we incur
+        # if we use Forwardable and def_delegators.
+        def [](key)
+          @cache[key]
+        end
+
+        def has_key?(key)
+          @cache.has_key?[key]
+        end
+
+        def keys
+          @cache.keys
+        end
 
         def initialize
           reset_to_defaults
