@@ -15,12 +15,15 @@ module NewRelic::Agent::Configuration
       @manager = NewRelic::Agent.config
     end
 
+    def teardown
+      @manager.reset_to_defaults
+    end
+
     def test_should_use_indifferent_access
       config = NewRelic::Agent::Configuration::DottedHash.new('string' => 'string', :symbol => 'symbol')
-      @manager.apply_config(config)
+      @manager.add_config_for_testing(config)
       assert_equal 'string', @manager[:string]
       assert_equal 'symbol', @manager['symbol']
-      @manager.remove_config(config)
     end
 
     def test_should_apply_config_sources_in_order
@@ -29,35 +32,40 @@ module NewRelic::Agent::Configuration
         :bar => 'default bar',
         :baz => 'default baz'
       }
-      @manager.apply_config(config0)
+      @manager.add_config_for_testing(config0)
       config1 = { :foo => 'real foo' }
-      @manager.apply_config(config1)
+      @manager.add_config_for_testing(config1)
       config2 = { :foo => 'wrong foo', :bar => 'real bar' }
-      @manager.apply_config(config2, 1)
+      @manager.add_config_for_testing(config2, 1)
 
-      assert_equal 'real foo', @manager['foo']
-      assert_equal 'real bar', @manager['bar']
+      assert_equal 'real foo'   , @manager['foo']
+      assert_equal 'real bar'   , @manager['bar']
       assert_equal 'default baz', @manager['baz']
+    end
 
-      @manager.remove_config(config0)
-      @manager.remove_config(config1)
-      @manager.remove_config(config2)
+    def test_sources_applied_in_correct_order
+      # in order of precedence
+      server_source = ServerSource.new(:foo => 'foo' ,              )
+      manual_source = ManualSource.new(:foo => 'bad' , :bar => 'bar')
+
+      # load them out of order, just to prove that load order
+      # doesn't determine precedence
+      @manager.replace_or_add_config(manual_source)
+      @manager.replace_or_add_config(server_source)
+
+      assert_equal 'foo', @manager['foo']
+      assert_equal 'bar', @manager['bar']
     end
 
     def test_identifying_config_source
       hash_source = {:foo => 'foo', :bar => 'default'}
-      @manager.apply_config(hash_source)
-      test_source = TestSource.new
-      test_source[:bar] = 'bar'
-      test_source[:baz] = 'baz'
-      @manager.apply_config(test_source)
+      @manager.add_config_for_testing(hash_source, 3)
+      test_source = ManualSource.new(:bar => 'bar', :baz => 'baz')
+      @manager.replace_or_add_config(test_source)
 
       refute_equal test_source, @manager.source(:foo)
       assert_equal test_source, @manager.source(:bar)
       assert_equal test_source, @manager.source(:baz)
-
-      @manager.remove_config(hash_source)
-      @manager.remove_config(test_source)
     end
 
     def test_callable_value_for_config_should_return_computed_value
@@ -66,13 +74,11 @@ module NewRelic::Agent::Configuration
         :simple_value => Proc.new { '666' },
         :reference    => Proc.new { self['foo'] }
       }
-      @manager.apply_config(source)
+      @manager.add_config_for_testing(source)
 
       assert_equal 'bar', @manager[:foo]
       assert_equal '666', @manager[:simple_value]
       assert_equal 'bar', @manager[:reference]
-
-      @manager.remove_config(source)
     end
 
     def test_manager_resolves_nested_procs_from_default_source
@@ -81,18 +87,16 @@ module NewRelic::Agent::Configuration
         :bar    => Proc.new { self[:baz] },
         :baz    => Proc.new { 'Russian Nesting Dolls!' }
       }
-      @manager.apply_config(source)
+      @manager.add_config_for_testing(source)
 
       source.keys.each do |key|
         assert_equal 'Russian Nesting Dolls!', @manager[key]
       end
-
-      @manager.remove_config(source)
     end
 
     def test_should_not_apply_removed_sources
-      test_source = TestSource.new
-      @manager.apply_config(test_source)
+      test_source = { :test_config_accessor => true }
+      @manager.add_config_for_testing(test_source)
       @manager.remove_config(test_source)
 
       assert_equal nil, @manager['test_config_accessor']
@@ -101,7 +105,7 @@ module NewRelic::Agent::Configuration
     def test_should_read_license_key_from_env
       ENV['NEWRELIC_LICENSE_KEY'] = 'right'
       manager = NewRelic::Agent::Configuration::Manager.new
-      manager.apply_config({:license_key => 'wrong'}, 1)
+      manager.add_config_for_testing({:license_key => 'wrong'}, 1)
 
       assert_equal 'right', manager['license_key']
     ensure
@@ -109,10 +113,12 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_values_should_be_memoized
-      @manager.apply_config(:setting => 'correct value')
+      @manager.add_config_for_testing(:setting => 'correct value')
       assert_equal 'correct value', @manager[:setting]
 
-      @manager.config_stack.unshift(:setting => 'wrong value')
+      @manager.instance_variable_get(:@configs_for_testing).
+               unshift(:setting => 'wrong value')
+
       assert_equal 'correct value', @manager[:setting]
     end
 
@@ -122,12 +128,12 @@ module NewRelic::Agent::Configuration
     end
 
     def test_to_collector_hash
-      @manager.instance_variable_set(:@config_stack, [])
-      @manager.apply_config(:eins => Proc.new { self[:one] })
-      @manager.apply_config(:one => 1)
-      @manager.apply_config(:two => 2)
-      @manager.apply_config(:nested => {:madness => 'test'})
-      @manager.apply_config(:'nested.madness' => 'test')
+      @manager.delete_all_configs_for_testing
+      @manager.add_config_for_testing(:eins => Proc.new { self[:one] })
+      @manager.add_config_for_testing(:one => 1)
+      @manager.add_config_for_testing(:two => 2)
+      @manager.add_config_for_testing(:nested => {:madness => 'test'})
+      @manager.add_config_for_testing(:'nested.madness' => 'test')
 
       assert_equal({ :eins => 1, :one => 1, :two => 2, :'nested.madness' => 'test' },
                    @manager.to_collector_hash)
@@ -135,8 +141,8 @@ module NewRelic::Agent::Configuration
 
     # Necessary to keep the pruby marshaller happy
     def test_to_collector_hash_returns_bare_hash
-      @manager.instance_variable_set(:@config_stack, [])
-      @manager.apply_config(:eins => Proc.new { self[:one] })
+      @manager.delete_all_configs_for_testing
+      @manager.add_config_for_testing(:eins => Proc.new { self[:one] })
 
       assert_equal(::Hash, @manager.to_collector_hash.class)
     end
@@ -144,7 +150,7 @@ module NewRelic::Agent::Configuration
     def test_config_masks
       NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { true }
 
-      @manager.apply_config(:boo => 1)
+      @manager.add_config_for_testing(:boo => 1)
 
       assert_equal false, @manager.to_collector_hash.has_key?(:boo)
     end
@@ -152,7 +158,7 @@ module NewRelic::Agent::Configuration
     def test_config_masks_conditionally
       NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { false }
 
-      @manager.apply_config(:boo => 1)
+      @manager.add_config_for_testing(:boo => 1)
 
       assert @manager.to_collector_hash.has_key?(:boo)
     end
@@ -170,54 +176,53 @@ module NewRelic::Agent::Configuration
 
     def test_replacing_a_layer_by_class
       old_config = NewRelic::Agent::Configuration::ManualSource.new(:test => 'wrong')
-      @manager.apply_config(old_config, 1)
+      @manager.replace_or_add_config(old_config)
       new_config = NewRelic::Agent::Configuration::ManualSource.new(:test => 'right')
       @manager.replace_or_add_config(new_config)
 
       assert_equal 'right', @manager[:test]
-      assert_equal 3, @manager.config_stack.size
-      assert_equal 1, @manager.config_stack.map{|s| s.class} \
-        .index(NewRelic::Agent::Configuration::ManualSource)
+      assert_equal 3, @manager.num_configs_for_testing
     end
 
     def test_registering_a_callback
       observed_value = 'old'
-      @manager.apply_config(:test => 'original')
+      @manager.add_config_for_testing(:test => 'original')
 
       @manager.register_callback(:test) do |value|
         observed_value = value
       end
       assert_equal 'original', observed_value
 
-      @manager.apply_config(:test => 'new')
+      @manager.add_config_for_testing(:test => 'new')
       assert_equal 'new', observed_value
     end
 
     def test_callback_not_called_if_no_change
-      @manager.apply_config(:test => true, :other => false)
+      state = nil
+      @manager.add_config_for_testing(:test => true, :other => false)
       @manager.register_callback(:test) do |value|
         state = 'wrong'
       end
       state = 'right'
       config = {:test => true}
-      @manager.apply_config(config)
+      @manager.add_config_for_testing(config)
       @manager.remove_config(config)
 
       assert_equal 'right', state
     end
 
     def test_finished_configuring
-      @manager.apply_config(:layer => "yo")
+      @manager.add_config_for_testing(:layer => "yo")
       assert_equal false, @manager.finished_configuring?
 
-      @manager.apply_config(ServerSource.new({}))
+      @manager.replace_or_add_config(ServerSource.new({}))
       assert_equal true, @manager.finished_configuring?
     end
 
     def test_notifies_finished_configuring
       called = false
       NewRelic::Agent.instance.events.subscribe(:finished_configuring) { called = true }
-      @manager.apply_config(ServerSource.new({}))
+      @manager.replace_or_add_config(ServerSource.new({}))
 
       assert_equal true, called
     end
@@ -226,27 +231,27 @@ module NewRelic::Agent::Configuration
       called = false
       NewRelic::Agent.instance.events.subscribe(:finished_configuring) { called = true }
 
-      @manager.apply_config(:fake => "config")
-      @manager.apply_config(ManualSource.new(:manual => true))
-      @manager.apply_config(YamlSource.new("", "test"))
+      @manager.add_config_for_testing(:fake => "config")
+      @manager.replace_or_add_config(ManualSource.new(:manual => true))
+      @manager.replace_or_add_config(YamlSource.new("", "test"))
 
       assert_equal false, called
     end
 
     def test_high_security_enables_strip_exception_messages
-      @manager.apply_config(:high_security => true)
+      @manager.add_config_for_testing(:high_security => true)
 
       assert_truthy @manager[:'strip_exception_messages.enabled']
     end
 
     def test_stripped_exceptions_whitelist_contains_only_valid_exception_classes
-      @manager.apply_config(:'strip_exception_messages.whitelist' => 'LocalJumpError, NonExistentException')
+      @manager.add_config_for_testing(:'strip_exception_messages.whitelist' => 'LocalJumpError, NonExistentException')
       assert_equal [LocalJumpError], @manager.stripped_exceptions_whitelist
     end
 
     def test_should_log_when_applying
       log = with_array_logger(:debug) do
-        @manager.apply_config(:test => "asdf")
+        @manager.add_config_for_testing(:test => "asdf")
       end
 
       log_lines = log.array
@@ -255,7 +260,7 @@ module NewRelic::Agent::Configuration
 
     def test_should_log_when_removing
       config = { :test => "asdf" }
-      @manager.apply_config(config)
+      @manager.add_config_for_testing(config)
 
       log = with_array_logger(:debug) do
         @manager.remove_config(config)
@@ -265,18 +270,12 @@ module NewRelic::Agent::Configuration
       refute_match(/DEBUG.*asdf/, log_lines[0])
     end
 
-    def test_config_stack_index_for
-      assert_equal 0, @manager.config_stack_index_for(EnvironmentSource)
-      assert_equal 1, @manager.config_stack_index_for(DefaultSource)
-      assert_equal nil, @manager.config_stack_index_for(ManualSource)
-      assert_equal nil, @manager.config_stack_index_for(ServerSource)
-      assert_equal nil, @manager.config_stack_index_for(YamlSource)
-    end
-
-    class TestSource < ::Hash
-      def test_config_accessor
-        'some value'
-      end
+    def test_config_is_correctly_initialized
+      assert @manager.config_classes_for_testing.include?(EnvironmentSource)
+      assert @manager.config_classes_for_testing.include?(DefaultSource)
+      refute @manager.config_classes_for_testing.include?(ManualSource)
+      refute @manager.config_classes_for_testing.include?(ServerSource)
+      refute @manager.config_classes_for_testing.include?(YamlSource)
     end
   end
 end

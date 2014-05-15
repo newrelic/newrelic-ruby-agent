@@ -26,7 +26,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
     @test_config = { :developer_mode => true }
     NewRelic::Agent.reset_config
-    NewRelic::Agent.config.apply_config(@test_config)
+    NewRelic::Agent.config.add_config_for_testing(@test_config)
   end
 
   def teardown
@@ -190,7 +190,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_connect_gets_config
     NewRelic::Agent.manual_start
-    NewRelic::Agent::Agent.instance.service = default_service(
+    NewRelic::Agent.instance.service = default_service(
       :connect => {'agent_run_id' => 23, 'config' => 'a lot'})
 
     response = NewRelic::Agent.agent.connect_to_server
@@ -268,20 +268,13 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     finish_setup(:boo => "boo")
     finish_setup(:hoo => true)
 
-    assert_equal 1, server_layers.length
-
     assert NewRelic::Agent.config[:hoo]
     assert_nil NewRelic::Agent.config[:boo]
   end
 
-  def server_layers
-    stack = NewRelic::Agent.config.config_stack
-    stack.select{|layer| layer.class == NewRelic::Agent::Configuration::ServerSource}
-  end
-
   def test_logging_collector_messages
     NewRelic::Agent.manual_start
-    NewRelic::Agent::Agent.instance.service = default_service(
+    NewRelic::Agent.instance.service = default_service(
       :connect => {
         'messages' => [{ 'message' => 'beep boop', 'level' => 'INFO' },
                        { 'message' => 'ha cha cha', 'level' => 'WARN' }]

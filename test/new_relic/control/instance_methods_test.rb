@@ -17,14 +17,14 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
   end
 
   def test_configure_agent_adds_the_yaml_config
-    refute NewRelic::Agent.config.config_stack_index_for NewRelic::Agent::Configuration::YamlSource
+    refute NewRelic::Agent.config.config_classes_for_testing.include? NewRelic::Agent::Configuration::YamlSource
     @test.configure_agent('test', {})
-    assert NewRelic::Agent.config.config_stack_index_for NewRelic::Agent::Configuration::YamlSource
+    assert NewRelic::Agent.config.config_classes_for_testing.include? NewRelic::Agent::Configuration::YamlSource
   end
 
   def test_configure_agent_adds_the_manual_config
-    refute NewRelic::Agent.config.config_stack_index_for NewRelic::Agent::Configuration::ManualSource
+    refute NewRelic::Agent.config.config_classes_for_testing.include? NewRelic::Agent::Configuration::ManualSource
     @test.configure_agent('test', {})
-    assert NewRelic::Agent.config.config_stack_index_for NewRelic::Agent::Configuration::ManualSource
+    assert NewRelic::Agent.config.config_classes_for_testing.include? NewRelic::Agent::Configuration::ManualSource
   end
 end

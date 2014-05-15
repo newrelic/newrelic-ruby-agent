@@ -18,7 +18,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
       :license_key            => "\0",  # no-op obfuscation key
       :'rum.enabled'          => true
     }
-    NewRelic::Agent.config.apply_config(@config)
+    NewRelic::Agent.config.add_config_for_testing(@config)
 
     events = stub(:subscribe => nil)
     @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(events)
@@ -30,7 +30,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def teardown
     NewRelic::Agent::TransactionState.clear
-    NewRelic::Agent.config.remove_config(@config)
+    NewRelic::Agent.config.reset_to_defaults
   end
 
   def test_js_errors_beta_default_gets_default_loader

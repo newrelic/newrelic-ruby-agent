@@ -33,19 +33,19 @@ module NewRelic::Agent
       NewRelic::Agent.instance.events.clear
       @response = {}
 
-      @monitor = NewRelic::Agent::CrossAppMonitor.new()
+      @monitor = NewRelic::Agent::CrossAppMonitor.new
       @config = {
-        :cross_process_id => AGENT_CROSS_APP_ID,
-        :encoding_key => ENCODING_KEY_NOOP,
+        :cross_process_id    => AGENT_CROSS_APP_ID,
+        :encoding_key        => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS
       }
 
-      NewRelic::Agent.config.apply_config( @config )
+      NewRelic::Agent.config.add_config_for_testing(@config)
       @monitor.on_finished_configuring
     end
 
     def teardown
-      NewRelic::Agent.config.remove_config( @config )
+      NewRelic::Agent.config.remove_config(@config)
       NewRelic::Agent.instance.events.clear
     end
 

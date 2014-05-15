@@ -17,11 +17,11 @@ module NewRelic
         @agent.stubs(:start_worker_thread)
 
         @config = { :license_key => "a" * 40 }
-        NewRelic::Agent.config.apply_config(@config)
+        NewRelic::Agent.config.add_config_for_testing(@config)
       end
 
       def teardown
-        NewRelic::Agent.config.remove_config(@config)
+        NewRelic::Agent.config.reset_to_defaults
       end
 
       def test_after_fork_reporting_to_channel
@@ -545,19 +545,18 @@ module NewRelic
 
       def test_revert_to_default_configuration_removes_manual_and_server_source
         manual_source = NewRelic::Agent::Configuration::ManualSource.new(:manual => "source")
-        Agent.config.apply_config(manual_source)
+        Agent.config.replace_or_add_config(manual_source)
 
         server_config = NewRelic::Agent::Configuration::ServerSource.new({})
-        Agent.config.apply_config(server_config, 1)
+        Agent.config.replace_or_add_config(server_config)
 
-        config_classes = NewRelic::Agent.config.config_stack.map(&:class)
-
+        config_classes = NewRelic::Agent.config.config_classes_for_testing
         assert_includes config_classes, NewRelic::Agent::Configuration::ManualSource
         assert_includes config_classes, NewRelic::Agent::Configuration::ServerSource
 
         @agent.revert_to_default_configuration
 
-        config_classes = NewRelic::Agent.config.config_stack.map(&:class)
+        config_classes = NewRelic::Agent.config.config_classes_for_testing
         assert !config_classes.include?(NewRelic::Agent::Configuration::ManualSource)
         assert !config_classes.include?(NewRelic::Agent::Configuration::ServerSource)
       end

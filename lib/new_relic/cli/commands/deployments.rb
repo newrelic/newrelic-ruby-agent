@@ -43,7 +43,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
 
   def load_yaml_from_env(env)
     yaml = NewRelic::Agent::Configuration::YamlSource.new(NewRelic::Agent.config[:config_path], env)
-    NewRelic::Agent.config.replace_or_add_config(yaml, 1)
+    NewRelic::Agent.config.replace_or_add_config(yaml)
   end
 
   def setup_logging(env)

@@ -12,7 +12,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
   def setup
     @test_config = { :developer_mode => true }
     NewRelic::Agent.agent.drop_buffered_data
-    NewRelic::Agent.config.apply_config(@test_config)
+    NewRelic::Agent.config.add_config_for_testing(@test_config)
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     NewRelic::Agent.manual_start
     NewRelic::Agent::TransactionState.clear

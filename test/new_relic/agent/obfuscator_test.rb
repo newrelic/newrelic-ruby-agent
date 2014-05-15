@@ -12,7 +12,7 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
 
   def setup
     @config = { :license_key => OBFUSCATION_KEY }
-    NewRelic::Agent.config.apply_config(@config)
+    NewRelic::Agent.config.add_config_for_testing(@config)
   end
 
   def teardown

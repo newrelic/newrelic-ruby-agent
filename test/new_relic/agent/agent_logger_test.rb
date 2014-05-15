@@ -25,10 +25,16 @@ class AgentLoggerTest < Minitest::Test
   LEVELS = [:fatal, :error, :warn, :info, :debug]
 
   def setup
-    NewRelic::Agent.config.apply_config(:log_file_path => "log/",
-                                        :log_file_name => "testlog.log",
-                                        :log_level => :info)
+    NewRelic::Agent.config.add_config_for_testing(
+      :log_file_path => "log/",
+      :log_file_name => "testlog.log",
+      :log_level     => :info)
   end
+
+  def teardown
+    NewRelic::Agent.config.reset_to_defaults
+  end
+
 
   #
   # Tests
@@ -100,7 +106,7 @@ class AgentLoggerTest < Minitest::Test
   def test_does_not_touch_dev_null
     Logger.expects(:new).with('/dev/null').never
     with_config(:agent_enabled => false) do
-      logger = NewRelic::Agent::AgentLogger.new
+      NewRelic::Agent::AgentLogger.new
     end
   end
 
@@ -120,7 +126,7 @@ class AgentLoggerTest < Minitest::Test
       override_logger = Logger.new( $stderr )
       override_logger.level = Logger::FATAL
 
-      logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+      NewRelic::Agent::AgentLogger.new("", override_logger)
 
       assert_equal Logger::DEBUG, override_logger.level
     end
@@ -156,7 +162,7 @@ class AgentLoggerTest < Minitest::Test
       ::NewRelic::Agent::StartupLogger.instance.send(level, "boo!")
     end
 
-    logger = create_basic_logger
+    create_basic_logger
 
     assert_logged(/FATAL/,
                   /ERROR/,

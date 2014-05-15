@@ -9,7 +9,7 @@ require 'new_relic/agent/internal_agent_error'
 class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def setup
     @test_config = { :capture_params => true }
-    NewRelic::Agent.config.apply_config(@test_config)
+    NewRelic::Agent.config.add_config_for_testing(@test_config)
 
     @error_collector = NewRelic::Agent::ErrorCollector.new
     @error_collector.stubs(:enabled).returns(true)
@@ -21,7 +21,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def teardown
     super
     NewRelic::Agent::TransactionState.clear
-    NewRelic::Agent.config.remove_config(@test_config)
+    NewRelic::Agent.config.reset_to_defaults
   end
 
   # Helpers for DataContainerTests
@@ -175,7 +175,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def test_exclude_later_config_changes
     @error_collector.notice_error(IOError.new("message"))
 
-    NewRelic::Agent.config.apply_config(:'error_collector.ignore_errors' => "IOError")
+    NewRelic::Agent.config.add_config_for_testing(:'error_collector.ignore_errors' => "IOError")
     @error_collector.notice_error(IOError.new("message"))
 
     errors = @error_collector.harvest!
