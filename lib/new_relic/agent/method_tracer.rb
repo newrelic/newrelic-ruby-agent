@@ -161,7 +161,7 @@ module NewRelic
         def metrics_for_current_transaction(first_name, other_names, options)
           # The default value for :scoped_metric is true, so set it as true
           # if it was unset.
-          options[:scoped_metric] = true if options[:scoped_metric].nil?
+          record_scoped_metric = options.has_key?(:scoped_metric) ? options[:scoped_metric] : true
 
           metrics = []
 
@@ -173,7 +173,7 @@ module NewRelic
             if !options[:scoped_metric_only]
               metrics << NewRelic::MetricSpec.new(first_name)
             end
-            if NewRelic::Agent::Transaction.in_transaction? && options[:scoped_metric]
+            if NewRelic::Agent::Transaction.in_transaction? && record_scoped_metric
               metrics << NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
             end
           end

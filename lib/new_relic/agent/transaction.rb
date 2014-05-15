@@ -16,6 +16,8 @@ module NewRelic
       # for nested transactions
       SUBTRANSACTION_PREFIX = 'Nested/'.freeze
       CONTROLLER_PREFIX     = 'Controller/'.freeze
+      NESTED_TRACE_START_OPTIONS  = { :deduct_call_time_from_parent => true }.freeze
+      NESTED_TRACE_STOP_OPTIONS   = { :metric => true }.freeze
 
       WEB_TRANSACTION_TYPES = [:controller, :uri, :rack, :sinatra].freeze
 
@@ -95,7 +97,7 @@ module NewRelic
         txn = current
 
         if txn
-          _, nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header({:deduct_call_time_from_parent => true}, Time.now.to_f)
+          _, nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(NESTED_TRACE_START_OPTIONS, Time.now.to_f)
           nested_frame.name = options[:transaction_name]
           nested_frame.type = transaction_type
           txn.frame_stack << nested_frame
@@ -134,7 +136,7 @@ module NewRelic
             nested_transaction_name(nested_frame.name),
             EMPTY,
             nested_frame,
-            {:metric => true},
+            NESTED_TRACE_STOP_OPTIONS,
             end_time.to_f)
         end
 
