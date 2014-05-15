@@ -97,7 +97,9 @@ module NewRelic
         txn = current
 
         if txn
-          txn.filtered_params = options[:filtered_params]
+          if options[:filtered_params] && !options[:filtered_params].empty?
+            txn.filtered_params = options[:filtered_params]
+          end
 
           _, nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(Time.now.to_f)
           nested_frame.name = options[:transaction_name]
@@ -490,13 +492,20 @@ module NewRelic
       end
 
       # Do not call this.  Invoke the class method instead.
-      def notice_error(e, options={}) # :nodoc:
+      def notice_error(error, options={}) # :nodoc:
         options[:referer] = referer if referer
-        options[:request_params] = filtered_params if filtered_params
+
+        if filtered_params && !filtered_params.empty?
+          options[:request_params] = filtered_params
+        end
+
         options[:uri] = uri if uri
         options.merge!(custom_parameters)
-        if !@exceptions.keys.include?(e)
-          @exceptions[e] = options
+
+        if @exceptions.keys.include?(error)
+          @exceptions[error].merge! options
+        else
+          @exceptions[error] = options
         end
       end
 
