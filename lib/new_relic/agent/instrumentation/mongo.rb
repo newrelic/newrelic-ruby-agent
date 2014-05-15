@@ -6,15 +6,7 @@ DependencyDetection.defer do
   named :mongo
 
   depends_on do
-    if defined?(::Mongo) && defined?(::Mongo::Logging)
-      true
-    else
-      if defined?(::Mongo)
-        NewRelic::Agent.logger.info 'Mongo instrumentation requires Mongo::Logging'
-      end
-
-      false
-    end
+    defined?(::Mongo)
   end
 
   depends_on do
@@ -31,12 +23,12 @@ DependencyDetection.defer do
     require 'new_relic/agent/datastores/mongo/metric_generator'
     require 'new_relic/agent/datastores/mongo/statement_formatter'
 
-    instrument_via_mongo_logging
+    hook_instrument_methods
     instrument_save
     instrument_ensure_index
   end
 
-  def instrument_via_mongo_logging
+  def hook_instrument_methods
     hook_instrument_method(::Mongo::Collection)
     hook_instrument_method(::Mongo::Connection)
     hook_instrument_method(::Mongo::Cursor)
