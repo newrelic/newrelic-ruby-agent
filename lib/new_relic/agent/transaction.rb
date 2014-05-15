@@ -108,6 +108,8 @@ module NewRelic
         txn
       end
 
+      EMPTY = [].freeze
+
       def self.stop(end_time=Time.now)
         txn = current
 
@@ -130,7 +132,7 @@ module NewRelic
           NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
             nested_frame.start_time.to_f,
             nested_transaction_name(nested_frame.name),
-            [],
+            EMPTY,
             nested_frame,
             {:metric => true},
             end_time.to_f)
