@@ -37,9 +37,7 @@ module NewRelic
       def initialize
         # FIXME: temporary work around for RUBY-839
         # This should be handled with a configuration callback
-        if Agent.config[:monitor_mode]
-          @service = NewRelic::Agent::NewRelicService.new
-        end
+        start_service_if_needed
 
         @events                = NewRelic::Agent::EventListener.new
         @stats_engine          = NewRelic::Agent::StatsEngine.new
@@ -382,6 +380,12 @@ module NewRelic
                   shutdown
                 end
               end
+            end
+          end
+
+          def start_service_if_needed
+            if Agent.config[:monitor_mode] && !@service
+              @service = NewRelic::Agent::NewRelicService.new
             end
           end
 
