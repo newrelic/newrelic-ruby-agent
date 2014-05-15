@@ -5,12 +5,11 @@
 module NewRelic
   module Agent
     class TracedMethodFrame
-      attr_reader :deduct_call_time_from_parent, :tag
+      attr_reader :tag
       attr_accessor :name, :start_time, :children_time, :type
-      def initialize(tag, start_time, deduct_call_time)
+      def initialize(tag, start_time)
         @tag = tag
         @start_time = start_time
-        @deduct_call_time_from_parent = deduct_call_time
         @children_time = 0
       end
     end
@@ -24,9 +23,9 @@ module NewRelic
         @stack = []
       end
 
-      def self.push_frame(tag, time = Time.now.to_f, deduct_call_time_from_parent = true)
+      def self.push_frame(tag, time = Time.now.to_f)
         stack = NewRelic::Agent::TransactionState.get.traced_method_stack
-        stack.push_frame(tag, time, deduct_call_time_from_parent)
+        stack.push_frame(tag, time)
       end
 
       def self.pop_frame(expected_frame, name, time=Time.now.to_f)
@@ -41,9 +40,9 @@ module NewRelic
       #
       # +tag+ should be a Symbol, and is only for debugging purposes to
       # identify this frame if the stack gets corrupted.
-      def push_frame(tag, time = Time.now.to_f, deduct_call_time_from_parent = true)
+      def push_frame(tag, time = Time.now.to_f)
         transaction_sampler.notice_push_frame(time) if sampler_enabled?
-        frame = TracedMethodFrame.new(tag, time, deduct_call_time_from_parent)
+        frame = TracedMethodFrame.new(tag, time)
         @stack.push frame
         frame
       end
@@ -59,13 +58,8 @@ module NewRelic
         frame = @stack.pop
         fail "unbalanced pop from blame stack, got #{frame ? frame.tag : 'nil'}, expected #{expected_frame ? expected_frame.tag : 'nil'}" if frame != expected_frame
 
-        if !@stack.empty?
-          if frame.deduct_call_time_from_parent
-            @stack.last.children_time += (time - frame.start_time)
-          else
-            @stack.last.children_time += frame.children_time
-          end
-        end
+        @stack.last.children_time += (time - frame.start_time) unless @stack.empty?
+
         transaction_sampler.notice_pop_frame(name, time) if sampler_enabled?
         frame.name = name
         frame

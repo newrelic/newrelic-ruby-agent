@@ -22,7 +22,6 @@ module NewRelic
 
             def test_validate_options_defaults
               self.expects(:check_for_illegal_keys!)
-              self.expects(:set_deduct_call_time_based_on_metric).with(DEFAULT_SETTINGS)
               self.expects(:check_for_push_scope_and_metric)
               validate_options(:applejack, {})
             end
@@ -52,34 +51,6 @@ module NewRelic
               self.class.expects(:private_method_defined?).returns(false)
 
               assert !self.class.newrelic_method_exists?('test_method')
-            end
-
-            def test_set_deduct_call_time_based_on_metric_positive
-              opts = {:metric => true}
-              val = set_deduct_call_time_based_on_metric(opts)
-              assert val.is_a?(Hash)
-              assert val[:deduct_call_time_from_parent]
-            end
-
-            def test_set_deduct_call_time_based_on_metric_negative
-              opts = {:metric => false}
-              val = set_deduct_call_time_based_on_metric(opts)
-              assert val.is_a?(Hash)
-              assert !val[:deduct_call_time_from_parent]
-            end
-
-            def test_set_deduct_call_time_based_on_metric_non_nil
-              opts = {:deduct_call_time_from_parent => true, :metric => false}
-              val = set_deduct_call_time_based_on_metric(opts)
-              assert val.is_a?(Hash)
-              assert val[:deduct_call_time_from_parent]
-            end
-
-            def test_set_deduct_call_time_based_on_metric_opposite
-              opts = {:deduct_call_time_from_parent => false, :metric => true}
-              val = set_deduct_call_time_based_on_metric(opts)
-              assert val.is_a?(Hash)
-              assert !val[:deduct_call_time_from_parent]
             end
 
             def test_check_for_illegal_keys_positive
