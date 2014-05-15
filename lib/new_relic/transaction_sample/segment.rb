@@ -16,10 +16,12 @@ module NewRelic
 
       attr_accessor :metric_name
 
+      UNKNOWN_SEGMENT_NAME = '<unknown>'.freeze
+
       def initialize(timestamp, metric_name, segment_id)
         @entry_timestamp = timestamp
-        @metric_name = metric_name || '<unknown>'
-        @segment_id = segment_id || object_id
+        @metric_name     = metric_name || UNKNOWN_SEGMENT_NAME
+        @segment_id      = segment_id  || object_id
       end
 
       # sets the final timestamp on a segment to indicate the exit
