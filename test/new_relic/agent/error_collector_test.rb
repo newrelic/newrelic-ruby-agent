@@ -322,7 +322,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_blamed_metric_from_transaction
-    NewRelic::Agent::TransactionState.get.most_recent_transaction = stub(:name => "Controller/foo/bar")
+    ::NewRelic::Agent::Transaction.current = stub(:name => "Controller/foo/bar")
     assert_equal "Errors/Controller/foo/bar", @error_collector.blamed_metric_name({})
   end
 

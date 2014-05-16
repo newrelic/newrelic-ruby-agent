@@ -248,7 +248,7 @@ module NewRelic
         @ignore_enduser = false
         @exception_encountered = false
 
-        TransactionState.get.most_recent_transaction = self
+        ::NewRelic::Agent::Transaction.current = self
       end
 
       def noticed_error_ids
@@ -481,7 +481,7 @@ module NewRelic
       # If we aren't currently in a transaction, but found the remains of one
       # just finished in the TransactionState, use those custom params!
       def self.extract_finished_transaction_options(options)
-        finished_txn = NewRelic::Agent::TransactionState.get.most_recent_transaction
+        finished_txn = NewRelic::Agent::Transaction.current
         if finished_txn
           custom_params = options.fetch(:custom_params, {})
           custom_params.merge!(finished_txn.custom_parameters)

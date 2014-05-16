@@ -106,7 +106,7 @@ module NewRelic
 
       def insert_response_header(request_headers, response_headers)
         unless client_cross_app_id.nil?
-          txn = NewRelic::Agent::TransactionState.get.most_recent_transaction
+          txn = ::NewRelic::Agent::Transaction.current
           unless txn.nil?
             txn.freeze_name_and_execute_if_not_ignored do
               timings = NewRelic::Agent::TransactionState.get.timings
