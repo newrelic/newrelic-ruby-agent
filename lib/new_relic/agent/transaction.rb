@@ -14,7 +14,8 @@ module NewRelic
     class Transaction
 
       # for nested transactions
-      SUBTRANSACTION_PREFIX = 'Nested'.freeze
+      SUBTRANSACTION_PREFIX = 'Nested/'.freeze
+      CONTROLLER_PREFIX     = 'Controller/'.freeze
 
       attr_accessor :start_time  # A Time instance for the start time, never nil
       attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
@@ -141,8 +142,8 @@ module NewRelic
       end
 
       def self.nested_transaction_name(name)
-        if name =~ /^Controller\//
-          "#{SUBTRANSACTION_PREFIX}/#{name}"
+        if name.start_with?(CONTROLLER_PREFIX)
+          "#{SUBTRANSACTION_PREFIX}#{name}"
         else
           name
         end
