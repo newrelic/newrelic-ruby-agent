@@ -45,6 +45,10 @@ module NewRelic
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
+        NR_DO_NOT_TRACE_KEY   = 'do_not_trace'.freeze
+        NR_IGNORE_APDEX_KEY   = 'ignore_apdex'.freeze
+        NR_IGNORE_ENDUSER_KEY = 'ignore_enduser'.freeze
+
         # @api public
         module ClassMethods
           # Have NewRelic ignore actions in this controller.  Specify the actions as hash options
@@ -53,7 +57,7 @@ module NewRelic
           # @api public
           #
           def newrelic_ignore(specifiers={})
-            newrelic_ignore_aspect('do_not_trace', specifiers)
+            newrelic_ignore_aspect(NR_DO_NOT_TRACE_KEY, specifiers)
           end
           # Have NewRelic omit apdex measurements on the given actions.  Typically used for
           # actions that are not user facing or that skew your overall apdex measurement.
@@ -62,12 +66,12 @@ module NewRelic
           # @api public
           #
           def newrelic_ignore_apdex(specifiers={})
-            newrelic_ignore_aspect('ignore_apdex', specifiers)
+            newrelic_ignore_aspect(NR_IGNORE_APDEX_KEY, specifiers)
           end
 
           # @api public
           def newrelic_ignore_enduser(specifiers={})
-            newrelic_ignore_aspect('ignore_enduser', specifiers)
+            newrelic_ignore_aspect(NR_IGNORE_ENDUSER_KEY, specifiers)
           end
 
           def newrelic_ignore_aspect(property, specifiers={}) # :nodoc:
@@ -405,7 +409,7 @@ module NewRelic
         # or not - you may override this in your controller and supply
         # your own logic for ignoring transactions.
         def do_not_trace?
-          _is_filtered?('do_not_trace')
+          _is_filtered?(NR_DO_NOT_TRACE_KEY)
         end
 
         # overrideable method to determine whether to trace an action
@@ -413,11 +417,11 @@ module NewRelic
         # ignore things like api calls or other fast non-user-facing
         # actions
         def ignore_apdex?
-          _is_filtered?('ignore_apdex')
+          _is_filtered?(NR_IGNORE_APDEX_KEY)
         end
 
         def ignore_enduser?
-          _is_filtered?('ignore_enduser')
+          _is_filtered?(NR_IGNORE_ENDUSER_KEY)
         end
 
         private
@@ -448,7 +452,7 @@ module NewRelic
           case ignore_actions
           when nil; false
           when Hash
-            only_actions = Array(ignore_actions[:only])
+            only_actions   = Array(ignore_actions[:only])
             except_actions = Array(ignore_actions[:except])
             only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
           else
