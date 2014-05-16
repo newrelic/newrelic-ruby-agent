@@ -252,15 +252,36 @@ def find_last_transaction_segment(transaction_sample=nil)
   return last_segment
 end
 
-def find_segment_by_name(transaction_sample, name)
-  first_segment = nil
-  transaction_sample.root_segment.each_segment do |s|
-    if s.metric_name == name
-      first_segment = s
-      break
+def find_segment_with_name(transaction_sample, name)
+  transaction_sample.root_segment.each_segment do |segment|
+    if segment.metric_name == name
+      return segment
     end
   end
-  first_segment
+
+  nil
+end
+
+def find_segment_with_name_matching(transaction_sample, regex)
+  transaction_sample.root_segment.each_segment do |segment|
+    if segment.metric_name.match regex
+      return segment
+    end
+  end
+
+  nil
+end
+
+def find_all_segments_with_name_matching(transaction_sample, regex)
+  matching_segments = []
+
+  transaction_sample.root_segment.each_segment do |segment|
+    if segment.metric_name.match regex
+      matching_segments << segment
+    end
+  end
+
+  matching_segments
 end
 
 def with_config(config_hash, opts={})
