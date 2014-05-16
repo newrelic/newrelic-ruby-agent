@@ -99,12 +99,10 @@ def assert_metrics_recorded(expected)
       all_specs = NewRelic::Agent.instance.stats_engine.metric_specs.sort
       matches = all_specs.select { |spec| spec.name == expected_spec.name }
       matches.map! { |m| "  #{m.inspect}" }
+
       msg = "Did not find stats for spec #{expected_spec.inspect}."
       msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
-
-      msg += "\nAll specs in there were: [\n#{all_specs.map do |s|
-        "  #{s.name} (#{s.scope.empty? ? '<unscoped>' : s.scope})"
-      end.join(",\n")}\n]"
+      msg += "\nAll specs in there were: #{format_metric_spec_list(all_specs)}"
 
       assert(actual_stats, msg)
     end
@@ -121,17 +119,35 @@ def assert_metrics_recorded(expected)
   end
 end
 
+# Use this to assert that *only* the given set of metrics has been recorded.
+#
+# If you want to scope the search for unexpected metrics to a particular
+# namespace (e.g. metrics matching 'Controller/'), pass a Regex for the
+# :filter option. Only metrics matching the regex will be searched when looking
+# for unexpected metrics.
+#
+# If you want to *allow* unexpected metrics matching certain patterns, use
+# the :ignore_filter option. This will allow you to specify a Regex that
+# whitelists broad swathes of metric territory (e.g. 'Supportability/').
+#
 def assert_metrics_recorded_exclusive(expected, options={})
   expected = _normalize_metric_expectations(expected)
   assert_metrics_recorded(expected)
-  recorded_metrics = NewRelic::Agent.instance.stats_engine.metrics
+
+  recorded_metrics = NewRelic::Agent.instance.stats_engine.metric_specs
+
   if options[:filter]
-    recorded_metrics = recorded_metrics.select { |m| m.match(options[:filter]) }
+    recorded_metrics.select! { |m| m.name.match(options[:filter]) }
   end
-  expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s).to_s }
+  if options[:ignore_filter]
+    recorded_metrics.reject! { |m| m.name.match(options[:ignore_filter]) }
+  end
+
+  expected_metrics   = expected.keys.map { |s| metric_spec_from_specish(s) }
   unexpected_metrics = recorded_metrics.select { |m| m !~ /GC\/Transaction/ }
   unexpected_metrics -= expected_metrics
-  assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: [#{unexpected_metrics.join(', ')}]")
+
+  assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: #{format_metric_spec_list(unexpected_metrics)}")
 end
 
 def assert_metrics_not_recorded(not_expected)
@@ -143,7 +159,14 @@ def assert_metrics_not_recorded(not_expected)
       found_but_not_expected << spec
     end
   end
-  assert_equal([], found_but_not_expected, "Found unexpected metrics: [#{found_but_not_expected.join(', ')}]")
+  assert_equal([], found_but_not_expected, "Found unexpected metrics: #{format_metric_spec_list(found_but_not_expected)}")
+end
+
+def format_metric_spec_list(specs)
+  spec_strings = specs.map do |spec|
+    "#{spec.name} (#{spec.scope.empty? ? '<unscoped>' : spec.scope})"
+  end
+  "[\n  #{spec_strings.join(",\n  ")}\n]"
 end
 
 def assert_truthy(expected, msg = nil)

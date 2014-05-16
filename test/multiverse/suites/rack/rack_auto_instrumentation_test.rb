@@ -51,15 +51,18 @@ class RackAutoInstrumentationTest < Minitest::Test
 
   def test_middlewares_record_metrics
     get '/'
-    assert_metrics_recorded_exclusive([
-      "Apdex",
-      "HttpDispatcher",
-      "Apdex/Rack/MiddlewareTwo/call",
-      "Controller/Rack/MiddlewareTwo/call",
-      "Nested/Controller/Rack/MiddlewareOne/call",
-      "Nested/Controller/Rack/MiddlewareTwo/call",
-      ["Nested/Controller/Rack/MiddlewareOne/call", "Controller/Rack/MiddlewareTwo/call"],
-      ["Nested/Controller/Rack/MiddlewareTwo/call", "Controller/Rack/MiddlewareTwo/call"]
-    ])
+    assert_metrics_recorded_exclusive(
+      [
+        "Apdex",
+        "HttpDispatcher",
+        "Apdex/Rack/MiddlewareTwo/call",
+        "Controller/Rack/MiddlewareTwo/call",
+        "Nested/Controller/Rack/MiddlewareOne/call",
+        "Nested/Controller/Rack/MiddlewareTwo/call",
+        ["Nested/Controller/Rack/MiddlewareOne/call", "Controller/Rack/MiddlewareTwo/call"],
+        ["Nested/Controller/Rack/MiddlewareTwo/call", "Controller/Rack/MiddlewareTwo/call"]
+      ],
+      :ignore_filter => /^Supportability\/EnvironmentReport/
+    )
   end
 end
