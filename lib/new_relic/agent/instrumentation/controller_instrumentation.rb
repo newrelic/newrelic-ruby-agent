@@ -428,14 +428,16 @@ module NewRelic
             if txn_args.last.is_a?(Hash)
               txn_options = txn_args.pop
             end
-            available_params = txn_options[:params] || {}
+            available_params = txn_options[:params]
             txn_options[:name] ||= txn_args.first
           else
-            available_params = self.respond_to?(:params) ? self.params : {}
+            available_params = self.respond_to?(:params) && self.params
           end
 
           txn_options[:request] ||= self.request if self.respond_to? :request
-          txn_options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+          if available_params
+            txn_options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+          end
           txn_options
         end
 
