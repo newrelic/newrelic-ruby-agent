@@ -112,7 +112,8 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     def test_should_count_all_the_template_and_partial_segments
       get 'views/template_render_with_3_partial_renders'
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-      assert_equal 5, sample.count_segments, "should be a node for the controller action, the template, and 3 partials (5)"
+      segments = find_all_segments_with_name_matching(sample, ['^Nested/Controller/views', '^View'])
+      assert_equal 5, segments.length, "should be a node for the controller action, the template, and 3 partials (5)"
     end
 
     def test_should_have_3_segments_with_the_correct_metric_name

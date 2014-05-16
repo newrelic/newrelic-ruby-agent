@@ -252,6 +252,16 @@ def find_last_transaction_segment(transaction_sample=nil)
   return last_segment
 end
 
+def collect_segment_names(transaction_sample)
+  names = []
+
+  transaction_sample.root_segment.each_segment do |segment|
+    names << segment.metric_name
+  end
+
+  names
+end
+
 def find_segment_with_name(transaction_sample, name)
   transaction_sample.root_segment.each_segment do |segment|
     if segment.metric_name == name
@@ -272,12 +282,15 @@ def find_segment_with_name_matching(transaction_sample, regex)
   nil
 end
 
-def find_all_segments_with_name_matching(transaction_sample, regex)
+def find_all_segments_with_name_matching(transaction_sample, regexes)
+  regexes = [regexes].flatten
   matching_segments = []
 
   transaction_sample.root_segment.each_segment do |segment|
-    if segment.metric_name.match regex
-      matching_segments << segment
+    regexes.each do |regex|
+      if segment.metric_name.match regex
+        matching_segments << segment
+      end
     end
   end
 
