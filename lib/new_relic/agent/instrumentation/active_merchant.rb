@@ -26,7 +26,7 @@ DependencyDetection.defer do
         gateway_name = self.name.split('::').last
         [:authorize, :purchase, :credit, :void, :capture, :recurring, :store, :unstore, :update].each do |operation|
           if implemented_methods.include?(operation)
-            add_method_tracer operation, "ActiveMerchant/gateway/#{gateway_name}/#{operation}", :scoped_metric_only => true
+            add_method_tracer operation, "ActiveMerchant/gateway/#{gateway_name}/#{operation}"
             add_method_tracer operation, "ActiveMerchant/gateway/#{gateway_name}", :push_scope => false
             add_method_tracer operation, "ActiveMerchant/operation/#{operation}", :push_scope => false
           end
