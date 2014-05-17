@@ -211,52 +211,52 @@ module NewRelic
         end
 
         class TransactionNamer
+          CONTROLLER_PREFIX = 'Controller'.freeze
+          TASK_PREFIX       = 'OtherTransaction/Background'.freeze
+          RACK_PREFIX       = 'Controller/Rack'.freeze
+          URI_PREFIX        = 'Controller'.freeze
+          SINATRA_PREFIX    = 'Controller/Sinatra'.freeze
+
+          def self.name(traced_obj, options={})
+            "#{category_name(options[:category])}/#{path_name(traced_obj, options)}"
+          end
+
           def self.category_name(type = nil)
             type ||= Transaction.current && Transaction.current.type
             case type
-            when :controller, nil then 'Controller'
-            when :task then 'OtherTransaction/Background'
-            when :rack then 'Controller/Rack'
-            when :uri then 'Controller'
-            when :sinatra then 'Controller/Sinatra'
-              # for internal use only
-            else type.to_s
+            when :controller, nil then CONTROLLER_PREFIX
+            when :task            then TASK_PREFIX
+            when :rack            then RACK_PREFIX
+            when :uri             then URI_PREFIX
+            when :sinatra         then SINATRA_PREFIX
+            else type.to_s # for internal use only
             end
           end
 
-          def initialize(traced_obj)
-            @traced_obj = traced_obj
-            if (@traced_obj.is_a?(Class) || @traced_obj.is_a?(Module))
-              @traced_class_name = @traced_obj.name
-            else
-              @traced_class_name = @traced_obj.class.name
-            end
-          end
+          def self.path_name(traced_obj, options={})
+            return options[:path] if options[:path]
 
-          def name(options={})
-            name = "#{self.class.category_name(options[:category])}/#{path_name(options)}"
-          end
-
-          def path_name(options={})
-            # if we have the path, use the path
-            path = options[:path]
-
-            class_name = options[:class_name] || @traced_class_name
-
-            # if we have an explicit action name option, use that
+            class_name = class_name(traced_obj, options)
             if options[:name]
-              path ||= [ class_name, options[:name] ].compact.join('/')
+              if class_name
+                "#{class_name}/#{options[:name]}"
+              else
+                options[:name]
+              end
+            elsif traced_obj.respond_to?(:newrelic_metric_path)
+              traced_obj.newrelic_metric_path
+            else
+              class_name
             end
+          end
 
-            # if newrelic_metric_path() is defined, use that
-            if @traced_obj.respond_to?(:newrelic_metric_path)
-              path ||= @traced_obj.newrelic_metric_path
+          def self.class_name(traced_obj, options={})
+            return options[:class_name] if options[:class_name]
+            if (traced_obj.is_a?(Class) || traced_obj.is_a?(Module))
+              traced_obj.name
+            else
+              traced_obj.class.name
             end
-
-            # fall back on just the traced class name
-            path ||= class_name
-
-            return path
           end
         end
 
@@ -338,18 +338,17 @@ module NewRelic
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
           if !block_given? && do_not_trace?
-            # Also ignore all instrumentation in the call sequence
             NewRelic::Agent.disable_all_tracing do
               return perform_action_without_newrelic_trace(*args)
             end
           end
 
+          return yield unless NewRelic::Agent.is_execution_traced?
+
           # If a block was passed in, then the arguments represent options for
           # the instrumentation, not app method arguments.
           txn_options = create_transaction_options(block_given? ? args : [])
-          return yield unless NewRelic::Agent.is_execution_traced?
-
-          txn_options[:transaction_name] = TransactionNamer.new(self).name(txn_options)
+          txn_options[:transaction_name] = TransactionNamer.name(self, txn_options)
           txn_options[:apdex_start_time] = detect_queue_start_time
 
           begin
