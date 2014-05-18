@@ -60,6 +60,22 @@ module NewRelic
         }.to_json(*_)
       end
 
+      def record(value=nil, aux=nil, &blk)
+        if blk
+          yield self
+        else
+          case value
+          when Numeric
+            aux ||= value
+            self.record_data_point(value, aux)
+          when :apdex_s, :apdex_t, :apdex_f
+            self.record_apdex(value, aux)
+          when NewRelic::Agent::Stats
+            self.merge!(value)
+          end
+        end
+      end
+
       # record a single data point into the statistical gatherer.  The gatherer
       # will aggregate all data points collected over a specified period and upload
       # its data to the NewRelic server
