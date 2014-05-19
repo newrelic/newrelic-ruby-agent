@@ -33,15 +33,13 @@ module NewRelic
         stats.merge!(other_stats)
       end
 
-      def merge!(other_stats)
-        Array(other_stats).each do |other|
-          @min_call_time = other.min_call_time if min_time_less?(other)
-          @max_call_time = other.max_call_time if other.max_call_time > max_call_time
-          @total_call_time      += other.total_call_time
-          @total_exclusive_time += other.total_exclusive_time
-          @sum_of_squares       += other.sum_of_squares
-          @call_count += other.call_count
-        end
+      def merge!(other)
+        @min_call_time = other.min_call_time if min_time_less?(other)
+        @max_call_time = other.max_call_time if other.max_call_time > max_call_time
+        @total_call_time      += other.total_call_time
+        @total_exclusive_time += other.total_exclusive_time
+        @sum_of_squares       += other.sum_of_squares
+        @call_count += other.call_count
         self
       end
 
