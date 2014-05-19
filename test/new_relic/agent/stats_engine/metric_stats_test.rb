@@ -234,35 +234,6 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     assert_equal 1, @engine.lookup_stats('foo').call_count
   end
 
-  def test_record_supportability_metric_timed_records_duration_of_block
-    freeze_time
-    2.times do
-      @engine.record_supportability_metric_timed('foo/bar') { advance_time(2.0) }
-    end
-
-    assert_metrics_recorded(['Supportability/foo/bar'] => {
-      :call_count => 2,
-      :total_call_time => 4.0
-    })
-  end
-
-  def test_record_supportability_metric_timed_does_not_break_when_block_raises
-    begin
-      freeze_time
-      @engine.record_supportability_metric_timed('foo/bar') do
-        advance_time(2.0)
-        1 / 0
-      end
-    rescue ZeroDivisionError
-      nil
-    end
-
-    assert_metrics_recorded(['Supportability/foo/bar'] => {
-      :call_count => 1,
-      :total_call_time => 2.0
-    })
-  end
-
   def test_record_supportability_metric_count_records_counts_only
     @engine.record_supportability_metric_count('foo/bar', 1)
     @engine.record_supportability_metric_count('foo/bar', 42)
