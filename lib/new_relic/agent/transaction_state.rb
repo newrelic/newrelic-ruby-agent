@@ -11,6 +11,7 @@ module NewRelic
     # This is THE location to store thread local information during a transaction
     # Need a new piece of data? Add a method here, NOT a new thread local variable.
     class TransactionState
+      attr_accessor :current_transaction
 
       def self.get
         state_for(Thread.current)

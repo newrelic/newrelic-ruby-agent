@@ -49,6 +49,10 @@ module NewRelic
         TransactionState.get.current_transaction
       end
 
+      def self.current=(transaction)
+        TransactionState.get.current_transaction = transaction
+      end
+
       def self.set_default_transaction_name(name, options = {})
         txn  = current
         name = make_transaction_name(name, options[:category])
@@ -119,6 +123,9 @@ module NewRelic
       def self.stop(end_time=Time.now)
         txn = current
 
+        $debug = true
+        require 'pry'; binding.pry if txn.nil?
+        $debug = false
         if txn.frame_stack.empty?
           txn.stop(end_time)
           TransactionState.get.current_transaction = nil
