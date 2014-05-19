@@ -11,6 +11,27 @@ module NewRelic
       module MetricStats
         SCOPE_PLACEHOLDER = '__SCOPE__'.freeze
 
+        def record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)
+          specs = coerce_to_metric_spec_array(metric_names, nil)
+          if in_transaction?
+            transaction_stats_hash.record(specs, value, aux, &blk)
+          else
+            with_stats_lock do
+              @stats_hash.record(specs, value, aux, &blk)
+            end
+          end
+        end
+
+        def record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
+          if in_transaction?
+            specs = coerce_to_metric_spec_array(scoped_metric, SCOPE_PLACEHOLDER)
+            if summary_metrics
+              specs.concat(coerce_to_metric_spec_array(summary_metrics, nil))
+            end
+            transaction_stats_hash.record(specs, value, aux, &blk)
+          end
+        end
+
         # Lookup and write to the named metric in a single call.
         #
         # This method is thead-safe, and is preferred to the lookup / modify
