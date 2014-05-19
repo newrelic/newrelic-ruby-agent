@@ -175,10 +175,9 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_trace_execution_scoped_header
-    options = {:force => false, :deduct_call_time_from_parent => false}
     self.expects(:log_errors).with(:trace_execution_scoped_header).yields
-    NewRelic::Agent::TracedMethodStack.expects(:push_frame).with(:method_tracer, 1.0, false)
-    trace_execution_scoped_header(options, 1.0)
+    NewRelic::Agent::TracedMethodStack.expects(:push_frame).with(:method_tracer, 1.0)
+    trace_execution_scoped_header(1.0)
   end
 
   def test_trace_execution_scoped_calculates_exclusive_time

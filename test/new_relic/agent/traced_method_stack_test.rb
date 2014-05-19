@@ -14,11 +14,11 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
     freeze_time
 
     in_transaction('orlando') do
-      self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { advance_time(0.1) }
+      self.class.trace_execution_scoped('disney') { advance_time(0.1) }
     end
 
     in_transaction('anaheim') do
-      self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { advance_time(0.11) }
+      self.class.trace_execution_scoped('disney') { advance_time(0.11) }
     end
 
     assert_metrics_recorded(
@@ -87,9 +87,9 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
 
   # test for when the scope stack contains an element only used for tts and not metrics
   def test_simple_tt_only_scope
-    node1 = @frame_stack.push_frame(:a, 0, true)
-    node2 = @frame_stack.push_frame(:b, 10, false)
-    node3 = @frame_stack.push_frame(:c, 20, true)
+    node1 = @frame_stack.push_frame(:a, 0,)
+    node2 = @frame_stack.push_frame(:b, 10)
+    node3 = @frame_stack.push_frame(:c, 20)
 
     @frame_stack.pop_frame(node3, "name a", 30)
     @frame_stack.pop_frame(node2, "name b", 20)
@@ -103,10 +103,10 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
   end
 
   def test_double_tt_only_scope
-    node1 = @frame_stack.push_frame(:a,  0, true)
-    node2 = @frame_stack.push_frame(:b, 10, false)
-    node3 = @frame_stack.push_frame(:c, 20, false)
-    node4 = @frame_stack.push_frame(:d, 30, true)
+    node1 = @frame_stack.push_frame(:a,  0)
+    node2 = @frame_stack.push_frame(:b, 10)
+    node3 = @frame_stack.push_frame(:c, 20)
+    node4 = @frame_stack.push_frame(:d, 30)
 
     @frame_stack.pop_frame(node4, "name d", 40)
     @frame_stack.pop_frame(node3, "name c", 30)

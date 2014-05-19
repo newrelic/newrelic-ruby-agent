@@ -149,9 +149,9 @@ module NewRelic
         # the frame so that we can check for it later, to maintain
         # sanity. If the frame stack becomes unbalanced, this
         # transaction loses meaning.
-        def trace_execution_scoped_header(options, t0=Time.now.to_f)
+        def trace_execution_scoped_header(t0=Time.now.to_f)
           frame = log_errors(:trace_execution_scoped_header) do
-            NewRelic::Agent::TracedMethodStack.push_frame(:method_tracer, t0, options[:deduct_call_time_from_parent])
+            NewRelic::Agent::TracedMethodStack.push_frame(:method_tracer, t0)
           end
           # needed in case we have an error, above, to always return
           # the start time.
@@ -221,9 +221,8 @@ module NewRelic
         return yield if first_name.nil?
 
         set_if_nil(options, :metric)
-        set_if_nil(options, :deduct_call_time_from_parent)
         additional_metrics_callback = options[:additional_metrics_callback]
-        start_time, expected_scope = trace_execution_scoped_header(options)
+        start_time, expected_scope = trace_execution_scoped_header
 
         begin
           result = yield
@@ -239,9 +238,9 @@ module NewRelic
       module ClassMethods
         # contains methods refactored out of the #add_method_tracer method
         module AddMethodTracer
-          ALLOWED_KEYS = [:force, :metric, :push_scope, :deduct_call_time_from_parent, :code_header, :code_footer].freeze
+          ALLOWED_KEYS = [:force, :metric, :push_scope, :code_header, :code_footer].freeze
 
-          DEPRECATED_KEYS = [:force, :scoped_metric_only].freeze
+          DEPRECATED_KEYS = [:force, :scoped_metric_only, :deduct_call_time_from_parent].freeze
 
           # raises an error when the
           # NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer
@@ -260,16 +259,6 @@ module NewRelic
               NewRelic::Agent.logger.warn("Deprecated options when adding method tracer to #{method_name}: "+
                 deprecated_keys.join(', '))
             end
-          end
-
-          # Sets the options for deducting call time from
-          # parents. This defaults to true if we are recording a metric, but
-          # can be overridden by the user if desired.
-          #
-          # has the effect of not allowing overlapping times, and
-          # should generally be true
-          def set_deduct_call_time_based_on_metric(options)
-            {:deduct_call_time_from_parent => !!options[:metric]}.merge(options)
           end
 
           # validity checking - add_method_tracer must receive either
@@ -292,7 +281,7 @@ module NewRelic
               raise TypeError.new("Error adding method tracer to #{method_name}: provided options must be a Hash")
             end
             check_for_illegal_keys!(method_name, options)
-            options = set_deduct_call_time_based_on_metric(DEFAULT_SETTINGS.merge(options))
+            options = DEFAULT_SETTINGS.merge(options)
             check_for_push_scope_and_metric(options)
             options
           end
@@ -379,8 +368,7 @@ module NewRelic
             "def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
               #{options[:code_header]}
               result = #{klass}.trace_execution_scoped(\"#{metric_name_code}\",
-                        :metric => #{options[:metric]},
-                        :deduct_call_time_from_parent => #{options[:deduct_call_time_from_parent]}) do
+                        :metric => #{options[:metric]}) do
                 #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
               end
               #{options[:code_footer]}
@@ -405,7 +393,7 @@ module NewRelic
 
         # Add a method tracer to the specified method.
         #
-        # === Common Options
+        # === Options
         #
         # * <tt>:push_scope => false</tt> specifies this method tracer should not
         #   keep track of the caller; it will not show up in controller breakdown
@@ -416,10 +404,6 @@ module NewRelic
         #
         # === Uncommon Options
         #
-        # * <tt>:deduct_call_time_from_parent => false</tt> indicates that the method invocation
-        #   time should never be deducted from the time reported as 'exclusive' in the
-        #   caller.  You would want to use this if you are tracing a recursive method
-        #   or a method that might be called inside another traced method.
         # * <tt>:code_header</tt> and <tt>:code_footer</tt> specify ruby code that
         #   is inserted into the tracer before and after the call.
         #
