@@ -55,7 +55,7 @@ module NewRelic
             case
             when defined?(::NewRelic::TEST) then :test
             when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
-            when defined?(::Rails)
+            when defined?(::Rails::VERSION)
               case Rails::VERSION::MAJOR
               when 0..2
                 :rails

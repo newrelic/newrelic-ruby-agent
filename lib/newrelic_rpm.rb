@@ -32,7 +32,7 @@ if defined?(Merb) && defined?(Merb::BootLoader)
       end
     end
   end
-elsif defined? Rails
+elsif defined?(Rails::VERSION)
   if Rails::VERSION::MAJOR.to_i >= 3
     module NewRelic
       class Railtie < Rails::Railtie
