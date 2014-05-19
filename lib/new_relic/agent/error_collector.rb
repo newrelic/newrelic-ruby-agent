@@ -127,7 +127,7 @@ module NewRelic
           metric_names << blamed_metric if blamed_metric
 
           stats_engine = NewRelic::Agent.agent.stats_engine
-          stats_engine.record_metrics(metric_names) do |stats|
+          stats_engine.record_unscoped_metrics(metric_names) do |stats|
             stats.increment_count
           end
         end

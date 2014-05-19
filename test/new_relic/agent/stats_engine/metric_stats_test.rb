@@ -327,67 +327,12 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     assert_equal(t0, result.harvested_at)
   end
 
-  def test_record_metrics_unscoped_metrics_only_by_default
+  def test_record_unscoped_metrics_unscoped_metrics_only
     in_transaction('scopey') do
-      @engine.record_metrics('foo', 42)
+      @engine.record_unscoped_metrics('foo', 42)
     end
     assert_metrics_recorded('foo' => { :call_count => 1, :total_call_time => 42 })
     assert_metrics_not_recorded([['foo', 'scopey']])
-  end
-
-  def test_record_metrics_records_to_scoped_metric_if_requested
-    in_transaction('scopey') do
-      @engine.record_metrics('foo', 42, :scoped => true)
-    end
-    unscoped_stats = @engine.get_stats('foo', false)
-    scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
-    assert_equal(1, unscoped_stats.call_count, 'missing unscoped metric')
-    assert_equal(1, scoped_stats.call_count, 'missing scoped metric')
-  end
-
-  def test_record_metrics_elides_scoped_metric_if_not_in_transaction
-    @engine.clear_stats
-    @engine.record_metrics('foo', 42, :scoped => true)
-    unscoped_stats = @engine.get_stats('foo', false)
-    assert_equal(1, unscoped_stats.call_count)
-    assert_equal(1, @engine.metrics.size)
-  end
-
-  def test_record_metrics_accepts_block
-    @engine.record_metrics('foo') do |stats|
-      stats.call_count = 999
-    end
-    stats = @engine.get_stats_no_scope('foo')
-    assert_equal(999, stats.call_count)
-  end
-
-  def test_record_metrics_is_thread_safe
-    threads = []
-    nthreads = 25
-    iterations = 100
-    nthreads.times do |tid|
-      threads << Thread.new do
-        iterations.times do
-          @engine.record_metrics('m1', 1)
-          @engine.record_metrics('m2', 1)
-        end
-      end
-    end
-    threads.each { |t| t.join }
-
-    stats_m1 = @engine.get_stats_no_scope('m1')
-    stats_m2 = @engine.get_stats_no_scope('m2')
-    assert_equal(nthreads * iterations, stats_m1.call_count)
-    assert_equal(nthreads * iterations, stats_m2.call_count)
-  end
-
-  def test_transaction_stats_are_tracked_separately
-    in_transaction do
-      @engine.record_metrics('foo', 1)
-      assert_nil @engine.lookup_stats('foo')
-    end
-
-    assert_equal 1, @engine.lookup_stats('foo').call_count
   end
 
   def test_record_supportability_metric_count_records_counts_only

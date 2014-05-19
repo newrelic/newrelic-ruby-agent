@@ -48,8 +48,8 @@ module NewRelic
         end
 
         def record_frontend_metrics(start_time, now=Time.now)
-          NewRelic::Agent.instance.stats_engine.record_metrics(
-            ALL_QUEUE_METRIC, (now - start_time).to_f, :scoped => true)
+          NewRelic::Agent.instance.stats_engine.record_scoped_and_unscoped_metrics(
+            ALL_QUEUE_METRIC, nil, (now - start_time).to_f)
         end
 
         def timestamp_string_from_header_value(value)

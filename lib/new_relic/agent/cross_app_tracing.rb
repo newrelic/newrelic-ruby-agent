@@ -98,8 +98,8 @@ module NewRelic
             metrics = metrics_for( request, response )
             scoped_metric = metrics.pop
 
-            stats_engine.record_metrics(metrics, duration)
-            stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
+            stats_engine.record_scoped_and_unscoped_metrics(
+              scoped_metric, metrics, duration)
 
             # If we don't have segment, something failed during start_trace so
             # the current segment isn't the HTTP call it should have been.

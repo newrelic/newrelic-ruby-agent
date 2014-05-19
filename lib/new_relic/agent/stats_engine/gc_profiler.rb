@@ -46,7 +46,7 @@ module NewRelic
         end
 
         def self.record_gc_metric(call_count, elapsed)
-          NewRelic::Agent.agent.stats_engine.record_metrics(gc_metric_specs) do |stats|
+          NewRelic::Agent.agent.stats_engine.record_scoped_and_unscoped_metrics(gc_metric_name, GC_ROLLUP) do |stats|
             stats.call_count           += call_count
             stats.total_call_time      += elapsed
             stats.total_exclusive_time += elapsed
@@ -57,23 +57,11 @@ module NewRelic
         GC_OTHER  = 'GC/Transaction/allOther'.freeze
         GC_WEB    = 'GC/Transaction/allWeb'.freeze
 
-        SCOPE_PLACEHOLDER = NewRelic::Agent::StatsEngine::MetricStats::SCOPE_PLACEHOLDER
-
-        GC_ROLLUP_SPEC       = NewRelic::MetricSpec.new(GC_ROLLUP)
-        GC_OTHER_SPEC        = NewRelic::MetricSpec.new(GC_OTHER)
-        GC_OTHER_SCOPED_SPEC = NewRelic::MetricSpec.new(GC_OTHER, SCOPE_PLACEHOLDER)
-        GC_WEB_SPEC          = NewRelic::MetricSpec.new(GC_WEB)
-        GC_WEB_SCOPED_SPEC   = NewRelic::MetricSpec.new(GC_WEB, SCOPE_PLACEHOLDER)
-
-        def self.gc_metric_specs
-          # The .dup call on the scoped MetricSpec here is necessary because
-          # metric specs with non-empty scopes will have their scopes mutated
-          # when the metrics are merged into the global stats hash, and we don't
-          # want to mutate the original MetricSpec.
+        def self.gc_metric_name
           if NewRelic::Agent::Transaction.recording_web_transaction?
-            [GC_ROLLUP_SPEC, GC_WEB_SPEC, GC_WEB_SCOPED_SPEC.dup]
+            GC_WEB
           else
-            [GC_ROLLUP_SPEC, GC_OTHER_SPEC, GC_OTHER_SCOPED_SPEC.dup]
+            GC_OTHER
           end
         end
 

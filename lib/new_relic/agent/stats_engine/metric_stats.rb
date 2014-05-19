@@ -39,28 +39,6 @@ module NewRelic
           end
         end
 
-        # Lookup and write to the named metric in a single call.
-        #
-        # This method is thead-safe, and is preferred to the lookup / modify
-        # method pairs (e.g. get_stats + record_data_point)
-        #
-        # @api private
-        def record_metrics(metric_names_or_specs, value=nil, options={}, &blk)
-          scoped = options[:scoped]
-          scope = in_transaction? ? SCOPE_PLACEHOLDER : nil
-          effective_scope = scoped && scope
-
-          specs = coerce_to_metric_spec_array(metric_names_or_specs, effective_scope)
-
-          if in_transaction?
-            transaction_stats_hash.record(specs, value, &blk)
-          else
-            with_stats_lock do
-              @stats_hash.record(specs, value, &blk)
-            end
-          end
-        end
-
         # a simple accessor for looking up a stat with no scope -
         # returns a new stats object if no stats object for that
         # metric exists yet
@@ -107,13 +85,9 @@ module NewRelic
         end
 
         # Helper method for recording supportability metrics consistently
-        def record_supportability_metric(metric, value=nil)
+        def record_supportability_metric(metric, value=nil, &blk)
           real_name = "Supportability/#{metric}"
-          if block_given?
-            record_metrics(real_name) { |stat| yield stat }
-          else
-            record_metrics(real_name, value)
-          end
+          record_unscoped_metrics(real_name, value, &blk)
         end
 
         def reset!

@@ -79,7 +79,7 @@ module NewRelic
           yield
         ensure
           duration = (Time.now - t0).to_f              # for some reason this is 3 usec faster than Time - Time
-          stat_engine.record_metrics(metric_names, duration)
+          stat_engine.record_unscoped_metrics(metric_names, duration)
         end
       end
 
