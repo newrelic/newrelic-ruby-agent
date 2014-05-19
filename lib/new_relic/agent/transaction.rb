@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/transaction_timings'
 require 'new_relic/agent/instrumentation/queue_time'
+require 'new_relic/agent/transaction_metrics'
 
 module NewRelic
   module Agent
@@ -31,7 +32,7 @@ module NewRelic
       attr_reader :database_metric_name
 
       attr_reader :guid
-      attr_reader :stats_hash
+      attr_reader :metrics
       attr_reader :gc_start_snapshot
 
       attr_reader :name_from_child
@@ -236,7 +237,7 @@ module NewRelic
         @filtered_params = options[:filtered_params] || {}
         @request = options[:request]
         @exceptions = {}
-        @stats_hash = StatsHash.new
+        @metrics = TransactionMetrics.new
         @guid = generate_guid
 
         @ignore_this_transaction = false
@@ -397,7 +398,7 @@ module NewRelic
           NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
 
           record_exceptions
-          merge_stats_hash
+          merge_metrics
 
           send_transaction_finished_event(start_time, end_time)
         end
@@ -411,7 +412,7 @@ module NewRelic
           :type             => @type,
           :start_timestamp  => start_time.to_f,
           :duration         => end_time.to_f - start_time.to_f,
-          :metrics          => @stats_hash,
+          :metrics          => @metrics,
           :custom_params    => custom_parameters
         }
         append_guid_to(payload)
@@ -438,9 +439,8 @@ module NewRelic
         NewRelic::Agent.logger.error "Underflow in transaction: #{caller.join("\n   ")}"
       end
 
-      def merge_stats_hash
-        stats_hash.resolve_scopes!(best_name)
-        NewRelic::Agent.instance.stats_engine.merge!(stats_hash)
+      def merge_metrics
+        NewRelic::Agent.instance.stats_engine.merge_transaction_metrics!(@metrics, best_name)
       end
 
       def record_exceptions
@@ -518,7 +518,7 @@ module NewRelic
         alias_method :set_user_attributes, :add_custom_parameters
       end
 
-      APDEX_METRIC_SPEC = NewRelic::MetricSpec.new('Apdex').freeze
+      APDEX_METRIC = 'Apdex'.freeze
 
       def record_apdex(end_time=Time.now)
         return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
@@ -531,9 +531,9 @@ module NewRelic
           apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
           apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
 
-          @stats_hash.record(APDEX_METRIC_SPEC, apdex_bucket_global, apdex_t)
-          txn_apdex_metric = NewRelic::MetricSpec.new(@frozen_name.gsub(/^[^\/]+\//, 'Apdex/'))
-          @stats_hash.record(txn_apdex_metric, apdex_bucket_txn, apdex_t)
+          @metrics.record_unscoped(APDEX_METRIC, apdex_bucket_global, apdex_t)
+          txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, 'Apdex/')
+          @metrics.record_unscoped(txn_apdex_metric, apdex_bucket_txn, apdex_t)
         end
       end
 

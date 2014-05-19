@@ -108,13 +108,6 @@ module NewRelic
           self[metric_spec] = stats
         end
       end
-
-      def resolve_scopes!(resolved_scope)
-        placeholder = StatsEngine::SCOPE_PLACEHOLDER.to_s
-        each_pair do |spec, stats|
-          spec.scope = resolved_scope if spec.scope == placeholder
-        end
-      end
     end
   end
 end

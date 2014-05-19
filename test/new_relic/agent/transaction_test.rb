@@ -249,7 +249,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       NewRelic::Agent.record_metric("HttpDispatcher", 2.1)
     end
 
-    assert_equal 2.1, options[NewRelic::MetricSpec.new('HttpDispatcher')].total_call_time
+    assert_equal 2.1, options['HttpDispatcher'].total_call_time
   end
 
   def test_end_fires_a_transaction_finished_event_with_custom_params

@@ -48,10 +48,10 @@ module NewRelic
         # @api private
         #
         def record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)
-          specs = coerce_to_metric_spec_array(metric_names, nil)
           if in_transaction?
-            transaction_stats_hash.record(specs, value, aux, &blk)
+            transaction_metrics.record_unscoped(metric_names, value, aux, &blk)
           else
+            specs = coerce_to_metric_spec_array(metric_names, nil)
             with_stats_lock do
               @stats_hash.record(specs, value, aux, &blk)
             end
@@ -78,16 +78,18 @@ module NewRelic
         # @api private
         #
         def record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
-          specs = []
-          if summary_metrics
-            specs.concat(coerce_to_metric_spec_array(summary_metrics, nil))
-          end
-
           if in_transaction?
-            specs.concat(coerce_to_metric_spec_array(scoped_metric, SCOPE_PLACEHOLDER))
-            transaction_stats_hash.record(specs, value, aux, &blk)
+            transaction_metrics.record_scoped(scoped_metric, value, aux, &blk)
+            transaction_metrics.record_unscoped(scoped_metric, value, aux, &blk)
+            if summary_metrics
+              transaction_metrics.record_unscoped(summary_metrics, value, aux, &blk)
+            end
           else
+            specs = []
             specs.concat(coerce_to_metric_spec_array(scoped_metric, nil))
+            if summary_metrics
+              specs.concat(coerce_to_metric_spec_array(summary_metrics, nil))
+            end
             with_stats_lock do
               @stats_hash.record(specs, value, aux, &blk)
             end
@@ -182,6 +184,12 @@ module NewRelic
           end
         end
 
+        def merge_transaction_metrics!(txn_metrics, scope)
+          with_stats_lock do
+            @stats_hash.merge_transaction_metrics!(txn_metrics, scope)
+          end
+        end
+
         def harvest!
           now = Time.now
           snapshot = reset!
@@ -235,11 +243,11 @@ module NewRelic
         end
 
         def in_transaction?
-          !!transaction_stats_hash
+          !!Transaction.current
         end
 
-        def transaction_stats_hash
-          Transaction.current && Transaction.current.stats_hash
+        def transaction_metrics
+          Transaction.current && Transaction.current.metrics
         end
       end
     end

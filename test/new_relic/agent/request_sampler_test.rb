@@ -68,11 +68,11 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
 
   def test_custom_parameters_in_event_cant_override_reserved_attributes
     with_sampler_config do
-      metrics = NewRelic::Agent::StatsHash.new()
-      metrics.record(NewRelic::MetricSpec.new('HttpDispatcher'), 0.01)
+      metrics = NewRelic::Agent::TransactionMetrics.new()
+      metrics.record_unscoped('HttpDispatcher', 0.01)
 
       generate_request('whatever',
-        :metrics => metrics,
+        :metrics       => metrics,
         :custom_params => {'type' => 'giraffe', 'duration' => 'hippo'}
       )
       txn_event = single_sample[EVENT_DATA_INDEX]
@@ -86,15 +86,15 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
   end
 
   def test_samples_on_transaction_finished_event_includes_expected_web_metrics
-    stats_hash = NewRelic::Agent::StatsHash.new
-    stats_hash.record(NewRelic::MetricSpec.new('WebFrontend/QueueTime'), 13)
-    stats_hash.record(NewRelic::MetricSpec.new('External/allWeb'), 14)
-    stats_hash.record(NewRelic::MetricSpec.new('Datastore/all'), 15)
-    stats_hash.record(NewRelic::MetricSpec.new("GC/Transaction/all"), 16)
-    stats_hash.record(NewRelic::MetricSpec.new('Memcache/allWeb'), 17)
+    txn_metrics = NewRelic::Agent::TransactionMetrics.new
+    txn_metrics.record_unscoped('WebFrontend/QueueTime', 13)
+    txn_metrics.record_unscoped('External/allWeb',       14)
+    txn_metrics.record_unscoped('Datastore/all',         15)
+    txn_metrics.record_unscoped("GC/Transaction/all",    16)
+    txn_metrics.record_unscoped('Memcache/allWeb',       17)
 
     with_sampler_config do
-      generate_request('name', :metrics => stats_hash)
+      generate_request('name', :metrics => txn_metrics)
       event_data = single_sample[EVENT_DATA_INDEX]
       assert_equal 13, event_data["queueDuration"]
       assert_equal 14, event_data["externalDuration"]
@@ -108,14 +108,14 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
   end
 
   def test_samples_on_transaction_finished_includes_expected_background_metrics
-    stats_hash = NewRelic::Agent::StatsHash.new
-    stats_hash.record(NewRelic::MetricSpec.new('External/allOther'), 12)
-    stats_hash.record(NewRelic::MetricSpec.new('Datastore/all'), 13)
-    stats_hash.record(NewRelic::MetricSpec.new("GC/Transaction/all"), 14)
-    stats_hash.record(NewRelic::MetricSpec.new('Memcache/allOther'), 15)
+    txn_metrics = NewRelic::Agent::TransactionMetrics.new
+    txn_metrics.record_unscoped('External/allOther',  12)
+    txn_metrics.record_unscoped('Datastore/all',      13)
+    txn_metrics.record_unscoped("GC/Transaction/all", 14)
+    txn_metrics.record_unscoped('Memcache/allOther',  15)
 
     with_sampler_config do
-      generate_request('name', :metrics => stats_hash)
+      generate_request('name', :metrics => txn_metrics)
 
       event_data = single_sample[EVENT_DATA_INDEX]
       assert_equal 12, event_data["externalDuration"]
