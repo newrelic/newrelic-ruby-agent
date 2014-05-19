@@ -98,7 +98,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     hash2 = NewRelic::Agent::StatsHash.new
     hash2.record(specs[0], 1)
     hash2.record(specs[1], 2)
-    hash2.record(specs[3], 3) # no scope
+    hash2.record(specs[3], 3)
 
     hash1.merge!(hash2)
 
@@ -118,6 +118,33 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
 
     hash1.merge!(hash0)
     assert_equal(t0.to_f, hash1.started_at)
+  end
+
+  def test_merge_transaction_metrics
+    specs = [
+      NewRelic::MetricSpec.new('foo'),
+      NewRelic::MetricSpec.new('bar'),
+      NewRelic::MetricSpec.new('baz'),
+      NewRelic::MetricSpec.new('baz', 'a_scope')
+    ]
+
+    hash1 = NewRelic::Agent::StatsHash.new
+    hash1.record(specs[0], 1)
+    hash1.record(specs[1], 2)
+    hash1.record(specs[2], 3)
+
+    hash2 = NewRelic::Agent::TransactionMetrics.new
+    hash2.record_unscoped(specs[0].name, 1)
+    hash2.record_unscoped(specs[1].name, 2)
+    hash2.record_scoped(specs[3].name, 3)
+
+    hash1.merge_transaction_metrics!(hash2, 'a_scope')
+
+    assert_equal(4, hash1.keys.size)
+    assert_equal(2, hash1[specs[0]].call_count)
+    assert_equal(2, hash1[specs[1]].call_count)
+    assert_equal(1, hash1[specs[2]].call_count)
+    assert_equal(1, hash1[specs[3]].call_count)
   end
 
   def test_marshal_dump
