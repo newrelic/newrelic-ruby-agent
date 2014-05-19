@@ -189,9 +189,18 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     )
   end
 
-  def test_record_scoped_and_unscoped_metrics_noop_if_not_in_txn
-    @engine.record_scoped_and_unscoped_metrics('a', nil, 20, 10)
-    assert_metrics_not_recorded('a')
+  def test_record_scoped_and_unscoped_metrics_records_unscoped_if_not_in_txn
+    @engine.record_scoped_and_unscoped_metrics('a', ['b'], 20, 10)
+
+    expected = {
+      :call_count           => 1,
+      :total_call_time      => 20,
+      :total_exclusive_time => 10
+    }
+    assert_metrics_recorded_exclusive(
+      'a' => expected,
+      'b' => expected
+    )
   end
 
   def test_get_no_scope
@@ -370,35 +379,6 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     stats_m2 = @engine.get_stats_no_scope('m2')
     assert_equal(nthreads * iterations, stats_m1.call_count)
     assert_equal(nthreads * iterations, stats_m2.call_count)
-  end
-
-  def test_record_metrics_internal_writes_to_global_stats_hash_if_no_txn
-    specs = [
-      NewRelic::MetricSpec.new('foo'),
-      NewRelic::MetricSpec.new('foo', 'scope')
-    ]
-
-    2.times { @engine.record_metrics_internal(specs, 10, 5) }
-
-    expected = { :call_count => 2, :total_call_time => 20, :total_exclusive_time => 10 }
-    assert_metrics_recorded('foo' => expected, ['foo', 'scope'] => expected)
-  end
-
-  def test_record_metrics_internal_writes_to_transaction_stats_hash_if_txn
-    specs = [
-      NewRelic::MetricSpec.new('foo'),
-      NewRelic::MetricSpec.new('foo', 'scope')
-    ]
-
-    in_transaction do
-      2.times { @engine.record_metrics_internal(specs, 10, 5) }
-      # still in the txn, so metrics should not be visible in the global stats
-      # hash yet
-      assert_metrics_not_recorded(['foo', ['foo, scope']])
-    end
-
-    expected = { :call_count => 2, :total_call_time => 20, :total_exclusive_time => 10 }
-    assert_metrics_recorded('foo' => expected, ['foo', 'scope'] => expected)
   end
 
   def test_transaction_stats_are_tracked_separately

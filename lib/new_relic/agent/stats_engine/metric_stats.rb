@@ -23,12 +23,19 @@ module NewRelic
         end
 
         def record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
+          specs = []
+          if summary_metrics
+            specs.concat(coerce_to_metric_spec_array(summary_metrics, nil))
+          end
+
           if in_transaction?
-            specs = coerce_to_metric_spec_array(scoped_metric, SCOPE_PLACEHOLDER)
-            if summary_metrics
-              specs.concat(coerce_to_metric_spec_array(summary_metrics, nil))
-            end
+            specs.concat(coerce_to_metric_spec_array(scoped_metric, SCOPE_PLACEHOLDER))
             transaction_stats_hash.record(specs, value, aux, &blk)
+          else
+            specs.concat(coerce_to_metric_spec_array(scoped_metric, nil))
+            with_stats_lock do
+              @stats_hash.record(specs, value, aux, &blk)
+            end
           end
         end
 
@@ -50,25 +57,6 @@ module NewRelic
           else
             with_stats_lock do
               @stats_hash.record(specs, value, &blk)
-            end
-          end
-        end
-
-        # Fast-path version of the #record_metrics version above, used in
-        # performance-sensitive code paths
-        #
-        # metric_specs must be an Array of MetricSpec objects
-        # value and aux are passed directly to the corresponding parameters of
-        # StatsHash#record
-        #
-        # @api private
-        def record_metrics_internal(metric_specs, value, aux)
-          tsh = transaction_stats_hash
-          if tsh
-            tsh.record(metric_specs, value, aux)
-          else
-            with_stats_lock do
-              @stats_hash.record(metric_specs, value, aux)
             end
           end
         end
