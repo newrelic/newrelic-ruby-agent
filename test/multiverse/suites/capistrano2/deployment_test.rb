@@ -6,9 +6,9 @@ require 'fake_rpm_site'
 
 class DeploymentTest < Minitest::Test
   def setup
-    @rpm_site ||= NewRelic::FakeRpmSite.new
-    @rpm_site.reset
-    @rpm_site.run
+    $rpm_site ||= NewRelic::FakeRpmSite.new
+    $rpm_site.reset
+    $rpm_site.run
   end
 
   def test_deploys_to_configured_application
@@ -23,12 +23,12 @@ class DeploymentTest < Minitest::Test
   end
 
   def assert_deployment_value(key, value)
-    assert_equal(1, @rpm_site.requests.count)
-    assert_equal(value, @rpm_site.requests.first["deployment[#{key}]"])
+    assert_equal(1, $rpm_site.requests.count)
+    assert_equal(value, $rpm_site.requests.first["deployment[#{key}]"])
   end
 
   def cap_it(options="")
-    puts "FAKE_RPM_SITE_PORT=#{@rpm_site.port} cap newrelic:notice_deployment #{options}"
-    `FAKE_RPM_SITE_PORT=#{@rpm_site.port} cap newrelic:notice_deployment #{options}`
+    puts "FAKE_RPM_SITE_PORT=#{$rpm_site.port} cap newrelic:notice_deployment #{options}"
+    `FAKE_RPM_SITE_PORT=#{$rpm_site.port} cap newrelic:notice_deployment #{options}`
   end
 end
