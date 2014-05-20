@@ -1,0 +1,14 @@
+gemfile <<-RB
+  gem 'capistrano', '~>3.2.1'
+  gem 'rack'
+RB
+
+gemfile <<-RB
+  gem 'capistrano', '~>3.1.0'
+  gem 'rack'
+RB
+
+gemfile <<-RB
+  gem 'capistrano', '~>3.0.1'
+  gem 'rack'
+RB

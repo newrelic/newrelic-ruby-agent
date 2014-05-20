@@ -171,6 +171,12 @@ analysis. To view this data, log in to http://rpm.newrelic.com.
 NOTE: You must have a valid account and license key to view this data
 online.  Refer to instructions in *Getting Started*.
 
+## Recording Deploys
+
+The Ruby Agent supports recording deployments in New Relic via a command line
+tool or Capistrano recipes. For more information on these features see
+[our deployment documentation](http://docs.newrelic.com/docs/ruby/recording-deployments-with-the-ruby-agent)
+for more information.
 
 ## Support
 
