@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 set :application, 'test'
 
 # Since Capistrano 3 doesn't allow settings direct from command-line, add any

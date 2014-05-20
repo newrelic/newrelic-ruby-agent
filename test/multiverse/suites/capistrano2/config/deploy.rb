@@ -1,3 +1,7 @@
+# encoding: utf-8
+# # This file is distributed under New Relic's license terms.
+# # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'bundler/capistrano'
 
 set :application, "new_relic_capistrano"
@@ -8,8 +12,8 @@ set :newrelic_rails_env, "development"
 
 set :scm, :none
 
-role :web, "localhost"                          # Your HTTP server, Apache/etc
-role :app, "localhost"                          # This may be the same as your `Web` server
+role :web, "localhost"
+role :app, "localhost"
 role :db,  "localhost"
 
 set :use_sudo, false
