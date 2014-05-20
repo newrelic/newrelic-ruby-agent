@@ -117,17 +117,6 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     validate s2, 1, 20, 20, 20, 10
   end
 
-  def test_merge_array
-    s1 = NewRelic::Agent::Stats.new
-    merges = []
-    merges << (NewRelic::Agent::Stats.new.trace_call 1)
-    merges << (NewRelic::Agent::Stats.new.trace_call 1)
-    merges << (NewRelic::Agent::Stats.new.trace_call 1)
-
-    s1.merge! merges
-    validate s1, 3, 3, 1, 1
-  end
-
   def test_freeze
     s1 = NewRelic::Agent::Stats.new
 
