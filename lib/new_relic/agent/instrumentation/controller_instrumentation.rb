@@ -45,9 +45,9 @@ module NewRelic
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
-        NR_DO_NOT_TRACE_KEY   = 'do_not_trace'.freeze
-        NR_IGNORE_APDEX_KEY   = 'ignore_apdex'.freeze
-        NR_IGNORE_ENDUSER_KEY = 'ignore_enduser'.freeze
+        NR_DO_NOT_TRACE_KEY   = 'do_not_trace'.freeze unless defined?(NR_DO_NOT_TRACE_KEY)
+        NR_IGNORE_APDEX_KEY   = 'ignore_apdex'.freeze unless defined?(NR_IGNORE_APDEX_KEY)
+        NR_IGNORE_ENDUSER_KEY = 'ignore_enduser'.freeze unless defined?(NR_IGNORE_ENDUSER_KEY)
 
         # @api public
         module ClassMethods
@@ -211,11 +211,11 @@ module NewRelic
         end
 
         class TransactionNamer
-          CONTROLLER_PREFIX = 'Controller'.freeze
-          TASK_PREFIX       = 'OtherTransaction/Background'.freeze
-          RACK_PREFIX       = 'Controller/Rack'.freeze
-          URI_PREFIX        = 'Controller'.freeze
-          SINATRA_PREFIX    = 'Controller/Sinatra'.freeze
+          CONTROLLER_PREFIX = 'Controller'.freeze unless defined?(CONTROLLER_PREFIX)
+          TASK_PREFIX       = 'OtherTransaction/Background'.freeze unless defined?(TASK_PREFIX)
+          RACK_PREFIX       = 'Controller/Rack'.freeze unless defined?(RACK_PREFIX)
+          URI_PREFIX        = 'Controller'.freeze unless defined?(URI_PREFIX)
+          SINATRA_PREFIX    = 'Controller/Sinatra'.freeze unless defined?(SINATRA_PREFIX)
 
           def self.name(traced_obj, options={})
             "#{category_name(options[:category])}/#{path_name(traced_obj, options)}"
