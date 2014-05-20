@@ -1,5 +1,5 @@
 ---
-production:
+development:
   error_collector:
     capture_source: true
     enabled: true
