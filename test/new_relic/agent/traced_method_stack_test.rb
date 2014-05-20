@@ -87,7 +87,7 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
 
   # test for when the scope stack contains an element only used for tts and not metrics
   def test_simple_tt_only_scope
-    node1 = @frame_stack.push_frame(:a, 0,)
+    node1 = @frame_stack.push_frame(:a, 0)
     node2 = @frame_stack.push_frame(:b, 10)
     node3 = @frame_stack.push_frame(:c, 20)
 
