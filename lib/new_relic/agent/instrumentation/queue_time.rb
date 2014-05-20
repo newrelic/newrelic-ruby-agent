@@ -17,13 +17,13 @@ module NewRelic
           # any timestamps before this are thrown out and the parser
           # will try again with a larger unit (2000/1/1 UTC)
           EARLIEST_ACCEPTABLE_TIMESTAMP = 946684800
-        end
 
-        CANDIDATE_HEADERS = [
-          REQUEST_START_HEADER,
-          QUEUE_START_HEADER,
-          MIDDLEWARE_START_HEADER
-        ].freeze
+          CANDIDATE_HEADERS = [
+            REQUEST_START_HEADER,
+            QUEUE_START_HEADER,
+            MIDDLEWARE_START_HEADER
+          ].freeze
+        end
 
         module_function
 
