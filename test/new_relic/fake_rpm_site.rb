@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'rack'
+require 'rack/request'
 require 'fake_server'
 
 module NewRelic
@@ -20,13 +21,7 @@ module NewRelic
     end
 
     def unpack(env)
-      keys_and_values = URI.decode(env.dup["rack.input"].read).split("&")
-      result = {}
-      keys_and_values.each do |key_and_value|
-        key, value = key_and_value.split("=")
-        result[key] = value
-      end
-      result
+      ::Rack::Request.new(env).params
     end
 
     def reset

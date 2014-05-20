@@ -24,7 +24,7 @@ class DeploymentTest < Minitest::Test
 
   def assert_deployment_value(key, value)
     assert_equal(1, $rpm_site.requests.count)
-    assert_equal(value, $rpm_site.requests.first["deployment[#{key}]"])
+    assert_equal(value, $rpm_site.requests.first["deployment"][key])
   end
 
   def cap_it(options="")
