@@ -106,18 +106,18 @@ module NewRelic
 
       module RackBuilder
         def to_app_with_newrelic_deferred_dependency_detection
-          @use = add_new_relic_tracing_to_middlewares(@use) if @use
+          @use = RackBuilder.add_new_relic_tracing_to_middlewares(@use) if @use
 
-          unless Rack::Builder._nr_deferred_detection_ran
+          unless ::Rack::Builder._nr_deferred_detection_ran
             NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
             DependencyDetection.detect!
-            Rack::Builder._nr_deferred_detection_ran = true
+            ::Rack::Builder._nr_deferred_detection_ran = true
           end
 
           to_app_without_newrelic
         end
 
-        def add_new_relic_tracing_to_middlewares(middleware_procs)
+        def self.add_new_relic_tracing_to_middlewares(middleware_procs)
           middleware_procs.map do |middleware_proc|
             Proc.new do |app|
               result = middleware_proc.call(app)
@@ -130,7 +130,7 @@ module NewRelic
           end
         end
 
-        def add_new_relic_tracing_to_middleware(middleware_class)
+        def self.add_new_relic_tracing_to_middleware(middleware_class)
           return if middleware_class.instance_variable_get(:@_nr_traced_flag)
           middleware_class.instance_variable_set(:@_nr_traced_flag, true)
 
