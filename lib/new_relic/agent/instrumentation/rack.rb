@@ -103,6 +103,44 @@ module NewRelic
           end
         end
       end
+
+      module RackBuilder
+        def to_app_with_newrelic_deferred_dependency_detection
+          @use = add_new_relic_tracing_to_middlewares(@use) if @use
+
+          unless Rack::Builder._nr_deferred_detection_ran
+            NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
+            DependencyDetection.detect!
+            Rack::Builder._nr_deferred_detection_ran = true
+          end
+
+          to_app_without_newrelic
+        end
+
+        def add_new_relic_tracing_to_middlewares(middleware_procs)
+          middleware_procs.map do |middleware_proc|
+            Proc.new do |app|
+              result = middleware_proc.call(app)
+
+              klass = result.class
+              add_new_relic_tracing_to_middleware(klass)
+
+              result
+            end
+          end
+        end
+
+        def add_new_relic_tracing_to_middleware(middleware_class)
+          return if middleware_class.instance_variable_get(:@_nr_traced_flag)
+          middleware_class.instance_variable_set(:@_nr_traced_flag, true)
+
+          middleware_class.instance_eval do
+            include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+            add_transaction_tracer(:call, :category => :rack, :request => '::Rack::Request.new(args.first)')
+          end
+        end
+      end
+
     end
   end
 end
@@ -125,43 +163,11 @@ DependencyDetection.defer do
       end
       self._nr_deferred_detection_ran = false
 
-      def to_app_with_newrelic_deferred_dependency_detection
-        @use = add_new_relic_tracing_to_middlewares(@use) if @use
-
-        unless Rack::Builder._nr_deferred_detection_ran
-          NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
-          DependencyDetection.detect!
-          Rack::Builder._nr_deferred_detection_ran = true
-        end
-
-        to_app_without_newrelic
-      end
-
-      def add_new_relic_tracing_to_middlewares(middlewares)
-        middlewares.map do |middleware|
-          Proc.new do |app|
-            result = middleware.call(app)
-
-            klass = result.class
-            add_new_relic_tracing_to_middleware(klass)
-
-            result
-          end
-        end
-      end
-
-      def add_new_relic_tracing_to_middleware(middleware_class)
-        return if middleware_class.instance_variable_get(:@_nr_traced_flag)
-        middleware_class.instance_variable_set(:@_nr_traced_flag, true)
-
-        middleware_class.instance_eval do
-          include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-          add_transaction_tracer(:call, :category => :rack, :request => '::Rack::Request.new(args.first)')
-        end
-      end
+      include ::NewRelic::Agent::Instrumentation::RackBuilder
 
       alias_method :to_app_without_newrelic, :to_app
       alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
     end
   end
 end
+
