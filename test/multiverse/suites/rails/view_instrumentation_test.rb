@@ -131,7 +131,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       def test_should_not_instrument_rendering_of_text
         get 'views/text_render'
         sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-        assert_equal [], sample.root_segment.called_segments.first.called_segments
+        refute find_segment_with_name(sample, 'View/text template/Rendering')
       end
     else
       def test_should_create_a_metric_for_the_rendered_text
