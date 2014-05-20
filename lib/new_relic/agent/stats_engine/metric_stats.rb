@@ -85,8 +85,7 @@ module NewRelic
               transaction_metrics.record_unscoped(summary_metrics, value, aux, &blk)
             end
           else
-            specs = []
-            specs.concat(coerce_to_metric_spec_array(scoped_metric, nil))
+            specs = coerce_to_metric_spec_array(scoped_metric, nil)
             if summary_metrics
               specs.concat(coerce_to_metric_spec_array(summary_metrics, nil))
             end
