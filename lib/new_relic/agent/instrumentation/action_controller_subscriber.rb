@@ -32,6 +32,7 @@ module NewRelic
           else
             # if this transaction is ignored, make sure child
             # transaction are also ignored
+            NewRelic::Agent::Transaction.ignore!
             NewRelic::Agent.instance.push_trace_execution_flag(false)
           end
         rescue => e
