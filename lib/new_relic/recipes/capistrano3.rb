@@ -9,7 +9,7 @@ namespace :newrelic do
   # notifies New Relic of a deployment
   desc "Record a deployment in New Relic (newrelic.com)"
   task :notice_deployment do
-    on release_roles(:app) do
+    on roles(:app) do
       rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
 
       require 'new_relic/cli/command.rb'
