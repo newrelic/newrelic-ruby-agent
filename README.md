@@ -171,20 +171,12 @@ analysis. To view this data, log in to http://rpm.newrelic.com.
 NOTE: You must have a valid account and license key to view this data
 online.  Refer to instructions in *Getting Started*.
 
-## Recording Deploys with Capistrano
+## Recording Deploys
 
-You can use the Capistrano recipe included in the Ruby Agent to record a deploy
-in New Relic. First, make sure that you have your `app_name` and `license_key`
-configured in `newrelic.yml`. Next, add the following line to the top of your
-`deploy.rb`:
-
-```ruby
-require 'new_relic/recipes'
-```
-
-Finally, in `deploy.rb`, include `after "deploy:updated", "newrelic:notice_deployment"`
-if you are using Capistrano 3 or `after "deploy:update", "newrelic:notice_deployment"`
-if you are using a an older version.
+The Ruby Agent supports recording deployments in New Relic via a command line
+tool or Capistrano recipes. For more information on these features see
+[our deployment documentation](http://docs.newrelic.com/docs/ruby/recording-deployments-with-the-ruby-agent)
+for more information.
 
 ## Support
 
