@@ -29,6 +29,7 @@ module NewRelic
           def process_action(*args)
             # skip instrumentation if we are in an ignored action
             if _is_filtered?('do_not_trace')
+              NewRelic::Agent::Transaction.ignore!
               NewRelic::Agent.disable_all_tracing do
                 return super
               end
