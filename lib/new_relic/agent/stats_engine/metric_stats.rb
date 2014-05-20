@@ -70,7 +70,7 @@ module NewRelic
         #
         # If called during a transaction, all metrics will be attached to the
         # Transaction, and not merged into the global set of metrics until the
-        # end of the transction.
+        # end of the transaction.
         #
         # If called outside of a transaction, only the *unscoped* metrics will
         # be recorded, directly into the global set of metrics (under a lock).
