@@ -46,15 +46,9 @@ namespace :newrelic do
 
       rescue NewRelic::Cli::Command::CommandFailure => e
         info e.message
-
       rescue => e
         info "Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
       end
-
-      # WIP: For rollbacks, let's update the deployment we created with an indication of the failure:
-      # on_rollback do
-      #   run(...)
-      # end
     end
   end
 
