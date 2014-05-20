@@ -104,6 +104,7 @@ module NewRelic
           if options[:filtered_params] && !options[:filtered_params].empty?
             txn.filtered_params = options[:filtered_params]
           end
+          txn.record_queue_length(options[:queue_length])
 
           _, nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(Time.now.to_f)
           nested_frame.name = options[:transaction_name]
@@ -120,12 +121,15 @@ module NewRelic
 
       EMPTY = [].freeze
 
+      def record_queue_length(queue_length)
+        return if @queue_length_recorded
+        NewRelic::Agent.record_metric('Mongrel/Queue Length', queue_length) if queue_length
+        @queue_length_recorded = true
+      end
+
       def self.stop(end_time=Time.now)
         txn = current
 
-        $debug = true
-        require 'pry'; binding.pry if txn.nil?
-        $debug = false
         if txn.frame_stack.empty?
           txn.stop(end_time)
           TransactionState.get.current_transaction = nil
@@ -325,7 +329,7 @@ module NewRelic
 
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
-      def start()
+      def start
         return if !NewRelic::Agent.is_execution_traced?
 
         transaction_sampler.on_start_transaction(start_time, uri, filtered_params)
