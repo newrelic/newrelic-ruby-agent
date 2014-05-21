@@ -125,11 +125,10 @@ class NewRelic::Agent::RequestSampler
   def self.map_metric(metric_name, to_add={})
     to_add.values.each(&:freeze)
 
-    spec = ::NewRelic::MetricSpec.new(metric_name)
-    mappings = OVERVIEW_SPECS.fetch(spec, {})
+    mappings = OVERVIEW_SPECS.fetch(metric_name, {})
     mappings.merge!(to_add)
 
-    OVERVIEW_SPECS[spec] = mappings
+    OVERVIEW_SPECS[metric_name] = mappings
   end
 
   OVERVIEW_SPECS = {}
@@ -154,12 +153,12 @@ class NewRelic::Agent::RequestSampler
   map_metric('External/allOther',     :total_call_time => "externalDuration")
   map_metric('External/allOther',     :call_count      => "externalCallCount")
 
-  def extract_metrics(stats_hash)
+  def extract_metrics(txn_metrics)
     result = {}
-    if stats_hash
-      OVERVIEW_SPECS.each do |(metric_spec, extracted_values)|
-        if stats_hash.has_key?(metric_spec)
-          stat = stats_hash[metric_spec]
+    if txn_metrics
+      OVERVIEW_SPECS.each do |(name, extracted_values)|
+        if txn_metrics.has_key?(name)
+          stat = txn_metrics[name]
           extracted_values.each do |value_name, key_name|
             result[key_name] = stat.send(value_name)
           end

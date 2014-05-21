@@ -90,6 +90,19 @@ def _normalize_metric_expectations(expectations)
   end
 end
 
+def assert_stats_has_values(stats, expected_spec, expected_attrs)
+  expected_attrs.each do |attr, expected_value|
+    actual_value = stats.send(attr)
+    if attr == :call_count
+      assert_equal(expected_value, actual_value,
+        "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}")
+    else
+      assert_in_delta(expected_value, actual_value, 0.0001,
+        "Expected #{attr} for #{expected_spec} to be ~#{expected_value}, got #{actual_value}")
+    end
+  end
+end
+
 def assert_metrics_recorded(expected)
   expected = _normalize_metric_expectations(expected)
   expected.each do |specish, expected_attrs|
@@ -106,16 +119,7 @@ def assert_metrics_recorded(expected)
 
       assert(actual_stats, msg)
     end
-    expected_attrs.each do |attr, expected_value|
-      actual_value = actual_stats.send(attr)
-      if attr == :call_count
-        assert_equal(expected_value, actual_value,
-          "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}")
-      else
-        assert_in_delta(expected_value, actual_value, 0.0001,
-          "Expected #{attr} for #{expected_spec} to be ~#{expected_value}, got #{actual_value}")
-      end
-    end
+    assert_stats_has_values(actual_stats, expected_spec, expected_attrs)
   end
 end
 
