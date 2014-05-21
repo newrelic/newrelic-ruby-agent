@@ -14,8 +14,10 @@ class AgentHooksTest < Minitest::Test
   end
 
   def test_before_call
+    NewRelic::Agent.instance.events.expects(:notify).with(:start_transaction)
     NewRelic::Agent.instance.events.expects(:notify).with(:before_call, @env)
     NewRelic::Agent.instance.events.stubs(:notify).with(:after_call, anything, anything)
+    NewRelic::Agent.instance.events.expects(:notify).with(:transaction_finished, anything)
 
     @hooks.call(@env)
   end
