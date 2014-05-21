@@ -89,6 +89,9 @@ module NewRelic::Rack
       end
 
       source
+    rescue => e
+      NewRelic::Agent.logger.debug "Skipping RUM instrumentation on exception.", e
+      nil
     end
 
     def gather_source(response)
