@@ -33,7 +33,7 @@ class AgentHooksTest < Minitest::Test
   def test_nested_agent_hooks_still_fire_only_once
     nested = NewRelic::Rack::AgentHooks.new(@hooks)
 
-    NewRelic::Agent.instance.events.expects(:notify).times(2)
+    NewRelic::Agent.instance.events.expects(:notify).times(4)
     nested.call(@env)
   end
 
