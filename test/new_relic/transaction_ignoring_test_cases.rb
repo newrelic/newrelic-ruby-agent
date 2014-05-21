@@ -8,7 +8,7 @@ module TransactionIgnoringTestCases
 
   include MultiverseHelpers
 
-  TXN_PREFIX = 'Controller/Rack/'
+  TXN_PREFIX = 'Controller/'
 
   setup_and_teardown_agent do |collector|
     collector.stub('connect', {
