@@ -105,7 +105,7 @@ class TransactionMetricsTest < Minitest::Test
       all_stats << stats
     end
 
-    assert_equal(expected_metric_names, names)
+    assert_equal(expected_metric_names.sort, names.sort)
     names.zip(all_stats).each do |(name, stats)|
       assert_stats_has_values(stats, name, expected_attrs)
     end
