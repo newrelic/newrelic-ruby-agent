@@ -53,27 +53,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     assert NewRelic::Agent.config[:'browser_monitoring.auto_instrument']
   end
 
-  def test_start_time_reset_each_request_when_auto_instrument_is_disabled
-    controller = Object.new
-    def controller.perform_action_without_newrelic_trace(method, options={});
-      # noop; instrument me
-    end
-    def controller.newrelic_metric_path; "foo"; end
-    controller.extend ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-
-    with_config(:'browser_monitoring.auto_instrument' => false) do
-      controller.perform_action_with_newrelic_trace(:index)
-      first_request_start_time = instrumentor.current_transaction.start_time
-
-      controller.perform_action_with_newrelic_trace(:index)
-      second_request_start_time = instrumentor.current_transaction.start_time
-
-      # assert that these aren't the same time object
-      # the start time should be reinitialized each request to the controller
-      assert !(first_request_start_time.equal? second_request_start_time)
-    end
-  end
-
   def test_browser_timing_header_outside_transaction
     assert_equal "", instrumentor.browser_timing_header
   end
