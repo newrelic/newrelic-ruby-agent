@@ -379,3 +379,16 @@ def with_array_logger(level=:info)
 ensure
   NewRelic::Agent.logger = orig_logger
 end
+
+def with_environment(env)
+  old_env = {}
+  env.each do |key, val|
+    old_env[key] = ENV[key]
+    ENV[key]     = val.to_s
+  end
+  begin
+    yield
+  ensure
+    old_env.each { |key, old_val| ENV[key] = old_val }
+  end
+end
