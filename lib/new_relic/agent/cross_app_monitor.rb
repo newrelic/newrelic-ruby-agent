@@ -52,11 +52,8 @@ module NewRelic
           if should_process_request(env)
             save_client_cross_app_id(env)
             save_referring_transaction_info(env)
+            set_transaction_custom_parameters
           end
-        end
-
-        events.subscribe(:start_transaction) do
-          set_transaction_custom_parameters
         end
 
         events.subscribe(:after_call) do |env, (status_code, headers, body)|
@@ -166,7 +163,7 @@ module NewRelic
       end
 
       def set_error_custom_parameters(options)
-        options[:client_cross_process_id] = client_cross_app_id() if client_cross_app_id()
+        options[:client_cross_process_id] = client_cross_app_id if client_cross_app_id
         # [MG] TODO: Should the CAT metrics be set here too?
       end
 
