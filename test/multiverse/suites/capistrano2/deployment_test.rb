@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'fake_rpm_site'
+require 'multiverse_helpers'
 
 class DeploymentTest < Minitest::Test
   def setup
@@ -28,7 +29,10 @@ class DeploymentTest < Minitest::Test
   end
 
   def cap_it(options="")
-    puts "FAKE_RPM_SITE_PORT=#{$rpm_site.port} cap newrelic:notice_deployment #{options}"
-    `FAKE_RPM_SITE_PORT=#{$rpm_site.port} cap newrelic:notice_deployment #{options}`
+    cmd = "cap newrelic:notice_deployment #{options}"
+    output = with_environment('FAKE_RPM_SITE_PORT' => $rpm_site.port.to_s) do
+      `#{cmd}`
+    end
+    assert $?.success?, "cap command '#{cmd}' failed with output: #{output}"
   end
 end
