@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/rack/agent_hooks'
 require 'new_relic/agent/transaction_state'
 require 'new_relic/agent/threading/agent_thread'
 

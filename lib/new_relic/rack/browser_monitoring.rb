@@ -4,6 +4,7 @@
 
 require 'rack'
 require 'new_relic/rack/transaction_reset'
+require 'new_relic/agent/instrumentation/rack'
 
 module NewRelic::Rack
   # This middleware is used by the agent for the Real user monitoring (RUM)
@@ -139,3 +140,4 @@ module NewRelic::Rack
   end
 
 end
+::NewRelic::Agent::Instrumentation::RackBuilder.add_new_relic_tracing_to_middleware(::NewRelic::Rack::BrowserMonitoring)

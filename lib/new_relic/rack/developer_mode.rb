@@ -9,6 +9,7 @@ require 'rack/file'
 require 'new_relic/collection_helper'
 require 'new_relic/metric_parser/metric_parser'
 require 'new_relic/rack/transaction_reset'
+require 'new_relic/agent/instrumentation/rack'
 
 module NewRelic
   module Rack
@@ -300,3 +301,4 @@ module NewRelic
     end
   end
 end
+::NewRelic::Agent::Instrumentation::RackBuilder.add_new_relic_tracing_to_middleware(::NewRelic::Rack::DeveloperMode)
