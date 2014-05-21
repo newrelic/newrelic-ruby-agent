@@ -145,6 +145,16 @@ EOL
     assert last_response.ok?
   end
 
+  def test_us_ascii
+    response = "<html><body>Jürgen</body></html>"
+    response.force_encoding(Encoding.find("US-ASCII"))
+    TestApp.next_response = Rack::Response.new(response)
+
+    get '/'
+
+    assert last_response.ok?
+  end
+
   def test_should_not_close_if_not_responded_to
     TestApp.next_response = Rack::Response.new("<html/>")
     TestApp.next_response.stubs(:respond_to?).with(:close).returns(false)
