@@ -18,6 +18,191 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     super
   end
 
+  def test_record_unscoped_metrics_records_to_transaction_stats_if_in_txn
+    in_transaction do
+      @engine.record_unscoped_metrics(['a', 'b'], 20, 10)
+
+      # txn is still active, so metrics should not be merged into global
+      # stats hash yet
+      assert_metrics_not_recorded(['a', 'b'])
+    end
+
+    expected = {
+      :call_count           => 1,
+      :total_call_time      => 20,
+      :total_exclusive_time => 10
+    }
+    assert_metrics_recorded(
+      'a' => expected,
+      'b' => expected
+    )
+  end
+
+  def test_record_unscoped_metrics_records_to_global_metrics_if_no_txn
+    @engine.record_unscoped_metrics(['a', 'b'], 20, 10)
+    expected = {
+      :call_count           => 1,
+      :total_call_time      => 20,
+      :total_exclusive_time => 10
+    }
+    assert_metrics_recorded(
+      'a' => expected,
+      'b' => expected
+    )
+  end
+
+  def test_record_unscoped_metrics_takes_single_metric_name
+    @engine.record_unscoped_metrics('a', 20)
+    assert_metrics_recorded(
+      'a' => {
+        :call_count           => 1,
+        :total_call_time      => 20,
+        :total_exclusive_time => 20
+      }
+    )
+  end
+
+  def test_record_unscoped_metrics_takes_block_in_txn
+    in_transaction('txn') do
+      @engine.record_unscoped_metrics('a') do |stat|
+        stat.total_call_time = 42
+        stat.call_count = 99
+      end
+    end
+
+    expected = { :total_call_time => 42, :call_count => 99 }
+    assert_metrics_recorded('a' => expected)
+  end
+
+  def test_record_unscoped_metrics_takes_block_outside_txn
+    @engine.record_unscoped_metrics('a') do |stat|
+      stat.total_call_time = 42
+      stat.call_count = 99
+    end
+
+    expected = { :total_call_time => 42, :call_count => 99 }
+    assert_metrics_recorded('a' => expected)
+  end
+
+  def test_record_unscoped_metrics_is_thread_safe
+    threads = []
+    nthreads = 25
+    iterations = 100
+
+    nthreads.times do |tid|
+      threads << Thread.new do
+        iterations.times do
+          @engine.record_unscoped_metrics('m1', 1)
+          @engine.record_unscoped_metrics('m2', 1)
+        end
+      end
+    end
+    threads.each { |t| t.join }
+
+    assert_metrics_recorded(
+      'm1' => { :call_count => nthreads * iterations },
+      'm2' => { :call_count => nthreads * iterations }
+    )
+  end
+
+  def test_record_scoped_and_unscoped_metrics_records_scoped_and_unscoped
+    in_transaction('txn') do
+      @engine.record_scoped_and_unscoped_metrics('a', nil, 20, 10)
+      assert_metrics_not_recorded('a')
+    end
+
+    expected = {
+      :call_count           => 1,
+      :total_call_time      => 20,
+      :total_exclusive_time => 10
+    }
+    assert_metrics_recorded(
+      'a'          => expected,
+      ['a', 'txn'] => expected
+    )
+  end
+
+  def test_record_scoped_and_unscoped_metrics_takes_block
+    in_transaction('txn') do
+      @engine.record_scoped_and_unscoped_metrics('a', ['b']) do |stat|
+        stat.total_call_time = 42
+        stat.call_count = 99
+      end
+    end
+
+    expected = { :total_call_time => 42, :call_count => 99 }
+    assert_metrics_recorded(
+      'a'          => expected,
+      ['a', 'txn'] => expected,
+      'b'          => expected
+    )
+  end
+
+  def test_record_scoped_and_unscoped_metrics_records_multiple_unscoped_metrics
+    in_transaction('txn') do
+      @engine.record_scoped_and_unscoped_metrics('a', ['b', 'c'], 20, 10)
+      assert_metrics_not_recorded(['a', 'b', 'c'])
+    end
+
+    expected = {
+      :call_count           => 1,
+      :total_call_time      => 20,
+      :total_exclusive_time => 10
+    }
+    assert_metrics_recorded(
+      'a'          => expected,
+      ['a', 'txn'] => expected,
+      'b'          => expected,
+      'c'          => expected
+    )
+    assert_metrics_not_recorded([
+      ['b', 'txn'],
+      ['c', 'txn']
+    ])
+  end
+
+  def test_record_scoped_and_unscoped_metrics_is_thread_safe
+    threads = []
+    nthreads = 25
+    iterations = 100
+
+    nthreads.times do |tid|
+      threads << Thread.new do
+        iterations.times do
+          in_transaction('txn') do
+            @engine.record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
+            @engine.record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
+          end
+        end
+      end
+    end
+    threads.each { |t| t.join }
+
+    expected = { :call_count => nthreads * iterations }
+    assert_metrics_recorded(
+      'm1'          => expected,
+      'm2'          => expected,
+      ['m1', 'txn'] => expected,
+      ['m2', 'txn'] => expected,
+      'm3'          => expected,
+      'm4'          => expected
+    )
+  end
+
+  def test_record_scoped_and_unscoped_metrics_records_unscoped_if_not_in_txn
+    @engine.record_scoped_and_unscoped_metrics('a', ['b'], 20, 10)
+
+    expected = {
+      :call_count           => 1,
+      :total_call_time      => 20,
+      :total_exclusive_time => 10
+    }
+    assert_metrics_recorded_exclusive(
+      'a' => expected,
+      'b' => expected
+    )
+  end
+
   def test_get_no_scope
     s1 = @engine.get_stats "a"
     s2 = @engine.get_stats "a"
@@ -142,125 +327,12 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     assert_equal(t0, result.harvested_at)
   end
 
-  def test_record_metrics_unscoped_metrics_only_by_default
+  def test_record_unscoped_metrics_unscoped_metrics_only
     in_transaction('scopey') do
-      @engine.record_metrics('foo', 42)
+      @engine.record_unscoped_metrics('foo', 42)
     end
     assert_metrics_recorded('foo' => { :call_count => 1, :total_call_time => 42 })
     assert_metrics_not_recorded([['foo', 'scopey']])
-  end
-
-  def test_record_metrics_records_to_scoped_metric_if_requested
-    in_transaction('scopey') do
-      @engine.record_metrics('foo', 42, :scoped => true)
-    end
-    unscoped_stats = @engine.get_stats('foo', false)
-    scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
-    assert_equal(1, unscoped_stats.call_count, 'missing unscoped metric')
-    assert_equal(1, scoped_stats.call_count, 'missing scoped metric')
-  end
-
-  def test_record_metrics_elides_scoped_metric_if_not_in_transaction
-    @engine.clear_stats
-    @engine.record_metrics('foo', 42, :scoped => true)
-    unscoped_stats = @engine.get_stats('foo', false)
-    assert_equal(1, unscoped_stats.call_count)
-    assert_equal(1, @engine.metrics.size)
-  end
-
-  def test_record_metrics_accepts_block
-    @engine.record_metrics('foo') do |stats|
-      stats.call_count = 999
-    end
-    stats = @engine.get_stats_no_scope('foo')
-    assert_equal(999, stats.call_count)
-  end
-
-  def test_record_metrics_is_thread_safe
-    threads = []
-    nthreads = 25
-    iterations = 100
-    nthreads.times do |tid|
-      threads << Thread.new do
-        iterations.times do
-          @engine.record_metrics('m1', 1)
-          @engine.record_metrics('m2', 1)
-        end
-      end
-    end
-    threads.each { |t| t.join }
-
-    stats_m1 = @engine.get_stats_no_scope('m1')
-    stats_m2 = @engine.get_stats_no_scope('m2')
-    assert_equal(nthreads * iterations, stats_m1.call_count)
-    assert_equal(nthreads * iterations, stats_m2.call_count)
-  end
-
-  def test_record_metrics_internal_writes_to_global_stats_hash_if_no_txn
-    specs = [
-      NewRelic::MetricSpec.new('foo'),
-      NewRelic::MetricSpec.new('foo', 'scope')
-    ]
-
-    2.times { @engine.record_metrics_internal(specs, 10, 5) }
-
-    expected = { :call_count => 2, :total_call_time => 20, :total_exclusive_time => 10 }
-    assert_metrics_recorded('foo' => expected, ['foo', 'scope'] => expected)
-  end
-
-  def test_record_metrics_internal_writes_to_transaction_stats_hash_if_txn
-    specs = [
-      NewRelic::MetricSpec.new('foo'),
-      NewRelic::MetricSpec.new('foo', 'scope')
-    ]
-
-    in_transaction do
-      2.times { @engine.record_metrics_internal(specs, 10, 5) }
-      # still in the txn, so metrics should not be visible in the global stats
-      # hash yet
-      assert_metrics_not_recorded(['foo', ['foo, scope']])
-    end
-
-    expected = { :call_count => 2, :total_call_time => 20, :total_exclusive_time => 10 }
-    assert_metrics_recorded('foo' => expected, ['foo', 'scope'] => expected)
-  end
-
-  def test_transaction_stats_are_tracked_separately
-    in_transaction do
-      @engine.record_metrics('foo', 1)
-      assert_nil @engine.lookup_stats('foo')
-    end
-
-    assert_equal 1, @engine.lookup_stats('foo').call_count
-  end
-
-  def test_record_supportability_metric_timed_records_duration_of_block
-    freeze_time
-    2.times do
-      @engine.record_supportability_metric_timed('foo/bar') { advance_time(2.0) }
-    end
-
-    assert_metrics_recorded(['Supportability/foo/bar'] => {
-      :call_count => 2,
-      :total_call_time => 4.0
-    })
-  end
-
-  def test_record_supportability_metric_timed_does_not_break_when_block_raises
-    begin
-      freeze_time
-      @engine.record_supportability_metric_timed('foo/bar') do
-        advance_time(2.0)
-        1 / 0
-      end
-    rescue ZeroDivisionError
-      nil
-    end
-
-    assert_metrics_recorded(['Supportability/foo/bar'] => {
-      :call_count => 1,
-      :total_call_time => 2.0
-    })
   end
 
   def test_record_supportability_metric_count_records_counts_only

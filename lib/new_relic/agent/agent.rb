@@ -1019,7 +1019,7 @@ module NewRelic
         ensure
           NewRelic::Agent::Database.close_connections
           duration = (Time.now - now).to_f
-          @stats_engine.record_metrics('Supportability/Harvest', duration)
+          NewRelic::Agent.record_metric('Supportability/Harvest', duration)
         end
 
         private :transmit_data_already_locked

@@ -59,12 +59,10 @@ module Sequel
       primary_metric = primary_metric_for( sql, args )
       engine         = NewRelic::Agent.instance.stats_engine
 
-      engine.record_metrics( primary_metric, duration, :scoped => true )
-
       metrics = rollup_metrics_for( primary_metric )
       metrics << remote_service_metric( *self.opts.values_at(:adapter, :host) ) if self.opts.key?(:adapter)
 
-      engine.record_metrics( metrics, duration, :scoped => false )
+      engine.record_scoped_and_unscoped_metrics(primary_metric, metrics, duration)
     end
 
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [

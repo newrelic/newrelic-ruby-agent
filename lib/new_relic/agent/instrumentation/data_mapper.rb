@@ -210,7 +210,7 @@ module NewRelic
           metric = "ActiveRecord/#{operation}"
           rollup_metrics = ActiveRecordHelper.rollup_metrics_for(metric)
           metrics = [metric] + rollup_metrics
-          NewRelic::Agent.instance.stats_engine.record_metrics(metrics, duration)
+          NewRelic::Agent.instance.stats_engine.record_unscoped_metrics(metrics, duration)
         ensure
           super
         end

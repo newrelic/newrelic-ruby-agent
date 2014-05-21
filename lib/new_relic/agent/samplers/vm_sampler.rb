@@ -58,7 +58,7 @@ module NewRelic
               gc_runs = snapshot.gc_runs - @last_snapshot.gc_runs
             end
             wall_clock_time = snapshot.taken_at - @last_snapshot.taken_at
-            NewRelic::Agent.agent.stats_engine.record_metrics(GC_RUNS_METRIC) do |stats|
+            NewRelic::Agent.agent.stats_engine.record_unscoped_metrics(GC_RUNS_METRIC) do |stats|
               stats.call_count           += txn_count
               stats.total_call_time      += gc_runs if gc_runs
               stats.total_exclusive_time += gc_time if gc_time
@@ -72,7 +72,7 @@ module NewRelic
           value = snapshot.send(key)
           if value
             delta = value - @last_snapshot.send(key)
-            NewRelic::Agent.agent.stats_engine.record_metrics(metric) do |stats|
+            NewRelic::Agent.agent.stats_engine.record_unscoped_metrics(metric) do |stats|
               stats.call_count      += txn_count
               stats.total_call_time += delta
             end
@@ -80,7 +80,7 @@ module NewRelic
         end
 
         def record_gauge_metric(metric_name, value)
-          NewRelic::Agent.agent.stats_engine.record_metrics(metric_name) do |stats|
+          NewRelic::Agent.agent.stats_engine.record_unscoped_metrics(metric_name) do |stats|
             stats.call_count      = value
             stats.sum_of_squares  = 1
           end

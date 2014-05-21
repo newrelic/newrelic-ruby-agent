@@ -33,14 +33,8 @@ module NewRelic
 
         def record_metrics(event, frame)
           exclusive = event.duration - frame.children_time
-          metric_specs = [
-            NewRelic::MetricSpec.new(event.metric_name),
-            NewRelic::MetricSpec.new(event.metric_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
-          ]
-          NewRelic::Agent.instance.stats_engine \
-            .record_metrics_internal(metric_specs,
-                                     event.duration,
-                                     exclusive)
+          NewRelic::Agent.instance.stats_engine.record_scoped_and_unscoped_metrics(
+            event.metric_name, nil, event.duration, exclusive)
         end
 
         class RenderEvent < Event

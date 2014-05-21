@@ -44,7 +44,7 @@ module NewRelic
         end
       end
 
-      def record(metric_specs, value=nil, aux=nil)
+      def record(metric_specs, value=nil, aux=nil, &blk)
         Array(metric_specs).each do |metric_spec|
           stats = nil
           begin
@@ -64,19 +64,7 @@ module NewRelic
             end
           end
 
-          if block_given?
-            yield stats
-          else
-            case value
-            when Numeric
-              aux ||= value
-              stats.record_data_point(value, aux)
-            when :apdex_s, :apdex_t, :apdex_f
-              stats.record_apdex(value, aux)
-            when NewRelic::Agent::Stats
-              stats.merge!(value)
-            end
-          end
+          stats.record(value, aux, &blk)
         end
       end
 
