@@ -11,7 +11,7 @@ module NewRelic
       class Sinatra < NewRelic::Control::Frameworks::Ruby
 
         def env
-          @env ||= ENV['NEWRELIC_ENV'] || ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'development'
+          @env ||= ENV['NEW_RELIC_ENV'] || ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'development'
         end
 
         def init_config(options={})
