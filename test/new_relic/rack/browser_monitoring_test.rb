@@ -145,9 +145,9 @@ EOL
     assert last_response.ok?
   end
 
-  def test_us_ascii
+  def test_with_invalid_us_ascii_encoding
     response = "<html><body>Jürgen</body></html>"
-    response.force_encoding(Encoding.find("US-ASCII"))
+    response.force_encoding(Encoding.find("US-ASCII")) if RUBY_VERSION >= '1.9'
     TestApp.next_response = Rack::Response.new(response)
 
     get '/'
