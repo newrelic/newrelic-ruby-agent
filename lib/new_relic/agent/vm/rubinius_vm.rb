@@ -18,8 +18,10 @@ module NewRelic
           snap.gc_runs = GC.count
 
           gc_stats = GC.stat[:gc]
-          snap.major_gc_count = gc_stats[:full][:count] if gc_stats[:full]
-          snap.minor_gc_count = gc_stats[:young][:count] if gc_stats[:young]
+          if gc_stats
+            snap.major_gc_count = gc_stats[:full][:count] if gc_stats[:full]
+            snap.minor_gc_count = gc_stats[:young][:count] if gc_stats[:young]
+          end
 
           snap.thread_count = Thread.list.size
         end
