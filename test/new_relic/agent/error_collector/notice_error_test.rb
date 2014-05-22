@@ -164,34 +164,34 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
     assert_equal([], @errors)
   end
 
-  def test_should_exit_notice_error_disabled
+  def test_skip_notice_error_is_true_if_the_error_collector_is_disabled
     error = mocked_error
     with_error_collector_config(:'error_collector.enabled' => false) do |error_collector|
-      assert error_collector.should_exit_notice_error?(error)
+      assert error_collector.skip_notice_error?(error)
     end
   end
 
-  def test_should_exit_notice_error_nil
+  def test_skip_notice_error_is_true_if_the_error_is_nil
     error = nil
     with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
       error_collector.expects(:error_is_ignored?).with(error).returns(false)
-      assert error_collector.should_exit_notice_error?(error)
+      assert error_collector.skip_notice_error?(error)
     end
   end
 
-  def test_should_exit_notice_error_positive
+  def test_skip_notice_error_is_true_if_the_error_is_ignored
     error = mocked_error
     with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
       error_collector.expects(:error_is_ignored?).with(error).returns(true)
-      assert error_collector.should_exit_notice_error?(error)
+      assert error_collector.skip_notice_error?(error)
     end
   end
 
-  def test_should_exit_notice_error_negative
+  def test_skip_notice_error_returns_false_for_non_nil_unignored_errors_with_an_enabled_error_collector
     error = mocked_error
     with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
       error_collector.expects(:error_is_ignored?).with(error).returns(false)
-      assert !error_collector.should_exit_notice_error?(error)
+      assert !error_collector.skip_notice_error?(error)
     end
   end
 

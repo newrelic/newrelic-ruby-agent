@@ -52,6 +52,10 @@ module NewRelic
         Agent.config[:'error_collector.enabled']
       end
 
+      def disabled?
+        !enabled?
+      end
+
       # Returns the error filter proc that is used to check if an
       # error should be reported. When given a block, resets the
       # filter to the provided block.  The define_method() is used to
@@ -132,17 +136,8 @@ module NewRelic
           end
         end
 
-        # whether we should return early from the notice_error process
-        # - based on whether the error is ignored or the error
-        # collector is disabled
-        def should_exit_notice_error?(exception)
-          if enabled?
-            if !error_is_ignored?(exception)
-              return exception.nil? # exit early if the exception is nil
-            end
-          end
-          # disabled or an ignored error, per above
-          true
+        def skip_notice_error?(exception)
+          disabled? || error_is_ignored?(exception) || exception.nil?
         end
 
         # acts just like Hash#fetch, but deletes the key from the hash
@@ -262,7 +257,7 @@ module NewRelic
       # If anything is left over, it's added to custom params
       # If exception is nil, the error count is bumped and no traced error is recorded
       def notice_error(exception, options={})
-        return if should_exit_notice_error?(exception)
+        return if skip_notice_error?(exception)
         increment_error_count!(exception, options)
         NewRelic::Agent.instance.events.notify(:notice_error, exception, options)
         action_path       = fetch_from_options(options, :metric, "")
