@@ -5,19 +5,19 @@
 # this struct uniquely defines a metric, optionally inside
 # the call scope of another metric
 class NewRelic::MetricSpec
-  attr_reader   :name
-  attr_accessor :scope
+  attr_reader   :name, :scope
 
   # the maximum length of a metric name or metric scope
   MAX_LENGTH = 255
   LENGTH_RANGE = (0...MAX_LENGTH)
+  EMPTY_SCOPE = ''.freeze
 
   def initialize(metric_name='', metric_scope=nil)
     @name = metric_name.to_s[LENGTH_RANGE]
     if metric_scope
       @scope = metric_scope.to_s[LENGTH_RANGE]
     else
-      @scope = ''
+      @scope = EMPTY_SCOPE
     end
   end
 
