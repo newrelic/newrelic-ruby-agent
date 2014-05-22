@@ -222,7 +222,7 @@ module NewRelic
           end
 
           def self.category_name(type = nil)
-            type ||= Transaction.current && Transaction.current.type
+            type ||= Transaction.best_type
             case type
             when :controller, nil then CONTROLLER_PREFIX
             when :task            then TASK_PREFIX

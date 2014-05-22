@@ -121,6 +121,10 @@ module NewRelic
 
       EMPTY = [].freeze
 
+      def self.best_type
+        current && current.best_type
+      end
+
       def record_queue_length(queue_length)
         return if @queue_length_recorded
         NewRelic::Agent.record_metric('Mongrel/Queue Length', queue_length) if queue_length
@@ -280,6 +284,14 @@ module NewRelic
         end
 
         @name_from_api = Helper.correctly_encoded(name)
+      end
+
+      def best_type
+        if frame_stack.empty?
+          type
+        else
+          frame_stack.last.type
+        end
       end
 
       def best_name
