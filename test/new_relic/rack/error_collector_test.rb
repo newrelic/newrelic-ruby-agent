@@ -13,12 +13,6 @@ module NewRelic::Rack
 
     class TestApp
       def call(env)
-        if env['PATH_INFO'] == '/ignored'
-          env['action_dispatch.request.parameters'] = {
-            'controller' => 'test_ignore',
-            'action'     => 'ignored'
-          }
-        end
         raise 'unhandled error'
       end
     end
@@ -122,8 +116,4 @@ module NewRelic::Rack
       NewRelic::Agent.instance.error_collector.errors[0]
     end
   end
-end
-
-class TestIgnoreController
-  @do_not_trace = { :only => :ignored }
 end
