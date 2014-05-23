@@ -18,14 +18,6 @@ class FakeThread
     @@list
   end
 
-  def self.bucket_thread(thread, _)
-    thread[:bucket]
-  end
-
-  def self.scrub_backtrace(thread, _)
-    thread[:scrubbed_backtrace] || thread.backtrace
-  end
-
   def alive?
     true
   end
@@ -36,6 +28,10 @@ class FakeThread
 
   def [](key)
     @locals[key]
+  end
+
+  def []=(key, value)
+    @locals[key] = value
   end
 
   def backtrace
