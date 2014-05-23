@@ -61,19 +61,6 @@ module NewRelic::Rack
              'noticed an error that should have been ignored')
     end
 
-    if defined?(::Rails)
-      def test_ignore_errors_from_ignored_actions
-        assert_raises RuntimeError do
-          get '/ignored'
-        end
-
-        assert(NewRelic::Agent.instance.error_collector.errors.empty?,
-               'noticed an error that should have been ignored')
-      end
-    else
-      puts "Skipping tests in #{__FILE__} because Rails is unavailable"
-    end
-
     def test_handles_parameter_parsing_exceptions
       if defined?(ActionDispatch::Request)
         bad_request = stub.stubs(:filtered_params).raises(TypeError, "can't convert nil into Hash")
