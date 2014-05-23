@@ -60,7 +60,7 @@ module NewRelic::Rack
         bad_request = stub.stubs(:filtered_params).raises(TypeError, "can't convert nil into Hash")
         ActionDispatch::Request.stubs(:new).returns(bad_request)
       else
-        bad_request = stub(:env => {}, :path => '/', :referer => '')
+        bad_request = stub(:env => {}, :path => '/', :referer => '', :cookies => {})
         bad_request.stubs(:params).raises(TypeError, "whatever, man")
         Rack::Request.stubs(:new).returns(bad_request)
       end
