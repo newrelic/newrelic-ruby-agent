@@ -49,10 +49,6 @@ module NewRelic
         TransactionState.get.current_transaction
       end
 
-      def self.current=(transaction)
-        TransactionState.get.current_transaction = transaction
-      end
-
       def self.set_default_transaction_name(name, options = {})
         txn  = current
         name = make_transaction_name(name, options[:category])
@@ -113,7 +109,7 @@ module NewRelic
         else
           txn = Transaction.new(transaction_type, options)
           TransactionState.get.current_transaction = txn
-          txn.start()
+          txn.start
         end
 
         txn
@@ -262,8 +258,6 @@ module NewRelic
         @ignore_apdex = false
         @ignore_enduser = false
         @exception_encountered = false
-
-        ::NewRelic::Agent::Transaction.current = self
       end
 
       def noticed_error_ids

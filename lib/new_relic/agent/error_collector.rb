@@ -115,7 +115,7 @@ module NewRelic
             "Errors/#{options[:metric]}"
           else
             if txn = ::NewRelic::Agent::Transaction.current
-              "Errors/#{txn.name}"
+              "Errors/#{txn.best_name}"
             end
           end
         end
