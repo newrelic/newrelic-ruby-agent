@@ -163,7 +163,6 @@ module NewRelic
 
       def set_error_custom_parameters(options)
         options[:client_cross_process_id] = client_cross_app_id if client_cross_app_id
-        # [MG] TODO: Should the CAT metrics be set here too?
       end
 
       def set_metrics(id, timings)
