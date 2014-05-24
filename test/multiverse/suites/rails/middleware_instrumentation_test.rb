@@ -11,4 +11,18 @@ class MiddlewareInstrumentationTest < ActionDispatch::IntegrationTest
     get('/')
     assert_metrics_recorded('Nested/Controller/Rack/Rails::Rack::Logger/call')
   end
+
+  if Rails::VERSION::MAJOR >= 4
+    def test_rails_middlewares_constructed_by_name
+      get('/')
+      assert response.headers['NamedMiddleware'], "NamedMiddleware should have been called, but wasn't"
+      assert_metrics_recorded('Nested/Controller/Rack/NamedMiddleware/call')
+    end
+
+    def test_rails_middlewares_passed_as_instances
+      get('/')
+      assert response.headers['InstanceMiddleware'], "InstanceMiddleware should have been called, but wasn't"
+      assert_metrics_recorded('Nested/Controller/Rack/InstanceMiddleware/call')
+    end
+  end
 end

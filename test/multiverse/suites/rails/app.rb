@@ -29,6 +29,39 @@ if !defined?(MyApp)
     end
   end
 
+  class NamedMiddleware
+    def initialize(app, options={})
+      @app = app
+    end
+
+    def call(env)
+      status, headers, body = @app.call(env)
+      headers['NamedMiddleware'] = '1'
+      [status, headers, body]
+    end
+  end
+
+  class InstanceMiddleware
+    attr_reader :name
+
+    def initialize
+      @app  = nil
+      @name = 'InstanceMiddleware'
+    end
+
+    # Yes, this is nuts. See the comment above initialize_with_new_relic_trace.
+    def new(app)
+      @app = app
+      self
+    end
+
+    def call(env)
+      status, headers, body = @app.call(env)
+      headers['InstanceMiddleware'] = '1'
+      [status, headers, body]
+    end
+  end
+
   class MyApp < Rails::Application
     # We need a secret token for session, cookies, etc.
     config.active_support.deprecation = :log
@@ -37,6 +70,12 @@ if !defined?(MyApp)
     config.filter_parameters += [:secret]
     initializer "install_error_middleware" do
       config.middleware.use ErrorMiddleware
+    end
+    initializer "install_middleware_by_name" do
+      config.middleware.use "NamedMiddleware"
+    end
+    initializer "install_middleware_instance" do
+      config.middleware.use InstanceMiddleware.new
     end
   end
   MyApp.initialize!
