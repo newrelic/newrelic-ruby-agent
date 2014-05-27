@@ -23,7 +23,7 @@ DependencyDetection.defer do
         else
           {
             :name => 'perform',
-            :class_name => worker.class.name,
+            :class_name => msg['class'],
             :category => 'OtherTransaction/SidekiqJob'
           }
         end
