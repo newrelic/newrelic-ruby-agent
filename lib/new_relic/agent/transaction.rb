@@ -2,8 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/transaction/pop'
 require 'new_relic/agent/transaction_timings'
+require 'new_relic/agent/instrumentation/queue_time'
+require 'new_relic/agent/transaction_metrics'
 
 module NewRelic
   module Agent
@@ -12,17 +13,31 @@ module NewRelic
     #
     # @api public
     class Transaction
-      # helper module refactored out of the `pop` method
-      include Pop
+
+      # for nested transactions
+      SUBTRANSACTION_PREFIX = 'Nested/'.freeze
+      CONTROLLER_PREFIX     = 'Controller/'.freeze
+      NESTED_TRACE_STOP_OPTIONS   = { :metric => true }.freeze
+
+      WEB_TRANSACTION_TYPES = [:controller, :uri, :rack, :sinatra].freeze
 
       attr_accessor :start_time  # A Time instance for the start time, never nil
       attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
       # we can find a request header for the queue entry time
-      attr_accessor(:type, :exceptions, :filtered_params, :force_flag,
-                    :jruby_cpu_start, :process_cpu_start, :database_metric_name)
-      attr_reader :name
-      attr_reader :stats_hash
+      attr_accessor :type, :exceptions, :filtered_params,
+                    :jruby_cpu_start, :process_cpu_start
+
+      attr_reader :database_metric_name
+
+      attr_reader :guid
+      attr_reader :metrics
+      attr_reader :gc_start_snapshot
+
+      attr_reader :name_from_child
+
+      # Populated with the trace sample once this transaction is completed.
+      attr_reader :transaction_trace
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -31,32 +46,145 @@ module NewRelic
 
       # Return the currently active transaction, or nil.
       def self.current
-        self.stack.last
+        TransactionState.get.current_transaction
       end
 
-      def self.parent
-        self.stack[-2]
+      def self.set_default_transaction_name(name, options = {})
+        txn  = current
+        name = make_transaction_name(name, options[:category])
+
+        if txn.frame_stack.empty?
+          txn.default_name = name
+          txn.type = options[:category] if options[:category]
+        else
+          txn.frame_stack.last.name = name
+          txn.frame_stack.last.type = options[:category] if options[:category]
+        end
       end
 
-      def self.start(transaction_type, options={})
-        txn = Transaction.new(transaction_type, options)
-        txn.start(transaction_type)
-        self.stack.push(txn)
-        return txn
+      def self.set_overriding_transaction_name(name, options = {})
+        txn = current
+        return unless txn
+
+        name = make_transaction_name(name, options[:category])
+
+        if txn.frame_stack.empty?
+          txn.default_name  = name
+          txn.name_from_api = name
+          txn.type = options[:category] if options[:category]
+        else
+          txn.frame_stack.last.name = name
+          txn.frame_stack.last.type = options[:category] if options[:category]
+
+          # Parent transaction also takes this name, but only if they
+          # are both/neither web transactions.
+          child_is_web_type = transaction_type_is_web?(txn.frame_stack.last.type)
+          txn_is_web_type   = transaction_type_is_web?(txn.type)
+
+          if (child_is_web_type == txn_is_web_type)
+            txn.name_from_api = name
+          end
+        end
       end
 
-      def self.stop(metric_name=nil, end_time=Time.now)
-        txn = self.stack.last
-        txn.stop(metric_name, end_time) if txn
-        return self.stack.pop
+      def self.make_transaction_name(name, category=nil)
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
+        "#{namer.category_name(category)}/#{name}"
       end
 
-      def self.stack
-        TransactionState.get.current_transaction_stack
+      def self.start(transaction_type, options)
+        transaction_type ||= :controller
+        txn = current
+
+        if txn
+          _, nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(Time.now.to_f)
+          nested_frame.name = options[:transaction_name]
+          nested_frame.type = transaction_type
+          txn.frame_stack << nested_frame
+        else
+          txn = Transaction.new(transaction_type, options)
+          TransactionState.get.current_transaction = txn
+          txn.start()
+        end
+
+        txn
+      end
+
+      EMPTY = [].freeze
+
+      def self.stop(end_time=Time.now)
+        txn = current
+
+        if txn.frame_stack.empty?
+          txn.stop(end_time)
+          TransactionState.get.current_transaction = nil
+        else
+          nested_frame = txn.frame_stack.pop
+
+          # Parent transaction inherits the name of the first child
+          # to complete, if they are both/neither web transactions.
+          nested_is_web_type = transaction_type_is_web?(nested_frame.type)
+          txn_is_web_type    = transaction_type_is_web?(txn.type)
+
+          if (nested_is_web_type == txn_is_web_type)
+            # first child to finish wins
+            txn.name_from_child ||= nested_frame.name
+          end
+
+          NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
+            nested_frame.start_time.to_f,
+            nested_transaction_name(nested_frame.name),
+            EMPTY,
+            nested_frame,
+            NESTED_TRACE_STOP_OPTIONS,
+            end_time.to_f)
+        end
+
+        :transaction_stopped
       end
 
       def self.in_transaction?
-        !self.stack.empty?
+        !TransactionState.get.current_transaction.nil?
+      end
+
+      def self.nested_transaction_name(name)
+        if name.start_with?(CONTROLLER_PREFIX)
+          "#{SUBTRANSACTION_PREFIX}#{name}"
+        else
+          name
+        end
+      end
+
+      def self.ignore!
+        current && current.ignore!
+      end
+
+      def self.ignore?
+        current && current.ignore?
+      end
+
+      def self.ignore_apdex!
+        current && current.ignore_apdex!
+      end
+
+      def self.ignore_apdex?
+        current && current.ignore_apdex?
+      end
+
+      def self.ignore_enduser!
+        current && current.ignore_enduser!
+      end
+
+      def self.ignore_enduser?
+        current && current.ignore_enduser?
+      end
+
+      def self.exception_encountered!
+        current && current.exception_encountered!
+      end
+
+      def self.exception_encountered?
+        current && current.exception_encountered?
       end
 
       # This is the name of the model currently assigned to database
@@ -73,8 +201,8 @@ module NewRelic
         NewRelic::Agent.instance
       end
 
-      def self.freeze_name
-        self.current && self.current.freeze_name
+      def self.freeze_name_and_execute_if_not_ignored
+        self.current && self.current.freeze_name_and_execute_if_not_ignored { yield if block_given? }
       end
 
       @@java_classes_loaded = false
@@ -85,76 +213,117 @@ module NewRelic
           java_import 'java.lang.management.ManagementFactory'
           java_import 'com.sun.management.OperatingSystemMXBean'
           @@java_classes_loaded = true
-        rescue => e
+        rescue
         end
       end
 
-      attr_reader :depth
+      attr_reader :frame_stack
 
-      def initialize(type=:controller, options={})
+      def initialize(type, options)
+        @frame_stack = []
+
+        @default_name    = Helper.correctly_encoded(options[:transaction_name])
+        @name_from_child = nil
+        @name_from_api   = nil
+        @frozen_name     = nil
+
         @type = type
         @start_time = Time.now
-        @apdex_start = @start_time
+        @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
+        @gc_start_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         @filtered_params = options[:filtered_params] || {}
-        @force_flag = options[:force]
         @request = options[:request]
         @exceptions = {}
-        @stats_hash = StatsHash.new
-        TransactionState.get.transaction = self
+        @metrics = TransactionMetrics.new
+        @guid = generate_guid
+
+        @ignore_this_transaction = false
+        @ignore_apdex = false
+        @ignore_enduser = false
+        @exception_encountered = false
+
+        TransactionState.get.most_recent_transaction = self
       end
 
       def noticed_error_ids
         @noticed_error_ids ||= []
       end
 
-      def name=(name)
-        if !@name_frozen
-          @name = name
-        else
-          NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@name}'.")
+      def default_name=(name)
+        @default_name = Helper.correctly_encoded(name)
+      end
+
+      def name_from_child=(name)
+        @name_from_child = Helper.correctly_encoded(name)
+      end
+
+      def name_from_api=(name)
+        if @frozen_name
+          NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@frozen_name}'.")
         end
+
+        @name_from_api = Helper.correctly_encoded(name)
+      end
+
+      def best_name
+        return @frozen_name   if @frozen_name
+        return @name_from_api if @name_from_api
+
+        if @name_from_child
+          return @name_from_child
+        elsif !@frame_stack.empty?
+          return @frame_stack.last.name
+        end
+
+        return @default_name if @default_name
+
+        NewRelic::Agent::UNKNOWN_METRIC
       end
 
       def name_set?
-        @name && @name != NewRelic::Agent::UNKNOWN_METRIC
+        (@name_from_api || @name_from_child || @default_name) ? true : false
       end
 
-      def freeze_name
-        return if name_frozen?
-        @name = NewRelic::Agent.instance.transaction_rules.rename(@name)
-        @name_frozen = true
+      def freeze_name_and_execute_if_not_ignored
+        if !name_frozen?
+          name = NewRelic::Agent.instance.transaction_rules.rename(best_name)
+          @name_frozen = true
+
+          if name.nil?
+            ignore!
+            @frozen_name = best_name
+          else
+            @frozen_name = name
+          end
+        end
+
+        if block_given? && !@ignore_this_transaction
+          yield
+        end
       end
 
       def name_frozen?
-        @name_frozen
+        @frozen_name ? true : false
       end
 
-      def parent
-        has_parent? && self.class.stack[-2]
-      end
-
-      def root?
-        self.class.stack.size == 1
-      end
-
-      def has_parent?
-        self.class.stack.size > 1
+      def ignored?
+        @ignore_this_transaction
       end
 
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
-      def start(transaction_type)
-        @name = NewRelic::Agent::UNKNOWN_METRIC
+      def start()
+        return if !NewRelic::Agent.is_execution_traced?
 
-        transaction_sampler.notice_first_scope_push(start_time)
-        sql_sampler.notice_first_scope_push(start_time)
+        transaction_sampler.on_start_transaction(start_time, uri, filtered_params)
+        sql_sampler.on_start_transaction(start_time, uri, filtered_params)
+        NewRelic::Agent.instance.events.notify(:start_transaction)
+        NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
-        NewRelic::Agent::StatsEngine::GCProfiler.init
-        agent.stats_engine.start_transaction
-        transaction_sampler.notice_transaction(uri, filtered_params)
-        sql_sampler.notice_transaction(uri, filtered_params)
+        @trace_options = { :metric => true, :scoped_metric => false }
+        _, @expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(start_time.to_f)
       end
 
       # Indicate that you don't want to keep the currently saved transaction
@@ -178,77 +347,102 @@ module NewRelic
         transaction_sampler.ignore_transaction
       end
 
+      def summary_metrics
+        metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@frozen_name)
+        metric_parser.summary_metrics
+      end
 
-      # Unwind one stack level.  It knows if it's back at the outermost caller and
-      # does the appropriate wrapup of the context.
-      def stop(fallback_name=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now)
-        @name = fallback_name unless name_set? || name_frozen?
-        freeze_name
-        log_underflow if @type.nil?
+      def stop(end_time)
+        return if !NewRelic::Agent.is_execution_traced?
+        freeze_name_and_execute_if_not_ignored
 
-        # these record metrics so need to be done before merging stats
-        if self.root?
-          # this one records metrics and wants to happen
-          # before the transaction sampler is finished
-          if traced?
-            record_transaction_cpu
-            gc_time = NewRelic::Agent::StatsEngine::GCProfiler.capture
-          end
-          @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_time)
-          sql_sampler.notice_scope_empty(@name)
-          overview_metrics = transaction_overview_metrics
+        name    = @frozen_name
+        metrics = summary_metrics
+
+        if @name_from_child
+          name = Transaction.nested_transaction_name(@default_name)
+          metrics << @frozen_name
+          @trace_options[:scoped_metric] = true
         end
 
-        record_exceptions
-        merge_stats_hash
+        NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
+          start_time.to_f,
+          name,
+          metrics,
+          @expected_scope,
+          @trace_options,
+          end_time.to_f)
 
-        # these tear everything down so need to be done after merging stats
-        if self.root?
-          send_transaction_finished_event(start_time, end_time, overview_metrics)
-          agent.stats_engine.end_transaction
+        log_underflow if @type.nil?
+        NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
+
+        unless @ignore_this_transaction
+          # these record metrics so need to be done before merging stats
+
+          # this one records metrics and wants to happen
+          # before the transaction sampler is finished
+          record_transaction_cpu
+          gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
+          gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
+              gc_start_snapshot, gc_stop_snapshot)
+          @transaction_trace = transaction_sampler.on_finishing_transaction(self, Time.now, gc_delta)
+          sql_sampler.on_finishing_transaction(@frozen_name)
+
+          record_apdex(end_time) unless ignore_apdex?
+          NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
+          NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
+
+          record_exceptions
+          merge_metrics
+
+          send_transaction_finished_event(start_time, end_time)
         end
       end
 
-      def send_transaction_finished_event(start_time, end_time, overview_metrics)
+      # This event is fired when the transaction is fully completed. The metric
+      # values and sampler can't be successfully modified from this event.
+      def send_transaction_finished_event(start_time, end_time)
         payload = {
-          :name             => @name,
+          :name             => @frozen_name,
           :type             => @type,
           :start_timestamp  => start_time.to_f,
           :duration         => end_time.to_f - start_time.to_f,
-          :overview_metrics => overview_metrics,
+          :metrics          => @metrics,
           :custom_params    => custom_parameters
         }
+        append_guid_to(payload)
+        append_referring_transaction_guid_to(payload)
+
         agent.events.notify(:transaction_finished, payload)
       end
 
-      def merge_stats_hash
-        stats_hash.resolve_scopes!(@name)
-        NewRelic::Agent.instance.stats_engine.merge!(stats_hash)
+      def append_guid_to(payload)
+        guid = NewRelic::Agent::TransactionState.get.request_guid_for_event
+        if guid
+          payload[:guid] = guid
+        end
+      end
+
+      def append_referring_transaction_guid_to(payload)
+        referring_guid = NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_guid
+        if referring_guid
+          payload[:referring_transaction_guid] = referring_guid
+        end
+      end
+
+      def log_underflow
+        NewRelic::Agent.logger.error "Underflow in transaction: #{caller.join("\n   ")}"
+      end
+
+      def merge_metrics
+        NewRelic::Agent.instance.stats_engine.merge_transaction_metrics!(@metrics, best_name)
       end
 
       def record_exceptions
         @exceptions.each do |exception, options|
-          options[:metric] = @name
+          options[:metric] = best_name
           agent.error_collector.notice_error(exception, options)
         end
-      end
-
-      OVERVIEW_SPECS = [
-        [:webDuration,      MetricSpec.new('HttpDispatcher')],
-        [:queueDuration,    MetricSpec.new('WebFrontend/QueueTime')],
-        [:externalDuration, MetricSpec.new('External/allWeb')],
-        [:databaseDuration, MetricSpec.new('ActiveRecord/all')],
-        [:gcCumulative,     MetricSpec.new("GC/cumulative")],
-        [:memcacheDuration, MetricSpec.new('Memcache/allWeb')]
-      ]
-
-      def transaction_overview_metrics
-        metrics = {}
-        stats = @stats_hash
-        OVERVIEW_SPECS.each do |(dest_key, spec)|
-          metrics[dest_key] = stats[spec].total_call_time if stats.key?(spec)
-        end
-        metrics
       end
 
       # If we have an active transaction, notice the error and increment the error metric.
@@ -272,10 +466,10 @@ module NewRelic
       end
 
       def self.extract_request_options(options)
-        request = options.delete(:request)
-        if request
-          options[:referer] = referer_from_request(request)
-          options[:uri] = uri_from_request(request)
+        req = options.delete(:request)
+        if req
+          options[:referer] = referer_from_request(req)
+          options[:uri] = uri_from_request(req)
         end
         options
       end
@@ -283,12 +477,12 @@ module NewRelic
       # If we aren't currently in a transaction, but found the remains of one
       # just finished in the TransactionState, use those custom params!
       def self.extract_finished_transaction_options(options)
-        finished_txn = NewRelic::Agent::TransactionState.get.transaction
+        finished_txn = NewRelic::Agent::TransactionState.get.most_recent_transaction
         if finished_txn
           custom_params = options.fetch(:custom_params, {})
           custom_params.merge!(finished_txn.custom_parameters)
           options = options.merge(:custom_params => custom_params)
-          options[:metric] = finished_txn.name
+          options[:metric] = finished_txn.best_name
         end
         options
       end
@@ -319,22 +513,23 @@ module NewRelic
         alias_method :set_user_attributes, :add_custom_parameters
       end
 
-      APDEX_METRIC_SPEC = NewRelic::MetricSpec.new('Apdex').freeze
+      APDEX_METRIC = 'Apdex'.freeze
 
-      def record_apdex(end_time=Time.now, is_error=nil)
+      def record_apdex(end_time=Time.now)
         return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
 
-        freeze_name
-        action_duration = end_time - start_time
-        total_duration  = end_time - apdex_start
-        is_error = is_error.nil? ? !exceptions.empty? : is_error
+        freeze_name_and_execute_if_not_ignored do
+          action_duration = end_time - start_time
+          total_duration  = end_time - apdex_start
+          is_error = exception_encountered? || !exceptions.empty?
 
-        apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
-        apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
+          apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
+          apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
 
-        @stats_hash.record(APDEX_METRIC_SPEC, apdex_bucket_global, apdex_t)
-        txn_apdex_metric = NewRelic::MetricSpec.new(@name.gsub(/^[^\/]+\//, 'Apdex/'))
-        @stats_hash.record(txn_apdex_metric, apdex_bucket_txn, apdex_t)
+          @metrics.record_unscoped(APDEX_METRIC, apdex_bucket_global, apdex_t)
+          txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, 'Apdex/')
+          @metrics.record_unscoped(txn_apdex_metric, apdex_bucket_txn, apdex_t)
+        end
       end
 
       def apdex_t
@@ -343,7 +538,7 @@ module NewRelic
 
       def transaction_specific_apdex_t
         key = :web_transactions_apdex
-        Agent.config[key] && Agent.config[key][self.name]
+        Agent.config[key] && Agent.config[key][best_name]
       end
 
       # Yield to a block that is run with a database metric name context.  This means
@@ -394,7 +589,7 @@ module NewRelic
       end
 
       def self.transaction_type_is_web?(type)
-        [:controller, :uri, :rack, :sinatra].include?(type)
+        WEB_TRANSACTION_TYPES.include?(type)
       end
 
       def recording_web_transaction?
@@ -403,28 +598,28 @@ module NewRelic
 
       # Make a safe attempt to get the referer from a request object, generally successful when
       # it's a Rack request.
-      def self.referer_from_request(request)
-        if request && request.respond_to?(:referer)
-          request.referer.to_s.split('?').first
+      def self.referer_from_request(req)
+        if req && req.respond_to?(:referer)
+          req.referer.to_s.split('?').first
         end
       end
 
       # Make a safe attempt to get the URI, without the host and query string.
-      def self.uri_from_request(request)
+      def self.uri_from_request(req)
         approximate_uri = case
-                          when request.respond_to?(:fullpath) then request.fullpath
-                          when request.respond_to?(:path) then request.path
-                          when request.respond_to?(:request_uri) then request.request_uri
-                          when request.respond_to?(:uri) then request.uri
-                          when request.respond_to?(:url) then request.url
+                          when req.respond_to?(:fullpath   ) then req.fullpath
+                          when req.respond_to?(:path       ) then req.path
+                          when req.respond_to?(:request_uri) then req.request_uri
+                          when req.respond_to?(:uri        ) then req.uri
+                          when req.respond_to?(:url        ) then req.url
                           end
-        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri # '
+        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
       end
 
 
 
-      def self.record_apdex(end_time, is_error)
-        current && current.record_apdex(end_time, is_error)
+      def self.record_apdex(end_time)
+        current && current.record_apdex(end_time)
       end
 
       def self.apdex_bucket(duration, failed, apdex_t)
@@ -440,6 +635,57 @@ module NewRelic
         end
       end
 
+      def cpu_burn
+        normal_cpu_burn || jruby_cpu_burn
+      end
+
+      def normal_cpu_burn
+        return unless @process_cpu_start
+        process_cpu - @process_cpu_start
+      end
+
+      def jruby_cpu_burn
+        return unless @jruby_cpu_start
+        jruby_cpu_time - @jruby_cpu_start
+      end
+
+      def record_transaction_cpu
+        burn = cpu_burn
+        transaction_sampler.notice_transaction_cpu_time(burn) if burn
+      end
+
+      def ignore!
+        @ignore_this_transaction = true
+      end
+
+      def ignore?
+        @ignore_this_transaction
+      end
+
+      def ignore_apdex!
+        @ignore_apdex = true
+      end
+
+      def ignore_apdex?
+        @ignore_apdex
+      end
+
+      def ignore_enduser!
+        @ignore_enduser = true
+      end
+
+      def ignore_enduser?
+        @ignore_enduser
+      end
+
+      def exception_encountered!
+        @exception_encountered = true
+      end
+
+      def exception_encountered?
+        @exception_encountered
+      end
+
       private
 
       def process_cpu
@@ -448,7 +694,7 @@ module NewRelic
         p.stime + p.utime
       end
 
-      def jruby_cpu_time # :nodoc:
+      def jruby_cpu_time
         return nil unless @@java_classes_loaded
         threadMBean = ManagementFactory.getThreadMXBean()
         java_utime = threadMBean.getCurrentThreadUserTime()  # ns
@@ -466,6 +712,19 @@ module NewRelic
       def sql_sampler
         agent.sql_sampler
       end
+
+      HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
+      GUID_LENGTH = 16
+
+      # generate a random 64 bit uuid
+      def generate_guid
+        guid = ''
+        GUID_LENGTH.times do |a|
+          guid << HEX_DIGITS[rand(16)]
+        end
+        guid
+      end
+
     end
   end
 end

@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 
 # Test logic around detecting or configuring framework
-class FrameworkTest < MiniTest::Unit::TestCase
+class FrameworkTest < Minitest::Test
 
   def setup
 

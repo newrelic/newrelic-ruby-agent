@@ -135,9 +135,10 @@ class Marshalling < Performance::TestCase
         :name             => "Controller/foo/bar",
         :type             => "Transaction",
         :duration         => rand,
-        :webDuration      => rand,
         :databaseDuration => rand,
+        :databaseCallCount=> rand,
         :gcCumulative     => rand,
+        :host             => 'lo-calhost',
         :color            => 'blue-green',
         :shape            => 'squarish',
         :texture          => 'sort of lumpy like a bag of frozen peas'

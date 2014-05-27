@@ -17,6 +17,8 @@ DependencyDetection.defer do
     class NewRelic::SidekiqInstrumentation
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
+      # Client middleware has additional parameters, and our tests use the
+      # middleware client-side to work inline.
       def call(worker, msg, queue, *_)
         trace_args = if worker.respond_to?(:newrelic_trace_args)
           worker.newrelic_trace_args(msg, queue)

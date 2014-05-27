@@ -45,6 +45,11 @@ module NewRelic
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
+        NR_DO_NOT_TRACE_KEY   = 'do_not_trace'.freeze unless defined?(NR_DO_NOT_TRACE_KEY)
+        NR_IGNORE_APDEX_KEY   = 'ignore_apdex'.freeze unless defined?(NR_IGNORE_APDEX_KEY)
+        NR_IGNORE_ENDUSER_KEY = 'ignore_enduser'.freeze unless defined?(NR_IGNORE_ENDUSER_KEY)
+
+        # @api public
         module ClassMethods
           # Have NewRelic ignore actions in this controller.  Specify the actions as hash options
           # using :except and :only.  If no actions are specified, all actions are ignored.
@@ -52,7 +57,7 @@ module NewRelic
           # @api public
           #
           def newrelic_ignore(specifiers={})
-            newrelic_ignore_aspect('do_not_trace', specifiers)
+            newrelic_ignore_aspect(NR_DO_NOT_TRACE_KEY, specifiers)
           end
           # Have NewRelic omit apdex measurements on the given actions.  Typically used for
           # actions that are not user facing or that skew your overall apdex measurement.
@@ -61,12 +66,12 @@ module NewRelic
           # @api public
           #
           def newrelic_ignore_apdex(specifiers={})
-            newrelic_ignore_aspect('ignore_apdex', specifiers)
+            newrelic_ignore_aspect(NR_IGNORE_APDEX_KEY, specifiers)
           end
 
           # @api public
           def newrelic_ignore_enduser(specifiers={})
-            newrelic_ignore_aspect('ignore_enduser', specifiers)
+            newrelic_ignore_aspect(NR_IGNORE_ENDUSER_KEY, specifiers)
           end
 
           def newrelic_ignore_aspect(property, specifiers={}) # :nodoc:
@@ -146,92 +151,112 @@ module NewRelic
           def add_transaction_tracer(method, options={})
             # The metric path:
             options[:name] ||= method.to_s
-            # create the argument list:
-            options_arg = []
-            options.each do |key, value|
-              valuestr = case
-                         when value.is_a?(Symbol)
-                           value.inspect
-                         when key == :params
-                           value.to_s
-                         else
-                           %Q["#{value.to_s}"]
-                         end
-              options_arg << %Q[:#{key} => #{valuestr}]
-            end
-            traced_method, punctuation = method.to_s.sub(/([?!=])$/, ''), $1
-            visibility = NewRelic::Helper.instance_method_visibility self, method
 
-            without_method_name = "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"
-            with_method_name = "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
+            argument_list = generate_argument_list(options)
+            traced_method, punctuation = parse_punctuation(method)
+            with_method_name, without_method_name = build_method_names(traced_method, punctuation)
 
-            if NewRelic::Helper.instance_methods_include?(self, with_method_name)
+            if already_added_transaction_tracer?(self, with_method_name)
               ::NewRelic::Agent.logger.warn("Transaction tracer already in place for class = #{self.name}, method = #{method.to_s}, skipping")
               return
             end
 
             class_eval <<-EOC
-              def #{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}(*args, &block)
-                perform_action_with_newrelic_trace(#{options_arg.join(',')}) do
-                  #{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}(*args, &block)
+              def #{with_method_name}(*args, &block)
+                perform_action_with_newrelic_trace(#{argument_list.join(',')}) do
+                  #{without_method_name}(*args, &block)
                  end
               end
             EOC
+
+            visibility = NewRelic::Helper.instance_method_visibility self, method
+
             alias_method without_method_name, method.to_s
             alias_method method.to_s, with_method_name
             send visibility, method
             send visibility, with_method_name
             ::NewRelic::Agent.logger.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
           end
+
+          def parse_punctuation(method)
+            [method.to_s.sub(/([?!=])$/, ''), $1]
+          end
+
+          def generate_argument_list(options)
+            options.map do |key, value|
+              value = if value.is_a?(Symbol)
+                value.inspect
+              elsif key == :params || key == :request
+                value.to_s
+              else
+                %Q["#{value.to_s}"]
+              end
+
+              %Q[:#{key} => #{value}]
+            end
+          end
+
+          def build_method_names(traced_method, punctuation)
+            [ "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}",
+              "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}" ]
+          end
+
+          def already_added_transaction_tracer?(target, with_method_name)
+            if NewRelic::Helper.instance_methods_include?(target, with_method_name)
+              true
+            else
+              false
+            end
+          end
         end
 
         class TransactionNamer
-          def initialize(traced_obj)
-            @traced_obj = traced_obj
-            if (@traced_obj.is_a?(Class) || @traced_obj.is_a?(Module))
-              @traced_class_name = @traced_obj.name
-            else
-              @traced_class_name = @traced_obj.class.name
-            end
+          CONTROLLER_PREFIX = 'Controller'.freeze unless defined?(CONTROLLER_PREFIX)
+          TASK_PREFIX       = 'OtherTransaction/Background'.freeze unless defined?(TASK_PREFIX)
+          RACK_PREFIX       = 'Controller/Rack'.freeze unless defined?(RACK_PREFIX)
+          URI_PREFIX        = 'Controller'.freeze unless defined?(URI_PREFIX)
+          SINATRA_PREFIX    = 'Controller/Sinatra'.freeze unless defined?(SINATRA_PREFIX)
+
+          def self.name(traced_obj, options={})
+            "#{category_name(options[:category])}/#{path_name(traced_obj, options)}"
           end
 
-          def name(options={})
-            name = "#{category_name(options[:category])}/#{path_name(options)}"
-          end
-
-          def category_name(type = nil)
+          def self.category_name(type = nil)
             type ||= Transaction.current && Transaction.current.type
             case type
-            when :controller, nil then 'Controller'
-            when :task then 'OtherTransaction/Background'
-            when :rack then 'Controller/Rack'
-            when :uri then 'Controller'
-            when :sinatra then 'Controller/Sinatra'
-              # for internal use only
-            else type.to_s
+            when :controller, nil then CONTROLLER_PREFIX
+            when :task            then TASK_PREFIX
+            when :rack            then RACK_PREFIX
+            when :uri             then URI_PREFIX
+            when :sinatra         then SINATRA_PREFIX
+            else type.to_s # for internal use only
             end
           end
 
-          def path_name(options={})
-            # if we have the path, use the path
-            path = options[:path]
+          def self.path_name(traced_obj, options={})
+            return options[:path] if options[:path]
 
-            class_name = options[:class_name] || @traced_class_name
-
-            # if we have an explicit action name option, use that
+            class_name = class_name(traced_obj, options)
             if options[:name]
-              path ||= [ class_name, options[:name] ].compact.join('/')
+              if class_name
+                "#{class_name}/#{options[:name]}"
+              else
+                options[:name]
+              end
+            elsif traced_obj.respond_to?(:newrelic_metric_path)
+              traced_obj.newrelic_metric_path
+            else
+              class_name
             end
+          end
 
-            # if newrelic_metric_path() is defined, use that
-            if @traced_obj.respond_to?(:newrelic_metric_path)
-              path ||= @traced_obj.newrelic_metric_path
+          def self.class_name(traced_obj, options={})
+            return options[:class_name] if options[:class_name]
+            if (traced_obj.is_a?(Class) || traced_obj.is_a?(Module))
+              traced_obj.name
+            else
+              traced_obj.class.name
             end
-
-            # fall back on just the traced class name
-            path ||= class_name
-
-            return path
           end
         end
 
@@ -293,8 +318,6 @@ module NewRelic
         #
         # Seldomly used options:
         #
-        # * <tt>:force => true</tt> indicates you should capture all
-        #   metrics even if the #newrelic_ignore directive was specified
         # * <tt>:class_name => aClass.name</tt> is used to override the name
         #   of the class when used inside the metric name.  Default is the
         #   current class.
@@ -310,31 +333,29 @@ module NewRelic
         # @api public
         #
         def perform_action_with_newrelic_trace(*args, &block)
-          request = newrelic_request(args)
-          NewRelic::Agent::TransactionState.reset(request)
+          NewRelic::Agent::TransactionState.request = newrelic_request(args)
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
           if !block_given? && do_not_trace?
-            # Also ignore all instrumentation in the call sequence
             NewRelic::Agent.disable_all_tracing do
               return perform_action_without_newrelic_trace(*args)
             end
           end
 
-          control = NewRelic::Control.instance
-          return perform_action_with_newrelic_profile(args, &block) if control.profiling?
+          return yield unless NewRelic::Agent.is_execution_traced?
 
-          txn = _start_transaction(block_given? ? args : [])
+          # If a block was passed in, then the arguments represent options for
+          # the instrumentation, not app method arguments.
+          txn_options = create_transaction_options(block_given? ? args : [])
+          txn_options[:transaction_name] = TransactionNamer.name(self, txn_options)
+          txn_options[:apdex_start_time] = detect_queue_start_time
+
           begin
-            options = { :force => txn.force_flag, :transaction => true }
-            return yield if !(NewRelic::Agent.is_execution_traced? || options[:force])
-            options[:metric] = true if options[:metric].nil?
-            options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
-            _, expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
+            txn = Transaction.start(txn_options[:category], txn_options)
+            _record_queue_length
 
             begin
-              NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
               if block_given?
                 yield
               else
@@ -346,26 +367,10 @@ module NewRelic
             end
 
           ensure
-            end_time = Time.now
-
-            txn.freeze_name
-            metric_names = Array(recorded_metrics(txn))
-            txn_name = metric_names.shift
-
-            NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
-            NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
-            txn.record_apdex(end_time) unless ignore_apdex?
-            txn = Transaction.stop(txn_name, end_time)
-
-            NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
+            Transaction.ignore_apdex! if ignore_apdex?
+            Transaction.ignore_enduser! if ignore_enduser?
+            Transaction.stop
           end
-        end
-
-        def recorded_metrics(txn)
-          metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(txn.name)
-          metrics = [txn.name]
-          metrics += metric_parser.summary_metrics unless txn.has_parent?
-          metrics
         end
 
         protected
@@ -389,14 +394,21 @@ module NewRelic
         def newrelic_response_code; end
 
         def newrelic_request_headers
-          self.respond_to?(:request) && self.request.respond_to?(:headers) && self.request.headers
+          request = NewRelic::Agent::TransactionState.get.request
+          if request
+            if request.respond_to?(:headers)
+              request.headers
+            elsif request.respond_to?(:env)
+              request.env
+            end
+          end
         end
 
         # overrideable method to determine whether to trace an action
         # or not - you may override this in your controller and supply
         # your own logic for ignoring transactions.
         def do_not_trace?
-          _is_filtered?('do_not_trace')
+          _is_filtered?(NR_DO_NOT_TRACE_KEY)
         end
 
         # overrideable method to determine whether to trace an action
@@ -404,74 +416,32 @@ module NewRelic
         # ignore things like api calls or other fast non-user-facing
         # actions
         def ignore_apdex?
-          _is_filtered?('ignore_apdex')
+          _is_filtered?(NR_IGNORE_APDEX_KEY)
         end
 
         def ignore_enduser?
-          _is_filtered?('ignore_enduser')
+          _is_filtered?(NR_IGNORE_ENDUSER_KEY)
         end
 
         private
 
-        # Profile the instrumented call.  Dev mode only.  Experimental
-        # - should definitely not be used on production applications
-        def perform_action_with_newrelic_profile(args)
-          txn = _start_transaction(block_given? ? args : [])
-          val = nil
-          options = { :metric => true }
-
-          _, expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
-
-          NewRelic::Agent.disable_all_tracing do
-            # turn on profiling
-            profile = RubyProf.profile do
-              if block_given?
-                val = yield
-              else
-                val = perform_action_without_newrelic_trace(*args)
-              end
+        def create_transaction_options(txn_args)
+          txn_options = {}
+          if txn_args.any?
+            if txn_args.last.is_a?(Hash)
+              txn_options = txn_args.pop
             end
-            NewRelic::Agent.instance.transaction_sampler.notice_profile profile
-          end
-
-          return val
-        ensure
-          end_time = Time.now
-          txn.freeze_name
-          metric_names = Array(recorded_metrics(txn))
-          txn_name = metric_names.shift
-
-          NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
-
-          txn = Transaction.stop(txn_name, end_time)
-        end
-
-        # Write a transaction onto a thread local if there isn't already one there.
-        # If there is one, just update it.
-        def _start_transaction(args) # :nodoc:
-          # If a block was passed in, then the arguments represent options for the instrumentation,
-          # not app method arguments.
-          options = {}
-          if args.any?
-            if args.last.is_a?(Hash)
-              options = args.pop
-            end
-            available_params = options[:params] || {}
-            options[:name] ||= args.first
+            available_params = txn_options[:params]
+            txn_options[:name] ||= txn_args.first
           else
-            available_params = self.respond_to?(:params) ? self.params : {}
+            available_params = self.respond_to?(:params) && self.params
           end
 
-          options[:request] ||= self.request if self.respond_to? :request
-          options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
-          category = options[:category] || :controller
-          txn = Transaction.start(category, options)
-          txn.name = TransactionNamer.new(self).name(options)
-
-          txn.apdex_start = _detect_upstream_wait(txn.start_time)
-          _record_queue_length
-
-          return txn
+          txn_options[:request] ||= self.request if self.respond_to? :request
+          if available_params
+            txn_options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+          end
+          txn_options
         end
 
         # Filter out a request if it matches one of our parameters for
@@ -481,7 +451,7 @@ module NewRelic
           case ignore_actions
           when nil; false
           when Hash
-            only_actions = Array(ignore_actions[:only])
+            only_actions   = Array(ignore_actions[:only])
             except_actions = Array(ignore_actions[:except])
             only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
           else
@@ -502,18 +472,10 @@ module NewRelic
           end
         end
 
-        # Return a Time instance representing the upstream start time.
-        # now is a Time instance to fall back on if no other candidate
-        # for the start time is found.
-        def _detect_upstream_wait(now)
+        def detect_queue_start_time
           if newrelic_request_headers
-            queue_start = QueueTime.parse_frontend_timestamp(newrelic_request_headers, now)
-            QueueTime.record_frontend_metrics(queue_start, now) if queue_start
+            QueueTime.parse_frontend_timestamp(newrelic_request_headers)
           end
-          queue_start || now
-        rescue => e
-          ::NewRelic::Agent.logger.error("Error detecting upstream wait time:", e)
-          now
         end
       end
     end

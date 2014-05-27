@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
-class NewRelic::Agent::Instrumentation::QueueTimeTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
   include NewRelic::Agent::Instrumentation
 
   def setup
@@ -70,9 +70,13 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < MiniTest::Unit::TestCase
   end
 
   def test_recording_queue_time_metric
-    assert_metric_value_in_delta(60, 'WebFrontend/QueueTime', 0.001) do
-      QueueTime.record_frontend_metrics(Time.at(Time.now.to_f - 60))
-    end
+    QueueTime.record_frontend_metrics(Time.at(Time.now.to_f - 60))
+    assert_metrics_recorded(
+      'WebFrontend/QueueTime' => {
+        :call_count      => 1,
+        :total_call_time => 60
+      }
+    )
   end
 
   def test_parsing_malformed_header

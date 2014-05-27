@@ -11,17 +11,14 @@ class NewRelic::Agent::MockScopeListener
     @scopes = []
   end
 
-  def notice_first_scope_push(time)
+  def notice_push_frame(time)
   end
 
-  def notice_push_scope(time)
-  end
-
-  def notice_pop_scope(scope, time)
+  def notice_pop_frame(scope, time)
     @scopes << scope
   end
 
-  def notice_scope_empty(time)
+  def on_finishing_transaction(time)
   end
 
   def enabled?

@@ -16,24 +16,24 @@ module NewRelic
         gather_startup_logs
       end
 
-      def fatal(*msgs)
-        format_and_send(:fatal, msgs)
+      def fatal(*msgs, &blk)
+        format_and_send(:fatal, msgs, &blk)
       end
 
-      def error(*msgs)
-        format_and_send(:error, msgs)
+      def error(*msgs, &blk)
+        format_and_send(:error, msgs, &blk)
       end
 
-      def warn(*msgs)
-        format_and_send(:warn, msgs)
+      def warn(*msgs, &blk)
+        format_and_send(:warn, msgs, &blk)
       end
 
-      def info(*msgs)
-        format_and_send(:info, msgs)
+      def info(*msgs, &blk)
+        format_and_send(:info, msgs, &blk)
       end
 
-      def debug(*msgs)
-        format_and_send(:debug, msgs)
+      def debug(*msgs, &blk)
+        format_and_send(:debug, msgs, &blk)
       end
 
       def log_once(level, key, *msgs)
@@ -54,7 +54,7 @@ module NewRelic
       def log_exception(level, e, backtrace_level=level)
         @log.send(level, "%p: %s" % [ e.class, e.message ])
         @log.send(backtrace_level) do
-          backtrace = e.backtrace
+          backtrace = backtrace_from_exception(e)
           if backtrace
             "Debugging backtrace:\n" + backtrace.join("\n  ")
           else
@@ -63,8 +63,26 @@ module NewRelic
         end
       end
 
+      def backtrace_from_exception(e)
+        # We've seen that often the backtrace on a SystemStackError is bunk
+        # so massage the caller instead at a known depth.
+        #
+        # Tests keep us honest about minmum method depth our log calls add.
+        return caller.drop(5) if e.is_a?(SystemStackError)
+
+        e.backtrace
+      end
+
       # Allows for passing exceptions in explicitly, which format with backtrace
-      def format_and_send(level, *msgs)
+      def format_and_send(level, *msgs, &block)
+        if block
+          if @log.send("#{level}?")
+            msgs = Array(block.call)
+          else
+            msgs = []
+          end
+        end
+
         msgs.flatten.each do |item|
           case item
           when Exception then log_exception(level, item, :debug)

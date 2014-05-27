@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
 class NewRelic::Agent::Transaction
-  class SlowestSampleBufferTest < MiniTest::Unit::TestCase
+  class SlowestSampleBufferTest < Minitest::Test
     def setup
       @buffer = SlowestSampleBuffer.new
     end

@@ -11,12 +11,16 @@ require 'newrelic_rpm'
 require 'fake_collector'
 require 'multiverse_helpers'
 
-class LoggingTest < MiniTest::Unit::TestCase
+class LoggingTest < Minitest::Test
 
   include MultiverseHelpers
 
   def setup
     NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
+  end
+
+  def teardown
+    NewRelic::Agent.config.reset_to_defaults
   end
 
   def test_logs_app_name
@@ -50,17 +54,17 @@ class LoggingTest < MiniTest::Unit::TestCase
       {:'transaction_tracer.record_sql' => 'obfuscated'},
       "Agent is configured to send raw SQL to the service") do
 
-      NewRelic::Agent.config.apply_config(:'transaction_tracer.record_sql' => 'raw')
+      NewRelic::Agent.config.add_config_for_testing(:'transaction_tracer.record_sql' => 'raw')
     end
 
   end
 
   def test_logs_ssl_warning
     running_agent_writes_to_log(
-      {:ssl => true},
+      {},
       "Agent is configured not to use SSL when communicating with New Relic's servers") do
-
-      NewRelic::Agent.config.apply_config(:ssl => false)
+      NewRelic::Agent.config.add_config_for_testing(:ssl => true )
+      NewRelic::Agent.config.add_config_for_testing(:ssl => false)
     end
   end
 
@@ -69,7 +73,7 @@ class LoggingTest < MiniTest::Unit::TestCase
       {:'error_collector.enabled' => false},
       "Errors will be sent") do
 
-      NewRelic::Agent.config.apply_config(:'error_collector.enabled' => true)
+      NewRelic::Agent.config.add_config_for_testing(:'error_collector.enabled' => true)
     end
   end
 
@@ -78,7 +82,7 @@ class LoggingTest < MiniTest::Unit::TestCase
       {:'error_collector.enabled' => true},
       "Errors will not be sent") do
 
-      NewRelic::Agent.config.apply_config(:'error_collector.enabled' => false)
+      NewRelic::Agent.config.add_config_for_testing(:'error_collector.enabled' => false)
     end
   end
 
@@ -107,13 +111,13 @@ class LoggingTest < MiniTest::Unit::TestCase
   def test_logs_missing_license_key
     running_agent_writes_to_log(
       { :license_key => false },
-      "No license key found in newrelic.yml config.")
+      "No license key found.")
   end
 
   def test_logs_blank_license_key
     running_agent_writes_to_log(
       { :license_key => '' },
-      "No license key found in newrelic.yml config.")
+      "No license key found.")
   end
 
   def test_logs_invalid_license_key

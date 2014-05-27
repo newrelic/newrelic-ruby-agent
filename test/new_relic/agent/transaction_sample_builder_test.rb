@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class NewRelic::Agent::TransationSampleBuilderTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::TransationSampleBuilderTest < Minitest::Test
 
   def setup
     freeze_time
@@ -52,22 +52,12 @@ class NewRelic::Agent::TransationSampleBuilderTest < MiniTest::Unit::TestCase
       build_segment "aa"
     end
 
-    begin
-      builder.sample
-      assert false
-    rescue => e
-      # expected
-    end
-
     @builder.finish_trace(Time.now.to_f)
 
     validate_builder
 
-    begin
+    assert_raises(TypeError) do
       build_segment "b"
-      assert false
-    rescue TypeError => e
-      # expected
     end
   end
 
@@ -249,7 +239,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < MiniTest::Unit::TestCase
 
     in_transaction do
       with_config(config, :do_not_cast => true) do
-        NewRelic::Agent::TransactionState.get.transaction.stubs(:apdex_t).returns(1.5)
+        NewRelic::Agent::TransactionState.get.current_transaction.stubs(:apdex_t).returns(1.5)
         assert_equal 4.0, @builder.transaction_trace_threshold
       end
     end

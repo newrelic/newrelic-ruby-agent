@@ -1,0 +1,21 @@
+# New Relic Ruby Agent Release Notes #
+
+## v3.7.2 ##
+
+  * Mongo instrumentation improvements
+
+  Mongo Mongo Mongo
+
+  * Patch (3.7.2.4242)
+
+  Patch for something
+
+  * Patch later on (3.7.2.5000)
+
+  This isn't the patch from * (3.7.2.4242) but we like to act like it.
+
+## v3.7.1 ##
+
+  * MongoDB support
+
+  Mongo supported

@@ -113,6 +113,7 @@ module NewRelic
     require 'new_relic/agent/samplers/memory_sampler'
     require 'new_relic/agent/samplers/object_sampler'
     require 'new_relic/agent/samplers/delayed_job_sampler'
+    require 'new_relic/agent/samplers/vm_sampler'
     require 'set'
     require 'thread'
     require 'resolv'
@@ -198,7 +199,7 @@ module NewRelic
         stats.sum_of_squares = value[:sum_of_squares] if value[:sum_of_squares]
         value = stats
       end
-      agent.stats_engine.record_metrics(metric_name, value)
+      agent.stats_engine.record_unscoped_metrics(metric_name, value)
     end
 
     # Increment a simple counter metric.
@@ -210,7 +211,7 @@ module NewRelic
     #
     # @api public
     def increment_metric(metric_name, amount=1)
-      agent.stats_engine.record_metrics(metric_name) do |stats|
+      agent.stats_engine.record_unscoped_metrics(metric_name) do |stats|
         stats.increment_count(amount)
       end
     end
@@ -504,11 +505,7 @@ module NewRelic
     # @api public
     #
     def set_transaction_name(name, options={})
-      if Transaction.current
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(self)
-        Transaction.current.type = options[:category] if options[:category]
-        Transaction.current.name = "#{namer.category_name(options[:category])}/#{name}"
-      end
+      Transaction.set_overriding_transaction_name(name, options)
     end
 
     # Get the name of the current running transaction.  This is useful if you
@@ -518,8 +515,8 @@ module NewRelic
     #
     def get_transaction_name
       if Transaction.current
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(self)
-        Transaction.current.name.sub(Regexp.new("\\A#{Regexp.escape(namer.category_name)}/"), '')
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
+        Transaction.current.best_name.sub(Regexp.new("\\A#{Regexp.escape(namer.category_name)}/"), '')
       end
     end
 
@@ -542,37 +539,9 @@ module NewRelic
       end
     end
 
-    # Record a web transaction from an external source.  This will
-    # process the response time, error, and score an apdex value.
-    #
-    # First argument is a float value, time in seconds.  Option
-    # keys are strings.
-    #
-    # == Identifying the transaction
-    # * <tt>'uri' => uri</tt> to record the value for a given web request.
-    #   If not provided, just record the aggregate dispatcher and apdex scores.
-    # * <tt>'metric' => metric_name</tt> to record with a general metric name
-    #   like +OtherTransaction/Background/Class/method+.  Ignored if +uri+ is
-    #   provided.
-    #
-    # == Error options
-    # Provide one of the following:
-    # * <tt>'is_error' => true</tt> if an unknown error occurred
-    # * <tt>'error_message' => msg</tt> if an error message is available
-    # * <tt>'exception' => exception</tt> if a ruby exception is recorded
-    #
-    # == Misc options
-    # Additional information captured in errors
-    # * <tt>'referer' => referer_url</tt>
-    # * <tt>'request_params' => hash</tt> to record a set of name/value pairs as the
-    #   request parameters.
-    # * <tt>'custom_params' => hash</tt> to record extra information in traced errors
-    #
-    # @api public
-    # @deprecated
-    #
-    def record_transaction(response_sec, options = {})
-      agent.record_transaction(response_sec, options)
+    # Remove after 5/9/15
+    def record_transaction(*args)
+      NewRelic::Agent.logger.warn('This method has been deprecated, please see https://docs.newrelic.com/docs/ruby/ruby-agent-api for current API documentation.')
     end
 
     # Subscribe to events of +event_type+, calling the given +handler+

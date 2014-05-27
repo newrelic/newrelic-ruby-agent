@@ -4,17 +4,20 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class SamplerCollectionTest < MiniTest::Unit::TestCase
+class SamplerCollectionTest < Minitest::Test
 
-  class DummySampler
-    attr_reader :id
-    def self.supported_on_this_platform?; true; end
+  class DummySampler < NewRelic::Agent::Sampler
+    named :dummy
     def poll; end
   end
-  class DummySampler2 < DummySampler; end
+
+  class DummySampler2 < NewRelic::Agent::Sampler
+    named :dummy2
+    def poll; end
+  end
 
   def setup
-    @events  = NewRelic::Agent::EventListener.new
+    @events     = NewRelic::Agent::EventListener.new
     @collection = NewRelic::Agent::SamplerCollection.new(@events)
   end
 
@@ -43,10 +46,24 @@ class SamplerCollectionTest < MiniTest::Unit::TestCase
     assert_equal(0, @collection.to_a.size)
   end
 
+  def test_add_sampler_omits_disabled_samplers
+    with_config(:disable_dummy_sampler => true) do
+      @collection.add_sampler(DummySampler)
+      assert_equal(0, @collection.to_a.size)
+    end
+  end
+
   def test_add_sampler_swallows_exceptions_during_sampler_creation
     DummySampler.stubs(:new).raises(StandardError)
     @collection.add_sampler(DummySampler)
     assert_equal(0, @collection.to_a.size)
+  end
+
+  def test_add_sampler_calls_setup_events_with_event_listener_if_present
+    sampler = DummySampler.new
+    DummySampler.stubs(:new).returns(sampler)
+    sampler.expects(:setup_events).with(@events)
+    @collection.add_sampler(DummySampler)
   end
 
   def test_poll_samplers_polls_samplers

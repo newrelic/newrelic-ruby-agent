@@ -33,15 +33,13 @@ module NewRelic
         stats.merge!(other_stats)
       end
 
-      def merge!(other_stats)
-        Array(other_stats).each do |other|
-          @min_call_time = other.min_call_time if min_time_less?(other)
-          @max_call_time = other.max_call_time if other.max_call_time > max_call_time
-          @total_call_time      += other.total_call_time
-          @total_exclusive_time += other.total_exclusive_time
-          @sum_of_squares       += other.sum_of_squares
-          @call_count += other.call_count
-        end
+      def merge!(other)
+        @min_call_time = other.min_call_time if min_time_less?(other)
+        @max_call_time = other.max_call_time if other.max_call_time > max_call_time
+        @total_call_time      += other.total_call_time
+        @total_exclusive_time += other.total_exclusive_time
+        @sum_of_squares       += other.sum_of_squares
+        @call_count += other.call_count
         self
       end
 
@@ -60,6 +58,22 @@ module NewRelic
         }.to_json(*_)
       end
 
+      def record(value=nil, aux=nil, &blk)
+        if blk
+          yield self
+        else
+          case value
+          when Numeric
+            aux ||= value
+            self.record_data_point(value, aux)
+          when :apdex_s, :apdex_t, :apdex_f
+            self.record_apdex(value, aux)
+          when NewRelic::Agent::Stats
+            self.merge!(value)
+          end
+        end
+      end
+
       # record a single data point into the statistical gatherer.  The gatherer
       # will aggregate all data points collected over a specified period and upload
       # its data to the NewRelic server
@@ -75,21 +89,6 @@ module NewRelic
       end
 
       alias trace_call record_data_point
-
-      # Records multiple data points as one method call - this handles
-      # all the aggregation that would be done with multiple
-      # record_data_point calls
-      def record_multiple_data_points(total_value, count=1)
-        return record_data_point(total_value) if count == 1
-        @call_count += count
-        @total_call_time += total_value
-        avg_val = total_value / count
-        @min_call_time = avg_val if avg_val < @min_call_time || @call_count == count
-        @max_call_time = avg_val if avg_val > @max_call_time
-        @total_exclusive_time += total_value
-        @sum_of_squares += (avg_val * avg_val) * count
-        self
-      end
 
       # increments the call_count by one
       def increment_count(value = 1)

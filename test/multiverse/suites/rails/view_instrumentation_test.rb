@@ -3,8 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require './app'
-require 'rails/test_help'
-require 'multiverse_helpers'
+require 'haml'
 
 ActionController::Base.view_paths = ['app/views']
 

@@ -21,6 +21,7 @@ require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/request_sampler'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
+require 'new_relic/agent/vm/monotonic_gc_profiler'
 require 'new_relic/environment_report'
 
 module NewRelic
@@ -36,9 +37,7 @@ module NewRelic
       def initialize
         # FIXME: temporary work around for RUBY-839
         # This should be handled with a configuration callback
-        if Agent.config[:monitor_mode]
-          @service = NewRelic::Agent::NewRelicService.new
-        end
+        start_service_if_needed
 
         @events                = NewRelic::Agent::EventListener.new
         @stats_engine          = NewRelic::Agent::StatsEngine.new
@@ -52,6 +51,7 @@ module NewRelic
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
         @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
         @harvester             = NewRelic::Agent::Harvester.new(@events)
+        @monotonic_gc_profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
 
         @connect_state      = :pending
         @connect_attempts   = 0
@@ -104,43 +104,11 @@ module NewRelic
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
         attr_reader :transaction_rules
+        # Responsbile for restarting the harvest thread
+        attr_reader :harvester
         attr_reader :harvest_lock
-
-        # fakes out a transaction that did not happen in this process
-        # by creating apdex, summary metrics, and recording statistics
-        # for the transaction
-        #
-        # This method is *deprecated* - it may be removed in future
-        # versions of the agent
-        def record_transaction(duration_seconds, options={})
-          is_error = options['is_error'] || options['error_message'] || options['exception']
-          metric = options['metric']
-          metric ||= options['uri'] # normalize this with url rules
-          raise "metric or uri arguments required" unless metric
-          metric_info = NewRelic::MetricParser::MetricParser.for_metric_named(metric)
-
-          if metric_info.is_web_transaction?
-            NewRelic::Agent::Transaction.record_apdex(metric_info, duration_seconds, duration_seconds, is_error)
-          end
-          metrics = metric_info.summary_metrics
-
-          metrics << metric
-          metrics.each do |name|
-            NewRelic::Agent.record_metric(name, duration_seconds)
-          end
-
-          if is_error
-            if options['exception']
-              e = options['exception']
-            elsif options['error_message']
-              e = StandardError.new options['error_message']
-            else
-              e = StandardError.new 'Unknown Error'
-            end
-            error_collector.notice_error e, :uri => options['uri'], :metric => metric
-          end
-          # busy time ?
-        end
+        # GC::Profiler.total_time is not monotonic so we wrap it.
+        attr_reader :monotonic_gc_profiler
 
         # This method should be called in a forked process after a fork.
         # It assumes the parent process initialized the agent, but does
@@ -162,16 +130,18 @@ module NewRelic
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
         def after_fork(options={})
+          # Mark started early because if we've explicitly called after_fork,
+          # we should be ready to run and shouldn't restarting if we can't.
           @harvester.mark_started
 
-          Agent.config.apply_config(NewRelic::Agent::Configuration::ManualSource.new(options), 1)
+          Agent.config.replace_or_add_config(NewRelic::Agent::Configuration::ManualSource.new(options))
 
           if channel_id = options[:report_to_channel]
             @service = NewRelic::Agent::PipeService.new(channel_id)
             if connected?
-              @connected_pid = $$
+              @connected_pid = Process.pid
             else
-              ::NewRelic::Agent.logger.debug("Child process #{$$} not reporting to non-connected parent.")
+              ::NewRelic::Agent.logger.debug("Child process #{Process.pid} not reporting to non-connected parent (process #{Process.ppid}).")
               @service.shutdown(Time.now)
               disconnect
             end
@@ -184,13 +154,11 @@ module NewRelic
 
           ::NewRelic::Agent.logger.debug "Starting the worker thread in #{$$} after forking."
 
+          # Clear out locks and stats left over from parent process
           reset_objects_with_locks
-
-          # Clear out stats that are left over from parent process
           drop_buffered_data
 
-          generate_environment_report unless @service.is_a?(NewRelic::Agent::PipeService)
-          start_worker_thread(options)
+          setup_and_start_agent(options)
         end
 
         # True if we have initialized and completed 'start'
@@ -217,10 +185,8 @@ module NewRelic
         end
 
         def revert_to_default_configuration
-          NewRelic::Agent.config.remove_config do |config|
-            config.class == NewRelic::Agent::Configuration::ManualSource ||
-              config.class == NewRelic::Agent::Configuration::ServerSource
-          end
+          NewRelic::Agent.config.remove_config_type(:manual)
+          NewRelic::Agent.config.remove_config_type(:server)
         end
 
         def stop_worker_loop
@@ -247,16 +213,6 @@ module NewRelic
           rescue => e
             ::NewRelic::Agent.logger.error e
           end
-        end
-
-        # Tells the statistics engine we are starting a new transaction
-        def start_transaction
-          @stats_engine.start_transaction
-        end
-
-        # Tells the statistics engine we are ending a transaction
-        def end_transaction
-          @stats_engine.end_transaction
         end
 
         # Sets a thread local variable as to whether we should or
@@ -389,6 +345,12 @@ module NewRelic
             end
           end
 
+          def start_service_if_needed
+            if Agent.config[:monitor_mode] && !@service
+              @service = NewRelic::Agent::NewRelicService.new
+            end
+          end
+
           # Classy logging of the agent version and the current pid,
           # so we can disambiguate processes in the log file and make
           # sure they're running a reasonable version
@@ -413,8 +375,8 @@ module NewRelic
             if Agent.config[:license_key] && Agent.config[:license_key].length > 0
               true
             else
-              ::NewRelic::Agent.logger.warn("No license key found in newrelic.yml config. " +
-                "This often means your newrelic.yml is missing a section for the running environment '#{NewRelic::Control.instance.env}'")
+              ::NewRelic::Agent.logger.warn("No license key found. " +
+                "This often means your newrelic.yml file was not found, or it lacks a section for the running environment, '#{NewRelic::Control.instance.env}'.")
               false
             end
           end
@@ -458,16 +420,35 @@ module NewRelic
               !NewRelic::Agent::PipeChannelManager.listener.started?
           end
 
+          def in_resque_child_process?
+            @service.is_a?(NewRelic::Agent::PipeService)
+          end
+
           # Sanity-check the agent configuration and start the agent,
           # setting up the worker thread and the exit handler to shut
           # down the agent
           def check_config_and_start_agent
             return unless monitoring? && has_correct_license_key?
             return if using_forking_dispatcher?
-            generate_environment_report
+            setup_and_start_agent
+          end
+
+          # This is the shared method between the main agent startup and the
+          # after_fork call restarting the thread in deferred dispatchers.
+          #
+          # Treatment of @started and env report is important to get right.
+          def setup_and_start_agent(options={})
+            @started = true
+            @harvester.mark_started
+
+            unless in_resque_child_process?
+              generate_environment_report
+              install_exit_handler
+              @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
+            end
+
             connect_in_foreground if Agent.config[:sync_startup]
-            start_worker_thread
-            install_exit_handler
+            start_worker_thread(options)
           end
         end
 
@@ -508,8 +489,6 @@ module NewRelic
         def start
           return unless agent_should_start?
 
-          @started = true
-          @local_host = determine_host
           log_startup
           check_config_and_start_agent
           log_version_and_pid
@@ -535,10 +514,6 @@ module NewRelic
         def reset_objects_with_locks
           @stats_engine = NewRelic::Agent::StatsEngine.new
           reset_harvest_locks
-        end
-
-        def add_harvest_sampler(subclass)
-          @harvest_samplers.add_sampler(subclass)
         end
 
         private
@@ -759,12 +734,22 @@ module NewRelic
             Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
+          # We've seen objects in the environment report (Rails.env in
+          # particular) that can't seralize to JSON. Cope with that here and
+          # clear out so downstream code doesn't have to check again.
+          def sanitize_environment_report
+            if !@service.valid_to_marshal?(@environment_report)
+              @environment_report = []
+            end
+          end
+
           # Initializes the hash of settings that we send to the
           # server. Returns a literal hash containing the options
           def connect_settings
+            sanitize_environment_report
             {
               :pid => $$,
-              :host => @local_host,
+              :host => local_host,
               :app_name => Agent.config.app_names,
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
@@ -807,7 +792,7 @@ module NewRelic
 
             ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
             server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, Agent.config)
-            Agent.config.apply_config(server_config, 1)
+            Agent.config.replace_or_add_config(server_config)
             log_connection!(config_data) if @service
 
             @transaction_rules = RulesEngine.from_specs(config_data['transaction_name_rules'])
@@ -836,23 +821,25 @@ module NewRelic
         end
         include Connect
 
-        # Accepts an array of (metrics, transaction_traces, errors) and merges
-        # it into our current collection of data to send. Can be
-        # dangerous if we re-merge the same data more than once - it
-        # will be sent multiple times.
-        def merge_data_from(data)
-          metrics, transaction_traces, errors = data
-          @stats_engine.merge!(metrics) if metrics
-          if transaction_traces && transaction_traces.respond_to?(:any?) &&
-              transaction_traces.any?
-            @transaction_sampler.merge!(transaction_traces)
-          end
-          if errors && errors.respond_to?(:each)
-            @error_collector.merge!(errors)
+        def container_for_endpoint(endpoint)
+          case endpoint
+          when :metric_data             then @stats_engine
+          when :transaction_sample_data then @transaction_sampler
+          when :error_data              then @error_collector
+          when :analytic_event_data     then @request_sampler
+          when :sql_trace_data          then @sql_sampler
           end
         end
 
-        public :merge_data_from
+        def merge_data_for_endpoint(endpoint, data)
+          if data && !data.empty?
+            container_for_endpoint(endpoint).merge!(data)
+          end
+        rescue => e
+          NewRelic::Agent.logger.error("Error while merging #{endpoint} data from child: ", e)
+        end
+
+        public :merge_data_for_endpoint
 
         # Connect to the server and validate the license.  If successful,
         # connected? returns true when finished.  If not successful, you can
@@ -891,7 +878,7 @@ module NewRelic
           log_error(e)
           if opts[:keep_retrying]
             note_connect_failure
-            ::NewRelic::Agent.logger.warn "Will re-attempt in #{connect_retry_period} seconds"
+            ::NewRelic::Agent.logger.info "Will re-attempt in #{connect_retry_period} seconds"
             sleep connect_retry_period
             retry
           else
@@ -904,6 +891,10 @@ module NewRelic
         # Who am I? Well, this method can tell you your hostname.
         def determine_host
           Socket.gethostname
+        end
+
+        def local_host
+          @local_host ||= determine_host
         end
 
         # Delegates to the control class to determine the root
@@ -928,7 +919,7 @@ module NewRelic
         #  #merge!(items)
         #    merge the given items back into the internal buffer of the
         #    container, so that they may be harvested again later.
-        #  
+        #
         def harvest_and_send_from_container(container, endpoint)
           items = harvest_from_container(container, endpoint)
           send_data_to_endpoint(endpoint, items, container) unless items.empty?
@@ -998,7 +989,7 @@ module NewRelic
           rescue ForceRestartException, ForceDisconnectException
             raise
           rescue => e
-            NewRelic::Agent.logger.warn("Error during check_for_and_handle_agent_commands, will retry later: ", e)
+            NewRelic::Agent.logger.info("Error during check_for_and_handle_agent_commands, will retry later: ", e)
           end
         end
 
@@ -1028,7 +1019,7 @@ module NewRelic
         ensure
           NewRelic::Agent::Database.close_connections
           duration = (Time.now - now).to_f
-          @stats_engine.record_metrics('Supportability/Harvest', duration)
+          NewRelic::Agent.record_metric('Supportability/Harvest', duration)
         end
 
         private :transmit_data_already_locked

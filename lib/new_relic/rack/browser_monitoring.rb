@@ -50,6 +50,7 @@ module NewRelic::Rack
         !headers['Content-Disposition'].to_s.include?('attachment')
     end
 
+    CHARSET_RE         = /<\s*meta[^>]+charset\s*=[^>]*>/im.freeze
     X_UA_COMPATIBLE_RE = /<\s*meta[^>]+http-equiv\s*=\s*['"]x-ua-compatible['"][^>]*>/im.freeze
 
     def autoinstrument_source(response, headers)
@@ -61,9 +62,16 @@ module NewRelic::Rack
       beginning_of_source = source[0..50_000]
 
       if body_start = find_body_start(beginning_of_source)
-        insertion_index = find_x_ua_compatible_position(beginning_of_source) ||
-                          find_end_of_head_open(beginning_of_source) ||
-                          body_start
+        meta_tag_positions = [
+          find_x_ua_compatible_position(beginning_of_source),
+          find_charset_position(beginning_of_source)
+        ].compact
+
+        if !meta_tag_positions.empty?
+          insertion_index = meta_tag_positions.max
+        else
+          insertion_index = find_end_of_head_open(beginning_of_source) || body_start
+        end
 
         if insertion_index
           source = source[0...insertion_index] <<
@@ -81,6 +89,9 @@ module NewRelic::Rack
       end
 
       source
+    rescue => e
+      NewRelic::Agent.logger.debug "Skipping RUM instrumentation on exception.", e
+      nil
     end
 
     def gather_source(response)
@@ -103,6 +114,11 @@ module NewRelic::Rack
 
     def find_x_ua_compatible_position(beginning_of_source)
       match = X_UA_COMPATIBLE_RE.match(beginning_of_source)
+      match.end(0) if match
+    end
+
+    def find_charset_position(beginning_of_source)
+      match = CHARSET_RE.match(beginning_of_source)
       match.end(0) if match
     end
 

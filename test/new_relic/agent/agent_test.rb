@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 module NewRelic
   module Agent
-    class AgentTest < MiniTest::Unit::TestCase
+    class AgentTest < Minitest::Test
       include NewRelic::TestHelpers::Exceptions
 
       def setup
@@ -15,6 +15,13 @@ module NewRelic
         @agent.service = default_service
         @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
+
+        @config = { :license_key => "a" * 40 }
+        NewRelic::Agent.config.add_config_for_testing(@config)
+      end
+
+      def teardown
+        NewRelic::Agent.config.reset_to_defaults
       end
 
       def test_after_fork_reporting_to_channel
@@ -27,9 +34,11 @@ module NewRelic
       end
 
       def test_after_fork_reporting_to_channel_should_not_collect_environment_report
-        @agent.stubs(:connected?).returns(true)
-        @agent.expects(:generate_environment_report).never
-        @agent.after_fork(:report_to_channel => 123)
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+          @agent.expects(:generate_environment_report).never
+          @agent.after_fork(:report_to_channel => 123)
+        end
       end
 
       def test_after_fork_should_close_pipe_if_parent_not_connected
@@ -62,11 +71,29 @@ module NewRelic
 
           errors = []
           errors << NewRelic::NoticedError.new("", {}, Exception.new("boo"))
-          @agent.merge_data_from([{}, [], errors])
+          @agent.merge_data_for_endpoint(:error_data, errors)
 
           @agent.after_fork(:report_to_channel => 123)
 
           assert_equal 0, @agent.error_collector.errors.length, "Still got errors collected in parent"
+        end
+      end
+
+      def test_after_fork_should_mark_as_started
+        with_config(:monitor_mode => true) do
+          refute @agent.started?
+          @agent.after_fork
+          assert @agent.started?
+        end
+      end
+
+      def test_after_fork_should_prevent_further_thread_restart_attempts
+        with_config(:monitor_mode => true) do
+          # Disconnecting will tell us not to restart the thread
+          @agent.disconnect
+          @agent.after_fork
+
+          refute @agent.harvester.needs_restart?
         end
       end
 
@@ -79,7 +106,7 @@ module NewRelic
 
       def test_transmit_data_should_transmit
         @agent.service.expects(:metric_data).at_least_once
-        @agent.stats_engine.record_metrics(['foo'], 12)
+        @agent.stats_engine.record_unscoped_metrics(['foo'], 12)
         @agent.instance_eval { transmit_data }
       end
 
@@ -168,11 +195,17 @@ module NewRelic
         @agent.send :harvest_and_send_for_agent_commands
       end
 
-      def test_merge_data_from_empty
+      def test_merge_data_for_endpoint_empty
         @agent.stats_engine.expects(:merge!).never
         @agent.error_collector.expects(:merge!).never
         @agent.transaction_sampler.expects(:merge!).never
-        @agent.merge_data_from([])
+        @agent.instance_variable_get(:@request_sampler).expects(:merge!).never
+        @agent.sql_sampler.expects(:merge!).never
+        @agent.merge_data_for_endpoint(:metric_data, [])
+        @agent.merge_data_for_endpoint(:transaction_sample_data, [])
+        @agent.merge_data_for_endpoint(:error_data, [])
+        @agent.merge_data_for_endpoint(:sql_trace_data, [])
+        @agent.merge_data_for_endpoint(:analytic_event_data, [])
       end
 
       def test_merge_data_traces
@@ -181,14 +214,14 @@ module NewRelic
           @transaction_sampler = transaction_sampler
         }
         transaction_sampler.expects(:merge!).with([1,2,3])
-        @agent.merge_data_from([{}, [1,2,3], []])
+        @agent.merge_data_for_endpoint(:transaction_sample_data, [1,2,3])
       end
 
-      def test_merge_data_from_abides_by_error_queue_limit
+      def test_merge_data_for_endpoint_abides_by_error_queue_limit
         errors = []
         40.times { |i| errors << NewRelic::NoticedError.new("", {}, Exception.new("boo #{i}")) }
 
-        @agent.merge_data_from([{}, [], errors])
+        @agent.merge_data_for_endpoint(:error_data, errors)
 
         assert_equal 20, @agent.error_collector.errors.length
 
@@ -267,12 +300,28 @@ module NewRelic
         @agent.send(:connect, :force_reconnect => true)
       end
 
+      def test_connect_settings
+        settings = @agent.connect_settings
+        assert settings.include?(:pid)
+        assert settings.include?(:host)
+        assert settings.include?(:app_name)
+        assert settings.include?(:language)
+        assert settings.include?(:agent_version)
+        assert settings.include?(:environment)
+        assert settings.include?(:settings)
+      end
+
+      def test_connect_settings_checks_environment_report_can_marshal
+        @agent.service.stubs(:valid_to_marshal?).returns(false)
+        assert_equal [], @agent.connect_settings[:environment]
+      end
+
       def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started_and_forkable
         NewRelic::LanguageSupport.stubs(:can_fork?).returns(true)
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
           @agent.start
         end
 
@@ -282,8 +331,7 @@ module NewRelic
       def test_doesnt_defer_start_if_resque_dispatcher_and_channel_manager_started
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(true)
 
-        # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
           @agent.start
         end
 
@@ -295,7 +343,7 @@ module NewRelic
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
           @agent.start
         end
 
@@ -497,25 +545,24 @@ module NewRelic
 
       def test_revert_to_default_configuration_removes_manual_and_server_source
         manual_source = NewRelic::Agent::Configuration::ManualSource.new(:manual => "source")
-        Agent.config.apply_config(manual_source)
+        Agent.config.replace_or_add_config(manual_source)
 
         server_config = NewRelic::Agent::Configuration::ServerSource.new({})
-        Agent.config.apply_config(server_config, 1)
+        Agent.config.replace_or_add_config(server_config)
 
-        config_classes = NewRelic::Agent.config.config_stack.map(&:class)
-
+        config_classes = NewRelic::Agent.config.config_classes_for_testing
         assert_includes config_classes, NewRelic::Agent::Configuration::ManualSource
         assert_includes config_classes, NewRelic::Agent::Configuration::ServerSource
 
         @agent.revert_to_default_configuration
 
-        config_classes = NewRelic::Agent.config.config_stack.map(&:class)
+        config_classes = NewRelic::Agent.config.config_classes_for_testing
         assert !config_classes.include?(NewRelic::Agent::Configuration::ManualSource)
         assert !config_classes.include?(NewRelic::Agent::Configuration::ServerSource)
       end
     end
 
-    class AgentStartingTest < MiniTest::Unit::TestCase
+    class AgentStartingTest < Minitest::Test
       def test_no_service_if_not_monitoring
         with_config(:monitor_mode => false) do
           agent = NewRelic::Agent::Agent.new

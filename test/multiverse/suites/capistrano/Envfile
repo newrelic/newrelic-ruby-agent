@@ -1,0 +1,18 @@
+suite_condition("Capistrano 3 not supported in 1.8.7") do
+  RUBY_VERSION != '1.8.7'
+end
+
+gemfile <<-RB
+  gem 'capistrano', '~>3.2.1'
+  gem 'rack'
+RB
+
+gemfile <<-RB
+  gem 'capistrano', '~>3.1.0'
+  gem 'rack'
+RB
+
+gemfile <<-RB
+  gem 'capistrano', '~>3.0.1'
+  gem 'rack'
+RB

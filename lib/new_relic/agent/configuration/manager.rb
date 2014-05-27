@@ -13,9 +13,21 @@ module NewRelic
   module Agent
     module Configuration
       class Manager
-        extend Forwardable
-        def_delegators :@cache, :[], :has_key?, :keys
-        attr_reader :config_stack, :stripped_exceptions_whitelist
+        attr_reader :stripped_exceptions_whitelist
+
+        # Defining these explicitly saves object allocations that we incur
+        # if we use Forwardable and def_delegators.
+        def [](key)
+          @cache[key]
+        end
+
+        def has_key?(key)
+          @cache.has_key?[key]
+        end
+
+        def keys
+          @cache.keys
+        end
 
         def initialize
           reset_to_defaults
@@ -30,36 +42,65 @@ module NewRelic
           end
         end
 
-        def apply_config(source, level=0)
+        def add_config_for_testing(source, level=0)
+          raise 'Invalid config type for testing' unless [Hash, DottedHash].include?(source.class)
+          invoke_callbacks(:add, source)
+          @configs_for_testing << [source.freeze, level]
+          reset_cache
+          log_config(:add, source)
+        end
+
+        def remove_config_type(sym)
+          source = case sym
+          when :environment then @environment_source
+          when :server      then @server_source
+          when :manual      then @manual_source
+          when :yaml        then @yaml_source
+          when :default     then @default_source
+          end
+
+          remove_config(source)
+        end
+
+        def remove_config(source)
+          case source
+          when EnvironmentSource then @environment_source = nil
+          when ServerSource      then @server_source      = nil
+          when ManualSource      then @manual_source      = nil
+          when YamlSource        then @yaml_source        = nil
+          when DefaultSource     then @default_source     = nil
+          else
+            @configs_for_testing.delete_if {|src,lvl| src == source}
+          end
+
+          reset_cache
+          invoke_callbacks(:remove, source)
+          log_config(:remove, source)
+        end
+
+        def replace_or_add_config(source)
+          source.freeze
           was_finished = finished_configuring?
 
           invoke_callbacks(:add, source)
-          @config_stack.insert(level, source.freeze)
+          case source
+          when EnvironmentSource then @environment_source = source
+          when ServerSource      then @server_source      = source
+          when ManualSource      then @manual_source      = source
+          when YamlSource        then @yaml_source        = source
+          when DefaultSource     then @default_source     = source
+          else
+            NewRelic::Agent.logger.warn("Invalid config format; config will be ignored: #{source}")
+          end
+
           reset_cache
           log_config(:add, source)
 
           notify_finished_configuring if !was_finished && finished_configuring?
         end
 
-        def remove_config(source=nil)
-          if block_given?
-            @config_stack.delete_if {|c| yield c }
-          else
-            @config_stack.delete(source)
-          end
-          reset_cache
-          invoke_callbacks(:remove, source)
-          log_config(:remove, source)
-        end
-
-        def replace_or_add_config(source, level=0)
-          index = @config_stack.map{|s| s.class}.index(source.class)
-          @config_stack.delete_at(index) if index
-          apply_config(source, index || level)
-        end
-
         def source(key)
-          @config_stack.each do |config|
+          config_stack.each do |config|
             if config.respond_to?(key.to_sym) || config.has_key?(key.to_sym)
               return config
             end
@@ -67,7 +108,7 @@ module NewRelic
         end
 
         def fetch(key)
-          @config_stack.each do |config|
+          config_stack.each do |config|
             next unless config
             accessor = key.to_sym
             if config.has_key?(accessor)
@@ -106,11 +147,11 @@ module NewRelic
         end
 
         def finished_configuring?
-          @config_stack.any? {|s| s.is_a?(ServerSource)}
+          !@server_source.nil?
         end
 
         def flattened
-          @config_stack.reverse.inject({}) do |flat,layer|
+          config_stack.reverse.inject({}) do |flat,layer|
             thawed_layer = layer.to_hash.dup
             thawed_layer.each do |k,v|
               begin
@@ -146,7 +187,14 @@ module NewRelic
 
         # Generally only useful during initial construction and tests
         def reset_to_defaults
-          @config_stack = [ EnvironmentSource.new, DefaultSource.new ]
+          @environment_source  = EnvironmentSource.new
+          @server_source       = nil
+          @manual_source       = nil
+          @yaml_source         = nil
+          @default_source      = DefaultSource.new
+
+          @configs_for_testing = []
+
           reset_cache
         end
 
@@ -155,12 +203,49 @@ module NewRelic
         end
 
         def log_config(direction, source)
-          ::NewRelic::Agent.logger.debug(
-            "Updating config (#{direction}) from #{source.class}. Results:",
-            flattened.inspect)
+          # Just generating this log message (specifically calling
+          # flattened.inspect) is expensive enough that we don't want to do it
+          # unless we're actually going to be logging the message based on our
+          # current log level.
+          ::NewRelic::Agent.logger.debug do
+            "Updating config (#{direction}) from #{source.class}. Results: #{flattened.inspect}"
+          end
+        end
+
+        def delete_all_configs_for_testing
+          @environment_source  = nil
+          @server_source       = nil
+          @manual_source       = nil
+          @yaml_source         = nil
+          @default_source      = nil
+          @configs_for_testing = []
+        end
+
+        def num_configs_for_testing
+          config_stack.size
+        end
+
+        def config_classes_for_testing
+          config_stack.map(&:class)
         end
 
         private
+
+        def config_stack
+          stack = [@environment_source,
+                   @server_source,
+                   @manual_source,
+                   @yaml_source,
+                   @default_source]
+
+          stack.compact!
+
+          @configs_for_testing.each do |config, index|
+            stack.insert(index, config)
+          end
+
+          stack
+        end
 
         def parse_constant_list(list)
           list.split(/\s*,\s*/).map do |class_name|

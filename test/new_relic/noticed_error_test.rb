@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
-class NewRelic::Agent::NoticedErrorTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   include NewRelic::TestHelpers::Exceptions
 
   def setup
@@ -100,4 +100,11 @@ class NewRelic::Agent::NoticedErrorTest < MiniTest::Unit::TestCase
       assert_truthy error.whitelisted?
     end
   end
+  def test_handles_exception_with_nil_original_exception
+    e = Exception.new('Buffy FOREVER')
+    e.stubs(:original_exception).returns(nil)
+    error = NewRelic::NoticedError.new(@path, @params, e, @time)
+    assert_equal(error.message.to_s, 'Buffy FOREVER')
+  end
+
 end

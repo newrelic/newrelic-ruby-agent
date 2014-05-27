@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/threading/agent_thread'
 
 module NewRelic::Agent::Threading
-  class AgentThreadTest < MiniTest::Unit::TestCase
+  class AgentThreadTest < Minitest::Test
 
     def test_sets_label
       t = AgentThread.new("labelled") {}
@@ -24,39 +24,40 @@ module NewRelic::Agent::Threading
     end
 
     def test_bucket_thread_as_request
-      t = ::Thread.new {
-        txn = NewRelic::Agent::Transaction.new
-        txn.request = "has a request"
+      q0 = Queue.new
+      q1 = Queue.new
 
-        NewRelic::Agent::TransactionState.get.current_transaction_stack = [txn]
-      }.join
+      t = Thread.new do
+        in_transaction do |txn|
+          txn.request = 'whatever'
+          q0.push 'unblock main thread'
+          q1.pop
+        end
+      end
 
+      q0.pop # wait until thread has had a chance to start up
       assert_equal :request, AgentThread.bucket_thread(t, DONT_CARE)
+
+      q1.push 'unblock background thread'
+      t.join
     end
 
     def test_bucket_thread_as_background
-      t = ::Thread.new {
-        txn = NewRelic::Agent::Transaction.new
-        NewRelic::Agent::TransactionState.get.current_transaction_stack = [txn]
-      }.join
+      q0 = Queue.new
+      q1 = Queue.new
 
+      t = ::Thread.new do
+        in_transaction do
+          q0.push 'unblock main thread'
+          q1.pop
+        end
+      end
+
+      q0.pop # wait until thread pushes to q
       assert_equal :background, AgentThread.bucket_thread(t, DONT_CARE)
-    end
 
-    def test_bucket_thread_as_other_empty_txn_stack
-      t = ::Thread.new {
-        NewRelic::Agent::TransactionState.get.current_transaction_stack = []
-      }.join
-
-      assert_equal :other, AgentThread.bucket_thread(t, DONT_CARE)
-    end
-
-    def test_bucket_thread_as_other_no_txn_stack
-      t = ::Thread.new {
-        NewRelic::Agent::TransactionState.get.current_transaction_stack = nil
-      }.join
-
-      assert_equal :other, AgentThread.bucket_thread(t, DONT_CARE)
+      q1.push 'unblock background thread'
+      t.join
     end
 
     def test_bucket_thread_as_other

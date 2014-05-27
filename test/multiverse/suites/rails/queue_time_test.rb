@@ -4,9 +4,7 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-927
 
-require 'rails/test_help'
 require './app'
-require 'multiverse_helpers'
 
 class QueueController < ApplicationController
   include Rails.application.routes.url_helpers
@@ -16,30 +14,61 @@ class QueueController < ApplicationController
       format.html { render :text => "<html><head></head><body>Queued</body></html>" }
     end
   end
+
+  def nested
+    nested_transaction
+    render :text => 'whatever'
+  end
+
+  def nested_transaction; end
+
+  add_transaction_tracer :nested_transaction
 end
 
 class QueueTimeTest < ActionDispatch::IntegrationTest
+
+  REQUEST_START_HEADER = 'HTTP_X_REQUEST_START'
 
   include MultiverseHelpers
 
   setup_and_teardown_agent(:beacon => "beacon", :browser_key => "key", :js_agent_loader => "loader")
 
   def test_should_track_queue_time_metric
-    get_queued
+    t0 = freeze_time
+    t1 = advance_time(2)
+    get_path('/queue/queued', t0)
 
-    stat = agent.stats_engine.lookup_stats('WebFrontend/QueueTime')
-    assert_equal 1, stat.call_count
-    assert stat.total_call_time > 0, "Should track some queue time"
+    assert_metrics_recorded(
+      'WebFrontend/QueueTime' => {
+        :call_count      => 1,
+        :total_call_time => (t1 - t0)
+      }
+    )
   end
 
   def test_should_see_queue_time_in_rum
-    get_queued
-    assert extract_queue_time_from_response > 0, "Queue time was missing or zero"
+    t0 = freeze_time
+    t1 = advance_time(2)
+    get_path('/queue/queued', t0)
+    queue_time = extract_queue_time_from_response
+    assert_equal((t1 - t0) * 1000, queue_time)
   end
 
-  def get_queued(header="HTTP_X_REQUEST_START")
-    value = "t=#{(Time.now.to_i * 1_000_000) - 1_000}"
-    get('/queue/queued', nil, header => value)
+  def test_should_not_track_queue_time_for_nested_transactions
+    t0 = freeze_time
+    t1 = advance_time(2)
+    get_path('/queue/nested', t0)
+    assert_metrics_recorded(
+      'WebFrontend/QueueTime' => {
+        :call_count      => 1,
+        :total_call_time => (t1 - t0)
+      }
+    )
+  end
+
+  def get_path(path, queue_start_time)
+    value = "t=#{(queue_start_time.to_f * 1_000_000).to_i}"
+    get(path, nil, REQUEST_START_HEADER => value)
   end
 
   def extract_queue_time_from_response

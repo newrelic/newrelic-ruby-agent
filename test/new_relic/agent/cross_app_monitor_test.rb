@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
 module NewRelic::Agent
-  class CrossAppMonitorTest < MiniTest::Unit::TestCase
+  class CrossAppMonitorTest < Minitest::Test
     NEWRELIC_ID_HEADER        = NewRelic::Agent::CrossAppMonitor::NEWRELIC_ID_HEADER
     NEWRELIC_TXN_HEADER       = NewRelic::Agent::CrossAppMonitor::NEWRELIC_TXN_HEADER
 
@@ -29,22 +29,23 @@ module NewRelic::Agent
 
     def setup
       NewRelic::Agent.reset_config
+      NewRelic::Agent.instance.stats_engine.clear_stats
       NewRelic::Agent.instance.events.clear
       @response = {}
 
-      @monitor = NewRelic::Agent::CrossAppMonitor.new()
+      @monitor = NewRelic::Agent::CrossAppMonitor.new
       @config = {
-        :cross_process_id => AGENT_CROSS_APP_ID,
-        :encoding_key => ENCODING_KEY_NOOP,
+        :cross_process_id    => AGENT_CROSS_APP_ID,
+        :encoding_key        => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS
       }
 
-      NewRelic::Agent.config.apply_config( @config )
+      NewRelic::Agent.config.add_config_for_testing(@config)
       @monitor.on_finished_configuring
     end
 
     def teardown
-      NewRelic::Agent.config.remove_config( @config )
+      NewRelic::Agent.config.remove_config(@config)
       NewRelic::Agent.instance.events.clear
     end
 
@@ -164,25 +165,27 @@ module NewRelic::Agent
     def test_writes_metric
       with_default_timings
 
-      expected_metric_name = "ClientApplication/#{REQUEST_CROSS_APP_ID}/all"
-      NewRelic::Agent.instance.stats_engine.expects(:record_metrics). \
-        with(expected_metric_name, APP_TIME)
-
       when_request_runs
+
+      assert_metrics_recorded(["ClientApplication/#{REQUEST_CROSS_APP_ID}/all"])
     end
 
     def test_doesnt_write_metric_if_id_blank
       with_default_timings
 
-      NewRelic::Agent.instance.stats_engine.expects(:record_metrics).never
-
       when_request_runs(for_id(''))
+
+      assert_metrics_recorded_exclusive(['transaction'])
     end
 
     def test_setting_response_headers_freezes_transaction_name
+      request = for_id(REQUEST_CROSS_APP_ID)
+      event_listener = NewRelic::Agent.instance.events
+      event_listener.notify(:before_call, request)
+
       in_transaction do
         assert !NewRelic::Agent::Transaction.current.name_frozen?
-        when_request_runs
+        event_listener.notify(:after_call, request, [200, @response, ''])
         assert NewRelic::Agent::Transaction.current.name_frozen?
       end
     end
@@ -195,9 +198,9 @@ module NewRelic::Agent
       event_listener = NewRelic::Agent.instance.events
       event_listener.notify(:before_call, request)
       in_transaction('transaction') do
-        # nothing
+        # Fake out our GUID for easier comparison in tests
+        NewRelic::Agent::Transaction.current.stubs(:guid).returns(TRANSACTION_GUID)
       end
-      NewRelic::Agent::TransactionState.get.request_guid = TRANSACTION_GUID
       event_listener.notify(:after_call, request, [200, @response, ''])
     end
 

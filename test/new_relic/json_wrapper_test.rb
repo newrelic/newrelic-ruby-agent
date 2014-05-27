@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 require 'newrelic_rpm'
 
-class JSONWrapperTest < MiniTest::Unit::TestCase
+class JSONWrapperTest < Minitest::Test
   def test_json_roundtrip
     obj = [
       99, 'luftballons',

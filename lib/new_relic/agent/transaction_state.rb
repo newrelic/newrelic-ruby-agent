@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/browser_token'
+require 'new_relic/agent/traced_method_stack'
 
 module NewRelic
   module Agent
@@ -29,27 +30,36 @@ module NewRelic
       end
 
       # This starts the timer for the transaction.
-      def self.reset(request=nil)
-        self.get.reset(request)
+      def self.reset
+        self.get.reset
+      end
+
+      def self.request=(request)
+        self.get.request = request
       end
 
       def initialize
-        @stats_scope_stack = []
+        @traced_method_stack = TracedMethodStack.new
+        @current_transaction = nil
       end
 
-      def reset(request)
+      def request=(request)
+        @request = request
+        @request_token = BrowserToken.get_token(request)
+      end
+
+      def reset
         # We almost always want to use the transaction time, but in case it's
         # not available, we track the last reset. No accessor, as only the
         # TransactionState class should use it.
         @last_reset_time = Time.now
-
-        @transaction = Transaction.current
+        @most_recent_transaction = nil
         @timings = nil
-
-        @request = request
-        @request_token = BrowserToken.get_token(request)
-        @request_guid = ""
+        @request = nil
+        @request_token = nil
         @request_ignore_enduser = false
+        @is_cross_app_caller = false
+        @referring_transaction_info = nil
       end
 
       def timings
@@ -58,10 +68,29 @@ module NewRelic
 
       # Cross app tracing
       # Because we need values from headers before the transaction actually starts
-      attr_accessor :client_cross_app_id, :referring_transaction_info
+      attr_accessor :client_cross_app_id, :referring_transaction_info, :is_cross_app_caller
+
+      def is_cross_app_caller?
+        @is_cross_app_caller
+      end
+
+      def is_cross_app_callee?
+        referring_transaction_info != nil
+      end
+
+      def request_guid_for_event
+        return nil unless is_cross_app_callee? || is_cross_app_caller? || include_guid?
+        request_guid
+      end
 
       # Request data
-      attr_accessor :request, :request_token, :request_guid, :request_ignore_enduser
+      attr_reader :request
+      attr_accessor :request_token, :request_ignore_enduser
+
+      def request_guid
+        return nil unless most_recent_transaction
+        most_recent_transaction.guid
+      end
 
       def request_guid_to_include
         return "" unless include_guid?
@@ -69,40 +98,31 @@ module NewRelic
       end
 
       def include_guid?
-        request_token && timings.app_time_in_seconds > transaction.apdex_t
+        request_token && timings.app_time_in_seconds > most_recent_transaction.apdex_t
       end
 
       # Current transaction stack and sample building
-      attr_accessor :transaction, :transaction_sample_builder
-      attr_writer   :current_transaction_stack
-
-      # Returns and initializes the transaction stack if necessary
-      #
-      # We don't default in the initializer so non-transaction threads retain
-      # a nil stack, and methods in this class use has_current_transction?
-      # instead of this accessor to see if we're a transaction thread or not
-      def current_transaction_stack
-        @current_transaction_stack ||= []
-      end
+      attr_accessor :most_recent_transaction, :transaction_sample_builder,
+                    :current_transaction
 
       def transaction_start_time
-        if transaction.nil?
+        if most_recent_transaction.nil?
           @last_reset_time
         else
-          transaction.start_time
+          most_recent_transaction.start_time
         end
       end
 
       def transaction_queue_time
-        transaction.nil? ? 0.0 : transaction.queue_time
+        most_recent_transaction.nil? ? 0.0 : most_recent_transaction.queue_time
       end
 
       def transaction_name
-        transaction.nil? ? nil : transaction.name
+        most_recent_transaction.nil? ? nil : most_recent_transaction.best_name
       end
 
       def transaction_noticed_error_ids
-        transaction.nil? ? [] : transaction.noticed_error_ids
+        most_recent_transaction.nil? ? [] : most_recent_transaction.noticed_error_ids
       end
 
       def self.in_background_transaction?(thread)
@@ -119,14 +139,6 @@ module NewRelic
 
       def in_request_transaction?
         !current_transaction.nil? && !current_transaction.request.nil?
-      end
-
-      def current_transaction
-        current_transaction_stack.last if has_current_transaction?
-      end
-
-      def has_current_transaction?
-        !@current_transaction_stack.nil?
       end
 
       # Execution tracing on current thread
@@ -164,12 +176,7 @@ module NewRelic
 
       # Scope stack tracking from NewRelic::StatsEngine::Transactions
       # Should not be nil--this class manages its initialization and resetting
-      attr_accessor :stats_scope_stack
-
-      def clear_stats_scope_stack
-        @stats_scope_stack = []
-      end
-
+      attr_reader :traced_method_stack
     end
   end
 end

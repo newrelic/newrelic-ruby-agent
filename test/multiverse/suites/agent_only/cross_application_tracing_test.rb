@@ -7,7 +7,7 @@ require 'fake_collector'
 require './testing_app'
 require 'multiverse_helpers'
 
-class CrossApplicationTracingTest < MiniTest::Unit::TestCase
+class CrossApplicationTracingTest < Minitest::Test
 
   # Important because the hooks are global that we only wire one AgentHooks up
   @@app = TestingApp.new
@@ -18,7 +18,10 @@ class CrossApplicationTracingTest < MiniTest::Unit::TestCase
                            :encoding_key => "\0",
                            :trusted_account_ids => [1]) \
   do |collector|
-    collector.stub('connect', {"agent_run_id" => 666 })
+    collector.stub('connect', {
+      'agent_run_id' => 666,
+      'transaction_name_rules' => [{"match_expression" => "ignored_transaction",
+                                    "ignore"           => true}]})
   end
 
   def after_setup
@@ -46,5 +49,10 @@ class CrossApplicationTracingTest < MiniTest::Unit::TestCase
     get '/', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
     refute_nil last_response.headers["X-NewRelic-App-Data"]
     assert_metrics_recorded(['ClientApplication/1#234/all'])
+  end
+
+  def test_cross_app_doesnt_modify_if_txn_is_ignored
+    get '/', {'transaction_name' => 'ignored_transaction'}, {'X-NewRelic-ID' => Base64.encode64('1#234')}
+    assert_nil last_response.headers["X-NewRelic-App-Data"]
   end
 end

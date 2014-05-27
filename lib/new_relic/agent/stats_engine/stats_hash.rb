@@ -21,7 +21,7 @@ module NewRelic
       attr_accessor :started_at, :harvested_at
 
       def initialize(started_at=Time.now)
-        @started_at = started_at
+        @started_at = started_at.to_f
         super() { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
       end
 
@@ -44,12 +44,12 @@ module NewRelic
         end
       end
 
-      def record(metric_specs, value=nil, aux=nil)
+      def record(metric_specs, value=nil, aux=nil, &blk)
         Array(metric_specs).each do |metric_spec|
           stats = nil
           begin
             stats = self[metric_spec]
-          rescue => e
+          rescue NoMethodError => e
             # This only happen in the case of a corrupted default_proc
             # Side-step it manually, notice the issue, and carry on....
             NewRelic::Agent.instance.error_collector. \
@@ -64,19 +64,7 @@ module NewRelic
             end
           end
 
-          if block_given?
-            yield stats
-          else
-            case value
-            when Numeric
-              aux ||= value
-              stats.record_data_point(value, aux)
-            when :apdex_s, :apdex_t, :apdex_f
-              stats.record_apdex(value, aux)
-            when NewRelic::Agent::Stats
-              stats.merge!(value)
-            end
-          end
+          stats.record(value, aux, &blk)
         end
       end
 
@@ -91,13 +79,9 @@ module NewRelic
         if other.is_a?(StatsHash) && other.started_at < @started_at
           @started_at = other.started_at
         end
-        other.each do |key,val|
+        other.each do |key, val|
           begin
-            if self.has_key?(key)
-              self[key].merge!(val)
-            else
-              self[key] = val
-            end
+            merge_or_insert(key, val)
           rescue => err
             NewRelic::Agent.instance.error_collector. \
               notice_agent_error(StatsMergerError.new(key, self.fetch(key, nil), val, err))
@@ -106,10 +90,22 @@ module NewRelic
         self
       end
 
-      def resolve_scopes!(resolved_scope)
-        placeholder = StatsEngine::SCOPE_PLACEHOLDER.to_s
-        each_pair do |spec, stats|
-          spec.scope = resolved_scope if spec.scope == placeholder
+      def merge_transaction_metrics!(txn_metrics, scope)
+        txn_metrics.each_unscoped do |name, stats|
+          spec = NewRelic::MetricSpec.new(name)
+          merge_or_insert(spec, stats)
+        end
+        txn_metrics.each_scoped do |name, stats|
+          spec = NewRelic::MetricSpec.new(name, scope)
+          merge_or_insert(spec, stats)
+        end
+      end
+
+      def merge_or_insert(metric_spec, stats)
+        if self.has_key?(metric_spec)
+          self[metric_spec].merge!(stats)
+        else
+          self[metric_spec] = stats
         end
       end
     end

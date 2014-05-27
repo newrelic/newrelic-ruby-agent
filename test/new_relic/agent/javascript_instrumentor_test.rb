@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require "new_relic/agent/javascript_instrumentor"
 require "base64"
 
-class NewRelic::Agent::JavascriptInstrumentorTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   attr_reader :instrumentor
 
   def setup
@@ -18,19 +18,19 @@ class NewRelic::Agent::JavascriptInstrumentorTest < MiniTest::Unit::TestCase
       :license_key            => "\0",  # no-op obfuscation key
       :'rum.enabled'          => true
     }
-    NewRelic::Agent.config.apply_config(@config)
+    NewRelic::Agent.config.add_config_for_testing(@config)
 
     events = stub(:subscribe => nil)
     @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(events)
 
     # By default we expect our transaction to have a start time
     # All sorts of basics don't output without this setup initially
-    NewRelic::Agent::TransactionState.reset(nil)
+    NewRelic::Agent::TransactionState.reset
   end
 
   def teardown
     NewRelic::Agent::TransactionState.clear
-    NewRelic::Agent.config.remove_config(@config)
+    NewRelic::Agent.config.reset_to_defaults
   end
 
   def test_js_errors_beta_default_gets_default_loader
@@ -168,18 +168,17 @@ class NewRelic::Agent::JavascriptInstrumentorTest < MiniTest::Unit::TestCase
 
   def test_config_data_for_js_agent
     freeze_time
-    in_transaction do
+    in_transaction('most recent transaction') do
       with_config(CAPTURE_ATTRIBUTES => true) do
         NewRelic::Agent.set_user_attributes(:user => "user")
 
         txn = NewRelic::Agent::Transaction.current
         txn.stubs(:queue_time).returns(0)
         txn.stubs(:start_time).returns(Time.now - 10)
-        txn.name = 'most recent transaction'
+        txn.stubs(:guid).returns('ABC')
 
         state = NewRelic::Agent::TransactionState.get
         state.request_token = '0123456789ABCDEF'
-        state.request_guid = 'ABC'
 
         data = instrumentor.data_for_js_agent
         expected = {

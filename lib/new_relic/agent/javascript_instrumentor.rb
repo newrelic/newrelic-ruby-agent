@@ -36,7 +36,7 @@ module NewRelic
       end
 
       def current_transaction
-        NewRelic::Agent::TransactionState.get.transaction
+        NewRelic::Agent::TransactionState.get.most_recent_transaction
       end
 
       def insert_js?
@@ -83,7 +83,10 @@ module NewRelic
 
       def browser_timing_header
         return "" unless insert_js?
-        browser_timing_config + browser_timing_loader
+        bt_config = browser_timing_config
+        return '' if bt_config.empty?
+
+        bt_config + browser_timing_loader
       rescue => e
         ::NewRelic::Agent.logger.debug "Failure during RUM browser_timing_header construction", e
         ""
@@ -96,10 +99,16 @@ module NewRelic
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def browser_timing_config
-        NewRelic::Agent::Transaction.freeze_name
-        data = data_for_js_agent
-        json = NewRelic::JSONWrapper.dump(data)
-        html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
+        txn = TransactionState.get.most_recent_transaction
+        return '' if txn.nil?
+
+        txn.freeze_name_and_execute_if_not_ignored do
+          data = data_for_js_agent
+          json = NewRelic::JSONWrapper.dump(data)
+          return html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
+        end
+
+        ''
       end
 
       BEACON_KEY           = "beacon".freeze

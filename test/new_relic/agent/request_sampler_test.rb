@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/request_sampler'
 
-class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::RequestSamplerTest < Minitest::Test
 
   def setup
     freeze_time
@@ -50,7 +50,6 @@ class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
     end
   end
 
-
   def test_includes_custom_parameters_in_event
     with_sampler_config do
       generate_request('whatever', :custom_params => {'bing' => 2})
@@ -69,26 +68,85 @@ class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
 
   def test_custom_parameters_in_event_cant_override_reserved_attributes
     with_sampler_config do
+      metrics = NewRelic::Agent::TransactionMetrics.new()
+      metrics.record_unscoped('HttpDispatcher', 0.01)
+
       generate_request('whatever',
-        :overview_metrics => {'webDuration' => 0.01},
-        :custom_params => {'type' => 'giraffe', 'duration' => 'hippo', 'webDuration' => 'zebra'}
+        :metrics       => metrics,
+        :custom_params => {'type' => 'giraffe', 'duration' => 'hippo'}
       )
       txn_event = single_sample[EVENT_DATA_INDEX]
       assert_equal 'Transaction', txn_event['type']
       assert_equal 0.1, txn_event['duration']
-      assert_equal 0.01, txn_event['webDuration']
 
       custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
       assert_equal 'giraffe', custom_attrs['type']
       assert_equal 'hippo', custom_attrs['duration']
-      assert_equal 'zebra', custom_attrs['webDuration']
     end
   end
 
-  def test_samples_on_transaction_finished_event_includes_overview_metrics
+  def test_samples_on_transaction_finished_event_includes_expected_web_metrics
+    txn_metrics = NewRelic::Agent::TransactionMetrics.new
+    txn_metrics.record_unscoped('WebFrontend/QueueTime', 13)
+    txn_metrics.record_unscoped('External/allWeb',       14)
+    txn_metrics.record_unscoped('Datastore/all',         15)
+    txn_metrics.record_unscoped("GC/Transaction/all",    16)
+    txn_metrics.record_unscoped('Memcache/allWeb',       17)
+
     with_sampler_config do
-      generate_request('name', :overview_metrics => {:foo => :bar})
-      assert_equal :bar, single_sample[EVENT_DATA_INDEX][:foo]
+      generate_request('name', :metrics => txn_metrics)
+      event_data = single_sample[EVENT_DATA_INDEX]
+      assert_equal 13, event_data["queueDuration"]
+      assert_equal 14, event_data["externalDuration"]
+      assert_equal 15, event_data["databaseDuration"]
+      assert_equal 16, event_data["gcCumulative"]
+      assert_equal 17, event_data["memcacheDuration"]
+
+      assert_equal 1, event_data["externalCallCount"]
+      assert_equal 1, event_data["databaseCallCount"]
+    end
+  end
+
+  def test_samples_on_transaction_finished_includes_expected_background_metrics
+    txn_metrics = NewRelic::Agent::TransactionMetrics.new
+    txn_metrics.record_unscoped('External/allOther',  12)
+    txn_metrics.record_unscoped('Datastore/all',      13)
+    txn_metrics.record_unscoped("GC/Transaction/all", 14)
+    txn_metrics.record_unscoped('Memcache/allOther',  15)
+
+    with_sampler_config do
+      generate_request('name', :metrics => txn_metrics)
+
+      event_data = single_sample[EVENT_DATA_INDEX]
+      assert_equal 12, event_data["externalDuration"]
+      assert_equal 13, event_data["databaseDuration"]
+      assert_equal 14, event_data["gcCumulative"]
+      assert_equal 15, event_data["memcacheDuration"]
+
+      assert_equal 1, event_data["databaseCallCount"]
+      assert_equal 1, event_data["externalCallCount"]
+    end
+  end
+
+  def test_samples_on_transaction_finished_event_includes_guid
+    with_sampler_config do
+      generate_request('name', :guid => "GUID")
+      assert_equal "GUID", single_sample[EVENT_DATA_INDEX]["nr.guid"]
+    end
+  end
+
+  def test_samples_on_transaction_finished_event_includes_referring_transaction_guid
+    with_sampler_config do
+      generate_request('name', :referring_transaction_guid=> "REFER")
+      assert_equal "REFER", single_sample[EVENT_DATA_INDEX]["nr.referringTransactionGuid"]
+    end
+  end
+
+  def test_records_background_tasks
+    with_sampler_config do
+      generate_request('a', :type => :controller)
+      generate_request('b', :type => :background)
+      assert_equal 2, @sampler.samples.size
     end
   end
 
@@ -155,14 +213,6 @@ class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
     end
   end
 
-  def test_does_not_record_requests_from_background_tasks
-    with_sampler_config do
-      generate_request('a', :type => :controller)
-      generate_request('b', :type => :background)
-      assert_equal 1, @sampler.samples.size
-    end
-  end
-
   def test_does_not_drop_samples_when_used_from_multiple_threads
     with_sampler_config( :'analytics_events.max_samples_stored' => 100 * 100 ) do
       threads = []
@@ -187,7 +237,6 @@ class NewRelic::Agent::RequestSamplerTest < MiniTest::Unit::TestCase
       :type => :controller,
       :start_timestamp => Time.now.to_f,
       :duration => 0.1,
-      :overview_metrics => {},
       :custom_params => {}
     }.merge(options)
     @event_listener.notify(:transaction_finished, payload)

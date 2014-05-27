@@ -20,15 +20,21 @@ class ArrayLogDevice
 end
 
 
-class AgentLoggerTest < MiniTest::Unit::TestCase
+class AgentLoggerTest < Minitest::Test
 
   LEVELS = [:fatal, :error, :warn, :info, :debug]
 
   def setup
-    NewRelic::Agent.config.apply_config(:log_file_path => "log/",
-                                        :log_file_name => "testlog.log",
-                                        :log_level => :info)
+    NewRelic::Agent.config.add_config_for_testing(
+      :log_file_path => "log/",
+      :log_file_name => "testlog.log",
+      :log_level     => :info)
   end
+
+  def teardown
+    NewRelic::Agent.config.reset_to_defaults
+  end
+
 
   #
   # Tests
@@ -100,7 +106,7 @@ class AgentLoggerTest < MiniTest::Unit::TestCase
   def test_does_not_touch_dev_null
     Logger.expects(:new).with('/dev/null').never
     with_config(:agent_enabled => false) do
-      logger = NewRelic::Agent::AgentLogger.new
+      NewRelic::Agent::AgentLogger.new
     end
   end
 
@@ -120,7 +126,7 @@ class AgentLoggerTest < MiniTest::Unit::TestCase
       override_logger = Logger.new( $stderr )
       override_logger.level = Logger::FATAL
 
-      logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+      NewRelic::Agent::AgentLogger.new("", override_logger)
 
       assert_equal Logger::DEBUG, override_logger.level
     end
@@ -156,7 +162,7 @@ class AgentLoggerTest < MiniTest::Unit::TestCase
       ::NewRelic::Agent::StartupLogger.instance.send(level, "boo!")
     end
 
-    logger = create_basic_logger
+    create_basic_logger
 
     assert_logged(/FATAL/,
                   /ERROR/,
@@ -228,6 +234,27 @@ class AgentLoggerTest < MiniTest::Unit::TestCase
                   /INFO : Debugging backtrace:\n.*wiggle\s+wobble\s+topple/)
   end
 
+  def recursion_is_an_antipattern
+    recursion_is_an_antipattern
+  end
+
+  def test_log_exception_gets_backtrace_for_system_stack_error
+    # This facility compensates for poor SystemStackError traces on MRI.
+    # JRuby and Rubinius raise errors with good backtraces, so skip this test.
+    return if jruby? || rubinius?
+
+    logger = create_basic_logger
+
+    begin
+      recursion_is_an_antipattern
+    rescue SystemStackError => e
+      logger.log_exception(:error, e)
+    end
+
+    assert_logged(/ERROR : /,
+                  /ERROR : Debugging backtrace:\n.*#{__method__}/)
+  end
+
   def test_logs_to_stdout_if_fails_on_file
     Logger::LogDevice.any_instance.stubs(:open).raises(Errno::EACCES)
 
@@ -266,6 +293,38 @@ class AgentLoggerTest < MiniTest::Unit::TestCase
     assert_logged(host_regex, host_regex, host_regex)
   end
 
+  def test_should_not_evaluate_blocks_unless_log_level_is_high_enough
+    with_config(:log_level => 'warn') do
+      logger = create_basic_logger
+
+      block_was_evalutated = false
+      logger.info do
+        block_was_evalutated = true
+      end
+
+      refute block_was_evalutated
+    end
+  end
+
+  def test_should_allow_blocks_that_return_a_single_string
+    logger = create_basic_logger
+    logger.warn { "Surely you jest!" }
+
+    assert_logged(/WARN : Surely you jest!/)
+  end
+
+  def test_should_allow_blocks_that_return_an_array
+    logger = create_basic_logger
+    logger.warn do
+      ["You must be joking!", "You can't be serious!"]
+    end
+
+    assert_logged(
+      /WARN : You must be joking!/,
+      /WARN : You can't be serious!/
+    )
+  end
+
   #
   # Helpers
   #
@@ -289,9 +348,9 @@ class AgentLoggerTest < MiniTest::Unit::TestCase
   end
 
   def assert_logged(*args)
-    assert_equal(args.length, logged_lines.length)
+    assert_equal(args.length, logged_lines.length, "Unexpected log length #{logged_lines}")
     logged_lines.each_with_index do |line, index|
-      assert_match(args[index], line)
+      assert_match(args[index], line, "Missing match for #{args[index]}")
     end
   end
 end

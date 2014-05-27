@@ -16,10 +16,12 @@ class NewRelic::Agent::RequestSampler
   SAMPLE_TYPE              = 'Transaction'
 
   # Strings for static keys of the sample structure
-  TYPE_KEY                 = 'type'
-  TIMESTAMP_KEY            = 'timestamp'
-  NAME_KEY                 = 'name'
-  DURATION_KEY             = 'duration'
+  TYPE_KEY                       = 'type'
+  TIMESTAMP_KEY                  = 'timestamp'
+  NAME_KEY                       = 'name'
+  DURATION_KEY                   = 'duration'
+  GUID_KEY                       = 'nr.guid'
+  REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
 
   def initialize( event_listener )
     super()
@@ -100,7 +102,6 @@ class NewRelic::Agent::RequestSampler
     end
 
     NewRelic::Agent.config.register_callback(:'analytics_events.enabled') do |enabled|
-      NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ enabled ? 'En' : 'Dis' ]
       @enabled = enabled
     end
   end
@@ -113,7 +114,6 @@ class NewRelic::Agent::RequestSampler
   # Event handler for the :transaction_finished event.
   def on_transaction_finished(payload)
     return unless @enabled
-    return unless NewRelic::Agent::Transaction.transaction_type_is_web?(payload[:type])
 
     main_event = create_main_event(payload)
     custom_params = create_custom_parameters(payload)
@@ -122,14 +122,69 @@ class NewRelic::Agent::RequestSampler
     notify_full if is_full && !@notified_full
   end
 
+  def self.map_metric(metric_name, to_add={})
+    to_add.values.each(&:freeze)
+
+    mappings = OVERVIEW_SPECS.fetch(metric_name, {})
+    mappings.merge!(to_add)
+
+    OVERVIEW_SPECS[metric_name] = mappings
+  end
+
+  OVERVIEW_SPECS = {}
+
+  # All Transactions
+  # Don't need to use the transaction-type specific metrics since this is
+  # scoped to just one transaction, so Datastore/all has what we want.
+  map_metric('Datastore/all',         :total_call_time => "databaseDuration")
+  map_metric('Datastore/all',         :call_count      => "databaseCallCount")
+  map_metric('GC/Transaction/all',    :total_call_time => "gcCumulative")
+
+  # Web Metrics
+  map_metric('WebFrontend/QueueTime', :total_call_time => "queueDuration")
+  map_metric('Memcache/allWeb',       :total_call_time => "memcacheDuration")
+
+  map_metric('External/allWeb',       :total_call_time => "externalDuration")
+  map_metric('External/allWeb',       :call_count      => "externalCallCount")
+
+  # Background Metrics
+  map_metric('Memcache/allOther',     :total_call_time => "memcacheDuration")
+
+  map_metric('External/allOther',     :total_call_time => "externalDuration")
+  map_metric('External/allOther',     :call_count      => "externalCallCount")
+
+  def extract_metrics(txn_metrics)
+    result = {}
+    if txn_metrics
+      OVERVIEW_SPECS.each do |(name, extracted_values)|
+        if txn_metrics.has_key?(name)
+          stat = txn_metrics[name]
+          extracted_values.each do |value_name, key_name|
+            result[key_name] = stat.send(value_name)
+          end
+        end
+      end
+    end
+    result
+  end
+
   def create_main_event(payload)
-    sample = payload[:overview_metrics] || {}
+    sample = extract_metrics(payload[:metrics])
     sample.merge!({
         TIMESTAMP_KEY     => float(payload[:start_timestamp]),
         NAME_KEY          => string(payload[:name]),
         DURATION_KEY      => float(payload[:duration]),
         TYPE_KEY          => SAMPLE_TYPE,
       })
+    optionally_append(GUID_KEY, :guid, sample, payload)
+    optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
+    sample
+  end
+
+  def optionally_append(sample_key, payload_key, sample, payload)
+    if payload.include?(payload_key)
+      sample[sample_key] = string(payload[payload_key])
+    end
   end
 
   def create_custom_parameters(payload)

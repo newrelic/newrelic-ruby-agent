@@ -4,7 +4,7 @@
 
 if RUBY_VERSION >= '1.9'
 
-class CollectorExceptionHandlingTest < MiniTest::Unit::TestCase
+class EncodingHandlingTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent

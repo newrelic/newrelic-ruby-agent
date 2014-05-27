@@ -7,12 +7,17 @@ require 'new_relic/agent/harvester'
 
 module NewRelic
   module Agent
-    class HarvesterTest < MiniTest::Unit::TestCase
+    class HarvesterTest < Minitest::Test
 
       attr_reader :harvester
+
       def setup
         @after_forker = stub_everything
         @harvester = Harvester.new(nil, @after_forker)
+      end
+
+      def test_doesnt_mark_started_process_on_initialize
+        assert_nil harvester.starting_pid
       end
 
       def test_marks_started_in_process
@@ -34,11 +39,20 @@ module NewRelic
         end
       end
 
-      def test_doesnt_call_to_restart_by_default
+      def test_calls_to_restart_by_default
         pretend_started_in_another_process
-        @after_forker.expects(:after_fork).never
+        @after_forker.expects(:after_fork).once
 
         harvester.on_transaction
+      end
+
+      def test_calls_to_restart_if_explicitly_enabled
+        pretend_started_in_another_process
+        @after_forker.expects(:after_fork).once
+
+        with_config(:restart_thread_in_children => true) do
+          harvester.on_transaction
+        end
       end
 
       def test_doesnt_call_to_restart_if_explicitly_disabled
@@ -46,15 +60,6 @@ module NewRelic
         @after_forker.expects(:after_fork).never
 
         with_config(:restart_thread_in_children => false) do
-          harvester.on_transaction
-        end
-      end
-
-      def test_calls_to_restart
-        pretend_started_in_another_process
-        @after_forker.expects(:after_fork).once
-
-        with_config(:restart_thread_in_children => true) do
           harvester.on_transaction
         end
       end

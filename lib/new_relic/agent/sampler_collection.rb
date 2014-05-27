@@ -9,7 +9,8 @@ module NewRelic
 
       def initialize(event_listener)
         @samplers = []
-        event_listener.subscribe(:before_harvest) { poll_samplers }
+        @event_listener = event_listener
+        @event_listener.subscribe(:before_harvest) { poll_samplers }
       end
 
       def each(&blk)
@@ -24,6 +25,16 @@ module NewRelic
         self.any? { |s| s.class == sampler_class }
       end
 
+      # adds samplers to the sampler collection so that they run every
+      # minute. This is dynamically recognized by any class that
+      # subclasses NewRelic::Agent::Sampler
+      def load_samplers
+        Sampler.sampler_classes.each do |subclass|
+          add_sampler(subclass)
+        end
+      end
+
+
       def poll_samplers
         @samplers.delete_if do |sampler|
           begin
@@ -37,9 +48,13 @@ module NewRelic
       end
 
       def add_sampler(sampler_class)
-        if sampler_class.supported_on_this_platform?
+        supported = sampler_class.supported_on_this_platform?
+        enabled   = sampler_class.enabled?
+        if supported && enabled
           if !sampler_class_registered?(sampler_class)
-            @samplers << sampler_class.new
+            sampler = sampler_class.new
+            sampler.setup_events(@event_listener) if sampler.respond_to?(:setup_events)
+            @samplers << sampler
             ::NewRelic::Agent.logger.debug("Registered #{sampler_class.name} for harvest time sampling.")
           else
             ::NewRelic::Agent.logger.warn("Ignoring addition of #{sampler_class.name} because it is already registered.")

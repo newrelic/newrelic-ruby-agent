@@ -5,7 +5,7 @@
 class ConfigPerfTests < Performance::TestCase
   def setup
     @config = NewRelic::Agent::Configuration::Manager.new
-    @config.apply_config(:my_value => "boo")
+    @config.add_config_for_testing(:my_value => "boo")
   end
 
   def test_raw_access
@@ -67,9 +67,12 @@ class ConfigPerfTests < Performance::TestCase
 
 
   def with_deep_config_stack
+    # NOTE: As we have changed the way configs work, this example no longer
+    #       simulates production code. It would be impossible to have more than
+    #       5 levels on the config stack now.
     keys = (0..100).map {|i| "my_value_#{i}".to_sym}
     keys.each do |key|
-      @config.apply_config(key => key)
+      @config.add_config_for_testing(key => key)
     end
     keys
   end

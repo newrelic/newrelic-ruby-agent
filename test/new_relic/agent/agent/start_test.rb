@@ -3,9 +3,14 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-class NewRelic::Agent::Agent::StartTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Agent::StartTest < Minitest::Test
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::Start
+
+  def setup
+    @harvester = stub("dummy harvester")
+    @harvest_samplers = stub("dummy sampler collection")
+  end
 
   def test_already_started_positive
     dummy_logger = mock
@@ -51,7 +56,8 @@ class NewRelic::Agent::Agent::StartTest < MiniTest::Unit::TestCase
   end
 
   def test_check_config_and_start_agent_normal
-
+    @harvester.expects(:mark_started)
+    @harvest_samplers.expects(:load_samplers)
     self.expects(:generate_environment_report)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
@@ -61,6 +67,8 @@ class NewRelic::Agent::Agent::StartTest < MiniTest::Unit::TestCase
   end
 
   def test_check_config_and_start_agent_sync
+    @harvester.expects(:mark_started)
+    @harvest_samplers.expects(:load_samplers)
     self.expects(:generate_environment_report)
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)

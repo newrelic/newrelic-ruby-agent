@@ -4,7 +4,7 @@
 
 require 'socket'
 
-class ServiceTimeoutTest < MiniTest::Unit::TestCase
+class ServiceTimeoutTest < Minitest::Test
 
   def setup
     hk = TCPServer.new('127.0.0.1',0)
@@ -19,9 +19,13 @@ class ServiceTimeoutTest < MiniTest::Unit::TestCase
     }
   end
 
+  def teardown
+    NewRelic::Agent.config.reset_to_defaults
+  end
+
   def test_service_timeout
     server = NewRelic::Control::Server.new('localhost',@port,'127.0.0.1')
-    NewRelic::Agent.config.apply_config(:timeout => 0.1)
+    NewRelic::Agent.config.add_config_for_testing(:timeout => 0.1)
 
     service = NewRelic::Agent::NewRelicService.new('deadbeef', server)
 

@@ -5,11 +5,16 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 
 # Test logic around detecting or configuring dispatcher
-class DispatcherTest < MiniTest::Unit::TestCase
+class DispatcherTest < Minitest::Test
 
   def setup
     NewRelic::Agent.shutdown
     NewRelic::Agent.reset_config
+  end
+
+  def teardown
+    NewRelic::Agent.reset_config
+    NewRelic::Control.reset
   end
 
   def assert_dispatcher_reported_to_environment_report(dispatcher)

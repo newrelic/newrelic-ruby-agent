@@ -12,14 +12,18 @@ module NewRelic
           def self.metrics_for(name, payload, request_type = :web)
             payload ||= {}
 
-            database = payload[:database]
-            collection = payload[:collection]
-
-            if collection_in_selector?(collection, payload)
+            if collection_in_selector?(payload)
               command_key = command_key_from_selector(payload)
               name        = get_name_from_selector(command_key, payload)
               collection  = get_collection_from_selector(command_key, payload)
+            else
+              collection = payload[:collection]
             end
+
+            # The 1.10.0 version of the mongo driver renamed 'remove' to
+            # 'delete', but for metric consistency with previous versions we
+            # want to keep it as 'remove'.
+            name = 'remove' if name.to_s == 'delete'
 
             if self.find_one?(name, payload)
               name = 'findOne'
@@ -27,6 +31,8 @@ module NewRelic
               name = 'findAndRemove'
             elsif self.find_and_modify?(name, payload)
               name = 'findAndModify'
+            elsif self.create_indexes?(name, payload)
+              name = 'createIndexes'
             elsif self.create_index?(name, payload)
               name = 'createIndex'
               collection = self.collection_name_from_index(payload)
@@ -44,15 +50,14 @@ module NewRelic
               collection = collection_name_from_rename_selector(payload)
             end
 
-            metrics = build_metrics(name, collection, request_type)
-
-            metrics
+            build_metrics(name, collection, request_type)
           end
 
           def self.build_metrics(name, collection, request_type = :web)
             default_metrics = [
               "Datastore/statement/MongoDB/#{collection}/#{name}",
-              "Datastore/operation/MongoDB/#{name}"
+              "Datastore/operation/MongoDB/#{name}",
+              "Datastore/all"
             ]
 
             if request_type == :web
@@ -69,8 +74,8 @@ module NewRelic
             "Datastore/instance/MongoDB/#{host}:#{port}/#{database}"
           end
 
-          def self.collection_in_selector?(collection, payload)
-            collection == '$cmd' && payload[:selector]
+          def self.collection_in_selector?(payload)
+            payload[:collection] == '$cmd' && payload[:selector]
           end
 
           NAMES_IN_SELECTOR = [
@@ -83,6 +88,7 @@ module NewRelic
 
             :distinct,
 
+            :createIndexes,
             :deleteIndexes,
             :reIndex,
 
@@ -130,6 +136,10 @@ module NewRelic
             name == :findandmodify && payload[:selector] && payload[:selector][:remove]
           end
 
+          def self.create_indexes?(name, paylod)
+            name == :createIndexes
+          end
+
           def self.create_index?(name, payload)
             name == :insert && payload[:collection] == "system.indexes"
           end
@@ -155,11 +165,21 @@ module NewRelic
           end
 
           def self.collection_name_from_index(payload)
-            if payload[:documents] && payload[:documents].first[:ns]
-              payload[:documents].first[:ns].split('.').last
-            else
-              'system.indexes'
+            if payload[:documents]
+              if payload[:documents].is_a?(Array)
+                # mongo gem versions pre 1.10.0
+                document = payload[:documents].first
+              else
+                # mongo gem versions 1.10.0 and later
+                document = payload[:documents]
+              end
+
+              if document && document[:ns]
+                return document[:ns].split('.').last
+              end
             end
+
+            'system.indexes'
           end
 
           def self.collection_name_from_group_selector(payload)

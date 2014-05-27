@@ -5,6 +5,19 @@
 # These helpers should not have any gem dependencies except on newrelic_rpm
 # itself, and should be usable from within any multiverse suite.
 
+class ArrayLogDevice
+  def initialize( array=[] )
+    @array = array
+  end
+  attr_reader :array
+
+  def write( message )
+    @array << message
+  end
+
+  def close; end
+end
+
 def assert_between(floor, ceiling, value, message="expected #{floor} <= #{value} <= #{ceiling}")
   assert((floor <= value && value <= ceiling), message)
 end
@@ -13,68 +26,10 @@ def assert_in_delta(expected, actual, delta)
   assert_between((expected - delta), (expected + delta), actual)
 end
 
-def check_metric_time(metric, value, delta)
-  time = NewRelic::Agent.get_stats(metric).total_call_time
-  assert_in_delta(value, time, delta)
-end
-
-def check_metric_count(metric, value)
-  count = NewRelic::Agent.get_stats(metric).call_count
-  assert_equal(value, count, "should have the correct number of calls")
-end
-
-def check_unscoped_metric_count(metric, value)
-  count = NewRelic::Agent.get_stats_unscoped(metric).call_count
-  assert_equal(value, count, "should have the correct number of calls")
-end
-
-def generate_unscoped_metric_counts(*metrics)
-  metrics.inject({}) do |sum, metric|
-    sum[metric] = NewRelic::Agent.get_stats_no_scope(metric).call_count
-    sum
-  end
-end
-
-def generate_metric_counts(*metrics)
-  metrics.inject({}) do |sum, metric|
-    sum[metric] = NewRelic::Agent.get_stats(metric).call_count
-    sum
-  end
-end
-
-def assert_does_not_call_metrics(*metrics)
-  first_metrics = generate_metric_counts(*metrics)
-  yield
-  last_metrics = generate_metric_counts(*metrics)
-  assert_equal first_metrics, last_metrics, "should not have changed these metrics"
-end
-
-def assert_calls_metrics(*metrics)
-  first_metrics = generate_metric_counts(*metrics)
-  yield
-  last_metrics = generate_metric_counts(*metrics)
-  refute_equal first_metrics, last_metrics, "should have changed these metrics"
-end
-
-def assert_calls_unscoped_metrics(*metrics)
-  first_metrics = generate_unscoped_metric_counts(*metrics)
-  yield
-  last_metrics = generate_unscoped_metric_counts(*metrics)
-  refute_equal first_metrics, last_metrics, "should have changed these metrics"
-end
-
 def assert_has_error(error_class)
   assert \
     NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_constant == error_class} != nil, \
     "Didn't find error of class #{error_class}"
-end
-
-
-unless defined?( build_message )
-  def build_message(head, template=nil, *arguments)
-    template &&= template.chomp
-    template.gsub(/\?/) { mu_pp(arguments.shift) }
-  end
 end
 
 unless defined?( assert_block )
@@ -85,14 +40,14 @@ end
 
 unless defined?( assert_includes )
   def assert_includes( collection, member, msg=nil )
-    msg = build_message( msg, "Expected ? to include ?", collection, member )
+    msg = "Expected #{collection.inspect} to include #{member.inspect}"
     assert_block( msg ) { collection.include?(member) }
   end
 end
 
 unless defined?( assert_not_includes )
   def assert_not_includes( collection, member, msg=nil )
-    msg = build_message( msg, "Expected ? not to include ?", collection, member )
+    msg = "Expected #{collection.inspect} not to include #{member.inspect}"
     assert !collection.include?(member), msg
   end
 end
@@ -109,7 +64,7 @@ def assert_equal_unordered(left, right)
 end
 
 def compare_metrics(expected, actual)
-  actual.delete_if {|a| a.include?('GC/cumulative') } # in case we are in REE
+  actual.delete_if {|a| a.include?('GC/Transaction/') }
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
@@ -128,8 +83,23 @@ def _normalize_metric_expectations(expectations)
     # Just assert that the metric is present, nothing about the attributes
     expectations.each { |k| hash[k] = { } }
     hash
+  when String
+    { expectations => {} }
   else
     expectations
+  end
+end
+
+def assert_stats_has_values(stats, expected_spec, expected_attrs)
+  expected_attrs.each do |attr, expected_value|
+    actual_value = stats.send(attr)
+    if attr == :call_count
+      assert_equal(expected_value, actual_value,
+        "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}")
+    else
+      assert_in_delta(expected_value, actual_value, 0.0001,
+        "Expected #{attr} for #{expected_spec} to be ~#{expected_value}, got #{actual_value}")
+    end
   end
 end
 
@@ -139,42 +109,50 @@ def assert_metrics_recorded(expected)
     expected_spec = metric_spec_from_specish(specish)
     actual_stats = NewRelic::Agent.instance.stats_engine.lookup_stats(*Array(specish))
     if !actual_stats
-      all_specs = NewRelic::Agent.instance.stats_engine.metric_specs
+      all_specs = NewRelic::Agent.instance.stats_engine.metric_specs.sort
       matches = all_specs.select { |spec| spec.name == expected_spec.name }
       matches.map! { |m| "  #{m.inspect}" }
+
       msg = "Did not find stats for spec #{expected_spec.inspect}."
       msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
-
-      msg += "\nAll specs in there were: [\n#{all_specs.map do |s|
-        "#{s.name} (#{s.scope.empty? ? '<unscoped>' : s.scope})"
-      end.join(",\n")}\n]"
+      msg += "\nAll specs in there were: #{format_metric_spec_list(all_specs)}"
 
       assert(actual_stats, msg)
     end
-    expected_attrs.each do |attr, expected_value|
-      actual_value = actual_stats.send(attr)
-      if attr == :call_count
-        assert_equal(expected_value, actual_value,
-          "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}")
-      else
-        assert_in_delta(expected_value, actual_value, 0.0001,
-          "Expected #{attr} for #{expected_spec} to be ~#{expected_value}, got #{actual_value}")
-      end
-    end
+    assert_stats_has_values(actual_stats, expected_spec, expected_attrs)
   end
 end
 
+# Use this to assert that *only* the given set of metrics has been recorded.
+#
+# If you want to scope the search for unexpected metrics to a particular
+# namespace (e.g. metrics matching 'Controller/'), pass a Regex for the
+# :filter option. Only metrics matching the regex will be searched when looking
+# for unexpected metrics.
+#
+# If you want to *allow* unexpected metrics matching certain patterns, use
+# the :ignore_filter option. This will allow you to specify a Regex that
+# whitelists broad swathes of metric territory (e.g. 'Supportability/').
+#
 def assert_metrics_recorded_exclusive(expected, options={})
   expected = _normalize_metric_expectations(expected)
   assert_metrics_recorded(expected)
-  recorded_metrics = NewRelic::Agent.instance.stats_engine.metrics
+
+  recorded_metrics = NewRelic::Agent.instance.stats_engine.metric_specs
+
   if options[:filter]
-    recorded_metrics = recorded_metrics.select { |m| m.match(options[:filter]) }
+    recorded_metrics = recorded_metrics.select { |m| m.name.match(options[:filter]) }
   end
-  expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s).to_s }
-  unexpected_metrics = recorded_metrics.select{|m| m !~ /GC\/cumulative/}
-  unexpected_metrics -= expected_metrics
-  assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: [#{unexpected_metrics.join(', ')}]")
+  if options[:ignore_filter]
+    recorded_metrics.reject! { |m| m.name.match(options[:ignore_filter]) }
+  end
+
+  expected_metrics   = expected.keys.map { |s| metric_spec_from_specish(s) }
+
+  unexpected_metrics = recorded_metrics - expected_metrics
+  unexpected_metrics.reject! { |m| m.name =~ /GC\/Transaction/ }
+
+  assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: #{format_metric_spec_list(unexpected_metrics)}")
 end
 
 def assert_metrics_not_recorded(not_expected)
@@ -186,16 +164,23 @@ def assert_metrics_not_recorded(not_expected)
       found_but_not_expected << spec
     end
   end
-  assert_equal([], found_but_not_expected, "Found unexpected metrics: [#{found_but_not_expected.join(', ')}]")
+  assert_equal([], found_but_not_expected, "Found unexpected metrics: #{format_metric_spec_list(found_but_not_expected)}")
+end
+
+def format_metric_spec_list(specs)
+  spec_strings = specs.map do |spec|
+    "#{spec.name} (#{spec.scope.empty? ? '<unscoped>' : spec.scope})"
+  end
+  "[\n  #{spec_strings.join(",\n  ")}\n]"
 end
 
 def assert_truthy(expected, msg = nil)
-  msg = build_message( msg, "Expected ? to be truthy", expected )
+  msg = "Expected #{expected.inspect} to be truthy"
   assert !!expected, msg
 end
 
 def assert_falsy(expected, msg = nil)
-  msg = build_message( msg, "Expected ? to be falsy", expected )
+  msg = "Expected #{expected.inspect} to be falsy"
   assert !expected, msg
 end
 
@@ -205,7 +190,7 @@ unless defined?( assert_false )
   end
 end
 
-unless defined? ( refute )
+unless defined?(refute)
   alias refute assert_false
 end
 
@@ -229,16 +214,19 @@ end
 #
 def in_transaction(*args)
   opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
-  name = args.first || 'dummy'
+  opts[:transaction_name] = args.first || 'dummy'
   transaction_type = (opts && opts.delete(:type)) || :other
 
-  NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
-                        NewRelic::Agent::TransactionSampler.new)
-  NewRelic::Agent.instance.stats_engine.transaction_sampler = \
-    NewRelic::Agent.instance.transaction_sampler
-  NewRelic::Agent::Transaction.start(transaction_type, opts || {})
-  val = yield
-  NewRelic::Agent::Transaction.stop(name)
+  NewRelic::Agent::Transaction.start(transaction_type, opts)
+
+  val = nil
+
+  begin
+    val = yield NewRelic::Agent::Transaction.current
+  ensure
+    NewRelic::Agent::Transaction.stop()
+  end
+
   val
 end
 
@@ -264,6 +252,17 @@ def find_last_transaction_segment(transaction_sample=nil)
   return last_segment
 end
 
+def find_segment_by_name(transaction_sample, name)
+  first_segment = nil
+  transaction_sample.root_segment.each_segment do |s|
+    if s.metric_name == name
+      first_segment = s
+      break
+    end
+  end
+  first_segment
+end
+
 def with_config(config_hash, opts={})
   opts = { :level => 0, :do_not_cast => false }.merge(opts)
   if opts[:do_not_cast]
@@ -271,7 +270,7 @@ def with_config(config_hash, opts={})
   else
     config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
   end
-  NewRelic::Agent.config.apply_config(config, opts[:level])
+  NewRelic::Agent.config.add_config_for_testing(config, opts[:level])
   begin
     yield
   ensure
@@ -288,27 +287,34 @@ def advance_time(seconds)
   freeze_time(Time.now + seconds)
 end
 
-def define_constant(constant_symbol, implementation)
-  if Object.const_defined?(constant_symbol)
-    existing_implementation = Object.send(:remove_const, constant_symbol)
+def with_constant_defined(constant_symbol, implementation)
+  const_path = constant_path(constant_symbol.to_s)
+
+  if const_path
+    # Constant is already defined, nothing to do
+    return yield
+  else
+    const_path = constant_path(constant_symbol.to_s, :allow_partial => true)
+    parent = const_path[-1]
+    constant_symbol = constant_symbol.to_s.split('::').last.to_sym
   end
 
-  Object.const_set(constant_symbol, implementation)
-
-  yield
-ensure
-  Object.send(:remove_const, constant_symbol)
-
-  if existing_implementation
-    Object.const_set(constant_symbol, existing_implementation)
+  begin
+    parent.const_set(constant_symbol, implementation)
+    yield
+  ensure
+    parent.send(:remove_const, constant_symbol)
   end
 end
 
-def constant_path(name)
+def constant_path(name, opts={})
+  allow_partial = opts[:allow_partial]
   path = [Object]
   parts = name.gsub(/^::/, '').split('::')
   parts.each do |part|
-    return nil unless path.last.const_defined?(part)
+    if !path.last.const_defined?(part)
+      return allow_partial ? path : nil
+    end
     path << path.last.const_get(part)
   end
   path
@@ -355,5 +361,38 @@ def wait_for_backtrace_service_poll(opts={})
     if Time.now > deadline
       raise "Timed out waiting #{opts[:timeout]} s for backtrace service poll"
     end
+  end
+end
+
+def with_array_logger(level=:info)
+  orig_logger = NewRelic::Agent.logger
+  config = {
+      :log_file_path => nil,
+      :log_file_name => nil,
+      :log_level => level,
+    }
+  logdev = ArrayLogDevice.new
+  override_logger = Logger.new(logdev)
+
+  with_config(config) do
+    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    yield
+  end
+
+  return logdev
+ensure
+  NewRelic::Agent.logger = orig_logger
+end
+
+def with_environment(env)
+  old_env = {}
+  env.each do |key, val|
+    old_env[key] = ENV[key]
+    ENV[key]     = val.to_s
+  end
+  begin
+    yield
+  ensure
+    old_env.each { |key, old_val| ENV[key] = old_val }
   end
 end

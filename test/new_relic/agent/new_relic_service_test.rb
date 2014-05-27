@@ -8,7 +8,7 @@ require 'new_relic/agent/commands/thread_profiler_session'
 
 # Tests of HTTP Keep Alive implementation that require a different setup and
 # set of mocks.
-class NewRelicServiceKeepAliveTest < MiniTest::Unit::TestCase
+class NewRelicServiceKeepAliveTest < Minitest::Test
   def setup
     @server = NewRelic::Control::Server.new('somewhere.example.com',
                                             30303, '10.10.10.10')
@@ -80,7 +80,7 @@ class NewRelicServiceKeepAliveTest < MiniTest::Unit::TestCase
 
 end
 
-class NewRelicServiceTest < MiniTest::Unit::TestCase
+class NewRelicServiceTest < Minitest::Test
   def initialize(*_)
     [ :HTTPSuccess,
       :HTTPUnauthorized,
@@ -587,6 +587,20 @@ class NewRelicServiceTest < MiniTest::Unit::TestCase
 
     metric_data = metric_data_array.first
     assert_equal(spec1, metric_data.metric_spec)
+  end
+
+  def test_valid_to_marshal
+    assert @service.valid_to_marshal?({})
+  end
+
+  def test_not_valid_to_marshal
+    @service.marshaller.stubs(:dump).raises(StandardError.new("Failed to marshal"))
+    refute @service.valid_to_marshal?({})
+  end
+
+  def test_not_valid_to_marshal_with_system_stack_error
+    @service.marshaller.stubs(:dump).raises(SystemStackError.new)
+    refute @service.valid_to_marshal?({})
   end
 
   def build_stats_hash(items={})

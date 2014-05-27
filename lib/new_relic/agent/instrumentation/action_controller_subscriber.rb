@@ -18,7 +18,7 @@ module NewRelic
                         Agent.logger.debug("Error creating Rack::Request object: #{e}")
                         nil
                       end
-            TransactionState.reset(request)
+            TransactionState.request = request
           end
         end
 
@@ -42,14 +42,7 @@ module NewRelic
           event = pop_event(id)
           event.payload.merge!(payload)
 
-          set_enduser_ignore if event.enduser_ignored?
-
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
-            event.finalize_metric_name!
-            record_queue_time(event)
-            record_metrics(event)
-            record_apdex(event)
-            record_instance_busy(event)
             stop_transaction(event)
           else
             Agent.instance.pop_trace_execution_flag
@@ -58,57 +51,18 @@ module NewRelic
           log_notification_error(e, name, 'finish')
         end
 
-        def set_enduser_ignore
-          TransactionState.get.request_ignore_enduser = true
-        end
-
-        def record_metrics(event)
-          controller_metric = MetricSpec.new(event.metric_name)
-          txn = Transaction.current
-          metrics = [ 'HttpDispatcher']
-          if txn.has_parent?
-            parent_metric = MetricSpec.new(event.metric_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
-            record_metric_on_parent_transaction(parent_metric, event.duration)
-          end
-          metrics << controller_metric.dup
-
-          Agent.instance.stats_engine.record_metrics(metrics, event.duration)
-        end
-
-        def record_metric_on_parent_transaction(metric, time)
-          NewRelic::Agent::Transaction.parent.stats_hash.record(metric, time)
-        end
-
-        def record_apdex(event)
-          return if event.apdex_ignored?
-          Transaction.record_apdex(event.end, event.exception_encountered?)
-        end
-
-        def record_instance_busy(event)
-          BusyCalculator.dispatcher_start(event.time)
-          BusyCalculator.dispatcher_finish(event.end)
-        end
-
-        def record_queue_time(event)
-          return unless event.queue_start
-          QueueTime.record_frontend_metrics(event.queue_start, event.time)
-        end
-
         def start_transaction(event)
-          txn = Transaction.start(:controller,
-                                  :request => event.request,
-                                  :filtered_params => filter(event.payload[:params]))
-          txn.apdex_start = (event.queue_start || event.time)
-          txn.name = event.metric_name
-
-          event.scope = Agent.instance.stats_engine \
-            .push_scope(:action_controller, event.time)
+          Transaction.start(:controller,
+                            :request          => event.request,
+                            :filtered_params  => filter(event.payload[:params]),
+                            :apdex_start_time => event.queue_start,
+                            :transaction_name => event.metric_name)
         end
 
         def stop_transaction(event)
-          Agent.instance.stats_engine \
-            .pop_scope(event.scope, event.metric_name, event.end)
-        ensure
+          Transaction.ignore_apdex! if event.apdex_ignored?
+          Transaction.ignore_enduser! if event.enduser_ignored?
+          Transaction.exception_encountered! if event.exception_encountered?
           Transaction.stop
         end
 
@@ -119,7 +73,7 @@ module NewRelic
       end
 
       class ControllerEvent < Event
-        attr_accessor :parent, :scope
+        attr_accessor :parent
         attr_reader :queue_start, :request
 
         def initialize(name, start, ending, transaction_id, payload, request)
@@ -137,18 +91,6 @@ module NewRelic
 
         def metric_name
           @metric_name || "Controller/#{metric_path}/#{metric_action}"
-        end
-
-        def finalize_metric_name!
-          txn = NewRelic::Agent::Transaction.current
-
-          # the event provides the default name but the transaction has the final say
-          txn.name ||= metric_name
-
-          # this applies the transaction name rules if not already applied
-          txn.freeze_name
-          @metric_name = txn.name
-          return @metric_name
         end
 
         def metric_path

@@ -11,14 +11,12 @@ require 'new_relic/control'
 
 module NewRelic
   module Agent
-
     class SqlSampler
 
       # Module defining methods stubbed out when the agent is disabled
-      module Shim #:nodoc:
-        def notice_scope_empty(*args); end
-        def notice_first_scope_push(*args); end
-        def notice_transaction(*args); end
+      module Shim
+        def on_start_transaction(*args); end
+        def on_finishing_transaction(*args); end
       end
 
       attr_reader :disabled
@@ -43,21 +41,16 @@ module NewRelic
           Agent.config[:'transaction_tracer.enabled']
       end
 
-      def notice_transaction(uri=nil, params={})
+      def on_start_transaction(start_time, uri=nil, params={})
+        TransactionState.get.sql_sampler_transaction_data = TransactionSqlData.new
+
         if NewRelic::Agent.instance.transaction_sampler.builder
           guid = NewRelic::Agent.instance.transaction_sampler.builder.sample.guid
         end
+
         if Agent.config[:'slow_sql.enabled'] && transaction_data
           transaction_data.set_transaction_info(uri, params, guid)
         end
-      end
-
-      def notice_first_scope_push(time)
-        create_transaction_data
-      end
-
-      def create_transaction_data
-        TransactionState.get.sql_sampler_transaction_data = TransactionSqlData.new
       end
 
       def transaction_data
@@ -69,7 +62,7 @@ module NewRelic
       end
 
       # This is called when we are done with the transaction.
-      def notice_scope_empty(name, time=Time.now)
+      def on_finishing_transaction(name, time=Time.now)
         data = transaction_data
         data.set_transaction_name(name)
         clear_transaction_data

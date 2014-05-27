@@ -11,7 +11,7 @@ require 'fake_collector'
 require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
-class SidekiqTest < MiniTest::Unit::TestCase
+class SidekiqTest < Minitest::Test
   JOB_COUNT = 5
   TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/SidekiqTest::TestWorker/perform'
 

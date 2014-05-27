@@ -28,13 +28,21 @@ module NewRelic
     #
     class DeveloperMode
 
-      VIEW_PATH = File.expand_path('../../../../ui/views/', __FILE__)
+      VIEW_PATH   = File.expand_path('../../../../ui/views/'  , __FILE__)
       HELPER_PATH = File.expand_path('../../../../ui/helpers/', __FILE__)
       require File.join(HELPER_PATH, 'developer_mode_helper.rb')
 
 
       include NewRelic::DeveloperModeHelper
       include TransactionReset
+
+      class << self
+        attr_writer :profiling_enabled
+      end
+
+      def self.profiling_enabled?
+        @profiling_enabled
+      end
 
       def initialize(app)
         @app = app
@@ -122,7 +130,9 @@ module NewRelic
       end
 
       def profile
-        NewRelic::Control.instance.profiling = params['start'] == 'true'
+        should_be_on = (params['start'] == 'true')
+        NewRelic::Rack::DeveloperMode.profiling_enabled = should_be_on
+
         index
       end
 

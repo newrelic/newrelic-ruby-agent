@@ -25,7 +25,7 @@ class SinatraTestApp < Sinatra::Base
   end
 end
 
-class SinatraMetricExplosionTest < MiniTest::Unit::TestCase
+class SinatraMetricExplosionTest < Minitest::Test
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
 
@@ -73,7 +73,8 @@ class SinatraMetricExplosionTest < MiniTest::Unit::TestCase
 
     name_beginnings_to_ignore = [
       "Supportability",
-      "GC/cumulative"
+      "GC/Transaction",
+      "Nested/Controller"
     ]
     metric_names.delete_if do|metric|
       name_beginnings_to_ignore.any? {|name| metric.start_with?(name)}

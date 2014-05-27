@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/transaction_sample/segment'
-class NewRelic::TransactionSample::SegmentTest < MiniTest::Unit::TestCase
+class NewRelic::TransactionSample::SegmentTest < Minitest::Test
   def test_segment_creation
     # basic smoke test
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
@@ -314,7 +314,7 @@ class NewRelic::TransactionSample::SegmentTest < MiniTest::Unit::TestCase
 
   def test_explain_sql_raising_an_error
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    config = mock('config')
+    config = { :adapter => 'mysql' }
     statement = NewRelic::Agent::Database::Statement.new('SELECT')
     statement.config = config
     statement.explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER

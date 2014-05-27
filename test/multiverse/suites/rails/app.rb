@@ -5,6 +5,9 @@
 require 'action_controller/railtie'
 require 'active_model'
 
+require 'multiverse_helpers'
+require 'rails/test_help'
+
 # We define our single Rails application here, one time, upon the first inclusion
 # Tests should feel free to define their own Controllers locally, but if they
 # need anything special at the Application level, put it here

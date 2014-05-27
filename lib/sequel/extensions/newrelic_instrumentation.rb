@@ -59,19 +59,17 @@ module Sequel
       primary_metric = primary_metric_for( sql, args )
       engine         = NewRelic::Agent.instance.stats_engine
 
-      engine.record_metrics( primary_metric, duration, :scoped => true )
-
       metrics = rollup_metrics_for( primary_metric )
       metrics << remote_service_metric( *self.opts.values_at(:adapter, :host) ) if self.opts.key?(:adapter)
 
-      engine.record_metrics( metrics, duration, :scoped => false )
+      engine.record_scoped_and_unscoped_metrics(primary_metric, metrics, duration)
     end
 
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool),
     ].compact.freeze
 
-    # Record the given +sql+ within a new scope, using the given +start+ and
+    # Record the given +sql+ within a new frame, using the given +start+ and
     # +finish+ times.
     def notice_sql( sql, args, start, finish )
       metric   = primary_metric_for( sql, args )
@@ -79,7 +77,7 @@ module Sequel
       duration = finish - start
 
       begin
-        scope = agent.stats_engine.push_scope( :sequel, start )
+        frame = NewRelic::Agent::TracedMethodStack.push_frame( :sequel, start )
         explainer = Proc.new do |*|
           if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
             self[ sql ].explain
@@ -91,7 +89,7 @@ module Sequel
         agent.transaction_sampler.notice_sql( sql, self.opts, duration, &explainer )
         agent.sql_sampler.notice_sql( sql, metric, self.opts, duration, &explainer )
       ensure
-        agent.stats_engine.pop_scope( scope, metric, finish )
+        NewRelic::Agent::TracedMethodStack.pop_frame( frame, metric, finish )
       end
     end
 

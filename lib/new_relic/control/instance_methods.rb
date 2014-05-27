@@ -50,12 +50,9 @@ module NewRelic
       def init_plugin(options={})
         env = options[:env] || self.env
         Agent.logger.info("Starting the New Relic agent in #{env.inspect} environment.")
-        Agent.logger.info("To prevent agent startup add a NEWRELIC_ENABLE=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
+        Agent.logger.info("To prevent agent startup add a NEWRELIC_AGENT_ENABLED=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
 
-        yaml = Agent::Configuration::YamlSource.new(@config_file_path, env)
-        Agent.config.replace_or_add_config(yaml, 1)
-
-        Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
+        configure_agent(env, options)
 
         # Be sure to only create once! RUBY-1020
         if ::NewRelic::Agent.logger.is_startup_logger?
@@ -73,13 +70,21 @@ module NewRelic
         Module.send :include, NewRelic::Agent::MethodTracer
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
+        NewRelic::Agent.agent.start_service_if_needed
         if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
           start_agent
           install_instrumentation
-          load_samplers unless Agent.config[:disable_samplers]
         elsif !Agent.config[:agent_enabled]
           install_shim
         end
+      end
+
+      def configure_agent(env, options)
+        manual = Agent::Configuration::ManualSource.new(options)
+        Agent.config.replace_or_add_config(manual)
+
+        config_file_path = @config_file_override || Agent.config[:config_path]
+        Agent.config.replace_or_add_config(Agent::Configuration::YamlSource.new(config_file_path, env))
       end
 
       # Install the real agent into the Agent module, and issue the start command.
@@ -119,7 +124,7 @@ module NewRelic
       def initialize(local_env, config_file_override=nil)
         @local_env = local_env
         @instrumentation_files = []
-        @config_file_path = config_file_override || Agent.config[:config_path]
+        @config_file_override = config_file_override
       end
 
       def root

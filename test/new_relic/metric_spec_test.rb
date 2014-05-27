@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
-class NewRelic::MetricSpecTest < MiniTest::Unit::TestCase
+class NewRelic::MetricSpecTest < Minitest::Test
 
   def test_equal
     spec1 = NewRelic::MetricSpec.new('Controller')
@@ -67,31 +67,12 @@ class NewRelic::MetricSpecTest < MiniTest::Unit::TestCase
     puts "Skipping tests in #{__FILE__} because ActiveSupport is unavailable"
   end
 
-  def test_truncate!
-    spec = NewRelic::MetricSpec.new('a', 'b')
-    spec.name = "a" * 300
-    spec.scope = "b" * 300
-    spec.truncate!
+  def test_initialize_truncates_name_and_scope
+    long_name = "a" * 300
+    long_scope = "b" * 300
+    spec = NewRelic::MetricSpec.new(long_name, long_scope)
     assert_equal("a" * 255, spec.name, "should have shortened the name")
     assert_equal("b" * 255, spec.scope, "should have shortened the scope")
-  end
-
-  def test_invalid_name_setting_nil
-    NewRelic::Agent.instance.error_collector.errors.clear
-
-    spec = NewRelic::MetricSpec.new
-    spec.scope = nil
-
-    assert_has_error(NewRelic::MetricSpec::InvalidScopeSettingError)
-  end
-
-  def test_invalid_name_setting_false
-    NewRelic::Agent.instance.error_collector.errors.clear
-
-    spec = NewRelic::MetricSpec.new
-    spec.scope = false
-
-    assert_has_error(NewRelic::MetricSpec::InvalidScopeSettingError)
   end
 
   private

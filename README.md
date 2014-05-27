@@ -4,7 +4,7 @@ New Relic is a performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  It provides you with deep
 information about the performance of your Rails or Ruby
 application as it runs in production. The New Relic Ruby Agent is
-dual-purposed as a either a Rails plugin or a Gem, hosted on
+dual-purposed as a either a Gem or a Rails plugin, hosted on
 [github](http://github.com/newrelic/rpm/tree/master).
 
 The New Relic Ruby Agent runs in one of two modes:
@@ -21,7 +21,7 @@ automatically in Rails applications.
 
 ## Supported Environments
 
-* Ruby 1.8.7, REE, 1.9.x, 2.0.x
+* Ruby 1.8.7, REE, 1.9.x, 2.0.x, 2.1.x
 * JRuby 1.6 and 1.7
 * Rubinius 2.x (Experimental support only)
 * Rails 2.1 or later for Production Mode
@@ -51,11 +51,7 @@ and avoid breaking your code with future changes to the agent.
 
 ## Getting Started
 
-Install the Ruby Agent as a gem.
-
-    gem install newrelic_rpm
-
-Or add it to your project's Gemfile.
+Add the Ruby Agent to your project's Gemfile.
 
     gem 'newrelic_rpm'
 
@@ -175,6 +171,12 @@ analysis. To view this data, log in to http://rpm.newrelic.com.
 NOTE: You must have a valid account and license key to view this data
 online.  Refer to instructions in *Getting Started*.
 
+## Recording Deploys
+
+The Ruby Agent supports recording deployments in New Relic via a command line
+tool or Capistrano recipes. For more information on these features see
+[our deployment documentation](http://docs.newrelic.com/docs/ruby/recording-deployments-with-the-ruby-agent)
+for more information.
 
 ## Support
 
@@ -182,7 +184,8 @@ You can find more detailed documentation [on our website](http://newrelic.com/do
 and specifically in the [Ruby category](http://newrelic.com/docs/ruby).
 
 If you can't find what you're looking for there, reach out to us on our [support
-site](http://support.newrelic.com/) and we'll be happy to help you.
+site](http://support.newrelic.com/) or our [community forum](http://forum.newrelic.com)
+and we'll be happy to help you.
 
 Also available is community support on IRC: we generally use #newrelic
 on irc.freenode.net

@@ -9,7 +9,7 @@ module NewRelic
   # mostly this class just passes through to the active agent
   # through the agent method or the control instance through
   # NewRelic::Control.instance . But it's nice to make sure.
-  class MainAgentTest < MiniTest::Unit::TestCase
+  class MainAgentTest < Minitest::Test
     include NewRelic::Agent::MethodTracer
 
     def setup
@@ -28,14 +28,14 @@ module NewRelic
     end
 
     def test_shutdown_removes_manual_startup_config
-      NewRelic::Agent.manual_start(:some_absurd_setting => true)
+      NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40, :some_absurd_setting => true)
       assert NewRelic::Agent.config[:some_absurd_setting]
       NewRelic::Agent.shutdown
       assert !NewRelic::Agent.config[:some_absurd_setting]
     end
 
     def test_shutdown_removes_server_config
-      NewRelic::Agent.manual_start
+      NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40)
       NewRelic::Agent.instance.service = default_service
       NewRelic::Agent.instance.finish_setup('agent_config' =>
                                             { :some_absurd_setting => true })
@@ -188,7 +188,7 @@ module NewRelic
 
     def test_record_metric
       dummy_engine = NewRelic::Agent.agent.stats_engine
-      dummy_engine.expects(:record_metrics).with('foo', 12)
+      dummy_engine.expects(:record_unscoped_metrics).with('foo', 12)
       NewRelic::Agent.record_metric('foo', 12)
     end
 
@@ -208,7 +208,7 @@ module NewRelic
       expected_stats.min_call_time = 1
       expected_stats.max_call_time = 5
       expected_stats.sum_of_squares = 999
-      dummy_engine.expects(:record_metrics).with('foo', expected_stats)
+      dummy_engine.expects(:record_unscoped_metrics).with('foo', expected_stats)
       NewRelic::Agent.record_metric('foo', stats_hash)
     end
 
@@ -228,7 +228,7 @@ module NewRelic
       expected_stats.max_call_time = 5
       expected_stats.sum_of_squares = 999
 
-      dummy_engine.expects(:record_metrics).with('foo', expected_stats)
+      dummy_engine.expects(:record_unscoped_metrics).with('foo', expected_stats)
       NewRelic::Agent.record_metric('foo', incomplete_stats_hash)
     end
 
@@ -236,7 +236,7 @@ module NewRelic
       dummy_engine = NewRelic::Agent.agent.stats_engine
       dummy_stats = mock
       dummy_stats.expects(:increment_count).with(12)
-      dummy_engine.expects(:record_metrics).with('foo').yields(dummy_stats)
+      dummy_engine.expects(:record_unscoped_metrics).with('foo').yields(dummy_stats)
       NewRelic::Agent.increment_metric('foo', 12)
     end
 
@@ -316,8 +316,9 @@ module NewRelic
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.txn do
-        NewRelic::Agent::Transaction.current.freeze_name
-        NewRelic::Agent.set_transaction_name('new_name')
+        NewRelic::Agent::Transaction.current.freeze_name_and_execute_if_not_ignored do
+          NewRelic::Agent.set_transaction_name('new_name')
+        end
       end
       assert_nil engine.lookup_stats('Controller/new_name')
     end

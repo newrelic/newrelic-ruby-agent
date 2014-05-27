@@ -26,9 +26,9 @@ class Insider
       # sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
       sampler = "<none>"
       begin
-        @stats_engine.transaction_sampler = sampler
         fail "This should not have worked."
-        rescue; end
+      rescue
+      end
     else
       thrower(level-1)
     end
@@ -58,7 +58,7 @@ module TestModuleWithLog
   add_method_tracer :other_method, 'Custom/foo/bar'
 end
 
-class NewRelic::Agent::MethodTracerTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::MethodTracerTest < Minitest::Test
   attr_reader :stats_engine
 
   def setup

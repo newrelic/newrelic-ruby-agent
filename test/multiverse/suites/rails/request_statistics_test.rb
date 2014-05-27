@@ -4,10 +4,7 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-1096
 
-require 'rails/test_help'
 require './app'
-require 'multiverse_helpers'
-require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 class RequestStatsController < ApplicationController
   include Rails.application.routes.url_helpers
@@ -17,14 +14,18 @@ class RequestStatsController < ApplicationController
     render :text => 'some stuff'
   end
 
+  def cross_app_action
+    NewRelic::Agent::TransactionState.get.is_cross_app_caller = true
+    render :text => 'some stuff'
+  end
+
   def stats_action_with_custom_params
     ::NewRelic::Agent.add_custom_parameters('color' => 'blue', 1 => :bar, 'bad' => {})
     render :text => 'some stuff'
   end
 end
 
-class RequestStatsTest < ActionController::TestCase
-  tests RequestStatsController
+class RequestStatsTest < ActionDispatch::IntegrationTest
   extend Multiverse::Color
 
   include MultiverseHelpers
@@ -36,7 +37,7 @@ class RequestStatsTest < ActionController::TestCase
 
   def test_doesnt_send_when_disabled
     with_config( :'analytics_events.enabled' => false ) do
-      20.times { get :stats_action }
+      5.times { get '/request_stats/stats_action' }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
@@ -46,17 +47,17 @@ class RequestStatsTest < ActionController::TestCase
 
   def test_request_times_should_be_reported_if_enabled
     with_config( :'analytics_events.enabled' => true ) do
-      20.times { get :stats_action }
+      5.times { get '/request_stats/stats_action' }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
       post = $collector.calls_for('analytic_event_data').first
 
       refute_nil( post )
-      assert_kind_of Array, post.body
-      assert_kind_of Array, post.body.first
+      assert_kind_of Array, post.events
+      assert_kind_of Array, post.events.first
 
-      sample = post.body.first.first
+      sample = post.events.first.first
       assert_kind_of Hash, sample
 
       assert_equal 'Controller/request_stats/stats_action', sample['name']
@@ -64,22 +65,71 @@ class RequestStatsTest < ActionController::TestCase
       assert_equal 'Transaction', sample['type']
       assert_kind_of Float, sample['duration']
       assert_kind_of Float, sample['timestamp']
+
+      assert_nil sample['nr.guid']
+      assert_nil sample['nr.referringTransactionGuid']
     end
   end
 
-  def test_custom_params_should_be_reported_with_events_and_coerced_to_safe_types
+  def test_request_should_include_guid_if_cross_app
     with_config( :'analytics_events.enabled' => true ) do
-      20.times { get :stats_action_with_custom_params }
+      5.times { get '/request_stats/cross_app_action' }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
       post = $collector.calls_for('analytic_event_data').first
 
       refute_nil( post )
-      assert_kind_of Array, post.body
-      assert_kind_of Array, post.body.first
+      assert_kind_of Array, post.events
+      assert_kind_of Array, post.events.first
 
-      sample = post.body.first[0]
+      sample = post.events.first.first
+      assert_kind_of Hash, sample
+
+      assert_kind_of String, sample['nr.guid']
+    end
+  end
+
+  def test_request_should_include_referring_guid_if_needed
+    with_config(:'analytics_events.enabled' => true,
+                :'cross_process_id' => 'boo',
+                :'encoding_key' => "\0",
+                :'trusted_account_ids' => [1]) do
+      request_headers = {
+        'X-NewRelic-ID' => Base64.encode64('1#234'),
+        'X-NewRelic-Transaction' => Base64.encode64('["8badf00d",1]')
+      }
+      get '/request_stats/cross_app_action', {}, request_headers
+
+      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+
+      post = $collector.calls_for('analytic_event_data').first
+
+      refute_nil( post )
+      assert_kind_of Array, post.events
+      assert_kind_of Array, post.events.first
+
+      sample = post.events.first.first
+
+      assert_kind_of Hash, sample
+      assert_kind_of String, sample['nr.guid']
+      assert_equal('8badf00d', sample['nr.referringTransactionGuid'])
+    end
+  end
+
+  def test_custom_params_should_be_reported_with_events_and_coerced_to_safe_types
+    with_config( :'analytics_events.enabled' => true ) do
+      5.times { get '/request_stats/stats_action_with_custom_params' }
+
+      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+
+      post = $collector.calls_for('analytic_event_data').first
+
+      refute_nil( post )
+      assert_kind_of Array, post.events
+      assert_kind_of Array, post.events.first
+
+      sample = post.events.first[0]
       assert_kind_of Hash, sample
 
       assert_equal 'Controller/request_stats/stats_action_with_custom_params', sample['name']
@@ -89,7 +139,7 @@ class RequestStatsTest < ActionController::TestCase
         assert_not_includes(sample, key)
       end
 
-      custom_params = post.body.first[1]
+      custom_params = post.events.first[1]
       assert_equal 'blue', custom_params['color']
       assert_equal 'bar', custom_params['1']
       assert_false custom_params.has_key?('bad')
@@ -98,7 +148,7 @@ class RequestStatsTest < ActionController::TestCase
 
   def test_request_samples_should_be_preserved_upon_failure
     with_config(:'analytics_events.enabled' => true) do
-      5.times { get :stats_action }
+      5.times { get '/request_stats/stats_action' }
 
       # fail once
       $collector.stub('analytic_event_data', {}, 503)
@@ -110,7 +160,7 @@ class RequestStatsTest < ActionController::TestCase
 
       post = $collector.calls_for('analytic_event_data').last
 
-      samples = post.body
+      samples = post.events
       assert_equal(5, samples.size)
       samples.each do |sample|
         # undo the extra layer of wrapping that the collector wants

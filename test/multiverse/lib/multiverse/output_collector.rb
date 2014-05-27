@@ -48,8 +48,10 @@ module Multiverse
         output(green("There were no test failures"))
       else
         output(
+          red("*" * 80),
           red("There were failures in #{failing_output.size} test suites"),
-          "Here is their output",
+          red("Here is their output"),
+          red("*" * 80),
           *failing_output)
       end
     end

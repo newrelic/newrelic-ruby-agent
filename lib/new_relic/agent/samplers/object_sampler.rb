@@ -8,9 +8,7 @@ module NewRelic
   module Agent
     module Samplers
       class ObjectSampler < NewRelic::Agent::Sampler
-        def initialize
-          super :objects
-        end
+        named :object
 
         def self.supported_on_this_platform?
           NewRelic::LanguageSupport.object_space_usable? && ObjectSpace.respond_to?(:live_objects)

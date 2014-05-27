@@ -120,8 +120,8 @@ module NewRelic
 
       def transaction_trace_threshold
         source_class = Agent.config.source(TT_THRESHOLD_KEY).class
-        if source_class == Configuration::DefaultSource && TransactionState.get.transaction
-          TransactionState.get.transaction.apdex_t * 4
+        if source_class == Configuration::DefaultSource && TransactionState.get.current_transaction
+          TransactionState.get.current_transaction.apdex_t * 4
         else
           Agent.config[TT_THRESHOLD_KEY]
         end
@@ -137,10 +137,6 @@ module NewRelic
         end
 
         depth
-      end
-
-      def set_profile(profile)
-        @sample.profile = profile
       end
 
       def set_transaction_info(uri, params)

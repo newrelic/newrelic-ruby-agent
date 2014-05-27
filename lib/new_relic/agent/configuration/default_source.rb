@@ -27,16 +27,23 @@ module NewRelic
           result
         end
 
+        def self.config_search_paths
+          Proc.new {
+            paths = [
+              File.join("config","newrelic.yml"),
+              File.join("newrelic.yml")
+            ]
+            if ENV["HOME"]
+              paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
+              paths << File.join(ENV["HOME"], "newrelic.yml")
+            end
+            paths
+          }
+        end
+
         def self.config_path
           Proc.new {
-            files = []
-            files << File.join("config","newrelic.yml")
-            files << File.join("newrelic.yml")
-            if ENV["HOME"]
-              files << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
-              files << File.join(ENV["HOME"], "newrelic.yml")
-            end
-            found_path = files.detect do |file|
+            found_path = NewRelic::Agent.config[:config_search_paths].detect do |file|
               File.expand_path(file) if File.exists? file
             end
             found_path || ""
@@ -48,7 +55,7 @@ module NewRelic
             case
             when defined?(::NewRelic::TEST) then :test
             when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
-            when defined?(::Rails)
+            when defined?(::Rails::VERSION)
               case Rails::VERSION::MAJOR
               when 0..2
                 :rails
@@ -147,6 +154,17 @@ module NewRelic
           Proc.new { NewRelic::Agent.config[:developer] }
         end
 
+        def self.profiling_available
+          Proc.new {
+            begin
+              require 'ruby-prof'
+              true
+            rescue LoadError
+              false
+            end
+          }
+        end
+
         def self.monitor_mode
           Proc.new { NewRelic::Agent.config[:enabled] }
         end
@@ -216,6 +234,12 @@ module NewRelic
           :type => String,
           :description => "Path to newrelic.yml. When omitted the agent will check (in order) 'config/newrelic.yml', 'newrelic.yml', $HOME/.newrelic/newrelic.yml' and $HOME/newrelic.yml."
         },
+        :config_search_paths => {
+          :default => DefaultSource.config_search_paths,
+          :public => false,
+          :type => Array,
+          :description => "An array of candidate locations for the agent's configuration file."
+        },
         :app_name => {
           :default => DefaultSource.app_name,
           :public => true,
@@ -282,6 +306,12 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Alternative method of enabling developer_mode.'
+        },
+        :'profiling.available' => {
+          :default => DefaultSource.profiling_available,
+          :public => false,
+          :type => Boolean,
+          :description => 'Determines if ruby-prof is available for developer mode profiling.'
         },
         :apdex_t => {
           :default => 0.5,
@@ -502,7 +532,7 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable agent middleware for sinatra. This middleware is responsible for instrumenting advanced feature support for sinatra (e.g. Cross-application tracing, Real User Monitoring, Error collection).'
+          :description => 'Enable or disable agent middleware for sinatra. This middleware is responsible for instrumenting advanced feature support for Sinatra; for example, cross application tracing, page load timing (sometimes referred to as real user monitoring or RUM), and error collection.'
         },
         :disable_view_instrumentation => {
           :default => false,
@@ -634,7 +664,7 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable MongoDB instrumentation.'
+          :description => 'Controls whether instrumentation for the mongo gem will be installed by the agent.'
         },
         :'slow_sql.enabled' => {
           :default => DefaultSource.slow_sql_enabled,
@@ -700,7 +730,7 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable real user monitoring.'
+          :description => 'Enable or disable page load timing (sometimes referred to as real user monitoring or RUM).'
         },
         :browser_key => {
           :default => '',
@@ -736,7 +766,7 @@ module NewRelic
           :default => DefaultSource.browser_monitoring_auto_instrument,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable automatic insertion of the real user monitoring header and footer into outgoing responses.'
+          :description => 'Enable or disable automatic insertion of the JavaScript header into outgoing responses for page load timing (sometimes referred to as real user monitoring or RUM).'
         },
         :'browser_monitoring.loader' => {
           :default => DefaultSource.browser_monitoring_loader,
@@ -797,7 +827,7 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable cross-application tracing.'
+          :description => 'Enable or disable cross application tracing.'
         },
         :cross_application_tracing => {
           :default => nil,
@@ -879,7 +909,7 @@ module NewRelic
           :description => 'Include custom attributes in analytics event data.'
         },
         :restart_thread_in_children => {
-          :default => false,
+          :default => true,
           :public => false,
           :type => Boolean,
           :description => 'Controls whether to check on running a transaction whether to respawn the harvest thread.'
@@ -889,6 +919,90 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Controls whether to normalize string encodings prior to serializing data for the collector to JSON.'
+        },
+        :disable_vm_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the Ruby VM sampler is enabled. This sampler periodically gathers performance measurements from the Ruby VM.'
+        },
+        :disable_memory_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the memory sampler is enabled. This sampler periodically measures the memory usage of the host process.'
+        },
+        :disable_cpu_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the CPU sampler is enabled. This sampler periodically samples the CPU usage of the host process.'
+        },
+        :disable_delayed_job_sampler => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the Delayed Job sampler is enabled. This sampler periodically measures the depth of Delayed Job queues.'
+        },
+        :disable_active_record_4 => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for ActiveRecord 4 will be installed by the agent.'
+        },
+        :disable_curb => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for the curb gem will be installed by the agent.'
+        },
+        :disable_excon => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for the excon gem will be installed by the agent.'
+        },
+        :disable_httpclient => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for the httpclient gem will be installed by the agent.'
+        },
+        :disable_mongo => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for the mongo gem will be installed by the agent.'
+        },
+        :disable_rack => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => "Controls whether the agent will hook into Rack::Builder's to_app method in order to look for gems to instrument during application startup."
+        },
+        :disable_rubyprof => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether the agent will make use of RubyProf in developer mode if it is present.'
+        },
+        :disable_typhoeus => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for the typhoeus gem will be installed by the agent.'
         }
       }.freeze
 

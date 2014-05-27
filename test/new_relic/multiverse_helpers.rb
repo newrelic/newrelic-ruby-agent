@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "agent_helper"))
+
 module MultiverseHelpers
 
   #
@@ -48,8 +50,8 @@ module MultiverseHelpers
     NewRelic::Agent.config.reset_to_defaults
 
     # Renaming rules don't get cleared on connect--only appended to
-    NewRelic::Agent.instance.transaction_rules.rules.clear
-    NewRelic::Agent.instance.stats_engine.metric_rules.rules.clear
+    NewRelic::Agent.instance.transaction_rules.clear
+    NewRelic::Agent.instance.stats_engine.metric_rules.clear
 
     # Clear out lingering stats we didn't transmit
     NewRelic::Agent.drop_buffered_data
@@ -65,6 +67,9 @@ module MultiverseHelpers
     NewRelic::Agent.instance.transaction_sampler.reset!
 
     NewRelic::Agent.shutdown
+
+    # If we didn't start up right, our Control might not have reset on shutdown
+    NewRelic::Control.reset
   end
 
   def run_agent(options={}, &block)
@@ -129,30 +134,3 @@ module MultiverseHelpers
 
   extend self
 end
-
-#if RUBY_VERSION < "1.8.7"
-#  # No instance_exec in 1.8.6... sigh
-#  #
-#  # Cribbed from https://www.ruby-forum.com/topic/72172#101957, most straight
-#  # forward implementation I could find without using ActiveSupport
-#  class Object
-#    unless defined? instance_exec # 1.9
-#      def instance_exec(*arguments, &block)
-#        block.bind(self)[*arguments]
-#      end
-#    end
-#  end
-#
-#  class Proc
-#    def bind(object)
-#      block, time = self, Time.now
-#      (class << object; self end).class_eval do
-#        method_name = "__bind_#{time.to_i}_#{time.usec}"
-#        define_method(method_name, &block)
-#        method = instance_method(method_name)
-#        remove_method(method_name)
-#        method
-#      end.bind(object)
-#    end
-#  end
-#end

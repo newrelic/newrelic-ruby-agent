@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class NewRelic::Rack::DeferredInstrumentationTest < MiniTest::Unit::TestCase
+class NewRelic::Rack::DeferredInstrumentationTest < Minitest::Test
   class TestApp
     def call(env)
       [200, {}, ["whatever"]]

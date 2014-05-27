@@ -1,13 +1,14 @@
 source 'http://rubygems.org'
 
-gem 'rake'
-
 gem 'rails', '~>3.2.15'
 
+gem 'rake', '~>10.1.1'
 gem 'minitest', '~>4.7.5'
 gem 'mocha', :require => false
 gem 'rack'
 gem 'rack-test'
+
+gem "newrelic_rpm", :path => "../../.."
 
 platforms :jruby do
   gem "activerecord-jdbcmysql-adapter", "~>1.2.9"
@@ -20,4 +21,4 @@ platforms :ruby, :rbx do
   gem "sqlite3"
 end
 
-gem "newrelic_rpm", :path => "../../.."
+gem 'pry'

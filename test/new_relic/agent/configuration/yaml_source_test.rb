@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/configuration/yaml_source'
 
 module NewRelic::Agent::Configuration
-  class YamlSourceTest < MiniTest::Unit::TestCase
+  class YamlSourceTest < Minitest::Test
     def setup
       @test_yml_path = File.expand_path(File.join(File.dirname(__FILE__),
                                                  '..','..','..',
@@ -58,7 +58,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_log_if_no_file_is_found
-      expects_logging(:error, any_parameters)
+      expects_logging(:warn, any_parameters)
       source = YamlSource.new('no_such_file.yml', 'test')
     end
 
@@ -69,7 +69,7 @@ module NewRelic::Agent::Configuration
 
     def test_should_not_fail_to_log_missing_file_during_startup
       without_logger do
-        ::NewRelic::Agent::StartupLogger.any_instance.expects(:error)
+        ::NewRelic::Agent::StartupLogger.any_instance.expects(:warn)
         source = YamlSource.new('no_such_file.yml', 'test')
       end
     end

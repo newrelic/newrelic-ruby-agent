@@ -4,16 +4,19 @@
 
 require File.expand_path('../../test_helper.rb', __FILE__)
 
-class NewRelic::TransactionSampleTest < MiniTest::Unit::TestCase
+class NewRelic::TransactionSampleTest < Minitest::Test
   include TransactionSampleTestHelper
   ::SQL_STATEMENT = "SELECT * from sandwiches WHERE meat='bacon'"
   ::OBFUSCATED_SQL_STATEMENT = "SELECT * from sandwiches WHERE meat=?"
 
   def setup
     @test_config = { :developer_mode => true }
-    NewRelic::Agent.config.apply_config(@test_config)
+    NewRelic::Agent.config.add_config_for_testing(@test_config)
+
+    NewRelic::Agent.agent.transaction_sampler.reset!
+
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
-    @connection_stub.stubs(:execute).returns([['QUERY RESULT']])
+    @connection_stub.stubs(:execute).returns(dummy_mysql_explain_result({'foo' => 'bar'}))
 
     NewRelic::Agent::Database.stubs(:get_connection).returns @connection_stub
     @t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
@@ -23,6 +26,7 @@ class NewRelic::TransactionSampleTest < MiniTest::Unit::TestCase
     else
       @marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
     end
+
   end
 
   def teardown
@@ -124,12 +128,14 @@ class NewRelic::TransactionSampleTest < MiniTest::Unit::TestCase
         explanation = segment.params[:explain_plan]
 
         assert_kind_of Array, explanation
-        assert_equal([nil, [["QUERY RESULT"]]], explanation)
+        assert_equal([['foo'], [['bar']]], explanation)
       end
     end
   end
 
   def test_not_record_transactions
+    NewRelic::Agent.instance.transaction_sampler.reset!
+
     NewRelic::Agent.disable_transaction_tracing do
       t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
       assert t.nil?
@@ -214,15 +220,16 @@ class NewRelic::TransactionSampleTest < MiniTest::Unit::TestCase
   end
 
   def test_count_segments
-    transaction = run_sample_trace_on(NewRelic::Agent::TransactionSampler.new) do |sampler|
-      sampler.notice_push_scope "level0"
-      sampler.notice_push_scope "level-1"
-      sampler.notice_push_scope "level-2"
+    transaction = run_sample_trace do |sampler|
+      sampler.notice_push_frame "level0"
+      sampler.notice_push_frame "level-1"
+      sampler.notice_push_frame "level-2"
       sampler.notice_sql(::SQL_STATEMENT, {}, 0)
-      sampler.notice_pop_scope "level-2"
-      sampler.notice_pop_scope "level-1"
-      sampler.notice_pop_scope "level0"
+      sampler.notice_pop_frame "level-2"
+      sampler.notice_pop_frame "level-1"
+      sampler.notice_pop_frame "level0"
     end
+
     assert_equal 6, transaction.count_segments
   end
 

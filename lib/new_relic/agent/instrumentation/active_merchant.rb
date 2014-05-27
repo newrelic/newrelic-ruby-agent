@@ -16,13 +16,17 @@ DependencyDetection.defer do
   end
 
   executes do
+    class ActiveMerchant::Billing::Gateway
+      include NewRelic::Agent::MethodTracer
+    end
+
     ActiveMerchant::Billing::Gateway.implementations.each do |gateway|
       gateway.class_eval do
-        implemented_methods = public_instance_methods(false)
+        implemented_methods = public_instance_methods(false).map(&:to_sym)
         gateway_name = self.name.split('::').last
-        [:authorize, :purchase, :credit, :void, :capture, :recurring].each do |operation|
-          if implemented_methods.include?(operation.to_s)
-            add_method_tracer operation, "ActiveMerchant/gateway/#{gateway_name}/#{operation}", :scoped_metric_only => true
+        [:authorize, :purchase, :credit, :void, :capture, :recurring, :store, :unstore, :update].each do |operation|
+          if implemented_methods.include?(operation)
+            add_method_tracer operation, "ActiveMerchant/gateway/#{gateway_name}/#{operation}"
             add_method_tracer operation, "ActiveMerchant/gateway/#{gateway_name}", :push_scope => false
             add_method_tracer operation, "ActiveMerchant/operation/#{operation}", :push_scope => false
           end

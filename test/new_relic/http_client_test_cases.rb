@@ -44,7 +44,7 @@ module HttpClientTestCases
     end
 
     @engine = NewRelic::Agent.instance.stats_engine
-    NewRelic::Agent::TransactionState.get.request_guid = TRANSACTION_GUID
+    NewRelic::Agent::Transaction.any_instance.stubs(:guid).returns(TRANSACTION_GUID)
   end
 
   # Helpers to support shared tests
@@ -381,8 +381,6 @@ module HttpClientTestCases
   end
 
   def test_doesnt_misbehave_when_transaction_tracing_is_disabled
-    @engine.transaction_sampler = nil
-
     # The error should have any other consequence other than logging the error, so
     # this will capture logs
     logger = NewRelic::Agent::MemoryLogger.new
@@ -394,9 +392,6 @@ module HttpClientTestCases
 
     refute_match( /undefined method `rename_scope_segment" for nil:NilClass/i,
                      logger.messages.flatten.map {|log| log.to_s }.join(" ") )
-
-  ensure
-    @engine.transaction_sampler = NewRelic::Agent.agent.transaction_sampler
   end
 
   def test_includes_full_url_in_transaction_trace

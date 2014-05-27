@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class RulesEngineTest < MiniTest::Unit::TestCase
+class RulesEngineTest < Minitest::Test
   def setup
     @engine = NewRelic::Agent::RulesEngine.new
   end
@@ -89,4 +89,17 @@ class RulesEngineTest < MiniTest::Unit::TestCase
 
     assert_equal('foo/*/bar/*', @engine.rename('foo/1/bar/22'))
   end
+
+  load_cross_agent_test('rules').each do |testcase|
+    define_method("test_#{testcase['testname']}") do
+      testcase["rules"].each do |rule|
+        @engine << NewRelic::Agent::RulesEngine::Rule.new(rule)
+      end
+
+      testcase["tests"].each do |test|
+        assert_equal(test["expected"], @engine.rename(test["input"]), "Input: #{test['input'].inspect}")
+      end
+    end
+  end
+
 end

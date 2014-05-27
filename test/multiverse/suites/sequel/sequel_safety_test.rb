@@ -7,7 +7,7 @@
 
 require File.join(File.dirname(__FILE__), 'database.rb')
 
-class SequelSafetyTest < MiniTest::Unit::TestCase
+class SequelSafetyTest < Minitest::Test
 
   def test_it_doesnt_blow_up
     require 'newrelic_rpm'

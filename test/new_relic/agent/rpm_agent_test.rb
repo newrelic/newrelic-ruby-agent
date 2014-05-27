@@ -4,7 +4,7 @@
 
 require File.expand_path('../../../test_helper', __FILE__)
 
-class NewRelic::Agent::RpmAgentTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
@@ -40,23 +40,23 @@ class NewRelic::Agent::RpmAgentTest < MiniTest::Unit::TestCase
     assert(ignore_called)
   end
 
-  def test_startup_shutdown
+  def test_startup_shutdown_shim
     with_config(:agent_enabled => true) do
-      @agent = NewRelic::Agent::ShimAgent.instance
-      @agent.shutdown
-      assert (not @agent.started?)
-      @agent.start
-      assert !@agent.started?
-      # this installs the real agent:
-      NewRelic::Agent.manual_start
-      @agent = NewRelic::Agent.instance
-      assert @agent != NewRelic::Agent::ShimAgent.instance
-      assert @agent.started?
-      @agent.shutdown
-      assert !@agent.started?
-      @agent.start
-      assert @agent.started?
-      NewRelic::Agent.shutdown
+      shim_agent = NewRelic::Agent::ShimAgent.instance
+      shim_agent.shutdown
+      refute shim_agent.started?
+      shim_agent.start
+      refute shim_agent.started?
+    end
+  end
+
+  def test_startup_shutdown_real
+    with_config(:agent_enabled => true, :monitor_mode => true) do
+      NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
+      agent = NewRelic::Agent.instance
+      assert agent.started?
+      agent.shutdown
+      refute agent.started?
     end
   end
 
@@ -104,12 +104,6 @@ class NewRelic::Agent::RpmAgentTest < MiniTest::Unit::TestCase
 
   def test_agent_version_string
     assert_match /\d\.\d+\.\d+/, NewRelic::VERSION::STRING
-  end
-
-  def test_record_transaction_should_reject_empty_arguments
-    assert_raises RuntimeError do
-      NewRelic::Agent.record_transaction 0.5
-    end
   end
 
   def test_record_transaction

@@ -11,7 +11,7 @@ if Sequel.const_defined?( :MAJOR ) &&
 require 'newrelic_rpm'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
-class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Test
 
   def setup
     super
@@ -252,7 +252,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Un
   # This is particular to sqlite plans currently. To abstract it up, we'd need to
   # be able to specify a flavor (e.g., :sqlite, :postgres, :mysql, etc.)
   def assert_segment_has_explain_plan( segment, msg=nil )
-    msg = build_message( msg, "Expected ? to have an explain plan", segment )
+    msg = "Expected #{segment.inspect} to have an explain plan"
     assert_block( msg ) { segment.params[:explain_plan].join =~ SQLITE_EXPLAIN_PLAN_COLUMNS_RE }
   end
 
@@ -265,26 +265,13 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < MiniTest::Un
     end
   end
 
-  def with_controller_scope
-    sampler = NewRelic::Agent.instance.transaction_sampler
-    sampler.notice_first_scope_push Time.now.to_f
-    sampler.notice_transaction('/', {})
-    sampler.notice_push_scope "Controller/sandwiches/index"
-
-    yield if block_given?
-
-    sampler.notice_pop_scope "Controller/sandwiches/index"
-    sampler.notice_scope_empty(stub('txn', :name => '/', :custom_parameters => {}))
-    [sampler.last_sample]
-  end
-
   def last_segment_for(options={})
-      transaction_samples = with_controller_scope do
+      in_transaction('sandwiches/index') do
         yield
       end
-
-      sample = transaction_samples.first.prepare_to_send!
-      last_segment( sample )
+      sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+      sample.prepare_to_send!
+      last_segment(sample)
   end
 
   def last_segment(txn_sample)

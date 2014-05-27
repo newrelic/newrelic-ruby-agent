@@ -1,0 +1,4 @@
+gemfile <<-RB
+  gem 'capistrano', '~>2.15.5'
+  gem 'rack'
+RB

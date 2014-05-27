@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
 
-class NewRelic::Agent::StatsHashTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::StatsHashTest < Minitest::Test
   def setup
     @hash = NewRelic::Agent::StatsHash.new
     NewRelic::Agent.instance.error_collector.errors.clear
@@ -98,7 +98,7 @@ class NewRelic::Agent::StatsHashTest < MiniTest::Unit::TestCase
     hash2 = NewRelic::Agent::StatsHash.new
     hash2.record(specs[0], 1)
     hash2.record(specs[1], 2)
-    hash2.record(specs[3], 3) # no scope
+    hash2.record(specs[3], 3)
 
     hash1.merge!(hash2)
 
@@ -117,7 +117,34 @@ class NewRelic::Agent::StatsHashTest < MiniTest::Unit::TestCase
     hash1 = NewRelic::Agent::StatsHash.new(t1)
 
     hash1.merge!(hash0)
-    assert_equal(t0, hash1.started_at)
+    assert_equal(t0.to_f, hash1.started_at)
+  end
+
+  def test_merge_transaction_metrics
+    specs = [
+      NewRelic::MetricSpec.new('foo'),
+      NewRelic::MetricSpec.new('bar'),
+      NewRelic::MetricSpec.new('baz'),
+      NewRelic::MetricSpec.new('baz', 'a_scope')
+    ]
+
+    hash = NewRelic::Agent::StatsHash.new
+    hash.record(specs[0], 1)
+    hash.record(specs[1], 2)
+    hash.record(specs[2], 3)
+
+    txn_metrics = NewRelic::Agent::TransactionMetrics.new
+    txn_metrics.record_unscoped(specs[0].name, 1)
+    txn_metrics.record_unscoped(specs[1].name, 2)
+    txn_metrics.record_scoped(specs[3].name, 3)
+
+    hash.merge_transaction_metrics!(txn_metrics, 'a_scope')
+
+    assert_equal(4, hash.keys.size)
+    assert_equal(2, hash[specs[0]].call_count)
+    assert_equal(2, hash[specs[1]].call_count)
+    assert_equal(1, hash[specs[2]].call_count)
+    assert_equal(1, hash[specs[3]].call_count)
   end
 
   def test_marshal_dump

@@ -42,7 +42,7 @@ module NewRelic
           metric = base_metric(event)
 
           # enter transaction trace segment
-          scope = NewRelic::Agent.instance.stats_engine.push_scope(:active_record, event.time)
+          frame = NewRelic::Agent::TracedMethodStack.push_frame(:active_record, event.time)
 
           NewRelic::Agent.instance.transaction_sampler \
             .notice_sql(event.payload[:sql], config,
@@ -55,26 +55,22 @@ module NewRelic
                         &method(:get_explain_plan))
 
           # exit transaction trace segment
-          NewRelic::Agent.instance.stats_engine.pop_scope(scope, metric, event.end)
+          NewRelic::Agent::TracedMethodStack.pop_frame(frame, metric, event.end)
         end
 
         def record_metrics(event)
           base = base_metric(event)
-          NewRelic::Agent.instance.stats_engine.record_metrics(base,
-                              Helper.milliseconds_to_seconds(event.duration),
-                              :scoped => true)
 
           other_metrics = ActiveRecordHelper.rollup_metrics_for(base)
-
           if config = active_record_config_for_event(event)
             other_metrics << ActiveRecordHelper.remote_service_metric(config[:adapter], config[:host])
           end
+          other_metrics.compact!
 
-          other_metrics.compact.each do |metric_name|
-            NewRelic::Agent.instance.stats_engine.record_metrics(metric_name,
-                                            Helper.milliseconds_to_seconds(event.duration),
-                                            :scoped => false)
-          end
+          NewRelic::Agent.instance.stats_engine.record_scoped_and_unscoped_metrics(
+            base, other_metrics,
+            Helper.milliseconds_to_seconds(event.duration)
+          )
         end
 
         def base_metric(event)

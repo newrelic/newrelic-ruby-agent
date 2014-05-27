@@ -64,6 +64,22 @@ module NewRelic::LanguageSupport
     end
   end
 
+  def gc_profiler_usable?
+    if defined?(::GC::Profiler) && !jruby?
+      true
+    else
+      false
+    end
+  end
+
+  def gc_profiler_enabled?
+    if gc_profiler_usable? && ::GC::Profiler.enabled?
+      true
+    else
+      false
+    end
+  end
+
   def object_space_usable?
     if defined?(::JRuby) && JRuby.respond_to?(:runtime)
       JRuby.runtime.is_object_space_enabled
@@ -74,8 +90,16 @@ module NewRelic::LanguageSupport
     end
   end
 
+  def jruby?
+    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
+  end
+
   def rubinius?
     defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
+  end
+
+  def ree?
+    defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Ruby Enterprise Edition/
   end
 
   def using_version?(version)

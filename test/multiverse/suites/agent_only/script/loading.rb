@@ -14,7 +14,7 @@ DependencyDetection.items.each do |item|
     enable_everyone["disable_#{item.name}".to_sym] = false
   end
 end
-NewRelic::Agent.config.apply_config(enable_everyone)
+NewRelic::Agent.config.add_config_for_testing(enable_everyone)
 
 # Run dependency detection again!
 DependencyDetection.detect!

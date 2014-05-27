@@ -51,8 +51,8 @@ module NewRelic
         @commands << subclass
       end
 
-      cmds = File.expand_path(File.join(File.dirname(__FILE__), '*.rb'))
-      Dir[cmds].each{|command| require command }
+      cmds = File.expand_path(File.join(File.dirname(__FILE__), 'commands', '*.rb'))
+      Dir[cmds].each { |command| require command }
 
       def self.run
 

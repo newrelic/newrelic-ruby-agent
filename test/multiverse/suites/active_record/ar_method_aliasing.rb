@@ -10,7 +10,7 @@ require 'multiverse/color'
 require 'multiverse_helpers'
 require 'minitest/unit'
 
-class InstrumentActiveRecordMethods < MiniTest::Unit::TestCase
+class InstrumentActiveRecordMethods < Minitest::Test
   extend Multiverse::Color
 
   include MultiverseHelpers

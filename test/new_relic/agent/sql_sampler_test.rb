@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 
-class NewRelic::Agent::SqlSamplerTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def setup
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
@@ -23,9 +23,9 @@ class NewRelic::Agent::SqlSamplerTest < MiniTest::Unit::TestCase
 
   def populate_container(sampler, n)
     n.times do |i|
-      sampler.notice_first_scope_push nil
+      sampler.on_start_transaction nil
       sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", nil, 1)
-      sampler.notice_scope_empty('txn')
+      sampler.on_finishing_transaction('txn')
     end
   end
 
@@ -33,11 +33,11 @@ class NewRelic::Agent::SqlSamplerTest < MiniTest::Unit::TestCase
 
   # Tests
 
-  def test_notice_first_scope_push
+  def test_on_start_transaction
     assert_nil @sampler.transaction_data
-    @sampler.notice_first_scope_push nil
+    @sampler.on_start_transaction nil
     refute_nil @sampler.transaction_data
-    @sampler.notice_scope_empty('txn')
+    @sampler.on_finishing_transaction('txn')
     assert_nil @sampler.transaction_data
   end
 
@@ -47,7 +47,7 @@ class NewRelic::Agent::SqlSamplerTest < MiniTest::Unit::TestCase
   end
 
   def test_notice_sql
-    @sampler.notice_first_scope_push nil
+    @sampler.on_start_transaction nil
     @sampler.notice_sql "select * from test", "Database/test/select", nil, 1.5
     @sampler.notice_sql "select * from test2", "Database/test2/select", nil, 1.3
     # this sql will not be captured
@@ -57,7 +57,7 @@ class NewRelic::Agent::SqlSamplerTest < MiniTest::Unit::TestCase
   end
 
   def test_notice_sql_truncates_query
-    @sampler.notice_first_scope_push nil
+    @sampler.on_start_transaction nil
     message = 'a' * 17_000
     @sampler.notice_sql(message, "Database/test/select", nil, 1.5)
     assert_equal('a' * 16_381 + '...', @sampler.transaction_data.sql_data[0].sql)
@@ -139,23 +139,24 @@ class NewRelic::Agent::SqlSamplerTest < MiniTest::Unit::TestCase
 
   def test_harvest_should_collect_explain_plans
     @connection.expects(:execute).with("EXPLAIN select * from test") \
-     .returns([{"header0" => 'foo0', "header1" => 'foo1', "header2" => 'foo2'}])
+     .returns(dummy_mysql_explain_result({"header0" => 'foo0', "header1" => 'foo1', "header2" => 'foo2'}))
     @connection.expects(:execute).with("EXPLAIN select * from test2") \
-     .returns([{"header0" => 'bar0', "header1" => 'bar1', "header2" => 'bar2'}])
+     .returns(dummy_mysql_explain_result({"header0" => 'bar0', "header1" => 'bar1', "header2" => 'bar2'}))
 
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info("/c/a", {}, 'guid')
     data.set_transaction_name("WebTransaction/Controller/c/a")
     explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
+    config = { :adapter => 'mysql' }
     queries = [
                NewRelic::Agent::SlowSql.new("select * from test",
-                                            "Database/test/select", {},
+                                            "Database/test/select", config,
                                             1.5, nil, &explainer),
                NewRelic::Agent::SlowSql.new("select * from test",
-                                            "Database/test/select", {},
+                                            "Database/test/select", config,
                                             1.2, nil, &explainer),
                NewRelic::Agent::SlowSql.new("select * from test2",
-                                            "Database/test2/select", {},
+                                            "Database/test2/select", config,
                                             1.1, nil, &explainer)
               ]
     data.sql_data.concat(queries)
@@ -173,10 +174,8 @@ class NewRelic::Agent::SqlSamplerTest < MiniTest::Unit::TestCase
 
   def test_sql_trace_should_include_transaction_guid
     txn_sampler = NewRelic::Agent::TransactionSampler.new
-    NewRelic::Agent.instance.stats_engine.transaction_sampler = txn_sampler
     txn_sampler.start_builder(Time.now)
-    @sampler.create_transaction_data
-    @sampler.notice_transaction('a uri', {:some => :params})
+    @sampler.on_start_transaction(Time.now, 'a uri', {:some => :params})
 
     assert_equal(NewRelic::Agent.instance.transaction_sampler.builder.sample.guid,
                  NewRelic::Agent.instance.sql_sampler.transaction_data.guid)

@@ -1,5 +1,145 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.8.1 ##
+
+  * Better handling for Rack applications implemented as middlewares
+
+  When using a Sinatra application as a middleware around another app (for
+  example, a Rails app), or manually instrumenting a Rack middleware wrapped
+  around another application, the agent would previously generate two separate
+  transaction names in the New Relic UI (one for the middleware, and one for
+  the inner application).
+
+  As of this release, the agent will instead unify these two parts into a single
+  transaction in the UI. The unified name will be the name assigned to the
+  inner-most traced transaction by default. Calls to
+  NewRelic::Agent.set_transaction_name will continue to override the default
+  names assigned by the agent's instrumentation code.
+
+  This change also makes it possible to run X-Ray sessions against transactions
+  of the 'inner' application in cases where one instrumented app is wrapped in
+  another that's implemented as a middleware.
+
+  * Support for mongo-1.10.0
+
+  The Ruby agent now instruments version 1.10.0 of the mongo gem (versions 1.8.x
+  and 1.9.x were already supported, and continue to be).
+
+  * Allow setting configuration file path via an option to manual_start
+
+  Previously, passing the :config_path option to NewRelic::Agent.manual_start
+  would not actually affect the location that the agent would use to look for
+  its configuration file. This has been fixed, and the log messages emitted when
+  a configuration file is not found should now be more helpful.
+
+## v3.8.0 ##
+
+  * Better support for forking and daemonizing dispatchers (e.g. Puma, Unicorn)
+
+  The agent should now work out-of-the box with no special configuration on
+  servers that fork or daemonize themselves (such as Unicorn or Puma in some
+  configurations). The agent's background thread will be automatically restarted
+  after the first transaction processed within each child process.
+
+  This change means it's no longer necessary to set the
+  'restart_thread_in_children setting' in your agent configuration file if you
+  were doing so previously.
+
+  * Rails 4.1 support
+
+  Rails 4.1 has shipped, and the Ruby agent is ready for it! We've been running
+  our test suites against the release candidates with no significant issues, so
+  we're happy to announce full compatibility with this new release of Rails.
+
+  * Ruby VM measurements
+
+  The Ruby agent now records more detailed information about the performance and
+  behavior of the Ruby VM, mainly focused around Ruby's garbage collector. This
+  information is exposed on the new 'Ruby VM' tab in the UI. For details about
+  what is recorded, see:
+
+  http://docs.newrelic.com/docs/ruby/ruby-vm-stats
+
+  * Separate in-transaction GC timings for web and background processes
+
+  Previously, an application with GC instrumentation enabled, and both web and
+  background processes reporting in to it would show an overly inflated GC band
+  on the application overview graph, because data from both web and non-web
+  transactions would be included. This has been fixed, and GC time during web
+  and non-web transactions is now tracked separately.
+
+  * More accurate GC measurements on multi-threaded web servers
+
+  The agent could previously have reported inaccurate GC times on multi-threaded
+  web servers such as Puma. It will now correctly report GC timings in
+  multi-threaded contexts.
+
+  * Improved ActiveMerchant instrumentation
+
+  The agent will now trace the store, unstore, and update methods on
+  ActiveMerchant gateways. In addition, a bug preventing ActiveMerchant
+  instrumentation from working on Ruby 1.9+ has been fixed.
+
+  Thanks to Troex Nevelin for the contribution!
+
+  * More robust Real User Monitoring script injection with charset meta tags
+
+  Previous versions of the agent with Real User Monitoring enabled could have
+  injected JavaScript code into the page above a charset meta tag. By the HTML5
+  spec, the charset tag must appear in the first 1024 bytes of the page, so the
+  Ruby agent will now attempt to inject RUM script after a charset tag, if one
+  is present.
+
+  * More robust connection sequence with New Relic servers
+
+  A rare bug that could cause the agent's initial connection handshake with
+  New Relic servers to silently fail has been fixed, and better logging has been
+  added to the related code path to ease diagnosis of any future issues.
+
+  * Prevent over-counting of queue time with nested transactions
+
+  When using add_transaction_tracer on methods called from within a Rails or
+  Sinatra action, it was previously possible to get inflated queue time
+  measurements, because queue time would be recorded for both the outer
+  transaction (the Rails or Sinatra action) and the inner transaction (the
+  method given to add_transaction_tracer). This has been fixed, so only the
+  outermost transaction will now record queue time.
+
+## v3.7.3 ##
+
+  * Obfuscation for PostgreSQL explain plans
+
+  Fixes an agent bug with PostgreSQL where parameters from the original query
+  could appear in explain plans sent to New Relic servers, even when SQL
+  obfuscation was enabled. Parameters from the query are now masked in explain
+  plans prior to transmission when transaction_tracer.record_sql is set to
+  'obfuscated' (the default setting).
+
+  For more information, see:
+  https://docs.newrelic.com/docs/traces/security-for-postgresql-explain-plans
+
+  * More accurate categorization of SQL statements
+
+  Some SQL SELECT statements that were previously being mis-categorized as
+  'SQL - OTHER' will now correctly be tagged as 'SQL - SELECT'. This
+  particularly affected ActiveRecord users using PostgreSQL.
+
+  * More reliable Typhoeus instrumentation
+
+  Fixed an issue where an exception raised from a user-specified on_complete
+  block would cause our Typhoeus instrumentation to fail to record the request.
+
+  * Fix for Puma 2.8.0 cluster mode (3.7.3.204)
+
+  Puma's 2.8.0 release renamed a hook New Relic used to support Puma's cluster
+  mode.  This resulted in missing data for users running Puma. Thanks Benjamin
+  Kudria for the fix!
+
+  * Fix for deployment command bug (3.7.3.204)
+
+  Problems with file loading order could result in `newrelic deployments`
+  failing with an unrecognized command error. This has been fixed.
+
 ## v3.7.2 ##
 
   * Mongo instrumentation improvements
@@ -25,7 +165,7 @@
 
   * Improved Unicorn 4.8.0 compatibility
 
-  A rare issue that could lead to spurrious traced errors on app startup for
+  A rare issue that could lead to spurious traced errors on app startup for
   applications using Unicorn 4.8.0 has been fixed.
 
   * meta_request gem compatibility

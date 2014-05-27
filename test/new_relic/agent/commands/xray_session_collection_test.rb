@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/commands/xray_session_collection'
 
 module NewRelic::Agent::Commands
-  class XraySessionCollectionTest < MiniTest::Unit::TestCase
+  class XraySessionCollectionTest < Minitest::Test
 
     attr_reader :sessions, :service
 

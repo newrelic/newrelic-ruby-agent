@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test
 require 'new_relic/agent/agent'
 require 'ostruct'
 
-class NewRelic::Agent::Agent::ConnectTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   include NewRelic::Agent::Agent::Connect
   include TransactionSampleTestHelper
 
@@ -21,11 +21,16 @@ class NewRelic::Agent::Agent::ConnectTest < MiniTest::Unit::TestCase
     @stats_engine = NewRelic::Agent::StatsEngine.new
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
+    NewRelic::Agent.instance.service = @service
+    @local_host = nil
+
     @test_config = { :developer_mode => true }
-    NewRelic::Agent.config.apply_config(@test_config)
+    NewRelic::Agent.reset_config
+    NewRelic::Agent.config.add_config_for_testing(@test_config)
   end
 
   def teardown
+    NewRelic::Agent.reset_config
     NewRelic::Agent.config.remove_config(@test_config)
   end
 
@@ -37,6 +42,10 @@ class NewRelic::Agent::Agent::ConnectTest < MiniTest::Unit::TestCase
       end
     end
     fake_control
+  end
+
+  def local_host
+    @local_host
   end
 
   def test_should_connect_if_pending
@@ -99,11 +108,16 @@ class NewRelic::Agent::Agent::ConnectTest < MiniTest::Unit::TestCase
   end
 
   def test_connect_settings
-    NewRelic::Agent.config.expects(:app_names)
-    keys = %w(pid host app_name language agent_version environment settings)
-    value = connect_settings
+    NewRelic::Agent.config.expects(:app_names).returns(["apps"])
+    @local_host = "lo-calhost"
+    @environment_report = {}
+
+    keys = %w(pid host app_name language agent_version environment settings).map(&:to_sym)
+
+    settings = connect_settings
     keys.each do |k|
-      assert(value.has_key?(k.to_sym), "should include the key #{k}")
+      assert_includes(settings.keys, k)
+      refute_nil(settings[k], "expected a value for #{k}")
     end
   end
 
@@ -176,7 +190,7 @@ class NewRelic::Agent::Agent::ConnectTest < MiniTest::Unit::TestCase
 
   def test_connect_gets_config
     NewRelic::Agent.manual_start
-    NewRelic::Agent::Agent.instance.service = default_service(
+    NewRelic::Agent.instance.service = default_service(
       :connect => {'agent_run_id' => 23, 'config' => 'a lot'})
 
     response = NewRelic::Agent.agent.connect_to_server
@@ -200,9 +214,9 @@ class NewRelic::Agent::Agent::ConnectTest < MiniTest::Unit::TestCase
 
     rules = NewRelic::Agent.instance.transaction_rules
     assert_equal 2, rules.size
-    assert(rules.find{|r| r.match_expression == /88/ && r.replacement == '**' },
+    assert(rules.find{|r| r.match_expression == /88/i && r.replacement == '**' },
            "rule not found among #{rules}")
-    assert(rules.find{|r| r.match_expression == /xx/ && r.replacement == 'XX' },
+    assert(rules.find{|r| r.match_expression == /xx/i && r.replacement == 'XX' },
            "rule not found among #{rules}")
   ensure
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
@@ -222,9 +236,9 @@ class NewRelic::Agent::Agent::ConnectTest < MiniTest::Unit::TestCase
 
     rules = @stats_engine.metric_rules
     assert_equal 2, rules.size
-    assert(rules.find{|r| r.match_expression == /77/ && r.replacement == '&&' },
+    assert(rules.find{|r| r.match_expression == /77/i && r.replacement == '&&' },
            "rule not found among #{rules}")
-    assert(rules.find{|r| r.match_expression == /yy/ && r.replacement == 'YY' },
+    assert(rules.find{|r| r.match_expression == /yy/i && r.replacement == 'YY' },
            "rule not found among #{rules}")
   ensure
     NewRelic::Agent.instance.instance_variable_set(:@metric_rules,
@@ -250,10 +264,17 @@ class NewRelic::Agent::Agent::ConnectTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_finish_setup_replaces_server_config
+    finish_setup(:boo => "boo")
+    finish_setup(:hoo => true)
+
+    assert NewRelic::Agent.config[:hoo]
+    assert_nil NewRelic::Agent.config[:boo]
+  end
 
   def test_logging_collector_messages
     NewRelic::Agent.manual_start
-    NewRelic::Agent::Agent.instance.service = default_service(
+    NewRelic::Agent.instance.service = default_service(
       :connect => {
         'messages' => [{ 'message' => 'beep boop', 'level' => 'INFO' },
                        { 'message' => 'ha cha cha', 'level' => 'WARN' }]

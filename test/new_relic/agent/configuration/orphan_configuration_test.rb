@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
-class OrphanedConfigTest < MiniTest::Unit::TestCase
+class OrphanedConfigTest < Minitest::Test
   include NewRelic::TestHelpers::FileSearching
 
   def setup
@@ -55,6 +55,13 @@ class OrphanedConfigTest < MiniTest::Unit::TestCase
           @default_keys.delete key.gsub("'", "").to_sym
         end
       end
+    end
+
+    # Remove any config keys that are annotated with the 'dynamic_name' setting
+    # This indicates that the names of these keys are constructed dynamically at
+    # runtime, so we don't expect any explicit references to them in code.
+    @default_keys.delete_if do |key_name|
+      NewRelic::Agent::Configuration::DEFAULTS[key_name][:dynamic_name]
     end
 
     assert_empty @default_keys

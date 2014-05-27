@@ -10,7 +10,7 @@ require 'new_relic/rack/browser_monitoring'
 
 ENV['RACK_ENV'] = 'test'
 
-class BrowserMonitoringTest < MiniTest::Unit::TestCase
+class BrowserMonitoringTest < Minitest::Test
   include Rack::Test::Methods
 
   class TestApp
@@ -30,6 +30,7 @@ class BrowserMonitoringTest < MiniTest::Unit::TestCase
     end
 
     def call(env)
+      advance_time(0.1)
       @@doc ||= <<-EOL
 <html>
   <head>
@@ -56,6 +57,8 @@ EOL
 
   def setup
     super
+    freeze_time
+
     @config = {
       :application_id => 5,
       :beacon => 'beacon',
@@ -64,7 +67,7 @@ EOL
       :license_key => 'a' * 40,
       :js_agent_loader => 'loader',
     }
-    NewRelic::Agent.config.apply_config(@config)
+    NewRelic::Agent.config.add_config_for_testing(@config)
   end
 
   def teardown
@@ -100,43 +103,52 @@ EOL
   end
 
   # RUM header auto-insertion testing
-  # We read *.source.html files from the test/rum directory, and then
-  # compare the results of them to *.result.html files.
+  # We read *.html files from the rum_loader_insertion_location directory in
+  # cross_agent_tests, strip out the placeholder tokens representing the RUM
+  # header manually, and then re-insert, verifying that it ends up in the right
+  # place.
 
-  source_files = Dir[File.join(File.dirname(__FILE__), "..", "..", "rum", "*.source.html")]
+  source_files = Dir[File.join(cross_agent_tests_dir, 'rum_loader_insertion_location', "*.html")]
 
-  RUM_LOADER = "|||I AM THE RUM HEADER|||"
-  RUM_CONFIG = "|||I AM THE RUM FOOTER|||"
+  RUM_PLACEHOLDER = "EXPECTED_RUM_LOADER_LOCATION"
 
   source_files.each do |source_file|
     source_filename = File.basename(source_file).gsub(".", "_")
-    source_html = File.read(source_file)
-
-    result_file = source_file.gsub(".source.", ".result.")
+    instrumented_html = File.read(source_file)
+    uninstrumented_html = instrumented_html.gsub(RUM_PLACEHOLDER, '')
 
     define_method("test_#{source_filename}") do
-      TestApp.doc = source_html
-      NewRelic::Agent.stubs(:browser_timing_header).returns(RUM_CONFIG + RUM_LOADER)
+      TestApp.doc = uninstrumented_html
+      NewRelic::Agent.stubs(:browser_timing_header).returns(RUM_PLACEHOLDER)
 
       get '/'
 
-      expected_content = File.read(result_file)
-      assert_equal(expected_content, last_response.body)
+      assert_equal(instrumented_html, last_response.body)
     end
 
     define_method("test_dont_touch_#{source_filename}") do
-      TestApp.doc = source_html
+      TestApp.doc = uninstrumented_html
       NewRelic::Rack::BrowserMonitoring.any_instance.stubs(:should_instrument?).returns(false)
 
       get '/'
 
-      assert_equal(source_html, last_response.body)
+      assert_equal(uninstrumented_html, last_response.body)
     end
   end
 
   def test_should_close_response
     TestApp.next_response = Rack::Response.new("<html/>")
     TestApp.next_response.expects(:close)
+
+    get '/'
+
+    assert last_response.ok?
+  end
+
+  def test_with_invalid_us_ascii_encoding
+    response = "<html><body>Jürgen</body></html>"
+    response.force_encoding(Encoding.find("US-ASCII")) if RUBY_VERSION >= '1.9'
+    TestApp.next_response = Rack::Response.new(response)
 
     get '/'
 
@@ -170,7 +182,7 @@ EOL
 
   def test_guid_is_set_in_footer_when_token_is_set
     guid = 'abcdefgfedcba'
-    NewRelic::TransactionSample.any_instance.stubs(:generate_guid).returns(guid)
+    NewRelic::Agent::Transaction.any_instance.stubs(:guid).returns(guid)
     set_cookie "NRAGENT=tk=token"
     with_config(:apdex_t => 0.0001) do
       get '/'

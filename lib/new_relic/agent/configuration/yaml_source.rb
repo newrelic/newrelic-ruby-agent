@@ -11,16 +11,13 @@ module NewRelic
         attr_accessor :file_path
 
         def initialize(path, env)
-          ::NewRelic::Agent.logger.info("Reading configuration from #{path}")
-
           config = {}
-          begin
-            @file_path = File.expand_path(path)
-            if !File.exists?(@file_path)
-              ::NewRelic::Agent.logger.error("Unable to load configuration from #{path}")
-              return
-            end
 
+          begin
+            @file_path = validate_config_file_path(path)
+            return unless @file_path
+
+            ::NewRelic::Agent.logger.info("Reading configuration from #{path}")
             file = File.read(@file_path)
 
             # Next two are for populating the newrelic.yml via erb binding, necessary
@@ -35,7 +32,7 @@ module NewRelic
 
             config = merge!(confighash[env] || {})
           rescue ScriptError, StandardError => e
-            ::NewRelic::Agent.logger.error("Unable to read configuration file #{path}: #{e}")
+            ::NewRelic::Agent.logger.error("Failed to read or parse configuration file at #{path}: #{e}")
           end
 
           if config['transaction_tracer'] &&
@@ -50,6 +47,40 @@ module NewRelic
         end
 
         protected
+
+        def validate_config_file_path(path)
+          expanded_path = File.expand_path(path)
+
+          if path.empty? || !File.exists?(expanded_path)
+            warn_missing_config_file(expanded_path)
+            return
+          end
+
+          expanded_path
+        end
+
+        def warn_missing_config_file(path)
+          based_on        = 'unknown'
+          source          = ::NewRelic::Agent.config.source(:config_path)
+          candidate_paths = [path]
+
+          case source
+          when DefaultSource
+            based_on = 'defaults'
+            candidate_paths = NewRelic::Agent.config[:config_search_paths].map do |p|
+              File.expand_path(p)
+            end
+          when EnvironmentSource
+            based_on = 'environment variable'
+          when ManualSource
+            based_on = 'API call'
+          end
+
+          NewRelic::Agent.logger.warn(
+            "No configuration file found. Working directory = #{Dir.pwd}",
+            "Looked in these locations (based on #{based_on}): #{candidate_paths.join(", ")}"
+          )
+        end
 
         def with_yaml_engine
           return yield unless NewRelic::LanguageSupport.needs_syck?

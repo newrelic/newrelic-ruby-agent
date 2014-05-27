@@ -16,8 +16,9 @@ module NewRelic
       # versions of DJ where distinct queues are supported, it breaks it out by queue name.
       #
       class DelayedJobSampler < NewRelic::Agent::Sampler
+        named :delayed_job
+
         def initialize
-          super :delayed_job_queue
           raise Unsupported, "DJ instrumentation disabled" if Agent.config[:disable_dj]
           raise Unsupported, "No DJ worker present" unless NewRelic::DelayedJobInjection.worker_name
         end

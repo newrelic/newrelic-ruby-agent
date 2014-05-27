@@ -5,7 +5,7 @@
 require 'new_relic/agent/datastores/mongo/metric_translator'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 
-class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < MiniTest::Unit::TestCase
+class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   include ::NewRelic::TestHelpers::MongoMetricBuilder
 
   def setup
@@ -28,6 +28,16 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < MiniTest::Unit:
   def test_build_metrics_includes_other
     metrics = build_test_metrics('test', :other)
     assert_includes metrics, 'Datastore/allOther'
+  end
+
+  def test_build_metrics_includes_all_for_web
+    metrics = build_test_metrics('test')
+    assert_includes metrics, 'Datastore/all'
+  end
+
+  def test_build_metrics_includes_all_for_other
+    metrics = build_test_metrics('test', :other)
+    assert_includes metrics, 'Datastore/all'
   end
 
   def test_build_metrics_includes_activerecord_all_on_web

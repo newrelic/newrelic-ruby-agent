@@ -1,0 +1,15 @@
+[
+  {"testname":"only domain",    "expected":"domain.com",                "input":"domain.com"},
+  {"testname":"domain path",    "expected":"domain.com/a/b/c",          "input":"domain.com/a/b/c"},
+  {"testname":"port",           "expected":"domain.com:port/a/b/c",     "input":"domain.com:port/a/b/c"},
+  {"testname":"user",           "expected":"domain.com/a/b/c",          "input":"user@domain.com/a/b/c"},
+  {"testname":"user pw",        "expected":"domain.com/a/b/c",          "input":"user:password@domain.com/a/b/c"},
+  {"testname":"scheme domain",  "expected":"p://domain.com",            "input":"p://domain.com"},
+  {"testname":"scheme path",    "expected":"p://domain.com/a/b/c",      "input":"p://domain.com/a/b/c"},
+  {"testname":"scheme port",    "expected":"p://domain.com:port/a/b/c", "input":"p://domain.com:port/a/b/c"},
+  {"testname":"scheme user",    "expected":"p://domain.com/a/b/c",      "input":"p://user@domain.com/a/b/c"},
+  {"testname":"scheme user pw", "expected":"p://domain.com/a/b/c",      "input":"p://user:password@domain.com/a/b/c"},
+  {"testname":"fragment",       "expected":"p://domain.com/a/b/c",      "input":"p://user:password@domain.com/a/b/c#fragment"},
+  {"testname":"query",          "expected":"p://domain.com/a/b/c",      "input":"p://user:password@domain.com/a/b/c?query=yes"},
+  {"testname":"semi-colon",     "expected":"p://domain.com/a/b/c",      "input":"p://user:password@domain.com/a/b/c;semi=yes"}
+]

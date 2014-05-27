@@ -8,7 +8,7 @@ require "http_client_test_cases"
 
 require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
-class ExconTest < MiniTest::Unit::TestCase
+class ExconTest < Minitest::Test
   include HttpClientTestCases
 
   def client_name
@@ -62,7 +62,7 @@ class ExconTest < MiniTest::Unit::TestCase
     end
 
     tt = NewRelic::Agent.agent.transaction_sampler.last_sample
-    segment = tt.root_segment.called_segments.first
+    segment = tt.root_segment.called_segments.first.called_segments.first
     assert_equal("External/localhost/Excon/GET", segment.metric_name)
     assert_equal(target_url, segment.params[:uri])
   end

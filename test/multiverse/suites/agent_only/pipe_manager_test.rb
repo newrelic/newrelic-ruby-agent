@@ -6,7 +6,7 @@
 
 require 'multiverse_helpers'
 
-class PipeManagerTest < MiniTest::Unit::TestCase
+class PipeManagerTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent

@@ -1,6 +1,9 @@
 require 'rubygems'
 require 'rake/testtask'
+require 'yard'
 require "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
+
+YARD::Rake::YardocTask.new
 
 task :default => :test
 task :test => ['test:newrelic']
@@ -23,11 +26,7 @@ namespace :test do
   task :multiverse, [:suite, :param1, :param2, :param3, :param4] => [] do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'multiverse', 'lib', 'multiverse', 'environment'))
     opts = Multiverse::Runner.parse_args(args)
-    if opts.key?(:run_one)
-      Multiverse::Runner.run_one(args.suite, opts)
-    else
-      Multiverse::Runner.run(args.suite, opts)
-    end
+    Multiverse::Runner.run(args.suite, opts)
   end
 
   desc "Test the multiverse testing framework by executing tests in test/multiverse/test. Get meta with it."
@@ -77,4 +76,11 @@ task :record_build, [ :build_number, :stage ] do |t, args|
     f.write("# GITSHA: #{gitsha}\n")
     f.write("module NewRelic; module VERSION; BUILD='#{build_string}'; end; end\n")
   end
+end
+
+task :console do
+  require 'pry'
+  require 'newrelic_rpm'
+  ARGV.clear
+  Pry.start
 end

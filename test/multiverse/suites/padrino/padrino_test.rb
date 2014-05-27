@@ -22,7 +22,7 @@ class PadrinoTestApp < Padrino::Application
   end
 end
 
-class PadrinoRoutesTest < MiniTest::Unit::TestCase
+class PadrinoRoutesTest < Minitest::Test
   include Rack::Test::Methods
 
   def app

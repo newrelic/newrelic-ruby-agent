@@ -9,58 +9,124 @@ module NewRelic
     class StatsEngine
       # Handles methods related to actual Metric collection
       module MetricStats
-        SCOPE_PLACEHOLDER = :__SCOPE__
+        SCOPE_PLACEHOLDER = '__SCOPE__'.freeze
 
-        # Lookup and write to the named metric in a single call.
+        # Update the unscoped metrics given in metric_names.
+        # metric_names may be either a single name, or an array of names.
         #
-        # This method is thead-safe, and is preferred to the lookup / modify
-        # method pairs (e.g. get_stats + record_data_point)
+        # This is an internal method, subject to change at any time. Client apps
+        # and gems should use the public API (NewRelic::Agent.record_metric)
+        # instead.
+        #
+        # There are four ways to use this method:
+        #
+        # 1. With a numeric value, it will update the Stats objects associated
+        #    with the given metrics by calling record_data_point(value, aux).
+        #    aux will be treated in this case as the exclusive time associated
+        #    with the call being recorded.
+        #
+        # 2. With a value of :apdex_s, :apdex_t, or :apdex_f, it will treat the
+        #    associated stats as an Apdex metric, updating it to reflect the
+        #    occurrence of a transaction falling into the given category.
+        #    The aux value in this case should be the apdex threshold used in
+        #    bucketing the request.
+        #
+        # 3. If a block is given, value and aux will be ignored, and instead the
+        #    Stats object associated with each named unscoped metric will be
+        #    yielded to the block for customized update logic.
+        #
+        # 4. If value is a Stats instance, it will be merged into the Stats
+        #    associated with each named unscoped metric.
+        #
+        # If this method is called during a transaction, the metrics will be
+        # attached to the Transaction, and not merged into the global set until
+        # the end of the transaction.
+        #
+        # Otherwise, the metrics will be recorded directly into the global set
+        # of metrics, under a lock.
         #
         # @api private
-        def record_metrics(metric_names_or_specs, value=nil, options={}, &blk)
-          scoped = options[:scoped]
-          scope = in_transaction? ? SCOPE_PLACEHOLDER : nil
-          effective_scope = scoped && scope
-
-          specs = coerce_to_metric_spec_array(metric_names_or_specs, effective_scope)
-
+        #
+        def record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)
           if in_transaction?
-            transaction_stats_hash.record(specs, value, &blk)
+            transaction_metrics.record_unscoped(metric_names, value, aux, &blk)
           else
+            specs = coerce_to_metric_spec_array(metric_names, nil)
             with_stats_lock do
-              @stats_hash.record(specs, value, &blk)
+              @stats_hash.record(specs, value, aux, &blk)
             end
           end
         end
 
-        # Fast-path version of the #record_metrics version above, used in
-        # performance-sensitive code paths
+        # Like record_unscoped_metrics, but records a scoped metric as well.
         #
-        # metric_specs must be an Array of MetricSpec objects
-        # value and aux are passed directly to the corresponding parameters of
-        # StatsHash#record
+        # This is an internal method, subject to change at any time. Client apps
+        # and gems should use the public API (NewRelic::Agent.record_metric)
+        # instead.
+        #
+        # The given scoped_metric will be recoded as both a scoped *and* an
+        # unscoped metric. The summary_metrics will be recorded as unscoped
+        # metrics only.
+        #
+        # If called during a transaction, all metrics will be attached to the
+        # Transaction, and not merged into the global set of metrics until the
+        # end of the transaction.
+        #
+        # If called outside of a transaction, only the *unscoped* metrics will
+        # be recorded, directly into the global set of metrics (under a lock).
         #
         # @api private
-        def record_metrics_internal(metric_specs, value, aux)
-          tsh = transaction_stats_hash
-          if tsh
-            tsh.record(metric_specs, value, aux)
+        #
+        def record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
+          if in_transaction?
+            transaction_metrics.record_scoped(scoped_metric, value, aux, &blk)
+            transaction_metrics.record_unscoped(scoped_metric, value, aux, &blk)
+            if summary_metrics
+              transaction_metrics.record_unscoped(summary_metrics, value, aux, &blk)
+            end
           else
+            specs = coerce_to_metric_spec_array(scoped_metric, nil)
+            if summary_metrics
+              specs.concat(coerce_to_metric_spec_array(summary_metrics, nil))
+            end
             with_stats_lock do
-              @stats_hash.record(metric_specs, value, aux)
+              @stats_hash.record(specs, value, aux, &blk)
             end
           end
         end
 
-        # a simple accessor for looking up a stat with no scope -
-        # returns a new stats object if no stats object for that
-        # metric exists yet
+        # Convenience wrapper for record_scoped_and_unscoped_metrics when there
+        # are no summary_metrics to record.
+        #
+        # @api private
+        #
+        def record_scoped_and_unscoped_metric(metric, value=nil, aux=nil, &blk)
+          record_scoped_and_unscoped_metrics(metric, nil, value, aux, &blk)
+        end
+
+        # This method is deprecated and not thread safe, and should not be used
+        # by any new client code. Use NewRelic::Agent.record_metric instead.
+        #
+        # Lookup the Stats object for a given unscoped metric, returning a new
+        # Stats object if one did not exist previously.
+        #
+        # @api public
+        # @deprecated
+        #
         def get_stats_no_scope(metric_name)
           get_stats(metric_name, false)
         end
 
-        # If scoped_metric_only is true, only a scoped metric is created (used by rendering metrics which by definition are per controller only)
+        # This method is deprecated and not thread safe, and should not be used
+        # by any new client code. Use NewRelic::Agent.record_metric instead.
+        #
+        # If scoped_metric_only is true, only a scoped metric is created (used
+        # by rendering metrics which by definition are per controller only)
         # Leaving second, unused parameter for compatibility
+        #
+        # @api public
+        # @deprecated
+        #
         def get_stats(metric_name, _ = true, scoped_metric_only = false, scope = nil)
           stats = nil
           with_stats_lock do
@@ -81,8 +147,7 @@ module NewRelic
           stats
         end
 
-        # Returns a stat if one exists, otherwise returns nil. If you
-        # want auto-initialization, use one of get_stats or get_stats_no_scope
+        # Returns a stat if one exists, otherwise returns nil.
         def lookup_stats(metric_name, scope_name = '')
           spec = NewRelic::MetricSpec.new(metric_name, scope_name)
           with_stats_lock do
@@ -90,29 +155,11 @@ module NewRelic
           end
         end
 
-        # Helper method for timing supportability metrics
-        def record_supportability_metric_timed(metric)
-          start_time = Time.now
-          yield
-        ensure
-          duration = (Time.now - start_time).to_f
-          record_supportability_metric(metric, duration)
-        end
-
         # Helper for recording a straight value into the count
         def record_supportability_metric_count(metric, value)
-          record_supportability_metric(metric) do |stat|
-            stat.call_count = value
-          end
-        end
-
-        # Helper method for recording supportability metrics consistently
-        def record_supportability_metric(metric, value=nil)
           real_name = "Supportability/#{metric}"
-          if block_given?
-            record_metrics(real_name) { |stat| yield stat }
-          else
-            record_metrics(real_name, value)
+          record_unscoped_metrics(real_name) do |stat|
+            stat.call_count = value
           end
         end
 
@@ -136,6 +183,12 @@ module NewRelic
           end
         end
 
+        def merge_transaction_metrics!(txn_metrics, scope)
+          with_stats_lock do
+            @stats_hash.merge_transaction_metrics!(txn_metrics, scope)
+          end
+        end
+
         def harvest!
           now = Time.now
           snapshot = reset!
@@ -148,8 +201,10 @@ module NewRelic
           renamed_stats = NewRelic::Agent::StatsHash.new(stats_hash.started_at)
           stats_hash.each do |spec, stats|
             new_name = rules_engine.rename(spec.name)
-            new_spec = NewRelic::MetricSpec.new(new_name, spec.scope)
-            renamed_stats[new_spec].merge!(stats)
+            unless new_name.nil?
+              new_spec = NewRelic::MetricSpec.new(new_name, spec.scope)
+              renamed_stats[new_spec].merge!(stats)
+            end
           end
           renamed_stats
         end
@@ -187,7 +242,11 @@ module NewRelic
         end
 
         def in_transaction?
-          !!transaction_stats_hash
+          !!Transaction.current
+        end
+
+        def transaction_metrics
+          Transaction.current && Transaction.current.metrics
         end
       end
     end

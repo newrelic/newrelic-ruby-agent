@@ -110,7 +110,7 @@ module NewRelic
           if options[:metric] && options[:metric] != ::NewRelic::Agent::UNKNOWN_METRIC
             "Errors/#{options[:metric]}"
           else
-            if txn = TransactionState.get.transaction
+            if txn = TransactionState.get.most_recent_transaction
               "Errors/#{txn.name}"
             end
           end
@@ -127,7 +127,7 @@ module NewRelic
           metric_names << blamed_metric if blamed_metric
 
           stats_engine = NewRelic::Agent.agent.stats_engine
-          stats_engine.record_metrics(metric_names) do |stats|
+          stats_engine.record_unscoped_metrics(metric_names) do |stats|
             stats.increment_count
           end
         end
@@ -265,7 +265,7 @@ module NewRelic
         return if should_exit_notice_error?(exception)
         increment_error_count!(exception, options)
         NewRelic::Agent.instance.events.notify(:notice_error, exception, options)
-        action_path     = fetch_from_options(options, :metric, "")
+        action_path       = fetch_from_options(options, :metric, "")
         exception_options = error_params_from_options(options).merge(exception_info(exception))
         add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))
         exception

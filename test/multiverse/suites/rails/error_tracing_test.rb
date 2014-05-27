@@ -3,9 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 # https://newrelic.atlassian.net/browse/RUBY-747
-require 'rails/test_help'
+require './app'
 require 'fake_collector'
-require 'multiverse_helpers'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
 
 class ErrorController < ApplicationController
@@ -137,7 +136,9 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       get '/error/controller_error'
     end
 
-    assert_errors_reported('this is an uncaught controller error', 20, 40, nil, 40)
+    assert_errors_reported('this is an uncaught controller error',
+                           NewRelic::Agent::ErrorCollector::MAX_ERROR_QUEUE_LENGTH,
+                           40, nil, 40)
   end
 
   def test_should_capture_manually_noticed_error
