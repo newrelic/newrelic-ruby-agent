@@ -45,7 +45,7 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
 
   def test_transaction_name_calls_newrelic_metric_path
     @object.stubs(:newrelic_metric_path).returns('some/wacky/path')
-    assert_equal('Controller/some/wacky/path', @txn_namer.name(@object))
+    assert_equal('Controller/some/wacky/path', @txn_namer.name(@object, :category => :controller))
   end
 
   def test_transaction_name_applies_category_and_path
