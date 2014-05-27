@@ -16,8 +16,8 @@ DependencyDetection.defer do
   executes do
     class NewRelic::SidekiqInstrumentation
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-    
-      def call(worker, msg, queue)
+
+      def call(worker, msg, queue, *_)
         trace_args = if worker.respond_to?(:newrelic_trace_args)
           worker.newrelic_trace_args(msg, queue)
         else
@@ -33,6 +33,17 @@ DependencyDetection.defer do
           end
           yield
         end
+      end
+    end
+
+    class Sidekiq::Extensions::DelayedClass
+      def newrelic_trace_args(msg, queue)
+        (target, method_name, args) = YAML.load(msg['args'][0])
+        {
+          :name => method_name,
+          :class_name => target.name,
+          :category => 'OtherTransaction/SidekiqJob'
+        }
       end
     end
 
