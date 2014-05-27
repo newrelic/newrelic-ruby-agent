@@ -218,12 +218,11 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_end_fires_a_transaction_finished_event
-    name, timestamp, duration, type = nil
+    name, timestamp, duration = nil
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
       name = payload[:name]
       timestamp = payload[:start_timestamp]
       duration = payload[:duration]
-      type = payload[:type]
     end
 
     start_time = freeze_time
@@ -235,7 +234,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal 'Controller/foo/1/bar/22', name
     assert_equal start_time.to_f, timestamp
     assert_equal 5.0, duration
-    assert_equal :controller, type
   end
 
   def test_end_fires_a_transaction_finished_event_with_overview_metrics
@@ -460,18 +458,18 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_transaction_takes_child_name_if_similar_type
-    in_transaction('Controller/parent', :type => :sinatra) do
-      in_transaction('Controller/child', :type => :controller) do
+  def test_transaction_takes_child_name_if_similar_category
+    in_transaction('Controller/parent', :category => :sinatra) do
+      in_transaction('Controller/child', :category => :controller) do
       end
     end
 
     assert_metrics_recorded(['Controller/child'])
   end
 
-  def test_transaction_doesnt_take_child_name_if_different_type
-    in_transaction('Controller/parent', :type => :sinatra) do
-      in_transaction('Whatever/child', :type => :task) do
+  def test_transaction_doesnt_take_child_name_if_different_category
+    in_transaction('Controller/parent', :category => :sinatra) do
+      in_transaction('Whatever/child', :category => :task) do
       end
     end
 
@@ -479,8 +477,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_transaction_should_take_child_name_if_frozen_early
-    in_transaction('Controller/parent', :type => :sinatra) do
-      in_transaction('Controller/child', :type => :controller) do |txn|
+    in_transaction('Controller/parent', :category => :sinatra) do
+      in_transaction('Controller/child', :category => :controller) do |txn|
         txn.freeze_name_and_execute_if_not_ignored
       end
     end
@@ -489,59 +487,59 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_ignored_returns_false_if_a_transaction_is_not_ignored
-    in_transaction('Controller/test', :type => :sinatra) do
+    in_transaction('Controller/test', :category => :sinatra) do
       refute NewRelic::Agent::Transaction.ignore?
     end
   end
 
   def test_ignored_returns_true_for_an_ignored_transaction
-    in_transaction('Controller/test', :type => :sinatra) do
+    in_transaction('Controller/test', :category => :sinatra) do
       NewRelic::Agent::Transaction.ignore!
       assert NewRelic::Agent::Transaction.ignore?
     end
   end
 
   def test_ignore_apdex_returns_true_if_apdex_is_ignored
-    in_transaction('Controller/test', :type => :sinatra) do
+    in_transaction('Controller/test', :category => :sinatra) do
       NewRelic::Agent::Transaction.ignore_apdex!
       assert NewRelic::Agent::Transaction.ignore_apdex?
     end
   end
 
   def test_ignore_apdex_returns_false_if_apdex_is_not_ignored
-    in_transaction('Controller/test', :type => :sinatra) do
+    in_transaction('Controller/test', :category => :sinatra) do
       refute NewRelic::Agent::Transaction.ignore_apdex?
     end
   end
 
   def test_exception_encountered_returns_true_if_exception_encountered
-    in_transaction('Controller/test', :type => :sinatra) do
+    in_transaction('Controller/test', :category => :sinatra) do
       NewRelic::Agent::Transaction.exception_encountered!
       assert NewRelic::Agent::Transaction.exception_encountered?
     end
   end
 
   def test_exception_encountered_returns_false_if_no_exception
-    in_transaction('Controller/test', :type => :sinatra) do
+    in_transaction('Controller/test', :category => :sinatra) do
       refute NewRelic::Agent::Transaction.exception_encountered?
     end
   end
 
   def test_ignore_enduser_returns_true_if_enduser_is_ignored
-    in_transaction('Controller/test', :type => :sinatra) do
+    in_transaction('Controller/test', :category => :sinatra) do
       NewRelic::Agent::Transaction.ignore_enduser!
       assert NewRelic::Agent::Transaction.ignore_enduser?
     end
   end
 
   def test_ignore_enduser_returns_false_if_enduser_is_not_ignored
-    in_transaction('Controller/test', :type => :sinatra) do
+    in_transaction('Controller/test', :category => :sinatra) do
       refute NewRelic::Agent::Transaction.ignore_enduser?
     end
   end
 
   def test_ignored_transactions_do_not_record_metrics
-    in_transaction('Controller/test', :type => :sinatra) do
+    in_transaction('Controller/test', :category => :sinatra) do
       NewRelic::Agent::Transaction.ignore!
     end
 
@@ -549,8 +547,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_nested_transactions_are_ignored_if_nested_transaction_is_ignored
-    in_transaction('Controller/parent', :type => :sinatra) do
-      in_transaction('Controller/child', :type => :controller) do
+    in_transaction('Controller/parent', :category => :sinatra) do
+      in_transaction('Controller/child', :category => :controller) do
         NewRelic::Agent::Transaction.ignore!
       end
     end
@@ -559,9 +557,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_nested_transactions_are_ignored_if_double_nested_transaction_is_ignored
-    in_transaction('Controller/parent', :type => :sinatra) do
-      in_transaction('Controller/toddler', :type => :controller) do
-        in_transaction('Controller/infant', :type => :controller) do
+    in_transaction('Controller/parent', :category => :sinatra) do
+      in_transaction('Controller/toddler', :category => :controller) do
+        in_transaction('Controller/infant', :category => :controller) do
           NewRelic::Agent::Transaction.ignore!
         end
       end

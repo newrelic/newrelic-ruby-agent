@@ -25,7 +25,7 @@ module NewRelic::Agent
     end
 
     def test_in_background_transaction
-      in_transaction(:type => :task) do |txn|
+      in_transaction(:category => :task) do |txn|
         txn.request = nil # this makes it a "background transaction"
         assert state.in_background_transaction?
       end

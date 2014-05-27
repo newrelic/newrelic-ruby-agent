@@ -218,18 +218,18 @@ module NewRelic
           SINATRA_PREFIX    = 'Controller/Sinatra'.freeze unless defined?(SINATRA_PREFIX)
 
           def self.name(traced_obj, options)
-            "#{category_name(options[:category])}/#{path_name(traced_obj, options)}"
+            "#{prefix_for_category(options[:category])}/#{path_name(traced_obj, options)}"
           end
 
-          def self.category_name(type = nil)
-            type ||= Transaction.best_type
-            case type
+          def self.prefix_for_category(category = nil)
+            category ||= Transaction.best_category
+            case category
             when :controller then CONTROLLER_PREFIX
             when :task       then TASK_PREFIX
             when :rack       then RACK_PREFIX
             when :uri        then URI_PREFIX
             when :sinatra    then SINATRA_PREFIX
-            else type.to_s # for internal use only
+            else category.to_s # for internal use only
             end
           end
 

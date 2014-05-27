@@ -44,7 +44,7 @@ class EncodingHandlingTest < Minitest::Test
   end
 
   def test_handles_mis_encoded_custom_params_on_analytics_events
-    in_transaction(:type => :controller) do
+    in_transaction(:category => :controller) do
       NewRelic::Agent.add_custom_parameters(:foo => bad_string)
     end
     assert_endpoint_received_string('analytic_event_data', normalized_bad_string)
