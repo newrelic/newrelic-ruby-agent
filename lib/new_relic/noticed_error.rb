@@ -9,7 +9,7 @@ class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
   attr_accessor :path, :timestamp, :params, :message,
                 :exception_class_name, :exception_class_constant
-  attr_reader :exception_id
+  attr_reader :exception_id, :is_internal
 
   STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
 
@@ -19,6 +19,7 @@ class NewRelic::NoticedError
     @params = NewRelic::NoticedError.normalize_params(data)
 
     @exception_class_name = exception.is_a?(Exception) ? exception.class.name : 'Error'
+    @is_internal = (exception.class < NewRelic::Agent::InternalAgentError)
     @exception_class_constant = exception.class
 
     if exception.nil?
