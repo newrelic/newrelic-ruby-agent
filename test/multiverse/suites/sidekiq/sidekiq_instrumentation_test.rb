@@ -21,6 +21,7 @@ class SidekiqTest < Minitest::Test
   ROLLUP_METRIC            = 'OtherTransaction/SidekiqJob/all'
   TRANSACTION_NAME         = 'OtherTransaction/SidekiqJob/TestWorker/perform'
   DELAYED_TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/TestWorker/record'
+  DELAYED_FAILED_TXN_NAME  = 'OtherTransaction/SidekiqJob/Sidekiq::Extensions::DelayedClass/perform'
 
   include MultiverseHelpers
 
@@ -52,6 +53,13 @@ class SidekiqTest < Minitest::Test
     run_delayed
     assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
     assert_metric_and_call_count(DELAYED_TRANSACTION_NAME, JOB_COUNT)
+  end
+
+  def test_delayed_with_malformed_yaml
+    YAML.stubs(:load).raises(RuntimeError.new("Ouch"))
+    run_delayed
+    assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
+    assert_metric_and_call_count(DELAYED_FAILED_TXN_NAME, JOB_COUNT)
   end
 
   def test_all_jobs_ran
