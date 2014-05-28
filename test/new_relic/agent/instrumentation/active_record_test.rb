@@ -241,7 +241,7 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
       ActiveRecordFixtures::Order.first
     end
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-    segment = find_segment_by_name(sample, 'ActiveRecord/ActiveRecordFixtures::Order/find')
+    segment = find_segment_with_name(sample, 'ActiveRecord/ActiveRecordFixtures::Order/find')
 
     assert_equal('ActiveRecord/ActiveRecordFixtures::Order/find', segment.metric_name)
 
@@ -260,7 +260,7 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
       end
 
       sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-      sql_segment = find_segment_by_name(sample, 'ActiveRecord/ActiveRecordFixtures::Order/find')
+      sql_segment = find_segment_with_name(sample, 'ActiveRecord/ActiveRecordFixtures::Order/find')
 
       assert_match(/^SELECT /, sql_segment.params[:sql])
 

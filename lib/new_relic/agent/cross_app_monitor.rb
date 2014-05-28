@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/rack/agent_hooks'
 require 'new_relic/agent/transaction_state'
 require 'new_relic/agent/threading/agent_thread'
 
@@ -52,11 +51,8 @@ module NewRelic
           if should_process_request(env)
             save_client_cross_app_id(env)
             save_referring_transaction_info(env)
+            set_transaction_custom_parameters
           end
-        end
-
-        events.subscribe(:start_transaction) do
-          set_transaction_custom_parameters
         end
 
         events.subscribe(:after_call) do |env, (status_code, headers, body)|
@@ -106,7 +102,7 @@ module NewRelic
 
       def insert_response_header(request_headers, response_headers)
         unless client_cross_app_id.nil?
-          txn = NewRelic::Agent::TransactionState.get.most_recent_transaction
+          txn = ::NewRelic::Agent::Transaction.current
           unless txn.nil?
             txn.freeze_name_and_execute_if_not_ignored do
               timings = NewRelic::Agent::TransactionState.get.timings
@@ -166,8 +162,7 @@ module NewRelic
       end
 
       def set_error_custom_parameters(options)
-        options[:client_cross_process_id] = client_cross_app_id() if client_cross_app_id()
-        # [MG] TODO: Should the CAT metrics be set here too?
+        options[:client_cross_process_id] = client_cross_app_id if client_cross_app_id
       end
 
       def set_metrics(id, timings)

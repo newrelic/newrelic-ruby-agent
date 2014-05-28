@@ -222,7 +222,7 @@ module NewRelic
           end
 
           def self.category_name(type = nil)
-            type ||= Transaction.current && Transaction.current.type
+            type ||= Transaction.best_type
             case type
             when :controller, nil then CONTROLLER_PREFIX
             when :task            then TASK_PREFIX
@@ -350,10 +350,10 @@ module NewRelic
           txn_options = create_transaction_options(block_given? ? args : [])
           txn_options[:transaction_name] = TransactionNamer.name(self, txn_options)
           txn_options[:apdex_start_time] = detect_queue_start_time
+          txn_options[:queue_length] = queue_length
 
           begin
             txn = Transaction.start(txn_options[:category], txn_options)
-            _record_queue_length
 
             begin
               if block_given?
@@ -458,17 +458,12 @@ module NewRelic
             true
           end
         end
+
         # Take a guess at a measure representing the number of requests waiting in mongrel
-        # or heroku.
-        def _record_queue_length
-          if newrelic_request_headers
-            if queue_depth = newrelic_request_headers['HTTP_X_HEROKU_QUEUE_DEPTH']
-              queue_depth = queue_depth.to_i rescue nil
-            elsif mongrel = NewRelic::Control.instance.local_env.mongrel
-              # Always subtrace 1 for the active mongrel
-              queue_depth = [mongrel.workers.list.length.to_i - 1, 0].max rescue nil
-            end
-            NewRelic::Agent.record_metric('Mongrel/Queue Length', queue_depth) if queue_depth
+        def queue_length
+          if mongrel = NewRelic::Control.instance.local_env.mongrel
+            # Always subtract 1 for the active mongrel
+            queue_depth = [mongrel.workers.list.length.to_i - 1, 0].max rescue nil
           end
         end
 

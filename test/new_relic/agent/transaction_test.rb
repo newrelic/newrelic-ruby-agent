@@ -357,39 +357,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
   end
 
-  def test_notice_error_after_current_transaction_gets_custom_params
-    in_transaction('failing') do
-      NewRelic::Agent.add_custom_parameters(:custom => "parameter")
-    end
-    NewRelic::Agent::Transaction.notice_error("")
-
-    error = NewRelic::Agent.instance.error_collector.errors.first
-    assert_equal({ :custom => "parameter" }, error.params[:custom_params])
-  end
-
-  def test_notice_error_after_current_transcation_doesnt_tromp_passed_params
-    in_transaction('failing') do
-      NewRelic::Agent.add_custom_parameters(:custom => "parameter")
-    end
-    NewRelic::Agent::Transaction.notice_error("", :custom_params => { :passing => true })
-
-    error = NewRelic::Agent.instance.error_collector.errors.first
-    expected = {
-      :custom => "parameter",
-      :passing => true,
-    }
-    assert_equal(expected, error.params[:custom_params])
-  end
-
-  def test_notice_error_after_current_transaction_gets_name
-    in_transaction('failing') do
-      #no-op
-    end
-    NewRelic::Agent::Transaction.notice_error("")
-    error = NewRelic::Agent.instance.error_collector.errors.first
-    assert_equal 'failing', error.path
-  end
-
   def test_notice_error_without_transaction_notifies_error_collector
     cleanup_transaction
     NewRelic::Agent::Transaction.notice_error("")

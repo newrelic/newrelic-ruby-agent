@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/rack/transaction_reset'
+require 'new_relic/agent/instrumentation/rack'
 
 module NewRelic::Rack
   # This middleware is used by the agent in order to capture exceptions that
@@ -65,41 +66,8 @@ module NewRelic::Rack
     end
 
     def should_ignore_error?(error, env)
-      NewRelic::Agent.instance.error_collector.error_is_ignored?(error) ||
-        ignored_in_controller?(error, env)
-    end
-
-    def ignored_in_controller?(exception, env)
-      return true if env['newrelic.ignored']
-
-      if env['action_dispatch.request.parameters']
-        ignore_actions = newrelic_ignore_for_controller(env['action_dispatch.request.parameters']['controller'])
-        action_name = env['action_dispatch.request.parameters']['action']
-
-        case ignore_actions
-        when nil; false
-        when Hash
-          only_actions = Array(ignore_actions[:only])
-          except_actions = Array(ignore_actions[:except])
-          only_actions.include?(action_name.to_sym) ||
-            (except_actions.any? &&
-             !except_actions.include?(action_name.to_sym))
-        else
-          true
-        end
-      end
-    end
-
-    def newrelic_ignore_for_controller(controller_name)
-      if controller_name
-        controller_constant_name = (controller_name + "_controller").camelize
-        if Object.const_defined?(controller_constant_name)
-          controller = controller_constant_name.constantize
-          controller.instance_variable_get(:@do_not_trace)
-        end
-      end
-    rescue NameError
-      nil
+      NewRelic::Agent.instance.error_collector.error_is_ignored?(error)
     end
   end
 end
+::NewRelic::Agent::Instrumentation::RackBuilder.add_new_relic_tracing_to_middleware(::NewRelic::Rack::ErrorCollector)

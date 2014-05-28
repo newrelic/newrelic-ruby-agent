@@ -14,8 +14,10 @@ class AgentHooksTest < Minitest::Test
   end
 
   def test_before_call
+    NewRelic::Agent.instance.events.expects(:notify).with(:start_transaction)
     NewRelic::Agent.instance.events.expects(:notify).with(:before_call, @env)
     NewRelic::Agent.instance.events.stubs(:notify).with(:after_call, anything, anything)
+    NewRelic::Agent.instance.events.expects(:notify).with(:transaction_finished, anything)
 
     @hooks.call(@env)
   end
@@ -24,8 +26,10 @@ class AgentHooksTest < Minitest::Test
     result = stub
     @app.stubs(:call).returns(result)
 
+    NewRelic::Agent.instance.events.expects(:notify).with(:start_transaction)
     NewRelic::Agent.instance.events.stubs(:notify).with(:before_call, anything)
     NewRelic::Agent.instance.events.expects(:notify).with(:after_call, @env, result)
+    NewRelic::Agent.instance.events.expects(:notify).with(:transaction_finished, anything)
 
     @hooks.call(@env)
   end
@@ -33,7 +37,7 @@ class AgentHooksTest < Minitest::Test
   def test_nested_agent_hooks_still_fire_only_once
     nested = NewRelic::Rack::AgentHooks.new(@hooks)
 
-    NewRelic::Agent.instance.events.expects(:notify).times(2)
+    NewRelic::Agent.instance.events.expects(:notify).times(4)
     nested.call(@env)
   end
 

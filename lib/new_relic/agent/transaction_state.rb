@@ -11,6 +11,7 @@ module NewRelic
     # This is THE location to store thread local information during a transaction
     # Need a new piece of data? Add a method here, NOT a new thread local variable.
     class TransactionState
+      attr_accessor :current_transaction
 
       def self.get
         state_for(Thread.current)
@@ -53,7 +54,6 @@ module NewRelic
         # not available, we track the last reset. No accessor, as only the
         # TransactionState class should use it.
         @last_reset_time = Time.now
-        @most_recent_transaction = nil
         @timings = nil
         @request = nil
         @request_token = nil
@@ -88,8 +88,8 @@ module NewRelic
       attr_accessor :request_token, :request_ignore_enduser
 
       def request_guid
-        return nil unless most_recent_transaction
-        most_recent_transaction.guid
+        return nil unless ::NewRelic::Agent::Transaction.current
+        ::NewRelic::Agent::Transaction.current.guid
       end
 
       def request_guid_to_include
@@ -98,31 +98,30 @@ module NewRelic
       end
 
       def include_guid?
-        request_token && timings.app_time_in_seconds > most_recent_transaction.apdex_t
+        request_token && timings.app_time_in_seconds > ::NewRelic::Agent::Transaction.current.apdex_t
       end
 
       # Current transaction stack and sample building
-      attr_accessor :most_recent_transaction, :transaction_sample_builder,
-                    :current_transaction
+      attr_accessor :transaction_sample_builder, :current_transaction
 
       def transaction_start_time
-        if most_recent_transaction.nil?
+        if ::NewRelic::Agent::Transaction.current.nil?
           @last_reset_time
         else
-          most_recent_transaction.start_time
+          ::NewRelic::Agent::Transaction.current.start_time
         end
       end
 
       def transaction_queue_time
-        most_recent_transaction.nil? ? 0.0 : most_recent_transaction.queue_time
+        ::NewRelic::Agent::Transaction.current.nil? ? 0.0 : ::NewRelic::Agent::Transaction.current.queue_time
       end
 
       def transaction_name
-        most_recent_transaction.nil? ? nil : most_recent_transaction.best_name
+        ::NewRelic::Agent::Transaction.current.nil? ? nil : ::NewRelic::Agent::Transaction.current.best_name
       end
 
       def transaction_noticed_error_ids
-        most_recent_transaction.nil? ? [] : most_recent_transaction.noticed_error_ids
+        ::NewRelic::Agent::Transaction.current.nil? ? [] : ::NewRelic::Agent::Transaction.current.noticed_error_ids
       end
 
       def self.in_background_transaction?(thread)

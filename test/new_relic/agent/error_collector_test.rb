@@ -317,17 +317,38 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert err.message.include?("Ruby agent internal error")
   end
 
-  def test_blamed_metric_from_options
-    assert_equal "Errors/boo", @error_collector.blamed_metric_name(:metric => "boo")
+  def test_blamed_metric_from_options_outside_txn
+    @error_collector.notice_error(StandardError.new('wut'), :metric => 'boo')
+    assert_metrics_recorded(
+      'Errors/boo' => { :call_count => 1}
+    )
+  end
+
+  def test_blamed_metric_from_options_inside_txn
+    in_transaction('Not/What/Youre/Looking/For') do
+      @error_collector.notice_error(StandardError.new('wut'), :metric => 'boo')
+    end
+    assert_metrics_recorded_exclusive(
+      {
+        'Errors/all' => { :call_count => 1 },
+        'Errors/boo' => { :call_count => 1 }
+      },
+      :filter => /^Errors\//
+    )
   end
 
   def test_blamed_metric_from_transaction
-    NewRelic::Agent::TransactionState.get.most_recent_transaction = stub(:name => "Controller/foo/bar")
-    assert_equal "Errors/Controller/foo/bar", @error_collector.blamed_metric_name({})
+    in_transaction('Controller/foo/bar') do
+      @error_collector.notice_error(StandardError.new('wut'))
+    end
+    assert_metrics_recorded(
+      'Errors/Controller/foo/bar' => { :call_count => 1 }
+    )
   end
 
-  def test_blamed_metric_with_no_transaction
-    assert_nil @error_collector.blamed_metric_name({})
+  def test_blamed_metric_with_no_transaction_and_no_options
+    @error_collector.notice_error(StandardError.new('wut'))
+    assert_metrics_recorded_exclusive(['Errors/all'])
   end
 
   private

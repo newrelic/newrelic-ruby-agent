@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/event_listener'
 require 'new_relic/rack/transaction_reset'
+require 'new_relic/agent/instrumentation/rack'
 
 module NewRelic::Rack
   # This middleware is used by the agent internally, and is usually injected
@@ -45,3 +46,4 @@ module NewRelic::Rack
     end
   end
 end
+::NewRelic::Agent::Instrumentation::RackBuilder.add_new_relic_tracing_to_middleware(::NewRelic::Rack::AgentHooks)

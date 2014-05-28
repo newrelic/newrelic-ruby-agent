@@ -188,7 +188,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       !error.kind_of?(RuntimeError)
     end
 
-    get 'test/controller_error'
+    get '/error/controller_error'
     assert(NewRelic::Agent.instance.error_collector.errors.empty?,
            'Noticed an error that should have been ignored')
   end

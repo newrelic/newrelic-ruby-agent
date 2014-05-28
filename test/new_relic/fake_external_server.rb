@@ -4,6 +4,7 @@
 
 require 'rack'
 require 'fake_server'
+require 'new_relic/rack/agent_hooks'
 
 require 'json' if RUBY_VERSION >= '1.9'
 

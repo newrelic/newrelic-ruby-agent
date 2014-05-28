@@ -97,6 +97,11 @@ module NewRelic
         txn = current
 
         if txn
+          if options[:filtered_params] && !options[:filtered_params].empty?
+            txn.filtered_params = options[:filtered_params]
+          end
+          txn.record_queue_length(options[:queue_length])
+
           _, nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(Time.now.to_f)
           nested_frame.name = options[:transaction_name]
           nested_frame.type = transaction_type
@@ -104,13 +109,23 @@ module NewRelic
         else
           txn = Transaction.new(transaction_type, options)
           TransactionState.get.current_transaction = txn
-          txn.start()
+          txn.start
         end
 
         txn
       end
 
       EMPTY = [].freeze
+
+      def self.best_type
+        current && current.best_type
+      end
+
+      def record_queue_length(queue_length)
+        return if @queue_length_recorded
+        NewRelic::Agent.record_metric('Mongrel/Queue Length', queue_length) if queue_length
+        @queue_length_recorded = true
+      end
 
       def self.stop(end_time=Time.now)
         txn = current
@@ -243,8 +258,6 @@ module NewRelic
         @ignore_apdex = false
         @ignore_enduser = false
         @exception_encountered = false
-
-        TransactionState.get.most_recent_transaction = self
       end
 
       def noticed_error_ids
@@ -265,6 +278,14 @@ module NewRelic
         end
 
         @name_from_api = Helper.correctly_encoded(name)
+      end
+
+      def best_type
+        if frame_stack.empty?
+          type
+        else
+          frame_stack.last.type
+        end
       end
 
       def best_name
@@ -314,7 +335,7 @@ module NewRelic
 
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
-      def start()
+      def start
         return if !NewRelic::Agent.is_execution_traced?
 
         transaction_sampler.on_start_transaction(start_time, uri, filtered_params)
@@ -477,7 +498,7 @@ module NewRelic
       # If we aren't currently in a transaction, but found the remains of one
       # just finished in the TransactionState, use those custom params!
       def self.extract_finished_transaction_options(options)
-        finished_txn = NewRelic::Agent::TransactionState.get.most_recent_transaction
+        finished_txn = NewRelic::Agent::Transaction.current
         if finished_txn
           custom_params = options.fetch(:custom_params, {})
           custom_params.merge!(finished_txn.custom_parameters)
@@ -488,13 +509,20 @@ module NewRelic
       end
 
       # Do not call this.  Invoke the class method instead.
-      def notice_error(e, options={}) # :nodoc:
+      def notice_error(error, options={}) # :nodoc:
         options[:referer] = referer if referer
-        options[:request_params] = filtered_params if filtered_params
+
+        if filtered_params && !filtered_params.empty?
+          options[:request_params] = filtered_params
+        end
+
         options[:uri] = uri if uri
         options.merge!(custom_parameters)
-        if !@exceptions.keys.include?(e)
-          @exceptions[e] = options
+
+        if @exceptions.keys.include?(error)
+          @exceptions[error].merge! options
+        else
+          @exceptions[error] = options
         end
       end
 
