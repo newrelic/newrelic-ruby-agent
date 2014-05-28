@@ -33,7 +33,9 @@ module NewRelic::Rack
         env[ALREADY_INSTRUMENTED_KEY] = true
         if response_string
           response = Rack::Response.new(response_string, result[0], result[1])
-          response.finish
+          r = response.finish
+          require 'pry'; binding.pry # BMW
+          r
         else
           result
         end

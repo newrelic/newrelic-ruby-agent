@@ -16,7 +16,7 @@ class BadInstrumentationController < ApplicationController
   end
 end
 
-class BadInstrumentationTest < ActionDispatch::IntegrationTest
+class BadInstrumentationTest < RailsMultiverseTest
   include MultiverseHelpers
   setup_and_teardown_agent
 

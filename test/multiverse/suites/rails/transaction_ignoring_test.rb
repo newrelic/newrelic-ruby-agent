@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'rails/test_help'
 require './app'
 require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
@@ -21,7 +20,7 @@ class TransactionIgnorerController < ApplicationController
 
 end
 
-class TransactionIgnoringTest < ActionDispatch::IntegrationTest
+class TransactionIgnoringTest < RailsMultiverseTest
 
   include MultiverseHelpers
   include TransactionIgnoringTestCases

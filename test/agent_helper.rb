@@ -90,15 +90,25 @@ def _normalize_metric_expectations(expectations)
   end
 end
 
+def dump_stats(stats)
+  str =  "  Call count:           #{stats.call_count}\n"
+  str << "  Total call time:      #{stats.total_call_time}\n"
+  str << "  Total exclusive time: #{stats.total_exclusive_time}\n"
+  str << "  Min call time:        #{stats.min_call_time}\n"
+  str << "  Max call time:        #{stats.max_call_time}\n"
+  str << "  Sum of squares:       #{stats.sum_of_squares}\n"
+  str
+end
+
 def assert_stats_has_values(stats, expected_spec, expected_attrs)
   expected_attrs.each do |attr, expected_value|
     actual_value = stats.send(attr)
     if attr == :call_count
       assert_equal(expected_value, actual_value,
-        "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}")
+        "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}.\nActual stats:\n#{dump_stats(stats)}")
     else
       assert_in_delta(expected_value, actual_value, 0.0001,
-        "Expected #{attr} for #{expected_spec} to be ~#{expected_value}, got #{actual_value}")
+        "Expected #{attr} for #{expected_spec} to be ~#{expected_value}, got #{actual_value}.\nActual stats:\n#{dump_stats(stats)}")
     end
   end
 end

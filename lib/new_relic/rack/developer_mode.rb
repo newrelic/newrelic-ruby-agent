@@ -51,6 +51,7 @@ module NewRelic
 
       def call(env)
         ensure_transaction_reset(env)
+        require 'pry'; binding.pry # BMW
         return @app.call(env) unless /^\/newrelic/ =~ ::Rack::Request.new(env).path_info
         dup._call(env)
       end

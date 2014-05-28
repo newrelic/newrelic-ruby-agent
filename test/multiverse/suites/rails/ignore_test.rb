@@ -19,7 +19,7 @@ class IgnoredController < ApplicationController
   end
 end
 
-class IgnoredActionsTest < ActionDispatch::IntegrationTest
+class IgnoredActionsTest < RailsMultiverseTest
   include MultiverseHelpers
 
   setup_and_teardown_agent(:cross_process_id => "boo",

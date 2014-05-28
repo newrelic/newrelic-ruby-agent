@@ -64,9 +64,13 @@ class ErrorController < ApplicationController
     NewRelic::Agent.add_custom_parameters(:texture => 'chunky')
     raise 'bad things'
   end
+
+  if Rails::VERSION::MAJOR == 2
+    filter_parameter_logging(:secret)
+  end
 end
 
-class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
+class ErrorsWithoutSSCTest < RailsMultiverseTest
   extend Multiverse::Color
 
   include MultiverseHelpers
@@ -85,11 +89,34 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     @error_collector.errors.last
   end
 
-  def test_error_collector_should_be_enabled
-    assert NewRelic::Agent.config[:agent_enabled]
-    assert NewRelic::Agent.config[:'error_collector.enabled']
-    assert @error_collector.enabled?
-    assert Rails.application.config.middleware.include?(NewRelic::Rack::ErrorCollector)
+  if Rails::VERSION::MAJOR >= 3
+    def test_error_collector_should_be_enabled
+      assert NewRelic::Agent.config[:agent_enabled]
+      assert NewRelic::Agent.config[:'error_collector.enabled']
+      assert @error_collector.enabled?
+      assert Rails.application.config.middleware.include?(NewRelic::Rack::ErrorCollector)
+    end
+
+    def test_should_capture_routing_error
+      get '/bad_route'
+      assert_error_reported_once('this is an uncaught routing error', nil, nil)
+    end
+
+    def test_should_capture_errors_raised_in_middleware_before_call
+      get '/error/middleware_error/before'
+      assert_error_reported_once('middleware error', nil, nil)
+    end
+
+    def test_should_capture_errors_raised_in_middleware_after_call
+      get '/error/middleware_error/after'
+      assert_error_reported_once('middleware error', nil, nil)
+    end
+
+    def test_should_capture_request_uri_and_params
+      get '/bad_route?eat=static'
+      assert_equal('/bad_route', last_error.params[:request_uri])
+      assert_equal({'eat' => 'static'}, last_error.params[:request_params])
+    end
   end
 
   def test_should_capture_error_raised_in_view
@@ -145,11 +172,6 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     assert_error_reported_once('this is a noticed error', nil, nil)
   end
 
-  def test_should_capture_routing_error
-    get '/bad_route'
-    assert_error_reported_once('this is an uncaught routing error', nil, nil)
-  end
-
   def test_should_apply_parameter_filtering
     get '/error/controller_error?secret=shouldnotbecaptured&other=whatever'
     params = last_error.params[:request_params]
@@ -162,12 +184,6 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     params = last_error.params[:request_params]
     assert_equal('[FILTERED]', params['secret'])
     assert_equal('whatever', params['other'])
-  end
-
-  def test_should_capture_request_uri_and_params
-    get '/bad_route?eat=static'
-    assert_equal('/bad_route', last_error.params[:request_uri])
-    assert_equal({'eat' => 'static'}, last_error.params[:request_params])
   end
 
   def test_should_not_notice_errors_from_ignored_action
@@ -195,16 +211,6 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_should_notice_server_ignored_error_if_no_server_side_config
     get '/error/server_ignored_error'
     assert_error_reported_once('this is a server ignored error')
-  end
-
-  def test_should_capture_errors_raised_in_middleware_before_call
-    get '/error/middleware_error/before'
-    assert_error_reported_once('middleware error', nil, nil)
-  end
-
-  def test_should_capture_errors_raised_in_middleware_after_call
-    get '/error/middleware_error/after'
-    assert_error_reported_once('middleware error', nil, nil)
   end
 
   # These really shouldn't be skipped for Rails 4, see RUBY-1242

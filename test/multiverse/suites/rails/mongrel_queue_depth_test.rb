@@ -5,10 +5,12 @@
 # https://newrelic.atlassian.net/browse/RUBY-927
 
 # Mongrel is only supported on older versions, so don't check for queue depth
-if Rails::VERSION::MAJOR.to_i < 4
+
 
 require './app'
 require 'ostruct'
+
+if Rails::VERSION::MAJOR.to_i < 4
 
 class MongrelController < ApplicationController
   def deep
@@ -18,7 +20,7 @@ class MongrelController < ApplicationController
   end
 end
 
-class MongrelQueueDepthTest < ActionDispatch::IntegrationTest
+class MongrelQueueDepthTest < RailsMultiverseTest
 
   include MultiverseHelpers
 
