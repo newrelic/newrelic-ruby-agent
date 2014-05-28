@@ -6,12 +6,14 @@ gemfile <<-RB
   gem 'json'
   gem 'sidekiq', '~> 3.0.0'
   gem 'rack'
+  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
 RB
 
 gemfile <<-RB
   gem 'json'
   gem 'sidekiq', '~> 2.17.7'
   gem 'rack'
+  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
 RB
 
 gemfile <<-RB
@@ -20,4 +22,5 @@ gemfile <<-RB
   gem 'json'
   gem 'sidekiq', '~> 2.9.0'
   gem 'rack'
+  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
 RB
