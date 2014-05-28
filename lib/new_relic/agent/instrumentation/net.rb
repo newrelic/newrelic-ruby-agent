@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 DependencyDetection.defer do
-  @name = :net
+  named :net_http
 
   depends_on do
     defined?(Net) && defined?(Net::HTTP)
