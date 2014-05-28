@@ -57,7 +57,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal '', err.params[:request_referer]
     assert_equal 'path', err.path
     assert_equal 'Error', err.exception_class_name
-    assert_equal String, err.exception_class_constant
   end
 
   def test_simple
@@ -73,7 +72,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal '/myurl/', err.params[:request_uri]
     assert_equal 'test_referer', err.params[:request_referer]
     assert_equal 'path', err.path
-    assert_equal StandardError, err.exception_class_constant
     assert_equal 'StandardError', err.exception_class_name
 
     # the collector should now return an empty array since nothing
@@ -296,7 +294,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     @error_collector.notice_agent_error(exception)
 
     assert_equal 21, @error_collector.errors.size
-    assert_equal DifficultToDebugAgentError, @error_collector.errors.last.exception_class_constant
+    assert_equal DifficultToDebugAgentError.name, @error_collector.errors.last.exception_class_name
   end
 
   def test_notice_agent_error_doesnt_clog_up_the_queue_limit
