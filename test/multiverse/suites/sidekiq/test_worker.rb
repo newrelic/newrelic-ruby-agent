@@ -5,7 +5,7 @@
 class TestWorker
   include Sidekiq::Worker
 
-  sidekiq_options :queue => $queue_name
+  sidekiq_options :queue => SidekiqServer.instance.queue_name
 
   @jobs = {}
   @done_signal = ConditionVariable.new

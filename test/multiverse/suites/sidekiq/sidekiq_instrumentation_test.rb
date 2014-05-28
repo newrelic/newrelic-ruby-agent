@@ -4,16 +4,8 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-775
 
-require 'sidekiq'
-require 'sidekiq/cli'
-if $sidekiq.nil?
-  $queue_name = "sidekiq#{Process.pid}"
-
-  $sidekiq = Sidekiq::CLI.instance
-  $sidekiq.parse(["--require", File.join(File.dirname(__FILE__), "test_worker.rb"),
-                  "--queue", "#{$queue_name},1"])
-  Thread.new { $sidekiq.run }
-end
+require File.join(File.dirname(__FILE__), "sidekiq_server")
+SidekiqServer.instance.run
 
 # Important to require after Sidekiq server starts for middleware to install
 require 'newrelic_rpm'
@@ -42,7 +34,7 @@ class SidekiqTest < Minitest::Test
 
   def run_delayed
     run_and_transmit do |i|
-      TestWorker.delay(:queue => $queue_name).record('jobs_completed', i + 1)
+      TestWorker.delay(:queue => SidekiqServer.instance.queue_name).record('jobs_completed', i + 1)
     end
   end
 
