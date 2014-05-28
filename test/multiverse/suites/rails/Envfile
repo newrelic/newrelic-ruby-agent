@@ -33,7 +33,7 @@ gemfile <<-RB
   gem 'minitest_tu_shim', :require => false
 RB
 
-if RUBY_VERSION <= '1.9.3'
+if RUBY_VERSION <= '1.9.3' && RUBY_ENGINE != 'jruby'
   gemfile <<-RB
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
     gem 'rails', '~> 2.3.18'
