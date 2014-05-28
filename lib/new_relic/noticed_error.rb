@@ -19,8 +19,14 @@ class NewRelic::NoticedError
     @params = NewRelic::NoticedError.normalize_params(data)
 
     @exception_class_name = exception.is_a?(Exception) ? exception.class.name : 'Error'
-    @is_internal = (exception.class < NewRelic::Agent::InternalAgentError)
     @exception_class_constant = exception.class
+
+    # It's critical that we not hold onto the exception class constant in this
+    # class. These objects get serialized for Resque to a process that might
+    # not have the original exception class loaded, so do all processing now
+    # while we have the actual exception!
+    @is_internal = (exception.class < NewRelic::Agent::InternalAgentError)
+    @whitelisted = passes_whitelist(exception.class)
 
     if exception.nil?
       @message = '<no message>'
@@ -58,10 +64,14 @@ class NewRelic::NoticedError
     exception_class_name
   end
 
-  def whitelisted?
-    NewRelic::Agent.config.stripped_exceptions_whitelist.find do |klass|
-      exception_class_constant <= klass
+  def passes_whitelist(exception_class)
+    NewRelic::Agent.config.stripped_exceptions_whitelist.any? do |klass|
+      exception_class <= klass
     end
+  end
+
+  def whitelisted?
+    @whitelisted
   end
 
   def ==(other)
