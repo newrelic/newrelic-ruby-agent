@@ -23,3 +23,4 @@ lib/new_relic/build.rb
 .tm_properties
 .bundle
 .yardoc
+artifacts/
