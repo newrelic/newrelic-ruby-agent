@@ -96,6 +96,20 @@ class DependencyDetectionTest < Minitest::Test
     assert !executed
   end
 
+  def test_named_disabling_with_instance_variable
+    executed = false
+
+    DependencyDetection.defer do
+      @name = :testing
+      executes { executed = true }
+    end
+
+    with_config(:disable_testing => true) do
+      DependencyDetection.detect!
+    end
+
+    assert !executed
+  end
 
   def test_exception_during_depends_on_check_doesnt_propagate
     DependencyDetection.defer do

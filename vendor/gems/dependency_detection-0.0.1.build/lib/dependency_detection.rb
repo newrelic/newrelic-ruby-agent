@@ -82,7 +82,8 @@ module DependencyDetection
     end
 
     def check_dependencies
-      return false unless dependencies
+      return false unless allowed_by_config? && dependencies
+
       dependencies.all? do |dep|
         begin
           dep.call
@@ -97,17 +98,21 @@ module DependencyDetection
       @dependencies << Proc.new
     end
 
+    def allowed_by_config?
+      # If we don't have a name, can't check config so allow it
+      return true if self.name.nil?
+
+      key = "disable_#{self.name}".to_sym
+      if (::NewRelic::Agent.config[key] == true)
+        ::NewRelic::Agent.logger.debug("Not installing #{self.name} instrumentation because of configuration #{key}")
+        false
+      else
+        true
+      end
+    end
+
     def named(new_name)
       self.name = new_name
-      depends_on do
-        key = "disable_#{new_name}".to_sym
-        if (::NewRelic::Agent.config[key] == true)
-          ::NewRelic::Agent.logger.debug("Not installing #{new_name} instrumentation because of configuration #{key}")
-          false
-        else
-          true
-        end
-      end
     end
 
     def executes
