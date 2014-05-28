@@ -11,8 +11,6 @@ require './app'
 require 'ostruct'
 
 class MongrelController < ApplicationController
-  include Rails.application.routes.url_helpers
-
   def deep
     respond_to do |format|
       format.html { render :text => "<html><head></head><body>Deep</body></html>" }

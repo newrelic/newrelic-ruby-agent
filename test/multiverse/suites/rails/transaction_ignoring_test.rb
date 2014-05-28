@@ -9,8 +9,6 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 require 'transaction_ignoring_test_cases'
 
 class TransactionIgnorerController < ApplicationController
-  include Rails.application.routes.url_helpers
-
   def run_transaction
     NewRelic::Agent.set_transaction_name(params[:txn_name])
     NewRelic::Agent.notice_error(params[:error_msg]) if params[:error_msg]

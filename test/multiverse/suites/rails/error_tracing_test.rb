@@ -8,7 +8,6 @@ require 'fake_collector'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
 
 class ErrorController < ApplicationController
-  include Rails.application.routes.url_helpers
   include NewRelic::TestHelpers::Exceptions
 
   newrelic_ignore :only => :ignored_action

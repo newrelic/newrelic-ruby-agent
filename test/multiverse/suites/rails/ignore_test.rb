@@ -7,8 +7,6 @@
 require './app'
 
 class IgnoredController < ApplicationController
-  include Rails.application.routes.url_helpers
-
   newrelic_ignore :only => :action_to_ignore
   newrelic_ignore_apdex :only => :action_to_ignore_apdex
 

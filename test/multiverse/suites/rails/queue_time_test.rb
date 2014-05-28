@@ -7,8 +7,6 @@
 require './app'
 
 class QueueController < ApplicationController
-  include Rails.application.routes.url_helpers
-
   def queued
     respond_to do |format|
       format.html { render :text => "<html><head></head><body>Queued</body></html>" }

@@ -8,8 +8,6 @@ require 'haml'
 ActionController::Base.view_paths = ['app/views']
 
 class ViewsController < ApplicationController
-  include Rails.application.routes.url_helpers
-
   def template_render_with_3_partial_renders
     render 'index'
   end

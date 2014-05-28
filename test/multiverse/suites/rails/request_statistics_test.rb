@@ -7,8 +7,6 @@
 require './app'
 
 class RequestStatsController < ApplicationController
-  include Rails.application.routes.url_helpers
-
   def stats_action
     sleep 0.01
     render :text => 'some stuff'

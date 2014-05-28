@@ -5,8 +5,6 @@
 require './app'
 
 class BadInstrumentationController < ApplicationController
-  include Rails.application.routes.url_helpers
-
   # This action is intended to simulate a chunk of instrumentation that pushes
   # a traced method frame, but then never pops it. Such a situation will break
   # instrumentation of that request, but should not actually cause the request
