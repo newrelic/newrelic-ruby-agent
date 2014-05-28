@@ -5,12 +5,29 @@
 module NewRelic
   module Agent
     module Threading
+      class AgentThread
 
-      class AgentThread < ::Thread
-        def initialize(label)
+        def self.create(label, &blk)
           ::NewRelic::Agent.logger.debug("Creating New Relic thread: #{label}")
-          self[:newrelic_label] = label
-          super
+          wrapped_blk = Proc.new do
+            begin
+              blk.call
+            rescue => e
+              ::NewRelic::Agent.logger.debug("Thread #{label} exited with error", e)
+            ensure
+              ::NewRelic::Agent.logger.debug("Exiting New Relic thread: #{label}")
+            end
+          end
+
+          thread = backing_thread_class.new(&wrapped_blk)
+          thread[:newrelic_label] = label
+          thread
+        end
+
+        # Simplifies testing if we don't directly use ::Thread.list, so keep
+        # the accessor for it here on AgentThread to use and stub.
+        def self.list
+          backing_thread_class.list
         end
 
         def self.bucket_thread(thread, profile_agent_code)
@@ -35,8 +52,19 @@ module NewRelic
           bt.reject! { |t| t.include?('/newrelic_rpm-') } unless profile_agent_code
           bt
         end
-      end
 
+        # To allow tests to swap out Thread for a synchronous alternative,
+        # surface the backing class we'll use from the class level.
+        @backing_thread_class = ::Thread
+
+        def self.backing_thread_class
+          @backing_thread_class
+        end
+
+        def self.backing_thread_class=(clazz)
+          @backing_thread_class = clazz
+        end
+      end
     end
   end
 end

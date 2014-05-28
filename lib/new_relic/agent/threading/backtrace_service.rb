@@ -128,13 +128,9 @@ module NewRelic
           return if @running || !self.class.is_supported?
 
           @running = true
-          self.worker_thread = AgentThread.new('Backtrace Service') do
-            begin
-              # Not passing period because we expect it's already been set.
-              self.worker_loop.run(&method(:poll))
-            ensure
-              NewRelic::Agent.logger.debug("Exiting New Relic thread: Backtrace Service")
-            end
+          self.worker_thread = AgentThread.create('Backtrace Service') do
+            # Not passing period because we expect it's already been set.
+            self.worker_loop.run(&method(:poll))
           end
         end
 

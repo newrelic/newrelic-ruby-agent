@@ -6,23 +6,13 @@ require 'new_relic/agent/threading/fake_thread'
 
 module ThreadedTestCase
   def setup_fake_threads
-    @original_thread_class = NewRelic::Agent::Threading::AgentThread
-    swap_thread_class(FakeThread)
-  end
-
-  def teardown_fake_threads
-    swap_thread_class(@original_thread_class)
-    @original_thread_class = nil
-
+    @original_thread_class = NewRelic::Agent::Threading::AgentThread.backing_thread_class
+    NewRelic::Agent::Threading::AgentThread.backing_thread_class = FakeThread
     FakeThread.list.clear
   end
 
-  private
-
-  def swap_thread_class(klass)
-    if NewRelic::Agent::Threading.const_defined?("AgentThread")
-      NewRelic::Agent::Threading.send(:remove_const, "AgentThread")
-    end
-    NewRelic::Agent::Threading.const_set("AgentThread", klass)
+  def teardown_fake_threads
+    NewRelic::Agent::Threading::AgentThread.backing_thread_class = @original_thread_class
+    FakeThread.list.clear
   end
 end

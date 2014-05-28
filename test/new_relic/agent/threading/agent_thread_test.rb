@@ -9,17 +9,17 @@ module NewRelic::Agent::Threading
   class AgentThreadTest < Minitest::Test
 
     def test_sets_label
-      t = AgentThread.new("labelled") {}
+      t = AgentThread.create("labelled") {}
       assert_equal "labelled", t[:newrelic_label]
     end
 
     def test_bucket_thread_as_agent_when_profiling
-      t = AgentThread.new("labelled") {}
+      t = AgentThread.create("labelled") {}
       assert_equal :agent, AgentThread.bucket_thread(t, true)
     end
 
     def test_bucket_thread_as_agent_when_not_profiling
-      t = AgentThread.new("labelled") {}
+      t = AgentThread.create("labelled") {}
       assert_equal :ignore, AgentThread.bucket_thread(t, false)
     end
 
@@ -68,7 +68,7 @@ module NewRelic::Agent::Threading
     def test_runs_block
       called = false
 
-      t = AgentThread.new("labelled") { called = true }
+      t = AgentThread.create("labelled") { called = true }
       t.join
 
       assert called

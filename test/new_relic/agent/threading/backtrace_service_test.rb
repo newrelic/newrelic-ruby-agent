@@ -61,7 +61,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_stop_clears_buffered_backtraces
         fake_worker_loop(@service)
 
-        thread = fake_thread(:bucket => :request)
+        thread = fake_thread(:request)
 
         @service.subscribe('foo')
         @service.poll
@@ -121,10 +121,10 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_poll_forwards_backtraces_to_subscribed_profiles
         fake_worker_loop(@service)
 
-        bt0, bt1 = mock('bt0'), mock('bt1')
+        bt0, bt1 = ["bt0"], ["bt1"]
 
-        thread0 = fake_thread(:bucket => :request, :backtrace => bt0)
-        thread1 = fake_thread(:bucket => :differenter_request, :backtrace => bt1)
+        thread0 = fake_thread(:request, bt0)
+        thread1 = fake_thread(:differenter_request, bt1)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).with(bt0, :request, thread0)
@@ -136,7 +136,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_poll_does_not_forward_ignored_backtraces_to_profiles
         fake_worker_loop(@service)
 
-        fake_thread(:bucket => :ignore)
+        fake_thread(:ignore)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).never
@@ -146,13 +146,13 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def test_poll_scrubs_backtraces_before_forwarding_to_profiles
         fake_worker_loop(@service)
-        raw_backtrace = mock('raw')
-        scrubbed_backtrace = mock('scrubbed')
+        scrubbed_backtrace = []
 
-        thread = fake_thread(
-          :bucket => :agent,
-          :backtrace => raw_backtrace,
-          :scrubbed_backtrace => scrubbed_backtrace)
+        thread = fake_thread(:agent, ["trace"])
+
+        AgentThread.stubs(:scrub_backtrace).
+                    with(thread, any_parameters).
+                    returns(scrubbed_backtrace)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).with(scrubbed_backtrace, :agent, thread)
@@ -163,7 +163,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_poll_records_supportability_metrics
         fake_worker_loop(@service)
 
-        fake_thread(:bucket => :request)
+        fake_thread(:request)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.stubs(:aggregate)
@@ -233,13 +233,13 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
 
       def test_sample_thread_does_not_backtrace_if_no_subscriptions
-        thread = fake_thread(:bucket => :request)
+        thread = fake_thread(:request)
         thread.expects(:backtrace).never
         @service.sample_thread(thread)
       end
 
       def test_sample_thread_does_not_backtrace_if_ignored
-        thread = fake_thread(:bucket => :ignore)
+        thread = fake_thread(:ignore)
         thread.expects(:backtrace).never
         @service.sample_thread(thread)
       end
@@ -248,7 +248,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
         @service.subscribe('foo')
 
-        thread = fake_thread(:bucket => :other)
+        thread = fake_thread(:other)
         thread.expects(:backtrace).never
         @service.sample_thread(thread)
       end
@@ -256,7 +256,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_on_transaction_finished_always_clears_buffer_for_current_thread
         fake_worker_loop(@service)
 
-        thread = fake_thread(:bucket => :request)
+        thread = fake_thread(:request)
         @service.subscribe('foo')
         @service.poll
 
@@ -267,7 +267,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_on_transaction_finished_aggregates_backtraces_to_subscribed_profile
         fake_worker_loop(@service)
 
-        thread = fake_thread(:bucket => :request)
+        thread = fake_thread(:request)
         profile = @service.subscribe('foo')
 
         t0 = Time.now
@@ -280,7 +280,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_on_transaction_finished_does_not_aggregate_backtraces_to_non_subscribed_profiles
         fake_worker_loop(@service)
 
-        thread = fake_thread(:bucket => :request)
+        thread = fake_thread(:request)
         profile = @service.subscribe('foo')
 
         t0 = Time.now
@@ -293,8 +293,8 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_on_transaction_finished_delivers_buffered_backtraces_for_correct_thread
         fake_worker_loop(@service)
 
-        thread0 = fake_thread(:bucket => :request)
-        thread1 = fake_thread(:bucket => :request)
+        thread0 = fake_thread(:request)
+        thread1 = fake_thread(:request)
 
         profile = @service.subscribe('foo')
 
@@ -311,7 +311,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_on_transaction_finished_only_delivers_backtraces_within_transaction_time_window
         fake_worker_loop(@service)
 
-        thread = fake_thread(:bucket => :request)
+        thread = fake_thread(:request)
 
         profile = @service.subscribe('foo')
 
@@ -328,7 +328,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_does_not_deliver_non_request_backtraces_to_subscribed_profiles
         fake_worker_loop(@service)
 
-        thread = fake_thread(:bucket => :other)
+        thread = fake_thread(:other)
 
         profile = @service.subscribe('foo')
 
@@ -342,7 +342,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_subscribe_sets_up_transaction_finished_subscription
         fake_worker_loop(@service)
 
-        Thread.current[:bucket] = :request
+        mark_bucket_for_thread(Thread.current, :request)
         FakeThread.list << Thread.current
 
         profile = @service.subscribe('foo')
@@ -352,8 +352,6 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile.expects(:aggregate).once
         fake_transaction_finished('foo', t0.to_f, 1.0)
-      ensure
-        Thread.current[:bucket] = nil
       end
 
       def test_service_increments_profile_poll_counts
@@ -370,8 +368,8 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def test_poll_scrubs_dead_threads_from_buffer
         fake_worker_loop(@service)
-        thread0 = fake_thread(:bucket => :request)
-        thread1 = fake_thread(:bucket => :request)
+        thread0 = fake_thread(:request)
+        thread1 = fake_thread(:request)
 
         @service.subscribe('foo')
         @service.poll
@@ -492,13 +490,16 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         dummy_loop
       end
 
-      def fake_thread(opts={})
-        defaults = {
-          :backtrace => mock('backtrace')
-        }
-        thread = FakeThread.new(defaults.merge(opts))
+      def fake_thread(bucket, backtrace=[])
+        thread = FakeThread.new(:backtrace => backtrace)
+        mark_bucket_for_thread(thread, bucket)
+
         FakeThread.list << thread
         thread
+      end
+
+      def mark_bucket_for_thread(thread, bucket)
+        AgentThread.stubs(:bucket_thread).with(thread, any_parameters).returns(bucket)
       end
     end
 
