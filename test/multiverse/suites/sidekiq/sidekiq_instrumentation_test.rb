@@ -5,60 +5,61 @@
 # https://newrelic.atlassian.net/browse/RUBY-775
 
 require 'sidekiq'
-require 'sidekiq/testing/inline'
+require 'sidekiq/cli'
+if $sidekiq.nil?
+  $queue_name = "sidekiq#{Process.pid}"
+
+  $sidekiq = Sidekiq::CLI.instance
+  $sidekiq.parse(["--require", File.join(File.dirname(__FILE__), "test_worker.rb"),
+                  "--queue", "#{$queue_name},1"])
+  Thread.new { $sidekiq.run }
+end
+
+# Important to require after Sidekiq server starts for middleware to install
 require 'newrelic_rpm'
+
 require 'fake_collector'
 require 'multiverse_helpers'
+require File.join(File.dirname(__FILE__), "test_worker")
 require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
 class SidekiqTest < Minitest::Test
   JOB_COUNT = 5
-  TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/SidekiqTest::TestWorker/perform'
+
+  ROLLUP_METRIC            = 'OtherTransaction/SidekiqJob/all'
+  TRANSACTION_NAME         = 'OtherTransaction/SidekiqJob/TestWorker/perform'
+  DELAYED_TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/TestWorker/record'
 
   include MultiverseHelpers
 
   setup_and_teardown_agent
 
-  class TestWorker
-    include Sidekiq::Worker
-
-    @jobs = {}
-
-    def self.reset
-      @jobs = {}
-    end
-
-    def self.record(key, val)
-      @jobs[key] ||= []
-      @jobs[key] << val
-    end
-
-    def self.records_for(key)
-      @jobs[key]
-    end
-
-    def perform(key, val)
-      TestWorker.record(key, val)
-    end
-  end
-
-  # Running inline doesn't set up server middlewares
-  # Using the client middleware to get there instead
-  Sidekiq.configure_client do |config|
-    config.client_middleware do |chain|
-      chain.add NewRelic::SidekiqInstrumentation
-    end
-  end
-
   def run_jobs
+    run_and_transmit do |i|
+      TestWorker.perform_async('jobs_completed', i + 1)
+    end
+  end
+
+  def run_delayed
+    run_and_transmit do |i|
+      TestWorker.delay(:queue => $queue_name).record('jobs_completed', i + 1)
+    end
+  end
+
+  def run_and_transmit
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      TestWorker.reset
-      JOB_COUNT.times do |i|
-        TestWorker.perform_async('jobs_completed', i + 1)
+      TestWorker.run_jobs(JOB_COUNT) do |i|
+        yield i
       end
     end
 
     NewRelic::Agent.instance.send(:transmit_data)
+  end
+
+  def test_delayed
+    run_delayed
+    assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
+    assert_metric_and_call_count(DELAYED_TRANSACTION_NAME, JOB_COUNT)
   end
 
   def test_all_jobs_ran
@@ -70,7 +71,8 @@ class SidekiqTest < Minitest::Test
 
   def test_agent_posts_correct_metric_data
     run_jobs
-    assert_metric_and_call_count('OtherTransaction/SidekiqJob/all', JOB_COUNT)
+    assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
+    assert_metric_and_call_count(TRANSACTION_NAME, JOB_COUNT)
   end
 
   def test_doesnt_capture_args_by_default
@@ -109,7 +111,8 @@ class SidekiqTest < Minitest::Test
     assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
 
     metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
-    assert(metric, "could not find metric named #{name}")
+    assert(metric, "Could not find metric named #{name}. Did have metrics:\n"+
+                   metric_data.first.metrics.map{|m| m[0]['name']}.join("\t\n"))
 
     call_count = metric[1][0]
     assert_equal(expected_call_count, call_count)
