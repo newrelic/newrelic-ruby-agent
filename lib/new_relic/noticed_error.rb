@@ -24,7 +24,6 @@ class NewRelic::NoticedError
     # not have the original exception class loaded, so do all processing now
     # while we have the actual exception!
     @is_internal = (exception.class < NewRelic::Agent::InternalAgentError)
-    @whitelisted = passes_whitelist(exception.class)
 
     if exception.nil?
       @message = '<no message>'
@@ -48,7 +47,8 @@ class NewRelic::NoticedError
     @message = @message[0..4095] if @message.length > 4096
 
     # replace error message if enabled
-    if NewRelic::Agent.config[:'strip_exception_messages.enabled'] && !whitelisted?
+    if NewRelic::Agent.config[:'strip_exception_messages.enabled'] &&
+       !self.class.passes_message_whitelist(exception.class)
       @message = STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE
     end
 
@@ -62,21 +62,17 @@ class NewRelic::NoticedError
     exception_class_name
   end
 
-  def passes_whitelist(exception_class)
-    NewRelic::Agent.config.stripped_exceptions_whitelist.any? do |klass|
-      exception_class <= klass
-    end
-  end
-
-  def whitelisted?
-    @whitelisted
-  end
-
   def ==(other)
     if other.respond_to?(:exception_id)
       exception_id == other.exception_id
     else
       false
+    end
+  end
+
+  def self.passes_message_whitelist(exception_class)
+    NewRelic::Agent.config.stripped_exceptions_whitelist.any? do |klass|
+      exception_class <= klass
     end
   end
 
