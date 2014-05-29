@@ -148,6 +148,14 @@ module NewRelic
             txn.name_from_child ||= nested_frame.name
           end
 
+          nested_name = nested_transaction_name(nested_frame.name)
+
+          summary_metrics = []
+
+          if nested_name =~ /^Middleware/
+            summary_metrics << 'Middleware/all'
+          end
+
           NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
             nested_frame.start_time.to_f,
             nested_transaction_name(nested_frame.name),
@@ -372,8 +380,13 @@ module NewRelic
       end
 
       def summary_metrics
+        metrics = []
+        if @frozen_name =~ /^Controller\/Middleware/
+          metrics << 'Middleware/all'
+        end
+
         metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@frozen_name)
-        metric_parser.summary_metrics
+        metrics + metric_parser.summary_metrics
       end
 
       def stop(end_time)

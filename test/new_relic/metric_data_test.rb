@@ -122,12 +122,12 @@ class NewRelic::MetricDataTest < Minitest::Test
 
   def test_to_s_with_metric_spec
     md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Agent::Stats.new, 12345)
-    assert_equal('Custom/test/method(): [ 0 calls 0.0000s]', md.to_s, "should not include the metric id and should include the metric spec")
+    assert_equal('Custom/test/method(): [ 0 calls 0.0000s / 0.0000s ex]', md.to_s, "should not include the metric id and should include the metric spec")
   end
 
   def test_to_s_without_metric_spec
     md = NewRelic::MetricData.new(nil, NewRelic::Agent::Stats.new, 12345)
-    assert_equal('12345: [ 0 calls 0.0000s]', md.to_s, "should include the metric id and not have a metric spec")
+    assert_equal('12345: [ 0 calls 0.0000s / 0.0000s ex]', md.to_s, "should include the metric id and not have a metric spec")
   end
 
   def test_to_collector_array_with_spec

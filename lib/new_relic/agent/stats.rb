@@ -44,7 +44,7 @@ module NewRelic
       end
 
       def to_s
-        "[#{'%2i' % call_count.to_i} calls #{'%.4f' % total_call_time.to_f}s]"
+        "[#{'%2i' % call_count.to_i} calls #{'%.4f' % total_call_time.to_f}s / #{'%.4f' % total_exclusive_time.to_f}s ex]"
       end
 
       def to_json(*_)

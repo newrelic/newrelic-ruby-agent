@@ -11,7 +11,9 @@ if Rails::VERSION::MAJOR.to_i >= 3
 class MiddlewareInstrumentationTest < RailsMultiverseTest
   def test_rails_middleware_records_metrics
     get('/')
-    assert_metrics_recorded('Nested/Controller/Rack/Rails::Rack::Logger/call')
+    assert_metrics_recorded(
+      ['Middleware/all', 'Middleware/Rack/Rails::Rack::Logger/call']
+    )
   end
 
   if Rails::VERSION::MAJOR >= 4
