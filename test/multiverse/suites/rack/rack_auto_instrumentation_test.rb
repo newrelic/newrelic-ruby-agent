@@ -65,4 +65,14 @@ class RackAutoInstrumentationTest < Minitest::Test
       :ignore_filter => /^Supportability\/EnvironmentReport/
     )
   end
+
+  def test_middlewares_record_queue_time
+    t0 = freeze_time
+    advance_time(5.0)
+    get '/', {}, { 'HTTP_X_REQUEST_START' => "t=#{t0.to_f}" }
+
+    assert_metrics_recorded(
+      'WebFrontend/QueueTime' => { :total_call_time => 5.0 }
+    )
+  end
 end
