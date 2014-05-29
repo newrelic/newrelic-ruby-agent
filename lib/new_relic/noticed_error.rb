@@ -7,9 +7,8 @@ require 'new_relic/helper'
 # This class encapsulates an error that was noticed by New Relic in a managed app.
 class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
-  attr_accessor :path, :timestamp, :params, :message,
-                :exception_class_name, :exception_class_constant
-  attr_reader :exception_id
+  attr_accessor :path, :timestamp, :params, :message, :exception_class_name
+  attr_reader   :exception_id, :is_internal
 
   STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
 
@@ -19,7 +18,12 @@ class NewRelic::NoticedError
     @params = NewRelic::NoticedError.normalize_params(data)
 
     @exception_class_name = exception.is_a?(Exception) ? exception.class.name : 'Error'
-    @exception_class_constant = exception.class
+
+    # It's critical that we not hold onto the exception class constant in this
+    # class. These objects get serialized for Resque to a process that might
+    # not have the original exception class loaded, so do all processing now
+    # while we have the actual exception!
+    @is_internal = (exception.class < NewRelic::Agent::InternalAgentError)
 
     if exception.nil?
       @message = '<no message>'
@@ -43,7 +47,8 @@ class NewRelic::NoticedError
     @message = @message[0..4095] if @message.length > 4096
 
     # replace error message if enabled
-    if NewRelic::Agent.config[:'strip_exception_messages.enabled'] && !whitelisted?
+    if NewRelic::Agent.config[:'strip_exception_messages.enabled'] &&
+       !self.class.passes_message_whitelist(exception.class)
       @message = STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE
     end
 
@@ -57,17 +62,17 @@ class NewRelic::NoticedError
     exception_class_name
   end
 
-  def whitelisted?
-    NewRelic::Agent.config.stripped_exceptions_whitelist.find do |klass|
-      exception_class_constant <= klass
-    end
-  end
-
   def ==(other)
     if other.respond_to?(:exception_id)
       exception_id == other.exception_id
     else
       false
+    end
+  end
+
+  def self.passes_message_whitelist(exception_class)
+    NewRelic::Agent.config.stripped_exceptions_whitelist.any? do |klass|
+      exception_class <= klass
     end
   end
 

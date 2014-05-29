@@ -28,7 +28,7 @@ end
 
 def assert_has_error(error_class)
   assert \
-    NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_constant == error_class} != nil, \
+    NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_name == error_class.name} != nil, \
     "Didn't find error of class #{error_class}"
 end
 

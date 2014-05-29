@@ -226,7 +226,7 @@ module NewRelic
         # checks the size of the error queue to make sure we are under
         # the maximum limit, and logs a warning if we are over the limit.
         def over_queue_limit?(message)
-          over_limit = (@errors.reject{|err| err.exception_class_constant < NewRelic::Agent::InternalAgentError}.length >= MAX_ERROR_QUEUE_LENGTH)
+          over_limit = (@errors.reject{|err| err.is_internal}.length >= MAX_ERROR_QUEUE_LENGTH)
           ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}") if over_limit
           over_limit
         end
@@ -285,7 +285,7 @@ module NewRelic
 
         @lock.synchronize do
           # Already seen this class once? Bail!
-          return if @errors.any? { |err| err.exception_class_constant == exception.class }
+          return if @errors.any? { |err| err.exception_class_name == exception.class.name }
 
           trace = exception.backtrace || caller.dup
           noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError",

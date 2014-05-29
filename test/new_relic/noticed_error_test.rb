@@ -56,50 +56,34 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_whitelisted_returns_nil_with_an_empty_whitelist
     with_config(:'strip_exception_messages.whitelist' => '') do
-      e = TestError.new('whitelisted test exception')
-      error = NewRelic::NoticedError.new(@path, @params, e, @time)
-
-      assert_falsy error.whitelisted?
+      assert_falsy NewRelic::NoticedError.passes_message_whitelist(TestError)
     end
   end
 
   def test_whitelisted_returns_nil_when_error_is_not_in_whitelist
     with_config(:'strip_exception_messages.whitelist' => 'YourErrorIsInAnotherCastle') do
-      e = TestError.new('whitelisted test exception')
-      error = NewRelic::NoticedError.new(@path, @params, e, @time)
-
-      assert_falsy error.whitelisted?
+      assert_falsy NewRelic::NoticedError.passes_message_whitelist(TestError)
     end
   end
 
   def test_whitelisted_is_true_when_error_is_in_whitelist
     with_config(:'strip_exception_messages.whitelist' => 'OtherException,NewRelic::TestHelpers::Exceptions::TestError') do
-      test_exception_class = TestError
-      e = test_exception_class.new('whitelisted test exception')
-      error = NewRelic::NoticedError.new(@path, @params, e, @time)
-
-      assert_truthy error.whitelisted?
+      assert_truthy NewRelic::NoticedError.passes_message_whitelist(TestError)
     end
   end
 
   def test_whitelisted_ignores_nonexistent_exception_types_in_whitelist
     with_config(:'strip_exception_messages.whitelist' => 'NonExistent::Exception,NewRelic::TestHelpers::Exceptions::TestError') do
-      test_exception_class = TestError
-      e = test_exception_class.new('whitelisted test exception')
-      error = NewRelic::NoticedError.new(@path, @params, e, @time)
-
-      assert_truthy error.whitelisted?
+      assert_truthy NewRelic::NoticedError.passes_message_whitelist(TestError)
     end
   end
 
   def test_whitelisted_is_true_when_an_exceptions_ancestor_is_whitelisted
     with_config(:'strip_exception_messages.whitelist' => 'NewRelic::TestHelpers::Exceptions::ParentException') do
-      e = ChildException.new('whitelisted test exception')
-      error = NewRelic::NoticedError.new(@path, @params, e, @time)
-
-      assert_truthy error.whitelisted?
+      assert_truthy NewRelic::NoticedError.passes_message_whitelist(ChildException)
     end
   end
+
   def test_handles_exception_with_nil_original_exception
     e = Exception.new('Buffy FOREVER')
     e.stubs(:original_exception).returns(nil)
