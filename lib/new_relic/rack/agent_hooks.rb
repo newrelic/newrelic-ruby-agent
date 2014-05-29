@@ -4,7 +4,7 @@
 
 require 'new_relic/agent/event_listener'
 require 'new_relic/rack/transaction_reset'
-require 'new_relic/agent/instrumentation/rack_middleware'
+require 'new_relic/agent/instrumentation/middleware_proxy'
 
 module NewRelic::Rack
   # This middleware is used by the agent internally, and is usually injected
@@ -16,7 +16,6 @@ module NewRelic::Rack
   class AgentHooks
     def initialize(app, options = {})
       @app = app
-      ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_transaction_tracing_to_middleware(self)
     end
 
     include TransactionReset
@@ -29,11 +28,14 @@ module NewRelic::Rack
     # method required by Rack interface
     # [status, headers, response]
     def call(env)
-      ensure_transaction_reset(env)
-      notify(:before_call, env)
-      result = @app.call(env)
-      notify(:after_call, env, result)
-      result
+      req = ::Rack::Request.new(env)
+      perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => "call") do
+        ensure_transaction_reset(env)
+        notify(:before_call, env)
+        result = @app.call(env)
+        notify(:after_call, env, result)
+        result
+      end
     end
 
     def notify(event, env, *args)

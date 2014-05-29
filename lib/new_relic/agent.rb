@@ -23,7 +23,7 @@ require 'new_relic/control'
 #
 # == Using with Rack/Metal
 #
-# To instrument Rack middlwares or Metal apps, refer to the docs in
+# To instrument Rack middlewares or Metal apps, refer to the docs in
 # NewRelic::Agent::Instrumentation::Rack.
 #
 # == Ruby Agent API

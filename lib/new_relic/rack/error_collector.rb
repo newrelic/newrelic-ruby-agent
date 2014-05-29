@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/rack/transaction_reset'
-require 'new_relic/agent/instrumentation/rack_middleware'
+require 'new_relic/agent/instrumentation/middleware_proxy'
 
 module NewRelic::Rack
   # This middleware is used by the agent in order to capture exceptions that
@@ -16,7 +16,6 @@ module NewRelic::Rack
   class ErrorCollector
     def initialize(app, options={})
       @app = app
-      ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_transaction_tracing_to_middleware(self)
     end
 
     include TransactionReset
@@ -53,17 +52,22 @@ module NewRelic::Rack
     end
 
     def call(env)
-      ensure_transaction_reset(env)
-      @app.call(env)
-    rescue Exception => exception
-      NewRelic::Agent.logger.debug "collecting %p: %s" % [ exception.class, exception.message ]
-      if !should_ignore_error?(exception, env)
-        NewRelic::Agent.notice_error(exception,
-                                     :uri => uri_from_env(env),
-                                     :referer => referrer_from_env(env),
-                                     :request_params => params_from_env(env))
+      req = ::Rack::Request.new(env)
+      perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => "call") do
+        begin
+          ensure_transaction_reset(env)
+          @app.call(env)
+        rescue Exception => exception
+          NewRelic::Agent.logger.debug "collecting %p: %s" % [ exception.class, exception.message ]
+          if !should_ignore_error?(exception, env)
+            NewRelic::Agent.notice_error(exception,
+                                         :uri => uri_from_env(env),
+                                         :referer => referrer_from_env(env),
+                                         :request_params => params_from_env(env))
+          end
+          raise exception
+        end
       end
-      raise exception
     end
 
     def should_ignore_error?(error, env)

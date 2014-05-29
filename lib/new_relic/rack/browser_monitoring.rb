@@ -4,7 +4,7 @@
 
 require 'rack'
 require 'new_relic/rack/transaction_reset'
-require 'new_relic/agent/instrumentation/rack_middleware'
+require 'new_relic/agent/instrumentation/middleware_proxy'
 
 module NewRelic::Rack
   # This middleware is used by the agent for the Real user monitoring (RUM)
@@ -18,28 +18,29 @@ module NewRelic::Rack
 
     def initialize(app, options = {})
       @app = app
-      ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_transaction_tracing_to_middleware(self)
     end
 
     include TransactionReset
 
-    # method required by Rack interface
     def call(env)
-      ensure_transaction_reset(env)
-      result = @app.call(env)   # [status, headers, response]
+      req = ::Rack::Request.new(env)
+      perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => "call") do
+        ensure_transaction_reset(env)
+        result = @app.call(env)   # [status, headers, response]
 
-      if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1])
-        response_string = autoinstrument_source(result[2], result[1])
+        if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1])
+          response_string = autoinstrument_source(result[2], result[1])
 
-        env[ALREADY_INSTRUMENTED_KEY] = true
-        if response_string
-          response = Rack::Response.new(response_string, result[0], result[1])
-          response.finish
+          env[ALREADY_INSTRUMENTED_KEY] = true
+          if response_string
+            response = Rack::Response.new(response_string, result[0], result[1])
+            response.finish
+          else
+            result
+          end
         else
           result
         end
-      else
-        result
       end
     end
 

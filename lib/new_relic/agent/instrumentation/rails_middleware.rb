@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/instrumentation/rack_middleware'
+require 'new_relic/agent/instrumentation/middleware_proxy'
 
 DependencyDetection.defer do
   named :rails_middleware
@@ -17,8 +17,7 @@ DependencyDetection.defer do
         class Middleware
           def build_with_new_relic(app)
             result = build_without_new_relic(app)
-            ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_tracing_to_middleware(result)
-            result
+            ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
           end
 
           alias_method :build_without_new_relic, :build

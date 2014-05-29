@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/instrumentation/controller_instrumentation'
-require 'new_relic/agent/instrumentation/rack_middleware'
 
 module NewRelic
   module Agent
@@ -124,16 +123,16 @@ module NewRelic
 
           middleware_procs.each_with_index do |middleware_proc, idx|
             wrapped_procs << Proc.new do |app|
+              if idx == last_idx
+                app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
+              end
+
               result = middleware_proc.call(app)
 
               if idx == 0
-                ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_transaction_tracing_to_middleware(result)
+                result = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
               else
-                ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_tracing_to_middleware(result)
-              end
-
-              if idx == last_idx
-                ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_transaction_tracing_to_middleware(app)
+                result = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
               end
 
               result
