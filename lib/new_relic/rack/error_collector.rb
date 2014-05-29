@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/rack/transaction_reset'
+require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/instrumentation/middleware_proxy'
 
 module NewRelic::Rack
@@ -18,7 +18,7 @@ module NewRelic::Rack
       @app = app
     end
 
-    include TransactionReset
+    include AgentMiddleware
 
     def params_from_env(env)
       if defined?(ActionDispatch::Request)
@@ -52,10 +52,8 @@ module NewRelic::Rack
     end
 
     def call(env)
-      req = ::Rack::Request.new(env)
-      perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => "call") do
+      with_tracing(env) do
         begin
-          ensure_transaction_reset(env)
           @app.call(env)
         rescue Exception => exception
           NewRelic::Agent.logger.debug "collecting %p: %s" % [ exception.class, exception.message ]

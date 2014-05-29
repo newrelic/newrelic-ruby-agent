@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'rack'
-require 'new_relic/rack/transaction_reset'
+require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/instrumentation/middleware_proxy'
 
 module NewRelic::Rack
@@ -20,12 +20,10 @@ module NewRelic::Rack
       @app = app
     end
 
-    include TransactionReset
+    include AgentMiddleware
 
     def call(env)
-      req = ::Rack::Request.new(env)
-      perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => "call") do
-        ensure_transaction_reset(env)
+      with_tracing(env) do
         result = @app.call(env)   # [status, headers, response]
 
         if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1])

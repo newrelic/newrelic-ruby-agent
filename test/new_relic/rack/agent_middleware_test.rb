@@ -3,14 +3,14 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'new_relic/rack/transaction_reset'
+require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/transaction_state'
 
 module NewRelic
   module Rack
-    class TransactionResetTest < Minitest::Test
+    class AgentMiddlewareTest < Minitest::Test
       class ExampleMiddleware
-        include TransactionReset
+        include AgentMiddleware
       end
 
       attr_reader :middleware, :env

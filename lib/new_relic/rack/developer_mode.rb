@@ -8,7 +8,7 @@ require 'rack/response'
 require 'rack/file'
 require 'new_relic/collection_helper'
 require 'new_relic/metric_parser/metric_parser'
-require 'new_relic/rack/transaction_reset'
+require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/instrumentation/middleware_proxy'
 
 module NewRelic
@@ -35,7 +35,7 @@ module NewRelic
 
 
       include NewRelic::DeveloperModeHelper
-      include TransactionReset
+      include AgentMiddleware
 
       class << self
         attr_writer :profiling_enabled
@@ -50,10 +50,8 @@ module NewRelic
       end
 
       def call(env)
-        req = ::Rack::Request.new(env)
-        perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => "call") do
-          ensure_transaction_reset(env)
-          return @app.call(env) unless /^\/newrelic/ =~ req.path_info
+        with_tracing(env) do
+          return @app.call(env) unless /^\/newrelic/ =~ ::Rack::Request.new(env).path_info
           dup._call(env)
         end
       end

@@ -7,13 +7,20 @@ require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 module NewRelic
   module Rack
-    module TransactionReset
+    module AgentMiddleware
       include Agent::Instrumentation::ControllerInstrumentation
 
       RESET_KEY = "newrelic.transaction_reset".freeze
 
       def _nr_has_middleware_tracing
         true
+      end
+
+      def with_tracing(env, &block)
+        ensure_transaction_reset(env)
+
+        req = ::Rack::Request.new(env)
+        perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => "call", &block)
       end
 
       def ensure_transaction_reset(env)
