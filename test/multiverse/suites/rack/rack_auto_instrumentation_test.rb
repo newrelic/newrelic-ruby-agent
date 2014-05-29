@@ -56,6 +56,7 @@ class RackAutoInstrumentationTest < Minitest::Test
   end
 
   def test_middlewares_record_metrics
+    NewRelic::Agent.drop_buffered_data
     get '/'
     assert_metrics_recorded_exclusive(
       [
