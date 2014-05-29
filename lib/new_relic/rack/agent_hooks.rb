@@ -4,7 +4,7 @@
 
 require 'new_relic/agent/event_listener'
 require 'new_relic/rack/transaction_reset'
-require 'new_relic/agent/instrumentation/rack'
+require 'new_relic/agent/instrumentation/rack_middleware'
 
 module NewRelic::Rack
   # This middleware is used by the agent internally, and is usually injected
@@ -16,6 +16,7 @@ module NewRelic::Rack
   class AgentHooks
     def initialize(app, options = {})
       @app = app
+      ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_transaction_tracing_to_middleware(self)
     end
 
     include TransactionReset
@@ -46,4 +47,3 @@ module NewRelic::Rack
     end
   end
 end
-::NewRelic::Agent::Instrumentation::RackBuilder.add_new_relic_tracing_to_middleware(::NewRelic::Rack::AgentHooks)

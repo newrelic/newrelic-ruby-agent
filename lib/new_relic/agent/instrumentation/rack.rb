@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/instrumentation/controller_instrumentation'
+require 'new_relic/agent/instrumentation/rack_middleware'
 
 module NewRelic
   module Agent
@@ -118,29 +119,29 @@ module NewRelic
         end
 
         def self.add_new_relic_tracing_to_middlewares(middleware_procs)
-          middleware_procs.map do |middleware_proc|
-            Proc.new do |app|
+          wrapped_procs = []
+          last_idx = middleware_procs.size - 1
+
+          middleware_procs.each_with_index do |middleware_proc, idx|
+            wrapped_procs << Proc.new do |app|
               result = middleware_proc.call(app)
 
-              klass = result.class
-              add_new_relic_tracing_to_middleware(klass)
+              if idx == 0
+                ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_transaction_tracing_to_middleware(result)
+              else
+                ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_tracing_to_middleware(result)
+              end
+
+              if idx == last_idx
+                ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_transaction_tracing_to_middleware(app)
+              end
 
               result
             end
           end
-        end
-
-        def self.add_new_relic_tracing_to_middleware(middleware_class)
-          return if middleware_class.instance_variable_get(:@_nr_traced_flag)
-          middleware_class.instance_variable_set(:@_nr_traced_flag, true)
-
-          middleware_class.instance_eval do
-            include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-            add_transaction_tracer(:call, :category => :rack, :request => '::Rack::Request.new(args.first)')
-          end
+          wrapped_procs
         end
       end
-
     end
   end
 end

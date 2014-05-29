@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/rack/transaction_reset'
-require 'new_relic/agent/instrumentation/rack'
+require 'new_relic/agent/instrumentation/rack_middleware'
 
 module NewRelic::Rack
   # This middleware is used by the agent in order to capture exceptions that
@@ -16,6 +16,7 @@ module NewRelic::Rack
   class ErrorCollector
     def initialize(app, options={})
       @app = app
+      ::NewRelic::Agent::Instrumentation::RackMiddleware.add_new_relic_transaction_tracing_to_middleware(self)
     end
 
     include TransactionReset
@@ -70,4 +71,3 @@ module NewRelic::Rack
     end
   end
 end
-::NewRelic::Agent::Instrumentation::RackBuilder.add_new_relic_tracing_to_middleware(::NewRelic::Rack::ErrorCollector)

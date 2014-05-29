@@ -55,12 +55,14 @@ class RackAutoInstrumentationTest < Minitest::Test
       [
         "Apdex",
         "HttpDispatcher",
-        "Apdex/Rack/MiddlewareTwo/call",
-        "Controller/Rack/MiddlewareTwo/call",
+        "Apdex/Rack/ExampleApp/call",
+        "Controller/Rack/ExampleApp/call",
         "Nested/Controller/Rack/MiddlewareOne/call",
         "Nested/Controller/Rack/MiddlewareTwo/call",
-        ["Nested/Controller/Rack/MiddlewareOne/call", "Controller/Rack/MiddlewareTwo/call"],
-        ["Nested/Controller/Rack/MiddlewareTwo/call", "Controller/Rack/MiddlewareTwo/call"]
+        "Nested/Controller/Rack/ExampleApp/call",
+        ["Nested/Controller/Rack/MiddlewareOne/call", "Controller/Rack/ExampleApp/call"],
+        ["Nested/Controller/Rack/MiddlewareTwo/call", "Controller/Rack/ExampleApp/call"],
+        ["Nested/Controller/Rack/ExampleApp/call",    "Controller/Rack/ExampleApp/call"]
       ],
       :ignore_filter => /^Supportability\/EnvironmentReport/
     )
