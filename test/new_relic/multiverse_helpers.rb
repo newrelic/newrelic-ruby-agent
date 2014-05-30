@@ -60,9 +60,7 @@ module MultiverseHelpers
     NewRelic::Agent.instance.error_collector.instance_variable_set(:@ignore_filter, nil)
 
     # Clean up any thread-local variables starting with 'newrelic'
-    Thread.current.keys.select { |k| k.to_s =~ /^newrelic/i }.each do |key|
-      Thread.current[key] = nil
-    end
+    Thread.current[:newrelic_transaction_state] = nil
 
     NewRelic::Agent.instance.transaction_sampler.reset!
 

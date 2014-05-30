@@ -195,29 +195,29 @@ unless defined?(refute)
 end
 
 # Mock up a transaction for testing purposes, optionally specifying a name and
-# transaction type. The given block will be executed within the context of the
+# transaction category. The given block will be executed within the context of the
 # dummy transaction.
 #
 # Examples:
 #
-# With default name ('dummy') and type (:other):
+# With default name ('dummy') and category (:other):
 #   in_transaction { ... }
 #
-# With an explicit transaction name and default type:
+# With an explicit transaction name and default category:
 #   in_transaction('foobar') { ... }
 #
-# With default name and explicit type:
-#   in_transaction(:type => :controller) { ... }
+# With default name and explicit category:
+#   in_transaction(:category => :controller) { ... }
 #
-# With a transaction name plus type:
-#   in_transaction('foobar', :type => :controller) { ... }
+# With a transaction name plus category:
+#   in_transaction('foobar', :category => :controller) { ... }
 #
 def in_transaction(*args)
   opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
   opts[:transaction_name] = args.first || 'dummy'
-  transaction_type = (opts && opts.delete(:type)) || :other
+  category = (opts && opts.delete(:category)) || :other
 
-  NewRelic::Agent::Transaction.start(transaction_type, opts)
+  NewRelic::Agent::Transaction.start(category, opts)
 
   val = nil
 
@@ -230,10 +230,10 @@ def in_transaction(*args)
   val
 end
 
-# Convenience wrapper around in_transaction that sets the type so that it
+# Convenience wrapper around in_transaction that sets the category so that it
 # looks like we are in a web transaction
 def in_web_transaction(name='dummy')
-  in_transaction(name, :type => :controller) do
+  in_transaction(name, :category => :controller) do
     yield
   end
 end

@@ -516,7 +516,7 @@ module NewRelic
     def get_transaction_name
       if Transaction.current
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        Transaction.current.best_name.sub(Regexp.new("\\A#{Regexp.escape(namer.category_name)}/"), '')
+        Transaction.current.best_name.sub(Regexp.new("\\A#{Regexp.escape(namer.prefix_for_category)}/"), '')
       end
     end
 

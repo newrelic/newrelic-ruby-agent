@@ -301,7 +301,11 @@ module NewRelic
         trace_execution_scoped('Custom/something') {}
         NewRelic::Agent.set_transaction_name('new_name')
       end
-      assert engine.lookup_stats('Custom/something', 'Controller/new_name')
+
+      assert_metrics_recorded([
+        'Custom/something',
+        'Controller/new_name'
+      ])
     end
 
     def test_set_transaction_name_sets_tt_name

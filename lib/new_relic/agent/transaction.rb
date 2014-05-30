@@ -19,30 +19,35 @@ module NewRelic
       CONTROLLER_PREFIX     = 'Controller/'.freeze
       NESTED_TRACE_STOP_OPTIONS   = { :metric => true }.freeze
 
-      WEB_TRANSACTION_TYPES = [:controller, :uri, :rack, :sinatra].freeze
+      WEB_TRANSACTION_CATEGORIES = [:controller, :uri, :rack, :sinatra].freeze
 
-      attr_accessor :start_time  # A Time instance for the start time, never nil
-      attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
+      # A Time instance for the start time, never nil
+      attr_accessor :start_time
+
+      # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
       # we can find a request header for the queue entry time
-      attr_accessor :type, :exceptions, :filtered_params,
-                    :jruby_cpu_start, :process_cpu_start
+      attr_accessor :apdex_start
 
-      attr_reader :database_metric_name
-
-      attr_reader :guid
-      attr_reader :metrics
-      attr_reader :gc_start_snapshot
-
-      attr_reader :name_from_child
-
-      # Populated with the trace sample once this transaction is completed.
-      attr_reader :transaction_trace
+      attr_accessor :exceptions,
+                    :filtered_params,
+                    :jruby_cpu_start,
+                    :process_cpu_start
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
       # as a Rack::Request or an ActionController::AbstractRequest.
       attr_accessor :request
+
+      attr_reader :database_metric_name,
+                  :guid,
+                  :metrics,
+                  :gc_start_snapshot,
+                  :category,
+                  :name_from_child
+
+      # Populated with the trace sample once this transaction is completed.
+      attr_reader :transaction_trace
 
       # Return the currently active transaction, or nil.
       def self.current
@@ -54,11 +59,10 @@ module NewRelic
         name = make_transaction_name(name, options[:category])
 
         if txn.frame_stack.empty?
-          txn.default_name = name
-          txn.type = options[:category] if options[:category]
+          txn.set_default_transaction_name(name, options)
         else
           txn.frame_stack.last.name = name
-          txn.frame_stack.last.type = options[:category] if options[:category]
+          txn.frame_stack.last.category = options[:category] if options[:category]
         end
       end
 
@@ -69,19 +73,17 @@ module NewRelic
         name = make_transaction_name(name, options[:category])
 
         if txn.frame_stack.empty?
-          txn.default_name  = name
-          txn.name_from_api = name
-          txn.type = options[:category] if options[:category]
+          txn.set_overriding_transaction_name(name, options)
         else
           txn.frame_stack.last.name = name
-          txn.frame_stack.last.type = options[:category] if options[:category]
+          txn.frame_stack.last.category = options[:category] if options[:category]
 
           # Parent transaction also takes this name, but only if they
           # are both/neither web transactions.
-          child_is_web_type = transaction_type_is_web?(txn.frame_stack.last.type)
-          txn_is_web_type   = transaction_type_is_web?(txn.type)
+          child_is_web_category = transaction_category_is_web?(txn.frame_stack.last.category)
+          txn_is_web_category   = transaction_category_is_web?(txn.category)
 
-          if (child_is_web_type == txn_is_web_type)
+          if (child_is_web_category == txn_is_web_category)
             txn.name_from_api = name
           end
         end
@@ -89,11 +91,11 @@ module NewRelic
 
       def self.make_transaction_name(name, category=nil)
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        "#{namer.category_name(category)}/#{name}"
+        "#{namer.prefix_for_category(category)}/#{name}"
       end
 
-      def self.start(transaction_type, options)
-        transaction_type ||= :controller
+      def self.start(category, options)
+        category ||= :controller
         txn = current
 
         if txn
@@ -104,10 +106,10 @@ module NewRelic
 
           nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(Time.now.to_f)
           nested_frame.name = options[:transaction_name]
-          nested_frame.type = transaction_type
+          nested_frame.category = category
           txn.frame_stack << nested_frame
         else
-          txn = Transaction.new(transaction_type, options)
+          txn = Transaction.new(category, options)
           TransactionState.get.current_transaction = txn
           txn.start
         end
@@ -117,8 +119,8 @@ module NewRelic
 
       EMPTY = [].freeze
 
-      def self.best_type
-        current && current.best_type
+      def self.best_category
+        current && current.best_category
       end
 
       def record_queue_length(queue_length)
@@ -138,10 +140,10 @@ module NewRelic
 
           # Parent transaction inherits the name of the first child
           # to complete, if they are both/neither web transactions.
-          nested_is_web_type = transaction_type_is_web?(nested_frame.type)
-          txn_is_web_type    = transaction_type_is_web?(txn.type)
+          nested_is_web_category = transaction_category_is_web?(nested_frame.category)
+          txn_is_web_category    = transaction_category_is_web?(txn.category)
 
-          if (nested_is_web_type == txn_is_web_type)
+          if (nested_is_web_category == txn_is_web_category)
             # first child to finish wins
             txn.name_from_child ||= nested_frame.name
           end
@@ -234,7 +236,7 @@ module NewRelic
 
       attr_reader :frame_stack
 
-      def initialize(type, options)
+      def initialize(category, options)
         @frame_stack = []
 
         @default_name    = Helper.correctly_encoded(options[:transaction_name])
@@ -242,7 +244,7 @@ module NewRelic
         @name_from_api   = nil
         @frozen_name     = nil
 
-        @type = type
+        @category = category
         @start_time = Time.now
         @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
@@ -280,11 +282,21 @@ module NewRelic
         @name_from_api = Helper.correctly_encoded(name)
       end
 
-      def best_type
+      def set_default_transaction_name(name, options)
+        self.default_name = name
+        @category = options[:category] if options[:category]
+      end
+
+      def set_overriding_transaction_name(name, options)
+        self.name_from_api = name
+        set_default_transaction_name(name, options)
+      end
+
+      def best_category
         if frame_stack.empty?
-          type
+          category
         else
-          frame_stack.last.type
+          frame_stack.last.category
         end
       end
 
@@ -394,7 +406,6 @@ module NewRelic
           @trace_options,
           end_time.to_f)
 
-        log_underflow if @type.nil?
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
         unless @ignore_this_transaction
@@ -425,7 +436,6 @@ module NewRelic
       def send_transaction_finished_event(start_time, end_time)
         payload = {
           :name             => @frozen_name,
-          :type             => @type,
           :start_timestamp  => start_time.to_f,
           :duration         => end_time.to_f - start_time.to_f,
           :metrics          => @metrics,
@@ -449,10 +459,6 @@ module NewRelic
         if referring_guid
           payload[:referring_transaction_guid] = referring_guid
         end
-      end
-
-      def log_underflow
-        NewRelic::Agent.logger.error "Underflow in transaction: #{caller.join("\n   ")}"
       end
 
       def merge_metrics
@@ -616,12 +622,12 @@ module NewRelic
         self.current && self.current.recording_web_transaction?
       end
 
-      def self.transaction_type_is_web?(type)
-        WEB_TRANSACTION_TYPES.include?(type)
+      def self.transaction_category_is_web?(category)
+        WEB_TRANSACTION_CATEGORIES.include?(category)
       end
 
       def recording_web_transaction?
-        self.class.transaction_type_is_web?(@type)
+        self.class.transaction_category_is_web?(@category)
       end
 
       # Make a safe attempt to get the referer from a request object, generally successful when
