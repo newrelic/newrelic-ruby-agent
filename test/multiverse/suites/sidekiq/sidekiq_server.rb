@@ -20,4 +20,11 @@ class SidekiqServer
                     "--queue", "#{queue_name},1"])
     Thread.new { @sidekiq.run }
   end
+
+  # If we just let the process go away, occasional timing issues cause the
+  # Launcher actor in Sidekiq to throw a fuss and exit with a failed code.
+  def stop
+    puts "Trying to stop Sidekiq gracefully"
+    @sidekiq.launcher.stop
+  end
 end
