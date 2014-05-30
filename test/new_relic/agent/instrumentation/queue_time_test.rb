@@ -10,6 +10,10 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
     freeze_time
   end
 
+  def teardown
+    NewRelic::Agent.drop_buffered_data
+  end
+
   def test_parse_frontend_timestamp_given_queue_start_header
     header = { 'HTTP_X_QUEUE_START' => format_header_time(Time.now - 60) }
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
@@ -76,6 +80,15 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
         :call_count      => 1,
         :total_call_time => 60
       }
+    )
+  end
+
+  def test_doesnt_record_scoped_queue_time_metric
+    in_transaction('boo') do
+      QueueTime.record_frontend_metrics(Time.at(Time.now.to_f - 60))
+    end
+    assert_metrics_not_recorded(
+      [['WebFrontend/QueueTime', 'boo']]
     )
   end
 
