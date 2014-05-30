@@ -594,12 +594,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable capturing and attachment of memcache keys to transaction traces.'
         },
-        :textmate => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enables Textmate integration.'
-        },
         :'transaction_tracer.enabled' => {
           :default => true,
           :public => true,

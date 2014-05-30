@@ -22,14 +22,6 @@ class DeveloperModeTest < Minitest::Test
     assert_equal 29, trace.size
     trace = application_stack_trace(Fixtures::WINDOWS_TRACE)
     assert_equal 14, trace.size
-
-  end
-
-  def test_url_for_source
-    for line in Fixtures::NORMAL_TRACE + Fixtures::WINDOWS_TRACE do
-      line = url_for_source(line)
-      assert line =~ /^show_source\?file=.*&amp;line=\d+&amp;/, line
-    end
   end
 
   private

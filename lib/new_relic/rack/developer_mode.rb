@@ -79,8 +79,6 @@ module NewRelic
           show_sample_data
         when /explain_sql/
           explain_sql
-        when /show_source/
-          show_source
         when /^\/newrelic\/?$/
           index
         else
@@ -203,44 +201,6 @@ module NewRelic
 
       def segment
         @segment
-      end
-
-
-      # show the selected source file with the highlighted selected line
-      def show_source
-        @filename = params['file']
-        line_number = params['line'].to_i
-
-        if !File.readable?(@filename)
-          @source="<p>Unable to read #{@filename}.</p>"
-          return
-        end
-        begin
-          file = File.new(@filename, 'r')
-        rescue => e
-          @source="<p>Unable to access the source file #{@filename} (#{e.message}).</p>"
-          return
-        end
-        @source = ""
-
-        @source << "<pre>"
-        file.each_line do |line|
-          # place an anchor 6 lines above the selected line (if the line # < 6)
-          if file.lineno == line_number - 6
-            @source << "</pre><pre id = 'selected_line'>"
-            @source << line.rstrip
-            @source << "</pre><pre>"
-
-            # highlight the selected line
-          elsif file.lineno == line_number
-            @source << "</pre><pre class = 'selected_source_line'>"
-            @source << line.rstrip
-            @source << "</pre><pre>"
-          else
-            @source << line
-          end
-        end
-        render(:show_source)
       end
 
       def show_sample_data
