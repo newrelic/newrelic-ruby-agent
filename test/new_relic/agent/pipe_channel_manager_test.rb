@@ -166,7 +166,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       expects_logging(:error, any_parameters)
 
       pid = Process.fork do
-        listener.pipes[671].in << "\x00"
+        listener.pipes[671].write("\x00")
       end
       Process.wait(pid)
       listener.stop
