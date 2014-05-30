@@ -18,8 +18,7 @@ module NewRelic
       SUBTRANSACTION_PREFIX = 'Nested/'.freeze
       CONTROLLER_PREFIX     = 'Controller/'.freeze
       NESTED_TRACE_STOP_OPTIONS   = { :metric => true }.freeze
-
-      WEB_TRANSACTION_CATEGORIES = [:controller, :uri, :rack, :sinatra].freeze
+      WEB_TRANSACTION_CATEGORIES = [:controller, :uri, :rack, :sinatra, :middleware].freeze
 
       # A Time instance for the start time, never nil
       attr_accessor :start_time
@@ -158,7 +157,7 @@ module NewRelic
 
           NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
             nested_frame.start_time.to_f,
-            nested_transaction_name(nested_frame.name),
+            nested_name,
             EMPTY,
             nested_frame,
             NESTED_TRACE_STOP_OPTIONS,
