@@ -229,7 +229,7 @@ module NewRelic
             Marshal.load(data)
           end
         rescue StandardError => e
-          ::NewRelic::Agent.logger.error "Failure unmarshalling from the pipe", e
+          ::NewRelic::Agent.logger.error "Failure unmarshalling message from Resque child process", e
           ::NewRelic::Agent.logger.debug Base64.encode64(data)
           nil
         end
