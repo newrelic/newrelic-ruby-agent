@@ -184,6 +184,27 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     )
   end
 
+  class SillyError < StandardError
+  end
+
+  def test_apdex_success_with_ignored_error
+    NewRelic::Agent.ignore_error_filter do |error|
+      error.is_a?(SillyError) ? nil : error
+    end
+
+    with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
+      in_web_transaction('Controller/whatever') do
+        error = SillyError.new
+        NewRelic::Agent::Transaction.notice_error(error)
+      end
+
+      assert_metrics_recorded(
+        'Apdex'          => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 0 },
+        'Apdex/whatever' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 0 }
+      )
+    end
+  end
+
   def test_name_is_unset_if_nil
     in_transaction do |txn|
       txn.default_name = nil

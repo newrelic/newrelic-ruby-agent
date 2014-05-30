@@ -555,7 +555,7 @@ module NewRelic
         freeze_name_and_execute_if_not_ignored do
           action_duration = end_time - start_time
           total_duration  = end_time - apdex_start
-          is_error = exception_encountered? || !exceptions.empty?
+          is_error = exception_encountered? || !notable_exceptions.empty?
 
           apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
           apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
@@ -718,6 +718,12 @@ module NewRelic
 
       def exception_encountered?
         @exception_encountered
+      end
+
+      def notable_exceptions
+        exceptions.select do |exception|
+          !NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
+        end
       end
 
       private
