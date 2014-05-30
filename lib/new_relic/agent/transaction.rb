@@ -704,7 +704,7 @@ module NewRelic
       end
 
       def notable_exceptions
-        exceptions.select do |exception|
+        @exceptions.keys.select do |exception|
           !NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
         end
       end

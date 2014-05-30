@@ -192,15 +192,35 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       error.is_a?(SillyError) ? nil : error
     end
 
-    with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
-      in_web_transaction('Controller/whatever') do
-        error = SillyError.new
-        NewRelic::Agent::Transaction.notice_error(error)
+    txn_name = 'Controller/whatever'
+    in_web_transaction(txn_name) do
+      NewRelic::Agent::Transaction.notice_error(SillyError.new)
+    end
+
+    in_web_transaction(txn_name) do
+      NewRelic::Agent::Transaction.notice_error(RuntimeError.new)
+    end
+
+    assert_metrics_recorded(
+      'Apdex'          => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 },
+      'Apdex/whatever' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 }
+    )
+  end
+
+  def test_apdex_success_with_config_ignored_error
+    txn_name = 'Controller/whatever'
+    with_config(:'error_collector.ignore_errors' => SillyError.name) do
+      in_web_transaction(txn_name) do
+        NewRelic::Agent::Transaction.notice_error(SillyError.new)
+      end
+
+      in_web_transaction(txn_name) do
+        NewRelic::Agent::Transaction.notice_error(RuntimeError.new)
       end
 
       assert_metrics_recorded(
-        'Apdex'          => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 0 },
-        'Apdex/whatever' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 0 }
+        'Apdex'          => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 },
+        'Apdex/whatever' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 }
       )
     end
   end
