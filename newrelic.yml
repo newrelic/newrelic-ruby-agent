@@ -199,9 +199,6 @@ development:
   # Do not use for production or load testing.
   developer_mode: false
 
-  # Enable textmate links
-  # textmate: true
-
 test:
   <<: *default_settings
   # It almost never makes sense to turn on the agent when running
