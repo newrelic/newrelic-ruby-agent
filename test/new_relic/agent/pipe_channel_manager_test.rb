@@ -161,6 +161,17 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       listener.stop
     end
 
+    def test_manager_does_not_crash_when_given_unmarshallable_junk
+      listener = start_listener_with_pipe(671)
+      expects_logging(:error, any_parameters)
+
+      pid = Process.fork do
+        listener.pipes[671].write("\x00")
+      end
+      Process.wait(pid)
+      listener.stop
+    end
+
     def pipe_finished?(id)
       (!NewRelic::Agent::PipeChannelManager.channels[id] ||
         NewRelic::Agent::PipeChannelManager.channels[id].closed?)

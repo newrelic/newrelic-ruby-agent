@@ -229,8 +229,8 @@ module NewRelic
             Marshal.load(data)
           end
         rescue StandardError => e
-          msg = "#{e.class.name} '#{e.message}' trying to load #{Base64.encode64(data)}"
-          ::NewRelic::Agent.logger.debug(msg)
+          ::NewRelic::Agent.logger.error "Failure unmarshalling message from Resque child process", e
+          ::NewRelic::Agent.logger.debug Base64.encode64(data)
           nil
         end
 
