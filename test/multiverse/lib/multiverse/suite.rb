@@ -30,6 +30,14 @@ module Multiverse
       Marshal.load(Base64.decode64(encoded_opts))
     end
 
+    def self.after_tests(&blk)
+      if blk
+        @after_tests_blk = blk
+      elsif @after_tests_blk
+        @after_tests_blk.call()
+      end
+    end
+
     def suite
       File.basename(directory)
     end
@@ -294,6 +302,8 @@ module Multiverse
       else
         test_run = ::MiniTest::Unit.new.run(options)
       end
+
+      Suite.after_tests()
 
       if test_run
         exit(test_run)
