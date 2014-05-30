@@ -7,8 +7,6 @@
 require './app'
 
 class QueueController < ApplicationController
-  include Rails.application.routes.url_helpers
-
   def queued
     respond_to do |format|
       format.html { render :text => "<html><head></head><body>Queued</body></html>" }
@@ -25,7 +23,7 @@ class QueueController < ApplicationController
   add_transaction_tracer :nested_transaction
 end
 
-class QueueTimeTest < ActionDispatch::IntegrationTest
+class QueueTimeTest < RailsMultiverseTest
 
   REQUEST_START_HEADER = 'HTTP_X_REQUEST_START'
 
@@ -72,8 +70,20 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   end
 
   def extract_queue_time_from_response
-    @response.body =~ /\"queueTime\":(\d+.*)/
+    get_last_response_body =~ /\"queueTime\":(\d+.*)/
     refute_nil $1, "Should have found queue time in #{@response.body.inspect}"
     $1.to_i
+  end
+
+  def get_last_response_body
+    if Rails::VERSION::MAJOR >= 3
+      @response.body
+    else
+      # In Rails 2 integration tests, @response.body is always the response from
+      # the controller itself, not the middleware stack. Since we want the
+      # response from the middleware stack, we grab it off of the integration
+      # session.
+      @integration_session.body
+    end
   end
 end

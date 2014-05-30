@@ -7,8 +7,6 @@
 require './app'
 
 class IgnoredController < ApplicationController
-  include Rails.application.routes.url_helpers
-
   newrelic_ignore :only => :action_to_ignore
   newrelic_ignore_apdex :only => :action_to_ignore_apdex
 
@@ -21,7 +19,7 @@ class IgnoredController < ApplicationController
   end
 end
 
-class IgnoredActionsTest < ActionDispatch::IntegrationTest
+class IgnoredActionsTest < RailsMultiverseTest
   include MultiverseHelpers
 
   setup_and_teardown_agent(:cross_process_id => "boo",

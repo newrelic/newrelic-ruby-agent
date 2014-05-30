@@ -9,7 +9,6 @@ if NewRelic::LanguageSupport.ree? ||
     (RUBY_VERSION >= '1.9.2' && !NewRelic::LanguageSupport.jruby?)
 
 class GcController < ApplicationController
-  include Rails.application.routes.url_helpers
   def gc_action
     begin
       profiler = NewRelic::Agent::StatsEngine::GCProfiler.init

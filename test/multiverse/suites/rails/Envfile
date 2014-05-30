@@ -32,3 +32,13 @@ gemfile <<-RB
   gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
   gem 'minitest_tu_shim', :require => false
 RB
+
+if RUBY_VERSION <= '1.9.3' && RUBY_ENGINE != 'jruby'
+  gemfile <<-RB
+    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+    gem 'rails', '~> 2.3.18'
+    gem 'haml', '~> 3.1.0'   # last haml version that supports Rails 2
+    gem 'minitest_tu_shim', :require => false
+    gem 'sqlite3'
+  RB
+end

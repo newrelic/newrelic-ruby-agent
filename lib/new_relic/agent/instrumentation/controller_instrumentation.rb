@@ -338,6 +338,7 @@ module NewRelic
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
           if !block_given? && do_not_trace?
+            Transaction.ignore!
             NewRelic::Agent.disable_all_tracing do
               return perform_action_without_newrelic_trace(*args)
             end
