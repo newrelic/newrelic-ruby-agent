@@ -44,7 +44,7 @@ module NewRelic
       end
 
       def is_startup_logger?
-        false
+        @log.is_a?(NullLogger)
       end
 
       # Use this when you want to log an exception with explicit control over

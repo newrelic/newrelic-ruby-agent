@@ -103,6 +103,18 @@ class AgentLoggerTest < Minitest::Test
     end
   end
 
+  def test_consider_null_logger_a_startup_logger
+    with_config(:agent_enabled => false) do
+      logger = NewRelic::Agent::AgentLogger.new
+      assert logger.is_startup_logger?
+    end
+  end
+
+  def test_consider_any_other_logger_not_a_startup_logger
+    logger = NewRelic::Agent::AgentLogger.new
+    refute logger.is_startup_logger?
+  end
+
   def test_does_not_touch_dev_null
     Logger.expects(:new).with('/dev/null').never
     with_config(:agent_enabled => false) do
