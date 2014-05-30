@@ -149,13 +149,10 @@ module NewRelic
         # the frame so that we can check for it later, to maintain
         # sanity. If the frame stack becomes unbalanced, this
         # transaction loses meaning.
-        def trace_execution_scoped_header(t0=Time.now.to_f)
-          frame = log_errors(:trace_execution_scoped_header) do
+        def trace_execution_scoped_header(t0)
+          log_errors(:trace_execution_scoped_header) do
             NewRelic::Agent::TracedMethodStack.push_frame(:method_tracer, t0)
           end
-          # needed in case we have an error, above, to always return
-          # the start time.
-          [t0, frame]
         end
 
         def record_metrics(first_name, other_names, duration, exclusive, options)
@@ -217,7 +214,8 @@ module NewRelic
 
         set_if_nil(options, :metric)
         additional_metrics_callback = options[:additional_metrics_callback]
-        start_time, expected_scope = trace_execution_scoped_header
+        start_time = Time.now.to_f
+        expected_scope = trace_execution_scoped_header(start_time)
 
         begin
           result = yield

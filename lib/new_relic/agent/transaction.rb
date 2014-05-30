@@ -102,7 +102,7 @@ module NewRelic
           end
           txn.record_queue_length(options[:queue_length])
 
-          _, nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(Time.now.to_f)
+          nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(Time.now.to_f)
           nested_frame.name = options[:transaction_name]
           nested_frame.type = transaction_type
           txn.frame_stack << nested_frame
@@ -344,7 +344,7 @@ module NewRelic
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
         @trace_options = { :metric => true, :scoped_metric => false }
-        _, @expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(start_time.to_f)
+        @expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(start_time.to_f)
       end
 
       # Indicate that you don't want to keep the currently saved transaction
