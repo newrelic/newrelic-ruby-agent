@@ -198,6 +198,14 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
            'Noticed an error that should have been ignored')
   end
 
+  def test_should_treat_apdex_as_success_when_ignored_error_class_noticed
+    get '/error/ignored_error'
+    assert_metrics_recorded({
+      'Apdex'                     => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 0 },
+      'Apdex/error/ignored_error' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 0 }
+    })
+  end
+
   def test_should_not_notice_filtered_errors
     NewRelic::Agent.instance.error_collector.ignore_error_filter do |error|
       !error.kind_of?(RuntimeError)

@@ -533,19 +533,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_exception_encountered_returns_true_if_exception_encountered
-    in_transaction('Controller/test', :category => :sinatra) do
-      NewRelic::Agent::Transaction.exception_encountered!
-      assert NewRelic::Agent::Transaction.exception_encountered?
-    end
-  end
-
-  def test_exception_encountered_returns_false_if_no_exception
-    in_transaction('Controller/test', :category => :sinatra) do
-      refute NewRelic::Agent::Transaction.exception_encountered?
-    end
-  end
-
   def test_ignore_enduser_returns_true_if_enduser_is_ignored
     in_transaction('Controller/test', :category => :sinatra) do
       NewRelic::Agent::Transaction.ignore_enduser!
