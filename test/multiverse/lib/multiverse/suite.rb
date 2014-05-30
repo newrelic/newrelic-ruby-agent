@@ -30,14 +30,6 @@ module Multiverse
       Marshal.load(Base64.decode64(encoded_opts))
     end
 
-    def self.after_tests(&blk)
-      if blk
-        @after_tests_blk = blk
-      elsif @after_tests_blk
-        @after_tests_blk.call()
-      end
-    end
-
     def suite
       File.basename(directory)
     end
@@ -303,7 +295,7 @@ module Multiverse
         test_run = ::MiniTest::Unit.new.run(options)
       end
 
-      Suite.after_tests()
+      load @after_file if @after_file
 
       if test_run
         exit(test_run)
@@ -381,18 +373,19 @@ module Multiverse
     def ordered_ruby_files(directory)
       files = Dir[File.join(directory, '*.rb')]
 
-      before = files.find { |file| File.basename(file) == "before_suite.rb" }
-      after  = files.find { |file| File.basename(file) == "after_suite.rb" }
+      @before_file = files.find { |file| File.basename(file) == "before_suite.rb" }
+      @after_file  = files.find { |file| File.basename(file) == "after_suite.rb" }
 
-      files.delete(before)
-      files.delete(after)
+      files.delete(@before_file)
+      files.delete(@after_file)
 
       # Important that we filter after removing before/after so they don't get
       # tromped for not matching our pattern!
       files.select! {|file| file.include?(filter_file) } if filter_file
 
-      files.insert(0, before) if before
-      files.insert(-1, after) if after
+      # Just put before_suite.rb at the head of the list.
+      # Will explicitly load after_suite.rb after the test run
+      files.insert(0, @before_file) if @before_file
 
       files
     end
