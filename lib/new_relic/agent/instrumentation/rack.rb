@@ -124,18 +124,15 @@ module NewRelic
           middleware_procs.each_with_index do |middleware_proc, idx|
             wrapped_procs << Proc.new do |app|
               if idx == last_idx
+                # Note that this does not double-wrap the app. If there are
+                # N middlewares and 1 app, then we want N+1 wrappings. This
+                # is the +1.
                 app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
               end
 
               result = middleware_proc.call(app)
 
-              if idx == 0
-                result = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
-              else
-                result = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
-              end
-
-              result
+              ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
             end
           end
           wrapped_procs
