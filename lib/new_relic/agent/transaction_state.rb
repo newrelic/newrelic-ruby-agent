@@ -11,8 +11,6 @@ module NewRelic
     # This is THE location to store thread local information during a transaction
     # Need a new piece of data? Add a method here, NOT a new thread local variable.
     class TransactionState
-      attr_accessor :current_transaction
-
       def self.get
         state_for(Thread.current)
       end
@@ -49,7 +47,7 @@ module NewRelic
         @request_token = BrowserToken.get_token(request)
       end
 
-      def reset
+      def reset(transaction=nil)
         # We almost always want to use the transaction time, but in case it's
         # not available, we track the last reset. No accessor, as only the
         # TransactionState class should use it.
@@ -60,6 +58,7 @@ module NewRelic
         @request_ignore_enduser = false
         @is_cross_app_caller = false
         @referring_transaction_info = nil
+        @current_transaction = transaction
       end
 
       def timings
@@ -102,7 +101,8 @@ module NewRelic
       end
 
       # Current transaction stack and sample building
-      attr_accessor :transaction_sample_builder, :current_transaction
+      attr_reader   :current_transaction
+      attr_accessor :transaction_sample_builder
 
       def transaction_start_time
         if ::NewRelic::Agent::Transaction.current.nil?

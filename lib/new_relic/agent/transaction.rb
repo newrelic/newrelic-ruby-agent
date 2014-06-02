@@ -110,7 +110,7 @@ module NewRelic
           txn.frame_stack << nested_frame
         else
           txn = Transaction.new(category, options)
-          TransactionState.get.current_transaction = txn
+          TransactionState.get.reset(txn)
           txn.start
         end
 
@@ -134,7 +134,7 @@ module NewRelic
 
         if txn.frame_stack.empty?
           txn.stop(end_time)
-          TransactionState.get.current_transaction = nil
+          TransactionState.get.reset
         else
           nested_frame = txn.frame_stack.pop
 

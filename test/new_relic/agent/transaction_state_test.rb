@@ -77,10 +77,8 @@ module NewRelic::Agent
     def test_request_guid_to_include
       with_config(:apdex_t => 2.0) do
         freeze_time
-
-        state.request_token = "token"
-
         in_transaction do |txn|
+          state.request_token = "token"
           advance_time(4.0)
           assert_equal state.current_transaction.guid, state.request_guid_to_include
         end
@@ -121,28 +119,28 @@ module NewRelic::Agent
     end
 
     def test_request_guid_for_event
-      state.request_token = nil
-      state.is_cross_app_caller = true
-      state.referring_transaction_info = nil
       in_transaction do
+        state.request_token = nil
+        state.is_cross_app_caller = true
+        state.referring_transaction_info = nil
         assert_equal state.current_transaction.guid, state.request_guid_for_event
       end
     end
 
     def test_request_guid_for_event_if_referring_transaction
-      state.request_token = nil
-      state.is_cross_app_caller = false
-      state.referring_transaction_info = ["another"]
       in_transaction do
+        state.request_token = nil
+        state.is_cross_app_caller = false
+        state.referring_transaction_info = ["another"]
         assert_equal state.current_transaction.guid, state.request_guid_for_event
       end
     end
 
     def test_request_guid_for_event_if_there_for_rum
       with_config(:apdex_t => 2.0) do
-        state.request_token = "token"
-        state.is_cross_app_caller = false
         in_transaction do
+          state.request_token = "token"
+          state.is_cross_app_caller = false
           advance_time(10.0)
           assert_equal state.current_transaction.guid, state.request_guid_for_event
         end

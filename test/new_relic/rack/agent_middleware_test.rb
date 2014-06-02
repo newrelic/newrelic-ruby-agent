@@ -11,6 +11,12 @@ module NewRelic
     class AgentMiddlewareTest < Minitest::Test
       class ExampleMiddleware
         include AgentMiddleware
+
+        def call(env)
+          with_tracing(env) do
+            [200, {}, ['yeah!']]
+          end
+        end
       end
 
       attr_reader :middleware, :env
@@ -20,15 +26,9 @@ module NewRelic
         @env = {}
       end
 
-      def test_resets
-        NewRelic::Agent::TransactionState.expects(:reset).once
-        middleware.ensure_transaction_reset(env)
-      end
-
-      def test_resets_only_once
-        NewRelic::Agent::TransactionState.expects(:reset).once
-        middleware.ensure_transaction_reset(env)
-        middleware.ensure_transaction_reset(env)
+      def test_with_tracing_creates_a_transaction
+        middleware.call(env)
+        assert_metrics_recorded('Controller/Rack/NewRelic::Rack::AgentMiddlewareTest::ExampleMiddleware/call')
       end
     end
   end
