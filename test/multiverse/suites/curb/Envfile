@@ -3,13 +3,22 @@ suite_condition("Curb is not useful on JRuby") do
 end
 
 gemfile <<-RB
-  gem 'curb', '0.8.1'
+  gem 'curb', '~> 0.8.4'
+  gem 'rack'
+  gem 'json', :platforms => [:rbx, :mri_18]
+
+  # We try translating URIs through Addressable if it's there, so test with it.
+  gem 'addressable', :require => 'addressable/uri'
+RB
+
+gemfile <<-RB
+  gem 'curb', '~> 0.8.4'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
 gemfile <<-RB
-  gem 'curb', '~> 0.8.4'
+  gem 'curb', '0.8.1'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 RB

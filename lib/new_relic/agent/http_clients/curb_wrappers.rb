@@ -32,7 +32,7 @@ module NewRelic
         end
 
         def uri
-          @uri ||= URI( @curlobj.url )
+          @uri ||= NewRelic::Agent::HTTPClients::URIUtil.parse_url(@curlobj.url)
         end
       end
 
