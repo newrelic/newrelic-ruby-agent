@@ -51,20 +51,18 @@ module NewRelic::Rack
       strip_query_string(env['HTTP_REFERER'].to_s)
     end
 
-    def call(env)
-      with_tracing(env) do
-        begin
-          @app.call(env)
-        rescue Exception => exception
-          NewRelic::Agent.logger.debug "collecting %p: %s" % [ exception.class, exception.message ]
-          if !should_ignore_error?(exception, env)
-            NewRelic::Agent.notice_error(exception,
-                                         :uri => uri_from_env(env),
-                                         :referer => referrer_from_env(env),
-                                         :request_params => params_from_env(env))
-          end
-          raise exception
+    def traced_call(env)
+      begin
+        @app.call(env)
+      rescue Exception => exception
+        NewRelic::Agent.logger.debug "collecting %p: %s" % [ exception.class, exception.message ]
+        if !should_ignore_error?(exception, env)
+          NewRelic::Agent.notice_error(exception,
+                                       :uri => uri_from_env(env),
+                                       :referer => referrer_from_env(env),
+                                       :request_params => params_from_env(env))
         end
+        raise exception
       end
     end
 

@@ -49,11 +49,9 @@ module NewRelic
         @app = app
       end
 
-      def call(env)
-        with_tracing(env) do
-          return @app.call(env) unless /^\/newrelic/ =~ ::Rack::Request.new(env).path_info
-          dup._call(env)
-        end
+      def traced_call(env)
+        return @app.call(env) unless /^\/newrelic/ =~ ::Rack::Request.new(env).path_info
+        dup._call(env)
       end
 
       protected

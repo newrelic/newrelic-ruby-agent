@@ -27,13 +27,11 @@ module NewRelic::Rack
 
     # method required by Rack interface
     # [status, headers, response]
-    def call(env)
-      with_tracing(env) do
-        notify(:before_call, env)
-        result = @app.call(env)
-        notify(:after_call, env, result)
-        result
-      end
+    def traced_call(env)
+      notify(:before_call, env)
+      result = @app.call(env)
+      notify(:after_call, env, result)
+      result
     end
 
     def notify(event, env, *args)

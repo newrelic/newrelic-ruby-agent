@@ -22,23 +22,21 @@ module NewRelic::Rack
 
     include AgentMiddleware
 
-    def call(env)
-      with_tracing(env) do
-        result = @app.call(env)   # [status, headers, response]
+    def traced_call(env)
+      result = @app.call(env)   # [status, headers, response]
 
-        if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1])
-          response_string = autoinstrument_source(result[2], result[1])
+      if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1])
+        response_string = autoinstrument_source(result[2], result[1])
 
-          env[ALREADY_INSTRUMENTED_KEY] = true
-          if response_string
-            response = Rack::Response.new(response_string, result[0], result[1])
-            response.finish
-          else
-            result
-          end
+        env[ALREADY_INSTRUMENTED_KEY] = true
+        if response_string
+          response = Rack::Response.new(response_string, result[0], result[1])
+          response.finish
         else
           result
         end
+      else
+        result
       end
     end
 
