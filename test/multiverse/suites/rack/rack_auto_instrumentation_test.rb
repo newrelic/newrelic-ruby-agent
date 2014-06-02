@@ -62,19 +62,20 @@ class RackAutoInstrumentationTest < Minitest::Test
       [
         "Apdex",
         "HttpDispatcher",
+        "Middleware/all",
         "Apdex/Rack/ExampleApp/call",
         "Controller/Rack/ExampleApp/call",
-        "Nested/Controller/Rack/MiddlewareOne/call",
-        "Nested/Controller/Rack/MiddlewareTwo/call",
-        "Nested/Controller/Rack/NewRelic::Rack::ErrorCollector/call",
-        "Nested/Controller/Rack/NewRelic::Rack::BrowserMonitoring/call",
-        "Nested/Controller/Rack/NewRelic::Rack::AgentHooks/call",
+        "Middleware/Rack/MiddlewareOne/call",
+        "Middleware/Rack/MiddlewareTwo/call",
+        "Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
+        "Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call",
+        "Middleware/Rack/NewRelic::Rack::AgentHooks/call",
         "Nested/Controller/Rack/ExampleApp/call",
-        ["Nested/Controller/Rack/NewRelic::Rack::ErrorCollector/call",    "Controller/Rack/ExampleApp/call"],
-        ["Nested/Controller/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Rack/ExampleApp/call"],
-        ["Nested/Controller/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Rack/ExampleApp/call"],
-        ["Nested/Controller/Rack/MiddlewareOne/call", "Controller/Rack/ExampleApp/call"],
-        ["Nested/Controller/Rack/MiddlewareTwo/call", "Controller/Rack/ExampleApp/call"],
+        ["Middleware/Rack/NewRelic::Rack::ErrorCollector/call",    "Controller/Rack/ExampleApp/call"],
+        ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Rack/ExampleApp/call"],
+        ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Rack/ExampleApp/call"],
+        ["Middleware/Rack/MiddlewareOne/call", "Controller/Rack/ExampleApp/call"],
+        ["Middleware/Rack/MiddlewareTwo/call", "Controller/Rack/ExampleApp/call"],
         ["Nested/Controller/Rack/ExampleApp/call",    "Controller/Rack/ExampleApp/call"]
       ],
       :ignore_filter => /^Supportability\/EnvironmentReport/
@@ -89,5 +90,27 @@ class RackAutoInstrumentationTest < Minitest::Test
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => { :total_call_time => 5.0 }
     )
+  end
+
+  def test_middleware_that_returns_early_records_middleware_rollup_metric
+    get '/?return-early=true'
+    assert_metrics_recorded_exclusive([
+      "Apdex",
+      "HttpDispatcher",
+      "Middleware/all",
+      "Apdex/Middleware/Rack/MiddlewareTwo/call",
+      "Controller/Middleware/Rack/MiddlewareTwo/call",
+      "Middleware/Rack/MiddlewareOne/call",
+      "Middleware/Rack/MiddlewareTwo/call",
+      ["Middleware/Rack/MiddlewareOne/call", "Controller/Middleware/Rack/MiddlewareTwo/call"],
+      ["Middleware/Rack/MiddlewareTwo/call", "Controller/Middleware/Rack/MiddlewareTwo/call"]
+    ])
+  end
+
+  def test_middleware_that_returns_early_middleware_all_has_correct_call_times
+    t0 = freeze_time
+
+    get '/?return-early=true'
+    assert_metrics_recorded('Middleware/all' => { :total_exclusive_time => 3.0, :call_count => 2 })
   end
 end

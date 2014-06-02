@@ -20,13 +20,13 @@ class MiddlewareInstrumentationTest < RailsMultiverseTest
     def test_rails_middlewares_constructed_by_name
       get('/')
       assert response.headers['NamedMiddleware'], "NamedMiddleware should have been called, but wasn't"
-      assert_metrics_recorded('Nested/Controller/Rack/NamedMiddleware/call')
+      assert_metrics_recorded('Middleware/Rack/NamedMiddleware/call')
     end
 
     def test_rails_middlewares_passed_as_instances
       get('/')
       assert response.headers['InstanceMiddleware'], "InstanceMiddleware should have been called, but wasn't"
-      assert_metrics_recorded('Nested/Controller/Rack/InstanceMiddleware/call')
+      assert_metrics_recorded('Middleware/Rack/InstanceMiddleware/call')
     end
   end
 end

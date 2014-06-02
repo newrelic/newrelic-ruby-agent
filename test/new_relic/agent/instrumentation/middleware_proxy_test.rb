@@ -96,19 +96,6 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     assert_same(env, call_received)
   end
 
-  def test_should_not_start_transaction_if_one_is_running
-    app = lambda do |env|
-      :super_duper
-    end
-
-    wrapped = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app)
-
-    in_transaction do
-      NewRelic::Agent::Transaction.expects(:start).never
-      wrapped.call({})
-    end
-  end
-
   def test_should_start_transaction_if_none_is_running
     app = lambda do |env|
       :super_duper

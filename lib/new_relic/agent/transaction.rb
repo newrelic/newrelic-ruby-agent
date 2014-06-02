@@ -16,6 +16,7 @@ module NewRelic
 
       # for nested transactions
       SUBTRANSACTION_PREFIX = 'Nested/'.freeze
+      MIDDLEWARE_PREFIX = 'Controller/Middleware/Rack'.freeze
       CONTROLLER_PREFIX     = 'Controller/'.freeze
       NESTED_TRACE_STOP_OPTIONS   = { :metric => true }.freeze
       WEB_TRANSACTION_CATEGORIES = [:controller, :uri, :rack, :sinatra, :middleware].freeze
@@ -158,7 +159,7 @@ module NewRelic
           NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
             nested_frame.start_time.to_f,
             nested_name,
-            EMPTY,
+            summary_metrics,
             nested_frame,
             NESTED_TRACE_STOP_OPTIONS,
             end_time.to_f)
@@ -172,7 +173,9 @@ module NewRelic
       end
 
       def self.nested_transaction_name(name)
-        if name.start_with?(CONTROLLER_PREFIX)
+        if name.start_with?(MIDDLEWARE_PREFIX)
+          name.gsub('Controller/', '')
+        elsif name.start_with?(CONTROLLER_PREFIX)
           "#{SUBTRANSACTION_PREFIX}#{name}"
         else
           name

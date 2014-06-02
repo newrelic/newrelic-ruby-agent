@@ -216,7 +216,6 @@ module NewRelic
           RACK_PREFIX       = 'Controller/Rack'.freeze unless defined?(RACK_PREFIX)
           URI_PREFIX        = 'Controller'.freeze unless defined?(URI_PREFIX)
           SINATRA_PREFIX    = 'Controller/Sinatra'.freeze unless defined?(SINATRA_PREFIX)
-          MIDDLEWARE_PREFIX = 'Controller/Middleware'.freeze unless defined?(MIDDLEWARE_PREFIX)
 
           def self.name(traced_obj, options)
             "#{prefix_for_category(options[:category])}/#{path_name(traced_obj, options)}"
@@ -230,7 +229,7 @@ module NewRelic
             when :rack       then RACK_PREFIX
             when :uri        then URI_PREFIX
             when :sinatra    then SINATRA_PREFIX
-            when :middleware then MIDDLEWARE_PREFIX
+            when :middleware then NewRelic::Agent::Transaction::MIDDLEWARE_PREFIX
             else category.to_s # for internal use only
             end
           end
