@@ -32,8 +32,14 @@ class SinatraIgnoreTestApp < Sinatra::Base
   get '/no_apdex' do request.path_info end
 
   newrelic_ignore_enduser '/no_enduser'
-  get '/no_enduser' do request.path_info end
 
+  get '/enduser' do
+    "<html><head></head><body>#{request.path_info}</body></html>"
+  end
+
+  get '/no_enduser' do
+    "<html><head></head><body>#{request.path_info}</body></html>"
+  end
 end
 
 class SinatraTestCase < Minitest::Test
@@ -41,12 +47,25 @@ class SinatraTestCase < Minitest::Test
   include ::NewRelic::Agent::Instrumentation::Sinatra
   include MultiverseHelpers
 
-  setup_and_teardown_agent
+  JS_AGENT_LOADER = "JS_AGENT_LOADER"
+
+  setup_and_teardown_agent(:application_id => 'appId',
+                           :beacon => 'beacon',
+                           :browser_key => 'browserKey',
+                           :js_agent_loader => JS_AGENT_LOADER)
 
   def get_and_assert_ok(path)
     get(path)
     assert_equal 200, last_response.status
-    assert_equal path, last_response.body
+    assert_match(/#{Regexp.escape(path)}/, last_response.body)
+  end
+
+  def assert_enduser_ignored(response)
+    refute_match(/#{JS_AGENT_LOADER}/, response.body)
+  end
+
+  def refute_enduser_ignored(response)
+    assert_match(/#{JS_AGENT_LOADER}/, response.body)
   end
 
   # Keep Test::Unit happy by specifying at least one test method here
@@ -61,12 +80,6 @@ class SinatraIgnoreTest < SinatraTestCase
 
   def app_name
     app.to_s
-  end
-
-  def get_and_assert_ok(path)
-    get(path)
-    assert_equal 200, last_response.status
-    assert_equal path, last_response.body
   end
 
   def test_seen_route
@@ -126,10 +139,19 @@ class SinatraIgnoreTest < SinatraTestCase
     assert_metrics_not_recorded(["Apdex/Sinatra/#{app_name}/GET no_apdex"])
   end
 
+  def test_ignore_enduser_should_only_apply_to_specified_route
+    get_and_assert_ok '/enduser'
+
+    refute_enduser_ignored(last_response)
+    assert_metrics_recorded([
+      "Controller/Sinatra/#{app_name}/GET enduser",
+      "Apdex/Sinatra/#{app_name}/GET enduser"])
+  end
+
   def test_ignore_enduser
     get_and_assert_ok '/no_enduser'
 
-    assert NewRelic::Agent::TransactionState.get.request_ignore_enduser
+    assert_enduser_ignored(last_response)
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/GET no_enduser",
       "Apdex/Sinatra/#{app_name}/GET no_enduser"])
@@ -183,6 +205,6 @@ class SinatraIgnoreApdexAndEndUserTest < SinatraTestCase
 
   def test_ignores_enduser
     get_and_assert_ok '/'
-    assert NewRelic::Agent::TransactionState.get.request_ignore_enduser
+    assert_enduser_ignored(last_response)
   end
 end

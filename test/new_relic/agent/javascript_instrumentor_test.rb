@@ -107,7 +107,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def test_browser_timing_header_with_ignored_enduser
     in_transaction do
-      NewRelic::Agent::TransactionState.get.request_ignore_enduser = true
+      NewRelic::Agent::Transaction.ignore_enduser!
       assert_equal "", instrumentor.browser_timing_header
     end
   end

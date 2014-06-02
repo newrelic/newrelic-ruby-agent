@@ -413,7 +413,6 @@ module NewRelic
 
           record_apdex(end_time) unless ignore_apdex?
           NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
-          NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
 
           record_exceptions
           merge_metrics

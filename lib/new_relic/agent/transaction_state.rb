@@ -55,7 +55,6 @@ module NewRelic
         @timings = nil
         @request = nil
         @request_token = nil
-        @request_ignore_enduser = false
         @is_cross_app_caller = false
         @referring_transaction_info = nil
         @current_transaction = transaction
@@ -84,7 +83,7 @@ module NewRelic
 
       # Request data
       attr_reader :request
-      attr_accessor :request_token, :request_ignore_enduser
+      attr_accessor :request_token
 
       def request_guid
         return nil unless ::NewRelic::Agent::Transaction.current
