@@ -76,7 +76,11 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   def test_record_apdex_metrics_with_error
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     advance_time(1.5)
-    @exit_payload[:exception] = StandardError.new("boo")
+
+    error = StandardError.new("boo")
+    @exit_payload[:exception] = error
+    NewRelic::Agent.notice_error(error)
+
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     expected_values = { :apdex_f => 1, :apdex_t => 0, :apdex_s => 0 }
