@@ -184,6 +184,47 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     )
   end
 
+  class SillyError < StandardError
+  end
+
+  def test_apdex_success_with_ignored_error
+    NewRelic::Agent.ignore_error_filter do |error|
+      error.is_a?(SillyError) ? nil : error
+    end
+
+    txn_name = 'Controller/whatever'
+    in_web_transaction(txn_name) do
+      NewRelic::Agent::Transaction.notice_error(SillyError.new)
+    end
+
+    in_web_transaction(txn_name) do
+      NewRelic::Agent::Transaction.notice_error(RuntimeError.new)
+    end
+
+    assert_metrics_recorded(
+      'Apdex'          => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 },
+      'Apdex/whatever' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 }
+    )
+  end
+
+  def test_apdex_success_with_config_ignored_error
+    txn_name = 'Controller/whatever'
+    with_config(:'error_collector.ignore_errors' => SillyError.name) do
+      in_web_transaction(txn_name) do
+        NewRelic::Agent::Transaction.notice_error(SillyError.new)
+      end
+
+      in_web_transaction(txn_name) do
+        NewRelic::Agent::Transaction.notice_error(RuntimeError.new)
+      end
+
+      assert_metrics_recorded(
+        'Apdex'          => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 },
+        'Apdex/whatever' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 }
+      )
+    end
+  end
+
   def test_name_is_unset_if_nil
     in_transaction do |txn|
       txn.default_name = nil
@@ -509,19 +550,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_ignore_apdex_returns_false_if_apdex_is_not_ignored
     in_transaction('Controller/test', :category => :sinatra) do
       refute NewRelic::Agent::Transaction.ignore_apdex?
-    end
-  end
-
-  def test_exception_encountered_returns_true_if_exception_encountered
-    in_transaction('Controller/test', :category => :sinatra) do
-      NewRelic::Agent::Transaction.exception_encountered!
-      assert NewRelic::Agent::Transaction.exception_encountered?
-    end
-  end
-
-  def test_exception_encountered_returns_false_if_no_exception
-    in_transaction('Controller/test', :category => :sinatra) do
-      refute NewRelic::Agent::Transaction.exception_encountered?
     end
   end
 

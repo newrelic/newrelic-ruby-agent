@@ -97,6 +97,9 @@ def dump_stats(stats)
   str << "  Min call time:        #{stats.min_call_time}\n"
   str << "  Max call time:        #{stats.max_call_time}\n"
   str << "  Sum of squares:       #{stats.sum_of_squares}\n"
+  str << "  Apdex S:              #{stats.apdex_s}\n"
+  str << "  Apdex T:              #{stats.apdex_t}\n"
+  str << "  Apdex F:              #{stats.apdex_f}\n"
   str
 end
 

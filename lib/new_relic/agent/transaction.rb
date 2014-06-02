@@ -196,14 +196,6 @@ module NewRelic
         current && current.ignore_enduser?
       end
 
-      def self.exception_encountered!
-        current && current.exception_encountered!
-      end
-
-      def self.exception_encountered?
-        current && current.exception_encountered?
-      end
-
       # This is the name of the model currently assigned to database
       # measurements, overriding the default.
       def self.database_metric_name
@@ -259,7 +251,6 @@ module NewRelic
         @ignore_this_transaction = false
         @ignore_apdex = false
         @ignore_enduser = false
-        @exception_encountered = false
       end
 
       def noticed_error_ids
@@ -555,7 +546,7 @@ module NewRelic
         freeze_name_and_execute_if_not_ignored do
           action_duration = end_time - start_time
           total_duration  = end_time - apdex_start
-          is_error = exception_encountered? || !exceptions.empty?
+          is_error = !notable_exceptions.empty?
 
           apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
           apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
@@ -712,12 +703,10 @@ module NewRelic
         @ignore_enduser
       end
 
-      def exception_encountered!
-        @exception_encountered = true
-      end
-
-      def exception_encountered?
-        @exception_encountered
+      def notable_exceptions
+        @exceptions.keys.select do |exception|
+          !NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
+        end
       end
 
       private

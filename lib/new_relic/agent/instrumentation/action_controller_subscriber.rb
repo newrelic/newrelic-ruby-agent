@@ -63,7 +63,6 @@ module NewRelic
         def stop_transaction(event)
           Transaction.ignore_apdex! if event.apdex_ignored?
           Transaction.ignore_enduser! if event.enduser_ignored?
-          Transaction.exception_encountered! if event.exception_encountered?
           Transaction.stop
         end
 
@@ -112,10 +111,6 @@ module NewRelic
 
         def enduser_ignored?
           _is_filtered?('ignore_enduser')
-        end
-
-        def exception_encountered?
-          payload[:exception]
         end
 
         # FIXME: shamelessly ripped from ControllerInstrumentation

@@ -35,9 +35,10 @@ module NewRelic
           @@manager ||= Manager.new
         end
 
-        # for testing
+        # For testing
+        # Important that we don't change the instance or we orphan callbacks
         def reset_config
-          @@manager = Manager.new
+          @@manager.reset_to_defaults
         end
       end
 
