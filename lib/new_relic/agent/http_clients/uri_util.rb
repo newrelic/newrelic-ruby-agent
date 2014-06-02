@@ -23,6 +23,19 @@ module NewRelic
           filtered.to_s
         end
 
+        # There are valid URI strings that some HTTP client libraries will
+        # accept that the stdlib URI module doesn't handle. If we find that
+        # Addressable is around, use that to normalize out our URL's.
+        def self.parse_url(url)
+          if defined?(::Addressable::URI)
+            address = ::Addressable::URI.parse(url)
+            address.normalize!
+            URI.parse(address.to_s)
+          else
+            URI.parse(url)
+          end
+        end
+
       end
     end
   end
