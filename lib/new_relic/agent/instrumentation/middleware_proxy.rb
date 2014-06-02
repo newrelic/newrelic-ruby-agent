@@ -9,6 +9,8 @@ module NewRelic
         include ::NewRelic::Agent::MethodTracer
         include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
+        CALL = "call".freeze
+
         def self.is_sinatra_app?(target)
           defined?(::Sinatra::Base) && target.kind_of?(::Sinatra::Base)
         end
@@ -26,7 +28,8 @@ module NewRelic
         def initialize(target, force_transaction=false)
           @target            = target
           @force_transaction = force_transaction
-          @target_class_name = target.class.name
+          @target_class_name = target.class.name.freeze
+          @metric_name       = "Nested/Controller/Rack/#{@target_class_name}/call".freeze
         end
 
         def _nr_has_middleware_tracing
@@ -36,11 +39,11 @@ module NewRelic
         def call(env)
           if @force_transaction || !Transaction.current
             req = ::Rack::Request.new(env)
-            perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => "call", :class_name => @target_class_name) do
+            perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => CALL, :class_name => @target_class_name) do
               @target.call(env)
             end
           else
-            trace_execution_scoped(["Nested/Controller/Rack/#{@target_class_name}/call"]) do
+            trace_execution_scoped(@metric_name) do
               @target.call(env)
             end
           end
