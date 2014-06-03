@@ -15,11 +15,18 @@ module NewRelic
     class Transaction
 
       # for nested transactions
-      SUBTRANSACTION_PREFIX = 'Nested/'.freeze
-      MIDDLEWARE_PREFIX = 'Controller/Middleware/Rack'.freeze
-      CONTROLLER_PREFIX     = 'Controller/'.freeze
-      NESTED_TRACE_STOP_OPTIONS   = { :metric => true }.freeze
-      WEB_TRANSACTION_CATEGORIES = [:controller, :uri, :rack, :sinatra, :middleware].freeze
+      SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
+      CONTROLLER_PREFIX            = 'Controller/'.freeze
+      MIDDLEWARE_PREFIX            = 'Middleware/'.freeze
+      CONTROLLER_MIDDLEWARE_PREFIX = 'Controller/Middleware/Rack'.freeze
+
+      NESTED_TRACE_STOP_OPTIONS    = { :metric => true }.freeze
+      WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :middleware].freeze
+
+      MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
+      EMPTY_SUMMARY_METRICS        = [].freeze
+
+      EMPTY_STRING                 = ''
 
       # A Time instance for the start time, never nil
       attr_accessor :start_time
@@ -150,10 +157,10 @@ module NewRelic
 
           nested_name = nested_transaction_name(nested_frame.name)
 
-          summary_metrics = []
-
-          if nested_name =~ /^Middleware/
-            summary_metrics << 'Middleware/all'
+          if nested_name.start_with?(MIDDLEWARE_PREFIX)
+            summary_metrics = MIDDLEWARE_SUMMARY_METRICS
+          else
+            summary_metrics = EMPTY_SUMMARY_METRICS
           end
 
           NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
@@ -173,8 +180,8 @@ module NewRelic
       end
 
       def self.nested_transaction_name(name)
-        if name.start_with?(MIDDLEWARE_PREFIX)
-          name.gsub('Controller/', '')
+        if name.start_with?(CONTROLLER_MIDDLEWARE_PREFIX)
+          name.sub(CONTROLLER_PREFIX, EMPTY_STRING)
         elsif name.start_with?(CONTROLLER_PREFIX)
           "#{SUBTRANSACTION_PREFIX}#{name}"
         else
