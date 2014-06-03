@@ -124,8 +124,6 @@ module NewRelic
         txn
       end
 
-      EMPTY = [].freeze
-
       def self.best_category
         current && current.best_category
       end
