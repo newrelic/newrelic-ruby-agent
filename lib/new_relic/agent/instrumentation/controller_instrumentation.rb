@@ -381,10 +381,6 @@ module NewRelic
           # passed as a parameter to add_transaction_tracer
           if opts.respond_to?(:keys) && opts.respond_to?(:[]) && opts[:request]
             opts[:request]
-          # in a Rack app
-          elsif opts.respond_to?(:keys) && opts.respond_to?(:[]) &&
-              opts['rack.version']
-            Rack::Request.new(args)
           # in a Rails app
           elsif self.respond_to?(:request)
             self.request

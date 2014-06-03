@@ -118,29 +118,26 @@ module NewRelic
         end
 
         def self.add_new_relic_tracing_to_middlewares(middleware_procs)
-          middleware_procs.map do |middleware_proc|
-            Proc.new do |app|
+          wrapped_procs = []
+          last_idx = middleware_procs.size - 1
+
+          middleware_procs.each_with_index do |middleware_proc, idx|
+            wrapped_procs << Proc.new do |app|
+              if idx == last_idx
+                # Note that this does not double-wrap the app. If there are
+                # N middlewares and 1 app, then we want N+1 wrappings. This
+                # is the +1.
+                app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
+              end
+
               result = middleware_proc.call(app)
 
-              klass = result.class
-              add_new_relic_tracing_to_middleware(klass)
-
-              result
+              ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
             end
           end
-        end
-
-        def self.add_new_relic_tracing_to_middleware(middleware_class)
-          return if middleware_class.instance_variable_get(:@_nr_traced_flag)
-          middleware_class.instance_variable_set(:@_nr_traced_flag, true)
-
-          middleware_class.instance_eval do
-            include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-            add_transaction_tracer(:call, :category => :rack, :request => '::Rack::Request.new(args.first)')
-          end
+          wrapped_procs
         end
       end
-
     end
   end
 end

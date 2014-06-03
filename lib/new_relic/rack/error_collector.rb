@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/rack/transaction_reset'
-require 'new_relic/agent/instrumentation/rack'
+require 'new_relic/rack/agent_middleware'
+require 'new_relic/agent/instrumentation/middleware_proxy'
 
 module NewRelic::Rack
   # This middleware is used by the agent in order to capture exceptions that
@@ -18,7 +18,7 @@ module NewRelic::Rack
       @app = app
     end
 
-    include TransactionReset
+    include AgentMiddleware
 
     def params_from_env(env)
       if defined?(ActionDispatch::Request)
@@ -51,18 +51,19 @@ module NewRelic::Rack
       strip_query_string(env['HTTP_REFERER'].to_s)
     end
 
-    def call(env)
-      ensure_transaction_reset(env)
-      @app.call(env)
-    rescue Exception => exception
-      NewRelic::Agent.logger.debug "collecting %p: %s" % [ exception.class, exception.message ]
-      if !should_ignore_error?(exception, env)
-        NewRelic::Agent.notice_error(exception,
-                                     :uri => uri_from_env(env),
-                                     :referer => referrer_from_env(env),
-                                     :request_params => params_from_env(env))
+    def traced_call(env)
+      begin
+        @app.call(env)
+      rescue Exception => exception
+        NewRelic::Agent.logger.debug "collecting %p: %s" % [ exception.class, exception.message ]
+        if !should_ignore_error?(exception, env)
+          NewRelic::Agent.notice_error(exception,
+                                       :uri => uri_from_env(env),
+                                       :referer => referrer_from_env(env),
+                                       :request_params => params_from_env(env))
+        end
+        raise exception
       end
-      raise exception
     end
 
     def should_ignore_error?(error, env)
@@ -70,4 +71,3 @@ module NewRelic::Rack
     end
   end
 end
-::NewRelic::Agent::Instrumentation::RackBuilder.add_new_relic_tracing_to_middleware(::NewRelic::Rack::ErrorCollector)

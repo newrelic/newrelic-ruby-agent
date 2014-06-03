@@ -3,8 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'rack'
-require 'new_relic/rack/transaction_reset'
-require 'new_relic/agent/instrumentation/rack'
+require 'new_relic/rack/agent_middleware'
+require 'new_relic/agent/instrumentation/middleware_proxy'
 
 module NewRelic::Rack
   # This middleware is used by the agent for the Real user monitoring (RUM)
@@ -20,11 +20,9 @@ module NewRelic::Rack
       @app = app
     end
 
-    include TransactionReset
+    include AgentMiddleware
 
-    # method required by Rack interface
-    def call(env)
-      ensure_transaction_reset(env)
+    def traced_call(env)
       result = @app.call(env)   # [status, headers, response]
 
       if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1])
@@ -138,6 +136,4 @@ module NewRelic::Rack
       end
     end
   end
-
 end
-::NewRelic::Agent::Instrumentation::RackBuilder.add_new_relic_tracing_to_middleware(::NewRelic::Rack::BrowserMonitoring)

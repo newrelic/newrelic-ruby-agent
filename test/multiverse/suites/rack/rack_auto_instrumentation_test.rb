@@ -6,6 +6,9 @@
 
 require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), 'example_app')
+require 'new_relic/rack/browser_monitoring'
+require 'new_relic/rack/agent_hooks'
+require 'new_relic/rack/error_collector'
 
 class RackAutoInstrumentationTest < Minitest::Test
   include MultiverseHelpers
@@ -18,6 +21,9 @@ class RackAutoInstrumentationTest < Minitest::Test
     @app ||= Rack::Builder.app do
       use MiddlewareOne
       use MiddlewareTwo
+      use NewRelic::Rack::BrowserMonitoring
+      use NewRelic::Rack::AgentHooks
+      use NewRelic::Rack::ErrorCollector
       run ExampleApp.new
     end
   end
@@ -55,14 +61,32 @@ class RackAutoInstrumentationTest < Minitest::Test
       [
         "Apdex",
         "HttpDispatcher",
-        "Apdex/Rack/MiddlewareTwo/call",
-        "Controller/Rack/MiddlewareTwo/call",
+        "Apdex/Rack/ExampleApp/call",
+        "Controller/Rack/ExampleApp/call",
         "Nested/Controller/Rack/MiddlewareOne/call",
         "Nested/Controller/Rack/MiddlewareTwo/call",
-        ["Nested/Controller/Rack/MiddlewareOne/call", "Controller/Rack/MiddlewareTwo/call"],
-        ["Nested/Controller/Rack/MiddlewareTwo/call", "Controller/Rack/MiddlewareTwo/call"]
+        "Nested/Controller/Rack/NewRelic::Rack::ErrorCollector/call",
+        "Nested/Controller/Rack/NewRelic::Rack::BrowserMonitoring/call",
+        "Nested/Controller/Rack/NewRelic::Rack::AgentHooks/call",
+        "Nested/Controller/Rack/ExampleApp/call",
+        ["Nested/Controller/Rack/NewRelic::Rack::ErrorCollector/call",    "Controller/Rack/ExampleApp/call"],
+        ["Nested/Controller/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Rack/ExampleApp/call"],
+        ["Nested/Controller/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Rack/ExampleApp/call"],
+        ["Nested/Controller/Rack/MiddlewareOne/call", "Controller/Rack/ExampleApp/call"],
+        ["Nested/Controller/Rack/MiddlewareTwo/call", "Controller/Rack/ExampleApp/call"],
+        ["Nested/Controller/Rack/ExampleApp/call",    "Controller/Rack/ExampleApp/call"]
       ],
       :ignore_filter => /^Supportability\/EnvironmentReport/
+    )
+  end
+
+  def test_middlewares_record_queue_time
+    t0 = freeze_time
+    advance_time(5.0)
+    get '/', {}, { 'HTTP_X_REQUEST_START' => "t=#{t0.to_f}" }
+
+    assert_metrics_recorded(
+      'WebFrontend/QueueTime' => { :total_call_time => 5.0 }
     )
   end
 end
