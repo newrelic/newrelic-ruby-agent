@@ -177,9 +177,10 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @entry_payload[:action] = 'ignored_enduser'
     @exit_payload[:action] = 'ignored_enduser'
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    txn = NewRelic::Agent::Transaction.current
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert NewRelic::Agent::TransactionState.get.request_ignore_enduser
+    assert txn.ignore_enduser?
   end
 
   def test_record_busy_time

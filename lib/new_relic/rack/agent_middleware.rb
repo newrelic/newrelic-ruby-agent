@@ -17,20 +17,11 @@ module NewRelic
       end
 
       def call(env)
-        ensure_transaction_reset(env)
-
         req = ::Rack::Request.new(env)
 
         perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => "call") do
           traced_call(env)
         end
-      end
-
-      def ensure_transaction_reset(env)
-        return if env.has_key?(RESET_KEY)
-
-        NewRelic::Agent::TransactionState.reset
-        env[RESET_KEY] = true
       end
     end
   end
