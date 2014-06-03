@@ -28,20 +28,6 @@ require 'new_relic/agent/configuration/manager'
 module NewRelic
   module Agent
     module Configuration
-      # This can be mixed in with minimal impact to provide easy
-      # access to the config manager
-      module Instance
-        def config
-          @@manager ||= Manager.new
-        end
-
-        # For testing
-        # Important that we don't change the instance or we orphan callbacks
-        def reset_config
-          @@manager.reset_to_defaults
-        end
-      end
-
       class DottedHash < ::Hash
         def initialize(hash)
           self.merge!(dot_flattened(hash))

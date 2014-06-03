@@ -32,7 +32,9 @@ module NewRelic
     # in realtime as the application runs, and periodically sends that
     # data to the NewRelic server.
     class Agent
-      extend NewRelic::Agent::Configuration::Instance
+      def self.config
+        ::NewRelic::Agent.config
+      end
 
       def initialize
         # FIXME: temporary work around for RUBY-839

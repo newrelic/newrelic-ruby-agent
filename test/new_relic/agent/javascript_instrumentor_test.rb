@@ -123,12 +123,15 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def test_browser_timing_header_safe_when_insert_js_fails
     in_transaction do
-      NewRelic::Agent.stubs(:config).raises("Hahahaha")
-      assert_equal "", instrumentor.browser_timing_header
+      begin
+        NewRelic::Agent.stubs(:config).raises("Hahahaha")
+        assert_equal "", instrumentor.browser_timing_header
+      ensure
+        # stopping the transaction touches config, so we need to ensure we
+        # clean up after ourselves here.
+        NewRelic::Agent.unstub(:config)
+      end
     end
-  ensure
-    # Teardown touches config, so make sure we're clean before we bail here
-    NewRelic::Agent.unstub(:config)
   end
 
   def test_browser_timing_header_safe_when_loader_generation_fails
