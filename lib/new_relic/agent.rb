@@ -118,8 +118,6 @@ module NewRelic
     require 'thread'
     require 'resolv'
 
-    extend NewRelic::Agent::Configuration::Instance
-
     # An exception that is thrown by the server if the agent license is invalid.
     class LicenseException < StandardError; end
 
@@ -169,6 +167,19 @@ module NewRelic
 
     def logger=(log)
       @logger = log
+    end
+
+    # This needs to come after the definition of the logger method above, since
+    # instantiating the config writes to the Logger.
+
+    @config = NewRelic::Agent::Configuration::Manager.new
+
+    attr_reader :config
+
+    # For testing
+    # Important that we don't change the instance or we orphan callbacks
+    def reset_config
+      @config.reset_to_defaults
     end
 
     # Record a value for the given metric name.
