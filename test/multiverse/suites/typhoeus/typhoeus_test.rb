@@ -103,6 +103,16 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
       end
     end
 
+    def test_request_succeeds_even_if_tracing_doesnt
+      in_transaction("test") do
+        ::NewRelic::Agent::CrossAppTracing.stubs(:start_trace).raises("Booom")
+        res = get_response
+
+        assert_match %r/<head>/i, body(res)
+        assert_metrics_not_recorded(["External/all"])
+      end
+    end
+
     def test_hydra
       in_transaction("test") do
         hydra = Typhoeus::Hydra.new

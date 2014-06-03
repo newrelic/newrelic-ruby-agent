@@ -70,5 +70,7 @@ module NewRelic::Agent::Instrumentation::TyphoeusTracing
       end
       request.on_complete.unshift(callback)
     end
+  rescue => e
+    NewRelic::Agent.logger.error("Exception during trace setup for Typhoeus request", e)
   end
 end
