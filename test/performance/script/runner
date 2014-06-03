@@ -22,6 +22,19 @@ parser = OptionParser.new do |opts|
   opts.on("-i", "--instrumentor=NAME", "Use the named instrumentor") do |name|
     options[:instrumentors] = [name]
   end
+  opts.on("-P", "--profile", "Do profiling around each test") do
+    best_profiling_instrumentor = [
+      Performance::Instrumentation::StackProfProfile,
+      Performance::Instrumentation::PerfToolsProfile
+    ].find(&:supported?)
+
+    if best_profiling_instrumentor
+      options[:inline] = true
+      options[:instrumentors] = [best_profiling_instrumentor.to_s]
+    else
+      Performance.logger.warn("Could not find a supported instrumentor for profiling.")
+    end
+  end
   opts.on("-s", "--suite=NAME", "Filter to just run a single test suite") do |name|
     options[:suite] = name
   end

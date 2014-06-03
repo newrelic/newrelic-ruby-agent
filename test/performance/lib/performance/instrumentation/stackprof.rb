@@ -13,20 +13,23 @@ module Performance
       end
 
       def before(test, test_name)
-        @profile_dir = Dir.mktmpdir('stackprof-profile')
-        @profile_path = File.join(@profile_dir, "profile.dump")
-        StackProf.start
+        StackProf.start(mode: :wall)
       end
 
       def after(test, test_name)
         StackProf.stop
-        report = StackProf::Report.new(StackProf.results)
-        output_profile_path = artifact_path(test, test_name, "dot")
-        File.open(output_profile_path, "w") do |f|
+
+        output_dump_path = artifact_path(test, test_name, "dump")
+        StackProf.results(output_dump_path)
+        @artifacts << output_dump_path
+
+        results = Marshal.load(File.read(output_dump_path))
+        output_dot_path = artifact_path(test, test_name, "dot")
+        report = StackProf::Report.new(results)
+        File.open(output_dot_path, "w") do |f|
           report.print_graphviz(nil, f)
         end
-        @artifacts << output_profile_path
-        FileUtils.remove_entry_secure(@profile_dir)
+        @artifacts << output_dot_path
       end
     end
   end
