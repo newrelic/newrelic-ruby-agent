@@ -9,7 +9,7 @@ module NewRelic
         include ::NewRelic::Agent::MethodTracer
         include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-        CALL = "call".freeze
+        CALL = "call".freeze unless defined?(CALL)
 
         def self.is_sinatra_app?(target)
           defined?(::Sinatra::Base) && target.kind_of?(::Sinatra::Base)
