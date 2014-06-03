@@ -12,10 +12,8 @@ module NewRelic
       class ExampleMiddleware
         include AgentMiddleware
 
-        def call(env)
-          with_tracing(env) do
-            [200, {}, ['yeah!']]
-          end
+        def traced_call(env)
+          [200, {}, ['yeah!']]
         end
       end
 
