@@ -31,15 +31,32 @@ class RackMiddleware < Performance::TestCase
 
   class TestApp
     def call(env)
-      [200, {}, ['hi']]
+      [200, { 'Content-Type' => 'text/html' }, ['<body>hi</body>']]
     end
   end
 
   def setup
+    require 'new_relic/rack/browser_monitoring'
+    require 'new_relic/rack/error_collector'
+    require 'new_relic/rack/agent_hooks'
+
     NewRelic::Agent.manual_start(
       :developer_mode => false,
       :monitor_mode   => false
     )
+
+    @config = {
+      :beacon                 => 'beacon',
+      :disable_mobile_headers => false,
+      :browser_key            => 'browserKey',
+      :js_agent_loader        => 'loader',
+      :application_id         => '5, 6', # collector can return app multiple ids
+      :'rum.enabled'          => true,
+      :episodes_file          => 'this_is_my_file',
+      :license_key            => 'a' * 40
+    }
+    NewRelic::Agent.config.add_config_for_testing(@config)
+
     @stack = Rack::Builder.new do
       use TestMiddlewareA
       use TestMiddlewareB
@@ -51,6 +68,9 @@ class RackMiddleware < Performance::TestCase
       use TestMiddlewareH
       use TestMiddlewareI
       use TestMiddlewareJ
+      use NewRelic::Rack::AgentHooks
+      use NewRelic::Rack::BrowserMonitoring
+      use NewRelic::Rack::ErrorCollector
       run TestApp.new
     end.to_app
     @env = {}
