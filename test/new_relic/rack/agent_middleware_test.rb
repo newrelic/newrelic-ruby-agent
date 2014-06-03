@@ -26,7 +26,7 @@ module NewRelic
 
       def test_with_tracing_creates_a_transaction
         middleware.call(env)
-        assert_metrics_recorded('Controller/Rack/NewRelic::Rack::AgentMiddlewareTest::ExampleMiddleware/call')
+        assert_metrics_recorded('Controller/Middleware/Rack/NewRelic::Rack::AgentMiddlewareTest::ExampleMiddleware/call')
       end
     end
   end

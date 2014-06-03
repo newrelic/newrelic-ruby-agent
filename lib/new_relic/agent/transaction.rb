@@ -390,12 +390,15 @@ module NewRelic
 
       def summary_metrics
         metrics = []
-        if @frozen_name =~ /^Controller\/Middleware/
-          metrics << 'Middleware/all'
+
+        if @frozen_name.start_with?(CONTROLLER_MIDDLEWARE_PREFIX)
+          metrics.concat(MIDDLEWARE_SUMMARY_METRICS)
         end
 
         metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@frozen_name)
-        metrics + metric_parser.summary_metrics
+        metrics.concat(metric_parser.summary_metrics)
+
+        metrics
       end
 
       def stop(end_time)
