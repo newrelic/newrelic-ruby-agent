@@ -72,5 +72,10 @@ class JSONWrapperTest < Minitest::Test
       expected = [string.dup.force_encoding('ISO-8859-1').encode('UTF-8')]
       assert_equal(expected, decoded)
     end
+
+    def test_normalize_converts_symbols_to_strings
+      result = NewRelic::JSONWrapper.normalize([:foo, :bar])
+      assert_equal(['foo', 'bar'], result)
+    end
   end
 end
