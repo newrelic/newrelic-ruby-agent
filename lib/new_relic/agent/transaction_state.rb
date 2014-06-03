@@ -86,8 +86,8 @@ module NewRelic
       attr_accessor :request_token
 
       def request_guid
-        return nil unless ::NewRelic::Agent::Transaction.current
-        ::NewRelic::Agent::Transaction.current.guid
+        return nil unless current_transaction
+        current_transaction.guid
       end
 
       def request_guid_to_include
@@ -96,7 +96,7 @@ module NewRelic
       end
 
       def include_guid?
-        request_token && timings.app_time_in_seconds > ::NewRelic::Agent::Transaction.current.apdex_t
+        request_token && timings.app_time_in_seconds > current_transaction.apdex_t
       end
 
       # Current transaction stack and sample building
@@ -104,23 +104,23 @@ module NewRelic
       attr_accessor :transaction_sample_builder
 
       def transaction_start_time
-        if ::NewRelic::Agent::Transaction.current.nil?
+        if current_transaction.nil?
           @last_reset_time
         else
-          ::NewRelic::Agent::Transaction.current.start_time
+          current_transaction.start_time
         end
       end
 
       def transaction_queue_time
-        ::NewRelic::Agent::Transaction.current.nil? ? 0.0 : ::NewRelic::Agent::Transaction.current.queue_time
+        current_transaction.nil? ? 0.0 : current_transaction.queue_time
       end
 
       def transaction_name
-        ::NewRelic::Agent::Transaction.current.nil? ? nil : ::NewRelic::Agent::Transaction.current.best_name
+        current_transaction.nil? ? nil : current_transaction.best_name
       end
 
       def transaction_noticed_error_ids
-        ::NewRelic::Agent::Transaction.current.nil? ? [] : ::NewRelic::Agent::Transaction.current.noticed_error_ids
+        current_transaction.nil? ? [] : current_transaction.noticed_error_ids
       end
 
       def self.in_background_transaction?(thread)
