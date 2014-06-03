@@ -231,6 +231,15 @@ module HttpClientTestCases
     assert_externals_recorded_for("localhost", "DELETE")
   end
 
+  if defined?(::Addressable)
+    def test_url_not_supported_by_stdlib_uri
+      res = get_response("#{protocol}://foo:^password*12@localhost:#{server.port}/status")
+
+      assert_match %r/<head>/i, body(res)
+      assert_externals_recorded_for("localhost", "GET")
+    end
+  end
+
   # When an http call is made, the agent should add a request header named
   # X-NewRelic-ID with a value equal to the encoded cross_app_id.
 

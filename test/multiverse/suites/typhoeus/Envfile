@@ -13,6 +13,15 @@ gemfile <<-RB
   gem 'typhoeus', '~> 0.6.5'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
+
+  # We try translating URIs through Addressable if it's there, so test with it.
+  gem 'addressable', :require => 'addressable/uri'
+RB
+
+gemfile <<-RB
+  gem 'typhoeus', '~> 0.6.5'
+  gem 'rack'
+  gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
 gemfile <<-RB

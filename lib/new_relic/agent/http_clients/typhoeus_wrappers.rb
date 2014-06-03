@@ -40,7 +40,7 @@ module NewRelic
           @request = request
           @uri = case request.url
             when ::URI then request.url
-            else ::URI.parse(request.url.to_s)
+            else NewRelic::Agent::HTTPClients::URIUtil.parse_url(request.url)
             end
         end
 
