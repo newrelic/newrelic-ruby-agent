@@ -246,7 +246,8 @@ module NewRelic
         end
 
         def transaction_metrics
-          Transaction.current && Transaction.current.metrics
+          txn = Transaction.current
+          txn && txn.metrics
         end
       end
     end
