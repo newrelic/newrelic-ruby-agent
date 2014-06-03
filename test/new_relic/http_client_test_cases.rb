@@ -233,7 +233,6 @@ module HttpClientTestCases
 
   if defined?(::Addressable)
     def test_url_not_supported_by_stdlib_uri
-      #require 'addressable/uri'
       res = get_response("#{protocol}://foo:^password*12@localhost:#{server.port}/status")
 
       assert_match %r/<head>/i, body(res)
