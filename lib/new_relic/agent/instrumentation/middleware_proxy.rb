@@ -30,6 +30,11 @@ module NewRelic
           @is_app            = is_app
           @target_class_name = target.class.name.freeze
           @category          = determine_category
+          @trace_opts        = {
+            :name       => CALL,
+            :category   => @category,
+            :class_name => @target_class_name
+          }
         end
 
         def determine_category
@@ -45,8 +50,8 @@ module NewRelic
         end
 
         def call(env)
-          req = ::Rack::Request.new(env)
-          perform_action_with_newrelic_trace(:category => @category, :request => req, :name => CALL, :class_name => @target_class_name) do
+          @trace_opts[:request] = ::Rack::Request.new(env)
+          perform_action_with_newrelic_trace(@trace_opts) do
             @target.call(env)
           end
         end
