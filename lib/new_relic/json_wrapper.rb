@@ -59,6 +59,8 @@ module NewRelic
       case object
       when String
         normalize_string(object)
+      when Symbol
+        normalize_string(object.to_s)
       when Array
         return object if object.empty?
         result = object.map { |x| normalize(x) }
