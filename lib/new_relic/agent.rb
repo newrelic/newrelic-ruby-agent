@@ -418,20 +418,20 @@ module NewRelic
     end
 
     # Check to see if we are capturing metrics currently on this thread.
-    def is_execution_traced?
-      NewRelic::Agent::TransactionState.get.is_traced?
+    def is_execution_traced?#CDP
+      NewRelic::Agent::TransactionState.tl_get.is_traced?
     end
 
     # helper method to check the thread local to determine whether the
     # transaction in progress is traced or not
-    def is_transaction_traced?
-      NewRelic::Agent::TransactionState.get.is_transaction_traced?
+    def is_transaction_traced?#CDP
+      NewRelic::Agent::TransactionState.tl_get.is_transaction_traced?
     end
 
     # helper method to check the thread local to determine whether sql
     # is being recorded or not
-    def is_sql_recorded?
-      NewRelic::Agent::TransactionState.get.is_sql_recorded?
+    def is_sql_recorded?#CDP
+      NewRelic::Agent::TransactionState.tl_get.is_sql_recorded?
     end
 
     # Set a filter to be applied to errors that the Ruby Agent will

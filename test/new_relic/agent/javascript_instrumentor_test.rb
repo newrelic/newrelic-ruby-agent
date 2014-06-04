@@ -29,7 +29,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def teardown
-    NewRelic::Agent::TransactionState.clear
+    NewRelic::Agent::TransactionState.tl_clear_for_testing
     NewRelic::Agent.config.reset_to_defaults
   end
 
@@ -159,7 +159,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
         txn.stubs(:start_time).returns(Time.now - 10)
         txn.stubs(:guid).returns('ABC')
 
-        state = NewRelic::Agent::TransactionState.get
+        state = NewRelic::Agent::TransactionState.tl_get
         state.request_token = '0123456789ABCDEF'
 
         data = instrumentor.data_for_js_agent

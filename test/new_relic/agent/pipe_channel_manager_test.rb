@@ -15,7 +15,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     NewRelic::Agent.config.add_config_for_testing(@test_config)
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     NewRelic::Agent.manual_start
-    NewRelic::Agent::TransactionState.clear
+    NewRelic::Agent::TransactionState.tl_clear_for_testing
   end
 
   def teardown

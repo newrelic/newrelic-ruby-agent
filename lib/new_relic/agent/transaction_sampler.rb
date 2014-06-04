@@ -285,23 +285,23 @@ module NewRelic
       # sample builder from the thread local, otherwise it generates a
       # new transaction sample builder with the stated time as a
       # starting point and saves it in the thread local variable
-      def start_builder(time=nil)
+      def start_builder(time=nil)#CDP
         if !enabled? || !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
           clear_builder
         else
-          TransactionState.get.transaction_sample_builder ||= TransactionSampleBuilder.new(time)
+          TransactionState.tl_get.transaction_sample_builder ||= TransactionSampleBuilder.new(time)
         end
       end
 
       # The current thread-local transaction sample builder
-      def builder
-        TransactionState.get.transaction_sample_builder
+      def builder#CDP
+        TransactionState.tl_get.transaction_sample_builder
       end
 
       # Sets the thread local variable storing the transaction sample
       # builder to nil to clear it
-      def clear_builder
-        TransactionState.get.transaction_sample_builder = nil
+      def clear_builder#CDP
+        TransactionState.tl_get.transaction_sample_builder = nil
       end
 
     end

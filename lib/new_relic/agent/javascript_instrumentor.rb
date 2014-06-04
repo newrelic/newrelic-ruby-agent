@@ -125,8 +125,8 @@ module NewRelic
       SSL_FOR_HTTP_KEY     = "sslForHttp".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
-      def data_for_js_agent
-        state = NewRelic::Agent::TransactionState.get
+      def data_for_js_agent#CDP
+        state = NewRelic::Agent::TransactionState.tl_get
         timings = state.timings
 
         data = {

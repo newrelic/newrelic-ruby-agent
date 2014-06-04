@@ -30,7 +30,7 @@ class ThreadProfiling < Performance::TestCase
     @nthreads.times do
       @threads << Thread.new do
         @threadq << self
-        transaction_state = NewRelic::Agent::TransactionState.get
+        transaction_state = NewRelic::Agent::TransactionState.tl_get
         def transaction_state.in_request_transaction?; true; end
         recurse(50, method(:block))
       end

@@ -100,8 +100,8 @@ module NewRelic
           error && filtered_error?(error)
         end
 
-        def seen?(exception)
-          error_ids = TransactionState.get.transaction_noticed_error_ids
+        def seen?(exception)#CDP
+          error_ids = TransactionState.tl_get.transaction_noticed_error_ids
           error_ids.include?(exception.object_id)
         end
 

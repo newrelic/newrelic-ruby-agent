@@ -118,10 +118,10 @@ module NewRelic
 
       TT_THRESHOLD_KEY = :'transaction_tracer.transaction_threshold'
 
-      def transaction_trace_threshold
+      def transaction_trace_threshold#CDP
         source_class = Agent.config.source(TT_THRESHOLD_KEY).class
-        if source_class == Configuration::DefaultSource && TransactionState.get.current_transaction
-          TransactionState.get.current_transaction.apdex_t * 4
+        if source_class == Configuration::DefaultSource && TransactionState.tl_get.current_transaction
+          TransactionState.tl_get.current_transaction.apdex_t * 4
         else
           Agent.config[TT_THRESHOLD_KEY]
         end

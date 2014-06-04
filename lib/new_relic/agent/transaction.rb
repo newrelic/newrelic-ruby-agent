@@ -61,8 +61,8 @@ module NewRelic
       attr_reader :transaction_trace
 
       # Return the currently active transaction, or nil.
-      def self.current
-        TransactionState.get.current_transaction
+      def self.current#CDP
+        TransactionState.tl_get.current_transaction
       end
 
       def self.set_default_transaction_name(name, options = {})
@@ -105,7 +105,7 @@ module NewRelic
         "#{namer.prefix_for_category(category)}#{name}"
       end
 
-      def self.start(category, options)
+      def self.start(category, options)#CDP
         category ||= :controller
         txn = current
 
@@ -120,7 +120,7 @@ module NewRelic
           txn.frame_stack << nested_frame
         else
           txn = Transaction.new(category, options)
-          TransactionState.get.reset(txn)
+          TransactionState.tl_get.reset(txn)
           txn.start
         end
 
@@ -131,12 +131,12 @@ module NewRelic
         current && current.best_category
       end
 
-      def self.stop(end_time=Time.now)
+      def self.stop(end_time=Time.now)#CDP
         txn = current
 
         if txn.frame_stack.empty?
           txn.stop(end_time)
-          TransactionState.get.reset
+          TransactionState.tl_get.reset
         else
           nested_frame = txn.frame_stack.pop
 
@@ -460,8 +460,8 @@ module NewRelic
         agent.events.notify(:transaction_finished, payload)
       end
 
-      def append_guid_to(payload)
-        guid = NewRelic::Agent::TransactionState.get.request_guid_for_event
+      def append_guid_to(payload)#CDP
+        guid = NewRelic::Agent::TransactionState.tl_get.request_guid_for_event
         if guid
           payload[:guid] = guid
         end

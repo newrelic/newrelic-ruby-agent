@@ -239,7 +239,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Minitest::Test
 
     in_transaction do
       with_config(config, :do_not_cast => true) do
-        NewRelic::Agent::TransactionState.get.current_transaction.stubs(:apdex_t).returns(1.5)
+        NewRelic::Agent::TransactionState.tl_get.current_transaction.stubs(:apdex_t).returns(1.5)
         assert_equal 4.0, @builder.transaction_trace_threshold
       end
     end

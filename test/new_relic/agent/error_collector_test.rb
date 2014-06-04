@@ -14,13 +14,13 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     @error_collector = NewRelic::Agent::ErrorCollector.new
     @error_collector.stubs(:enabled).returns(true)
 
-    NewRelic::Agent::TransactionState.clear
+    NewRelic::Agent::TransactionState.tl_clear_for_testing
     NewRelic::Agent.instance.stats_engine.reset!
   end
 
   def teardown
     super
-    NewRelic::Agent::TransactionState.clear
+    NewRelic::Agent::TransactionState.tl_clear_for_testing
     NewRelic::Agent.config.reset_to_defaults
   end
 

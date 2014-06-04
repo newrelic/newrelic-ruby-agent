@@ -13,7 +13,7 @@ class RequestStatsController < ApplicationController
   end
 
   def cross_app_action
-    NewRelic::Agent::TransactionState.get.is_cross_app_caller = true
+    NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
     render :text => 'some stuff'
   end
 

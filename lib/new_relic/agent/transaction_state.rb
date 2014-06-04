@@ -11,30 +11,30 @@ module NewRelic
     # This is THE location to store thread local information during a transaction
     # Need a new piece of data? Add a method here, NOT a new thread local variable.
     class TransactionState
-      def self.get
-        state_for(Thread.current)
+      def self.tl_get
+        tl_state_for(Thread.current)
       end
 
       # This method should only be used by TransactionState for access to the
       # current thread's state or to provide read-only accessors for other threads
       #
       # If ever exposed, this requires additional synchronization
-      def self.state_for(thread)
+      def self.tl_state_for(thread)
         thread[:newrelic_transaction_state] ||= TransactionState.new
       end
-      private_class_method :state_for
+      private_class_method :tl_state_for
 
-      def self.clear
+      def self.tl_clear_for_testing
         Thread.current[:newrelic_transaction_state] = nil
       end
 
       # This starts the timer for the transaction.
-      def self.reset
-        self.get.reset
+      def self.reset#CDP
+        self.tl_get.reset
       end
 
-      def self.request=(request)
-        self.get.request = request
+      def self.request=(request)#CDP
+        self.tl_get.request = request
       end
 
       def initialize
@@ -129,12 +129,12 @@ module NewRelic
         current_transaction.nil? ? [] : current_transaction.noticed_error_ids
       end
 
-      def self.in_background_transaction?(thread)
-        state_for(thread).in_background_transaction?
+      def self.tl_in_background_transaction?(thread)
+        tl_state_for(thread).in_background_transaction?
       end
 
-      def self.in_request_transaction?(thread)
-        state_for(thread).in_request_transaction?
+      def self.tl_in_request_transaction?(thread)
+        tl_state_for(thread).in_request_transaction?
       end
 
       def in_background_transaction?
