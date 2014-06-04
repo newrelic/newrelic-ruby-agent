@@ -39,7 +39,7 @@ module NewRelic
         ::NewRelic::Agent::Transaction.current
       end
 
-      def insert_js?
+      def insert_js?#CDP
         if !enabled?
           ::NewRelic::Agent.logger.log_once(:debug, :js_agent_disabled,
                                             "JS agent instrumentation is disabled.")
@@ -62,7 +62,7 @@ module NewRelic
         elsif !::NewRelic::Agent.is_transaction_traced?
           ::NewRelic::Agent.logger.debug "Transaction is not traced. Skipping browser instrumentation."
           false
-        elsif !::NewRelic::Agent.is_execution_traced?
+        elsif !::NewRelic::Agent.tl_is_execution_traced?
           ::NewRelic::Agent.logger.debug "Execution is not traced. Skipping browser instrumentation."
           false
         elsif ::NewRelic::Agent::Transaction.ignore_enduser?

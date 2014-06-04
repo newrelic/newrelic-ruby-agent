@@ -26,8 +26,8 @@ module NewRelic
           end
         end
 
-        def log_with_newrelic_instrumentation(*args, &block)
-          if !NewRelic::Agent.is_execution_traced?
+        def log_with_newrelic_instrumentation(*args, &block)#CDP
+          if !NewRelic::Agent.tl_is_execution_traced?
             return log_without_newrelic_instrumentation(*args, &block)
           end
 

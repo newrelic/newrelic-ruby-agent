@@ -35,8 +35,8 @@ module Sequel
 
 
     # Instrument all queries that go through #execute_query.
-    def log_yield( sql, args=nil )
-      return super unless NewRelic::Agent.is_execution_traced?
+    def log_yield(sql, args=nil)#CDP
+      return super unless NewRelic::Agent.tl_is_execution_traced?
 
       t0 = Time.now
       rval = super
@@ -44,8 +44,8 @@ module Sequel
 
       begin
         duration = t1 - t0
-        record_metrics( sql, args, duration )
-        notice_sql( sql, args, t0, t1 )
+        record_metrics(sql, args, duration)
+        notice_sql(sql, args, t0, t1)
       rescue => err
         NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
       end

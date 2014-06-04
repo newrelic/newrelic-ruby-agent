@@ -191,8 +191,8 @@ module NewRelic
         # We rely on the assumption that all possible entry points have been
         # hooked with tracers, ensuring that notice_sql attaches this SQL to
         # the proper call scope.
-        def log(msg)
-          return unless NewRelic::Agent.is_execution_traced?
+        def log(msg)#CDP
+          return unless NewRelic::Agent.tl_is_execution_traced?
           return unless operation = case NewRelic::Helper.correctly_encoded(msg.query)
                                     when /^\s*select/i          then 'find'
                                     when /^\s*(update|insert)/i then 'save'

@@ -418,7 +418,7 @@ module NewRelic
     end
 
     # Check to see if we are capturing metrics currently on this thread.
-    def is_execution_traced?#CDP
+    def tl_is_execution_traced?
       NewRelic::Agent::TransactionState.tl_get.is_traced?
     end
 

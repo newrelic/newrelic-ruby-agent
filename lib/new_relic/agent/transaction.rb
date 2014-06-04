@@ -353,8 +353,8 @@ module NewRelic
 
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
-      def start
-        return if !NewRelic::Agent.is_execution_traced?
+      def start#CDP
+        return if !NewRelic::Agent.tl_is_execution_traced?
 
         transaction_sampler.on_start_transaction(start_time, uri, filtered_params)
         sql_sampler.on_start_transaction(start_time, uri, filtered_params)
@@ -399,8 +399,8 @@ module NewRelic
         metrics
       end
 
-      def stop(end_time)
-        return if !NewRelic::Agent.is_execution_traced?
+      def stop(end_time)#CDP
+        return if !NewRelic::Agent.tl_is_execution_traced?
         freeze_name_and_execute_if_not_ignored
 
         name    = @frozen_name
@@ -562,8 +562,8 @@ module NewRelic
 
       APDEX_METRIC = 'Apdex'.freeze
 
-      def record_apdex(end_time=Time.now)
-        return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
+      def record_apdex(end_time=Time.now)#CDP
+        return unless recording_web_transaction? && NewRelic::Agent.tl_is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
           action_duration = end_time - start_time

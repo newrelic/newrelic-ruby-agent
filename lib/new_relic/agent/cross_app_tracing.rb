@@ -33,8 +33,8 @@ module NewRelic
       # See the documentation for +start_trace+ for an explanation of what
       # +request+ should look like.
       #
-      def trace_http_request( request )
-        return yield unless NewRelic::Agent.is_execution_traced?
+      def trace_http_request(request)#CDP
+        return yield unless NewRelic::Agent.tl_is_execution_traced?
 
         begin
           t0, segment = start_trace( request )

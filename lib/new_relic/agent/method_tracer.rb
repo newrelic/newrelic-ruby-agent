@@ -72,8 +72,8 @@ module NewRelic
       #
       # @api public
       #
-      def trace_execution_unscoped(metric_names, options={})
-        return yield unless NewRelic::Agent.is_execution_traced?
+      def trace_execution_unscoped(metric_names, options={})#CDP
+        return yield unless NewRelic::Agent.tl_is_execution_traced?
         t0 = Time.now
         begin
           yield
@@ -108,8 +108,8 @@ module NewRelic
         end
 
         # Shorthand to return the status of tracing
-        def traced?
-          NewRelic::Agent.is_execution_traced?
+        def traced?#CDP
+          NewRelic::Agent.tl_is_execution_traced?
         end
 
         # Shorthand to return the current statistics engine
@@ -311,7 +311,7 @@ module NewRelic
           # instrumentation into effectively one method call overhead
           # when the agent is disabled
           def assemble_code_header(method_name, metric_name_code, options)
-              header = "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.is_execution_traced?\n"
+              header = "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?\n"
 
               header += options[:code_header].to_s
 

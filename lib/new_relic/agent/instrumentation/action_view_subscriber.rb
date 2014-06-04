@@ -9,21 +9,21 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionViewSubscriber < EventedSubscriber
-        def start(name, id, payload)
+        def start(name, id, payload)#CDP
           event = RenderEvent.new(name, Time.now, nil, id, payload)
           push_event(event)
 
-          if NewRelic::Agent.is_execution_traced? && event.recordable?
+          if NewRelic::Agent.tl_is_execution_traced? && event.recordable?
             event.frame = NewRelic::Agent::TracedMethodStack.push_frame(:action_view, event.time)
           end
         rescue => e
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload)
+        def finish(name, id, payload)#CDP
           event = pop_event(id)
 
-          if NewRelic::Agent.is_execution_traced? && event.recordable?
+          if NewRelic::Agent.tl_is_execution_traced? && event.recordable?
             frame = NewRelic::Agent::TracedMethodStack.pop_frame(event.frame, event.metric_name, event.end)
             record_metrics(event, frame)
           end

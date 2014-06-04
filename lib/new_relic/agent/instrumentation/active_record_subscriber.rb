@@ -11,15 +11,15 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActiveRecordSubscriber < EventedSubscriber
-        def start(name, id, payload)
-          return unless NewRelic::Agent.is_execution_traced?
+        def start(name, id, payload)#CDP
+          return unless NewRelic::Agent.tl_is_execution_traced?
           super
         rescue => e
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload)
-          return unless NewRelic::Agent.is_execution_traced?
+        def finish(name, id, payload)#CDP
+          return unless NewRelic::Agent.tl_is_execution_traced?
           event = pop_event(id)
           record_metrics(event)
           notice_sql(event)
