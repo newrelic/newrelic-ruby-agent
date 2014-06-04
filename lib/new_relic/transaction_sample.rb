@@ -101,11 +101,11 @@ module NewRelic
     end
 
     # relative_timestamp is seconds since the start of the transaction
-    def create_segment(relative_timestamp, metric_name=nil, segment_id = nil)
+    def create_segment(relative_timestamp, metric_name=nil)
       raise TypeError.new("Frozen Transaction Sample") if finished
       @params[:segment_count] += 1
       @segment_count += 1
-      NewRelic::TransactionSample::Segment.new(relative_timestamp, metric_name, segment_id)
+      NewRelic::TransactionSample::Segment.new(relative_timestamp, metric_name)
     end
 
     def duration
@@ -156,25 +156,6 @@ module NewRelic
       s <<  @root_segment.to_debug_str(0)
     end
 
-    # return a new transaction sample that treats segments
-    # with the given regular expression in their name as if they
-    # were never called at all.  This allows us to strip out segments
-    # from traces captured in development environment that would not
-    # normally show up in production (like Rails/Application Code Loading)
-    def omit_segments_with(regex)
-      regex = Regexp.new(regex)
-
-      sample = TransactionSample.new(@start_time, sample_id)
-
-      sample.params = params.dup
-      sample.params[:segment_count] = 0
-
-      delta = build_segment_with_omissions(sample, 0.0, @root_segment, sample.root_segment, regex)
-      sample.root_segment.end_trace(@root_segment.exit_timestamp - delta)
-      sample.profile = self.profile
-      sample
-    end
-
     # Return a new transaction sample that can be sent to the New
     # Relic service.
     def prepare_to_send!
@@ -202,36 +183,6 @@ module NewRelic
     end
 
   private
-
-    # This is badly in need of refactoring
-    def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)
-      source_segment.called_segments.each do |source_called_segment|
-        # if this segment's metric name matches the given regular expression, bail
-        # here and increase the amount of time that we reduce the target sample with
-        # by this omitted segment's duration.
-        do_omit = regex =~ source_called_segment.metric_name
-
-        if do_omit
-          time_delta += source_called_segment.duration
-        else
-          target_called_segment = new_sample.create_segment(
-                source_called_segment.entry_timestamp - time_delta,
-                source_called_segment.metric_name,
-                source_called_segment.segment_id)
-
-          target_segment.add_called_segment target_called_segment
-          source_called_segment.params.each do |k,v|
-            target_called_segment[k]=v
-          end
-
-          time_delta = build_segment_with_omissions(
-                new_sample, time_delta, source_called_segment, target_called_segment, regex)
-          target_called_segment.end_trace(source_called_segment.exit_timestamp - time_delta)
-        end
-      end
-
-      return time_delta
-    end
 
     def strip_sql!
       each_segment do |segment|

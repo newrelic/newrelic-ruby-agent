@@ -61,66 +61,6 @@ class NewRelic::Agent::TransationSampleBuilderTest < Minitest::Test
     end
   end
 
-  # this is really a test for transaction sample
-  def test_omit_segments_with
-    build_segment "Controller/my_controller/index" do
-      advance_time 0.010
-
-      build_segment "Rails/Application Code Loading" do
-        advance_time 0.020
-
-        build_segment "foo/bar" do
-          advance_time 0.010
-        end
-      end
-
-      build_segment "a" do
-        build_segment "ab"
-        advance_time 0.010
-      end
-      build_segment "b" do
-        build_segment "ba"
-        advance_time 0.05
-        build_segment "bb"
-        build_segment "bc" do
-          build_segment "bca"
-          advance_time 0.05
-        end
-      end
-      build_segment "c"
-    end
-    @builder.finish_trace(Time.now.to_f)
-
-    validate_builder false
-
-    sample = @builder.sample
-
-    should_be_a_copy = sample.omit_segments_with('OMIT NOTHING')
-    validate_segment should_be_a_copy.root_segment, false
-
-    assert_equal sample.params, should_be_a_copy.params
-    assert_equal(sample.root_segment.to_debug_str(0),
-                 should_be_a_copy.root_segment.to_debug_str(0))
-
-    without_code_loading = sample.omit_segments_with('Rails/Application Code Loading')
-    validate_segment without_code_loading.root_segment, false
-
-    # after we take out code loading, the delta should be approximately
-    # 30 milliseconds
-    delta = (sample.duration - without_code_loading.duration) * 1000
-
-    # Need to allow substantial headroom on the upper bound to prevent
-    # spurious errors.
-    assert delta >= 28, "delta #{delta} should be between 28 and 100"
-    # disable this test for a couple days:
-    assert delta <= 100, "delta #{delta} should be between 28 and 100"
-
-    # ensure none of the segments have this regex
-    without_code_loading.each_segment do |segment|
-      assert_nil segment.metric_name =~ /Rails\/Application Code Loading/
-    end
-  end
-
   def test_marshal
     build_segment "a" do
       build_segment "ab"

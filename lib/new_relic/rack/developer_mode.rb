@@ -227,8 +227,7 @@ module NewRelic
           sample.params[:path] != nil
         end
 
-        return @samples = @samples.sort{|x,y| y.omit_segments_with('(Rails/Application Code Loading)|(Database/.*/.+ Columns)').duration <=>
-          x.omit_segments_with('(Rails/Application Code Loading)|(Database/.*/.+ Columns)').duration} if params['h']
+        return @samples = @samples.sort_by(&:duration).reverse                   if params['h']
         return @samples = @samples.sort{|x,y| x.params[:uri] <=> y.params[:uri]} if params['u']
         @samples = @samples.reverse
       end
@@ -239,7 +238,7 @@ module NewRelic
         sample_id = id.to_i
         @samples.each do |s|
           if s.sample_id == sample_id
-            @sample = stripped_sample(s)
+            @sample = s
             return
           end
         end
