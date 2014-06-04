@@ -35,11 +35,7 @@ module NewRelic
         @obfuscator ||= NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:license_key], RUM_KEY_LENGTH)
       end
 
-      def current_transaction#CDP
-        ::NewRelic::Agent::Transaction.tl_current
-      end
-
-      def insert_js?#CDP
+      def js_enabled_and_ready?
         if !enabled?
           ::NewRelic::Agent.logger.log_once(:debug, :js_agent_disabled,
                                             "JS agent instrumentation is disabled.")
@@ -56,16 +52,25 @@ module NewRelic
           ::NewRelic::Agent.logger.log_once(:debug, :missing_browser_key,
                                             "Browser key is not set. Skipping browser instrumentation.")
           false
-        elsif !current_transaction
+        else
+          true
+        end
+      rescue => e
+        ::NewRelic::Agent.logger.debug "Failure during 'js_enabled_and_ready?'", e
+        false
+      end
+
+      def insert_js?(state)
+        if !state.current_transaction
           ::NewRelic::Agent.logger.debug "Not in transaction. Skipping browser instrumentation."
           false
-        elsif !::NewRelic::Agent.is_transaction_traced?
+        elsif !state.is_transaction_traced?
           ::NewRelic::Agent.logger.debug "Transaction is not traced. Skipping browser instrumentation."
           false
-        elsif !::NewRelic::Agent.tl_is_execution_traced?
+        elsif !state.is_traced?
           ::NewRelic::Agent.logger.debug "Execution is not traced. Skipping browser instrumentation."
           false
-        elsif ::NewRelic::Agent::Transaction.ignore_enduser?
+        elsif state.current_transaction.ignore_enduser?
           ::NewRelic::Agent.logger.debug "Ignore end user for this transaction is set. Skipping browser instrumentation."
           false
         else
@@ -81,29 +86,31 @@ module NewRelic
         value.nil? || value.empty?
       end
 
-      def browser_timing_header
-        return "" unless insert_js?
-        bt_config = browser_timing_config
+      def browser_timing_header#CDP
+        return '' unless js_enabled_and_ready? # fast exit
+
+        state = NewRelic::Agent::TransactionState.tl_get
+        return '' unless insert_js?(state) # slower exit
+
+        bt_config = browser_timing_config(state)
         return '' if bt_config.empty?
 
         bt_config + browser_timing_loader
       rescue => e
         ::NewRelic::Agent.logger.debug "Failure during RUM browser_timing_header construction", e
-        ""
+        ''
       end
 
-      # NOTE: Internal prototyping often overrides this, so leave name stable!
       def browser_timing_loader
         html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
       end
 
-      # NOTE: Internal prototyping often overrides this, so leave name stable!
-      def browser_timing_config
-        txn = current_transaction
+      def browser_timing_config(state)
+        txn = state.current_transaction
         return '' if txn.nil?
 
         txn.freeze_name_and_execute_if_not_ignored do
-          data = data_for_js_agent
+          data = data_for_js_agent(state)
           json = NewRelic::JSONWrapper.dump(data)
           return html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
         end
@@ -125,8 +132,7 @@ module NewRelic
       SSL_FOR_HTTP_KEY     = "sslForHttp".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
-      def data_for_js_agent#CDP
-        state = NewRelic::Agent::TransactionState.tl_get
+      def data_for_js_agent(state)
         timings = state.timings
 
         data = {
@@ -143,7 +149,7 @@ module NewRelic
         }
 
         add_ssl_for_http(data)
-        add_user_attributes(data)
+        add_user_attributes(data, state.current_transaction)
 
         data
       end
@@ -155,10 +161,10 @@ module NewRelic
         end
       end
 
-      def add_user_attributes(data)
-        return unless include_custom_parameters?
+      def add_user_attributes(data, txn)
+        return unless include_custom_parameters?(txn)
 
-        params = event_params(current_transaction.custom_parameters)
+        params = event_params(txn.custom_parameters)
         json = NewRelic::JSONWrapper.dump(params)
         data[USER_ATTRIBUTES_KEY] = obfuscator.obfuscate(json)
       end
@@ -166,16 +172,14 @@ module NewRelic
       # Still support deprecated capture_attributes.page_view_events for
       # clients that use it. Could potentially be removed if we don't have
       # anymore users with it set according to zeitgeist.
-      def include_custom_parameters?
-        has_custom_parameters? &&
+      def include_custom_parameters?(txn)
+        has_custom_parameters?(txn) &&
           (NewRelic::Agent.config[:'browser_monitoring.capture_attributes'] ||
            NewRelic::Agent.config[:'capture_attributes.page_view_events'])
       end
 
-      def has_custom_parameters?
-        current_transaction &&
-          current_transaction.custom_parameters &&
-          !current_transaction.custom_parameters.empty?
+      def has_custom_parameters?(txn)
+        txn && txn.custom_parameters && !txn.custom_parameters.empty?
       end
 
       def html_safe_if_needed(string)
