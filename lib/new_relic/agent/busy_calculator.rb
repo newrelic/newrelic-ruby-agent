@@ -25,8 +25,9 @@ module NewRelic
       # transactions - used for a rough estimate of what percentage of
       # wall clock time is spent processing requests
       def dispatcher_start(time)#CDP
-        TransactionState.tl_get.busy_entries ||= 0
-        callers = TransactionState.tl_get.busy_entries += 1
+        state = TransactionState.tl_get
+        state.busy_entries ||= 0
+        callers = state.busy_entries += 1
         return if callers > 1
         @lock.synchronize do
           @entrypoint_stack.push time
@@ -37,11 +38,12 @@ module NewRelic
       # instance variable accumulator. this is harvested when we send
       # data to the server
       def dispatcher_finish(end_time = nil)#CDP
+        state = TransactionState.tl_get
         # If #dispatcher_start hasn't been called at least once, abort early
-        return unless TransactionState.tl_get.busy_entries
+        return unless state.busy_entries
 
         end_time ||= time_now
-        callers = TransactionState.tl_get.busy_entries -= 1
+        callers = state.busy_entries -= 1
 
         # Ignore nested calls
         return if callers > 0
