@@ -23,7 +23,7 @@ module NewRelic
       end
 
       def on_transaction(*_)
-        return unless restart_in_children_enabled? && needs_restart?
+        return unless restart_in_children_enabled? && needs_restart? && harvest_thread_enabled?
 
         needs_thread_start = false
         @lock.synchronize do
@@ -46,6 +46,10 @@ module NewRelic
 
       def restart_in_children_enabled?
         NewRelic::Agent.config[:restart_thread_in_children]
+      end
+
+      def harvest_thread_enabled?
+        !NewRelic::Agent.config[:disable_harvest_thread]
       end
 
       def restart_harvest_thread

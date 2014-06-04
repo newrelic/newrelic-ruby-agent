@@ -229,6 +229,7 @@ module NewRelic
             when :rack       then RACK_PREFIX
             when :uri        then URI_PREFIX
             when :sinatra    then SINATRA_PREFIX
+            when :middleware then NewRelic::Agent::Transaction::CONTROLLER_MIDDLEWARE_PREFIX
             else category.to_s # for internal use only
             end
           end

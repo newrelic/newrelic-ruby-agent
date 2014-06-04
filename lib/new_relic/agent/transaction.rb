@@ -15,11 +15,18 @@ module NewRelic
     class Transaction
 
       # for nested transactions
-      SUBTRANSACTION_PREFIX = 'Nested/'.freeze
-      CONTROLLER_PREFIX     = 'Controller/'.freeze
-      NESTED_TRACE_STOP_OPTIONS   = { :metric => true }.freeze
+      SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
+      CONTROLLER_PREFIX            = 'Controller/'.freeze
+      MIDDLEWARE_PREFIX            = 'Middleware/'.freeze
+      CONTROLLER_MIDDLEWARE_PREFIX = 'Controller/Middleware/Rack'.freeze
 
-      WEB_TRANSACTION_CATEGORIES = [:controller, :uri, :rack, :sinatra].freeze
+      NESTED_TRACE_STOP_OPTIONS    = { :metric => true }.freeze
+      WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :middleware].freeze
+
+      MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
+      EMPTY_SUMMARY_METRICS        = [].freeze
+
+      EMPTY_STRING                 = ''
 
       # A Time instance for the start time, never nil
       attr_accessor :start_time
@@ -117,8 +124,6 @@ module NewRelic
         txn
       end
 
-      EMPTY = [].freeze
-
       def self.best_category
         current && current.best_category
       end
@@ -148,10 +153,18 @@ module NewRelic
             txn.name_from_child ||= nested_frame.name
           end
 
+          nested_name = nested_transaction_name(nested_frame.name)
+
+          if nested_name.start_with?(MIDDLEWARE_PREFIX)
+            summary_metrics = MIDDLEWARE_SUMMARY_METRICS
+          else
+            summary_metrics = EMPTY_SUMMARY_METRICS
+          end
+
           NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
             nested_frame.start_time.to_f,
-            nested_transaction_name(nested_frame.name),
-            EMPTY,
+            nested_name,
+            summary_metrics,
             nested_frame,
             NESTED_TRACE_STOP_OPTIONS,
             end_time.to_f)
@@ -161,7 +174,9 @@ module NewRelic
       end
 
       def self.nested_transaction_name(name)
-        if name.start_with?(CONTROLLER_PREFIX)
+        if name.start_with?(CONTROLLER_MIDDLEWARE_PREFIX)
+          name.sub(CONTROLLER_PREFIX, EMPTY_STRING)
+        elsif name.start_with?(CONTROLLER_PREFIX)
           "#{SUBTRANSACTION_PREFIX}#{name}"
         else
           name
@@ -368,8 +383,16 @@ module NewRelic
       end
 
       def summary_metrics
+        metrics = []
+
+        if @frozen_name.start_with?(CONTROLLER_MIDDLEWARE_PREFIX)
+          metrics.concat(MIDDLEWARE_SUMMARY_METRICS)
+        end
+
         metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@frozen_name)
-        metric_parser.summary_metrics
+        metrics.concat(metric_parser.summary_metrics)
+
+        metrics
       end
 
       def stop(end_time)

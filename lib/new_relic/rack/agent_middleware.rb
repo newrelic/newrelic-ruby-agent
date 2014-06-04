@@ -18,8 +18,7 @@ module NewRelic
 
       def call(env)
         req = ::Rack::Request.new(env)
-
-        perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => "call") do
+        perform_action_with_newrelic_trace(:category => :middleware, :request => req, :name => "call") do
           traced_call(env)
         end
       end

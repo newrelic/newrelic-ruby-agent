@@ -61,7 +61,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
   def test_to_s
     s1 = NewRelic::Agent::Stats.new
     s1.trace_call 10
-    assert_equal("[ 1 calls 10.0000s]", s1.to_s)
+    assert_equal("[ 1 calls 10.0000s / 10.0000s ex]", s1.to_s)
   end
 
   def test_apdex_recording

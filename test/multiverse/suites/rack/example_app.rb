@@ -14,8 +14,11 @@ class MiddlewareOne
   end
 
   def call(env)
+    advance_time(1)
     status, headers, body = @app.call(env)
     headers['MiddlewareOne'] = '1'
+
+    advance_time(1)
     [status, headers, body]
   end
 end
@@ -26,7 +29,15 @@ class MiddlewareTwo
   end
 
   def call(env)
-    status, headers, body = @app.call(env)
+    advance_time(1)
+    request = Rack::Request.new(env)
+
+    if request.params['return-early']
+      status, headers, body = '200', {}, ['Hi']
+    else
+      status, headers, body = @app.call(env)
+    end
+
     headers['MiddlewareTwo'] = '2'
     [status, headers, body]
   end

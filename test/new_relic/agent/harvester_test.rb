@@ -64,6 +64,15 @@ module NewRelic
         end
       end
 
+      def test_doesnt_call_to_restart_if_harvest_thread_disabled
+        pretend_started_in_another_process
+        @after_forker.expects(:after_fork).never
+
+        with_config(:disable_harvest_thread => true) do
+          harvester.on_transaction
+        end
+      end
+
       def test_calls_to_restart_only_once
         pretend_started_in_another_process
         @after_forker.expects(:after_fork).once

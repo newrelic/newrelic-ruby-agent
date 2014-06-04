@@ -11,20 +11,22 @@ if Rails::VERSION::MAJOR.to_i >= 3
 class MiddlewareInstrumentationTest < RailsMultiverseTest
   def test_rails_middleware_records_metrics
     get('/')
-    assert_metrics_recorded('Nested/Controller/Rack/Rails::Rack::Logger/call')
+    assert_metrics_recorded(
+      ['Middleware/all', 'Middleware/Rack/Rails::Rack::Logger/call']
+    )
   end
 
   if Rails::VERSION::MAJOR >= 4
     def test_rails_middlewares_constructed_by_name
       get('/')
       assert response.headers['NamedMiddleware'], "NamedMiddleware should have been called, but wasn't"
-      assert_metrics_recorded('Nested/Controller/Rack/NamedMiddleware/call')
+      assert_metrics_recorded('Middleware/Rack/NamedMiddleware/call')
     end
 
     def test_rails_middlewares_passed_as_instances
       get('/')
       assert response.headers['InstanceMiddleware'], "InstanceMiddleware should have been called, but wasn't"
-      assert_metrics_recorded('Nested/Controller/Rack/InstanceMiddleware/call')
+      assert_metrics_recorded('Middleware/Rack/InstanceMiddleware/call')
     end
   end
 end

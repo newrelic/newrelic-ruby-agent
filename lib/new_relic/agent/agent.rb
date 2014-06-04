@@ -638,8 +638,7 @@ module NewRelic
         #
         # See #connect for a description of connection_options.
         def start_worker_thread(connection_options = {})
-          disable = NewRelic::Agent.config[:disable_harvest_thread]
-          if disable
+          if disable = NewRelic::Agent.config[:disable_harvest_thread]
             NewRelic::Agent.logger.info "Not starting Ruby Agent worker thread because :disable_harvest_thread is #{disable}"
             return
           end

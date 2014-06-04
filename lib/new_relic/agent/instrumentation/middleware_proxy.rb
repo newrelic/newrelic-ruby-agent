@@ -15,21 +15,34 @@ module NewRelic
           defined?(::Sinatra::Base) && target.kind_of?(::Sinatra::Base)
         end
 
-        def self.wrap(target, force_transaction=false)
+        def self.wrap(target, is_app=false)
           if target.respond_to?(:_nr_has_middleware_tracing)
             target
           elsif is_sinatra_app?(target)
             target
           else
-            self.new(target, force_transaction)
+            self.new(target, is_app)
           end
         end
 
-        def initialize(target, force_transaction=false)
+        def initialize(target, is_app=false)
           @target            = target
-          @force_transaction = force_transaction
+          @is_app            = is_app
           @target_class_name = target.class.name.freeze
-          @metric_name       = "Nested/Controller/Rack/#{@target_class_name}/call".freeze
+          @category          = determine_category
+          @trace_opts        = {
+            :name       => CALL,
+            :category   => @category,
+            :class_name => @target_class_name
+          }
+        end
+
+        def determine_category
+          if @is_app
+            :rack
+          else
+            :middleware
+          end
         end
 
         def _nr_has_middleware_tracing
@@ -37,15 +50,9 @@ module NewRelic
         end
 
         def call(env)
-          if @force_transaction || !Transaction.current
-            req = ::Rack::Request.new(env)
-            perform_action_with_newrelic_trace(:category => :rack, :request => req, :name => CALL, :class_name => @target_class_name) do
-              @target.call(env)
-            end
-          else
-            trace_execution_scoped(@metric_name) do
-              @target.call(env)
-            end
+          @trace_opts[:request] = ::Rack::Request.new(env)
+          perform_action_with_newrelic_trace(@trace_opts) do
+            @target.call(env)
           end
         end
       end
