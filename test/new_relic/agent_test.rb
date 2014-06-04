@@ -320,7 +320,7 @@ module NewRelic
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.txn do
-        NewRelic::Agent::Transaction.current.freeze_name_and_execute_if_not_ignored do
+        NewRelic::Agent::Transaction.tl_current.freeze_name_and_execute_if_not_ignored do
           NewRelic::Agent.set_transaction_name('new_name')
         end
       end

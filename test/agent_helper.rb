@@ -235,7 +235,7 @@ def in_transaction(*args)
   val = nil
 
   begin
-    val = yield NewRelic::Agent::Transaction.current
+    val = yield NewRelic::Agent::Transaction.tl_current
   ensure
     NewRelic::Agent::Transaction.stop()
   end

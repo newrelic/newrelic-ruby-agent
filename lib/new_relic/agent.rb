@@ -524,8 +524,8 @@ module NewRelic
     #
     # @api public
     #
-    def get_transaction_name
-      txn = Transaction.current
+    def get_transaction_name#CDP
+      txn = Transaction.tl_current
       if txn
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
         txn.best_name.sub(Regexp.new("\\A#{Regexp.escape(namer.prefix_for_category)}"), '')
@@ -543,8 +543,8 @@ module NewRelic
     #
     # @api public
     #
-    def with_database_metric_name(model, method, &block)
-      if txn = Transaction.current
+    def with_database_metric_name(model, method, &block)#CDP
+      if txn = Transaction.tl_current
         txn.with_database_metric_name(model, method, &block)
       else
         yield

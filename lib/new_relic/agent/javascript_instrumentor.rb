@@ -35,8 +35,8 @@ module NewRelic
         @obfuscator ||= NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:license_key], RUM_KEY_LENGTH)
       end
 
-      def current_transaction
-        ::NewRelic::Agent::Transaction.current
+      def current_transaction#CDP
+        ::NewRelic::Agent::Transaction.tl_current
       end
 
       def insert_js?#CDP
@@ -99,7 +99,7 @@ module NewRelic
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def browser_timing_config
-        txn = Transaction.current
+        txn = current_transaction
         return '' if txn.nil?
 
         txn.freeze_name_and_execute_if_not_ignored do

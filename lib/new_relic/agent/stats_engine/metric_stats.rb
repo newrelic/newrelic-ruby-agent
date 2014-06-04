@@ -47,8 +47,8 @@ module NewRelic
         #
         # @api private
         #
-        def record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)
-          txn = Transaction.current
+        def record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)#CDP
+          txn = Transaction.tl_current
           if txn
             txn.metrics.record_unscoped(metric_names, value, aux, &blk)
           else
@@ -78,8 +78,8 @@ module NewRelic
         #
         # @api private
         #
-        def record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
-          txn = Transaction.current
+        def record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)#CDP
+          txn = Transaction.tl_current
           if txn
             txn.metrics.record_scoped(scoped_metric, value, aux, &blk)
             txn.metrics.record_unscoped(scoped_metric, value, aux, &blk)

@@ -61,12 +61,12 @@ module NewRelic
       attr_reader :transaction_trace
 
       # Return the currently active transaction, or nil.
-      def self.current#CDP
+      def self.tl_current
         TransactionState.tl_get.current_transaction
       end
 
-      def self.set_default_transaction_name(name, options = {})
-        txn  = current
+      def self.set_default_transaction_name(name, options = {})#CDP
+        txn  = tl_current
         name = make_transaction_name(name, options[:category])
 
         if txn.frame_stack.empty?
@@ -77,8 +77,8 @@ module NewRelic
         end
       end
 
-      def self.set_overriding_transaction_name(name, options = {})
-        txn = current
+      def self.set_overriding_transaction_name(name, options = {})#CDP
+        txn = tl_current
         return unless txn
 
         name = make_transaction_name(name, options[:category])
@@ -107,7 +107,7 @@ module NewRelic
 
       def self.start(category, options)#CDP
         category ||= :controller
-        txn = current
+        txn = tl_current
 
         if txn
           if options[:filtered_params] && !options[:filtered_params].empty?
@@ -127,12 +127,12 @@ module NewRelic
         txn
       end
 
-      def self.best_category
-        current && current.best_category
+      def self.best_category#CDP
+        tl_current && tl_current.best_category
       end
 
       def self.stop(end_time=Time.now)#CDP
-        txn = current
+        txn = tl_current
 
         if txn.frame_stack.empty?
           txn.stop(end_time)
@@ -178,46 +178,46 @@ module NewRelic
         end
       end
 
-      def self.ignore!
-        current && current.ignore!
+      def self.ignore!#CDP
+        tl_current && tl_current.ignore!
       end
 
-      def self.ignore?
-        current && current.ignore?
+      def self.ignore?#CDP
+        tl_current && tl_current.ignore?
       end
 
-      def self.ignore_apdex!
-        current && current.ignore_apdex!
+      def self.ignore_apdex!#CDP
+        tl_current && tl_current.ignore_apdex!
       end
 
-      def self.ignore_apdex?
-        current && current.ignore_apdex?
+      def self.ignore_apdex?#CDP
+        tl_current && tl_current.ignore_apdex?
       end
 
-      def self.ignore_enduser!
-        current && current.ignore_enduser!
+      def self.ignore_enduser!#CDP
+        tl_current && tl_current.ignore_enduser!
       end
 
-      def self.ignore_enduser?
-        current && current.ignore_enduser?
+      def self.ignore_enduser?#CDP
+        tl_current && tl_current.ignore_enduser?
       end
 
       # This is the name of the model currently assigned to database
       # measurements, overriding the default.
-      def self.database_metric_name
-        current && current.database_metric_name
+      def self.database_metric_name#CDP
+        tl_current && tl_current.database_metric_name
       end
 
-      def self.referer
-        current && current.referer
+      def self.referer#CDP
+        tl_current && tl_current.referer
       end
 
       def self.agent
         NewRelic::Agent.instance
       end
 
-      def self.freeze_name_and_execute_if_not_ignored
-        self.current && self.current.freeze_name_and_execute_if_not_ignored { yield if block_given? }
+      def self.freeze_name_and_execute_if_not_ignored#CDP
+        tl_current && tl_current.freeze_name_and_execute_if_not_ignored { yield if block_given? }
       end
 
       @@java_classes_loaded = false
@@ -367,8 +367,8 @@ module NewRelic
 
       # Indicate that you don't want to keep the currently saved transaction
       # information
-      def self.abort_transaction!
-        current.abort_transaction! if current
+      def self.abort_transaction!#CDP
+        tl_current.abort_transaction! if tl_current
       end
 
       # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
@@ -495,10 +495,10 @@ module NewRelic
       # * <tt>:custom_params</tt> => Custom parameters
       # Anything left over is treated as custom params
 
-      def self.notice_error(e, options={})
+      def self.notice_error(e, options={})#CDP
         options = extract_request_options(options)
-        if current
-          current.notice_error(e, options)
+        if tl_current
+          tl_current.notice_error(e, options)
         else
           options = extract_finished_transaction_options(options)
           agent.error_collector.notice_error(e, options)
@@ -516,8 +516,8 @@ module NewRelic
 
       # If we aren't currently in a transaction, but found the remains of one
       # just finished in the TransactionState, use those custom params!
-      def self.extract_finished_transaction_options(options)
-        finished_txn = NewRelic::Agent::Transaction.current
+      def self.extract_finished_transaction_options(options)#CDP
+        finished_txn = NewRelic::Agent::Transaction.tl_current
         if finished_txn
           custom_params = options.fetch(:custom_params, {})
           custom_params.merge!(finished_txn.custom_parameters)
@@ -547,12 +547,12 @@ module NewRelic
 
       # Add context parameters to the transaction.  This information will be passed in to errors
       # and transaction traces.  Keys and Values should be strings, numbers or date/times.
-      def self.add_custom_parameters(p)
-        current.add_custom_parameters(p) if current
+      def self.add_custom_parameters(p)#CDP
+        tl_current.add_custom_parameters(p) if tl_current
       end
 
-      def self.custom_parameters
-        (current && current.custom_parameters) ? current.custom_parameters : {}
+      def self.custom_parameters#CDP
+        (tl_current && tl_current.custom_parameters) ? tl_current.custom_parameters : {}
       end
 
       class << self
@@ -631,8 +631,8 @@ module NewRelic
       #
       # @api public
       #
-      def self.recording_web_transaction?
-        self.current && self.current.recording_web_transaction?
+      def self.recording_web_transaction?#CDP
+        tl_current && tl_current.recording_web_transaction?
       end
 
       def self.transaction_category_is_web?(category)
@@ -664,9 +664,8 @@ module NewRelic
       end
 
 
-
-      def self.record_apdex(end_time)
-        current && current.record_apdex(end_time)
+      def self.record_apdex(end_time)#CDP
+        tl_current && tl_current.record_apdex(end_time)
       end
 
       def self.apdex_bucket(duration, failed, apdex_t)

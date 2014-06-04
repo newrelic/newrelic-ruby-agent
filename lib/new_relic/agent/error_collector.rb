@@ -105,16 +105,16 @@ module NewRelic
           error_ids.include?(exception.object_id)
         end
 
-        def tag_as_seen(exception)
-          txn = Transaction.current
+        def tag_as_seen(exception)#CDP
+          txn = Transaction.tl_current
           txn.noticed_error_ids << exception.object_id if txn
         end
 
-        def blamed_metric_name(options)
+        def blamed_metric_name(options)#CDP
           if options[:metric] && options[:metric] != ::NewRelic::Agent::UNKNOWN_METRIC
             "Errors/#{options[:metric]}"
           else
-            if txn = ::NewRelic::Agent::Transaction.current
+            if txn = ::NewRelic::Agent::Transaction.tl_current
               "Errors/#{txn.best_name}"
             end
           end

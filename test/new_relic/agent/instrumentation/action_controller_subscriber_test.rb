@@ -121,14 +121,14 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_sets_default_transaction_name_on_start
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    assert_equal 'Controller/test/index', NewRelic::Agent::Transaction.current.best_name
+    assert_equal 'Controller/test/index', NewRelic::Agent::Transaction.tl_current.best_name
   ensure
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
   end
 
   def test_sets_default_transaction_keeps_name_through_stop
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    txn = NewRelic::Agent::Transaction.current
+    txn = NewRelic::Agent::Transaction.tl_current
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
     assert_equal 'Controller/test/index', txn.best_name
   end
@@ -136,14 +136,14 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   def test_sets_transaction_name
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     NewRelic::Agent.set_transaction_name('something/else')
-    assert_equal 'Controller/something/else', NewRelic::Agent::Transaction.current.best_name
+    assert_equal 'Controller/something/else', NewRelic::Agent::Transaction.tl_current.best_name
   ensure
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
   end
 
   def test_sets_transaction_name_holds_through_stop
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    txn = NewRelic::Agent::Transaction.current
+    txn = NewRelic::Agent::Transaction.tl_current
     NewRelic::Agent.set_transaction_name('something/else')
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
     assert_equal 'Controller/something/else', txn.best_name
@@ -177,7 +177,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @entry_payload[:action] = 'ignored_enduser'
     @exit_payload[:action] = 'ignored_enduser'
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    txn = NewRelic::Agent::Transaction.current
+    txn = NewRelic::Agent::Transaction.tl_current
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     assert txn.ignore_enduser?
