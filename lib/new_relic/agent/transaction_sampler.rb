@@ -65,7 +65,8 @@ module NewRelic
       def on_start_transaction(start_time, uri=nil, params={})#CDP
         if enabled?
           start_builder(start_time.to_f)
-          tl_builder.set_transaction_info(uri, params) if tl_builder
+          builder = tl_builder
+          builder.set_transaction_info(uri, params) if builder
         end
       end
 
@@ -75,9 +76,10 @@ module NewRelic
       # Note that in developer mode, this captures a stacktrace for
       # the beginning of each segment, which can be fairly slow
       def notice_push_frame(time=Time.now)#CDP
-        return unless tl_builder
+        builder = tl_builder
+        return unless builder
 
-        segment = tl_builder.trace_entry(time.to_f)
+        segment = builder.trace_entry(time.to_f)
         if @dev_mode_sample_buffer
           @dev_mode_sample_buffer.visit_segment(segment)
         end
@@ -86,9 +88,10 @@ module NewRelic
 
       # Informs the transaction sample builder about the end of a traced frame
       def notice_pop_frame(frame, time = Time.now)#CDP
-        return unless tl_builder
-        raise "finished already???" if tl_builder.sample.finished
-        tl_builder.trace_exit(frame, time.to_f)
+        builder = tl_builder
+        return unless builder
+        raise "finished already???" if builder.sample.finished
+        builder.trace_exit(frame, time.to_f)
       end
 
       def custom_parameters_from_transaction(txn)
@@ -136,12 +139,14 @@ module NewRelic
       # the transaction, and does not change the metrics gathered
       # outside of the sampler
       def ignore_transaction#CDP
-        tl_builder.ignore_transaction if tl_builder
+        builder = tl_builder
+        builder.ignore_transaction if builder
       end
 
       # Sets the CPU time used by a transaction, delegates to the builder
       def notice_transaction_cpu_time(cpu_time)#CDP
-        tl_builder.set_transaction_cpu_time(cpu_time) if tl_builder
+        builder = tl_builder
+        builder.set_transaction_cpu_time(cpu_time) if builder
       end
 
       MAX_DATA_LENGTH = 16384
@@ -150,8 +155,9 @@ module NewRelic
       #
       # duration is seconds, float value.
       def notice_extra_data(message, duration, key)#CDP
-        return unless tl_builder
-        segment = tl_builder.current_segment
+        builder = tl_builder
+        return unless builder
+        segment = builder.current_segment
         if segment
           if key != :sql
             segment[key] = self.class.truncate_message(message)
@@ -219,8 +225,9 @@ module NewRelic
 
       # Set parameters on the current segment.
       def add_segment_parameters(params)#CDP
-        return unless tl_builder
-        params.each { |k,v| tl_builder.current_segment[k] = v }
+        builder = tl_builder
+        return unless builder
+        params.each { |k,v| builder.current_segment[k] = v }
       end
 
       # Gather transaction traces that we'd like to transmit to the server.
