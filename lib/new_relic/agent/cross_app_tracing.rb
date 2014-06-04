@@ -63,11 +63,11 @@ module NewRelic
       # This method MUST return a pair. The first item always returns the
       # starting time of the trace, even if an error occurs. The second item is
       # the transaction segment if it was sucessfully pushed.
-      def start_trace(request)
+      def start_trace(request)#CDP
         t0 = Time.now
 
         inject_request_headers(request) if cross_app_enabled?
-        segment = NewRelic::Agent::TracedMethodStack.push_frame(:http_request, t0)
+        segment = NewRelic::Agent::TracedMethodStack.tl_push_frame(:http_request, t0)
 
         return t0, segment
       rescue => err
@@ -87,7 +87,7 @@ module NewRelic
       # * [](key) - Reads response headers.
       # * to_hash - Converts response headers to a Hash
       #
-      def finish_trace( t0, segment, request, response )
+      def finish_trace(t0, segment, request, response)#CDP
         t1 = Time.now
         duration = t1.to_f - t0.to_f
 
@@ -95,7 +95,7 @@ module NewRelic
           if request
             # Figure out which metrics we need to report based on the request and response
             # The last (most-specific) one is scoped.
-            metrics = metrics_for( request, response )
+            metrics = metrics_for(request, response)
             scoped_metric = metrics.pop
 
             stats_engine.record_scoped_and_unscoped_metrics(
@@ -111,7 +111,7 @@ module NewRelic
         ensure
           # If we have a segment, always pop the traced method stack to avoid
           # an inconsistent state, which prevents tracing of whole transaction.
-          NewRelic::Agent::TracedMethodStack.pop_frame( segment, scoped_metric, t1 ) if segment
+          NewRelic::Agent::TracedMethodStack.tl_pop_frame(segment, scoped_metric, t1) if segment
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "while cross app tracing", err

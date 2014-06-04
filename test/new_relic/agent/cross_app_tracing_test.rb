@@ -26,7 +26,7 @@ module NewRelic
       end
 
       def test_start_trace_has_time_even_on_agent_failure
-        NewRelic::Agent::TracedMethodStack.stubs(:push_frame).raises("Boom!")
+        NewRelic::Agent::TracedMethodStack.stubs(:tl_push_frame).raises("Boom!")
         t0, segment = CrossAppTracing.start_trace(request)
         refute_nil t0
         assert_nil segment
@@ -54,7 +54,7 @@ module NewRelic
 
 
       def expects_pop_frame
-        NewRelic::Agent::TracedMethodStack.stubs(:pop_frame).once
+        NewRelic::Agent::TracedMethodStack.stubs(:tl_pop_frame).once
       end
     end
   end

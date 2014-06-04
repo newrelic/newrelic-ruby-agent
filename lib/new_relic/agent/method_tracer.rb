@@ -149,9 +149,9 @@ module NewRelic
         # the frame so that we can check for it later, to maintain
         # sanity. If the frame stack becomes unbalanced, this
         # transaction loses meaning.
-        def trace_execution_scoped_header(t0)
+        def trace_execution_scoped_header(t0)#CDP
           log_errors(:trace_execution_scoped_header) do
-            NewRelic::Agent::TracedMethodStack.push_frame(:method_tracer, t0)
+            NewRelic::Agent::TracedMethodStack.tl_push_frame(:method_tracer, t0)
           end
         end
 
@@ -180,10 +180,10 @@ module NewRelic
         # this method fails safely if the header does not manage to
         # push the scope onto the stack - it simply does not trace
         # any metrics.
-        def trace_execution_scoped_footer(t0, first_name, metric_names, expected_frame, options, t1=Time.now.to_f)
+        def trace_execution_scoped_footer(t0, first_name, metric_names, expected_frame, options, t1=Time.now.to_f)#CDP
           log_errors(:trace_method_execution_footer) do
             if expected_frame
-              frame = NewRelic::Agent::TracedMethodStack.pop_frame(expected_frame, first_name, t1)
+              frame = NewRelic::Agent::TracedMethodStack.tl_pop_frame(expected_frame, first_name, t1)
               duration = t1 - t0
               exclusive = duration - frame.children_time
               record_metrics(first_name, metric_names, duration, exclusive, options)

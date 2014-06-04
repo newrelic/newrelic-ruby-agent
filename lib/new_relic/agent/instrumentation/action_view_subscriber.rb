@@ -14,7 +14,7 @@ module NewRelic
           push_event(event)
 
           if NewRelic::Agent.tl_is_execution_traced? && event.recordable?
-            event.frame = NewRelic::Agent::TracedMethodStack.push_frame(:action_view, event.time)
+            event.frame = NewRelic::Agent::TracedMethodStack.tl_push_frame(:action_view, event.time)
           end
         rescue => e
           log_notification_error(e, name, 'start')
@@ -24,7 +24,7 @@ module NewRelic
           event = pop_event(id)
 
           if NewRelic::Agent.tl_is_execution_traced? && event.recordable?
-            frame = NewRelic::Agent::TracedMethodStack.pop_frame(event.frame, event.metric_name, event.end)
+            frame = NewRelic::Agent::TracedMethodStack.tl_pop_frame(event.frame, event.metric_name, event.end)
             record_metrics(event, frame)
           end
         rescue => e
