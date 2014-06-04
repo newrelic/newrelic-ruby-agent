@@ -160,10 +160,6 @@ module NewRelic
         :transaction_stopped
       end
 
-      def self.in_transaction?
-        !TransactionState.get.current_transaction.nil?
-      end
-
       def self.nested_transaction_name(name)
         if name.start_with?(CONTROLLER_PREFIX)
           "#{SUBTRANSACTION_PREFIX}#{name}"
