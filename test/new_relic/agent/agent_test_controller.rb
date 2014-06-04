@@ -53,7 +53,7 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
     raise "error in action"
   end
   def entry_action
-    perform_action_with_newrelic_trace('internal_action') do
+    perform_action_with_newrelic_trace(:name => 'internal_action') do
       internal_action
     end
   end

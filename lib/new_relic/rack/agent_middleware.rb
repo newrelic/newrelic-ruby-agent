@@ -10,15 +10,21 @@ module NewRelic
     module AgentMiddleware
       include Agent::Instrumentation::ControllerInstrumentation
 
-      RESET_KEY = "newrelic.transaction_reset".freeze
+      DEFAULT_TRACE_OPTIONS = { :category => :middleware, :name => "call".freeze }.freeze
 
       def _nr_has_middleware_tracing
         true
       end
 
       def call(env)
-        req = ::Rack::Request.new(env)
-        perform_action_with_newrelic_trace(:category => :middleware, :request => req, :name => "call") do
+        if env[:newrelic_captured_request]
+          opts = DEFAULT_TRACE_OPTIONS
+        else
+          opts = DEFAULT_TRACE_OPTIONS.merge(:request => ::Rack::Request.new(env))
+          env[:newrelic_captured_request] = true
+        end
+
+        perform_action_with_newrelic_trace(opts) do
           traced_call(env)
         end
       end

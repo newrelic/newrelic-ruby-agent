@@ -840,7 +840,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     def run(n)
       n.times do
-        perform_action_with_newrelic_trace("smile") do
+        perform_action_with_newrelic_trace(:name => 'smile') do
         end
       end
     end
