@@ -11,6 +11,10 @@ DependencyDetection.defer do
     defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= 3
   end
 
+  depends_on do
+    !::NewRelic::Agent.config[:disable_middleware_instrumentation]
+  end
+
   executes do
     module ActionDispatch
       class MiddlewareStack

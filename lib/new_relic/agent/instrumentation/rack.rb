@@ -106,7 +106,15 @@ module NewRelic
 
       module RackBuilder
         def to_app_with_newrelic_deferred_dependency_detection
-          @use = RackBuilder.add_new_relic_tracing_to_middlewares(@use) if @use
+          if ::NewRelic::Agent.config[:disable_middleware_instrumentation]
+            ::NewRelic::Agent.logger.debug("Not using Rack::Builder instrumentation because disable_middleware_instrumentation was set in config")
+          else
+            if @use && @use.is_a?(Array)
+              @use = RackBuilder.add_new_relic_tracing_to_middlewares(@use)
+            else
+              ::NewRelic::Agent.logger.warn("Not using Rack::Builder instrumentation because @use was not as expected (@use = #{@use.inspect})")
+            end
+          end
 
           unless ::Rack::Builder._nr_deferred_detection_ran
             NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
