@@ -424,7 +424,7 @@ module NewRelic
 
     # helper method to check the thread local to determine whether the
     # transaction in progress is traced or not
-    def is_transaction_traced?#CDP
+    def tl_is_transaction_traced?
       NewRelic::Agent::TransactionState.tl_get.is_transaction_traced?
     end
 
