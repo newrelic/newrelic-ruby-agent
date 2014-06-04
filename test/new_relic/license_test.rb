@@ -73,7 +73,9 @@ class LicenseTest < Minitest::Test
       # skip tags file
       path =~ %r{/tags$}i ||
       # skip multiverse auto-generated gemfiles
-      path =~ %r{/test/multiverse/suites/.*/Gemfile\.\d+(\.lock)?$}
+      path =~ %r{/test/multiverse/suites/.*/Gemfile\.\d+(\.lock)?$} ||
+      # skip the artifacts directory
+      path =~ %r{/artifacts/}
     )
   end
 
@@ -105,10 +107,14 @@ class LicenseTest < Minitest::Test
     files_to_check = all_files.reject { |f| should_skip?(f) }
     files_to_check.each do |filename|
       LICENSE_TERMS.each do |key, pattern|
-        # we're checking this one.  We'll update the count of checked files below.
-        occurrences = File.readlines(filename).grep(pattern).size
-        expected = (EXPECTED_LICENSE_OCCURRENCES[[filename.sub(gem_root, ''), key]] || 0)
-        assert_equal expected, occurrences, "#{filename} contains #{key} #{occurrences} times. Should be #{expected}"
+        begin
+          # we're checking this one.  We'll update the count of checked files below.
+          occurrences = File.readlines(filename).grep(pattern).size
+          expected = (EXPECTED_LICENSE_OCCURRENCES[[filename.sub(gem_root, ''), key]] || 0)
+          assert_equal expected, occurrences, "#{filename} contains #{key} #{occurrences} times. Should be #{expected}"
+        rescue => e
+          raise "Error when checking file #{filename}: #{e}"
+        end
       end
     end
     # sanity check that we are not skipping all the files.
