@@ -48,8 +48,9 @@ module NewRelic
         # @api private
         #
         def record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)
-          if in_transaction?
-            transaction_metrics.record_unscoped(metric_names, value, aux, &blk)
+          txn = Transaction.current
+          if txn
+            txn.metrics.record_unscoped(metric_names, value, aux, &blk)
           else
             specs = coerce_to_metric_spec_array(metric_names, nil)
             with_stats_lock do
@@ -78,11 +79,12 @@ module NewRelic
         # @api private
         #
         def record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
-          if in_transaction?
-            transaction_metrics.record_scoped(scoped_metric, value, aux, &blk)
-            transaction_metrics.record_unscoped(scoped_metric, value, aux, &blk)
+          txn = Transaction.current
+          if txn
+            txn.metrics.record_scoped(scoped_metric, value, aux, &blk)
+            txn.metrics.record_unscoped(scoped_metric, value, aux, &blk)
             if summary_metrics
-              transaction_metrics.record_unscoped(summary_metrics, value, aux, &blk)
+              txn.metrics.record_unscoped(summary_metrics, value, aux, &blk)
             end
           else
             specs = coerce_to_metric_spec_array(scoped_metric, nil)
@@ -239,15 +241,6 @@ module NewRelic
 
         def metric_specs
           with_stats_lock { @stats_hash.keys }
-        end
-
-        def in_transaction?
-          !!Transaction.current
-        end
-
-        def transaction_metrics
-          txn = Transaction.current
-          txn && txn.metrics
         end
       end
     end
