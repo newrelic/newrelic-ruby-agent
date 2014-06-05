@@ -61,6 +61,21 @@ module NewRelic
             @target.call(env)
           end
         end
+
+        # These next three methods are defined in ControllerInstrumentation, and
+        # we're overriding the definitions here as a performance optimization.
+        #
+        # The default implementation of each on ControllerInstrumentation calls
+        # through to newrelic_read_attr with a String argument, then calls
+        # instance_variable_get with a String derived from that String.
+        #
+        # These methods are present in order to support a declarative syntax for
+        # ignoring specific transactions in the context of Rails or Sinatra apps
+        # but in the context of Rack middleware, they don't even really make
+        # sense, so we just hard-code a false return value for each.
+        def ignore_apdex?;   false; end
+        def ignore_enduser?; false; end
+        def do_not_trace?;   false; end
       end
     end
   end
