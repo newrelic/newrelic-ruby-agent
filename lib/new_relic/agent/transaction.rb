@@ -174,9 +174,7 @@ module NewRelic
       end
 
       def self.nested_transaction_name(name)
-        if name.start_with?(CONTROLLER_MIDDLEWARE_PREFIX)
-          name.sub(CONTROLLER_PREFIX, EMPTY_STRING)
-        elsif name.start_with?(CONTROLLER_PREFIX)
+        if name.start_with?(CONTROLLER_PREFIX)
           "#{SUBTRANSACTION_PREFIX}#{name}"
         else
           name
@@ -321,9 +319,18 @@ module NewRelic
         (@name_from_api || @name_from_child || @default_name) ? true : false
       end
 
+      def promoted_transaction_name(name)
+        if name.start_with?(MIDDLEWARE_PREFIX)
+          "#{CONTROLLER_PREFIX}#{name}"
+        else
+          name
+        end
+      end
+
       def freeze_name_and_execute_if_not_ignored
         if !name_frozen?
-          name = NewRelic::Agent.instance.transaction_rules.rename(best_name)
+          name = promoted_transaction_name(best_name)
+          name = NewRelic::Agent.instance.transaction_rules.rename(name)
           @name_frozen = true
 
           if name.nil?
