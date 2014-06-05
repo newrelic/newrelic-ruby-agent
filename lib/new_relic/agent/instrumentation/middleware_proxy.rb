@@ -34,7 +34,7 @@ module NewRelic
             :name       => CALL,
             :category   => @category,
             :class_name => @target_class_name
-          }
+          }.freeze
         end
 
         def determine_category
@@ -50,8 +50,13 @@ module NewRelic
         end
 
         def call(env)
-          @trace_opts[:request] = ::Rack::Request.new(env)
-          perform_action_with_newrelic_trace(@trace_opts) do
+          if env[:newrelic_captured_request]
+            opts = @trace_opts
+          else
+            opts = @trace_opts.merge(:request => ::Rack::Request.new(env))
+            env[:newrelic_captured_request] = true
+          end
+          perform_action_with_newrelic_trace(opts) do
             @target.call(env)
           end
         end

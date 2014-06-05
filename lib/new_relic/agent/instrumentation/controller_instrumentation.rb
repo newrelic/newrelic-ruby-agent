@@ -48,6 +48,7 @@ module NewRelic
         NR_DO_NOT_TRACE_KEY   = 'do_not_trace'.freeze unless defined?(NR_DO_NOT_TRACE_KEY)
         NR_IGNORE_APDEX_KEY   = 'ignore_apdex'.freeze unless defined?(NR_IGNORE_APDEX_KEY)
         NR_IGNORE_ENDUSER_KEY = 'ignore_enduser'.freeze unless defined?(NR_IGNORE_ENDUSER_KEY)
+        NR_DEFAULT_OPTIONS    = {}.freeze unless defined?(NR_DEFAULT_OPTIONS)
 
         # @api public
         module ClassMethods
@@ -217,8 +218,8 @@ module NewRelic
           URI_PREFIX        = 'Controller'.freeze unless defined?(URI_PREFIX)
           SINATRA_PREFIX    = 'Controller/Sinatra'.freeze unless defined?(SINATRA_PREFIX)
 
-          def self.name(traced_obj, options)
-            "#{prefix_for_category(options[:category])}/#{path_name(traced_obj, options)}"
+          def self.name(traced_obj, category, options={})
+            "#{prefix_for_category(category)}/#{path_name(traced_obj, options)}"
           end
 
           def self.prefix_for_category(category = nil)
@@ -328,9 +329,6 @@ module NewRelic
         # * <tt>:request => Rack::Request#new(env)</tt> is used to pass in a
         #   request object that may respond to uri and referer.
         #
-        # If a single argument is passed in, it is treated as a metric
-        # path.  This form is deprecated.
-        #
         # @api public
         #
         def perform_action_with_newrelic_trace(*args, &block)
@@ -349,13 +347,20 @@ module NewRelic
 
           # If a block was passed in, then the arguments represent options for
           # the instrumentation, not app method arguments.
-          txn_options = create_transaction_options(block_given? ? args : [])
-          txn_options[:transaction_name] = TransactionNamer.name(self, txn_options)
+          if block_given? && args.last.is_a?(Hash)
+            trace_options = args.last
+          else
+            trace_options = NR_DEFAULT_OPTIONS
+          end
+
+          category    = trace_options[:category] || :controller
+          txn_options = create_transaction_options(trace_options)
+          txn_options[:transaction_name] = TransactionNamer.name(self, category, trace_options)
           txn_options[:apdex_start_time] = detect_queue_start_time
-          txn_options[:queue_length] = queue_length
+          txn_options[:queue_length]     = queue_length
 
           begin
-            txn = Transaction.start(txn_options[:category], txn_options)
+            txn = Transaction.start(category, txn_options)
 
             begin
               if block_given?
@@ -423,24 +428,15 @@ module NewRelic
 
         private
 
-        def create_transaction_options(txn_args)
+        def create_transaction_options(trace_options)
           txn_options = {}
-          if txn_args.any?
-            if txn_args.last.is_a?(Hash)
-              txn_options = txn_args.pop
-            end
-            available_params = txn_options[:params]
-            txn_options[:name] ||= txn_args.first
-          else
-            available_params = self.respond_to?(:params) && self.params
-          end
 
-          txn_options[:request] ||= self.request if self.respond_to? :request
+          txn_options[:request]    = trace_options[:request] || (respond_to?(:request) && request)
+
+          available_params = trace_options[:params] || (respond_to?(:params) && params)
           if available_params
-            txn_options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+            txn_options[:filtered_params] = (respond_to?(:filter_parameters)) ? filter_parameters(available_params) : available_params
           end
-
-          txn_options[:category] ||= :controller
 
           txn_options
         end

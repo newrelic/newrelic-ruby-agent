@@ -159,7 +159,7 @@ module HttpClientTestCases
   def test_background
     res = nil
 
-    perform_action_with_newrelic_trace("task", :category => :task) do
+    perform_action_with_newrelic_trace(:name => "task", :category => :task) do
       res = get_response
     end
 
@@ -176,7 +176,7 @@ module HttpClientTestCases
   def test_transactional_metrics
     res = nil
 
-    perform_action_with_newrelic_trace("task") do
+    perform_action_with_newrelic_trace(:name => "task") do
       res = get_response
     end
 
@@ -193,7 +193,7 @@ module HttpClientTestCases
 
 
   def test_transactional_traces_nodes
-    perform_action_with_newrelic_trace("task") do
+    perform_action_with_newrelic_trace(:name => "task") do
       res = get_response
 
       last_segment = find_last_transaction_segment()
