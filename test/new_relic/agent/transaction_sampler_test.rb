@@ -426,7 +426,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def test_start_builder_default
-    @state.expects(:is_traced?).returns(true)
+    @state.expects(:is_execution_traced?).returns(true)
     @sampler.send(:start_builder, @state)
     assert(@state.transaction_sample_builder.is_a?(NewRelic::Agent::TransactionSampleBuilder),
            "should set up a new builder by default")

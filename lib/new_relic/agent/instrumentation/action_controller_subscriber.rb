@@ -14,7 +14,7 @@ module NewRelic
           event = ControllerEvent.new(name, Time.now, nil, id, payload, request)
           push_event(event)
 
-          if state.is_traced? && !event.ignored?
+          if state.is_execution_traced? && !event.ignored?
             start_transaction(event)
           else
             # if this transaction is ignored, make sure child

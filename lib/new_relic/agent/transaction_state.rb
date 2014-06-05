@@ -147,7 +147,7 @@ module NewRelic
         @untraced.pop if @untraced
       end
 
-      def is_traced?
+      def is_execution_traced?
         @untraced.nil? || @untraced.last != false
       end
 

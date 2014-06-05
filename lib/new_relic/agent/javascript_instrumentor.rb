@@ -67,7 +67,7 @@ module NewRelic
         elsif !state.is_transaction_traced?
           ::NewRelic::Agent.logger.debug "Transaction is not traced. Skipping browser instrumentation."
           false
-        elsif !state.is_traced?
+        elsif !state.is_execution_traced?
           ::NewRelic::Agent.logger.debug "Execution is not traced. Skipping browser instrumentation."
           false
         elsif state.current_transaction.ignore_enduser?

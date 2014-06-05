@@ -355,7 +355,7 @@ module NewRelic
       # Make sure you unwind every push with a pop call.
       def start#CDP
         state = NewRelic::Agent::TransactionState.tl_get
-        return if !state.is_traced?
+        return if !state.is_execution_traced?
 
         transaction_sampler.on_start_transaction(state, start_time, uri, filtered_params)
         sql_sampler.on_start_transaction(state, start_time, uri, filtered_params)
@@ -402,7 +402,7 @@ module NewRelic
 
       def stop(end_time)#CDP
         state = NewRelic::Agent::TransactionState.tl_get
-        return if !state.is_traced?
+        return if !state.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
 
         name    = @frozen_name

@@ -293,7 +293,7 @@ module NewRelic
       # new transaction sample builder with the stated time as a
       # starting point and saves it in the thread local variable
       def start_builder(state, time=nil)
-        if !enabled? || !state.is_transaction_traced? || !state.is_traced?
+        if !enabled? || !state.is_transaction_traced? || !state.is_execution_traced?
           state.transaction_sample_builder = nil
         else
           state.transaction_sample_builder ||= TransactionSampleBuilder.new(time)
