@@ -383,8 +383,9 @@ module NewRelic
       end
 
       # Call this to ensure that the current transaction is not saved
-      def abort_transaction!
-        transaction_sampler.ignore_transaction
+      def abort_transaction!#CDP
+        state = NewRelic::Agent::TransactionState.tl_get
+        transaction_sampler.ignore_transaction(state)
       end
 
       def summary_metrics
@@ -697,9 +698,12 @@ module NewRelic
         jruby_cpu_time - @jruby_cpu_start
       end
 
-      def record_transaction_cpu
+      def record_transaction_cpu#CDP
         burn = cpu_burn
-        transaction_sampler.notice_transaction_cpu_time(burn) if burn
+        if burn
+          state = NewRelic::Agent::TransactionState.tl_get
+          transaction_sampler.notice_transaction_cpu_time(state, burn)
+        end
       end
 
       def ignore!
