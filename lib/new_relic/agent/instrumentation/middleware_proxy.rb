@@ -9,6 +9,7 @@ module NewRelic
         include ::NewRelic::Agent::MethodTracer
         include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
+        CAPTURED_REQUEST_KEY = 'newrelic.captured_request'.freeze unless defined?(CAPTURED_REQUEST_KEY)
         CALL = "call".freeze unless defined?(CALL)
 
         def self.is_sinatra_app?(target)
@@ -50,11 +51,11 @@ module NewRelic
         end
 
         def call(env)
-          if env[:newrelic_captured_request]
+          if env[CAPTURED_REQUEST_KEY]
             opts = @trace_opts
           else
             opts = @trace_opts.merge(:request => ::Rack::Request.new(env))
-            env[:newrelic_captured_request] = true
+            env[CAPTURED_REQUEST_KEY] = true
           end
           perform_action_with_newrelic_trace(opts) do
             @target.call(env)
