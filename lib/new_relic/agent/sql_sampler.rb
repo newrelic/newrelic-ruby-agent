@@ -87,7 +87,7 @@ module NewRelic
 
       def notice_sql(sql, metric_name, config, duration, &explainer)#CDP
         return unless tl_transaction_data
-        if NewRelic::Agent.is_sql_recorded?
+        if NewRelic::Agent.tl_is_sql_recorded?
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
             tl_transaction_data.sql_data << SlowSql.new(Database.capture_query(sql),

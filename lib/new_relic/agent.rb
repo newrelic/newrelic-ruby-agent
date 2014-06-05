@@ -430,7 +430,7 @@ module NewRelic
 
     # helper method to check the thread local to determine whether sql
     # is being recorded or not
-    def is_sql_recorded?#CDP
+    def tl_is_sql_recorded?
       NewRelic::Agent::TransactionState.tl_get.is_sql_recorded?
     end
 
