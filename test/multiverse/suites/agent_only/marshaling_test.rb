@@ -71,7 +71,7 @@ class MarshalingTest < Minitest::Test
   def test_sql_trace_data_marshalling
     state = NewRelic::Agent::TransactionState.tl_get
     agent.sql_sampler.on_start_transaction(state, nil)
-    agent.sql_sampler.notice_sql("select * from test",
+    agent.sql_sampler.notice_sql(state, "select * from test",
                                   "Database/test/select",
                                   nil, 1.5)
     agent.sql_sampler.on_finishing_transaction(state, 'txn')

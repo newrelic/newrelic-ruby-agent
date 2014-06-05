@@ -221,13 +221,13 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_notice_sql_recording_sql
     @state.record_sql = true
     @sampler.expects(:notice_extra_data).with('some sql', 1.0, :sql)
-    @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0)
+    @sampler.notice_sql(@state, 'some sql', {:config => 'a config'}, 1.0)
   end
 
   def test_notice_sql_not_recording
     @state.record_sql = false
     @sampler.expects(:notice_extra_data).with('some sql', 1.0, :sql).never # <--- important
-    @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0)
+    @sampler.notice_sql(@state, 'some sql', {:config => 'a config'}, 1.0)
   end
 
   def test_notice_nosql
@@ -614,7 +614,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     @state.record_sql = false
 
-    @sampler.notice_sql("test", {}, 0)
+    @sampler.notice_sql(@state, "test", {}, 0)
 
     segment = @sampler.send(:tl_builder).current_segment
 
@@ -624,7 +624,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_stack_trace_sql
     with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
       @sampler.on_start_transaction(@state, Time.now.to_f)
-      @sampler.notice_sql("test", {}, 1)
+      @sampler.notice_sql(@state, "test", {}, 1)
       segment = @sampler.send(:tl_builder).current_segment
 
       assert segment[:sql]
@@ -646,7 +646,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_nil_stacktrace
     with_config(:'transaction_tracer.stack_trace_threshold' => 2) do
       @sampler.on_start_transaction(@state, Time.now.to_f)
-      @sampler.notice_sql("test", {}, 1)
+      @sampler.notice_sql(@state, "test", {}, 1)
       segment = @sampler.send(:tl_builder).current_segment
 
       assert segment[:sql]
@@ -661,7 +661,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     len = 0
     while len <= 16384
-      @sampler.notice_sql(sql, {}, 0)
+      @sampler.notice_sql(@state, sql, {}, 0)
       len += sql.length
     end
 
@@ -678,7 +678,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     orig_sql = "SELECT * from Jim where id=66"
 
-    @sampler.notice_sql(orig_sql, {}, 0)
+    @sampler.notice_sql(@state, orig_sql, {}, 0)
 
     segment = @sampler.send(:tl_builder).current_segment
 
@@ -705,9 +705,9 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     with_config(:'transaction_tracer.limit_segments' => 3) do
       run_sample_trace do
         @sampler.notice_push_frame(@state)
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'challah'", {}, 0)
+        @sampler.notice_sql(@state, "SELECT * FROM sandwiches WHERE bread = 'challah'", {}, 0)
         @sampler.notice_push_frame(@state)
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", {}, 0)
+        @sampler.notice_sql(@state, "SELECT * FROM sandwiches WHERE bread = 'semolina'", {}, 0)
         @sampler.notice_pop_frame(@state, "a11")
         @sampler.notice_pop_frame(@state, "a1")
       end
@@ -884,13 +884,13 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def run_sample_trace(start = Time.now.to_f, stop = nil)
     @sampler.on_start_transaction(@state, start, nil, {})
     @sampler.notice_push_frame(@state)
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0)
+    @sampler.notice_sql(@state, "SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0)
     @sampler.notice_push_frame(@state)
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0)
+    @sampler.notice_sql(@state, "SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0)
     yield if block_given?
     @sampler.notice_pop_frame(@state, "ab")
     @sampler.notice_push_frame(@state)
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
+    @sampler.notice_sql(@state, "SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
     @sampler.notice_pop_frame(@state, "ac")
     @sampler.notice_pop_frame(@state, "a")
     @sampler.on_finishing_transaction(@state, @txn, (stop || Time.now.to_f))

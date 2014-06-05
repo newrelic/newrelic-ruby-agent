@@ -23,7 +23,7 @@ module NewRelic
           return unless state.is_execution_traced?
           event = pop_event(id)
           record_metrics(event)
-          notice_sql(event, state)
+          notice_sql(state, event)
         rescue => e
           log_notification_error(e, name, 'finish')
         end
@@ -38,7 +38,7 @@ module NewRelic
           end
         end
 
-        def notice_sql(event, state)
+        def notice_sql(state, event)
           stack  = state.traced_method_stack
           config = active_record_config_for_event(event)
           metric = base_metric(event)
@@ -47,12 +47,12 @@ module NewRelic
           frame = stack.push_frame(state, :active_record, event.time)
 
           NewRelic::Agent.instance.transaction_sampler \
-            .notice_sql(event.payload[:sql], config,
+            .notice_sql(state, event.payload[:sql], config,
                         Helper.milliseconds_to_seconds(event.duration),
                         &method(:get_explain_plan))
 
           NewRelic::Agent.instance.sql_sampler \
-            .notice_sql(event.payload[:sql], metric, config,
+            .notice_sql(state, event.payload[:sql], metric, config,
                         Helper.milliseconds_to_seconds(event.duration),
                         &method(:get_explain_plan))
 
