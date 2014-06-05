@@ -36,7 +36,8 @@ module Sequel
 
     # Instrument all queries that go through #execute_query.
     def log_yield(sql, args=nil)#CDP
-      return super unless NewRelic::Agent.tl_is_execution_traced?
+      state = NewRelic::Agent::TransactionState.tl_get
+      return super unless state.is_traced?
 
       t0 = Time.now
       rval = super
@@ -45,7 +46,7 @@ module Sequel
       begin
         duration = t1 - t0
         record_metrics(sql, args, duration)
-        notice_sql(sql, args, t0, t1)
+        notice_sql(sql, args, t0, t1, state)
       rescue => err
         NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
       end
@@ -71,13 +72,14 @@ module Sequel
 
     # Record the given +sql+ within a new frame, using the given +start+ and
     # +finish+ times.
-    def notice_sql(sql, args, start, finish)#CDP
+    def notice_sql(sql, args, start, finish, state)
       metric   = primary_metric_for(sql, args)
       agent    = NewRelic::Agent.instance
       duration = finish - start
+      stack    = state.traced_method_stack
 
       begin
-        frame = NewRelic::Agent::TracedMethodStack.tl_push_frame(:sequel, start)
+        frame = stack.push_frame(:sequel, start)
         explainer = Proc.new do |*|
           if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
             self[ sql ].explain
@@ -89,7 +91,7 @@ module Sequel
         agent.transaction_sampler.notice_sql(sql, self.opts, duration, &explainer)
         agent.sql_sampler.notice_sql(sql, metric, self.opts, duration, &explainer)
       ensure
-        NewRelic::Agent::TracedMethodStack.tl_pop_frame(frame, metric, finish)
+        stack.pop_frame(frame, metric, finish)
       end
     end
 
