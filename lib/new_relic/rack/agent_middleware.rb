@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/transaction_state'
 require 'new_relic/agent/instrumentation/controller_instrumentation'
+require 'new_relic/agent/instrumentation/middleware_proxy'
 
 module NewRelic
   module Rack
@@ -17,11 +18,11 @@ module NewRelic
       end
 
       def call(env)
-        if env[:newrelic_captured_request]
+        if env[NewRelic::Agent::Instrumentation::MiddlewareProxy::CAPTURED_REQUEST_KEY]
           opts = DEFAULT_TRACE_OPTIONS
         else
           opts = DEFAULT_TRACE_OPTIONS.merge(:request => ::Rack::Request.new(env))
-          env[:newrelic_captured_request] = true
+          env[NewRelic::Agent::Instrumentation::MiddlewareProxy::CAPTURED_REQUEST_KEY] = true
         end
 
         perform_action_with_newrelic_trace(opts) do
