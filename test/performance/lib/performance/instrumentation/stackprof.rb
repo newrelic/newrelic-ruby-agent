@@ -13,7 +13,7 @@ module Performance
       end
 
       def before(test, test_name)
-        StackProf.start(mode: :wall)
+        StackProf.start(:mode => :wall)
       end
 
       def after(test, test_name)
