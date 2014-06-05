@@ -27,8 +27,9 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def populate_container(sampler, n)
+    state = NewRelic::Agent::TransactionState.tl_get
     n.times do |i|
-      sampler.on_start_transaction nil
+      sampler.on_start_transaction(state, nil)
       sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", nil, 1)
       sampler.on_finishing_transaction('txn')
     end
@@ -39,9 +40,10 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   # Tests
 
   def test_on_start_transaction
-    assert_nil @sampler.transaction_data
-    @sampler.on_start_transaction nil
-    refute_nil @sampler.transaction_data
+    assert_nil @sampler.tl_transaction_data
+    state = NewRelic::Agent::TransactionState.tl_get
+    @sampler.on_start_transaction(state, nil)
+    refute_nil @sampler.tl_transaction_data
     @sampler.on_finishing_transaction('txn')
 
     # Transaction clearing cleans this state for us--we don't do it ourselves
@@ -49,25 +51,27 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_notice_sql_no_transaction
-    assert_nil @sampler.transaction_data
+    assert_nil @sampler.tl_transaction_data
     @sampler.notice_sql "select * from test", "Database/test/select", nil, 10
   end
 
   def test_notice_sql
-    @sampler.on_start_transaction nil
+    state = NewRelic::Agent::TransactionState.tl_get
+    @sampler.on_start_transaction(state, nil)
     @sampler.notice_sql "select * from test", "Database/test/select", nil, 1.5
     @sampler.notice_sql "select * from test2", "Database/test2/select", nil, 1.3
     # this sql will not be captured
     @sampler.notice_sql "select * from test", "Database/test/select", nil, 0
-    refute_nil @sampler.transaction_data
-    assert_equal 2, @sampler.transaction_data.sql_data.size
+    refute_nil @sampler.tl_transaction_data
+    assert_equal 2, @sampler.tl_transaction_data.sql_data.size
   end
 
   def test_notice_sql_truncates_query
-    @sampler.on_start_transaction nil
+    state = NewRelic::Agent::TransactionState.tl_get
+    @sampler.on_start_transaction(state, nil)
     message = 'a' * 17_000
     @sampler.notice_sql(message, "Database/test/select", nil, 1.5)
-    assert_equal('a' * 16_381 + '...', @sampler.transaction_data.sql_data[0].sql)
+    assert_equal('a' * 16_381 + '...', @sampler.tl_transaction_data.sql_data[0].sql)
   end
 
   def test_harvest_slow_sql
@@ -180,12 +184,13 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_sql_trace_should_include_transaction_guid
+    state = NewRelic::Agent::TransactionState.tl_get
     txn_sampler = NewRelic::Agent::TransactionSampler.new
-    txn_sampler.start_builder(Time.now)
-    @sampler.on_start_transaction(Time.now, 'a uri', {:some => :params})
+    txn_sampler.start_builder(state, Time.now)
+    @sampler.on_start_transaction(state, Time.now, 'a uri', {:some => :params})
 
     assert_equal(NewRelic::Agent.instance.transaction_sampler.tl_builder.sample.guid,
-                 NewRelic::Agent.instance.sql_sampler.transaction_data.guid)
+                 NewRelic::Agent.instance.sql_sampler.tl_transaction_data.guid)
   end
 
   def test_should_not_collect_explain_plans_when_disabled

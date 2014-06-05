@@ -354,10 +354,11 @@ module NewRelic
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
       def start#CDP
-        return if !NewRelic::Agent.tl_is_execution_traced?
+        state = NewRelic::Agent::TransactionState.tl_get
+        return if !state.is_traced?
 
-        transaction_sampler.on_start_transaction(start_time, uri, filtered_params)
-        sql_sampler.on_start_transaction(start_time, uri, filtered_params)
+        transaction_sampler.on_start_transaction(state, start_time, uri, filtered_params)
+        sql_sampler.on_start_transaction(state, start_time, uri, filtered_params)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
@@ -400,7 +401,8 @@ module NewRelic
       end
 
       def stop(end_time)#CDP
-        return if !NewRelic::Agent.tl_is_execution_traced?
+        state = NewRelic::Agent::TransactionState.tl_get
+        return if !state.is_traced?
         freeze_name_and_execute_if_not_ignored
 
         name    = @frozen_name
