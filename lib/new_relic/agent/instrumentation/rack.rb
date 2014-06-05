@@ -105,6 +105,21 @@ module NewRelic
       end
 
       module RackBuilder
+        # This method serves two, mostly independent purposes:
+        #
+        # 1. We trigger DependencyDetection from here, since it tends to happen
+        #    late in the application startup sequence, after all libraries have
+        #    actually been loaded, and libraries that may not have been loaded
+        #    at the time we were originally required might be present now.
+        #
+        # 2. Our Rack middleware instrumentation hooks into this method in order
+        #    to wrap a proxy object around each Rack middleware, and the app
+        #    itself.
+        #
+        # Part two can be disabled with the disable_middleware_instrumentation
+        # config switch. The whole thing (including parts 1 and 2) can be
+        # disabled with the disable_rack config switch.
+        #
         def to_app_with_newrelic_deferred_dependency_detection
           if ::NewRelic::Agent.config[:disable_middleware_instrumentation]
             ::NewRelic::Agent.logger.debug("Not using Rack::Builder instrumentation because disable_middleware_instrumentation was set in config")
