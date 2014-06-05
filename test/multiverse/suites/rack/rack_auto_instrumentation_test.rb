@@ -57,14 +57,15 @@ class RackAutoInstrumentationTest < Minitest::Test
       [
         "Apdex",
         "HttpDispatcher",
-        "Apdex/Rack/NewRelic::Rack::ErrorCollector/call",
-        "Controller/Rack/NewRelic::Rack::ErrorCollector/call",
-        "Nested/Controller/Rack/NewRelic::Rack::ErrorCollector/call",
-        "Nested/Controller/Rack/NewRelic::Rack::BrowserMonitoring/call",
-        "Nested/Controller/Rack/NewRelic::Rack::AgentHooks/call",
-        ["Nested/Controller/Rack/NewRelic::Rack::ErrorCollector/call",    "Controller/Rack/NewRelic::Rack::ErrorCollector/call"],
-        ["Nested/Controller/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Rack/NewRelic::Rack::ErrorCollector/call"],
-        ["Nested/Controller/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Rack/NewRelic::Rack::ErrorCollector/call"],
+        "Middleware/all",
+        "Apdex/Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
+        "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
+        "Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
+        "Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call",
+        "Middleware/Rack/NewRelic::Rack::AgentHooks/call",
+        ["Middleware/Rack/NewRelic::Rack::ErrorCollector/call",    "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
+        ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
+        ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
       ],
       :ignore_filter => /^Supportability\/EnvironmentReport/
     )
