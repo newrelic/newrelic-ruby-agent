@@ -29,6 +29,13 @@ module NewRelic
           traced_call(env)
         end
       end
+
+      # Overriding these methods inherited from ControllerInstrumentation is
+      # a performance optimization. See the comment in MiddlewareProxy for
+      # details.
+      def ignore_apdex?;   false; end
+      def ignore_enduser?; false; end
+      def do_not_trace?;   false; end
     end
   end
 end
