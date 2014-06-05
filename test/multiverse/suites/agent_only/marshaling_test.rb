@@ -17,13 +17,14 @@ class MarshalingTest < Minitest::Test
   def test_transaction_trace_marshaling
     # create fake transaction trace
     time = freeze_time
+    state = NewRelic::Agent::TransactionState.tl_get
     sampler = agent.transaction_sampler
     sampler.on_start_transaction time, nil, {}
-    sampler.notice_push_frame "a"
-    sampler.notice_push_frame "ab"
+    sampler.notice_push_frame(state, "a")
+    sampler.notice_push_frame(state, "ab")
     advance_time 1
-    sampler.notice_pop_frame "ab"
-    sampler.notice_pop_frame "a"
+    sampler.notice_pop_frame(state, "ab")
+    sampler.notice_pop_frame(state, "a")
     sampler.on_finishing_transaction(OpenStruct.new(:name => 'path',
                                                :custom_parameters => {}))
 

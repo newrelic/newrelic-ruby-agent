@@ -9,11 +9,12 @@ module NewRelic
       class ActionControllerSubscriber < EventedSubscriber
 
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
-          request = TransactionState.tl_get.request
+          state = TransactionState.tl_get
+          request = state.request
           event = ControllerEvent.new(name, Time.now, nil, id, payload, request)
           push_event(event)
 
-          if NewRelic::Agent.tl_is_execution_traced? && !event.ignored?
+          if state.is_traced? && !event.ignored?
             start_transaction(event)
           else
             # if this transaction is ignored, make sure child

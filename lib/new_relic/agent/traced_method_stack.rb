@@ -24,13 +24,15 @@ module NewRelic
       end
 
       def self.tl_push_frame(tag, time = Time.now.to_f)
-        stack = NewRelic::Agent::TransactionState.tl_get.traced_method_stack
-        stack.push_frame(tag, time)
+        state = NewRelic::Agent::TransactionState.tl_get
+        stack = state.traced_method_stack
+        stack.push_frame(state, tag, time)
       end
 
       def self.tl_pop_frame(expected_frame, name, time=Time.now.to_f)
-        stack = NewRelic::Agent::TransactionState.tl_get.traced_method_stack
-        stack.pop_frame(expected_frame, name, time)
+        state = NewRelic::Agent::TransactionState.tl_get
+        stack = state.traced_method_stack
+        stack.pop_frame(state, expected_frame, name, time)
       end
 
       # Pushes a frame onto the transaction stack - this generates a
@@ -40,8 +42,8 @@ module NewRelic
       #
       # +tag+ should be a Symbol, and is only for debugging purposes to
       # identify this frame if the stack gets corrupted.
-      def push_frame(tag, time = Time.now.to_f)
-        transaction_sampler.notice_push_frame(time) if sampler_enabled?
+      def push_frame(state, tag, time = Time.now.to_f)
+        transaction_sampler.notice_push_frame(state, time) if sampler_enabled?
         frame = TracedMethodFrame.new(tag, time)
         @stack.push frame
         frame
@@ -54,13 +56,13 @@ module NewRelic
       # push_frame call.
       #
       # +name+ will be applied to the generated transaction trace segment.
-      def pop_frame(expected_frame, name, time=Time.now.to_f)
+      def pop_frame(state, expected_frame, name, time=Time.now.to_f)
         frame = @stack.pop
         fail "unbalanced pop from blame stack, got #{frame ? frame.tag : 'nil'}, expected #{expected_frame ? expected_frame.tag : 'nil'}" if frame != expected_frame
 
         @stack.last.children_time += (time - frame.start_time) unless @stack.empty?
 
-        transaction_sampler.notice_pop_frame(name, time) if sampler_enabled?
+        transaction_sampler.notice_pop_frame(state, name, time) if sampler_enabled?
         frame.name = name
         frame
       end

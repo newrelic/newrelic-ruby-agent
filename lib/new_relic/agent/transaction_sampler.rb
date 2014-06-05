@@ -75,8 +75,8 @@ module NewRelic
       #
       # Note that in developer mode, this captures a stacktrace for
       # the beginning of each segment, which can be fairly slow
-      def notice_push_frame(time=Time.now)#CDP
-        builder = tl_builder
+      def notice_push_frame(state, time=Time.now)
+        builder = state.transaction_sample_builder
         return unless builder
 
         segment = builder.trace_entry(time.to_f)
@@ -87,8 +87,8 @@ module NewRelic
       end
 
       # Informs the transaction sample builder about the end of a traced frame
-      def notice_pop_frame(frame, time = Time.now)#CDP
-        builder = tl_builder
+      def notice_pop_frame(state, frame, time = Time.now)
+        builder = state.transaction_sample_builder
         return unless builder
         raise "finished already???" if builder.sample.finished
         builder.trace_exit(frame, time.to_f)

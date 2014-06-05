@@ -11,10 +11,10 @@ class NewRelic::Agent::MockScopeListener
     @scopes = []
   end
 
-  def notice_push_frame(time)
+  def notice_push_frame(state, time)
   end
 
-  def notice_pop_frame(scope, time)
+  def notice_pop_frame(state, scope, time)
     @scopes << scope
   end
 

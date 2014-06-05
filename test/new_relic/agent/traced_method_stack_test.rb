@@ -38,26 +38,30 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
 
 
   def test_scope_failure
-    scope1 = @frame_stack.push_frame(:scope1)
-    scope2 = @frame_stack.push_frame(:scope2)
+    state = NewRelic::Agent::TransactionState.tl_get
+
+    scope1 = @frame_stack.push_frame(state, :scope1)
+    scope2 = @frame_stack.push_frame(state, :scope2)
     assert_raises(RuntimeError) do
-      @frame_stack.pop_frame(scope1, "name 1")
+      @frame_stack.pop_frame(state, scope1, "name 1")
     end
   end
 
   def test_children_time
+    state = NewRelic::Agent::TransactionState.tl_get
+
     t1 = freeze_time
-    expected1 = @frame_stack.push_frame(:a)
+    expected1 = @frame_stack.push_frame(state, :a)
     advance_time(0.001)
     t2 = Time.now
 
-    expected2 = @frame_stack.push_frame(:b)
+    expected2 = @frame_stack.push_frame(state, :b)
     advance_time(0.002)
     t3 = Time.now
 
-    expected = @frame_stack.push_frame(:c)
+    expected = @frame_stack.push_frame(state, :c)
     advance_time(0.003)
-    scope = @frame_stack.pop_frame(expected, "metric c")
+    scope = @frame_stack.pop_frame(state, expected, "metric c")
 
     t4 = Time.now
     assert_equal 0, scope.children_time
@@ -65,20 +69,20 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
     advance_time(0.001)
     t5 = Time.now
 
-    expected = @frame_stack.push_frame(:d)
+    expected = @frame_stack.push_frame(state, :d)
     advance_time(0.002)
-    scope = @frame_stack.pop_frame(expected, "metric d")
+    scope = @frame_stack.pop_frame(state, expected, "metric d")
 
     t6 = Time.now
 
     assert_equal 0, scope.children_time
 
-    scope = @frame_stack.pop_frame(expected2, "metric b")
+    scope = @frame_stack.pop_frame(state, expected2, "metric b")
     assert_equal 'metric b', scope.name
 
     assert_in_delta((t4 - t3) + (t6 - t5), scope.children_time, 0.0001)
 
-    scope = @frame_stack.pop_frame(expected1, "metric a")
+    scope = @frame_stack.pop_frame(state, expected1, "metric a")
     assert_equal scope.name, 'metric a'
 
     assert_in_delta((t6 - t2), scope.children_time, 0.0001)
@@ -87,13 +91,15 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
 
   # test for when the scope stack contains an element only used for tts and not metrics
   def test_simple_tt_only_scope
-    node1 = @frame_stack.push_frame(:a, 0)
-    node2 = @frame_stack.push_frame(:b, 10)
-    node3 = @frame_stack.push_frame(:c, 20)
+    state = NewRelic::Agent::TransactionState.tl_get
 
-    @frame_stack.pop_frame(node3, "name a", 30)
-    @frame_stack.pop_frame(node2, "name b", 20)
-    @frame_stack.pop_frame(node1, "name c", 10)
+    node1 = @frame_stack.push_frame(state, :a, 0)
+    node2 = @frame_stack.push_frame(state, :b, 10)
+    node3 = @frame_stack.push_frame(state, :c, 20)
+
+    @frame_stack.pop_frame(state, node3, "name a", 30)
+    @frame_stack.pop_frame(state, node2, "name b", 20)
+    @frame_stack.pop_frame(state, node1, "name c", 10)
 
     assert_equal 0, node3.children_time
     assert_equal 10, node2.children_time
@@ -103,15 +109,17 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
   end
 
   def test_double_tt_only_scope
-    node1 = @frame_stack.push_frame(:a,  0)
-    node2 = @frame_stack.push_frame(:b, 10)
-    node3 = @frame_stack.push_frame(:c, 20)
-    node4 = @frame_stack.push_frame(:d, 30)
+    state = NewRelic::Agent::TransactionState.tl_get
 
-    @frame_stack.pop_frame(node4, "name d", 40)
-    @frame_stack.pop_frame(node3, "name c", 30)
-    @frame_stack.pop_frame(node2, "name b", 20)
-    @frame_stack.pop_frame(node1, "name a", 10)
+    node1 = @frame_stack.push_frame(state, :a,  0)
+    node2 = @frame_stack.push_frame(state, :b, 10)
+    node3 = @frame_stack.push_frame(state, :c, 20)
+    node4 = @frame_stack.push_frame(state, :d, 30)
+
+    @frame_stack.pop_frame(state, node4, "name d", 40)
+    @frame_stack.pop_frame(state, node3, "name c", 30)
+    @frame_stack.pop_frame(state, node2, "name b", 20)
+    @frame_stack.pop_frame(state, node1, "name a", 10)
 
     assert_equal  0, node4.children_time.round
     assert_equal 10, node3.children_time.round

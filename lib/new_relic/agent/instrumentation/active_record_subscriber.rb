@@ -19,10 +19,11 @@ module NewRelic
         end
 
         def finish(name, id, payload)#CDP
-          return unless NewRelic::Agent.tl_is_execution_traced?
+          state = NewRelic::Agent::TransactionState.tl_get
+          return unless state.is_traced?
           event = pop_event(id)
           record_metrics(event)
-          notice_sql(event)
+          notice_sql(event, state)
         rescue => e
           log_notification_error(e, name, 'finish')
         end
@@ -37,12 +38,13 @@ module NewRelic
           end
         end
 
-        def notice_sql(event)#CDP
+        def notice_sql(event, state)
+          stack  = state.traced_method_stack
           config = active_record_config_for_event(event)
           metric = base_metric(event)
 
           # enter transaction trace segment
-          frame = NewRelic::Agent::TracedMethodStack.tl_push_frame(:active_record, event.time)
+          frame = stack.push_frame(state, :active_record, event.time)
 
           NewRelic::Agent.instance.transaction_sampler \
             .notice_sql(event.payload[:sql], config,
@@ -55,7 +57,7 @@ module NewRelic
                         &method(:get_explain_plan))
 
           # exit transaction trace segment
-          NewRelic::Agent::TracedMethodStack.tl_pop_frame(frame, metric, event.end)
+          stack.pop_frame(state, frame, metric, event.end)
         end
 
         def record_metrics(event)

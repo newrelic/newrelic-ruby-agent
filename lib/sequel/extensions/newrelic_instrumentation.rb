@@ -79,7 +79,7 @@ module Sequel
       stack    = state.traced_method_stack
 
       begin
-        frame = stack.push_frame(:sequel, start)
+        frame = stack.push_frame(state, :sequel, start)
         explainer = Proc.new do |*|
           if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
             self[ sql ].explain
@@ -91,7 +91,7 @@ module Sequel
         agent.transaction_sampler.notice_sql(sql, self.opts, duration, &explainer)
         agent.sql_sampler.notice_sql(sql, metric, self.opts, duration, &explainer)
       ensure
-        stack.pop_frame(frame, metric, finish)
+        stack.pop_frame(state, frame, metric, finish)
       end
     end
 
