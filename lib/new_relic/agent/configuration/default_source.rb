@@ -997,6 +997,12 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :description  => 'Controls whether instrumentation for the typhoeus gem will be installed by the agent.'
+        },
+        :disable_middleware_instrumentation => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :description  => 'Controls whether 3rd-party middlewares will be wrapped in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
         }
       }.freeze
 

@@ -17,8 +17,8 @@ class RackAutoInstrumentationTest < Minitest::Test
 
   include Rack::Test::Methods
 
-  def self.app
-    @app ||= Rack::Builder.app do
+  def app
+    Rack::Builder.app do
       use MiddlewareOne
       use MiddlewareTwo
       use NewRelic::Rack::BrowserMonitoring
@@ -26,12 +26,6 @@ class RackAutoInstrumentationTest < Minitest::Test
       use NewRelic::Rack::ErrorCollector
       run ExampleApp.new
     end
-  end
-
-  # Each test executes in a unique instance of RackAutoInstrumentationTest
-  # We only want to build ExampleApp once so we need to use a class method.
-  def app
-    self.class.app
   end
 
   def test_middleware_gets_used
@@ -53,6 +47,28 @@ class RackAutoInstrumentationTest < Minitest::Test
   def test_body_is_preserved
     get '/'
     assert_equal 'A barebones rack app.', last_response.body
+  end
+
+  def test_non_agent_middlewares_do_not_record_metrics_if_disabled_by_config
+    with_config(:disable_middleware_instrumentation => true) do
+      get '/'
+    end
+    assert_metrics_recorded_exclusive(
+      [
+        "Apdex",
+        "HttpDispatcher",
+        "Middleware/all",
+        "Apdex/Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
+        "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
+        "Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
+        "Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call",
+        "Middleware/Rack/NewRelic::Rack::AgentHooks/call",
+        ["Middleware/Rack/NewRelic::Rack::ErrorCollector/call",    "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
+        ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
+        ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
+      ],
+      :ignore_filter => /^Supportability\/EnvironmentReport/
+    )
   end
 
   def test_middlewares_record_metrics
