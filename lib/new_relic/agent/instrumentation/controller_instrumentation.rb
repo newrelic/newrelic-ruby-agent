@@ -212,27 +212,20 @@ module NewRelic
         end
 
         class TransactionNamer
-          CONTROLLER_PREFIX = 'Controller'.freeze unless defined?(CONTROLLER_PREFIX)
-          TASK_PREFIX       = 'OtherTransaction/Background'.freeze unless defined?(TASK_PREFIX)
-          RACK_PREFIX       = 'Controller/Rack'.freeze unless defined?(RACK_PREFIX)
-          URI_PREFIX        = 'Controller'.freeze unless defined?(URI_PREFIX)
-          SINATRA_PREFIX    = 'Controller/Sinatra'.freeze unless defined?(SINATRA_PREFIX)
-          MIDDLEWARE_PREFIX = 'Middleware/Rack'.freeze unless defined?(MIDDLEWARE_PREFIX)
-
           def self.name(traced_obj, category, options={})
-            "#{prefix_for_category(category)}/#{path_name(traced_obj, options)}"
+            "#{prefix_for_category(category)}#{path_name(traced_obj, options)}"
           end
 
           def self.prefix_for_category(category = nil)
             category ||= Transaction.best_category
             case category
-            when :controller then CONTROLLER_PREFIX
-            when :task       then TASK_PREFIX
-            when :rack       then RACK_PREFIX
-            when :uri        then URI_PREFIX
-            when :sinatra    then SINATRA_PREFIX
-            when :middleware then MIDDLEWARE_PREFIX
-            else category.to_s # for internal use only
+            when :controller then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :task       then ::NewRelic::Agent::Transaction::TASK_PREFIX
+            when :rack       then ::NewRelic::Agent::Transaction::RACK_PREFIX
+            when :uri        then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :sinatra    then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
+            when :middleware then ::NewRelic::Agent::Transaction::MIDDLEWARE_PREFIX
+            else "#{category.to_s}/" # for internal use only
             end
           end
 

@@ -17,7 +17,11 @@ module NewRelic
       # for nested transactions
       SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
       CONTROLLER_PREFIX            = 'Controller/'.freeze
-      MIDDLEWARE_PREFIX            = 'Middleware/'.freeze
+      MIDDLEWARE_PREFIX            = 'Middleware/Rack/'.freeze
+      TASK_PREFIX                  = 'OtherTransaction/Background/'.freeze
+      RACK_PREFIX                  = 'Controller/Rack/'.freeze
+      SINATRA_PREFIX               = 'Controller/Sinatra/'.freeze
+
       CONTROLLER_MIDDLEWARE_PREFIX = 'Controller/Middleware/Rack'.freeze
 
       NESTED_TRACE_STOP_OPTIONS    = { :metric => true }.freeze
@@ -98,7 +102,7 @@ module NewRelic
 
       def self.make_transaction_name(name, category=nil)
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        "#{namer.prefix_for_category(category)}/#{name}"
+        "#{namer.prefix_for_category(category)}#{name}"
       end
 
       def self.start(category, options)
