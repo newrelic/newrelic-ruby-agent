@@ -31,7 +31,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     n.times do |i|
       sampler.on_start_transaction(state, nil)
       sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", nil, 1)
-      sampler.on_finishing_transaction('txn')
+      sampler.on_finishing_transaction(state, 'txn')
     end
   end
 
@@ -47,7 +47,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     @sampler.on_finishing_transaction('txn')
 
     # Transaction clearing cleans this state for us--we don't do it ourselves
-    refute_nil @sampler.transaction_data
+    refute_nil @sampler.tl_transaction_data
   end
 
   def test_notice_sql_no_transaction

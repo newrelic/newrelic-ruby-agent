@@ -57,8 +57,8 @@ module NewRelic
       end
 
       # This is called when we are done with the transaction.
-      def on_finishing_transaction(name, time=Time.now)#CDP
-        data = tl_transaction_data
+      def on_finishing_transaction(state, name, time=Time.now)
+        data = state.sql_sampler_transaction_data
         data.set_transaction_name(name)
 
         if data.sql_data.size > 0

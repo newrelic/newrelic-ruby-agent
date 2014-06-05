@@ -25,7 +25,7 @@ class MarshalingTest < Minitest::Test
     advance_time 1
     sampler.notice_pop_frame(state, "ab")
     sampler.notice_pop_frame(state, "a")
-    sampler.on_finishing_transaction(OpenStruct.new(:name => 'path',
+    sampler.on_finishing_transaction(state, OpenStruct.new(:name => 'path',
                                                :custom_parameters => {}))
 
     expected_sample = sampler.last_sample
@@ -74,7 +74,7 @@ class MarshalingTest < Minitest::Test
     agent.sql_sampler.notice_sql("select * from test",
                                   "Database/test/select",
                                   nil, 1.5)
-    agent.sql_sampler.on_finishing_transaction('txn')
+    agent.sql_sampler.on_finishing_transaction(state, 'txn')
 
     agent.service.connect
     agent.send(:harvest_and_send_slowest_sql)

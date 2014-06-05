@@ -433,8 +433,8 @@ module NewRelic
           gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
           gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
               gc_start_snapshot, gc_stop_snapshot)
-          @transaction_trace = transaction_sampler.on_finishing_transaction(self, Time.now, gc_delta)
-          sql_sampler.on_finishing_transaction(@frozen_name)
+          @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, Time.now, gc_delta)
+          sql_sampler.on_finishing_transaction(state, @frozen_name)
 
           record_apdex(end_time) unless ignore_apdex?
           NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
