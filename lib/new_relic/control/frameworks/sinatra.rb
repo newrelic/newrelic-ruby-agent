@@ -8,8 +8,10 @@ module NewRelic
     module Frameworks
       # Contains basic control logic for Sinatra
       class Sinatra < NewRelic::Control::Frameworks::Ruby
-        def init_config(options={})
-          super
+        def root
+          if defined?(::Sinatra::Base)
+            ::Sinatra::Base.settings.root
+          end
         end
       end
     end

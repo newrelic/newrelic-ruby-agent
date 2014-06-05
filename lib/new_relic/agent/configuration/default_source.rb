@@ -33,10 +33,17 @@ module NewRelic
               File.join("config","newrelic.yml"),
               File.join("newrelic.yml")
             ]
+
+            if NewRelic::Control.instance.root
+              paths << File.join(NewRelic::Control.instance.root, "config", "newrelic.yml")
+              paths << File.join(NewRelic::Control.instance.root, "newrelic.yml")
+            end
+
             if ENV["HOME"]
               paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
               paths << File.join(ENV["HOME"], "newrelic.yml")
             end
+
             paths
           }
         end
