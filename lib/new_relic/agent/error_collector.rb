@@ -100,17 +100,17 @@ module NewRelic
           error && filtered_error?(error)
         end
 
-        def seen?(exception)#CDP
+        def seen?(exception) #THREAD_LOCAL_ACCESS
           error_ids = TransactionState.tl_get.transaction_noticed_error_ids
           error_ids.include?(exception.object_id)
         end
 
-        def tag_as_seen(exception)#CDP
+        def tag_as_seen(exception) #THREAD_LOCAL_ACCESS
           txn = Transaction.tl_current
           txn.noticed_error_ids << exception.object_id if txn
         end
 
-        def blamed_metric_name(options)#CDP
+        def blamed_metric_name(options) #THREAD_LOCAL_ACCESS
           if options[:metric] && options[:metric] != ::NewRelic::Agent::UNKNOWN_METRIC
             "Errors/#{options[:metric]}"
           else

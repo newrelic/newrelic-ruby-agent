@@ -24,7 +24,7 @@ module NewRelic
       # this is for unit tests only
       attr_reader :sql_traces
 
-      def initialize#CDP
+      def initialize #THREAD_LOCAL_ACCESS
         @sql_traces = {}
 
         # This lock is used to synchronize access to @sql_traces

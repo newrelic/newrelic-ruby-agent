@@ -72,7 +72,7 @@ module NewRelic
       #
       # @api public
       #
-      def trace_execution_unscoped(metric_names, options={})#CDP
+      def trace_execution_unscoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
         return yield unless NewRelic::Agent.tl_is_execution_traced?
         t0 = Time.now
         begin
@@ -108,7 +108,7 @@ module NewRelic
         end
 
         # Shorthand to return the status of tracing
-        def traced?#CDP
+        def traced? #THREAD_LOCAL_ACCESS
           NewRelic::Agent.tl_is_execution_traced?
         end
 
@@ -149,7 +149,7 @@ module NewRelic
         # the frame so that we can check for it later, to maintain
         # sanity. If the frame stack becomes unbalanced, this
         # transaction loses meaning.
-        def trace_execution_scoped_header(t0)#CDP
+        def trace_execution_scoped_header(t0) #THREAD_LOCAL_ACCESS
           log_errors(:trace_execution_scoped_header) do
             NewRelic::Agent::TracedMethodStack.tl_push_frame(:method_tracer, t0)
           end
@@ -180,7 +180,7 @@ module NewRelic
         # this method fails safely if the header does not manage to
         # push the scope onto the stack - it simply does not trace
         # any metrics.
-        def trace_execution_scoped_footer(t0, first_name, metric_names, expected_frame, options, t1=Time.now.to_f)#CDP
+        def trace_execution_scoped_footer(t0, first_name, metric_names, expected_frame, options, t1=Time.now.to_f) #THREAD_LOCAL_ACCESS
           log_errors(:trace_method_execution_footer) do
             if expected_frame
               frame = NewRelic::Agent::TracedMethodStack.tl_pop_frame(expected_frame, first_name, t1)

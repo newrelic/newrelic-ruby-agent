@@ -60,7 +60,7 @@ module NewRelic::Agent::Instrumentation::TyphoeusTracing
     request.respond_to?(:hydra) && request.hydra
   end
 
-  def self.trace(request)#CDP
+  def self.trace(request) #THREAD_LOCAL_ACCESS
     if NewRelic::Agent.tl_is_execution_traced? && !request_is_hydra_enabled?(request)
       wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
       t0, segment = ::NewRelic::Agent::CrossAppTracing.start_trace(wrapped_request)

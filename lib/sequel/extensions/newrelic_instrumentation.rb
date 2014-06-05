@@ -35,7 +35,7 @@ module Sequel
 
 
     # Instrument all queries that go through #execute_query.
-    def log_yield(sql, args=nil)#CDP
+    def log_yield(sql, args=nil) #THREAD_LOCAL_ACCESS
       state = NewRelic::Agent::TransactionState.tl_get
       return super unless state.is_execution_traced?
 

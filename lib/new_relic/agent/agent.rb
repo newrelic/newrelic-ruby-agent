@@ -220,7 +220,7 @@ module NewRelic
         # Sets a thread local variable as to whether we should or
         # should not record sql in the current thread. Returns the
         # previous value, if there is one
-        def set_record_sql(should_record)#CDP
+        def set_record_sql(should_record) #THREAD_LOCAL_ACCESS
           state = TransactionState.tl_get
           prev = state.record_sql
           state.record_sql = should_record
@@ -230,7 +230,7 @@ module NewRelic
         # Sets a thread local variable as to whether we should or
         # should not record transaction traces in the current
         # thread. Returns the previous value, if there is one
-        def set_record_tt(should_record)#CDP
+        def set_record_tt(should_record) #THREAD_LOCAL_ACCESS
           state = TransactionState.tl_get
           prev = state.record_tt
           state.record_tt = should_record
@@ -241,13 +241,13 @@ module NewRelic
         # thread. This uses a stack which allows us to disable tracing
         # children of a transaction without affecting the tracing of
         # the whole transaction
-        def push_trace_execution_flag(should_trace=false)#CDP
+        def push_trace_execution_flag(should_trace=false) #THREAD_LOCAL_ACCESS
           TransactionState.tl_get.push_traced(should_trace)
         end
 
         # Pop the current trace execution status.  Restore trace execution status
         # to what it was before we pushed the current flag.
-        def pop_trace_execution_flag#CDP
+        def pop_trace_execution_flag #THREAD_LOCAL_ACCESS
           TransactionState.tl_get.pop_traced
         end
 

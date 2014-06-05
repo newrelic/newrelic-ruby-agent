@@ -26,7 +26,7 @@ module NewRelic
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload)#CDP
+        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
           event = pop_event(id)
           event.payload.merge!(payload)
 

@@ -191,7 +191,7 @@ module NewRelic
         # We rely on the assumption that all possible entry points have been
         # hooked with tracers, ensuring that notice_sql attaches this SQL to
         # the proper call scope.
-        def log(msg)#CDP
+        def log(msg) #THREAD_LOCAL_ACCESS
           state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
           return unless operation = case NewRelic::Helper.correctly_encoded(msg.query)

@@ -524,7 +524,7 @@ module NewRelic
     #
     # @api public
     #
-    def get_transaction_name#CDP
+    def get_transaction_name #THREAD_LOCAL_ACCESS
       txn = Transaction.tl_current
       if txn
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
@@ -543,7 +543,7 @@ module NewRelic
     #
     # @api public
     #
-    def with_database_metric_name(model, method, &block)#CDP
+    def with_database_metric_name(model, method, &block) #THREAD_LOCAL_ACCESS
       if txn = Transaction.tl_current
         txn.with_database_metric_name(model, method, &block)
       else

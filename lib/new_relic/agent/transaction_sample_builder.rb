@@ -118,7 +118,7 @@ module NewRelic
 
       TT_THRESHOLD_KEY = :'transaction_tracer.transaction_threshold'
 
-      def transaction_trace_threshold#CDP
+      def transaction_trace_threshold #THREAD_LOCAL_ACCESS
         state = TransactionState.tl_get
         source_class = Agent.config.source(TT_THRESHOLD_KEY).class
         if source_class == Configuration::DefaultSource && state.current_transaction

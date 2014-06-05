@@ -215,18 +215,18 @@ module NewRelic
       # Adds non-sql metadata to a segment - generally the memcached key
       #
       # duration is seconds, float value.
-      def notice_nosql(key, duration)#CDP
+      def notice_nosql(key, duration) #THREAD_LOCAL_ACCESS
         builder = tl_builder
         notice_extra_data(builder, key, duration, :key)
       end
 
-      def notice_nosql_statement(statement, duration)#CDP
+      def notice_nosql_statement(statement, duration) #THREAD_LOCAL_ACCESS
         builder = tl_builder
         notice_extra_data(builder, statement, duration, :statement)
       end
 
       # Set parameters on the current segment.
-      def add_segment_parameters(params)#CDP
+      def add_segment_parameters(params) #THREAD_LOCAL_ACCESS
         builder = tl_builder
         return unless builder
         params.each { |k,v| builder.current_segment[k] = v }

@@ -11,14 +11,14 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActiveRecordSubscriber < EventedSubscriber
-        def start(name, id, payload)#CDP
+        def start(name, id, payload) #THREAD_LOCAL_ACCESS
           return unless NewRelic::Agent.tl_is_execution_traced?
           super
         rescue => e
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload)#CDP
+        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
           state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
           event = pop_event(id)

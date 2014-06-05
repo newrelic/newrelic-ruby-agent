@@ -33,7 +33,7 @@ module NewRelic
       # See the documentation for +start_trace+ for an explanation of what
       # +request+ should look like.
       #
-      def trace_http_request(request)#CDP
+      def trace_http_request(request) #THREAD_LOCAL_ACCESS
         return yield unless NewRelic::Agent.tl_is_execution_traced?
 
         begin
@@ -63,7 +63,7 @@ module NewRelic
       # This method MUST return a pair. The first item always returns the
       # starting time of the trace, even if an error occurs. The second item is
       # the transaction segment if it was sucessfully pushed.
-      def start_trace(request)#CDP
+      def start_trace(request) #THREAD_LOCAL_ACCESS
         t0 = Time.now
 
         inject_request_headers(request) if cross_app_enabled?
@@ -87,7 +87,7 @@ module NewRelic
       # * [](key) - Reads response headers.
       # * to_hash - Converts response headers to a Hash
       #
-      def finish_trace(t0, segment, request, response)#CDP
+      def finish_trace(t0, segment, request, response) #THREAD_LOCAL_ACCESS
         t1 = Time.now
         duration = t1.to_f - t0.to_f
 
@@ -150,7 +150,7 @@ module NewRelic
       end
 
       # Inject the X-Process header into the outgoing +request+.
-      def inject_request_headers(request)#CDP
+      def inject_request_headers(request) #THREAD_LOCAL_ACCESS
         cross_app_id = NewRelic::Agent.config[:cross_process_id] or
           raise NewRelic::Agent::CrossAppTracing::Error, "no cross app ID configured"
 

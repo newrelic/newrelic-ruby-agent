@@ -86,7 +86,7 @@ module NewRelic
         value.nil? || value.empty?
       end
 
-      def browser_timing_header#CDP
+      def browser_timing_header #THREAD_LOCAL_ACCESS
         return '' unless js_enabled_and_ready? # fast exit
 
         state = NewRelic::Agent::TransactionState.tl_get

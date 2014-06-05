@@ -28,11 +28,11 @@ module NewRelic
       end
 
       # This starts the timer for the transaction.
-      def self.reset#CDP
+      def self.reset #THREAD_LOCAL_ACCESS
         self.tl_get.reset
       end
 
-      def self.request=(request)#CDP
+      def self.request=(request) #THREAD_LOCAL_ACCESS
         self.tl_get.request = request
       end
 
