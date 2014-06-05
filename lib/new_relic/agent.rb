@@ -528,7 +528,7 @@ module NewRelic
       txn = Transaction.current
       if txn
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        txn.best_name.sub(Regexp.new("\\A#{Regexp.escape(namer.prefix_for_category)}/"), '')
+        txn.best_name.sub(Regexp.new("\\A#{Regexp.escape(namer.prefix_for_category)}"), '')
       end
     end
 
