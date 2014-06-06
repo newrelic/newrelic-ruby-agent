@@ -326,7 +326,8 @@ module NewRelic
         # @api public
         #
         def perform_action_with_newrelic_trace(*args, &block) #THREAD_LOCAL_ACCESS
-          NewRelic::Agent::TransactionState.tl_get.request = newrelic_request(args)
+          state = NewRelic::Agent::TransactionState.tl_get
+          state.request = newrelic_request(args)
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
@@ -337,7 +338,7 @@ module NewRelic
             end
           end
 
-          return yield unless NewRelic::Agent.tl_is_execution_traced?
+          return yield unless state.is_execution_traced?
 
           # If a block was passed in, then the arguments represent options for
           # the instrumentation, not app method arguments.
@@ -350,7 +351,7 @@ module NewRelic
           category    = trace_options[:category] || :controller
           txn_options = create_transaction_options(trace_options)
           txn_options[:transaction_name] = TransactionNamer.name(self, category, trace_options)
-          txn_options[:apdex_start_time] = detect_queue_start_time
+          txn_options[:apdex_start_time] = detect_queue_start_time(state)
 
           begin
             txn = Transaction.start(category, txn_options)
@@ -449,7 +450,29 @@ module NewRelic
           end
         end
 
+<<<<<<< HEAD
         def detect_queue_start_time
+||||||| merged common ancestors
+        # Take a guess at a measure representing the number of requests waiting in mongrel
+        def queue_length
+          if mongrel = NewRelic::Control.instance.local_env.mongrel
+            # Always subtract 1 for the active mongrel
+            queue_depth = [mongrel.workers.list.length.to_i - 1, 0].max rescue nil
+          end
+        end
+
+        def detect_queue_start_time
+=======
+        # Take a guess at a measure representing the number of requests waiting in mongrel
+        def queue_length
+          if mongrel = NewRelic::Control.instance.local_env.mongrel
+            # Always subtract 1 for the active mongrel
+            queue_depth = [mongrel.workers.list.length.to_i - 1, 0].max rescue nil
+          end
+        end
+
+        def detect_queue_start_time(state)
+>>>>>>> More thread-local access cleanup.
           if newrelic_request_headers
             QueueTime.parse_frontend_timestamp(newrelic_request_headers)
           end
