@@ -90,13 +90,13 @@ module NewRelic
         TransactionState.tl_get.referring_transaction_info = txn_info
       end
 
-      def client_referring_transaction_guid #THREAD_LOCAL_ACCESS
-        info = TransactionState.tl_get.referring_transaction_info or return nil
+      def client_referring_transaction_guid(state)
+        info = state.referring_transaction_info or return nil
         return info[0]
       end
 
-      def client_referring_transaction_record_flag #THREAD_LOCAL_ACCESS
-        info = TransactionState.tl_get.referring_transaction_info or return nil
+      def client_referring_transaction_record_flag(state)
+        info = state.referring_transaction_info or return nil
         return info[1]
       end
 
@@ -150,12 +150,14 @@ module NewRelic
         payload = obfuscator.obfuscate(NewRelic::JSONWrapper.dump(payload))
       end
 
-      def set_transaction_custom_parameters
+      def set_transaction_custom_parameters #THREAD_LOCAL_ACCESS
+        state = NewRelic::Agent::TransactionState.tl_get
+
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
         NewRelic::Agent.add_custom_parameters(:client_cross_process_id => client_cross_app_id()) if client_cross_app_id()
 
-        referring_guid = client_referring_transaction_guid()
+        referring_guid = client_referring_transaction_guid(state)
         if referring_guid
           NewRelic::Agent.logger.debug "Referring transaction guid: %p" % [referring_guid]
           NewRelic::Agent.add_custom_parameters(:referring_transaction_guid => referring_guid)
