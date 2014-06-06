@@ -222,13 +222,15 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_record_queue_time_metrics
+    app = lambda do |env|
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      advance_time(2)
+      @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    end
+
     t0 = Time.now
     env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_f.to_s }
-    NewRelic::Agent.instance.events.notify(:before_call, env)
-
-    @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    advance_time(2)
-    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    ::NewRelic::Rack::AgentHooks.new(app).call(env)
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
@@ -246,15 +248,16 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_dont_record_queue_time_in_nested_transaction
+    app = lambda do |env|
+      @subscriber.start('process_action.action_controller',  :id, @entry_payload)
+      @subscriber.start('process_action.action_controller',  :id, @entry_payload)
+      @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+      @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    end
+
     t0 = Time.now
-
     env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_f.to_s }
-    NewRelic::Agent.instance.events.notify(:before_call, env)
-
-    @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
-    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    ::NewRelic::Rack::AgentHooks.new(app).call(env)
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
