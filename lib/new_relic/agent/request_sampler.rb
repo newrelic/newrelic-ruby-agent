@@ -77,7 +77,7 @@ class NewRelic::Agent::RequestSampler
     end
   end
 
-  def record_sampling_rate(request_count, sample_count)
+  def record_sampling_rate(request_count, sample_count) #THREAD_LOCAL_ACCESS
     request_count_lifetime = @samples.seen_lifetime
     sample_count_lifetime = @samples.captured_lifetime
     NewRelic::Agent.logger.debug("Sampled %d / %d (%.1f %%) requests this cycle, %d / %d (%.1f %%) since startup" % [
@@ -90,8 +90,8 @@ class NewRelic::Agent::RequestSampler
     ])
 
     engine = NewRelic::Agent.instance.stats_engine
-    engine.record_supportability_metric_count("RequestSampler/requests", request_count)
-    engine.record_supportability_metric_count("RequestSampler/samples", sample_count)
+    engine.tl_record_supportability_metric_count("RequestSampler/requests", request_count)
+    engine.tl_record_supportability_metric_count("RequestSampler/samples", sample_count)
   end
 
   def register_config_callbacks

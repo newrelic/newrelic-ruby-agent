@@ -20,7 +20,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
 
   def test_record_unscoped_metrics_records_to_transaction_stats_if_in_txn
     in_transaction do
-      @engine.record_unscoped_metrics(['a', 'b'], 20, 10)
+      @engine.tl_record_unscoped_metrics(['a', 'b'], 20, 10)
 
       # txn is still active, so metrics should not be merged into global
       # stats hash yet
@@ -39,7 +39,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
   end
 
   def test_record_unscoped_metrics_records_to_global_metrics_if_no_txn
-    @engine.record_unscoped_metrics(['a', 'b'], 20, 10)
+    @engine.tl_record_unscoped_metrics(['a', 'b'], 20, 10)
     expected = {
       :call_count           => 1,
       :total_call_time      => 20,
@@ -52,7 +52,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
   end
 
   def test_record_unscoped_metrics_takes_single_metric_name
-    @engine.record_unscoped_metrics('a', 20)
+    @engine.tl_record_unscoped_metrics('a', 20)
     assert_metrics_recorded(
       'a' => {
         :call_count           => 1,
@@ -64,7 +64,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
 
   def test_record_unscoped_metrics_takes_block_in_txn
     in_transaction('txn') do
-      @engine.record_unscoped_metrics('a') do |stat|
+      @engine.tl_record_unscoped_metrics('a') do |stat|
         stat.total_call_time = 42
         stat.call_count = 99
       end
@@ -75,7 +75,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
   end
 
   def test_record_unscoped_metrics_takes_block_outside_txn
-    @engine.record_unscoped_metrics('a') do |stat|
+    @engine.tl_record_unscoped_metrics('a') do |stat|
       stat.total_call_time = 42
       stat.call_count = 99
     end
@@ -92,8 +92,8 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     nthreads.times do |tid|
       threads << Thread.new do
         iterations.times do
-          @engine.record_unscoped_metrics('m1', 1)
-          @engine.record_unscoped_metrics('m2', 1)
+          @engine.tl_record_unscoped_metrics('m1', 1)
+          @engine.tl_record_unscoped_metrics('m2', 1)
         end
       end
     end
@@ -107,7 +107,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
 
   def test_record_scoped_and_unscoped_metrics_records_scoped_and_unscoped
     in_transaction('txn') do
-      @engine.record_scoped_and_unscoped_metrics('a', nil, 20, 10)
+      @engine.tl_record_scoped_and_unscoped_metrics('a', nil, 20, 10)
       assert_metrics_not_recorded('a')
     end
 
@@ -124,7 +124,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
 
   def test_record_scoped_and_unscoped_metrics_takes_block
     in_transaction('txn') do
-      @engine.record_scoped_and_unscoped_metrics('a', ['b']) do |stat|
+      @engine.tl_record_scoped_and_unscoped_metrics('a', ['b']) do |stat|
         stat.total_call_time = 42
         stat.call_count = 99
       end
@@ -140,7 +140,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
 
   def test_record_scoped_and_unscoped_metrics_records_multiple_unscoped_metrics
     in_transaction('txn') do
-      @engine.record_scoped_and_unscoped_metrics('a', ['b', 'c'], 20, 10)
+      @engine.tl_record_scoped_and_unscoped_metrics('a', ['b', 'c'], 20, 10)
       assert_metrics_not_recorded(['a', 'b', 'c'])
     end
 
@@ -170,8 +170,8 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
       threads << Thread.new do
         iterations.times do
           in_transaction('txn') do
-            @engine.record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
-            @engine.record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
+            @engine.tl_record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
+            @engine.tl_record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
           end
         end
       end
@@ -190,7 +190,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
   end
 
   def test_record_scoped_and_unscoped_metrics_records_unscoped_if_not_in_txn
-    @engine.record_scoped_and_unscoped_metrics('a', ['b'], 20, 10)
+    @engine.tl_record_scoped_and_unscoped_metrics('a', ['b'], 20, 10)
 
     expected = {
       :call_count           => 1,
@@ -329,15 +329,15 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
 
   def test_record_unscoped_metrics_unscoped_metrics_only
     in_transaction('scopey') do
-      @engine.record_unscoped_metrics('foo', 42)
+      @engine.tl_record_unscoped_metrics('foo', 42)
     end
     assert_metrics_recorded('foo' => { :call_count => 1, :total_call_time => 42 })
     assert_metrics_not_recorded([['foo', 'scopey']])
   end
 
   def test_record_supportability_metric_count_records_counts_only
-    @engine.record_supportability_metric_count('foo/bar', 1)
-    @engine.record_supportability_metric_count('foo/bar', 42)
+    @engine.tl_record_supportability_metric_count('foo/bar',  1)
+    @engine.tl_record_supportability_metric_count('foo/bar', 42)
     assert_metrics_recorded(['Supportability/foo/bar'] => {
       :call_count => 42,
       :total_call_time => 0

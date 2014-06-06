@@ -45,8 +45,8 @@ module NewRelic
           end
         end
 
-        def self.record_gc_metric(call_count, elapsed)
-          NewRelic::Agent.agent.stats_engine.record_scoped_and_unscoped_metrics(gc_metric_name, GC_ROLLUP) do |stats|
+        def self.record_gc_metric(call_count, elapsed) #THREAD_LOCAL_ACCESS
+          NewRelic::Agent.agent.stats_engine.tl_record_scoped_and_unscoped_metrics(gc_metric_name, GC_ROLLUP) do |stats|
             stats.call_count           += call_count
             stats.total_call_time      += elapsed
             stats.total_exclusive_time += elapsed

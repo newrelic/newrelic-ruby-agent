@@ -79,7 +79,7 @@ module NewRelic
           yield
         ensure
           duration = (Time.now - t0).to_f              # for some reason this is 3 usec faster than Time - Time
-          stat_engine.record_unscoped_metrics(metric_names, duration)
+          stat_engine.tl_record_unscoped_metrics(metric_names, duration)
         end
       end
 
@@ -155,20 +155,20 @@ module NewRelic
           end
         end
 
-        def record_metrics(first_name, other_names, duration, exclusive, options)
+        def record_metrics(first_name, other_names, duration, exclusive, options) #THREAD_LOCAL_ACCESS
           # The default value for :scoped_metric is true, so set it as true
           # if it was unset.
           record_scoped_metric = options.has_key?(:scoped_metric) ? options[:scoped_metric] : true
 
           if options[:metric]
             if record_scoped_metric
-              stat_engine.record_scoped_and_unscoped_metrics(first_name, other_names, duration, exclusive)
+              stat_engine.tl_record_scoped_and_unscoped_metrics(first_name, other_names, duration, exclusive)
             else
               metrics = [first_name].concat(other_names)
-              stat_engine.record_unscoped_metrics(metrics, duration, exclusive)
+              stat_engine.tl_record_unscoped_metrics(metrics, duration, exclusive)
             end
           else
-            stat_engine.record_unscoped_metrics(other_names, duration, exclusive)
+            stat_engine.tl_record_unscoped_metrics(other_names, duration, exclusive)
           end
         end
 

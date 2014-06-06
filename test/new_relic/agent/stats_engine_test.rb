@@ -23,7 +23,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
 
   def populate_container(engine, n)
     n.times do |i|
-      engine.record_unscoped_metrics("metric#{i}", i)
+      engine.tl_record_unscoped_metrics("metric#{i}", i)
     end
   end
 

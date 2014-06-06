@@ -78,11 +78,11 @@ module NewRelic
           end
         end
 
-        def truncate_to_node_count!(count_to_keep)
+        def truncate_to_node_count!(count_to_keep) #THREAD_LOCAL_ACCESS
           all_nodes = @traces.values.map { |n| n.flatten }.flatten
 
           NewRelic::Agent.instance.stats_engine.
-            record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
+            tl_record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
 
           all_nodes.sort!
           nodes_to_prune = Set.new(all_nodes[count_to_keep..-1] || [])

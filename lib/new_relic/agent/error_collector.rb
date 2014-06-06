@@ -122,7 +122,7 @@ module NewRelic
 
         # Increments a statistic that tracks total error rate
         # Be sure not to double-count same exception. This clears per harvest.
-        def increment_error_count!(exception, options={})
+        def increment_error_count!(exception, options={}) #THREAD_LOCAL_ACCESS
           return if seen?(exception)
           tag_as_seen(exception)
 
@@ -131,7 +131,7 @@ module NewRelic
           metric_names << blamed_metric if blamed_metric
 
           stats_engine = NewRelic::Agent.agent.stats_engine
-          stats_engine.record_unscoped_metrics(metric_names) do |stats|
+          stats_engine.tl_record_unscoped_metrics(metric_names) do |stats|
             stats.increment_count
           end
         end
