@@ -151,20 +151,20 @@ module NewRelic
           end
         end
 
-        def record_metrics(first_name, other_names, duration, exclusive, options) #THREAD_LOCAL_ACCESS
+        def record_metrics(state, first_name, other_names, duration, exclusive, options)
           # The default value for :scoped_metric is true, so set it as true
           # if it was unset.
           record_scoped_metric = options.has_key?(:scoped_metric) ? options[:scoped_metric] : true
 
           if options[:metric]
             if record_scoped_metric
-              stat_engine.tl_record_scoped_and_unscoped_metrics(first_name, other_names, duration, exclusive)
+              stat_engine.record_scoped_and_unscoped_metrics(state, first_name, other_names, duration, exclusive)
             else
               metrics = [first_name].concat(other_names)
-              stat_engine.tl_record_unscoped_metrics(metrics, duration, exclusive)
+              stat_engine.record_unscoped_metrics(state, metrics, duration, exclusive)
             end
           else
-            stat_engine.tl_record_unscoped_metrics(other_names, duration, exclusive)
+            stat_engine.record_unscoped_metrics(state, other_names, duration, exclusive)
           end
         end
 
@@ -183,7 +183,7 @@ module NewRelic
               frame = stack.pop_frame(state, expected_frame, first_name, t1)
               duration = t1 - t0
               exclusive = duration - frame.children_time
-              record_metrics(first_name, metric_names, duration, exclusive, options)
+              record_metrics(state, first_name, metric_names, duration, exclusive, options)
             end
           end
         end
