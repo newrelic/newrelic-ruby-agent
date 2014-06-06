@@ -71,7 +71,7 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
     @@headers_to_add = nil
   end
 
-  def newrelic_request_headers
+  def newrelic_request_headers(_)
     @@headers_to_add ||= {}
   end
 

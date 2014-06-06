@@ -390,8 +390,8 @@ module NewRelic
         # Should be implemented in the dispatcher class
         def newrelic_response_code; end
 
-        def newrelic_request_headers #THREAD_LOCAL_ACCESS
-          request = NewRelic::Agent::TransactionState.tl_get.request
+        def newrelic_request_headers(state)
+          request = state.request
           if request
             if request.respond_to?(:headers)
               request.headers
@@ -450,32 +450,10 @@ module NewRelic
           end
         end
 
-<<<<<<< HEAD
-        def detect_queue_start_time
-||||||| merged common ancestors
-        # Take a guess at a measure representing the number of requests waiting in mongrel
-        def queue_length
-          if mongrel = NewRelic::Control.instance.local_env.mongrel
-            # Always subtract 1 for the active mongrel
-            queue_depth = [mongrel.workers.list.length.to_i - 1, 0].max rescue nil
-          end
-        end
-
-        def detect_queue_start_time
-=======
-        # Take a guess at a measure representing the number of requests waiting in mongrel
-        def queue_length
-          if mongrel = NewRelic::Control.instance.local_env.mongrel
-            # Always subtract 1 for the active mongrel
-            queue_depth = [mongrel.workers.list.length.to_i - 1, 0].max rescue nil
-          end
-        end
-
         def detect_queue_start_time(state)
->>>>>>> More thread-local access cleanup.
-          if newrelic_request_headers
-            QueueTime.parse_frontend_timestamp(newrelic_request_headers)
-          end
+          headers = newrelic_request_headers(state)
+
+          QueueTime.parse_frontend_timestamp(headers) if headers
         end
       end
     end

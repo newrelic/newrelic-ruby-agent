@@ -73,7 +73,7 @@ module NewRelic
       module Rack
         include ControllerInstrumentation
 
-        def newrelic_request_headers
+        def newrelic_request_headers(_)
           @newrelic_request.env
         end
 
