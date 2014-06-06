@@ -175,9 +175,11 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_trace_execution_scoped_header
+    state = NewRelic::Agent::TransactionState.tl_get
+    stack = state.traced_method_stack
     self.expects(:log_errors).with(:trace_execution_scoped_header).yields
-    NewRelic::Agent::TracedMethodStack.expects(:tl_push_frame).with(:method_tracer, 1.0)
-    trace_execution_scoped_header(1.0)
+    stack.expects(:push_frame).with(state, :method_tracer, 1.0)
+    trace_execution_scoped_header(state, 1.0)
   end
 
   def test_trace_execution_scoped_calculates_exclusive_time
@@ -219,7 +221,6 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_trace_execution_scoped_disabled
-    self.expects(:traced?).returns(false)
     # make sure the method doesn't beyond the abort
     self.expects(:set_if_nil).never
     ran = false
