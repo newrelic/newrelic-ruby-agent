@@ -7,21 +7,6 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionControllerSubscriber < EventedSubscriber
-        def initialize
-          super
-          NewRelic::Agent.instance.events.subscribe(:before_call) do |env|
-
-            request = begin
-                        require 'rack'
-                        ::Rack::Request.new(env)
-                      rescue => e
-                        Agent.logger.debug("Error creating Rack::Request object: #{e}")
-                        nil
-                      end
-            TransactionState.request = request
-          end
-        end
-
         def start(name, id, payload)
           request = TransactionState.get.request
           event = ControllerEvent.new(name, Time.now, nil, id, payload, request)
