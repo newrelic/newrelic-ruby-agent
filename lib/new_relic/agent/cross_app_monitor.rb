@@ -42,26 +42,30 @@ module NewRelic
       #   :before_call will save our cross application request id to the thread
       #   :start_transaction will get called when a transaction starts up
       #   :after_call will write our response headers/metrics and clean up the thread
-      def register_event_listeners #THREAD_LOCAL_ACCESS
+      def register_event_listeners
         NewRelic::Agent.logger.
           debug("Wiring up Cross Application Tracing to events after finished configuring")
 
-        state = NewRelic::Agent::TransactionState.tl_get
-
         events = Agent.instance.events
-        events.subscribe(:before_call) do |env|
+        events.subscribe(:before_call) do |env| #THREAD_LOCAL_ACCESS
           if should_process_request(env)
+            state = NewRelic::Agent::TransactionState.tl_get
+
             save_client_cross_app_id(state, env)
             save_referring_transaction_info(state, env)
             set_transaction_custom_parameters(state)
           end
         end
 
-        events.subscribe(:after_call) do |env, (status_code, headers, body)|
+        events.subscribe(:after_call) do |env, (status_code, headers, body)| #THREAD_LOCAL_ACCESS
+          state = NewRelic::Agent::TransactionState.tl_get
+
           insert_response_header(state, env, headers)
         end
 
-        events.subscribe(:notice_error) do |_, options|
+        events.subscribe(:notice_error) do |_, options| #THREAD_LOCAL_ACCESS
+          state = NewRelic::Agent::TransactionState.tl_get
+
           set_error_custom_parameters(state, options)
         end
       end
