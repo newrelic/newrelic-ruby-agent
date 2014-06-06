@@ -136,10 +136,11 @@ module NewRelic
           route_eval_without_newrelic(*args, &block)
         end
 
-        def dispatch_with_newrelic
+        def dispatch_with_newrelic #THREAD_LOCAL_ACCESS
           if ignore_request?
             env['newrelic.ignored'] = true
-            ::NewRelic::Agent::Transaction.ignore!
+            txn = ::NewRelic::Agent::Transaction.tl_current
+            txn.ignore! if txn
             return dispatch_without_newrelic
           end
 

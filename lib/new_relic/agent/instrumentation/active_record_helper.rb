@@ -31,8 +31,9 @@ module NewRelic
           end
         end
 
-        def metric_for_sql(sql)
-          metric = NewRelic::Agent::Transaction.database_metric_name
+        def metric_for_sql(sql) #THREAD_LOCAL_ACCESS
+          txn = NewRelic::Agent::Transaction.tl_current
+          metric = txn && txn.database_metric_name
           if metric.nil?
             operation = NewRelic::Agent::Database.parse_operation_from_query(sql)
             if operation

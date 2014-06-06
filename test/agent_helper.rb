@@ -229,15 +229,16 @@ def in_transaction(*args)
   opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
   opts[:transaction_name] = args.first || 'dummy'
   category = (opts && opts.delete(:category)) || :other
+  state = NewRelic::Agent::TransactionState.tl_get
 
-  NewRelic::Agent::Transaction.start(category, opts)
+  NewRelic::Agent::Transaction.start(state, category, opts)
 
   val = nil
 
   begin
-    val = yield NewRelic::Agent::Transaction.tl_current
+    val = yield state.current_transaction
   ensure
-    NewRelic::Agent::Transaction.stop()
+    NewRelic::Agent::Transaction.stop(state)
   end
 
   val

@@ -50,8 +50,11 @@ module NewRelic
       # as a Rack::Request or an ActionController::AbstractRequest.
       attr_accessor :request
 
-      attr_reader :database_metric_name,
-                  :guid,
+      # This is the name of the model currently assigned to database
+      # measurements, overriding the default.
+      attr_reader :database_metric_name
+
+      attr_reader :guid,
                   :metrics,
                   :gc_start_snapshot,
                   :category,
@@ -67,7 +70,7 @@ module NewRelic
 
       def self.set_default_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
         txn  = tl_current
-        name = make_transaction_name(name, options[:category])
+        name = txn.make_transaction_name(name, options[:category])
 
         if txn.frame_stack.empty?
           txn.set_default_transaction_name(name, options)
@@ -81,7 +84,7 @@ module NewRelic
         txn = tl_current
         return unless txn
 
-        name = make_transaction_name(name, options[:category])
+        name = txn.make_transaction_name(name, options[:category])
 
         if txn.frame_stack.empty?
           txn.set_overriding_transaction_name(name, options)
@@ -100,14 +103,14 @@ module NewRelic
         end
       end
 
-      def self.make_transaction_name(name, category=nil)
+      def make_transaction_name(name, category=nil)
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        "#{namer.prefix_for_category(category)}#{name}"
+        "#{namer.prefix_for_category(self, category)}#{name}"
       end
 
-      def self.start(category, options) #THREAD_LOCAL_ACCESS
+      def self.start(state, category, options)
         category ||= :controller
-        txn = tl_current
+        txn = state.current_transaction
 
         if txn
           if options[:filtered_params] && !options[:filtered_params].empty?
@@ -120,23 +123,19 @@ module NewRelic
           txn.frame_stack << nested_frame
         else
           txn = Transaction.new(category, options)
-          TransactionState.tl_get.reset(txn)
-          txn.start
+          state.reset(txn)
+          txn.start(state)
         end
 
         txn
       end
 
-      def self.best_category #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.best_category
-      end
-
-      def self.stop(end_time=Time.now) #THREAD_LOCAL_ACCESS
-        txn = tl_current
+      def self.stop(state, end_time=Time.now)
+        txn = state.current_transaction
 
         if txn.frame_stack.empty?
-          txn.stop(end_time)
-          TransactionState.tl_get.reset
+          txn.stop(state, end_time)
+          state.reset
         else
           nested_frame = txn.frame_stack.pop
 
@@ -176,48 +175,6 @@ module NewRelic
         else
           name
         end
-      end
-
-      def self.ignore! #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.ignore!
-      end
-
-      def self.ignore? #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.ignore?
-      end
-
-      def self.ignore_apdex! #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.ignore_apdex!
-      end
-
-      def self.ignore_apdex? #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.ignore_apdex?
-      end
-
-      def self.ignore_enduser! #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.ignore_enduser!
-      end
-
-      def self.ignore_enduser? #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.ignore_enduser?
-      end
-
-      # This is the name of the model currently assigned to database
-      # measurements, overriding the default.
-      def self.database_metric_name #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.database_metric_name
-      end
-
-      def self.referer #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.referer
-      end
-
-      def self.agent
-        NewRelic::Agent.instance
-      end
-
-      def self.freeze_name_and_execute_if_not_ignored #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.freeze_name_and_execute_if_not_ignored { yield if block_given? }
       end
 
       @@java_classes_loaded = false
@@ -353,8 +310,7 @@ module NewRelic
 
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
-      def start #THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::TransactionState.tl_get
+      def start(state)
         return if !state.is_execution_traced?
 
         transaction_sampler.on_start_transaction(state, start_time, uri, filtered_params)
@@ -369,7 +325,9 @@ module NewRelic
       # Indicate that you don't want to keep the currently saved transaction
       # information
       def self.abort_transaction! #THREAD_LOCAL_ACCESS
-        tl_current.abort_transaction! if tl_current
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.abort_transaction!(state) if txn
       end
 
       # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
@@ -383,8 +341,7 @@ module NewRelic
       end
 
       # Call this to ensure that the current transaction is not saved
-      def abort_transaction! #THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::TransactionState.tl_get
+      def abort_transaction!(state)
         transaction_sampler.ignore_transaction(state)
       end
 
@@ -401,8 +358,7 @@ module NewRelic
         metrics
       end
 
-      def stop(end_time) #THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::TransactionState.tl_get
+      def stop(state, end_time)
         return if !state.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
 
@@ -430,14 +386,14 @@ module NewRelic
 
           # this one records metrics and wants to happen
           # before the transaction sampler is finished
-          record_transaction_cpu
+          record_transaction_cpu(state)
           gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
           gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
               gc_start_snapshot, gc_stop_snapshot)
           @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, Time.now, gc_delta)
           sql_sampler.on_finishing_transaction(state, @frozen_name)
 
-          record_apdex(end_time) unless ignore_apdex?
+          record_apdex(state, end_time) unless ignore_apdex?
           NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
 
           record_exceptions
@@ -457,14 +413,14 @@ module NewRelic
           :metrics          => @metrics,
           :custom_params    => custom_parameters
         }
-        append_guid_to(payload)
+        append_guid_to(state, payload)
         append_referring_transaction_guid_to(state, payload)
 
         agent.events.notify(:transaction_finished, payload)
       end
 
-      def append_guid_to(payload) #THREAD_LOCAL_ACCESS
-        guid = NewRelic::Agent::TransactionState.tl_get.request_guid_for_event
+      def append_guid_to(state, payload)
+        guid = state.request_guid_for_event
         if guid
           payload[:guid] = guid
         end
@@ -500,11 +456,12 @@ module NewRelic
 
       def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
         options = extract_request_options(options)
-        if tl_current
-          tl_current.notice_error(e, options)
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        if txn
+          txn.notice_error(e, options)
         else
-          options = extract_finished_transaction_options(options)
-          agent.error_collector.notice_error(e, options)
+          NewRelic::Agent.instance.error_collector.notice_error(e, options)
         end
       end
 
@@ -517,18 +474,6 @@ module NewRelic
         options
       end
 
-      # If we aren't currently in a transaction, but found the remains of one
-      # just finished in the TransactionState, use those custom params!
-      def self.extract_finished_transaction_options(options) #THREAD_LOCAL_ACCESS
-        finished_txn = NewRelic::Agent::Transaction.tl_current
-        if finished_txn
-          custom_params = options.fetch(:custom_params, {})
-          custom_params.merge!(finished_txn.custom_parameters)
-          options = options.merge(:custom_params => custom_params)
-          options[:metric] = finished_txn.best_name
-        end
-        options
-      end
 
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options={}) # :nodoc:
@@ -548,25 +493,10 @@ module NewRelic
         end
       end
 
-      # Add context parameters to the transaction.  This information will be passed in to errors
-      # and transaction traces.  Keys and Values should be strings, numbers or date/times.
-      def self.add_custom_parameters(p) #THREAD_LOCAL_ACCESS
-        tl_current.add_custom_parameters(p) if tl_current
-      end
-
-      def self.custom_parameters #THREAD_LOCAL_ACCESS
-        (tl_current && tl_current.custom_parameters) ? tl_current.custom_parameters : {}
-      end
-
-      class << self
-        alias_method :user_attributes, :custom_parameters
-        alias_method :set_user_attributes, :add_custom_parameters
-      end
-
       APDEX_METRIC = 'Apdex'.freeze
 
-      def record_apdex(end_time=Time.now) #THREAD_LOCAL_ACCESS
-        return unless recording_web_transaction? && NewRelic::Agent.tl_is_execution_traced?
+      def record_apdex(state, end_time=Time.now)
+        return unless recording_web_transaction? && state.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
           action_duration = end_time - start_time
@@ -635,7 +565,8 @@ module NewRelic
       # @api public
       #
       def self.recording_web_transaction? #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.recording_web_transaction?
+        txn = tl_current
+        txn && txn.recording_web_transaction?
       end
 
       def self.transaction_category_is_web?(category)
@@ -667,10 +598,6 @@ module NewRelic
       end
 
 
-      def self.record_apdex(end_time) #THREAD_LOCAL_ACCESS
-        tl_current && tl_current.record_apdex(end_time)
-      end
-
       def self.apdex_bucket(duration, failed, apdex_t)
         case
         when failed
@@ -698,10 +625,9 @@ module NewRelic
         jruby_cpu_time - @jruby_cpu_start
       end
 
-      def record_transaction_cpu #THREAD_LOCAL_ACCESS
+      def record_transaction_cpu(state)
         burn = cpu_burn
         if burn
-          state = NewRelic::Agent::TransactionState.tl_get
           transaction_sampler.notice_transaction_cpu_time(state, burn)
         end
       end
