@@ -22,22 +22,4 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
       end
     end
   end
-
-  # LocalEnvironment won't talk to ObjectSpace on JRuby, and these tests are
-  # around that interaction, so we don't run them on JRuby.
-  unless defined?(JRuby)
-    def test_mongrel_only_checks_once
-      return unless NewRelic::LanguageSupport.object_space_usable?
-
-      with_constant_defined(:'Mongrel', Module.new) do
-        with_constant_defined(:'Mongrel::HttpServer', Class.new) do
-          ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).once
-
-          e = NewRelic::LocalEnvironment.new
-          5.times { e.mongrel }
-          assert_nil e.mongrel
-        end
-      end
-    end
-  end
 end

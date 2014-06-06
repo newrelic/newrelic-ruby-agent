@@ -10,7 +10,6 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'transaction_ignorer/:action', :controller => 'transaction_ignorer'
   map.connect 'request_stats/:action',       :controller => 'request_stats'
   map.connect 'queue/:action',               :controller => 'queue'
-  map.connect 'mongrel/:action',             :controller => 'mongrel'
   map.connect 'views/:action',               :controller => 'views'
   map.connect 'ignored/:action',             :controller => 'ignored'
 

@@ -351,7 +351,6 @@ module NewRelic
           txn_options = create_transaction_options(trace_options)
           txn_options[:transaction_name] = TransactionNamer.name(self, category, trace_options)
           txn_options[:apdex_start_time] = detect_queue_start_time
-          txn_options[:queue_length]     = queue_length
 
           begin
             txn = Transaction.start(category, txn_options)
@@ -447,14 +446,6 @@ module NewRelic
             only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
           else
             true
-          end
-        end
-
-        # Take a guess at a measure representing the number of requests waiting in mongrel
-        def queue_length
-          if mongrel = NewRelic::Control.instance.local_env.mongrel
-            # Always subtract 1 for the active mongrel
-            queue_depth = [mongrel.workers.list.length.to_i - 1, 0].max rescue nil
           end
         end
 
