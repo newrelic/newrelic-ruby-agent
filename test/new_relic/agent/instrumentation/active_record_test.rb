@@ -19,7 +19,7 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
 
   def teardown
     super
-    NewRelic::Agent::TransactionState.reset
+    NewRelic::Agent::TransactionState.tl_get.reset
     NewRelic::Agent.shutdown
   end
 

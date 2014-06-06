@@ -27,15 +27,6 @@ module NewRelic
         Thread.current[:newrelic_transaction_state] = nil
       end
 
-      # This starts the timer for the transaction.
-      def self.reset #THREAD_LOCAL_ACCESS
-        self.tl_get.reset
-      end
-
-      def self.request=(request) #THREAD_LOCAL_ACCESS
-        self.tl_get.request = request
-      end
-
       def initialize
         @untraced = []
         @traced_method_stack = TracedMethodStack.new
@@ -47,6 +38,7 @@ module NewRelic
         @request_token = BrowserToken.get_token(request)
       end
 
+      # This starts the timer for the transaction.
       def reset(transaction=nil)
         # We purposefully don't reset @untraced, @record_tt and @record_sql
         # since those are managed by NewRelic::Agent.disable_* calls explicitly

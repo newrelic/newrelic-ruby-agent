@@ -326,7 +326,7 @@ module NewRelic
         # @api public
         #
         def perform_action_with_newrelic_trace(*args, &block) #THREAD_LOCAL_ACCESS
-          NewRelic::Agent::TransactionState.request = newrelic_request(args)
+          NewRelic::Agent::TransactionState.tl_get.request = newrelic_request(args)
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
