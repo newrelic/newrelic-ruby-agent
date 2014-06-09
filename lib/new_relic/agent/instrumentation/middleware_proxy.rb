@@ -12,6 +12,10 @@ module NewRelic
         CAPTURED_REQUEST_KEY = 'newrelic.captured_request'.freeze unless defined?(CAPTURED_REQUEST_KEY)
         CALL = "call".freeze unless defined?(CALL)
 
+        # This class is used to wrap classes that are passed to
+        # Rack::Builder#use without synchronously instantiating those classes.
+        # A MiddlewareProxy::Generator responds to new, like a Class would, and
+        # passes through arguments to new to the original target class.
         class Generator
           def initialize(middleware_class)
             @middleware_class = middleware_class
