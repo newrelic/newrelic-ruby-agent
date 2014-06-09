@@ -15,7 +15,7 @@ module NewRelic
 
           state = NewRelic::Agent::TransactionState.tl_get
 
-          if state.is_traced? && event.recordable?
+          if state.is_execution_traced? && event.recordable?
             stack = state.traced_method_stack
             event.frame = stack.push_frame(state, :action_view, event.time)
           end
@@ -28,7 +28,7 @@ module NewRelic
 
           state = NewRelic::Agent::TransactionState.tl_get
 
-          if state.is_traced? && event.recordable?
+          if state.is_execution_traced? && event.recordable?
             stack = state.traced_method_stack
             frame = stack.pop_frame(state, event.frame, event.metric_name, event.end)
             record_metrics(event, frame)

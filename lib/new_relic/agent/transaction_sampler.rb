@@ -194,8 +194,8 @@ module NewRelic
       # may be very large; we should trim them to a maximum usable length
       # config is the driver configuration for the connection
       # duration is seconds, float value.
-      def notice_sql(sql, config, duration, &explainer)
-        if NewRelic::Agent.is_sql_recorded?
+      def notice_sql(sql, config, duration, &explainer)#CDP
+        if NewRelic::Agent.tl_is_sql_recorded?
           statement = build_database_statement(sql, config, explainer)
           notice_extra_data(statement, duration, :sql)
         end
@@ -293,7 +293,7 @@ module NewRelic
       # new transaction sample builder with the stated time as a
       # starting point and saves it in the thread local variable
       def start_builder(state, time=nil)
-        if !enabled? || !state.is_transaction_traced? || !state.is_traced?
+        if !enabled? || !state.is_transaction_traced? || !state.is_execution_traced?
           state.transaction_sample_builder = nil
         else
           state.transaction_sample_builder ||= TransactionSampleBuilder.new(time)

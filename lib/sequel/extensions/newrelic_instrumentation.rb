@@ -37,7 +37,7 @@ module Sequel
     # Instrument all queries that go through #execute_query.
     def log_yield(sql, args=nil)#CDP
       state = NewRelic::Agent::TransactionState.tl_get
-      return super unless state.is_traced?
+      return super unless state.is_execution_traced?
 
       t0 = Time.now
       rval = super

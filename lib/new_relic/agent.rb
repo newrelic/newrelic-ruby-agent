@@ -419,7 +419,7 @@ module NewRelic
 
     # Check to see if we are capturing metrics currently on this thread.
     def tl_is_execution_traced?
-      NewRelic::Agent::TransactionState.tl_get.is_traced?
+      NewRelic::Agent::TransactionState.tl_get.is_execution_traced?
     end
 
     # helper method to check the thread local to determine whether the
@@ -430,7 +430,7 @@ module NewRelic
 
     # helper method to check the thread local to determine whether sql
     # is being recorded or not
-    def is_sql_recorded?#CDP
+    def tl_is_sql_recorded?
       NewRelic::Agent::TransactionState.tl_get.is_sql_recorded?
     end
 

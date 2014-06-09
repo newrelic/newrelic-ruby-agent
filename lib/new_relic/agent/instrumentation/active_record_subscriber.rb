@@ -20,7 +20,7 @@ module NewRelic
 
         def finish(name, id, payload)#CDP
           state = NewRelic::Agent::TransactionState.tl_get
-          return unless state.is_traced?
+          return unless state.is_execution_traced?
           event = pop_event(id)
           record_metrics(event)
           notice_sql(event, state)
