@@ -17,7 +17,7 @@ class EncodingHandlingTest < Minitest::Test
         :'transaction_tracer.record_sql' => :raw) do
         in_transaction do
           state = NewRelic::Agent::TransactionState.tl_get
-          agent.transaction_sampler.notice_sql(state, bad_string, nil, 42)
+          agent.transaction_sampler.notice_sql(bad_string, nil, 42, state)
         end
         assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
       end

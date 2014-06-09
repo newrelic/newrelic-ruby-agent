@@ -24,7 +24,7 @@ module NewRelic
       # this is for unit tests only
       attr_reader :sql_traces
 
-      def initialize #THREAD_LOCAL_ACCESS
+      def initialize
         @sql_traces = {}
 
         # This lock is used to synchronize access to @sql_traces
@@ -85,7 +85,8 @@ module NewRelic
         end
       end
 
-      def notice_sql(state, sql, metric_name, config, duration, &explainer)
+      def notice_sql(sql, metric_name, config, duration, state=nil, &explainer) #THREAD_LOCAL_ACCESS sometimes
+        state ||= TransactionState.tl_get
         data = state.sql_sampler_transaction_data
         return unless data
 

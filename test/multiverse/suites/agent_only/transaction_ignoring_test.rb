@@ -24,9 +24,9 @@ class TransactionIgnoringTest < Minitest::Test
   def trigger_transaction_with_slow_sql(txn_name)
     TestWidget.new.run_transaction(txn_name) do
       state = NewRelic::Agent::TransactionState.tl_get
-      NewRelic::Agent.instance.sql_sampler.notice_sql(state, "select * from test",
+      NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
                                    "Database/test/select",
-                                   nil, 1.5)
+                                   nil, 1.5, state)
     end
   end
 

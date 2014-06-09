@@ -26,10 +26,11 @@ module NewRelic
             end
           end
 
-          def process_action(*args)
+          def process_action(*args) #THREAD_LOCAL_ACCESS
             # skip instrumentation if we are in an ignored action
             if _is_filtered?('do_not_trace')
-              NewRelic::Agent::Transaction.ignore!
+              txn = NewRelic::Agent::Transaction.tl_current
+              txn.ignore! if txn
               NewRelic::Agent.disable_all_tracing do
                 return super
               end

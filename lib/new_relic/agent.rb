@@ -478,9 +478,10 @@ module NewRelic
     #
     # @api public
     #
-    def add_custom_parameters(params)
+    def add_custom_parameters(params) #THREAD_LOCAL_ACCESS
       if params.is_a? Hash
-        Transaction.add_custom_parameters(params)
+        txn = Transaction.tl_current
+        txn.add_custom_parameters(params) if txn
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_parameters. Expected Hash but got #{params.class}")
       end
@@ -528,7 +529,7 @@ module NewRelic
       txn = Transaction.tl_current
       if txn
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        txn.best_name.sub(Regexp.new("\\A#{Regexp.escape(namer.prefix_for_category)}"), '')
+        txn.best_name.sub(Regexp.new("\\A#{Regexp.escape(namer.prefix_for_category(txn))}"), '')
       end
     end
 

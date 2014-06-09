@@ -49,12 +49,12 @@ module NewRelic
               ensure
                 elapsed_time = (Time.now - t0).to_f
 
-                NewRelic::Agent.instance.transaction_sampler.notice_sql(state, sql,
+                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
                                                       @config, elapsed_time,
-                                                                  &EXPLAINER)
-                NewRelic::Agent.instance.sql_sampler.notice_sql(state, sql, metric,
+                                                      state, &EXPLAINER)
+                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric,
                                                       @config, elapsed_time,
-                                                                  &EXPLAINER)
+                                                      state, &EXPLAINER)
               end
             end
           end

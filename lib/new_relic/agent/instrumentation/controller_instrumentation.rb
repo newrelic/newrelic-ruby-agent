@@ -212,12 +212,12 @@ module NewRelic
         end
 
         class TransactionNamer
-          def self.name(traced_obj, category, options={})
-            "#{prefix_for_category(category)}#{path_name(traced_obj, options)}"
+          def self.name(txn, traced_obj, category, options={})
+            "#{prefix_for_category(txn, category)}#{path_name(traced_obj, options)}"
           end
 
-          def self.prefix_for_category(category = nil)
-            category ||= Transaction.best_category
+          def self.prefix_for_category(txn, category = nil)
+            category ||= (txn && txn.best_category)
             case category
             when :controller then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
             when :task       then ::NewRelic::Agent::Transaction::TASK_PREFIX
@@ -332,7 +332,7 @@ module NewRelic
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
           if !block_given? && do_not_trace?
-            Transaction.ignore!
+            state.current_transaction.ignore! if state.current_transaction
             NewRelic::Agent.disable_all_tracing do
               return perform_action_without_newrelic_trace(*args)
             end
@@ -350,11 +350,11 @@ module NewRelic
 
           category    = trace_options[:category] || :controller
           txn_options = create_transaction_options(trace_options)
-          txn_options[:transaction_name] = TransactionNamer.name(self, category, trace_options)
+          txn_options[:transaction_name] = TransactionNamer.name(nil, self, category, trace_options)
           txn_options[:apdex_start_time] = detect_queue_start_time(state)
 
           begin
-            txn = Transaction.start(category, txn_options)
+            txn = Transaction.start(state, category, txn_options)
 
             begin
               if block_given?
@@ -368,9 +368,10 @@ module NewRelic
             end
 
           ensure
-            Transaction.ignore_apdex! if ignore_apdex?
-            Transaction.ignore_enduser! if ignore_enduser?
-            Transaction.stop
+            txn = state.current_transaction
+            txn.ignore_apdex!   if ignore_apdex?
+            txn.ignore_enduser! if ignore_enduser?
+            Transaction.stop(state)
           end
         end
 

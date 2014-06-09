@@ -107,11 +107,6 @@ module NewRelic
           NewRelic::Agent.instance
         end
 
-        # Shorthand to return the status of tracing
-        def traced? #THREAD_LOCAL_ACCESS
-          NewRelic::Agent.tl_is_execution_traced?
-        end
-
         # Shorthand to return the current statistics engine
         def stat_engine
           agent_instance.stats_engine
@@ -149,26 +144,27 @@ module NewRelic
         # the frame so that we can check for it later, to maintain
         # sanity. If the frame stack becomes unbalanced, this
         # transaction loses meaning.
-        def trace_execution_scoped_header(t0) #THREAD_LOCAL_ACCESS
+        def trace_execution_scoped_header(state, t0)
           log_errors(:trace_execution_scoped_header) do
-            NewRelic::Agent::TracedMethodStack.tl_push_frame(:method_tracer, t0)
+            stack = state.traced_method_stack
+            stack.push_frame(state, :method_tracer, t0)
           end
         end
 
-        def record_metrics(first_name, other_names, duration, exclusive, options) #THREAD_LOCAL_ACCESS
+        def record_metrics(state, first_name, other_names, duration, exclusive, options)
           # The default value for :scoped_metric is true, so set it as true
           # if it was unset.
           record_scoped_metric = options.has_key?(:scoped_metric) ? options[:scoped_metric] : true
 
           if options[:metric]
             if record_scoped_metric
-              stat_engine.tl_record_scoped_and_unscoped_metrics(first_name, other_names, duration, exclusive)
+              stat_engine.record_scoped_and_unscoped_metrics(state, first_name, other_names, duration, exclusive)
             else
               metrics = [first_name].concat(other_names)
-              stat_engine.tl_record_unscoped_metrics(metrics, duration, exclusive)
+              stat_engine.record_unscoped_metrics(state, metrics, duration, exclusive)
             end
           else
-            stat_engine.tl_record_unscoped_metrics(other_names, duration, exclusive)
+            stat_engine.record_unscoped_metrics(state, other_names, duration, exclusive)
           end
         end
 
@@ -180,13 +176,14 @@ module NewRelic
         # this method fails safely if the header does not manage to
         # push the scope onto the stack - it simply does not trace
         # any metrics.
-        def trace_execution_scoped_footer(t0, first_name, metric_names, expected_frame, options, t1=Time.now.to_f) #THREAD_LOCAL_ACCESS
+        def trace_execution_scoped_footer(state, t0, first_name, metric_names, expected_frame, options, t1=Time.now.to_f)
           log_errors(:trace_method_execution_footer) do
             if expected_frame
-              frame = NewRelic::Agent::TracedMethodStack.tl_pop_frame(expected_frame, first_name, t1)
+              stack = state.traced_method_stack
+              frame = stack.pop_frame(state, expected_frame, first_name, t1)
               duration = t1 - t0
               exclusive = duration - frame.children_time
-              record_metrics(first_name, metric_names, duration, exclusive, options)
+              record_metrics(state, first_name, metric_names, duration, exclusive, options)
             end
           end
         end
@@ -205,8 +202,9 @@ module NewRelic
       #
       # @api public
       #
-      def trace_execution_scoped(metric_names, options={})
-        return yield unless traced?
+      def trace_execution_scoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
+        state = NewRelic::Agent::TransactionState.tl_get
+        return yield unless state.is_execution_traced?
 
         metric_names = Array(metric_names)
         first_name = metric_names.shift
@@ -215,14 +213,14 @@ module NewRelic
         set_if_nil(options, :metric)
         additional_metrics_callback = options[:additional_metrics_callback]
         start_time = Time.now.to_f
-        expected_scope = trace_execution_scoped_header(start_time)
+        expected_scope = trace_execution_scoped_header(state, start_time)
 
         begin
           result = yield
           metric_names += Array(additional_metrics_callback.call) if additional_metrics_callback
           result
         ensure
-          trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, options)
+          trace_execution_scoped_footer(state, start_time, first_name, metric_names, expected_scope, options)
         end
       end
 

@@ -193,7 +193,8 @@ module NewRelic
       # may be very large; we should trim them to a maximum usable length
       # config is the driver configuration for the connection
       # duration is seconds, float value.
-      def notice_sql(state, sql, config, duration, &explainer)
+      def notice_sql(sql, config, duration, state, &explainer) #THREAD_LOCAL_ACCESS sometimes
+        state ||= TransactionState.tl_get
         builder = state.transaction_sample_builder
         if state.is_sql_recorded?
           statement = build_database_statement(sql, config, explainer)

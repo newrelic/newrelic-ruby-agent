@@ -48,7 +48,12 @@ module NewRelic
         # @api private
         #
         def tl_record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)
-          txn = Transaction.tl_current
+          state = NewRelic::Agent::TransactionState.tl_get
+          record_unscoped_metrics(state, metric_names, value, aux, &blk)
+        end
+
+        def record_unscoped_metrics(state, metric_names, value=nil, aux=nil, &blk)
+          txn = state.current_transaction
           if txn
             txn.metrics.record_unscoped(metric_names, value, aux, &blk)
           else
@@ -79,7 +84,12 @@ module NewRelic
         # @api private
         #
         def tl_record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
-          txn = Transaction.tl_current
+          state = NewRelic::Agent::TransactionState.tl_get
+          record_scoped_and_unscoped_metrics(state, scoped_metric, summary_metrics, value, aux, &blk)
+        end
+
+        def record_scoped_and_unscoped_metrics(state, scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
+          txn = state.current_transaction
           if txn
             txn.metrics.record_scoped(scoped_metric, value, aux, &blk)
             txn.metrics.record_unscoped(scoped_metric, value, aux, &blk)

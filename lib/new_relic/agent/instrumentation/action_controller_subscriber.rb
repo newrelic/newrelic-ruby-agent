@@ -15,11 +15,11 @@ module NewRelic
           push_event(event)
 
           if state.is_execution_traced? && !event.ignored?
-            start_transaction(event)
+            start_transaction(state, event)
           else
             # if this transaction is ignored, make sure child
             # transaction are also ignored
-            NewRelic::Agent::Transaction.ignore!
+            state.current_transaction.ignore! if state.current_transaction
             NewRelic::Agent.instance.push_trace_execution_flag(false)
           end
         rescue => e
@@ -30,8 +30,10 @@ module NewRelic
           event = pop_event(id)
           event.payload.merge!(payload)
 
-          if NewRelic::Agent.tl_is_execution_traced? && !event.ignored?
-            stop_transaction(event)
+          state = TransactionState.tl_get
+
+          if state.is_execution_traced? && !event.ignored?
+            stop_transaction(state, event)
           else
             Agent.instance.pop_trace_execution_flag
           end
@@ -39,18 +41,19 @@ module NewRelic
           log_notification_error(e, name, 'finish')
         end
 
-        def start_transaction(event)
-          Transaction.start(:controller,
+        def start_transaction(state, event)
+          Transaction.start(state, :controller,
                             :request          => event.request,
                             :filtered_params  => filter(event.payload[:params]),
                             :apdex_start_time => event.queue_start,
                             :transaction_name => event.metric_name)
         end
 
-        def stop_transaction(event)
-          Transaction.ignore_apdex! if event.apdex_ignored?
-          Transaction.ignore_enduser! if event.enduser_ignored?
-          Transaction.stop
+        def stop_transaction(state, event)
+          txn = state.current_transaction
+          txn.ignore_apdex!   if event.apdex_ignored?
+          txn.ignore_enduser! if event.enduser_ignored?
+          Transaction.stop(state)
         end
 
         def filter(params)

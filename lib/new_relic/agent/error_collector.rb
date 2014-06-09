@@ -100,38 +100,38 @@ module NewRelic
           error && filtered_error?(error)
         end
 
-        def seen?(exception) #THREAD_LOCAL_ACCESS
-          error_ids = TransactionState.tl_get.transaction_noticed_error_ids
+        def seen?(txn, exception)
+          error_ids = txn.nil? ? [] : txn.noticed_error_ids
           error_ids.include?(exception.object_id)
         end
 
-        def tag_as_seen(exception) #THREAD_LOCAL_ACCESS
-          txn = Transaction.tl_current
+        def tag_as_seen(txn, exception)
           txn.noticed_error_ids << exception.object_id if txn
         end
 
-        def blamed_metric_name(options) #THREAD_LOCAL_ACCESS
+        def blamed_metric_name(txn, options)
           if options[:metric] && options[:metric] != ::NewRelic::Agent::UNKNOWN_METRIC
             "Errors/#{options[:metric]}"
           else
-            if txn = ::NewRelic::Agent::Transaction.tl_current
-              "Errors/#{txn.best_name}"
-            end
+            "Errors/#{txn.best_name}" if txn
           end
         end
 
         # Increments a statistic that tracks total error rate
         # Be sure not to double-count same exception. This clears per harvest.
         def increment_error_count!(exception, options={}) #THREAD_LOCAL_ACCESS
-          return if seen?(exception)
-          tag_as_seen(exception)
+          state = ::NewRelic::Agent::TransactionState.tl_get
+          txn = state.current_transaction
+
+          return if seen?(txn, exception)
+          tag_as_seen(txn, exception)
 
           metric_names = ["Errors/all"]
-          blamed_metric = blamed_metric_name(options)
+          blamed_metric = blamed_metric_name(txn, options)
           metric_names << blamed_metric if blamed_metric
 
           stats_engine = NewRelic::Agent.agent.stats_engine
-          stats_engine.tl_record_unscoped_metrics(metric_names) do |stats|
+          stats_engine.record_unscoped_metrics(state, metric_names) do |stats|
             stats.increment_count
           end
         end

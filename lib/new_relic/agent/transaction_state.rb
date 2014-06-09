@@ -20,7 +20,14 @@ module NewRelic
       #
       # If ever exposed, this requires additional synchronization
       def self.tl_state_for(thread)
-        thread[:newrelic_transaction_state] ||= TransactionState.new
+        state = thread[:newrelic_transaction_state]
+
+        if state.nil?
+          state = TransactionState.new
+          thread[:newrelic_transaction_state] = state
+        end
+
+        state
       end
 
       def self.tl_clear_for_testing
@@ -114,10 +121,6 @@ module NewRelic
 
       def transaction_name
         current_transaction.nil? ? nil : current_transaction.best_name
-      end
-
-      def transaction_noticed_error_ids
-        current_transaction.nil? ? [] : current_transaction.noticed_error_ids
       end
 
       def in_background_transaction?

@@ -139,9 +139,11 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/slow/txn') do
-        NewRelic::Agent::Transaction.record_apdex(t0 + 3.5)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 5.5)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 16.5)
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.record_apdex(state, t0 +  3.5)
+        txn.record_apdex(state, t0 +  5.5)
+        txn.record_apdex(state, t0 + 16.5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
@@ -157,9 +159,11 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
       in_web_transaction('Controller/other/txn') do
-        NewRelic::Agent::Transaction.record_apdex(t0 + 0.5)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 2)
-        NewRelic::Agent::Transaction.record_apdex(t0 + 5)
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.record_apdex(state, t0 + 0.5)
+        txn.record_apdex(state, t0 + 2)
+        txn.record_apdex(state, t0 + 5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
@@ -173,7 +177,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_record_apdex_stores_apdex_t_in_min_and_max
     with_config(:apdex_t => 2.5) do
       in_web_transaction('Controller/some/txn') do
-        NewRelic::Agent::Transaction.record_apdex(Time.now)
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.record_apdex(state, Time.now)
       end
     end
 
@@ -250,7 +256,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
                                                     'replacement'      => '*',
                                                     'replace_all'      => true)
       NewRelic::Agent.instance.transaction_rules << rule
-      NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
+      NewRelic::Agent::Transaction.tl_current.freeze_name_and_execute_if_not_ignored
       assert_equal 'Controller/foo/*/bar/*', txn.best_name
     end
   ensure
@@ -269,7 +275,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     start_time = freeze_time
     in_web_transaction('Controller/foo/1/bar/22') do
       advance_time(5)
-      NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored
+      NewRelic::Agent::Transaction.tl_current.freeze_name_and_execute_if_not_ignored
     end
 
     assert_equal 'Controller/foo/1/bar/22', name
@@ -365,26 +371,25 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_user_attributes_alias_to_custom_parameters
-    in_transaction('user_attributes') do
-      txn = NewRelic::Agent::Transaction.tl_current
+    in_transaction('user_attributes') do |txn|
       txn.set_user_attributes(:set_instance => :set_instance)
       txn.user_attributes[:indexer_instance] = :indexer_instance
 
-      NewRelic::Agent::Transaction.set_user_attributes(:set_class => :set_class)
-      NewRelic::Agent::Transaction.user_attributes[:indexer_class] = :indexer_class
+      txn.set_user_attributes(:set_class => :set_class)
+      txn.user_attributes[:indexer_class] = :indexer_class
 
-      assert_has_custom_parameter(:set_instance)
-      assert_has_custom_parameter(:indexer_instance)
+      assert_has_custom_parameter(txn, :set_instance)
+      assert_has_custom_parameter(txn, :indexer_instance)
 
-      assert_has_custom_parameter(:set_class)
-      assert_has_custom_parameter(:indexer_class)
+      assert_has_custom_parameter(txn, :set_class)
+      assert_has_custom_parameter(txn, :indexer_class)
     end
   end
 
   def test_notice_error_in_current_transaction_saves_it_for_finishing
-    in_transaction('failing') do
+    in_transaction('failing') do |txn|
       NewRelic::Agent::Transaction.notice_error("")
-      assert_equal 1, NewRelic::Agent::Transaction.tl_current.exceptions.count
+      assert_equal 1, txn.exceptions.count
     end
   end
 
@@ -407,9 +412,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     gc_end   = mock('gc end')
     NewRelic::Agent::StatsEngine::GCProfiler.stubs(:take_snapshot).returns(gc_start, gc_end)
 
-    txn = in_transaction do
+    txn = in_transaction do |transaction|
       NewRelic::Agent::StatsEngine::GCProfiler.expects(:record_delta).with(gc_start, gc_end).returns(42)
-      NewRelic::Agent::Transaction.tl_current
+      transaction
     end
 
     trace = txn.transaction_trace
@@ -419,9 +424,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_freeze_name_and_execute_if_not_ignored_executes_given_block_if_not_ignored
     NewRelic::Agent.instance.transaction_rules.expects(:rename).
                                                returns('non-ignored-transaction')
-    in_transaction('non-ignored-transaction') do
+    in_transaction('non-ignored-transaction') do |txn|
       block_was_called = false
-      NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored do
+      txn.freeze_name_and_execute_if_not_ignored do
         block_was_called = true
       end
 
@@ -432,9 +437,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_freeze_name_and_execute_if_not_ignored_ignores_given_block_if_transaction_ignored
     NewRelic::Agent.instance.transaction_rules.expects(:rename).
                                                returns(nil)
-    in_transaction('ignored-transaction') do
+    in_transaction('ignored-transaction') do |txn|
       block_was_called = false
-      NewRelic::Agent::Transaction.freeze_name_and_execute_if_not_ignored do
+      txn.freeze_name_and_execute_if_not_ignored do
         block_was_called = true
       end
 
@@ -447,16 +452,17 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       state = NewRelic::Agent::TransactionState.tl_get
       txn.expects(:cpu_burn).twice.returns(1.0)
       NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).twice.with(state, 1.0)
-      txn.record_transaction_cpu
+      txn.record_transaction_cpu(state)
     end
   end
 
   def test_record_transaction_cpu_negative
     in_transaction do |txn|
+      state = NewRelic::Agent::TransactionState.tl_get
       txn.expects(:cpu_burn).twice.returns(nil)
       # should not be called for the nil case
       NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).never
-      txn.record_transaction_cpu
+      txn.record_transaction_cpu(state)
     end
   end
 
@@ -529,47 +535,47 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_ignored_returns_false_if_a_transaction_is_not_ignored
-    in_transaction('Controller/test', :category => :sinatra) do
-      refute NewRelic::Agent::Transaction.ignore?
+    in_transaction('Controller/test', :category => :sinatra) do |txn|
+      refute txn.ignore?
     end
   end
 
   def test_ignored_returns_true_for_an_ignored_transaction
-    in_transaction('Controller/test', :category => :sinatra) do
-      NewRelic::Agent::Transaction.ignore!
-      assert NewRelic::Agent::Transaction.ignore?
+    in_transaction('Controller/test', :category => :sinatra) do |txn|
+      txn.ignore!
+      assert txn.ignore?
     end
   end
 
   def test_ignore_apdex_returns_true_if_apdex_is_ignored
-    in_transaction('Controller/test', :category => :sinatra) do
-      NewRelic::Agent::Transaction.ignore_apdex!
-      assert NewRelic::Agent::Transaction.ignore_apdex?
+    in_transaction('Controller/test', :category => :sinatra) do |txn|
+      txn.ignore_apdex!
+      assert txn.ignore_apdex?
     end
   end
 
   def test_ignore_apdex_returns_false_if_apdex_is_not_ignored
-    in_transaction('Controller/test', :category => :sinatra) do
-      refute NewRelic::Agent::Transaction.ignore_apdex?
+    in_transaction('Controller/test', :category => :sinatra) do |txn|
+      refute txn.ignore_apdex?
     end
   end
 
   def test_ignore_enduser_returns_true_if_enduser_is_ignored
-    in_transaction('Controller/test', :category => :sinatra) do
-      NewRelic::Agent::Transaction.ignore_enduser!
-      assert NewRelic::Agent::Transaction.ignore_enduser?
+    in_transaction('Controller/test', :category => :sinatra) do  |txn|
+      txn.ignore_enduser!
+      assert txn.ignore_enduser?
     end
   end
 
   def test_ignore_enduser_returns_false_if_enduser_is_not_ignored
-    in_transaction('Controller/test', :category => :sinatra) do
-      refute NewRelic::Agent::Transaction.ignore_enduser?
+    in_transaction('Controller/test', :category => :sinatra) do |txn|
+      refute txn.ignore_enduser?
     end
   end
 
   def test_ignored_transactions_do_not_record_metrics
-    in_transaction('Controller/test', :category => :sinatra) do
-      NewRelic::Agent::Transaction.ignore!
+    in_transaction('Controller/test', :category => :sinatra) do |txn|
+      txn.ignore!
     end
 
     assert_metrics_not_recorded(['Controller/test'])
@@ -577,8 +583,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_nested_transactions_are_ignored_if_nested_transaction_is_ignored
     in_transaction('Controller/parent', :category => :sinatra) do
-      in_transaction('Controller/child', :category => :controller) do
-        NewRelic::Agent::Transaction.ignore!
+      in_transaction('Controller/child', :category => :controller) do |txn|
+        txn.ignore!
       end
     end
 
@@ -588,8 +594,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_nested_transactions_are_ignored_if_double_nested_transaction_is_ignored
     in_transaction('Controller/parent', :category => :sinatra) do
       in_transaction('Controller/toddler', :category => :controller) do
-        in_transaction('Controller/infant', :category => :controller) do
-          NewRelic::Agent::Transaction.ignore!
+        in_transaction('Controller/infant', :category => :controller) do |txn|
+          txn.ignore!
         end
       end
     end
@@ -597,8 +603,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_not_recorded(['Controller/sinatra', 'Controller/toddler', 'Controller/infant'])
   end
 
-  def assert_has_custom_parameter(key, value = key)
-    assert_equal(value, NewRelic::Agent::Transaction.tl_current.custom_parameters[key])
+  def assert_has_custom_parameter(txn, key, value = key)
+    assert_equal(value, txn.custom_parameters[key])
   end
 
 end
