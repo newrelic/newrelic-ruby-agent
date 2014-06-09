@@ -41,10 +41,12 @@ module NewRelic
       end
 
       def on_start_transaction(start_time, uri=nil, params={})#CDP
-        TransactionState.tl_get.sql_sampler_transaction_data = TransactionSqlData.new
+        state = TransactionState.tl_get
 
-        if NewRelic::Agent.instance.transaction_sampler.builder
-          guid = NewRelic::Agent.instance.transaction_sampler.builder.sample.guid
+        state.sql_sampler_transaction_data = TransactionSqlData.new
+
+        if state.transaction_sample_builder
+          guid = state.transaction_sample_builder.sample.guid
         end
 
         if Agent.config[:'slow_sql.enabled'] && transaction_data

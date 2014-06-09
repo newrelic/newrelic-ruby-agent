@@ -184,7 +184,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     txn_sampler.start_builder(Time.now)
     @sampler.on_start_transaction(Time.now, 'a uri', {:some => :params})
 
-    assert_equal(NewRelic::Agent.instance.transaction_sampler.builder.sample.guid,
+    assert_equal(NewRelic::Agent.instance.transaction_sampler.tl_builder.sample.guid,
                  NewRelic::Agent.instance.sql_sampler.transaction_data.guid)
   end
 

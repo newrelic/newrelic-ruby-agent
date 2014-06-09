@@ -62,9 +62,10 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
 
-      def on_start_transaction(start_time, uri=nil, params={})
+      def on_start_transaction(start_time, uri=nil, params={})#CDP
         if enabled?
           start_builder(start_time.to_f)
+          builder = tl_builder
           builder.set_transaction_info(uri, params) if builder
         end
       end
@@ -74,7 +75,8 @@ module NewRelic
       #
       # Note that in developer mode, this captures a stacktrace for
       # the beginning of each segment, which can be fairly slow
-      def notice_push_frame(time=Time.now)
+      def notice_push_frame(time=Time.now)#CDP
+        builder = tl_builder
         return unless builder
 
         segment = builder.trace_entry(time.to_f)
@@ -85,7 +87,8 @@ module NewRelic
       end
 
       # Informs the transaction sample builder about the end of a traced frame
-      def notice_pop_frame(frame, time = Time.now)
+      def notice_pop_frame(frame, time = Time.now)#CDP
+        builder = tl_builder
         return unless builder
         raise "finished already???" if builder.sample.finished
         builder.trace_exit(frame, time.to_f)
@@ -106,14 +109,14 @@ module NewRelic
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def on_finishing_transaction(txn, time=Time.now, gc_time=nil)
-        last_builder = builder
+      def on_finishing_transaction(txn, time=Time.now, gc_time=nil)#CDP
+        last_builder = tl_builder
         last_builder.set_transaction_name(txn.best_name) if enabled? && last_builder
 
         return unless last_builder
 
         last_builder.finish_trace(time.to_f, custom_parameters_from_transaction(txn))
-        clear_builder
+        tl_clear_builder
         return if last_builder.ignored?
 
         @samples_lock.synchronize do
@@ -135,12 +138,14 @@ module NewRelic
       # creating one. Only causes the sample to be ignored upon end of
       # the transaction, and does not change the metrics gathered
       # outside of the sampler
-      def ignore_transaction
+      def ignore_transaction#CDP
+        builder = tl_builder
         builder.ignore_transaction if builder
       end
 
       # Sets the CPU time used by a transaction, delegates to the builder
-      def notice_transaction_cpu_time(cpu_time)
+      def notice_transaction_cpu_time(cpu_time)#CDP
+        builder = tl_builder
         builder.set_transaction_cpu_time(cpu_time) if builder
       end
 
@@ -149,7 +154,8 @@ module NewRelic
       # active segment like a sql query, memcache key, or Net::HTTP uri
       #
       # duration is seconds, float value.
-      def notice_extra_data(message, duration, key)
+      def notice_extra_data(message, duration, key)#CDP
+        builder = tl_builder
         return unless builder
         segment = builder.current_segment
         if segment
@@ -218,7 +224,8 @@ module NewRelic
       end
 
       # Set parameters on the current segment.
-      def add_segment_parameters( params )
+      def add_segment_parameters(params)#CDP
+        builder = tl_builder
         return unless builder
         params.each { |k,v| builder.current_segment[k] = v }
       end
@@ -287,20 +294,20 @@ module NewRelic
       # starting point and saves it in the thread local variable
       def start_builder(time=nil)#CDP
         if !enabled? || !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
-          clear_builder
+          tl_clear_builder
         else
           TransactionState.tl_get.transaction_sample_builder ||= TransactionSampleBuilder.new(time)
         end
       end
 
       # The current thread-local transaction sample builder
-      def builder#CDP
+      def tl_builder
         TransactionState.tl_get.transaction_sample_builder
       end
 
       # Sets the thread local variable storing the transaction sample
       # builder to nil to clear it
-      def clear_builder#CDP
+      def tl_clear_builder
         TransactionState.tl_get.transaction_sample_builder = nil
       end
 

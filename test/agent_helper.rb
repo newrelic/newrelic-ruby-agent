@@ -255,7 +255,7 @@ def find_last_transaction_segment(transaction_sample=nil)
   if transaction_sample
     root_segment = transaction_sample.root_segment
   else
-    builder = NewRelic::Agent.agent.transaction_sampler.builder
+    builder = NewRelic::Agent.agent.transaction_sampler.tl_builder
     root_segment = builder.current_segment
   end
 
