@@ -28,7 +28,9 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
     expected_headers = {:fake => :header}
     @app.request = mock('request', :env => expected_headers)
 
-    assert_equal @app.newrelic_request_headers, expected_headers
+    state = NewRelic::Agent::TransactionState.tl_get
+
+    assert_equal(@app.newrelic_request_headers(state), expected_headers)
   end
 
   def test_process_route_with_bad_arguments

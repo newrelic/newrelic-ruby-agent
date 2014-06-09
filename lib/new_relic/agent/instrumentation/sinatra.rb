@@ -75,7 +75,7 @@ module NewRelic
         include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
         # Expected method for supporting ControllerInstrumentation
-        def newrelic_request_headers
+        def newrelic_request_headers(_)
           request.env
         end
 

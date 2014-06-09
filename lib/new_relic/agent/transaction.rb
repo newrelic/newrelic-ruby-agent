@@ -443,13 +443,13 @@ module NewRelic
           record_exceptions
           merge_metrics
 
-          send_transaction_finished_event(start_time, end_time)
+          send_transaction_finished_event(state, start_time, end_time)
         end
       end
 
       # This event is fired when the transaction is fully completed. The metric
       # values and sampler can't be successfully modified from this event.
-      def send_transaction_finished_event(start_time, end_time)
+      def send_transaction_finished_event(state, start_time, end_time)
         payload = {
           :name             => @frozen_name,
           :start_timestamp  => start_time.to_f,
@@ -458,7 +458,7 @@ module NewRelic
           :custom_params    => custom_parameters
         }
         append_guid_to(payload)
-        append_referring_transaction_guid_to(payload)
+        append_referring_transaction_guid_to(state, payload)
 
         agent.events.notify(:transaction_finished, payload)
       end
@@ -470,8 +470,8 @@ module NewRelic
         end
       end
 
-      def append_referring_transaction_guid_to(payload)
-        referring_guid = NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_guid
+      def append_referring_transaction_guid_to(state, payload)
+        referring_guid = NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_guid(state)
         if referring_guid
           payload[:referring_transaction_guid] = referring_guid
         end

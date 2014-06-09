@@ -106,7 +106,7 @@ module NewRelic
 
       def test_transmit_data_should_transmit
         @agent.service.expects(:metric_data).at_least_once
-        @agent.stats_engine.record_unscoped_metrics(['foo'], 12)
+        @agent.stats_engine.tl_record_unscoped_metrics(['foo'], 12)
         @agent.instance_eval { transmit_data }
       end
 

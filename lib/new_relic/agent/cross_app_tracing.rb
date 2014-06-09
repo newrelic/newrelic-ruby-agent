@@ -98,7 +98,7 @@ module NewRelic
             metrics = metrics_for(request, response)
             scoped_metric = metrics.pop
 
-            stats_engine.record_scoped_and_unscoped_metrics(
+            stats_engine.tl_record_scoped_and_unscoped_metrics(
               scoped_metric, metrics, duration)
 
             # If we don't have segment, something failed during start_trace so

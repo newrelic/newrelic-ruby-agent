@@ -47,20 +47,26 @@ module NewRelic
           debug("Wiring up Cross Application Tracing to events after finished configuring")
 
         events = Agent.instance.events
-        events.subscribe(:before_call) do |env|
+        events.subscribe(:before_call) do |env| #THREAD_LOCAL_ACCESS
           if should_process_request(env)
-            save_client_cross_app_id(env)
-            save_referring_transaction_info(env)
-            set_transaction_custom_parameters
+            state = NewRelic::Agent::TransactionState.tl_get
+
+            save_client_cross_app_id(state, env)
+            save_referring_transaction_info(state, env)
+            set_transaction_custom_parameters(state)
           end
         end
 
-        events.subscribe(:after_call) do |env, (status_code, headers, body)|
-          insert_response_header(env, headers)
+        events.subscribe(:after_call) do |env, (status_code, headers, body)| #THREAD_LOCAL_ACCESS
+          state = NewRelic::Agent::TransactionState.tl_get
+
+          insert_response_header(state, env, headers)
         end
 
-        events.subscribe(:notice_error) do |_, options|
-          set_error_custom_parameters(options)
+        events.subscribe(:notice_error) do |_, options| #THREAD_LOCAL_ACCESS
+          state = NewRelic::Agent::TransactionState.tl_get
+
+          set_error_custom_parameters(state, options)
         end
       end
 
@@ -69,51 +75,46 @@ module NewRelic
         @obfuscator = NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
       end
 
-      def save_client_cross_app_id(request_headers) #THREAD_LOCAL_ACCESS
-        TransactionState.tl_get.client_cross_app_id = decoded_id(request_headers)
+      def save_client_cross_app_id(state, request_headers)
+        state.client_cross_app_id = decoded_id(request_headers)
       end
 
-      def clear_client_cross_app_id #THREAD_LOCAL_ACCESS
-        TransactionState.tl_get.client_cross_app_id = nil
+      def clear_client_cross_app_id(state)
+        state.client_cross_app_id = nil
       end
 
-      def client_cross_app_id #THREAD_LOCAL_ACCESS
-        TransactionState.tl_get.client_cross_app_id
+      def save_referring_transaction_info(state, request_headers)
+        txn_header = from_headers(request_headers, NEWRELIC_TXN_HEADER_KEYS) or return
+        txn_header = obfuscator.deobfuscate(txn_header)
+        txn_info = NewRelic::JSONWrapper.load(txn_header)
+        NewRelic::Agent.logger.debug("Referring txn_info: %p" % [txn_info])
+
+        state.referring_transaction_info = txn_info
       end
 
-      def save_referring_transaction_info(request_headers) #THREAD_LOCAL_ACCESS
-        txn_header = from_headers( request_headers, NEWRELIC_TXN_HEADER_KEYS ) or return
-        txn_header = obfuscator.deobfuscate( txn_header )
-        txn_info = NewRelic::JSONWrapper.load( txn_header )
-        NewRelic::Agent.logger.debug "Referring txn_info: %p" % [ txn_info ]
-
-        TransactionState.tl_get.referring_transaction_info = txn_info
-      end
-
-      def client_referring_transaction_guid #THREAD_LOCAL_ACCESS
-        info = TransactionState.tl_get.referring_transaction_info or return nil
+      def client_referring_transaction_guid(state)
+        info = state.referring_transaction_info or return nil
         return info[0]
       end
 
-      def client_referring_transaction_record_flag #THREAD_LOCAL_ACCESS
-        info = TransactionState.tl_get.referring_transaction_info or return nil
+      def client_referring_transaction_record_flag(state)
+        info = state.referring_transaction_info or return nil
         return info[1]
       end
 
-      def insert_response_header(request_headers, response_headers) #THREAD_LOCAL_ACCESS
-        unless client_cross_app_id.nil?
-          state = NewRelic::Agent::TransactionState.tl_get
+      def insert_response_header(state, request_headers, response_headers)
+        unless state.client_cross_app_id.nil?
           txn = state.current_transaction
           unless txn.nil?
             txn.freeze_name_and_execute_if_not_ignored do
               timings = state.timings
               content_length = content_length_from_request(request_headers)
 
-              set_response_headers(response_headers, timings, content_length)
-              set_metrics(client_cross_app_id, timings)
+              set_response_headers(state, response_headers, timings, content_length)
+              set_metrics(state.client_cross_app_id, timings)
             end
           end
-          clear_client_cross_app_id
+          clear_client_cross_app_id(state)
         end
       end
 
@@ -134,36 +135,36 @@ module NewRelic
         NewRelic::Agent.config[:trusted_account_ids].include?(split_id.captures.first.to_i)
       end
 
-      def set_response_headers(response_headers, timings, content_length)
-        response_headers[NEWRELIC_APPDATA_HEADER] = build_payload(timings, content_length)
+      def set_response_headers(state, response_headers, timings, content_length)
+        response_headers[NEWRELIC_APPDATA_HEADER] = build_payload(state, timings, content_length)
       end
 
-      def build_payload(timings, content_length)
+      def build_payload(state, timings, content_length)
         payload = [
           NewRelic::Agent.config[:cross_process_id],
           timings.transaction_name,
           timings.queue_time_in_seconds.to_f,
           timings.app_time_in_seconds.to_f,
           content_length,
-          transaction_guid()
+          state.request_guid
         ]
         payload = obfuscator.obfuscate(NewRelic::JSONWrapper.dump(payload))
       end
 
-      def set_transaction_custom_parameters
+      def set_transaction_custom_parameters(state)
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
-        NewRelic::Agent.add_custom_parameters(:client_cross_process_id => client_cross_app_id()) if client_cross_app_id()
+        NewRelic::Agent.add_custom_parameters(:client_cross_process_id => state.client_cross_app_id) if state.client_cross_app_id
 
-        referring_guid = client_referring_transaction_guid()
+        referring_guid = client_referring_transaction_guid(state)
         if referring_guid
           NewRelic::Agent.logger.debug "Referring transaction guid: %p" % [referring_guid]
           NewRelic::Agent.add_custom_parameters(:referring_transaction_guid => referring_guid)
         end
       end
 
-      def set_error_custom_parameters(options)
-        options[:client_cross_process_id] = client_cross_app_id if client_cross_app_id
+      def set_error_custom_parameters(state, options)
+        options[:client_cross_process_id] = state.client_cross_app_id if state.client_cross_app_id
       end
 
       def set_metrics(id, timings)
@@ -180,10 +181,6 @@ module NewRelic
 
       def content_length_from_request(request)
         from_headers(request, CONTENT_LENGTH_HEADER_KEYS) || -1
-      end
-
-      def transaction_guid #THREAD_LOCAL_ACCESS
-        NewRelic::Agent::TransactionState.tl_get.request_guid
       end
 
       private

@@ -37,9 +37,9 @@ module NewRelic
           log_notification_error(e, name, 'finish')
         end
 
-        def record_metrics(event, frame)
+        def record_metrics(event, frame) #THREAD_LOCAL_ACCESS
           exclusive = event.duration - frame.children_time
-          NewRelic::Agent.instance.stats_engine.record_scoped_and_unscoped_metrics(
+          NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(
             event.metric_name, nil, event.duration, exclusive)
         end
 

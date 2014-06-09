@@ -60,7 +60,7 @@ module NewRelic
           stack.pop_frame(state, frame, metric, event.end)
         end
 
-        def record_metrics(event)
+        def record_metrics(event) #THREAD_LOCAL_ACCESS
           base = base_metric(event)
 
           other_metrics = ActiveRecordHelper.rollup_metrics_for(base)
@@ -69,7 +69,7 @@ module NewRelic
           end
           other_metrics.compact!
 
-          NewRelic::Agent.instance.stats_engine.record_scoped_and_unscoped_metrics(
+          NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(
             base, other_metrics,
             Helper.milliseconds_to_seconds(event.duration)
           )

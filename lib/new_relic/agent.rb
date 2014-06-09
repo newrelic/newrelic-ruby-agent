@@ -198,7 +198,7 @@ module NewRelic
     # This method is safe to use from any thread.
     #
     # @api public
-    def record_metric(metric_name, value)
+    def record_metric(metric_name, value) #THREAD_LOCAL_ACCESS
       if value.is_a?(Hash)
         stats = NewRelic::Agent::Stats.new
 
@@ -210,7 +210,7 @@ module NewRelic
         stats.sum_of_squares = value[:sum_of_squares] if value[:sum_of_squares]
         value = stats
       end
-      agent.stats_engine.record_unscoped_metrics(metric_name, value)
+      agent.stats_engine.tl_record_unscoped_metrics(metric_name, value)
     end
 
     # Increment a simple counter metric.
@@ -221,8 +221,8 @@ module NewRelic
     # This method is safe to use from any thread.
     #
     # @api public
-    def increment_metric(metric_name, amount=1)
-      agent.stats_engine.record_unscoped_metrics(metric_name) do |stats|
+    def increment_metric(metric_name, amount=1) #THREAD_LOCAL_ACCESS
+      agent.stats_engine.tl_record_unscoped_metrics(metric_name) do |stats|
         stats.increment_count(amount)
       end
     end

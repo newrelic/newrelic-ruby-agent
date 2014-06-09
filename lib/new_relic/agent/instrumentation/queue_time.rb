@@ -47,8 +47,8 @@ module NewRelic
           earliest
         end
 
-        def record_frontend_metrics(start_time, now=Time.now)
-          NewRelic::Agent.instance.stats_engine.record_unscoped_metrics(
+        def record_frontend_metrics(start_time, now=Time.now) #THREAD_LOCAL_ACCESS
+          NewRelic::Agent.instance.stats_engine.tl_record_unscoped_metrics(
             ALL_QUEUE_METRIC, (now - start_time).to_f)
         end
 

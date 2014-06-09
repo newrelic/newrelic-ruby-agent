@@ -326,7 +326,8 @@ module NewRelic
         # @api public
         #
         def perform_action_with_newrelic_trace(*args, &block) #THREAD_LOCAL_ACCESS
-          NewRelic::Agent::TransactionState.tl_get.request = newrelic_request(args)
+          state = NewRelic::Agent::TransactionState.tl_get
+          state.request = newrelic_request(args)
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
@@ -337,7 +338,7 @@ module NewRelic
             end
           end
 
-          return yield unless NewRelic::Agent.tl_is_execution_traced?
+          return yield unless state.is_execution_traced?
 
           # If a block was passed in, then the arguments represent options for
           # the instrumentation, not app method arguments.
@@ -350,7 +351,7 @@ module NewRelic
           category    = trace_options[:category] || :controller
           txn_options = create_transaction_options(trace_options)
           txn_options[:transaction_name] = TransactionNamer.name(self, category, trace_options)
-          txn_options[:apdex_start_time] = detect_queue_start_time
+          txn_options[:apdex_start_time] = detect_queue_start_time(state)
 
           begin
             txn = Transaction.start(category, txn_options)
@@ -389,8 +390,8 @@ module NewRelic
         # Should be implemented in the dispatcher class
         def newrelic_response_code; end
 
-        def newrelic_request_headers #THREAD_LOCAL_ACCESS
-          request = NewRelic::Agent::TransactionState.tl_get.request
+        def newrelic_request_headers(state)
+          request = state.request
           if request
             if request.respond_to?(:headers)
               request.headers
@@ -449,10 +450,10 @@ module NewRelic
           end
         end
 
-        def detect_queue_start_time
-          if newrelic_request_headers
-            QueueTime.parse_frontend_timestamp(newrelic_request_headers)
-          end
+        def detect_queue_start_time(state)
+          headers = newrelic_request_headers(state)
+
+          QueueTime.parse_frontend_timestamp(headers) if headers
         end
       end
     end

@@ -56,14 +56,14 @@ module Sequel
 
     # Record metrics for the specified +sql+ and +args+ using the specified
     # +duration+.
-    def record_metrics(sql, args, duration)
+    def record_metrics(sql, args, duration) #THREAD_LOCAL_ACCESS
       primary_metric = primary_metric_for(sql, args)
       engine         = NewRelic::Agent.instance.stats_engine
 
       metrics = rollup_metrics_for(primary_metric)
       metrics << remote_service_metric(*self.opts.values_at(:adapter, :host)) if self.opts.key?(:adapter)
 
-      engine.record_scoped_and_unscoped_metrics(primary_metric, metrics, duration)
+      engine.tl_record_scoped_and_unscoped_metrics(primary_metric, metrics, duration)
     end
 
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [

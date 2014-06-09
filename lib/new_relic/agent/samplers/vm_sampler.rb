@@ -49,7 +49,7 @@ module NewRelic
           end
         end
 
-        def record_gc_runs_metric(snapshot, txn_count)
+        def record_gc_runs_metric(snapshot, txn_count) #THREAD_LOCAL_ACCESS
           if snapshot.gc_total_time || snapshot.gc_runs
             if snapshot.gc_total_time
               gc_time = snapshot.gc_total_time - @last_snapshot.gc_total_time.to_f
@@ -58,7 +58,7 @@ module NewRelic
               gc_runs = snapshot.gc_runs - @last_snapshot.gc_runs
             end
             wall_clock_time = snapshot.taken_at - @last_snapshot.taken_at
-            NewRelic::Agent.agent.stats_engine.record_unscoped_metrics(GC_RUNS_METRIC) do |stats|
+            NewRelic::Agent.agent.stats_engine.tl_record_unscoped_metrics(GC_RUNS_METRIC) do |stats|
               stats.call_count           += txn_count
               stats.total_call_time      += gc_runs if gc_runs
               stats.total_exclusive_time += gc_time if gc_time
@@ -68,19 +68,19 @@ module NewRelic
           end
         end
 
-        def record_delta(snapshot, key, metric, txn_count)
+        def record_delta(snapshot, key, metric, txn_count) #THREAD_LOCAL_ACCESS
           value = snapshot.send(key)
           if value
             delta = value - @last_snapshot.send(key)
-            NewRelic::Agent.agent.stats_engine.record_unscoped_metrics(metric) do |stats|
+            NewRelic::Agent.agent.stats_engine.tl_record_unscoped_metrics(metric) do |stats|
               stats.call_count      += txn_count
               stats.total_call_time += delta
             end
           end
         end
 
-        def record_gauge_metric(metric_name, value)
-          NewRelic::Agent.agent.stats_engine.record_unscoped_metrics(metric_name) do |stats|
+        def record_gauge_metric(metric_name, value) #THREAD_LOCAL_ACCESS
+          NewRelic::Agent.agent.stats_engine.tl_record_unscoped_metrics(metric_name) do |stats|
             stats.call_count      = value
             stats.sum_of_squares  = 1
           end

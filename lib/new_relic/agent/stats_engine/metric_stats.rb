@@ -47,7 +47,7 @@ module NewRelic
         #
         # @api private
         #
-        def record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk) #THREAD_LOCAL_ACCESS
+        def tl_record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)
           txn = Transaction.tl_current
           if txn
             txn.metrics.record_unscoped(metric_names, value, aux, &blk)
@@ -59,7 +59,7 @@ module NewRelic
           end
         end
 
-        # Like record_unscoped_metrics, but records a scoped metric as well.
+        # Like tl_record_unscoped_metrics, but records a scoped metric as well.
         #
         # This is an internal method, subject to change at any time. Client apps
         # and gems should use the public API (NewRelic::Agent.record_metric)
@@ -78,7 +78,7 @@ module NewRelic
         #
         # @api private
         #
-        def record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk) #THREAD_LOCAL_ACCESS
+        def tl_record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
           txn = Transaction.tl_current
           if txn
             txn.metrics.record_scoped(scoped_metric, value, aux, &blk)
@@ -95,15 +95,6 @@ module NewRelic
               @stats_hash.record(specs, value, aux, &blk)
             end
           end
-        end
-
-        # Convenience wrapper for record_scoped_and_unscoped_metrics when there
-        # are no summary_metrics to record.
-        #
-        # @api private
-        #
-        def record_scoped_and_unscoped_metric(metric, value=nil, aux=nil, &blk)
-          record_scoped_and_unscoped_metrics(metric, nil, value, aux, &blk)
         end
 
         # This method is deprecated and not thread safe, and should not be used
@@ -158,9 +149,9 @@ module NewRelic
         end
 
         # Helper for recording a straight value into the count
-        def record_supportability_metric_count(metric, value)
+        def tl_record_supportability_metric_count(metric, value)
           real_name = "Supportability/#{metric}"
-          record_unscoped_metrics(real_name) do |stat|
+          tl_record_unscoped_metrics(real_name) do |stat|
             stat.call_count = value
           end
         end
