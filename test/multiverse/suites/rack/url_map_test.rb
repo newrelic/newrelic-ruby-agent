@@ -4,6 +4,8 @@
 
 require 'multiverse_helpers'
 
+if NewRelic::Agent::Instrumentation::RackBuilder.newrelic_rack_version_supported?
+
 class UrlMapTest < Minitest::Test
   include MultiverseHelpers
 
@@ -113,4 +115,6 @@ class UrlMapTest < Minitest::Test
       ['Nested/Controller/Rack/UrlMapTest::PrefixAppTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call']
     ])
   end
+end
+
 end

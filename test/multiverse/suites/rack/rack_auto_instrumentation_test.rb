@@ -10,6 +10,8 @@ require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/agent_hooks'
 require 'new_relic/rack/error_collector'
 
+if NewRelic::Agent::Instrumentation::RackBuilder.newrelic_rack_version_supported?
+
 class RackAutoInstrumentationTest < Minitest::Test
   include MultiverseHelpers
 
@@ -138,4 +140,6 @@ class RackAutoInstrumentationTest < Minitest::Test
     assert_equal('the correct tag', last_response.headers['MiddlewareTwoTag'])
     assert_equal('the block tag',   last_response.headers['MiddlewareTwoBlockTag'])
   end
+end
+
 end

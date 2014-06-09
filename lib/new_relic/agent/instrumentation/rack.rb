@@ -105,6 +105,10 @@ module NewRelic
       end
 
       module RackBuilder
+        def self.newrelic_rack_version_supported?
+          ::Rack::VERSION[0] == 1 && ::Rack::VERSION[1] >= 1
+        end
+
         def run_with_newrelic(app, *args)
           if ::NewRelic::Agent.config[:disable_middleware_instrumentation]
             run_without_newrelic(app, *args)
@@ -166,7 +170,10 @@ DependencyDetection.defer do
       alias_method :to_app_without_newrelic, :to_app
       alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
 
-      unless ::NewRelic::Agent.config[:disable_middleware_instrumentation]
+      instrumentation_supported = ::NewRelic::Agent::Instrumentation::RackBuilder.newrelic_rack_version_supported?
+      instrumentation_disabled  = ::NewRelic::Agent.config[:disable_middleware_instrumentation]
+
+      if instrumentation_supported && !instrumentation_disabled
         alias_method :run_without_newrelic, :run
         alias_method :run, :run_with_newrelic
 
