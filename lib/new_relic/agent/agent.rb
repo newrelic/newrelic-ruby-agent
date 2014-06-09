@@ -221,8 +221,9 @@ module NewRelic
         # should not record sql in the current thread. Returns the
         # previous value, if there is one
         def set_record_sql(should_record)#CDP
-          prev = TransactionState.tl_get.record_sql
-          TransactionState.tl_get.record_sql = should_record
+          state = TransactionState.tl_get
+          prev = state.record_sql
+          state.record_sql = should_record
           prev.nil? || prev
         end
 
@@ -230,8 +231,9 @@ module NewRelic
         # should not record transaction traces in the current
         # thread. Returns the previous value, if there is one
         def set_record_tt(should_record)#CDP
-          prev = TransactionState.tl_get.record_tt
-          TransactionState.tl_get.record_tt = should_record
+          state = TransactionState.tl_get
+          prev = state.record_tt
+          state.record_tt = should_record
           prev.nil? || prev
         end
 
