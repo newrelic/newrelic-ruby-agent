@@ -13,7 +13,7 @@ module NewRelic
           event = ControllerEvent.new(name, Time.now, nil, id, payload, request)
           push_event(event)
 
-          if NewRelic::Agent.is_execution_traced? && !event.ignored?
+          if NewRelic::Agent.tl_is_execution_traced? && !event.ignored?
             start_transaction(event)
           else
             # if this transaction is ignored, make sure child
@@ -25,11 +25,11 @@ module NewRelic
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload)
+        def finish(name, id, payload)#CDP
           event = pop_event(id)
           event.payload.merge!(payload)
 
-          if NewRelic::Agent.is_execution_traced? && !event.ignored?
+          if NewRelic::Agent.tl_is_execution_traced? && !event.ignored?
             stop_transaction(event)
           else
             Agent.instance.pop_trace_execution_flag

@@ -35,11 +35,11 @@ module NewRelic
         @obfuscator ||= NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:license_key], RUM_KEY_LENGTH)
       end
 
-      def current_transaction
-        ::NewRelic::Agent::Transaction.current
+      def current_transaction#CDP
+        ::NewRelic::Agent::Transaction.tl_current
       end
 
-      def insert_js?
+      def insert_js?#CDP
         if !enabled?
           ::NewRelic::Agent.logger.log_once(:debug, :js_agent_disabled,
                                             "JS agent instrumentation is disabled.")
@@ -62,7 +62,7 @@ module NewRelic
         elsif !::NewRelic::Agent.is_transaction_traced?
           ::NewRelic::Agent.logger.debug "Transaction is not traced. Skipping browser instrumentation."
           false
-        elsif !::NewRelic::Agent.is_execution_traced?
+        elsif !::NewRelic::Agent.tl_is_execution_traced?
           ::NewRelic::Agent.logger.debug "Execution is not traced. Skipping browser instrumentation."
           false
         elsif ::NewRelic::Agent::Transaction.ignore_enduser?
@@ -99,7 +99,7 @@ module NewRelic
 
       # NOTE: Internal prototyping often overrides this, so leave name stable!
       def browser_timing_config
-        txn = Transaction.current
+        txn = current_transaction
         return '' if txn.nil?
 
         txn.freeze_name_and_execute_if_not_ignored do

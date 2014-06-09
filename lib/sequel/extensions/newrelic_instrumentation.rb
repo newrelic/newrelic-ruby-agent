@@ -35,8 +35,8 @@ module Sequel
 
 
     # Instrument all queries that go through #execute_query.
-    def log_yield( sql, args=nil )
-      return super unless NewRelic::Agent.is_execution_traced?
+    def log_yield(sql, args=nil)#CDP
+      return super unless NewRelic::Agent.tl_is_execution_traced?
 
       t0 = Time.now
       rval = super
@@ -44,8 +44,8 @@ module Sequel
 
       begin
         duration = t1 - t0
-        record_metrics( sql, args, duration )
-        notice_sql( sql, args, t0, t1 )
+        record_metrics(sql, args, duration)
+        notice_sql(sql, args, t0, t1)
       rescue => err
         NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
       end
@@ -55,12 +55,12 @@ module Sequel
 
     # Record metrics for the specified +sql+ and +args+ using the specified
     # +duration+.
-    def record_metrics( sql, args, duration)
-      primary_metric = primary_metric_for( sql, args )
+    def record_metrics(sql, args, duration)
+      primary_metric = primary_metric_for(sql, args)
       engine         = NewRelic::Agent.instance.stats_engine
 
-      metrics = rollup_metrics_for( primary_metric )
-      metrics << remote_service_metric( *self.opts.values_at(:adapter, :host) ) if self.opts.key?(:adapter)
+      metrics = rollup_metrics_for(primary_metric)
+      metrics << remote_service_metric(*self.opts.values_at(:adapter, :host)) if self.opts.key?(:adapter)
 
       engine.record_scoped_and_unscoped_metrics(primary_metric, metrics, duration)
     end
@@ -71,13 +71,13 @@ module Sequel
 
     # Record the given +sql+ within a new frame, using the given +start+ and
     # +finish+ times.
-    def notice_sql( sql, args, start, finish )
-      metric   = primary_metric_for( sql, args )
+    def notice_sql(sql, args, start, finish)#CDP
+      metric   = primary_metric_for(sql, args)
       agent    = NewRelic::Agent.instance
       duration = finish - start
 
       begin
-        frame = NewRelic::Agent::TracedMethodStack.push_frame( :sequel, start )
+        frame = NewRelic::Agent::TracedMethodStack.tl_push_frame(:sequel, start)
         explainer = Proc.new do |*|
           if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
             self[ sql ].explain
@@ -86,22 +86,22 @@ module Sequel
             nil
           end
         end
-        agent.transaction_sampler.notice_sql( sql, self.opts, duration, &explainer )
-        agent.sql_sampler.notice_sql( sql, metric, self.opts, duration, &explainer )
+        agent.transaction_sampler.notice_sql(sql, self.opts, duration, &explainer)
+        agent.sql_sampler.notice_sql(sql, metric, self.opts, duration, &explainer)
       ensure
-        NewRelic::Agent::TracedMethodStack.pop_frame( frame, metric, finish )
+        NewRelic::Agent::TracedMethodStack.tl_pop_frame(frame, metric, finish)
       end
     end
 
 
     # Derive a primary database metric for the specified +sql+.
-    def primary_metric_for( sql, _ )
+    def primary_metric_for(sql, _)
       return metric_for_sql(NewRelic::Helper.correctly_encoded(sql))
     end
 
   end # module NewRelicInstrumentation
 
   NewRelic::Agent.logger.debug "Registering the :newrelic_instrumentation extension."
-  Database.register_extension( :newrelic_instrumentation, NewRelicInstrumentation )
+  Database.register_extension(:newrelic_instrumentation, NewRelicInstrumentation)
 
 end # module Sequel

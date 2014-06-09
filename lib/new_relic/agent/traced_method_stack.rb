@@ -23,12 +23,12 @@ module NewRelic
         @stack = []
       end
 
-      def self.push_frame(tag, time = Time.now.to_f)#CDP
+      def self.tl_push_frame(tag, time = Time.now.to_f)
         stack = NewRelic::Agent::TransactionState.tl_get.traced_method_stack
         stack.push_frame(tag, time)
       end
 
-      def self.pop_frame(expected_frame, name, time=Time.now.to_f)#CDP
+      def self.tl_pop_frame(expected_frame, name, time=Time.now.to_f)
         stack = NewRelic::Agent::TransactionState.tl_get.traced_method_stack
         stack.pop_frame(expected_frame, name, time)
       end

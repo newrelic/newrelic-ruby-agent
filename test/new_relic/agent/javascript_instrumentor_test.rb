@@ -154,7 +154,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
       with_config(CAPTURE_ATTRIBUTES => true) do
         NewRelic::Agent.set_user_attributes(:user => "user")
 
-        txn = NewRelic::Agent::Transaction.current
+        txn = NewRelic::Agent::Transaction.tl_current
         txn.stubs(:queue_time).returns(0)
         txn.stubs(:start_time).returns(Time.now - 10)
         txn.stubs(:guid).returns('ABC')

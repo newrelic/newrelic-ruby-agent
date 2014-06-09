@@ -176,7 +176,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
   def test_trace_execution_scoped_header
     self.expects(:log_errors).with(:trace_execution_scoped_header).yields
-    NewRelic::Agent::TracedMethodStack.expects(:push_frame).with(:method_tracer, 1.0)
+    NewRelic::Agent::TracedMethodStack.expects(:tl_push_frame).with(:method_tracer, 1.0)
     trace_execution_scoped_header(1.0)
   end
 

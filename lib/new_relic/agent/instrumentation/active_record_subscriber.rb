@@ -11,15 +11,15 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActiveRecordSubscriber < EventedSubscriber
-        def start(name, id, payload)
-          return unless NewRelic::Agent.is_execution_traced?
+        def start(name, id, payload)#CDP
+          return unless NewRelic::Agent.tl_is_execution_traced?
           super
         rescue => e
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload)
-          return unless NewRelic::Agent.is_execution_traced?
+        def finish(name, id, payload)#CDP
+          return unless NewRelic::Agent.tl_is_execution_traced?
           event = pop_event(id)
           record_metrics(event)
           notice_sql(event)
@@ -37,12 +37,12 @@ module NewRelic
           end
         end
 
-        def notice_sql(event)
+        def notice_sql(event)#CDP
           config = active_record_config_for_event(event)
           metric = base_metric(event)
 
           # enter transaction trace segment
-          frame = NewRelic::Agent::TracedMethodStack.push_frame(:active_record, event.time)
+          frame = NewRelic::Agent::TracedMethodStack.tl_push_frame(:active_record, event.time)
 
           NewRelic::Agent.instance.transaction_sampler \
             .notice_sql(event.payload[:sql], config,
@@ -55,7 +55,7 @@ module NewRelic
                         &method(:get_explain_plan))
 
           # exit transaction trace segment
-          NewRelic::Agent::TracedMethodStack.pop_frame(frame, metric, event.end)
+          NewRelic::Agent::TracedMethodStack.tl_pop_frame(frame, metric, event.end)
         end
 
         def record_metrics(event)

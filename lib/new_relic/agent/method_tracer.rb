@@ -72,8 +72,8 @@ module NewRelic
       #
       # @api public
       #
-      def trace_execution_unscoped(metric_names, options={})
-        return yield unless NewRelic::Agent.is_execution_traced?
+      def trace_execution_unscoped(metric_names, options={})#CDP
+        return yield unless NewRelic::Agent.tl_is_execution_traced?
         t0 = Time.now
         begin
           yield
@@ -108,8 +108,8 @@ module NewRelic
         end
 
         # Shorthand to return the status of tracing
-        def traced?
-          NewRelic::Agent.is_execution_traced?
+        def traced?#CDP
+          NewRelic::Agent.tl_is_execution_traced?
         end
 
         # Shorthand to return the current statistics engine
@@ -149,9 +149,9 @@ module NewRelic
         # the frame so that we can check for it later, to maintain
         # sanity. If the frame stack becomes unbalanced, this
         # transaction loses meaning.
-        def trace_execution_scoped_header(t0)
+        def trace_execution_scoped_header(t0)#CDP
           log_errors(:trace_execution_scoped_header) do
-            NewRelic::Agent::TracedMethodStack.push_frame(:method_tracer, t0)
+            NewRelic::Agent::TracedMethodStack.tl_push_frame(:method_tracer, t0)
           end
         end
 
@@ -180,10 +180,10 @@ module NewRelic
         # this method fails safely if the header does not manage to
         # push the scope onto the stack - it simply does not trace
         # any metrics.
-        def trace_execution_scoped_footer(t0, first_name, metric_names, expected_frame, options, t1=Time.now.to_f)
+        def trace_execution_scoped_footer(t0, first_name, metric_names, expected_frame, options, t1=Time.now.to_f)#CDP
           log_errors(:trace_method_execution_footer) do
             if expected_frame
-              frame = NewRelic::Agent::TracedMethodStack.pop_frame(expected_frame, first_name, t1)
+              frame = NewRelic::Agent::TracedMethodStack.tl_pop_frame(expected_frame, first_name, t1)
               duration = t1 - t0
               exclusive = duration - frame.children_time
               record_metrics(first_name, metric_names, duration, exclusive, options)
@@ -311,7 +311,7 @@ module NewRelic
           # instrumentation into effectively one method call overhead
           # when the agent is disabled
           def assemble_code_header(method_name, metric_name_code, options)
-              header = "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.is_execution_traced?\n"
+              header = "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?\n"
 
               header += options[:code_header].to_s
 

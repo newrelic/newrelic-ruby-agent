@@ -450,7 +450,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def test_start_builder_default
-    NewRelic::Agent.expects(:is_execution_traced?).returns(true)
+    NewRelic::Agent.expects(:tl_is_execution_traced?).returns(true)
     @sampler.send(:start_builder)
     assert(NewRelic::Agent::TransactionState.tl_get.transaction_sample_builder \
              .is_a?(NewRelic::Agent::TransactionSampleBuilder),

@@ -325,7 +325,7 @@ module NewRelic
         #
         # @api public
         #
-        def perform_action_with_newrelic_trace(*args, &block)
+        def perform_action_with_newrelic_trace(*args, &block)#CDP
           NewRelic::Agent::TransactionState.request = newrelic_request(args)
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
@@ -337,7 +337,7 @@ module NewRelic
             end
           end
 
-          return yield unless NewRelic::Agent.is_execution_traced?
+          return yield unless NewRelic::Agent.tl_is_execution_traced?
 
           # If a block was passed in, then the arguments represent options for
           # the instrumentation, not app method arguments.

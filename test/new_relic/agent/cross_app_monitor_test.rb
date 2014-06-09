@@ -184,9 +184,9 @@ module NewRelic::Agent
         event_listener = NewRelic::Agent.instance.events
         event_listener.notify(:before_call, request)
 
-        assert !NewRelic::Agent::Transaction.current.name_frozen?
+        assert !NewRelic::Agent::Transaction.tl_current.name_frozen?
         event_listener.notify(:after_call, request, [200, @response, ''])
-        assert NewRelic::Agent::Transaction.current.name_frozen?
+        assert NewRelic::Agent::Transaction.tl_current.name_frozen?
       end
     end
 
@@ -199,7 +199,7 @@ module NewRelic::Agent
       in_transaction('transaction') do
         event_listener.notify(:before_call, request)
         # Fake out our GUID for easier comparison in tests
-        NewRelic::Agent::Transaction.current.stubs(:guid).returns(TRANSACTION_GUID)
+        NewRelic::Agent::Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
         event_listener.notify(:after_call, request, [200, @response, ''])
       end
     end

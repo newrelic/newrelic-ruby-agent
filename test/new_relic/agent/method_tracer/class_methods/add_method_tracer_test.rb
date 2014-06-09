@@ -89,7 +89,7 @@ module NewRelic
             def test_assemble_code_header_unforced
               self.expects(:_untraced_method_name).returns("method_name_without_tracing")
               opts = {:force => false, :code_header => 'CODE HEADER'}
-              assert_equal "return method_name_without_tracing(*args, &block) unless NewRelic::Agent.is_execution_traced?\nCODE HEADER", assemble_code_header('test_method', 'Custom/Test/test_method', opts)
+              assert_equal "return method_name_without_tracing(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?\nCODE HEADER", assemble_code_header('test_method', 'Custom/Test/test_method', opts)
             end
 
             def test_check_for_push_scope_and_metric_positive

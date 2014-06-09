@@ -366,7 +366,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_user_attributes_alias_to_custom_parameters
     in_transaction('user_attributes') do
-      txn = NewRelic::Agent::Transaction.current
+      txn = NewRelic::Agent::Transaction.tl_current
       txn.set_user_attributes(:set_instance => :set_instance)
       txn.user_attributes[:indexer_instance] = :indexer_instance
 
@@ -384,7 +384,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_notice_error_in_current_transaction_saves_it_for_finishing
     in_transaction('failing') do
       NewRelic::Agent::Transaction.notice_error("")
-      assert_equal 1, NewRelic::Agent::Transaction.current.exceptions.count
+      assert_equal 1, NewRelic::Agent::Transaction.tl_current.exceptions.count
     end
   end
 
@@ -409,7 +409,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     txn = in_transaction do
       NewRelic::Agent::StatsEngine::GCProfiler.expects(:record_delta).with(gc_start, gc_end).returns(42)
-      NewRelic::Agent::Transaction.current
+      NewRelic::Agent::Transaction.tl_current
     end
 
     trace = txn.transaction_trace
@@ -597,7 +597,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def assert_has_custom_parameter(key, value = key)
-    assert_equal(value, NewRelic::Agent::Transaction.current.custom_parameters[key])
+    assert_equal(value, NewRelic::Agent::Transaction.tl_current.custom_parameters[key])
   end
 
 end
