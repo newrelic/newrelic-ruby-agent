@@ -40,8 +40,8 @@ module NewRelic
           Agent.config[:'transaction_tracer.enabled']
       end
 
-      def on_start_transaction(start_time, uri=nil, params={})
-        TransactionState.get.sql_sampler_transaction_data = TransactionSqlData.new
+      def on_start_transaction(start_time, uri=nil, params={})#CDP
+        TransactionState.tl_get.sql_sampler_transaction_data = TransactionSqlData.new
 
         if NewRelic::Agent.instance.transaction_sampler.builder
           guid = NewRelic::Agent.instance.transaction_sampler.builder.sample.guid
@@ -52,8 +52,8 @@ module NewRelic
         end
       end
 
-      def transaction_data
-        TransactionState.get.sql_sampler_transaction_data
+      def transaction_data#CDP
+        TransactionState.tl_get.sql_sampler_transaction_data
       end
 
       # This is called when we are done with the transaction.

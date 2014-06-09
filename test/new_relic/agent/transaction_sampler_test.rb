@@ -26,7 +26,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def setup
-    NewRelic::Agent::TransactionState.clear
+    NewRelic::Agent::TransactionState.tl_clear_for_testing
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
     agent.stubs(:stats_engine).returns(stats_engine)
@@ -40,7 +40,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def teardown
     super
-    NewRelic::Agent::TransactionState.clear
+    NewRelic::Agent::TransactionState.tl_clear_for_testing
     NewRelic::Agent.config.remove_config(@test_config)
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @old_sampler)
   end
@@ -243,13 +243,13 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def test_notice_sql_recording_sql
-    NewRelic::Agent::TransactionState.get.record_sql = true
+    NewRelic::Agent::TransactionState.tl_get.record_sql = true
     @sampler.expects(:notice_extra_data).with('some sql', 1.0, :sql)
     @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0)
   end
 
   def test_notice_sql_not_recording
-    NewRelic::Agent::TransactionState.get.record_sql = false
+    NewRelic::Agent::TransactionState.tl_get.record_sql = false
     @sampler.expects(:notice_extra_data).with('some sql', 1.0, :sql).never # <--- important
     @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0)
   end
@@ -452,39 +452,39 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_start_builder_default
     NewRelic::Agent.expects(:is_execution_traced?).returns(true)
     @sampler.send(:start_builder)
-    assert(NewRelic::Agent::TransactionState.get.transaction_sample_builder \
+    assert(NewRelic::Agent::TransactionState.tl_get.transaction_sample_builder \
              .is_a?(NewRelic::Agent::TransactionSampleBuilder),
            "should set up a new builder by default")
   end
 
   def test_start_builder_disabled
-    NewRelic::Agent::TransactionState.get.transaction_sample_builder = 'not nil.'
+    NewRelic::Agent::TransactionState.tl_get.transaction_sample_builder = 'not nil.'
     with_config(:'transaction_tracer.enabled' => false,
                 :developer_mode => false) do
       @sampler.send(:start_builder)
-      assert_equal(nil, NewRelic::Agent::TransactionState.get.transaction_sample_builder,
+      assert_equal(nil, NewRelic::Agent::TransactionState.tl_get.transaction_sample_builder,
                    "should clear the transaction builder when disabled")
     end
   end
 
   def test_start_builder_dont_replace_existing_builder
     fake_builder = mock('transaction sample builder')
-    NewRelic::Agent::TransactionState.get.transaction_sample_builder = fake_builder
+    NewRelic::Agent::TransactionState.tl_get.transaction_sample_builder = fake_builder
     @sampler.send(:start_builder)
-    assert_equal(fake_builder, NewRelic::Agent::TransactionState.get.transaction_sample_builder,
+    assert_equal(fake_builder, NewRelic::Agent::TransactionState.tl_get.transaction_sample_builder,
                  "should not overwrite an existing transaction sample builder")
-    NewRelic::Agent::TransactionState.get.transaction_sample_builder = nil
+    NewRelic::Agent::TransactionState.tl_get.transaction_sample_builder = nil
   end
 
   def test_builder
-    NewRelic::Agent::TransactionState.get.transaction_sample_builder = 'shamalamadingdong, brother.'
+    NewRelic::Agent::TransactionState.tl_get.transaction_sample_builder = 'shamalamadingdong, brother.'
     assert_equal('shamalamadingdong, brother.', @sampler.send(:builder),
                  'should return the value from the thread local variable')
-    NewRelic::Agent::TransactionState.get.transaction_sample_builder = nil
+    NewRelic::Agent::TransactionState.tl_get.transaction_sample_builder = nil
   end
 
   def test_clear_builder
-    NewRelic::Agent::TransactionState.get.transaction_sample_builder = 'shamalamadingdong, brother.'
+    NewRelic::Agent::TransactionState.tl_get.transaction_sample_builder = 'shamalamadingdong, brother.'
     assert_equal(nil, @sampler.send(:clear_builder), 'should clear the thread local variable')
   end
 
@@ -642,7 +642,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_record_sql_off
     @sampler.on_start_transaction Time.now.to_f
 
-    NewRelic::Agent::TransactionState.get.record_sql = false
+    NewRelic::Agent::TransactionState.tl_get.record_sql = false
 
     @sampler.notice_sql("test", {}, 0)
 

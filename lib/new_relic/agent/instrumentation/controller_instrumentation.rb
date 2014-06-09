@@ -389,8 +389,8 @@ module NewRelic
         # Should be implemented in the dispatcher class
         def newrelic_response_code; end
 
-        def newrelic_request_headers
-          request = NewRelic::Agent::TransactionState.get.request
+        def newrelic_request_headers#CDP
+          request = NewRelic::Agent::TransactionState.tl_get.request
           if request
             if request.respond_to?(:headers)
               request.headers

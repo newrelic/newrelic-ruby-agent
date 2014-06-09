@@ -195,9 +195,9 @@ module NewRelic
       @params = params
     end
 
-    def force_persist_sample?
-      NewRelic::Agent::TransactionState.get.request_token &&
-        self.duration > NewRelic::Agent::TransactionState.get.current_transaction.apdex_t
+    def force_persist_sample?#CDP
+      NewRelic::Agent::TransactionState.tl_get.request_token &&
+        self.duration > NewRelic::Agent::TransactionState.tl_get.current_transaction.apdex_t
     end
 
   private

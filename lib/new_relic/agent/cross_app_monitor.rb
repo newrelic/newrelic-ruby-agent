@@ -69,43 +69,43 @@ module NewRelic
         @obfuscator = NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
       end
 
-      def save_client_cross_app_id(request_headers)
-        TransactionState.get.client_cross_app_id = decoded_id(request_headers)
+      def save_client_cross_app_id(request_headers)#CDP
+        TransactionState.tl_get.client_cross_app_id = decoded_id(request_headers)
       end
 
-      def clear_client_cross_app_id
-        TransactionState.get.client_cross_app_id = nil
+      def clear_client_cross_app_id#CDP
+        TransactionState.tl_get.client_cross_app_id = nil
       end
 
-      def client_cross_app_id
-        TransactionState.get.client_cross_app_id
+      def client_cross_app_id#CDP
+        TransactionState.tl_get.client_cross_app_id
       end
 
-      def save_referring_transaction_info(request_headers)
+      def save_referring_transaction_info(request_headers)#CDP
         txn_header = from_headers( request_headers, NEWRELIC_TXN_HEADER_KEYS ) or return
         txn_header = obfuscator.deobfuscate( txn_header )
         txn_info = NewRelic::JSONWrapper.load( txn_header )
         NewRelic::Agent.logger.debug "Referring txn_info: %p" % [ txn_info ]
 
-        TransactionState.get.referring_transaction_info = txn_info
+        TransactionState.tl_get.referring_transaction_info = txn_info
       end
 
-      def client_referring_transaction_guid
-        info = TransactionState.get.referring_transaction_info or return nil
+      def client_referring_transaction_guid#CDP
+        info = TransactionState.tl_get.referring_transaction_info or return nil
         return info[0]
       end
 
-      def client_referring_transaction_record_flag
-        info = TransactionState.get.referring_transaction_info or return nil
+      def client_referring_transaction_record_flag#CDP
+        info = TransactionState.tl_get.referring_transaction_info or return nil
         return info[1]
       end
 
-      def insert_response_header(request_headers, response_headers)
+      def insert_response_header(request_headers, response_headers)#CDP
         unless client_cross_app_id.nil?
           txn = ::NewRelic::Agent::Transaction.current
           unless txn.nil?
             txn.freeze_name_and_execute_if_not_ignored do
-              timings = NewRelic::Agent::TransactionState.get.timings
+              timings = NewRelic::Agent::TransactionState.tl_get.timings
               content_length = content_length_from_request(request_headers)
 
               set_response_headers(response_headers, timings, content_length)
@@ -181,8 +181,8 @@ module NewRelic
         from_headers(request, CONTENT_LENGTH_HEADER_KEYS) || -1
       end
 
-      def transaction_guid
-        NewRelic::Agent::TransactionState.get.request_guid
+      def transaction_guid#CDP
+        NewRelic::Agent::TransactionState.tl_get.request_guid
       end
 
       private

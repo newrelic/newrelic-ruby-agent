@@ -7,8 +7,9 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionControllerSubscriber < EventedSubscriber
-        def start(name, id, payload)
-          request = TransactionState.get.request
+
+        def start(name, id, payload) #THREAD_LOCAL_ACCESS
+          request = TransactionState.tl_get.request
           event = ControllerEvent.new(name, Time.now, nil, id, payload, request)
           push_event(event)
 

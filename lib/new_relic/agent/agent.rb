@@ -220,18 +220,18 @@ module NewRelic
         # Sets a thread local variable as to whether we should or
         # should not record sql in the current thread. Returns the
         # previous value, if there is one
-        def set_record_sql(should_record)
-          prev = TransactionState.get.record_sql
-          TransactionState.get.record_sql = should_record
+        def set_record_sql(should_record)#CDP
+          prev = TransactionState.tl_get.record_sql
+          TransactionState.tl_get.record_sql = should_record
           prev.nil? || prev
         end
 
         # Sets a thread local variable as to whether we should or
         # should not record transaction traces in the current
         # thread. Returns the previous value, if there is one
-        def set_record_tt(should_record)
-          prev = TransactionState.get.record_tt
-          TransactionState.get.record_tt = should_record
+        def set_record_tt(should_record)#CDP
+          prev = TransactionState.tl_get.record_tt
+          TransactionState.tl_get.record_tt = should_record
           prev.nil? || prev
         end
 
@@ -239,14 +239,14 @@ module NewRelic
         # thread. This uses a stack which allows us to disable tracing
         # children of a transaction without affecting the tracing of
         # the whole transaction
-        def push_trace_execution_flag(should_trace=false)
-          TransactionState.get.push_traced(should_trace)
+        def push_trace_execution_flag(should_trace=false)#CDP
+          TransactionState.tl_get.push_traced(should_trace)
         end
 
         # Pop the current trace execution status.  Restore trace execution status
         # to what it was before we pushed the current flag.
-        def pop_trace_execution_flag
-          TransactionState.get.pop_traced
+        def pop_trace_execution_flag#CDP
+          TransactionState.tl_get.pop_traced
         end
 
         # Herein lies the corpse of the former 'start' method. May

@@ -18,7 +18,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def cleanup_transaction
-    NewRelic::Agent::TransactionState.clear
+    NewRelic::Agent::TransactionState.tl_clear_for_testing
   end
 
   def test_request_parsing__none
@@ -311,7 +311,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     in_transaction do
-      NewRelic::Agent::TransactionState.get.is_cross_app_caller = true
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
     end
 
     refute_empty guid
@@ -324,7 +324,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     in_transaction do
-      NewRelic::Agent::TransactionState.get.is_cross_app_caller = false
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = false
     end
 
     refute found_guid
@@ -337,7 +337,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     in_transaction do
-      NewRelic::Agent::TransactionState.get.referring_transaction_info = ["GUID"]
+      NewRelic::Agent::TransactionState.tl_get.referring_transaction_info = ["GUID"]
     end
 
     assert_equal "GUID", referring_guid
@@ -351,7 +351,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     in_transaction do
       # Make sure we don't have referring transaction state floating around
-      NewRelic::Agent::TransactionState.get.referring_transaction_info = nil
+      NewRelic::Agent::TransactionState.tl_get.referring_transaction_info = nil
     end
 
     refute found_referring_guid

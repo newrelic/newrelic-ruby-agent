@@ -24,9 +24,9 @@ module NewRelic
       # sets up busy calculations based on the start and end of
       # transactions - used for a rough estimate of what percentage of
       # wall clock time is spent processing requests
-      def dispatcher_start(time)
-        TransactionState.get.busy_entries ||= 0
-        callers = TransactionState.get.busy_entries += 1
+      def dispatcher_start(time)#CDP
+        TransactionState.tl_get.busy_entries ||= 0
+        callers = TransactionState.tl_get.busy_entries += 1
         return if callers > 1
         @lock.synchronize do
           @entrypoint_stack.push time
@@ -36,12 +36,12 @@ module NewRelic
       # called when a transaction finishes, to add time to the
       # instance variable accumulator. this is harvested when we send
       # data to the server
-      def dispatcher_finish(end_time = nil)
+      def dispatcher_finish(end_time = nil)#CDP
         # If #dispatcher_start hasn't been called at least once, abort early
-        return unless TransactionState.get.busy_entries
+        return unless TransactionState.tl_get.busy_entries
 
         end_time ||= time_now
-        callers = TransactionState.get.busy_entries -= 1
+        callers = TransactionState.tl_get.busy_entries -= 1
 
         # Ignore nested calls
         return if callers > 0
@@ -63,9 +63,9 @@ module NewRelic
 
       # Reset the state of the information accumulated by all threads,
       # but only reset the recursion counter for this thread.
-      def reset
+      def reset#CDP
         @entrypoint_stack = []
-        TransactionState.get.busy_entries = 0
+        TransactionState.tl_get.busy_entries = 0
         @lock ||= Mutex.new
         @accumulator = 0
         @harvest_start = time_now

@@ -62,7 +62,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   attr_reader :stats_engine
 
   def setup
-    NewRelic::Agent::TransactionState.clear
+    NewRelic::Agent::TransactionState.tl_clear_for_testing
 
     NewRelic::Agent.manual_start
     @stats_engine = NewRelic::Agent.instance.stats_engine
