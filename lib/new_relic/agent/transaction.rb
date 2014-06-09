@@ -65,7 +65,7 @@ module NewRelic
         TransactionState.tl_get.current_transaction
       end
 
-      def self.set_default_transaction_name(name, options = {})#CDP
+      def self.set_default_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
         txn  = tl_current
         name = make_transaction_name(name, options[:category])
 
@@ -77,7 +77,7 @@ module NewRelic
         end
       end
 
-      def self.set_overriding_transaction_name(name, options = {})#CDP
+      def self.set_overriding_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
         txn = tl_current
         return unless txn
 
@@ -105,7 +105,7 @@ module NewRelic
         "#{namer.prefix_for_category(category)}#{name}"
       end
 
-      def self.start(category, options)#CDP
+      def self.start(category, options) #THREAD_LOCAL_ACCESS
         category ||= :controller
         txn = tl_current
 
@@ -127,11 +127,11 @@ module NewRelic
         txn
       end
 
-      def self.best_category#CDP
+      def self.best_category #THREAD_LOCAL_ACCESS
         tl_current && tl_current.best_category
       end
 
-      def self.stop(end_time=Time.now)#CDP
+      def self.stop(end_time=Time.now) #THREAD_LOCAL_ACCESS
         txn = tl_current
 
         if txn.frame_stack.empty?
@@ -178,37 +178,37 @@ module NewRelic
         end
       end
 
-      def self.ignore!#CDP
+      def self.ignore! #THREAD_LOCAL_ACCESS
         tl_current && tl_current.ignore!
       end
 
-      def self.ignore?#CDP
+      def self.ignore? #THREAD_LOCAL_ACCESS
         tl_current && tl_current.ignore?
       end
 
-      def self.ignore_apdex!#CDP
+      def self.ignore_apdex! #THREAD_LOCAL_ACCESS
         tl_current && tl_current.ignore_apdex!
       end
 
-      def self.ignore_apdex?#CDP
+      def self.ignore_apdex? #THREAD_LOCAL_ACCESS
         tl_current && tl_current.ignore_apdex?
       end
 
-      def self.ignore_enduser!#CDP
+      def self.ignore_enduser! #THREAD_LOCAL_ACCESS
         tl_current && tl_current.ignore_enduser!
       end
 
-      def self.ignore_enduser?#CDP
+      def self.ignore_enduser? #THREAD_LOCAL_ACCESS
         tl_current && tl_current.ignore_enduser?
       end
 
       # This is the name of the model currently assigned to database
       # measurements, overriding the default.
-      def self.database_metric_name#CDP
+      def self.database_metric_name #THREAD_LOCAL_ACCESS
         tl_current && tl_current.database_metric_name
       end
 
-      def self.referer#CDP
+      def self.referer #THREAD_LOCAL_ACCESS
         tl_current && tl_current.referer
       end
 
@@ -216,7 +216,7 @@ module NewRelic
         NewRelic::Agent.instance
       end
 
-      def self.freeze_name_and_execute_if_not_ignored#CDP
+      def self.freeze_name_and_execute_if_not_ignored #THREAD_LOCAL_ACCESS
         tl_current && tl_current.freeze_name_and_execute_if_not_ignored { yield if block_given? }
       end
 
@@ -353,7 +353,7 @@ module NewRelic
 
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
-      def start#CDP
+      def start #THREAD_LOCAL_ACCESS
         state = NewRelic::Agent::TransactionState.tl_get
         return if !state.is_execution_traced?
 
@@ -368,7 +368,7 @@ module NewRelic
 
       # Indicate that you don't want to keep the currently saved transaction
       # information
-      def self.abort_transaction!#CDP
+      def self.abort_transaction! #THREAD_LOCAL_ACCESS
         tl_current.abort_transaction! if tl_current
       end
 
@@ -383,8 +383,9 @@ module NewRelic
       end
 
       # Call this to ensure that the current transaction is not saved
-      def abort_transaction!
-        transaction_sampler.ignore_transaction
+      def abort_transaction! #THREAD_LOCAL_ACCESS
+        state = NewRelic::Agent::TransactionState.tl_get
+        transaction_sampler.ignore_transaction(state)
       end
 
       def summary_metrics
@@ -400,7 +401,7 @@ module NewRelic
         metrics
       end
 
-      def stop(end_time)#CDP
+      def stop(end_time) #THREAD_LOCAL_ACCESS
         state = NewRelic::Agent::TransactionState.tl_get
         return if !state.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
@@ -462,7 +463,7 @@ module NewRelic
         agent.events.notify(:transaction_finished, payload)
       end
 
-      def append_guid_to(payload)#CDP
+      def append_guid_to(payload) #THREAD_LOCAL_ACCESS
         guid = NewRelic::Agent::TransactionState.tl_get.request_guid_for_event
         if guid
           payload[:guid] = guid
@@ -497,7 +498,7 @@ module NewRelic
       # * <tt>:custom_params</tt> => Custom parameters
       # Anything left over is treated as custom params
 
-      def self.notice_error(e, options={})#CDP
+      def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
         options = extract_request_options(options)
         if tl_current
           tl_current.notice_error(e, options)
@@ -518,7 +519,7 @@ module NewRelic
 
       # If we aren't currently in a transaction, but found the remains of one
       # just finished in the TransactionState, use those custom params!
-      def self.extract_finished_transaction_options(options)#CDP
+      def self.extract_finished_transaction_options(options) #THREAD_LOCAL_ACCESS
         finished_txn = NewRelic::Agent::Transaction.tl_current
         if finished_txn
           custom_params = options.fetch(:custom_params, {})
@@ -549,11 +550,11 @@ module NewRelic
 
       # Add context parameters to the transaction.  This information will be passed in to errors
       # and transaction traces.  Keys and Values should be strings, numbers or date/times.
-      def self.add_custom_parameters(p)#CDP
+      def self.add_custom_parameters(p) #THREAD_LOCAL_ACCESS
         tl_current.add_custom_parameters(p) if tl_current
       end
 
-      def self.custom_parameters#CDP
+      def self.custom_parameters #THREAD_LOCAL_ACCESS
         (tl_current && tl_current.custom_parameters) ? tl_current.custom_parameters : {}
       end
 
@@ -564,7 +565,7 @@ module NewRelic
 
       APDEX_METRIC = 'Apdex'.freeze
 
-      def record_apdex(end_time=Time.now)#CDP
+      def record_apdex(end_time=Time.now) #THREAD_LOCAL_ACCESS
         return unless recording_web_transaction? && NewRelic::Agent.tl_is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
@@ -633,7 +634,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.recording_web_transaction?#CDP
+      def self.recording_web_transaction? #THREAD_LOCAL_ACCESS
         tl_current && tl_current.recording_web_transaction?
       end
 
@@ -666,7 +667,7 @@ module NewRelic
       end
 
 
-      def self.record_apdex(end_time)#CDP
+      def self.record_apdex(end_time) #THREAD_LOCAL_ACCESS
         tl_current && tl_current.record_apdex(end_time)
       end
 
@@ -697,9 +698,12 @@ module NewRelic
         jruby_cpu_time - @jruby_cpu_start
       end
 
-      def record_transaction_cpu
+      def record_transaction_cpu #THREAD_LOCAL_ACCESS
         burn = cpu_burn
-        transaction_sampler.notice_transaction_cpu_time(burn) if burn
+        if burn
+          state = NewRelic::Agent::TransactionState.tl_get
+          transaction_sampler.notice_transaction_cpu_time(state, burn)
+        end
       end
 
       def ignore!

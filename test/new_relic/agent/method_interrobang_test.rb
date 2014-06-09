@@ -24,7 +24,7 @@ class MethodInterrobangTest < Minitest::Test
 		assert_equal "say what?", interrogate?
 	end
 
-	def test_aliase_method_ending_in_exclamation_makr
+	def test_alias_method_ending_in_exclamation_mark
 		assert_respond_to self, :mutate!
 		assert_equal "oh yeah!", mutate!
 	end

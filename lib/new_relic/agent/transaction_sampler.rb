@@ -138,14 +138,14 @@ module NewRelic
       # creating one. Only causes the sample to be ignored upon end of
       # the transaction, and does not change the metrics gathered
       # outside of the sampler
-      def ignore_transaction#CDP
-        builder = tl_builder
+      def ignore_transaction(state)
+        builder = state.transaction_sample_builder
         builder.ignore_transaction if builder
       end
 
       # Sets the CPU time used by a transaction, delegates to the builder
-      def notice_transaction_cpu_time(cpu_time)#CDP
-        builder = tl_builder
+      def notice_transaction_cpu_time(state, cpu_time)
+        builder = state.transaction_sample_builder
         builder.set_transaction_cpu_time(cpu_time) if builder
       end
 
@@ -154,8 +154,7 @@ module NewRelic
       # active segment like a sql query, memcache key, or Net::HTTP uri
       #
       # duration is seconds, float value.
-      def notice_extra_data(message, duration, key)#CDP
-        builder = tl_builder
+      def notice_extra_data(builder, message, duration, key)
         return unless builder
         segment = builder.current_segment
         if segment
@@ -195,9 +194,10 @@ module NewRelic
       # config is the driver configuration for the connection
       # duration is seconds, float value.
       def notice_sql(state, sql, config, duration, &explainer)
+        builder = state.transaction_sample_builder
         if state.is_sql_recorded?
           statement = build_database_statement(sql, config, explainer)
-          notice_extra_data(statement, duration, :sql)
+          notice_extra_data(builder, statement, duration, :sql)
         end
       end
 
@@ -215,16 +215,18 @@ module NewRelic
       # Adds non-sql metadata to a segment - generally the memcached key
       #
       # duration is seconds, float value.
-      def notice_nosql(key, duration)
-        notice_extra_data(key, duration, :key)
+      def notice_nosql(key, duration) #THREAD_LOCAL_ACCESS
+        builder = tl_builder
+        notice_extra_data(builder, key, duration, :key)
       end
 
-      def notice_nosql_statement(statement, duration)
-        notice_extra_data(statement, duration, :statement)
+      def notice_nosql_statement(statement, duration) #THREAD_LOCAL_ACCESS
+        builder = tl_builder
+        notice_extra_data(builder, statement, duration, :statement)
       end
 
       # Set parameters on the current segment.
-      def add_segment_parameters(params)#CDP
+      def add_segment_parameters(params) #THREAD_LOCAL_ACCESS
         builder = tl_builder
         return unless builder
         params.each { |k,v| builder.current_segment[k] = v }

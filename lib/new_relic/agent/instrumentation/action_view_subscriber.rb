@@ -9,7 +9,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionViewSubscriber < EventedSubscriber
-        def start(name, id, payload)#CDP
+        def start(name, id, payload) #THREAD_LOCAL_ACCESS
           event = RenderEvent.new(name, Time.now, nil, id, payload)
           push_event(event)
 
@@ -23,7 +23,7 @@ module NewRelic
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload)#CDP
+        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
           event = pop_event(id)
 
           state = NewRelic::Agent::TransactionState.tl_get

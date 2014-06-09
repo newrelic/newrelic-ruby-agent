@@ -444,8 +444,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_record_transaction_cpu_positive
     in_transaction do |txn|
+      state = NewRelic::Agent::TransactionState.tl_get
       txn.expects(:cpu_burn).twice.returns(1.0)
-      NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).twice.with(1.0)
+      NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).twice.with(state, 1.0)
       txn.record_transaction_cpu
     end
   end

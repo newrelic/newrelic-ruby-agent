@@ -26,7 +26,7 @@ module NewRelic
           end
         end
 
-        def log_with_newrelic_instrumentation(*args, &block)#CDP
+        def log_with_newrelic_instrumentation(*args, &block) #THREAD_LOCAL_ACCESS
           state = NewRelic::Agent::TransactionState.tl_get
 
           if !state.is_execution_traced?

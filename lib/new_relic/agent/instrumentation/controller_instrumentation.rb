@@ -325,8 +325,8 @@ module NewRelic
         #
         # @api public
         #
-        def perform_action_with_newrelic_trace(*args, &block)#CDP
-          NewRelic::Agent::TransactionState.request = newrelic_request(args)
+        def perform_action_with_newrelic_trace(*args, &block) #THREAD_LOCAL_ACCESS
+          NewRelic::Agent::TransactionState.tl_get.request = newrelic_request(args)
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
@@ -389,7 +389,7 @@ module NewRelic
         # Should be implemented in the dispatcher class
         def newrelic_response_code; end
 
-        def newrelic_request_headers#CDP
+        def newrelic_request_headers #THREAD_LOCAL_ACCESS
           request = NewRelic::Agent::TransactionState.tl_get.request
           if request
             if request.respond_to?(:headers)

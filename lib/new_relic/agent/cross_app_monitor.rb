@@ -69,19 +69,19 @@ module NewRelic
         @obfuscator = NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
       end
 
-      def save_client_cross_app_id(request_headers)#CDP
+      def save_client_cross_app_id(request_headers) #THREAD_LOCAL_ACCESS
         TransactionState.tl_get.client_cross_app_id = decoded_id(request_headers)
       end
 
-      def clear_client_cross_app_id#CDP
+      def clear_client_cross_app_id #THREAD_LOCAL_ACCESS
         TransactionState.tl_get.client_cross_app_id = nil
       end
 
-      def client_cross_app_id#CDP
+      def client_cross_app_id #THREAD_LOCAL_ACCESS
         TransactionState.tl_get.client_cross_app_id
       end
 
-      def save_referring_transaction_info(request_headers)#CDP
+      def save_referring_transaction_info(request_headers) #THREAD_LOCAL_ACCESS
         txn_header = from_headers( request_headers, NEWRELIC_TXN_HEADER_KEYS ) or return
         txn_header = obfuscator.deobfuscate( txn_header )
         txn_info = NewRelic::JSONWrapper.load( txn_header )
@@ -90,17 +90,17 @@ module NewRelic
         TransactionState.tl_get.referring_transaction_info = txn_info
       end
 
-      def client_referring_transaction_guid#CDP
+      def client_referring_transaction_guid #THREAD_LOCAL_ACCESS
         info = TransactionState.tl_get.referring_transaction_info or return nil
         return info[0]
       end
 
-      def client_referring_transaction_record_flag#CDP
+      def client_referring_transaction_record_flag #THREAD_LOCAL_ACCESS
         info = TransactionState.tl_get.referring_transaction_info or return nil
         return info[1]
       end
 
-      def insert_response_header(request_headers, response_headers)#CDP
+      def insert_response_header(request_headers, response_headers) #THREAD_LOCAL_ACCESS
         unless client_cross_app_id.nil?
           state = NewRelic::Agent::TransactionState.tl_get
           txn = state.current_transaction
@@ -182,7 +182,7 @@ module NewRelic
         from_headers(request, CONTENT_LENGTH_HEADER_KEYS) || -1
       end
 
-      def transaction_guid#CDP
+      def transaction_guid #THREAD_LOCAL_ACCESS
         NewRelic::Agent::TransactionState.tl_get.request_guid
       end
 

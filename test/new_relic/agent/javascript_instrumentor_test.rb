@@ -25,7 +25,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
     # By default we expect our transaction to have a start time
     # All sorts of basics don't output without this setup initially
-    NewRelic::Agent::TransactionState.reset
+    NewRelic::Agent::TransactionState.tl_get.reset
   end
 
   def teardown

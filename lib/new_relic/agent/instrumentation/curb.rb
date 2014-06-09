@@ -92,7 +92,7 @@ DependencyDetection.defer do
       include NewRelic::Agent::MethodTracer
 
       # Add CAT with callbacks if the request is serial
-      def add_with_newrelic(curl)#CDP
+      def add_with_newrelic(curl) #THREAD_LOCAL_ACCESS
         if curl.respond_to?(:_nr_serial) && curl._nr_serial
           hook_pending_request(curl) if NewRelic::Agent.tl_is_execution_traced?
         end
