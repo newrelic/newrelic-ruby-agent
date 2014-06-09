@@ -12,8 +12,23 @@ module NewRelic
         CAPTURED_REQUEST_KEY = 'newrelic.captured_request'.freeze unless defined?(CAPTURED_REQUEST_KEY)
         CALL = "call".freeze unless defined?(CALL)
 
+        class Generator
+          def initialize(middleware_class)
+            @middleware_class = middleware_class
+          end
+
+          def new(*args, &blk)
+            middleware_instance = @middleware_class.new(*args, &blk)
+            MiddlewareProxy.wrap(middleware_instance)
+          end
+        end
+
         def self.is_sinatra_app?(target)
           defined?(::Sinatra::Base) && target.kind_of?(::Sinatra::Base)
+        end
+
+        def self.for_class(target_class)
+          Generator.new(target_class)
         end
 
         def self.wrap(target, is_app=false)
@@ -25,6 +40,8 @@ module NewRelic
             self.new(target, is_app)
           end
         end
+
+        attr_reader :target
 
         def initialize(target, is_app=false)
           @target            = target
