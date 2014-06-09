@@ -20,7 +20,14 @@ module NewRelic
       #
       # If ever exposed, this requires additional synchronization
       def self.tl_state_for(thread)
-        thread[:newrelic_transaction_state] ||= TransactionState.new
+        state = thread[:newrelic_transaction_state]
+
+        if state.nil?
+          state = TransactionState.new
+          thread[:newrelic_transaction_state] = state
+        end
+
+        state
       end
 
       def self.tl_clear_for_testing
