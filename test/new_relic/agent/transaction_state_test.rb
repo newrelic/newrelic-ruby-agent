@@ -39,17 +39,6 @@ module NewRelic::Agent
       end
     end
 
-    def test_timings_without_transaction
-      freeze_time
-
-      state.reset
-      timings = state.timings
-
-      assert_equal 0.0, timings.queue_time_in_seconds
-      assert_equal 0.0, timings.app_time_in_seconds
-      assert_equal nil, timings.transaction_name
-    end
-
     def test_timings_with_transaction
       earliest_time = freeze_time
 
@@ -158,6 +147,55 @@ module NewRelic::Agent
 
       assert_equal(false, state.is_cross_app_caller?)
       assert_equal(false, state.is_cross_app_callee?)
+    end
+
+    def test_reset_forces_traced_method_stack_clear
+      state.traced_method_stack.push_frame(:reset_me)
+      state.reset
+      assert_empty state.traced_method_stack
+    end
+
+    def test_reset_doesnt_touch_record_tt
+      state.record_tt = false
+      state.reset
+      refute state.record_tt
+    end
+
+    def test_reset_doesnt_touch_record_sql
+      state.record_sql = false
+      state.reset
+      refute state.record_sql
+    end
+
+    def test_reset_doesnt_touch_untraced_stack
+      state.push_traced(true)
+      state.reset
+      assert_equal [true], state.untraced
+    end
+
+    def test_reset_touches_everything!
+      state.request = ::Rack::Request.new({})
+      state.is_cross_app_caller = true
+      state.client_cross_app_id = :client_cross_app_id
+      state.referring_transaction_info = :referring_transaction_info
+      state.request_token = :request_token
+      state.busy_entries = 1
+      state.sql_sampler_transaction_data = Object.new
+      state.transaction_sample_builder = Object.new
+      state.push_traced(true)
+
+      state.reset
+
+      # Anything in this list should be tested explicitly by itself!
+      skip_checking = [:@traced_method_stack, :@record_tt, :@record_sql,
+                       :@untraced]
+      variables = state.instance_variables.map(&:to_sym) - skip_checking
+
+      variables.each do |ivar|
+        value = state.instance_variable_get(ivar)
+        assert [0, nil, false, []].include?(value),
+               "Expected #{ivar} to reset, but was #{value}"
+      end
     end
   end
 end

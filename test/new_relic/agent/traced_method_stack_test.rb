@@ -121,6 +121,12 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
     assert @frame_stack.empty?
   end
 
+  def test_clear
+    @frame_stack.push_frame(:a)
+    @frame_stack.clear
+    assert_empty @frame_stack
+  end
+
   def test_sampler_enabling
     assert_sampler_enabled_with(true,  :'transaction_tracer.enabled' => true,  :developer_mode => false)
     assert_sampler_enabled_with(true,  :'transaction_tracer.enabled' => false, :developer_mode => true)

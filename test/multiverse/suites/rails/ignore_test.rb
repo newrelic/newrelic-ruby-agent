@@ -42,6 +42,14 @@ class IgnoredActionsTest < RailsMultiverseTest
     assert_metrics_not_recorded(["Apdex"])
   end
 
+  def test_ignored_transaction_traces_dont_leak
+    get 'ignored/action_to_ignore'
+    get 'request_stats/stats_action'
+
+    trace = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal 1, trace.root_segment.called_segments.count
+  end
+
   def test_should_not_write_cat_response_headers_for_ignored_transactions
     get 'ignored/action_to_ignore', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
     assert_nil @response.headers["X-NewRelic-App-Data"]

@@ -73,6 +73,10 @@ module NewRelic
         Agent.instance.transaction_sampler
       end
 
+      def clear
+        @stack.clear
+      end
+
       def empty?
         @stack.empty?
       end

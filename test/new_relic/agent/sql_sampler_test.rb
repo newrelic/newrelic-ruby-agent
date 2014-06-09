@@ -10,9 +10,14 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
     agent.stubs(:stats_engine).returns(stats_engine)
+    NewRelic::Agent::TransactionState.reset
     @sampler = NewRelic::Agent::SqlSampler.new
     @connection = stub('ActiveRecord connection', :execute => 'result')
     NewRelic::Agent::Database.stubs(:get_connection).returns(@connection)
+  end
+
+  def teardown
+    NewRelic::Agent::TransactionState.reset
   end
 
   # Helpers for DataContainerTests
@@ -38,7 +43,9 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     @sampler.on_start_transaction nil
     refute_nil @sampler.transaction_data
     @sampler.on_finishing_transaction('txn')
-    assert_nil @sampler.transaction_data
+
+    # Transaction clearing cleans this state for us--we don't do it ourselves
+    refute_nil @sampler.transaction_data
   end
 
   def test_notice_sql_no_transaction

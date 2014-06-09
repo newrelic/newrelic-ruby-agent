@@ -179,11 +179,11 @@ module NewRelic::Agent
     end
 
     def test_setting_response_headers_freezes_transaction_name
-      request = for_id(REQUEST_CROSS_APP_ID)
-      event_listener = NewRelic::Agent.instance.events
-      event_listener.notify(:before_call, request)
-
       in_transaction do
+        request = for_id(REQUEST_CROSS_APP_ID)
+        event_listener = NewRelic::Agent.instance.events
+        event_listener.notify(:before_call, request)
+
         assert !NewRelic::Agent::Transaction.current.name_frozen?
         event_listener.notify(:after_call, request, [200, @response, ''])
         assert NewRelic::Agent::Transaction.current.name_frozen?

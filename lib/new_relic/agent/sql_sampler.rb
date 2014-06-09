@@ -26,7 +26,6 @@ module NewRelic
 
       def initialize
         @sql_traces = {}
-        clear_transaction_data
 
         # This lock is used to synchronize access to @sql_traces
         # and related variables. It can become necessary on JRuby or
@@ -57,15 +56,10 @@ module NewRelic
         TransactionState.get.sql_sampler_transaction_data
       end
 
-      def clear_transaction_data
-        TransactionState.get.sql_sampler_transaction_data = nil
-      end
-
       # This is called when we are done with the transaction.
       def on_finishing_transaction(name, time=Time.now)
         data = transaction_data
         data.set_transaction_name(name)
-        clear_transaction_data
 
         if data.sql_data.size > 0
           @samples_lock.synchronize do

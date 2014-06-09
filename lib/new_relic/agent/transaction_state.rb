@@ -38,6 +38,7 @@ module NewRelic
       end
 
       def initialize
+        @untraced = []
         @traced_method_stack = TracedMethodStack.new
         @current_transaction = nil
       end
@@ -48,16 +49,25 @@ module NewRelic
       end
 
       def reset(transaction=nil)
-        # We almost always want to use the transaction time, but in case it's
-        # not available, we track the last reset. No accessor, as only the
-        # TransactionState class should use it.
-        @last_reset_time = Time.now
+        # We purposefully don't reset @untraced, @record_tt and @record_sql
+        # since those are managed by NewRelic::Agent.disable_* calls explicitly
+        # and (more importantly) outside the scope of a transaction
+
         @timings = nil
         @request = nil
+        @current_transaction = transaction
+
+        @traced_method_stack.clear
+
         @request_token = nil
         @is_cross_app_caller = false
+        @client_cross_app_id = nil
         @referring_transaction_info = nil
-        @current_transaction = transaction
+
+        @transaction_sample_builder = nil
+        @sql_sampler_transaction_data = nil
+
+        @busy_entries = 0
       end
 
       def timings
@@ -104,11 +114,7 @@ module NewRelic
       attr_accessor :transaction_sample_builder
 
       def transaction_start_time
-        if current_transaction.nil?
-          @last_reset_time
-        else
-          current_transaction.start_time
-        end
+        current_transaction.start_time if current_transaction
       end
 
       def transaction_queue_time
@@ -143,7 +149,6 @@ module NewRelic
       attr_accessor :untraced
 
       def push_traced(should_trace)
-        @untraced ||= []
         @untraced << should_trace
       end
 
