@@ -30,7 +30,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def populate_container(sampler, n)
     n.times do |i|
       sampler.on_start_transaction(@state, nil)
-      sampler.notice_sql(@state, "SELECT * FROM test#{i}", "Database/test/select", nil, 1)
+      sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", nil, 1, @state)
       sampler.on_finishing_transaction(@state, 'txn')
     end
   end
@@ -51,15 +51,15 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_notice_sql_no_transaction
     assert_nil @sampler.tl_transaction_data
-    @sampler.notice_sql(@state, "select * from test", "Database/test/select", nil, 10)
+    @sampler.notice_sql("select * from test", "Database/test/select", nil, 10, @state)
   end
 
   def test_notice_sql
     @sampler.on_start_transaction(@state, nil)
-    @sampler.notice_sql(@state, "select * from test", "Database/test/select", nil, 1.5)
-    @sampler.notice_sql(@state, "select * from test2", "Database/test2/select", nil, 1.3)
+    @sampler.notice_sql("select * from test", "Database/test/select", nil, 1.5, @state)
+    @sampler.notice_sql("select * from test2", "Database/test2/select", nil, 1.3, @state)
     # this sql will not be captured
-    @sampler.notice_sql(@state, "select * from test", "Database/test/select", nil, 0)
+    @sampler.notice_sql("select * from test", "Database/test/select", nil, 0, @state)
     refute_nil @sampler.tl_transaction_data
     assert_equal 2, @sampler.tl_transaction_data.sql_data.size
   end
@@ -67,7 +67,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def test_notice_sql_truncates_query
     @sampler.on_start_transaction(@state, nil)
     message = 'a' * 17_000
-    @sampler.notice_sql(@state, message, "Database/test/select", nil, 1.5)
+    @sampler.notice_sql(message, "Database/test/select", nil, 1.5, @state)
     assert_equal('a' * 16_381 + '...', @sampler.tl_transaction_data.sql_data[0].sql)
   end
 

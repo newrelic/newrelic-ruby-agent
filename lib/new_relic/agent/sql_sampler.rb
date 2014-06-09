@@ -85,7 +85,8 @@ module NewRelic
         end
       end
 
-      def notice_sql(state, sql, metric_name, config, duration, &explainer)
+      def notice_sql(sql, metric_name, config, duration, state=nil, &explainer) #THREAD_LOCAL_ACCESS sometimes
+        state ||= TransactionState.tl_get
         data = state.sql_sampler_transaction_data
         return unless data
 

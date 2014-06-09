@@ -47,14 +47,14 @@ module NewRelic
           frame = stack.push_frame(state, :active_record, event.time)
 
           NewRelic::Agent.instance.transaction_sampler \
-            .notice_sql(state, event.payload[:sql], config,
+            .notice_sql(event.payload[:sql], config,
                         Helper.milliseconds_to_seconds(event.duration),
-                        &method(:get_explain_plan))
+                        state, &method(:get_explain_plan))
 
           NewRelic::Agent.instance.sql_sampler \
-            .notice_sql(state, event.payload[:sql], metric, config,
+            .notice_sql(event.payload[:sql], metric, config,
                         Helper.milliseconds_to_seconds(event.duration),
-                        &method(:get_explain_plan))
+                        state, &method(:get_explain_plan))
 
           # exit transaction trace segment
           stack.pop_frame(state, frame, metric, event.end)

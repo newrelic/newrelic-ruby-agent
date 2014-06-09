@@ -205,7 +205,7 @@ module NewRelic
           duration = msg.duration / 1000000.0
 
           # Attach SQL to current segment/scope.
-          NewRelic::Agent.instance.transaction_sampler.notice_sql(state, msg.query, nil, duration)
+          NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, nil, duration, state)
 
           # Record query duration associated with each of the desired metrics.
           metric = "ActiveRecord/#{operation}"

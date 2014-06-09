@@ -88,8 +88,8 @@ module Sequel
             nil
           end
         end
-        agent.transaction_sampler.notice_sql(state, sql, self.opts, duration, &explainer)
-        agent.sql_sampler.notice_sql(state, sql, metric, self.opts, duration, &explainer)
+        agent.transaction_sampler.notice_sql(sql, self.opts, duration, state, &explainer)
+        agent.sql_sampler.notice_sql(sql, metric, self.opts, duration, state, &explainer)
       ensure
         stack.pop_frame(state, frame, metric, finish)
       end
