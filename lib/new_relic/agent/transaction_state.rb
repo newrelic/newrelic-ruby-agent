@@ -123,10 +123,6 @@ module NewRelic
         current_transaction.nil? ? nil : current_transaction.best_name
       end
 
-      def transaction_noticed_error_ids
-        current_transaction.nil? ? [] : current_transaction.noticed_error_ids
-      end
-
       def in_background_transaction?
         !current_transaction.nil? && current_transaction.request.nil?
       end
