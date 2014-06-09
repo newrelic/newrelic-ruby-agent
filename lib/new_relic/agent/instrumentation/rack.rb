@@ -106,7 +106,9 @@ module NewRelic
 
       module RackBuilder
         def self.newrelic_rack_version_supported?
-          ::Rack::VERSION[0] == 1 && ::Rack::VERSION[1] >= 1
+          version = ::NewRelic::VersionNumber.new(::Rack.release)
+          min_version = ::NewRelic::VersionNumber.new('1.1.0')
+          version >= min_version
         end
 
         def run_with_newrelic(app, *args)
