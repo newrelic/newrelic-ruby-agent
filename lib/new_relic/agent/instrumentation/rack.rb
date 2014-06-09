@@ -105,6 +105,24 @@ module NewRelic
       end
 
       module RackBuilder
+        def run_with_newrelic(app, *args)
+          if ::NewRelic::Agent.config[:disable_middleware_instrumentation]
+            run_without_newrelic(app, *args)
+          else
+            wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
+            run_without_newrelic(wrapped_app, *args)
+          end
+        end
+
+        def use_with_newrelic(middleware_class, *args, &blk)
+          if ::NewRelic::Agent.config[:disable_middleware_instrumentation]
+            use_without_newrelic(middleware_class, *args, &blk)
+          else
+            wrapped_middleware_class = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
+            use_without_newrelic(wrapped_middleware_class, *args, &blk)
+          end
+        end
+
         # This method serves two, mostly independent purposes:
         #
         # 1. We trigger DependencyDetection from here, since it tends to happen
@@ -121,16 +139,6 @@ module NewRelic
         # disabled with the disable_rack config switch.
         #
         def to_app_with_newrelic_deferred_dependency_detection
-          if ::NewRelic::Agent.config[:disable_middleware_instrumentation]
-            ::NewRelic::Agent.logger.debug("Not using Rack::Builder instrumentation because disable_middleware_instrumentation was set in config")
-          else
-            if @use && @use.is_a?(Array)
-              @use = RackBuilder.add_new_relic_tracing_to_middlewares(@use)
-            else
-              ::NewRelic::Agent.logger.warn("Not using Rack::Builder instrumentation because @use was not as expected (@use = #{@use.inspect})")
-            end
-          end
-
           unless ::Rack::Builder._nr_deferred_detection_ran
             NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
             DependencyDetection.detect!
@@ -138,27 +146,6 @@ module NewRelic
           end
 
           to_app_without_newrelic
-        end
-
-        def self.add_new_relic_tracing_to_middlewares(middleware_procs)
-          wrapped_procs = []
-          last_idx = middleware_procs.size - 1
-
-          middleware_procs.each_with_index do |middleware_proc, idx|
-            wrapped_procs << Proc.new do |app|
-              if idx == last_idx
-                # Note that this does not double-wrap the app. If there are
-                # N middlewares and 1 app, then we want N+1 wrappings. This
-                # is the +1.
-                app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
-              end
-
-              result = middleware_proc.call(app)
-
-              ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
-            end
-          end
-          wrapped_procs
         end
       end
     end
@@ -187,6 +174,14 @@ DependencyDetection.defer do
 
       alias_method :to_app_without_newrelic, :to_app
       alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
+
+      unless ::NewRelic::Agent.config[:disable_middleware_instrumentation]
+        alias_method :run_without_newrelic, :run
+        alias_method :run, :run_with_newrelic
+
+        alias_method :use_without_newrelic, :use
+        alias_method :use, :use_with_newrelic
+      end
     end
   end
 end
