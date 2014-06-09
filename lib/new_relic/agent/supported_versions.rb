@@ -108,7 +108,8 @@ module NewRelic
       :rack =>
       {
         :type        => :web,
-        :supported   => [">= 1.0.0"],
+        :supported   => [">= 1.1.0"],
+        :deprecated  => ["~>1.0.0"],
         :url         => "https://rubygems.org/gems/rack",
         :feed        => "https://rubygems.org/gems/rack/versions.atom"
       },
