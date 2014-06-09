@@ -41,4 +41,4 @@ end
 
 gem "newrelic_rpm", :path => "../../.."
 
-gem 'pry'
+gem 'pry', '~> 0.9.12'

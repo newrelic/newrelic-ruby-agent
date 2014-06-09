@@ -108,7 +108,8 @@ module Multiverse
         f.puts "  gem 'mocha', '0.14.0', :require => false"
 
         if debug
-          f.puts "  gem 'pry'"
+          # Pry 0.10.0 breaks compatibility with Ruby 1.8.7 :(
+          f.puts "  gem 'pry', '~> 0.9.12'"
         end
       end
       puts yellow("Gemfile.#{env_index} set to:") if verbose?

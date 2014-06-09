@@ -46,7 +46,7 @@ EOS
   s.add_development_dependency 'mocha', '~> 0.13.0'
   s.add_development_dependency 'yard'
   s.add_development_dependency 'rails', '~> 3.2.13'
-  s.add_development_dependency 'pry'
+  s.add_development_dependency 'pry', '~> 0.9.12'
 #  s.add_development_dependency 'pry-nav'
   s.add_development_dependency 'guard', '~> 1.8.3' # Guard 2.0 is Ruby 1.9 only
   s.add_development_dependency 'guard-minitest'

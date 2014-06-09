@@ -19,4 +19,4 @@ else
   gem "sqlite3-ruby"
 end
 
-gem 'pry'
+gem 'pry', '~> 0.9.12'
