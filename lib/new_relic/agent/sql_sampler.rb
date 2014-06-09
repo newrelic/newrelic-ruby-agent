@@ -52,13 +52,13 @@ module NewRelic
         end
       end
 
-      def tl_transaction_data
+      def tl_transaction_data # only used for testing
         TransactionState.tl_get.sql_sampler_transaction_data
       end
 
       # This is called when we are done with the transaction.
-      def on_finishing_transaction(name, time=Time.now)#CDP
-        data = tl_transaction_data
+      def on_finishing_transaction(state, name, time=Time.now)
+        data = state.sql_sampler_transaction_data
         data.set_transaction_name(name)
 
         if data.sql_data.size > 0
@@ -85,14 +85,16 @@ module NewRelic
         end
       end
 
-      def notice_sql(sql, metric_name, config, duration, &explainer)#CDP
-        return unless tl_transaction_data
-        if NewRelic::Agent.tl_is_sql_recorded?
+      def notice_sql(state, sql, metric_name, config, duration, &explainer)
+        data = state.sql_sampler_transaction_data
+        return unless data
+
+        if state.is_sql_recorded?
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
-            tl_transaction_data.sql_data << SlowSql.new(Database.capture_query(sql),
-                                                        metric_name, config,
-                                                        duration, backtrace, &explainer)
+            data.sql_data << SlowSql.new(Database.capture_query(sql),
+                                         metric_name, config,
+                                         duration, backtrace, &explainer)
           end
         end
       end

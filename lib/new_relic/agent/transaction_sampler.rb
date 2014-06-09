@@ -109,14 +109,14 @@ module NewRelic
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def on_finishing_transaction(txn, time=Time.now, gc_time=nil)#CDP
-        last_builder = tl_builder
+      def on_finishing_transaction(state, txn, time=Time.now, gc_time=nil)
+        last_builder = state.transaction_sample_builder
         last_builder.set_transaction_name(txn.best_name) if enabled? && last_builder
 
         return unless last_builder
 
         last_builder.finish_trace(time.to_f, custom_parameters_from_transaction(txn))
-        TransactionState.tl_get.transaction_sample_builder = nil
+        state.transaction_sample_builder = nil
         return if last_builder.ignored?
 
         @samples_lock.synchronize do
@@ -194,8 +194,8 @@ module NewRelic
       # may be very large; we should trim them to a maximum usable length
       # config is the driver configuration for the connection
       # duration is seconds, float value.
-      def notice_sql(sql, config, duration, &explainer)#CDP
-        if NewRelic::Agent.tl_is_sql_recorded?
+      def notice_sql(state, sql, config, duration, &explainer)
+        if state.is_sql_recorded?
           statement = build_database_statement(sql, config, explainer)
           notice_extra_data(statement, duration, :sql)
         end

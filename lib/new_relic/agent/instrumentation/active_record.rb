@@ -27,7 +27,9 @@ module NewRelic
         end
 
         def log_with_newrelic_instrumentation(*args, &block)#CDP
-          if !NewRelic::Agent.tl_is_execution_traced?
+          state = NewRelic::Agent::TransactionState.tl_get
+
+          if !state.is_execution_traced?
             return log_without_newrelic_instrumentation(*args, &block)
           end
 
@@ -47,10 +49,10 @@ module NewRelic
               ensure
                 elapsed_time = (Time.now - t0).to_f
 
-                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
+                NewRelic::Agent.instance.transaction_sampler.notice_sql(state, sql,
                                                       @config, elapsed_time,
                                                                   &EXPLAINER)
-                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric,
+                NewRelic::Agent.instance.sql_sampler.notice_sql(state, sql, metric,
                                                       @config, elapsed_time,
                                                                   &EXPLAINER)
               end

@@ -225,7 +225,7 @@ class NewRelic::TransactionSampleTest < Minitest::Test
       sampler.notice_push_frame(state, "level0")
       sampler.notice_push_frame(state, "level-1")
       sampler.notice_push_frame(state, "level-2")
-      sampler.notice_sql(::SQL_STATEMENT, {}, 0)
+      sampler.notice_sql(state, ::SQL_STATEMENT, {}, 0)
       sampler.notice_pop_frame(state, "level-2")
       sampler.notice_pop_frame(state, "level-1")
       sampler.notice_pop_frame(state, "level0")

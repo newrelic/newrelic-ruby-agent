@@ -192,7 +192,8 @@ module NewRelic
         # hooked with tracers, ensuring that notice_sql attaches this SQL to
         # the proper call scope.
         def log(msg)#CDP
-          return unless NewRelic::Agent.tl_is_execution_traced?
+          state = NewRelic::Agent::TransactionState.tl_get
+          return unless state.is_execution_traced?
           return unless operation = case NewRelic::Helper.correctly_encoded(msg.query)
                                     when /^\s*select/i          then 'find'
                                     when /^\s*(update|insert)/i then 'save'
@@ -204,7 +205,7 @@ module NewRelic
           duration = msg.duration / 1000000.0
 
           # Attach SQL to current segment/scope.
-          NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, nil, duration)
+          NewRelic::Agent.instance.transaction_sampler.notice_sql(state, msg.query, nil, duration)
 
           # Record query duration associated with each of the desired metrics.
           metric = "ActiveRecord/#{operation}"
