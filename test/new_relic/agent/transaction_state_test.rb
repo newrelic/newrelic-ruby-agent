@@ -150,7 +150,7 @@ module NewRelic::Agent
     end
 
     def test_reset_forces_traced_method_stack_clear
-      state.traced_method_stack.push_frame(:reset_me)
+      state.traced_method_stack.push_frame(state, :reset_me)
       state.reset
       assert_empty state.traced_method_stack
     end

@@ -130,7 +130,9 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
   end
 
   def test_clear
-    @frame_stack.push_frame(:a)
+    state = NewRelic::Agent::TransactionState.tl_get
+
+    @frame_stack.push_frame(state, :a)
     @frame_stack.clear
     assert_empty @frame_stack
   end
