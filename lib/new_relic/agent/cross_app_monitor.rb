@@ -102,10 +102,11 @@ module NewRelic
 
       def insert_response_header(request_headers, response_headers)#CDP
         unless client_cross_app_id.nil?
-          txn = ::NewRelic::Agent::Transaction.tl_current
+          state = NewRelic::Agent::TransactionState.tl_get
+          txn = state.current_transaction
           unless txn.nil?
             txn.freeze_name_and_execute_if_not_ignored do
-              timings = NewRelic::Agent::TransactionState.tl_get.timings
+              timings = state.timings
               content_length = content_length_from_request(request_headers)
 
               set_response_headers(response_headers, timings, content_length)

@@ -127,17 +127,17 @@ module NewRelic
 
     def test_is_transaction_traced_true
       NewRelic::Agent::TransactionState.tl_get.record_tt = true
-      assert_equal(true, NewRelic::Agent.is_transaction_traced?, 'should be true since the thread local is set')
+      assert_equal(true, NewRelic::Agent.tl_is_transaction_traced?, 'should be true since the thread local is set')
     end
 
     def test_is_transaction_traced_blank
       NewRelic::Agent::TransactionState.tl_get.record_tt = nil
-      assert_equal(true, NewRelic::Agent.is_transaction_traced?, 'should be true since the thread local is not set')
+      assert_equal(true, NewRelic::Agent.tl_is_transaction_traced?, 'should be true since the thread local is not set')
     end
 
     def test_is_transaction_traced_false
       NewRelic::Agent::TransactionState.tl_get.record_tt = false
-      assert_equal(false, NewRelic::Agent.is_transaction_traced?, 'should be false since the thread local is false')
+      assert_equal(false, NewRelic::Agent.tl_is_transaction_traced?, 'should be false since the thread local is false')
     end
 
     def test_is_sql_recorded_true

@@ -33,12 +33,15 @@ module NewRelic
         def self.bucket_thread(thread, profile_agent_code)#CDP
           if thread.key?(:newrelic_label)
             profile_agent_code ? :agent : :ignore
-          elsif TransactionState.tl_in_background_transaction?(thread)
-            :background
-          elsif TransactionState.tl_in_request_transaction?(thread)
-            :request
           else
-            :other
+            state = TransactionState.tl_state_for(thread)
+            if state.in_background_transaction?
+              :background
+            elsif state.in_request_transaction?
+              :request
+            else
+              :other
+            end
           end
         end
 

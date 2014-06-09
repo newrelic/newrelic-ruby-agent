@@ -162,7 +162,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
         state = NewRelic::Agent::TransactionState.tl_get
         state.request_token = '0123456789ABCDEF'
 
-        data = instrumentor.data_for_js_agent
+        data = instrumentor.data_for_js_agent(state)
         expected = {
           "beacon"          => "beacon",
           "errorBeacon"     => "",
@@ -179,7 +179,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
         assert_equal(expected, data)
 
-        js = instrumentor.browser_timing_config
+        js = instrumentor.browser_timing_config(state)
         expected.each do |key, value|
           assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)
         end
@@ -188,20 +188,23 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_ssl_for_http_not_included_by_default
-    data = instrumentor.data_for_js_agent
+    state = NewRelic::Agent::TransactionState.tl_get
+    data = instrumentor.data_for_js_agent(state)
     assert_not_includes data, "sslForHttp"
   end
 
   def test_ssl_for_http_enabled
     with_config(:'browser_monitoring.ssl_for_http' => true) do
-      data = instrumentor.data_for_js_agent
+      state = NewRelic::Agent::TransactionState.tl_get
+      data = instrumentor.data_for_js_agent(state)
       assert data["sslForHttp"]
     end
   end
 
   def test_ssl_for_http_disabled
     with_config(:'browser_monitoring.ssl_for_http' => false) do
-      data = instrumentor.data_for_js_agent
+      state = NewRelic::Agent::TransactionState.tl_get
+      data = instrumentor.data_for_js_agent(state)
       assert_false data["sslForHttp"]
     end
   end
@@ -287,12 +290,14 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def assert_user_attributes_are(expected)
-    data = instrumentor.data_for_js_agent
+    state = NewRelic::Agent::TransactionState.tl_get
+    data = instrumentor.data_for_js_agent(state)
     assert_equal pack(expected), data["userAttributes"]
   end
 
   def assert_user_attributes_missing
-    data = instrumentor.data_for_js_agent
+    state = NewRelic::Agent::TransactionState.tl_get
+    data = instrumentor.data_for_js_agent(state)
     assert_not_includes data, "userAttributes"
   end
 

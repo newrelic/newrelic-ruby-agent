@@ -22,7 +22,6 @@ module NewRelic
       def self.tl_state_for(thread)
         thread[:newrelic_transaction_state] ||= TransactionState.new
       end
-      private_class_method :tl_state_for
 
       def self.tl_clear_for_testing
         Thread.current[:newrelic_transaction_state] = nil
@@ -127,14 +126,6 @@ module NewRelic
 
       def transaction_noticed_error_ids
         current_transaction.nil? ? [] : current_transaction.noticed_error_ids
-      end
-
-      def self.tl_in_background_transaction?(thread)
-        tl_state_for(thread).in_background_transaction?
-      end
-
-      def self.tl_in_request_transaction?(thread)
-        tl_state_for(thread).in_request_transaction?
       end
 
       def in_background_transaction?
