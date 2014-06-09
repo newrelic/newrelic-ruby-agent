@@ -17,7 +17,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     wrapped_instance  = generator.new
 
     assert_kind_of(NewRelic::Agent::Instrumentation::MiddlewareProxy, wrapped_instance)
-    assert_kind_of(middleware_class, wrapped_instance.target)
+    assert_kind_of(middleware_class, wrapped_instance.target_for_testing)
   end
 
   def test_generator_passes_through_initialize_args
@@ -32,7 +32,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     generator = NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
     wrapped_instance = generator.new('abc', 123)
 
-    assert_equal(['abc', 123], wrapped_instance.target.initialize_args)
+    assert_equal(['abc', 123], wrapped_instance.target_for_testing.initialize_args)
   end
 
   def test_generator_passes_through_block_to_initialize
@@ -54,7 +54,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     end
 
     assert block_called
-    assert_equal(['abc', 123], wrapped_instance.target.initialize_args)
+    assert_equal(['abc', 123], wrapped_instance.target_for_testing.initialize_args)
   end
 
   def test_does_not_wrap_sinatra_apps

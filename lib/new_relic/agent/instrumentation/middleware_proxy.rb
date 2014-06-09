@@ -45,8 +45,6 @@ module NewRelic
           end
         end
 
-        attr_reader :target
-
         def initialize(target, is_app=false)
           @target            = target
           @is_app            = is_app
@@ -97,6 +95,10 @@ module NewRelic
         def ignore_apdex?;   false; end
         def ignore_enduser?; false; end
         def do_not_trace?;   false; end
+
+        def target_for_testing
+          @target
+        end
       end
     end
   end
