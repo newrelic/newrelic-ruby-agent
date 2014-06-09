@@ -62,10 +62,10 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
 
-      def on_start_transaction(start_time, uri=nil, params={})#CDP
+      def on_start_transaction(state, start_time, uri=nil, params={})
         if enabled?
-          start_builder(start_time.to_f)
-          builder = tl_builder
+          start_builder(state, start_time.to_f)
+          builder = state.transaction_sample_builder
           builder.set_transaction_info(uri, params) if builder
         end
       end
@@ -75,8 +75,8 @@ module NewRelic
       #
       # Note that in developer mode, this captures a stacktrace for
       # the beginning of each segment, which can be fairly slow
-      def notice_push_frame(time=Time.now)#CDP
-        builder = tl_builder
+      def notice_push_frame(state, time=Time.now)
+        builder = state.transaction_sample_builder
         return unless builder
 
         segment = builder.trace_entry(time.to_f)
@@ -87,8 +87,8 @@ module NewRelic
       end
 
       # Informs the transaction sample builder about the end of a traced frame
-      def notice_pop_frame(frame, time = Time.now)#CDP
-        builder = tl_builder
+      def notice_pop_frame(state, frame, time = Time.now)
+        builder = state.transaction_sample_builder
         return unless builder
         raise "finished already???" if builder.sample.finished
         builder.trace_exit(frame, time.to_f)
@@ -116,7 +116,7 @@ module NewRelic
         return unless last_builder
 
         last_builder.finish_trace(time.to_f, custom_parameters_from_transaction(txn))
-        tl_clear_builder
+        TransactionState.tl_get.transaction_sample_builder = nil
         return if last_builder.ignored?
 
         @samples_lock.synchronize do
@@ -292,11 +292,11 @@ module NewRelic
       # sample builder from the thread local, otherwise it generates a
       # new transaction sample builder with the stated time as a
       # starting point and saves it in the thread local variable
-      def start_builder(time=nil)#CDP
-        if !enabled? || !NewRelic::Agent.tl_is_transaction_traced? || !NewRelic::Agent.tl_is_execution_traced?
-          tl_clear_builder
+      def start_builder(state, time=nil)
+        if !enabled? || !state.is_transaction_traced? || !state.is_traced?
+          state.transaction_sample_builder = nil
         else
-          TransactionState.tl_get.transaction_sample_builder ||= TransactionSampleBuilder.new(time)
+          state.transaction_sample_builder ||= TransactionSampleBuilder.new(time)
         end
       end
 
@@ -304,13 +304,6 @@ module NewRelic
       def tl_builder
         TransactionState.tl_get.transaction_sample_builder
       end
-
-      # Sets the thread local variable storing the transaction sample
-      # builder to nil to clear it
-      def tl_clear_builder
-        TransactionState.tl_get.transaction_sample_builder = nil
-      end
-
     end
   end
 end

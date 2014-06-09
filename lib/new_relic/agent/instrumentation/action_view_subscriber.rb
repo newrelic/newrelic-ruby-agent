@@ -13,8 +13,11 @@ module NewRelic
           event = RenderEvent.new(name, Time.now, nil, id, payload)
           push_event(event)
 
-          if NewRelic::Agent.tl_is_execution_traced? && event.recordable?
-            event.frame = NewRelic::Agent::TracedMethodStack.tl_push_frame(:action_view, event.time)
+          state = NewRelic::Agent::TransactionState.tl_get
+
+          if state.is_traced? && event.recordable?
+            stack = state.traced_method_stack
+            event.frame = stack.push_frame(state, :action_view, event.time)
           end
         rescue => e
           log_notification_error(e, name, 'start')
@@ -23,8 +26,11 @@ module NewRelic
         def finish(name, id, payload)#CDP
           event = pop_event(id)
 
-          if NewRelic::Agent.tl_is_execution_traced? && event.recordable?
-            frame = NewRelic::Agent::TracedMethodStack.tl_pop_frame(event.frame, event.metric_name, event.end)
+          state = NewRelic::Agent::TransactionState.tl_get
+
+          if state.is_traced? && event.recordable?
+            stack = state.traced_method_stack
+            frame = stack.pop_frame(state, event.frame, event.metric_name, event.end)
             record_metrics(event, frame)
           end
         rescue => e

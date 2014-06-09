@@ -179,8 +179,8 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
     stats = @stats_engine.get_stats("Custom/#{self.class.name}/simple_method")
     assert stats.call_count == 1
-
   end
+
   def test_add_method_tracer__reentry
     self.class.add_method_tracer :simple_method
     self.class.add_method_tracer :simple_method

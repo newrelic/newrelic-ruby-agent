@@ -111,7 +111,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
 
     in_transaction do
       simulate_query(2)
-      sql = sampler.transaction_data.sql_data[0].sql
+      sql = sampler.tl_transaction_data.sql_data[0].sql
     end
 
     assert_equal 'SELECT * FROM sandwiches', sql

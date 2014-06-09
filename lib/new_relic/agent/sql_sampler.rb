@@ -24,7 +24,7 @@ module NewRelic
       # this is for unit tests only
       attr_reader :sql_traces
 
-      def initialize
+      def initialize#CDP
         @sql_traces = {}
 
         # This lock is used to synchronize access to @sql_traces
@@ -40,27 +40,25 @@ module NewRelic
           Agent.config[:'transaction_tracer.enabled']
       end
 
-      def on_start_transaction(start_time, uri=nil, params={})#CDP
-        state = TransactionState.tl_get
-
+      def on_start_transaction(state, start_time, uri=nil, params={})
         state.sql_sampler_transaction_data = TransactionSqlData.new
 
         if state.transaction_sample_builder
           guid = state.transaction_sample_builder.sample.guid
         end
 
-        if Agent.config[:'slow_sql.enabled'] && transaction_data
-          transaction_data.set_transaction_info(uri, params, guid)
+        if Agent.config[:'slow_sql.enabled'] && state.sql_sampler_transaction_data
+          state.sql_sampler_transaction_data.set_transaction_info(uri, params, guid)
         end
       end
 
-      def transaction_data#CDP
+      def tl_transaction_data
         TransactionState.tl_get.sql_sampler_transaction_data
       end
 
       # This is called when we are done with the transaction.
-      def on_finishing_transaction(name, time=Time.now)
-        data = transaction_data
+      def on_finishing_transaction(name, time=Time.now)#CDP
+        data = tl_transaction_data
         data.set_transaction_name(name)
 
         if data.sql_data.size > 0
@@ -87,14 +85,14 @@ module NewRelic
         end
       end
 
-      def notice_sql(sql, metric_name, config, duration, &explainer)
-        return unless transaction_data
+      def notice_sql(sql, metric_name, config, duration, &explainer)#CDP
+        return unless tl_transaction_data
         if NewRelic::Agent.is_sql_recorded?
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
-            transaction_data.sql_data << SlowSql.new(Database.capture_query(sql),
-                                                     metric_name, config,
-                                                     duration, backtrace, &explainer)
+            tl_transaction_data.sql_data << SlowSql.new(Database.capture_query(sql),
+                                                        metric_name, config,
+                                                        duration, backtrace, &explainer)
           end
         end
       end
