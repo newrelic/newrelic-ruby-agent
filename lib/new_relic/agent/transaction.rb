@@ -113,7 +113,6 @@ module NewRelic
           if options[:filtered_params] && !options[:filtered_params].empty?
             txn.filtered_params = options[:filtered_params]
           end
-          txn.record_queue_length(options[:queue_length])
 
           nested_frame = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(Time.now.to_f)
           nested_frame.name = options[:transaction_name]
@@ -130,12 +129,6 @@ module NewRelic
 
       def self.best_category
         current && current.best_category
-      end
-
-      def record_queue_length(queue_length)
-        return if @queue_length_recorded
-        NewRelic::Agent.record_metric('Mongrel/Queue Length', queue_length) if queue_length
-        @queue_length_recorded = true
       end
 
       def self.stop(end_time=Time.now)
