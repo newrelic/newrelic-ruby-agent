@@ -20,7 +20,12 @@ DependencyDetection.defer do
       class MiddlewareStack
         class Middleware
           def build_with_new_relic(app)
-            result = build_without_new_relic(app)
+            # MiddlewareProxy.wrap guards against double-wrapping here.
+            # We need to instrument the innermost app (usually a RouteSet),
+            # which will never itself be the return value from #build, but will
+            # instead be the initial value of the app argument.
+            wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app)
+            result = build_without_new_relic(wrapped_app)
             ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
           end
 

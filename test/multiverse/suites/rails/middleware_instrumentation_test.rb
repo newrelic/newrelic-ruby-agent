@@ -16,6 +16,13 @@ class MiddlewareInstrumentationTest < RailsMultiverseTest
     )
   end
 
+  def test_rails_routeset_is_instrumented
+    get('/')
+    assert_metrics_recorded(
+      'Middleware/Rack/ActionDispatch::Routing::RouteSet/call'
+    )
+  end
+
   if Rails::VERSION::MAJOR >= 4
     def test_rails_middlewares_constructed_by_name
       get('/')
