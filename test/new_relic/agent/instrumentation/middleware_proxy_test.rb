@@ -168,5 +168,23 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
 
     assert_metrics_recorded('Controller/Rack/Proc/call')
   end
+
+  def test_should_get_the_right_name_when_target_is_a_class
+    target_class = Class.new do
+      def self.name
+        "GreatClass"
+      end
+
+      def self.call(env)
+        :super_duper
+      end
+    end
+
+    wrapped = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(target_class, true)
+
+    wrapped.call({})
+
+    assert_metrics_recorded('Controller/Rack/GreatClass/call')
+  end
 end
 

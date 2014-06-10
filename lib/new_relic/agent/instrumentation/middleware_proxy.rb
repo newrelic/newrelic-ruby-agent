@@ -48,13 +48,26 @@ module NewRelic
         def initialize(target, is_app=false)
           @target            = target
           @is_app            = is_app
-          @target_class_name = target.class.name.freeze
+          @target_class_name = determine_class_name.freeze
           @category          = determine_category
           @trace_opts        = {
             :name       => CALL,
             :category   => @category,
             :class_name => @target_class_name
           }.freeze
+        end
+
+        # In 'normal' usage, the target will be an application instance that
+        # responds to #call. With Rails, however, the target may be a subclass
+        # of Rails::Application that defines a method_missing that proxies #call
+        # to a singleton instance of the the subclass. We need to ensure that we
+        # capture the correct name in both cases.
+        def determine_class_name
+          if @target.is_a?(Class)
+            @target.name
+          else
+            @target.class.name
+          end
         end
 
         def determine_category
