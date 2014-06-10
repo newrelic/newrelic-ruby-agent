@@ -13,8 +13,14 @@ require 'new_relic/agent/transaction/xray_sample_buffer'
 module NewRelic
   module Agent
 
-    # This class contains the logic of sampling a transaction -
-    # creation and modification of transaction samples
+    # This class contains the logic for recording and storing transaction
+    # traces (sometimes referred to as 'transaction samples').
+    #
+    # A transaction trace is a detailed timeline of the events that happened
+    # during the processing of a single transaction, including database calls,
+    # template rendering calls, and other instrumented method calls.
+    #
+    # @api public
     class TransactionSampler
 
       # Module defining methods stubbed out when the agent is disabled
@@ -189,11 +195,23 @@ module NewRelic
         end
       end
 
-      # some statements (particularly INSERTS with large BLOBS
-      # may be very large; we should trim them to a maximum usable length
-      # config is the driver configuration for the connection
-      # duration is seconds, float value.
-      def notice_sql(sql, config, duration, state, &explainer) #THREAD_LOCAL_ACCESS sometimes
+      # Attaches an SQL query on the current transaction trace segment.
+      #
+      # This method should be used only by gem authors wishing to extend
+      # the Ruby agent to instrument new database interfaces - it should
+      # generally not be called directly from application code.
+      #
+      # @param sql [String] the SQL query being recorded
+      # @param config [Object] the driver configuration for the connection
+      # @param duration [Float] number of seconds the query took to execute
+      # @param explainer [Proc] for internal use only - 3rd-party clients must
+      #                         not pass this parameter.
+      #
+      # @api public
+      #
+      def notice_sql(sql, config, duration, state=nil, &explainer) #THREAD_LOCAL_ACCESS sometimes
+        # some statements (particularly INSERTS with large BLOBS
+        # may be very large; we should trim them to a maximum usable length
         state ||= TransactionState.tl_get
         builder = state.transaction_sample_builder
         if state.is_sql_recorded?
@@ -213,9 +231,21 @@ module NewRelic
         statement
       end
 
-      # Adds non-sql metadata to a segment - generally the memcached key
+      # Attaches an additional non-SQL query parameter to the current
+      # transaction trace segment.
       #
-      # duration is seconds, float value.
+      # This may be used for recording a query against a key-value store like
+      # memcached or redis.
+      #
+      # This method should be used only by gem authors wishing to extend
+      # the Ruby agent to instrument uninstrumented key-value stores - it should
+      # generally not be called directly from application code.
+      #
+      # @param key [String] the name of the key that was queried
+      # @param duration [Float] number of seconds the query took to execute
+      #
+      # @api public
+      #
       def notice_nosql(key, duration) #THREAD_LOCAL_ACCESS
         builder = tl_builder
         notice_extra_data(builder, key, duration, :key)
