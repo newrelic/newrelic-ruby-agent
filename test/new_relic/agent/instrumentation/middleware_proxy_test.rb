@@ -38,7 +38,6 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   def test_generator_passes_through_block_to_initialize
     middleware_class = Class.new do
       attr_reader :initialize_args
-      attr_reader :initialize_block
 
       def initialize(*args, &blk)
         @initialize_args = args
