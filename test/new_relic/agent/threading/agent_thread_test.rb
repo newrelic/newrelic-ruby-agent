@@ -28,10 +28,15 @@ module NewRelic::Agent::Threading
       q1 = Queue.new
 
       t = Thread.new do
-        in_transaction do |txn|
-          txn.request = 'whatever'
+        begin
+          in_transaction do |txn|
+            txn.request = 'whatever'
+            q0.push 'unblock main thread'
+            q1.pop
+          end
+        rescue => e
           q0.push 'unblock main thread'
-          q1.pop
+          fail e
         end
       end
 
@@ -47,9 +52,14 @@ module NewRelic::Agent::Threading
       q1 = Queue.new
 
       t = ::Thread.new do
-        in_transaction do
+        begin
+          in_transaction do
+            q0.push 'unblock main thread'
+            q1.pop
+          end
+        rescue => e
           q0.push 'unblock main thread'
-          q1.pop
+          fail e
         end
       end
 
