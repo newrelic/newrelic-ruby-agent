@@ -11,6 +11,11 @@ require 'new_relic/control'
 
 module NewRelic
   module Agent
+    # This class contains the logic of recording slow sql statements,
+    # and produces slow sql traces, which might be multiple sql queries
+    # aggregated.
+    #
+    # @api public
     class SqlSampler
 
       # Module defining methods stubbed out when the agent is disabled
@@ -85,6 +90,18 @@ module NewRelic
         end
       end
 
+      # Records a sql query.
+      #
+      # +sql+ is the sql statement being recorded
+      #
+      # +metric_name+ is the metric under which this query will be recorded
+      #
+      # +config+ is the driver configuration for the connection
+      #
+      # +duration+ is seconds, float value.
+      #
+      # +explainer+ is for internal use only, and should not be used
+      # by third-party clients
       #
       # @api public
       #

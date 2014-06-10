@@ -15,6 +15,8 @@ module NewRelic
 
     # This class contains the logic of sampling a transaction -
     # creation and modification of transaction samples
+    #
+    # @api public
     class TransactionSampler
 
       # Module defining methods stubbed out when the agent is disabled
@@ -189,14 +191,22 @@ module NewRelic
         end
       end
 
-      # some statements (particularly INSERTS with large BLOBS
-      # may be very large; we should trim them to a maximum usable length
-      # config is the driver configuration for the connection
-      # duration is seconds, float value.
+      # Records a sql query for the current transaction.
+      #
+      # +sql+ is the sql statement being recorded
+      #
+      # +config+ is the driver configuration for the connection
+      #
+      # +duration+ is seconds, float value.
+      #
+      # +explainer+ is for internal use only, and should not be used
+      # by third-party clients
       #
       # @api public
       #
       def notice_sql(sql, config, duration, state=nil, &explainer) #THREAD_LOCAL_ACCESS sometimes
+        # some statements (particularly INSERTS with large BLOBS
+        # may be very large; we should trim them to a maximum usable length
         state ||= TransactionState.tl_get
         builder = state.transaction_sample_builder
         if state.is_sql_recorded?
@@ -218,7 +228,7 @@ module NewRelic
 
       # Adds non-sql metadata to a segment - generally the memcached key
       #
-      # duration is seconds, float value.
+      # +duration+ is seconds, float value.
       #
       # @api public
       #
