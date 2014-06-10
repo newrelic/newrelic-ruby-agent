@@ -566,14 +566,15 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     threads = []
 
     5.times do
-      t = Thread.new(@sampler) do |the_sampler|
-        @sampler = the_sampler
+      threads << Thread.new do
         10.times do
-          run_sample_trace { sleep 0.0001 }
+          # Important that this uses the actual thread-local, not the shared
+          # @state variable used in other non-threaded tests
+          run_sample_trace(Time.now.to_f, nil, NewRelic::Agent::TransactionState.tl_get) do
+            sleep 0.0001
+          end
         end
       end
-
-      threads << t
     end
     threads.each {|t| t.join }
   end
@@ -888,18 +889,18 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @sampler.on_finishing_transaction(@state, @txn, Time.now.to_f)
   end
 
-  def run_sample_trace(start = Time.now.to_f, stop = nil)
-    @sampler.on_start_transaction(@state, start, nil, {})
-    @sampler.notice_push_frame(@state)
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0, @state)
-    @sampler.notice_push_frame(@state)
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0, @state)
+  def run_sample_trace(start = Time.now.to_f, stop = nil, state = @state)
+    @sampler.on_start_transaction(state, start, nil, {})
+    @sampler.notice_push_frame(state)
+    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0, state)
+    @sampler.notice_push_frame(state)
+    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0, state)
     yield if block_given?
-    @sampler.notice_pop_frame(@state, "ab")
-    @sampler.notice_push_frame(@state)
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0, @state)
-    @sampler.notice_pop_frame(@state, "ac")
-    @sampler.notice_pop_frame(@state, "a")
-    @sampler.on_finishing_transaction(@state, @txn, (stop || Time.now.to_f))
+    @sampler.notice_pop_frame(state, "ab")
+    @sampler.notice_push_frame(state)
+    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0, state)
+    @sampler.notice_pop_frame(state, "ac")
+    @sampler.notice_pop_frame(state, "a")
+    @sampler.on_finishing_transaction(state, @txn, (stop || Time.now.to_f))
   end
 end
