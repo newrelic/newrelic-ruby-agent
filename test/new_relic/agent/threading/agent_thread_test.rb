@@ -36,7 +36,7 @@ module NewRelic::Agent::Threading
           end
         rescue => e
           q0.push 'unblock main thread'
-          assert false, e.to_s
+          fail e
         end
       end
 
@@ -59,7 +59,7 @@ module NewRelic::Agent::Threading
           end
         rescue => e
           q0.push 'unblock main thread'
-          assert false, e.to_s
+          fail e
         end
       end
 
