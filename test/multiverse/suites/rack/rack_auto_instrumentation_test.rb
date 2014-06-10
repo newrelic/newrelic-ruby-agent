@@ -10,6 +10,8 @@ require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/agent_hooks'
 require 'new_relic/rack/error_collector'
 
+if NewRelic::Agent::Instrumentation::RackBuilder.newrelic_rack_version_supported?
+
 class RackAutoInstrumentationTest < Minitest::Test
   include MultiverseHelpers
 
@@ -20,7 +22,9 @@ class RackAutoInstrumentationTest < Minitest::Test
   def app
     Rack::Builder.app do
       use MiddlewareOne
-      use MiddlewareTwo
+      use MiddlewareTwo, 'the correct tag' do |headers|
+        headers['MiddlewareTwoBlockTag'] = 'the block tag'
+      end
       use NewRelic::Rack::BrowserMonitoring
       use NewRelic::Rack::AgentHooks
       use NewRelic::Rack::ErrorCollector
@@ -129,4 +133,13 @@ class RackAutoInstrumentationTest < Minitest::Test
     get '/?return-early=true'
     assert_metrics_recorded('Middleware/all' => { :total_exclusive_time => 3.0, :call_count => 2 })
   end
+
+  def test_middleware_created_with_args_works
+    get '/'
+
+    assert_equal('the correct tag', last_response.headers['MiddlewareTwoTag'])
+    assert_equal('the block tag',   last_response.headers['MiddlewareTwoBlockTag'])
+  end
+end
+
 end

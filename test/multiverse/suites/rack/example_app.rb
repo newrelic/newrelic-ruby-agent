@@ -24,8 +24,10 @@ class MiddlewareOne
 end
 
 class MiddlewareTwo
-  def initialize(app)
+  def initialize(app, tag, &blk)
     @app = app
+    @tag = tag
+    @block = blk
   end
 
   def call(env)
@@ -39,6 +41,10 @@ class MiddlewareTwo
     end
 
     headers['MiddlewareTwo'] = '2'
+    headers['MiddlewareTwoTag'] = @tag
+
+    @block.call(headers)
+
     [status, headers, body]
   end
 end

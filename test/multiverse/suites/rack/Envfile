@@ -1,4 +1,25 @@
 gemfile <<-RB
-  gem 'rack'
+  gem 'rack', '~>1.5.0'
+  gem 'rack-test'
+RB
+
+gemfile <<-RB
+  gem 'rack', '1.4.5'
+  gem 'rack-test'
+RB
+
+gemfile <<-RB
+  gem 'rack', '1.2.8'
+  gem 'rack-test'
+RB
+
+gemfile <<-RB
+  gem 'rack', '1.1.0'
+  gem 'rack-test'
+RB
+
+# unsupported version
+gemfile <<-RB
+  gem 'rack', '1.0.1'
   gem 'rack-test'
 RB

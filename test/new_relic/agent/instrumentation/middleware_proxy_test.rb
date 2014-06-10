@@ -10,6 +10,52 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     NewRelic::Agent.drop_buffered_data
   end
 
+  def test_generator_creates_wrapped_instances
+    middleware_class = Class.new
+
+    generator = NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
+    wrapped_instance  = generator.new
+
+    assert_kind_of(NewRelic::Agent::Instrumentation::MiddlewareProxy, wrapped_instance)
+    assert_kind_of(middleware_class, wrapped_instance.target_for_testing)
+  end
+
+  def test_generator_passes_through_initialize_args
+    middleware_class = Class.new do
+      attr_reader :initialize_args
+
+      def initialize(*args)
+        @initialize_args = args
+      end
+    end
+
+    generator = NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
+    wrapped_instance = generator.new('abc', 123)
+
+    assert_equal(['abc', 123], wrapped_instance.target_for_testing.initialize_args)
+  end
+
+  def test_generator_passes_through_block_to_initialize
+    middleware_class = Class.new do
+      attr_reader :initialize_args
+
+      def initialize(*args, &blk)
+        @initialize_args = args
+        blk.call
+      end
+    end
+
+    generator = NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
+
+    block_called = false
+    wrapped_instance = generator.new('abc', 123) do
+      block_called = true
+    end
+
+    assert block_called
+    assert_equal(['abc', 123], wrapped_instance.target_for_testing.initialize_args)
+  end
+
   def test_does_not_wrap_sinatra_apps
     sinatra_dummy_module = Module.new
     sinatra_dummy_class  = Class.new(Object)
@@ -120,6 +166,24 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     end
 
     assert_metrics_recorded('Controller/Rack/Proc/call')
+  end
+
+  def test_should_get_the_right_name_when_target_is_a_class
+    target_class = Class.new do
+      def self.name
+        "GreatClass"
+      end
+
+      def self.call(env)
+        :super_duper
+      end
+    end
+
+    wrapped = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(target_class, true)
+
+    wrapped.call({})
+
+    assert_metrics_recorded('Controller/Rack/GreatClass/call')
   end
 end
 

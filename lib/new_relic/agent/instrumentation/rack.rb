@@ -104,61 +104,65 @@ module NewRelic
         end
       end
 
-      module RackBuilder
-        # This method serves two, mostly independent purposes:
-        #
-        # 1. We trigger DependencyDetection from here, since it tends to happen
-        #    late in the application startup sequence, after all libraries have
-        #    actually been loaded, and libraries that may not have been loaded
-        #    at the time we were originally required might be present now.
-        #
-        # 2. Our Rack middleware instrumentation hooks into this method in order
-        #    to wrap a proxy object around each Rack middleware, and the app
-        #    itself.
-        #
-        # Part two can be disabled with the disable_middleware_instrumentation
-        # config switch. The whole thing (including parts 1 and 2) can be
-        # disabled with the disable_rack config switch.
-        #
-        def to_app_with_newrelic_deferred_dependency_detection
-          if ::NewRelic::Agent.config[:disable_middleware_instrumentation]
-            ::NewRelic::Agent.logger.debug("Not using Rack::Builder instrumentation because disable_middleware_instrumentation was set in config")
-          else
-            if @use && @use.is_a?(Array)
-              @use = RackBuilder.add_new_relic_tracing_to_middlewares(@use)
-            else
-              ::NewRelic::Agent.logger.warn("Not using Rack::Builder instrumentation because @use was not as expected (@use = #{@use.inspect})")
+      module RackHelpers
+        def self.rack_version_supported?
+          version = ::NewRelic::VersionNumber.new(::Rack.release)
+          min_version = ::NewRelic::VersionNumber.new('1.1.0')
+          version >= min_version
+        end
+
+        def self.middleware_instrumentation_enabled?
+          rack_version_supported? && !::NewRelic::Agent.config[:disable_middleware_instrumentation]
+        end
+
+        def self.check_for_late_instrumentation(app)
+          return if @checked_for_late_instrumentation
+          @checked_for_late_instrumentation = true
+          if middleware_instrumentation_enabled?
+            if ::NewRelic::Agent::Instrumentation::MiddlewareProxy.needs_wrapping?(app)
+              ::NewRelic::Agent.logger.info("We weren't able to instrument all of your Rack middlewares.",
+                                            "To correct this, ensure you 'require \"newrelic_rpm\"' before setting up your middleware stack.")
             end
           end
+        end
+      end
 
+      module RackBuilder
+        def run_with_newrelic(app, *args)
+          if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+            wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
+            run_without_newrelic(wrapped_app, *args)
+          else
+            run_without_newrelic(app, *args)
+          end
+        end
+
+        def use_with_newrelic(middleware_class, *args, &blk)
+          if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+            wrapped_middleware_class = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
+            use_without_newrelic(wrapped_middleware_class, *args, &blk)
+          else
+            use_without_newrelic(middleware_class, *args, &blk)
+          end
+        end
+
+        # We patch this method for a reason that actually has nothing to do with
+        # instrumenting rack itself. It happens to be a convenient and
+        # easy-to-hook point that happens late in the startup sequence of almost
+        # every application, making it a good place to do a final call to
+        # DependencyDetection.detect!, since all libraries are likely loaded at
+        # this point.
+        def to_app_with_newrelic_deferred_dependency_detection
           unless ::Rack::Builder._nr_deferred_detection_ran
             NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
             DependencyDetection.detect!
             ::Rack::Builder._nr_deferred_detection_ran = true
           end
 
-          to_app_without_newrelic
-        end
+          result = to_app_without_newrelic
+          ::NewRelic::Agent::Instrumentation::RackHelpers.check_for_late_instrumentation(result)
 
-        def self.add_new_relic_tracing_to_middlewares(middleware_procs)
-          wrapped_procs = []
-          last_idx = middleware_procs.size - 1
-
-          middleware_procs.each_with_index do |middleware_proc, idx|
-            wrapped_procs << Proc.new do |app|
-              if idx == last_idx
-                # Note that this does not double-wrap the app. If there are
-                # N middlewares and 1 app, then we want N+1 wrappings. This
-                # is the +1.
-                app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
-              end
-
-              result = middleware_proc.call(app)
-
-              ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
-            end
-          end
-          wrapped_procs
+          result
         end
       end
     end
@@ -174,9 +178,7 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing deferred Rack instrumentation'
-  end
 
-  executes do
     class ::Rack::Builder
       class << self
         attr_accessor :_nr_deferred_detection_ran
@@ -187,6 +189,15 @@ DependencyDetection.defer do
 
       alias_method :to_app_without_newrelic, :to_app
       alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
+
+      if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+        ::NewRelic::Agent.logger.info 'Installing Rack::Builder middleware instrumentation'
+        alias_method :run_without_newrelic, :run
+        alias_method :run, :run_with_newrelic
+
+        alias_method :use_without_newrelic, :use
+        alias_method :use, :use_with_newrelic
+      end
     end
   end
 end

@@ -12,30 +12,67 @@ module NewRelic
         CAPTURED_REQUEST_KEY = 'newrelic.captured_request'.freeze unless defined?(CAPTURED_REQUEST_KEY)
         CALL = "call".freeze unless defined?(CALL)
 
+        # This class is used to wrap classes that are passed to
+        # Rack::Builder#use without synchronously instantiating those classes.
+        # A MiddlewareProxy::Generator responds to new, like a Class would, and
+        # passes through arguments to new to the original target class.
+        class Generator
+          def initialize(middleware_class)
+            @middleware_class = middleware_class
+          end
+
+          def new(*args, &blk)
+            middleware_instance = @middleware_class.new(*args, &blk)
+            MiddlewareProxy.wrap(middleware_instance)
+          end
+        end
+
         def self.is_sinatra_app?(target)
           defined?(::Sinatra::Base) && target.kind_of?(::Sinatra::Base)
         end
 
+        def self.for_class(target_class)
+          Generator.new(target_class)
+        end
+
+        def self.needs_wrapping?(target)
+          (
+            !target.respond_to?(:_nr_has_middleware_tracing) &&
+            !is_sinatra_app?(target)
+          )
+        end
+
         def self.wrap(target, is_app=false)
-          if target.respond_to?(:_nr_has_middleware_tracing)
-            target
-          elsif is_sinatra_app?(target)
-            target
-          else
+          if needs_wrapping?(target)
             self.new(target, is_app)
+          else
+            target
           end
         end
 
         def initialize(target, is_app=false)
           @target            = target
           @is_app            = is_app
-          @target_class_name = target.class.name.freeze
+          @target_class_name = determine_class_name.freeze
           @category          = determine_category
           @trace_opts        = {
             :name       => CALL,
             :category   => @category,
             :class_name => @target_class_name
           }.freeze
+        end
+
+        # In 'normal' usage, the target will be an application instance that
+        # responds to #call. With Rails, however, the target may be a subclass
+        # of Rails::Application that defines a method_missing that proxies #call
+        # to a singleton instance of the the subclass. We need to ensure that we
+        # capture the correct name in both cases.
+        def determine_class_name
+          if @target.is_a?(Class)
+            @target.name
+          else
+            @target.class.name
+          end
         end
 
         def determine_category
@@ -76,6 +113,10 @@ module NewRelic
         def ignore_apdex?;   false; end
         def ignore_enduser?; false; end
         def do_not_trace?;   false; end
+
+        def target_for_testing
+          @target
+        end
       end
     end
   end
