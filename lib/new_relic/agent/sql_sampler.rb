@@ -11,9 +11,19 @@ require 'new_relic/control'
 
 module NewRelic
   module Agent
-    # This class contains the logic of recording slow sql statements,
-    # and produces slow sql traces, which might be multiple sql queries
-    # aggregated.
+    # This class contains the logic of recording slow SQL traces, which may
+    # represent multiple aggregated SQL queries.
+    #
+    # A slow SQL trace consists of a collection of SQL instrumented SQL queries
+    # that all normalize to the same text. For example, the following two
+    # queries would be aggregated together into a single slow SQL trace:
+    #
+    #   SELECT * FROM table WHERE id=42
+    #   SELECT * FROM table WHERE id=1234
+    #
+    # Each slow SQL trace keeps track of the number of times the same normalized
+    # query was seen, the min, max, and total time spent executing those
+    # queries, and an example backtrace from one of the aggregated queries.
     #
     # @api public
     class SqlSampler
@@ -90,18 +100,19 @@ module NewRelic
         end
       end
 
-      # Records a sql query.
+      # Records an SQL query, potentially creating a new slow SQL trace, or
+      # aggregating the query into an existing slow SQL trace.
       #
-      # +sql+ is the sql statement being recorded
+      # This method should be used only by gem authors wishing to extend
+      # the Ruby agent to instrument new database interfaces - it should
+      # generally not be called directly from application code.
       #
-      # +metric_name+ is the metric under which this query will be recorded
-      #
-      # +config+ is the driver configuration for the connection
-      #
-      # +duration+ is seconds, float value.
-      #
-      # +explainer+ is for internal use only, and should not be used
-      # by third-party clients
+      # @param sql [String] the SQL query being recorded
+      # @param metric_name [String] is the metric name under which this query will be recorded
+      # @param config [Object] is the driver configuration for the connection
+      # @param duration [Float] number of seconds the query took to execute
+      # @param explainer [Proc] for internal use only - 3rd-party clients must
+      #                         not pass this parameter.
       #
       # @api public
       #
