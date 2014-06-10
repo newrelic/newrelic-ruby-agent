@@ -35,13 +35,18 @@ module NewRelic
           Generator.new(target_class)
         end
 
+        def self.needs_wrapping?(target)
+          (
+            !target.respond_to?(:_nr_has_middleware_tracing) &&
+            !is_sinatra_app?(target)
+          )
+        end
+
         def self.wrap(target, is_app=false)
-          if target.respond_to?(:_nr_has_middleware_tracing)
-            target
-          elsif is_sinatra_app?(target)
-            target
-          else
+          if needs_wrapping?(target)
             self.new(target, is_app)
+          else
+            target
           end
         end
 

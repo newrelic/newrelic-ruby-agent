@@ -104,28 +104,45 @@ module NewRelic
         end
       end
 
-      module RackBuilder
-        def self.newrelic_rack_version_supported?
+      module RackHelpers
+        def self.rack_version_supported?
           version = ::NewRelic::VersionNumber.new(::Rack.release)
           min_version = ::NewRelic::VersionNumber.new('1.1.0')
           version >= min_version
         end
 
+        def self.middleware_instrumentation_enabled?
+          rack_version_supported? && !::NewRelic::Agent.config[:disable_middleware_instrumentation]
+        end
+
+        def self.check_for_late_instrumentation(app)
+          return if @checked_for_late_instrumentation
+          @checked_for_late_instrumentation = true
+          if middleware_instrumentation_enabled?
+            if ::NewRelic::Agent::Instrumentation::MiddlewareProxy.needs_wrapping?(app)
+              ::NewRelic::Agent.logger.info("We weren't able to instrument all of your Rack middlewares.",
+                                            "To correct this, ensure you 'require \"newrelic_rpm\"' before setting up your middleware stack.")
+            end
+          end
+        end
+      end
+
+      module RackBuilder
         def run_with_newrelic(app, *args)
-          if ::NewRelic::Agent.config[:disable_middleware_instrumentation]
-            run_without_newrelic(app, *args)
-          else
+          if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
             wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
             run_without_newrelic(wrapped_app, *args)
+          else
+            run_without_newrelic(app, *args)
           end
         end
 
         def use_with_newrelic(middleware_class, *args, &blk)
-          if ::NewRelic::Agent.config[:disable_middleware_instrumentation]
-            use_without_newrelic(middleware_class, *args, &blk)
-          else
+          if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
             wrapped_middleware_class = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
             use_without_newrelic(wrapped_middleware_class, *args, &blk)
+          else
+            use_without_newrelic(middleware_class, *args, &blk)
           end
         end
 
@@ -142,7 +159,10 @@ module NewRelic
             ::Rack::Builder._nr_deferred_detection_ran = true
           end
 
-          to_app_without_newrelic
+          result = to_app_without_newrelic
+          ::NewRelic::Agent::Instrumentation::RackHelpers.check_for_late_instrumentation(result)
+
+          result
         end
       end
     end
@@ -158,9 +178,7 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing deferred Rack instrumentation'
-  end
 
-  executes do
     class ::Rack::Builder
       class << self
         attr_accessor :_nr_deferred_detection_ran
@@ -172,10 +190,8 @@ DependencyDetection.defer do
       alias_method :to_app_without_newrelic, :to_app
       alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
 
-      instrumentation_supported = ::NewRelic::Agent::Instrumentation::RackBuilder.newrelic_rack_version_supported?
-      instrumentation_disabled  = ::NewRelic::Agent.config[:disable_middleware_instrumentation]
-
-      if instrumentation_supported && !instrumentation_disabled
+      if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+        ::NewRelic::Agent.logger.info 'Installing Rack::Builder middleware instrumentation'
         alias_method :run_without_newrelic, :run
         alias_method :run, :run_with_newrelic
 
