@@ -85,6 +85,9 @@ module NewRelic
         end
       end
 
+      #
+      # @api public
+      #
       def notice_sql(sql, metric_name, config, duration, state=nil, &explainer) #THREAD_LOCAL_ACCESS sometimes
         state ||= TransactionState.tl_get
         data = state.sql_sampler_transaction_data

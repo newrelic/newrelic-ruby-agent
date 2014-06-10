@@ -193,7 +193,10 @@ module NewRelic
       # may be very large; we should trim them to a maximum usable length
       # config is the driver configuration for the connection
       # duration is seconds, float value.
-      def notice_sql(sql, config, duration, state, &explainer) #THREAD_LOCAL_ACCESS sometimes
+      #
+      # @api public
+      #
+      def notice_sql(sql, config, duration, state=nil, &explainer) #THREAD_LOCAL_ACCESS sometimes
         state ||= TransactionState.tl_get
         builder = state.transaction_sample_builder
         if state.is_sql_recorded?
@@ -216,6 +219,9 @@ module NewRelic
       # Adds non-sql metadata to a segment - generally the memcached key
       #
       # duration is seconds, float value.
+      #
+      # @api public
+      #
       def notice_nosql(key, duration) #THREAD_LOCAL_ACCESS
         builder = tl_builder
         notice_extra_data(builder, key, duration, :key)
