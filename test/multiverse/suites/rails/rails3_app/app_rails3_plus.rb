@@ -13,20 +13,6 @@ if !defined?(MyApp)
 
   ENV['NEW_RELIC_DISPATCHER'] = 'test'
 
-  class ErrorMiddleware
-    def initialize(app, options={})
-      @app = app
-    end
-
-    def call(env)
-      path = ::Rack::Request.new(env).path_info
-      raise "middleware error" if path.match(/\/middleware_error\/before/)
-      result = @app.call(env)
-      raise "middleware error" if path.match(/\/middleware_error\/after/)
-      result
-    end
-  end
-
   class NamedMiddleware
     def initialize(app, options={})
       @app = app

@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'multiverse_helpers'
+require File.join(File.dirname(__FILE__), 'middlewares')
 
 suite_dir = File.expand_path(File.dirname(__FILE__))
 
