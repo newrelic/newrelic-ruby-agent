@@ -96,89 +96,57 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
   end
 
-#  def test_on_finishing_transaction_no_builder
-#    @sampler.expects(:tl_builder).returns(nil)
-#    assert_equal(nil, @sampler.on_finishing_transaction(@state, @txn))
-#  end
+  def test_on_finishing_transaction_no_builder
+    @state.transaction_sample_builder = nil
+    assert_equal(nil, @sampler.on_finishing_transaction(@state, @txn))
+  end
 
-#  def test_on_finishing_transaction_ignored_transaction
-#    builder = mock('builder')
-#    # the builder should be cached, so only called once
-#    @sampler.expects(:tl_builder).returns(builder).once
-#
-#    builder.expects(:finish_trace).with(100.0, {})
-#
-#    builder.expects(:ignored?).returns(true)
-#    builder.expects(:set_transaction_name).returns(true)
-#
-#    assert_equal(nil, @sampler.on_finishing_transaction(@state, @txn, Time.at(100)))
-#  end
-#
-#  def test_on_finishing_transaction_with_builder
-#    builder = mock('builder')
-#    @sampler.stubs(:tl_builder).returns(builder)
-#
-#    builder.expects(:finish_trace).with(100.0, {})
-#
-#    builder.expects(:ignored?).returns(false)
-#    builder.expects(:set_transaction_info).returns(true)
-#    builder.expects(:set_transaction_name).returns(true)
-#
-#    sample = mock('sample')
-#    sample.expects(:guid=)
-#    builder.expects(:sample).returns(sample)
-#    @sampler.expects(:store_sample).with(sample)
-#
-#    @sampler.on_start_transaction(@state, Time.now, nil, {})
-#    @sampler.on_finishing_transaction(@state, @txn, Time.at(100))
-#
-#    assert_equal(sample, @sampler.instance_variable_get('@last_sample'))
-#  end
+  def test_captures_correct_transaction_duration
+    freeze_time
+    in_transaction do |txn|
+      advance_time(10.0)
+    end
 
-#  def test_on_finishing_transaction_passes_guid_along
-#    builder = stub_everything('builder')
-#    @sampler.stubs(:tl_builder).returns(builder)
-#
-#    @txn.stubs(:guid).returns('a guid')
-#
-#    sample = stub_everything('sample')
-#    sample.expects(:guid=).with(@txn.guid)
-#    builder.stubs(:sample).returns(sample)
-#
-#    @sampler.on_start_transaction(@state, Time.now, nil, {})
-#    @sampler.on_finishing_transaction(@state, @txn, Time.at(100))
-#  end
+    assert_equal(10.0, @sampler.last_sample.duration)
+  end
 
-#  def test_ignore_transaction_no_builder
-#    @sampler.expects(:tl_builder).returns(nil).once
-#    @sampler.ignore_transaction
-#  end
+  def test_on_finishing_transaction_passes_guid_along
+    in_transaction do |txn|
+      txn.stubs(:guid).returns('a guid')
+    end
 
-#  def test_ignore_transaction_with_builder
-#    builder = mock('builder')
-#    builder.expects(:ignore_transaction)
-#    @sampler.expects(:tl_builder).returns(builder).once
-#    @sampler.ignore_transaction
-#  end
+    assert_equal('a guid', @sampler.last_sample.guid)
+  end
 
-#  def test_notice_transaction_cpu_time_no_builder
-#    @sampler.expects(:tl_builder).returns(nil).once
-#    @sampler.notice_transaction_cpu_time(@state, 0.0)
-#  end
+  def test_ignore_transaction_no_builder
+    ret = @sampler.ignore_transaction(@state)
+    assert_nil ret
+  end
 
-#  def test_notice_transaction_cpu_time_with_builder
-#    cpu_time = mock('cpu_time')
-#    builder = mock('builder')
-#    @sampler.expects(:tl_builder).returns(builder).once
-#    builder.expects(:set_transaction_cpu_time).with(cpu_time)
-#
-#    @sampler.notice_transaction_cpu_time(@state, cpu_time)
-#  end
+  def test_ignore_transaction_with_builder
+    in_transaction do
+      @sampler.ignore_transaction(@state)
+    end
+
+    assert_nil(@sampler.last_sample)
+  end
+
+  def test_notice_transaction_cpu_time_no_builder_does_not_crash
+    @state.transaction_sample_builder = nil
+    @sampler.notice_transaction_cpu_time(@state, 0.0)
+  end
+
+  def test_records_cpu_time_on_transaction_samples
+    in_transaction do |txn|
+      txn.stubs(:cpu_burn).returns(42)
+    end
+
+    assert_equal(42, @sampler.last_sample.params[:custom_params][:cpu_time])
+  end
 
   def test_notice_extra_data_no_builder
-    @sampler.expects(:tl_builder).returns(nil).once
-    builder = @sampler.tl_builder
-    @sampler.send(:notice_extra_data, builder, nil, nil, nil)
+    ret = @sampler.send(:notice_extra_data, nil, nil, nil, nil)
+    assert_nil ret
   end
 
   def test_notice_extra_data_no_segment
