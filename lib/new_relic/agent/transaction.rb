@@ -315,7 +315,7 @@ module NewRelic
         return if !state.is_execution_traced?
 
         transaction_sampler.on_start_transaction(state, start_time, uri)
-        sql_sampler.on_start_transaction(state, start_time, uri, filtered_params)
+        sql_sampler.on_start_transaction(state, start_time, uri)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
