@@ -4,7 +4,7 @@
 
 require 'multiverse_helpers'
 
-if !NewRelic::Agent::Instrumentation::RackBuilder.newrelic_rack_version_supported?
+if !NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
 class RackUnsupportedVersionTest < Minitest::Test
   include MultiverseHelpers

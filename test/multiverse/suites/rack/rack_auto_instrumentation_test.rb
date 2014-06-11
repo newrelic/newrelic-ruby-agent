@@ -10,7 +10,7 @@ require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/agent_hooks'
 require 'new_relic/rack/error_collector'
 
-if NewRelic::Agent::Instrumentation::RackBuilder.newrelic_rack_version_supported?
+if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
 class RackAutoInstrumentationTest < Minitest::Test
   include MultiverseHelpers
