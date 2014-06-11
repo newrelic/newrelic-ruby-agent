@@ -36,7 +36,8 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
-    @txn = stub('txn', :best_name => '/path', :custom_parameters => {}, :guid => 'a guid')
+    @txn = stub('txn', :best_name => '/path', :guid => 'a guid',
+                :custom_parameters => {}, :filtered_params => {})
   end
 
   def teardown
@@ -440,7 +441,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_sample_tree
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil, {})
+      @sampler.on_start_transaction(@state, Time.now, nil)
       @sampler.notice_push_frame(@state)
 
       @sampler.notice_push_frame(@state)
@@ -465,7 +466,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil, {})
+      @sampler.on_start_transaction(@state, Time.now, nil)
       @sampler.notice_push_frame(@state)
 
       @sampler.notice_push_frame(@state)
@@ -549,7 +550,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_sample_with_parallel_paths
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil, {})
+      @sampler.on_start_transaction(@state, Time.now, nil)
       @sampler.notice_push_frame(@state)
 
       assert_equal 1, @sampler.tl_builder.scope_depth
@@ -559,7 +560,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
       assert_nil @sampler.tl_builder
 
-      @sampler.on_start_transaction(@state, Time.now, nil, {})
+      @sampler.on_start_transaction(@state, Time.now, nil)
       @sampler.notice_push_frame(@state)
       @sampler.notice_pop_frame(@state, "a")
       @sampler.on_finishing_transaction(@state, @txn)
@@ -572,7 +573,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_double_traced_method_stack_empty
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil, {})
+      @sampler.on_start_transaction(@state, Time.now, nil)
       @sampler.notice_push_frame(@state)
       @sampler.notice_pop_frame(@state, "a")
       @sampler.on_finishing_transaction(@state, @txn)
@@ -667,7 +668,8 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     [true, false].each do |capture|
       with_config(:capture_params => capture) do
         tt = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-          @sampler.on_start_transaction(@state, Time.now, nil, :param => 'hi')
+          @sampler.on_start_transaction(@state, Time.now, nil)
+          @txn.filtered_params[:param] = 'hi'
           @sampler.on_finishing_transaction(@state, @txn)
           @sampler.harvest![0]
         end
@@ -848,7 +850,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def run_long_sample_trace(n)
-    @sampler.on_start_transaction(@state, Time.now, nil, {})
+    @sampler.on_start_transaction(@state, Time.now, nil)
     n.times do |i|
       @sampler.notice_push_frame(@state)
       yield if block_given?
@@ -858,7 +860,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def run_sample_trace(start = Time.now.to_f, stop = nil, state = @state)
-    @sampler.on_start_transaction(state, start, nil, {})
+    @sampler.on_start_transaction(state, start, nil)
     @sampler.notice_push_frame(state)
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0, state)
     @sampler.notice_push_frame(state)

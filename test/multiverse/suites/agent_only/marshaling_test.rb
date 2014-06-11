@@ -19,7 +19,7 @@ class MarshalingTest < Minitest::Test
     time = freeze_time
     state = NewRelic::Agent::TransactionState.tl_get
     sampler = agent.transaction_sampler
-    sampler.on_start_transaction(state, time, nil, {})
+    sampler.on_start_transaction(state, time, nil)
     sampler.notice_push_frame(state, "a")
     sampler.notice_push_frame(state, "ab")
     advance_time 1
