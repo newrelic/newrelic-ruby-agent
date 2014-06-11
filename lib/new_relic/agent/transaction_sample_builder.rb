@@ -140,15 +140,17 @@ module NewRelic
         depth
       end
 
-      def set_transaction_info(uri, params)
-        if Agent.config[:capture_params]
-          params = normalize_params params
+      def set_transaction_uri(uri)
+        @sample.params[:uri] ||= uri
+      end
 
+      def set_request_params(params)
+        if Agent.config[:capture_params]
+          params = normalize_params(params)
           @sample.params[:request_params].merge!(params)
           @sample.params[:request_params].delete :controller
           @sample.params[:request_params].delete :action
         end
-        @sample.params[:uri] ||= uri || params[:uri]
       end
 
       def set_transaction_name(name)
