@@ -131,7 +131,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_nil(@sampler.last_sample)
   end
 
-  def test_notice_transaction_cpu_time_no_builder
+  def test_notice_transaction_cpu_time_no_builder_does_not_crash
     @state.transaction_sample_builder = nil
     @sampler.notice_transaction_cpu_time(@state, 0.0)
   end
