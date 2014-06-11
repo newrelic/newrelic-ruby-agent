@@ -12,6 +12,7 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'queue/:action',               :controller => 'queue'
   map.connect 'views/:action',               :controller => 'views'
   map.connect 'ignored/:action',             :controller => 'ignored'
+  map.connect 'parameter_capture/:action',   :controller => 'parameter_capture'
 
   map.connect ':controller/:action'
 end
