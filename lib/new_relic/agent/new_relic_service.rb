@@ -291,7 +291,7 @@ module NewRelic
         data, size, serialize_finish_ts = nil
         begin
           data = @marshaller.dump(args)
-        rescue => e
+        rescue StandardError, SystemStackError => e
           handle_serialization_error(method, e)
         end
         serialize_finish_ts = Time.now
