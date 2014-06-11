@@ -55,7 +55,7 @@ module NewRelic
           Agent.config[:'transaction_tracer.enabled']
       end
 
-      def on_start_transaction(state, start_time, uri=nil, params={})
+      def on_start_transaction(state, start_time, uri=nil)
         state.sql_sampler_transaction_data = TransactionSqlData.new
 
         if state.transaction_sample_builder
@@ -63,7 +63,7 @@ module NewRelic
         end
 
         if Agent.config[:'slow_sql.enabled'] && state.sql_sampler_transaction_data
-          state.sql_sampler_transaction_data.set_transaction_info(uri, params, guid)
+          state.sql_sampler_transaction_data.set_transaction_info(uri, guid)
         end
       end
 
@@ -166,7 +166,6 @@ module NewRelic
     class TransactionSqlData
       attr_reader :path
       attr_reader :uri
-      attr_reader :params
       attr_reader :sql_data
       attr_reader :guid
 
@@ -174,9 +173,8 @@ module NewRelic
         @sql_data = []
       end
 
-      def set_transaction_info(uri, params, guid)
+      def set_transaction_info(uri, guid)
         @uri = uri
-        @params = params
         @guid = guid
       end
 
@@ -233,7 +231,7 @@ module NewRelic
 
       def initialize(normalized_query, slow_sql, path, uri)
         super()
-        @params = {} #FIXME
+        @params = {}
         @sql_id = consistent_hash(normalized_query)
         set_primary slow_sql, path, uri
         record_data_point(float(slow_sql.duration))
@@ -245,7 +243,6 @@ module NewRelic
         @database_metric_name = slow_sql.metric_name
         @path = path
         @url = uri
-        # FIXME
         @params[:backtrace] = slow_sql.backtrace if slow_sql.backtrace
       end
 
