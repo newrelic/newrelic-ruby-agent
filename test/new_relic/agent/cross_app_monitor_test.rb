@@ -190,6 +190,24 @@ module NewRelic::Agent
       end
     end
 
+    def test_listener_in_other_thread_has_correct_txn_state
+      t = Thread.new do
+        event_listener = NewRelic::Agent.instance.events
+        in_transaction('transaction') do
+          request = for_id(REQUEST_CROSS_APP_ID)
+
+          event_listener.notify(:before_call, request)
+          # Fake out our GUID for easier comparison in tests
+          NewRelic::Agent::Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
+          event_listener.notify(:after_call, request, [200, @response, ''])
+        end
+      end
+
+      t.join
+
+      assert_metrics_recorded(["ClientApplication/#{REQUEST_CROSS_APP_ID}/all"])
+    end
+
     #
     # Helpers
     #
