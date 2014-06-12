@@ -59,11 +59,11 @@ module NewRelic
           @target            = target
           @is_app            = is_app
           @category          = determine_category
-          @target_class_name = determine_class_name.freeze
-          @transaction_name  = "#{determine_prefix}#{@target_class_name}/call".freeze
+          @target_class_name = determine_class_name
+          @transaction_name  = "#{determine_prefix}#{@target_class_name}/call"
           @transaction_opts  = {
             :transaction_name => @transaction_name
-          }.freeze
+          }
         end
 
         def determine_category
