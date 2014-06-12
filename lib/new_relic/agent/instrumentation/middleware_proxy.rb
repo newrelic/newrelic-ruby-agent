@@ -2,12 +2,17 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/method_tracer'
+require 'new_relic/agent/transaction'
+require 'new_relic/agent/transaction_state'
+require 'new_relic/agent/instrumentation/queue_time'
+require 'new_relic/agent/instrumentation/controller_instrumentation'
+
 module NewRelic
   module Agent
     module Instrumentation
       class MiddlewareProxy
         include ::NewRelic::Agent::MethodTracer
-        include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
         CAPTURED_REQUEST_KEY = 'newrelic.captured_request'.freeze unless defined?(CAPTURED_REQUEST_KEY)
         CALL = "call".freeze unless defined?(CALL)
@@ -53,13 +58,24 @@ module NewRelic
         def initialize(target, is_app=false)
           @target            = target
           @is_app            = is_app
-          @target_class_name = determine_class_name.freeze
           @category          = determine_category
-          @trace_opts        = {
-            :name       => CALL,
-            :category   => @category,
-            :class_name => @target_class_name
-          }.freeze
+          @target_class_name = determine_class_name
+          @transaction_name  = "#{determine_prefix}#{@target_class_name}/call"
+          @transaction_options  = {
+            :transaction_name => @transaction_name
+          }
+        end
+
+        def determine_category
+          if @is_app
+            :rack
+          else
+            :middleware
+          end
+        end
+
+        def determine_prefix
+          ::NewRelic::Agent::Instrumentation::ControllerInstrumentation::TransactionNamer.prefix_for_category(nil, @category)
         end
 
         # In 'normal' usage, the target will be an application instance that
@@ -75,44 +91,37 @@ module NewRelic
           end
         end
 
-        def determine_category
-          if @is_app
-            :rack
-          else
-            :middleware
-          end
-        end
-
         def _nr_has_middleware_tracing
           true
         end
 
-        def call(env)
+        def build_transaction_options(env)
           if env[CAPTURED_REQUEST_KEY]
-            opts = @trace_opts
+            @transaction_options
           else
-            opts = @trace_opts.merge(:request => ::Rack::Request.new(env))
             env[CAPTURED_REQUEST_KEY] = true
-          end
-          perform_action_with_newrelic_trace(opts) do
-            @target.call(env)
+            queue_timefrontend_timestamp = QueueTime.parse_frontend_timestamp(env)
+            @transaction_options.merge(
+              :request          => ::Rack::Request.new(env),
+              :apdex_start_time => queue_timefrontend_timestamp
+            )
           end
         end
 
-        # These next three methods are defined in ControllerInstrumentation, and
-        # we're overriding the definitions here as a performance optimization.
-        #
-        # The default implementation of each on ControllerInstrumentation calls
-        # through to newrelic_read_attr with a String argument, then calls
-        # instance_variable_get with a String derived from that String.
-        #
-        # These methods are present in order to support a declarative syntax for
-        # ignoring specific transactions in the context of Rails or Sinatra apps
-        # but in the context of Rack middleware, they don't even really make
-        # sense, so we just hard-code a false return value for each.
-        def ignore_apdex?;   false; end
-        def ignore_enduser?; false; end
-        def do_not_trace?;   false; end
+        def call(env)
+          opts = build_transaction_options(env)
+          state = NewRelic::Agent::TransactionState.tl_get
+
+          begin
+            txn = Transaction.start(state, @category, opts)
+            @target.call(env)
+          rescue => e
+            txn.notice_error(e)
+            raise
+          ensure
+            Transaction.stop(state)
+          end
+        end
 
         def target_for_testing
           @target
