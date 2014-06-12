@@ -368,9 +368,10 @@ module NewRelic
             end
 
           ensure
-            txn = state.current_transaction
-            txn.ignore_apdex!   if ignore_apdex?
-            txn.ignore_enduser! if ignore_enduser?
+            if txn
+              txn.ignore_apdex!   if ignore_apdex?
+              txn.ignore_enduser! if ignore_enduser?
+            end
             Transaction.stop(state)
           end
         end
