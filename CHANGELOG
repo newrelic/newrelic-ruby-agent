@@ -79,8 +79,8 @@
 
   Most instrumentation in the Ruby agent can be disabled easily via a
   configuration setting. Our Net::HTTP instrumentation was previously an
-  exception, but now it can also be disabled with the disable_net configuration
-  setting.
+  exception, but now it can also be disabled with the disable_net_http
+  configuration setting.
 
   * Make Rails constant presence check more defensive
 
