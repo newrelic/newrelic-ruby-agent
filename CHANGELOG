@@ -69,11 +69,11 @@
 
   Many thanks to Mario Izquierdo for the contribution!
 
-  * Better error handling for exceptions during browser monitoring injection
+  * Better error handling in Browser Application Monitoring injection
 
-  The agent middleware that injects the JavaScript code necessary for browser
-  monitoring now does a better job of catching errors that might occur during
-  the injection process.
+  The agent middleware that injects the JavaScript code necessary for Browser
+  Application Monitoring now does a better job of catching errors that might
+  occur during the injection process.
 
   * Allow disabling of Net::HTTP instrumentation
 
