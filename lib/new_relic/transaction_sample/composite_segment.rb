@@ -12,7 +12,7 @@ module NewRelic
 
       def initialize(segments)
         summary = SummarySegment.new(segments.first)
-        super summary.entry_timestamp, "Repeating pattern (#{segments.length} repeats)", nil
+        super summary.entry_timestamp, "Repeating pattern (#{segments.length} repeats)"
 
         summary.end_trace(segments.last.exit_timestamp)
 

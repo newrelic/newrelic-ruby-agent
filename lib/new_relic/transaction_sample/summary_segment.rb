@@ -8,7 +8,7 @@ module NewRelic
   class TransactionSample
     class SummarySegment < Segment
       def initialize(segment)
-        super segment.entry_timestamp, segment.metric_name, nil
+        super segment.entry_timestamp, segment.metric_name
 
         add_segments segment.called_segments
 

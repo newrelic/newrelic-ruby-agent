@@ -12,16 +12,14 @@ module NewRelic
       # have a timestamp.
       attr_reader :exit_timestamp
       attr_reader :parent_segment
-      attr_reader :segment_id
 
       attr_accessor :metric_name
 
       UNKNOWN_SEGMENT_NAME = '<unknown>'.freeze
 
-      def initialize(timestamp, metric_name, segment_id)
+      def initialize(timestamp, metric_name)
         @entry_timestamp = timestamp
         @metric_name     = metric_name || UNKNOWN_SEGMENT_NAME
-        @segment_id      = segment_id  || object_id
       end
 
       # sets the final timestamp on a segment to indicate the exit
@@ -57,6 +55,7 @@ module NewRelic
       def path_string
         "#{metric_name}[#{called_segments.collect {|segment| segment.path_string }.join('')}]"
       end
+
       def to_s_compact
         str = ""
         str << metric_name
@@ -65,6 +64,7 @@ module NewRelic
         end
         str
       end
+
       def to_debug_str(depth)
         tab = "  " * depth
         s = tab.clone
@@ -130,6 +130,11 @@ module NewRelic
         @params = p
       end
 
+      # This is only for usage by developer mode
+      def segment_id
+        object_id
+      end
+
       # call the provided block for this segment and each
       # of the called segments
       def each_segment(&block)
@@ -157,8 +162,9 @@ module NewRelic
         summary.current_nest_count -= 1 if summary
       end
 
+      # This is only for use by developer mode
       def find_segment(id)
-        return self if @segment_id == id
+        return self if segment_id == id
         called_segments.each do |segment|
           found = segment.find_segment(id)
           return found if found

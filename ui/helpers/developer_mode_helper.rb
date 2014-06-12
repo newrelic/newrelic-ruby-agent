@@ -20,12 +20,6 @@ module NewRelic::DeveloperModeHelper
    (!@detail_segment_count.nil? && @detail_segment_count > trace_row_display_limit) || @sample.sql_segments.length > trace_row_display_limit
   end
 
-  # return the sample but post processed to strip out segments that normally don't show
-  # up in production (after the first execution, at least) such as application code loading
-  def stripped_sample(sample = @sample)
-    sample.omit_segments_with('(Rails/Application Code Loading)|(Database/.*/.+ Columns)')
-  end
-
   # return the highest level in the call stack for the trace that is not rails or
   # newrelic agent code
   def application_caller(trace)

@@ -1,10 +1,10 @@
 <% sample = object %>
 <tr class="<%= cycle('even_row', 'odd_row') %>">
 <td align=right nowrap=true>
-  <%= Time.at(stripped_sample(sample).timestamp).strftime "%H:%M:%S" %>
+  <%= Time.at(sample.timestamp).strftime "%H:%M:%S" %>
 </td>
 <td align=right nowrap=true>
-  <%= colorize(stripped_sample(sample).duration, 1, 2) %> ms
+  <%= colorize(sample.duration, 1, 2) %> ms
 </td>
 <td>
   <%= link_to "#{sample.params[:uri]}", "show_sample_summary?id=#{sample.sample_id}" %>
