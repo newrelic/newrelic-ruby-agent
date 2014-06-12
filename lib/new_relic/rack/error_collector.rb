@@ -13,13 +13,7 @@ module NewRelic::Rack
   #
   # @api public
   #
-  class ErrorCollector
-    def initialize(app, options={})
-      @app = app
-    end
-
-    include AgentMiddleware
-
+  class ErrorCollector < AgentMiddleware
     def params_from_env(env)
       if defined?(ActionDispatch::Request)
         # We use ActionDispatch::Request if it's available so that we can get

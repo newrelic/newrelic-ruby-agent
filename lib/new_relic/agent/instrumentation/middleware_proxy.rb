@@ -7,15 +7,13 @@ require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction_state'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/instrumentation/controller_instrumentation'
+require 'new_relic/agent/instrumentation/middleware_tracing'
 
 module NewRelic
   module Agent
     module Instrumentation
       class MiddlewareProxy
-        include ::NewRelic::Agent::MethodTracer
-
-        CAPTURED_REQUEST_KEY = 'newrelic.captured_request'.freeze unless defined?(CAPTURED_REQUEST_KEY)
-        CALL = "call".freeze unless defined?(CALL)
+        include MiddlewareTracing
 
         # This class is used to wrap classes that are passed to
         # Rack::Builder#use without synchronously instantiating those classes.
@@ -55,6 +53,8 @@ module NewRelic
           end
         end
 
+        attr_reader :target, :category, :transaction_options
+
         def initialize(target, is_app=false)
           @target            = target
           @is_app            = is_app
@@ -75,7 +75,7 @@ module NewRelic
         end
 
         def determine_prefix
-          ::NewRelic::Agent::Instrumentation::ControllerInstrumentation::TransactionNamer.prefix_for_category(nil, @category)
+          ControllerInstrumentation::TransactionNamer.prefix_for_category(nil, @category)
         end
 
         # In 'normal' usage, the target will be an application instance that
@@ -89,42 +89,6 @@ module NewRelic
           else
             @target.class.name
           end
-        end
-
-        def _nr_has_middleware_tracing
-          true
-        end
-
-        def build_transaction_options(env)
-          if env[CAPTURED_REQUEST_KEY]
-            @transaction_options
-          else
-            env[CAPTURED_REQUEST_KEY] = true
-            queue_timefrontend_timestamp = QueueTime.parse_frontend_timestamp(env)
-            @transaction_options.merge(
-              :request          => ::Rack::Request.new(env),
-              :apdex_start_time => queue_timefrontend_timestamp
-            )
-          end
-        end
-
-        def call(env)
-          opts = build_transaction_options(env)
-          state = NewRelic::Agent::TransactionState.tl_get
-
-          begin
-            txn = Transaction.start(state, @category, opts)
-            @target.call(env)
-          rescue => e
-            txn.notice_error(e)
-            raise
-          ensure
-            Transaction.stop(state)
-          end
-        end
-
-        def target_for_testing
-          @target
         end
       end
     end
