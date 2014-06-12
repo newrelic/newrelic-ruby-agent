@@ -69,6 +69,19 @@
 
   Many thanks to Mario Izquierdo for the contribution!
 
+  * Better error handling for exceptions during browser monitoring injection
+
+  The agent middleware that injects the JavaScript code necessary for browser
+  monitoring now does a better job of catching errors that might occur during
+  the injection process.
+
+  * Allow disabling of Net::HTTP instrumentation
+
+  Most instrumentation in the Ruby agent can be disabled easily via a
+  configuration setting. Our Net::HTTP instrumentation was previously an
+  exception, but now it can also be disabled with the disable_net configuration
+  setting.
+
   * Make Rails constant presence check more defensive
 
   The Ruby agent now guards against the (rare) case where an application has a
