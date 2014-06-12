@@ -27,7 +27,7 @@ module NewRelic
     #
     # @api public
     #
-    class DeveloperMode
+    class DeveloperMode < AgentMiddleware
 
       VIEW_PATH   = File.expand_path('../../../../ui/views/'  , __FILE__)
       HELPER_PATH = File.expand_path('../../../../ui/helpers/', __FILE__)
@@ -35,7 +35,6 @@ module NewRelic
 
 
       include NewRelic::DeveloperModeHelper
-      include AgentMiddleware
 
       class << self
         attr_writer :profiling_enabled
@@ -43,10 +42,6 @@ module NewRelic
 
       def self.profiling_enabled?
         @profiling_enabled
-      end
-
-      def initialize(app)
-        @app = app
       end
 
       def traced_call(env)

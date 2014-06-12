@@ -4,38 +4,28 @@
 
 require 'new_relic/agent/transaction_state'
 require 'new_relic/agent/instrumentation/controller_instrumentation'
-require 'new_relic/agent/instrumentation/middleware_proxy'
+require 'new_relic/agent/instrumentation/middleware_tracing'
 
 module NewRelic
   module Rack
-    module AgentMiddleware
-      include Agent::Instrumentation::ControllerInstrumentation
+    class AgentMiddleware
+      include Agent::Instrumentation::MiddlewareTracing
 
-      DEFAULT_TRACE_OPTIONS = { :category => :middleware, :name => "call".freeze }.freeze
+      attr_reader :transaction_options, :category, :target
 
-      def _nr_has_middleware_tracing
-        true
+      def initialize(app, options={})
+        @app = app
+        @category = :middleware
+        @target   = self
+        @transaction_options = {
+          :transaction_name => build_transaction_name
+        }
       end
 
-      def call(env)
-        if env[NewRelic::Agent::Instrumentation::MiddlewareProxy::CAPTURED_REQUEST_KEY]
-          opts = DEFAULT_TRACE_OPTIONS
-        else
-          opts = DEFAULT_TRACE_OPTIONS.merge(:request => ::Rack::Request.new(env))
-          env[NewRelic::Agent::Instrumentation::MiddlewareProxy::CAPTURED_REQUEST_KEY] = true
-        end
-
-        perform_action_with_newrelic_trace(opts) do
-          traced_call(env)
-        end
+      def build_transaction_name
+        prefix = ::NewRelic::Agent::Instrumentation::ControllerInstrumentation::TransactionNamer.prefix_for_category(nil, @category)
+        "#{prefix}#{self.class.name}/call"
       end
-
-      # Overriding these methods inherited from ControllerInstrumentation is
-      # a performance optimization. See the comment in MiddlewareProxy for
-      # details.
-      def ignore_apdex?;   false; end
-      def ignore_enduser?; false; end
-      def do_not_trace?;   false; end
     end
   end
 end

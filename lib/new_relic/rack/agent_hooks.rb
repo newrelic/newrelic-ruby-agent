@@ -13,13 +13,7 @@ module NewRelic::Rack
   #
   # @api public
   #
-  class AgentHooks
-    def initialize(app, options = {})
-      @app = app
-    end
-
-    include AgentMiddleware
-
+  class AgentHooks < AgentMiddleware
     FIRED_FORMATS = {
       :before_call => "newrelic.agent_hooks_before_fired",
       :after_call  => "newrelic.agent_hooks_after_fired"

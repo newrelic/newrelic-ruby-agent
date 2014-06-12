@@ -9,18 +9,17 @@ require 'new_relic/agent/transaction_state'
 module NewRelic
   module Rack
     class AgentMiddlewareTest < Minitest::Test
-      class ExampleMiddleware
-        include AgentMiddleware
-
+      class ExampleMiddleware < AgentMiddleware
         def traced_call(env)
-          [200, {}, ['yeah!']]
+          @app.call(env)
         end
       end
 
       attr_reader :middleware, :env
 
       def setup
-        @middleware = ExampleMiddleware.new
+        @app = lambda { |env| [200, {}, ['yeah!']]}
+        @middleware = ExampleMiddleware.new(@app)
         @env = {}
       end
 

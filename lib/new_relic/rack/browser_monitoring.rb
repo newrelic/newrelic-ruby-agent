@@ -14,14 +14,7 @@ module NewRelic::Rack
   #
   # @api public
   #
-  class BrowserMonitoring
-
-    def initialize(app, options = {})
-      @app = app
-    end
-
-    include AgentMiddleware
-
+  class BrowserMonitoring < AgentMiddleware
     def traced_call(env)
       result = @app.call(env)   # [status, headers, response]
 
