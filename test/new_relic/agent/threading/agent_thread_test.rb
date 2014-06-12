@@ -11,16 +11,19 @@ module NewRelic::Agent::Threading
     def test_sets_label
       t = AgentThread.create("labelled") {}
       assert_equal "labelled", t[:newrelic_label]
+      t.join
     end
 
     def test_bucket_thread_as_agent_when_profiling
       t = AgentThread.create("labelled") {}
       assert_equal :agent, AgentThread.bucket_thread(t, true)
+      t.join
     end
 
     def test_bucket_thread_as_agent_when_not_profiling
       t = AgentThread.create("labelled") {}
       assert_equal :ignore, AgentThread.bucket_thread(t, false)
+      t.join
     end
 
     def test_bucket_thread_as_request
@@ -73,6 +76,7 @@ module NewRelic::Agent::Threading
     def test_bucket_thread_as_other
       t = ::Thread.new {}
       assert_equal :other, AgentThread.bucket_thread(t, DONT_CARE)
+      t.join
     end
 
     def test_runs_block
