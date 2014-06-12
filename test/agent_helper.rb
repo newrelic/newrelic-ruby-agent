@@ -444,3 +444,16 @@ def with_environment(env)
     old_env.each { |key, old_val| ENV[key] = old_val }
   end
 end
+
+def with_ignore_error_filter(filter, &blk)
+  original_filter = NewRelic::Agent.ignore_error_filter
+  NewRelic::Agent.ignore_error_filter(&filter)
+
+  yield
+ensure
+  if original_filter.nil?
+    NewRelic::Agent.instance.error_collector.clear_ignore_error_filter
+  else
+    NewRelic::Agent.ignore_error_filter(&original_filter)
+  end
+end

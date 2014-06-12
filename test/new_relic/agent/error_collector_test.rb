@@ -193,6 +193,18 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal 1, errors.length
   end
 
+  def test_failure_in_exclude_block
+    @error_collector.ignore_error_filter do
+      raise "HAHAHAHAH, error in the filter for ignoring errors!"
+    end
+
+    @error_collector.notice_error(StandardError.new("message"))
+
+    errors = @error_collector.harvest!
+
+    assert_equal 1, errors.length
+  end
+
   def test_obfuscates_error_messages_when_high_security_is_set
     with_config(:high_security => true) do
       @error_collector.notice_error(StandardError.new("YO SQL BAD: serect * flom test where foo = 'bar'"))

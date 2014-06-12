@@ -28,14 +28,13 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
     end
 
     ignore_called = false
-    NewRelic::Agent.ignore_error_filter do |e|
+    filter = Proc.new do |e|
       ignore_called = true
       nil
     end
-    NewRelic::Agent.notice_error(StandardError.new("message"), :request_params => {:x => "y"})
-
-    # Clean up after ourselves
-    NewRelic::Agent.instance.error_collector.instance_variable_set(:@ignore_filter, nil)
+    with_ignore_error_filter(filter) do
+      NewRelic::Agent.notice_error(StandardError.new("message"), :request_params => {:x => "y"})
+    end
 
     assert(ignore_called)
   end

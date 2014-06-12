@@ -194,17 +194,19 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_apdex_success_with_ignored_error
-    NewRelic::Agent.ignore_error_filter do |error|
+    filter = Proc.new do |error|
       error.is_a?(SillyError) ? nil : error
     end
 
-    txn_name = 'Controller/whatever'
-    in_web_transaction(txn_name) do
-      NewRelic::Agent::Transaction.notice_error(SillyError.new)
-    end
+    with_ignore_error_filter(filter) do
+      txn_name = 'Controller/whatever'
+      in_web_transaction(txn_name) do
+        NewRelic::Agent::Transaction.notice_error(SillyError.new)
+      end
 
-    in_web_transaction(txn_name) do
-      NewRelic::Agent::Transaction.notice_error(RuntimeError.new)
+      in_web_transaction(txn_name) do
+        NewRelic::Agent::Transaction.notice_error(RuntimeError.new)
+      end
     end
 
     assert_metrics_recorded(
@@ -601,6 +603,22 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     assert_metrics_not_recorded(['Controller/sinatra', 'Controller/toddler', 'Controller/infant'])
+  end
+
+  def test_failure_during_ignore_error_filter_doesnt_prevent_transaction
+    filter = Proc.new do |*_|
+      raise "HAHAHAHAH, error in the filter for ignoring errors!"
+    end
+
+    with_ignore_error_filter(filter) do
+      expects_logging(:error, includes("HAHAHAHAH"), any_parameters)
+
+      in_transaction("Controller/boom") do
+        NewRelic::Agent::Transaction.notice_error(SillyError.new)
+      end
+
+      assert_metrics_recorded('Controller/boom')
+    end
   end
 
   def assert_has_custom_parameter(txn, key, value = key)
