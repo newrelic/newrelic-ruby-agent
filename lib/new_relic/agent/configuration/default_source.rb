@@ -789,7 +789,7 @@ module NewRelic
         },
         :'browser_monitoring.capture_attributes' => {
           :default => false,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :description => 'Include custom attributes in real user monitoring script in outgoing responses.'
         },
