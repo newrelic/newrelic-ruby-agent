@@ -113,7 +113,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
 
           begin
-            txn = Transaction.start(state, :middleware, opts)
+            txn = Transaction.start(state, @category, opts)
             @target.call(env)
           rescue => e
             txn.notice_error(e)
