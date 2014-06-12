@@ -61,7 +61,7 @@ module NewRelic
           @category          = determine_category
           @target_class_name = determine_class_name
           @transaction_name  = "#{determine_prefix}#{@target_class_name}/call"
-          @transaction_opts  = {
+          @transaction_options  = {
             :transaction_name => @transaction_name
           }
         end
@@ -95,13 +95,13 @@ module NewRelic
           true
         end
 
-        def transaction_options(env)
+        def build_transaction_options(env)
           if env[CAPTURED_REQUEST_KEY]
-            @transaction_opts
+            @transaction_options
           else
             env[CAPTURED_REQUEST_KEY] = true
             queue_timefrontend_timestamp = QueueTime.parse_frontend_timestamp(env)
-            @transaction_opts.merge(
+            @transaction_options.merge(
               :request          => ::Rack::Request.new(env),
               :apdex_start_time => queue_timefrontend_timestamp
             )
@@ -109,7 +109,7 @@ module NewRelic
         end
 
         def call(env)
-          opts = transaction_options(env)
+          opts = build_transaction_options(env)
           state = NewRelic::Agent::TransactionState.tl_get
 
           begin
