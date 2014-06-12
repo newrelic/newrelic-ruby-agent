@@ -970,6 +970,13 @@ module NewRelic
           :dynamic_name => true,
           :description  => 'Controls whether instrumentation for the httpclient gem will be installed by the agent.'
         },
+        :disable_net_http => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Controls whether instrumentation for Net::HTTP will be installed by the agent.'
+        },
         :disable_mongo => {
           :default      => false,
           :public       => true,
