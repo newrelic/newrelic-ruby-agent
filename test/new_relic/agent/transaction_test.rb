@@ -621,6 +621,18 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_multiple_similar_errors_in_transaction_do_not_crash
+    in_transaction do |txn|
+      e0 = StandardError.new('err')
+      e1 = StandardError.new('err')
+      assert_equal(e0, e1)
+      txn.notice_error(e0)
+      txn.notice_error(e1)
+    end
+
+    assert_metrics_recorded('Errors/all' => { :call_count => 2 })
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end
