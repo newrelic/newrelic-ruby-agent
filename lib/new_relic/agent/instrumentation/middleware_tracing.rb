@@ -15,7 +15,7 @@ require 'new_relic/agent/instrumentation/controller_instrumentation'
 #
 # * target: returns the original middleware being traced
 # * category: returns the category for the resulting agent transaction
-#             shoudl be either :middleware or :rack
+#             should be either :middleware or :rack
 # * transaction_options: returns an options hash to be passed to
 #                        Transaction.start when tracing this middleware.
 #
