@@ -10,6 +10,9 @@ SidekiqServer.instance.run
 # Important to require after Sidekiq server starts for middleware to install
 require 'newrelic_rpm'
 
+require 'logger'
+require 'stringio'
+
 require 'fake_collector'
 require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), "test_worker")
@@ -25,7 +28,22 @@ class SidekiqTest < Minitest::Test
 
   include MultiverseHelpers
 
-  setup_and_teardown_agent
+  setup_and_teardown_agent do
+    TestWorker.register_signal('jobs_completed')
+    @sidekiq_log = ::StringIO.new
+
+    string_logger = ::Logger.new(@sidekiq_log)
+    string_logger.formatter = Sidekiq.logger.formatter
+    Sidekiq.logger = string_logger
+  end
+
+  def teardown
+    teardown_agent
+    if !passed? || ENV["VERBOSE"]
+      @sidekiq_log.rewind
+      puts @sidekiq_log.read
+    end
+  end
 
   def run_jobs
     run_and_transmit do |i|
@@ -93,7 +111,7 @@ class SidekiqTest < Minitest::Test
     end
 
     transaction_samples = $collector.calls_for('transaction_sample_data')
-    assert_false transaction_samples.empty?
+    refute transaction_samples.empty?, "Expected a transaction trace"
 
     transaction_samples.each do |post|
       post.samples.each do |sample|
@@ -120,7 +138,7 @@ class SidekiqTest < Minitest::Test
 
   def assert_no_params_on_jobs
     transaction_samples = $collector.calls_for('transaction_sample_data')
-    assert_false transaction_samples.empty?
+    refute transaction_samples.empty?, "Didn't find any transaction samples!"
 
     transaction_samples.each do |post|
       post.samples.each do |sample|

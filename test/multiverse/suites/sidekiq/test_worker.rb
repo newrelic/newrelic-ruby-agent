@@ -8,8 +8,21 @@ class TestWorker
   sidekiq_options :queue => SidekiqServer.instance.queue_name
 
   @jobs = {}
+  @jobs_mutex = Mutex.new
+
   @done_signal = ConditionVariable.new
-  @mutex = Mutex.new
+  @done_mutex = Mutex.new
+
+  def self.register_signal(key)
+    return if @registered_signal
+
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      if @jobs[key].count == @done_at
+        @done_signal.signal
+      end
+    end
+    @registered_signal = true
+  end
 
   def self.run_jobs(count)
     reset(count)
@@ -25,9 +38,10 @@ class TestWorker
   end
 
   def self.record(key, val)
-    @jobs[key] ||= []
-    @jobs[key] << val
-    @done_signal.signal if val == @done_at
+    @jobs_mutex.synchronize do
+      @jobs[key] ||= []
+      @jobs[key] << val
+    end
   end
 
   def self.records_for(key)
@@ -35,8 +49,8 @@ class TestWorker
   end
 
   def self.wait
-    @mutex.synchronize do
-      @done_signal.wait(@mutex, 1)
+    @done_mutex.synchronize do
+      @done_signal.wait(@done_mutex, 1)
     end
   end
 
