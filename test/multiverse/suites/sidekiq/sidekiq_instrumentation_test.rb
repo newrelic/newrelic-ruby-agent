@@ -10,6 +10,9 @@ SidekiqServer.instance.run
 # Important to require after Sidekiq server starts for middleware to install
 require 'newrelic_rpm'
 
+require 'logger'
+require 'stringio'
+
 require 'fake_collector'
 require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), "test_worker")
@@ -27,6 +30,19 @@ class SidekiqTest < Minitest::Test
 
   setup_and_teardown_agent do
     TestWorker.register_signal('jobs_completed')
+    @sidekiq_log = ::StringIO.new
+
+    formatter = Sidekiq.logger.formatter
+    Sidekiq.logger = ::Logger.new(@sidekiq_log)
+    Sidekiq.logger.formatter = formatter
+  end
+
+  def teardown
+    teardown_agent
+    if !passed? || ENV["VERBOSE"]
+      @sidekiq_log.rewind
+      puts @sidekiq_log.read
+    end
   end
 
   def run_jobs
