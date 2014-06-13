@@ -342,14 +342,17 @@ module NewRelic
 
           # If a block was passed in, then the arguments represent options for
           # the instrumentation, not app method arguments.
-          if block_given? && args.last.is_a?(Hash)
-            trace_options = args.last
+          trace_options = NR_DEFAULT_OPTIONS
+
+          if block_given?
+            trace_options    = args.last if args.last.is_a?(Hash)
+            available_params = trace_options[:params]
           else
-            trace_options = NR_DEFAULT_OPTIONS
+            available_params = respond_to?(:params) && params
           end
 
           category    = trace_options[:category] || :controller
-          txn_options = create_transaction_options(trace_options)
+          txn_options = create_transaction_options(trace_options, available_params)
           txn_options[:transaction_name] = TransactionNamer.name(nil, self, category, trace_options)
           txn_options[:apdex_start_time] = detect_queue_start_time(state)
 
@@ -424,12 +427,10 @@ module NewRelic
 
         private
 
-        def create_transaction_options(trace_options)
+        def create_transaction_options(trace_options, available_params)
           txn_options = {}
+          txn_options[:request] = trace_options[:request] || (respond_to?(:request) && request)
 
-          txn_options[:request]    = trace_options[:request] || (respond_to?(:request) && request)
-
-          available_params = trace_options[:params] || (respond_to?(:params) && params)
           if available_params
             txn_options[:filtered_params] = (respond_to?(:filter_parameters)) ? filter_parameters(available_params) : available_params
           end
