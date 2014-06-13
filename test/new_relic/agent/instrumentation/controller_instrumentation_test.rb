@@ -151,4 +151,71 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
     with_method_name = 'public_transaction_with_newrelic_transaction_trace'
     assert TestObject.already_added_transaction_tracer?(TestObject, with_method_name)
   end
+
+  # ControllerInstrumentation historically was used to instrument Rails 2
+  # controllers, and in this case is called without a block. In that case, and
+  # that case *only*, we want to try to call params on the host object to
+  # extract request params.
+  #
+  # In the more modern usage where it's called with a block we do *not* want to
+  # call params on the host object. This is important because doing so could
+  # actually crash in some cases.
+  def test_should_not_call_params_on_host_if_called_with_block
+    host_class = Class.new do
+      include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+      # It's a more realistic test if the host class actually responds to params
+      def params
+        raise 'no!'
+      end
+
+      def doit
+        perform_action_with_newrelic_trace do
+          # nothing
+        end
+      end
+    end
+
+    host = host_class.new
+    host.expects(:params).never
+    host.doit
+  end
+
+  def test_should_not_call_params_on_host_if_no_block_given_but_does_not_respond_to_params
+    host_class = Class.new do
+      include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+      def doit
+        perform_action_with_newrelic_trace
+      end
+
+      def perform_action_without_newrelic_trace; end
+    end
+
+    host = host_class.new
+    refute host.respond_to?(:params)
+    host.doit
+  end
+
+  def test_should_call_params_on_host_if_no_block_given_and_host_responds
+    host_class = Class.new do
+      include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+      attr_reader :params_called
+
+      def params
+        @params_called = true
+      end
+
+      def doit
+        perform_action_with_newrelic_trace
+      end
+
+      def perform_action_without_newrelic_trace; end
+    end
+
+    host = host_class.new
+    host.doit
+    assert host.params_called
+  end
 end
