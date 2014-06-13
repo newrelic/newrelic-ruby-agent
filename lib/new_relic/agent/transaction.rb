@@ -488,7 +488,7 @@ module NewRelic
         options[:uri] = uri if uri
         options.merge!(custom_parameters)
 
-        if @exceptions.keys.include?(error)
+        if @exceptions[error]
           @exceptions[error].merge! options
         else
           @exceptions[error] = options
