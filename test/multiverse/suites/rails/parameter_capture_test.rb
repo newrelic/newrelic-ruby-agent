@@ -9,6 +9,15 @@ class ParameterCaptureController < ApplicationController
     render :text => 'hi!'
   end
 
+  def sql
+    NewRelic::Agent.agent.sql_sampler.notice_sql(
+      'SELECT * FROM table',
+      'ActiveRecord/foos/find',
+      {},
+      100.0
+    )
+  end
+
   def error
     raise 'wut'
   end
@@ -96,6 +105,48 @@ class ParameterCaptureTest < RailsMultiverseTest
     assert_equal({}, last_transaction_trace_request_params)
   end
 
+  def test_uri_on_tt_should_not_contain_query_string_with_capture_params_off
+    with_config(:capture_params => false) do
+      get '/parameter_capture/transaction?param1=value1&param2=value2'
+    end
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+  end
+
+  def test_uri_on_tt_should_not_contain_query_string_with_capture_params_on
+    with_config(:capture_params => true) do
+      get '/parameter_capture/transaction?param1=value1&param2=value2'
+    end
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+  end
+
+  def test_uri_on_traced_error_should_not_contain_query_string_with_capture_params_off
+    with_config(:capture_params => false) do
+      get '/parameter_capture/error?param1=value1&param2=value2'
+    end
+    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
+  end
+
+  def test_uri_on_traced_error_should_not_contain_query_string_with_capture_params_on
+    with_config(:capture_params => true) do
+      get '/parameter_capture/error?param1=value1&param2=value2'
+    end
+    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
+  end
+
+  def test_uri_on_sql_trace_should_not_contain_query_string_with_capture_params_off
+    with_config(:capture_params => false) do
+      get '/parameter_capture/sql?param1=value1&param2=value2'
+    end
+    assert_equal('/parameter_capture/sql', last_sql_trace.url)
+  end
+
+  def test_uri_on_sql_trace_should_not_contain_query_string_with_capture_params_on
+    with_config(:capture_params => true) do
+      get '/parameter_capture/sql?param1=value1&param2=value2'
+    end
+    assert_equal('/parameter_capture/sql', last_sql_trace.url)
+  end
+
   def last_traced_error
     NewRelic::Agent.agent.error_collector.errors.last
   end
@@ -112,4 +163,7 @@ class ParameterCaptureTest < RailsMultiverseTest
     last_transaction_trace.params[:request_params]
   end
 
+  def last_sql_trace
+    NewRelic::Agent.agent.sql_sampler.sql_traces.values.last
+  end
 end
