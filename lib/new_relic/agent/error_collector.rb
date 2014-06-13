@@ -105,7 +105,7 @@ module NewRelic
         def error_is_ignored?(error)
           error && filtered_error?(error)
         rescue => e
-          NewRelic::Agent.logger.error("Exception '#{e}' during ignore_error_filter. Error '#{error}' will _not_ be ignored.", e)
+          NewRelic::Agent.logger.error("Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e)
           false
         end
 
