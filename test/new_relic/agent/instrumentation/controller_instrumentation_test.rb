@@ -205,6 +205,7 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
 
       def params
         @params_called = true
+        {}
       end
 
       def doit
