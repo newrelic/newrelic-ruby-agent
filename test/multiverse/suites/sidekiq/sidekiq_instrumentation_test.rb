@@ -32,9 +32,9 @@ class SidekiqTest < Minitest::Test
     TestWorker.register_signal('jobs_completed')
     @sidekiq_log = ::StringIO.new
 
-    formatter = Sidekiq.logger.formatter
-    Sidekiq.logger = ::Logger.new(@sidekiq_log)
-    Sidekiq.logger.formatter = formatter
+    string_logger = ::Logger.new(@sidekiq_log)
+    string_logger.formatter = Sidekiq.logger.formatter
+    Sidekiq.logger = string_logger
   end
 
   def teardown
