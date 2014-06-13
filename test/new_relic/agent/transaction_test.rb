@@ -622,9 +622,15 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_multiple_similar_errors_in_transaction_do_not_crash
+    error_class = Class.new(StandardError) do
+      def ==(other)
+        self.message == other.message
+      end
+    end
+
     in_transaction do |txn|
-      e0 = StandardError.new('err')
-      e1 = StandardError.new('err')
+      e0 = error_class.new('err')
+      e1 = error_class.new('err')
       assert_equal(e0, e1)
       txn.notice_error(e0)
       txn.notice_error(e1)
