@@ -298,7 +298,7 @@ module NewRelic
         # * <tt>:category => :task</tt> indicates that this is a
         #   background task and will show up in New Relic with other background
         #   tasks instead of in the controllers list
-        # * <tt>:category => :rack</tt> if you are instrumenting a rack
+        # * <tt>:category => :middleware</tt> if you are instrumenting a rack
         #   middleware call.  The <tt>:name</tt> is optional, useful if you
         #   have more than one potential transaction in the #call.
         # * <tt>:category => :uri</tt> indicates that this is a
