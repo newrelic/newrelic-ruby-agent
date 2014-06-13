@@ -25,7 +25,9 @@ class SidekiqTest < Minitest::Test
 
   include MultiverseHelpers
 
-  setup_and_teardown_agent
+  setup_and_teardown_agent do
+    TestWorker.register_signal('jobs_completed')
+  end
 
   def run_jobs
     run_and_transmit do |i|
@@ -93,7 +95,7 @@ class SidekiqTest < Minitest::Test
     end
 
     transaction_samples = $collector.calls_for('transaction_sample_data')
-    assert_false transaction_samples.empty?
+    refute transaction_samples.empty?, "Expected a transaction trace"
 
     transaction_samples.each do |post|
       post.samples.each do |sample|
@@ -120,7 +122,7 @@ class SidekiqTest < Minitest::Test
 
   def assert_no_params_on_jobs
     transaction_samples = $collector.calls_for('transaction_sample_data')
-    assert_false transaction_samples.empty?
+    refute transaction_samples.empty?, "Didn't find any transaction samples!"
 
     transaction_samples.each do |post|
       post.samples.each do |sample|
