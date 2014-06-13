@@ -29,9 +29,6 @@ module NewRelic::Rack
 
       # sanity checks
       assert NewRelic::Agent.instance.error_collector.enabled?
-      NewRelic::Agent.instance.error_collector \
-        .instance_variable_set(:@ignore_filter, nil)
-      assert !NewRelic::Agent.instance.error_collector.ignore_error_filter
     end
 
     def test_notice_and_reraise_errors
@@ -43,12 +40,14 @@ module NewRelic::Rack
     end
 
     def test_ignore_filtered_errors
-      NewRelic::Agent.instance.error_collector.ignore_error_filter do |error|
+      filter = Proc.new do |error|
         !error.kind_of?(RuntimeError)
       end
 
-      assert_raises RuntimeError do
-        get '/'
+      with_ignore_error_filter(filter) do
+        assert_raises RuntimeError do
+          get '/'
+        end
       end
 
       assert(NewRelic::Agent.instance.error_collector.errors.empty?,

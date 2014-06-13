@@ -207,11 +207,14 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
   end
 
   def test_should_not_notice_filtered_errors
-    NewRelic::Agent.instance.error_collector.ignore_error_filter do |error|
+    filter = Proc.new do |error|
       !error.kind_of?(RuntimeError)
     end
 
-    get '/error/controller_error'
+    with_ignore_error_filter(filter) do
+      get '/error/controller_error'
+    end
+
     assert(NewRelic::Agent.instance.error_collector.errors.empty?,
            'Noticed an error that should have been ignored')
   end

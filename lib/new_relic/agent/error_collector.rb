@@ -70,6 +70,12 @@ module NewRelic
         end
       end
 
+      # Only used from testing scenarios since can't tell difference between
+      # having a nil filter passed and no block for retrieval on main method.
+      def clear_ignore_error_filter
+        @ignore_filter = nil
+      end
+
       # errors is an array of Exception Class Names
       #
       def ignore(errors)
@@ -98,6 +104,9 @@ module NewRelic
         # an error is ignored if it is nil or if it is filtered
         def error_is_ignored?(error)
           error && filtered_error?(error)
+        rescue => e
+          NewRelic::Agent.logger.error("Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e)
+          false
         end
 
         def seen?(txn, exception)
