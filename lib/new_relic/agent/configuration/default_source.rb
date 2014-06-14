@@ -703,7 +703,7 @@ module NewRelic
           :description => 'Enable or disable recording of traced errors and error count metrics.'
         },
         :'error_collector.capture_source' => {
-          :default => true,
+          :default => false,
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable collection of source code for errors that support it.'
