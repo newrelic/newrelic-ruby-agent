@@ -205,7 +205,7 @@ module NewRelic
         @request_params = @sample.params['request_params'] || {}
         @custom_params = @sample.params['custom_params'] || {}
 
-        controller_metric = @sample.root_segment.called_segments.first.metric_name
+        controller_metric = @sample.transaction_name
 
         metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named controller_metric
         @sample_controller_name = metric_parser.controller_name
