@@ -570,6 +570,12 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable memcache instrumentation.'
         },
+        :disable_gc_profiler => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable usage of GC::Profiler to measure time spent in garbage collection'
+        },
         :capture_params => {
           :default => false,
           :public => true,

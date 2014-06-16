@@ -73,7 +73,7 @@ module NewRelic::LanguageSupport
   end
 
   def gc_profiler_enabled?
-    if gc_profiler_usable? && ::GC::Profiler.enabled?
+    if gc_profiler_usable? && ::GC::Profiler.enabled? && !::NewRelic::Agent.config[:disable_gc_profiler]
       true
     else
       false
