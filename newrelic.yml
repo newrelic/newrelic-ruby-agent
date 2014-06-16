@@ -160,11 +160,6 @@ common: &default_settings
     # product levels.
     enabled: true
 
-    # Rails Only - tells error collector whether or not to capture a
-    # source snippet around the place of the error when errors are View
-    # related.
-    capture_source: true
-
     # To stop specific errors from reporting to New Relic, set this property
     # to comma-separated values.  Default is to ignore routing errors,
     # which are how 404's get triggered.

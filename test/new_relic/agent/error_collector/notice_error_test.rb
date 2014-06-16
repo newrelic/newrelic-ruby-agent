@@ -85,29 +85,6 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
     end
   end
 
-  def test_extract_source_base
-    with_config(:'error_collector.capture_source' => true) do
-      error_collector = NewRelic::Agent::ErrorCollector.new
-      error_collector.expects(:sense_method).with(nil, 'source_extract')
-      assert_equal(nil, error_collector.extract_source(nil))
-    end
-  end
-
-  def test_extract_source_disabled
-    with_config(:'error_collector.capture_source' => false) do
-      error_collector = NewRelic::Agent::ErrorCollector.new
-      assert_equal(nil, error_collector.extract_source(mock('exception')))
-    end
-  end
-
-  def test_extract_source_with_source
-    with_config(:'error_collector.capture_source' => true) do
-      error_collector = NewRelic::Agent::ErrorCollector.new
-      error_collector.expects(:sense_method).with('happy', 'source_extract').returns('THE SOURCE')
-      assert_equal('THE SOURCE', error_collector.extract_source('happy'))
-    end
-  end
-
   def test_extract_stack_trace
     exception = mock('exception')
     self.expects(:sense_method).with(exception, 'original_exception')
@@ -138,9 +115,8 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
     exception = mock('exception')
     self.expects(:sense_method).with(exception, 'file_name').returns('file_name')
     self.expects(:sense_method).with(exception, 'line_number').returns('line_number')
-    self.expects(:extract_source).with(exception).returns('source')
     self.expects(:extract_stack_trace).with(exception).returns('stack_trace')
-    assert_equal({:file_name => 'file_name', :line_number => 'line_number', :source => 'source', :stack_trace => 'stack_trace'},
+    assert_equal({:file_name => 'file_name', :line_number => 'line_number', :stack_trace => 'stack_trace'},
                  exception_info(exception))
   end
 

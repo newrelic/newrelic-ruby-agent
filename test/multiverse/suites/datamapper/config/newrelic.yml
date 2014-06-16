@@ -1,7 +1,6 @@
 ---
 development:
   error_collector:
-    capture_source: true
     enabled: true
   apdex_t: 0.5
   ssl: false

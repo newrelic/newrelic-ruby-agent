@@ -28,7 +28,6 @@ module NewRelic
 
         # lookup of exception class names to ignore.  Hash for fast access
         @ignore = {}
-        @capture_source = Agent.config[:'error_collector.capture_source']
 
         initialize_ignored_errors(Agent.config[:'error_collector.ignore_errors'])
         @lock = Mutex.new
@@ -208,12 +207,6 @@ module NewRelic
           object.send(method) if object.respond_to?(method)
         end
 
-        # extracts source from the exception, if the exception supports
-        # that method
-        def extract_source(exception)
-          sense_method(exception, 'source_extract') if @capture_source
-        end
-
         # extracts a stack trace from the exception for debugging purposes
         def extract_stack_trace(exception)
           actual_exception = sense_method(exception, 'original_exception') || exception
@@ -227,7 +220,6 @@ module NewRelic
           {
             :file_name => sense_method(exception, 'file_name'),
             :line_number => sense_method(exception, 'line_number'),
-            :source => extract_source(exception),
             :stack_trace => extract_stack_trace(exception)
           }
         end
