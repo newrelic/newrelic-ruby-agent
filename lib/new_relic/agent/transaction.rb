@@ -30,8 +30,6 @@ module NewRelic
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
       EMPTY_SUMMARY_METRICS        = [].freeze
 
-      EMPTY_STRING                 = ''
-
       # A Time instance for the start time, never nil
       attr_accessor :start_time
 
