@@ -12,7 +12,8 @@ namespace :newrelic do
 
     def versions_for_type(type)
       NewRelic::Agent::SUPPORTED_VERSIONS.
-        select {|_,v| v[:type] == type}.
+        select  {|key, values| values[:type] == type}.
+        sort_by {|key, values| (values[:name] || key).to_s }.
         map    do |key,values|
           VersionStruct.new(
             values[:name] || key,
@@ -30,7 +31,7 @@ namespace :newrelic do
       ERB.new(template)
     end
 
-    def write_versions(title, type, erb, suppress_versions = false)
+    def write_versions(title, type, erb)
       anchor = title.downcase.gsub(" ", "_")
       versions = versions_for_type(type)
       puts erb.result(binding).gsub(/^ *$/, '')
@@ -47,6 +48,6 @@ namespace :newrelic do
     write_versions("Database",        :database, erb)
     write_versions("Background Jobs", :background, erb)
     write_versions("HTTP Clients",    :http, erb)
-    write_versions("Other",           :other, erb, true)
+    write_versions("Other",           :other, erb)
   end
 end
