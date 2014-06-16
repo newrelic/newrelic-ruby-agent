@@ -243,6 +243,7 @@ module NewRelic
       :activemerchant =>
       {
         :type        => :other,
+        :supported   => [ ">= 1.25.0"],
         :url         => "https://rubygems.org/gems/activemerchant",
         :feed        => "https://rubygems.org/gems/activemerchant/versions.atom"
       },
