@@ -1,7 +1,7 @@
 #
-# This file configures the New Relic Agent.  New Relic monitors
-# Ruby, Java, .NET, PHP, and Python applications with deep visibility and low overhead.
-# For more information, visit www.newrelic.com.
+# This file configures the New Relic Agent.  New Relic monitors Ruby, Java,
+# .NET, PHP, Python and Node applications with deep visibility and low
+# overhead.  For more information, visit www.newrelic.com.
 #
 # Generated <%= Time.now.strftime('%B %d, %Y') %>, for version <%= NewRelic::VERSION::STRING %>
 #
@@ -192,7 +192,7 @@ development:
   # executed since starting the mongrel.
   # NOTE: There is substantial overhead when running in developer mode.
   # Do not use for production or load testing.
-  developer_mode: false
+  developer_mode: true
 
 test:
   <<: *default_settings
