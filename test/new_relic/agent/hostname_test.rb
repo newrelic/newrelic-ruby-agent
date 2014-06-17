@@ -14,7 +14,7 @@ module NewRelic
       end
 
       def test_get_uses_dyno_name_if_dyno_env_set_and_dyno_names_enabled
-        with_config(:disable_heroku_dyno_names => false) do
+        with_config(:use_heroku_dyno_names => true) do
           Socket.stubs(:gethostname).returns('Rivendell')
           ENV['DYNO'] = 'Imladris'
 
@@ -26,7 +26,7 @@ module NewRelic
       end
 
       def test_get_uses_socket_gethostname_if_dyno_env_set_and_dyno_names_disabled
-        with_config(:disable_heroku_dyno_names => true) do
+        with_config(:use_heroku_dyno_names => false) do
           Socket.stubs(:gethostname).returns('Rivendell')
           ENV['DYNO'] = 'Imladris'
 
