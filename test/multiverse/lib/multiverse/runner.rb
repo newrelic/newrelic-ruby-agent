@@ -46,6 +46,18 @@ module Multiverse
     end
 
     def run(filter="", opts={})
+      execute_suites(filter, opts) do |suite|
+        suite.execute
+      end
+    end
+
+    def prime(filter="", opts={})
+      execute_suites(filter, opts) do |suite|
+        suite.prime
+      end
+    end
+
+    def execute_suites(filter, opts)
       Dir.new(SUITES_DIRECTORY).entries.each do |dir|
         full_path = File.join(SUITES_DIRECTORY, dir)
 
@@ -55,7 +67,7 @@ module Multiverse
 
         begin
           suite = Suite.new(full_path, opts)
-          suite.execute
+          yield suite
         rescue => e
           puts red("Error when trying to run suite in #{full_path.inspect}")
           puts

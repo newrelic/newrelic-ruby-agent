@@ -37,6 +37,12 @@ namespace :test do
     ruby test_files.join(" ")
   end
 
+  task 'multiverse:prime', [:suite] => [] do |t, args|
+    require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'multiverse', 'lib', 'multiverse', 'environment'))
+    opts = Multiverse::Runner.parse_args(args)
+    Multiverse::Runner.prime(args.suite, opts)
+  end
+
   desc "Run agent performance tests"
   task :performance, [:suite, :name] => [] do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'performance', 'lib', 'performance'))
