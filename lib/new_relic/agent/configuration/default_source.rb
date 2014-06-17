@@ -1010,6 +1010,12 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :description  => 'Controls whether 3rd-party middlewares will be wrapped in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
+        },
+        :use_heroku_dyno_names => {
+          :default      => false,
+          :public       => false,
+          :type         => Boolean,
+          :description  => 'Controls whether or not we use the heroku dyno name as the hostname.'
         }
       }.freeze
 

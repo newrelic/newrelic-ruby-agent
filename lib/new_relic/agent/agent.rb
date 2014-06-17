@@ -11,6 +11,7 @@ require 'stringio'
 require 'new_relic/agent/sampled_buffer'
 require 'new_relic/agent/autostart'
 require 'new_relic/agent/harvester'
+require 'new_relic/agent/hostname'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
@@ -893,7 +894,7 @@ module NewRelic
 
         # Who am I? Well, this method can tell you your hostname.
         def determine_host
-          Socket.gethostname
+          NewRelic::Agent::Hostname.get
         end
 
         def local_host
