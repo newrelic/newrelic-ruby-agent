@@ -1013,7 +1013,7 @@ module NewRelic
         },
         :use_heroku_dyno_names => {
           :default      => false,
-          :public       => true,
+          :public       => false,
           :type         => Boolean,
           :description  => 'Controls whether or not we use the heroku dyno name as the hostname.'
         }
