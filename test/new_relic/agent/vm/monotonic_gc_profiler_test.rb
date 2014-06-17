@@ -30,12 +30,13 @@ class MonotonicGCProfilerTest < Minitest::Test
       GC::Profiler.expects(:clear).once
       profiler.total_time_s
     end
+
+    def test_total_time_does_not_raise_if_called_when_not_enabled
+      NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(false)
+      GC::Profiler.expects(:total_time).never
+
+      profiler.total_time_s
+    end
   end
 
-  def test_total_time_does_not_raise_if_called_when_not_enabled
-    NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(false)
-    GC::Profiler.expects(:total_time).never
-
-    profiler.total_time_s
-  end
 end
