@@ -19,25 +19,22 @@ module NewRelic
           @lock         = Mutex.new
         end
 
-        class ProfilerNotEnabledError < StandardError
-          def initialize
-            super("total_time is not available if GC::Profiler isn't enabled")
-          end
-        end
-
         def total_time_s
-          raise ProfilerNotEnabledError.new unless NewRelic::LanguageSupport.gc_profiler_enabled?
-
-          # There's a race here if the next two lines don't execute as an atomic
-          # unit - we may end up double-counting some GC time in that scenario.
-          # Locking around them guarantees atomicity of the read/increment/reset
-          # sequence.
-          @lock.synchronize do
-            # The Ruby 1.9.x docs claim that GC::Profiler.total_time returns
-            # a value in milliseconds. They are incorrect - both 1.9.x and 2.x
-            # return values in seconds.
-            @total_time_s += ::GC::Profiler.total_time
-            ::GC::Profiler.clear
+          if NewRelic::LanguageSupport.gc_profiler_enabled?
+            # There's a race here if the next two lines don't execute as an atomic
+            # unit - we may end up double-counting some GC time in that scenario.
+            # Locking around them guarantees atomicity of the read/increment/reset
+            # sequence.
+            @lock.synchronize do
+              # The Ruby 1.9.x docs claim that GC::Profiler.total_time returns
+              # a value in milliseconds. They are incorrect - both 1.9.x and 2.x
+              # return values in seconds.
+              @total_time_s += ::GC::Profiler.total_time
+              ::GC::Profiler.clear
+            end
+          else
+            NewRelic::Agent.logger.log_once(:warn, :gc_profiler_disabled,
+              "Tried to measure GC time, but GC::Profiler was not enabled.")
           end
 
           @total_time_s
