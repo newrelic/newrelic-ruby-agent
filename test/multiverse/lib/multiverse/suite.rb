@@ -69,7 +69,7 @@ module Multiverse
     end
 
     # load the environment for this suite after we've forked
-    def load_dependencies(gemfile_text, env_index)
+    def load_dependencies(gemfile_text, env_index, should_print=true)
       ENV["BUNDLE_GEMFILE"] = "Gemfile.#{env_index}"
       clean_gemfiles(env_index)
       begin
@@ -82,7 +82,7 @@ module Multiverse
         generate_gemfile(gemfile_text, env_index, false)
         bundle
       end
-      print_environment
+      print_environment if should_print
     end
 
     def bundle
@@ -174,6 +174,19 @@ module Multiverse
 
     def should_serialize?
       ENV['SERIALIZE'] || debug
+    end
+
+    def prime
+      ENV["VERBOSE"]= "1"
+      puts yellow("\nPriming #{directory.inspect}")
+      @environments = nil
+
+      environments.each_with_index do |gemfile_text, env_index|
+        puts yellow("... for Envfile entry #{env_index}")
+        with_clean_env do
+          load_dependencies(gemfile_text, env_index, false)
+        end
+      end
     end
 
     # Load the test suite's environment and execute it.
