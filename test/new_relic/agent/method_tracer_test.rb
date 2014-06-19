@@ -353,7 +353,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     begin
       metric = "hey"
       self.class.trace_execution_scoped(metric) do
-        throw StandardError.new
+        raise StandardError.new
       end
 
       assert false # should never get here
