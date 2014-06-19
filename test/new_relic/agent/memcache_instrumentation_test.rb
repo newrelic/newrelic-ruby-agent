@@ -75,10 +75,12 @@ if memcached_ready
     def test_reads__web
       commands = ['get']
       commands << 'get_multi' unless MEMCACHED_CLASS.name == 'Spymemcached'
-      commands.each do |method|
+      expected_metrics = commands
+      expected_metrics = ['single_get', 'multi_get'] if MEMCACHED_CLASS.name == 'Memcached' && Memcached::VERSION >= '1.8.0'
+      commands.zip(expected_metrics) do |method, metric|
         if @cache.class.method_defined?(method)
           _call_test_method_in_web_transaction(method)
-          compare_metrics ["Memcache/#{method}", "Memcache/allWeb", "Memcache/#{method}:Controller/NewRelic::Agent::MemcacheInstrumentationTest/action"],
+          compare_metrics ["Memcache/#{metric}", "Memcache/allWeb", "Memcache/#{metric}:Controller/NewRelic::Agent::MemcacheInstrumentationTest/action"],
           @engine.metrics.select{|m| m =~ /^memcache.*/i}
         end
       end
@@ -106,10 +108,12 @@ if memcached_ready
     def test_reads__background
       commands = ['get']
       commands << 'get_multi' unless MEMCACHED_CLASS.name == 'Spymemcached'
-      commands.each do |method|
+      expected_metrics = commands
+      expected_metrics = ['single_get', 'multi_get'] if MEMCACHED_CLASS.name == 'Memcached' && Memcached::VERSION >= '1.8.0'
+      commands.zip(expected_metrics) do |method, metric|
         if @cache.class.method_defined?(method)
           _call_test_method_in_background_task(method)
-          compare_metrics ["Memcache/#{method}", "Memcache/allOther", "Memcache/#{method}:OtherTransaction/Background/NewRelic::Agent::MemcacheInstrumentationTest/bg_task"],
+          compare_metrics ["Memcache/#{metric}", "Memcache/allOther", "Memcache/#{metric}:OtherTransaction/Background/NewRelic::Agent::MemcacheInstrumentationTest/bg_task"],
           @engine.metrics.select{|m| m =~ /^memcache.*/i}
         end
       end
@@ -135,7 +139,9 @@ if memcached_ready
     end
 
     def test_handles_cas
-      expected_metrics = ["Memcache/cas", "Memcache/allOther", "Memcache/cas:OtherTransaction/Background/NewRelic::Agent::MemcacheInstrumentationTest/bg_task"]
+      expected_metrics = ["cas"]
+      expected_metrics = ["single_get", "single_cas"] if MEMCACHED_CLASS.name == 'Memcached' && Memcached::VERSION >= '1.8.0'
+      expected_metrics = ["Memcache/allOther"] + expected_metrics.flat_map {|m| ["Memcache/#{m}", "Memcache/#{m}:OtherTransaction/Background/NewRelic::Agent::MemcacheInstrumentationTest/bg_task"] }
       if @cache.class.method_defined?(:cas)
         @engine.clear_stats
         perform_action_with_newrelic_trace(:name => 'bg_task', :category => :task) do

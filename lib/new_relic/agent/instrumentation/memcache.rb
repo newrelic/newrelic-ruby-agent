@@ -16,8 +16,10 @@ module NewRelic
         module_function
         def instrument_methods(the_class, method_names)
           method_names.each do |method_name|
-            next unless the_class.method_defined? method_name.to_sym
+            next unless the_class.method_defined?(method_name.to_sym) || the_class.private_method_defined?(method_name.to_sym)
+            visibility = "private" unless the_class.method_defined?(method_name.to_sym)
             the_class.class_eval <<-EOD
+              #{visibility}
               def #{method_name}_with_newrelic_trace(*args, &block)
                 metrics = ["Memcache/#{method_name}",
                            (NewRelic::Agent::Transaction.recording_web_transaction? ? 'Memcache/allWeb' : 'Memcache/allOther')]
@@ -64,7 +66,12 @@ DependencyDetection.defer do
       ::NewRelic::Agent.logger.info 'Installing MemCache instrumentation'
     end
     if defined? ::Memcached
-      commands << 'cas'
+      if ::Memcached::VERSION >= '1.8.0'
+        commands -= %w[get get_multi]
+        commands += %w[single_get multi_get single_cas multi_cas]
+      else
+        commands << 'cas'
+      end
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Memcached,
                                                                     commands)
       ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation'
