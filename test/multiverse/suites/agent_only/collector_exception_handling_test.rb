@@ -46,4 +46,39 @@ class CollectorExceptionHandlingTest < Minitest::Test
     assert_equal(1, $collector.calls_for('connect').size)
     assert_equal(1, $collector.calls_for('metric_data').size)
   end
+
+  def test_should_reconnect_on_connect_exception
+    $collector.reset
+
+    payload = { 'error_type' => 'RuntimeError' }
+    $collector.stub_exception('connect', payload).once
+
+    with_config(:data_report_period => 0) do
+      worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 1)
+      NewRelic::Agent.agent.stubs(:create_worker_loop).returns(worker_loop)
+      # there's a call to sleep in connect that we want to skip
+      NewRelic::Agent.agent.stubs(:sleep)
+      NewRelic::Agent.agent.deferred_work!({})
+    end
+
+    assert_equal(2, $collector.calls_for('connect').size)
+  end
+
+  def test_should_reconnect_on_get_redirect_host_exception
+    $collector.reset
+
+    payload = { 'error_type' => 'RuntimeError' }
+    $collector.stub_exception('get_redirect_host', payload).once
+
+    with_config(:data_report_period => 0) do
+      worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 1)
+      NewRelic::Agent.agent.stubs(:create_worker_loop).returns(worker_loop)
+      # there's a call to sleep in connect that we want to skip
+      NewRelic::Agent.agent.stubs(:sleep)
+      NewRelic::Agent.agent.deferred_work!({})
+    end
+
+    assert_equal(2, $collector.calls_for('get_redirect_host').size)
+    assert_equal(1, $collector.calls_for('connect').size)
+  end
 end

@@ -878,7 +878,7 @@ module NewRelic
           handle_license_error(e)
         rescue NewRelic::Agent::UnrecoverableAgentException => e
           handle_unrecoverable_agent_error(e)
-        rescue Timeout::Error, NewRelic::Agent::ServerConnectionException => e
+        rescue StandardError, Timeout::Error, NewRelic::Agent::ServerConnectionException => e
           log_error(e)
           if opts[:keep_retrying]
             note_connect_failure
@@ -888,8 +888,6 @@ module NewRelic
           else
             disconnect
           end
-        rescue StandardError => e
-          handle_other_error(e)
         end
 
         # Who am I? Well, this method can tell you your hostname.
