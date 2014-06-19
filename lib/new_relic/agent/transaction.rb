@@ -346,15 +346,17 @@ module NewRelic
 
       def summary_metrics
         metrics = []
-
-        if @frozen_name.start_with?(CONTROLLER_MIDDLEWARE_PREFIX)
-          metrics.concat(MIDDLEWARE_SUMMARY_METRICS)
-        end
+        metrics.concat(MIDDLEWARE_SUMMARY_METRICS) if needs_middleware_summary_metrics?
 
         metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@frozen_name)
         metrics.concat(metric_parser.summary_metrics)
 
         metrics
+      end
+
+      def needs_middleware_summary_metrics?
+        @frozen_name.start_with?(CONTROLLER_MIDDLEWARE_PREFIX) ||
+          @frozen_name.start_with?(RACK_PREFIX)
       end
 
       def stop(state, end_time)
