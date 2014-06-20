@@ -41,6 +41,20 @@ class MemoryLoggerTest < Minitest::Test
     @logger.dump(real_logger)
   end
 
+  def test_proxies_message_blocks
+    called = false
+    @logger.info do
+      called = true
+      'a'
+    end
+
+    real_logger = stub
+    real_logger.expects(:info).yields()
+
+    @logger.dump(real_logger)
+    assert called
+  end
+
   def test_proxies_through_calls_to_log_exception
     e = Exception.new
     @logger.log_exception(:fatal, e, :error)
