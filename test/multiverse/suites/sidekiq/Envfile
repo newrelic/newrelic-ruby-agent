@@ -21,6 +21,7 @@ gemfile <<-RB
   # Having rbx issues on 2.8.0, 2.9.0 seems fine.
   gem 'json'
   gem 'sidekiq', '~> 2.9.0'
+  gem 'timers', '~> 1.1.0'
   gem 'rack'
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
 RB
