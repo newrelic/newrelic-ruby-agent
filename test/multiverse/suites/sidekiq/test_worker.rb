@@ -10,16 +10,13 @@ class TestWorker
   @jobs = {}
   @jobs_mutex = Mutex.new
 
-  @done_signal = ConditionVariable.new
-  @done_mutex = Mutex.new
+  @done = Queue.new
 
   def self.register_signal(key)
     return if @registered_signal
 
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-      if @jobs[key].count == @done_at
-        @done_signal.signal
-      end
+      @done.push(true)
     end
     @registered_signal = true
   end
@@ -49,8 +46,11 @@ class TestWorker
   end
 
   def self.wait
-    @done_mutex.synchronize do
-      @done_signal.wait(@done_mutex, 1)
+    # Don't hang out forever, but shouldn't count on the timeout functionally
+    Timeout.timeout(60) do
+      @done_at.times do
+        @done.pop
+      end
     end
   end
 
