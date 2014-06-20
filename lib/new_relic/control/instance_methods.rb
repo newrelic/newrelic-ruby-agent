@@ -85,6 +85,10 @@ module NewRelic
 
         config_file_path = @config_file_override || Agent.config[:config_path]
         Agent.config.replace_or_add_config(Agent::Configuration::YamlSource.new(config_file_path, env))
+
+        if Agent.config[:high_security]
+          Agent.config.replace_or_add_config(Agent::Configuration::HighSecuritySource.new)
+        end
       end
 
       # Install the real agent into the Agent module, and issue the start command.

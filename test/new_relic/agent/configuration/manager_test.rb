@@ -45,16 +45,20 @@ module NewRelic::Agent::Configuration
 
     def test_sources_applied_in_correct_order
       # in order of precedence
-      server_source = ServerSource.new(:foo => 'foo'                )
-      manual_source = ManualSource.new(:foo => 'bad' , :bar => 'bar')
+      high_security = HighSecuritySource.new
+      server_source = ServerSource.new(:foo => 'foo', :capture_params => true)
+      manual_source = ManualSource.new(:foo => 'bad', :bar => 'bar',
+                                       :capture_params => true)
 
       # load them out of order, just to prove that load order
       # doesn't determine precedence
       @manager.replace_or_add_config(manual_source)
       @manager.replace_or_add_config(server_source)
+      @manager.replace_or_add_config(high_security)
 
       assert_equal 'foo', @manager['foo']
       assert_equal 'bar', @manager['bar']
+      assert_equal false, @manager['capture_params']
     end
 
     def test_identifying_config_source
@@ -276,6 +280,7 @@ module NewRelic::Agent::Configuration
       refute @manager.config_classes_for_testing.include?(ManualSource)
       refute @manager.config_classes_for_testing.include?(ServerSource)
       refute @manager.config_classes_for_testing.include?(YamlSource)
+      refute @manager.config_classes_for_testing.include?(HighSecuritySource)
     end
   end
 end
