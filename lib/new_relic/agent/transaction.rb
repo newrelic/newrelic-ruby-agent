@@ -345,18 +345,12 @@ module NewRelic
       end
 
       def summary_metrics
-        metrics = []
-        metrics.concat(MIDDLEWARE_SUMMARY_METRICS) if needs_middleware_summary_metrics?
-
         metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@frozen_name)
-        metrics.concat(metric_parser.summary_metrics)
-
-        metrics
+        metric_parser.summary_metrics
       end
 
-      def needs_middleware_summary_metrics?
-        @frozen_name.start_with?(CONTROLLER_MIDDLEWARE_PREFIX) ||
-          @frozen_name.start_with?(RACK_PREFIX)
+      def needs_middleware_summary_metrics?(name)
+        name.start_with?(MIDDLEWARE_PREFIX)
       end
 
       def stop(state, end_time)
@@ -370,6 +364,10 @@ module NewRelic
           name = Transaction.nested_transaction_name(@default_name)
           metrics << @frozen_name
           @trace_options[:scoped_metric] = true
+        end
+
+        if needs_middleware_summary_metrics?(name)
+          metrics.concat(MIDDLEWARE_SUMMARY_METRICS)
         end
 
         NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
