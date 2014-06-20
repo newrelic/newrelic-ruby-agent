@@ -17,33 +17,33 @@ module NewRelic
 
       attr_accessor :messages, :level
 
-      def fatal(*msgs)
-        messages << [:fatal, msgs]
+      def fatal(*msgs, &blk)
+        messages << [:fatal, blk, msgs]
       end
 
-      def error(*msgs)
-        messages << [:error, msgs]
+      def error(*msgs, &blk)
+        messages << [:error, blk, msgs]
       end
 
-      def warn(*msgs)
-        messages << [:warn, msgs]
+      def warn(*msgs, &blk)
+        messages << [:warn, blk, msgs]
       end
 
-      def info(*msgs)
-        messages << [:info, msgs]
+      def info(*msgs, &blk)
+        messages << [:info, blk, msgs]
       end
 
-      def debug(*msgs)
-        messages << [:debug, msgs]
+      def debug(*msgs, &blk)
+        messages << [:debug, blk, msgs]
       end
 
       def log_exception(level, e, backtrace_level=level)
-        messages << [:log_exception, [level, e, backtrace_level]]
+        messages << [:log_exception, nil, [level, e, backtrace_level]]
       end
 
       def dump(logger)
-        messages.each do |(method, args)|
-          logger.send(method, *args)
+        messages.each do |(method, blk, args)|
+          logger.send(method, *args, &blk)
         end
         messages.clear
       end
