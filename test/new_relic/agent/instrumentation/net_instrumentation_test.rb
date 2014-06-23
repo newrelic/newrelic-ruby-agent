@@ -26,7 +26,7 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
     with_config(:"cross_application_tracer.enabled" => true) do
       expected = NewRelic::Agent::TracedMethodStack.tl_push_frame('dummy')
       Net::HTTP.get(URI.parse('http://www.google.com/index.html')) rescue nil
-      NewRelic::Agent::TracedMethodStack.tl_pop_frame(expected, 42)
+      NewRelic::Agent::TracedMethodStack.tl_pop_frame(expected, 42, Time.now.to_f)
     end
   end
 

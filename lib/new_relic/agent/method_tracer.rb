@@ -180,7 +180,7 @@ module NewRelic
           log_errors(:trace_method_execution_footer) do
             if expected_frame
               stack = state.traced_method_stack
-              frame = stack.pop_frame(state, expected_frame, first_name, t1)
+              frame = stack.pop_frame(state, expected_frame, first_name, t1, !!options[:metric])
               duration = t1 - t0
               exclusive = duration - frame.children_time
               record_metrics(state, first_name, metric_names, duration, exclusive, options)

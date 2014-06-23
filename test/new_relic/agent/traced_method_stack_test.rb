@@ -43,7 +43,7 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
     scope1 = @frame_stack.push_frame(state, :scope1)
     scope2 = @frame_stack.push_frame(state, :scope2)
     assert_raises(RuntimeError) do
-      @frame_stack.pop_frame(state, scope1, "name 1")
+      @frame_stack.pop_frame(state, scope1, "name 1", Time.now.to_f)
     end
   end
 
@@ -61,7 +61,7 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
 
     expected = @frame_stack.push_frame(state, :c)
     advance_time(0.003)
-    scope = @frame_stack.pop_frame(state, expected, "metric c")
+    scope = @frame_stack.pop_frame(state, expected, "metric c", Time.now.to_f)
 
     t4 = Time.now
     assert_equal 0, scope.children_time
@@ -71,18 +71,18 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
 
     expected = @frame_stack.push_frame(state, :d)
     advance_time(0.002)
-    scope = @frame_stack.pop_frame(state, expected, "metric d")
+    scope = @frame_stack.pop_frame(state, expected, "metric d", Time.now.to_f)
 
     t6 = Time.now
 
     assert_equal 0, scope.children_time
 
-    scope = @frame_stack.pop_frame(state, expected2, "metric b")
+    scope = @frame_stack.pop_frame(state, expected2, "metric b", Time.now.to_f)
     assert_equal 'metric b', scope.name
 
     assert_in_delta((t4 - t3) + (t6 - t5), scope.children_time, 0.0001)
 
-    scope = @frame_stack.pop_frame(state, expected1, "metric a")
+    scope = @frame_stack.pop_frame(state, expected1, "metric a", Time.now.to_f)
     assert_equal scope.name, 'metric a'
 
     assert_in_delta((t6 - t2), scope.children_time, 0.0001)
