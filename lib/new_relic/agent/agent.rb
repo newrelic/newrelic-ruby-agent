@@ -888,6 +888,11 @@ module NewRelic
           else
             disconnect
           end
+        rescue Exception => e
+          ::NewRelic::Agent.logger.debug "Exception of unexpected type during Agent#connect():"
+          ::NewRelic::Agent.logger.debug "#{e}"
+
+          raise e
         end
 
         # Who am I? Well, this method can tell you your hostname.
