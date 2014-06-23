@@ -29,10 +29,10 @@ module NewRelic
         stack.push_frame(state, tag, time)
       end
 
-      def self.tl_pop_frame(expected_frame, name, time=Time.now.to_f)
+      def self.tl_pop_frame(expected_frame, name, time, deduct_call_time_from_parent=true)
         state = NewRelic::Agent::TransactionState.tl_get
         stack = state.traced_method_stack
-        stack.pop_frame(state, expected_frame, name, time)
+        stack.pop_frame(state, expected_frame, name, time, deduct_call_time_from_parent)
       end
 
       # Pushes a frame onto the transaction stack - this generates a
@@ -56,15 +56,25 @@ module NewRelic
       # push_frame call.
       #
       # +name+ will be applied to the generated transaction trace segment.
-      def pop_frame(state, expected_frame, name, time=Time.now.to_f)
+      def pop_frame(state, expected_frame, name, time, deduct_call_time_from_parent=true)
         frame = @stack.pop
         fail "unbalanced pop from blame stack, got #{frame ? frame.tag : 'nil'}, expected #{expected_frame ? expected_frame.tag : 'nil'}" if frame != expected_frame
 
-        @stack.last.children_time += (time - frame.start_time) unless @stack.empty?
+        note_children_time(frame, time, deduct_call_time_from_parent)
 
         transaction_sampler.notice_pop_frame(state, name, time) if sampler_enabled?
         frame.name = name
         frame
+      end
+
+      def note_children_time(frame, time, deduct_call_time_from_parent)
+        if !@stack.empty?
+          if deduct_call_time_from_parent
+            @stack.last.children_time += (time - frame.start_time)
+          else
+            @stack.last.children_time += frame.children_time
+          end
+        end
       end
 
       def sampler_enabled?
