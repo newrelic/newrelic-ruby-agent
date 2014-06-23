@@ -357,50 +357,60 @@ module NewRelic
         return if !state.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
 
-        name    = @frozen_name
-        metrics = summary_metrics
-
         if @name_from_child
           name = Transaction.nested_transaction_name(@default_name)
-          metrics << @frozen_name
           @trace_options[:scoped_metric] = true
+        else
+          name = @frozen_name
         end
 
+        # These metrics are recorded here instead of in record_summary_metrics
+        # in order to capture the exclusive time associated with the outer-most
+        # TT node.
         if needs_middleware_summary_metrics?(name)
-          metrics.concat(MIDDLEWARE_SUMMARY_METRICS)
+          summary_metrics_with_exclusive_time = MIDDLEWARE_SUMMARY_METRICS
+        else
+          summary_metrics_with_exclusive_time = EMPTY_SUMMARY_METRICS
         end
 
         NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(
           state,
           start_time.to_f,
           name,
-          metrics,
+          summary_metrics_with_exclusive_time,
           @expected_scope,
           @trace_options,
           end_time.to_f)
 
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
-        unless @ignore_this_transaction
-          # these record metrics so need to be done before merging stats
+        commit!(state, end_time, name) unless @ignore_this_transaction
+      end
 
-          # this one records metrics and wants to happen
-          # before the transaction sampler is finished
-          record_transaction_cpu(state)
-          gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
-          gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
-              gc_start_snapshot, gc_stop_snapshot)
-          @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, Time.now, gc_delta)
-          sql_sampler.on_finishing_transaction(state, @frozen_name)
+      def commit!(state, end_time, outermost_segment_name)
+        record_transaction_cpu(state)
+        gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
+        gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
+            gc_start_snapshot, gc_stop_snapshot)
+        @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time, gc_delta)
+        sql_sampler.on_finishing_transaction(state, @frozen_name)
 
-          record_apdex(state, end_time) unless ignore_apdex?
-          NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
+        record_summary_metrics(outermost_segment_name, end_time)
+        record_apdex(state, end_time) unless ignore_apdex?
+        NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
 
-          record_exceptions
-          merge_metrics
+        record_exceptions
+        merge_metrics
 
-          send_transaction_finished_event(state, start_time, end_time)
-        end
+        send_transaction_finished_event(state, start_time, end_time)
+      end
+
+      # The summary metrics recorded by this method all end up with a duration
+      # equal to the transaction itself, and an exclusive time of zero.
+      def record_summary_metrics(outermost_segment_name, end_time)
+        metrics = summary_metrics
+        metrics << @frozen_name unless @frozen_name == outermost_segment_name
+        @metrics.record_unscoped(metrics, end_time - start_time, 0)
       end
 
       # This event is fired when the transaction is fully completed. The metric
