@@ -24,9 +24,11 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   def test_scope_stack_integrity_maintained_on_request_failure
     @socket.stubs(:write).raises('fake network error')
     with_config(:"cross_application_tracer.enabled" => true) do
-      expected = NewRelic::Agent::TracedMethodStack.tl_push_frame('dummy')
+      state    = NewRelic::Agent::TransactionState.tl_get
+      stack    = state.traced_method_stack
+      expected = stack.push_frame(state, 'dummy')
       Net::HTTP.get(URI.parse('http://www.google.com/index.html')) rescue nil
-      NewRelic::Agent::TracedMethodStack.tl_pop_frame(expected, 42, Time.now.to_f)
+      stack.pop_frame(state, expected, 42, Time.now.to_f)
     end
   end
 

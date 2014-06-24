@@ -23,18 +23,6 @@ module NewRelic
         @stack = []
       end
 
-      def self.tl_push_frame(tag, time = Time.now.to_f)
-        state = NewRelic::Agent::TransactionState.tl_get
-        stack = state.traced_method_stack
-        stack.push_frame(state, tag, time)
-      end
-
-      def self.tl_pop_frame(expected_frame, name, time, deduct_call_time_from_parent=true)
-        state = NewRelic::Agent::TransactionState.tl_get
-        stack = state.traced_method_stack
-        stack.pop_frame(state, expected_frame, name, time, deduct_call_time_from_parent)
-      end
-
       # Pushes a frame onto the transaction stack - this generates a
       # TransactionSample::Segment at the end of transaction execution.
       #
