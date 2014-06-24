@@ -122,17 +122,18 @@ DependencyDetection.defer do
 
       # Instrument the specified +request+ (a Curl::Easy object) and set up cross-application
       # tracing if it's enabled.
-      def hook_pending_request( request )
-        wrapped_request, wrapped_response = wrap_request( request )
-        t0, segment = NewRelic::Agent::CrossAppTracing.start_trace( wrapped_request )
+      def hook_pending_request(request)
+        wrapped_request, wrapped_response = wrap_request(request)
+        t0 = Time.now
+        segment = NewRelic::Agent::CrossAppTracing.start_trace(t0, wrapped_request)
 
         unless request._nr_instrumented
-          install_header_callback( request, wrapped_response )
-          install_completion_callback( request, t0, segment, wrapped_request, wrapped_response )
+          install_header_callback(request, wrapped_response)
+          install_completion_callback(request, t0, segment, wrapped_request, wrapped_response)
           request._nr_instrumented = true
         end
       rescue => err
-        NewRelic::Agent.logger.error( "Untrapped exception", err )
+        NewRelic::Agent.logger.error("Untrapped exception", err)
       end
 
 

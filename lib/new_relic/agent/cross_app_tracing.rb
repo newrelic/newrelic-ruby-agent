@@ -37,10 +37,11 @@ module NewRelic
         return yield unless NewRelic::Agent.tl_is_execution_traced?
 
         begin
-          t0, segment = start_trace( request )
+          t0 = Time.now
+          segment = start_trace(t0, request)
           response = yield
         ensure
-          finish_trace( t0, segment, request, response )
+          finish_trace(t0, segment, request, response)
         end
 
         return response
@@ -60,19 +61,15 @@ module NewRelic
       # * []=(key, val) - Set an HTTP request header by name
       # * uri  - Full URI of the request
       #
-      # This method MUST return a pair. The first item always returns the
-      # starting time of the trace, even if an error occurs. The second item is
-      # the transaction segment if it was sucessfully pushed.
-      def start_trace(request) #THREAD_LOCAL_ACCESS
-        t0 = Time.now
-
+      # This method returns the transaction segment if it was sucessfully pushed.
+      def start_trace(t0, request) #THREAD_LOCAL_ACCESS
         inject_request_headers(request) if cross_app_enabled?
         segment = NewRelic::Agent::TracedMethodStack.tl_push_frame(:http_request, t0)
 
-        return t0, segment
+        return segment
       rescue => err
         NewRelic::Agent.logger.error "Uncaught exception while tracing HTTP request", err
-        return t0, nil
+        return nil
       end
 
 

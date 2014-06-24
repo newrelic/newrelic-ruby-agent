@@ -7,9 +7,6 @@ require 'new_relic/agent/cross_app_tracing'
 
 module NewRelic
   module Agent
-    class BigBad < Exception
-    end
-
     class CrossAppTracingTest < Minitest::Test
 
       attr_reader :segment, :request, :response
@@ -23,27 +20,15 @@ module NewRelic
       end
 
       def test_start_trace
-        t0, segment = CrossAppTracing.start_trace(request)
-        refute_nil t0
+        t0 = Time.now
+        segment = CrossAppTracing.start_trace(t0, request)
         refute_nil segment
       end
 
-      def test_start_trace_has_time_even_on_agent_failure
+      def test_start_trace_has_nil_segment_on_agent_failure
         NewRelic::Agent::TracedMethodStack.stubs(:tl_push_frame).raises("Boom!")
-        t0, segment = CrossAppTracing.start_trace(request)
-        refute_nil t0
-        assert_nil segment
-      end
-
-      def test_start_trace_has_time_even_on_worse_agent_failure
-        NewRelic::Agent::TracedMethodStack.stubs(:tl_push_frame).raises(BigBad.new("Blammo!"))
-
-        begin
-          t0, segment = CrossAppTracing.start_trace(request)
-        rescue BigBad
-        end
-
-        refute_nil t0
+        t0 = Time.now
+        segment = CrossAppTracing.start_trace(t0, request)
         assert_nil segment
       end
 

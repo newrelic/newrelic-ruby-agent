@@ -19,7 +19,8 @@ module ::Excon
           # accompanying response_call/error_call.
           if datum[:connection] && !datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
             wrapped_request = ::NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(datum)
-            t0, segment = ::NewRelic::Agent::CrossAppTracing.start_trace(wrapped_request)
+            t0 = Time.now
+            segment = ::NewRelic::Agent::CrossAppTracing.start_trace(t0, wrapped_request)
             datum[:connection].instance_variable_set(TRACE_DATA_IVAR, [t0, segment, wrapped_request])
           end
         rescue => e
