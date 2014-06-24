@@ -17,18 +17,19 @@ module NewRelic
                                    :type => "Fake",
                                    :method => "GET")
         @response = stub_everything
+        @state = NewRelic::Agent::TransactionState.tl_get
       end
 
       def test_start_trace
-        t0 = Time.now
-        segment = CrossAppTracing.start_trace(t0, request)
+        t0      = Time.now
+        segment = CrossAppTracing.start_trace(@state, t0, request)
         refute_nil segment
       end
 
       def test_start_trace_has_nil_segment_on_agent_failure
-        NewRelic::Agent::TracedMethodStack.stubs(:tl_push_frame).raises("Boom!")
-        t0 = Time.now
-        segment = CrossAppTracing.start_trace(t0, request)
+        @state.traced_method_stack.stubs(:push_frame).raises("Boom!")
+        t0      = Time.now
+        segment = CrossAppTracing.start_trace(@state, t0, request)
         assert_nil segment
       end
 
@@ -37,24 +38,24 @@ module NewRelic
 
       def test_finish_trace_allows_nil_segment
         expects_no_logging(:error)
-        CrossAppTracing.finish_trace(Time.now, nil, request, response)
+        CrossAppTracing.finish_trace(@state, Time.now, nil, request, response)
       end
 
       def test_finish_trace_allows_nil_request
         expects_no_logging(:error)
         expects_pop_frame
-        CrossAppTracing.finish_trace(Time.now, segment, nil, response)
+        CrossAppTracing.finish_trace(@state, Time.now, segment, nil, response)
       end
 
       def test_finish_trace_allows_nil_response
         expects_no_logging(:error)
         expects_pop_frame
-        CrossAppTracing.finish_trace(Time.now, segment, request, nil)
+        CrossAppTracing.finish_trace(@state, Time.now, segment, request, nil)
       end
 
 
       def expects_pop_frame
-        NewRelic::Agent::TracedMethodStack.stubs(:tl_pop_frame).once
+        @state.traced_method_stack.stubs(:pop_frame).once
       end
     end
   end
