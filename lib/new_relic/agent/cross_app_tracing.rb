@@ -72,6 +72,10 @@ module NewRelic
       rescue => err
         NewRelic::Agent.logger.error "Uncaught exception while tracing HTTP request", err
         return nil
+      rescue Exception => e
+        NewRelic::Agent.logger.debug "Unexpected exception raised while tracing HTTP request", e
+
+        raise e
       end
 
 
