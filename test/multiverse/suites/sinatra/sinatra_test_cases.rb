@@ -114,4 +114,9 @@ module SinatraTestCases
     assert_equal 200, last_response.status
     assert_metrics_not_recorded(["Controller/Sinatra/#{app_name}/GET ignored"])
   end
+
+  def test_control_instance_root_is_set_using_sinatra_base_settings
+    ::Sinatra::Base.settings.stubs(:root).returns('fake_root')
+    assert_equal 'fake_root', NewRelic::Control.instance.root
+  end
 end
