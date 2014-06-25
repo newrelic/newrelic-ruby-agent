@@ -111,8 +111,8 @@ to your startup sequence and then manually start the agent using
 
     NewRelic::Agent.manual_start
 
-To instrument Rack based applications, refer to the docs in
-`NewRelic::Agent::Instrumentation::Rack`.
+For information about instrumenting pure Rack applications, see our
+[Rack middlewares documentation](http://docs.newrelic.com/docs/ruby/rack-middlewares).
 
 Refer to the [New Relic's Docs](http://newrelic.com/docs) for details on how to
 monitor other web frameworks, background jobs, and daemons.
@@ -120,7 +120,7 @@ monitor other web frameworks, background jobs, and daemons.
 The Ruby Agent provides an API that allows custom instrumentation of additional
 frameworks.  You can find a list of community created intrumentation plugins
 (e.g. [newrelic-redis](https://github.com/evanphx/newrelic-redis)) in the
-[RPM Contrib README](https://github.com/newrelic/rpm_contrib/blob/master/README.md#new-relic-ruby-agent-plugins-seperate-projects).
+[extends_newrelic_rpm project](https://github.com/newrelic/extends_newrelic_rpm).
 
 ## Developer Mode
 
