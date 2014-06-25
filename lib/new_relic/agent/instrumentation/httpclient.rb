@@ -26,7 +26,7 @@ DependencyDetection.defer do
 
   executes do
     class HTTPClient
-      def do_get_block_with_newrelic(req, proxy, conn, &block) #THREAD_LOCAL_ACCESS
+      def do_get_block_with_newrelic(req, proxy, conn, &block)
         wrapped_request = NewRelic::Agent::HTTPClients::HTTPClientRequest.new(req)
 
         response = nil

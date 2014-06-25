@@ -14,7 +14,7 @@ module ::Excon
       resolved
     end
 
-    def request_with_newrelic_trace(params, &block) #THREAD_LOCAL_ACCESS
+    def request_with_newrelic_trace(params, &block)
       orig_response = nil
       resolved_params = newrelic_resolved_request_params(params)
       wrapped_request = ::NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(resolved_params)

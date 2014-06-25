@@ -17,7 +17,7 @@ DependencyDetection.defer do
 
   executes do
     class Net::HTTP
-      def request_with_newrelic_trace(request, *args, &block) #THREAD_LOCAL_ACCESS
+      def request_with_newrelic_trace(request, *args, &block)
         wrapped_request = NewRelic::Agent::HTTPClients::NetHTTPRequest.new(self, request)
 
         NewRelic::Agent::CrossAppTracing.tl_trace_http_request( wrapped_request ) do

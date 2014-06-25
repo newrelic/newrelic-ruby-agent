@@ -60,7 +60,7 @@ module NewRelic::Agent::Instrumentation::TyphoeusTracing
     request.respond_to?(:hydra) && request.hydra
   end
 
-  def self.trace(request) #THREAD_LOCAL_ACCESS
+  def self.trace(request)
     state = NewRelic::Agent::TransactionState.tl_get
     if state.is_execution_traced? && !request_is_hydra_enabled?(request)
       wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
