@@ -11,8 +11,7 @@ module NewRelic
       attr_reader :key_bytes
 
       EMPTY_KEY_BYTES = [0]
-      PACK_FORMAT     = 'm0'.freeze
-      UNPACK_FORMAT   = 'm'.freeze
+      PACK_FORMAT = 'm'
 
       # RUM uses a shortened key, so just trim it up front
       def initialize(key, length=nil)
@@ -25,11 +24,11 @@ module NewRelic
       end
 
       def obfuscate(text)
-        [ encode(text) ].pack(PACK_FORMAT)
+        [ encode(text) ].pack(PACK_FORMAT).gsub(/\n/, '')
       end
 
       def deobfuscate(text)
-        encode(text.unpack(UNPACK_FORMAT).first )
+        encode(text.unpack(PACK_FORMAT).first )
       end
 
       def encode(text)
