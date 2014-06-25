@@ -11,7 +11,7 @@ module ::Excon
         @stack = stack
       end
 
-      def request_call(datum)
+      def request_call(datum) #THREAD_LOCAL_ACCESS
         begin
           # Only instrument this request if we haven't already done so, because
           # we can get request_call multiple times for requests marked as
@@ -19,7 +19,9 @@ module ::Excon
           # accompanying response_call/error_call.
           if datum[:connection] && !datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
             wrapped_request = ::NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(datum)
-            t0, segment = ::NewRelic::Agent::CrossAppTracing.start_trace(wrapped_request)
+            state   = ::NewRelic::Agent::TransactionState.tl_get
+            t0      = Time.now
+            segment = ::NewRelic::Agent::CrossAppTracing.start_trace(state, t0, wrapped_request)
             datum[:connection].instance_variable_set(TRACE_DATA_IVAR, [t0, segment, wrapped_request])
           end
         rescue => e
@@ -38,7 +40,7 @@ module ::Excon
         @stack.error_call(datum)
       end
 
-      def finish_trace(datum)
+      def finish_trace(datum) #THREAD_LOCAL_ACCESS
         trace_data = datum[:connection] && datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
         if trace_data
           datum[:connection].instance_variable_set(TRACE_DATA_IVAR, nil)
@@ -46,7 +48,8 @@ module ::Excon
           if datum[:response]
             wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(datum[:response])
           end
-          ::NewRelic::Agent::CrossAppTracing.finish_trace(t0, segment, wrapped_request, wrapped_response)
+          state = ::NewRelic::Agent::TransactionState.tl_get
+          ::NewRelic::Agent::CrossAppTracing.finish_trace(state, t0, segment, wrapped_request, wrapped_response)
         end
       end
     end

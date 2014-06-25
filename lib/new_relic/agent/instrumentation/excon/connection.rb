@@ -18,7 +18,7 @@ module ::Excon
       orig_response = nil
       resolved_params = newrelic_resolved_request_params(params)
       wrapped_request = ::NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(resolved_params)
-      ::NewRelic::Agent::CrossAppTracing.trace_http_request(wrapped_request) do
+      ::NewRelic::Agent::CrossAppTracing.tl_trace_http_request(wrapped_request) do
         orig_response = request_without_newrelic_trace(resolved_params, &block)
         ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(orig_response)
       end

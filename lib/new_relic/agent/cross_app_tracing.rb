@@ -33,14 +33,16 @@ module NewRelic
       # See the documentation for +start_trace+ for an explanation of what
       # +request+ should look like.
       #
-      def trace_http_request(request) #THREAD_LOCAL_ACCESS
-        return yield unless NewRelic::Agent.tl_is_execution_traced?
+      def tl_trace_http_request(request)
+        state = NewRelic::Agent::TransactionState.tl_get
+        return yield unless state.is_execution_traced?
 
         begin
-          t0, segment = start_trace( request )
+          t0 = Time.now
+          segment = start_trace(state, t0, request)
           response = yield
         ensure
-          finish_trace( t0, segment, request, response )
+          finish_trace(state, t0, segment, request, response)
         end
 
         return response
@@ -60,19 +62,20 @@ module NewRelic
       # * []=(key, val) - Set an HTTP request header by name
       # * uri  - Full URI of the request
       #
-      # This method MUST return a pair. The first item always returns the
-      # starting time of the trace, even if an error occurs. The second item is
-      # the transaction segment if it was sucessfully pushed.
-      def start_trace(request) #THREAD_LOCAL_ACCESS
-        t0 = Time.now
+      # This method returns the transaction segment if it was sucessfully pushed.
+      def start_trace(state, t0, request)
+        inject_request_headers(state, request) if cross_app_enabled?
+        stack = state.traced_method_stack
+        segment = stack.push_frame(state, :http_request, t0)
 
-        inject_request_headers(request) if cross_app_enabled?
-        segment = NewRelic::Agent::TracedMethodStack.tl_push_frame(:http_request, t0)
-
-        return t0, segment
+        return segment
       rescue => err
         NewRelic::Agent.logger.error "Uncaught exception while tracing HTTP request", err
-        return t0, nil
+        return nil
+      rescue Exception => e
+        NewRelic::Agent.logger.debug "Unexpected exception raised while tracing HTTP request", e
+
+        raise e
       end
 
 
@@ -87,7 +90,7 @@ module NewRelic
       # * [](key) - Reads response headers.
       # * to_hash - Converts response headers to a Hash
       #
-      def finish_trace(t0, segment, request, response) #THREAD_LOCAL_ACCESS
+      def finish_trace(state, t0, segment, request, response)
         t1 = Time.now
         duration = t1.to_f - t0.to_f
 
@@ -98,8 +101,8 @@ module NewRelic
             metrics = metrics_for(request, response)
             scoped_metric = metrics.pop
 
-            stats_engine.tl_record_scoped_and_unscoped_metrics(
-              scoped_metric, metrics, duration)
+            stats_engine.record_scoped_and_unscoped_metrics(
+              state, scoped_metric, metrics, duration)
 
             # If we don't have segment, something failed during start_trace so
             # the current segment isn't the HTTP call it should have been.
@@ -111,7 +114,10 @@ module NewRelic
         ensure
           # If we have a segment, always pop the traced method stack to avoid
           # an inconsistent state, which prevents tracing of whole transaction.
-          NewRelic::Agent::TracedMethodStack.tl_pop_frame(segment, scoped_metric, t1) if segment
+          if segment
+            stack = state.traced_method_stack
+            stack.pop_frame(state, segment, scoped_metric, t1)
+          end
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "while cross app tracing", err
@@ -150,17 +156,16 @@ module NewRelic
       end
 
       # Inject the X-Process header into the outgoing +request+.
-      def inject_request_headers(request) #THREAD_LOCAL_ACCESS
+      def inject_request_headers(state, request)
         cross_app_id = NewRelic::Agent.config[:cross_process_id] or
           raise NewRelic::Agent::CrossAppTracing::Error, "no cross app ID configured"
 
-        state = NewRelic::Agent::TransactionState.tl_get
         state.is_cross_app_caller = true
         txn_guid = state.request_guid
-        txn_data = NewRelic::JSONWrapper.dump([ txn_guid, false ])
+        txn_data = NewRelic::JSONWrapper.dump([txn_guid, false])
 
-        request[ NR_ID_HEADER ]  = obfuscator.obfuscate( cross_app_id )
-        request[ NR_TXN_HEADER ] = obfuscator.obfuscate( txn_data )
+        request[NR_ID_HEADER]  = obfuscator.obfuscate(cross_app_id)
+        request[NR_TXN_HEADER] = obfuscator.obfuscate(txn_data)
 
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "Not injecting x-process header", err
@@ -169,8 +174,8 @@ module NewRelic
       def add_transaction_trace_parameters(request, response)
         filtered_uri = ::NewRelic::Agent::HTTPClients::URIUtil.filter_uri(request.uri)
         transaction_sampler.add_segment_parameters(:uri => filtered_uri)
-        if response && response_is_crossapp?( response )
-          add_cat_transaction_trace_parameters( response )
+        if response && response_is_crossapp?(response)
+          add_cat_transaction_trace_parameters(response)
         end
       end
 
