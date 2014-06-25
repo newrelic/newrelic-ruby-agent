@@ -892,7 +892,7 @@ module NewRelic
           ::NewRelic::Agent.logger.debug "Exception of unexpected type during Agent#connect():"
           ::NewRelic::Agent.logger.debug "#{e}"
 
-          raise e
+          raise
         end
 
         # Who am I? Well, this method can tell you your hostname.
