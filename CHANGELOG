@@ -22,6 +22,11 @@
   This instrumentation may be disabled with the
   disable_middlware_instrumentation configuration setting.
 
+  For more details, see the documentation for this feature:
+
+    - http://docs.newrelic.com/docs/ruby/rack-middlewares
+    - http://docs.newrelic.com/docs/ruby/middleware-upgrade-changes
+
   * Capistrano 3.x support
 
   Recording application deployments using Capistrano 3.x is now supported.
