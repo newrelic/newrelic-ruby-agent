@@ -19,7 +19,8 @@ class RumAutoInsertion < Performance::TestCase
       :application_id         => '5, 6', # collector can return app multiple ids
       :'rum.enabled'          => true,
       :episodes_file          => 'this_is_my_file',
-      :license_key            => 'a' * 40
+      :license_key            => 'a' * 40,
+      :js_agent_loader        => 'loader'
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
 
@@ -27,6 +28,17 @@ class RumAutoInsertion < Performance::TestCase
     @html = "<html><head>#{'<script>alert("boo");</script>' * 1_000}</head><body></body></html>"
     @html_with_meta = "<html><head><meta http-equiv='X-UA-Compatible' content='IE=7'/>#{'<script>alert("boo");</script>' * 1_000}</head><body></body></html>"
     @html_with_meta_after = "<html><head>#{'<script>alert("boo");</script>' * 1_000}<meta http-equiv='X-UA-Compatible' content='IE=7'/></head><body></body></html>"
+
+    host_class = Class.new do
+      include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+      def run
+        yield
+      end
+      add_transaction_tracer :run
+    end
+
+    @host = host_class.new
   end
 
   def teardown
@@ -46,8 +58,10 @@ class RumAutoInsertion < Performance::TestCase
   end
 
   def run_autoinstrument_source(text)
-    iterations.times do
-      browser_monitor.autoinstrument_source([text], {})
+    @host.run do
+      iterations.times do
+        browser_monitor.autoinstrument_source([text], {})
+      end
     end
   end
 end
