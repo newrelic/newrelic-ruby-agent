@@ -399,6 +399,26 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     refute found_referring_guid
   end
 
+  def test_end_fires_a_transaction_finished_event_with_apdex_perf_zone
+    apdex = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      apdex = payload[:apdex_perf_zone]
+    end
+
+    freeze_time
+
+    with_config(:apdex_t => 1.0) do
+      in_transaction { advance_time 0.5 }
+      assert_equal('S', apdex)
+
+      in_transaction { advance_time 1.5 }
+      assert_equal('T', apdex)
+
+      in_transaction { advance_time 4.5 }
+      assert_equal('F', apdex)
+    end
+  end
+
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
     expects_logging(:warn, includes("add_custom_parameters"))
     in_transaction do

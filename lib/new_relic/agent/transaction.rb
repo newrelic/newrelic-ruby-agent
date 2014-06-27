@@ -425,6 +425,7 @@ module NewRelic
           :custom_params    => custom_parameters
         }
         append_cat_info(state, duration, payload)
+        append_apdex_perf_zone(duration, payload)
         append_referring_transaction_guid_to(state, payload)
 
         agent.events.notify(:transaction_finished, payload)
@@ -449,6 +450,21 @@ module NewRelic
         NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_path_hash(state)
       end
 
+      APDEX_S = 'S'.freeze
+      APDEX_T = 'T'.freeze
+      APDEX_F = 'F'.freeze
+
+      def append_apdex_perf_zone(duration, payload)
+        bucket = apdex_bucket(duration)
+        bucket_str = case bucket
+        when :apdex_s then APDEX_S
+        when :apdex_t then APDEX_T
+        when :apdex_f then APDEX_F
+        else nil
+        end
+        payload[:apdex_perf_zone] = bucket_str if bucket_str
+      end
+
       def append_cat_info(state, duration, payload)
         if include_guid?(state, duration)
           trip_id             = cat_trip_id(state)
@@ -459,8 +475,6 @@ module NewRelic
           payload[:cat_trip_id]             = trip_id                      if trip_id
           payload[:cat_path_hash]           = path_hash.to_s(16)           if path_hash
           payload[:cat_referring_path_hash] = referring_path_hash.to_s(16) if referring_path_hash
-          # BMW: FIXME
-          # payload[:apdex_perf_zone]       = apdex_bucket_txn
         end
       end
 
@@ -533,16 +547,23 @@ module NewRelic
 
       APDEX_METRIC = 'Apdex'.freeze
 
+      def had_error?
+        !notable_exceptions.empty?
+      end
+
+      def apdex_bucket(duration)
+        self.class.apdex_bucket(duration, had_error?, apdex_t)
+      end
+
       def record_apdex(state, end_time=Time.now)
         return unless recording_web_transaction? && state.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
           action_duration = end_time - start_time
           total_duration  = end_time - apdex_start
-          is_error = !notable_exceptions.empty?
 
-          apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
-          apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
+          apdex_bucket_global = apdex_bucket(total_duration)
+          apdex_bucket_txn    = apdex_bucket(action_duration)
 
           @metrics.record_unscoped(APDEX_METRIC, apdex_bucket_global, apdex_t)
           txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, 'Apdex/')
