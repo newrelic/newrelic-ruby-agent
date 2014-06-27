@@ -416,24 +416,28 @@ module NewRelic
       # This event is fired when the transaction is fully completed. The metric
       # values and sampler can't be successfully modified from this event.
       def send_transaction_finished_event(state, start_time, end_time)
+        duration = end_time.to_f - start_time.to_f
         payload = {
           :name             => @frozen_name,
           :start_timestamp  => start_time.to_f,
-          :duration         => end_time.to_f - start_time.to_f,
+          :duration         => duration,
           :metrics          => @metrics,
           :custom_params    => custom_parameters
         }
-        append_guid_to(state, payload)
+        append_guid_to(state, duration, payload)
         append_referring_transaction_guid_to(state, payload)
 
         agent.events.notify(:transaction_finished, payload)
       end
 
-      def append_guid_to(state, payload)
-        guid = state.request_guid_for_event
-        if guid
-          payload[:guid] = guid
-        end
+      def include_guid?(state, duration)
+        state.is_cross_app_callee? ||
+        state.is_cross_app_caller? ||
+        (state.request_token && duration > apdex_t)
+      end
+
+      def append_guid_to(state, duration, payload)
+        payload[:guid] = guid if include_guid?(state, duration)
       end
 
       def append_referring_transaction_guid_to(state, payload)

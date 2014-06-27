@@ -84,11 +84,6 @@ module NewRelic
         referring_transaction_info != nil
       end
 
-      def request_guid_for_event
-        return nil unless is_cross_app_callee? || is_cross_app_caller? || include_guid?
-        request_guid
-      end
-
       # Request data
       attr_reader :request
       attr_accessor :request_token
@@ -96,15 +91,6 @@ module NewRelic
       def request_guid
         return nil unless current_transaction
         current_transaction.guid
-      end
-
-      def request_guid_to_include
-        return "" unless include_guid?
-        request_guid
-      end
-
-      def include_guid?
-        request_token && timings.app_time_in_seconds > current_transaction.apdex_t
       end
 
       # Current transaction stack and sample building

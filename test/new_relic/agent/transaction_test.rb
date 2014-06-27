@@ -338,6 +338,40 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     refute found_guid
   end
 
+  def test_end_fires_a_transaction_finished_event_with_guid_if_request_token_and_too_long
+    guid = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      guid = payload[:guid]
+    end
+
+    with_config(:apdex_t => 2.0) do
+      freeze_time
+      in_transaction do
+        state = NewRelic::Agent::TransactionState.tl_get
+        state.request_token = 'token'
+        advance_time 4.0
+      end
+    end
+
+    refute_empty guid
+  end
+
+  def test_end_fires_a_transaction_finished_event_with_guid_if_referring_transaction
+    guid = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      guid = payload[:guid]
+    end
+
+    with_config(:apdex_t => 2.0) do
+      in_transaction do
+        state = NewRelic::Agent::TransactionState.tl_get
+        state.referring_transaction_info = ["another"]
+      end
+    end
+
+    refute_empty guid
+  end
+
   def test_end_fires_a_transaction_finished_event_with_referring_transaction_guid
     referring_guid = nil
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|

@@ -143,10 +143,13 @@ module NewRelic
           TRANSACTION_NAME_KEY => obfuscator.obfuscate(timings.transaction_name_or_unknown),
           QUEUE_TIME_KEY       => timings.queue_time_in_millis,
           APPLICATION_TIME_KEY => timings.app_time_in_millis,
-          TT_GUID_KEY          => state.request_guid_to_include,
           AGENT_TOKEN_KEY      => state.request_token,
           AGENT_KEY            => NewRelic::Agent.config[:js_agent_file]
         }
+
+        if include_guid?(state, timings)
+          data[TT_GUID_KEY] = state.request_guid
+        end
 
         add_ssl_for_http(data)
         add_user_attributes(data, state.current_transaction)
@@ -167,6 +170,11 @@ module NewRelic
         params = event_params(txn.custom_parameters)
         json = NewRelic::JSONWrapper.dump(params)
         data[USER_ATTRIBUTES_KEY] = obfuscator.obfuscate(json)
+      end
+
+      def include_guid?(state, timings)
+        state.current_transaction &&
+          state.current_transaction.include_guid?(state, timings.app_time_in_seconds)
       end
 
       # Still support deprecated capture_attributes.page_view_events for
