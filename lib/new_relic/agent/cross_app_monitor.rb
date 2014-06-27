@@ -104,6 +104,16 @@ module NewRelic
         return info[1]
       end
 
+      def client_referring_transaction_trip_id(state)
+        info = state.referring_transaction_info or return nil
+        return info[2]
+      end
+
+      def client_referring_transaction_path_hash(state)
+        info = state.referring_transaction_info or return nil
+        return info[3] && info[3].is_a?(String) && info[3].to_i(16)
+      end
+
       def insert_response_header(state, request_headers, response_headers)
         unless state.client_cross_app_id.nil?
           txn = state.current_transaction

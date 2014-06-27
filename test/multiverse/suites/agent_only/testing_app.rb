@@ -22,6 +22,9 @@ class TestingApp
     if params['transaction_name']
       NewRelic::Agent.set_transaction_name(params['transaction_name'])
     end
+    if params['cross_app_caller']
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+    end
     sleep(params['sleep'].to_f) if params['sleep']
     [200, headers, [response]]
   end

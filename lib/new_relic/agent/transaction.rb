@@ -424,7 +424,7 @@ module NewRelic
           :metrics          => @metrics,
           :custom_params    => custom_parameters
         }
-        append_guid_to(state, duration, payload)
+        append_cat_info(state, duration, payload)
         append_referring_transaction_guid_to(state, payload)
 
         agent.events.notify(:transaction_finished, payload)
@@ -436,8 +436,32 @@ module NewRelic
         (state.request_token && duration > apdex_t)
       end
 
-      def append_guid_to(state, duration, payload)
-        payload[:guid] = guid if include_guid?(state, duration)
+      def cat_trip_id(state)
+        NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_trip_id(state) || guid
+      end
+
+      def cat_path_hash(state)
+        seed = cat_referring_path_hash(state) || 0
+        NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
+      end
+
+      def cat_referring_path_hash(state)
+        NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_path_hash(state)
+      end
+
+      def append_cat_info(state, duration, payload)
+        if include_guid?(state, duration)
+          trip_id             = cat_trip_id(state)
+          path_hash           = cat_path_hash(state)
+          referring_path_hash = cat_referring_path_hash(state)
+
+          payload[:guid]                    = guid
+          payload[:cat_trip_id]             = trip_id                      if trip_id
+          payload[:cat_path_hash]           = path_hash.to_s(16)           if path_hash
+          payload[:cat_referring_path_hash] = referring_path_hash.to_s(16) if referring_path_hash
+          # BMW: FIXME
+          # payload[:apdex_perf_zone]       = apdex_bucket_txn
+        end
       end
 
       def append_referring_transaction_guid_to(state, payload)
