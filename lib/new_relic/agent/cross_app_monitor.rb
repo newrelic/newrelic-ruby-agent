@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'digest'
+
 require 'new_relic/agent/transaction_state'
 require 'new_relic/agent/threading/agent_thread'
 
@@ -181,6 +183,15 @@ module NewRelic
 
       def content_length_from_request(request)
         from_headers(request, CONTENT_LENGTH_HEADER_KEYS) || -1
+      end
+
+      def hash_transaction_name(name)
+        Digest::MD5.digest(name).unpack("@12N").first & 0x7fffffff
+      end
+
+      def path_hash(name, seed)
+        rotated = ((seed << 1) | (seed >> 30)) & 0x7fffffff
+        rotated ^ hash_transaction_name(name)
       end
 
       private
