@@ -161,8 +161,12 @@ module NewRelic
           raise NewRelic::Agent::CrossAppTracing::Error, "no cross app ID configured"
 
         state.is_cross_app_caller = true
-        txn_guid = state.request_guid
-        txn_data = NewRelic::JSONWrapper.dump([txn_guid, false])
+        txn_guid  = state.request_guid
+        if state.current_transaction
+          trip_id   = state.current_transaction.cat_trip_id(state)
+          path_hash = state.current_transaction.cat_path_hash(state)
+        end
+        txn_data  = NewRelic::JSONWrapper.dump([txn_guid, false, trip_id, path_hash])
 
         request[NR_ID_HEADER]  = obfuscator.obfuscate(cross_app_id)
         request[NR_TXN_HEADER] = obfuscator.obfuscate(txn_data)
