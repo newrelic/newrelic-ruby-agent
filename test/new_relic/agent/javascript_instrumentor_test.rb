@@ -288,7 +288,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     end
   end
 
-  def test_requst_guid_excluded_if_request_fast_enough
+  def test_request_guid_excluded_if_request_fast_enough
     state = NewRelic::Agent::TransactionState.tl_get
     with_config(:apdex_t => 2.0) do
       freeze_time
