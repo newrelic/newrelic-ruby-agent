@@ -274,6 +274,48 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     assert_equal(string, instrumentor.html_safe_if_needed(string))
   end
 
+  def test_request_guid_to_include
+    state = NewRelic::Agent::TransactionState.tl_get
+    with_config(:apdex_t => 2.0) do
+      freeze_time
+      in_transaction do |txn|
+        state.request_token = "token"
+        advance_time(4.0)
+
+        data = instrumentor.data_for_js_agent(state)
+        assert_equal(state.current_transaction.guid, data['ttGuid'])
+      end
+    end
+  end
+
+  def test_request_guid_excluded_if_request_fast_enough
+    state = NewRelic::Agent::TransactionState.tl_get
+    with_config(:apdex_t => 2.0) do
+      freeze_time
+
+      state.request_token = "token"
+      in_transaction do |txn|
+        advance_time(1.0)
+        data = instrumentor.data_for_js_agent(state)
+        assert_nil(data['ttGuid'])
+      end
+    end
+  end
+
+  def test_request_guid_excluded_if_no_token
+    state = NewRelic::Agent::TransactionState.tl_get
+    with_config(:apdex_t => 2.0) do
+      freeze_time
+
+      state.request_token = nil
+      in_transaction do |txn|
+        advance_time(4.0)
+        data = instrumentor.data_for_js_agent(state)
+        assert_nil(data['ttGuid'])
+      end
+    end
+  end
+
   # Helpers
 
   BEGINNING_OF_FOOTER = '<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info='

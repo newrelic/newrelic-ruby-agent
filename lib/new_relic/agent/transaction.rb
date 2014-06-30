@@ -416,23 +416,65 @@ module NewRelic
       # This event is fired when the transaction is fully completed. The metric
       # values and sampler can't be successfully modified from this event.
       def send_transaction_finished_event(state, start_time, end_time)
+        duration = end_time.to_f - start_time.to_f
         payload = {
           :name             => @frozen_name,
           :start_timestamp  => start_time.to_f,
-          :duration         => end_time.to_f - start_time.to_f,
+          :duration         => duration,
           :metrics          => @metrics,
           :custom_params    => custom_parameters
         }
-        append_guid_to(state, payload)
+        append_cat_info(state, duration, payload)
+        append_apdex_perf_zone(duration, payload)
         append_referring_transaction_guid_to(state, payload)
 
         agent.events.notify(:transaction_finished, payload)
       end
 
-      def append_guid_to(state, payload)
-        guid = state.request_guid_for_event
-        if guid
-          payload[:guid] = guid
+      def include_guid?(state, duration)
+        state.is_cross_app_callee? ||
+        state.is_cross_app_caller? ||
+        (state.request_token && duration > apdex_t)
+      end
+
+      def cat_trip_id(state)
+        NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_trip_id(state) || guid
+      end
+
+      def cat_path_hash(state)
+        seed = cat_referring_path_hash(state) || 0
+        NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
+      end
+
+      def cat_referring_path_hash(state)
+        NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_path_hash(state)
+      end
+
+      APDEX_S = 'S'.freeze
+      APDEX_T = 'T'.freeze
+      APDEX_F = 'F'.freeze
+
+      def append_apdex_perf_zone(duration, payload)
+        bucket = apdex_bucket(duration)
+        bucket_str = case bucket
+        when :apdex_s then APDEX_S
+        when :apdex_t then APDEX_T
+        when :apdex_f then APDEX_F
+        else nil
+        end
+        payload[:apdex_perf_zone] = bucket_str if bucket_str
+      end
+
+      def append_cat_info(state, duration, payload)
+        if include_guid?(state, duration)
+          trip_id             = cat_trip_id(state)
+          path_hash           = cat_path_hash(state)
+          referring_path_hash = cat_referring_path_hash(state)
+
+          payload[:guid]                    = guid
+          payload[:cat_trip_id]             = trip_id                      if trip_id
+          payload[:cat_path_hash]           = path_hash.to_s(16)           if path_hash
+          payload[:cat_referring_path_hash] = referring_path_hash.to_s(16) if referring_path_hash
         end
       end
 
@@ -505,16 +547,23 @@ module NewRelic
 
       APDEX_METRIC = 'Apdex'.freeze
 
+      def had_error?
+        !notable_exceptions.empty?
+      end
+
+      def apdex_bucket(duration)
+        self.class.apdex_bucket(duration, had_error?, apdex_t)
+      end
+
       def record_apdex(state, end_time=Time.now)
         return unless recording_web_transaction? && state.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
           action_duration = end_time - start_time
           total_duration  = end_time - apdex_start
-          is_error = !notable_exceptions.empty?
 
-          apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
-          apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
+          apdex_bucket_global = apdex_bucket(total_duration)
+          apdex_bucket_txn    = apdex_bucket(action_duration)
 
           @metrics.record_unscoped(APDEX_METRIC, apdex_bucket_global, apdex_t)
           txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, 'Apdex/')

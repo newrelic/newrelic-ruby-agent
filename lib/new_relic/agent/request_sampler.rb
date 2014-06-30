@@ -22,6 +22,10 @@ class NewRelic::Agent::RequestSampler
   DURATION_KEY                   = 'duration'
   GUID_KEY                       = 'nr.guid'
   REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
+  CAT_TRIP_ID_KEY                = 'nr.tripId'
+  CAT_PATH_HASH_KEY              = 'nr.pathHash'
+  CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'
+  APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'
 
   def initialize( event_listener )
     super()
@@ -176,8 +180,12 @@ class NewRelic::Agent::RequestSampler
         DURATION_KEY      => float(payload[:duration]),
         TYPE_KEY          => SAMPLE_TYPE,
       })
-    optionally_append(GUID_KEY, :guid, sample, payload)
+    optionally_append(GUID_KEY,                       :guid, sample, payload)
     optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
+    optionally_append(CAT_TRIP_ID_KEY,                :cat_trip_id, sample, payload)
+    optionally_append(CAT_PATH_HASH_KEY,              :cat_path_hash, sample, payload)
+    optionally_append(CAT_REFERRING_PATH_HASH_KEY,    :cat_referring_path_hash, sample, payload)
+    optionally_append(APDEX_PERF_ZONE_KEY,            :apdex_perf_zone, sample, payload)
     sample
   end
 

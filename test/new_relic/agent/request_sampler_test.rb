@@ -128,6 +128,15 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     end
   end
 
+  def test_samples_on_transaction_finished_event_include_apdex_perf_zone
+    with_sampler_config do
+      generate_request('name', :apdex_perf_zone => 'S')
+
+      event_data = single_sample[EVENT_DATA_INDEX]
+      assert_equal 'S', event_data['nr.apdexPerfZone']
+    end
+  end
+
   def test_samples_on_transaction_finished_event_includes_guid
     with_sampler_config do
       generate_request('name', :guid => "GUID")

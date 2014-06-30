@@ -257,6 +257,28 @@ module HttpClientTestCases
     end
   end
 
+  def test_adds_newrelic_transaction_header
+    with_config(:cross_application_tracing => true) do
+      guid      = nil
+      path_hash = nil
+      in_transaction do |txn|
+        guid      = txn.guid
+        path_hash = txn.cat_path_hash(NewRelic::Agent::TransactionState.tl_get)
+        get_response
+      end
+
+      transaction_data = server.requests.last["HTTP_X_NEWRELIC_TRANSACTION"]
+      refute_empty(transaction_data)
+
+      decoded = decode_payload(transaction_data)
+
+      assert_equal(guid,      decoded[0])
+      assert_equal(false,     decoded[1])
+      assert_equal(guid,      decoded[2])
+      assert_equal(path_hash, decoded[3])
+    end
+  end
+
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
     get_response
     assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
@@ -473,6 +495,11 @@ module HttpClientTestCases
   def make_app_data_payload( *args )
     obfuscator = NewRelic::Agent::Obfuscator.new('gringletoes')
     return obfuscator.obfuscate( args.to_json ) + "\n"
+  end
+
+  def decode_payload(payload)
+    obfuscator = NewRelic::Agent::Obfuscator.new('gringletoes')
+    NewRelic::JSONWrapper.load(obfuscator.deobfuscate(payload))
   end
 
   def assert_externals_recorded_for(host, meth, opts={})
