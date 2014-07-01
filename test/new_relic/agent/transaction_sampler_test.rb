@@ -799,12 +799,24 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      in_transaction do |transaxshun|
-        guid = transaxshun.guid
+      in_transaction do |transaction|
+        guid = transaction.guid
       end
     end
 
     assert_equal 'PDX-NRT', custom_params_from_last_sample[:'nr.trip_id']
+  end
+
+  def test_custom_params_include_path_hash
+    path_hash = nil
+
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      in_transaction do |transaction|
+        path_hash = transaction.cat_path_hash(NewRelic::Agent::TransactionState.tl_get)
+      end
+    end
+
+    assert_equal path_hash.to_s(16), custom_params_from_last_sample[:'nr.path_hash']
   end
 
   class Dummy
