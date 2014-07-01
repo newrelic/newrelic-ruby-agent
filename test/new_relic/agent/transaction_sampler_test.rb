@@ -779,9 +779,18 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
         NewRelic::Agent.add_custom_parameters(:foo => 'bar')
       end
     end
-    sample = NewRelic::Agent.agent.transaction_sampler.harvest![0]
-    custom_params = sample.params[:custom_params]
+    custom_params = custom_params_from_last_sample
     assert_includes custom_params.keys, :foo
+  end
+
+  def test_custom_params_include_gc_time
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      in_transaction do
+        NewRelic::Agent::StatsEngine::GCProfiler.stubs(:record_delta).returns(10.0)
+      end
+    end
+
+    assert_equal 10.0, custom_params_from_last_sample[:gc_time]
   end
 
   class Dummy
@@ -872,5 +881,10 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @sampler.notice_pop_frame(state, "ac")
     @sampler.notice_pop_frame(state, "a")
     @sampler.on_finishing_transaction(state, @txn, (stop || Time.now.to_f))
+  end
+
+  def custom_params_from_last_sample
+    sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
+    sample.params[:custom_params]
   end
 end
