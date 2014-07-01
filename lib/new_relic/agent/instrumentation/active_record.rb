@@ -16,6 +16,21 @@ module NewRelic
           end
         end
 
+        def self.insert_instrumentation
+          ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
+            include ::NewRelic::Agent::Instrumentation::ActiveRecord
+          end
+
+          ::ActiveRecord::Base.class_eval do
+            class << self
+              add_method_tracer(:find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql',
+                                :metric => false)
+              add_method_tracer(:transaction, 'ActiveRecord/#{self.name}/transaction',
+                                :metric => false)
+            end
+          end
+        end
+
         def self.included(instrumented_class)
           instrumented_class.class_eval do
             unless instrumented_class.method_defined?(:log_without_newrelic_instrumentation)
@@ -89,26 +104,11 @@ DependencyDetection.defer do
 
   executes do
     if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
-      Rails.configuration.after_initialize do
-        insert_instrumentation
+      ActiveSupport.on_load(:active_record) do
+        ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
       end
     else
-      insert_instrumentation
-    end
-  end
-
-  def insert_instrumentation
-    ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
-      include ::NewRelic::Agent::Instrumentation::ActiveRecord
-    end
-
-    ActiveRecord::Base.class_eval do
-      class << self
-        add_method_tracer(:find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql',
-                          :metric => false)
-        add_method_tracer(:transaction, 'ActiveRecord/#{self.name}/transaction',
-                          :metric => false)
-      end
+      ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
     end
   end
 end
