@@ -130,6 +130,7 @@ module NewRelic
           @last_sample = last_builder.sample
           @last_sample.guid = txn.guid
           @last_sample.set_custom_param(:gc_time, gc_time) if gc_time
+          @last_sample.set_custom_param(:'nr.trip_id', txn.cat_trip_id(state))
           store_sample(@last_sample)
           @last_sample
         end

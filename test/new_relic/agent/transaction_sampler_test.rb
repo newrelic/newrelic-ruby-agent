@@ -793,6 +793,20 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal 10.0, custom_params_from_last_sample[:gc_time]
   end
 
+  def test_custom_params_include_tripid
+    guid = nil
+
+    NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
+
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      in_transaction do |transaxshun|
+        guid = transaxshun.guid
+      end
+    end
+
+    assert_equal 'PDX-NRT', custom_params_from_last_sample[:'nr.trip_id']
+  end
+
   class Dummy
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     def run(n)
