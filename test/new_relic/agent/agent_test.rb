@@ -300,6 +300,16 @@ module NewRelic
         @agent.send(:connect, :force_reconnect => true)
       end
 
+      def test_connect_logs_error_for_all_exceptions
+        bad = Class.new(Exception)
+        @agent.stubs(:should_connect?).raises(bad)
+        ::NewRelic::Agent.logger.expects(:error).once
+
+        assert_raises(bad) do
+          @agent.send(:connect)
+        end
+      end
+
       def test_connect_settings
         settings = @agent.connect_settings
         assert settings.include?(:pid)
