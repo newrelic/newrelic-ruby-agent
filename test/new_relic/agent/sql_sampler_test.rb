@@ -316,4 +316,9 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     assert_equal(2, aggregated_trace.call_count)
     assert_equal(3, aggregated_trace.total_call_time)
   end
+
+  def test_on_finishing_transaction_with_busted_transaction_state_does_not_crash
+    state = NewRelic::Agent::TransactionState.tl_get
+    @sampler.on_finishing_transaction(state, "whatever", Time.now)
+  end
 end

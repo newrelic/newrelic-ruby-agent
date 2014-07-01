@@ -74,12 +74,12 @@ module NewRelic
       # This is called when we are done with the transaction.
       def on_finishing_transaction(state, name, time=Time.now)
         data = state.sql_sampler_transaction_data
-        data.set_transaction_name(name)
+        return unless data
 
+        data.set_transaction_name(name)
         if data.sql_data.size > 0
           @samples_lock.synchronize do
             ::NewRelic::Agent.logger.debug "Harvesting #{data.sql_data.size} slow transaction sql statement(s)"
-            #FIXME get tx name and uri
             harvest_slow_sql data
           end
         end
