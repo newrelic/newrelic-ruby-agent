@@ -33,6 +33,11 @@ class HighSecurityTest < Minitest::Test
     NewRelic::Agent.manual_start(:ssl => false)
   end
 
+  def test_sends_high_security_flag_in_connect
+    data = $collector.calls_for('connect')
+    assert data.first.body["high_security"]
+  end
+
   def test_disallows_server_config_from_overriding_high_security
     refute NewRelic::Agent.config[:capture_params]
   end
