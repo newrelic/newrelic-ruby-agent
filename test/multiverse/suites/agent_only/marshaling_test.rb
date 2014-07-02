@@ -33,17 +33,15 @@ class MarshalingTest < Minitest::Test
 
     marshaller = agent.service.marshaller
 
-    transaction_sample_data_post = $collector.calls_for('transaction_sample_data')[0]
-    assert_equal('666', transaction_sample_data_post.run_id)
+    actual = $collector.calls_for('transaction_sample_data')[0][1][0]
     encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
     expected = expected_sample.to_collector_array(encoder)
-    custom_params = expected[4][2]
-    expected_custom_params = {}
-    custom_params.each { |k,v| expected_custom_params[k.to_s] = v }
-    expected[4][2] = expected_custom_params
 
-    assert_equal(expected, transaction_sample_data_post[1][0])
+    expected[4][2] = stringify_keys(expected[4][2])
+    actual[4][2] = stringify_keys(actual[4][2])
+
+    assert_equal(expected, actual)
   end
 
   def test_metric_data_marshalling

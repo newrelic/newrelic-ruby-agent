@@ -95,11 +95,11 @@ class CrossApplicationTracingTest < Minitest::Test
     request_headers = generate_cat_headers(calling_txn_guid, calling_txn_path_hash)
 
     # remove the referring path hash
-    request_headers['X-NewRelic-Transaction'] = Base64.encode64(JSON.dump([
+    request_headers['X-NewRelic-Transaction'] = json_dump_and_encode([
       calling_txn_guid,
       false,
       calling_txn_guid
-    ]))
+    ])
 
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
@@ -120,12 +120,12 @@ class CrossApplicationTracingTest < Minitest::Test
     calling_txn_guid, calling_txn_path_hash = generate_referring_transaction
     request_headers = generate_cat_headers(calling_txn_guid, calling_txn_path_hash)
 
-    request_headers['X-NewRelic-Transaction'] = Base64.encode64(JSON.dump([
+    request_headers['X-NewRelic-Transaction'] = json_dump_and_encode([
       calling_txn_guid,
       false,
       calling_txn_guid,
       nil
-    ]))
+    ])
 
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
@@ -146,12 +146,12 @@ class CrossApplicationTracingTest < Minitest::Test
     calling_txn_guid, calling_txn_path_hash = generate_referring_transaction
     request_headers = generate_cat_headers(calling_txn_guid, calling_txn_path_hash)
 
-    request_headers['X-NewRelic-Transaction'] = Base64.encode64(JSON.dump([
+    request_headers['X-NewRelic-Transaction'] = json_dump_and_encode([
       calling_txn_guid,
       false,
       calling_txn_guid,
       ['scrambled', 'eggs']
-    ]))
+    ])
 
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
@@ -173,10 +173,10 @@ class CrossApplicationTracingTest < Minitest::Test
     request_headers = generate_cat_headers(calling_txn_guid, calling_txn_path_hash)
 
     # old-style CAT headers without tripId or pathHash
-    request_headers['X-NewRelic-Transaction'] = Base64.encode64(JSON.dump([
+    request_headers['X-NewRelic-Transaction'] = json_dump_and_encode([
       calling_txn_guid,
       false
-    ]))
+    ])
 
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
@@ -201,11 +201,11 @@ class CrossApplicationTracingTest < Minitest::Test
     request_headers = generate_cat_headers(calling_txn_guid, calling_txn_path_hash)
 
     # old-style CAT headers without tripId or pathHash
-    request_headers['X-NewRelic-Transaction'] = Base64.encode64(JSON.dump([
+    request_headers['X-NewRelic-Transaction'] = json_dump_and_encode([
       calling_txn_guid,
       false,
       nil
-    ]))
+    ])
 
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
@@ -241,12 +241,12 @@ class CrossApplicationTracingTest < Minitest::Test
   def generate_cat_headers(guid, path_hash)
     {
       'X-NewRelic-ID'          => Base64.encode64('1#234'),
-      'X-NewRelic-Transaction' => Base64.encode64(JSON.dump([
+      'X-NewRelic-Transaction' => json_dump_and_encode([
         guid,
         false,
         guid,
         path_hash
-      ]))
+      ])
     }
   end
 
