@@ -233,7 +233,7 @@ class CrossApplicationTracingTest < Minitest::Test
     in_transaction('calling transaction') do |txn|
       state = NewRelic::Agent::TransactionState.tl_get
       calling_txn_guid      = txn.guid
-      calling_txn_path_hash = txn.cat_path_hash(state).to_s(16)
+      calling_txn_path_hash = txn.cat_path_hash(state)
     end
     [calling_txn_guid, calling_txn_path_hash]
   end

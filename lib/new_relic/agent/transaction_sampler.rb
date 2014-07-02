@@ -131,7 +131,7 @@ module NewRelic
           @last_sample.guid = txn.guid
           @last_sample.set_custom_param(:gc_time, gc_time) if gc_time
           @last_sample.set_custom_param(:'nr.trip_id', txn.cat_trip_id(state))
-          @last_sample.set_custom_param(:'nr.path_hash', txn.cat_path_hash(state).to_s(16))
+          @last_sample.set_custom_param(:'nr.path_hash', txn.cat_path_hash(state))
           store_sample(@last_sample)
           @last_sample
         end

@@ -36,8 +36,13 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
-    @txn = stub('txn', :best_name => '/path', :guid => 'a guid',
-                :custom_parameters => {}, :filtered_params => {})
+    @txn = stub('txn',
+                :best_name => '/path',
+                :guid => 'a guid',
+                :custom_parameters => {},
+                :cat_trip_id => '',
+                :cat_path_hash => '',
+                :filtered_params => {} )
   end
 
   def teardown
@@ -816,7 +821,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       end
     end
 
-    assert_equal path_hash.to_s(16), custom_params_from_last_sample[:'nr.path_hash']
+    assert_equal path_hash, custom_params_from_last_sample[:'nr.path_hash']
   end
 
   class Dummy

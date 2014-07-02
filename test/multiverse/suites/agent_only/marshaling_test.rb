@@ -9,26 +9,24 @@ require 'multiverse_helpers'
 
 class MarshalingTest < Minitest::Test
   include MultiverseHelpers
+  include NewRelic::Agent::MethodTracer
 
   setup_and_teardown_agent(:'transaction_tracer.transaction_threshold' => 0.0) do |collector|
     collector.stub('connect', { 'agent_run_id' => 666 })
   end
 
   def test_transaction_trace_marshaling
-    # create fake transaction trace
     time = freeze_time
-    state = NewRelic::Agent::TransactionState.tl_get
-    sampler = agent.transaction_sampler
-    sampler.on_start_transaction(state, time, nil)
-    sampler.notice_push_frame(state, "a")
-    sampler.notice_push_frame(state, "ab")
-    advance_time 1
-    sampler.notice_pop_frame(state, "ab")
-    sampler.notice_pop_frame(state, "a")
-    sampler.on_finishing_transaction(state, OpenStruct.new(:name => 'path',
-                                               :custom_parameters => {}))
 
-    expected_sample = sampler.last_sample
+    in_transaction do
+      trace_execution_scoped('a') do
+        trace_execution_scoped('ab') do
+          advance_time 1
+        end
+      end
+    end
+
+    expected_sample = NewRelic::Agent.instance.transaction_sampler.last_sample
 
     agent.service.connect
     agent.send(:harvest_and_send_transaction_traces)
@@ -38,8 +36,14 @@ class MarshalingTest < Minitest::Test
     transaction_sample_data_post = $collector.calls_for('transaction_sample_data')[0]
     assert_equal('666', transaction_sample_data_post.run_id)
     encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
-    assert_equal(expected_sample.to_collector_array(encoder),
-                 transaction_sample_data_post[1][0])
+
+    expected = expected_sample.to_collector_array(encoder)
+    custom_params = expected[4][2]
+    expected_custom_params = {}
+    custom_params.each { |k,v| expected_custom_params[k.to_s] = v }
+    expected[4][2] = expected_custom_params
+
+    assert_equal(expected, transaction_sample_data_post[1][0])
   end
 
   def test_metric_data_marshalling
