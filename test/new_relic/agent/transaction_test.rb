@@ -426,6 +426,15 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_raises_if_add_custom_param_when_in_high_security
+    with_config(:high_security => true) do
+      in_transaction do |txn|
+        NewRelic::Agent.add_custom_parameters(:failure => "is an option")
+        assert_empty txn.custom_parameters
+      end
+    end
+  end
+
   def test_user_attributes_alias_to_custom_parameters
     in_transaction('user_attributes') do |txn|
       txn.set_user_attributes(:set_instance => :set_instance)

@@ -49,4 +49,15 @@ class HighSecurityTest < Minitest::Test
     assert_empty last_transaction_trace_request_params
   end
 
+  def test_doesnt_record_custom_parameters
+    in_transaction do
+      NewRelic::Agent.add_custom_parameters(:not => "allowed")
+    end
+
+    assert_nil last_transaction_trace.params[:custom_params][:not]
+    refute_nil last_transaction_trace.params[:custom_params][:cpu_time]
+    refute_nil last_transaction_trace.params[:custom_params][:'nr.trip_id']
+    refute_nil last_transaction_trace.params[:custom_params][:'nr.path_hash']
+  end
+
 end

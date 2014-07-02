@@ -609,6 +609,11 @@ module NewRelic
       end
 
       def add_custom_parameters(p)
+        if NewRelic::Agent.config[:high_security]
+          NewRelic::Agent.logger.debug("Unable to add custom attributes #{p.keys.inspect} while in high security mode.")
+          return
+        end
+
         custom_parameters.merge!(p)
       end
 
