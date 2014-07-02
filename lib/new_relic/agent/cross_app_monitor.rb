@@ -111,7 +111,7 @@ module NewRelic
 
       def client_referring_transaction_path_hash(state)
         info = state.referring_transaction_info or return nil
-        return info[3] && info[3].is_a?(String) && info[3].to_i(16)
+        return info[3].is_a?(String) && info[3]
       end
 
       def insert_response_header(state, request_headers, response_headers)

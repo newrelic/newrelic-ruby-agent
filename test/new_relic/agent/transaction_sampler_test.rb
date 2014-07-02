@@ -36,8 +36,13 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
-    @txn = stub('txn', :best_name => '/path', :guid => 'a guid',
-                :custom_parameters => {}, :filtered_params => {})
+    @txn = stub('txn',
+                :best_name => '/path',
+                :guid => 'a guid',
+                :custom_parameters => {},
+                :cat_trip_id => '',
+                :cat_path_hash => '',
+                :filtered_params => {} )
   end
 
   def teardown
@@ -791,6 +796,32 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
 
     assert_equal 10.0, custom_params_from_last_sample[:gc_time]
+  end
+
+  def test_custom_params_include_tripid
+    guid = nil
+
+    NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
+
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      in_transaction do |transaction|
+        guid = transaction.guid
+      end
+    end
+
+    assert_equal 'PDX-NRT', custom_params_from_last_sample[:'nr.trip_id']
+  end
+
+  def test_custom_params_include_path_hash
+    path_hash = nil
+
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      in_transaction do |transaction|
+        path_hash = transaction.cat_path_hash(NewRelic::Agent::TransactionState.tl_get)
+      end
+    end
+
+    assert_equal path_hash, custom_params_from_last_sample[:'nr.path_hash']
   end
 
   class Dummy

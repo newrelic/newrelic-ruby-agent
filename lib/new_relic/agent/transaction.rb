@@ -442,8 +442,9 @@ module NewRelic
       end
 
       def cat_path_hash(state)
-        seed = cat_referring_path_hash(state) || 0
-        NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
+        referring_path_hash = cat_referring_path_hash(state) || '0'
+        seed = referring_path_hash.to_i(16)
+        NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed).to_s(16)
       end
 
       def cat_referring_path_hash(state)
@@ -472,9 +473,9 @@ module NewRelic
           referring_path_hash = cat_referring_path_hash(state)
 
           payload[:guid]                    = guid
-          payload[:cat_trip_id]             = trip_id                      if trip_id
-          payload[:cat_path_hash]           = path_hash.to_s(16)           if path_hash
-          payload[:cat_referring_path_hash] = referring_path_hash.to_s(16) if referring_path_hash
+          payload[:cat_trip_id]             = trip_id             if trip_id
+          payload[:cat_path_hash]           = path_hash           if path_hash
+          payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
         end
       end
 
