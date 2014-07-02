@@ -146,24 +146,4 @@ class ParameterCaptureTest < RailsMultiverseTest
     end
     assert_equal('/parameter_capture/sql', last_sql_trace.url)
   end
-
-  def last_traced_error
-    NewRelic::Agent.agent.error_collector.errors.last
-  end
-
-  def last_traced_error_request_params
-    last_traced_error.params[:request_params]
-  end
-
-  def last_transaction_trace
-    NewRelic::Agent.agent.transaction_sampler.last_sample
-  end
-
-  def last_transaction_trace_request_params
-    last_transaction_trace.params[:request_params]
-  end
-
-  def last_sql_trace
-    NewRelic::Agent.agent.sql_sampler.sql_traces.values.last
-  end
 end
