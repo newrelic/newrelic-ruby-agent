@@ -8,18 +8,31 @@ module NewRelic
   module Agent
     module Configuration
       class HighSecuritySource < DottedHash
-        def initialize
+        def initialize(local_settings)
           super({
             :ssl => true,
 
-            :capture_params => false,
+            :capture_params           => false,
             :'resque.capture_params'  => false,
             :'sidekiq.capture_params' => false,
 
-            # TODO: Should this allow Yaml to ask for obfuscated instead?
-            :'transaction_tracer.record_sql' => 'off',
-            :'slow_sql.record_sql'           => 'off',
+            :'transaction_tracer.record_sql' => record_sql_setting(local_settings, :'transaction_tracer.record_sql'),
+            :'slow_sql.record_sql'           => record_sql_setting(local_settings, :'slow_sql.record_sql')
           })
+        end
+
+        OFF = "off".freeze
+        RAW = "raw".freeze
+        OBFUSCATED = "obfuscated".freeze
+
+        SET_TO_OBFUSCATED = [RAW, OBFUSCATED]
+
+        def record_sql_setting(local_settings, key)
+          if SET_TO_OBFUSCATED.include?(local_settings[key])
+            OBFUSCATED
+          else
+            OFF
+          end
         end
       end
     end

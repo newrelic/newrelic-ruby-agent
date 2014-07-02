@@ -45,7 +45,7 @@ module NewRelic::Agent::Configuration
 
     def test_sources_applied_in_correct_order
       # in order of precedence
-      high_security = HighSecuritySource.new
+      high_security = HighSecuritySource.new({})
       server_source = ServerSource.new(:foo => 'foo', :capture_params => true)
       manual_source = ManualSource.new(:foo => 'bad', :bar => 'bar',
                                        :capture_params => true)

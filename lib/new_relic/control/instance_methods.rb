@@ -88,7 +88,7 @@ module NewRelic
 
         if Agent.config[:high_security]
           Agent.logger.info("Installing high security configuration based on local configuration")
-          Agent.config.replace_or_add_config(Agent::Configuration::HighSecuritySource.new)
+          Agent.config.replace_or_add_config(Agent::Configuration::HighSecuritySource.new(Agent.config))
         end
       end
 

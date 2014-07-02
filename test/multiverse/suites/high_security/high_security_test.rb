@@ -24,7 +24,7 @@ class HighSecurityTest < Minitest::Test
     in_transaction(:filtered_params => { "loose" => "params" }) do
       # no-op
     end
-    assert last_transaction_trace_request_params.empty?
+    assert_empty last_transaction_trace_request_params
   end
 
 end
