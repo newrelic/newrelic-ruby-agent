@@ -195,13 +195,16 @@ module NewRelic
         from_headers(request, CONTENT_LENGTH_HEADER_KEYS) || -1
       end
 
-      def hash_transaction_name(name)
-        Digest::MD5.digest(name).unpack("@12N").first & 0x7fffffff
+      def hash_transaction_name(identifier)
+        Digest::MD5.digest(identifier).unpack("@12N").first & 0x7fffffff
       end
 
-      def path_hash(name, seed)
-        rotated = ((seed << 1) | (seed >> 30)) & 0x7fffffff
-        rotated ^ hash_transaction_name(name)
+      def path_hash(txn_name, seed)
+        rotated    = ((seed << 1) | (seed >> 30)) & 0x7fffffff
+        app_name   = NewRelic::Agent.config.app_names.first
+        identifier = "#{app_name};#{txn_name}"
+
+        rotated ^ hash_transaction_name(identifier)
       end
 
       private
