@@ -201,7 +201,7 @@ module NewRelic
 
       def path_hash(name, seed)
         rotated = ((seed << 1) | (seed >> 30)) & 0x7fffffff
-        rotated ^ hash_transaction_name(name)
+        rotated ^ hash_transaction_name("#{name};#{NewRelic::Agent.config.app_names.first}")
       end
 
       private
