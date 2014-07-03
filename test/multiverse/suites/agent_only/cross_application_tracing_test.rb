@@ -60,7 +60,7 @@ class CrossApplicationTracingTest < Minitest::Test
   def test_attaches_cat_map_attributes_to_dirac_events
     get '/', { 'transaction_name' => 'foo', 'cross_app_caller' => '1' }
 
-    expected_path_hash = '25adc3e7'
+    expected_path_hash = '87e6822'
 
     event = get_last_analytics_event
 
@@ -77,7 +77,7 @@ class CrossApplicationTracingTest < Minitest::Test
 
     get '/', { 'transaction_name' => 'foo' }, request_headers
 
-    expected_path_hash = '4f5b7008'
+    expected_path_hash = '58ad1279'
 
     event = get_last_analytics_event
 
@@ -104,12 +104,12 @@ class CrossApplicationTracingTest < Minitest::Test
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
 
-    expected_path_hash = '25adc3e7'
+    expected_path_hash = '87e6822'
 
     event = get_last_analytics_event
 
     assert_equal(calling_txn_guid, event[0]['nr.tripId'])
-    assert_equal(event[0]['nr.pathHash'], expected_path_hash)
+    assert_equal(expected_path_hash, event[0]['nr.pathHash'])
     assert_nil(event[0]['nr.referringPathHash'])
     assert_equal(calling_txn_guid, event[0]['nr.referringTransactionGuid'])
     refute_empty(event[0]['nr.guid'])
@@ -130,12 +130,12 @@ class CrossApplicationTracingTest < Minitest::Test
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
 
-    expected_path_hash = '25adc3e7'
+    expected_path_hash = '87e6822'
 
     event = get_last_analytics_event
 
     assert_equal(calling_txn_guid, event[0]['nr.tripId'])
-    assert_equal(event[0]['nr.pathHash'], expected_path_hash)
+    assert_equal(expected_path_hash, event[0]['nr.pathHash'])
     assert_nil(event[0]['nr.referringPathHash'])
     assert_equal(calling_txn_guid, event[0]['nr.referringTransactionGuid'])
     refute_empty(event[0]['nr.guid'])
@@ -156,12 +156,12 @@ class CrossApplicationTracingTest < Minitest::Test
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
 
-    expected_path_hash = '25adc3e7'
+    expected_path_hash = '87e6822'
 
     event = get_last_analytics_event
 
     assert_equal(calling_txn_guid, event[0]['nr.tripId'])
-    assert_equal(event[0]['nr.pathHash'], expected_path_hash)
+    assert_equal(expected_path_hash, event[0]['nr.pathHash'])
     assert_nil(event[0]['nr.referringPathHash'])
     assert_equal(calling_txn_guid, event[0]['nr.referringTransactionGuid'])
     refute_empty(event[0]['nr.guid'])
@@ -181,7 +181,7 @@ class CrossApplicationTracingTest < Minitest::Test
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
 
-    expected_path_hash = '25adc3e7'
+    expected_path_hash = '87e6822'
 
     event = get_last_analytics_event
 
@@ -189,7 +189,7 @@ class CrossApplicationTracingTest < Minitest::Test
     refute_equal(event[0]['nr.guid'],   calling_txn_guid)
     assert_equal(event[0]['nr.tripId'], event[0]['nr.guid'])
 
-    assert_equal(event[0]['nr.pathHash'], expected_path_hash)
+    assert_equal(expected_path_hash, event[0]['nr.pathHash'])
     assert_nil(event[0]['nr.referringPathHash'])
     assert_equal(calling_txn_guid, event[0]['nr.referringTransactionGuid'])
     refute_empty(event[0]['nr.guid'])
@@ -210,7 +210,7 @@ class CrossApplicationTracingTest < Minitest::Test
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
 
-    expected_path_hash = '25adc3e7'
+    expected_path_hash = '87e6822'
 
     event = get_last_analytics_event
 
@@ -218,7 +218,7 @@ class CrossApplicationTracingTest < Minitest::Test
     refute_equal(event[0]['nr.guid'],   calling_txn_guid)
     assert_equal(event[0]['nr.tripId'], event[0]['nr.guid'])
 
-    assert_equal(event[0]['nr.pathHash'], expected_path_hash)
+    assert_equal(expected_path_hash, event[0]['nr.pathHash'])
     assert_nil(event[0]['nr.referringPathHash'])
     assert_equal(calling_txn_guid, event[0]['nr.referringTransactionGuid'])
     refute_empty(event[0]['nr.guid'])
