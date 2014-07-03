@@ -60,7 +60,7 @@ class CrossApplicationTracingTest < Minitest::Test
   def test_attaches_cat_map_attributes_to_dirac_events
     get '/', { 'transaction_name' => 'foo', 'cross_app_caller' => '1' }
 
-    expected_path_hash = '87e6822'
+    expected_path_hash = 'c51bd2e'
 
     event = get_last_analytics_event
 
@@ -77,7 +77,7 @@ class CrossApplicationTracingTest < Minitest::Test
 
     get '/', { 'transaction_name' => 'foo' }, request_headers
 
-    expected_path_hash = '58ad1279'
+    expected_path_hash = '1dcb7d6c'
 
     event = get_last_analytics_event
 
@@ -104,7 +104,7 @@ class CrossApplicationTracingTest < Minitest::Test
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
 
-    expected_path_hash = '87e6822'
+    expected_path_hash = 'c51bd2e'
 
     event = get_last_analytics_event
 
@@ -130,7 +130,7 @@ class CrossApplicationTracingTest < Minitest::Test
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
 
-    expected_path_hash = '87e6822'
+    expected_path_hash = 'c51bd2e'
 
     event = get_last_analytics_event
 
@@ -156,7 +156,7 @@ class CrossApplicationTracingTest < Minitest::Test
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
 
-    expected_path_hash = '87e6822'
+    expected_path_hash = 'c51bd2e'
 
     event = get_last_analytics_event
 
@@ -181,7 +181,7 @@ class CrossApplicationTracingTest < Minitest::Test
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
 
-    expected_path_hash = '87e6822'
+    expected_path_hash = 'c51bd2e'
 
     event = get_last_analytics_event
 
@@ -210,7 +210,7 @@ class CrossApplicationTracingTest < Minitest::Test
     get '/', { 'transaction_name' => 'foo' }, request_headers
     assert last_response.ok?
 
-    expected_path_hash = '87e6822'
+    expected_path_hash = 'c51bd2e'
 
     event = get_last_analytics_event
 
