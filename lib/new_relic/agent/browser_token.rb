@@ -24,14 +24,9 @@ module NewRelic
         end
       end
 
-      # Run through a collection of unsafe characters ( in the context of the token )
-      # and set the token to an empty string if any of them are found in the token so that
-      # potential XSS attacks via the token are avoided
+      # Remove any non-alphanumeric characters from the token to avoid XSS attacks.
       def self.sanitize_token(token)
-        if ( /[<>'"]/ =~ token )
-          token.replace("")
-        end
-        token
+        token.gsub(/[^a-zA-Z0-9]/, '')
       end
     end
   end
