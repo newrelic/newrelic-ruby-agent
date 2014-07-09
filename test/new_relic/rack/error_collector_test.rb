@@ -54,25 +54,6 @@ module NewRelic::Rack
              'noticed an error that should have been ignored')
     end
 
-    def test_handles_parameter_parsing_exceptions
-      if defined?(ActionDispatch::Request)
-        bad_request = stub.stubs(:filtered_params).raises(TypeError, "can't convert nil into Hash")
-        ActionDispatch::Request.stubs(:new).returns(bad_request)
-      else
-        bad_request = stub(:env => {}, :path => '/', :referer => '', :cookies => {})
-        bad_request.stubs(:params).raises(TypeError, "whatever, man")
-        Rack::Request.stubs(:new).returns(bad_request)
-      end
-
-      assert_raises RuntimeError do
-        get '/'
-      end
-
-      assert_equal('unhandled error', last_error.message)
-      assert_match(/failed to capture request parameters/i,
-                   last_error.params[:request_params]['error'])
-    end
-
     # Ideally we'd test this for failures to create Rack::Request as well,
     # but unfortunately rack-test, which we're using to drive, creates
     # Rack::Request objects internally, so there's not an easy way to.
@@ -87,28 +68,6 @@ module NewRelic::Rack
         assert_equal('unhandled error', last_error.message)
         assert_equal('/foo/bar', last_error.params[:request_uri])
       end
-    end
-
-    def test_captures_parameters_with_rails
-      assert_raises RuntimeError do
-        get '/?foo=bar&baz=qux'
-      end
-
-      expected_params = { 'foo' => 'bar', 'baz' => 'qux' }
-      assert_equal('unhandled error', last_error.message)
-      assert_equal(expected_params, last_error.params[:request_params])
-    end
-
-    def test_captures_parameters_without_rails
-      undefine_constant(:'ActionDispatch::Request') do
-        assert_raises RuntimeError do
-          get '/?foo=bar&baz=qux'
-        end
-      end
-
-      expected_params = { 'foo' => 'bar', 'baz' => 'qux' }
-      assert_equal('unhandled error', last_error.message)
-      assert_equal(expected_params, last_error.params[:request_params])
     end
 
     def last_error

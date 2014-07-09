@@ -557,8 +557,8 @@ module NewRelic
       def self.extract_request_options(options)
         req = options.delete(:request)
         if req
+          options[:uri]     = uri_from_request(req)
           options[:referer] = referer_from_request(req)
-          options[:uri] = uri_from_request(req)
         end
         options
       end
@@ -566,13 +566,13 @@ module NewRelic
 
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options={}) # :nodoc:
-        options[:referer] = referer if referer
+        options[:uri]     ||= uri     if uri
+        options[:referer] ||= referer if referer
 
         if filtered_params && !filtered_params.empty?
           options[:request_params] = filtered_params
         end
 
-        options[:uri] = uri if uri
         options.merge!(custom_parameters)
 
         if @exceptions[error]

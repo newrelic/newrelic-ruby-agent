@@ -4,6 +4,7 @@
 
 require 'new_relic/control/frameworks/rails'
 require 'new_relic/rack/error_collector'
+
 module NewRelic
   class Control
     module Frameworks
@@ -20,22 +21,6 @@ module NewRelic
 
         def rails_root
           ::Rails.root.to_s
-        end
-
-        def init_config(options={})
-          super
-          if Agent.config[:agent_enabled] && Agent.config[:'error_collector.enabled']
-            if !rails_config.middleware.respond_to?(:include?) ||
-                !rails_config.middleware.include?(NewRelic::Rack::ErrorCollector)
-              add_error_collector_middleware
-            end
-          end
-        end
-
-        def add_error_collector_middleware
-          rails_config.middleware.use NewRelic::Rack::ErrorCollector
-        rescue => e
-          NewRelic::Agent.logger.debug("Error encountered installing ErrorCollector: #{e}")
         end
 
         def vendor_root

@@ -111,32 +111,17 @@ class ParameterCaptureTest < RailsMultiverseTest
     assert_equal({}, last_transaction_trace_request_params)
   end
 
-  if Rails::VERSION::MAJOR.to_i >= 3
-    # NewRelic::Rack::ErrorCollector grabs things out of the request so
-    # we get the actual params even if we never got to a controller
-    def test_sees_error_params_even_when_bailing_before_rails_if_enabled
-      with_config(:capture_params => true) do
-        get '/middleware_error/before?other=1234&secret=4567'
-      end
-
-      captured_params = last_traced_error_request_params
-      assert_equal('[FILTERED]', captured_params['secret'])
-      assert_equal('1234',       captured_params['other'])
+  def test_no_params_captured_on_error_when_bails_before_rails_even_when_enabled
+    with_config(:capture_params => true) do
+      get '/middleware_error/before?other=1234&secret=4567'
     end
-  else
-    def test_sees_error_params_even_when_bailing_before_rails_if_enabled
-      with_config(:capture_params => true) do
-        get '/middleware_error/before?other=1234&secret=4567'
-      end
-      assert_nil last_traced_error_request_params
-    end
+    assert_nil last_traced_error_request_params
   end
 
   def test_no_params_captured_on_tt_when_bails_before_rails_even_when_enabled
     with_config(:capture_params => true) do
       get '/middleware_error/before?other=1234&secret=4567'
     end
-
     assert_equal({}, last_transaction_trace_request_params)
   end
 
