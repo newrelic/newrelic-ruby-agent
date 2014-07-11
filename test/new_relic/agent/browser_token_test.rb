@@ -21,7 +21,11 @@ module NewRelic::Agent
     end
 
     def test_get_token_with_embedded_utf8_js_sanitized
-      assert_token("1234&amp;#34&amp;#93&amp;#41&amp;#595678", 'NRAGENT' => "tk=1234&#34&#93&#41&#595678")
+      assert_token("", 'NRAGENT' => "tk=1234&#34&#93&#41&#595678")
+    end
+
+    def test_get_token_with_embedded_utf7_js_sanitized
+      assert_token("", 'NRAGENT' => 'tk=+ADw-SCRIPT+AD4-alert(1)+ADw-/SCRIPT+AD4-')
     end
 
     def test_get_token_replaces_double_quoted_token_with_empty_string
