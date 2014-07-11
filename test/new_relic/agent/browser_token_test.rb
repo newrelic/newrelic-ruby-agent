@@ -17,31 +17,31 @@ module NewRelic::Agent
     end
 
     def test_get_token_with_embedded_tags_sanitized
-      assert_token("1234tageviltag5678", 'NRAGENT' => 'tk=1234<tag>evil</tag>5678')
+      assert_token("", 'NRAGENT' => 'tk=1234<tag>evil</tag>5678')
     end
 
     def test_get_token_with_embedded_utf8_js_sanitized
-      assert_token("1234349341595678", 'NRAGENT' => "tk=1234&#34&#93&#41&#595678")
+      assert_token("", 'NRAGENT' => "tk=1234&#34&#93&#41&#595678")
     end
 
     def test_get_token_with_embedded_utf7_js_sanitized
-      assert_token("ADwSCRIPTAD4alert1ADwSCRIPTAD4", 'NRAGENT' => 'tk=+ADw-SCRIPT+AD4-alert(1)+ADw-/SCRIPT+AD4-')
+      assert_token("", 'NRAGENT' => 'tk=+ADw-SCRIPT+AD4-alert(1)+ADw-/SCRIPT+AD4-')
     end
 
     def test_get_token_replaces_double_quoted_token_with_empty_string
-      assert_token("deadbeef", 'NRAGENT' => 'tk="""deadbeef"""')
+      assert_token("", 'NRAGENT' => 'tk="""deadbeef"""')
     end
 
     def test_get_token_replaces_single_quoted_token_with_empty_string
-      assert_token("deadbeef", 'NRAGENT' => "tk='''deadbeef'''")
+      assert_token("", 'NRAGENT' => "tk='''deadbeef'''")
     end
 
     def test_get_token_replaces_token_started_with_multiple_Lt_with_empty_string
-      assert_token("deadbeef", 'NRAGENT' => 'tk=<<<deadbeef')
+      assert_token("", 'NRAGENT' => 'tk=<<<deadbeef')
     end
 
     def test_get_token_replaces_token_started_with_multiple_gt_with_empty_string
-      assert_token("deadbeef", 'NRAGENT' => 'tk=>>>deadbeef')
+      assert_token("", 'NRAGENT' => 'tk=>>>deadbeef')
     end
 
     def test_get_token_bare_value_replaced_with_nil
