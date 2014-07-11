@@ -27,7 +27,7 @@ module NewRelic
       # Remove any non-alphanumeric characters from the token to avoid XSS attacks.
       def self.sanitize_token(token)
         if token.match(/[^a-zA-Z0-9]/)
-          ::NewRelic::Agent.logger.log_once(:debug, :invalid_browser_token,
+          ::NewRelic::Agent.logger.log_once(:warn, :invalid_browser_token,
                                            "Invalid characters found in browser token.")
           ''
         else
