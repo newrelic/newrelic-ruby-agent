@@ -25,6 +25,7 @@ class NewRelic::Agent::RequestSampler
   CAT_TRIP_ID_KEY                = 'nr.tripId'
   CAT_PATH_HASH_KEY              = 'nr.pathHash'
   CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'
+  CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'
   APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'
 
   def initialize( event_listener )
@@ -186,7 +187,14 @@ class NewRelic::Agent::RequestSampler
     optionally_append(CAT_PATH_HASH_KEY,              :cat_path_hash, sample, payload)
     optionally_append(CAT_REFERRING_PATH_HASH_KEY,    :cat_referring_path_hash, sample, payload)
     optionally_append(APDEX_PERF_ZONE_KEY,            :apdex_perf_zone, sample, payload)
+    append_cat_alternate_path_hashes(sample, payload)
     sample
+  end
+
+  def append_cat_alternate_path_hashes(sample, payload)
+    if payload.include?(:cat_alternate_path_hashes)
+      sample[CAT_ALTERNATE_PATH_HASHES_KEY] = payload[:cat_alternate_path_hashes].sort.join(',')
+    end
   end
 
   def optionally_append(sample_key, payload_key, sample, payload)

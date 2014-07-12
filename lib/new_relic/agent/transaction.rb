@@ -188,7 +188,7 @@ module NewRelic
         end
       end
 
-      attr_reader :frame_stack
+      attr_reader :frame_stack, :cat_path_hashes
 
       def initialize(category, options)
         @frame_stack = []
@@ -209,6 +209,7 @@ module NewRelic
         @exceptions = {}
         @metrics = TransactionMetrics.new
         @guid = generate_guid
+        @cat_path_hashes = nil
 
         @ignore_this_transaction = false
         @ignore_apdex = false
@@ -444,7 +445,16 @@ module NewRelic
       def cat_path_hash(state)
         referring_path_hash = cat_referring_path_hash(state) || '0'
         seed = referring_path_hash.to_i(16)
-        NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed).to_s(16)
+        result = NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed).to_s(16)
+        record_cat_path_hash(result)
+        result
+      end
+
+      def record_cat_path_hash(hash)
+        @cat_path_hashes ||= []
+        if @cat_path_hashes.size < 10 && !@cat_path_hashes.include?(hash)
+          @cat_path_hashes << hash
+        end
       end
 
       def cat_referring_path_hash(state)
@@ -474,8 +484,16 @@ module NewRelic
 
           payload[:guid]                    = guid
           payload[:cat_trip_id]             = trip_id             if trip_id
-          payload[:cat_path_hash]           = path_hash           if path_hash
           payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
+
+          if path_hash
+            payload[:cat_path_hash] = path_hash
+
+            alternate_path_hashes = cat_path_hashes - [path_hash]
+            unless alternate_path_hashes.empty?
+              payload[:cat_alternate_path_hashes] = alternate_path_hashes
+            end
+          end
         end
       end
 
