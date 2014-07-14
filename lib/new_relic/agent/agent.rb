@@ -155,7 +155,7 @@ module NewRelic
             disconnected? ||
             @worker_thread && @worker_thread.alive?
 
-          ::NewRelic::Agent.logger.debug "Starting the worker thread in #{$$} after forking."
+          ::NewRelic::Agent.logger.debug "Starting the worker thread in #{Process.pid} (parent #{Process.ppid}) after forking."
 
           # Clear out locks and stats left over from parent process
           reset_objects_with_locks
