@@ -7,6 +7,19 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..', '..',
 require 'rack/test'
 require 'new_relic/agent/instrumentation/rack'
 require 'new_relic/rack/browser_monitoring'
+#require 'action_controller/metal/live'
+# Stub Rails 4 Live Response:
+module ActionController
+  module Live
+    class Buffer
+    end
+    class Response
+      def stream
+        @stream ||= Buffer.new
+      end
+    end
+  end
+end
 
 ENV['RACK_ENV'] = 'test'
 
@@ -95,6 +108,10 @@ EOL
 
   def test_should_not_instrument_when_already_did
     assert !app.should_instrument?({NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY => true}, 200, {'Content-Type' => 'text/html'}, [])
+  end
+
+  def test_should_not_instrument_rails_live_requests
+    assert !app.should_instrument?({}, 200, {'Content-Type' => 'text/html'}, ActionController::Live::Response.new)
   end
 
   def test_insert_header_should_mark_environment
