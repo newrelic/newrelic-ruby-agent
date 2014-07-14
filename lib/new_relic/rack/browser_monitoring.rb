@@ -18,7 +18,7 @@ module NewRelic::Rack
     def traced_call(env)
       result = @app.call(env)   # [status, headers, response]
 
-      if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1])
+      if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1], result[2])
         response_string = autoinstrument_source(result[2], result[1])
 
         env[ALREADY_INSTRUMENTED_KEY] = true
@@ -35,11 +35,12 @@ module NewRelic::Rack
 
     ALREADY_INSTRUMENTED_KEY = "newrelic.browser_monitoring_already_instrumented"
 
-    def should_instrument?(env, status, headers)
+    def should_instrument?(env, status, headers, response)
       status == 200 &&
         !env[ALREADY_INSTRUMENTED_KEY] &&
         headers["Content-Type"] && headers["Content-Type"].include?("text/html") &&
-        !headers['Content-Disposition'].to_s.include?('attachment')
+        !headers['Content-Disposition'].to_s.include?('attachment') &&
+        !(response.respond_to?(:stream) && response.stream.class.name == 'ActionController::Live::Buffer')
     end
 
     CHARSET_RE         = /<\s*meta[^>]+charset\s*=[^>]*>/im.freeze
