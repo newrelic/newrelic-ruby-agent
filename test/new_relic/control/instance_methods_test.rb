@@ -17,14 +17,34 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
   end
 
   def test_configure_agent_adds_the_yaml_config
-    refute NewRelic::Agent.config.config_classes_for_testing.include? NewRelic::Agent::Configuration::YamlSource
+    refute_has_config NewRelic::Agent::Configuration::YamlSource
     @test.configure_agent('test', {})
-    assert NewRelic::Agent.config.config_classes_for_testing.include? NewRelic::Agent::Configuration::YamlSource
+    assert_has_config NewRelic::Agent::Configuration::YamlSource
   end
 
   def test_configure_agent_adds_the_manual_config
-    refute NewRelic::Agent.config.config_classes_for_testing.include? NewRelic::Agent::Configuration::ManualSource
+    refute_has_config NewRelic::Agent::Configuration::ManualSource
     @test.configure_agent('test', {})
-    assert NewRelic::Agent.config.config_classes_for_testing.include? NewRelic::Agent::Configuration::ManualSource
+    assert_has_config NewRelic::Agent::Configuration::ManualSource
+  end
+
+  def test_no_high_security_config_by_default
+    refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
+    @test.configure_agent('test', {:high_security => false})
+    refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
+  end
+
+  def test_high_security_config_added_if_requested
+    refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
+    @test.configure_agent('test', {:high_security => true})
+    assert_has_config NewRelic::Agent::Configuration::HighSecuritySource
+  end
+
+  def refute_has_config(clazz)
+    refute NewRelic::Agent.config.config_classes_for_testing.include? clazz
+  end
+
+  def assert_has_config(clazz)
+    assert NewRelic::Agent.config.config_classes_for_testing.include? clazz
   end
 end

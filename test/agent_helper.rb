@@ -252,6 +252,26 @@ def in_web_transaction(name='dummy')
   end
 end
 
+def last_traced_error
+  NewRelic::Agent.agent.error_collector.errors.last
+end
+
+def last_traced_error_request_params
+  last_traced_error.params[:request_params]
+end
+
+def last_transaction_trace
+  NewRelic::Agent.agent.transaction_sampler.last_sample
+end
+
+def last_transaction_trace_request_params
+  last_transaction_trace.params[:request_params]
+end
+
+def last_sql_trace
+  NewRelic::Agent.agent.sql_sampler.sql_traces.values.last
+end
+
 def find_last_transaction_segment(transaction_sample=nil)
   if transaction_sample
     root_segment = transaction_sample.root_segment

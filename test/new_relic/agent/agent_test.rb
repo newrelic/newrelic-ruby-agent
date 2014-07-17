@@ -319,6 +319,7 @@ module NewRelic
         assert settings.include?(:agent_version)
         assert settings.include?(:environment)
         assert settings.include?(:settings)
+        assert settings.include?(:high_security)
       end
 
       def test_connect_settings_checks_environment_report_can_marshal
