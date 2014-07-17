@@ -426,7 +426,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_raises_if_add_custom_param_when_in_high_security
+  def test_ignores_custom_parameters_when_in_high_security
     with_config(:high_security => true) do
       in_transaction do |txn|
         NewRelic::Agent.add_custom_parameters(:failure => "is an option")
