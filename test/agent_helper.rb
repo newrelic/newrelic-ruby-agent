@@ -491,3 +491,7 @@ end
 def json_dump_and_encode(object)
   Base64.encode64(NewRelic::JSONWrapper.dump(object))
 end
+
+def get_last_analytics_event
+  NewRelic::Agent.agent.instance_variable_get(:@request_sampler).samples.last
+end

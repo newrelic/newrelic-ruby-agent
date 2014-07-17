@@ -31,17 +31,7 @@ module HttpClientTestCases
     $fake_secure_server.reset
     $fake_secure_server.run
 
-    NewRelic::Agent.instance.events.clear
-    NewRelic::Agent.instance.cross_app_monitor.register_event_listeners
     NewRelic::Agent.instance.events.notify(:finished_configuring)
-
-    @nr_header = nil
-    # Don't use destructuring on result array with ignores since it fails
-    # on Rubinius: https://github.com/rubinius/rubinius/issues/2678
-    NewRelic::Agent.instance.events.subscribe(:after_call) do |_, result|
-      headers = result[1]
-      headers[ NR_APPDATA_HEADER ] = @nr_header unless @nr_header.nil?
-    end
 
     @engine = NewRelic::Agent.instance.stats_engine
     NewRelic::Agent::Transaction.any_instance.stubs(:guid).returns(TRANSACTION_GUID)
@@ -301,7 +291,7 @@ module HttpClientTestCases
   end
 
   def test_instrumentation_with_crossapp_enabled_records_normal_metrics_if_no_header_present
-    @nr_header = ""
+    $fake_server.override_response_headers('X-NewRelic-App-Data' => '')
 
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction("test") do
@@ -314,8 +304,8 @@ module HttpClientTestCases
   end
 
   def test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
-    @nr_header =
-      make_app_data_payload( "18#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID )
+    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
+      make_app_data_payload( "18#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID ))
 
     in_transaction("test") do
       get_response
@@ -326,8 +316,8 @@ module HttpClientTestCases
   end
 
   def test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
-    @nr_header =
-      make_app_data_payload( "18#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID )
+    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
+      make_app_data_payload( "18#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID ))
 
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction("test") do
@@ -350,8 +340,8 @@ module HttpClientTestCases
   end
 
   def test_crossapp_metrics_allow_valid_utf8_characters
-    @nr_header =
-      make_app_data_payload( "12#1114", "世界線航跡蔵", 18.0, 88.1, 4096, TRANSACTION_GUID )
+    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
+      make_app_data_payload( "12#1114", "世界線航跡蔵", 18.0, 88.1, 4096, TRANSACTION_GUID ))
 
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction("test") do
@@ -374,8 +364,8 @@ module HttpClientTestCases
   end
 
   def test_crossapp_metrics_ignores_crossapp_header_with_malformed_crossprocess_id
-    @nr_header =
-      make_app_data_payload( "88#88#88", "invalid", 1, 2, 4096, TRANSACTION_GUID )
+    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
+      make_app_data_payload( "88#88#88", "invalid", 1, 2, 4096, TRANSACTION_GUID ))
 
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction("test") do
@@ -462,7 +452,6 @@ module HttpClientTestCases
     end
   end
 
-
   def test_still_records_tt_node_when_request_fails
     # This test does not work on older versions of Typhoeus, because the
     # on_complete callback is not reliably invoked. That said, it's a corner
@@ -490,6 +479,46 @@ module HttpClientTestCases
 
       evil_server.stop
     end
+  end
+
+  def test_attaches_alternate_path_hashes_when_txn_name_changes_between_requests
+    with_config(:'cross_application_tracer.enabled' => true) do
+      in_transaction do
+        NewRelic::Agent.set_transaction_name('foo')
+        get_response
+        NewRelic::Agent.set_transaction_name('bar')
+        get_response
+        NewRelic::Agent.set_transaction_name('baz')
+      end
+    end
+
+    evt = get_last_analytics_event
+
+    expected_alternate_path_hashes = '59bf75f0,7158c138'
+    expected_path_hash             = '66d61e3d'
+
+    assert_equal(expected_alternate_path_hashes, evt[0]['nr.alternatePathHashes'])
+    assert_equal(expected_path_hash,             evt[0]['nr.pathHash'])
+  end
+
+  def test_should_limit_alternate_path_hashes_to_10
+    with_config(:'cross_application_tracer.enabled' => true) do
+      in_transaction do
+        15.times do |i|
+          NewRelic::Agent.set_transaction_name("t#{i}")
+          get_response
+        end
+      end
+    end
+
+    evt = get_last_analytics_event
+
+    expected_path_hash = '54b93b3d'
+
+    alternate_path_hashes = evt[0]['nr.alternatePathHashes'].split(',')
+    assert_equal(10, alternate_path_hashes.size)
+    assert_equal(alternate_path_hashes.uniq, alternate_path_hashes)
+    assert_equal(expected_path_hash, evt[0]['nr.pathHash'])
   end
 
   def make_app_data_payload( *args )

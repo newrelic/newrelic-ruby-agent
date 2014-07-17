@@ -71,6 +71,17 @@ class CrossApplicationTracingTest < Minitest::Test
     assert_nil(event[0]['nr.referringTransactionGuid'])
   end
 
+  def test_should_not_attach_cat_map_attributes_if_no_cat
+    get '/', { 'transaction_name' => 'foo' }
+
+    event = get_last_analytics_event
+
+    assert_nil(event[0]['nr.tripId'])
+    assert_nil(event[0]['nr.pathHash'])
+    assert_nil(event[0]['nr.referringPathHash'])
+    assert_nil(event[0]['nr.alternatePathHashes'])
+  end
+
   def test_attaches_cat_map_attributes_to_dirac_events_with_referring_txn
     calling_txn_guid, calling_txn_path_hash = generate_referring_transaction
     request_headers = generate_cat_headers(calling_txn_guid, calling_txn_path_hash)
@@ -85,6 +96,7 @@ class CrossApplicationTracingTest < Minitest::Test
     assert_equal(expected_path_hash,    event[0]['nr.pathHash'])
     assert_equal(calling_txn_path_hash, event[0]['nr.referringPathHash'])
     assert_equal(calling_txn_guid,      event[0]['nr.referringTransactionGuid'])
+    assert_nil(event[0]['nr.alternatePathHashes'])
 
     refute_empty(event[0]['nr.guid'])
     refute_equal(calling_txn_guid, event[0]['nr.guid'])
@@ -111,6 +123,7 @@ class CrossApplicationTracingTest < Minitest::Test
     assert_equal(calling_txn_guid, event[0]['nr.tripId'])
     assert_equal(expected_path_hash, event[0]['nr.pathHash'])
     assert_nil(event[0]['nr.referringPathHash'])
+    assert_nil(event[0]['nr.alternatePathHashes'])
     assert_equal(calling_txn_guid, event[0]['nr.referringTransactionGuid'])
     refute_empty(event[0]['nr.guid'])
     refute_equal(calling_txn_guid, event[0]['nr.guid'])
@@ -137,6 +150,7 @@ class CrossApplicationTracingTest < Minitest::Test
     assert_equal(calling_txn_guid, event[0]['nr.tripId'])
     assert_equal(expected_path_hash, event[0]['nr.pathHash'])
     assert_nil(event[0]['nr.referringPathHash'])
+    assert_nil(event[0]['nr.alternatePathHashes'])
     assert_equal(calling_txn_guid, event[0]['nr.referringTransactionGuid'])
     refute_empty(event[0]['nr.guid'])
     refute_equal(calling_txn_guid, event[0]['nr.guid'])
@@ -163,6 +177,7 @@ class CrossApplicationTracingTest < Minitest::Test
     assert_equal(calling_txn_guid, event[0]['nr.tripId'])
     assert_equal(expected_path_hash, event[0]['nr.pathHash'])
     assert_nil(event[0]['nr.referringPathHash'])
+    assert_nil(event[0]['nr.alternatePathHashes'])
     assert_equal(calling_txn_guid, event[0]['nr.referringTransactionGuid'])
     refute_empty(event[0]['nr.guid'])
     refute_equal(calling_txn_guid, event[0]['nr.guid'])
@@ -191,6 +206,7 @@ class CrossApplicationTracingTest < Minitest::Test
 
     assert_equal(expected_path_hash, event[0]['nr.pathHash'])
     assert_nil(event[0]['nr.referringPathHash'])
+    assert_nil(event[0]['nr.alternatePathHashes'])
     assert_equal(calling_txn_guid, event[0]['nr.referringTransactionGuid'])
     refute_empty(event[0]['nr.guid'])
     refute_equal(calling_txn_guid, event[0]['nr.guid'])
@@ -220,6 +236,7 @@ class CrossApplicationTracingTest < Minitest::Test
 
     assert_equal(expected_path_hash, event[0]['nr.pathHash'])
     assert_nil(event[0]['nr.referringPathHash'])
+    assert_nil(event[0]['nr.alternatePathHashes'])
     assert_equal(calling_txn_guid, event[0]['nr.referringTransactionGuid'])
     refute_empty(event[0]['nr.guid'])
     refute_equal(calling_txn_guid, event[0]['nr.guid'])
@@ -248,9 +265,5 @@ class CrossApplicationTracingTest < Minitest::Test
         path_hash
       ])
     }
-  end
-
-  def get_last_analytics_event
-    NewRelic::Agent.agent.instance_variable_get(:@request_sampler).samples.last
   end
 end

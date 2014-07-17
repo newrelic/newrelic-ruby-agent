@@ -14,6 +14,8 @@ module NewRelic
     STATUS_MESSAGE = "<html><head><title>FakeExternalServer status</title></head>" +
       "<body>The FakeExternalServer is rockin'</body></html>"
 
+    attr_reader :overridden_response_headers
+
     def initialize( * )
       super
       @requests = []
@@ -36,10 +38,21 @@ module NewRelic
 
     def reset
       @requests.clear
+      @overridden_response_headers = {}
+    end
+
+    def override_response_headers(headers)
+      @overridden_response_headers.merge!(headers)
     end
 
     def app
-      NewRelic::Rack::AgentHooks.new(self)
+      inner_app = NewRelic::Rack::AgentHooks.new(self)
+      server = self
+      Proc.new do |env|
+        result = inner_app.call(env)
+        result[1].merge!(server.overridden_response_headers)
+        result
+      end
     end
 
     def fallback_port

@@ -210,7 +210,6 @@ module NewRelic
             metrics.concat metrics_for_regular_request( request )
           end
         else
-          NewRelic::Agent.logger.debug "Response doesn't have CAT headers."
           metrics.concat metrics_for_regular_request( request )
         end
 
