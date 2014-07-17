@@ -203,8 +203,7 @@ module NewRelic
         rotated    = ((seed << 1) | (seed >> 31)) & 0xffffffff
         app_name   = NewRelic::Agent.config.app_names.first
         identifier = "#{app_name};#{txn_name}"
-
-        rotated ^ hash_transaction_name(identifier)
+        sprintf("%08x", rotated ^ hash_transaction_name(identifier))
       end
 
       private
