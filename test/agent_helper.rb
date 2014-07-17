@@ -475,3 +475,13 @@ end
 def get_last_analytics_event
   NewRelic::Agent.agent.instance_variable_get(:@request_sampler).samples.last
 end
+
+def cross_agent_tests_dir
+  File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'cross_agent_tests'))
+end
+
+def load_cross_agent_test(name)
+  test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
+  data = File.read(test_file_path)
+  NewRelic::JSONWrapper.load(data)
+end

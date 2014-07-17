@@ -1,0 +1,246 @@
+[
+  {
+    "name": "new_cat",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": [
+      "b854df4feb2b1f06",
+      false,
+      "7e249074f277923d",
+      "5d2957be"
+    ],
+    "expectedAttributes": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "7e249074f277923d",
+      "nr.pathHash": "169d655a",
+      "nr.referringTransactionGuid": "b854df4feb2b1f06",
+      "nr.referringPathHash": "5d2957be"
+    },
+    "nonExpectedAttributes": [
+      "nr.alternatePathHashes"
+    ]
+  },
+  {
+    "name": "new_cat_no_referring_payload",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": null,
+    "expectedAttributes": {},
+    "nonExpectedAttributes": [
+      "nr.guid",
+      "nr.tripId",
+      "nr.pathHash",
+      "nr.referringTransactionGuid",
+      "nr.referringPathHash",
+      "nr.alternatePathHashes"
+    ]
+  },
+  {
+    "name": "new_cat_with_call_out",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": null,
+    "outgoingTxnNames": [
+      "WebTransaction/testTxnName"
+    ],
+    "expectedAttributes": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "9323dc260548ed0e",
+      "nr.pathHash": "accfca26"
+    },
+    "nonExpectedAttributes": [
+      "nr.referringTransactionGuid",
+      "nr.referringPathHash",
+      "nr.alternatePathHashes"
+    ]
+  },
+  {
+    "name": "new_cat_with_multiple_calls_out",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": null,
+    "outgoingTxnNames": [
+      "otherTxnName",
+      "otherTxnName",
+      "moreOtherTxnName",
+      "moreDifferentTxnName"
+    ],
+    "expectedAttributes": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "9323dc260548ed0e",
+      "nr.pathHash": "accfca26",
+      "nr.alternatePathHashes": "0056f7e9,5cf9ad04,a886ccd4"
+    },
+    "nonExpectedAttributes": [
+      "nr.referringTransactionGuid",
+      "nr.referringPathHash"
+    ]
+  },
+  {
+    "name": "new_cat_with_many_calls_out",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": null,
+    "outgoingTxnNames": [
+      "txn1",
+      "txn2",
+      "txn3",
+      "txn4",
+      "txn5",
+      "txn6",
+      "txn7",
+      "txn8",
+      "txn9",
+      "txn10",
+      "txn11"
+    ],
+    "expectedAttributes": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "9323dc260548ed0e",
+      "nr.pathHash": "accfca26",
+      "nr.alternatePathHashes": "04b31647,0ef6af78,16742954,6853e8cd,6f4f8c04,7fc1c36b,c03c1b24,fac71913,fb604c4b,fdd21df8"
+    },
+    "nonExpectedAttributes": [
+      "nr.referringTransactionGuid",
+      "nr.referringPathHash"
+    ]
+  },
+  {
+    "name": "new_cat_with_referring_info_and_call_out",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": [
+      "b854df4feb2b1f06",
+      false,
+      "7e249074f277923d",
+      "5d2957be"
+    ],
+    "outgoingTxnNames": [
+      "otherTxnName"
+    ],
+    "expectedAttributes": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "7e249074f277923d",
+      "nr.pathHash": "5d2957be",
+      "nr.alternatePathHashes": "ba045895",
+      "nr.referringTransactionGuid": "b854df4feb2b1f06",
+      "nr.referringPathHash": "5d2957be"
+    },
+    "nonExpectedAttributes": []
+  },
+  {
+    "name": "new_cat_missing_path_hash",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": [
+      "b854df4feb2b1f06",
+      false,
+      "7e249074f277923d"
+    ],
+    "expectedAttributes": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "7e249074f277923d",
+      "nr.pathHash": "accfca26",
+      "nr.referringTransactionGuid": "b854df4feb2b1f06"
+    },
+    "nonExpectedAttributes": [
+      "nr.alternatePathHashes",
+      "nr.referringPathHash"
+    ]
+  },
+  {
+    "name": "new_cat_null_path_hash",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": [
+      "b854df4feb2b1f06",
+      false,
+      "7e249074f277923d",
+      null
+    ],
+    "expectedAttributes": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "7e249074f277923d",
+      "nr.pathHash": "accfca26",
+      "nr.referringTransactionGuid": "b854df4feb2b1f06"
+    },
+    "nonExpectedAttributes": [
+      "nr.alternatePathHashes",
+      "nr.referringPathHash"
+    ]
+  },
+  {
+    "name": "new_cat_malformed_path_hash",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": [
+      "b854df4feb2b1f06",
+      false,
+      "7e249074f277923d",
+      [
+        "scrambled",
+        "eggs"
+      ]
+    ],
+    "expectedAttributes": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "7e249074f277923d",
+      "nr.pathHash": "accfca26",
+      "nr.referringTransactionGuid": "b854df4feb2b1f06"
+    },
+    "nonExpectedAttributes": [
+      "nr.alternatePathHashes",
+      "nr.referringPathHash"
+    ]
+  },
+  {
+    "name": "new_cat_missing_trip_id",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": [
+      "b854df4feb2b1f06",
+      false
+    ],
+    "expectedAttributes": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "9323dc260548ed0e",
+      "nr.pathHash": "accfca26",
+      "nr.referringTransactionGuid": "b854df4feb2b1f06"
+    },
+    "nonExpectedAttributes": [
+      "nr.referringPathHash",
+      "nr.alternatePathHashes"
+    ]
+  },
+  {
+    "name": "new_cat_null_trip_id",
+    "appName": "testAppName",
+    "transactionName": "WebTransaction/testTxnName",
+    "transactionGuid": "9323dc260548ed0e",
+    "referringPayload": [
+      "b854df4feb2b1f06",
+      false,
+      null
+    ],
+    "expectedAttributes": {
+      "nr.guid": "9323dc260548ed0e",
+      "nr.tripId": "9323dc260548ed0e",
+      "nr.pathHash": "accfca26",
+      "nr.referringTransactionGuid": "b854df4feb2b1f06"
+    },
+    "nonExpectedAttributes": [
+      "nr.alternatePathHashes",
+      "nr.referringPathHash"
+    ]
+  }
+]

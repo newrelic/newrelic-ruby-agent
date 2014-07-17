@@ -20,10 +20,18 @@ class TestingApp
     request = Rack::Request.new(env)
     params = request.params
     if params['transaction_name']
-      NewRelic::Agent.set_transaction_name(params['transaction_name'])
+      opts = {}
+      if params['transaction_category']
+        opts[:category] = params['transaction_category']
+        NewRelic::Agent::Transaction.stubs(:transaction_category_is_web?).returns(true)
+      end
+      NewRelic::Agent.set_transaction_name(params['transaction_name'], opts)
     end
     if params['cross_app_caller']
       NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+    end
+    if params['guid']
+      NewRelic::Agent::Transaction.tl_current.instance_variable_set(:@guid, params['guid'])
     end
     sleep(params['sleep'].to_f) if params['sleep']
     [200, headers, [response]]
