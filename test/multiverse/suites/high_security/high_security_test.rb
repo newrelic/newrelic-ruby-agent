@@ -35,7 +35,7 @@ class HighSecurityTest < Minitest::Test
 
   def test_sends_high_security_flag_in_connect
     data = $collector.calls_for('connect')
-    assert data.first.body["high_security"]
+    assert stringify_keys(data.first.body)["high_security"]
   end
 
   def test_disallows_server_config_from_overriding_high_security
