@@ -30,9 +30,7 @@ class TestingApp
     if params['cross_app_caller']
       NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
     end
-    if params['guid']
-      NewRelic::Agent::Transaction.tl_current.instance_variable_set(:@guid, params['guid'])
-    end
+    stub_transaction_guid(params['guid']) if params['guid']
     sleep(params['sleep'].to_f) if params['sleep']
     [200, headers, [response]]
   end

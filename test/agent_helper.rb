@@ -244,6 +244,10 @@ def in_transaction(*args)
   val
 end
 
+def stub_transaction_guid(guid)
+  NewRelic::Agent::Transaction.tl_current.instance_variable_set(:@guid, guid)
+end
+
 # Convenience wrapper around in_transaction that sets the category so that it
 # looks like we are in a web transaction
 def in_web_transaction(name='dummy')
@@ -484,4 +488,29 @@ def load_cross_agent_test(name)
   test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
   data = File.read(test_file_path)
   NewRelic::JSONWrapper.load(data)
+end
+
+def assert_event_attributes(event, test_name, expected_attributes, non_expected_attributes)
+  incorrect_attributes = []
+  expected_attributes.each do |name, expected_value|
+    actual_value = event[name]
+    incorrect_attributes << name unless actual_value == expected_value
+  end
+
+  msg = "Found missing or incorrect attribute values in #{test_name}:\n"
+
+  incorrect_attributes.each do |name|
+    msg << "  #{name}: expected = #{expected_attributes[name].inspect}, actual = #{event[name].inspect}\n"
+  end
+  msg << "\n"
+
+  msg << "All event values:\n"
+  event.each do |name, actual_value|
+    msg << "  #{name}: #{actual_value.inspect}\n"
+  end
+  assert(incorrect_attributes.empty?, msg)
+
+  non_expected_attributes.each do |name|
+    assert_nil(event[name], "Found value '#{event[name]}' for attribute '#{name}', but expected nothing in #{test_name}")
+  end
 end

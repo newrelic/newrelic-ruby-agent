@@ -82,29 +82,7 @@ class CrossApplicationTracingTest < Minitest::Test
         end
 
         event = get_last_analytics_event[0]
-
-        incorrect_attributes = []
-        test_case['expectedAttributes'].each do |name, expected_value|
-          actual_value = event[name]
-          incorrect_attributes << name unless actual_value == expected_value
-        end
-
-        msg = "Found missing or incorrect CAT attribute values in #{test_case['name']}:\n"
-
-        incorrect_attributes.each do |name|
-          msg << "  #{name}: expected = #{test_case['expectedAttributes'][name].inspect}, actual = #{event[name].inspect}\n"
-        end
-        msg << "\n"
-
-        msg << "All event values:\n"
-        event.each do |name, actual_value|
-          msg << "  #{name}: #{actual_value.inspect}\n"
-        end
-        assert(incorrect_attributes.empty?, msg)
-
-        test_case['nonExpectedAttributes'].each do |name|
-          assert_nil(event[name], "Found value '#{event[name]}' for attribute '#{name}', but expected nothing in #{test_case['name']}")
-        end
+        assert_event_attributes(event, test_case['name'], test_case['expectedAttributes'], test_case['nonExpectedAttributes'])
       end
     end
   end
