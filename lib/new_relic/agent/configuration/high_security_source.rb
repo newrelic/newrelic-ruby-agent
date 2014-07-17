@@ -28,11 +28,18 @@ module NewRelic
         SET_TO_OBFUSCATED = [RAW, OBFUSCATED]
 
         def record_sql_setting(local_settings, key)
-          if SET_TO_OBFUSCATED.include?(local_settings[key])
+          original_value  = local_settings[key]
+          result = if SET_TO_OBFUSCATED.include?(original_value)
             OBFUSCATED
           else
             OFF
           end
+
+          if result != original_value
+            NewRelic::Agent.logger.info("Disabling setting #{key}='#{original_value}' because high security mode is enabled. Value will be '#{result}'")
+          end
+
+          result
         end
       end
     end

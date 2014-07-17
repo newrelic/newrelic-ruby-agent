@@ -49,10 +49,35 @@ module NewRelic::Agent::Configuration
         :'slow_sql.record_sql'           => 'junk'
       }
 
+      expects_logging(:info, includes('jibberish'))
+
       source = HighSecuritySource.new(local_settings)
 
       assert_equal('off', source[:'transaction_tracer.record_sql'])
       assert_equal('off', source[:'slow_sql.record_sql'])
     end
+
+    def test_logs_when_changing_raw_to_obfuscated
+      local_settings = {
+        :'transaction_tracer.record_sql' => 'raw',
+        :'slow_sql.record_sql'           => 'raw'
+      }
+
+      expects_logging(:info, all_of(includes('raw'), includes('obfuscated')))
+
+      HighSecuritySource.new(local_settings)
+    end
+
+    def test_no_logging_when_allowed_values
+      local_settings = {
+        :'transaction_tracer.record_sql' => 'off',
+        :'slow_sql.record_sql'           => 'obfuscated'
+      }
+
+      expects_no_logging(:info)
+
+      HighSecuritySource.new(local_settings)
+    end
+
   end
 end
