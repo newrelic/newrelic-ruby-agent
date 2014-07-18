@@ -33,6 +33,8 @@ module NewRelic
     end
 
     def self.normalize_string(s)
+      return s unless supports_normalization?
+
       encoding = s.encoding
       if (encoding == Encoding::UTF_8 || encoding == Encoding::ISO_8859_1) && s.valid_encoding?
         return s
@@ -70,6 +72,7 @@ module NewRelic
         hash = {}
         object.each_pair do |k, v|
           k = normalize_string(k) if k.is_a?(String)
+          k = k.to_s              if k.is_a?(Symbol)
           hash[k] = normalize(v)
         end
         hash

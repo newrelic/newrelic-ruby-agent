@@ -478,23 +478,6 @@ ensure
   end
 end
 
-def stringify_recursively(object)
-  case object
-  when Hash
-    new_hash = {}
-    object.each do |k, v|
-      new_hash[k.to_s] = stringify_recursively(v)
-    end
-    new_hash
-  when Array
-    object.map { |element| stringify_recursively(element) }
-  when Symbol
-    object.to_s
-  else
-    object
-  end
-end
-
 def json_dump_and_encode(object)
   Base64.encode64(NewRelic::JSONWrapper.dump(object))
 end

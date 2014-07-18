@@ -128,7 +128,7 @@ module NewRelic
             body = JSON.load(raw_body)
           else
             body = Marshal.load(raw_body)
-            body = stringify_recursively(body)
+            body = NewRelic::JSONWrapper.normalize(body)
           end
         rescue => err
           body = "UNABLE TO DECODE BODY: #{raw_body}"

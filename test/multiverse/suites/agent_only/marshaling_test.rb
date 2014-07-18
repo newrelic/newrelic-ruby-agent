@@ -37,7 +37,7 @@ class MarshalingTest < Minitest::Test
     encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
     expected = expected_sample.to_collector_array(encoder)
-    expected = stringify_recursively(expected)
+    expected = NewRelic::JSONWrapper.normalize(expected)
 
     assert_equal(expected, actual)
   end
