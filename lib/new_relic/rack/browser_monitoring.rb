@@ -15,6 +15,10 @@ module NewRelic::Rack
   # @api public
   #
   class BrowserMonitoring < AgentMiddleware
+    # The maximum number of bytes of the response body that we will
+    # examine in order to look for a RUM insertion point.
+    SCAN_LIMIT = 50_000
+
     def traced_call(env)
       result = @app.call(env)   # [status, headers, response]
 
@@ -51,7 +55,7 @@ module NewRelic::Rack
       return nil unless source
 
       # Only scan the first 50k (roughly) then give up.
-      beginning_of_source = source[0..50_000]
+      beginning_of_source = source[0..SCAN_LIMIT]
 
       if body_start = find_body_start(beginning_of_source)
         meta_tag_positions = [
@@ -73,7 +77,9 @@ module NewRelic::Rack
           NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Could not properly determine location to inject script."
         end
       else
-        NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Unable to find <body> tag in document."
+        msg = "Skipping RUM instrumentation. Unable to find <body> tag in first #{SCAN_LIMIT} bytes of document."
+        NewRelic::Agent.logger.log_once(:warn, :rum_insertion_failure, msg)
+        NewRelic::Agent.logger.debug(msg)
       end
 
       if headers['Content-Length']
