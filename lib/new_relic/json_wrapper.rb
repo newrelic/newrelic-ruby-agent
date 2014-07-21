@@ -74,8 +74,8 @@ module NewRelic
         return object if object.empty?
         hash = {}
         object.each_pair do |k, v|
-          k = normalize_string(k) if k.is_a?(String)
-          k = k.to_s              if k.is_a?(Symbol)
+          k = normalize_string(k)      if k.is_a?(String)
+          k = normalize_string(k.to_s) if k.is_a?(Symbol)
           hash[k] = normalize(v)
         end
         hash
