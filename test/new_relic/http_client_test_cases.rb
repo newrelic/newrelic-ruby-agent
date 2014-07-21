@@ -501,7 +501,7 @@ module HttpClientTestCases
           end
         end
 
-        event = get_last_analytics_event[0]
+        event = get_last_analytics_event
         assert_event_attributes(event, test_case['name'], test_case['expectedAttributes'], test_case['nonExpectedAttributes'])
       end
     end

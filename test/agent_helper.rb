@@ -492,25 +492,28 @@ end
 
 def assert_event_attributes(event, test_name, expected_attributes, non_expected_attributes)
   incorrect_attributes = []
+
+  event_attrs = event[0]
+
   expected_attributes.each do |name, expected_value|
-    actual_value = event[name]
+    actual_value = event_attrs[name]
     incorrect_attributes << name unless actual_value == expected_value
   end
 
   msg = "Found missing or incorrect attribute values in #{test_name}:\n"
 
   incorrect_attributes.each do |name|
-    msg << "  #{name}: expected = #{expected_attributes[name].inspect}, actual = #{event[name].inspect}\n"
+    msg << "  #{name}: expected = #{expected_attributes[name].inspect}, actual = #{event_attrs[name].inspect}\n"
   end
   msg << "\n"
 
   msg << "All event values:\n"
-  event.each do |name, actual_value|
+  event_attrs.each do |name, actual_value|
     msg << "  #{name}: #{actual_value.inspect}\n"
   end
   assert(incorrect_attributes.empty?, msg)
 
   non_expected_attributes.each do |name|
-    assert_nil(event[name], "Found value '#{event[name]}' for attribute '#{name}', but expected nothing in #{test_name}")
+    assert_nil(event_attrs[name], "Found value '#{event_attrs[name]}' for attribute '#{name}', but expected nothing in #{test_name}")
   end
 end
