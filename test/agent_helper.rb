@@ -478,16 +478,6 @@ ensure
   end
 end
 
-def stringify_keys(hash)
-  new_hash = {}
-
-  hash.each do |k, v|
-    new_hash[k.to_s] = v
-  end
-
-  new_hash
-end
-
 def json_dump_and_encode(object)
   Base64.encode64(NewRelic::JSONWrapper.dump(object))
 end

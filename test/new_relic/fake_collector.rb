@@ -128,6 +128,10 @@ module NewRelic
             body = JSON.load(raw_body)
           else
             body = Marshal.load(raw_body)
+
+            # Symbols remain in Ruby-marshalled data, so tidy up so tests can
+            # rely on strings to compare against in fake collector results.
+            body = NewRelic::JSONWrapper.normalize(body)
           end
         rescue => err
           body = "UNABLE TO DECODE BODY: #{raw_body}"
@@ -279,22 +283,11 @@ module NewRelic
         end
 
         def request_params
-          normalize_params(@body[1])
+          @body[1]
         end
 
         def custom_params
-          normalize_params(@body[2])
-        end
-
-        # Pruby marshalled stuff ends up with symbol keys.  JSON ends up with
-        # strings. This makes writing tests on the params annoying. Normalize
-        # it all to string keys.
-        def normalize_params(params)
-          result = {}
-          @body[2].each do |k,v|
-            result[k.to_s] = v
-          end
-          result
+          @body[2]
         end
       end
 

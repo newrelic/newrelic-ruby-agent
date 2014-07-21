@@ -20,6 +20,16 @@ class JSONWrapperTest < Minitest::Test
     assert(obj == copy)
   end
 
+  def test_normalize_converts_symbol_values_to_strings
+    result = NewRelic::JSONWrapper.normalize([:foo, :bar])
+    assert_equal(['foo', 'bar'], result)
+  end
+
+  def test_normalize_converts_symbols_in_hash_to_strings
+    result = NewRelic::JSONWrapper.normalize({:key => :value})
+    assert_equal({'key' => 'value'}, result)
+  end
+
   if NewRelic::LanguageSupport.supports_string_encodings?
     def test_normalize_string_returns_input_if_correctly_encoded_utf8
       string = "i want a pony"
@@ -71,11 +81,6 @@ class JSONWrapperTest < Minitest::Test
       decoded = NewRelic::JSONWrapper.load(encoded)
       expected = [string.dup.force_encoding('ISO-8859-1').encode('UTF-8')]
       assert_equal(expected, decoded)
-    end
-
-    def test_normalize_converts_symbols_to_strings
-      result = NewRelic::JSONWrapper.normalize([:foo, :bar])
-      assert_equal(['foo', 'bar'], result)
     end
   end
 end
