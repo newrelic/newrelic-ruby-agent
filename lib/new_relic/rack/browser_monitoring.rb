@@ -42,8 +42,23 @@ module NewRelic::Rack
     def should_instrument?(env, status, headers)
       status == 200 &&
         !env[ALREADY_INSTRUMENTED_KEY] &&
-        headers["Content-Type"] && headers["Content-Type"].include?("text/html") &&
-        !headers['Content-Disposition'].to_s.include?('attachment')
+        is_html?(headers) &&
+        !is_attachment?(headers) &&
+        !is_streaming?(env)
+    end
+
+    def is_html?(headers)
+      headers["Content-Type"] && headers["Content-Type"].include?("text/html")
+    end
+
+    def is_attachment?(headers)
+      headers['Content-Disposition'].to_s.include?('attachment')
+    end
+
+    def is_streaming?(env)
+      return false unless defined?(ActionController::Live)
+
+      env['action_controller.instance'].class.included_modules.include?(ActionController::Live)
     end
 
     CHARSET_RE         = /<\s*meta[^>]+charset\s*=[^>]*>/im.freeze
