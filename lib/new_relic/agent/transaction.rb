@@ -445,7 +445,7 @@ module NewRelic
       def cat_path_hash(state)
         referring_path_hash = cat_referring_path_hash(state) || '0'
         seed = referring_path_hash.to_i(16)
-        result = NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed).to_s(16)
+        result = NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
         record_cat_path_hash(result)
         result
       end

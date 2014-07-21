@@ -196,15 +196,14 @@ module NewRelic
       end
 
       def hash_transaction_name(identifier)
-        Digest::MD5.digest(identifier).unpack("@12N").first & 0x7fffffff
+        Digest::MD5.digest(identifier).unpack("@12N").first & 0xffffffff
       end
 
       def path_hash(txn_name, seed)
-        rotated    = ((seed << 1) | (seed >> 30)) & 0x7fffffff
+        rotated    = ((seed << 1) | (seed >> 31)) & 0xffffffff
         app_name   = NewRelic::Agent.config.app_names.first
         identifier = "#{app_name};#{txn_name}"
-
-        rotated ^ hash_transaction_name(identifier)
+        sprintf("%08x", rotated ^ hash_transaction_name(identifier))
       end
 
       private

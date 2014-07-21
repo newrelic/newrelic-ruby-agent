@@ -34,7 +34,6 @@ module HttpClientTestCases
     NewRelic::Agent.instance.events.notify(:finished_configuring)
 
     @engine = NewRelic::Agent.instance.stats_engine
-    NewRelic::Agent::Transaction.any_instance.stubs(:guid).returns(TRANSACTION_GUID)
   end
 
   # Helpers to support shared tests
@@ -481,44 +480,31 @@ module HttpClientTestCases
     end
   end
 
-  def test_attaches_alternate_path_hashes_when_txn_name_changes_between_requests
-    with_config(:'cross_application_tracer.enabled' => true) do
-      in_transaction do
-        NewRelic::Agent.set_transaction_name('foo')
-        get_response
-        NewRelic::Agent.set_transaction_name('bar')
-        get_response
-        NewRelic::Agent.set_transaction_name('baz')
-      end
-    end
-
-    evt = get_last_analytics_event
-
-    expected_alternate_path_hashes = '59bf75f0,7158c138'
-    expected_path_hash             = '66d61e3d'
-
-    assert_equal(expected_alternate_path_hashes, evt[0]['nr.alternatePathHashes'])
-    assert_equal(expected_path_hash,             evt[0]['nr.pathHash'])
-  end
-
-  def test_should_limit_alternate_path_hashes_to_10
-    with_config(:'cross_application_tracer.enabled' => true) do
-      in_transaction do
-        15.times do |i|
-          NewRelic::Agent.set_transaction_name("t#{i}")
-          get_response
+  load_cross_agent_test("cat_map").each do |test_case|
+    # Test cases that don't involve outgoing calls are done elsewhere
+    if test_case['outgoingTxnNames']
+      define_method("test_#{test_case['name']}") do
+        config = {
+          :app_name => test_case['appName'],
+          :'cross_application_tracer.enabled' => true
+        }
+        with_config(config) do
+          in_transaction do
+            state = NewRelic::Agent::TransactionState.tl_get
+            state.referring_transaction_info = test_case['referringPayload']
+            stub_transaction_guid(test_case['transactionGuid'])
+            test_case['outgoingTxnNames'].each do |name|
+              set_explicit_transaction_name(name)
+              get_response
+            end
+            set_explicit_transaction_name(test_case['transactionName'])
+          end
         end
+
+        event = get_last_analytics_event
+        assert_event_attributes(event, test_case['name'], test_case['expectedAttributes'], test_case['nonExpectedAttributes'])
       end
     end
-
-    evt = get_last_analytics_event
-
-    expected_path_hash = '54b93b3d'
-
-    alternate_path_hashes = evt[0]['nr.alternatePathHashes'].split(',')
-    assert_equal(10, alternate_path_hashes.size)
-    assert_equal(alternate_path_hashes.uniq, alternate_path_hashes)
-    assert_equal(expected_path_hash, evt[0]['nr.pathHash'])
   end
 
   def make_app_data_payload( *args )
@@ -529,6 +515,12 @@ module HttpClientTestCases
   def decode_payload(payload)
     obfuscator = NewRelic::Agent::Obfuscator.new('gringletoes')
     NewRelic::JSONWrapper.load(obfuscator.deobfuscate(payload))
+  end
+
+  def set_explicit_transaction_name(name)
+    parts = name.split("/")
+    category = parts.shift
+    NewRelic::Agent.set_transaction_name(parts.join('/'), :category => category)
   end
 
   def assert_externals_recorded_for(host, meth, opts={})

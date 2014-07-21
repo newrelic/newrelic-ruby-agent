@@ -209,18 +209,18 @@ module NewRelic::Agent
     end
 
     def test_path_hash
-      with_config(:app_name => 'TestApp') do
+      with_config(:app_name => 'test') do
         h0 = @monitor.path_hash('23547', 0)
         h1 = @monitor.path_hash('step1', 0)
-        h2 = @monitor.path_hash('step2', h1)
-        h3 = @monitor.path_hash('step3', h2)
-        h4 = @monitor.path_hash('step4', h3)
+        h2 = @monitor.path_hash('step2', h1.to_i(16))
+        h3 = @monitor.path_hash('step3', h2.to_i(16))
+        h4 = @monitor.path_hash('step4', h3.to_i(16))
 
-        assert_equal("445abba0", h0.to_s(16))
-        assert_equal("203308d1", h1.to_s(16))
-        assert_equal("5f5f11ca", h2.to_s(16))
-        assert_equal("398bb866", h3.to_s(16))
-        assert_equal("43f39670", h4.to_s(16))
+        assert_equal("eaaec1df", h0)
+        assert_equal("2e9a0b02", h1)
+        assert_equal("01d3f0eb", h2)
+        assert_equal("9a1b45e5", h3)
+        assert_equal("e9eecfee", h4)
       end
     end
 
