@@ -33,6 +33,9 @@ module NewRelic
     end
 
     def self.normalize_string(s)
+      # Early return if called on 1.8.x. In normal circumstances 1.8.x
+      # shouldn't call this--it does nothing for Ruby-marshalled formats-- but
+      # we use it in multiverse to make comparing data more consistent.
       return s unless supports_normalization?
 
       encoding = s.encoding

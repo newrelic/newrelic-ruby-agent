@@ -128,6 +128,9 @@ module NewRelic
             body = JSON.load(raw_body)
           else
             body = Marshal.load(raw_body)
+
+            # Symbols remain in Ruby-marshalled data, so tidy up so tests can
+            # rely on strings to compare against in fake collector results.
             body = NewRelic::JSONWrapper.normalize(body)
           end
         rescue => err
