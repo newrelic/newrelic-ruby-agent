@@ -7,7 +7,7 @@ if __FILE__ == $0 || $0 =~ /script\/plugin/ || File.basename($0) == 'rake'
   require 'new_relic/cli/command'
   begin
     NewRelic::Cli::Install.new(:quiet => true, :app_name => 'My Application').run
-  rescue NewRelic::Cli::CommandFailure => e
+  rescue NewRelic::Cli::Command::CommandFailure => e
     $stderr.puts e.message
   end
 end
