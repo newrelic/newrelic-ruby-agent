@@ -8,13 +8,6 @@ module NewRelic
     module Frameworks
       # Contains basic control logic for Sinatra
       class Sinatra < NewRelic::Control::Frameworks::Ruby
-        def root
-          if defined?(::Sinatra::Base) && ::Sinatra::Base.settings.root
-            ::Sinatra::Base.settings.root
-          else
-            super
-          end
-        end
       end
     end
   end
