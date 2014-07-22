@@ -219,4 +219,24 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
     host.doit
     assert host.params_called
   end
+
+  def test_failure_during_starting_shouldnt_override_error_raised
+    host_class = Class.new do
+      include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+      def doit
+        perform_action_with_newrelic_trace do
+          raise ArgumentError.new
+        end
+      end
+    end
+
+    NewRelic::Agent::Transaction.stubs(:start).returns(nil)
+    NewRelic::Agent::Transaction.stubs(:stop)
+
+    host = host_class.new
+    assert_raises(ArgumentError) do
+      host.doit
+    end
+  end
 end

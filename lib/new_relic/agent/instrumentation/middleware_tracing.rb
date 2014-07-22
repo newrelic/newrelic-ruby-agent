@@ -57,7 +57,7 @@ module NewRelic
               target.call(env)
             end
           rescue => e
-            txn.notice_error(e)
+            NewRelic::Agent.notice_error(e)
             raise
           ensure
             Transaction.stop(state)
