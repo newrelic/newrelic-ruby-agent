@@ -34,7 +34,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails3 Error instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 3 Error instrumentation'
   end
 
   executes do
