@@ -16,7 +16,9 @@ module NewRelic
           s = agent_flag.split("=")
           if s.length == 2
             if s[0] == "tk" && s[1]
-              ERB::Util.h(sanitize_token(s[1]))
+              sanitized = sanitize_token(s[1])
+              return nil unless sanitized
+              ERB::Util.h(sanitized)
             end
           end
         else
@@ -29,7 +31,7 @@ module NewRelic
         if token.match(/[^a-zA-Z0-9]/)
           ::NewRelic::Agent.logger.log_once(:warn, :invalid_browser_token,
                                            "Invalid characters found in browser token.")
-          ''
+          nil
         else
           token
         end
