@@ -312,14 +312,17 @@ module NewRelic
 
       def test_connect_settings
         settings = @agent.connect_settings
-        assert settings.include?(:pid)
-        assert settings.include?(:host)
-        assert settings.include?(:app_name)
-        assert settings.include?(:language)
-        assert settings.include?(:agent_version)
-        assert settings.include?(:environment)
-        assert settings.include?(:settings)
-        assert settings.include?(:high_security)
+        expected = [
+         :pid,
+         :host,
+         :app_name,
+         :language,
+         :agent_version,
+         :environment,
+         :settings,
+         :high_security
+        ]
+        assert_equal expected, settings.keys
       end
 
       def test_connect_settings_checks_environment_report_can_marshal
