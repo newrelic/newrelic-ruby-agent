@@ -726,6 +726,13 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_not_recorded(['Controller/boom'])
   end
 
+  def test_stop_safe_when_no_transaction_available
+    expects_logging(:error, includes(NewRelic::Agent::Transaction::FAILED_TO_STOP_MESSAGE))
+
+    state = NewRelic::Agent::TransactionState.new
+    NewRelic::Agent::Transaction.stop(state)
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end

@@ -131,8 +131,15 @@ module NewRelic
         nil
       end
 
+      FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
+
       def self.stop(state, end_time=Time.now)
         txn = state.current_transaction
+
+        if txn.nil?
+          NewRelic::Agent.logger.error(FAILED_TO_STOP_MESSAGE)
+          return
+        end
 
         if txn.frame_stack.empty?
           txn.stop(state, end_time)
