@@ -491,6 +491,13 @@ module NewRelic
       class PrubyMarshaller < Marshaller
         def initialize
           ::NewRelic::Agent.logger.debug 'Using Pruby marshaller'
+          warn_for_pruby_deprecation
+        end
+
+        def warn_for_pruby_deprecation
+          if !NewRelic::LanguageSupport.stdlib_json_usable? && !defined?(::JSON)
+            NewRelic::Agent.logger.warn("Upcoming versions of the Ruby agent running on Ruby 1.8.7 will require the 'json' gem. To avoid interuption in reporting, please update your Gemfile. See http://docs.newrelic.com/docs/ruby/ruby-1.8.7-support for more information.")
+          end
         end
 
         def dump(ruby, opts={})
