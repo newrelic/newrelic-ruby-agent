@@ -6,6 +6,9 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'te
 require 'new_relic/agent/instrumentation/middleware_tracing'
 
 class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
+  class UserError < StandardError
+  end
+
   def test_dont_block_errors_during_malfunctioning_transaction
     middleware_class = Class.new do
       include NewRelic::Agent::Instrumentation::MiddlewareTracing
@@ -21,14 +24,13 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
       end
 
       def traced_call(env)
-        raise ArgumentError.new
+        raise UserError.new
       end
     end
 
     NewRelic::Agent::Transaction.stubs(:start).returns(nil)
-    NewRelic::Agent::Transaction.stubs(:stop)
 
-    assert_raises(ArgumentError) do
+    assert_raises(UserError) do
       middleware_class.new.call({})
     end
   end
