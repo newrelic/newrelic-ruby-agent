@@ -702,6 +702,37 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_recorded('Errors/all' => { :call_count => 2 })
   end
 
+  def test_start_safe_from_exceptions
+    NewRelic::Agent::Transaction.any_instance.stubs(:start).raises("Haha")
+    expects_logging(:error, any_parameters)
+
+    in_transaction("Controller/boom") do
+      # nope
+    end
+
+    # We expect our transaction to fail, but no exception should surface
+    assert_metrics_not_recorded(['Controller/boom'])
+  end
+
+  def test_stop_safe_from_exceptions
+    NewRelic::Agent::Transaction.any_instance.stubs(:stop).raises("Haha")
+    expects_logging(:error, any_parameters)
+
+    in_transaction("Controller/boom") do
+      # nope
+    end
+
+    # We expect our transaction to fail, but no exception should surface
+    assert_metrics_not_recorded(['Controller/boom'])
+  end
+
+  def test_stop_safe_when_no_transaction_available
+    expects_logging(:error, includes(NewRelic::Agent::Transaction::FAILED_TO_STOP_MESSAGE))
+
+    state = NewRelic::Agent::TransactionState.new
+    NewRelic::Agent::Transaction.stop(state)
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end
