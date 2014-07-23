@@ -126,6 +126,9 @@ module NewRelic
         end
 
         txn
+      rescue => e
+        NewRelic::Agent.logger.error("Exception during Transaction.start", e)
+        nil
       end
 
       def self.stop(state, end_time=Time.now)
@@ -166,6 +169,9 @@ module NewRelic
         end
 
         :transaction_stopped
+      rescue => e
+        NewRelic::Agent.logger.error("Exception during Transaction.stop", e)
+        nil
       end
 
       def self.nested_transaction_name(name)
