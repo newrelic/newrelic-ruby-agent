@@ -48,8 +48,8 @@ module NewRelic
         Obfuscator.instance.set_sql_obfuscator(type, &block)
       end
 
-      def record_sql_method
-        case Agent.config[:'transaction_tracer.record_sql'].to_s
+      def record_sql_method(config_section=:transaction_tracer)
+        case Agent.config["#{config_section}.record_sql".to_sym].to_s
         when 'off'
           :off
         when 'none'
@@ -65,12 +65,13 @@ module NewRelic
 
       RECORD_FOR = [:raw, :obfuscated].freeze
 
-      def should_record_sql?
-        RECORD_FOR.include?(record_sql_method)
+      def should_record_sql?(config_section=:transaction_tracer)
+        RECORD_FOR.include?(record_sql_method(config_section))
       end
 
-      def should_collect_explain_plans?
-        should_record_sql? && Agent.config[:'transaction_tracer.explain_enabled']
+      def should_collect_explain_plans?(config_section=:transaction_tracer)
+        should_record_sql?(config_section) &&
+          Agent.config["#{config_section}.explain_enabled".to_sym]
       end
 
       def get_connection(config, &connector)

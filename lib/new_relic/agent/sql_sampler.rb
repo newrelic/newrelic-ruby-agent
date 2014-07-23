@@ -50,9 +50,8 @@ module NewRelic
 
       def enabled?
         Agent.config[:'slow_sql.enabled'] &&
-          (Agent.config[:'slow_sql.record_sql'] == 'raw' ||
-           Agent.config[:'slow_sql.record_sql'] == 'obfuscated') &&
-          Agent.config[:'transaction_tracer.enabled']
+          Agent.config[:'transaction_tracer.enabled'] &&
+          NewRelic::Agent::Database.should_record_sql?(:slow_sql)
       end
 
       def on_start_transaction(state, start_time, uri=nil)

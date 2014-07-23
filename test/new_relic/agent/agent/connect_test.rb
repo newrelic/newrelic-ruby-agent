@@ -149,36 +149,31 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_set_sql_recording_default
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
-      assert_equal(:obfuscated, NewRelic::Agent::Database.record_sql_method,
-                   "should default to :obfuscated, was #{NewRelic::Agent::Database.record_sql_method}")
+      assert_equal(:obfuscated, NewRelic::Agent::Database.record_sql_method)
     end
   end
 
   def test_set_sql_recording_off
     with_config(:'transaction_tracer.record_sql' => 'off') do
-      assert_equal(:off, NewRelic::Agent::Database.record_sql_method,
-                   "should be set to :off, was #{NewRelic::Agent::Database.record_sql_method}")
+      assert_equal(:off, NewRelic::Agent::Database.record_sql_method)
     end
   end
 
   def test_set_sql_recording_none
     with_config(:'transaction_tracer.record_sql' => 'none') do
-      assert_equal(:off, NewRelic::Agent::Database.record_sql_method,
-                   "should be set to :off, was #{NewRelic::Agent::Database.record_sql_method}")
+      assert_equal(:off, NewRelic::Agent::Database.record_sql_method)
     end
   end
 
   def test_set_sql_recording_raw
     with_config(:'transaction_tracer.record_sql' => 'raw') do
-      assert_equal(:raw, NewRelic::Agent::Database.record_sql_method,
-                   "should be set to :raw, was #{NewRelic::Agent::Database.record_sql_method}")
+      assert_equal(:raw, NewRelic::Agent::Database.record_sql_method)
     end
   end
 
   def test_set_sql_recording_falsy
     with_config(:'transaction_tracer.record_sql' => false) do
-      assert_equal(:off, NewRelic::Agent::Database.record_sql_method,
-                   "should be set to :off, was #{NewRelic::Agent::Database.record_sql_method}")
+      assert_equal(:off, NewRelic::Agent::Database.record_sql_method)
     end
   end
 
