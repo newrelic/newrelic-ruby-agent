@@ -205,6 +205,21 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     end
   end
 
+  def test_should_not_collect_anything_when_record_sql_is_off
+    sampler = NewRelic::Agent.agent.sql_sampler
+
+    with_config(:'transaction_tracer.record_sql' => 'off') do
+      in_transaction do
+        sql = "SELECT * FROM test"
+        metric_name = "Database/test/select"
+        sampler.notice_sql(sql, metric_name, {}, 10)
+      end
+    end
+
+    traces = sampler.harvest!
+    assert_empty(traces)
+  end
+
   def test_sql_id_fits_in_a_mysql_int_11
     sql_trace = NewRelic::Agent::SqlTrace.new("select * from test",
             NewRelic::Agent::SlowSql.new("select * from test",
