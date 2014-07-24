@@ -310,5 +310,15 @@ module NewRelic::Agent::Configuration
 
       assert_equal expected, @manager.parse_labels_from_string
     end
+
+    def test_parse_labels_from_string_with_missing_semicolon_and_one_pair
+      @manager.add_config_for_testing(:labels => 'Server:North')
+
+      expected = [
+        { 'label_type' => 'Server', 'label_value' => 'North' }
+      ]
+
+      assert_equal expected, @manager.parse_labels_from_string
+    end
   end
 end
