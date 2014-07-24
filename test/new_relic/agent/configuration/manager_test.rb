@@ -282,5 +282,16 @@ module NewRelic::Agent::Configuration
       refute @manager.config_classes_for_testing.include?(YamlSource)
       refute @manager.config_classes_for_testing.include?(HighSecuritySource)
     end
+
+    def test_parse_labels_from_string
+      @manager.add_config_for_testing(:labels => 'Server:North;Server:South;')
+
+      expected = [
+        { 'label_type' => 'Server', 'label_value' => 'North' },
+        { 'label_type' => 'Server', 'label_value' => 'South' }
+      ]
+
+      assert_equal expected, @manager.parse_labels_from_string
+    end
   end
 end

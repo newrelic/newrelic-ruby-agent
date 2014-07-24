@@ -190,6 +190,24 @@ module NewRelic
         end
 
         def parsed_labels
+          case NewRelic::Agent.config[:labels]
+          when String
+            parse_labels_from_string
+          else
+            parse_labels_from_dictionary
+          end
+        end
+
+        def parse_labels_from_string
+          pairs = NewRelic::Agent.config[:labels].split(';')
+
+          pairs.map do |pair|
+            label_type, label_value = pair.split(':')
+            { 'label_type' => label_type, 'label_value' => label_value }
+          end
+        end
+
+        def parse_labels_from_dictionary
           label_keys = @callbacks.keys.select {|key| key.match(/labels\./)}
 
           label_keys.map do |key|
