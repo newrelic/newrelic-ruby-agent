@@ -202,9 +202,9 @@ module NewRelic
           pairs = NewRelic::Agent.config[:labels].split(';')
 
           pairs.map do |pair|
-            label_type, label_value = pair.split(':')
-            { 'label_type' => label_type, 'label_value' => label_value }
-          end
+            type, value = pair.split(':')
+            { 'label_type' => type, 'label_value' => value } if type && value
+          end.compact
         end
 
         def parse_labels_from_dictionary
