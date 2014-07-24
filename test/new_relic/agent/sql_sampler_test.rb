@@ -205,6 +205,26 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     end
   end
 
+  def test_should_not_collect_anything_when_record_sql_is_off
+    sampler = NewRelic::Agent.agent.sql_sampler
+
+    settings = {
+      :'slow_sql.enabled'    => true,
+      :'slow_sql.record_sql' => 'off'
+    }
+
+    with_config(settings) do
+      in_transaction do
+        sql = "SELECT * FROM test"
+        metric_name = "Database/test/select"
+        sampler.notice_sql(sql, metric_name, {}, 10)
+      end
+    end
+
+    traces = sampler.harvest!
+    assert_empty(traces)
+  end
+
   def test_sql_id_fits_in_a_mysql_int_11
     sql_trace = NewRelic::Agent::SqlTrace.new("select * from test",
             NewRelic::Agent::SlowSql.new("select * from test",
@@ -217,6 +237,27 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_sends_obfuscated_queries_when_configured
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
+      data = NewRelic::Agent::TransactionSqlData.new
+      data.set_transaction_info("/c/a", 'guid')
+      data.set_transaction_name("WebTransaction/Controller/c/a")
+      data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test where foo = 'bar'",
+                                                         "Database/test/select", {}, 1.5),
+                            NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
+                                                         "Database/test/select", {}, 1.2)])
+      @sampler.harvest_slow_sql(data)
+      sql_traces = @sampler.harvest!
+
+      assert_equal('select * from test where foo = ?', sql_traces[0].sql)
+      assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
+    end
+  end
+
+  def test_sends_obfuscated_queries_when_configured_via_slow_sql_settings
+    settings = {
+      :'slow_sql.record_sql'           => 'obfuscated',
+      :'transaction_tracer.record_sql' => 'raw'
+    }
+    with_config(settings) do
       data = NewRelic::Agent::TransactionSqlData.new
       data.set_transaction_info("/c/a", 'guid')
       data.set_transaction_name("WebTransaction/Controller/c/a")
