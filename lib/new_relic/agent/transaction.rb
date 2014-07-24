@@ -446,13 +446,8 @@ module NewRelic
       end
 
       def include_guid?(state, duration)
-        is_cross_app?(state) ||
+        state.is_cross_app? ||
         (state.request_token && duration > apdex_t)
-      end
-
-      def is_cross_app?(state)
-        state.is_cross_app_callee? ||
-        state.is_cross_app_caller?
       end
 
       def cat_trip_id(state)
@@ -499,7 +494,7 @@ module NewRelic
         return unless include_guid?(state, duration)
         payload[:guid] = guid
 
-        return unless is_cross_app?(state)
+        return unless state.is_cross_app?
         trip_id             = cat_trip_id(state)
         path_hash           = cat_path_hash(state)
         referring_path_hash = cat_referring_path_hash(state)

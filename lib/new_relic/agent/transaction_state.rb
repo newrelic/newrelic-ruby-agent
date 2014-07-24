@@ -84,6 +84,10 @@ module NewRelic
         referring_transaction_info != nil
       end
 
+      def is_cross_app?
+        is_cross_app_caller? || is_cross_app_callee?
+      end
+
       # Request data
       attr_reader :request
       attr_accessor :request_token
