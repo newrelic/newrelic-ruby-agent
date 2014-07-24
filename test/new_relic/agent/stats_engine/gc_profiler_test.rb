@@ -14,6 +14,7 @@ class NewRelic::Agent::StatsEngine
     end
 
     def teardown
+      NewRelic::Agent.drop_buffered_data
       GCProfiler.reset
     end
 
