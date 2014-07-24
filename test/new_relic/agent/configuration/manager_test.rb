@@ -299,5 +299,16 @@ module NewRelic::Agent::Configuration
 
       assert_equal [], @manager.parse_labels_from_string
     end
+
+    def test_parse_labels_from_string_with_missing_colon_keeps_correct_pairs
+      @manager.add_config_for_testing(:labels => 'Server:East;ServerNorth;Server:South;')
+
+      expected = [
+        { 'label_type' => 'Server', 'label_value' => 'East' },
+        { 'label_type' => 'Server', 'label_value' => 'South' }
+      ]
+
+      assert_equal expected, @manager.parse_labels_from_string
+    end
   end
 end
