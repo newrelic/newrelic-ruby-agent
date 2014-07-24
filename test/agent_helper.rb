@@ -256,6 +256,12 @@ def in_web_transaction(name='dummy')
   end
 end
 
+def in_background_transaction(name='silly')
+  in_transaction(name, :category => :task) do
+    yield
+  end
+end
+
 def last_traced_error
   NewRelic::Agent.agent.error_collector.errors.last
 end

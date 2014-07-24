@@ -479,6 +479,8 @@ module NewRelic
       APDEX_F = 'F'.freeze
 
       def append_apdex_perf_zone(duration, payload)
+        return unless recording_web_transaction?
+
         bucket = apdex_bucket(duration)
         bucket_str = case bucket
         when :apdex_s then APDEX_S

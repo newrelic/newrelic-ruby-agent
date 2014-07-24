@@ -408,14 +408,28 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     freeze_time
 
     with_config(:apdex_t => 1.0) do
-      in_transaction { advance_time 0.5 }
+      in_web_transaction { advance_time 0.5 }
       assert_equal('S', apdex)
 
-      in_transaction { advance_time 1.5 }
+      in_web_transaction { advance_time 1.5 }
       assert_equal('T', apdex)
 
-      in_transaction { advance_time 4.5 }
+      in_web_transaction { advance_time 4.5 }
       assert_equal('F', apdex)
+    end
+  end
+
+  def test_background_transaction_event_doesnt_include_apdex_perf_zone
+    apdex = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      apdex = payload[:apdex_perf_zone]
+    end
+
+    freeze_time
+
+    with_config(:apdex_t => 1.0) do
+      in_background_transaction { advance_time 0.5 }
+      assert_nil apdex
     end
   end
 
