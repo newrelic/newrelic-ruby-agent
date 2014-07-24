@@ -317,6 +317,7 @@ module NewRelic
          :host,
          :app_name,
          :language,
+         :labels,
          :agent_version,
          :environment,
          :settings,
@@ -328,6 +329,14 @@ module NewRelic
       def test_connect_settings_checks_environment_report_can_marshal
         @agent.service.stubs(:valid_to_marshal?).returns(false)
         assert_equal [], @agent.connect_settings[:environment]
+      end
+
+      def test_connect_settings_includes_labels_from_config
+        with_config(:labels => {'Server' => 'East'}) do
+          settings = @agent.connect_settings
+          expected = [ {"label_type"=>"Server", "label_value"=>"East"} ]
+          assert_equal expected, settings[:labels]
+        end
       end
 
       def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started_and_forkable

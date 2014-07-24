@@ -756,6 +756,7 @@ module NewRelic
               :host => local_host,
               :app_name => Agent.config.app_names,
               :language => 'ruby',
+              :labels => Agent.config.parsed_labels,
               :agent_version => NewRelic::VERSION::STRING,
               :environment => @environment_report,
               :settings => Agent.config.to_collector_hash,
