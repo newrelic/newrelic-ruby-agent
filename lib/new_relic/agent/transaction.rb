@@ -446,9 +446,13 @@ module NewRelic
       end
 
       def include_guid?(state, duration)
-        state.is_cross_app_callee? ||
-        state.is_cross_app_caller? ||
+        is_cross_app?(state) ||
         (state.request_token && duration > apdex_t)
+      end
+
+      def is_cross_app?(state)
+        state.is_cross_app_callee? ||
+        state.is_cross_app_caller?
       end
 
       def cat_trip_id(state)
@@ -492,22 +496,23 @@ module NewRelic
       end
 
       def append_cat_info(state, duration, payload)
-        if include_guid?(state, duration)
-          trip_id             = cat_trip_id(state)
-          path_hash           = cat_path_hash(state)
-          referring_path_hash = cat_referring_path_hash(state)
+        return unless include_guid?(state, duration)
+        payload[:guid] = guid
 
-          payload[:guid]                    = guid
-          payload[:cat_trip_id]             = trip_id             if trip_id
-          payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
+        return unless is_cross_app?(state)
+        trip_id             = cat_trip_id(state)
+        path_hash           = cat_path_hash(state)
+        referring_path_hash = cat_referring_path_hash(state)
 
-          if path_hash
-            payload[:cat_path_hash] = path_hash
+        payload[:cat_trip_id]             = trip_id             if trip_id
+        payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
 
-            alternate_path_hashes = cat_path_hashes - [path_hash]
-            unless alternate_path_hashes.empty?
-              payload[:cat_alternate_path_hashes] = alternate_path_hashes
-            end
+        if path_hash
+          payload[:cat_path_hash] = path_hash
+
+          alternate_path_hashes = cat_path_hashes - [path_hash]
+          unless alternate_path_hashes.empty?
+            payload[:cat_alternate_path_hashes] = alternate_path_hashes
           end
         end
       end

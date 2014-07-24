@@ -433,6 +433,40 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_cross_app_fields_in_finish_event_payload
+    keys = []
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      keys = payload.keys
+    end
+
+    in_transaction do
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+    end
+
+    assert_includes keys, :cat_trip_id
+    assert_includes keys, :cat_path_hash
+  end
+
+  def test_cross_app_fields_not_in_finish_event_payload_if_no_cross_app_calls
+    keys = []
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      keys = payload.keys
+    end
+
+    freeze_time
+
+    in_transaction do
+      advance_time(10)
+
+      state = NewRelic::Agent::TransactionState.tl_get
+      state.request_token = 'token'
+      state.is_cross_app_caller = false
+    end
+
+    refute_includes keys, :cat_trip_id
+    refute_includes keys, :cat_path_hash
+  end
+
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
     expects_logging(:warn, includes("add_custom_parameters"))
     in_transaction do
