@@ -218,10 +218,8 @@ module NewRelic
         end
 
         def parse_labels_from_dictionary
-          label_keys = @callbacks.keys.select {|key| key.match(/labels\./)}
-
-          label_keys.map do |key|
-            { 'label_type' => key.to_s.split('.').last, 'label_value' => NewRelic::Agent.config[key] }
+          NewRelic::Agent.config[:labels].map do |key, value|
+            { 'label_type' => key, 'label_value' => value }
           end
         end
 

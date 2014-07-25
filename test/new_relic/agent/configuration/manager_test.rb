@@ -328,5 +328,16 @@ module NewRelic::Agent::Configuration
       NewRelic::Agent.logger.expects(:warn)
       @manager.parse_labels_from_string
     end
+
+    def test_parse_labels_from_dictionary
+      @manager.add_config_for_testing(:labels => { 'Server' => 'East', 'Data Center' => 'North' })
+
+      expected = [
+        { 'label_type' => 'Server', 'label_value' => 'East' },
+        { 'label_type' => 'Data Center', 'label_value' => 'North' }
+      ]
+
+      assert_equal expected, @manager.parse_labels_from_dictionary
+    end
   end
 end
