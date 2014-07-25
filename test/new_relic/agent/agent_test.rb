@@ -311,7 +311,6 @@ module NewRelic
       end
 
       def test_connect_settings
-        settings = @agent.connect_settings
         expected = [
          :pid,
          :host,
@@ -323,7 +322,7 @@ module NewRelic
          :settings,
          :high_security
         ]
-        assert_equal expected, settings.keys
+        assert_equal expected, @agent.connect_settings.keys
       end
 
       def test_connect_settings_checks_environment_report_can_marshal
@@ -333,9 +332,18 @@ module NewRelic
 
       def test_connect_settings_includes_labels_from_config
         with_config(:labels => {'Server' => 'East'}) do
-          settings = @agent.connect_settings
           expected = [ {"label_type"=>"Server", "label_value"=>"East"} ]
-          assert_equal expected, settings[:labels]
+          assert_equal expected, @agent.connect_settings[:labels]
+        end
+      end
+
+      def test_connect_settings_includes_labels_from_semicolon_separated_config
+        with_config(:labels => "Server:East;Server:West;") do
+          expected = [
+            {"label_type"=>"Server", "label_value"=>"East"},
+            {"label_type"=>"Server", "label_value"=>"West"}
+          ]
+          assert_equal expected, @agent.connect_settings[:labels]
         end
       end
 
