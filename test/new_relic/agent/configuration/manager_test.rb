@@ -284,9 +284,14 @@ module NewRelic::Agent::Configuration
     end
 
     def test_parse_labels_from_string
-      @manager.add_config_for_testing(:labels => 'Server:North;Server:South;')
+      config = {
+        :labels => 'Data Center: East ;Data Center :West; Server : North;Server:South; '
+      }
+      @manager.add_config_for_testing(config)
 
       expected = [
+        { 'label_type' => 'Data Center', 'label_value' => 'East' },
+        { 'label_type' => 'Data Center', 'label_value' => 'West' },
         { 'label_type' => 'Server', 'label_value' => 'North' },
         { 'label_type' => 'Server', 'label_value' => 'South' }
       ]
@@ -294,31 +299,34 @@ module NewRelic::Agent::Configuration
       assert_equal expected, @manager.parse_labels_from_string
     end
 
-    def test_parse_labels_from_string_with_missing_colon
+    def test_parse_labels_from_string_with_missing_colon_returns_empty_list
       @manager.add_config_for_testing(:labels => 'ServerNorth;')
 
       assert_equal [], @manager.parse_labels_from_string
     end
 
-    def test_parse_labels_from_string_with_missing_colon_keeps_correct_pairs
-      @manager.add_config_for_testing(:labels => 'Server:East;ServerNorth;Server:South;')
-
-      expected = [
-        { 'label_type' => 'Server', 'label_value' => 'East' },
-        { 'label_type' => 'Server', 'label_value' => 'South' }
-      ]
-
-      assert_equal expected, @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_with_missing_semicolon_and_one_pair
+    def test_parse_labels_from_string_with_missing_semicolon_returns_empty_list
       @manager.add_config_for_testing(:labels => 'Server:North')
 
-      expected = [
-        { 'label_type' => 'Server', 'label_value' => 'North' }
-      ]
+      assert_equal [], @manager.parse_labels_from_string
+    end
 
-      assert_equal expected, @manager.parse_labels_from_string
+    def test_parse_labels_from_string_with_extra_colon_returns_empty_list
+      @manager.add_config_for_testing(:labels => 'Server:North:South;')
+
+      assert_equal [], @manager.parse_labels_from_string
+    end
+
+    def test_parse_labels_from_string_with_extra_semicolon_returns_empty_list
+      @manager.add_config_for_testing(:labels => 'Server:North;South;')
+
+      assert_equal [], @manager.parse_labels_from_string
+    end
+
+    def test_parse_labels_from_string_logs_if_labels_are_malformed
+      @manager.add_config_for_testing(:labels => 'malformed')
+      NewRelic::Agent.logger.expects(:warn)
+      @manager.parse_labels_from_string
     end
   end
 end

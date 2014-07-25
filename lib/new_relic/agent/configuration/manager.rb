@@ -199,9 +199,19 @@ module NewRelic
         end
 
         def parse_labels_from_string
-          pairs = NewRelic::Agent.config[:labels].split(';')
+          labels = NewRelic::Agent.config[:labels]
 
-          pairs.map do |pair|
+          # Strip whitespaces immediately before and after colons or semicolons
+          stripped_labels = labels.gsub(/\s*(:|;)\s*/, '\1')
+
+          # Return [] and log unless there are evenly matched pairs of colons
+          # and semicolons.
+          unless stripped_labels.match(/^([^:;]+\:[^:;]+\;)+$/)
+            NewRelic::Agent.logger.warn("Skipping malformed labels configuration: #{labels}")
+            return []
+          end
+
+          stripped_labels.split(';').map do |pair|
             type, value = pair.split(':')
             { 'label_type' => type, 'label_value' => value } if type && value
           end.compact
