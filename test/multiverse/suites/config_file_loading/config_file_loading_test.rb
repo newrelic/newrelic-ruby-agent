@@ -155,7 +155,7 @@ bazbangbarn:
 
     log = with_array_logger { NewRelic::Agent.manual_start }
 
-    assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml/)
+    assert_log_contains(log, /ERROR.*Failed ERB processing/)
     assert_log_contains(log, /\(erb\):4/)
   end
 
