@@ -1023,6 +1023,12 @@ module NewRelic
           :public       => false,
           :type         => Boolean,
           :description  => 'Controls whether or not we use the heroku dyno name as the hostname.'
+        },
+        :labels => {
+          :default      => [],
+          :public       => true,
+          :type         => Array,
+          :description  => 'A dictionary of label names and values that will be applied to the data sent from this agent.'
         }
       }.freeze
 
