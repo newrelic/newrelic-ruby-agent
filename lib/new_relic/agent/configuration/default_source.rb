@@ -324,7 +324,7 @@ module NewRelic
           :default => 0.5,
           :public => true,
           :type => Float,
-          :description => 'Threshold at which New Relic will begin alerting. By default the agent will send alerts when the Apdex score drops below 0.5, or when more than half of users are experiencing degraded application performance.'
+          :description => '**DEPRECATED** As of Ruby Agent version 3.5.0, setting your Apdex T has been moved to the New Relic UI. Threshold at which New Relic will begin alerting. By default the agent will send alerts when the Apdex score drops below 0.5, or when more than half of users are experiencing degraded application performance.'
         },
         :monitor_daemons => {
           :default => false,
@@ -379,33 +379,33 @@ module NewRelic
           :allow_nil => true,
           :public => true,
           :type => Boolean,
-          :description => "Enable or disable SSL for transmissions to the New Relic data collection service."
+          :description => "Enable or disable SSL for transmissions to the New Relic data collection service. Default is true starting in version 3.5.6."
         },
         :proxy_host => {
           :default => nil,
           :allow_nil => true,
-          :public => false,
+          :public => true,
           :type => String,
           :description => 'Host for proxy server.'
         },
         :proxy_port => {
           :default => nil,
           :allow_nil => true,
-          :public => false,
+          :public => true,
           :type => Fixnum,
           :description => 'Port for proxy server.'
         },
         :proxy_user => {
           :default => nil,
           :allow_nil => true,
-          :public => false,
+          :public => true,
           :type => String,
           :description => 'User for proxy server.'
         },
         :proxy_pass => {
           :default => nil,
           :allow_nil => true,
-          :public => false,
+          :public => true,
           :type => String,
           :description => 'Password for proxy server.'
         },
@@ -617,7 +617,7 @@ module NewRelic
           :default => DefaultSource.transaction_tracer_transaction_threshold,
           :public => true,
           :type => Float,
-          :description => 'Transaction traces will be generated for transactions that exceed this threshold.'
+          :description => 'Transaction traces will be generated for transactions that exceed this threshold. Valid values are any float value, or (default) `apdex_f`, which will use the threshold for an dissatisfying Apdex controller action - four times the Apdex T value.'
         },
         :'transaction_tracer.stack_trace_threshold' => {
           :default => 0.5,
@@ -629,7 +629,7 @@ module NewRelic
           :default => 0.5,
           :public => true,
           :type => Float,
-          :description => 'Explain plans will be generated and included in transaction trace segments with durations that exceed this threshold.'
+          :description => 'Explain plans will be generated and included in transaction trace segments with durations that exceed this threshold. Relevant only when `explain_enabled` is true.'
         },
         :'transaction_tracer.explain_enabled' => {
           :default => true,
