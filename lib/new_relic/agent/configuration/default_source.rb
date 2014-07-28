@@ -899,7 +899,7 @@ module NewRelic
         },
         :'analytics_events.max_samples_stored' => {
           :default => 1200,
-          :public => false,
+          :public => true,
           :type => Fixnum,
           :description => 'Maximum number of request events recorded by the analytics event sampling in a single harvest.'
         },
