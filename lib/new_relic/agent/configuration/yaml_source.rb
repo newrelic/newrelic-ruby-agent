@@ -69,6 +69,11 @@ module NewRelic
 
         def process_erb(file)
           begin
+            # Exclude lines that are commented out so failing Ruby code in an
+            # ERB template commented at the YML level is fine. Leave the line,
+            # though, so ERB line numbers remain correct.
+            file.gsub!(/^\s*#.*$/, '#')
+
             # Next two are for populating the newrelic.yml via erb binding, necessary
             # when using the default newrelic.yml file
             generated_for_user = ''
