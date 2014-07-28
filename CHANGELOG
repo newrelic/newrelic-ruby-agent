@@ -2,15 +2,14 @@
 
 ## v3.9.1 ##
 
-  * Last version to support 1.8.7 without JSON gem
+  * Ruby 1.8.7 users: upgrade or add JSON gem now
 
-  This version of the newrelic_rpm gem will be the last to support Ruby 1.8.7
-  without requiring the 'json' gem. 1.8.7 is end-of-lifed, and not receiving
-  security updates, so we strongly encourage that all 1.8.7 users upgrade.
+  Ruby 1.8.7 is end-of-lifed, and not receiving security updates, so we strongly
+  encourage all users with apps on 1.8.7 to upgrade.
 
-  If you're not able to upgrade past 1.8.7 but want to continue using future
-  versions of the Ruby agent, you must ensure that the 'json' gem is available
-  in your application.
+  If you're not able to upgrade yet, be aware that a coming release of the Ruby
+  agent will require users of Ruby 1.8.7 to have the 'json' gem available within
+  their applications in order to continue sending data to New Relic.
 
   For more details, see:
   https://docs.newrelic.com/docs/ruby/ruby-1.8.7-support
