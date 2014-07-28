@@ -729,7 +729,7 @@ module NewRelic
         },
         :'rum.enabled' => {
           :default => true,
-          :public => true,
+          :public => false,
           :type => Boolean,
           :description => 'Enable or disable page load timing (sometimes referred to as real user monitoring or RUM).'
         },
