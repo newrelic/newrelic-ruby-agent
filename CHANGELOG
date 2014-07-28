@@ -39,7 +39,7 @@
 
   Many thanks to Francis Bogsanyi for contributing this change!
 
-  * Improved support for apps launched from outside the app root directory
+  * Improved support for Rails apps launched from outside the app root directory
 
   The Ruby agent attempts to resolve the location of its configuration file at
   runtime relative to the directory that the host process is started from.
