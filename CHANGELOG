@@ -1,5 +1,96 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.9.1 ##
+
+  * Last version to support 1.8.7 without JSON gem
+
+  This version of the newrelic_rpm gem will be the last to support Ruby 1.8.7
+  without requiring the 'json' gem. 1.8.7 is end-of-lifed, and not receiving
+  security updates, so we strongly encourage that all 1.8.7 users upgrade.
+
+  If you're not able to upgrade past 1.8.7 but want to continue using future
+  versions of the Ruby agent, you must ensure that the 'json' gem is available
+  in your application.
+
+  For more details, see:
+  https://docs.newrelic.com/docs/ruby/ruby-1.8.7-support
+
+  * High security mode V2
+
+  The Ruby agent now supports V2 of New Relic's high security mode. To enable
+  it, you must add 'high_security: true' to your newrelic.yml file, *and* enable
+  high security mode through the New Relic web interface. The local agent
+  setting must be in agreement with the server-side setting, or the agent will
+  shut down and no data will be collected.
+
+  Customers who already had the server-side high security mode setting enabled
+  must add 'high_security: true' to their agent configuration files when
+  upgrading to this release.
+
+  When high security mode is enabled, the agent enforces the following
+  restrictions:
+
+  - All data sent to New Relic will be transmitted over SSL, regardless of the
+    value of the 'ssl' setting.
+  - Raw SQL strings will never be sent to New Relic, regardless of the value of
+    the transaction_tracer.record_sql and slow_sql.record_sql settings.
+  - Captured MongoDB queries will always be obfuscated, regardless of the value
+    of the mongo.obfuscate_queries setting.
+  - Request parameters will not be captured, regardless of the value of the
+    capture_params setting.
+  - Resque and Sidekiq job arguments will not be captured, regardless of the
+    value of the resque.capture_params and sidekiq.capture_params settings.
+  - Custom attributes attached with the NewRelic::Agent.add_custom_parameters
+    API will not be attached to transaction traces, traced errors, or Insights
+    events. This API call will essentially become a no-op.
+
+  For details on high security mode, see:
+  http://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security
+
+  * Improved memcached instrumentation
+
+  More accurate instrumentation for the 'cas' command when using version 1.8.0
+  or later of the memcached gem. Previous versions of the agent would count all
+  time spent in the block given to 'cas' as memcache time, but 1.8.0 and later
+  allows us to more accurately measure just the time spent talking to memcache.
+
+  Many thanks to Francis Bogsanyi for contributing this change!
+
+  * Improved support for apps launched from outside the app root directory
+
+  The Ruby agent attempts to resolve the location of its configuration file at
+  runtime relative to the directory that the host process is started from.
+
+  In cases where the host process was started from outside of the application's
+  root directory (for example, if the process is started from from '/'), it will
+  now also attempt to locate its configuration file based on the value of
+  Rails.root for Rails applications.
+
+  * Better compatibility with ActionController::Live
+
+  Browser Application Monitoring auto-injection can cause request failures under
+  certain circumstances when used with ActionController::Live, so the agent will
+  now automatically detect usage of ActionController::Live, and not attempt
+  auto-injection for those requests (even if auto-instrumentation is otherwise
+  enabled).
+
+  Many thanks to Rodrigo Rosenfeld Rosas for help diagnosing this issue!
+
+  * Fix for occasional spikes in external services time
+
+  Certain kinds of failures during HTTP reqeusts made by an application could
+  have previously resulted in the Ruby agent reporting erroneously large amounts
+  of time spent in outgoing HTTP requests. This issue manifested most obviously
+  in spikes on the 'Web external' band on the main overview graph. This issue
+  has now been fixed.
+
+  * Fix 'rake newrelic:install' for Rails 4 applications
+
+  The newrelic:install rake task was previously not working for Rails 4
+  applications and has been fixed.
+
+  Thanks to Murahashi Sanemat Kenichi for contributing this fix!
+
 ## v3.9.0 ##
 
   * Rack middleware instrumentation
