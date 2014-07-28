@@ -7,7 +7,7 @@ require 'new_relic/agent/hostname'
 
 module NewRelic
   module Agent
-    class HostnameTest < MiniTest::Unit::TestCase
+    class HostnameTest < Minitest::Test
       def test_get_returns_socket_hostname
         Socket.stubs(:gethostname).returns('Rivendell')
         assert_equal 'Rivendell', NewRelic::Agent::Hostname.get

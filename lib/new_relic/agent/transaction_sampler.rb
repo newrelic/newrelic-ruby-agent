@@ -126,12 +126,17 @@ module NewRelic
         last_builder.set_transaction_name(txn.best_name)
         last_builder.finish_trace(time.to_f, custom_parameters_from_transaction(txn))
 
+        last_sample = last_builder.sample
+        last_sample.guid = txn.guid
+        last_sample.set_custom_param(:gc_time, gc_time) if gc_time
+
+        if state.is_cross_app?
+          last_sample.set_custom_param(:'nr.trip_id', txn.cat_trip_id(state))
+          last_sample.set_custom_param(:'nr.path_hash', txn.cat_path_hash(state))
+        end
+
         @samples_lock.synchronize do
-          @last_sample = last_builder.sample
-          @last_sample.guid = txn.guid
-          @last_sample.set_custom_param(:gc_time, gc_time) if gc_time
-          @last_sample.set_custom_param(:'nr.trip_id', txn.cat_trip_id(state))
-          @last_sample.set_custom_param(:'nr.path_hash', txn.cat_path_hash(state))
+          @last_sample = last_sample
           store_sample(@last_sample)
           @last_sample
         end

@@ -50,12 +50,13 @@ module NewRelic
 
       def enabled?
         Agent.config[:'slow_sql.enabled'] &&
-          (Agent.config[:'slow_sql.record_sql'] == 'raw' ||
-           Agent.config[:'slow_sql.record_sql'] == 'obfuscated') &&
-          Agent.config[:'transaction_tracer.enabled']
+          Agent.config[:'transaction_tracer.enabled'] &&
+          NewRelic::Agent::Database.should_record_sql?(:slow_sql)
       end
 
       def on_start_transaction(state, start_time, uri=nil)
+        return unless enabled?
+
         state.sql_sampler_transaction_data = TransactionSqlData.new
 
         if state.transaction_sample_builder
@@ -73,6 +74,8 @@ module NewRelic
 
       # This is called when we are done with the transaction.
       def on_finishing_transaction(state, name, time=Time.now)
+        return unless enabled?
+
         data = state.sql_sampler_transaction_data
         return unless data
 
@@ -145,7 +148,8 @@ module NewRelic
       end
 
       def harvest!
-        return [] if !Agent.config[:'slow_sql.enabled']
+        return [] unless enabled?
+
         result = []
         @samples_lock.synchronize do
           result = @sql_traces.values

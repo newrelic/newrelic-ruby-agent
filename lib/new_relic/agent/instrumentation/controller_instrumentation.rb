@@ -366,7 +366,7 @@ module NewRelic
                 perform_action_without_newrelic_trace(*args)
               end
             rescue => e
-              txn.notice_error(e)
+              NewRelic::Agent.notice_error(e)
               raise
             end
 

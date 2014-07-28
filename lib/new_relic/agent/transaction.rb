@@ -126,10 +126,20 @@ module NewRelic
         end
 
         txn
+      rescue => e
+        NewRelic::Agent.logger.error("Exception during Transaction.start", e)
+        nil
       end
+
+      FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
 
       def self.stop(state, end_time=Time.now)
         txn = state.current_transaction
+
+        if txn.nil?
+          NewRelic::Agent.logger.error(FAILED_TO_STOP_MESSAGE)
+          return
+        end
 
         if txn.frame_stack.empty?
           txn.stop(state, end_time)
@@ -166,6 +176,9 @@ module NewRelic
         end
 
         :transaction_stopped
+      rescue => e
+        NewRelic::Agent.logger.error("Exception during Transaction.stop", e)
+        nil
       end
 
       def self.nested_transaction_name(name)
@@ -433,8 +446,7 @@ module NewRelic
       end
 
       def include_guid?(state, duration)
-        state.is_cross_app_callee? ||
-        state.is_cross_app_caller? ||
+        state.is_cross_app? ||
         (state.request_token && duration > apdex_t)
       end
 
@@ -466,6 +478,8 @@ module NewRelic
       APDEX_F = 'F'.freeze
 
       def append_apdex_perf_zone(duration, payload)
+        return unless recording_web_transaction?
+
         bucket = apdex_bucket(duration)
         bucket_str = case bucket
         when :apdex_s then APDEX_S
@@ -477,22 +491,23 @@ module NewRelic
       end
 
       def append_cat_info(state, duration, payload)
-        if include_guid?(state, duration)
-          trip_id             = cat_trip_id(state)
-          path_hash           = cat_path_hash(state)
-          referring_path_hash = cat_referring_path_hash(state)
+        return unless include_guid?(state, duration)
+        payload[:guid] = guid
 
-          payload[:guid]                    = guid
-          payload[:cat_trip_id]             = trip_id             if trip_id
-          payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
+        return unless state.is_cross_app?
+        trip_id             = cat_trip_id(state)
+        path_hash           = cat_path_hash(state)
+        referring_path_hash = cat_referring_path_hash(state)
 
-          if path_hash
-            payload[:cat_path_hash] = path_hash
+        payload[:cat_trip_id]             = trip_id             if trip_id
+        payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
 
-            alternate_path_hashes = cat_path_hashes - [path_hash]
-            unless alternate_path_hashes.empty?
-              payload[:cat_alternate_path_hashes] = alternate_path_hashes
-            end
+        if path_hash
+          payload[:cat_path_hash] = path_hash
+
+          alternate_path_hashes = cat_path_hashes - [path_hash]
+          unless alternate_path_hashes.empty?
+            payload[:cat_alternate_path_hashes] = alternate_path_hashes
           end
         end
       end

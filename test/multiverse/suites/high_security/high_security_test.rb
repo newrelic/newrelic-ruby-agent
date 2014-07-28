@@ -51,6 +51,7 @@ class HighSecurityTest < Minitest::Test
 
   def test_doesnt_record_custom_parameters
     in_transaction do
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
       NewRelic::Agent.add_custom_parameters(:not => "allowed")
     end
 

@@ -805,6 +805,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do |transaction|
+        NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
         guid = transaction.guid
       end
     end
@@ -812,12 +813,26 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal 'PDX-NRT', custom_params_from_last_sample[:'nr.trip_id']
   end
 
+  def test_custom_params_dont_include_tripid_if_not_cross_app_transaction
+    NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
+
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      in_transaction do |transaction|
+        NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = false
+      end
+    end
+
+    assert_nil custom_params_from_last_sample[:'nr.trip_id']
+  end
+
   def test_custom_params_include_path_hash
     path_hash = nil
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do |transaction|
-        path_hash = transaction.cat_path_hash(NewRelic::Agent::TransactionState.tl_get)
+        state = NewRelic::Agent::TransactionState.tl_get
+        state.is_cross_app_caller = true
+        path_hash = transaction.cat_path_hash(state)
       end
     end
 

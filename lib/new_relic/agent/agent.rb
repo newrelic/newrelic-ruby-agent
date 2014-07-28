@@ -876,6 +876,8 @@ module NewRelic
           query_server_for_configuration
           @connected_pid = $$
           @connect_state = :connected
+        rescue NewRelic::Agent::ForceDisconnectException => e
+          handle_force_disconnect(e)
         rescue NewRelic::Agent::LicenseException => e
           handle_license_error(e)
         rescue NewRelic::Agent::UnrecoverableAgentException => e

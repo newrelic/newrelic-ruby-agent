@@ -408,15 +408,63 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     freeze_time
 
     with_config(:apdex_t => 1.0) do
-      in_transaction { advance_time 0.5 }
+      in_web_transaction { advance_time 0.5 }
       assert_equal('S', apdex)
 
-      in_transaction { advance_time 1.5 }
+      in_web_transaction { advance_time 1.5 }
       assert_equal('T', apdex)
 
-      in_transaction { advance_time 4.5 }
+      in_web_transaction { advance_time 4.5 }
       assert_equal('F', apdex)
     end
+  end
+
+  def test_background_transaction_event_doesnt_include_apdex_perf_zone
+    apdex = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      apdex = payload[:apdex_perf_zone]
+    end
+
+    freeze_time
+
+    with_config(:apdex_t => 1.0) do
+      in_background_transaction { advance_time 0.5 }
+      assert_nil apdex
+    end
+  end
+
+  def test_cross_app_fields_in_finish_event_payload
+    keys = []
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      keys = payload.keys
+    end
+
+    in_transaction do
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+    end
+
+    assert_includes keys, :cat_trip_id
+    assert_includes keys, :cat_path_hash
+  end
+
+  def test_cross_app_fields_not_in_finish_event_payload_if_no_cross_app_calls
+    keys = []
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      keys = payload.keys
+    end
+
+    freeze_time
+
+    in_transaction do
+      advance_time(10)
+
+      state = NewRelic::Agent::TransactionState.tl_get
+      state.request_token = 'token'
+      state.is_cross_app_caller = false
+    end
+
+    refute_includes keys, :cat_trip_id
+    refute_includes keys, :cat_path_hash
   end
 
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
@@ -700,6 +748,37 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     assert_metrics_recorded('Errors/all' => { :call_count => 2 })
+  end
+
+  def test_start_safe_from_exceptions
+    NewRelic::Agent::Transaction.any_instance.stubs(:start).raises("Haha")
+    expects_logging(:error, any_parameters)
+
+    in_transaction("Controller/boom") do
+      # nope
+    end
+
+    # We expect our transaction to fail, but no exception should surface
+    assert_metrics_not_recorded(['Controller/boom'])
+  end
+
+  def test_stop_safe_from_exceptions
+    NewRelic::Agent::Transaction.any_instance.stubs(:stop).raises("Haha")
+    expects_logging(:error, any_parameters)
+
+    in_transaction("Controller/boom") do
+      # nope
+    end
+
+    # We expect our transaction to fail, but no exception should surface
+    assert_metrics_not_recorded(['Controller/boom'])
+  end
+
+  def test_stop_safe_when_no_transaction_available
+    expects_logging(:error, includes(NewRelic::Agent::Transaction::FAILED_TO_STOP_MESSAGE))
+
+    state = NewRelic::Agent::TransactionState.new
+    NewRelic::Agent::Transaction.stop(state)
   end
 
   def assert_has_custom_parameter(txn, key, value = key)
