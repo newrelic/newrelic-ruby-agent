@@ -27,23 +27,6 @@
   must add 'high_security: true' to their agent configuration files when
   upgrading to this release.
 
-  When high security mode is enabled, the agent enforces the following
-  restrictions:
-
-  - All data sent to New Relic will be transmitted over SSL, regardless of the
-    value of the 'ssl' setting.
-  - Raw SQL strings will never be sent to New Relic, regardless of the value of
-    the transaction_tracer.record_sql and slow_sql.record_sql settings.
-  - Captured MongoDB queries will always be obfuscated, regardless of the value
-    of the mongo.obfuscate_queries setting.
-  - Request parameters will not be captured, regardless of the value of the
-    capture_params setting.
-  - Resque and Sidekiq job arguments will not be captured, regardless of the
-    value of the resque.capture_params and sidekiq.capture_params settings.
-  - Custom attributes attached with the NewRelic::Agent.add_custom_parameters
-    API will not be attached to transaction traces, traced errors, or Insights
-    events. This API call will essentially become a no-op.
-
   For details on high security mode, see:
   http://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security
 
