@@ -189,6 +189,9 @@ module NewRelic
           end
         end
 
+        MALFORMED_LABELS_WARNING = "Skipping malformed labels configuration"
+        PARSING_LABELS_FAILURE   = "Failure during parsing labels. Ignoring and carrying on with connect."
+
         def parsed_labels
           case NewRelic::Agent.config[:labels]
           when String
@@ -196,9 +199,10 @@ module NewRelic
           else
             parse_labels_from_dictionary
           end
+        rescue => e
+          NewRelic::Agent.logger.error(PARSING_LABELS_FAILURE, e)
+          []
         end
-
-        MALFORMED_LABELS_WARNING = "Skipping malformed labels configuration"
 
         def parse_labels_from_string
           labels = NewRelic::Agent.config[:labels]

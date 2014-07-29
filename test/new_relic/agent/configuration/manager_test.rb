@@ -361,6 +361,23 @@ module NewRelic::Agent::Configuration
       assert_equal expected, @manager.parse_labels_from_string
     end
 
+    def test_parse_labels_from_dictionary_with_hard_failure
+      @manager.add_config_for_testing(:labels => nil)
+      expects_logging(:error, includes(Manager::PARSING_LABELS_FAILURE), any_parameters)
+
+      assert_equal [], @manager.parsed_labels
+    end
+
+    def test_parse_labels_from_string_with_hard_failure
+      bad_string = "baaaad"
+      bad_string.stubs(:gsub).raises("Booom")
+      @manager.add_config_for_testing(:labels => bad_string)
+
+      expects_logging(:error, includes(Manager::PARSING_LABELS_FAILURE), any_parameters)
+
+      assert_equal [], @manager.parsed_labels
+    end
+
     def test_parse_labels_from_dictionary
       @manager.add_config_for_testing(:labels => { 'Server' => 'East', 'Data Center' => 'North' })
 
