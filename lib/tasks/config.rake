@@ -2,10 +2,12 @@ namespace :newrelic do
   namespace :config do
     desc "Describe available New Relic configuration settings."
 
-    GENERAL = "general"
+    GENERAL   = "general"
+    DISABLING = "disabling"
 
     SECTION_DESCRIPTIONS = {
       GENERAL              => 'Here are settings available via the agent configuration file. Some settings depend on your New Relic subscription level.',
+      DISABLING            => 'Here are settings available to disable different instrumentation during the agent startup.',
       "transaction_tracer" => 'The <a href="/docs/apm/traces/transaction-traces/transaction-traces">transaction traces</a> feature collects detailed information on a selection of transactions, including a summary of the calling sequence, a breakdown of time spent, and a list of SQL queries and their query plans (on mysql and postgresql). Available features depend on your New Relic subscription level.',
       "error_collector"    => 'The agent will collect and report all uncaught exceptions.  Several configuration options allow you to customize the error collection.',
       "browser_monitoring" => "New Relic Browser's page load timing feature (sometimes referred to as real user monitoring or RUM) gives you insight into the performance real users are experiencing with your website. This is accomplished by measuring the time it takes for your users' browsers to download and render your web pages by injecting a small amount of JavaScript code into the header and footer of each page.",
@@ -30,6 +32,9 @@ namespace :newrelic do
         if section
           section_key = section[1]
           key = section[2]
+        elsif key.to_s.match(/^disable_/)
+          section_key = DISABLING
+          key = key.to_s
         end
 
         sections[section_key] << {
@@ -65,7 +70,7 @@ namespace :newrelic do
     end
 
     def format_key(section_key, key)
-      if section_key == GENERAL
+      if section_key == GENERAL || section_key == DISABLING
         key.to_s
       else
         "#{section_key}.#{key}"
