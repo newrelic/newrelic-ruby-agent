@@ -347,6 +347,13 @@ module NewRelic::Agent::Configuration
       assert_equal [], @manager.parse_labels_from_string
     end
 
+    def test_parse_labels_from_string_with_empty_key
+      @manager.add_config_for_testing(:labels => ':North')
+      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))
+
+      assert_equal [], @manager.parse_labels_from_string
+    end
+
     def test_parse_labels_from_string_with_extra_semicolon_returns_empty_list
       @manager.add_config_for_testing(:labels => 'Server:North;South;')
       expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))

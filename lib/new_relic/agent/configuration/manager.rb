@@ -226,7 +226,11 @@ module NewRelic
         end
 
         def valid_label_pairs?(label_pairs)
-          label_pairs.all? { |pair| pair.length == 2 }
+          label_pairs.all? { |pair|
+            pair.length == 2 &&
+            !pair.first.empty? &&
+            !pair.last.empty?
+          }
         end
 
         def make_label_hash(pairs)
