@@ -17,8 +17,13 @@ class CollectorExceptionHandlingTest < Minitest::Test
     $collector.stub_exception('metric_data', payload).once
 
     with_config(:data_report_period => 0) do
-      worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 1)
-      NewRelic::Agent.agent.stubs(:create_worker_loop).returns(worker_loop)
+      # We want create_event_loop to return a new EventLoop instance every time
+      # so that we don't end up double-registering event callbacks.
+      event_loop0 = NewRelic::Agent::EventLoop.new
+      event_loop1 = NewRelic::Agent::EventLoop.new
+      event_loop1.stubs(:stopped?).returns(false, true)
+      NewRelic::Agent.agent.stubs(:create_event_loop).returns(event_loop0, event_loop1)
+
       # there's a call to sleep in handle_force_restart that we want to skip
       NewRelic::Agent.agent.stubs(:sleep)
       NewRelic::Agent.agent.deferred_work!({})
@@ -70,8 +75,9 @@ class CollectorExceptionHandlingTest < Minitest::Test
     $collector.stub_exception('connect', payload).once
 
     with_config(:data_report_period => 0) do
-      worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 1)
-      NewRelic::Agent.agent.stubs(:create_worker_loop).returns(worker_loop)
+      event_loop = NewRelic::Agent::EventLoop.new
+      event_loop.stubs(:stopped?).returns(false, true, false, true)
+      NewRelic::Agent.agent.stubs(:create_event_loop).returns(event_loop)
       # there's a call to sleep in connect that we want to skip
       NewRelic::Agent.agent.stubs(:sleep)
       NewRelic::Agent.agent.deferred_work!({})
@@ -87,8 +93,9 @@ class CollectorExceptionHandlingTest < Minitest::Test
     $collector.stub_exception('get_redirect_host', payload).once
 
     with_config(:data_report_period => 0) do
-      worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 1)
-      NewRelic::Agent.agent.stubs(:create_worker_loop).returns(worker_loop)
+      event_loop = NewRelic::Agent::EventLoop.new
+      event_loop.stubs(:stopped?).returns(false, true, false, true)
+      NewRelic::Agent.agent.stubs(:create_event_loop).returns(event_loop)
       # there's a call to sleep in connect that we want to skip
       NewRelic::Agent.agent.stubs(:sleep)
       NewRelic::Agent.agent.deferred_work!({})

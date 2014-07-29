@@ -88,6 +88,7 @@ class EncodingHandlingTest < Minitest::Test
 
   def assert_endpoint_received_string(endpoint, string)
     agent.send(:transmit_data)
+    agent.send(:transmit_analytic_event_data)
     requests = $collector.calls_for(endpoint)
     assert_equal(1, requests.size)
     request = requests.first

@@ -11,8 +11,8 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
     self.stubs(:connected?).returns(true)
-    self.expects(:log_worker_loop_start)
-    self.expects(:create_and_run_worker_loop)
+    self.expects(:log_event_loop_start)
+    self.expects(:create_and_run_event_loop)
     deferred_work!('connection_options')
   end
 
@@ -21,17 +21,6 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
     self.expects(:connect).with('connection_options')
     self.stubs(:connected?).returns(false)
     deferred_work!('connection_options')
-  end
-
-  def test_create_and_run_worker_loop
-    @should_send_samples = true
-    wl = mock('worker loop')
-    NewRelic::Agent::WorkerLoop.expects(:new).returns(wl)
-    wl.expects(:run).with(30).yields
-    self.expects(:transmit_data)
-    with_config(:data_report_period => 30) do
-      create_and_run_worker_loop
-    end
   end
 
   def test_handle_force_restart
