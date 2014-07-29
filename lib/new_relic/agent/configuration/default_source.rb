@@ -377,7 +377,8 @@ module NewRelic
           :default => 0.5,
           :public => true,
           :type => Float,
-          :description => '**DEPRECATED** As of Ruby Agent version 3.5.0, setting your Apdex T has been moved to the New Relic UI. Threshold at which New Relic will begin alerting. By default the agent will send alerts when the Apdex score drops below 0.5, or when more than half of users are experiencing degraded application performance.'
+          :deprecated => true,
+          :description => 'As of Ruby Agent version 3.5.0, setting your Apdex T has been moved to the New Relic UI. Threshold at which New Relic will begin alerting. By default the agent will send alerts when the Apdex score drops below 0.5, or when more than half of users are experiencing degraded application performance.'
         },
         :monitor_daemons => {
           :default => false,
@@ -473,7 +474,8 @@ module NewRelic
           :default => true,
           :public => false,
           :type => Boolean,
-          :description => '(Deprecated) Enable or disable retrying failed connections to the New Relic data collection service.'
+          :deprecated => true,
+          :description => 'Enable or disable retrying failed connections to the New Relic data collection service.'
         },
         :force_reconnect => {
           :default => false,
@@ -804,7 +806,8 @@ module NewRelic
           :default => false,
           :public => false,
           :type => Boolean,
-          :description => 'Deprecated setting that is still in use by a few clients. Correct setting is browser_monitoring.capture_attributes.'
+          :deprecated => true,
+          :description => 'Correct setting is browser_monitoring.capture_attributes.'
         },
         :js_agent_loader => {
           :default => '',

@@ -40,7 +40,7 @@ namespace :newrelic do
         sections[section_key] << {
           :key         => format_key(section_key, key),
           :type        => format_type(value[:type]),
-          :description => value[:description],
+          :description => format_description(value),
           :default     => format_default_value(value)
         }
       end
@@ -90,6 +90,12 @@ namespace :newrelic do
       else
         type
       end
+    end
+
+    def format_description(value)
+      description = value[:description]
+      description = "**DEPRECATED** #{description}" if value[:deprecated]
+      description
     end
 
     def format_default_value(spec)
