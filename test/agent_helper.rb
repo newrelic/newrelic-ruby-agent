@@ -346,7 +346,7 @@ def with_config(config_hash, opts={})
   if opts[:do_not_cast]
     config = config_hash
   else
-    config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
+    config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
   end
   NewRelic::Agent.config.add_config_for_testing(config, opts[:level])
   begin
@@ -444,11 +444,7 @@ end
 
 def with_array_logger(level=:info)
   orig_logger = NewRelic::Agent.logger
-  config = {
-      :log_file_path => nil,
-      :log_file_name => nil,
-      :log_level => level,
-    }
+  config = { :log_level => level }
   logdev = ArrayLogDevice.new
   override_logger = Logger.new(logdev)
 

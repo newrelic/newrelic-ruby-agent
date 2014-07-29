@@ -3,6 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/configuration/manager'
+require 'new_relic/agent/configuration/dotted_hash'
+require 'new_relic/agent/configuration/manual_source'
 
 # The agent's configuration is accessed through a configuration object exposed
 # by ::NewRelic::Agent.config.  It provides a hash like interface to the
@@ -28,38 +30,6 @@ require 'new_relic/agent/configuration/manager'
 module NewRelic
   module Agent
     module Configuration
-      class DottedHash < ::Hash
-        def initialize(hash)
-          self.merge!(dot_flattened(hash))
-          keys.each do |key|
-            self[(key.to_sym rescue key) || key] = delete(key)
-          end
-        end
-
-        def inspect
-          "#<#{self.class.name}:#{object_id} #{super}>"
-        end
-
-        def to_hash
-          {}.replace(self)
-        end
-
-        protected
-        # turns {'a' => {'b' => 'c'}} into {'a.b' => 'c'}
-        def dot_flattened(nested_hash, names=[], result={})
-          nested_hash.each do |key, val|
-            next if val == nil
-            if val.respond_to?(:has_key?)
-              dot_flattened(val, names + [key], result)
-            else
-              result[(names + [key]).join('.')] = val
-            end
-          end
-          result
-        end
-      end
-
-      class ManualSource < DottedHash; end
     end
   end
 end
