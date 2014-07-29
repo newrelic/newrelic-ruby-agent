@@ -198,29 +198,61 @@ module NewRelic
           end
         end
 
+        MALFORMED_LABELS_WARNING = "Skipping malformed labels configuration"
+
         def parse_labels_from_string
           labels = NewRelic::Agent.config[:labels]
+          label_pairs = break_label_string_into_pairs(labels)
 
-          # Strip whitespaces immediately before and after colons or semicolons
-          stripped_labels = labels.gsub(/\s*(:|;)\s*/, '\1')
-
-          # Return [] and log unless there are evenly matched pairs of colons
-          # and semicolons.
-          unless stripped_labels.match(/^([^:;]+\:[^:;]+\;)+$/)
-            NewRelic::Agent.logger.warn("Skipping malformed labels configuration: #{labels}")
+          unless valid_label_pairs?(label_pairs)
+            NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels}")
             return []
           end
 
+          label_hash = label_pairs.map do |key, value|
+            {
+              'label_type'  => key,
+              'label_value' => value
+            }
+          end
+          make_label_hash(label_pairs)
+        end
+
+        def break_label_string_into_pairs(labels)
+          # Strip whitespaces immediately before and after colons or semicolons
+          stripped_labels = labels.gsub(/\s*(:|;)\s*/, '\1')
+
           stripped_labels.split(';').map do |pair|
-            type, value = pair.split(':')
-            { 'label_type' => type, 'label_value' => value } if type && value
-          end.compact
+            pair.split(':')
+          end
+        end
+
+        def valid_label_pairs?(label_pairs)
+          label_pairs.all? { |pair| pair.length == 2 }
+        end
+
+        def make_label_hash(pairs)
+          pairs.map do |key, value|
+            {
+              'label_type'  => truncate(key),
+              'label_value' => truncate(value)
+            }
+          end
+        end
+
+        MAX_LENGTH = 255
+
+        def truncate(text)
+          if text.length > MAX_LENGTH
+            NewRelic::Agent.logger.warn("'#{text}' is longer than the allowed #{MAX_LENGTH} and will be truncated")
+            return text[0..MAX_LENGTH-1]
+          else
+            text
+          end
         end
 
         def parse_labels_from_dictionary
-          NewRelic::Agent.config[:labels].map do |key, value|
-            { 'label_type' => key, 'label_value' => value }
-          end
+          make_label_hash(NewRelic::Agent.config[:labels])
         end
 
         # Generally only useful during initial construction and tests

@@ -299,26 +299,49 @@ module NewRelic::Agent::Configuration
       assert_equal expected, @manager.parse_labels_from_string
     end
 
-    def test_parse_labels_from_string_with_missing_colon_returns_empty_list
-      @manager.add_config_for_testing(:labels => 'ServerNorth;')
+    def test_parse_labels_from_string_with_single_value_doesnt_require_semicolon
+      config = { :labels => 'Server:East' }
+      @manager.add_config_for_testing(config)
 
-      assert_equal [], @manager.parse_labels_from_string
+      expected = [ { 'label_type' => 'Server', 'label_value' => 'East' } ]
+      assert_equal expected, @manager.parse_labels_from_string
     end
 
-    def test_parse_labels_from_string_with_missing_semicolon_returns_empty_list
-      @manager.add_config_for_testing(:labels => 'Server:North')
+    def test_parse_labels_from_string_doesnt_require_final_semicolon
+      config = { :labels => 'Data Center:Primary;Server:East' }
+      @manager.add_config_for_testing(config)
+
+      expected = [
+        { 'label_type' => 'Data Center', 'label_value' => 'Primary' },
+        { 'label_type' => 'Server',      'label_value' => 'East' }
+      ]
+      assert_equal expected, @manager.parse_labels_from_string
+    end
+
+    def test_parse_labels_from_string_with_missing_colon_returns_empty_list
+      @manager.add_config_for_testing(:labels => 'ServerNorth;')
+      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))
 
       assert_equal [], @manager.parse_labels_from_string
     end
 
     def test_parse_labels_from_string_with_extra_colon_returns_empty_list
       @manager.add_config_for_testing(:labels => 'Server:North:South;')
+      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))
+
+      assert_equal [], @manager.parse_labels_from_string
+    end
+
+    def test_parse_labels_from_string_with_empty_final_value
+      @manager.add_config_for_testing(:labels => 'Server:   ')
+      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))
 
       assert_equal [], @manager.parse_labels_from_string
     end
 
     def test_parse_labels_from_string_with_extra_semicolon_returns_empty_list
       @manager.add_config_for_testing(:labels => 'Server:North;South;')
+      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))
 
       assert_equal [], @manager.parse_labels_from_string
     end
@@ -329,6 +352,15 @@ module NewRelic::Agent::Configuration
       @manager.parse_labels_from_string
     end
 
+    def test_parse_labels_from_string_applies_length_limits
+      @manager.add_config_for_testing(:labels => "#{'K' * 256}:#{'V' * 256}")
+
+      expected = [ { 'label_type' => 'K' * 255, 'label_value' => 'V' * 255 } ]
+      expects_logging(:warn, includes("truncated"))
+
+      assert_equal expected, @manager.parse_labels_from_string
+    end
+
     def test_parse_labels_from_dictionary
       @manager.add_config_for_testing(:labels => { 'Server' => 'East', 'Data Center' => 'North' })
 
@@ -336,6 +368,15 @@ module NewRelic::Agent::Configuration
         { 'label_type' => 'Server', 'label_value' => 'East' },
         { 'label_type' => 'Data Center', 'label_value' => 'North' }
       ]
+
+      assert_equal expected, @manager.parse_labels_from_dictionary
+    end
+
+    def test_parse_labels_from_dictionary_applies_length_limits
+      @manager.add_config_for_testing(:labels => { 'K' * 256 => 'V' * 256 })
+
+      expected = [ { 'label_type' => 'K' * 255, 'label_value' => 'V' * 255 } ]
+      expects_logging(:warn, includes("truncated"))
 
       assert_equal expected, @manager.parse_labels_from_dictionary
     end
