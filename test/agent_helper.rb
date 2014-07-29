@@ -341,13 +341,19 @@ def find_all_segments_with_name_matching(transaction_sample, regexes)
   matching_segments
 end
 
-def with_config(config_hash, opts={})
+def with_config(config_hash, at_start=true)
   config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
-  NewRelic::Agent.config.add_config_for_testing(config, opts[:level] || 0)
+  NewRelic::Agent.config.add_config_for_testing(config, at_start)
   begin
     yield
   ensure
     NewRelic::Agent.config.remove_config(config)
+  end
+end
+
+def with_config_low_priority(config_hash)
+  with_config(config_hash, false) do
+    yield
   end
 end
 

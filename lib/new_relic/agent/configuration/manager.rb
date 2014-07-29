@@ -281,8 +281,12 @@ module NewRelic
 
           stack.compact!
 
-          @configs_for_testing.each do |config, index|
-            stack.insert(index, config)
+          @configs_for_testing.each do |config, at_start|
+            if at_start
+              stack.insert(0, config)
+            else
+              stack.push(config)
+            end
           end
 
           stack

@@ -151,9 +151,10 @@ class NewRelic::ControlTest < Minitest::Test
   end
 
   def test_sql_tracer_disabled_when_tt_disabled_by_server
-    with_config({:'slow_sql.enabled'           => true,
+    with_config_low_priority({
+                 :'slow_sql.enabled'           => true,
                  :'transaction_tracer.enabled' => true,
-                 :monitor_mode                 => true}, :level => 2) do
+                 :monitor_mode                 => true}) do
       NewRelic::Agent.instance.finish_setup('collect_traces' => false)
 
       refute NewRelic::Agent::Agent.instance.sql_sampler.enabled?,

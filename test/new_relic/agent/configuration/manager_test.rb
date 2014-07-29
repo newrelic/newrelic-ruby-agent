@@ -32,11 +32,11 @@ module NewRelic::Agent::Configuration
         :bar => 'default bar',
         :baz => 'default baz'
       }
-      @manager.add_config_for_testing(config0)
-      config1 = { :foo => 'real foo' }
+      @manager.add_config_for_testing(config0, false)
+      config1 = { :foo => 'wrong foo', :bar => 'real bar' }
       @manager.add_config_for_testing(config1)
-      config2 = { :foo => 'wrong foo', :bar => 'real bar' }
-      @manager.add_config_for_testing(config2, 1)
+      config2 = { :foo => 'real foo' }
+      @manager.add_config_for_testing(config2)
 
       assert_equal 'real foo'   , @manager['foo']
       assert_equal 'real bar'   , @manager['bar']
@@ -63,7 +63,7 @@ module NewRelic::Agent::Configuration
 
     def test_identifying_config_source
       hash_source = {:foo => 'foo', :bar => 'default'}
-      @manager.add_config_for_testing(hash_source, 3)
+      @manager.add_config_for_testing(hash_source, false)
       test_source = ManualSource.new(:bar => 'bar', :baz => 'baz')
       @manager.replace_or_add_config(test_source)
 
@@ -109,7 +109,7 @@ module NewRelic::Agent::Configuration
     def test_should_read_license_key_from_env
       ENV['NEWRELIC_LICENSE_KEY'] = 'right'
       manager = NewRelic::Agent::Configuration::Manager.new
-      manager.add_config_for_testing({:license_key => 'wrong'}, 1)
+      manager.add_config_for_testing({:license_key => 'wrong'}, false)
 
       assert_equal 'right', manager['license_key']
     ensure
