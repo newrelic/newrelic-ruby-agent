@@ -331,7 +331,7 @@ module NewRelic
       end
 
       def test_connect_settings_includes_labels_from_config
-        with_config({:labels => {'Server' => 'East'}}, {:do_not_cast => true}) do
+        with_config({:labels => {'Server' => 'East'}}) do
           expected = [ {"label_type"=>"Server", "label_value"=>"East"} ]
           assert_equal expected, @agent.connect_settings[:labels]
         end

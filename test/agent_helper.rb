@@ -342,13 +342,8 @@ def find_all_segments_with_name_matching(transaction_sample, regexes)
 end
 
 def with_config(config_hash, opts={})
-  opts = { :level => 0, :do_not_cast => false }.merge(opts)
-  if opts[:do_not_cast]
-    config = config_hash
-  else
-    config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
-  end
-  NewRelic::Agent.config.add_config_for_testing(config, opts[:level])
+  config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
+  NewRelic::Agent.config.add_config_for_testing(config, opts[:level] || 0)
   begin
     yield
   ensure
