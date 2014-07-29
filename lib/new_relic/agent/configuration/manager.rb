@@ -213,12 +213,6 @@ module NewRelic
             return []
           end
 
-          label_hash = label_pairs.map do |key, value|
-            {
-              'label_type'  => key,
-              'label_value' => value
-            }
-          end
           make_label_hash(label_pairs)
         end
 
