@@ -235,6 +235,96 @@ module NewRelic
           :type => String,
           :description => "New Relic license key."
         },
+        :agent_enabled => {
+          :default => DefaultSource.agent_enabled,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable the agent.'
+        },
+        :enabled => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :aliases => [:enable],
+          :description => 'Enable or disable the agent.'
+        },
+        :app_name => {
+          :default => DefaultSource.app_name,
+          :public => true,
+          :type => String,
+          :description => "Semicolon delimited list of application names where metrics will be recorded in the dashboard (e.g. 'MyApplication' or 'MyAppStaging;Instance1')."
+        },
+        :monitor_mode => {
+          :default => DefaultSource.monitor_mode,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable transmission of data to the New Relic data collection service.'
+        },
+        :developer_mode => {
+          :default => DefaultSource.developer_mode,
+          :public => true,
+          :type => Boolean,
+          :description => "Enable or disable developer mode, a local analytics package built into the agent for rack applications. Access developer mode analytics by visiting '/newrelic' in your application."
+        },
+        :developer => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => 'Alternative method of enabling developer_mode.'
+        },
+        :log_level => {
+          :default => 'info',
+          :public => true,
+          :type => String,
+          :description => 'Log level for agent logging: error, warn, info or debug.'
+        },
+        :high_security => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable security features designed to protect data in an enterprise setting.'
+        },
+        :ssl => {
+          :default => true,
+          :allow_nil => true,
+          :public => true,
+          :type => Boolean,
+          :description => "Enable or disable SSL for transmissions to the New Relic data collection service. Default is true starting in version 3.5.6."
+        },
+        :proxy_host => {
+          :default => nil,
+          :allow_nil => true,
+          :public => true,
+          :type => String,
+          :description => 'Host for proxy server.'
+        },
+        :proxy_port => {
+          :default => nil,
+          :allow_nil => true,
+          :public => true,
+          :type => Fixnum,
+          :description => 'Port for proxy server.'
+        },
+        :proxy_user => {
+          :default => nil,
+          :allow_nil => true,
+          :public => true,
+          :type => String,
+          :description => 'User for proxy server.'
+        },
+        :proxy_pass => {
+          :default => nil,
+          :allow_nil => true,
+          :public => true,
+          :type => String,
+          :description => 'Password for proxy server.'
+        },
+        :capture_params => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable capturing and attachment of HTTP request parameters to transaction traces and traced errors.'
+        },
         :config_path => {
           :default => DefaultSource.config_path,
           :public => true,
@@ -247,12 +337,6 @@ module NewRelic
           :type => Array,
           :description => "An array of candidate locations for the agent's configuration file."
         },
-        :app_name => {
-          :default => DefaultSource.app_name,
-          :public => true,
-          :type => String,
-          :description => "Semicolon delimited list of application names where metrics will be recorded in the dashboard (e.g. 'MyApplication' or 'MyAppStaging;Instance1')."
-        },
         :dispatcher => {
           :default => DefaultSource.dispatcher,
           :public => false,
@@ -264,25 +348,6 @@ module NewRelic
           :public => false,
           :type => Symbol,
           :description => 'Autodetected application framework used to enable framework-specific functionality.'
-        },
-        :enabled => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :aliases => [:enable],
-          :description => 'Enable or disable the agent.'
-        },
-        :monitor_mode => {
-          :default => DefaultSource.monitor_mode,
-          :public => true,
-          :type => Boolean,
-          :description => 'Enable or disable transmission of data to the New Relic data collection service.'
-        },
-        :agent_enabled => {
-          :default => DefaultSource.agent_enabled,
-          :public => true,
-          :type => Boolean,
-          :description => 'Enable or disable the agent.'
         },
         :'autostart.blacklisted_constants' => {
           :default => 'Rails::Console',
@@ -302,18 +367,6 @@ module NewRelic
           :type => String,
           :description => "Comma delimited list of rake tasks that should not be instrumented by the agent (e.g. 'assets:precompile,db:migrate')."
         },
-        :developer_mode => {
-          :default => DefaultSource.developer_mode,
-          :public => true,
-          :type => Boolean,
-          :description => "Enable or disable developer mode, a local analytics package built into the agent for rack applications. Access developer mode analytics by visiting '/newrelic' in your application."
-        },
-        :developer => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :description => 'Alternative method of enabling developer_mode.'
-        },
         :'profiling.available' => {
           :default => DefaultSource.profiling_available,
           :public => false,
@@ -331,12 +384,6 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Enables or disables the agent for background processes. No longer necessary as the agent now automatically instruments background processes.'
-        },
-        :high_security => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :description => 'Enable or disable security features designed to protect data in an enterprise setting.'
         },
         :'strip_exception_messages.enabled' => {
           :default => DefaultSource.strip_exception_messages_enabled,
@@ -373,41 +420,6 @@ module NewRelic
           :public => false,
           :type => Fixnum,
           :description => 'Port for the New Relic API host.'
-        },
-        :ssl => {
-          :default => true,
-          :allow_nil => true,
-          :public => true,
-          :type => Boolean,
-          :description => "Enable or disable SSL for transmissions to the New Relic data collection service. Default is true starting in version 3.5.6."
-        },
-        :proxy_host => {
-          :default => nil,
-          :allow_nil => true,
-          :public => true,
-          :type => String,
-          :description => 'Host for proxy server.'
-        },
-        :proxy_port => {
-          :default => nil,
-          :allow_nil => true,
-          :public => true,
-          :type => Fixnum,
-          :description => 'Port for proxy server.'
-        },
-        :proxy_user => {
-          :default => nil,
-          :allow_nil => true,
-          :public => true,
-          :type => String,
-          :description => 'User for proxy server.'
-        },
-        :proxy_pass => {
-          :default => nil,
-          :allow_nil => true,
-          :public => true,
-          :type => String,
-          :description => 'Password for proxy server.'
         },
         :sync_startup => {
           :default => false,
@@ -486,12 +498,6 @@ module NewRelic
           :public => true,
           :type => String,
           :description => 'Path to the agent log file, excluding the filename.'
-        },
-        :log_level => {
-          :default => 'info',
-          :public => true,
-          :type => String,
-          :description => 'Log level for agent logging: error, warn, info or debug.'
         },
         :'audit_log.enabled' => {
           :default => false,
@@ -583,12 +589,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable usage of GC::Profiler to measure time spent in garbage collection'
         },
-        :capture_params => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :description => 'Enable or disable capturing and attachment of HTTP request parameters to transaction traces and traced errors.'
-        },
         :'sidekiq.capture_params' => {
           :default => false,
           :public => true,
@@ -619,11 +619,17 @@ module NewRelic
           :type => Float,
           :description => 'Transaction traces will be generated for transactions that exceed this threshold. Valid values are any float value, or (default) `apdex_f`, which will use the threshold for an dissatisfying Apdex controller action - four times the Apdex T value.'
         },
-        :'transaction_tracer.stack_trace_threshold' => {
-          :default => 0.5,
+        :'transaction_tracer.record_sql' => {
+          :default => 'obfuscated',
           :public => true,
-          :type => Float,
-          :description => 'Stack traces will be included in transaction trace segments with durations that exceed this threshold.'
+          :type => String,
+          :description => "Obfuscation level for sql queries reported in transaction trace segments (e.g. 'obfuscated', 'raw', 'none')."
+        },
+        :'transaction_tracer.capture_attributes' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable collection of custom attributes on transaction traces.'
         },
         :'transaction_tracer.explain_threshold' => {
           :default => 0.5,
@@ -637,17 +643,11 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable the generation and inclusion of explain queries in transaction trace segments.'
         },
-        :'transaction_tracer.record_sql' => {
-          :default => 'obfuscated',
+        :'transaction_tracer.stack_trace_threshold' => {
+          :default => 0.5,
           :public => true,
-          :type => String,
-          :description => "Obfuscation level for sql queries reported in transaction trace segments (e.g. 'obfuscated', 'raw', 'none')."
-        },
-        :'transaction_tracer.capture_attributes' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :description => 'Enable or disable collection of custom attributes on transaction traces.'
+          :type => Float,
+          :description => 'Stack traces will be included in transaction trace segments with durations that exceed this threshold.'
         },
         :'transaction_tracer.limit_segments' => {
           :default => 4000,
@@ -769,6 +769,12 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable automatic insertion of the JavaScript header into outgoing responses for page load timing (sometimes referred to as real user monitoring or RUM).'
         },
+        :'browser_monitoring.capture_attributes' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Include custom attributes in real user monitoring script in outgoing responses.'
+        },
         :'browser_monitoring.loader' => {
           :default => DefaultSource.browser_monitoring_loader,
           :public => private,
@@ -793,12 +799,6 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Enable or disable HTTPS instrumentation by JavaScript agent on HTTP pages.'
-        },
-        :'browser_monitoring.capture_attributes' => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :description => 'Include custom attributes in real user monitoring script in outgoing responses.'
         },
         :'capture_attributes.page_view_events' => {
           :default => false,
