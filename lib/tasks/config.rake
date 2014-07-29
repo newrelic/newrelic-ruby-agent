@@ -75,6 +75,7 @@ namespace :newrelic do
     def format_name(key)
       key.split("_").
           each { |fragment| fragment[0] = fragment[0].upcase }.
+          each { |fragment| fragment.upcase! if fragment.match(/sql/i) }.
           join(" ")
     end
 
