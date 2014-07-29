@@ -43,5 +43,11 @@ module NewRelic::Agent::Configuration
 
       assert_equal(expected, hash)
     end
+
+    def test_borks_with_non_symbolizing_key
+      assert_raises(NoMethodError) do
+        DottedHash.new({ 1 => 2 }, true)
+      end
+    end
   end
 end

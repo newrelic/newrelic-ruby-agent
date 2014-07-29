@@ -17,7 +17,7 @@ module NewRelic
           self.merge!(dot_flattened(hash))
 
           keys.each do |key|
-            self[(key.to_sym rescue key) || key] = delete(key)
+            self[key.to_sym] = delete(key)
           end
         end
 
