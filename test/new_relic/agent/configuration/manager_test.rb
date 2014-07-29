@@ -307,6 +307,14 @@ module NewRelic::Agent::Configuration
       assert_equal expected, @manager.parse_labels_from_string
     end
 
+    def test_parse_labels_from_string_allows_trailing_semicolon
+      config = { :labels => 'Server:East;' }
+      @manager.add_config_for_testing(config)
+
+      expected = [ { 'label_type' => 'Server', 'label_value' => 'East' } ]
+      assert_equal expected, @manager.parse_labels_from_string
+    end
+
     def test_parse_labels_from_string_doesnt_require_final_semicolon
       config = { :labels => 'Data Center:Primary;Server:East' }
       @manager.add_config_for_testing(config)
