@@ -56,6 +56,8 @@ class LabelsTest < Minitest::Test
 
     NewRelic::Agent.manual_start
     assert_connect_had_labels(EXPECTED)
+  ensure
+    ENV['NEW_RELIC_LABELS'] = nil
   end
 
   def assert_connect_had_labels(expected)
