@@ -33,7 +33,7 @@ class OrphanedConfigTest < Minitest::Test
     end
   end
 
-  AGENT_CONFIG_PATTERN      = /Agent\.config\[:['"]?([a-z\._]+)['"]?\]/
+  AGENT_CONFIG_PATTERN      = /Agent\.config\[:['"]?([a-z\._]+)['"]?\s*\]/
   REGISTER_CALLBACK_PATTERN = /register_callback\(:['"]?([a-z\._]+)['"]?\)/
   NAMED_DEPENDENCY_PATTERN  = /^\s*named[ (]+\:?([a-z\._]+).*$/
 
