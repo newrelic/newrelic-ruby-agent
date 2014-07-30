@@ -6,12 +6,17 @@ namespace :newrelic do
     DISABLING = "disabling"
 
     SECTION_DESCRIPTIONS = {
-      GENERAL              => 'Here are settings available via the agent configuration file. Some settings depend on your New Relic subscription level.',
-      DISABLING            => 'Here are settings available to disable different instrumentation during the agent startup.',
+      GENERAL              => 'These settings are available for agent configuration. Some settings depend on your New Relic subscription level.',
+      DISABLING            => 'These settings are available to disable different instrumentation during the agent startup.',
       "transaction_tracer" => 'The <a href="/docs/apm/traces/transaction-traces/transaction-traces">transaction traces</a> feature collects detailed information on a selection of transactions, including a summary of the calling sequence, a breakdown of time spent, and a list of SQL queries and their query plans (on mysql and postgresql). Available features depend on your New Relic subscription level.',
       "error_collector"    => 'The agent will collect and report all uncaught exceptions.  Several configuration options allow you to customize the error collection.',
       "browser_monitoring" => "New Relic Browser's page load timing feature (sometimes referred to as real user monitoring or RUM) gives you insight into the performance real users are experiencing with your website. This is accomplished by measuring the time it takes for your users' browsers to download and render your web pages by injecting a small amount of JavaScript code into the header and footer of each page.",
-      "analytics_events"   => 'Here are analytics events settings available via the agent configuration file. Some settings depend on your New Relic subscription level.'
+      "analytics_events"   => 'New Relic Insights is a software analytics resource to gather and visualize data about your software and what it says about your business. With it you can quickly and easily create real-time dashboards to get immediate answers about end-user experiences, clickstreams, mobile activities, and server transactions.'
+    }
+
+    NAME_OVERRIDES = {
+      "slow_sql"     => "Slow SQL",
+      "xray_session" => "X-Ray Session"
     }
 
     def output(format)
@@ -78,9 +83,11 @@ namespace :newrelic do
     end
 
     def format_name(key)
+      name = NAME_OVERRIDES[key]
+      return name if name
+
       key.split("_").
           each { |fragment| fragment[0] = fragment[0].upcase }.
-          each { |fragment| fragment.upcase! if fragment.match(/sql/i) }.
           join(" ")
     end
 
