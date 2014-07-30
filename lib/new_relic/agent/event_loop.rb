@@ -135,10 +135,8 @@ module NewRelic
           begin
             s.call(*args)
           rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException
-            # blow out the loop
             raise
           rescue => e
-            # Don't blow out the stack for anything that hasn't already propagated
             errors << e
           end
         end
