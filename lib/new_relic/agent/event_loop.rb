@@ -67,16 +67,15 @@ module NewRelic
 
       def set_timer(timer)
         existing_timer = @timers[timer.event]
+
         if existing_timer
           elapsed_interval = Time.now - existing_timer.last_interval_start
-          if elapsed_interval > timer.interval
-            @event_queue << [timer.event]
-            timer.set_fired_time
-          else
-            timer.advance(elapsed_interval)
-          end
+          timer.advance(elapsed_interval)
         end
+
         @timers[timer.event] = timer
+
+        fire_timer(timer)
       end
 
       def next_timeout
@@ -124,11 +123,15 @@ module NewRelic
       end
 
       def fire_timers
-        @timers.each do |event, t|
-          if t.due?
-            @event_queue << [t.event]
-            t.set_fired_time
-          end
+        @timers.each do |event, timer|
+          fire_timer(timer)
+        end
+      end
+
+      def fire_timer(timer)
+        if timer.due?
+          @event_queue << [timer.event]
+          timer.set_fired_time
         end
       end
 
