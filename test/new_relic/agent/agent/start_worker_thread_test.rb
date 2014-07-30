@@ -11,7 +11,6 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
     self.stubs(:connected?).returns(true)
-    self.expects(:log_event_loop_start)
     self.expects(:create_and_run_event_loop)
     deferred_work!('connection_options')
   end

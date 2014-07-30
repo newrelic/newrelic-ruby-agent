@@ -97,6 +97,7 @@ module NewRelic
       end
 
       def run
+        ::NewRelic::Agent.logger.debug "Running event loop"
         while !stopped?
           run_once
         end
@@ -160,10 +161,12 @@ module NewRelic
       end
 
       def fire_every(interval, event)
+        ::NewRelic::Agent.logger.debug "Firing event #{event} every #{interval} seconds."
         fire(:__add_timer, Timer.new(interval, self, event, true))
       end
 
       def fire_after(interval, event)
+        ::NewRelic::Agent.logger.debug "Firing event #{event} after #{interval} seconds."
         fire(:__add_timer, Timer.new(interval, self, event, false))
       end
 

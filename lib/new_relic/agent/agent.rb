@@ -527,12 +527,6 @@ module NewRelic
         # start_worker_thread method - this is an artifact of
         # refactoring and can be moved, renamed, etc at will
         module StartWorkerThread
-          def log_event_loop_start
-            ::NewRelic::Agent.logger.debug "Reporting performance data every #{Agent.config[:data_report_period]} seconds."
-            ::NewRelic::Agent.logger.debug "Reporting transaction event data every #{Agent.config[:transaction_event_report_period]} seconds."
-            ::NewRelic::Agent.logger.debug "Running event loop"
-          end
-
           # Synchronize with the harvest loop. If the harvest thread has taken
           # a lock (DNS lookups, backticks, agent-owned locks, etc), and we
           # fork while locked, this can deadlock child processes. For more
@@ -625,7 +619,6 @@ module NewRelic
               NewRelic::Agent.disable_all_tracing do
                 connect(connection_options)
                 if connected?
-                  log_event_loop_start
                   create_and_run_event_loop
                   # never reaches here unless there is a problem or
                   # the agent is exiting
