@@ -10,9 +10,8 @@ module NewRelic
       class Timer
         attr_reader :next_fire_time, :event, :interval, :last_fired_at
 
-        def initialize(interval, target, event, repeat=false)
+        def initialize(interval, event, repeat=false)
           @interval      = interval
-          @target        = target
           @event         = event
           @repeat        = repeat
           @started_at    = Time.now
@@ -42,10 +41,8 @@ module NewRelic
           fire_time
         end
 
-        def fire
+        def set_fired_time
           @last_fired_at = Time.now
-          @target.dispatch_event(@event)
-          reschedule
         end
 
         def due?(now=Time.now)
@@ -73,7 +70,8 @@ module NewRelic
         if existing_timer
           elapsed_interval = Time.now - existing_timer.last_interval_start
           if elapsed_interval > timer.interval
-            timer.fire
+            @event_queue << [timer.event]
+            timer.set_fired_time
           else
             timer.advance(elapsed_interval)
           end
@@ -104,23 +102,33 @@ module NewRelic
       end
 
       def run_once(nonblock=false)
-        timeout = nonblock ? 0 : next_timeout
-        ready = select([@self_pipe_rd], nil, nil, timeout)
-        if ready && ready[0] && ready[0][0] && ready[0][0] == @self_pipe_rd
-          @self_pipe_rd.read(1)
-          until @event_queue.empty?
-            evt, args = @event_queue.pop
-            dispatch_event(evt, args)
-            reschedule_timer_for_event(evt)
-          end
-        end
+        wait_to_run(nonblock)
+
         prune_timers
         fire_timers
+
+        until @event_queue.empty?
+          evt, args = @event_queue.pop
+          dispatch_event(evt, args)
+          reschedule_timer_for_event(evt)
+        end
+      end
+
+      def wait_to_run(nonblock)
+        timeout = nonblock ? 0 : next_timeout
+        ready = select([@self_pipe_rd], nil, nil, timeout)
+
+        if ready && ready[0] && ready[0][0] && ready[0][0] == @self_pipe_rd
+          @self_pipe_rd.read(1)
+        end
       end
 
       def fire_timers
         @timers.each do |event, t|
-          t.fire if t.due?
+          if t.due?
+            @event_queue << [t.event]
+            t.set_fired_time
+          end
         end
       end
 
@@ -128,7 +136,7 @@ module NewRelic
         @timers.delete_if { |e, t| t.finished? }
       end
 
-      def dispatch_event(event, args=nil)
+      def dispatch_event(event, args)
         NewRelic::Agent.logger.debug("EventLoop: Dispatching event '#{event}' with #{@subscriptions[event].size} callback(s).")
 
         errors = []
@@ -162,12 +170,12 @@ module NewRelic
 
       def fire_every(interval, event)
         ::NewRelic::Agent.logger.debug "Firing event #{event} every #{interval} seconds."
-        fire(:__add_timer, Timer.new(interval, self, event, true))
+        fire(:__add_timer, Timer.new(interval, event, true))
       end
 
       def fire_after(interval, event)
         ::NewRelic::Agent.logger.debug "Firing event #{event} after #{interval} seconds."
-        fire(:__add_timer, Timer.new(interval, self, event, false))
+        fire(:__add_timer, Timer.new(interval, event, false))
       end
 
       def wakeup
