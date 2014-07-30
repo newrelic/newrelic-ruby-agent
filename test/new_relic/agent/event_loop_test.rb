@@ -92,8 +92,11 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     @loop.run_once(true)
     assert_equal(0, call_count)
 
-    advance_time(1)
     @loop.fire_every(15, :e)
+    @loop.run_once(true)
+    assert_equal(0, call_count)
+
+    advance_time(1)
     @loop.run_once(true)
     assert_equal(0, call_count)
 
