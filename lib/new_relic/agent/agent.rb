@@ -554,11 +554,11 @@ module NewRelic
             @event_loop.on(:report_data) do
               transmit_data
             end
-            @event_loop.on(:report_analytic_event_data) do
-              transmit_analytic_event_data
+            @event_loop.on(:report_transaction_event_data) do
+              transmit_transaction_event_data
             end
             @event_loop.fire_every(Agent.config[:data_report_period                ], :report_data)
-            @event_loop.fire_every(Agent.config[:'transaction_events.report_period'], :report_analytic_event_data)
+            @event_loop.fire_every(Agent.config[:'transaction_events.report_period'], :report_transaction_event_data)
             @event_loop.run
           end
 
@@ -1002,7 +1002,8 @@ module NewRelic
           end
         end
 
-        def transmit_analytic_event_data
+        def transmit_transaction_event_data
+          now = Time.now
           ::NewRelic::Agent.logger.debug "Sending analytics data to New Relic Service"
 
           harvest_lock.synchronize do
@@ -1010,6 +1011,9 @@ module NewRelic
               harvest_and_send_analytic_event_data
             end
           end
+        ensure
+          duration = (Time.now - now).to_f
+          NewRelic::Agent.record_metric('Supportability/TransactionEventHarvest', duration)
         end
 
         # This method is expected to only be called with the harvest_lock
@@ -1050,7 +1054,7 @@ module NewRelic
 
               @events.notify(:before_shutdown)
               transmit_data
-              transmit_analytic_event_data
+              transmit_transaction_event_data
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"
