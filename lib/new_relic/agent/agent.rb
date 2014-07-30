@@ -557,8 +557,8 @@ module NewRelic
             @event_loop.on(:report_analytic_event_data) do
               transmit_analytic_event_data
             end
-            @event_loop.fire_every(Agent.config[:data_report_period             ], :report_data)
-            @event_loop.fire_every(Agent.config[:transaction_event_report_period], :report_analytic_event_data)
+            @event_loop.fire_every(Agent.config[:data_report_period                ], :report_data)
+            @event_loop.fire_every(Agent.config[:'transaction_events.report_period'], :report_analytic_event_data)
             @event_loop.run
           end
 

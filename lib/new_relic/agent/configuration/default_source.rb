@@ -455,9 +455,9 @@ module NewRelic
           :default => 60,
           :public => false,
           :type => Fixnum,
-          :description => 'Number of seconds betwixt connections to the New Relic data collection service. Note that transaction events have a separate report period, specified by transaction_event_report_period.'
+          :description => 'Number of seconds betwixt connections to the New Relic data collection service. Note that transaction events have a separate report period, specified by transaction_events.report_period.'
         },
-        :transaction_event_report_period => {
+        :'transaction_events.report_period' => {
           :default => 60,
           :public => false,
           :type => Fixnum,
