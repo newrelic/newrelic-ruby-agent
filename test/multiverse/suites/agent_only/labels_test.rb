@@ -32,32 +32,38 @@ class LabelsTest < Minitest::Test
     end
   end
 
-  def test_labels_from_config_string_make_it_to_the_collector
-    with_config(:labels => "Server:East;") do
-      NewRelic::Agent.manual_start
-      assert_connect_had_labels(EXPECTED)
-    end
-  end
-
-  def test_labels_from_manual_start_string_make_it_to_the_collector
-    NewRelic::Agent.manual_start(:labels => "Server:East;")
-    assert_connect_had_labels(EXPECTED)
-  end
-
   def test_labels_from_manual_start_hash_make_it_to_the_collector
     NewRelic::Agent.manual_start(:labels => { "Server" => "East" })
     assert_connect_had_labels(EXPECTED)
   end
 
-  def test_labels_from_env_string_make_it_to_the_collector
-    # Value must be here before reset for EnvironmentSource to see it
-    ENV['NEW_RELIC_LABELS'] = "Server:East;"
-    NewRelic::Agent.config.reset_to_defaults
+  # All testing of string parsed label pairs should go through the cross agent
+  # test file for labels. Our dictionary passing is custom to Ruby, though.
+  load_cross_agent_test("labels").each do |testcase|
+    define_method("test_#{testcase['name']}_from_config_string") do
+      with_config("labels" => testcase["labelString"]) do
+        NewRelic::Agent.manual_start
+        assert_connect_had_labels(testcase["expected"])
+      end
+    end
 
-    NewRelic::Agent.manual_start
-    assert_connect_had_labels(EXPECTED)
-  ensure
-    ENV['NEW_RELIC_LABELS'] = nil
+    define_method("test_#{testcase['name']}_from_manual_start") do
+      NewRelic::Agent.manual_start(:labels => testcase["labelString"])
+      assert_connect_had_labels(testcase["expected"])
+    end
+
+    define_method("test_#{testcase['name']}_from_env") do
+      begin
+        # Value must be here before reset for EnvironmentSource to see it
+        ENV['NEW_RELIC_LABELS'] = testcase["labelString"]
+        NewRelic::Agent.config.reset_to_defaults
+
+        NewRelic::Agent.manual_start
+        assert_connect_had_labels(testcase["expected"])
+      ensure
+        ENV['NEW_RELIC_LABELS'] = nil
+      end
+    end
   end
 
   def assert_connect_had_labels(expected)

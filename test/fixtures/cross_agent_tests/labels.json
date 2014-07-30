@@ -1,0 +1,85 @@
+[
+  {
+    "name":        "empty",
+    "labelString": "",
+    "warning":     false,
+    "expected":    []
+  },
+  {
+    "name":        "multiple_values",
+    "labelString": "Data Center: East ;Data Center :West; Server : North;Server:South; ",
+    "warning":     false,
+    "expected":    [
+        { "label_type": "Data Center", "label_value": "East" },
+        { "label_type": "Data Center", "label_value": "West" },
+        { "label_type": "Server", "label_value": "North" },
+        { "label_type": "Server", "label_value": "South" }
+    ]
+  },
+  {
+    "name":        "single",
+    "labelString": "Server:East",
+    "warning":     false,
+    "expected":    [ { "label_type": "Server", "label_value": "East" } ]
+  },
+  {
+    "name":        "single_trailing_semicolon",
+    "labelString": "Server:East;",
+    "warning":     false,
+    "expected":    [ { "label_type": "Server", "label_value": "East" } ]
+  },
+  {
+    "name":        "pair",
+    "labelString": "Data Center:Primary;Server:East",
+    "warning":     false,
+    "expected":    [
+      { "label_type": "Data Center", "label_value": "Primary" },
+      { "label_type": "Server",      "label_value": "East" }
+    ]
+  },
+  {
+    "name":        "truncation",
+    "labelString": "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK:VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
+    "warning":     false,
+    "expected":    [ {
+      "label_type":  "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",
+      "label_value": "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"
+    } ]
+  },
+  {
+    "name":        "failed_no_delimiters",
+    "labelString": "Server",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "failed_no_delimiter",
+    "labelString": "ServerNorth;",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "failed_too_many_delimiters",
+    "labelString": "Server:North:South;",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "failed_no_value",
+    "labelString": "Server:   ",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "failed_no_key",
+    "labelString": ":North",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "failed_no_delimiter_in_later_pair",
+    "labelString": "Server:North;South;",
+    "warning":     true,
+    "expected":    []
+  }
+]

@@ -283,97 +283,13 @@ module NewRelic::Agent::Configuration
       refute @manager.config_classes_for_testing.include?(HighSecuritySource)
     end
 
-    def test_parse_labels_from_string
-      config = {
-        :labels => 'Data Center: East ;Data Center :West; Server : North;Server:South; '
-      }
-      @manager.add_config_for_testing(config)
+    load_cross_agent_test("labels").each do |testcase|
+      define_method("test_#{testcase['name']}") do
+        @manager.add_config_for_testing(:labels => testcase["labelString"])
 
-      expected = [
-        { 'label_type' => 'Data Center', 'label_value' => 'East' },
-        { 'label_type' => 'Data Center', 'label_value' => 'West' },
-        { 'label_type' => 'Server', 'label_value' => 'North' },
-        { 'label_type' => 'Server', 'label_value' => 'South' }
-      ]
-
-      assert_equal expected, @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_with_single_value_doesnt_require_semicolon
-      config = { :labels => 'Server:East' }
-      @manager.add_config_for_testing(config)
-
-      expected = [ { 'label_type' => 'Server', 'label_value' => 'East' } ]
-      assert_equal expected, @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_allows_trailing_semicolon
-      config = { :labels => 'Server:East;' }
-      @manager.add_config_for_testing(config)
-
-      expected = [ { 'label_type' => 'Server', 'label_value' => 'East' } ]
-      assert_equal expected, @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_doesnt_require_final_semicolon
-      config = { :labels => 'Data Center:Primary;Server:East' }
-      @manager.add_config_for_testing(config)
-
-      expected = [
-        { 'label_type' => 'Data Center', 'label_value' => 'Primary' },
-        { 'label_type' => 'Server',      'label_value' => 'East' }
-      ]
-      assert_equal expected, @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_with_missing_colon_returns_empty_list
-      @manager.add_config_for_testing(:labels => 'ServerNorth;')
-      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))
-
-      assert_equal [], @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_with_extra_colon_returns_empty_list
-      @manager.add_config_for_testing(:labels => 'Server:North:South;')
-      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))
-
-      assert_equal [], @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_with_empty_final_value
-      @manager.add_config_for_testing(:labels => 'Server:   ')
-      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))
-
-      assert_equal [], @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_with_empty_key
-      @manager.add_config_for_testing(:labels => ':North')
-      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))
-
-      assert_equal [], @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_with_extra_semicolon_returns_empty_list
-      @manager.add_config_for_testing(:labels => 'Server:North;South;')
-      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING))
-
-      assert_equal [], @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_logs_if_labels_are_malformed
-      @manager.add_config_for_testing(:labels => 'malformed')
-      NewRelic::Agent.logger.expects(:warn)
-      @manager.parse_labels_from_string
-    end
-
-    def test_parse_labels_from_string_applies_length_limits
-      @manager.add_config_for_testing(:labels => "#{'K' * 256}:#{'V' * 256}")
-
-      expected = [ { 'label_type' => 'K' * 255, 'label_value' => 'V' * 255 } ]
-      expects_logging(:warn, includes("truncated"))
-
-      assert_equal expected, @manager.parse_labels_from_string
+        expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING)) if testcase["warning"]
+        assert_equal(testcase["expected"], @manager.parse_labels_from_string)
+      end
     end
 
     def test_parse_labels_from_dictionary_with_hard_failure
