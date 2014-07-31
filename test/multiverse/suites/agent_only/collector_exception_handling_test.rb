@@ -8,19 +8,30 @@ require 'open3'
 class CollectorExceptionHandlingTest < Minitest::Test
   include MultiverseHelpers
 
-  setup_and_teardown_agent
+  setup_and_teardown_agent do
+    NewRelic::Agent.agent.stubs(:sleep)
+  end
+
+  def after_setup
+    # there's a call to sleep in handle_force_restart that we want to skip
+    $collector.reset
+  end
+
+
+  RESTART_PAYLOAD       = { 'error_type' => 'NewRelic::Agent::ForceRestartException'    }
+  DISCONNECT_PAYLOAD    = { 'error_type' => 'NewRelic::Agent::ForceDisconnectException' }
+  RUNTIME_ERROR_PAYLOAD = { 'error_type' => 'RuntimeError'                              }
+
 
   def test_should_reconnect_on_force_restart_exception
-    $collector.reset
+    # We stub these exceptions because we want the EventLoop to exit with a
+    # ForceRestartException the first time through, then (after reconnecting)
+    # we force the disconnect so that this test will end cleanly.
 
-    payload = { 'error_type' => 'NewRelic::Agent::ForceRestartException' }
-    $collector.stub_exception('metric_data', payload).once
+    $collector.stub_exception('metric_data'       , RESTART_PAYLOAD   ).once
+    $collector.stub_exception('get_agent_commands', DISCONNECT_PAYLOAD).once
 
     with_config(:data_report_period => 0) do
-      worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 1)
-      NewRelic::Agent.agent.stubs(:create_worker_loop).returns(worker_loop)
-      # there's a call to sleep in handle_force_restart that we want to skip
-      NewRelic::Agent.agent.stubs(:sleep)
       NewRelic::Agent.agent.deferred_work!({})
     end
 
@@ -34,10 +45,7 @@ class CollectorExceptionHandlingTest < Minitest::Test
   end
 
   def test_should_stop_reporting_after_force_disconnect
-    $collector.reset
-
-    payload = { 'error_type' => 'NewRelic::Agent::ForceDisconnectException' }
-    $collector.stub_exception('metric_data', payload).once
+    $collector.stub_exception('metric_data', DISCONNECT_PAYLOAD).once
 
     with_config(:data_report_period => 0) do
       NewRelic::Agent.agent.deferred_work!({})
@@ -48,15 +56,9 @@ class CollectorExceptionHandlingTest < Minitest::Test
   end
 
   def test_should_stop_reporting_after_force_disconnect_on_connect
-    $collector.reset
-
-    payload = { 'error_type' => 'NewRelic::Agent::ForceDisconnectException' }
-    $collector.stub_exception('connect', payload).once
+    $collector.stub_exception('connect', DISCONNECT_PAYLOAD).once
 
     with_config(:data_report_period => 0) do
-      worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 1)
-      NewRelic::Agent.agent.stubs(:create_worker_loop).returns(worker_loop)
-      NewRelic::Agent.agent.stubs(:sleep)
       NewRelic::Agent.agent.deferred_work!({})
     end
 
@@ -64,16 +66,10 @@ class CollectorExceptionHandlingTest < Minitest::Test
   end
 
   def test_should_reconnect_on_connect_exception
-    $collector.reset
-
-    payload = { 'error_type' => 'RuntimeError' }
-    $collector.stub_exception('connect', payload).once
+    $collector.stub_exception('connect', RUNTIME_ERROR_PAYLOAD).once
+    $collector.stub_exception('metric_data', DISCONNECT_PAYLOAD).once
 
     with_config(:data_report_period => 0) do
-      worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 1)
-      NewRelic::Agent.agent.stubs(:create_worker_loop).returns(worker_loop)
-      # there's a call to sleep in connect that we want to skip
-      NewRelic::Agent.agent.stubs(:sleep)
       NewRelic::Agent.agent.deferred_work!({})
     end
 
@@ -81,16 +77,10 @@ class CollectorExceptionHandlingTest < Minitest::Test
   end
 
   def test_should_reconnect_on_get_redirect_host_exception
-    $collector.reset
-
-    payload = { 'error_type' => 'RuntimeError' }
-    $collector.stub_exception('get_redirect_host', payload).once
+    $collector.stub_exception('get_redirect_host', RUNTIME_ERROR_PAYLOAD).once
+    $collector.stub_exception('metric_data', DISCONNECT_PAYLOAD).once
 
     with_config(:data_report_period => 0) do
-      worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 1)
-      NewRelic::Agent.agent.stubs(:create_worker_loop).returns(worker_loop)
-      # there's a call to sleep in connect that we want to skip
-      NewRelic::Agent.agent.stubs(:sleep)
       NewRelic::Agent.agent.deferred_work!({})
     end
 

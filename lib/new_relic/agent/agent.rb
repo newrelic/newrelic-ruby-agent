@@ -178,7 +178,7 @@ module NewRelic
           return if not started?
           ::NewRelic::Agent.logger.info "Starting Agent shutdown"
 
-          stop_worker_loop
+          stop_event_loop
           trap_signals_for_litespeed
           untraced_graceful_disconnect
           revert_to_default_configuration
@@ -192,10 +192,10 @@ module NewRelic
           NewRelic::Agent.config.remove_config_type(:server)
         end
 
-        def stop_worker_loop
-          if @worker_loop
-            @worker_loop.run_task if Agent.config[:force_send]
-            @worker_loop.stop
+        def stop_event_loop
+          if @event_loop
+            @event_loop.run_once(true) if Agent.config[:force_send]
+            @event_loop.stop
           end
         end
 
@@ -527,13 +527,6 @@ module NewRelic
         # start_worker_thread method - this is an artifact of
         # refactoring and can be moved, renamed, etc at will
         module StartWorkerThread
-          # logs info about the worker loop so users can see when the
-          # agent actually begins running in the background
-          def log_worker_loop_start
-            ::NewRelic::Agent.logger.debug "Reporting performance data every #{Agent.config[:data_report_period]} seconds."
-            ::NewRelic::Agent.logger.debug "Running worker loop"
-          end
-
           # Synchronize with the harvest loop. If the harvest thread has taken
           # a lock (DNS lookups, backticks, agent-owned locks, etc), and we
           # fork while locked, this can deadlock child processes. For more
@@ -552,15 +545,21 @@ module NewRelic
             harvest_lock.unlock if harvest_lock.locked?
           end
 
-          def create_worker_loop
-            WorkerLoop.new
+          def create_event_loop
+            EventLoop.new
           end
 
-          def create_and_run_worker_loop
-            @worker_loop = create_worker_loop
-            @worker_loop.run(Agent.config[:data_report_period]) do
+          def create_and_run_event_loop
+            @event_loop = create_event_loop
+            @event_loop.on(:report_data) do
               transmit_data
             end
+            @event_loop.on(:report_transaction_event_data) do
+              transmit_transaction_event_data
+            end
+            @event_loop.fire_every(Agent.config[:data_report_period                ], :report_data)
+            @event_loop.fire_every(Agent.config[:'transaction_events.report_period'], :report_transaction_event_data)
+            @event_loop.run
           end
 
           # Handles the case where the server tells us to restart -
@@ -618,14 +617,9 @@ module NewRelic
           def deferred_work!(connection_options)
             catch_errors do
               NewRelic::Agent.disable_all_tracing do
-                # We try to connect.  If this returns false that means
-                # the server rejected us for a licensing reason and we should
-                # just exit the thread.  If it returns nil
-                # that means it didn't try to connect because we're in the master.
                 connect(connection_options)
                 if connected?
-                  log_worker_loop_start
-                  create_and_run_worker_loop
+                  create_and_run_event_loop
                   # never reaches here unless there is a problem or
                   # the agent is exiting
                 else
@@ -1009,6 +1003,20 @@ module NewRelic
           end
         end
 
+        def transmit_transaction_event_data
+          now = Time.now
+          ::NewRelic::Agent.logger.debug "Sending analytics data to New Relic Service"
+
+          harvest_lock.synchronize do
+            @service.session do # use http keep-alive
+              harvest_and_send_analytic_event_data
+            end
+          end
+        ensure
+          duration = (Time.now - now).to_f
+          NewRelic::Agent.record_metric('Supportability/TransactionEventHarvest', duration)
+        end
+
         # This method is expected to only be called with the harvest_lock
         # already held
         def transmit_data_already_locked
@@ -1021,7 +1029,6 @@ module NewRelic
             harvest_and_send_transaction_traces
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
-            harvest_and_send_analytic_event_data
 
             check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands
@@ -1048,6 +1055,7 @@ module NewRelic
 
               @events.notify(:before_shutdown)
               transmit_data
+              transmit_transaction_event_data
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"

@@ -110,7 +110,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
           :duration => 10,
           :type => :controller
         })
-        NewRelic::Agent.agent.send(:transmit_data)
+        NewRelic::Agent.agent.send(:transmit_transaction_event_data)
       end
 
       assert_equal(1, request_sampler.samples.size)
