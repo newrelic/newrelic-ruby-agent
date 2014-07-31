@@ -496,6 +496,17 @@ def get_last_analytics_event
   NewRelic::Agent.agent.instance_variable_get(:@request_sampler).samples.last
 end
 
+def swap_instance_method(target, method_name, new_method_implementation, &blk)
+  old_method_implementation = target.instance_method(method_name)
+  target.send(:define_method, method_name, new_method_implementation)
+  yield
+rescue NameError => e
+  puts "Your target does not have the instance method #{method_name}"
+  puts e.inspect
+ensure
+  target.send(:define_method, method_name, old_method_implementation)
+end
+
 def cross_agent_tests_dir
   File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'cross_agent_tests'))
 end
