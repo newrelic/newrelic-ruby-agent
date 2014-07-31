@@ -192,6 +192,7 @@ module NewRelic
         MALFORMED_LABELS_WARNING = "Skipping malformed labels configuration"
         PARSING_LABELS_FAILURE   = "Failure during parsing labels. Ignoring and carrying on with connect."
 
+        MAX_LABEL_COUNT  = 64
         MAX_LABEL_LENGTH = 255
 
         def parsed_labels
@@ -233,11 +234,15 @@ module NewRelic
         end
 
         def make_label_hash(pairs, labels = nil)
+          # This can accept a hash, so force it down to an array of pairs first
+          pairs = Array(pairs)
+
           unless valid_label_pairs?(pairs)
             NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels||pairs}")
             return []
           end
 
+          pairs = limit_number_of_labels(pairs)
           pairs.map do |key, value|
             {
               'label_type'  => truncate(key),
@@ -249,9 +254,18 @@ module NewRelic
         def truncate(text)
           if text.length > MAX_LABEL_LENGTH
             NewRelic::Agent.logger.warn("'#{text}' is longer than the allowed #{MAX_LABEL_LENGTH} and will be truncated")
-            return text[0..MAX_LABEL_LENGTH-1]
+            text[0..MAX_LABEL_LENGTH-1]
           else
             text
+          end
+        end
+
+        def limit_number_of_labels(pairs)
+          if pairs.length > MAX_LABEL_COUNT
+            NewRelic::Agent.logger.warn("Too many labels defined. Only taking first #{MAX_LABEL_COUNT}")
+            pairs[0...64]
+          else
+            pairs
           end
         end
 

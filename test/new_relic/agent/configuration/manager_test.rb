@@ -287,13 +287,14 @@ module NewRelic::Agent::Configuration
       define_method("test_#{testcase['name']}") do
         @manager.add_config_for_testing(:labels => testcase["labelString"])
 
-        assert_malformed_warning if testcase["warning"]
+        assert_warning if testcase["warning"]
         assert_equal(testcase["expected"], @manager.parse_labels_from_string)
       end
     end
 
     def test_parse_labels_from_dictionary_with_hard_failure
-      @manager.add_config_for_testing(:labels => nil)
+      bad_label_object = Object.new
+      @manager.add_config_for_testing(:labels => bad_label_object)
 
       assert_parsing_error
       assert_equal [], @manager.parsed_labels
@@ -333,12 +334,12 @@ module NewRelic::Agent::Configuration
         "More Nesting" => { "Hahaha" => "Ha" }
       })
 
-      assert_malformed_warning
+      assert_warning
       assert_equal [], @manager.parsed_labels
     end
 
-    def assert_malformed_warning
-      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING), any_parameters)
+    def assert_warning
+      expects_logging(:warn, any_parameters, any_parameters)
     end
 
     def assert_parsing_error
