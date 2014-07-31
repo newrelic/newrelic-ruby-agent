@@ -14,6 +14,18 @@
   For more details, see:
   https://docs.newrelic.com/docs/ruby/ruby-1.8.7-support
 
+  * Support for new Cross Application Trace view
+
+  This release enhances cross application tracing with a visualization of
+  the cross application calls that a specific Transaction Trace is involved
+  in. The new visualization helps you spot bottlenecks in external services
+  within Transaction Traces and gives you an end-to-end understanding
+  of how the transaction trace is used by other applications and services.
+  This leads to faster problem diagnosis and better collaboration across
+  teams. All agents involved in the cross application communication must
+  be upgraded to see the complete graph. You can view cross application
+  traces from in the Transaction Trace drill-down.
+
   * High security mode V2
 
   The Ruby agent now supports V2 of New Relic's high security mode. To enable
