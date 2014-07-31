@@ -7,7 +7,7 @@
   },
   {
     "name":        "multiple_values",
-    "labelString": "Data Center: East ;Data Center :West; Server : North;Server:South; ",
+    "labelString": "Data Center: East;Data Center :West; Server : North;Server:South; ",
     "warning":     false,
     "expected":    [
         { "label_type": "Data Center", "label_value": "East" },
