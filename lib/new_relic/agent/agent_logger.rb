@@ -172,6 +172,10 @@ module NewRelic
       def gather_startup_logs
         StartupLogger.instance.dump(self)
       end
+
+      def log_formatter=(formatter)
+        @log.formatter = formatter
+      end
     end
 
     # In an effort to not lose messages during startup, we trap them in memory
