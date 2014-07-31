@@ -192,6 +192,8 @@ module NewRelic
         MALFORMED_LABELS_WARNING = "Skipping malformed labels configuration"
         PARSING_LABELS_FAILURE   = "Failure during parsing labels. Ignoring and carrying on with connect."
 
+        MAX_LABEL_LENGTH = 255
+
         def parsed_labels
           case NewRelic::Agent.config[:labels]
           when String
@@ -207,33 +209,35 @@ module NewRelic
         def parse_labels_from_string
           labels = NewRelic::Agent.config[:labels]
           label_pairs = break_label_string_into_pairs(labels)
-
-          unless valid_label_pairs?(label_pairs)
-            NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels}")
-            return []
-          end
-
-          make_label_hash(label_pairs)
+          make_label_hash(label_pairs, labels)
         end
 
         def break_label_string_into_pairs(labels)
           # Strip whitespaces immediately before and after colons or semicolons
           stripped_labels = labels.gsub(/\s*(:|;)\s*/, '\1')
-
           stripped_labels.split(';').map do |pair|
             pair.split(':')
           end
         end
 
         def valid_label_pairs?(label_pairs)
-          label_pairs.all? { |pair|
+          label_pairs.all? do |pair|
             pair.length == 2 &&
-            !pair.first.empty? &&
-            !pair.last.empty?
-          }
+              valid_label_item?(pair.first) &&
+              valid_label_item?(pair.last)
+          end
         end
 
-        def make_label_hash(pairs)
+        def valid_label_item?(item)
+          item.is_a?(String) && !item.empty?
+        end
+
+        def make_label_hash(pairs, labels = nil)
+          unless valid_label_pairs?(pairs)
+            NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels||pairs}")
+            return []
+          end
+
           pairs.map do |key, value|
             {
               'label_type'  => truncate(key),
@@ -242,12 +246,10 @@ module NewRelic
           end
         end
 
-        MAX_LENGTH = 255
-
         def truncate(text)
-          if text.length > MAX_LENGTH
-            NewRelic::Agent.logger.warn("'#{text}' is longer than the allowed #{MAX_LENGTH} and will be truncated")
-            return text[0..MAX_LENGTH-1]
+          if text.length > MAX_LABEL_LENGTH
+            NewRelic::Agent.logger.warn("'#{text}' is longer than the allowed #{MAX_LABEL_LENGTH} and will be truncated")
+            return text[0..MAX_LABEL_LENGTH-1]
           else
             text
           end

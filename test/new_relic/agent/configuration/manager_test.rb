@@ -287,15 +287,15 @@ module NewRelic::Agent::Configuration
       define_method("test_#{testcase['name']}") do
         @manager.add_config_for_testing(:labels => testcase["labelString"])
 
-        expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING)) if testcase["warning"]
+        assert_malformed_warning if testcase["warning"]
         assert_equal(testcase["expected"], @manager.parse_labels_from_string)
       end
     end
 
     def test_parse_labels_from_dictionary_with_hard_failure
       @manager.add_config_for_testing(:labels => nil)
-      expects_logging(:error, includes(Manager::PARSING_LABELS_FAILURE), any_parameters)
 
+      assert_parsing_error
       assert_equal [], @manager.parsed_labels
     end
 
@@ -304,8 +304,7 @@ module NewRelic::Agent::Configuration
       bad_string.stubs(:gsub).raises("Booom")
       @manager.add_config_for_testing(:labels => bad_string)
 
-      expects_logging(:error, includes(Manager::PARSING_LABELS_FAILURE), any_parameters)
-
+      assert_parsing_error
       assert_equal [], @manager.parsed_labels
     end
 
@@ -327,6 +326,23 @@ module NewRelic::Agent::Configuration
       expects_logging(:warn, includes("truncated"))
 
       assert_equal expected, @manager.parse_labels_from_dictionary
+    end
+
+    def test_parse_labels_from_dictionary_disallows_further_nested_hashes
+      @manager.add_config_for_testing(:labels => {
+        "More Nesting" => { "Hahaha" => "Ha" }
+      })
+
+      assert_malformed_warning
+      assert_equal [], @manager.parsed_labels
+    end
+
+    def assert_malformed_warning
+      expects_logging(:warn, includes(Manager::MALFORMED_LABELS_WARNING), any_parameters)
+    end
+
+    def assert_parsing_error
+      expects_logging(:error, includes(Manager::PARSING_LABELS_FAILURE), any_parameters)
     end
   end
 end
