@@ -15,10 +15,7 @@ module NewRelic
           self.merge!(hash) if keep_nesting
 
           self.merge!(dot_flattened(hash))
-
-          keys.each do |key|
-            self[key.to_sym] = delete(key)
-          end
+          DottedHash.symbolize(self)
         end
 
         def inspect
@@ -27,6 +24,12 @@ module NewRelic
 
         def to_hash
           {}.replace(self)
+        end
+
+        def self.symbolize(hash)
+          hash.keys.each do |key|
+            hash[key.to_sym] = hash.delete(key)
+          end
         end
 
         protected
