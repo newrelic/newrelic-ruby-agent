@@ -72,7 +72,7 @@
 
   * Fix for occasional spikes in external services time
 
-  Certain kinds of failures during HTTP reqeusts made by an application could
+  Certain kinds of failures during HTTP requests made by an application could
   have previously resulted in the Ruby agent reporting erroneously large amounts
   of time spent in outgoing HTTP requests. This issue manifested most obviously
   in spikes on the 'Web external' band on the main overview graph. This issue
