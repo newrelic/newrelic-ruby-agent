@@ -322,7 +322,10 @@ module NewRelic
          :settings,
          :high_security
         ]
-        assert_equal expected, @agent.connect_settings.keys
+
+        expected.each do |expect_key|
+          assert_includes @agent.connect_settings.keys, expect_key
+        end
       end
 
       def test_connect_settings_checks_environment_report_can_marshal

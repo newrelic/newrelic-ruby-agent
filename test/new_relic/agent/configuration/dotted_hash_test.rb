@@ -46,7 +46,7 @@ module NewRelic::Agent::Configuration
 
     def test_borks_with_non_symbolizing_key
       assert_raises(NoMethodError) do
-        DottedHash.new({ 1 => 2 }, true)
+        DottedHash.new({ Object.new => 2 }, true)
       end
     end
   end

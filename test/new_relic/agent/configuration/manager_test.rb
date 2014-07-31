@@ -297,7 +297,7 @@ module NewRelic::Agent::Configuration
       @manager.add_config_for_testing(:labels => bad_label_object)
 
       assert_parsing_error
-      assert_equal [], @manager.parsed_labels
+      assert_parsed_labels([])
     end
 
     def test_parse_labels_from_string_with_hard_failure
@@ -306,27 +306,24 @@ module NewRelic::Agent::Configuration
       @manager.add_config_for_testing(:labels => bad_string)
 
       assert_parsing_error
-      assert_equal [], @manager.parsed_labels
+      assert_parsed_labels([])
     end
 
     def test_parse_labels_from_dictionary
       @manager.add_config_for_testing(:labels => { 'Server' => 'East', 'Data Center' => 'North' })
 
-      expected = [
+      assert_parsed_labels([
         { 'label_type' => 'Server', 'label_value' => 'East' },
         { 'label_type' => 'Data Center', 'label_value' => 'North' }
-      ]
-
-      assert_equal expected, @manager.parse_labels_from_dictionary
+      ])
     end
 
     def test_parse_labels_from_dictionary_applies_length_limits
       @manager.add_config_for_testing(:labels => { 'K' * 256 => 'V' * 256 })
-
       expected = [ { 'label_type' => 'K' * 255, 'label_value' => 'V' * 255 } ]
-      expects_logging(:warn, includes("truncated"))
 
-      assert_equal expected, @manager.parse_labels_from_dictionary
+      expects_logging(:warn, includes("truncated"))
+      assert_parsed_labels(expected)
     end
 
     def test_parse_labels_from_dictionary_disallows_further_nested_hashes
@@ -335,7 +332,18 @@ module NewRelic::Agent::Configuration
       })
 
       assert_warning
-      assert_equal [], @manager.parsed_labels
+      assert_parsed_labels([])
+    end
+
+    def assert_parsed_labels(expected)
+      result = @manager.parsed_labels
+
+      # 1.8.7 hash ordering means we can't directly compare. Lean on the
+      # structure and flattened array sorting to do the comparison we need.
+      result = result.map(&:to_a).sort
+      expected = expected.map(&:to_a).sort
+
+      assert_equal expected, result
     end
 
     def assert_warning
