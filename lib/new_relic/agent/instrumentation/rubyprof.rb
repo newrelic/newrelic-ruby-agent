@@ -6,7 +6,7 @@ DependencyDetection.defer do
   named :rubyprof
 
   depends_on do
-    defined?(::RubyProf)
+    defined?(::RubyProf) && defined?(::NewRelic::Rack::DeveloperMode)
   end
 
   executes do
