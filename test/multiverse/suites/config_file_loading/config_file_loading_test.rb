@@ -155,8 +155,30 @@ bazbangbarn:
 
     log = with_array_logger { NewRelic::Agent.manual_start }
 
-    assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml/)
+    assert_log_contains(log, /ERROR.*Failed ERB processing/)
     assert_log_contains(log, /\(erb\):4/)
+  end
+
+  def test_exclude_commented_out_erb_lines
+    config_contents = <<-YAML
+development:
+  foo: "success!!"
+test:
+  foo: "success!!"
+boom:
+  # <%= this is not ruby %>
+        YAML
+
+    path = File.join(File.dirname(__FILE__), 'config', 'newrelic.yml')
+    setup_config(path, {}, config_contents)
+    setup_agent
+
+    log = with_array_logger { NewRelic::Agent.manual_start }
+
+    assert_equal "success!!", NewRelic::Agent.config[:foo]
+
+    refute_log_contains(log, /ERROR.*Failed ERB processing/)
+    refute_log_contains(log, /\(erb\)/)
   end
 
   def test_config_loads_from_env_NRCONFIG
@@ -183,5 +205,11 @@ bazbangbarn:
     lines = log.array
     failure_message = "Did not find '#{message}' in log. Log contained:\n#{lines.join('')}"
     assert (lines.any? { |line| line.match(message) }), failure_message
+  end
+
+  def refute_log_contains(log, message)
+    lines = log.array
+    failure_message = "Found unexpected '#{message}' in log. Log contained:\n#{lines.join('')}"
+    refute (lines.any? { |line| line.match(message) }), failure_message
   end
 end

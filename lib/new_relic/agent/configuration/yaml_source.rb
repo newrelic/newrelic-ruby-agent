@@ -17,30 +17,15 @@ module NewRelic
             @file_path = validate_config_file_path(path)
             return unless @file_path
 
-            ::NewRelic::Agent.logger.info("Reading configuration from #{path}")
-            file = File.read(@file_path)
-
-            # Next two are for populating the newrelic.yml via erb binding, necessary
-            # when using the default newrelic.yml file
-            generated_for_user = ''
-            license_key = ''
-
-            erb = ERB.new(file).result(binding)
-            confighash = with_yaml_engine { YAML.load(erb) }
-            ::NewRelic::Agent.logger.error("Config (#{path}) doesn't include a '#{env}' environment!") unless
-              confighash.key?(env)
-
-            config = confighash[env] || {}
+            ::NewRelic::Agent.logger.info("Reading configuration from #{path} (#{Dir.pwd})")
+            raw_file = File.read(@file_path)
+            erb_file = process_erb(raw_file)
+            config   = process_yaml(erb_file, env, config)
           rescue ScriptError, StandardError => e
-            ::NewRelic::Agent.logger.error("Failed to read or parse configuration file at #{path}: #{e}")
+            ::NewRelic::Agent.logger.error("Failed to read or parse configuration file at #{path}", e)
           end
 
-          if config['transaction_tracer'] &&
-              config['transaction_tracer']['transaction_threshold'] =~ /apdex_f/i
-            # when value is "apdex_f" remove the config and defer to default
-            config['transaction_tracer'].delete('transaction_threshold')
-          end
-
+          substitute_transaction_threshold(config)
           booleanify_values(config, 'agent_enabled', 'enabled', 'monitor_daemons')
 
           super(config, true)
@@ -82,6 +67,44 @@ module NewRelic
           )
         end
 
+        def process_erb(file)
+          begin
+            # Exclude lines that are commented out so failing Ruby code in an
+            # ERB template commented at the YML level is fine. Leave the line,
+            # though, so ERB line numbers remain correct.
+            file.gsub!(/^\s*#.*$/, '#')
+
+            # Next two are for populating the newrelic.yml via erb binding, necessary
+            # when using the default newrelic.yml file
+            generated_for_user = ''
+            license_key = ''
+
+            ERB.new(file).result(binding)
+          rescue ScriptError, StandardError => e
+            ::NewRelic::Agent.logger.error("Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.", e)
+            nil
+          end
+        end
+
+        def process_yaml(file, env, config)
+          if file
+            confighash = with_yaml_engine { YAML.load(file) }
+            ::NewRelic::Agent.logger.error("Config (#{path}) doesn't include a '#{env}' environment!") unless confighash.key?(env)
+
+            config = confighash[env] || {}
+          end
+
+          config
+        end
+
+        def substitute_transaction_threshold(config)
+          if config['transaction_tracer'] &&
+              config['transaction_tracer']['transaction_threshold'] =~ /apdex_f/i
+            # when value is "apdex_f" remove the config and defer to default
+            config['transaction_tracer'].delete('transaction_threshold')
+          end
+        end
+
         def with_yaml_engine
           return yield unless NewRelic::LanguageSupport.needs_syck?
 
@@ -91,6 +114,7 @@ module NewRelic
           ::YAML::ENGINE.yamler = yamler
           result
         end
+
 
         def booleanify_values(config, *keys)
           # auto means defer ro default
