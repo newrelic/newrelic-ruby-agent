@@ -51,10 +51,10 @@ module NewRelic
 
           stmt = sql.kind_of?(Statement) ? sql : Statement.new(sql)
           adapter = stmt.adapter
-          obfuscated = remove_escaped_quotes(stmt)
-          obfuscated = obfuscate_single_quote_literals(obfuscated)
           if !(adapter.to_s =~ /postgres/ || adapter.to_s =~ /sqlite/)
-            obfuscated = obfuscate_double_quote_literals(obfuscated)
+            obfuscated = obfuscate_quoted_literals(stmt)
+          else
+            obfuscated = obfuscate_single_quote_literals(stmt)
           end
           obfuscated = obfuscate_numeric_literals(obfuscated)
           obfuscated.to_s # return back to a regular String
