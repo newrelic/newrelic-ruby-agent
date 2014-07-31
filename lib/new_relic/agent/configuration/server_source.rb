@@ -12,7 +12,8 @@ module NewRelic
               # when value is "apdex_f" remove the config and defer to default
               hash['agent_config'].delete('transaction_tracer.transaction_threshold')
             end
-            super(hash.delete('agent_config'))
+
+            hoist_agent_config(hash)
           end
 
           if hash['web_transactions_apdex']
@@ -38,15 +39,22 @@ module NewRelic
           gated_features.each do |feature, gate_key|
             if server_config.has_key?(gate_key)
               allowed_by_server = server_config[gate_key]
-              requested_value = ungated_value(feature, existing_config)
+              requested_value = ungated_value(feature, server_config, existing_config)
               effective_value = (allowed_by_server && requested_value)
               server_config[feature] = effective_value
             end
           end
         end
 
-        def ungated_value(key, existing_config)
-          self.has_key?(key) ? self[key] : existing_config[key]
+        def ungated_value(key, server_config, existing_config)
+          server_config.has_key?(key) ? server_config[key] : existing_config[key]
+        end
+
+        # Move agent_config subkey to top level of hash, symbolizing it too
+        def hoist_agent_config(hash)
+          agent_config = hash.delete('agent_config')
+          DottedHash.symbolize(agent_config)
+          hash.merge!(agent_config)
         end
       end
     end
