@@ -189,6 +189,90 @@ module NewRelic
           end
         end
 
+        MALFORMED_LABELS_WARNING = "Skipping malformed labels configuration"
+        PARSING_LABELS_FAILURE   = "Failure during parsing labels. Ignoring and carrying on with connect."
+
+        MAX_LABEL_COUNT  = 64
+        MAX_LABEL_LENGTH = 255
+
+        def parsed_labels
+          case NewRelic::Agent.config[:labels]
+          when String
+            parse_labels_from_string
+          else
+            parse_labels_from_dictionary
+          end
+        rescue => e
+          NewRelic::Agent.logger.error(PARSING_LABELS_FAILURE, e)
+          []
+        end
+
+        def parse_labels_from_string
+          labels = NewRelic::Agent.config[:labels]
+          label_pairs = break_label_string_into_pairs(labels)
+          make_label_hash(label_pairs, labels)
+        end
+
+        def break_label_string_into_pairs(labels)
+          # Strip whitespaces immediately before and after colons or semicolons
+          stripped_labels = labels.gsub(/\s*(:|;)\s*/, '\1')
+          stripped_labels.split(';').map do |pair|
+            pair.split(':')
+          end
+        end
+
+        def valid_label_pairs?(label_pairs)
+          label_pairs.all? do |pair|
+            pair.length == 2 &&
+              valid_label_item?(pair.first) &&
+              valid_label_item?(pair.last)
+          end
+        end
+
+        def valid_label_item?(item)
+          item.is_a?(String) && !item.empty?
+        end
+
+        def make_label_hash(pairs, labels = nil)
+          # This can accept a hash, so force it down to an array of pairs first
+          pairs = Array(pairs)
+
+          unless valid_label_pairs?(pairs)
+            NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels||pairs}")
+            return []
+          end
+
+          pairs = limit_number_of_labels(pairs)
+          pairs.map do |key, value|
+            {
+              'label_type'  => truncate(key),
+              'label_value' => truncate(value)
+            }
+          end
+        end
+
+        def truncate(text)
+          if text.length > MAX_LABEL_LENGTH
+            NewRelic::Agent.logger.warn("'#{text}' is longer than the allowed #{MAX_LABEL_LENGTH} and will be truncated")
+            text[0..MAX_LABEL_LENGTH-1]
+          else
+            text
+          end
+        end
+
+        def limit_number_of_labels(pairs)
+          if pairs.length > MAX_LABEL_COUNT
+            NewRelic::Agent.logger.warn("Too many labels defined. Only taking first #{MAX_LABEL_COUNT}")
+            pairs[0...64]
+          else
+            pairs
+          end
+        end
+
+        def parse_labels_from_dictionary
+          make_label_hash(NewRelic::Agent.config[:labels])
+        end
+
         # Generally only useful during initial construction and tests
         def reset_to_defaults
           @high_security_source = nil
@@ -247,8 +331,12 @@ module NewRelic
 
           stack.compact!
 
-          @configs_for_testing.each do |config, index|
-            stack.insert(index, config)
+          @configs_for_testing.each do |config, at_start|
+            if at_start
+              stack.insert(0, config)
+            else
+              stack.push(config)
+            end
           end
 
           stack

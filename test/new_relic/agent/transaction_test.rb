@@ -116,7 +116,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       :apdex_t => 2.0
     }
 
-    with_config(config, :do_not_cast => true) do
+    with_config(config) do
       in_transaction('Controller/foo/bar') do |txn|
         assert_equal 1.5, txn.apdex_t
       end
@@ -137,7 +137,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_update_apdex_records_correct_apdex_for_key_transaction
     t0 = freeze_time
 
-    with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
+    with_config(KEY_TRANSACTION_CONFIG) do
       in_web_transaction('Controller/slow/txn') do
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
@@ -157,7 +157,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_update_apdex_records_correct_apdex_for_non_key_transaction
     t0 = freeze_time
 
-    with_config(KEY_TRANSACTION_CONFIG, :do_not_cast => true) do
+    with_config(KEY_TRANSACTION_CONFIG) do
       in_web_transaction('Controller/other/txn') do
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction

@@ -44,6 +44,10 @@ module NewRelic::Agent::Configuration
       assert_equal 'raw', @source[:'transaction_tracer.record_sql']
     end
 
+    def test_should_still_have_nested_hashes_around
+      refute_nil @source[:transaction_tracer]
+    end
+
     def test_should_ignore_apdex_f_setting_for_transaction_threshold
       assert_equal nil, @source[:'transaction_tracer.transaction_threshold']
     end

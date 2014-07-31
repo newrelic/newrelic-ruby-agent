@@ -18,3 +18,5 @@ development:
   capture_params: false
   browser_monitoring:
     auto_instrument: true
+  labels:
+    Server: Yaml

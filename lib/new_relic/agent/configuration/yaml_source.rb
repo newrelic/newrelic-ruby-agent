@@ -30,7 +30,7 @@ module NewRelic
             ::NewRelic::Agent.logger.error("Config (#{path}) doesn't include a '#{env}' environment!") unless
               confighash.key?(env)
 
-            config = merge!(confighash[env] || {})
+            config = confighash[env] || {}
           rescue ScriptError, StandardError => e
             ::NewRelic::Agent.logger.error("Failed to read or parse configuration file at #{path}: #{e}")
           end
@@ -43,7 +43,7 @@ module NewRelic
 
           booleanify_values(config, 'agent_enabled', 'enabled', 'monitor_daemons')
 
-          super(config)
+          super(config, true)
         end
 
         protected

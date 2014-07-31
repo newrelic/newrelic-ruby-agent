@@ -32,11 +32,11 @@ module NewRelic::Agent::Configuration
         :bar => 'default bar',
         :baz => 'default baz'
       }
-      @manager.add_config_for_testing(config0)
-      config1 = { :foo => 'real foo' }
+      @manager.add_config_for_testing(config0, false)
+      config1 = { :foo => 'wrong foo', :bar => 'real bar' }
       @manager.add_config_for_testing(config1)
-      config2 = { :foo => 'wrong foo', :bar => 'real bar' }
-      @manager.add_config_for_testing(config2, 1)
+      config2 = { :foo => 'real foo' }
+      @manager.add_config_for_testing(config2)
 
       assert_equal 'real foo'   , @manager['foo']
       assert_equal 'real bar'   , @manager['bar']
@@ -63,7 +63,7 @@ module NewRelic::Agent::Configuration
 
     def test_identifying_config_source
       hash_source = {:foo => 'foo', :bar => 'default'}
-      @manager.add_config_for_testing(hash_source, 3)
+      @manager.add_config_for_testing(hash_source, false)
       test_source = ManualSource.new(:bar => 'bar', :baz => 'baz')
       @manager.replace_or_add_config(test_source)
 
@@ -109,7 +109,7 @@ module NewRelic::Agent::Configuration
     def test_should_read_license_key_from_env
       ENV['NEWRELIC_LICENSE_KEY'] = 'right'
       manager = NewRelic::Agent::Configuration::Manager.new
-      manager.add_config_for_testing({:license_key => 'wrong'}, 1)
+      manager.add_config_for_testing({:license_key => 'wrong'}, false)
 
       assert_equal 'right', manager['license_key']
     ensure
@@ -281,6 +281,69 @@ module NewRelic::Agent::Configuration
       refute @manager.config_classes_for_testing.include?(ServerSource)
       refute @manager.config_classes_for_testing.include?(YamlSource)
       refute @manager.config_classes_for_testing.include?(HighSecuritySource)
+    end
+
+    load_cross_agent_test("labels").each do |testcase|
+      define_method("test_#{testcase['name']}") do
+        @manager.add_config_for_testing(:labels => testcase["labelString"])
+
+        assert_warning if testcase["warning"]
+        assert_equal(testcase["expected"], @manager.parse_labels_from_string)
+      end
+    end
+
+    def test_parse_labels_from_dictionary_with_hard_failure
+      bad_label_object = Object.new
+      @manager.add_config_for_testing(:labels => bad_label_object)
+
+      assert_parsing_error
+      assert_equal [], @manager.parsed_labels
+    end
+
+    def test_parse_labels_from_string_with_hard_failure
+      bad_string = "baaaad"
+      bad_string.stubs(:gsub).raises("Booom")
+      @manager.add_config_for_testing(:labels => bad_string)
+
+      assert_parsing_error
+      assert_equal [], @manager.parsed_labels
+    end
+
+    def test_parse_labels_from_dictionary
+      @manager.add_config_for_testing(:labels => { 'Server' => 'East', 'Data Center' => 'North' })
+
+      expected = [
+        { 'label_type' => 'Server', 'label_value' => 'East' },
+        { 'label_type' => 'Data Center', 'label_value' => 'North' }
+      ]
+
+      assert_equal expected, @manager.parse_labels_from_dictionary
+    end
+
+    def test_parse_labels_from_dictionary_applies_length_limits
+      @manager.add_config_for_testing(:labels => { 'K' * 256 => 'V' * 256 })
+
+      expected = [ { 'label_type' => 'K' * 255, 'label_value' => 'V' * 255 } ]
+      expects_logging(:warn, includes("truncated"))
+
+      assert_equal expected, @manager.parse_labels_from_dictionary
+    end
+
+    def test_parse_labels_from_dictionary_disallows_further_nested_hashes
+      @manager.add_config_for_testing(:labels => {
+        "More Nesting" => { "Hahaha" => "Ha" }
+      })
+
+      assert_warning
+      assert_equal [], @manager.parsed_labels
+    end
+
+    def assert_warning
+      expects_logging(:warn, any_parameters, any_parameters)
+    end
+
+    def assert_parsing_error
+      expects_logging(:error, includes(Manager::PARSING_LABELS_FAILURE), any_parameters)
     end
   end
 end

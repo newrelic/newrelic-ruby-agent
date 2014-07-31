@@ -311,20 +311,40 @@ module NewRelic
       end
 
       def test_connect_settings
-        settings = @agent.connect_settings
-        assert settings.include?(:pid)
-        assert settings.include?(:host)
-        assert settings.include?(:app_name)
-        assert settings.include?(:language)
-        assert settings.include?(:agent_version)
-        assert settings.include?(:environment)
-        assert settings.include?(:settings)
-        assert settings.include?(:high_security)
+        expected = [
+         :pid,
+         :host,
+         :app_name,
+         :language,
+         :labels,
+         :agent_version,
+         :environment,
+         :settings,
+         :high_security
+        ]
+        assert_equal expected, @agent.connect_settings.keys
       end
 
       def test_connect_settings_checks_environment_report_can_marshal
         @agent.service.stubs(:valid_to_marshal?).returns(false)
         assert_equal [], @agent.connect_settings[:environment]
+      end
+
+      def test_connect_settings_includes_labels_from_config
+        with_config({:labels => {'Server' => 'East'}}) do
+          expected = [ {"label_type"=>"Server", "label_value"=>"East"} ]
+          assert_equal expected, @agent.connect_settings[:labels]
+        end
+      end
+
+      def test_connect_settings_includes_labels_from_semicolon_separated_config
+        with_config(:labels => "Server:East;Server:West;") do
+          expected = [
+            {"label_type"=>"Server", "label_value"=>"East"},
+            {"label_type"=>"Server", "label_value"=>"West"}
+          ]
+          assert_equal expected, @agent.connect_settings[:labels]
+        end
       end
 
       def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started_and_forkable
