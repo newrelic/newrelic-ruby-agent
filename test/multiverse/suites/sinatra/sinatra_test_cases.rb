@@ -114,4 +114,38 @@ module SinatraTestCases
     assert_equal 200, last_response.status
     assert_metrics_not_recorded(["Controller/Sinatra/#{app_name}/GET ignored"])
   end
+
+  def test_rack_request_params_errors_are_swallowed
+    new_params = Proc.new {
+      if @called
+        raise 'Rack::Request#params error'
+      else
+        @called = true
+        {}
+      end
+    }
+
+    swap_instance_method(Rack::Request, :params, new_params) do
+      get '/pass'
+      assert_equal 200, last_response.status
+    end
+  end
+
+  def test_rack_request_params_errors_are_logged
+    NewRelic::Agent.logger.stubs(:debug)
+    NewRelic::Agent.logger.expects(:debug).with("Failed to get params from Rack request.").at_least_once
+
+    new_params = Proc.new {
+      if @called
+        raise 'Rack::Request#params error'
+      else
+        @called = true
+        {}
+      end
+    }
+
+    swap_instance_method(Rack::Request, :params, new_params) do
+      get '/pass'
+    end
+  end
 end
