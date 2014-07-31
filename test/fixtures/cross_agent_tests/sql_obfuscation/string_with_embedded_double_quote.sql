@@ -1,0 +1,1 @@
+SELECT * FROM table WHERE col1='foo"bar' AND col2='what"ever'

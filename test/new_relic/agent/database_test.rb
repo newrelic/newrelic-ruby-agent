@@ -297,44 +297,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal([], NewRelic::Agent::Database.explain_sql('SELECT', config, &@explainer))
   end
 
-  def test_obfuscation_mysql_basic
-    insert = %q[INSERT INTO `X` values("test",0, 1 , 2, 'test')]
-    assert_equal("INSERT INTO `X` values(?,?, ? , ?, ?)",
-                 NewRelic::Agent::Database.obfuscate_sql(insert))
-    select = %q[SELECT `table`.`column` FROM `table` WHERE `table`.`column` = 'value' AND `table`.`other_column` = "other value" LIMIT 1]
-    assert_equal(%q[SELECT `table`.`column` FROM `table` WHERE `table`.`column` = ? AND `table`.`other_column` = ? LIMIT ?],
-                 NewRelic::Agent::Database.obfuscate_sql(select))
-  end
-
-  def test_obfuscation_postgresql_basic
-    insert = NewRelic::Agent::Database::Statement.new(%q[INSERT INTO "X" values('test',0, 1 , 2, 'test')])
-    insert.adapter = :postgresql
-    assert_equal('INSERT INTO "X" values(?,?, ? , ?, ?)',
-                 NewRelic::Agent::Database.obfuscate_sql(insert))
-    select = NewRelic::Agent::Database::Statement.new(%q[SELECT "table"."column" FROM "table" WHERE "table"."column" = 'value' AND "table"."other_column" = 'other value' LIMIT 1])
-    select.adapter = :postgresql
-    assert_equal(%q[SELECT "table"."column" FROM "table" WHERE "table"."column" = ? AND "table"."other_column" = ? LIMIT ?],
-                 NewRelic::Agent::Database.obfuscate_sql(select))
-  end
-
-  def test_obfuscation_escaped_literals
-    insert = %q[INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son', """jim''s"" hat", "\"jim''s secret\"")]
-    assert_equal("INSERT INTO X values(?, ?,?, ? , ?, ?, ?)",
-                 NewRelic::Agent::Database.obfuscate_sql(insert))
-  end
-
-  def test_obfuscation_mysql_integers_in_identifiers
-    select = %q[SELECT * FROM `table_007` LIMIT 1]
-    assert_equal(%q[SELECT * FROM `table_007` LIMIT ?],
-                 NewRelic::Agent::Database.obfuscate_sql(select))
-  end
-
-  def test_obfuscation_postgresql_integers_in_identifiers
-    select = NewRelic::Agent::Database::Statement.new(%q[SELECT * FROM "table_007" LIMIT 1])
-    select.adapter = :postgresql
-    assert_equal(%q[SELECT * FROM "table_007" LIMIT ?],
-                 NewRelic::Agent::Database.obfuscate_sql(select))
-  end
+  # See SqlObfuscationTest, which uses cross agent tests for the basic SQL
+  # obfuscation test cases.
 
   def test_obfuscation_of_truncated_query
     insert = "INSERT INTO data (blah) VALUES ('abcdefg..."
