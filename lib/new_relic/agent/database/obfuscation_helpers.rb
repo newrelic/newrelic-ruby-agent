@@ -22,7 +22,7 @@ module NewRelic
         #
         # Reversing the query string before obfuscation allows us to get around
         # the fact that a \' appearing within a string may or may not terminate
-        # the string, becasue we know that a string cannot *start* with a \'.
+        # the string, because we know that a string cannot *start* with a \'.
         REVERSE_SINGLE_QUOTES = /'(?:''|'\\|[^'])*'/
         REVERSE_ANY_QUOTES    = /'(?:''|'\\|[^'])*'|"(?:""|"\\|[^"])*"/
 
