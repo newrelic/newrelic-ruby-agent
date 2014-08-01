@@ -1,0 +1,28 @@
+<% sections.each do |(section_key, section_name, section_description, configs)| %>
+<h2 id="<%=section_key%>"><%=section_name%></h2>
+
+<%= "<p>#{section_description}</p>" unless section_description.nil? %>
+
+<dl class="clamshell-list">
+  <% configs.each do |config|%>
+  <!-- ********** <%= config[:key] %> ********** -->
+  <dt id="<%=config[:key]%>"><%=config[:key]%></dt>
+  <dd>
+  <table class="specs">
+    <tbody>
+      <tr>
+        <th>Type:</th>
+        <td><%=config[:type]%></td>
+      </tr>
+      <tr>
+        <th>Default:</th>
+        <td><%=config[:default]%></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><%=config[:description]%></p>
+  </dd>
+  <% end %>
+</dl>
+<% end %>
