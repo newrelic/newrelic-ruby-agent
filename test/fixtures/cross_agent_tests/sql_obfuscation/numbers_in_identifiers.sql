@@ -1,0 +1,1 @@
+SELECT c11.col1, c22.col2 FROM table c11, table c22 WHERE value='nothing'

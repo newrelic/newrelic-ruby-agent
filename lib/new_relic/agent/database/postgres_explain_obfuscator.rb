@@ -11,13 +11,11 @@ module NewRelic
       module PostgresExplainObfuscator
         extend self
 
-        extend ObfuscationHelpers
-
-        SINGLE_OR_DOUBLE_QUOTES = Regexp.new([
-          ObfuscationHelpers::SINGLE_QUOTES.source,
-          ObfuscationHelpers::DOUBLE_QUOTES.source
-        ].join('|')).freeze
-        LABEL_LINE_REGEX   = /^([^:\n]*:\s+).*$/.freeze
+        # Note that this regex can't be shared with the ones in the
+        # Database::Obfuscator class because here we don't look for
+        # backslash-escaped strings (and those regexes are backwards).
+        QUOTED_STRINGS_REGEX = /'(?:[^']|'')*'|"(?:[^"]|"")*"/
+        LABEL_LINE_REGEX     = /^([^:\n]*:\s+).*$/.freeze
 
         def obfuscate(explain)
           # First, we replace all single-quoted strings.
@@ -32,7 +30,7 @@ module NewRelic
           # Note also that we make no special provisions for backslash-escaped
           # single quotes (\') because these are canonicalized to two single
           # quotes ('') in the explain output.
-          explain.gsub!(SINGLE_OR_DOUBLE_QUOTES) do |match|
+          explain.gsub!(QUOTED_STRINGS_REGEX) do |match|
             match.start_with?('"') ? match : '?'
           end
 

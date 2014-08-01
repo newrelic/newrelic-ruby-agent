@@ -1,0 +1,1 @@
+SELECT * FROM table WHERE col1="don't" AND col2="won't"
