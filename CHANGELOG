@@ -1048,7 +1048,6 @@
    going back for a year.
 
 
-### previous versions ###
 ## v3.4.2.1 ##
 
 * Fix issue when app_name is nil
