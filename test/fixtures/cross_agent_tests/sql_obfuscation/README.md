@@ -13,6 +13,10 @@ relevant because PostgreSQL uses different identifier and string quoting rules
 than MySQL (most notably, double-quoted string literals are not allowed in
 PostgreSQL, where double-quotes are instead used around identifiers).
 
+The `malformed` directory contains SQL queries that are not valid SQL in any
+quoting mode. Some agents may choose to attempt to obfuscate these cases, and
+others may instead just replace the query entirely with a placeholder message.
+
 The following database documentation may be helpful in understanding these test
 cases:
 * [MySQL String Literals](http://dev.mysql.com/doc/refman/5.5/en/string-literals.html)

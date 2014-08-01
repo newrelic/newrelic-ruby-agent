@@ -45,6 +45,14 @@ module NewRelic
         def obfuscate_numeric_literals(sql)
           sql.gsub(NUMERICS, PLACEHOLDER)
         end
+
+        def contains_single_quotes?(str)
+          str.include?("'")
+        end
+
+        def contains_quotes?(str)
+          str.include?('"') || str.include?("'")
+        end
       end
     end
   end
