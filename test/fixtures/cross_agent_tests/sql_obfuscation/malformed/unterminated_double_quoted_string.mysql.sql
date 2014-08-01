@@ -1,0 +1,1 @@
+SELECT * FROM table WHERE foo='bar' AND baz="nothing to see here'

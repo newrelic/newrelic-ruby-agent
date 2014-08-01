@@ -8,8 +8,9 @@ module NewRelic::Agent::Database
   class SqlObfuscationTest < Minitest::Test
     attr_reader :obfuscator
 
-    def self.input_files
+    def self.input_files(subdir=nil)
       fixture_dir = File.join(cross_agent_tests_dir, "sql_obfuscation")
+      fixture_dir = File.join(fixture_dir, subdir) if subdir
       Dir["#{fixture_dir}/*.sql"]
     end
 
@@ -37,23 +38,38 @@ module NewRelic::Agent::Database
       text.gsub(/^\s*#.*/, '').strip
     end
 
+    def read_query(input_file)
+      adapter = self.class.adapter_from_input_file(input_file)
+      query = strip_comments(File.read(input_file))
+
+      if adapter
+        query = NewRelic::Agent::Database::Statement.new(query)
+        query.adapter = adapter.to_sym
+      end
+
+      query
+    end
+
+    # Normal queries
     input_files.each do |input_file|
       name = name_for_input_file(input_file)
-      adapter = adapter_from_input_file(input_file)
 
       define_method("test_sql_obfuscation_#{name}") do
-        query               = File.read(input_file)
+        query               = read_query(input_file)
         expected_obfuscated = File.read(obfuscated_filename(input_file))
-
-        query = strip_comments(query)
-
-        if adapter
-          query = NewRelic::Agent::Database::Statement.new(query)
-          query.adapter = adapter.to_sym
-        end
-
-        actual_obfuscated = NewRelic::Agent::Database.obfuscate_sql(query)
+        actual_obfuscated   = NewRelic::Agent::Database.obfuscate_sql(query)
         assert_equal(expected_obfuscated, actual_obfuscated)
+      end
+    end
+
+    # Malformed queries
+    input_files('malformed').each do |input_file|
+      name = name_for_input_file(input_file)
+
+      define_method("test_sql_obfuscation_malformed_#{name}") do
+        query = read_query(input_file)
+        actual_obfuscated = NewRelic::Agent::Database.obfuscate_sql(query)
+        assert_equal(NewRelic::Agent::Database::Obfuscator::FAILED_TO_OBFUSCATE_MESSAGE, actual_obfuscated)
       end
     end
   end
