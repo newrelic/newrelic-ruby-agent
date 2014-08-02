@@ -230,7 +230,13 @@ module NewRelic
         end
 
         def valid_label_item?(item)
-          item.is_a?(String) && !item.empty?
+          case item
+          when String  then !item.empty?
+          when Numeric then true
+          when true    then true
+          when false   then true
+          else false
+          end
         end
 
         def make_label_hash(pairs, labels = nil)
@@ -246,7 +252,7 @@ module NewRelic
           pairs.map do |key, value|
             {
               'label_type'  => truncate(key),
-              'label_value' => truncate(value)
+              'label_value' => truncate(value.to_s)
             }
           end
         end
