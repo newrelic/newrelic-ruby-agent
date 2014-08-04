@@ -181,17 +181,30 @@ module NewRelic
       def session(&block)
         raise ArgumentError, "#{self.class}#shared_connection must be passed a block" unless block_given?
 
-        # Immediately open a TCP connection to the server and leave it open for
-        # multiple requests.
         begin
           t0 = Time.now
-          @in_session = true
-          establish_shared_connection
-          block.call
+          if NewRelic::Agent.config[:aggressive_keepalive]
+            session_with_keepalive(&block)
+          else
+            session_without_keepalive(&block)
+          end
         rescue Timeout::Error
           elapsed = Time.now - t0
           ::NewRelic::Agent.logger.warn "Timed out opening connection to collector after #{elapsed} seconds. If this problem persists, please see http://status.newrelic.com"
           raise
+        end
+      end
+
+      def session_with_keepalive(&block)
+        establish_shared_connection unless @shared_tcp_connection
+        block.call
+      end
+
+      def session_without_keepalive(&block)
+        begin
+          @in_session = true
+          establish_shared_connection
+          block.call
         ensure
           @in_session = false
           close_shared_connection
@@ -244,6 +257,11 @@ module NewRelic
             raise UnrecoverableAgentException.new(msg)
           end
         end
+
+        if http.respond_to?(:keep_alive_timeout) && NewRelic::Agent.config[:aggressive_keepalive]
+          http.keep_alive_timeout = 60
+        end
+
         ::NewRelic::Agent.logger.debug("Created net/http handle to #{http.address}:#{http.port}")
         http
       end
