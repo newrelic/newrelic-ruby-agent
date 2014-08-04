@@ -37,6 +37,22 @@ class LabelsTest < Minitest::Test
     assert_connect_had_labels(EXPECTED)
   end
 
+  def test_numeric_values_for_labels
+    NewRelic::Agent.manual_start(:labels => { "Server" => 42 })
+    expected = [
+      { 'label_type' => 'Server', 'label_value' => '42' }
+    ]
+    assert_connect_had_labels(expected)
+  end
+
+  def test_boolean_values_for_labels
+    NewRelic::Agent.manual_start(:labels => { "Server" => true })
+    expected = [
+      { 'label_type' => 'Server', 'label_value' => 'true' }
+    ]
+    assert_connect_had_labels(expected)
+  end
+
   # All testing of string parsed label pairs should go through the cross agent
   # test file for labels. Our dictionary passing is custom to Ruby, though.
   load_cross_agent_test("labels").each do |testcase|

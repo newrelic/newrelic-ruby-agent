@@ -230,7 +230,13 @@ module NewRelic
         end
 
         def valid_label_item?(item)
-          item.is_a?(String) && !item.empty?
+          case item
+          when String  then !item.empty?
+          when Numeric then true
+          when true    then true
+          when false   then true
+          else false
+          end
         end
 
         def make_label_hash(pairs, labels = nil)
@@ -246,14 +252,19 @@ module NewRelic
           pairs.map do |key, value|
             {
               'label_type'  => truncate(key),
-              'label_value' => truncate(value)
+              'label_value' => truncate(value.to_s, key)
             }
           end
         end
 
-        def truncate(text)
+        def truncate(text, key=nil)
           if text.length > MAX_LABEL_LENGTH
-            NewRelic::Agent.logger.warn("'#{text}' is longer than the allowed #{MAX_LABEL_LENGTH} and will be truncated")
+            if key
+              msg = "The value for the label '#{key}' is longer than the allowed #{MAX_LABEL_LENGTH} and will be truncated. Value = '#{text}'"
+            else
+              msg = "Label name longer than the allowed #{MAX_LABEL_LENGTH} will be truncated. Name = '#{text}'"
+            end
+            NewRelic::Agent.logger.warn(msg)
             text[0..MAX_LABEL_LENGTH-1]
           else
             text

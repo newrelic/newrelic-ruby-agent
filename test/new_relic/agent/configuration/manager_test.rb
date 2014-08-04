@@ -335,6 +335,28 @@ module NewRelic::Agent::Configuration
       assert_parsed_labels([])
     end
 
+    def test_parse_labels_from_dictionary_allows_numerics
+      @manager.add_config_for_testing(:labels => {
+        "the answer" => 42
+      })
+
+      expected = [{ 'label_type' => 'the answer', 'label_value' => '42' }]
+      assert_parsed_labels(expected)
+    end
+
+    def test_parse_labels_from_dictionary_allows_booleans
+      @manager.add_config_for_testing(:labels => {
+        "truthy" => true,
+        "falsy"  => false
+      })
+
+      expected = [
+        { 'label_type' => 'truthy', 'label_value' => 'true' },
+        { 'label_type' => 'falsy',  'label_value' => 'false' }
+      ]
+      assert_parsed_labels(expected)
+    end
+
     def assert_parsed_labels(expected)
       result = @manager.parsed_labels
 
