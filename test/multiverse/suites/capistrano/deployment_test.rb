@@ -4,6 +4,7 @@
 
 require 'fake_rpm_site'
 require 'multiverse_helpers'
+require 'new_relic/cli/command'
 
 class DeploymentTest < Minitest::Test
   def setup
@@ -21,14 +22,21 @@ class DeploymentTest < Minitest::Test
     # Capistrano 3 doesn't provide built-in commandline params -> settings
     # We wire our own up via ENV to test setting out setting custom values
     env = {
-      'NEWRELIC_USER'      => "someone",
-      'NEWRELIC_APPNAME'   => "somewhere"
+      'NEWRELIC_CAPISTRANO_USER'        => "Optimus Prime",
+      'NEWRELIC_CAPISTRANO_APPNAME'     => "Tesseract",
+      'NEWRELIC_CAPISTRANO_REVISION'    => "C-001",
+      'NEWRELIC_CAPISTRANO_CHANGELOG'   => "The greatest weakness of most humans is their hesitancy to tell others they love them while they're alive.",
     }
 
     cap_it(env)
 
-    assert_deployment_value("user",           "someone")
-    assert_deployment_value("application_id", "somewhere")
+    assert_deployment_value("user",           "Optimus Prime")
+    assert_deployment_value("application_id", "Tesseract")
+    assert_deployment_value("revision",       "C-001")
+    assert_deployment_value("changelog",      "The greatest weakness of most humans is their hesitancy to tell others they love them while they're alive.")
+  end
+
+  def test_newrelic_revision_override
   end
 
   def assert_deployment_value(key, value)

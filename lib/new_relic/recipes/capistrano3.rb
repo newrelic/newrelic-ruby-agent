@@ -25,7 +25,7 @@ namespace :newrelic do
 
         unless scm == :none
           changelog ||= lookup_changelog
-          rev       = fetch(:current_revision)
+          rev       ||= fetch(:current_revision)
         end
 
         new_revision = rev
