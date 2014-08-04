@@ -133,7 +133,7 @@ module SinatraTestCases
 
   def test_rack_request_params_errors_are_logged
     NewRelic::Agent.logger.stubs(:debug)
-    NewRelic::Agent.logger.expects(:debug).with("Failed to get params from Rack request.").at_least_once
+    NewRelic::Agent.logger.expects(:debug).with("Failed to get params from Rack request.", kind_of(StandardError)).at_least_once
 
     new_params = Proc.new {
       if @called

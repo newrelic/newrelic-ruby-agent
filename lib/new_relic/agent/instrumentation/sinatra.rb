@@ -157,8 +157,8 @@ module NewRelic
         def get_request_params
           begin
             @request.params
-          rescue
-            NewRelic::Agent.logger.debug("Failed to get params from Rack request.")
+          rescue => e
+            NewRelic::Agent.logger.debug("Failed to get params from Rack request.", e)
             nil
           end
         end
