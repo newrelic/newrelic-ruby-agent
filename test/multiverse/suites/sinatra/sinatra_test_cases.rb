@@ -116,36 +116,24 @@ module SinatraTestCases
   end
 
   def test_rack_request_params_errors_are_swallowed
-    new_params = Proc.new {
-      if @called
-        raise 'Rack::Request#params error'
-      else
-        @called = true
-        {}
-      end
-    }
+    fail_on_second_params_call
 
-    swap_instance_method(Rack::Request, :params, new_params) do
-      get '/pass'
-      assert_equal 200, last_response.status
-    end
+    get '/pass'
+    assert_equal 200, last_response.status
   end
 
   def test_rack_request_params_errors_are_logged
     NewRelic::Agent.logger.stubs(:debug)
     NewRelic::Agent.logger.expects(:debug).with("Failed to get params from Rack request.", kind_of(StandardError)).at_least_once
 
-    new_params = Proc.new {
-      if @called
-        raise 'Rack::Request#params error'
-      else
-        @called = true
-        {}
-      end
-    }
+    fail_on_second_params_call
 
-    swap_instance_method(Rack::Request, :params, new_params) do
-      get '/pass'
-    end
+    get '/pass'
+  end
+
+  def fail_on_second_params_call
+    Sinatra::Request.any_instance.
+      stubs(:params).returns({}).
+      then.raises("Rack::Request#params error")
   end
 end
