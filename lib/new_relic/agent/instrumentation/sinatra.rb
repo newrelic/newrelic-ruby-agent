@@ -144,11 +144,22 @@ module NewRelic
             return dispatch_without_newrelic
           end
 
+          request_params = get_request_params
+
           name = TransactionNamer.initial_transaction_name(request)
           perform_action_with_newrelic_trace(:category => :sinatra,
                                              :name => name,
-                                             :params => @request.params) do
+                                             :params => request_params) do
             dispatch_and_notice_errors_with_newrelic
+          end
+        end
+
+        def get_request_params
+          begin
+            @request.params
+          rescue => e
+            NewRelic::Agent.logger.debug("Failed to get params from Rack request.", e)
+            nil
           end
         end
 
