@@ -42,6 +42,13 @@ common: &default_settings
   #       - Ajax Service
   #       - All Services
   #
+  # Caution: If you change this name, a new application will appear in the New
+  # Relic user interface with the new name, and data will stop reporting to the
+  # app with the old name.
+  #
+  # See https://newrelic.com/docs/site/renaming-applications for more details
+  # on renaming your New Relic applications.
+  #
   app_name: <%= @app_name %>
 
   # When "true", the agent collects performance data about your
