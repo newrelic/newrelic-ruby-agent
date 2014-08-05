@@ -372,6 +372,22 @@ module NewRelic
       assert called
     end
 
+    # The assumption is that txn.ignore! works as expected, and is tested elsewhere.
+    def test_ignore_transaction_works
+      in_transaction do |txn|
+        NewRelic::Agent.ignore_transaction
+        assert txn.ignore?
+      end
+    end
+
+    # The assumption is that txn.ignore_apdex! works as expected, and is tested elsewhere.
+    def test_ignore_apdex_works
+      in_transaction do |txn|
+        NewRelic::Agent.ignore_apdex
+        assert txn.ignore_apdex?
+      end
+    end
+
     private
 
     def mocked_agent
