@@ -240,4 +240,9 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
       yield NewRelic::Agent::ErrorCollector.new
     end
   end
+
+  def ignore_error_filter
+    @ignore_filter
+  end
+
 end

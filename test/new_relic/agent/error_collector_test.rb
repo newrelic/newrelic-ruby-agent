@@ -20,6 +20,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def teardown
     super
+    @error_collector.clear_ignore_error_filter
     NewRelic::Agent::TransactionState.tl_clear_for_testing
     NewRelic::Agent.config.reset_to_defaults
   end
@@ -203,6 +204,18 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     errors = @error_collector.harvest!
 
     assert_equal 1, errors.length
+  end
+
+  def test_failure_block_assigned_with_different_instance
+    @error_collector.ignore_error_filter do |*_|
+      # meh, ignore 'em all!
+      nil
+    end
+
+    new_error_collector = NewRelic::Agent::ErrorCollector.new
+    new_error_collector.notice_error(StandardError.new("message"))
+
+    assert_empty new_error_collector.harvest!
   end
 
   def test_obfuscates_error_messages_when_high_security_is_set

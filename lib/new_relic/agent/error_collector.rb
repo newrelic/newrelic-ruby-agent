@@ -64,14 +64,24 @@ module NewRelic
         if block
           self.class.class_eval { define_method(:ignore_filter_proc, &block) }
           @ignore_filter = method(:ignore_filter_proc)
-        else
-          @ignore_filter
+        elsif @ignore_filter.nil? && respond_to?(:ignore_filter_proc)
+          # If ignore_error_filter was called before this instance of the
+          # ErrorCollector was created, reestablish our cached proc ivar
+          # so we will filter properly
+          @ignore_filter = method(:ignore_filter_proc)
         end
+        @ignore_filter
       end
 
       # Only used from testing scenarios since can't tell difference between
       # having a nil filter passed and no block for retrieval on main method.
       def clear_ignore_error_filter
+        if respond_to?(:ignore_filter_proc)
+          self.class.class_eval do
+            undef :ignore_filter_proc
+          end
+        end
+
         @ignore_filter = nil
       end
 
@@ -90,8 +100,8 @@ module NewRelic
         # Checks the provided error against the error filter, if there
         # is an error filter
         def filtered_by_error_filter?(error)
-          return unless @ignore_filter
-          !@ignore_filter.call(error)
+          return unless ignore_error_filter
+          !ignore_error_filter.call(error)
         end
 
         # Checks the array of error names and the error filter against
