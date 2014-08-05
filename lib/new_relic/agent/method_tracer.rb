@@ -416,11 +416,11 @@ module NewRelic
         #
         # Instrument +foo+ only for custom views--will not show up in transaction traces or caller breakdown graphs:
         #
-        #     add_method_tracer :foo, :push_scope => false
+        #     add_method_tracer :foo, 'Custom/foo', :push_scope => false
         #
         # Instrument +foo+ just for transaction traces only:
         #
-        #     add_method_tracer :foo, :metric => false
+        #     add_method_tracer :foo, 'Custom/foo', :metric => false
         #
         # Instrument +foo+ so it shows up in transaction traces and caller breakdown graphs
         # for actions:
