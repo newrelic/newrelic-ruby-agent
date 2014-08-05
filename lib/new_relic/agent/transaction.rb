@@ -317,10 +317,6 @@ module NewRelic
         @frozen_name ? true : false
       end
 
-      def ignored?
-        @ignore_this_transaction
-      end
-
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
       def start(state)
