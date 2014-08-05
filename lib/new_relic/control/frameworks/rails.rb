@@ -98,6 +98,9 @@ module NewRelic
               require 'new_relic/rack/developer_mode'
               rails_config.middleware.use NewRelic::Rack::DeveloperMode
               ::NewRelic::Agent.logger.info("New Relic Agent Developer Mode enabled.")
+              if env == "production"
+                ::NewRelic::Agent.logger.warn("***New Relic Developer Mode is not intended to be enabled in production environments! We highly recommend setting developer_mode: false for the production environment in your newrelic.yml.")
+              end
             rescue => e
               ::NewRelic::Agent.logger.warn("Error installing New Relic Developer Mode", e)
             end
