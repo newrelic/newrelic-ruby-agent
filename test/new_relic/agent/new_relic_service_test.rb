@@ -16,7 +16,7 @@ class NewRelicServiceKeepAliveTest < Minitest::Test
   end
 
   def stub_net_http_handle(overrides = {})
-    defaults = { :start => true, :finish => true, :address => '10.10.10.10', :port => 30303, :started? => true }
+    defaults = { :address => '10.10.10.10', :port => 30303, :started? => true }
     stub('http_handle', defaults.merge(overrides))
   end
 
@@ -41,6 +41,10 @@ class NewRelicServiceKeepAliveTest < Minitest::Test
     handle1 = stub_net_http_handle
     handle2 = stub_net_http_handle
     @service.stubs(:create_http_connection).returns(handle1, handle2)
+
+    handle1.expects(:start).once
+    handle1.expects(:finish).once
+    handle2.expects(:start).never
 
     block_ran = false
     @service.session do
@@ -78,6 +82,25 @@ class NewRelicServiceKeepAliveTest < Minitest::Test
     assert(block_ran)
   end
 
+  def test_session_does_not_close_connection_if_aggressive_keepalive_on
+    defaults = { :address => '10.10.10.10', :port => 30303, :started? => true }
+    handle = stub('http_handle', defaults)
+
+    handle.expects(:start).once
+    handle.expects(:finish).never
+
+    @service.stubs(:create_http_connection).returns(handle)
+
+    calls_to_block = 0
+
+    with_config(:aggressive_keepalive => true) do
+      2.times do
+        @service.session { calls_to_block += 1 }
+      end
+    end
+
+    assert_equal(2, calls_to_block)
+  end
 end
 
 class NewRelicServiceTest < Minitest::Test

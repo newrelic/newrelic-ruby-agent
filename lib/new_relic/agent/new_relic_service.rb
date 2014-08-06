@@ -181,28 +181,42 @@ module NewRelic
       def session(&block)
         raise ArgumentError, "#{self.class}#shared_connection must be passed a block" unless block_given?
 
-        # Immediately open a TCP connection to the server and leave it open for
-        # multiple requests.
         begin
           t0 = Time.now
-          @in_session = true
-          establish_shared_connection
-          block.call
+          if NewRelic::Agent.config[:aggressive_keepalive]
+            session_with_keepalive(&block)
+          else
+            session_without_keepalive(&block)
+          end
         rescue Timeout::Error
           elapsed = Time.now - t0
           ::NewRelic::Agent.logger.warn "Timed out opening connection to collector after #{elapsed} seconds. If this problem persists, please see http://status.newrelic.com"
           raise
+        end
+      end
+
+      def session_with_keepalive(&block)
+        establish_shared_connection
+        block.call
+      end
+
+      def session_without_keepalive(&block)
+        begin
+          establish_shared_connection
+          block.call
         ensure
-          @in_session = false
           close_shared_connection
         end
       end
 
       def establish_shared_connection
-        connection = create_http_connection
-        NewRelic::Agent.logger.debug("Opening shared TCP connection to #{connection.address}:#{connection.port}")
-        NewRelic::TimerLib.timeout(@request_timeout) { connection.start }
-        @shared_tcp_connection = connection
+        unless @shared_tcp_connection
+          connection = create_http_connection
+          NewRelic::Agent.logger.debug("Opening shared TCP connection to #{connection.address}:#{connection.port}")
+          NewRelic::TimerLib.timeout(@request_timeout) { connection.start }
+          @shared_tcp_connection = connection
+        end
+        @shared_tcp_connection
       end
 
       def close_shared_connection
@@ -217,9 +231,7 @@ module NewRelic
       # We'll reuse the same handle for cases where we're using keep-alive, or
       # otherwise create a new one.
       def http_connection
-        (@shared_tcp_connection ||
-          (@in_session && establish_shared_connection) ||
-          create_http_connection)
+        @shared_tcp_connection || create_http_connection
       end
 
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
@@ -244,6 +256,11 @@ module NewRelic
             raise UnrecoverableAgentException.new(msg)
           end
         end
+
+        if http.respond_to?(:keep_alive_timeout) && NewRelic::Agent.config[:aggressive_keepalive]
+          http.keep_alive_timeout = NewRelic::Agent.config[:keep_alive_timeout]
+        end
+
         ::NewRelic::Agent.logger.debug("Created net/http handle to #{http.address}:#{http.port}")
         http
       end

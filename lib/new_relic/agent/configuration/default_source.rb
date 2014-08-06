@@ -1038,6 +1038,18 @@ module NewRelic
           :public       => true,
           :type         => String,
           :description  => 'A dictionary of label names and values that will be applied to the data sent from this agent. May also be expressed as a semi-colon delimited string of colon-separated pairs (e.g. "Server:One;Data Center:Primary".'
+        },
+        :aggressive_keepalive => {
+          :default      => false,
+          :public       => false,
+          :type         => Boolean,
+          :description  => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'
+        },
+        :keep_alive_timeout => {
+          :default      => 60,
+          :public       => false,
+          :type         => Fixnum,
+          :description  => 'Timeout for keep alive on TCP connection to collector if supported by Ruby version. Only used in conjunction when aggressive_keepalive is enabled.'
         }
       }.freeze
 
