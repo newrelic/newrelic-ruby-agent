@@ -59,8 +59,7 @@ module NewRelic
           if frame == expected_frame
             return frame
           else
-            msg = "#{frame ? frame.tag : nil} expected to be #{expected_frame ? expected_frame.tag : nil}"
-            NewRelic::Agent.logger.info("Unexpected frame in traced method stack: #{msg}")
+            NewRelic::Agent.logger.info("Unexpected frame in traced method stack: #{frame.tag} expected to be #{expected_frame.tag}")
           end
         end
 
