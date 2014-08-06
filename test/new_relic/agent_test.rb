@@ -388,6 +388,14 @@ module NewRelic
       end
     end
 
+    # The assumption is that txn.ignore_enduser! works as expected, and is tested elsewhere.
+    def test_ignore_enduser_works
+      in_transaction do |txn|
+        NewRelic::Agent.ignore_enduser
+        assert txn.ignore_enduser?
+      end
+    end
+
     private
 
     def mocked_agent

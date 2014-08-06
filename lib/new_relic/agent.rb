@@ -405,7 +405,7 @@ module NewRelic
       txn.ignore! if txn
     end
 
-    # This method disables the recording of apdex values in the current
+    # This method disables the recording of Apdex metrics in the current
     # transaction.
     #
     # @api public
@@ -413,6 +413,16 @@ module NewRelic
     def ignore_apdex
       txn = NewRelic::Agent::Transaction.tl_current
       txn.ignore_apdex! if txn
+    end
+
+    # This method disables browser monitoring javascript injection in the
+    # current transaction.
+    #
+    # @api public
+    #
+    def ignore_enduser
+      txn = NewRelic::Agent::Transaction.tl_current
+      txn.ignore_enduser! if txn
     end
 
     # Cancel the collection of the current transaction in progress, if
