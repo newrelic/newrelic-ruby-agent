@@ -202,11 +202,9 @@ module NewRelic
 
       def session_without_keepalive(&block)
         begin
-          @in_session = true
           establish_shared_connection
           block.call
         ensure
-          @in_session = false
           close_shared_connection
         end
       end
@@ -233,9 +231,7 @@ module NewRelic
       # We'll reuse the same handle for cases where we're using keep-alive, or
       # otherwise create a new one.
       def http_connection
-        (@shared_tcp_connection ||
-          (@in_session && establish_shared_connection) ||
-          create_http_connection)
+        @shared_tcp_connection || create_http_connection
       end
 
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
