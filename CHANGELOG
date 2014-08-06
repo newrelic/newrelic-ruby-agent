@@ -1,5 +1,19 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.9.2 ##
+
+  * Fix for Capistrano 3 ignoring newrelic_revion
+
+  New Relic's Capistrano recipies support passing parameters to control the
+  values recorded with deployments, but user provided :newrelic_revision was
+  incorrectly overwritten. This has been fixed.
+
+  * Agent errors logged with ruby-prof in production
+
+  If the ruby-prof gem was available in an environment without New Relic's
+  developer mode enabled, the agent would generate errors to its log. This has
+  been fixed.
+
 ## v3.9.1 ##
 
   * Ruby 1.8.7 users: upgrade or add JSON gem now
