@@ -196,7 +196,7 @@ module NewRelic
       end
 
       def session_with_keepalive(&block)
-        establish_shared_connection unless @shared_tcp_connection
+        establish_shared_connection
         block.call
       end
 
@@ -212,10 +212,13 @@ module NewRelic
       end
 
       def establish_shared_connection
-        connection = create_http_connection
-        NewRelic::Agent.logger.debug("Opening shared TCP connection to #{connection.address}:#{connection.port}")
-        NewRelic::TimerLib.timeout(@request_timeout) { connection.start }
-        @shared_tcp_connection = connection
+        unless @shared_tcp_connection
+          connection = create_http_connection
+          NewRelic::Agent.logger.debug("Opening shared TCP connection to #{connection.address}:#{connection.port}")
+          NewRelic::TimerLib.timeout(@request_timeout) { connection.start }
+          @shared_tcp_connection = connection
+        end
+        @shared_tcp_connection
       end
 
       def close_shared_connection
