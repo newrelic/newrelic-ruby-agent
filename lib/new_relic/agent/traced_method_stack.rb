@@ -63,7 +63,7 @@ module NewRelic
           end
         end
 
-        fail "Frame not found in blame stack: #{expected_frame ? expected_frame.tag : nil}"
+        raise "Frame not found in blame stack: #{expected_frame ? expected_frame.tag : nil}"
       end
 
       def note_children_time(frame, time, deduct_call_time_from_parent)
