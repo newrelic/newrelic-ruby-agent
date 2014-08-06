@@ -167,6 +167,16 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
     assert_match /not found/, error.message
   end
 
+  def test_fetch_matching_frame_logs_any_unexpected_frame_tags
+    state = NewRelic::Agent::TransactionState.tl_get
+    frame = @frame_stack.push_frame(state, :a,  0)
+    mismatched = @frame_stack.push_frame(state, :unexpected,  0)
+
+    NewRelic::Agent.logger.expects(:info).with() { |msg| msg.match(/unexpected/) }
+
+    result = @frame_stack.fetch_matching_frame(frame)
+  end
+
   def assert_sampler_enabled_with(expected, opts={})
     with_config(opts) do
       assert_equal expected, @frame_stack.sampler_enabled?

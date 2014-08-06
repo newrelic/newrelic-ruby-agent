@@ -56,7 +56,12 @@ module NewRelic
 
       def fetch_matching_frame(expected_frame)
         while frame = @stack.pop
-          return frame if frame == expected_frame
+          if frame == expected_frame
+            return frame
+          else
+            msg = "#{frame ? frame.tag : nil} expected to be #{expected_frame ? expected_frame.tag : nil}"
+            NewRelic::Agent.logger.info("Unexpected frame in traced method stack: #{msg}")
+          end
         end
 
         fail "Frame not found in blame stack: #{expected_frame ? expected_frame.tag : nil}"
