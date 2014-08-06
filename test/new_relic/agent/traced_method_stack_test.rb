@@ -147,12 +147,24 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
   def test_fetch_matching_frame_discards_mismatched_frames
     state = NewRelic::Agent::TransactionState.tl_get
     frame = @frame_stack.push_frame(state, :a,  0)
-    mismatched_frame = @frame_stack.push_frame(state, :b,  0)
+    @frame_stack.push_frame(state, :b,  0)
 
     result = @frame_stack.fetch_matching_frame(frame)
 
     assert_equal :a, result.tag
     assert_equal frame, result
+  end
+
+  def test_fetch_matching_frame_raises_an_error_if_no_match
+    state = NewRelic::Agent::TransactionState.tl_get
+    frame = @frame_stack.push_frame(state, :a,  0)
+    @frame_stack.fetch_matching_frame(frame)
+
+    error = assert_raises(RuntimeError) do
+      @frame_stack.fetch_matching_frame(frame)
+    end
+
+    assert_match /not found/, error.message
   end
 
   def assert_sampler_enabled_with(expected, opts={})

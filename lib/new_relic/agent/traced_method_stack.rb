@@ -47,10 +47,6 @@ module NewRelic
       def pop_frame(state, expected_frame, name, time, deduct_call_time_from_parent=true)
         frame = fetch_matching_frame(expected_frame)
 
-        if frame != expected_frame
-          fail "unbalanced pop from blame stack, got #{frame ? frame.tag : 'nil'}, expected #{expected_frame ? expected_frame.tag : 'nil'}"
-        end
-
         note_children_time(frame, time, deduct_call_time_from_parent)
 
         transaction_sampler.notice_pop_frame(state, name, time) if sampler_enabled?
@@ -63,7 +59,7 @@ module NewRelic
           return frame if frame == expected_frame
         end
 
-        nil
+        fail "Frame not found in blame stack: #{expected_frame ? expected_frame.tag : nil}"
       end
 
       def note_children_time(frame, time, deduct_call_time_from_parent)
