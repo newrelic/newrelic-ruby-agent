@@ -10,7 +10,7 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
     @frame_stack = NewRelic::Agent::TracedMethodStack.new
   end
 
-  def test_scope__overlap
+  def test_scope_overlap
     freeze_time
 
     in_transaction('orlando') do
@@ -34,17 +34,6 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
         :call_count      => 2,
         :total_call_time => 0.21
       })
-  end
-
-
-  def test_scope_failure
-    state = NewRelic::Agent::TransactionState.tl_get
-
-    scope1 = @frame_stack.push_frame(state, :scope1)
-    scope2 = @frame_stack.push_frame(state, :scope2)
-    assert_raises(RuntimeError) do
-      @frame_stack.pop_frame(state, scope1, "name 1", Time.now.to_f)
-    end
   end
 
   def test_children_time
@@ -143,6 +132,27 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
     assert_sampler_enabled_with(true,  :'transaction_tracer.enabled' => true,  :developer_mode => true)
 
     assert_sampler_enabled_with(false, :'transaction_tracer.enabled' => false, :developer_mode => false)
+  end
+
+  def test_fetch_matching_frame_fetches_the_next_matching_frame
+    state = NewRelic::Agent::TransactionState.tl_get
+    frame = @frame_stack.push_frame(state, :a,  0)
+
+    result = @frame_stack.fetch_matching_frame(frame)
+
+    assert_equal :a, result.tag
+    assert_equal frame, result
+  end
+
+  def test_fetch_matching_frame_discards_mismatched_frames
+    state = NewRelic::Agent::TransactionState.tl_get
+    frame = @frame_stack.push_frame(state, :a,  0)
+    mismatched_frame = @frame_stack.push_frame(state, :b,  0)
+
+    result = @frame_stack.fetch_matching_frame(frame)
+
+    assert_equal :a, result.tag
+    assert_equal frame, result
   end
 
   def assert_sampler_enabled_with(expected, opts={})
