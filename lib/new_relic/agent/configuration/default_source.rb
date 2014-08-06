@@ -1044,6 +1044,12 @@ module NewRelic
           :public       => false,
           :type         => Boolean,
           :description  => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'
+        },
+        :keep_alive_timeout => {
+          :default      => 60,
+          :public       => false,
+          :type         => Fixnum,
+          :description  => 'Timeout for keep alive on TCP connection to collector if supported by Ruby version. Only used in conjunction when aggressive_keepalive is enabled.'
         }
       }.freeze
 

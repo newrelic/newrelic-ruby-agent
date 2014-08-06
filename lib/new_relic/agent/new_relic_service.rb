@@ -258,7 +258,7 @@ module NewRelic
         end
 
         if http.respond_to?(:keep_alive_timeout) && NewRelic::Agent.config[:aggressive_keepalive]
-          http.keep_alive_timeout = 60
+          http.keep_alive_timeout = NewRelic::Agent.config[:keep_alive_timeout]
         end
 
         ::NewRelic::Agent.logger.debug("Created net/http handle to #{http.address}:#{http.port}")
