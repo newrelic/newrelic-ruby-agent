@@ -59,11 +59,14 @@ module NewRelic
           if frame == expected_frame
             return frame
           else
-            NewRelic::Agent.logger.info("Unexpected frame in traced method stack: #{frame.tag} expected to be #{expected_frame.tag}")
+            NewRelic::Agent.logger.info("Unexpected frame in traced method stack: #{frame.inspect} expected to be #{expected_frame.inspect}")
+            NewRelic::Agent.logger.debug do
+              ["Backtrace for unexpected frame: ", caller.join("\n")]
+            end
           end
         end
 
-        raise "Frame not found in blame stack: #{expected_frame ? expected_frame.tag : nil}"
+        raise "Frame not found in blame stack: #{expected_frame.inspect}"
       end
 
       def note_children_time(frame, time, deduct_call_time_from_parent)
