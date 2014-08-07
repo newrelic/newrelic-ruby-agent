@@ -212,6 +212,13 @@ module Multiverse
         execute_parallel
       end
       environments.after.call if environments.after
+    rescue => e
+      puts red("Failure during execution of suite #{directory.inspect}.")
+      puts red("This typically is a result of a Ruby failure in your Envfile.")
+      puts
+      puts red(e.class)
+      puts red(e.message)
+      exit(1)
     end
 
     def execute_serial
