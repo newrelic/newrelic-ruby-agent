@@ -394,11 +394,46 @@ module NewRelic
       end
     end
 
+    # This method disables the recording of the current transaction. No metrics,
+    # traced errors, transaction traces, Insights events, slow SQL traces,
+    # or RUM injection will happen for this transaction.
+    #
+    # @api public
+    #
+    def ignore_transaction
+      txn = NewRelic::Agent::Transaction.tl_current
+      txn.ignore! if txn
+    end
+
+    # This method disables the recording of Apdex metrics in the current
+    # transaction.
+    #
+    # @api public
+    #
+    def ignore_apdex
+      txn = NewRelic::Agent::Transaction.tl_current
+      txn.ignore_apdex! if txn
+    end
+
+    # This method disables browser monitoring javascript injection in the
+    # current transaction.
+    #
+    # @api public
+    #
+    def ignore_enduser
+      txn = NewRelic::Agent::Transaction.tl_current
+      txn.ignore_enduser! if txn
+    end
+
     # Cancel the collection of the current transaction in progress, if
     # any.  Only affects the transaction started on this thread once
     # it has started and before it has completed.
     #
+    # This method has been deprecated in favor of ignore_transaction,
+    # which does what people expect this method to do.
+    #
     # @api public
+    # @deprecated
     #
     def abort_transaction!
       Transaction.abort_transaction!
