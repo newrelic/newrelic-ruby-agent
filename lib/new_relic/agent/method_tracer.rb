@@ -380,30 +380,18 @@ module NewRelic
         end
         include AddMethodTracer
 
-
-
         # Add a method tracer to the specified method.
         #
-        # === Options
-        #
-        # * <tt>:push_scope => false</tt> specifies this method tracer should not
-        #   keep track of the caller; it will not show up in controller breakdown
-        #   pie charts.
-        # * <tt>:metric => false</tt> specifies that no metric will be recorded.
-        #   Instead the call will show up in transaction traces as well as traces
-        #   shown in Developer Mode.
-        #
-        # === Uncommon Options
-        #
-        # * <tt>:code_header</tt> and <tt>:code_footer</tt> specify ruby code that
-        #   is inserted into the tracer before and after the call.
+        # By default, this will cause invocations of the traced method to be
+        # recorded in transaction traces, and in a metric named after the class
+        # and method. It will also make the method show up in transaction-level
+        # breakdown charts and tables.
         #
         # === Overriding the metric name
         #
-        # +metric_name_code+ is a string that is eval'd to get the
-        # name of the metric associated with the call, so if you want to
-        # use interpolaion evaluated at call time, then single quote
-        # the value like this:
+        # +metric_name_code+ is a string that is eval'd to get the name of the
+        # metric associated with the call, so if you want to use interpolation
+        # evaluated at call time, then single quote the value like this:
         #
         #     add_method_tracer :foo, 'Custom/#{self.class.name}/foo'
         #
@@ -412,30 +400,36 @@ module NewRelic
         #
         # If not provided, the metric name will be <tt>Custom/ClassName/method_name</tt>.
         #
-        # === Examples
+        # @param [Symbol] method_name the name of the method to trace
+        # @param [String] metric_name_code the metric name to record calls to
+        #   the traced method under. This may be either a static string, or Ruby
+        #   code to be evaluated at call-time in order to determine the metric
+        #   name dynamically.
+        # @param [Hash] options additional options controlling how the method is
+        #   traced.
+        # @option options [Boolean] :push_scope (true) If false, the traced method will
+        #   not appear in transaction traces or breakdown charts, and it will
+        #   only be visible in custom dashboards.
+        # @option options [Boolean] :metric (true) If false, the traced method will
+        #   only appear in transaction traces, but no metrics will be recorded
+        #   for it.
+        # @option options [String] :code_header ('') Ruby code to be inserted and run
+        #   before the tracer begins timing.
+        # @option options [String] :code_footer ('') Ruby code to be inserted and run
+        #   after the tracer stops timing.
         #
-        # Instrument +foo+ only for custom views--will not show up in transaction traces or caller breakdown graphs:
+        # @example
+        #   add_method_tracer :foo
         #
-        #     add_method_tracer :foo, 'Custom/foo', :push_scope => false
+        #   # With a custom metric name
+        #   add_method_tracer :foo, 'Custom/#{self.class.name}/foo'
         #
-        # Instrument +foo+ just for transaction traces only:
+        #   # Instrument foo only for custom dashboards (not in transaction
+        #   # traces or breakdown charts)
+        #   add_method_tracer :foo, 'Custom/foo', :push_scope => false
         #
-        #     add_method_tracer :foo, 'Custom/foo', :metric => false
-        #
-        # Instrument +foo+ so it shows up in transaction traces and caller breakdown graphs
-        # for actions:
-        #
-        #     add_method_tracer :foo
-        #
-        # which is equivalent to:
-        #
-        #     add_method_tracer :foo, 'Custom/#{self.class.name}/foo', :push_scope => true, :metric => true
-        #
-        # Instrument the class method +foo+ with the metric name 'Custom/People/fetch':
-        #
-        #     class << self
-        #       add_method_tracer :foo, 'Custom/People/fetch'
-        #     end
+        #   # Instrument foo in transaction traces only
+        #   add_method_tracer :foo, 'Custom/foo', :metric => false
         #
         # @api public
         #
