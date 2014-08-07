@@ -45,14 +45,28 @@ module NewRelic
       #
       # +name+ will be applied to the generated transaction trace segment.
       def pop_frame(state, expected_frame, name, time, deduct_call_time_from_parent=true)
-        frame = @stack.pop
-        fail "unbalanced pop from blame stack, got #{frame ? frame.tag : 'nil'}, expected #{expected_frame ? expected_frame.tag : 'nil'}" if frame != expected_frame
+        frame = fetch_matching_frame(expected_frame)
 
         note_children_time(frame, time, deduct_call_time_from_parent)
 
         transaction_sampler.notice_pop_frame(state, name, time) if sampler_enabled?
         frame.name = name
         frame
+      end
+
+      def fetch_matching_frame(expected_frame)
+        while frame = @stack.pop
+          if frame == expected_frame
+            return frame
+          else
+            NewRelic::Agent.logger.info("Unexpected frame in traced method stack: #{frame.inspect} expected to be #{expected_frame.inspect}")
+            NewRelic::Agent.logger.debug do
+              ["Backtrace for unexpected frame: ", caller.join("\n")]
+            end
+          end
+        end
+
+        raise "Frame not found in blame stack: #{expected_frame.inspect}"
       end
 
       def note_children_time(frame, time, deduct_call_time_from_parent)
