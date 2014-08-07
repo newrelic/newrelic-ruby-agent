@@ -19,6 +19,9 @@
   may be called *during* a transaction based on some dynamic runtime criteria,
   as opposed to at the class level on startup.
 
+  See the docs for more details on how to use these methods:
+  http://docs.newrelic.com/docs/agents/ruby-agent/installation-and-configuration/blocking-controller-instrumentation
+
   * Fix for Capistrano 3 ignoring newrelic_revion
 
   New Relic's Capistrano recipies support passing parameters to control the
