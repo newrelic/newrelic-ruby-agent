@@ -14,6 +14,19 @@
   developer mode enabled, the agent would generate errors to its log. This has
   been fixed.
 
+  * Added API for ignoring transactions
+
+  There are now three new API calls for ignoring transactions:
+
+    - `NewRelic::Agent.ignore_transaction`
+    - `NewRelic::Agent.ignore_apdex`
+    - `NewRelic::Agent.ignore_enduser`
+
+  The first of these ignores a transaction completely: nothing about it will be
+  reported to New Relic. The second ignores only the Apdex metric for a single
+  transaction. The third disables javascript injection for browser monitoring
+  for the current transaction.
+
 ## v3.9.1 ##
 
   * Ruby 1.8.7 users: upgrade or add JSON gem now
