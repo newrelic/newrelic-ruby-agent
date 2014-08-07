@@ -172,7 +172,7 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
     frame = @frame_stack.push_frame(state, :a,  0)
     mismatched = @frame_stack.push_frame(state, :unexpected,  0)
 
-    NewRelic::Agent.logger.expects(:info).with() { |msg| msg.match(/unexpected/) }
+    expects_logging(:info, includes("unexpected"))
 
     result = @frame_stack.fetch_matching_frame(frame)
   end
