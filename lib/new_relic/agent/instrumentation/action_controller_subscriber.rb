@@ -105,19 +105,33 @@ module NewRelic
 
         # FIXME: shamelessly ripped from ControllerInstrumentation
         def _is_filtered?(key)
-          if @controller_class.respond_to? :newrelic_read_attr
-            ignore_actions = @controller_class.newrelic_read_attr(key)
+          # We'll walk the superclass chain and see if
+          # any class says 'yes, filter this one'.
+          klass = @controller_class
+
+          while klass.respond_to? :newrelic_read_attr
+            ignore_actions = klass.newrelic_read_attr(key)
+
+            should_filter = case ignore_actions
+            when nil
+              false
+            when Hash
+              only_actions   = Array(ignore_actions[:only])
+              except_actions = Array(ignore_actions[:except])
+              only_actions.include?(metric_action.to_sym) || (except_actions.any? && !except_actions.include?(metric_action.to_sym))
+            else
+              true
+            end
+
+            return true if should_filter
+
+            # Nothing so far says we should filter,
+            # so keep checking up the superclass chain.
+            klass = klass.superclass
           end
 
-          case ignore_actions
-          when nil; false
-          when Hash
-            only_actions = Array(ignore_actions[:only])
-            except_actions = Array(ignore_actions[:except])
-            only_actions.include?(metric_action.to_sym) || (except_actions.any? && !except_actions.include?(metric_action.to_sym))
-          else
-            true
-          end
+          # Getting here means that no class filtered this.
+          false
         end
 
         def to_s

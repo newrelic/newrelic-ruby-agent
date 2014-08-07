@@ -441,16 +441,33 @@ module NewRelic
         # Filter out a request if it matches one of our parameters for
         # ignoring it - the key is either 'do_not_trace' or 'ignore_apdex'
         def _is_filtered?(key)
-          ignore_actions = self.class.newrelic_read_attr(key) if self.class.respond_to? :newrelic_read_attr
-          case ignore_actions
-          when nil; false
-          when Hash
-            only_actions   = Array(ignore_actions[:only])
-            except_actions = Array(ignore_actions[:except])
-            only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
-          else
-            true
+          # We'll walk the superclass chain and see if
+          # any class says 'yes, filter this one'.
+          klass = self.class
+
+          while klass.respond_to? :newrelic_read_attr
+            ignore_actions = klass.newrelic_read_attr(key)
+
+            should_filter = case ignore_actions
+            when nil
+              false
+            when Hash
+              only_actions   = Array(ignore_actions[:only])
+              except_actions = Array(ignore_actions[:except])
+              only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
+            else
+              true
+            end
+
+            return true if should_filter
+
+            # Nothing so far says we should filter,
+            # so keep checking up the superclass chain.
+            klass = klass.superclass
           end
+
+          # Getting here means that no class filtered this.
+          false
         end
 
         def detect_queue_start_time(state)

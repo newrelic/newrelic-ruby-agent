@@ -3,8 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
+
 class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest::Test
-  require 'new_relic/agent/instrumentation/controller_instrumentation'
+
   class TestObject
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
@@ -20,6 +21,23 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
     add_transaction_tracer :protected_transaction
     add_transaction_tracer :private_transaction
   end
+
+  class TestParent
+    include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+    newrelic_ignore_apdex
+
+    def foo(*args); end
+
+    add_transaction_tracer :foo
+  end
+
+  class TestChild < TestParent
+    def bar(*args); end
+
+    add_transaction_tracer :bar
+  end
+
 
   def setup
     NewRelic::Agent.drop_buffered_data
@@ -40,6 +58,15 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Minitest
   def test_apdex_ignored
     @object.stubs(:ignore_apdex?).returns(true)
     @object.public_transaction
+    assert_metrics_not_recorded("Apdex")
+  end
+
+  def test_apdex_ignored_if_ignored_in_parent_class
+    obj = TestChild.new
+
+    obj.foo
+    obj.bar
+
     assert_metrics_not_recorded("Apdex")
   end
 
