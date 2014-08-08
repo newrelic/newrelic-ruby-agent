@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/evented_subscriber'
+require 'new_relic/agent/instrumentation/ignore_actions'
 
 module NewRelic
   module Agent
@@ -103,35 +104,11 @@ module NewRelic
           _is_filtered?('ignore_enduser')
         end
 
-        # FIXME: shamelessly ripped from ControllerInstrumentation
         def _is_filtered?(key)
-          # We'll walk the superclass chain and see if
-          # any class says 'yes, filter this one'.
-          klass = @controller_class
-
-          while klass.respond_to? :newrelic_read_attr
-            ignore_actions = klass.newrelic_read_attr(key)
-
-            should_filter = case ignore_actions
-            when nil
-              false
-            when Hash
-              only_actions   = Array(ignore_actions[:only])
-              except_actions = Array(ignore_actions[:except])
-              only_actions.include?(metric_action.to_sym) || (except_actions.any? && !except_actions.include?(metric_action.to_sym))
-            else
-              true
-            end
-
-            return true if should_filter
-
-            # Nothing so far says we should filter,
-            # so keep checking up the superclass chain.
-            klass = klass.superclass
-          end
-
-          # Getting here means that no class filtered this.
-          false
+          NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+            key,
+            @controller_class,
+            metric_action)
         end
 
         def to_s
