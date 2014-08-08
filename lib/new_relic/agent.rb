@@ -151,7 +151,9 @@ module NewRelic
 
     # The singleton Agent instance.  Used internally.
     def agent #:nodoc:
-      @agent || raise("Plugin not initialized!")
+      return @agent if @agent
+      NewRelic::Agent.logger.warn("Agent unavailable as it hasn't been started.")
+      nil
     end
 
     def agent=(new_instance)#:nodoc:
