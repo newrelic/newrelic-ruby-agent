@@ -2,6 +2,26 @@
 
 ## v3.9.2 ##
 
+  * Added API for ignoring transactions
+
+  This release adds three new API calls for ignoring transactions:
+
+    - `NewRelic::Agent.ignore_transaction`
+    - `NewRelic::Agent.ignore_apdex`
+    - `NewRelic::Agent.ignore_enduser`
+
+  The first of these ignores a transaction completely: nothing about it will be
+  reported to New Relic. The second ignores only the Apdex metric for a single
+  transaction. The third disables javascript injection for browser monitoring
+  for the current transaction.
+
+  These methods differ from the existing newrelic_ignore_* method in that they
+  may be called *during* a transaction based on some dynamic runtime criteria,
+  as opposed to at the class level on startup.
+
+  See the docs for more details on how to use these methods:
+  http://docs.newrelic.com/docs/agents/ruby-agent/installation-and-configuration/blocking-controller-instrumentation
+
   * Fix for Capistrano 3 ignoring newrelic_revion
 
   New Relic's Capistrano recipies support passing parameters to control the
