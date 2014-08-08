@@ -7,6 +7,10 @@ require 'new_relic/control/instrumentation'
 
 class InstrumentationTestClass
   include NewRelic::Control::Instrumentation
+
+  def initialize
+    @instrumentation_files = []
+  end
 end
 
 class NewRelic::Control::InstrumentationTest < Minitest::Test
@@ -19,5 +23,20 @@ class NewRelic::Control::InstrumentationTest < Minitest::Test
       NewRelic::Agent.logger.expects(:warn).at_least_once.with() { |msg| msg.match(/Error loading/) }
       @test_class.load_instrumentation_files '*'
     end
+  end
+
+  def test_add_instrumentation_loads_the_instrumentation_files_if_instrumented
+    pattern = 'Instrumentation test pattern'
+    @test_class.instance_eval { @instrumented = true }
+    @test_class.expects(:load_instrumentation_files).with(pattern).once
+    @test_class.add_instrumentation(pattern)
+  end
+
+  def test_add_instrumentation_adds_pattern_to_instrumentation_files_if_uninstrumented
+    expected_pattern = 'Instrumentation test pattern'
+    @test_class.instance_eval { @instrumented = false }
+    @test_class.add_instrumentation(expected_pattern)
+    result = @test_class.instance_variable_get(:@instrumentation_files)
+    assert_equal [expected_pattern], result
   end
 end
