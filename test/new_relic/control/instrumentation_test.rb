@@ -45,4 +45,13 @@ class NewRelic::Control::InstrumentationTest < Minitest::Test
     expects_logging(:fatal, includes('Cannot install'))
     @test_class.install_shim
   end
+
+  def test_install_shim_does_not_set_agent_if_already_instrumented
+    fake_shim = "Instrumentation Test Shim Agent"
+    @test_class.instance_eval { @instrumented = true }
+    NewRelic::Agent::ShimAgent.class_eval { @instance = fake_shim }
+
+    @test_class.install_shim
+    refute_equal NewRelic::Agent.agent, fake_shim
+  end
 end
