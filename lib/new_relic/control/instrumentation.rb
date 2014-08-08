@@ -27,8 +27,11 @@ module NewRelic
       # if the agent is not running.
       def install_shim
         # Once we install instrumentation, you can't undo that by installing the shim.
-        raise "Cannot install the Agent shim after instrumentation has already been installed!" if @instrumented
-        NewRelic::Agent.agent = NewRelic::Agent::ShimAgent.instance
+        if @instrumented
+          NewRelic::Agent.logger.fatal "Cannot install the Agent shim after instrumentation has already been installed!"
+        else
+          NewRelic::Agent.agent = NewRelic::Agent::ShimAgent.instance
+        end
       end
 
       # Add instrumentation.  Don't call this directly.  Use NewRelic::Agent#add_instrumentation.

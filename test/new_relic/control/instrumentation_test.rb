@@ -39,4 +39,10 @@ class NewRelic::Control::InstrumentationTest < Minitest::Test
     result = @test_class.instance_variable_get(:@instrumentation_files)
     assert_equal [expected_pattern], result
   end
+
+  def test_install_shim_logs_if_instrumentation_has_already_been_installed
+    @test_class.instance_eval { @instrumented = true }
+    expects_logging(:fatal, includes('Cannot install'))
+    @test_class.install_shim
+  end
 end
