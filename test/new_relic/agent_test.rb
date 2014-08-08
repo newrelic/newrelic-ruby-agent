@@ -107,12 +107,16 @@ module NewRelic
     end
 
     def test_agent_logs_warning_when_not_started
-      old_agent = NewRelic::Agent.agent
-      NewRelic::Agent.instance_eval { @agent = nil }
-      expects_logging(:warn, includes("hasn't been started"))
-      NewRelic::Agent.agent
-    ensure
-      NewRelic::Agent.instance_eval { @agent = old_agent }
+      with_unstarted_agent do
+        expects_logging(:warn, includes("hasn't been started"))
+        NewRelic::Agent.agent
+      end
+    end
+
+    def test_agent_can_shut_down_when_not_started
+      with_unstarted_agent do
+        NewRelic::Agent.shutdown
+      end
     end
 
     def test_agent_when_started
@@ -399,6 +403,14 @@ module NewRelic
     end
 
     private
+
+    def with_unstarted_agent
+      old_agent = NewRelic::Agent.agent
+      NewRelic::Agent.instance_eval { @agent = nil }
+      yield
+    ensure
+      NewRelic::Agent.instance_eval { @agent = old_agent }
+    end
 
     def mocked_agent
       agent = mock('agent')

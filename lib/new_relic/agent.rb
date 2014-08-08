@@ -326,7 +326,7 @@ module NewRelic
     # @api public
     #
     def shutdown(options={})
-      agent.shutdown(options)
+      agent.shutdown(options) if agent
     end
 
     # Add instrumentation files to the agent.  The argument should be
