@@ -13,8 +13,9 @@ module NewRelic
     include NewRelic::Agent::MethodTracer
 
     def setup
+      NewRelic::Agent.manual_start
       NewRelic::Agent.reset_config
-      NewRelic::Agent.instance.stubs(:start_worker_thread) if NewRelic::Agent.instance
+      NewRelic::Agent.instance.stubs(:start_worker_thread)
     end
 
     def teardown
@@ -45,7 +46,6 @@ module NewRelic
     end
 
     def test_finish_setup_applied_server_side_config
-      NewRelic::Agent.manual_start
       with_config_low_priority({
                     :'transction_tracer.enabled' => true,
                     :'error_collector.enabled' => true,
@@ -257,7 +257,6 @@ module NewRelic
     end
 
     def test_set_transaction_name
-      NewRelic::Agent.manual_start
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.txn do
@@ -271,7 +270,6 @@ module NewRelic
     end
 
     def test_get_transaction_name_returns_the_default_txn_name
-      NewRelic::Agent.manual_start
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.txn do
@@ -280,7 +278,6 @@ module NewRelic
     end
 
     def test_get_transaction_name_returns_what_I_set
-      NewRelic::Agent.manual_start
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.txn do
@@ -290,7 +287,6 @@ module NewRelic
     end
 
     def test_get_txn_name_and_set_txn_name_preserves_category
-      NewRelic::Agent.manual_start
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.txn do
@@ -302,7 +298,6 @@ module NewRelic
     end
 
     def test_set_transaction_name_applies_proper_scopes
-      NewRelic::Agent.manual_start
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.txn do
@@ -317,7 +312,6 @@ module NewRelic
     end
 
     def test_set_transaction_name_sets_tt_name
-      NewRelic::Agent.manual_start
       sampler = NewRelic::Agent.instance.transaction_sampler
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('new_name')
@@ -326,7 +320,6 @@ module NewRelic
     end
 
     def test_set_transaction_name_gracefully_fails_when_frozen
-      NewRelic::Agent.manual_start
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.txn do
@@ -338,7 +331,6 @@ module NewRelic
     end
 
     def test_set_transaction_name_applies_category
-      NewRelic::Agent.manual_start
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.txn do
@@ -356,7 +348,6 @@ module NewRelic
     end
 
     def test_set_transaction_name_uses_current_txn_category_default
-      NewRelic::Agent.manual_start
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
       Transactor.new.task_txn do
