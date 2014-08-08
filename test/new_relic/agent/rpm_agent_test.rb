@@ -15,13 +15,6 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
     NewRelic::Agent.instance.shutdown
   end
 
-  def test_agent_setup
-    assert(NewRelic::Agent.instance.class == NewRelic::Agent::Agent)
-    assert_raises(RuntimeError) do
-      NewRelic::Control.instance.init_plugin(:agent_enabled => false)
-    end
-  end
-
   def test_public_apis
     assert_raises(RuntimeError) do
       NewRelic::Agent.set_sql_obfuscator(:unknown) { |sql| puts sql }
