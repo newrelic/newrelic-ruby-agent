@@ -298,16 +298,17 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       @sampler.harvest_slow_sql(data)
       sql_traces = @sampler.harvest!
 
-      params = RUBY_VERSION >= '1.9.2' ? "eJyrrgUAAXUA+Q==\n" : {}
+      if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+        marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+        params = "eJyrrgUAAXUA+Q==\n"
+      else
+        marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+        params = {}
+      end
+
       expected = [ 'WebTransaction/Controller/c/a', '/c/a', 526336943,
                    'select * from test', 'Database/test/select',
                    1, 1500, 1500, 1500, params ]
-
-      if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-        marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      else
-        marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-      end
 
       assert_equal expected, sql_traces[0].to_collector_array(marshaller.default_encoder)
     end
@@ -321,11 +322,12 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      params = "eJyrrgUAAXUA+Q==\n"
     else
       marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+      params = {}
     end
 
-    params = RUBY_VERSION >= '1.9.2' ? "eJyrrgUAAXUA+Q==\n" : {}
     expected = [ "path", "uri", 1234, "query", "transaction",
                  10, 12000, 12000, 12000, params]
 

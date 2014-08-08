@@ -63,6 +63,42 @@ def assert_equal_unordered(left, right)
   left.each { |element| assert_includes(right, element) }
 end
 
+def assert_audit_log_contains(audit_log_contents, needle)
+  # Original request bodies dumped to the log have symbol keys, but once
+  # they go through a dump/load, they're strings again, so we strip
+  # double-quotes and colons from the log, and the strings we searching for.
+  regex = /[:"]/
+  needle = needle.gsub(regex, '')
+  haystack = audit_log_contents.gsub(regex, '')
+  assert(haystack.include?(needle), "Expected log to contain '#{needle}'")
+end
+
+# Because we don't generate a strictly machine-readable representation of
+# request bodies for the audit log, the transformation into strings is
+# effectively one-way. This, combined with the fact that Hash traversal order
+# is arbitrary in Ruby 1.8.x means that it's difficult to directly assert that
+# some object graph made it into the audit log (due to different possible
+# orderings of the key/value pairs in Hashes that were embedded in the request
+# body). So, this method traverses an object graph and only makes assertions
+# about the terminal (non-Array-or-Hash) nodes therein.
+def assert_audit_log_contains_object(audit_log_contents, o, format)
+  case o
+  when Hash
+    o.each do |k,v|
+      assert_audit_log_contains_object(audit_log_contents, v, format)
+      assert_audit_log_contains_object(audit_log_contents, k, format)
+    end
+  when Array
+    o.each do |el|
+      assert_audit_log_contains_object(audit_log_contents, el, format)
+    end
+  when NilClass
+    assert_audit_log_contains(audit_log_contents, format == :json ? "null" : "nil")
+  else
+    assert_audit_log_contains(audit_log_contents, o.inspect)
+  end
+end
+
 def compare_metrics(expected, actual)
   actual.delete_if {|a| a.include?('GC/Transaction/') }
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")

@@ -32,9 +32,13 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def assert_log_contains_string(str)
+    log_body = read_log_body
+    assert(log_body.include?(str), "Expected log to contain string '#{str}'\nLog body was: #{log_body}")
+  end
+
+  def read_log_body
     @fakelog.rewind
-    log_body = @fakelog.read
-    assert(log_body.include?(str), "Expected log to contain string '#{str}'")
+    @fakelog.read
   end
 
   def test_never_setup_if_disabled
@@ -117,7 +121,7 @@ class AuditLoggerTest < Minitest::Test
       setup_fake_logger
       json_marshaller = marshaller_cls.new
       @logger.log_request(@uri, @dummy_data, json_marshaller)
-      assert_log_contains_string(JSON.dump(@dummy_data))
+      assert_audit_log_contains_object(read_log_body, @dummy_data, :json)
     end
   end
 

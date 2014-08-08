@@ -288,7 +288,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.metric_data(stats_hash)
 
     timeslice_start = @http_handle.last_request_payload[1]
-    assert timeslice_start >= t0.to_f + 10
+    assert timeslice_start >= t0.to_f + 10, "timeslice_start = #{timeslice_start} and t0 = #{t0.to_f}"
   end
 
   def test_error_data

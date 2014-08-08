@@ -5,15 +5,13 @@
 module NewRelic
   class JSONWrapper
     def self.load_stdlib_json
-      return false unless NewRelic::LanguageSupport.stdlib_json_usable?
-
       begin
         require 'json'
         @load_method = ::JSON.method(:load)
         @dump_method = ::JSON.method(:dump)
         @backend_name = :json
         return true
-      rescue
+      rescue StandardError, ScriptError
         NewRelic::Agent.logger.debug "%p while loading JSON library: %s" % [ err, err.message ] if
           defined?( NewRelic::Agent ) && NewRelic::Agent.respond_to?( :logger )
       end
