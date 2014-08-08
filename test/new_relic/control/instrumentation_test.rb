@@ -19,7 +19,7 @@ class NewRelic::Control::InstrumentationTest < Minitest::Test
   end
 
   def test_load_instrumentation_files_logs_errors_during_require
-    swap_instance_method(Object, :require, Proc.new { |_| raise 'Instrumentation Test Error' }) do
+    swap_instance_method(InstrumentationTestClass, :require, Proc.new { |_| raise 'Instrumentation Test Error' }) do
       NewRelic::Agent.logger.expects(:warn).at_least_once.with() { |msg| msg.match(/Error loading/) }
       @test_class.load_instrumentation_files '*'
     end
@@ -42,7 +42,7 @@ class NewRelic::Control::InstrumentationTest < Minitest::Test
 
   def test_install_shim_logs_if_instrumentation_has_already_been_installed
     @test_class.instance_eval { @instrumented = true }
-    expects_logging(:fatal, includes('Cannot install'))
+    expects_logging(:error, includes('Cannot install'))
     @test_class.install_shim
   end
 
