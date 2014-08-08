@@ -151,7 +151,10 @@ module NewRelic
 
     # The singleton Agent instance.  Used internally.
     def agent #:nodoc:
-      @agent || raise("Plugin not initialized!")
+      return @agent if @agent
+      NewRelic::Agent.logger.warn("Agent unavailable as it hasn't been started.")
+      NewRelic::Agent.logger.warn(caller.join("\n"))
+      nil
     end
 
     def agent=(new_instance)#:nodoc:
@@ -323,7 +326,7 @@ module NewRelic
     # @api public
     #
     def shutdown(options={})
-      agent.shutdown(options)
+      agent.shutdown(options) if agent
     end
 
     # Add instrumentation files to the agent.  The argument should be
