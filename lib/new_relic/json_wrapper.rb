@@ -32,6 +32,10 @@ module NewRelic
       @backend_name == :json
     end
 
+    def self.backend_name
+      @backend_name
+    end
+
     def self.normalize_string(s)
       # Early return if called on 1.8.x. In normal circumstances 1.8.x
       # shouldn't call this--it does nothing for Ruby-marshalled formats-- but

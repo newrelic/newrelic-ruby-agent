@@ -10,7 +10,10 @@ module NewRelic
       # Marshal collector protocol with JSON when available
       class JsonMarshaller < Marshaller
         def initialize
-          ::NewRelic::Agent.logger.debug 'Using JSON marshaller'
+          ::NewRelic::Agent.logger.debug "Using JSON marshaller (#{NewRelic::JSONWrapper.backend_name})"
+          unless self.class.is_supported?
+            ::NewRelic::Agent.logger.warn "The JSON marshaller in use (#{NewRelic::JSONWrapper.backend_name}) is not recommended. Ensure the 'json' gem is available in your application for better performance."
+          end
         end
 
         def dump(ruby, opts={})
