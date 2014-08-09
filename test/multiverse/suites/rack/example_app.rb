@@ -48,3 +48,23 @@ class MiddlewareTwo
     [status, headers, body]
   end
 end
+
+class ResponseCodeMiddleware
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    req = Rack::Request.new(env)
+
+    result = @app.call(env)
+
+    if req.params['override-response-code']
+      response_code = req.params['override-response-code'].to_i
+    else
+      response_code = result[0]
+    end
+
+    [response_code, result[1], result[2]]
+  end
+end

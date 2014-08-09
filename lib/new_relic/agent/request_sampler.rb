@@ -20,6 +20,7 @@ class NewRelic::Agent::RequestSampler
   TIMESTAMP_KEY                  = 'timestamp'
   NAME_KEY                       = 'name'
   DURATION_KEY                   = 'duration'
+  HTTP_RESPONSE_CODE_KEY         = 'httpResponseCode'
   GUID_KEY                       = 'nr.guid'
   REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
   CAT_TRIP_ID_KEY                = 'nr.tripId'
@@ -187,6 +188,7 @@ class NewRelic::Agent::RequestSampler
     optionally_append(CAT_PATH_HASH_KEY,              :cat_path_hash, sample, payload)
     optionally_append(CAT_REFERRING_PATH_HASH_KEY,    :cat_referring_path_hash, sample, payload)
     optionally_append(APDEX_PERF_ZONE_KEY,            :apdex_perf_zone, sample, payload)
+    optionally_append(HTTP_RESPONSE_CODE_KEY,         :http_response_code, sample, payload)
     append_cat_alternate_path_hashes(sample, payload)
     sample
   end
