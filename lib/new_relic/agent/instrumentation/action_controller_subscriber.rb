@@ -93,15 +93,15 @@ module NewRelic
         end
 
         def ignored?
-          _is_filtered?('do_not_trace')
+          _is_filtered?(ControllerInstrumentation::NR_DO_NOT_TRACE_KEY)
         end
 
         def apdex_ignored?
-          _is_filtered?('ignore_apdex')
+          _is_filtered?(ControllerInstrumentation::NR_IGNORE_APDEX_KEY)
         end
 
         def enduser_ignored?
-          _is_filtered?('ignore_enduser')
+          _is_filtered?(ControllerInstrumentation::NR_IGNORE_ENDUSER_KEY)
         end
 
         def _is_filtered?(key)

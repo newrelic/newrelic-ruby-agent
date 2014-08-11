@@ -330,7 +330,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           state.request = newrelic_request(args)
 
-          # Skip instrumentation based on the value of 'do_not_trace' and if
+          # Skip instrumentation based on the value of 'do_not_trace?' and if
           # we aren't calling directly with a block.
           if !block_given? && do_not_trace?
             state.current_transaction.ignore! if state.current_transaction
@@ -440,7 +440,7 @@ module NewRelic
         end
 
         # Filter out a request if it matches one of our parameters for
-        # ignoring it - the key is either 'do_not_trace' or 'ignore_apdex'
+        # ignoring it - the key is either NR_DO_NOT_TRACE_KEY or NR_IGNORE_APDEX_KEY
         def _is_filtered?(key)
           name = if respond_to?(:action_name)
             action_name
