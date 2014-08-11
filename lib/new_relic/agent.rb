@@ -485,7 +485,11 @@ module NewRelic
     # @api public
     #
     def ignore_error_filter(&block)
-      agent.error_collector.ignore_error_filter(&block)
+      if block
+        NewRelic::Agent::ErrorCollector.ignore_error_filter = block
+      else
+        NewRelic::Agent::ErrorCollector.ignore_error_filter
+      end
     end
 
     # Record the given error.  It will be passed through the

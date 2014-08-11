@@ -55,24 +55,33 @@ module NewRelic
         !enabled?
       end
 
-      # Returns the error filter proc that is used to check if an
-      # error should be reported. When given a block, resets the
-      # filter to the provided block.  The define_method() is used to
-      # wrap the block in a lambda so return statements don't result in a
-      # LocalJump exception.
-      def ignore_error_filter(&block)
+      # We store the passed block in both an ivar on the class, and implicitly
+      # within the body of the ignore_filter_proc method intentionally here.
+      # The define_method trick is needed to get around the fact that users may
+      # call 'return' from within their filter blocks, which would otherwise
+      # result in a LocalJumpError.
+      #
+      # The raw block is also stored in an instance variable so that we can
+      # return it later in its original form.
+      #
+      # This is all done at the class level in order to avoid the case where
+      # the user sets up an ignore filter on one instance of the ErrorCollector,
+      # and then that instance subsequently gets discarded during agent startup.
+      # (For example, if the agent is initially disabled, and then gets enabled
+      # via a call to manual_start later on.)
+      #
+      def self.ignore_error_filter=(block)
+        @ignore_filter = block
         if block
-          self.class.class_eval { define_method(:ignore_filter_proc, &block) }
-          @ignore_filter = method(:ignore_filter_proc)
-        else
-          @ignore_filter
+          define_method(:ignore_filter_proc, &block)
+        elsif method_defined?(:ignore_filter_proc)
+          undef :ignore_filter_proc
         end
+        @ignore_filter
       end
 
-      # Only used from testing scenarios since can't tell difference between
-      # having a nil filter passed and no block for retrieval on main method.
-      def clear_ignore_error_filter
-        @ignore_filter = nil
+      def self.ignore_error_filter
+        @ignore_filter
       end
 
       # errors is an array of Exception Class Names
@@ -90,8 +99,7 @@ module NewRelic
         # Checks the provided error against the error filter, if there
         # is an error filter
         def filtered_by_error_filter?(error)
-          return unless @ignore_filter
-          !@ignore_filter.call(error)
+          respond_to?(:ignore_filter_proc) && !ignore_filter_proc(error)
         end
 
         # Checks the array of error names and the error filter against
