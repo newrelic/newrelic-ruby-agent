@@ -19,7 +19,7 @@ module NewRelic
               except_actions = Array(ignore_actions[:except])
               action_name    = action_name.to_sym
 
-              only_actions.include?(action_name) || (except_actions.any? && !except_actions.include?(action_name))
+              only_actions.include?(action_name) || (!except_actions.empty? && !except_actions.include?(action_name))
             else
               !!ignore_actions
             end
