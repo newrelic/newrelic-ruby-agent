@@ -19,6 +19,21 @@ class IgnoredController < ApplicationController
   end
 end
 
+class ParentController < ApplicationController
+  newrelic_ignore_apdex
+
+  def foo(*args); end
+
+  add_transaction_tracer :foo
+end
+
+class ChildController < ParentController
+  def bar(*args); end
+
+  add_transaction_tracer :bar
+end
+
+
 class IgnoredActionsTest < RailsMultiverseTest
   include MultiverseHelpers
 
@@ -53,5 +68,12 @@ class IgnoredActionsTest < RailsMultiverseTest
   def test_should_not_write_cat_response_headers_for_ignored_transactions
     get 'ignored/action_to_ignore', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
     assert_nil @response.headers["X-NewRelic-App-Data"]
+  end
+
+  def test_apdex_ignored_if_ignored_in_parent_class
+    get 'child/foo'
+    get 'child/bar'
+
+    assert_metrics_not_recorded("Apdex")
   end
 end
