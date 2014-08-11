@@ -478,11 +478,7 @@ def with_ignore_error_filter(filter, &blk)
 
   yield
 ensure
-  if original_filter.nil?
-    NewRelic::Agent.instance.error_collector.clear_ignore_error_filter
-  else
-    NewRelic::Agent.ignore_error_filter(&original_filter)
-  end
+  NewRelic::Agent::ErrorCollector.ignore_error_filter = original_filter
 end
 
 def json_dump_and_encode(object)

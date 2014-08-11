@@ -191,20 +191,33 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
 
   def test_filtered_by_error_filter_empty
     # should return right away when there's no filter
-    @ignore_filter = nil
     assert !filtered_by_error_filter?(nil)
   end
 
   def test_filtered_by_error_filter_positive
     error = mocked_error
-    @ignore_filter = lambda { |x| assert_equal error, x; false  }
+    self.class_eval do
+      define_method(:ignore_filter_proc) do |e|
+        assert_equal(error, e)
+        false
+      end
+    end
     assert filtered_by_error_filter?(error)
+  ensure
+    self.class_eval { undef :ignore_filter_proc }
   end
 
   def test_filtered_by_error_filter_negative
     error = mocked_error
-    @ignore_filter = lambda { |x| assert_equal error, x; true  }
+    self.class_eval do
+      define_method(:ignore_filter_proc) do |e|
+        assert_equal(error, e)
+        true
+      end
+    end
     assert !filtered_by_error_filter?(error)
+  ensure
+    self.class_eval { undef :ignore_filter_proc }
   end
 
   def test_error_is_ignored_positive

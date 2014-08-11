@@ -20,7 +20,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def teardown
     super
-    @error_collector.clear_ignore_error_filter
+    NewRelic::Agent::ErrorCollector.ignore_error_filter = nil
     NewRelic::Agent::TransactionState.tl_clear_for_testing
     NewRelic::Agent.config.reset_to_defaults
   end
@@ -184,7 +184,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_exclude_block
-    @error_collector.ignore_error_filter &wrapped_filter_proc
+    @error_collector.class.ignore_error_filter = wrapped_filter_proc
 
     @error_collector.notice_error(IOError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
     @error_collector.notice_error(StandardError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
@@ -195,7 +195,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_failure_in_exclude_block
-    @error_collector.ignore_error_filter do
+    @error_collector.class.ignore_error_filter = Proc.new do
       raise "HAHAHAHAH, error in the filter for ignoring errors!"
     end
 
@@ -207,7 +207,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_failure_block_assigned_with_different_instance
-    @error_collector.ignore_error_filter do |*_|
+    @error_collector.class.ignore_error_filter = Proc.new do |*_|
       # meh, ignore 'em all!
       nil
     end
