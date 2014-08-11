@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/evented_subscriber'
+require 'new_relic/agent/instrumentation/ignore_actions'
 
 module NewRelic
   module Agent
@@ -92,32 +93,22 @@ module NewRelic
         end
 
         def ignored?
-          _is_filtered?('do_not_trace')
+          _is_filtered?(ControllerInstrumentation::NR_DO_NOT_TRACE_KEY)
         end
 
         def apdex_ignored?
-          _is_filtered?('ignore_apdex')
+          _is_filtered?(ControllerInstrumentation::NR_IGNORE_APDEX_KEY)
         end
 
         def enduser_ignored?
-          _is_filtered?('ignore_enduser')
+          _is_filtered?(ControllerInstrumentation::NR_IGNORE_ENDUSER_KEY)
         end
 
-        # FIXME: shamelessly ripped from ControllerInstrumentation
         def _is_filtered?(key)
-          if @controller_class.respond_to? :newrelic_read_attr
-            ignore_actions = @controller_class.newrelic_read_attr(key)
-          end
-
-          case ignore_actions
-          when nil; false
-          when Hash
-            only_actions = Array(ignore_actions[:only])
-            except_actions = Array(ignore_actions[:except])
-            only_actions.include?(metric_action.to_sym) || (except_actions.any? && !except_actions.include?(metric_action.to_sym))
-          else
-            true
-          end
+          NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+            key,
+            @controller_class,
+            metric_action)
         end
 
         def to_s

@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/instrumentation/queue_time'
+require 'new_relic/agent/instrumentation/ignore_actions'
 module NewRelic
   module Agent
     # @api public
@@ -45,10 +46,10 @@ module NewRelic
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
-        NR_DO_NOT_TRACE_KEY   = 'do_not_trace'.freeze unless defined?(NR_DO_NOT_TRACE_KEY)
-        NR_IGNORE_APDEX_KEY   = 'ignore_apdex'.freeze unless defined?(NR_IGNORE_APDEX_KEY)
-        NR_IGNORE_ENDUSER_KEY = 'ignore_enduser'.freeze unless defined?(NR_IGNORE_ENDUSER_KEY)
-        NR_DEFAULT_OPTIONS    = {}.freeze unless defined?(NR_DEFAULT_OPTIONS)
+        NR_DO_NOT_TRACE_KEY   = :'@do_not_trace'   unless defined?(NR_DO_NOT_TRACE_KEY  )
+        NR_IGNORE_APDEX_KEY   = :'@ignore_apdex'   unless defined?(NR_IGNORE_APDEX_KEY  )
+        NR_IGNORE_ENDUSER_KEY = :'@ignore_enduser' unless defined?(NR_IGNORE_ENDUSER_KEY)
+        NR_DEFAULT_OPTIONS    = {}.freeze          unless defined?(NR_DEFAULT_OPTIONS   )
 
         # @api public
         module ClassMethods
@@ -88,11 +89,11 @@ module NewRelic
           # Should be monkey patched into the controller class implemented
           # with the inheritable attribute mechanism.
           def newrelic_write_attr(attr_name, value) # :nodoc:
-            instance_variable_set "@#{attr_name}", value
+            instance_variable_set(attr_name, value)
           end
 
           def newrelic_read_attr(attr_name) # :nodoc:
-            instance_variable_get "@#{attr_name}"
+            instance_variable_get(attr_name)
           end
 
           # Add transaction tracing to the given method.  This will treat
@@ -329,7 +330,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           state.request = newrelic_request(args)
 
-          # Skip instrumentation based on the value of 'do_not_trace' and if
+          # Skip instrumentation based on the value of 'do_not_trace?' and if
           # we aren't calling directly with a block.
           if !block_given? && do_not_trace?
             state.current_transaction.ignore! if state.current_transaction
@@ -439,18 +440,18 @@ module NewRelic
         end
 
         # Filter out a request if it matches one of our parameters for
-        # ignoring it - the key is either 'do_not_trace' or 'ignore_apdex'
+        # ignoring it - the key is either NR_DO_NOT_TRACE_KEY or NR_IGNORE_APDEX_KEY
         def _is_filtered?(key)
-          ignore_actions = self.class.newrelic_read_attr(key) if self.class.respond_to? :newrelic_read_attr
-          case ignore_actions
-          when nil; false
-          when Hash
-            only_actions   = Array(ignore_actions[:only])
-            except_actions = Array(ignore_actions[:except])
-            only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
+          name = if respond_to?(:action_name)
+            action_name
           else
-            true
+            :'[action_name_missing]'
           end
+
+          NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+            key,
+            self.class,
+            name)
         end
 
         def detect_queue_start_time(state)
