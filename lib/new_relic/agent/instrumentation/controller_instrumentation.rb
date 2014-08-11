@@ -46,10 +46,10 @@ module NewRelic
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
-        NR_DO_NOT_TRACE_KEY   = 'do_not_trace'.freeze unless defined?(NR_DO_NOT_TRACE_KEY)
-        NR_IGNORE_APDEX_KEY   = 'ignore_apdex'.freeze unless defined?(NR_IGNORE_APDEX_KEY)
-        NR_IGNORE_ENDUSER_KEY = 'ignore_enduser'.freeze unless defined?(NR_IGNORE_ENDUSER_KEY)
-        NR_DEFAULT_OPTIONS    = {}.freeze unless defined?(NR_DEFAULT_OPTIONS)
+        NR_DO_NOT_TRACE_KEY   = :'@do_not_trace'   unless defined?(NR_DO_NOT_TRACE_KEY  )
+        NR_IGNORE_APDEX_KEY   = :'@ignore_apdex'   unless defined?(NR_IGNORE_APDEX_KEY  )
+        NR_IGNORE_ENDUSER_KEY = :'@ignore_enduser' unless defined?(NR_IGNORE_ENDUSER_KEY)
+        NR_DEFAULT_OPTIONS    = {}.freeze          unless defined?(NR_DEFAULT_OPTIONS   )
 
         # @api public
         module ClassMethods
@@ -89,11 +89,11 @@ module NewRelic
           # Should be monkey patched into the controller class implemented
           # with the inheritable attribute mechanism.
           def newrelic_write_attr(attr_name, value) # :nodoc:
-            instance_variable_set "@#{attr_name}", value
+            instance_variable_set(attr_name, value)
           end
 
           def newrelic_read_attr(attr_name) # :nodoc:
-            instance_variable_get "@#{attr_name}"
+            instance_variable_get(attr_name)
           end
 
           # Add transaction tracing to the given method.  This will treat
