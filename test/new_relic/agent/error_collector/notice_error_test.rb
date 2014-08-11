@@ -196,7 +196,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
 
   def test_filtered_by_error_filter_positive
     error = mocked_error
-    self.class_eval do
+    self.class.class_eval do
       define_method(:ignore_filter_proc) do |e|
         assert_equal(error, e)
         false
@@ -204,12 +204,12 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
     end
     assert filtered_by_error_filter?(error)
   ensure
-    self.class_eval { undef :ignore_filter_proc }
+    self.class.class_eval { undef :ignore_filter_proc }
   end
 
   def test_filtered_by_error_filter_negative
     error = mocked_error
-    self.class_eval do
+    self.class.class_eval do
       define_method(:ignore_filter_proc) do |e|
         assert_equal(error, e)
         true
@@ -217,7 +217,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
     end
     assert !filtered_by_error_filter?(error)
   ensure
-    self.class_eval { undef :ignore_filter_proc }
+    self.class.class_eval { undef :ignore_filter_proc }
   end
 
   def test_error_is_ignored_positive
