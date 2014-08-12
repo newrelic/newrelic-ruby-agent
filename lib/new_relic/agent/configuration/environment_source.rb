@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     module Configuration
       class EnvironmentSource < DottedHash
-        SUPPORTED_PREFIXES = /^new_relic_|newrelic_/i
+        SUPPORTED_PREFIXES = /^new_relic_|^newrelic_/i
 
         attr_accessor :alias_map, :type_map
 
