@@ -4,6 +4,7 @@
 
 require 'zlib'
 require 'new_relic/agent/audit_logger'
+require 'new_relic/agent/new_relic_service/encoders'
 require 'new_relic/agent/new_relic_service/marshaller'
 require 'new_relic/agent/new_relic_service/json_marshaller'
 require 'new_relic/agent/new_relic_service/pruby_marshaller'
@@ -437,28 +438,6 @@ module NewRelic
         zlib_version = ''
         zlib_version << "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"
-      end
-
-      module Encoders
-        module Identity
-          def self.encode(data)
-            data
-          end
-        end
-
-        module Compressed
-          def self.encode(data)
-            Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
-          end
-        end
-
-        module Base64CompressedJSON
-          def self.encode(data)
-            json = ::NewRelic::JSONWrapper.dump(data,
-              :normalize => Agent.config[:normalize_json_string_encodings])
-            Base64.encode64(Compressed.encode(json))
-          end
-        end
       end
 
       # Used to wrap errors reported to agent by the collector
