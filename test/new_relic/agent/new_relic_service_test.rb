@@ -233,7 +233,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.metric_data(stats_hash)
     payload = @http_handle.last_request_payload
     _, last_harvest_timestamp, harvest_timestamp, _ = payload
-    assert_equal(t0.to_f, harvest_timestamp)
+    assert_in_delta(t0.to_f, harvest_timestamp, 0.0001)
 
     t1 = advance_time(10)
     stats_hash.harvested_at = t1
@@ -241,8 +241,8 @@ class NewRelicServiceTest < Minitest::Test
     @service.metric_data(stats_hash)
     payload = @http_handle.last_request_payload
     _, last_harvest_timestamp, harvest_timestamp, _ = payload
-    assert_equal(t1.to_f, harvest_timestamp)
-    assert_equal(t0.to_f, last_harvest_timestamp)
+    assert_in_delta(t1.to_f, harvest_timestamp, 0.0001)
+    assert_in_delta(t0.to_f, last_harvest_timestamp, 0.0001)
   end
 
   def test_fill_metric_id_cache_from_collect_response
@@ -288,7 +288,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.metric_data(stats_hash)
 
     timeslice_start = @http_handle.last_request_payload[1]
-    assert timeslice_start >= t0.to_f + 10, "timeslice_start = #{timeslice_start} and t0 = #{t0.to_f}"
+    assert_in_delta(timeslice_start, t0.to_f + 10, 0.0001)
   end
 
   def test_error_data
