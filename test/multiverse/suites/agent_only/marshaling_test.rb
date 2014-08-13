@@ -31,8 +31,6 @@ class MarshalingTest < Minitest::Test
     agent.service.connect
     agent.send(:harvest_and_send_transaction_traces)
 
-    agent.service.marshaller
-
     actual = $collector.calls_for('transaction_sample_data')[0][1][0]
     encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
