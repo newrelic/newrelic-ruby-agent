@@ -107,7 +107,7 @@ module NewRelic::LanguageSupport
     numbers == ::RUBY_VERSION.split('.')[0, numbers.size]
   end
 
-  def stdlib_json_usable?
+  def native_json_usable?
     RUBY_VERSION >= '1.9.2'
   end
 

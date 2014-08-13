@@ -4,7 +4,7 @@
 
 module NewRelic
   class JSONWrapper
-    def self.load_stdlib_json
+    def self.load_native_json
       begin
         require 'json'
         @load_method = ::JSON.method(:load)
@@ -24,7 +24,7 @@ module NewRelic
       @backend_name = :okjson
     end
 
-    load_stdlib_json or load_okjson
+    load_native_json or load_okjson
 
     def self.usable_for_collector_serialization?
       @backend_name == :json
