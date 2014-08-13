@@ -35,11 +35,14 @@ module NewRelic
     end
 
     def self.normalize_string(s)
-      # Early return if called on 1.8.x. In normal circumstances 1.8.x
-      # shouldn't call this--it does nothing for Ruby-marshalled formats-- but
-      # we use it in multiverse to make comparing data more consistent.
-      return s unless supports_normalization?
+      if NewRelic::LanguageSupport.supports_string_encodings?
+        normalize_via_encoding(s)
+      else
+        normalize_via_iconv(s)
+      end
+    end
 
+    def self.normalize_via_encoding(s)
       encoding = s.encoding
       if (encoding == Encoding::UTF_8 || encoding == Encoding::ISO_8859_1) && s.valid_encoding?
         return s
@@ -60,6 +63,14 @@ module NewRelic
         end
       end
       normalized
+    end
+
+    def self.normalize_via_iconv(s)
+      if @iconv.nil?
+        require 'iconv'
+        @iconv = Iconv.new('utf-8', 'iso-8859-1')
+      end
+      @iconv.iconv(s)
     end
 
     def self.normalize(object)
