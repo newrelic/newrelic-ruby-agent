@@ -319,7 +319,6 @@ class NewRelic::TransactionSample::SegmentTest < Minitest::Test
     statement.config = config
     statement.explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
     s.params = {:sql => statement}
-    connection = mock('connection')
     NewRelic::Agent::Database.expects(:get_connection).with(config).raises(RuntimeError.new("whee"))
     s.explain_sql
   end

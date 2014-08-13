@@ -72,7 +72,7 @@ class ExconTest < Minitest::Test
       conn = Excon.new("#{default_url}?status=500")
       begin
         conn.request(:method => :get, :expects => [200])
-      rescue Excon::Errors::Error => e
+      rescue Excon::Errors::Error
         # meh
       end
 

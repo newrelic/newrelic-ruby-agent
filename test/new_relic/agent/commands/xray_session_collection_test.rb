@@ -325,7 +325,7 @@ module NewRelic::Agent::Commands
     end
 
     def command_for(*session_ids)
-      command = create_agent_command({ "xray_ids" => session_ids})
+      create_agent_command({ "xray_ids" => session_ids})
     end
 
   end

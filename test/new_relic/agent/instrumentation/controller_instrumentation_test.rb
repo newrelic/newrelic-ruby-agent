@@ -216,7 +216,7 @@ module NewRelic::Agent::Instrumentation
         add_transaction_tracer :protected_transaction
         add_transaction_tracer :private_transaction
       end
-      obj = TestObject.new
+      TestObject.new
     end
 
     def test_add_transaction_tracer_defines_with_method

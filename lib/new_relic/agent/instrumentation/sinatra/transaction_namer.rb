@@ -46,7 +46,7 @@ module NewRelic
           # on it when we go to evaluating, so we can just retrieve that
           def route_name_for_padrino(request)
             request.route_obj.original_path
-          rescue => e
+          rescue
             nil
           end
         end

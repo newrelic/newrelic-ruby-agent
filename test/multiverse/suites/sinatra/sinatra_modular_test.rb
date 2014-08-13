@@ -76,7 +76,7 @@ class SinatraModularTestApp < Sinatra::Base
     "don't trace me bro"
   end
 
-  get /\/regex.*/ do
+  get(/\/regex.*/) do
     "Yeah, regex's!"
   end
 end

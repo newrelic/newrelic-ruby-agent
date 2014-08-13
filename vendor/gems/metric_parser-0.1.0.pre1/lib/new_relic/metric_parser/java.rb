@@ -6,7 +6,7 @@ require 'new_relic/metric_parser/java_parser'
 module NewRelic
   module MetricParser
     class Java < NewRelic::MetricParser::MetricParser
-      JavaParser
+      include JavaParser
       def initialize(name)
         super
         if segments.length > 2

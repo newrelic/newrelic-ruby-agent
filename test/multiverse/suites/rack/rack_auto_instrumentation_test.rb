@@ -126,7 +126,7 @@ class RackAutoInstrumentationTest < Minitest::Test
   end
 
   def test_middleware_that_returns_early_middleware_all_has_correct_call_times
-    t0 = freeze_time
+    freeze_time
 
     get '/?return-early=true'
     assert_metrics_recorded('Middleware/all' => { :total_exclusive_time => 3.0, :call_count => 2 })

@@ -63,18 +63,18 @@ module NewRelic::Agent::Configuration
 
     def test_should_log_if_no_file_is_found
       expects_logging(:warn, any_parameters)
-      source = YamlSource.new('no_such_file.yml', 'test')
+      YamlSource.new('no_such_file.yml', 'test')
     end
 
     def test_should_log_if_environment_is_not_present
       expects_logging(:error, any_parameters)
-      source = YamlSource.new(@test_yml_path, 'nonsense')
+      YamlSource.new(@test_yml_path, 'nonsense')
     end
 
     def test_should_not_fail_to_log_missing_file_during_startup
       without_logger do
         ::NewRelic::Agent::StartupLogger.any_instance.expects(:warn)
-        source = YamlSource.new('no_such_file.yml', 'test')
+        YamlSource.new('no_such_file.yml', 'test')
       end
     end
 
@@ -85,7 +85,7 @@ module NewRelic::Agent::Configuration
         File.stubs(:exists?).returns(true)
         File.stubs(:read).raises(StandardError.new("boo"))
 
-        source = YamlSource.new('fake.yml', 'test')
+        YamlSource.new('fake.yml', 'test')
       end
     end
 

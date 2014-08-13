@@ -23,8 +23,7 @@ class Insider
   def thrower(level)
     if level == 0
       # don't use a real sampler because we can't instantiate one
-      # sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
-      sampler = "<none>"
+      # NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
       begin
         fail "This should not have worked."
       rescue

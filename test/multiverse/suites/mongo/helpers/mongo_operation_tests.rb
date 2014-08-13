@@ -61,7 +61,7 @@ module MongoOperationTests
     @collection.save(@tribble)
 
     metrics = build_test_metrics(:save)
-    expected = metrics_with_attributes(metrics)
+    metrics_with_attributes(metrics)
 
     assert_metrics_not_recorded(['Datastore/operation/MongoDB/insert'])
   end

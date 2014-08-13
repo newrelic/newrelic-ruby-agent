@@ -16,7 +16,7 @@ module ActiveRecordFixtures
     ActiveRecordFixtures::Order.teardown
     begin
       super
-    rescue => e
+    rescue
     end
   end
 
@@ -37,13 +37,13 @@ module ActiveRecordFixtures
 
     def self.check_for_table
       connection.table_exists?(self.table_name)
-    rescue => e
+    rescue
       false
     end
 
     def self.teardown
       def connection.log_info *args
-        super *args
+        super(*args)
       end
     end
   end
@@ -68,7 +68,7 @@ module ActiveRecordFixtures
     end
     def self.check_for_table
       connection.table_exists?(self.table_name) && connection.table_exists?('orders_shipments')
-    rescue => e
+    rescue
       false
     end
 

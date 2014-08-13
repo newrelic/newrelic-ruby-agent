@@ -143,7 +143,7 @@ class MongoServer
     begin
       self.client = client_class.new('localhost', self.port, :connect_timeout => 10)
     rescue Mongo::ConnectionFailure => e
-      raise e unless message = "Failed to connect to a master node at localhost:#{port}"
+      raise e unless message == "Failed to connect to a master node at localhost:#{port}"
       retry
     end
   end
@@ -152,7 +152,7 @@ class MongoServer
     if pid
       begin
         Process.kill('TERM', pid)
-      rescue Errno::ESRCH => e
+      rescue Errno::ESRCH
         # fine if we're already gone...
       end
 
@@ -171,7 +171,7 @@ class MongoServer
   def running?
     return false unless pid
     Process.kill(0, pid) == 1
-  rescue Errno::ESRCH => e
+  rescue Errno::ESRCH
     false
   end
 
@@ -214,7 +214,7 @@ class MongoServer
     tries = 0
 
     begin
-      result = yield
+      yield
     rescue exception => e
       if message
         raise e unless e.message.include? message

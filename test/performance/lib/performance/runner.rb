@@ -52,10 +52,10 @@ module Performance
     end
 
     def add_progress_callbacks(test_case)
-      test_case.on(:before_each) do |test_case, name|
+      test_case.on(:before_each) do |_test_case, name|
         print "#{name}: "
       end
-      test_case.on(:after_each) do |test_case, name, result|
+      test_case.on(:after_each) do |_test_case, name, result|
         print "#{result.elapsed} s\n"
       end
     end
@@ -104,7 +104,7 @@ module Performance
         filter = Regexp.new(@options[:name])
         methods = methods.select { |m| m.match(filter) }
       elsif @options[:identifier]
-        suite, method = @options[:identifier].split('#')
+        _suite, method = @options[:identifier].split('#')
         methods = methods.select { |m| m == method }
       end
       methods
@@ -174,7 +174,7 @@ module Performance
 
     def suites_to_run
       if @options[:identifier]
-        suite, method = @options[:identifier].split('#')
+        suite, _method = @options[:identifier].split('#')
         TestCase.subclasses.select { |cls| cls.name == suite }
       elsif @options[:suite]
         TestCase.subclasses.select { |cls| cls.name == @options[:suite] }

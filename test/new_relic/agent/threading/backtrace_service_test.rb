@@ -61,7 +61,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_stop_clears_buffered_backtraces
         fake_worker_loop(@service)
 
-        thread = fake_thread(:request)
+        fake_thread(:request)
 
         @service.subscribe('foo')
         @service.poll

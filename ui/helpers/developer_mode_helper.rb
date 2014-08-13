@@ -25,7 +25,7 @@ module NewRelic::DeveloperModeHelper
   def application_caller(trace)
     trace = strip_nr_from_backtrace(trace) unless params[:show_nr]
     trace.each do |trace_line|
-      file, line, gem = file_and_line(trace_line)
+      file, _line, gem = file_and_line(trace_line)
       unless file && exclude_file_from_stack_trace?(file, false, gem)
         return trace_line
       end
@@ -36,7 +36,7 @@ module NewRelic::DeveloperModeHelper
   def application_stack_trace(trace, include_rails = false)
     trace = strip_nr_from_backtrace(trace) unless params[:show_nr]
     trace.reject do |trace_line|
-      file, line, gem = file_and_line(trace_line)
+      file, _line, gem = file_and_line(trace_line)
       file && exclude_file_from_stack_trace?(file, include_rails, gem)
     end
   end

@@ -45,7 +45,7 @@ DependencyDetection.defer do
 
     class Sidekiq::Extensions::DelayedClass
       def newrelic_trace_args(msg, queue)
-        (target, method_name, args) = YAML.load(msg['args'][0])
+        (target, method_name, _args) = YAML.load(msg['args'][0])
         {
           :name => method_name,
           :class_name => target.name,

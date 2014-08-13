@@ -59,7 +59,7 @@ module NewRelic
           end
         end
 
-        events.subscribe(:after_call) do |env, (status_code, headers, body)| #THREAD_LOCAL_ACCESS
+        events.subscribe(:after_call) do |env, (_status_code, headers, _body)| #THREAD_LOCAL_ACCESS
           state = NewRelic::Agent::TransactionState.tl_get
 
           insert_response_header(state, env, headers)

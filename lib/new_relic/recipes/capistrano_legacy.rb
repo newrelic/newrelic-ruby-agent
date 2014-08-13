@@ -91,7 +91,7 @@ else
   instance = Capistrano::Configuration.instance
 
   if instance
-    instance.load &make_notify_task
+    instance.load(&make_notify_task)
   else
     make_notify_task.call
   end

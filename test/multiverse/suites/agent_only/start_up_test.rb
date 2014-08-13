@@ -10,7 +10,7 @@ class StartUpTest < Minitest::Test
     ruby = 'require "newrelic_rpm"; NewRelic::Agent.manual_start; NewRelic::Agent.shutdown'
     cmd = "bundle exec ruby -e '#{ruby}'"
 
-    sin, sout, serr = Open3.popen3(cmd)
+    _sin, sout, serr = Open3.popen3(cmd)
     output = sout.read + serr.read
 
     expected_noise = [

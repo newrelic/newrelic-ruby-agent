@@ -105,7 +105,7 @@ module NewRelic
           @obfuscated_sql = @segment.obfuscated_sql
         end
 
-        headers, explanations = @segment.explain_sql
+        _headers, explanations = @segment.explain_sql
         if explanations
           @explanation = explanations
           if !@explanation.blank?
@@ -138,12 +138,13 @@ module NewRelic
         if view.is_a? Hash
           layout = false
           if view[:object]
+            # object *is* used here, as it is capture in the binding below
             object = view[:object]
           end
 
           if view[:collection]
-            return view[:collection].map do |object|
-              render({:partial => view[:partial], :object => object})
+            return view[:collection].map do |obj|
+              render({:partial => view[:partial], :object => obj})
             end.join(' ')
           end
 
