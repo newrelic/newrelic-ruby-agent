@@ -2,56 +2,64 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require File.join(File.dirname(__FILE__), '..', '..', 'agent_helper')
+
 class Marshalling < Performance::TestCase
   def setup
     @payload = build_analytics_events_payload
     @tt_payload = build_transaction_trace_payload
   end
 
-  skip_test :test_basic_marshalling_json, :platforms => :mri_18
-
   def test_basic_marshalling_json(timer)
-    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    timer.measure do
-      (iterations / 100).times do
-        marshaller.dump(@payload)
-        marshaller.dump(@tt_payload)
+    with_config(:normalize_json_string_encodings => true) do
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      timer.measure do
+        (iterations / 100).times do
+          marshaller.dump(@payload)
+          marshaller.dump(@tt_payload)
+        end
       end
     end
   end
 
   def test_json_marshalling_binary_strings(timer)
-    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    convert_strings_to_binary(@payload)
-    convert_strings_to_binary(@tt_payload)
-    timer.measure do
-      (iterations / 100).times do
-        marshaller.dump(@payload)
-        marshaller.dump(@tt_payload)
+    with_config(:normalize_json_string_encodings => true) do
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      convert_strings_to_binary(@payload)
+      convert_strings_to_binary(@tt_payload)
+      timer.measure do
+        (iterations / 100).times do
+          marshaller.dump(@payload)
+          marshaller.dump(@tt_payload)
+        end
       end
     end
   end
 
   def test_json_marshalling_utf16_strings(timer)
-    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    convert_strings_to_utf16(@payload)
-    convert_strings_to_utf16(@tt_payload)
-    timer.measure do
-      (iterations / 100).times do
-        marshaller.dump(@payload)
-        marshaller.dump(@tt_payload)
+    with_config(:normalize_json_string_encodings => true) do
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      convert_strings_to_utf16(@payload)
+      convert_strings_to_utf16(@tt_payload)
+      timer.measure do
+        (iterations / 100).times do
+          marshaller.dump(@payload)
+          marshaller.dump(@tt_payload)
+        end
       end
     end
   end
 
   def test_json_marshalling_latin1_strings(timer)
-    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    convert_strings_to_latin1(@payload)
-    convert_strings_to_latin1(@tt_payload)
-    timer.measure do
-      (iterations / 100).times do
-        marshaller.dump(@payload)
-        marshaller.dump(@tt_payload)
+    with_config(:normalize_json_string_encodings => true) do
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      convert_strings_to_latin1(@payload)
+      convert_strings_to_latin1(@tt_payload)
+      timer.measure do
+        (iterations / 100).times do
+          marshaller.dump(@payload)
+          marshaller.dump(@tt_payload)
+        end
       end
     end
   end
@@ -84,7 +92,8 @@ class Marshalling < Performance::TestCase
 
   def generate_random_string(length)
     bytes = []
-    length.times { bytes << BYTE_ALPHABET.sample }
+    meth = BYTE_ALPHABET.respond_to?(:sample) ? :sample : :choice
+    length.times { bytes << BYTE_ALPHABET.send(meth) }
     bytes.pack("C*")
   end
 
@@ -96,11 +105,18 @@ class Marshalling < Performance::TestCase
 
   def convert_strings_to_utf16(object)
     each_string(object) do |s|
-      s.encode!('UTF-16')
+      if s.respond_to?(:encode!)
+        s.encode!('UTF-16')
+      else
+        require 'iconv'
+        s.replace(Iconv.conv('UTF-16', 'UTF-8', s))
+      end
     end
   end
 
   def convert_strings_to_latin1(object)
+    return object unless "".respond_to?(:force_encoding)
+
     each_string(object) do |s|
       s.replace(generate_random_string(s.bytesize)).force_encoding('ISO-8859-1')
     end
