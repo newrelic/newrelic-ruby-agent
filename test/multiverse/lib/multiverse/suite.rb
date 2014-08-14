@@ -176,8 +176,19 @@ module Multiverse
       ENV['SERIALIZE'] || debug
     end
 
+    def check_environment_condition
+      if environments.condition && !environments.condition.call
+        puts yellow("SKIPPED #{directory.inspect}: #{environments.skip_message}")
+        false
+      else
+        true
+      end
+    end
+
     def prime
       ENV["VERBOSE"]= "1"
+      return unless check_environment_condition
+
       puts yellow("\nPriming #{directory.inspect}")
       @environments = nil
 
@@ -196,10 +207,7 @@ module Multiverse
     # implement #fork so we resort to a hack.  We exec this lib file, which
     # loads a new JVM for the tests to run in.
     def execute
-      if environments.condition && !environments.condition.call
-        puts yellow("SKIPPED #{directory.inspect}: #{environments.skip_message}")
-        return
-      end
+      return unless check_environment_condition
 
       label = should_serialize? ? 'serial' : 'parallel'
       env_count = filter_env ? 1 : environments.size
