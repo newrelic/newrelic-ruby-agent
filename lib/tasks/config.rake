@@ -7,11 +7,11 @@ namespace :newrelic do
 
     SECTION_DESCRIPTIONS = {
       GENERAL              => 'These settings are available for agent configuration. Some settings depend on your New Relic subscription level.',
-      DISABLING            => 'These settings are available to disable different instrumentation during the agent startup.',
-      "transaction_tracer" => 'The <a href="/docs/apm/traces/transaction-traces/transaction-traces">transaction traces</a> feature collects detailed information on a selection of transactions, including a summary of the calling sequence, a breakdown of time spent, and a list of SQL queries and their query plans (on mysql and postgresql). Available features depend on your New Relic subscription level.',
-      "error_collector"    => 'The agent will collect and report all uncaught exceptions.  Several configuration options allow you to customize the error collection.',
-      "browser_monitoring" => "New Relic Browser's page load timing feature (sometimes referred to as real user monitoring or RUM) gives you insight into the performance real users are experiencing with your website. This is accomplished by measuring the time it takes for your users' browsers to download and render your web pages by injecting a small amount of JavaScript code into the header and footer of each page.",
-      "analytics_events"   => 'New Relic Insights is a software analytics resource to gather and visualize data about your software and what it says about your business. With it you can quickly and easily create real-time dashboards to get immediate answers about end-user experiences, clickstreams, mobile activities, and server transactions.'
+      DISABLING            => 'Use these settings to toggle instrumentation types during agent startup.',
+      "transaction_tracer" => 'The <a href="/docs/apm/traces/transaction-traces/transaction-traces">transaction traces</a> feature collects detailed information from a selection of transactions, including a summary of the calling sequence, a breakdown of time spent, and a list of SQL queries and their query plans (on mysql and postgresql). Available features depend on your New Relic subscription level.',
+      "error_collector"    => 'The agent collects and reports all uncaught exceptions by default. These configuration options allow you to customize the error collection.',
+      "browser_monitoring" => 'New Relic Browser\'s <a href="/docs/browser/new-relic-browser/page-load-timing/page-load-timing-process">page load timing</a> feature (sometimes referred to as real user monitoring or RUM) gives you insight into the performance real users are experiencing with your website. This is accomplished by measuring the time it takes for your users\' browsers to download and render your web pages by injecting a small amount of JavaScript code into the header and footer of each page.',
+      "analytics_events"   => '<a href="/docs/insights/new-relic-insights/understanding-insights/new-relic-insights">New Relic Insights</a> is a software analytics resource to gather and visualize data about your software and what it says about your business. With it you can quickly and easily create real-time dashboards to get immediate answers about end-user experiences, clickstreams, mobile activities, and server transactions.'
     }
 
     NAME_OVERRIDES = {
@@ -101,7 +101,7 @@ namespace :newrelic do
 
     def format_description(value)
       description = value[:description]
-      description = "**DEPRECATED** #{description}" if value[:deprecated]
+      description = "<b>DEPRECATED</b> #{description}" if value[:deprecated]
       description
     end
 
