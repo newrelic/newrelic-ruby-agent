@@ -4,6 +4,10 @@
 
 require 'zlib'
 require 'new_relic/agent/audit_logger'
+require 'new_relic/agent/new_relic_service/encoders'
+require 'new_relic/agent/new_relic_service/marshaller'
+require 'new_relic/agent/new_relic_service/json_marshaller'
+require 'new_relic/agent/new_relic_service/pruby_marshaller'
 
 module NewRelic
   module Agent
@@ -436,150 +440,8 @@ module NewRelic
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"
       end
 
-      module Encoders
-        module Identity
-          def self.encode(data)
-            data
-          end
-        end
-
-        module Compressed
-          def self.encode(data)
-            Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
-          end
-        end
-
-        module Base64CompressedJSON
-          def self.encode(data)
-            json = ::NewRelic::JSONWrapper.dump(data,
-              :normalize => Agent.config[:normalize_json_string_encodings])
-            Base64.encode64(Compressed.encode(json))
-          end
-        end
-      end
-
       # Used to wrap errors reported to agent by the collector
       class CollectorError < StandardError; end
-
-      class Marshaller
-        def parsed_error(error)
-          error_class = error['error_type'].split('::') \
-            .inject(Module) {|mod,const| mod.const_get(const) }
-          error_class.new(error['message'])
-        rescue NameError
-          CollectorError.new("#{error['error_type']}: #{error['message']}")
-        end
-
-        def prepare(data, options={})
-          encoder = options[:encoder] || default_encoder
-          if data.respond_to?(:to_collector_array)
-            data.to_collector_array(encoder)
-          elsif data.kind_of?(Array)
-            data.map { |element| prepare(element, options) }
-          else
-            data
-          end
-        end
-
-        def default_encoder
-          Encoders::Identity
-        end
-
-        def self.human_readable?
-          false
-        end
-
-        protected
-
-        def return_value(data)
-          if data.respond_to?(:has_key?)
-            if data.has_key?('exception')
-              raise parsed_error(data['exception'])
-            elsif data.has_key?('return_value')
-              return data['return_value']
-            end
-          end
-          ::NewRelic::Agent.logger.debug("Unexpected response from collector: #{data}")
-          nil
-        end
-      end
-
-      # Primitive Ruby Object Notation which complies JSON format data strutures
-      class PrubyMarshaller < Marshaller
-        def initialize
-          ::NewRelic::Agent.logger.debug 'Using Pruby marshaller'
-          warn_for_pruby_deprecation
-        end
-
-        def warn_for_pruby_deprecation
-          if !NewRelic::LanguageSupport.stdlib_json_usable? && !defined?(::JSON)
-            NewRelic::Agent.logger.warn("Upcoming versions of the Ruby agent running on Ruby 1.8.7 will require the 'json' gem. To avoid interuption in reporting, please update your Gemfile. See http://docs.newrelic.com/docs/ruby/ruby-1.8.7-support for more information.")
-          end
-        end
-
-        def dump(ruby, opts={})
-          NewRelic::LanguageSupport.with_cautious_gc do
-            Marshal.dump(prepare(ruby, opts))
-          end
-        rescue => e
-          ::NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} when marshalling #{ruby.inspect}")
-          raise
-        end
-
-        def load(data)
-          return unless data && data != ''
-          NewRelic::LanguageSupport.with_cautious_gc do
-            return_value(Marshal.load(data))
-          end
-        rescue
-          ::NewRelic::Agent.logger.debug "Error encountered loading collector response: #{data}"
-          raise
-        end
-
-        def format
-          'pruby'
-        end
-
-        def self.is_supported?
-          true
-        end
-      end
-
-      # Marshal collector protocol with JSON when available
-      class JsonMarshaller < Marshaller
-        def initialize
-          ::NewRelic::Agent.logger.debug 'Using JSON marshaller'
-        end
-
-        def dump(ruby, opts={})
-          prepared = prepare(ruby, opts)
-          NewRelic::JSONWrapper.dump(prepared,
-            :normalize => Agent.config[:normalize_json_string_encodings])
-        end
-
-        def load(data)
-          return_value(NewRelic::JSONWrapper.load(data)) if data && data != ''
-        rescue => e
-          ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered loading collector response: #{data}"
-          raise
-        end
-
-        def default_encoder
-          Encoders::Base64CompressedJSON
-        end
-
-        def format
-          'json'
-        end
-
-        def self.is_supported?
-          NewRelic::JSONWrapper.usable_for_collector_serialization?
-        end
-
-        def self.human_readable?
-          true # for some definitions of 'human'
-        end
-      end
     end
   end
 end

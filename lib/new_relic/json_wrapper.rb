@@ -4,16 +4,14 @@
 
 module NewRelic
   class JSONWrapper
-    def self.load_stdlib_json
-      return false unless NewRelic::LanguageSupport.stdlib_json_usable?
-
+    def self.load_native_json
       begin
         require 'json'
         @load_method = ::JSON.method(:load)
         @dump_method = ::JSON.method(:dump)
         @backend_name = :json
         return true
-      rescue
+      rescue StandardError, ScriptError
         NewRelic::Agent.logger.debug "%p while loading JSON library: %s" % [ err, err.message ] if
           defined?( NewRelic::Agent ) && NewRelic::Agent.respond_to?( :logger )
       end
@@ -26,38 +24,62 @@ module NewRelic
       @backend_name = :okjson
     end
 
-    load_stdlib_json or load_okjson
+    load_native_json or load_okjson
 
     def self.usable_for_collector_serialization?
       @backend_name == :json
     end
 
+    def self.backend_name
+      @backend_name
+    end
+
     def self.normalize_string(s)
-      # Early return if called on 1.8.x. In normal circumstances 1.8.x
-      # shouldn't call this--it does nothing for Ruby-marshalled formats-- but
-      # we use it in multiverse to make comparing data more consistent.
-      return s unless supports_normalization?
+      choose_normalizer unless @normalizer
+      @normalizer.normalize(s)
+    end
 
-      encoding = s.encoding
-      if (encoding == Encoding::UTF_8 || encoding == Encoding::ISO_8859_1) && s.valid_encoding?
-        return s
-      end
-
-      # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
-      # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
-      normalized = s.dup
-      if encoding == Encoding::ASCII_8BIT || !s.valid_encoding?
-        normalized.force_encoding(Encoding::ISO_8859_1)
+    def self.choose_normalizer
+      if NewRelic::LanguageSupport.supports_string_encodings?
+        @normalizer = EncodingNormalizer
       else
-        # Encoding is valid and non-binary, so it might be cleanly convertible
-        # to UTF-8. Give it a try and fall back to ISO-8859-1 if it fails.
-        begin
-          normalized.encode!(Encoding::UTF_8)
-        rescue
-          normalized.force_encoding(Encoding::ISO_8859_1)
-        end
+        @normalizer = IconvNormalizer
       end
-      normalized
+    end
+
+    class EncodingNormalizer
+      def self.normalize(s)
+        encoding = s.encoding
+        if (encoding == Encoding::UTF_8 || encoding == Encoding::ISO_8859_1) && s.valid_encoding?
+          return s
+        end
+
+        # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
+        # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
+        normalized = s.dup
+        if encoding == Encoding::ASCII_8BIT || !s.valid_encoding?
+          normalized.force_encoding(Encoding::ISO_8859_1)
+        else
+          # Encoding is valid and non-binary, so it might be cleanly convertible
+          # to UTF-8. Give it a try and fall back to ISO-8859-1 if it fails.
+          begin
+            normalized.encode!(Encoding::UTF_8)
+          rescue
+            normalized.force_encoding(Encoding::ISO_8859_1)
+          end
+        end
+        normalized
+      end
+    end
+
+    class IconvNormalizer
+      def self.normalize(s)
+        if @iconv.nil?
+          require 'iconv'
+          @iconv = Iconv.new('utf-8', 'iso-8859-1')
+        end
+        @iconv.iconv(s)
+      end
     end
 
     def self.normalize(object)

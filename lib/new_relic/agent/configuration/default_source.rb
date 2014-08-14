@@ -106,6 +106,13 @@ module NewRelic
           Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? 'json' : 'pruby' }
         end
 
+        # On Rubies with string encodings support (1.9.x+), default to always
+        # normalize encodings since it's safest and fast. Without that support
+        # the conversions are too expensive, so only enable if overridden to.
+        def self.normalize_json_string_encodings
+          Proc.new { NewRelic::LanguageSupport.supports_string_encodings? }
+        end
+
         def self.thread_profiler_enabled
           Proc.new { NewRelic::Agent::Threading::BacktraceService.is_supported? }
         end
@@ -925,7 +932,7 @@ module NewRelic
           :description => 'Controls whether to check on running a transaction whether to respawn the harvest thread.'
         },
         :normalize_json_string_encodings => {
-          :default => true,
+          :default => DefaultSource.normalize_json_string_encodings,
           :public => false,
           :type => Boolean,
           :description => 'Controls whether to normalize string encodings prior to serializing data for the collector to JSON.'

@@ -270,7 +270,15 @@ class NewRelic::TransactionSampleTest < Minitest::Test
                       trace_tree,
                       @t.guid, nil, !!@t.force_persist, @t.xray_session_id]
 
-    assert_equal expected_array, @t.to_collector_array(@marshaller.default_encoder)
+    assert_collector_arrays_match expected_array, @t.to_collector_array(@marshaller.default_encoder)
+
+  end
+
+  def assert_collector_arrays_match(expected_array, actual_array)
+    expected_array[4] = expand_trace_tree(expected_array[4])
+    actual_array[4]   = expand_trace_tree(actual_array[4])
+
+    assert_equal expected_array, actual_array
   end
 
   FORCE_PERSIST_POSITION = 7
@@ -294,7 +302,8 @@ class NewRelic::TransactionSampleTest < Minitest::Test
       transaction.guid,
       nil, false, nil]
 
-    assert_equal expected, transaction.to_collector_array(@marshaller.default_encoder)
+    actual = transaction.to_collector_array(@marshaller.default_encoder)
+    assert_collector_arrays_match expected, actual
   end
 
   INVALID_UTF8_STRING = (''.respond_to?(:force_encoding) ? "\x80".force_encoding('UTF-8') : "\x80")
@@ -322,6 +331,14 @@ class NewRelic::TransactionSampleTest < Minitest::Test
 
   def compress(string)
     Base64.encode64(Zlib::Deflate.deflate(string, Zlib::DEFAULT_COMPRESSION))
+  end
+
+  def expand_trace_tree(encoded_tree)
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+      JSON.load(Zlib::Inflate.inflate(Base64.decode64(encoded_tree)))
+    else
+      encoded_tree
+    end
   end
 
   def extract_captured_sql(trace)

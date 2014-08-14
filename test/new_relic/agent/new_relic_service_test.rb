@@ -233,7 +233,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.metric_data(stats_hash)
     payload = @http_handle.last_request_payload
     _, last_harvest_timestamp, harvest_timestamp, _ = payload
-    assert_equal(t0.to_f, harvest_timestamp)
+    assert_in_delta(t0.to_f, harvest_timestamp, 0.0001)
 
     t1 = advance_time(10)
     stats_hash.harvested_at = t1
@@ -241,8 +241,8 @@ class NewRelicServiceTest < Minitest::Test
     @service.metric_data(stats_hash)
     payload = @http_handle.last_request_payload
     _, last_harvest_timestamp, harvest_timestamp, _ = payload
-    assert_equal(t1.to_f, harvest_timestamp)
-    assert_equal(t0.to_f, last_harvest_timestamp)
+    assert_in_delta(t1.to_f, harvest_timestamp, 0.0001)
+    assert_in_delta(t0.to_f, last_harvest_timestamp, 0.0001)
   end
 
   def test_fill_metric_id_cache_from_collect_response
@@ -288,7 +288,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.metric_data(stats_hash)
 
     timeslice_start = @http_handle.last_request_payload[1]
-    assert timeslice_start >= t0.to_f + 10
+    assert_in_delta(timeslice_start, t0.to_f + 10, 0.0001)
   end
 
   def test_error_data
@@ -424,10 +424,12 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     def test_raises_serialization_error_if_encoding_normalization_fails
-      @http_handle.respond_to(:wiggle, 'hi')
-      NewRelic::JSONWrapper.stubs(:normalize).raises('blah')
-      assert_raises(NewRelic::Agent::SerializationError) do
-        @service.send(:invoke_remote, 'wiggle', {})
+      with_config(:normalize_json_string_encodings => true) do
+        @http_handle.respond_to(:wiggle, 'hi')
+        NewRelic::JSONWrapper.stubs(:normalize).raises('blah')
+        assert_raises(NewRelic::Agent::SerializationError) do
+          @service.send(:invoke_remote, 'wiggle', {})
+        end
       end
     end
 
@@ -443,18 +445,30 @@ class NewRelicServiceTest < Minitest::Test
       input_string = (0..255).to_a.pack("C*")
       roundtripped_string = roundtrip_data(input_string)
 
-      assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
-      expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
+      if NewRelic::LanguageSupport.supports_string_encodings?
+        assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
+      end
+
+      expected = force_to_utf8(input_string.dup)
       assert_equal(expected, roundtripped_string)
     end
 
-    def test_json_marshaller_handles_strings_with_incorrect_encoding
-      input_string = (0..255).to_a.pack("C*").force_encoding("UTF-8")
-      roundtripped_string = roundtrip_data(input_string)
+    if NewRelic::LanguageSupport.supports_string_encodings?
+      def test_json_marshaller_handles_strings_with_incorrect_encoding
+        input_string = (0..255).to_a.pack("C*").force_encoding("UTF-8")
+        roundtripped_string = roundtrip_data(input_string)
 
-      assert_equal(Encoding.find('UTF-8'), input_string.encoding)
-      expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
-      assert_equal(expected, roundtripped_string)
+        assert_equal(Encoding.find('UTF-8'), input_string.encoding)
+        expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
+        assert_equal(expected, roundtripped_string)
+      end
+    end
+
+    def test_json_marshaller_failure_when_not_normalizing
+      input_string = (0..255).to_a.pack("C*")
+      assert_raises(NewRelic::Agent::SerializationError) do
+        roundtrip_data(input_string, false)
+      end
     end
 
     def test_json_marshaller_should_handle_crazy_strings
@@ -473,7 +487,7 @@ class NewRelicServiceTest < Minitest::Test
       data = DummyDataClass.new(binary_string, [])
       result = roundtrip_data(data)
 
-      expected_string = binary_string.force_encoding('ISO-8859-1').encode('UTF-8')
+      expected_string = force_to_utf8(binary_string)
       assert_equal(expected_string, result[0])
     end
 
@@ -482,7 +496,7 @@ class NewRelicServiceTest < Minitest::Test
       data = DummyDataClass.new(binary_string, [binary_string])
       result = roundtrip_data(data)
 
-      expected_string = binary_string.force_encoding('ISO-8859-1').encode('UTF-8')
+      expected_string = force_to_utf8(binary_string)
       assert_equal(expected_string, result[0])
 
       base64_encoded_compressed_json_field = result[1]
@@ -635,10 +649,20 @@ class NewRelicServiceTest < Minitest::Test
     hash
   end
 
+  def force_to_utf8(string)
+    if NewRelic::LanguageSupport.supports_string_encodings?
+      string.force_encoding('ISO-8859-1').encode('UTF-8')
+    else
+      Iconv.iconv('utf-8', 'iso-8859-1', string).join
+    end
+  end
+
   def generate_random_byte_sequence(length=255, encoding=nil)
     bytes = []
     alphabet = (0..255).to_a
-    length.times { bytes << alphabet.sample }
+    meth = alphabet.respond_to?(:sample) ? :sample : :choice
+    length.times { bytes << alphabet.send(meth) }
+
     string = bytes.pack("C*")
     string.force_encoding(encoding) if encoding
     string
@@ -646,19 +670,28 @@ class NewRelicServiceTest < Minitest::Test
 
   def generate_object_graph_with_crazy_strings
     strings = {}
-    encodings = Encoding.list
     100.times do
-      key_string = generate_random_byte_sequence(255, encodings.sample)
-      value_string = generate_random_byte_sequence(255, encodings.sample)
+      key_string = generate_random_byte_sequence(255, random_encoding)
+      value_string = generate_random_byte_sequence(255, random_encoding)
       strings[key_string] = value_string
     end
     strings
   end
 
-  def roundtrip_data(data)
-    @http_handle.respond_to(:roundtrip, 'roundtrip')
-    @service.send(:invoke_remote, 'roundtrip', data)
-    @http_handle.last_request_payload[0]
+  def random_encoding
+    if NewRelic::LanguageSupport.supports_string_encodings?
+      Encoding.list.sample
+    else
+      nil
+    end
+  end
+
+  def roundtrip_data(data, normalize = true)
+    with_config(:normalize_json_string_encodings => normalize) do
+      @http_handle.respond_to(:roundtrip, 'roundtrip')
+      @service.send(:invoke_remote, 'roundtrip', data)
+      @http_handle.last_request_payload[0]
+    end
   end
 
   class DummyDataClass

@@ -104,7 +104,7 @@ module NewRelic
 
       if uri.path =~ /agent_listener\/\d+\/.+\/(\w+)/
         method = $1
-        format = json_format?(uri) && RUBY_VERSION >= '1.9' ? :json : :pruby
+        format = json_format?(uri) ? :json : :pruby
         if @mock.keys.include? method
           status, body = @mock[method].evaluate
           res.status = status
@@ -135,6 +135,11 @@ module NewRelic
           end
         rescue
           body = "UNABLE TO DECODE BODY: #{raw_body}"
+
+          # Since this is for testing, output failure at this point. If we
+          # don't your only evidence of a problem is in obscure test failures
+          # from not receiving the data you expect.
+          puts body
         end
 
         @agent_data << AgentPost.create(:action       => method,
