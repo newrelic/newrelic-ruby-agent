@@ -424,10 +424,12 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     def test_raises_serialization_error_if_encoding_normalization_fails
-      @http_handle.respond_to(:wiggle, 'hi')
-      NewRelic::JSONWrapper.stubs(:normalize).raises('blah')
-      assert_raises(NewRelic::Agent::SerializationError) do
-        @service.send(:invoke_remote, 'wiggle', {})
+      with_config(:normalize_json_string_encodings => true) do
+        @http_handle.respond_to(:wiggle, 'hi')
+        NewRelic::JSONWrapper.stubs(:normalize).raises('blah')
+        assert_raises(NewRelic::Agent::SerializationError) do
+          @service.send(:invoke_remote, 'wiggle', {})
+        end
       end
     end
 
@@ -459,6 +461,13 @@ class NewRelicServiceTest < Minitest::Test
         assert_equal(Encoding.find('UTF-8'), input_string.encoding)
         expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
         assert_equal(expected, roundtripped_string)
+      end
+    end
+
+    def test_json_marshaller_failure_when_not_normalizing
+      input_string = (0..255).to_a.pack("C*")
+      assert_raises(NewRelic::Agent::SerializationError) do
+        roundtrip_data(input_string, false)
       end
     end
 
@@ -651,7 +660,9 @@ class NewRelicServiceTest < Minitest::Test
   def generate_random_byte_sequence(length=255, encoding=nil)
     bytes = []
     alphabet = (0..255).to_a
-    length.times { bytes << alphabet.sample }
+    meth = alphabet.respond_to?(:sample) ? :sample : :choice
+    length.times { bytes << alphabet.send(meth) }
+
     string = bytes.pack("C*")
     string.force_encoding(encoding) if encoding
     string
@@ -675,10 +686,12 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
-  def roundtrip_data(data)
-    @http_handle.respond_to(:roundtrip, 'roundtrip')
-    @service.send(:invoke_remote, 'roundtrip', data)
-    @http_handle.last_request_payload[0]
+  def roundtrip_data(data, normalize = true)
+    with_config(:normalize_json_string_encodings => normalize) do
+      @http_handle.respond_to(:roundtrip, 'roundtrip')
+      @service.send(:invoke_remote, 'roundtrip', data)
+      @http_handle.last_request_payload[0]
+    end
   end
 
   class DummyDataClass
