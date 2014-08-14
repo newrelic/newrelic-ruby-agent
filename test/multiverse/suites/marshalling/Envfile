@@ -1,0 +1,12 @@
+gemfile <<-RB
+  gem 'rack'
+RB
+
+# On Ruby 1.8.7 we need to explicitly run with the JSON gem to get JSON
+# serialization. Otherwise first env will run with pruby.
+if RUBY_VERSION < "1.9"
+gemfile <<-RB
+  gem 'json'
+  gem 'rack'
+RB
+end
