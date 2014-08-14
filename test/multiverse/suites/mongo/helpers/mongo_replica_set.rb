@@ -40,7 +40,7 @@ class MongoReplicaSet
     tries = 0
 
     begin
-      result = yield
+      yield
     rescue exception => e
       if message
         raise e unless e.message.include? message

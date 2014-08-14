@@ -11,7 +11,7 @@ class HarvestTimestampsTest < Minitest::Test
   setup_and_teardown_agent
 
   def test_resets_metric_data_timestamps_after_forking
-    t0 = freeze_time
+    freeze_time
 
     t1 = advance_time 10
     NewRelic::Agent.after_fork

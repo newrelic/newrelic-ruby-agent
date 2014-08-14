@@ -17,7 +17,7 @@ class PadrinoTestApp < Padrino::Application
     "please log in"
   end
 
-  get /\/regex.*/ do
+  get(/\/regex.*/) do
     "with extra regex's please!"
   end
 end

@@ -183,7 +183,7 @@ module HttpClientTestCases
 
   def test_transactional_traces_nodes
     perform_action_with_newrelic_trace(:name => "task") do
-      res = get_response
+      get_response
 
       last_segment = find_last_transaction_segment()
       assert_equal "External/localhost/#{client_name}/GET", last_segment.metric_name
@@ -193,7 +193,7 @@ module HttpClientTestCases
   def test_ignore
     in_transaction do
       NewRelic::Agent.disable_all_tracing do
-        res = post_response
+        post_response
       end
     end
 
@@ -201,7 +201,7 @@ module HttpClientTestCases
   end
 
   def test_head
-    res = head_response
+    head_response
     assert_externals_recorded_for("localhost", "HEAD")
   end
 
@@ -466,7 +466,7 @@ module HttpClientTestCases
       in_transaction do
         begin
           get_response("http://localhost:#{evil_server.port}")
-        rescue => e
+        rescue
           # it's expected that this will raise for some HTTP libraries (e.g.
           # Net::HTTP). we unfortunately don't know the exact exception class
           # across all libraries

@@ -11,7 +11,7 @@ if NewRelic::LanguageSupport.ree? ||
 class GcController < ApplicationController
   def gc_action
     begin
-      profiler = NewRelic::Agent::StatsEngine::GCProfiler.init
+      NewRelic::Agent::StatsEngine::GCProfiler.init
       initial_gc_count = current_gc_count
 
       Timeout.timeout(5) do
@@ -19,6 +19,7 @@ class GcController < ApplicationController
           long_string = "01234567" * 100_000
           long_string = nil
           another_long_string = "01234567" * 100_000
+          another_long_string = nil
         end
       end
     rescue Timeout::Error

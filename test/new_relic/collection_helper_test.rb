@@ -50,7 +50,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     assert_equal String, truncate(s, 2).class
   end
   def test_number
-    np = normalize_params({ 'one' => 1.0, 'two' => '2'})
+    normalize_params({ 'one' => 1.0, 'two' => '2'})
   end
   def test_nil
     np = normalize_params({ nil => 1.0, 'two' => nil})
@@ -83,7 +83,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     custom_params = { :one => {:hash => { :a => :b}, :myenum => e }}
     nh = normalize_params(custom_params)
     myenum = nh[:one][:myenum]
-    assert_match /MyEnumerable/, myenum
+    assert_match(/MyEnumerable/, myenum)
   end
 
   def test_stringio
@@ -91,13 +91,13 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     s = StringIO.new "start" + ("foo bar bat " * 1000)
     val = nil
     s.each { | entry | val = entry; break }
-    assert_match /^startfoo bar/, val
+    assert_match(/^startfoo bar/, val)
 
     # make sure stringios aren't affected by calling normalize_params:
     s = StringIO.new "start" + ("foo bar bat " * 1000)
-    v = normalize_params({ :foo => s.string })
+    normalize_params({ :foo => s.string })
     s.each { | entry | val = entry; break }
-    assert_match /^startfoo bar/, val
+    assert_match(/^startfoo bar/, val)
   end
   class MyEnumerable
     include Enumerable

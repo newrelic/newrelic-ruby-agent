@@ -110,7 +110,7 @@ module Environments
       return if File.basename(dir) == "norails"
 
       puts "Making sure the database is there for '#{File.basename(dir)}'..."
-      result = `cd #{dir} && RAILS_ENV=test bundle exec rake --trace db:create`
+      `cd #{dir} && RAILS_ENV=test bundle exec rake --trace db:create`
     end
 
     def run(dir)

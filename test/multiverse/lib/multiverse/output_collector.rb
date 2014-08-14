@@ -60,7 +60,7 @@ module Multiverse
     # start their processes, make sure we don't blatantly interleave output.
     def self.output(*args)
       @output_lock.synchronize do
-        puts *args
+        puts(*args)
       end
     end
   end

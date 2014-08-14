@@ -249,7 +249,7 @@ module NewRelic
       # Return the set of metric objects appropriate for the given cross app
       # +response+.
       def metrics_for_crossapp_response( request, response )
-        xp_id, txn_name, q_time, r_time, req_len, _ = extract_appdata( response )
+        xp_id, txn_name, _q_time, _r_time, _req_len, _ = extract_appdata( response )
 
         check_crossapp_id( xp_id )
         check_transaction_name( txn_name )

@@ -63,7 +63,6 @@ if !NewRelic::Agent::Threading::BacktraceService.is_supported?
     end
 
     def test_wont_start_and_reports_error
-      errors = nil
       assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
         @profiler.handle_start_command(start_command)
       end

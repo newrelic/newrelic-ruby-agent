@@ -210,7 +210,6 @@ class NewRelic::Agent::TransationSampleBuilderTest < Minitest::Test
       end
       assert(child.entry_timestamp >= parent.entry_timestamp,
              "#{child.entry_timestamp} !>= #{parent.entry_timestamp}")
-      last_metric = child
 
       validate_segment(child, check_names)
     end

@@ -75,7 +75,7 @@ class DeferredSinatraTestApp < Sinatra::Base
     @filtered ? 'got filtered' : 'nope'
   end
 
-  get /\/regex.*/ do
+  get(/\/regex.*/) do
     "Yeah, regex's!"
   end
 end

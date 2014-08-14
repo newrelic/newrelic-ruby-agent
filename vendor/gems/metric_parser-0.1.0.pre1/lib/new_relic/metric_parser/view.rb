@@ -65,7 +65,7 @@ module NewRelic
       end
       private
       def file_name(path)
-        label = path.gsub /\.html\.rhtml/, '.rhtml'
+        label = path.gsub(/\.html\.rhtml/, '.rhtml')
         label = segments[1] if label.empty?
         label
       end

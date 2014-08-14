@@ -133,7 +133,7 @@ module NewRelic
             # rely on strings to compare against in fake collector results.
             body = NewRelic::JSONWrapper.normalize(body)
           end
-        rescue => err
+        rescue
           body = "UNABLE TO DECODE BODY: #{raw_body}"
         end
 

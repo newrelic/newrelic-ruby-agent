@@ -39,7 +39,7 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
   def test_children_time
     state = NewRelic::Agent::TransactionState.tl_get
 
-    t1 = freeze_time
+    freeze_time
     expected1 = @frame_stack.push_frame(state, :a)
     advance_time(0.001)
     t2 = Time.now
@@ -164,17 +164,17 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
       @frame_stack.fetch_matching_frame(frame)
     end
 
-    assert_match /not found/, error.message
+    assert_match(/not found/, error.message)
   end
 
   def test_fetch_matching_frame_logs_any_unexpected_frame_tags
     state = NewRelic::Agent::TransactionState.tl_get
     frame = @frame_stack.push_frame(state, :a,  0)
-    mismatched = @frame_stack.push_frame(state, :unexpected,  0)
+    @frame_stack.push_frame(state, :unexpected,  0)
 
     expects_logging(:info, includes("unexpected"))
 
-    result = @frame_stack.fetch_matching_frame(frame)
+    @frame_stack.fetch_matching_frame(frame)
   end
 
   def assert_sampler_enabled_with(expected, opts={})

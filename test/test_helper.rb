@@ -38,7 +38,7 @@ else
   begin
     require 'config/environment'
     require 'newrelic_rpm'
-  rescue LoadError => e
+  rescue LoadError
     puts "Running tests in standalone mode."
 
     require 'bundler'

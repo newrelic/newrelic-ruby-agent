@@ -31,7 +31,7 @@ class NewRelic::ControlTest < Minitest::Test
   def test_info
     NewRelic::Agent.manual_start
     if defined?(Rails::VERSION)
-      assert_match /jdbc|postgres|mysql|sqlite/, NewRelic::EnvironmentReport.new["Database adapter"]
+      assert_match(/jdbc|postgres|mysql|sqlite/, NewRelic::EnvironmentReport.new["Database adapter"])
     end
   end
 

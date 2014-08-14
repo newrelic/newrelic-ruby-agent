@@ -231,8 +231,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                 "Database/test/select", {}, 1.2),
         "tx_name", "uri")
 
-    assert -2147483648 <= sql_trace.sql_id, "sql_id too small"
-    assert 2147483647 >= sql_trace.sql_id, "sql_id too large"
+    assert(-2147483648 <= sql_trace.sql_id, "sql_id too small")
+    assert( 2147483647 >= sql_trace.sql_id, "sql_id too large")
   end
 
   def test_sends_obfuscated_queries_when_configured

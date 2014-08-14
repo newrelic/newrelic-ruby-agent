@@ -40,7 +40,7 @@ module NewRelic
     if backtrace && !Agent.config[:disable_backtrace_cleanup]
       # this is for 1.9.1, where strings no longer have Enumerable
       backtrace = backtrace.split("\n") if String === backtrace
-      backtrace = backtrace.map &:to_s
+      backtrace = backtrace.map(&:to_s)
       backtrace = backtrace.reject do |line|
         line.include?(NewRelic::Control.newrelic_root) or
         line =~ /^newrelic_rpm\s/
@@ -55,7 +55,7 @@ module NewRelic
 
   # Convert any kind of object to a short string.
   def flatten(object)
-    s = case object
+    case object
       when nil then ''
       when object.instance_of?(String) then object
       when String then String.new(object)  # convert string subclasses to strings

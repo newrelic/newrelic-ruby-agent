@@ -50,7 +50,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
 
           begin
-            txn = Transaction.start(state, category, opts)
+            Transaction.start(state, category, opts)
             if target == self
               traced_call(env)
             else

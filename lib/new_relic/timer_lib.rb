@@ -23,7 +23,7 @@ module NewRelic #:nodoc:
       require 'timeout'
       TimerLib = Timeout
     end
-  rescue LoadError => e
+  rescue LoadError
     require 'timeout'
     TimerLib = Timeout
   end

@@ -16,7 +16,7 @@ module NewRelic
 
     begin
       require File.join(File.dirname(__FILE__), 'build')
-    rescue LoadError => e
+    rescue LoadError
       BUILD = nil
     end
 

@@ -72,7 +72,7 @@ module Multiverse
           puts red("Error when trying to run suite in #{full_path.inspect}")
           puts
           puts "#{e.class}: #{e}"
-          puts *e.backtrace
+          puts(*e.backtrace)
           notice_exit_status 1
         end
       end
