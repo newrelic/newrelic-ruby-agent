@@ -15,7 +15,7 @@ module NewRelic
         end
 
         def warn_for_pruby_deprecation
-          if !NewRelic::LanguageSupport.native_json_usable? && !defined?(::JSON)
+          if RUBY_VERSION < "1.9" && !defined?(::JSON)
             NewRelic::Agent.logger.warn("Upcoming versions of the Ruby agent running on Ruby 1.8.7 will require the 'json' gem. To avoid interuption in reporting, please update your Gemfile. See http://docs.newrelic.com/docs/ruby/ruby-1.8.7-support for more information.")
           end
         end
