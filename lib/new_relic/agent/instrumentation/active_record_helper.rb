@@ -8,7 +8,7 @@ module NewRelic
         module_function
 
         def metric_for_name(name)
-          return unless name
+          return unless name && name.respond_to?(:split)
           parts = name.split(' ')
           if parts.size == 2
             model = parts.first
