@@ -20,7 +20,47 @@
   as opposed to at the class level on startup.
 
   See the docs for more details on how to use these methods:
-  http://docs.newrelic.com/docs/agents/ruby-agent/installation-and-configuration/blocking-controller-instrumentation
+  https://docs.newrelic.com/docs/agents/ruby-agent/installation-and-configuration/ignoring-specific-transactions
+
+  * Improved SQL obfuscation
+
+  SQL queries containing string literals ending in backslash ('\') characters
+  would previously not have been obfuscated correctly by the Ruby agent prior to
+  transmission to New Relic. This has been fixed, and the test coverage for SQL
+  obfuscation has been improved.
+
+  * newrelic_ignore* methods now work when called in a superclass
+
+  The newrelic_ignore* family of methods previously did not apply to subclasses
+  of the class from which it was called, meaning that Rails controllers
+  inheriting from a single base class where newrelic_ignore had been called
+  would not be ignored. This has been fixed.
+
+  * Fix for rare crashes in Rack::Request#params on Sinatra apps
+
+  Certain kinds of malformed HTTP requests could previously have caused
+  unhandled exceptions in the Ruby agent's Sinatra instrumentation, in the
+  Rack::Request#params method. This has been fixed.
+
+  * Improved handling for rare errors caused by timeouts in Excon requests
+
+  In some rare cases, the agent would emit a warning message in its log file and
+  abort instrumentation of a transaction if a timeout occurred during an
+  Excon request initiated from within that transaction. This has been fixed.
+
+  * Improved behavior when the agent is misconfigured
+
+  When the agent is misconfigured by attempting to shut it down without
+  it ever having been started, or by attempting to disable instrumentation after
+  instrumentation has already been installed, the agent will no longer raise an
+  exception, but will instead log an error to its log file.
+
+  * Fix for ignore_error_filter not working in some configurations
+
+  The ignore_error_filter method allows you to specify a block to be evaluated
+  in order to determine whether a given error should be ignored by the agent.
+  If the agent was initially disabled, and then later enabled with a call to
+  manual_start, the ignore_error_filter would not work. This has been fixed.
 
   * Fix for Capistrano 3 ignoring newrelic_revion
 
