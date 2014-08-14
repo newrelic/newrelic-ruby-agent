@@ -30,4 +30,12 @@ class StartUpTest < Minitest::Test
     problems = output.scan(/ERROR : .*/)
     assert_empty problems
   end
+
+  def test_after_fork_does_not_blow_away_manual_start_settings
+    NewRelic::Agent.manual_start(:app_name => 'my great app')
+
+    NewRelic::Agent.after_fork
+
+    assert_equal('my great app', NewRelic::Agent.config[:app_name])
+  end
 end

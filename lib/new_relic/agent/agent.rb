@@ -137,8 +137,6 @@ module NewRelic
           # we should be ready to run and shouldn't restarting if we can't.
           @harvester.mark_started
 
-          Agent.config.replace_or_add_config(NewRelic::Agent::Configuration::ManualSource.new(options))
-
           if channel_id = options[:report_to_channel]
             @service = NewRelic::Agent::PipeService.new(channel_id)
             if connected?
