@@ -39,6 +39,10 @@ class NewRelic::Agent::Instrumentation::ActiveRecordHelperTest < Minitest::Test
     assert_nil ActiveRecordHelper.metric_for_name('Model Columns')
   end
 
+  def test_metric_for_name_with_integer_returns_nil
+    assert_nil ActiveRecordHelper.metric_for_name(1)
+  end
+
   def test_rollup_metrics_for_lists_rollups
     NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
     base_metric = 'ActiveRecord/Namespace::Model/find'
