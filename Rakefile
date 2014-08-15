@@ -84,6 +84,47 @@ task :record_build, [ :build_number, :stage ] do |t, args|
   end
 end
 
+desc 'Update CA bundle'
+task :update_ca_bundle do |t|
+  ca_bundle_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'SSL_CA_cert_bundle'))
+  if !File.exist?(ca_bundle_path)
+    puts "Could not find SSL_CA_cert_bundle project at #{ca_bundle_path}. Please clone it."
+    exit
+  end
+  if !File.exist?(File.join(ca_bundle_path, '.git'))
+    puts "#{ca_bundle_path} does not appear to be a git repository."
+    exit
+  end
+
+  puts "Updating bundle at #{ca_bundle_path} with git..."
+  result = system("cd #{ca_bundle_path} && git fetch origin && git reset --hard origin/master")
+  if result != true
+    puts "Failed to update git repo at #{ca_bundle_path}."
+    exit
+  end
+
+  bundle_last_update = `cd #{ca_bundle_path} && git show -s --format=%ci HEAD`
+  puts "Source CA bundle last updated #{bundle_last_update}"
+
+  bundle_path = "cert/cacert.pem"
+  cert_paths = []
+  Dir.glob("#{ca_bundle_path}/*.pem").each { |p| cert_paths << p }
+  cert_paths.sort!
+
+  puts "Writing #{cert_paths.size} certs to bundle at #{bundle_path}..."
+
+  File.open(bundle_path, "w") do |f|
+    cert_paths.each do |cert_path|
+      cert_name = File.basename(cert_path, '.pem')
+      puts "Adding #{cert_name}"
+      f.write("#{cert_name}\n")
+      f.write(File.read(cert_path))
+      f.write("\n\n")
+    end
+  end
+  puts "Done, please commit your changes to #{bundle_path}"
+end
+
 task :console do
   require 'pry'
   require 'newrelic_rpm'
