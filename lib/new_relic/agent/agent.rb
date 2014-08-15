@@ -547,6 +547,19 @@ module NewRelic
             EventLoop.new
           end
 
+          # Never allow transaction events to be reported more frequently than
+          # once per second.
+          MIN_ALLOWED_TRANSACTION_EVENTS_REPORT_PERIOD = 1.0
+
+          def transaction_events_report_period
+            period = Agent.config[:'transaction_events.report_period']
+            if period < MIN_ALLOWED_TRANSACTION_EVENTS_REPORT_PERIOD
+              ::NewRelic::Agent.logger.warn("Configured transaction_events.report_period was #{period}, but minimum allowed is #{MIN_ALLOWED_TRANSACTION_EVENTS_REPORT_PERIOD}, using #{MIN_ALLOWED_TRANSACTION_EVENTS_REPORT_PERIOD}.")
+              period = MIN_ALLOWED_TRANSACTION_EVENTS_REPORT_PERIOD
+            end
+            period
+          end
+
           def create_and_run_event_loop
             @event_loop = create_event_loop
             @event_loop.on(:report_data) do
@@ -555,8 +568,8 @@ module NewRelic
             @event_loop.on(:report_transaction_event_data) do
               transmit_transaction_event_data
             end
-            @event_loop.fire_every(Agent.config[:data_report_period                ], :report_data)
-            @event_loop.fire_every(Agent.config[:'transaction_events.report_period'], :report_transaction_event_data)
+            @event_loop.fire_every(Agent.config[:data_report_period], :report_data)
+            @event_loop.fire_every(transaction_events_report_period,  :report_transaction_event_data)
             @event_loop.run
           end
 
