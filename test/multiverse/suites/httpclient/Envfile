@@ -1,7 +1,3 @@
-suite_condition("HTTPClient not supported in 1.8.6") do
-  RUBY_VERSION != '1.8.6'
-end
-
 httpclient_versions = %w(2.3.3 2.2.0)
 
 httpclient_versions.each do |httpclient_version|

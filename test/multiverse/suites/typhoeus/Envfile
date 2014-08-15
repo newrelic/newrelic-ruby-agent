@@ -1,11 +1,8 @@
-suite_condition("Typhoeus not supported in 1.8.6 and excluded on 1.8.7 non-REE") do
-
+suite_condition("Typhoeus excluded on 1.8.7 non-REE") do
   # Under Ruby 1.8.7 (but not REE), there are persistent segfaults with Typhoeus
   # and the Ruby agent. This predated our Typhoeus instrumentation, but given
   # usage levels and obscurity of the issue, it isn't worth deeper digging.
   # Just use REE, or better yet >= 1.9
-
-  (RUBY_VERSION != '1.8.6') &&
   (RUBY_VERSION != '1.8.7' || RUBY_DESCRIPTION =~ /Enterprise/)
 end
 
