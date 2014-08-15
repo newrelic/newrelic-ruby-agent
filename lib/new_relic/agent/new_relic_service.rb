@@ -56,6 +56,7 @@ module NewRelic
               @marshaller = PrubyMarshaller.new
             end
           rescue LoadError
+            ::NewRelic::Agent.logger.warn("JSON marshaller requested, but the 'json' gem was not available, falling back to pruby. This will not be supported in future versions of the agent.")
             @marshaller = PrubyMarshaller.new
           end
         end
