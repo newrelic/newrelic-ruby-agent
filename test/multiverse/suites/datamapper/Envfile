@@ -1,7 +1,3 @@
-suite_condition("Datamapper not supported in 1.8.6") do
-  RUBY_VERSION != '1.8.6'
-end
-
 omit_collector!
 
 gemfile <<-RB
