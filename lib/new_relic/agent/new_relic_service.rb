@@ -50,7 +50,6 @@ module NewRelic
         Agent.config.register_callback(:marshaller) do |marshaller|
           begin
             if marshaller == 'json'
-              require 'json'
               @marshaller = JsonMarshaller.new
             else
               @marshaller = PrubyMarshaller.new

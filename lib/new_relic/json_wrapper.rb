@@ -6,7 +6,7 @@ module NewRelic
   class JSONWrapper
     def self.load_native_json
       begin
-        require 'json'
+        require 'json' unless defined?(::JSON)
         @load_method = ::JSON.method(:load)
         @dump_method = ::JSON.method(:dump)
         @backend_name = :json
