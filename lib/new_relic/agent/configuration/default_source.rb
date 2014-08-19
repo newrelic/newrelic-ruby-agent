@@ -1059,7 +1059,8 @@ module NewRelic
           :description  => 'Timeout for keep alive on TCP connection to collector if supported by Ruby version. Only used in conjunction when aggressive_keepalive is enabled.'
         },
         :certificate_path => {
-          :default      => '',
+          :default      => nil,
+          :allow_nil    => true,
           :public       => true,
           :type         => String,
           :description  => 'Manual override for the path to your local ca bundle.'
