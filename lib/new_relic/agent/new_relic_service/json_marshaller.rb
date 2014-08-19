@@ -19,11 +19,7 @@ module NewRelic
         def dump(ruby, opts={})
           prepared = prepare(ruby, opts)
 
-          if opts[:normalize] == false
-            normalize_encodings = false
-          else
-            normalize_encodings = Agent.config[:normalize_json_string_encodings]
-          end
+          normalize_encodings = Agent.config[:normalize_json_string_encodings] unless opts[:skip_normalization]
 
           NewRelic::JSONWrapper.dump(prepared, :normalize => normalize_encodings)
         end

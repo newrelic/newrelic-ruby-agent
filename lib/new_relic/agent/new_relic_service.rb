@@ -143,7 +143,7 @@ module NewRelic
       end
 
       def profile_data(profile)
-        invoke_remote(:profile_data, [@agent_id, profile], :normalize => false) || ''
+        invoke_remote(:profile_data, [@agent_id, profile], :skip_normalization => true) || ''
       end
 
       def get_agent_commands
