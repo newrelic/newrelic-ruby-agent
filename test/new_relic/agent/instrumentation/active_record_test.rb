@@ -301,6 +301,40 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
     end
   end
 
+  def test_cached_calls_are_not_recorded_with_find
+    in_web_transaction do
+      order = ActiveRecordFixtures::Order.create(:name => 'Oberon')
+      ActiveRecordFixtures::Order.connection.cache do
+        ActiveRecordFixtures::Order.find(order.id)
+        ActiveRecordFixtures::Order.find(order.id)
+        ActiveRecordFixtures::Order.find(order.id)
+      end
+    end
+
+    assert_activerecord_metrics(ActiveRecordFixtures::Order, 'find')
+    assert_remote_service_metrics
+
+    assert_metrics_recorded(
+      {'ActiveRecord/ActiveRecordFixtures::Order/find' => {:call_count => 1}}
+    )
+  end
+
+  def test_cached_calls_are_not_recorded_with_select_all
+    query = "SELECT * FROM #{ActiveRecordFixtures::Order.table_name} WHERE name = 'Oberon'"
+    in_web_transaction do
+      order = ActiveRecordFixtures::Order.create(:name => 'Oberon')
+      ActiveRecordFixtures::Order.connection.cache do
+        ActiveRecordFixtures::Order.connection.select_all(query)
+        ActiveRecordFixtures::Order.connection.select_all(query)
+        ActiveRecordFixtures::Order.connection.select_all(query)
+      end
+    end
+
+    assert_metrics_recorded(
+      {'Database/SQL/select' => {:call_count => 1}}
+    )
+  end
+
   # helpers
 
   def rails_env
