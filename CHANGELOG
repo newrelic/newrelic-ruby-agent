@@ -26,8 +26,9 @@
 
   SQL queries containing string literals ending in backslash ('\') characters
   would previously not have been obfuscated correctly by the Ruby agent prior to
-  transmission to New Relic. This has been fixed, and the test coverage for SQL
-  obfuscation has been improved.
+  transmission to New Relic. In addition, SQL comments were left un-obfuscated.
+  This has been fixed, and the test coverage for SQL obfuscation has been
+  improved.
 
   * newrelic_ignore* methods now work when called in a superclass
 
