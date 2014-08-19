@@ -58,7 +58,7 @@ module NewRelic::Agent::Database
         query               = read_query(input_file)
         expected_obfuscated = File.read(obfuscated_filename(input_file))
         actual_obfuscated   = NewRelic::Agent::Database.obfuscate_sql(query)
-        assert_equal(expected_obfuscated, actual_obfuscated)
+        assert_equal(expected_obfuscated, actual_obfuscated, "Failed to obfuscate query from #{input_file}\nQuery: #{query}")
       end
     end
 
@@ -69,7 +69,7 @@ module NewRelic::Agent::Database
       define_method("test_sql_obfuscation_malformed_#{name}") do
         query = read_query(input_file)
         actual_obfuscated = NewRelic::Agent::Database.obfuscate_sql(query)
-        assert_equal(NewRelic::Agent::Database::Obfuscator::FAILED_TO_OBFUSCATE_MESSAGE, actual_obfuscated)
+        assert_equal(NewRelic::Agent::Database::Obfuscator::FAILED_TO_OBFUSCATE_MESSAGE, actual_obfuscated, "Failed to obfuscate malformed query from #{input_file}\nQuery: #{query}")
       end
     end
   end

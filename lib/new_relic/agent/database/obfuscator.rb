@@ -59,15 +59,18 @@ module NewRelic
 
           if obfuscate_double_quotes
             obfuscated = obfuscate_quoted_literals(obfuscated)
+            obfuscated = remove_comments(obfuscated)
             if contains_quotes?(obfuscated)
               obfuscated = FAILED_TO_OBFUSCATE_MESSAGE
             end
           else
             obfuscated = obfuscate_single_quote_literals(obfuscated)
+            obfuscated = remove_comments(obfuscated)
             if contains_single_quotes?(obfuscated)
               obfuscated = FAILED_TO_OBFUSCATE_MESSAGE
             end
           end
+
 
           obfuscated.to_s # return back to a regular String
         end
