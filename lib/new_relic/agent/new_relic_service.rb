@@ -292,7 +292,7 @@ module NewRelic
       end
 
       # The path on the server that we should post our data to
-      def remote_method_uri(method, format='ruby')
+      def remote_method_uri(method, format)
         params = {'run_id' => @agent_id, 'marshal_format' => format}
         uri = "/agent_listener/#{PROTOCOL_VERSION}/#{@license_key}/#{method}"
         uri << '?' + params.map do |k,v|

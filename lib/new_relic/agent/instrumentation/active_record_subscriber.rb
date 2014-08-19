@@ -11,7 +11,10 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActiveRecordSubscriber < EventedSubscriber
+        CACHED_QUERY_NAME = 'CACHE'.freeze
+
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
+          return if payload[:name] == CACHED_QUERY_NAME
           return unless NewRelic::Agent.tl_is_execution_traced?
           super
         rescue => e
@@ -19,6 +22,7 @@ module NewRelic
         end
 
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
+          return if payload[:name] == CACHED_QUERY_NAME
           state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
           event = pop_event(id)
