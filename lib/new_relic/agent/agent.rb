@@ -547,15 +547,20 @@ module NewRelic
             EventLoop.new
           end
 
-          # Never allow transaction events to be reported more frequently than
-          # once per second.
-          MIN_ALLOWED_TRANSACTION_EVENTS_REPORT_PERIOD = 1.0
+          # Never allow any data type to be reported more frequently than once
+          # per second.
+          MIN_ALLOWED_REPORT_PERIOD = 1.0
 
-          def transaction_events_report_period
-            period = Agent.config[:'transaction_events.report_period']
-            if period < MIN_ALLOWED_TRANSACTION_EVENTS_REPORT_PERIOD
-              ::NewRelic::Agent.logger.warn("Configured transaction_events.report_period was #{period}, but minimum allowed is #{MIN_ALLOWED_TRANSACTION_EVENTS_REPORT_PERIOD}, using #{MIN_ALLOWED_TRANSACTION_EVENTS_REPORT_PERIOD}.")
-              period = MIN_ALLOWED_TRANSACTION_EVENTS_REPORT_PERIOD
+          def report_period_for(method)
+            config_key = "data_report_periods.#{method}".to_sym
+            period = Agent.config[config_key]
+            if !period
+              period = Agent.config[:data_report_period]
+              ::NewRelic::Agent.logger.warn("Could not find configured period for #{method}, falling back to data_report_period (#{period} s)")
+            end
+            if period < MIN_ALLOWED_REPORT_PERIOD
+              ::NewRelic::Agent.logger.warn("Configured #{config_key} was #{period}, but minimum allowed is #{MIN_ALLOWED_REPORT_PERIOD}, using #{MIN_ALLOWED_REPORT_PERIOD}.")
+              period = MIN_ALLOWED_REPORT_PERIOD
             end
             period
           end
@@ -568,8 +573,8 @@ module NewRelic
             @event_loop.on(:report_transaction_event_data) do
               transmit_transaction_event_data
             end
-            @event_loop.fire_every(Agent.config[:data_report_period], :report_data)
-            @event_loop.fire_every(transaction_events_report_period,  :report_transaction_event_data)
+            @event_loop.fire_every(Agent.config[:data_report_period],       :report_data)
+            @event_loop.fire_every(report_period_for(:analytic_event_data), :report_transaction_event_data)
             @event_loop.run
           end
 
