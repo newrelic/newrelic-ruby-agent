@@ -150,6 +150,13 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'cert', 'cacert.pem')), @service.cert_file_path
   end
 
+  def test_cert_file_path_uses_path_from_config
+    fake_cert_path = '/certpath/cert.pem'
+    with_config(:certificate_path => fake_cert_path) do
+      assert_equal @service.cert_file_path, fake_cert_path
+    end
+  end
+
   def test_initialize_uses_correct_license_key_settings
     with_config(:license_key => 'abcde') do
       service = NewRelic::Agent::NewRelicService.new
