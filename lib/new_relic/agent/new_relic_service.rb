@@ -65,7 +65,7 @@ module NewRelic
         if host = get_redirect_host
           @collector = NewRelic::Control.instance.server_from_host(host)
         end
-        response = invoke_remote(:connect, settings)
+        response = invoke_remote(:connect, [settings])
         @agent_id = response['agent_run_id']
         response
       end
@@ -75,7 +75,7 @@ module NewRelic
       end
 
       def shutdown(time)
-        invoke_remote(:shutdown, @agent_id, time.to_i) if @agent_id
+        invoke_remote(:shutdown, [@agent_id, time.to_i]) if @agent_id
       end
 
       def reset_metric_id_cache
@@ -124,46 +124,43 @@ module NewRelic
         metric_data_array = build_metric_data_array(stats_hash)
         result = invoke_remote(
           :metric_data,
-          @agent_id,
-          timeslice_start.to_f,
-          timeslice_end.to_f,
-          metric_data_array
+          [@agent_id, timeslice_start.to_f, timeslice_end.to_f, metric_data_array]
         )
         fill_metric_id_cache(result)
         result
       end
 
       def error_data(unsent_errors)
-        invoke_remote(:error_data, @agent_id, unsent_errors)
+        invoke_remote(:error_data, [@agent_id, unsent_errors])
       end
 
       def transaction_sample_data(traces)
-        invoke_remote(:transaction_sample_data, @agent_id, traces)
+        invoke_remote(:transaction_sample_data, [@agent_id, traces])
       end
 
       def sql_trace_data(sql_traces)
-        invoke_remote(:sql_trace_data, sql_traces)
+        invoke_remote(:sql_trace_data, [sql_traces])
       end
 
       def profile_data(profile)
-        invoke_remote(:profile_data, @agent_id, profile) || ''
+        invoke_remote(:profile_data, [@agent_id, profile]) || ''
       end
 
       def get_agent_commands
-        invoke_remote(:get_agent_commands, @agent_id)
+        invoke_remote(:get_agent_commands, [@agent_id])
       end
 
       def agent_command_results(results)
-        invoke_remote(:agent_command_results, @agent_id, results)
+        invoke_remote(:agent_command_results, [@agent_id, results])
       end
 
       def get_xray_metadata(xray_ids)
-        invoke_remote(:get_xray_metadata, @agent_id, *xray_ids)
+        invoke_remote(:get_xray_metadata, [@agent_id, *xray_ids])
       end
 
       # Send fine-grained analytic data to the collector.
       def analytic_event_data(data)
-        invoke_remote(:analytic_event_data, @agent_id, data)
+        invoke_remote(:analytic_event_data, [@agent_id, data])
       end
 
       # We do not compress if content is smaller than 64kb.  There are
@@ -306,12 +303,12 @@ module NewRelic
       # to automatically compress the data via zlib if it is large
       # enough to be worth compressing, and handles any errors the
       # server may return
-      def invoke_remote(method, *args)
+      def invoke_remote(method, payload = [], options = {})
         start_ts = Time.now
 
         data, size, serialize_finish_ts = nil
         begin
-          data = @marshaller.dump(args)
+          data = @marshaller.dump(payload)
         rescue StandardError, SystemStackError => e
           handle_serialization_error(method, e)
         end
@@ -323,7 +320,7 @@ module NewRelic
         uri = remote_method_uri(method, @marshaller.format)
         full_uri = "#{@collector}#{uri}"
 
-        @audit_logger.log_request(full_uri, args, @marshaller)
+        @audit_logger.log_request(full_uri, payload, @marshaller)
         response = send_request(:data      => data,
                                 :uri       => uri,
                                 :encoding  => encoding,
