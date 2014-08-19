@@ -554,6 +554,10 @@ module NewRelic
           def report_period_for(method)
             config_key = "data_report_periods.#{method}".to_sym
             period = Agent.config[config_key]
+            if !period
+              period = Agent.config[:data_report_period]
+              ::NewRelic::Agent.logger.warn("Could not find configured period for #{method}, falling back to data_report_period (#{period} s)")
+            end
             if period < MIN_ALLOWED_REPORT_PERIOD
               ::NewRelic::Agent.logger.warn("Configured #{config_key} was #{period}, but minimum allowed is #{MIN_ALLOWED_REPORT_PERIOD}, using #{MIN_ALLOWED_REPORT_PERIOD}.")
               period = MIN_ALLOWED_REPORT_PERIOD
