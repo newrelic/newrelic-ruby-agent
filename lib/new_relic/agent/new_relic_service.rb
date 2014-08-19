@@ -143,7 +143,7 @@ module NewRelic
       end
 
       def profile_data(profile)
-        invoke_remote(:profile_data, [@agent_id, profile]) || ''
+        invoke_remote(:profile_data, [@agent_id, profile], :normalize => false) || ''
       end
 
       def get_agent_commands
@@ -308,7 +308,7 @@ module NewRelic
 
         data, size, serialize_finish_ts = nil
         begin
-          data = @marshaller.dump(payload)
+          data = @marshaller.dump(payload, options)
         rescue StandardError, SystemStackError => e
           handle_serialization_error(method, e)
         end

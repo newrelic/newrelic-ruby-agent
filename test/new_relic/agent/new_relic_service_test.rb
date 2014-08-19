@@ -323,6 +323,12 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal({ "profile" => 123 }, response)
   end
 
+  def test_profile_data_does_not_normalize_encodings
+    @http_handle.respond_to(:profile_data, nil)
+    NewRelic::JSONWrapper.expects(:normalize).never
+    @service.profile_data([])
+  end
+
   def test_get_agent_commands
     @service.agent_id = 666
     @http_handle.respond_to(:get_agent_commands, [1,2,3])
@@ -419,7 +425,7 @@ class NewRelicServiceTest < Minitest::Test
     def test_raises_serialization_error_if_json_serialization_fails
       ::NewRelic::JSONWrapper.stubs(:dump).raises(RuntimeError.new('blah'))
       assert_raises(NewRelic::Agent::SerializationError) do
-        @service.send(:invoke_remote, 'wiggle', {})
+        @service.send(:invoke_remote, 'wiggle', [{}])
       end
     end
 
@@ -428,7 +434,7 @@ class NewRelicServiceTest < Minitest::Test
         @http_handle.respond_to(:wiggle, 'hi')
         NewRelic::JSONWrapper.stubs(:normalize).raises('blah')
         assert_raises(NewRelic::Agent::SerializationError) do
-          @service.send(:invoke_remote, 'wiggle', {})
+          @service.send(:invoke_remote, 'wiggle', [{}])
         end
       end
     end
@@ -437,7 +443,7 @@ class NewRelicServiceTest < Minitest::Test
       @http_handle.respond_to(:wiggle, 'hello')
       with_config(:normalize_json_string_encodings => false) do
         NewRelic::JSONWrapper.expects(:normalize).never
-        @service.send(:invoke_remote, 'wiggle', { 'foo' => 'bar' })
+        @service.send(:invoke_remote, 'wiggle', [{ 'foo' => 'bar' }])
       end
     end
 
@@ -689,7 +695,7 @@ class NewRelicServiceTest < Minitest::Test
   def roundtrip_data(data, normalize = true)
     with_config(:normalize_json_string_encodings => normalize) do
       @http_handle.respond_to(:roundtrip, 'roundtrip')
-      @service.send(:invoke_remote, 'roundtrip', data)
+      @service.send(:invoke_remote, 'roundtrip', [data])
       @http_handle.last_request_payload[0]
     end
   end
