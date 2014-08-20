@@ -185,6 +185,9 @@ module NewRelic
               if duration < 1_000_000_000 # roughly 31 years
                 exclusive = duration - frame.children_time
                 record_metrics(state, first_name, metric_names, duration, exclusive, options)
+              else
+                ::NewRelic::Agent.logger.log_once(:warn, :too_huge_metric,
+                  "Ignoring metric #{first_name} with unacceptably large duration: #{duration} s")
               end
             end
           end
