@@ -11,7 +11,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActiveRecordSubscriber < EventedSubscriber
-        CACHED_QUERY_NAME = 'CACHE'.freeze
+        CACHED_QUERY_NAME = 'CACHE'.freeze unless defined? CACHED_QUERY_NAME
 
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
           return if payload[:name] == CACHED_QUERY_NAME
