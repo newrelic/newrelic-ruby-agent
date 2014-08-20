@@ -323,7 +323,7 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable the capture of HTTP request parameters from transaction traces and traced errors.'
+          :description => 'Enable or disable the capture of HTTP request parameters to be attached to transaction traces and traced errors.'
         },
         :config_path => {
           :default => DefaultSource.config_path,
