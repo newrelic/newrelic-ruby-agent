@@ -49,17 +49,26 @@ module NewRelic::Agent::Database
 
       query
     end
+    
+    def self.create_regular_obfuscation_test(filename, type = "normal")
+      name = name_for_input_file(filename)
+
+      define_method("test_sql_obfuscation_#{type}_#{name}") do
+        query               = read_query(filename)
+        expected_obfuscated = File.read(obfuscated_filename(filename))
+        actual_obfuscated   = NewRelic::Agent::Database.obfuscate_sql(query)
+        assert_equal(expected_obfuscated, actual_obfuscated, "Failed to obfuscate #{type} query from #{filename}\nQuery: #{query}")
+      end
+    end
 
     # Normal queries
     input_files.each do |input_file|
-      name = name_for_input_file(input_file)
-
-      define_method("test_sql_obfuscation_#{name}") do
-        query               = read_query(input_file)
-        expected_obfuscated = File.read(obfuscated_filename(input_file))
-        actual_obfuscated   = NewRelic::Agent::Database.obfuscate_sql(query)
-        assert_equal(expected_obfuscated, actual_obfuscated, "Failed to obfuscate query from #{input_file}\nQuery: #{query}")
-      end
+      create_regular_obfuscation_test(input_file)
+    end
+    
+    # Pathological queries
+    input_files('pathological').each do |input_file|
+      create_regular_obfuscation_test(input_file, "pathological")
     end
 
     # Malformed queries
