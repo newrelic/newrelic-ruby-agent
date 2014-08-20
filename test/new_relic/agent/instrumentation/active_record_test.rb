@@ -386,6 +386,8 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
   end
 
   def active_record_query_caching_broken_for_find
+    # For ActiveRecord 3.1 and 3.2 running in JRuby, some
+    # query caching does not work.
     return false unless defined? JRuby
     return false unless active_record_major_version == 3
 
