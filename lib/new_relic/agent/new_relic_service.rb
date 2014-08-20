@@ -270,7 +270,11 @@ module NewRelic
       # The path to the certificate file used to verify the SSL
       # connection if verify_peer is enabled
       def cert_file_path
-        File.expand_path(File.join(control.newrelic_root, 'cert', 'cacert.pem'))
+        if path_override = NewRelic::Agent.config[:ca_bundle_path]
+          path_override
+        else
+          File.expand_path(File.join(control.newrelic_root, 'cert', 'cacert.pem'))
+        end
       end
 
       def valid_to_marshal?(data)
