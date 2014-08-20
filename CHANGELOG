@@ -75,6 +75,14 @@
   developer mode enabled, the agent would generate errors to its log. This has
   been fixed.
 
+  * Tighter requirements on naming for configuration environment variables
+
+  The agent would previously assume any environment variable containing
+  'NEWRELIC' was a configuration setting. It now looks for this string as a
+  prefix only.
+
+  Thanks to Chad Woolley for the contribution!
+
 ## v3.9.1 ##
 
   * Ruby 1.8.7 users: upgrade or add JSON gem now
