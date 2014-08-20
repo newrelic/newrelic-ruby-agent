@@ -311,14 +311,15 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
       end
     end
 
-    assert_activerecord_metrics(ActiveRecordFixtures::Order, 'find', :call_count => 1)
+    call_count = active_record_query_caching_broken_for_find ? 3 : 1
+    assert_activerecord_metrics(ActiveRecordFixtures::Order, 'find', :call_count => call_count)
     assert_remote_service_metrics
   end
 
   def test_cached_calls_are_not_recorded_with_select_all
     query = "SELECT * FROM #{ActiveRecordFixtures::Order.table_name} WHERE name = 'Oberon'"
     in_web_transaction do
-      order = ActiveRecordFixtures::Order.create(:name => 'Oberon')
+      ActiveRecordFixtures::Order.create(:name => 'Oberon')
       ActiveRecordFixtures::Order.connection.cache do
         ActiveRecordFixtures::Order.connection.select_all(query)
         ActiveRecordFixtures::Order.connection.select_all(query)
@@ -381,6 +382,18 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
       NewRelic::VersionNumber.new(::ActiveRecord::VERSION::STRING)
     else
       NewRelic::VersionNumber.new("2.1.0")  # Can't tell between 2.1 and 2.2. Meh.
+    end
+  end
+
+  def active_record_query_caching_broken_for_find
+    # For ActiveRecord 3.1 and 3.2 running in JRuby, some
+    # query caching does not work.
+    return false unless defined? JRuby
+    return false unless active_record_major_version == 3
+
+    case active_record_minor_version
+    when 1, 2 then true
+    else false
     end
   end
 
