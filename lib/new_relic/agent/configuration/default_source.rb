@@ -317,6 +317,7 @@ module NewRelic
           :allow_nil => true,
           :public => true,
           :type => String,
+          :local_only => true,
           :description => 'User for proxy server.'
         },
         :proxy_pass => {
@@ -324,6 +325,7 @@ module NewRelic
           :allow_nil => true,
           :public => true,
           :type => String,
+          :local_only => true,
           :description => 'Password for proxy server.'
         },
         :capture_params => {
