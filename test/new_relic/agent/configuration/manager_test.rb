@@ -151,6 +151,16 @@ module NewRelic::Agent::Configuration
       assert_equal(::Hash, @manager.to_collector_hash.class)
     end
 
+    def test_to_collector_hash_scrubs_private_settings
+      @manager.delete_all_configs_for_testing
+      @manager.add_config_for_testing(:proxy_user => 'user')
+      @manager.add_config_for_testing(:proxy_pass => 'password')
+      @manager.add_config_for_testing(:one => 1)
+      @manager.add_config_for_testing(:two => 2)
+
+      assert_equal({ :one => 1, :two => 2 }, @manager.to_collector_hash)
+    end
+
     def test_config_masks
       NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { true }
 
