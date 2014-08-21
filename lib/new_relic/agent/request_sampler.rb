@@ -13,21 +13,21 @@ class NewRelic::Agent::RequestSampler
           MonitorMixin
 
   # The type field of the sample
-  SAMPLE_TYPE              = 'Transaction'
+  SAMPLE_TYPE              = 'Transaction'.freeze
 
   # Strings for static keys of the sample structure
-  TYPE_KEY                       = 'type'
-  TIMESTAMP_KEY                  = 'timestamp'
-  NAME_KEY                       = 'name'
-  DURATION_KEY                   = 'duration'
-  HTTP_RESPONSE_CODE_KEY         = 'httpResponseCode'
-  GUID_KEY                       = 'nr.guid'
-  REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
-  CAT_TRIP_ID_KEY                = 'nr.tripId'
-  CAT_PATH_HASH_KEY              = 'nr.pathHash'
-  CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'
-  CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'
-  APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'
+  TYPE_KEY                       = 'type'.freeze
+  TIMESTAMP_KEY                  = 'timestamp'.freeze
+  NAME_KEY                       = 'name'.freeze
+  DURATION_KEY                   = 'duration'.freeze
+  HTTP_RESPONSE_CODE_KEY         = 'httpResponseCode'.freeze
+  GUID_KEY                       = 'nr.guid'.freeze
+  REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
+  CAT_TRIP_ID_KEY                = 'nr.tripId'.freeze
+  CAT_PATH_HASH_KEY              = 'nr.pathHash'.freeze
+  CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'.freeze
+  CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'.freeze
+  APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'.freeze
 
   def initialize( event_listener )
     super()
