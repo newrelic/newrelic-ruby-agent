@@ -178,7 +178,17 @@ module NewRelic
         end
 
         def to_collector_hash
-          DottedHash.new(apply_mask(flattened)).to_hash
+          DottedHash.new(apply_mask(flattened)).to_hash.delete_if do |k, v|
+            default = DEFAULTS[k]
+            if default
+              default[:local_only]
+            else
+              # In our tests, we add totally bogus configs, because testing.
+              # In those cases, there will be no default. So we'll just let
+              # them through.
+              false
+            end
+          end
         end
 
         def app_names
