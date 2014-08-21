@@ -63,9 +63,9 @@
   If the agent was initially disabled, and then later enabled with a call to
   manual_start, the ignore_error_filter would not work. This has been fixed.
 
-  * Fix for Capistrano 3 ignoring newrelic_revion
+  * Fix for Capistrano 3 ignoring newrelic_revision
 
-  New Relic's Capistrano recipies support passing parameters to control the
+  New Relic's Capistrano recipes support passing parameters to control the
   values recorded with deployments, but user provided :newrelic_revision was
   incorrectly overwritten. This has been fixed.
 
