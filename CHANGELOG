@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.9.3 ##
+
+  * Fix to prevent proxy credentials transmission
+
+  This update prevents proxy credentials set in the agent config file from
+  being transmitted to New Relic.
+
 ## v3.9.2 ##
 
   * Added API for ignoring transactions
