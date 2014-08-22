@@ -183,7 +183,17 @@ module NewRelic
               frame = stack.pop_frame(state, expected_frame, first_name, t1, !!options[:metric])
               duration = t1 - t0
               if duration < 1_000_000_000 # roughly 31 years
+                if duration < 0
+                  ::NewRelic::Agent.logger.log_once(:warn, :metric_duration_negative,
+                    "Metric #{first_name} has negative duration: #{duration} s")
+                end
+
                 exclusive = duration - frame.children_time
+                if exclusive < 0
+                  ::NewRelic::Agent.logger.log_once(:warn, :metric_exclusive_negative,
+                    "Metric #{first_name} has negative exclusive time: duration = #{duration} s, child_time = #{frame.children_time}")
+                end
+
                 record_metrics(state, first_name, metric_names, duration, exclusive, options)
               else
                 ::NewRelic::Agent.logger.log_once(:warn, :too_huge_metric,
