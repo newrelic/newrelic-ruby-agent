@@ -27,24 +27,7 @@ module NewRelic
 
       def rename(original_string)
         @rules.inject(original_string) do |string,rule|
-          if rule.each_segment
-            segments = string.split('/')
-
-            # If string looks like '/foo/bar', we want to
-            # ignore the empty string preceding the first slash.
-            add_preceding_slash = false
-            if segments[0] == ''
-              segments.shift
-              add_preceding_slash = true
-            end
-
-            result, matched = rule.map_to_list(segments)
-            result = result.join('/') if !result.nil?
-            result = '/'+result if add_preceding_slash
-          else
-            result, matched = rule.apply(string)
-          end
-
+          result, matched = rule.apply(string)
           break result if (matched && rule.terminate_chain) || result.nil?
           result
         end
@@ -78,18 +61,42 @@ module NewRelic
             else
               [string, false]
             end
+          elsif @each_segment
+            apply_to_each_segment(string)
           else
-            method = @replace_all ? :gsub : :sub
-            result = string.send(method, @match_expression, @replacement)
-            match_found = ($~ != nil)
-            [result, match_found]
+            apply_replacement(string)
           end
+        end
+
+        def apply_replacement(string)
+          method = @replace_all ? :gsub : :sub
+          result = string.send(method, @match_expression, @replacement)
+          match_found = ($~ != nil)
+          [result, match_found]
+        end
+
+        def apply_to_each_segment(string)
+          segments = string.split('/')
+
+          # If string looks like '/foo/bar', we want to
+          # ignore the empty string preceding the first slash.
+          add_preceding_slash = false
+          if segments[0] == ''
+            segments.shift
+            add_preceding_slash = true
+          end
+
+          result, matched = map_to_list(segments)
+          result = result.join('/') if !result.nil?
+          result = "/#{result}" if add_preceding_slash
+
+          [result, matched]
         end
 
         def map_to_list(list)
           matched = false
           result = list.map do |string|
-            str_result, str_match = apply(string)
+            str_result, str_match = apply_replacement(string)
             matched ||= str_match
             str_result
           end
