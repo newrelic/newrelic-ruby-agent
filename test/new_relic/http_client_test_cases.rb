@@ -482,7 +482,7 @@ module HttpClientTestCases
 
   load_cross_agent_test("cat_map").each do |test_case|
     # Test cases that don't involve outgoing calls are done elsewhere
-    if test_case['outgoingTxnNames']
+    if test_case['outboundRequests']
       define_method("test_#{test_case['name']}") do
         config = {
           :app_name => test_case['appName'],
@@ -493,9 +493,14 @@ module HttpClientTestCases
             state = NewRelic::Agent::TransactionState.tl_get
             state.referring_transaction_info = test_case['inboundPayload']
             stub_transaction_guid(test_case['transactionGuid'])
-            test_case['outgoingTxnNames'].each do |name|
-              set_explicit_transaction_name(name)
+            test_case['outboundRequests'].each do |req|
+              set_explicit_transaction_name(req['outboundTxnName'])
               get_response
+
+              outbound_payload = server.requests.last["HTTP_X_NEWRELIC_TRANSACTION"]
+              decoded_outbound_payload = decode_payload(outbound_payload)
+
+              assert_equal(req['expectedOutboundPayload'], decoded_outbound_payload)
             end
             set_explicit_transaction_name(test_case['transactionName'])
           end

@@ -59,7 +59,7 @@ class CrossApplicationTracingTest < Minitest::Test
 
   load_cross_agent_test("cat_map").each do |test_case|
     # We only can do test cases here that don't involve outgoing calls 
-    if !test_case["outgoingTxnNames"]
+    if !test_case["outboundRequests"]
       if test_case['inboundPayload']
         request_headers = {
           'X-NewRelic-ID'          => Base64.encode64('1#234'),
