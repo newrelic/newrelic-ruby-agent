@@ -142,10 +142,13 @@ module NewRelic
           puts body
         end
 
+        query_params = req.GET
+
         @agent_data << AgentPost.create(:action       => method,
                                         :body         => body,
                                         :run_id       => run_id,
-                                        :format       => format)
+                                        :format       => format,
+                                        :query_params => query_params)
       end
       res.finish
     end
@@ -172,12 +175,13 @@ module NewRelic
     end
 
     class AgentPost
-      attr_accessor :action, :body, :run_id, :format
+      attr_accessor :action, :body, :run_id, :format, :query_params
       def initialize(opts={})
-        @action = opts[:action]
-        @body   = opts[:body]
-        @run_id = opts[:run_id]
-        @format = opts[:format]
+        @action       = opts[:action]
+        @body         = opts[:body]
+        @run_id       = opts[:run_id]
+        @format       = opts[:format]
+        @query_params = opts[:query_params]
       end
 
       def self.create(opts={})
