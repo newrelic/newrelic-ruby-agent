@@ -82,7 +82,12 @@ class CrossApplicationTracingTest < Minitest::Test
         end
 
         event = get_last_analytics_event
-        assert_event_attributes(event, test_case['name'], test_case['expectedAttributes'], test_case['nonExpectedAttributes'])
+        assert_event_attributes(
+          event,
+          test_case['name'],
+          test_case['expectedIntrinsicFields'],
+          test_case['nonExpectedIntrinsicFields']
+        )
       end
     end
   end
