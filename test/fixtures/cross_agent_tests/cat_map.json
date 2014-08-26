@@ -4,7 +4,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": [
+    "inboundPayload": [
       "b854df4feb2b1f06",
       false,
       "7e249074f277923d",
@@ -26,7 +26,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/txn7",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": [
+    "inboundPayload": [
       "b854df4feb2b1f06",
       false,
       "7e249074f277923d",
@@ -48,7 +48,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": null,
+    "inboundPayload": null,
     "expectedAttributes": {},
     "nonExpectedAttributes": [
       "nr.guid",
@@ -64,7 +64,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": null,
+    "inboundPayload": null,
     "outgoingTxnNames": [
       "WebTransaction/testTxnName"
     ],
@@ -84,7 +84,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": null,
+    "inboundPayload": null,
     "outgoingTxnNames": [
       "WebTransaction/otherTxnName",
       "WebTransaction/otherTxnName",
@@ -107,7 +107,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": null,
+    "inboundPayload": null,
     "outgoingTxnNames": [
       "WebTransaction/txn1",
       "WebTransaction/txn2",
@@ -137,7 +137,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": null,
+    "inboundPayload": null,
     "outgoingTxnNames": [
       "WebTransaction/txn1",
       "WebTransaction/txn1",
@@ -168,7 +168,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": [
+    "inboundPayload": [
       "b854df4feb2b1f06",
       false,
       "7e249074f277923d",
@@ -192,7 +192,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": [
+    "inboundPayload": [
       "b854df4feb2b1f06",
       false,
       "7e249074f277923d"
@@ -213,7 +213,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": [
+    "inboundPayload": [
       "b854df4feb2b1f06",
       false,
       "7e249074f277923d",
@@ -235,7 +235,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": [
+    "inboundPayload": [
       "b854df4feb2b1f06",
       false,
       "7e249074f277923d",
@@ -260,7 +260,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": [
+    "inboundPayload": [
       "b854df4feb2b1f06",
       false
     ],
@@ -280,7 +280,7 @@
     "appName": "testAppName",
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
-    "referringPayload": [
+    "inboundPayload": [
       "b854df4feb2b1f06",
       false,
       null

@@ -491,7 +491,7 @@ module HttpClientTestCases
         with_config(config) do
           in_transaction do
             state = NewRelic::Agent::TransactionState.tl_get
-            state.referring_transaction_info = test_case['referringPayload']
+            state.referring_transaction_info = test_case['inboundPayload']
             stub_transaction_guid(test_case['transactionGuid'])
             test_case['outgoingTxnNames'].each do |name|
               set_explicit_transaction_name(name)
