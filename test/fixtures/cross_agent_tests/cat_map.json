@@ -65,8 +65,16 @@
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
     "inboundPayload": null,
-    "outgoingTxnNames": [
-      "WebTransaction/testTxnName"
+    "outboundRequests": [
+      {
+        "outboundTxnName": "WebTransaction/testTxnName",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "accfca26"
+        ]
+      }
     ],
     "expectedAttributes": {
       "nr.guid": "9323dc260548ed0e",
@@ -85,11 +93,43 @@
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
     "inboundPayload": null,
-    "outgoingTxnNames": [
-      "WebTransaction/otherTxnName",
-      "WebTransaction/otherTxnName",
-      "WebTransaction/moreOtherTxnName",
-      "WebTransaction/moreDifferentTxnName"
+    "outboundRequests": [
+      {
+        "outboundTxnName": "WebTransaction/otherTxnName",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "df3fb1b5"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/otherTxnName",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "df3fb1b5"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/moreOtherTxnName",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "cf3bc3a8"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/moreDifferentTxnName",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "2ab5328c"
+        ]
+      }
     ],
     "expectedAttributes": {
       "nr.guid": "9323dc260548ed0e",
@@ -108,18 +148,106 @@
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
     "inboundPayload": null,
-    "outgoingTxnNames": [
-      "WebTransaction/txn1",
-      "WebTransaction/txn2",
-      "WebTransaction/txn3",
-      "WebTransaction/txn4",
-      "WebTransaction/txn5",
-      "WebTransaction/txn6",
-      "WebTransaction/txn7",
-      "WebTransaction/txn8",
-      "WebTransaction/txn9",
-      "WebTransaction/txn10",
-      "WebTransaction/txn11"
+    "outboundRequests": [
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn2",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "55f97a7f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn3",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "72827114"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn4",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "9a3ed934"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn5",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a1744603"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn6",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "ccadfd2c"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn7",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "be1039f5"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn8",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "da7edf2e"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn9",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "eaca716b"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn10",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "6fc8d18f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn11",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "dbe37177"
+        ]
+      }
     ],
     "expectedAttributes": {
       "nr.guid": "9323dc260548ed0e",
@@ -138,19 +266,115 @@
     "transactionName": "WebTransaction/testTxnName",
     "transactionGuid": "9323dc260548ed0e",
     "inboundPayload": null,
-    "outgoingTxnNames": [
-      "WebTransaction/txn1",
-      "WebTransaction/txn1",
-      "WebTransaction/txn1",
-      "WebTransaction/txn1",
-      "WebTransaction/txn1",
-      "WebTransaction/txn1",
-      "WebTransaction/txn1",
-      "WebTransaction/txn1",
-      "WebTransaction/txn1",
-      "WebTransaction/txn1",
-      "WebTransaction/txn1",
-      "WebTransaction/txn2"
+    "outboundRequests": [
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn1",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "a7d2798f"
+        ]
+      },
+      {
+        "outboundTxnName": "WebTransaction/txn2",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "9323dc260548ed0e",
+          "55f97a7f"
+        ]
+      }
     ],
     "expectedAttributes": {
       "nr.guid": "9323dc260548ed0e",
@@ -174,8 +398,16 @@
       "7e249074f277923d",
       "5d2957be"
     ],
-    "outgoingTxnNames": [
-      "WebTransaction/otherTxnName"
+    "outboundRequests": [
+      {
+        "outboundTxnName": "WebTransaction/otherTxnName",
+        "expectedOutboundPayload": [
+          "9323dc260548ed0e",
+          false,
+          "7e249074f277923d",
+          "656d1ec9"
+        ]
+      }
     ],
     "expectedAttributes": {
       "nr.guid": "9323dc260548ed0e",
