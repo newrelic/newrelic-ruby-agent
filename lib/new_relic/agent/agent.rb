@@ -812,8 +812,8 @@ module NewRelic
             Agent.config.replace_or_add_config(server_config)
             log_connection!(config_data) if @service
 
-            @transaction_rules = RulesEngine.from_specs(config_data['transaction_name_rules'])
-            @stats_engine.metric_rules = RulesEngine.from_specs(config_data['metric_name_rules'])
+            @transaction_rules = RulesEngine.from_connect_response(config_data)
+            @stats_engine.metric_rules = RulesEngine.from_rule_specs(config_data['metric_name_rules'])
 
             # If you're adding something else here to respond to the server-side config,
             # use Agent.instance.events.subscribe(:finished_configuring) callback instead!

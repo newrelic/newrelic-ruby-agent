@@ -13,18 +13,24 @@ module NewRelic
 
       def_delegators :@rules, :size, :inspect, :each, :clear
 
-      def self.from_specs(specs)
+      def self.from_rule_specs(specs)
         rules = (specs || []).map { |spec| Rule.new(spec) }
         self.new(rules)
       end
 
-      def self.from_application_segment_term_specs(specs)
-        rules = (specs || []).map { |spec| ApplicationSegmentTermsRule.new(spec) }
-        self.new(rules)
+      def self.from_connect_response(connect_response)
+        txn_name_specs     = connect_response['transaction_name_rules']    || []
+        segment_rule_specs = connect_response['application_segment_terms'] || []
+
+        txn_name_rules = txn_name_specs.map     { |s| Rule.new(s) }
+        segment_rules  = segment_rule_specs.map { |s| SegmentTermsRule.new(s) }
+
+        self.new(txn_name_rules, segment_rules)
       end
 
-      def initialize(rules=[])
+      def initialize(rules=[], segment_term_rules=[])
         @rules = rules.sort
+        @segment_term_rules = segment_term_rules
       end
 
       def << rule
@@ -34,28 +40,40 @@ module NewRelic
       end
 
       def rename(original_string)
-        @rules.inject(original_string) do |string,rule|
+        renamed = @rules.inject(original_string) do |string,rule|
           result, matched = rule.apply(string)
           break result if (matched && rule.terminate_chain) || result.nil?
           result
         end
+
+        if renamed && !@segment_term_rules.empty?
+          @segment_term_rules.each do |rule|
+            if rule.matches?(renamed)
+              renamed = rule.apply(renamed)
+              break
+            end
+          end
+        end
+
+        renamed
       end
 
-      class ApplicationSegmentTermsRule
+      class SegmentTermsRule
         SEGMENT_PLACEHOLDER = '*'.freeze
 
-        attr_reader :prefix, :terms, :terminate_chain
+        attr_reader :prefix, :terms
 
         def initialize(options)
           @prefix          = options['prefix']
           @terms           = options['terms']
           @trim_range      = (@prefix.size..-1)
-          @terminate_chain = true
+        end
+
+        def matches?(string)
+          string.start_with?(@prefix)
         end
 
         def apply(string)
-          return [string, false] unless string.start_with?(@prefix)
-
           rest          = string[@trim_range]
           leading_slash = rest.slice!(LEADING_SLASH_REGEX)
 
@@ -63,8 +81,7 @@ module NewRelic
           segments.map! { |s| @terms.include?(s) ? s : SEGMENT_PLACEHOLDER }
           segments = collapse_adjacent_placeholder_segments(segments)
 
-          result = "#{@prefix}#{leading_slash}#{segments.join(SEGMENT_SEPARATOR)}"
-          [result, true]
+          "#{@prefix}#{leading_slash}#{segments.join(SEGMENT_SEPARATOR)}"
         end
 
         def collapse_adjacent_placeholder_segments(segments)
@@ -74,10 +91,6 @@ module NewRelic
             end
             collapsed
           end
-        end
-
-        def <=>(other)
-          0
         end
       end
 
