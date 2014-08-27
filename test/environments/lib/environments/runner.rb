@@ -14,10 +14,10 @@ module Environments
       "1.9"         => ["rails21", "rails22"],
       "2"           => ["rails21", "rails22", "rails23"],
 
-      "1.8.7"       => ["rails40", "rails41"],
-      "1.9.2"       => ["rails40", "rails41"],
-      "ree"         => ["rails40", "rails41"],
-      "jruby-1.6"   => ["rails40", "rails41"],
+      "1.8.7"       => ["rails40", "rails41", "rails42"],
+      "1.9.2"       => ["rails40", "rails41", "rails42"],
+      "ree"         => ["rails40", "rails41", "rails42"],
+      "jruby-1.6"   => ["rails40", "rails41", "rails42"],
       "jruby-1.7"   => ["rails21", "rails22", "rails23"],
       "rbx-2.0"     => ["rails21", "rails22", "rails23", "rails30", "rails31", "rails32"],
     }

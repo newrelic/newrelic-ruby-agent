@@ -103,17 +103,17 @@ class ViewInstrumentationTest < RailsMultiverseTest
     next if method == 'proc_render' && Rails::VERSION::MAJOR <= 2
 
     define_method("test_sanity_#{method}") do
-      get "views/#{method}"
+      get "/views/#{method}"
       assert_equal 200, status
     end
 
     def test_should_allow_uncaught_exception_to_propagate
-      get "views/raise_render"
+      get "/views/raise_render"
       assert_equal 500, status
     end
 
     def test_should_count_all_the_template_and_partial_segments
-      get 'views/template_render_with_3_partial_renders'
+      get '/views/template_render_with_3_partial_renders'
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
       segments = find_all_segments_with_name_matching(sample, ['^Nested/Controller/views', '^View'])
       segments_list = "Found these nodes:\n  #{segments.map(&:metric_name).join("\n  ")}"
@@ -126,7 +126,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
     end
 
     def test_should_have_3_segments_with_the_correct_metric_name
-      get 'views/template_render_with_3_partial_renders'
+      get '/views/template_render_with_3_partial_renders'
 
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
       partial_segments = find_all_segments_with_name_matching(sample, 'View/views/_a_partial.html.erb/Partial')
@@ -138,7 +138,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
     # We don't capture text or inline template rendering on Rails 2
     if Rails::VERSION::MAJOR >= 3
       def test_should_create_a_metric_for_the_rendered_inline_template
-        get 'views/inline_render'
+        get '/views/inline_render'
 
         sample = NewRelic::Agent.agent.transaction_sampler.last_sample
         text_segment = find_segment_with_name(sample, 'View/inline template/Rendering')
@@ -150,13 +150,13 @@ class ViewInstrumentationTest < RailsMultiverseTest
       # It doesn't seem worth it to get consistent behavior here.
       if Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0
         def test_should_not_instrument_rendering_of_text
-          get 'views/text_render'
+          get '/views/text_render'
           sample = NewRelic::Agent.agent.transaction_sampler.last_sample
           refute find_segment_with_name(sample, 'View/text template/Rendering')
         end
       else
         def test_should_create_a_metric_for_the_rendered_text
-          get 'views/text_render'
+          get '/views/text_render'
 
           sample = NewRelic::Agent.agent.transaction_sampler.last_sample
           text_segment = find_segment_with_name(sample, 'View/text template/Rendering')
@@ -168,7 +168,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
     end
 
     def test_should_create_a_metric_for_the_rendered_haml_template
-      get 'views/haml_render'
+      get '/views/haml_render'
 
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
       text_segment = find_segment_with_name(sample, 'View/views/haml_view.html.haml/Rendering')
@@ -178,7 +178,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
     end
 
     def test_should_create_a_proper_metric_when_the_template_is_unknown
-      get 'views/no_template'
+      get '/views/no_template'
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
 
       # Different versions have significant difference in handling, but we're
@@ -193,7 +193,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
     end
 
     def test_should_create_a_proper_metric_when_we_render_a_collection
-      get 'views/collection_render'
+      get '/views/collection_render'
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
       assert find_segment_with_name(sample, "View/foos/_foo.html.haml/Partial")
     end
@@ -201,7 +201,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
     [:js_render, :xml_render, :proc_render, :json_render ].each do |action|
       next if action == :proc_render && Rails::VERSION::MAJOR <= 2
       define_method("test_should_not_instrument_rendering_of_#{action}") do
-        get "views/#{action}"
+        get "/views/#{action}"
         sample = NewRelic::Agent.agent.transaction_sampler.last_sample
         view_segment = find_segment_with_name_matching(sample, /^View\//)
         refute view_segment, "Should not instrument rendering of #{action}, found #{view_segment}."
@@ -212,7 +212,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
     # hasn't been a problem thus far, so we're letting it slide.
     if Rails::VERSION::MAJOR >= 3
       def test_should_create_a_metric_for_rendered_file_that_does_not_include_the_filename_so_it_doesnt_metric_explode
-        get 'views/file_render'
+        get '/views/file_render'
         sample = NewRelic::Agent.agent.transaction_sampler.last_sample
         assert find_segment_with_name(sample, 'View/file/Rendering')
         refute find_segment_with_name_matching(sample, 'dummy')
@@ -220,7 +220,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
     end
 
     def test_exclusive_time_for_template_render_metrics_should_not_include_partial_rendering_time
-      get 'views/render_with_delays'
+      get '/views/render_with_delays'
 
       expected_stats_partial = {
         :call_count           => 3,
