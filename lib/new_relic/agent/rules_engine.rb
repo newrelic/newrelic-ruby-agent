@@ -15,6 +15,11 @@ module NewRelic
         self.new(rules)
       end
 
+      def self.from_application_segment_term_specs(specs)
+        rules = (specs || []).map { |spec| ApplicationSegmentTermsRule.new(spec) }
+        self.new(rules)
+      end
+
       def initialize(rules=[])
         @rules = rules.sort
       end
@@ -30,6 +35,46 @@ module NewRelic
           result, matched = rule.apply(string)
           break result if (matched && rule.terminate_chain) || result.nil?
           result
+        end
+      end
+
+      class ApplicationSegmentTermsRule
+        attr_reader :prefix, :terms, :terminate_chain
+
+        def initialize(options)
+          @prefix = options['prefix']
+          @terms  = options['terms']
+          @terminate_chain = false
+        end
+
+        def apply(string)
+          return [string, false] unless string.start_with?(@prefix)
+          rest = string[@prefix.size..-1]
+          leading_slash = rest.slice!(/^\//)
+          segments = rest.split('/')
+
+          matched = false
+          segments.map! do |s|
+            if @terms.include?(s)
+              s
+            else
+              matched = true
+              "*"
+            end
+          end
+
+          segments = segments.reduce([]) do |list, segment|
+            list << segment unless (segment == "*" && list.last == "*")
+            list
+          end
+
+          result = "#{@prefix}#{leading_slash}#{segments.join('/')}"
+
+          [result, matched]
+        end
+
+        def <=>(other)
+          0
         end
       end
 

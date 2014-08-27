@@ -102,4 +102,13 @@ class RulesEngineTest < Minitest::Test
     end
   end
 
+  load_cross_agent_test('application_segment_terms').each do |testcase|
+    define_method("test_app_segment_terms_#{testcase['testname']}") do
+      @engine = NewRelic::Agent::RulesEngine.from_application_segment_term_specs(testcase['application_segment_terms'])
+      testcase['tests'].each do |test|
+        assert_equal(test["expected"], @engine.rename(test["input"]), "Input: #{test['input'].inspect}")
+      end
+    end
+  end
+
 end
