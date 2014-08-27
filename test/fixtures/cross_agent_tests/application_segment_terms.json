@@ -63,5 +63,20 @@
         "expected": "WebTransaction/Foo/one/two/three/*"
       }
     ]
+  },
+  {
+    "testname": "rule_with_prefix_not_ending_in_segment_boundary",
+    "application_segment_terms": [
+      {
+        "prefix": "WebTrans",
+        "terms": ["one", "two"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Foo/one/two",
+        "expected": "WebTrans*/one/two"
+      }
+    ]
   }
 ]
