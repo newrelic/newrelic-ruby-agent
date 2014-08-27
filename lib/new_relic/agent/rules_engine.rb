@@ -50,7 +50,7 @@ module NewRelic
           @prefix          = options['prefix']
           @terms           = options['terms']
           @trim_range      = (@prefix.size..-1)
-          @terminate_chain = false
+          @terminate_chain = true
         end
 
         def apply(string)

@@ -44,5 +44,24 @@
         "expected": "WebTransaction/Customer/a/b/c"
       }
     ]
+  },
+  {
+    "testname": "rule_chaining",
+    "application_segment_terms": [
+      {
+        "prefix": "WebTransaction/Foo",
+        "terms": ["one", "two", "three"]
+      },
+      {
+        "prefix": "WebTransaction/Foo/one",
+        "terms": ["one", "two"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Foo/one/two/three/four",
+        "expected": "WebTransaction/Foo/one/two/three/*"
+      }
+    ]
   }
 ]
