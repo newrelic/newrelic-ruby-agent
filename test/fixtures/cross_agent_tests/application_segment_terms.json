@@ -78,5 +78,24 @@
         "expected": "WebTrans*/one/two"
       }
     ]
+  },
+  {
+    "testname": "terms_are_order_independent",
+    "application_segment_terms": [
+      {
+        "prefix": "Foo",
+        "terms": ["one", "two", "three"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "Foo/bar/one/three/two",
+        "expected": "Foo/*/one/three/two"
+      },
+      {
+        "input": "Foo/three/one/one/two/three",
+        "expected": "Foo/three/one/one/two/three"
+      }
+    ]
   }
 ]
