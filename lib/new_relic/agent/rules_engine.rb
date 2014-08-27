@@ -5,6 +5,9 @@
 module NewRelic
   module Agent
     class RulesEngine
+      SEGMENT_SEPARATOR = '/'.freeze
+      LEADING_SLASH_REGEX = %r{^/}.freeze
+
       include Enumerable
       extend Forwardable
 
@@ -39,38 +42,38 @@ module NewRelic
       end
 
       class ApplicationSegmentTermsRule
+        SEGMENT_PLACEHOLDER = '*'.freeze
+
         attr_reader :prefix, :terms, :terminate_chain
 
         def initialize(options)
-          @prefix = options['prefix']
-          @terms  = options['terms']
+          @prefix          = options['prefix']
+          @terms           = options['terms']
+          @trim_range      = (@prefix.size..-1)
           @terminate_chain = false
         end
 
         def apply(string)
           return [string, false] unless string.start_with?(@prefix)
-          rest = string[@prefix.size..-1]
-          leading_slash = rest.slice!(/^\//)
-          segments = rest.split('/')
 
-          matched = false
-          segments.map! do |s|
-            if @terms.include?(s)
-              s
-            else
-              matched = true
-              "*"
+          rest          = string[@trim_range]
+          leading_slash = rest.slice!(LEADING_SLASH_REGEX)
+
+          segments = rest.split(SEGMENT_SEPARATOR)
+          segments.map! { |s| @terms.include?(s) ? s : SEGMENT_PLACEHOLDER }
+          segments = collapse_adjacent_placeholder_segments(segments)
+
+          result = "#{@prefix}#{leading_slash}#{segments.join(SEGMENT_SEPARATOR)}"
+          [result, true]
+        end
+
+        def collapse_adjacent_placeholder_segments(segments)
+          segments.reduce([]) do |collapsed, segment|
+            unless (segment == SEGMENT_PLACEHOLDER && collapsed.last == SEGMENT_PLACEHOLDER)
+              collapsed << segment
             end
+            collapsed
           end
-
-          segments = segments.reduce([]) do |list, segment|
-            list << segment unless (segment == "*" && list.last == "*")
-            list
-          end
-
-          result = "#{@prefix}#{leading_slash}#{segments.join('/')}"
-
-          [result, matched]
         end
 
         def <=>(other)
@@ -121,19 +124,12 @@ module NewRelic
         end
 
         def apply_to_each_segment(string)
-          segments = string.split('/')
+          string        = string.dup
+          leading_slash = string.slice!(LEADING_SLASH_REGEX)
+          segments      = string.split(SEGMENT_SEPARATOR)
 
-          # If string looks like '/foo/bar', we want to
-          # ignore the empty string preceding the first slash.
-          add_preceding_slash = false
-          if segments[0] == ''
-            segments.shift
-            add_preceding_slash = true
-          end
-
-          result, matched = map_to_list(segments)
-          result = result.join('/') if !result.nil?
-          result = "/#{result}" if add_preceding_slash
+          segments, matched = map_to_list(segments)
+          result = "#{leading_slash}#{segments.join(SEGMENT_SEPARATOR)}" if segments
 
           [result, matched]
         end
