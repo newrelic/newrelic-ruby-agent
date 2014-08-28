@@ -147,19 +147,19 @@ class Marshalling < Performance::TestCase
     events = []
     1000.times do
       event = {
-        :timestamp        => Time.now.to_f,
-        :name             => "Controller/foo/bar",
-        :type             => "Transaction",
-        :duration         => rand,
-        :databaseDuration => rand,
-        :databaseCallCount=> rand,
-        :gcCumulative     => rand,
-        :host             => 'lo-calhost',
-        :color            => 'blue-green',
-        :shape            => 'squarish',
-        :texture          => 'sort of lumpy like a bag of frozen peas'
+        'timestamp'        => Time.now.to_f,
+        'name'             => "Controller/foo/bar",
+        'type'             => "Transaction",
+        'duration'         => rand,
+        'databaseDuration' => rand,
+        'databaseCallCount'=> rand,
+        'gcCumulative'     => rand,
+        'host'             => 'lo-calhost',
+        'color'            => 'blue-green',
+        'shape'            => 'squarish',
+        'texture'          => 'sort of lumpy like a bag of frozen peas'
       }
-      events << [event]
+      events << [event, {}]
     end
     [rand(1000000), events]
   end
