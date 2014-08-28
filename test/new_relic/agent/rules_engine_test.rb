@@ -97,7 +97,7 @@ class RulesEngineTest < Minitest::Test
     end
   end
 
-  load_cross_agent_test('application_segment_terms').each do |testcase|
+  load_cross_agent_test('transaction_segment_terms').each do |testcase|
     define_method("test_app_segment_terms_#{testcase['testname']}") do
       engine = NewRelic::Agent::RulesEngine.from_connect_response(testcase)
       testcase['tests'].each do |test|

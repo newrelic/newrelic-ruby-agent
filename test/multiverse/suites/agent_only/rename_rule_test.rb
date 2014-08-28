@@ -20,7 +20,7 @@ class RenameRuleTest < Minitest::Test
       'agent_run_id'              => 666,
       'transaction_name_rules'    => rules,
       'metric_name_rules'         => rules,
-      'application_segment_terms' => segment_terms_rules
+      'transaction_segment_terms' => segment_terms_rules
     })
   end
 
@@ -60,7 +60,7 @@ class RenameRuleTest < Minitest::Test
     assert_not_includes(metric_names, 'Custom/RenameRuleTest::TestWidget/mthd')
   end
 
-  def test_application_segment_terms_do_not_apply_to_metrics
+  def test_transaction_segment_terms_do_not_apply_to_metrics
     in_transaction do
       NewRelic::Agent.record_metric("other/foo/bar", 42)
     end
@@ -68,7 +68,7 @@ class RenameRuleTest < Minitest::Test
     assert_metrics_recorded(['other/foo/bar'])
   end
 
-  def test_application_segment_terms_do_apply_to_transaction_names
+  def test_transaction_segment_terms_do_apply_to_transaction_names
     in_transaction do
       NewRelic::Agent.set_transaction_name('one/two/three/four')
     end
@@ -77,7 +77,7 @@ class RenameRuleTest < Minitest::Test
     assert_metrics_not_recorded(['other/one/two/three/four'])
   end
 
-  def test_application_segment_terms_applied_after_other_rules
+  def test_transaction_segment_terms_applied_after_other_rules
     in_transaction do
       NewRelic::Agent.set_transaction_name('Nothing/one/two/three')
     end

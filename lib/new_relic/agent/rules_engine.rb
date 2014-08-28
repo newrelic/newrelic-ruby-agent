@@ -20,7 +20,7 @@ module NewRelic
 
       def self.from_connect_response(connect_response)
         txn_name_specs     = connect_response['transaction_name_rules']    || []
-        segment_rule_specs = connect_response['application_segment_terms'] || []
+        segment_rule_specs = connect_response['transaction_segment_terms'] || []
 
         txn_name_rules = txn_name_specs.map     { |s| Rule.new(s) }
         segment_rules  = segment_rule_specs.map { |s| SegmentTermsRule.new(s) }
