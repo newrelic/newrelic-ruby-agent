@@ -33,12 +33,6 @@ module NewRelic
         @segment_term_rules = segment_term_rules
       end
 
-      def << rule
-        @rules << rule
-        @rules.sort!
-        @rules
-      end
-
       def rename(original_string)
         renamed = @rules.inject(original_string) do |string,rule|
           result, matched = rule.apply(string)

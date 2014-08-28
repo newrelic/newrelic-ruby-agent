@@ -5,10 +5,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
 class RulesEngineTest < Minitest::Test
-  def setup
-    @engine = NewRelic::Agent::RulesEngine.new
-  end
-
   def test_rule_defaults
     rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '.*',
                                                   'replacement'      => '*')
@@ -59,19 +55,20 @@ class RulesEngineTest < Minitest::Test
                                                     'replacement'      => 'x',
                                                     'replace_all'      => true,
                                                     'eval_order'       => 1)
-    @engine << rerule
-    @engine << rule
 
-    assert_equal('foo/x/bar/x', @engine.rename('foo/1/bar/22'))
+    engine = NewRelic::Agent::RulesEngine.new([rerule, rule])
+
+    assert_equal('foo/x/bar/x', engine.rename('foo/1/bar/22'))
   end
 
   def test_can_apply_rules_to_all_segments
     rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+.*',
                                                   'replacement'      => '*',
                                                   'each_segment'     => true)
-    @engine << rule
 
-    assert_equal('foo/*/bar/*', @engine.rename('foo/1a/bar/22b'))
+    engine = NewRelic::Agent::RulesEngine.new([rule])
+
+    assert_equal('foo/*/bar/*', engine.rename('foo/1a/bar/22b'))
   end
 
   def test_stops_after_terminate_chain
@@ -84,27 +81,27 @@ class RulesEngineTest < Minitest::Test
                                                    'replacement'      => 'X',
                                                    'replace_all'      => true,
                                                    'eval_order'       => 1)
-    @engine << rule0
-    @engine << rule1
 
-    assert_equal('foo/*/bar/*', @engine.rename('foo/1/bar/22'))
+    engine = NewRelic::Agent::RulesEngine.new([rule0, rule1])
+
+    assert_equal('foo/*/bar/*', engine.rename('foo/1/bar/22'))
   end
 
   load_cross_agent_test('rules').each do |testcase|
     define_method("test_#{testcase['testname']}") do
-      @engine = NewRelic::Agent::RulesEngine.from_rule_specs(testcase['rules'])
+      engine = NewRelic::Agent::RulesEngine.from_rule_specs(testcase['rules'])
 
       testcase["tests"].each do |test|
-        assert_equal(test["expected"], @engine.rename(test["input"]), "Input: #{test['input'].inspect}")
+        assert_equal(test["expected"], engine.rename(test["input"]), "Input: #{test['input'].inspect}")
       end
     end
   end
 
   load_cross_agent_test('application_segment_terms').each do |testcase|
     define_method("test_app_segment_terms_#{testcase['testname']}") do
-      @engine = NewRelic::Agent::RulesEngine.from_connect_response(testcase)
+      engine = NewRelic::Agent::RulesEngine.from_connect_response(testcase)
       testcase['tests'].each do |test|
-        assert_equal(test["expected"], @engine.rename(test["input"]), "Input: #{test['input'].inspect}")
+        assert_equal(test["expected"], engine.rename(test["input"]), "Input: #{test['input'].inspect}")
       end
     end
   end
