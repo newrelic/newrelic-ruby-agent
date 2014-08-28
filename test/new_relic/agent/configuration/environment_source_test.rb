@@ -165,6 +165,14 @@ module NewRelic::Agent::Configuration
       assert_equal keys, result
     end
 
+    def test_does_not_warn_for_new_relic_env_environment_variable
+      expects_no_logging(:warn)
+      expects_no_logging(:info)
+      with_environment('NEW_RELIC_ENV' => 'foo') do
+        @environment_source.set_values_from_new_relic_environment_variables
+      end
+    end
+
     def assert_applied_string(env_var, config_var)
       ENV[env_var] = 'test value'
       assert_equal 'test value', EnvironmentSource.new[config_var.to_sym]

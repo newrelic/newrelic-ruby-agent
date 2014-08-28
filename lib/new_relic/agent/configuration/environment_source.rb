@@ -7,6 +7,10 @@ module NewRelic
     module Configuration
       class EnvironmentSource < DottedHash
         SUPPORTED_PREFIXES = /^new_relic_|^newrelic_/i
+        SPECIAL_CASE_KEYS  = [
+          'NEW_RELIC_ENV', # read by NewRelic::Control::Frameworks::Ruby
+          'NEW_RELIC_LOG'  # read by set_log_file
+        ]
 
         attr_accessor :alias_map, :type_map
 
@@ -62,7 +66,7 @@ module NewRelic
           nr_env_var_keys = collect_new_relic_environment_variable_keys
 
           nr_env_var_keys.each do |key|
-            next if key.upcase == 'NEW_RELIC_LOG'
+            next if SPECIAL_CASE_KEYS.include?(key.upcase)
             set_value_from_environment_variable(key)
           end
         end
