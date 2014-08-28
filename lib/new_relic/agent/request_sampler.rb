@@ -158,29 +158,27 @@ class NewRelic::Agent::RequestSampler
   map_metric('External/allOther',     :total_call_time => "externalDuration")
   map_metric('External/allOther',     :call_count      => "externalCallCount")
 
-  def extract_metrics(txn_metrics)
-    result = {}
+  def append_metrics(txn_metrics, sample)
     if txn_metrics
       OVERVIEW_SPECS.each do |(name, extracted_values)|
         if txn_metrics.has_key?(name)
           stat = txn_metrics[name]
           extracted_values.each do |value_name, key_name|
-            result[key_name] = stat.send(value_name)
+            sample[key_name] = stat.send(value_name)
           end
         end
       end
     end
-    result
   end
 
   def create_main_event(payload)
-    sample = extract_metrics(payload[:metrics])
-    sample.merge!({
-        TIMESTAMP_KEY     => float(payload[:start_timestamp]),
-        NAME_KEY          => string(payload[:name]),
-        DURATION_KEY      => float(payload[:duration]),
-        TYPE_KEY          => SAMPLE_TYPE,
-      })
+    sample = {
+      TIMESTAMP_KEY => float(payload[:start_timestamp]),
+      NAME_KEY      => string(payload[:name]),
+      DURATION_KEY  => float(payload[:duration]),
+      TYPE_KEY      => SAMPLE_TYPE,
+    }
+    append_metrics(payload[:metrics], sample)
     optionally_append(GUID_KEY,                       :guid, sample, payload)
     optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
     optionally_append(CAT_TRIP_ID_KEY,                :cat_trip_id, sample, payload)
