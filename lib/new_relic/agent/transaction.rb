@@ -367,6 +367,7 @@ module NewRelic
       def stop(state, end_time)
         return if !state.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
+        ignore! if user_defined_rules_ignore?
 
         if @name_from_child
           name = Transaction.nested_transaction_name(@default_name)

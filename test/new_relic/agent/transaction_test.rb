@@ -791,6 +791,15 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_stop_ignores_transactions_from_ignored_uris
+    with_config(:rules => { :ignore => ['ignored/uri'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('ignored/uri')
+        txn.expects(:ignore!)
+      end
+    end
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end
