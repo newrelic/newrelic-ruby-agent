@@ -398,6 +398,13 @@ module NewRelic
         commit!(state, end_time, name) unless @ignore_this_transaction
       end
 
+      def user_defined_rules_ignore?
+        NewRelic::Agent.config[:"rules.ignore"].each do |rule|
+          return true if uri.match(rule)
+        end
+        false
+      end
+
       def commit!(state, end_time, outermost_segment_name)
         record_transaction_cpu(state)
         gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot

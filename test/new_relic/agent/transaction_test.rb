@@ -781,6 +781,16 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::Transaction.stop(state)
   end
 
+  def test_user_defined_rules_ignore_returns_true_for_matched_uri
+    rule = 'ignored'
+    with_config(:rules => { :ignore => [rule] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns(rule + '/uri')
+        assert txn.user_defined_rules_ignore?, "URIs should be ignored based on user defined rules. Rule: '#{rule}', URI: '#{txn.uri}'."
+      end
+    end
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end
