@@ -31,7 +31,7 @@ module NewRelic
           root? && @children.empty?
         end
 
-        def find(raw_line)
+        def find_child(raw_line)
           @children.find { |child| child.raw_line == raw_line }
         end
 
@@ -53,7 +53,7 @@ module NewRelic
           current = self
 
           backtrace.reverse_each do |frame|
-            existing_node = current.find(frame)
+            existing_node = current.find_child(frame)
             if existing_node
               node = existing_node
             else
