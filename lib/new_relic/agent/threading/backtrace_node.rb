@@ -68,7 +68,9 @@ module NewRelic
 
         # Descending order on count, ascending on depth of nodes
         def <=>(other)
-          [-runnable_count, depth] <=> [-other.runnable_count, other.depth]
+          comparison = -runnable_count <=> -other.runnable_count
+          comparison =  depth          <=>  other.depth if comparison == 0
+          comparison
         end
 
         def flatten
