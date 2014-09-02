@@ -73,16 +73,16 @@ module Performance
     end
 
     def render_row(parts)
-      "┃ " + parts.join(" ┃ ") + " ┃"
+      "| " + parts.join(" | ") + " |"
     end
 
     def render
       widths = column_widths
 
-      blanks    = widths.map { |w| "━" * w }
-      top       = '┏━' + blanks.join('━┳━') + '━┓'
-      separator = '┣━' + blanks.join('━╋━') + '━┫'
-      bottom    = '┗━' + blanks.join('━┻━') + '━┛'
+      blanks    = widths.map { |w| "-" * w }
+      top       = '+-' + blanks.join('-+-') + '-+'
+      separator = '|-' + blanks.join('-+-') + '-|'
+      bottom    = '+-' + blanks.join('-+-') + '-+'
 
       text_rows = []
 
