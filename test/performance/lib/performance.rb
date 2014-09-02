@@ -14,8 +14,10 @@ require 'performance/timer'
 require 'performance/instrumentor'
 
 require 'performance/reporting'
+require 'performance/table'
 require 'performance/console_reporter'
 require 'performance/json_reporter'
+
 require 'performance/hako_client'
 require 'performance/hako_reporter'
 
