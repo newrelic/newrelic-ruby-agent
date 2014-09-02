@@ -89,7 +89,7 @@ module NewRelic
         def process_yaml(file, env, config, path)
           if file
             confighash = with_yaml_engine { YAML.load(file) }
-            ::NewRelic::Agent.logger.error("Config (#{path}) doesn't include a '#{env}' environment!") unless confighash.key?(env)
+            ::NewRelic::Agent.logger.error("Config file at #{path} doesn't include a '#{env}' section!") unless confighash.key?(env)
 
             config = confighash[env] || {}
           end
