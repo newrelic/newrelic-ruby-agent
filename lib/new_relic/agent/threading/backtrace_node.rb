@@ -7,7 +7,7 @@ module NewRelic
     module Threading
 
       class BacktraceNode
-        attr_reader :file, :method, :line_no, :children, :raw_line
+        attr_reader   :file, :method, :line_no, :children, :raw_line, :flattened
         attr_accessor :runnable_count, :depth
 
         def initialize(line)
@@ -15,6 +15,7 @@ module NewRelic
             @raw_line = line
             @root = false
           else
+            @flattened = []
             @root = true
           end
 
@@ -51,6 +52,7 @@ module NewRelic
 
         def aggregate(backtrace)
           current = self
+          raise "CDP: only allowd to call aggregate on the root" if !root?
 
           backtrace.reverse_each do |frame|
             existing_node = current.find_child(frame)
@@ -59,6 +61,7 @@ module NewRelic
             else
               node = Threading::BacktraceNode.new(frame)
               current.add_child_unless_present(node)
+              @flattened << node
             end
 
             node.runnable_count += 1
@@ -66,34 +69,30 @@ module NewRelic
           end
         end
 
-        # Descending order on count, ascending on depth of nodes
-        def <=>(other)
-          comparison = -runnable_count <=> -other.runnable_count
-          comparison =  depth          <=>  other.depth if comparison == 0
-          comparison
+        def as_array
+          if root?
+            @children.map{|c| c.as_array }.compact
+          else
+            @as_array
+          end
         end
 
-        def flatten
-          initial = self.root? ? [] : [self]
-          @children.inject(initial) { |all, child| all.concat(child.flatten) }
+        def mark_for_array_conversion
+          @as_array = []
         end
 
         include NewRelic::Coerce
 
-        def to_array
-          child_arrays = @children.map { |c| c.to_array }
-          return child_arrays if root?
+        def complete_array_conversion
+          child_arrays = @children.map{|c| c.as_array }.compact
+          raise "CDP: should be impossible to get here" if root?
+
           file, method, line = parse_backtrace_frame(@raw_line)
-          [
-            [
-              string(file),
-              string(method),
-              int(line)
-            ],
-            int(@runnable_count),
-            0,
-            child_arrays
-          ]
+
+          @as_array << [string(file), string(method), int(line)]
+          @as_array << int(@runnable_count)
+          @as_array << 0
+          @as_array << child_arrays
         end
 
         def add_child_unless_present(child)

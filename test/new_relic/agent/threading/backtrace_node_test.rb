@@ -36,22 +36,29 @@ module NewRelic::Agent::Threading
       node
     end
 
+    def convert_nodes_to_array(nodes)
+      nodes.each {|n| n.mark_for_array_conversion }
+      nodes.each {|n| n.complete_array_conversion }
+    end
+
     def test_single_node_converts_to_array
       line = "irb.rb:69:in `catch'"
       node = BacktraceNode.new(line)
+      convert_nodes_to_array([node])
 
       assert_equal([
                    ["irb.rb", "catch", 69],
                    0, 0,
                    []],
-                   node.to_array)
+                   node.as_array)
     end
 
     def test_multiple_nodes_converts_to_array
       line = "irb.rb:69:in `catch'"
       child_line = "bacon.rb:42:in `yum'"
       node = create_node(line)
-      create_node(child_line, node)
+      child_node = create_node(child_line, node)
+      convert_nodes_to_array([node, child_node])
 
       assert_equal([
                    ["irb.rb", "catch", 69],
@@ -63,19 +70,20 @@ module NewRelic::Agent::Threading
                        []
       ]
       ]],
-        node.to_array)
+        node.as_array)
     end
 
     def test_gracefully_handle_bad_values_in_to_array
       node = BacktraceNode.new(SINGLE_LINE)
       node.stubs(:parse_backtrace_frame).returns(["irb.rb", "catch", "blarg"])
       node.runnable_count = Rational(10, 1)
+      convert_nodes_to_array([node])
 
       assert_equal([
                    ["irb.rb", "catch", 0],
                    10, 0,
                    []],
-                   node.to_array)
+                   node.as_array)
     end
 
     def test_add_child_twice
@@ -184,6 +192,6 @@ module NewRelic::Agent::Threading
       create_node(@single_trace[-3], child, 2)
 
       assert_backtrace_trees_equal(root, @node)
-    end 
+    end
   end
 end
