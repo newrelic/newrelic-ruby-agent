@@ -20,7 +20,7 @@ module NewRelic
             ::NewRelic::Agent.logger.info("Reading configuration from #{path} (#{Dir.pwd})")
             raw_file = File.read(@file_path)
             erb_file = process_erb(raw_file)
-            config   = process_yaml(erb_file, env, config)
+            config   = process_yaml(erb_file, env, config, @file_path)
           rescue ScriptError, StandardError => e
             ::NewRelic::Agent.logger.error("Failed to read or parse configuration file at #{path}", e)
           end
@@ -86,10 +86,10 @@ module NewRelic
           end
         end
 
-        def process_yaml(file, env, config)
+        def process_yaml(file, env, config, path)
           if file
             confighash = with_yaml_engine { YAML.load(file) }
-            ::NewRelic::Agent.logger.error("Config (#{path}) doesn't include a '#{env}' environment!") unless confighash.key?(env)
+            ::NewRelic::Agent.logger.error("Config file at #{path} doesn't include a '#{env}' section!") unless confighash.key?(env)
 
             config = confighash[env] || {}
           end

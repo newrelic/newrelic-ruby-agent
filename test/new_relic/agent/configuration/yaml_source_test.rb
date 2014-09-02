@@ -67,7 +67,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_log_if_environment_is_not_present
-      expects_logging(:error, any_parameters)
+      expects_logging(:error, includes(@test_yml_path))
       YamlSource.new(@test_yml_path, 'nonsense')
     end
 
