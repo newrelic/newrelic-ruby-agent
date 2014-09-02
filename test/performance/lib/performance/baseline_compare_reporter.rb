@@ -6,8 +6,6 @@ module Performance
   class BaselineCompareReporter
     include Reporting
 
-    BASELINE_SAVE_PATH = "~/.newrelic_rpm_perf_baseline"
-
     def initialize(results, elapsed, options={})
       @results = results
       @elapsed = elapsed
