@@ -4,6 +4,8 @@
 
 module Performance
   class ConsoleReporter
+    include Reporting
+
     def initialize(results, elapsed, options={})
       @results = results
       @elapsed = elapsed
@@ -11,14 +13,14 @@ module Performance
     end
 
     def report
-      failures = @results.select { |result| result.failure? }
-      successes = @results - failures
-      puts "#{@results.size} tests, #{failures.size} failures, #{@elapsed} s total"
-      report_successful_results(successes) if successes.any?
-      report_failed_results(failures) if failures.any?
+      report_summary
+      report_successful_results(successes) unless successes.empty?
+      report_failed_results
     end
 
     def report_successful_results(results)
+      return if successes.empty?
+
       puts ''
       results.each do |result|
         puts "#{result.identifier}: #{result.elapsed} s"
@@ -35,21 +37,6 @@ module Performance
         end
         puts '' if !@options[:brief] || !result.artifacts.empty?
       end
-    end
-
-    def report_failed_results(results)
-      puts ''
-      results.each do |failure|
-        puts "FAILED: #{failure.identifier}"
-        e = failure.exception
-        if e
-          puts "#{e['class']}: #{e['message']}"
-          puts failure.exception['backtrace'].map { |l| "    #{l}" }.join("\n")
-        else
-          puts "<No exception recorded>"
-        end
-      end
-      puts ''
     end
   end
 end
