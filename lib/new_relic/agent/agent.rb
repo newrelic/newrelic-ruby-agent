@@ -764,13 +764,14 @@ module NewRelic
             {
               :pid => $$,
               :host => local_host,
+              :display_host => Agent.config[:'process_host.display_name'] || local_host,
               :app_name => Agent.config.app_names,
               :language => 'ruby',
               :labels => Agent.config.parsed_labels,
               :agent_version => NewRelic::VERSION::STRING,
               :environment => @environment_report,
               :settings => Agent.config.to_collector_hash,
-              :high_security => Agent.config[:high_security],
+              :high_security => Agent.config[:high_security]
             }
           end
 
