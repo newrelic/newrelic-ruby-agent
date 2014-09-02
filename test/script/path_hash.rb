@@ -46,4 +46,4 @@ path.each do |hop|
   path_hash = xor_result
 end
 
-puts "Final result: 0x#{path_hash.to_s(16).rjust(8, '0')}"
+puts "Final result: #{path_hash.to_s(16).rjust(8, '0')}"

@@ -59,11 +59,11 @@ class CrossApplicationTracingTest < Minitest::Test
 
   load_cross_agent_test("cat_map").each do |test_case|
     # We only can do test cases here that don't involve outgoing calls 
-    if !test_case["outgoingTxnNames"]
-      if test_case['referringPayload']
+    if !test_case["outboundRequests"]
+      if test_case['inboundPayload']
         request_headers = {
           'X-NewRelic-ID'          => Base64.encode64('1#234'),
-          'X-NewRelic-Transaction' => json_dump_and_encode(test_case['referringPayload'])
+          'X-NewRelic-Transaction' => json_dump_and_encode(test_case['inboundPayload'])
         }
       else
         request_headers = {}
@@ -82,7 +82,12 @@ class CrossApplicationTracingTest < Minitest::Test
         end
 
         event = get_last_analytics_event
-        assert_event_attributes(event, test_case['name'], test_case['expectedAttributes'], test_case['nonExpectedAttributes'])
+        assert_event_attributes(
+          event,
+          test_case['name'],
+          test_case['expectedIntrinsicFields'],
+          test_case['nonExpectedIntrinsicFields']
+        )
       end
     end
   end
