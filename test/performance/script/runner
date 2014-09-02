@@ -50,6 +50,12 @@ parser = OptionParser.new do |opts|
   opts.on("-j", "--json", "Produce JSON output") do |q|
     options[:reporter_classes] = ['JSONReporter']
   end
+  opts.on("-B", "--baseline", "Save results as a baseline") do |b|
+    options[:reporter_classes] = ['BaselineSaveReporter']
+  end
+  opts.on("-C", "--compare", "Compare results to a saved baseline") do |c|
+    options[:reporter_classes] = ['BaselineCompareReporter']
+  end
   opts.on("-R", "--reporters=NAMES", "Use the specified reporters (comma-separated list of class names)") do |reporter_names|
     reporter_names = reporter_names.split(',')
     options[:reporter_classes] = reporter_names

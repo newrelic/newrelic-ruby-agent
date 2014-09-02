@@ -21,6 +21,10 @@ require 'performance/json_reporter'
 require 'performance/hako_client'
 require 'performance/hako_reporter'
 
+require 'performance/baseline'
+require 'performance/baseline_save_reporter'
+require 'performance/baseline_compare_reporter'
+
 module Performance
   def self.logger
     log_path = ENV['LOG'] || $stderr
