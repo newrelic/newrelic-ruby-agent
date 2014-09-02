@@ -119,7 +119,7 @@ module NewRelic
         end
 
         def to_collector_array(encoder)
-          encoded_trace_tree = encoder.encode(generate_traces)
+          encoded_trace_tree = encoder.encode(generate_traces, :skip_normalization => true)
           result = [
             int(self.profile_id),
             float(self.created_at),
