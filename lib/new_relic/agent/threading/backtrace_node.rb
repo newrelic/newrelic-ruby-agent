@@ -6,53 +6,43 @@ module NewRelic
   module Agent
     module Threading
 
-      class BacktraceNode
-        attr_reader   :file, :method, :line_no, :children, :raw_line, :flattened
-        attr_accessor :runnable_count, :depth
+      class BacktraceBase
+        attr_reader :children
 
-        def initialize(line)
-          if line
-            @raw_line = line
-            @root = false
-          else
-            @flattened = []
-            @root = true
-          end
-
+        def initialize
           @children = []
-          @runnable_count = 0
-          @depth = 0
+          @depth    = 0
         end
 
-        def root?
-          @root
-        end
-
-        def empty?
-          root? && @children.empty?
+        def add_child_unless_present(child)
+          child.depth = @depth + 1
+          @children << child unless @children.include? child
         end
 
         def find_child(raw_line)
           @children.find { |child| child.raw_line == raw_line }
         end
+      end
 
-        def ==(other)
-          (
-            (root? && other.root? || @raw_line == other.raw_line) &&
-            (
-              @depth == other.depth &&
-              @runnable_count == other.runnable_count
-            )
-          )
+
+      class BacktraceRoot < BacktraceBase
+        attr_reader :flattened
+
+        def initialize
+          super
+          @flattened = []
         end
 
-        def total_count
-          @runnable_count
+        def ==(other)
+          true # all roots are at the same depth and have no raw_line
+        end
+
+        def as_array
+          @children.map{|c| c.as_array }.compact
         end
 
         def aggregate(backtrace)
           current = self
-          raise "CDP: only allowd to call aggregate on the root" if !root?
 
           backtrace.reverse_each do |frame|
             existing_node = current.find_child(frame)
@@ -69,12 +59,32 @@ module NewRelic
           end
         end
 
-        def as_array
-          if root?
-            @children.map{|c| c.as_array }.compact
-          else
-            @as_array
-          end
+        def dump_string
+          result = "#<BacktraceRoot:#{object_id}>"
+          child_results = @children.map { |c| c.dump_string(2) }.join("\n")
+          result << "\n" unless child_results.empty?
+          result << child_results
+        end
+      end
+
+
+      class BacktraceNode < BacktraceBase
+        attr_reader   :file, :method, :line_no, :raw_line, :as_array
+        attr_accessor :runnable_count, :depth
+
+        def initialize(line)
+          super()
+          @raw_line = line
+          @children = []
+          @runnable_count = 0
+        end
+
+        def ==(other)
+          (
+            @raw_line       == other.raw_line &&
+            @depth          == other.depth    &&
+            @runnable_count == other.runnable_count
+          )
         end
 
         def mark_for_array_conversion
@@ -85,7 +95,6 @@ module NewRelic
 
         def complete_array_conversion
           child_arrays = @children.map{|c| c.as_array }.compact
-          raise "CDP: should be impossible to get here" if root?
 
           file, method, line = parse_backtrace_frame(@raw_line)
 
@@ -93,16 +102,6 @@ module NewRelic
           @as_array << int(@runnable_count)
           @as_array << 0
           @as_array << child_arrays
-        end
-
-        def add_child_unless_present(child)
-          child.depth = @depth + 1
-          @children << child unless @children.include? child
-        end
-
-        def prune!(targets)
-          @children.delete_if { |child| targets.include?(child) }
-          @children.each { |child| child.prune!(targets) }
         end
 
         def dump_string(indent=0)

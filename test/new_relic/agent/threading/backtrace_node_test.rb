@@ -10,7 +10,7 @@ module NewRelic::Agent::Threading
     SINGLE_LINE = "irb.rb:69:in `catch'"
 
     def setup
-      @node = BacktraceNode.new(nil)
+      @node = BacktraceRoot.new
       @single_trace = [
         "irb.rb:69:in `catch'",
         "irb.rb:69:in `start'",
@@ -96,44 +96,10 @@ module NewRelic::Agent::Threading
       assert_equal 1, parent.children.size
     end
 
-    def test_prune_keeps_children
-      parent = create_node(SINGLE_LINE)
-      child = create_node(SINGLE_LINE, parent)
-
-      parent.prune!([])
-
-      assert_equal [child], parent.children
-    end
-
-    def test_prune_removes_children
-      parent = create_node(SINGLE_LINE)
-      child = create_node(SINGLE_LINE, parent)
-
-      parent.prune!([child])
-
-      assert_equal [], parent.children
-    end
-
-    def test_prune_removes_grandchildren
-      parent = create_node(SINGLE_LINE)
-      child = create_node(SINGLE_LINE, parent)
-      grandchild = create_node(SINGLE_LINE, child)
-
-      parent.prune!([grandchild])
-
-      assert_equal [child], parent.children
-      assert_equal [], child.children
-    end
-
-    def test_aggregate_empty_trace
-      @node.aggregate([])
-      assert @node.empty?
-    end
-
     def test_aggregate_builds_tree_from_first_trace
       @node.aggregate(@single_trace)
 
-      root = BacktraceNode.new(nil)
+      root = BacktraceRoot.new
       tree = create_node(@single_trace[-1], root, 1)
       child = create_node(@single_trace[-2], tree, 1)
       create_node(@single_trace[-3], child, 1)
@@ -145,7 +111,7 @@ module NewRelic::Agent::Threading
       @node.aggregate(@single_trace)
       @node.aggregate(@single_trace)
 
-      root = BacktraceNode.new(nil)
+      root = BacktraceRoot.new
       tree = create_node(@single_trace[-1], root, 2)
       child = create_node(@single_trace[-2], tree, 2)
       create_node(@single_trace[-3], child, 2)
@@ -169,7 +135,7 @@ module NewRelic::Agent::Threading
       @node.aggregate(backtrace1)
       @node.aggregate(backtrace2)
 
-      root = BacktraceNode.new(nil)
+      root = BacktraceRoot.new
 
       tree = create_node(backtrace1.last, root, 2)
 
@@ -186,7 +152,7 @@ module NewRelic::Agent::Threading
       @node.aggregate(@single_trace)
       @node.aggregate(@single_trace)
 
-      root = BacktraceNode.new(nil)
+      root = BacktraceRoot.new
       tree = create_node(@single_trace[-1], root, 2)
       child = create_node(@single_trace[-2], tree, 2)
       create_node(@single_trace[-3], child, 2)

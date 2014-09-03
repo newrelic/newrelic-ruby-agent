@@ -29,10 +29,10 @@ module NewRelic
           @finished = false
 
           @traces = {
-            :agent      => BacktraceNode.new(nil),
-            :background => BacktraceNode.new(nil),
-            :other      => BacktraceNode.new(nil),
-            :request    => BacktraceNode.new(nil)
+            :agent      => BacktraceRoot.new,
+            :background => BacktraceRoot.new,
+            :other      => BacktraceRoot.new,
+            :request    => BacktraceRoot.new
           }
 
           @poll_count = 0
