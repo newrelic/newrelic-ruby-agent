@@ -35,7 +35,7 @@ class HttpResponseCodeTest < Minitest::Test
     assert_equal('302', get_last_analytics_event[0]['httpResponseCode'])
   end
 
-  def test_skips_http_response_code_if_middlware_tracing_disabled
+  def test_skips_http_response_code_if_middleware_tracing_disabled
     with_config(:disable_middleware_instrumentation => true) do
       rsp = get '/', { 'override-response-code' => 404 }
       assert_equal(404, rsp.status)
