@@ -56,7 +56,11 @@ module NewRelic
             else
               result = target.call(env)
             end
-            state.current_transaction.http_response_code = result[0] if result
+
+            if result.is_a?(Array)
+              state.current_transaction.http_response_code = result[0]
+            end
+
             result
           rescue => e
             NewRelic::Agent.notice_error(e)
