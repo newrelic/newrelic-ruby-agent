@@ -80,4 +80,30 @@ class ThreadProfiling < Performance::TestCase
     end
     @service.unsubscribe('eagle')
   end
+
+  def test_generating_traces(timer)
+    require 'new_relic/agent/threading/thread_profile'
+
+    (iterations/1000).times do
+      profile = ::NewRelic::Agent::Threading::ThreadProfile.new({})
+
+      aggregate_lots_of_nodes(profile, 5, [])
+
+      timer.measure do
+        profile.generate_traces
+      end
+    end
+  end
+
+  def aggregate_lots_of_nodes(profile, depth, trace)
+    if depth > 0
+      10.times do |i|
+        trace.push("path#{i}:#{i+50}:in `depth#{depth}'")
+        aggregate_lots_of_nodes(profile, depth-1, trace)
+        trace.pop
+      end
+    else
+      profile.aggregate(trace, :request, Thread.current)
+    end
+  end
 end
