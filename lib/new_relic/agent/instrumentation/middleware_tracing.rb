@@ -45,10 +45,6 @@ module NewRelic
           end
         end
 
-        def capture_http_response_code?(result)
-          result.is_a?(Array) && !NewRelic::Agent.config[:disable_middleware_instrumentation]
-        end
-
         def call(env)
           opts = build_transaction_options(env)
           state = NewRelic::Agent::TransactionState.tl_get
@@ -61,7 +57,7 @@ module NewRelic
               result = target.call(env)
             end
 
-            if capture_http_response_code?(result)
+            if result.is_a?(Array)
               state.current_transaction.http_response_code = result[0]
             end
 
