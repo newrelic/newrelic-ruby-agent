@@ -10,7 +10,7 @@ module NewRelic::Agent::Threading
     SINGLE_LINE = "irb.rb:69:in `catch'"
 
     def setup
-      @node = BacktraceNode.new(nil)
+      @node = BacktraceRoot.new
       @single_trace = [
         "irb.rb:69:in `catch'",
         "irb.rb:69:in `start'",
@@ -36,22 +36,29 @@ module NewRelic::Agent::Threading
       node
     end
 
+    def convert_nodes_to_array(nodes)
+      nodes.each {|n| n.mark_for_array_conversion }
+      nodes.each {|n| n.complete_array_conversion }
+    end
+
     def test_single_node_converts_to_array
       line = "irb.rb:69:in `catch'"
       node = BacktraceNode.new(line)
+      convert_nodes_to_array([node])
 
       assert_equal([
                    ["irb.rb", "catch", 69],
                    0, 0,
                    []],
-                   node.to_array)
+                   node.as_array)
     end
 
     def test_multiple_nodes_converts_to_array
       line = "irb.rb:69:in `catch'"
       child_line = "bacon.rb:42:in `yum'"
       node = create_node(line)
-      create_node(child_line, node)
+      child_node = create_node(child_line, node)
+      convert_nodes_to_array([node, child_node])
 
       assert_equal([
                    ["irb.rb", "catch", 69],
@@ -63,19 +70,20 @@ module NewRelic::Agent::Threading
                        []
       ]
       ]],
-        node.to_array)
+        node.as_array)
     end
 
     def test_gracefully_handle_bad_values_in_to_array
       node = BacktraceNode.new(SINGLE_LINE)
       node.stubs(:parse_backtrace_frame).returns(["irb.rb", "catch", "blarg"])
       node.runnable_count = Rational(10, 1)
+      convert_nodes_to_array([node])
 
       assert_equal([
                    ["irb.rb", "catch", 0],
                    10, 0,
                    []],
-                   node.to_array)
+                   node.as_array)
     end
 
     def test_add_child_twice
@@ -88,44 +96,10 @@ module NewRelic::Agent::Threading
       assert_equal 1, parent.children.size
     end
 
-    def test_prune_keeps_children
-      parent = create_node(SINGLE_LINE)
-      child = create_node(SINGLE_LINE, parent)
-
-      parent.prune!([])
-
-      assert_equal [child], parent.children
-    end
-
-    def test_prune_removes_children
-      parent = create_node(SINGLE_LINE)
-      child = create_node(SINGLE_LINE, parent)
-
-      parent.prune!([child])
-
-      assert_equal [], parent.children
-    end
-
-    def test_prune_removes_grandchildren
-      parent = create_node(SINGLE_LINE)
-      child = create_node(SINGLE_LINE, parent)
-      grandchild = create_node(SINGLE_LINE, child)
-
-      parent.prune!([grandchild])
-
-      assert_equal [child], parent.children
-      assert_equal [], child.children
-    end
-
-    def test_aggregate_empty_trace
-      @node.aggregate([])
-      assert @node.empty?
-    end
-
     def test_aggregate_builds_tree_from_first_trace
       @node.aggregate(@single_trace)
 
-      root = BacktraceNode.new(nil)
+      root = BacktraceRoot.new
       tree = create_node(@single_trace[-1], root, 1)
       child = create_node(@single_trace[-2], tree, 1)
       create_node(@single_trace[-3], child, 1)
@@ -137,7 +111,7 @@ module NewRelic::Agent::Threading
       @node.aggregate(@single_trace)
       @node.aggregate(@single_trace)
 
-      root = BacktraceNode.new(nil)
+      root = BacktraceRoot.new
       tree = create_node(@single_trace[-1], root, 2)
       child = create_node(@single_trace[-2], tree, 2)
       create_node(@single_trace[-3], child, 2)
@@ -161,7 +135,7 @@ module NewRelic::Agent::Threading
       @node.aggregate(backtrace1)
       @node.aggregate(backtrace2)
 
-      root = BacktraceNode.new(nil)
+      root = BacktraceRoot.new
 
       tree = create_node(backtrace1.last, root, 2)
 
@@ -178,12 +152,12 @@ module NewRelic::Agent::Threading
       @node.aggregate(@single_trace)
       @node.aggregate(@single_trace)
 
-      root = BacktraceNode.new(nil)
+      root = BacktraceRoot.new
       tree = create_node(@single_trace[-1], root, 2)
       child = create_node(@single_trace[-2], tree, 2)
       create_node(@single_trace[-3], child, 2)
 
       assert_backtrace_trees_equal(root, @node)
-    end 
+    end
   end
 end

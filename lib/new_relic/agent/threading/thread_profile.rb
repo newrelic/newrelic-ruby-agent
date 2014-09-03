@@ -29,10 +29,10 @@ module NewRelic
           @finished = false
 
           @traces = {
-            :agent      => BacktraceNode.new(nil),
-            :background => BacktraceNode.new(nil),
-            :other      => BacktraceNode.new(nil),
-            :request    => BacktraceNode.new(nil)
+            :agent      => BacktraceRoot.new,
+            :background => BacktraceRoot.new,
+            :other      => BacktraceRoot.new,
+            :request    => BacktraceRoot.new
           }
 
           @poll_count = 0
@@ -78,15 +78,29 @@ module NewRelic
           end
         end
 
-        def truncate_to_node_count!(count_to_keep) #THREAD_LOCAL_ACCESS
-          all_nodes = @traces.values.map { |n| n.flatten }.flatten
+        def convert_N_trace_nodes_to_arrays(count_to_keep) #THREAD_LOCAL_ACCESS
+          all_nodes = @traces.values.map { |n| n.flattened }.flatten
 
           NewRelic::Agent.instance.stats_engine.
             tl_record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
 
-          all_nodes.sort!
-          nodes_to_prune = Set.new(all_nodes[count_to_keep..-1] || [])
-          traces.values.each { |root| root.prune!(nodes_to_prune) }
+          all_nodes.sort! do |a, b|
+            # we primarily prefer higher runnable_count
+            comparison = b.runnable_count <=> a.runnable_count
+            # we secondarily prefer lower depth
+            comparison = a.depth          <=> b.depth if comparison == 0
+            # it is thus impossible for any child to preceed their parent
+            comparison
+          end
+
+          all_nodes.each_with_index do |n, i|
+            break if i >= count_to_keep
+            n.mark_for_array_conversion
+          end
+          all_nodes.each_with_index do |n, i|
+            break if i >= count_to_keep
+            n.complete_array_conversion
+          end
         end
 
         THREAD_PROFILER_NODES = 20_000
@@ -94,17 +108,18 @@ module NewRelic
         include NewRelic::Coerce
 
         def generate_traces
-          truncate_to_node_count!(THREAD_PROFILER_NODES)
+          convert_N_trace_nodes_to_arrays(THREAD_PROFILER_NODES)
+
           {
-            "OTHER" => @traces[:other].to_array,
-            "REQUEST" => @traces[:request].to_array,
-            "AGENT" => @traces[:agent].to_array,
-            "BACKGROUND" => @traces[:background].to_array
+            "OTHER"      => @traces[:other     ].as_array,
+            "REQUEST"    => @traces[:request   ].as_array,
+            "AGENT"      => @traces[:agent     ].as_array,
+            "BACKGROUND" => @traces[:background].as_array
           }
         end
 
         def to_collector_array(encoder)
-          encoded_trace_tree = encoder.encode(generate_traces)
+          encoded_trace_tree = encoder.encode(generate_traces, :skip_normalization => true)
           result = [
             int(self.profile_id),
             float(self.created_at),

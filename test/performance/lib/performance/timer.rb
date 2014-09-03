@@ -4,15 +4,18 @@
 
 module Performance
   class Timer
-    attr_accessor :start_timestamp, :stop_timestamp
+    attr_accessor :start_timestamp, :stop_timestamp, :elapsed
 
     def initialize
       @start_timestamp = nil
       @stop_timestamp = nil
+      @elapsed = 0.0
+      @most_recent_start = nil
     end
 
     def start(t=Time.now)
-      @start_timestamp = t
+      @start_timestamp ||= t
+      @most_recent_start = t
     end
 
     def stopped?
@@ -21,20 +24,13 @@ module Performance
 
     def stop(t=Time.now)
       @stop_timestamp = t
+      @elapsed += t - @most_recent_start
     end
 
     def measure
       start
       yield
       stop
-    end
-
-    def elapsed
-      if @stop_timestamp && @start_timestamp
-        @stop_timestamp - @start_timestamp
-      else
-        nil
-      end
     end
 
     def inspect

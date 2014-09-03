@@ -10,21 +10,25 @@ module NewRelic
     class NewRelicService
       module Encoders
         module Identity
-          def self.encode(data)
+          def self.encode(data, opts=nil)
             data
           end
         end
 
         module Compressed
-          def self.encode(data)
+          def self.encode(data, opts=nil)
             Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
           end
         end
 
         module Base64CompressedJSON
-          def self.encode(data)
-            json = ::NewRelic::JSONWrapper.dump(data,
-              :normalize => Agent.config[:normalize_json_string_encodings])
+          def self.encode(data, opts={})
+            normalize_encodings = if opts[:skip_normalization]
+              false
+            else
+              Agent.config[:normalize_json_string_encodings]
+            end
+            json = ::NewRelic::JSONWrapper.dump(data, :normalize => normalize_encodings)
             Base64.encode64(Compressed.encode(json))
           end
         end

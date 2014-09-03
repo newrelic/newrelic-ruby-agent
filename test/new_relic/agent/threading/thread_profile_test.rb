@@ -41,33 +41,30 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_prune_tree
         @profile.aggregate(@single_trace, :request, Thread.current)
 
-        @profile.truncate_to_node_count!(1)
+        @profile.convert_N_trace_nodes_to_arrays(1)
 
-        assert_equal 0, @profile.traces[:request].children.first.children.size
+        assert_equal 1, count_backtrace_nodes(@profile.traces[:request])
       end
 
       def test_prune_keeps_highest_counts
         @profile.aggregate(@single_trace, :request, Thread.current)
-        @profile.aggregate(@single_trace, :other, Thread.current)
-        @profile.aggregate(@single_trace, :other, Thread.current)
+        @profile.aggregate(@single_trace, :other  , Thread.current)
+        @profile.aggregate(@single_trace, :other  , Thread.current)
 
-        @profile.truncate_to_node_count!(1)
+        @profile.convert_N_trace_nodes_to_arrays(1)
 
-        assert_empty @profile.traces[:request]
-        assert_equal 1, @profile.traces[:other].children.size
-        assert_equal [], @profile.traces[:other].children.first.children
+        assert_equal 0, count_backtrace_nodes(@profile.traces[:request])
+        assert_equal 1, count_backtrace_nodes(@profile.traces[:other  ])
       end
 
       def test_prune_keeps_highest_count_then_depths
         @profile.aggregate(@single_trace, :request, Thread.current)
-        @profile.aggregate(@single_trace, :other, Thread.current)
+        @profile.aggregate(@single_trace, :other  , Thread.current)
 
-        @profile.truncate_to_node_count!(2)
+        @profile.convert_N_trace_nodes_to_arrays(2)
 
-        assert_equal 1, @profile.traces[:request].children.size
-        assert_equal 1, @profile.traces[:other].children.size
-        assert_equal [], @profile.traces[:request].children.first.children
-        assert_equal [], @profile.traces[:other].children.first.children
+        assert_equal 1, count_backtrace_nodes(@profile.traces[:request])
+        assert_equal 1, count_backtrace_nodes(@profile.traces[:other  ])
       end
 
       def build_well_known_trace(args={})
@@ -244,6 +241,30 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def encoder
         NewRelic::Agent::NewRelicService::JsonMarshaller.new.default_encoder
+      end
+
+      def count_backtrace_nodes(bt_node)
+        trees = bt_node.as_array
+
+        count = 0
+
+        trees.each do |tree|
+          count += rec_count_tree_nodes(tree)
+        end
+
+        count
+      end
+
+      def rec_count_tree_nodes(tree)
+        count = 1 # 1 for this node
+
+        children = tree[3]
+
+        children.each do |child|
+          count += rec_count_tree_nodes(child)
+        end
+
+        count
       end
     end
 
