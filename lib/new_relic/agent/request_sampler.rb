@@ -186,9 +186,15 @@ class NewRelic::Agent::RequestSampler
     optionally_append(CAT_PATH_HASH_KEY,              :cat_path_hash, sample, payload)
     optionally_append(CAT_REFERRING_PATH_HASH_KEY,    :cat_referring_path_hash, sample, payload)
     optionally_append(APDEX_PERF_ZONE_KEY,            :apdex_perf_zone, sample, payload)
-    optionally_append(HTTP_RESPONSE_CODE_KEY,         :http_response_code, sample, payload)
+    append_http_response_code(sample, payload)
     append_cat_alternate_path_hashes(sample, payload)
     sample
+  end
+
+  def append_http_response_code(sample, payload)
+    unless NewRelic::Agent.config[:disable_middleware_instrumentation]
+      optionally_append(HTTP_RESPONSE_CODE_KEY, :http_response_code, sample, payload)
+    end
   end
 
   def append_cat_alternate_path_hashes(sample, payload)
