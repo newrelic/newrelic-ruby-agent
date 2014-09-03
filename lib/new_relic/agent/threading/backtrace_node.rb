@@ -19,6 +19,11 @@ module NewRelic
           @children << child unless @children.include? child
         end
 
+        def add_child(child)
+          child.depth = @depth + 1
+          @children << child
+        end
+
         def find_child(raw_line)
           @children.find { |child| child.raw_line == raw_line }
         end
@@ -38,7 +43,7 @@ module NewRelic
         end
 
         def as_array
-          @children.map{|c| c.as_array }.compact
+          @children.map { |c| c.as_array }.compact
         end
 
         def aggregate(backtrace)
@@ -50,7 +55,7 @@ module NewRelic
               node = existing_node
             else
               node = Threading::BacktraceNode.new(frame)
-              current.add_child_unless_present(node)
+              current.add_child(node)
               @flattened << node
             end
 
@@ -94,7 +99,7 @@ module NewRelic
         include NewRelic::Coerce
 
         def complete_array_conversion
-          child_arrays = @children.map{|c| c.as_array }.compact
+          child_arrays = @children.map { |c| c.as_array }.compact
 
           file, method, line = parse_backtrace_frame(@raw_line)
 
