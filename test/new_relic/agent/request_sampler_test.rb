@@ -236,6 +236,13 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     end
   end
 
+  def test_includes_http_response_code_in_events
+    generate_request('whatever', :http_response_code => 404)
+    sample = single_sample
+    code = sample[EVENT_DATA_INDEX]['httpResponseCode']
+    assert_equal('404', code)
+  end
+
   #
   # Helpers
   #

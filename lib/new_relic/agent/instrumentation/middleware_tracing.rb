@@ -52,10 +52,12 @@ module NewRelic
           begin
             Transaction.start(state, category, opts)
             if target == self
-              traced_call(env)
+              result = traced_call(env)
             else
-              target.call(env)
+              result = target.call(env)
             end
+            state.current_transaction.http_response_code = result[0] if result
+            result
           rescue => e
             NewRelic::Agent.notice_error(e)
             raise

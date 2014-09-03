@@ -202,6 +202,7 @@ module NewRelic
       end
 
       attr_reader :frame_stack, :cat_path_hashes
+      attr_accessor :http_response_code
 
       def initialize(category, options)
         @frame_stack = []
@@ -437,8 +438,13 @@ module NewRelic
         append_cat_info(state, duration, payload)
         append_apdex_perf_zone(duration, payload)
         append_referring_transaction_guid_to(state, payload)
+        append_http_response_code(payload)
 
         agent.events.notify(:transaction_finished, payload)
+      end
+
+      def append_http_response_code(payload)
+        payload[:http_response_code] = http_response_code if http_response_code
       end
 
       def include_guid?(state, duration)
