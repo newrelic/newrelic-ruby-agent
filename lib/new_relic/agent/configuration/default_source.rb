@@ -1043,7 +1043,7 @@ module NewRelic
           :allow_nil    => true,
           :public       => true,
           :type         => String,
-          :description  => 'Hostname for this instance. Overrides all other hostname detection.'
+          :description  => 'The hostname as it is displayed in the UI.'
         },
         :labels => {
           :default      => '',
