@@ -198,6 +198,16 @@ module Performance
       report_results(results, Time.now - t0)
     end
 
+    def list_test_cases
+      results = []
+      suites_to_run.each do |cls|
+        methods_for_test_case(cls.new).each do |method|
+          results << [cls, method]
+        end
+      end
+      results
+    end
+
     def report_results(results, elapsed)
       @reporter_classes.each do |cls|
         cls.new(results, elapsed, @options).report

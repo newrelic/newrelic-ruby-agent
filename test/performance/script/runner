@@ -30,6 +30,10 @@ parser = OptionParser.new do |opts|
     end
   end
 
+  opts.on("-l", "--list", "List all available suites and tests") do
+    options[:list] = true
+  end
+
   opts.on("-s", "--suite=NAME", "Filter to just run a single test suite") do |name|
     options[:suite] = name
   end
@@ -100,4 +104,17 @@ end
 parser.parse!
 
 runner = Performance::Runner.new(options)
-runner.run_and_report
+
+if options[:list]
+  all_tests = runner.list_test_cases
+  tests_by_suite = all_tests.group_by { |t| t[0] }
+  tests_by_suite.each do |(suite, tests)|
+    puts "#{suite}:"
+    tests.each do |(_, test_method)|
+      puts "  #{test_method}"
+    end
+    puts ''
+  end
+else
+  runner.run_and_report
+end
