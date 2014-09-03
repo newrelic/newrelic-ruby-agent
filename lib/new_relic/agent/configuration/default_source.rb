@@ -1038,6 +1038,13 @@ module NewRelic
           :type         => Boolean,
           :description  => 'Controls whether or not we use the heroku dyno name as the hostname.'
         },
+        :'process_host.display_name' => {
+          :default      => nil,
+          :allow_nil    => true,
+          :public       => true,
+          :type         => String,
+          :description  => 'The hostname as it is displayed in the UI.'
+        },
         :labels => {
           :default      => '',
           :public       => true,
