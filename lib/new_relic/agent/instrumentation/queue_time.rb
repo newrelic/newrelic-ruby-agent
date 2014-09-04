@@ -16,7 +16,7 @@ module NewRelic
           ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'.freeze
           # any timestamps before this are thrown out and the parser
           # will try again with a larger unit (2000/1/1 UTC)
-          EARLIEST_ACCEPTABLE_TIMESTAMP = 946684800
+          EARLIEST_ACCEPTABLE_TIME = Time.at(946684800)
 
           CANDIDATE_HEADERS = [
             REQUEST_START_HEADER,
@@ -61,9 +61,10 @@ module NewRelic
           end
         end
 
+        DIVISORS = [1_000_000, 1_000, 1]
+
         def parse_timestamp(string)
-          cut_off = Time.at(EARLIEST_ACCEPTABLE_TIMESTAMP)
-          [1_000_000, 1_000, 1].map do |divisor|
+          DIVISORS.map do |divisor|
             begin
               Time.at(string.to_f / divisor)
             rescue RangeError
@@ -72,7 +73,7 @@ module NewRelic
               # in which case we know we've chosen the wrong divisor.
               nil
             end
-          end.compact.find { |candidate| candidate > cut_off }
+          end.compact.find { |candidate| candidate > EARLIEST_ACCEPTABLE_TIME }
         end
       end
     end
