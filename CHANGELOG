@@ -11,14 +11,14 @@
 
   * Rails 4.2 beta in tests
 
-  Although still only in beta, a new version of Rails is on its way!  We're
+  Although still in beta, a new version of Rails is on its way!  We're
   already running our automated test suites against the beta to ensure New
   Relic is ready the day the next Rails is released.
 
   * ActiveRecord 4 cached queries fix
 
-  Queries reported by ActiveRecord 4.x+ as being cached were incorrectly being
-  timed by the agent. This has been fixed.
+  Queries that were hitting in the ActiveRecord 4.x query cache were
+  incorrectly being counted as database time by the agent.
 
   * More robust transmission of thread profiles
 
