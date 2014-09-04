@@ -159,5 +159,14 @@ module NewRelic::Agent::Threading
 
       assert_backtrace_trees_equal(root, @node)
     end
+
+    def test_aggregate_limits_recorded_depth
+      deep_backtrace = (0..2000).to_a.map { |i| "foo.rb:#{i}:in `foo'" }
+
+      root = BacktraceRoot.new
+      root.aggregate(deep_backtrace)
+
+      assert_equal(1000, root.flattened.size)
+    end
   end
 end
