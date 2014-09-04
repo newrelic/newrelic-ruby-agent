@@ -5,6 +5,7 @@
 module NewRelic
   module Agent
     module Threading
+      MAX_THREAD_PROFILE_DEPTH = 1000
 
       class BacktraceBase
         attr_reader :children
@@ -49,7 +50,10 @@ module NewRelic
         def aggregate(backtrace)
           current = self
 
+          depth = 0
           backtrace.reverse_each do |frame|
+            break if depth >= MAX_THREAD_PROFILE_DEPTH
+
             existing_node = current.find_child(frame)
             if existing_node
               node = existing_node
@@ -61,6 +65,7 @@ module NewRelic
 
             node.runnable_count += 1
             current = node
+            depth += 1
           end
         end
 
