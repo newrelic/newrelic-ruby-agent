@@ -659,7 +659,7 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable the collection of explain plans.'
+          :description => 'Enable or disable the collection of explain plans in transaction traces. This setting will also apply to explain plans in Slow SQL traces if slow_sql.explain_enabled is not set separately.'
         },
         :'transaction_tracer.stack_trace_threshold' => {
           :default => 0.5,
@@ -709,7 +709,7 @@ module NewRelic
           :default => DefaultSource.slow_sql_explain_enabled,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable the collection of explain plans in slow SQL queries.'
+          :description => 'Enable or disable the collection of explain plans in slow SQL queries. If this setting is omitted, the transaction_tracer.explain_enabled setting will be applied as the default setting for explain plans in Slow SQL as well.'
         },
         :'slow_sql.record_sql' => {
           :default => DefaultSource.slow_sql_record_sql,
