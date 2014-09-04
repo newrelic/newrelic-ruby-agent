@@ -1,5 +1,37 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.9.4 ##
+
+  * Allow agent to use alternate certificate stores
+
+  When connecting via SSL to New Relic services, the Ruby agent verifies its
+  connection via a certificate bundle shipped with the agent. This had problems
+  with certain proxy configurations, so the `ca_bundle_path` setting in
+  newrelic.yml can now override where the agent locates the cert bundle to use.
+
+  * Rails 4.2 beta in tests
+
+  Although still only in beta, a new version of Rails is on its way!  We're
+  already running our automated test suites against the beta to ensure New
+  Relic is ready the day the next Rails is released.
+
+  * ActiveRecord 4 cached queries fix
+
+  Queries reported by ActiveRecord 4.x+ as being cached were incorrectly being
+  timed by the agent. This has been fixed.
+
+  * More robust transmission of thread profiles
+
+  Deep call trees in thread profiles sometimes caused SystemStackErrors that
+  prevented New Relic from receiving the profiles. Removing certain recursive
+  calls has improved the stablity of preparing thread profile data to send.
+
+  * Fix for error in newrelic.yml loading
+
+  If your application ran with a RAILS_ENV that was not listed in newrelic.yml
+  recent agent versions would give a NameError rather than a helpful message.
+  This has been fixed. Thanks Oleksiy Kovyrin for the patch!
+
 ## v3.9.3 ##
 
   * Fix to prevent proxy credentials transmission
