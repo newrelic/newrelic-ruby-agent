@@ -49,8 +49,7 @@ module NewRelic
 
           when /linux/
             cpuinfo = proc_try_read('/proc/cpuinfo')
-            return unless cpuinfo
-            @processor_info = parse_cpuinfo(cpuinfo)
+            @processor_info = cpuinfo ? parse_cpuinfo(cpuinfo) : {}
           end
 
           # give nils for obviously wrong values
@@ -61,7 +60,7 @@ module NewRelic
 
         @processor_info
       rescue
-        nil
+        {}
       end
 
       def self.parse_cpuinfo(cpuinfo)
@@ -114,15 +113,9 @@ module NewRelic
         }
       end
 
-      def self.num_physical_packages
-        get_processor_info && get_processor_info[:num_physical_packages ]
-      end
-      def self.num_physical_cores
-        get_processor_info && get_processor_info[:num_physical_cores    ]
-      end
-      def self.num_logical_processors
-        get_processor_info && get_processor_info[:num_logical_processors]
-      end
+      def self.num_physical_packages ; get_processor_info[:num_physical_packages ] end
+      def self.num_physical_cores    ; get_processor_info[:num_physical_cores    ] end
+      def self.num_logical_processors; get_processor_info[:num_logical_processors] end
 
       def self.processor_arch
         RbConfig::CONFIG['target_cpu']
