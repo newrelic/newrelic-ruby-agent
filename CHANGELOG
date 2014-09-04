@@ -9,6 +9,9 @@
   with certain proxy configurations, so the `ca_bundle_path` setting in
   newrelic.yml can now override where the agent locates the cert bundle to use.
 
+  For more information see the documentation at:
+  https://docs.newrelic.com/docs/agents/ruby-agent/installation-configuration/ssl-settings-ruby-agent
+
   * Rails 4.2 beta in tests
 
   Although still in beta, a new version of Rails is on its way!  We're
@@ -19,12 +22,6 @@
 
   Queries that were hitting in the ActiveRecord 4.x query cache were
   incorrectly being counted as database time by the agent.
-
-  * More robust transmission of thread profiles
-
-  Deep call trees in thread profiles sometimes caused SystemStackErrors that
-  prevented New Relic from receiving the profiles. Removing certain recursive
-  calls has improved the stablity of preparing thread profile data to send.
 
   * Fix for error in newrelic.yml loading
 
