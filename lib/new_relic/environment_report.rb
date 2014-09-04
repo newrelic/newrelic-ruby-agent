@@ -43,7 +43,7 @@ module NewRelic
 
     # register reporting logic
     ####################################
-    report_on 'Gems' do
+    report_on('Gems') do
       begin
         Bundler.rubygems.all_specs.map { |gem| "#{gem.name}(#{gem.version})" }
       rescue
@@ -51,34 +51,37 @@ module NewRelic
         # 1.6.2, rails 2.3, bundler 1.2.3) where the code above throws an error
         # in bundler because of rails monkey patching gem.  The below does work
         # though so try it if the above fails.
-        Bundler.load.specs.map do | spec |
+        Bundler.load.specs.map do |spec|
           version = (spec.respond_to?(:version) && spec.version)
           spec.name + (version ? "(#{version})" : "")
         end
       end
     end
-    report_on('Plugin List'){ ::Rails.configuration.plugins.to_a }
-    report_on('Ruby version'){ RUBY_VERSION }
-    report_on('Ruby description'){ RUBY_DESCRIPTION }
-    report_on('Ruby platform'){ RUBY_PLATFORM }
-    report_on('Ruby patchlevel'){ RUBY_PATCHLEVEL.to_s }
-    report_on('JRuby version') { JRUBY_VERSION }
-    report_on('Java VM version') { ENV_JAVA['java.vm.version']}
-    report_on('Processors') { ::NewRelic::Agent::SystemInfo.processor_count }
-    report_on('Arch') { ::NewRelic::Agent::SystemInfo.processor_arch }
-    report_on('OS version') { ::NewRelic::Agent::SystemInfo.os_version }
-    report_on('OS') { ::NewRelic::Agent::SystemInfo.ruby_os_identifier }
-    report_on 'Database adapter' do
+    report_on('Plugin List'       ) { ::Rails.configuration.plugins.to_a }
+    report_on('Ruby version'      ) { RUBY_VERSION                       }
+    report_on('Ruby description'  ) { RUBY_DESCRIPTION                   }
+    report_on('Ruby platform'     ) { RUBY_PLATFORM                      }
+    report_on('Ruby patchlevel'   ) { RUBY_PATCHLEVEL.to_s               }
+    report_on('JRuby version'     ) { JRUBY_VERSION                      }
+    report_on('Java VM version'   ) { ENV_JAVA['java.vm.version']        }
+    report_on('Processors'        ) { ::NewRelic::Agent::SystemInfo.num_logical_processors }
+    report_on('Logical Processors') { ::NewRelic::Agent::SystemInfo.num_logical_processors }
+    report_on('Physical Cores'    ) { ::NewRelic::Agent::SystemInfo.num_physical_cores     }
+    report_on('Physical Packages' ) { ::NewRelic::Agent::SystemInfo.num_physical_packages  }
+    report_on('Arch'              ) { ::NewRelic::Agent::SystemInfo.processor_arch         }
+    report_on('OS version'        ) { ::NewRelic::Agent::SystemInfo.os_version             }
+    report_on('OS'                ) { ::NewRelic::Agent::SystemInfo.ruby_os_identifier     }
+    report_on('Database adapter'  ) do
       ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
     end
-    report_on('Framework') { Agent.config[:framework].to_s }
-    report_on('Dispatcher') { Agent.config[:dispatcher].to_s }
-    report_on('Environment') { NewRelic::Control.instance.env }
-    report_on('Rails version') { ::Rails::VERSION::STRING }
-    report_on 'Rails threadsafe' do
+    report_on('Framework'       ) { Agent.config[:framework].to_s  }
+    report_on('Dispatcher'      ) { Agent.config[:dispatcher].to_s }
+    report_on('Environment'     ) { NewRelic::Control.instance.env }
+    report_on('Rails version'   ) { ::Rails::VERSION::STRING       }
+    report_on('Rails threadsafe') do
       ::Rails.configuration.action_controller.allow_concurrency
     end
-    report_on 'Rails Env' do
+    report_on('Rails Env') do
       if defined? ::Rails and ::Rails.respond_to?(:env)
         ::Rails.env.to_s
       else

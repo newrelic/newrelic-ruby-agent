@@ -33,7 +33,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Minitest::Test
 
     freeze_time
     Process.stubs(:times).returns(timeinfo0, timeinfo1)
-    NewRelic::Agent::SystemInfo.stubs(:processor_count).returns(4)
+    NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(4)
 
     s = NewRelic::Agent::Samplers::CpuSampler.new # this calls poll
     advance_time(elapsed)
