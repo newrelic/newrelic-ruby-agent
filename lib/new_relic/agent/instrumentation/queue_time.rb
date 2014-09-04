@@ -64,16 +64,18 @@ module NewRelic
         DIVISORS = [1_000_000, 1_000, 1]
 
         def parse_timestamp(string)
-          DIVISORS.map do |divisor|
+          DIVISORS.each do |divisor|
             begin
-              Time.at(string.to_f / divisor)
+              t = Time.at(string.to_f / divisor)
+              return t if t > EARLIEST_ACCEPTABLE_TIME
             rescue RangeError
               # On Ruby versions built with a 32-bit time_t, attempting to
               # instantiate a Time object in the far future raises a RangeError,
               # in which case we know we've chosen the wrong divisor.
-              nil
             end
-          end.compact.find { |candidate| candidate > EARLIEST_ACCEPTABLE_TIME }
+          end
+
+          nil
         end
       end
     end
