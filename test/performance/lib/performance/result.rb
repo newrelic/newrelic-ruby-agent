@@ -75,7 +75,9 @@ module Performance
     def self.from_hash(hash)
       elapsed = hash['measurements'].delete('elapsed')
       result = self.new(hash['suite'], hash['name'])
-      result.measurements.merge! hash['measurements']
+      hash['measurements'].each do |key, value|
+        result.measurements[key.to_sym] = value
+      end
       result.tags.merge! hash['tags']
       result.exception = hash['exception']
       result.elapsed = elapsed

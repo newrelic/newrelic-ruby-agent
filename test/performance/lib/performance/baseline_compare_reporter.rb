@@ -58,22 +58,39 @@ module Performance
         delta = new_result.elapsed - old_result.elapsed
         percent_delta = delta / old_result.elapsed * 100.0
 
+        allocations_before = old_result.measurements[:allocations]
+        allocations_after  = new_result.measurements[:allocations]
+        if allocations_before && allocations_after
+          allocations_delta  = allocations_after - allocations_before
+          allocations_delta_percent = allocations_delta.to_f / allocations_before * 100
+        else
+          allocations_delta_percent = 0
+        end
+
         rows << [
           identifier,
           old_result.elapsed,
           new_result.elapsed,
-          percent_delta
+          percent_delta,
+          allocations_before,
+          allocations_after,
+          allocations_delta_percent
         ]
       end
 
+      format_percent_delta = Proc.new { |v|
+        prefix = v > 0 ? "+" : ""
+        sprintf("#{prefix}%.1f%%", v)
+      } 
+
       table = Table.new(rows) do
         column :name
-        column :before, "%.2f s"
-        column :after,  "%.2f s"
-        column :delta do |v|
-          prefix = v > 0 ? "+" : ''
-          sprintf("#{prefix}%.1f%%", v)
-        end
+        column :before,        "%.2f s"
+        column :after,         "%.2f s"
+        column :delta,         &format_percent_delta
+        column :allocs_before
+        column :allocs_after
+        column :allocs_delta,  &format_percent_delta
       end
 
       puts table.render
