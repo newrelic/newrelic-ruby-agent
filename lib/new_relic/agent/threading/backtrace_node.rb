@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     module Threading
-      MAX_THREAD_PROFILE_DEPTH = 1000
+      MAX_THREAD_PROFILE_DEPTH = 500
 
       class BacktraceBase
         attr_reader :children

@@ -88,6 +88,36 @@ module NewRelic::Agent::Threading
       assert called
     end
 
+    def test_standard_error_is_caught
+      expects_logging(:error, includes("exited"), any_parameters)
+
+      t = AgentThread.create("fail") { raise "O_o" }
+      t.join
+
+      assert_thread_completed(t)
+    end
+
+    def test_exception_is_reraised
+      expects_logging(:error, includes("exited"), any_parameters)
+
+      assert_raises(Exception) do
+        begin
+          t = AgentThread.create("fail") { raise Exception.new }
+          t.join
+        ensure
+          assert_thread_died_from_exception(t)
+        end
+      end
+    end
+
+    def assert_thread_completed(t)
+      assert_equal false, t.status
+    end
+
+    def assert_thread_died_from_exception(t)
+      assert_equal nil, t.status
+    end
+
     TRACE = [
       "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/gems/1.9.1/gems/eventmachine-0.12.10/lib/eventmachine.rb:100:in `catch'",
       "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/gems/1.9.1/gems/newrelic_rpm-3.5.3.452.dev/lib/new_relic/agent/agent.rb:200:in `start_worker_thread'",
