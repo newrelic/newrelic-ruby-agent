@@ -367,6 +367,12 @@ module NewRelic::Agent::Configuration
       assert_parsed_labels(expected)
     end
 
+    def test_fetch_with_a_transform_returns_the_transformed_value
+      with_config(:rules => { :ignore => ['more than meets the eye'] }) do
+        assert_equal [/more than meets the eye/], @manager.fetch(:'rules.ignore')
+      end
+    end
+
     def assert_parsed_labels(expected)
       result = @manager.parsed_labels
 

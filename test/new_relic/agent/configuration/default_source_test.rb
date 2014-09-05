@@ -80,6 +80,14 @@ module NewRelic::Agent::Configuration
       nil
     end
 
+    def test_transform_for_returns_a_proc_for_settings_with_a_transform
+      assert_equal Proc, DefaultSource.transform_for(:'rules.ignore').class
+    end
+
+    def test_transform_for_returns_nil_for_settings_that_do_not_have_a_transform
+      assert_nil DefaultSource.transform_for(:ca_bundle_path)
+    end
+
     def get_config_value_class(value)
       type = value.class
 

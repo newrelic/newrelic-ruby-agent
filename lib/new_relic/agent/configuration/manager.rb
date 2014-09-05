@@ -115,15 +115,27 @@ module NewRelic
           config_stack.each do |config|
             next unless config
             accessor = key.to_sym
+
             if config.has_key?(accessor)
               if config[accessor].respond_to?(:call)
-                return instance_eval(&config[accessor])
+                value = instance_eval(&config[accessor])
               else
-                return config[accessor]
+                value = config[accessor]
+              end
+
+              if transform = transform_from_default(accessor)
+                return transform.call(value)
+              else
+                return value
               end
             end
           end
+
           nil
+        end
+
+        def transform_from_default(key)
+          ::NewRelic::Agent::Configuration::DefaultSource.transform_for(key)
         end
 
         def register_callback(key, &proc)
@@ -134,6 +146,7 @@ module NewRelic
         def invoke_callbacks(direction, source)
           return unless source
           source.keys.each do |key|
+
             if @cache[key] != source[key]
               @callbacks[key].each do |proc|
                 if direction == :add

@@ -27,6 +27,11 @@ module NewRelic
           result
         end
 
+        def self.transform_for(key)
+          default_settings = ::NewRelic::Agent::Configuration::DEFAULTS[key]
+          default_settings[:transform] if default_settings
+        end
+
         def self.config_search_paths
           Proc.new {
             paths = [
@@ -1063,10 +1068,11 @@ module NewRelic
           :type         => String,
           :description  => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic's data collection service."
         },
-        :"rules.ignore" => {
+        :'rules.ignore' => {
           :default      => [],
           :public       => true,
           :type         => Array,
+          :transform    => Proc.new { |rules| rules.map { |rule| /#{rule}/ } },
           :description  => 'A list of patterns that will cause a transaction to be ignored if any of them match the transaction name.'
          }
       }.freeze
