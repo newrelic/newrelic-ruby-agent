@@ -11,12 +11,8 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     @sysinfo.clear_processor_info
   end
 
-  test_dir = File.expand_path(File.join(File.dirname(__FILE__),
-                                        '..',
-                                        '..',
-                                        'fixtures',
-                                        'cross_agent_tests',
-                                        'proc_cpuinfo'))
+  test_dir = File.join(cross_agent_tests_dir, 'proc_cpuinfo')
+
   Dir.chdir(test_dir) do
     Dir.glob("*.txt") do |file|
       if file =~ /^((\d+)pack_(\d+)core(_hyper)?).txt$/
