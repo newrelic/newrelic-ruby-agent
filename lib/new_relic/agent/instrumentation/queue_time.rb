@@ -23,6 +23,8 @@ module NewRelic
             QUEUE_START_HEADER,
             MIDDLEWARE_START_HEADER
           ].freeze
+
+          DIVISORS = [1_000_000, 1_000, 1]
         end
 
         module_function
@@ -60,8 +62,6 @@ module NewRelic
           when /t=([\d+\.]+)/       then $1
           end
         end
-
-        DIVISORS = [1_000_000, 1_000, 1]
 
         def parse_timestamp(string)
           DIVISORS.each do |divisor|
