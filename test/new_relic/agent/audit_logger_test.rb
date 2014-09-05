@@ -31,6 +31,11 @@ class AuditLoggerTest < Minitest::Test
     @logger.stubs(:ensure_log_path).returns(@fakelog)
   end
 
+  def setup_fake_logger_with_failure(error)
+    setup_fake_logger
+    @logger.stubs(:enabled?).raises(error)
+  end
+
   def assert_log_contains_string(str)
     log_body = read_log_body
     assert(log_body.include?(str), "Expected log to contain string '#{str}'\nLog body was: #{log_body}")
@@ -133,4 +138,26 @@ class AuditLoggerTest < Minitest::Test
     end
     assert_log_contains_string('cachey-mccaherson')
   end
+
+  TRAPPABLE_ERRORS = [
+    StandardError.new,
+    SystemStackError.new,
+    SystemCallError.new("Syscalls FTW")
+  ]
+
+  TRAPPABLE_ERRORS.each do |error|
+    define_method("test_traps_#{error.class}") do
+      setup_fake_logger_with_failure(error)
+      @logger.log_request(@uri, @dummy_data, @marshaller)
+      assert_empty read_log_body
+    end
+  end
+
+  def test_allows_other_exceptions_through
+    setup_fake_logger_with_failure(Exception.new)
+    assert_raises(Exception) do
+      @logger.log_request(@uri, @dummy_data, @marshaller)
+    end
+  end
+
 end
