@@ -77,7 +77,7 @@ module NewRelic
 
         total_processors = 0
 
-        cpuinfo.split("\n").map{|s| s.strip}.each do |line|
+        cpuinfo.split("\n").map(&:strip).each do |line|
           case line
           when /^processor\s*:/
             push_cpu[] if phys_id && core_id
@@ -96,7 +96,7 @@ module NewRelic
         # The number of cores is the sum of the sizes of the 2nd-level hashes.
         num_cores      = cpu_tree.map{|k,v| v.size}.reduce(0){|sum,x| sum+x}
         # The number of processors is the sum of the leaves in the tree.
-        num_processors = cpu_tree.values.map{|h| h.values}.flatten.reduce(0){|sum,x| sum+x}
+        num_processors = cpu_tree.values.map(&:values).flatten.reduce(0){|sum,x| sum+x}
 
         # Some older, single-core processors might not list ids,
         # so we'll just mark them all 1.
