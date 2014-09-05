@@ -166,7 +166,7 @@ module NewRelic::Agent::Threading
       root = BacktraceRoot.new
       root.aggregate(deep_backtrace)
 
-      assert_equal(1000, root.flattened.size)
+      assert_equal(MAX_THREAD_PROFILE_DEPTH, root.flattened.size)
     end
   end
 end
