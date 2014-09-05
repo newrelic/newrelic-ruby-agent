@@ -378,6 +378,18 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_equal ['YY'], @scope_listener.scopes
   end
 
+  def test_add_method_tracer_module_double_inclusion
+    mod = Module.new { def traced_method; end }
+    cls = Class.new { include mod }
+
+    mod.module_eval do
+      include NewRelic::Agent::MethodTracer
+      add_method_tracer :traced_method
+    end
+
+    cls.new.traced_method
+  end
+
   def trace_no_push_scope
     self.class.add_method_tracer :method_to_be_traced, 'X', :push_scope => false
     method_to_be_traced 1,2,3,true,nil
