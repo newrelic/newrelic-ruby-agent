@@ -64,23 +64,17 @@ module NewRelic
       end
 
       def self.parse_cpuinfo(cpuinfo)
-        # Build a tree of the following form:
-        #   physical_id_0:
-        #     core_id_0: num_logical_processors_on_this_core
-        #     core_id_1: num_logical_processors_on_this_core
-        #   physical_id_1:
-        #     core_id_0: num_logical_processors_on_this_core
-        #     core_id_1: num_logical_processors_on_this_core
-        cpu_tree = Hash.new { |h0,k0| h0[k0] = Hash.new { |h1,k1| h1[k1] = 0 } }
-        phys_id  = core_id = nil
-        push_cpu = lambda { cpu_tree[phys_id][core_id] += 1 }
+        # Build a hash of the form
+        #   { [phys_id, core_id] => num_logical_processors_on_this_core }
+        cores = Hash.new { |h,k| h[k] = 0 }
+        phys_id = core_id = nil
 
         total_processors = 0
 
         cpuinfo.split("\n").map(&:strip).each do |line|
           case line
           when /^processor\s*:/
-            push_cpu[] if phys_id && core_id
+            cores[[phys_id, core_id]] += 1 if phys_id && core_id
             phys_id = core_id = nil # reset these values
             total_processors += 1
           when /^physical id\s*:(.*)/
@@ -89,14 +83,11 @@ module NewRelic
             core_id = $1.strip.to_i
           end
         end
-        push_cpu[] if phys_id && core_id
+        cores[[phys_id, core_id]] += 1 if phys_id && core_id
 
-        # The number of packages is the size of the root hash.
-        num_packages   = cpu_tree.size
-        # The number of cores is the sum of the sizes of the 2nd-level hashes.
-        num_cores      = cpu_tree.map{|k,v| v.size}.reduce(0){|sum,x| sum+x}
-        # The number of processors is the sum of the leaves in the tree.
-        num_processors = cpu_tree.values.map(&:values).flatten.reduce(0){|sum,x| sum+x}
+        num_packages   = cores.keys.map(&:first).uniq.size
+        num_cores      = cores.size
+        num_processors = cores.values.reduce(0,:+)
 
         # Some older, single-core processors might not list ids,
         # so we'll just mark them all 1.
