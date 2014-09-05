@@ -66,7 +66,7 @@ module NewRelic
       def self.parse_cpuinfo(cpuinfo)
         # Build a hash of the form
         #   { [phys_id, core_id] => num_logical_processors_on_this_core }
-        cores = Hash.new { |h,k| h[k] = 0 }
+        cores = Hash.new(0)
         phys_id = core_id = nil
 
         total_processors = 0
