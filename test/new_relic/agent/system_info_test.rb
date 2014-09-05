@@ -15,14 +15,13 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   Dir.chdir(test_dir) do
     Dir.glob("*.txt") do |file|
-      if file =~ /^((\d+)pack_(\d+)core(_hyper)?).txt$/
+      if file =~ /^((\d+)pack_(\d+)core_(\d+)thread).txt$/
         test_name = "test_#{$1}"
         test_path = File.join(test_dir, file)
-        is_hyperthreaded = !!$4
 
         num_physical_packages  = $2.to_i
         num_physical_cores     = $3.to_i * num_physical_packages
-        num_logical_processors = num_physical_cores * (is_hyperthreaded ? 2 : 1)
+        num_logical_processors = $4.to_i * num_physical_cores
 
         define_method(test_name) do
           cpuinfo = File.read(test_path)
