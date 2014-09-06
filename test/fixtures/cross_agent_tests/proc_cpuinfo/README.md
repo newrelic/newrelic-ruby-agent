@@ -1,6 +1,6 @@
 These tests are for determining the numbers of physical packages, physical cores,
-and logical processors from the data returned by /proc/cpuinfo. Each text file
-in this directory is the output of /proc/cpuinfo on various machines.
+and logical processors from the data returned by /proc/cpuinfo on Linux hosts.
+Each text file in this directory is the output of /proc/cpuinfo on various machines.
 
 The names of all test files should be of the form `Xpack_Ycore_Zthread.txt`
 where `X`, `Y`, and `Z` are integers. For example, a single quad-core processor
