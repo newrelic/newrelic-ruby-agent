@@ -30,11 +30,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_stat_engine
-    assert_equal agent_instance.stats_engine, stat_engine
-  end
-
-  def test_agent_instance
-    assert_equal NewRelic::Agent.instance, agent_instance
+    assert_equal NewRelic::Agent.instance.stats_engine, stat_engine
   end
 
   def test_metric_recording_outside_transaction
@@ -134,15 +130,6 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'outer' => expected_values,
       'bar'   => expected_values
     )
-  end
-
-  def test_set_if_nil
-    h = {}
-    set_if_nil(h, :foo)
-    assert h[:foo]
-    h[:bar] = false
-    set_if_nil(h, :bar)
-    assert !h[:bar]
   end
 
   def test_log_errors_base
