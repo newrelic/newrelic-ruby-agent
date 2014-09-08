@@ -1073,7 +1073,7 @@ module NewRelic
           :public       => true,
           :type         => Array,
           :transform    => Proc.new { |rules| rules.map { |rule| /#{rule}/ } },
-          :description  => 'A list of patterns that will cause a transaction to be ignored if any of them match the transaction name.'
+          :description  => 'A list of patterns that will cause a transaction to be ignored if any of them match the URI.'
          }
       }.freeze
 
