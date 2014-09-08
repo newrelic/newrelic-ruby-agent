@@ -15,13 +15,16 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   Dir.chdir(test_dir) do
     Dir.glob("*.txt") do |file|
-      if file =~ /^((\d+)pack_(\d+)core_(\d+)thread).txt$/
+      if file =~ /^((\d+)pack_(\d+)core_(\d+)logical).txt$/
         test_name = "test_#{$1}"
         test_path = File.join(test_dir, file)
 
         num_physical_packages  = $2.to_i
-        num_physical_cores     = $3.to_i * num_physical_packages
-        num_logical_processors = $4.to_i * num_physical_cores
+        num_physical_cores     = $3.to_i
+        num_logical_processors = $4.to_i
+        num_physical_packages  = nil if num_physical_packages  < 1
+        num_physical_cores     = nil if num_physical_cores     < 1
+        num_logical_processors = nil if num_logical_processors < 1
 
         define_method(test_name) do
           cpuinfo = File.read(test_path)

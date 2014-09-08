@@ -89,12 +89,20 @@ module NewRelic
         num_cores      = cores.size
         num_processors = cores.values.reduce(0,:+)
 
-        # Some older, single-core processors might not list ids,
-        # so we'll just mark them all 1.
-        if num_packages == 0 && total_processors == 1
-          num_packages   = 1
-          num_cores      = 1
-          num_processors = 1
+        if num_cores == 0
+          num_processors = total_processors
+
+          if total_processors == 1
+            # Some older, single-core processors might not list ids,
+            # so we'll just mark them all 1.
+            num_packages   = 1
+            num_cores      = 1
+          else
+            # We have no way of knowing how many packages or cores
+            # we have, even though we know how many processors there are.
+            num_packages   = nil
+            num_cores      = nil
+          end
         end
 
         {
