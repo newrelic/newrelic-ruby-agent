@@ -134,7 +134,6 @@ module NewRelic
 
         def record_metrics(state, first_name, other_names, duration, exclusive, options)
           record_scoped_metric = options.has_key?(:scoped_metric) ? options[:scoped_metric] : true
-
           if options[:metric]
             if record_scoped_metric
               stat_engine.record_scoped_and_unscoped_metrics(state, first_name, other_names, duration, exclusive)
@@ -142,8 +141,6 @@ module NewRelic
               metrics = [first_name].concat(other_names)
               stat_engine.record_unscoped_metrics(state, metrics, duration, exclusive)
             end
-          else
-            stat_engine.record_unscoped_metrics(state, other_names, duration, exclusive)
           end
         end
 
@@ -159,24 +156,28 @@ module NewRelic
           log_errors(:trace_method_execution_footer) do
             if expected_frame
               stack = state.traced_method_stack
-              frame = stack.pop_frame(state, expected_frame, first_name, t1, !!options[:metric])
-              duration = t1 - t0
-              if duration < 1_000_000_000 # roughly 31 years
-                if duration < 0
-                  ::NewRelic::Agent.logger.log_once(:warn, "metric_duration_negative:#{first_name}",
-                    "Metric #{first_name} has negative duration: #{duration} s")
-                end
-
+              create_metrics = !!options[:metric]
+              frame = stack.pop_frame(state, expected_frame, first_name, t1, create_metrics)
+              if create_metrics
+                duration = t1 - t0
                 exclusive = duration - frame.children_time
-                if exclusive < 0
-                  ::NewRelic::Agent.logger.log_once(:warn, "metric_exclusive_negative:#{first_name}",
-                    "Metric #{first_name} has negative exclusive time: duration = #{duration} s, child_time = #{frame.children_time}")
-                end
 
-                record_metrics(state, first_name, metric_names, duration, exclusive, options)
-              else
-                ::NewRelic::Agent.logger.log_once(:warn, "too_huge_metric:#{first_name}",
-                  "Ignoring metric #{first_name} with unacceptably large duration: #{duration} s")
+                if duration < 1_000_000_000 # roughly 31 years
+                  if duration < 0
+                    ::NewRelic::Agent.logger.log_once(:warn, "metric_duration_negative:#{first_name}",
+                      "Metric #{first_name} has negative duration: #{duration} s")
+                  end
+
+                  if exclusive < 0
+                    ::NewRelic::Agent.logger.log_once(:warn, "metric_exclusive_negative:#{first_name}",
+                      "Metric #{first_name} has negative exclusive time: duration = #{duration} s, child_time = #{frame.children_time}")
+                  end
+
+                  record_metrics(state, first_name, metric_names, duration, exclusive, options)
+                else
+                  ::NewRelic::Agent.logger.log_once(:warn, "too_huge_metric:#{first_name}",
+                    "Ignoring metric #{first_name} with unacceptably large duration: #{duration} s")
+                end
               end
             end
           end

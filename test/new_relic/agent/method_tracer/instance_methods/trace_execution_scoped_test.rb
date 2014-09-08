@@ -116,7 +116,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     )
   end
 
-  def test_metric_recording_without_metric_option
+  def test_metric_recording_with_metric_option_false
     options = { :metric => false, :scoped_metric => false }
 
     in_transaction('outer') do
@@ -126,10 +126,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     end
 
     expected_values = { :call_count => 1 }
-    assert_metrics_recorded_exclusive(
-      'outer' => expected_values,
-      'bar'   => expected_values
-    )
+    assert_metrics_recorded_exclusive('outer' => expected_values)
   end
 
   def test_log_errors_base
