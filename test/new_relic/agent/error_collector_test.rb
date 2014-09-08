@@ -237,10 +237,30 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_increment_error_count_record_summary_and_txn_metric
-    @error_collector.increment_error_count!(StandardError.new('Boo'),
-                                            :metric => 'Controller/class/method')
+    in_web_transaction('Controller/class/method') do
+      @error_collector.increment_error_count!(StandardError.new('Boo'))
+    end
 
-    assert_metrics_recorded(['Errors/all', 'Errors/Controller/class/method'])
+    assert_metrics_recorded(['Errors/all',
+                             'Errors/allWeb',
+                             'Errors/Controller/class/method'])
+  end
+
+  def test_increment_error_count_record_summary_and_txn_metric
+    in_background_transaction('OtherTransaction/AnotherFramework/Job/perform') do
+      @error_collector.increment_error_count!(StandardError.new('Boo'))
+    end
+
+    assert_metrics_recorded(['Errors/all',
+                             'Errors/allOther',
+                             'Errors/OtherTransaction/AnotherFramework/Job/perform'])
+  end
+
+  def test_icrement_error_count_summary_outside_transaction
+    @error_collector.increment_error_count!(StandardError.new('Boo'))
+
+    assert_metrics_recorded(['Errors/all'])
+    assert_metrics_not_recorded(['Errors/allWeb', 'Errors/allOther'])
   end
 
   def test_doesnt_increment_error_count_on_transaction_if_nameless
@@ -353,8 +373,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     end
     assert_metrics_recorded_exclusive(
       {
-        'Errors/all' => { :call_count => 1 },
-        'Errors/boo' => { :call_count => 1 }
+        'Errors/all'      => { :call_count => 1 },
+        'Errors/boo'      => { :call_count => 1 },
+        'Errors/allOther' => { :call_count => 1 }
       },
       :filter => /^Errors\//
     )

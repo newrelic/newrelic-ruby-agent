@@ -133,6 +133,19 @@ module NewRelic
           end
         end
 
+        def aggregated_metric_names(txn)
+          metric_names = ["Errors/all"]
+          return metric_names unless txn
+
+          if txn.recording_web_transaction?
+            metric_names << "Errors/allWeb"
+          else
+            metric_names << "Errors/allOther"
+          end
+
+          metric_names
+        end
+
         # Increments a statistic that tracks total error rate
         # Be sure not to double-count same exception. This clears per harvest.
         def increment_error_count!(exception, options={}) #THREAD_LOCAL_ACCESS
@@ -142,7 +155,7 @@ module NewRelic
           return if seen?(txn, exception)
           tag_as_seen(txn, exception)
 
-          metric_names = ["Errors/all"]
+          metric_names  = aggregated_metric_names(txn)
           blamed_metric = blamed_metric_name(txn, options)
           metric_names << blamed_metric if blamed_metric
 
