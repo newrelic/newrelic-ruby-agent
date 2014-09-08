@@ -71,7 +71,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     assert_equal('a' * 16_381 + '...', @sampler.tl_transaction_data.sql_data[0].sql)
   end
 
-  def test_harvest_slow_sql
+  def test_save_slow_sql
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info("/c/a", 'guid')
     data.set_transaction_name("WebTransaction/Controller/c/a")
@@ -80,7 +80,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.2),
       NewRelic::Agent::SlowSql.new("select * from test2", "Database/test2/select", {}, 1.1)
     ]
-    @sampler.harvest_slow_sql data
+    @sampler.save_slow_sql data
 
     assert_equal 2, @sampler.sql_traces.size
   end
@@ -107,7 +107,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     data.sql_data.concat [NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5),
                           NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.2),
                           NewRelic::Agent::SlowSql.new("select * from test2", "Database/test2/select", {}, 1.1)]
-    @sampler.harvest_slow_sql data
+    @sampler.save_slow_sql data
 
     sql_traces = @sampler.harvest!
     assert_equal 2, sql_traces.size
@@ -122,7 +122,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                                                     "Database/test#{(i+97).chr}/select", {}, i)
     end
 
-    @sampler.harvest_slow_sql data
+    @sampler.save_slow_sql data
     result = @sampler.harvest!
 
     assert_equal(10, result.size)
@@ -139,7 +139,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                NewRelic::Agent::SlowSql.new("select * from test2 where foo in (1,2)", "Database/test2/select", {}, 1.1)
               ]
     data.sql_data.concat(queries)
-    @sampler.harvest_slow_sql data
+    @sampler.save_slow_sql data
 
     sql_traces = @sampler.harvest!
     assert_equal 2, sql_traces.size
@@ -168,7 +168,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                                             1.1, nil, &explainer)
               ]
     data.sql_data.concat(queries)
-    @sampler.harvest_slow_sql data
+    @sampler.save_slow_sql data
     sql_traces = @sampler.harvest!
     assert_equal(["header0", "header1", "header2"],
                  sql_traces[0].params[:explain_plan][0].sort)
@@ -199,7 +199,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                                               "Database/test/select", {}, 1.5)
                 ]
       data.sql_data.concat(queries)
-      @sampler.harvest_slow_sql data
+      @sampler.save_slow_sql data
       sql_traces = @sampler.harvest!
       assert_equal(nil, sql_traces[0].params[:explain_plan])
     end
@@ -244,7 +244,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                                                          "Database/test/select", {}, 1.5),
                             NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
                                                          "Database/test/select", {}, 1.2)])
-      @sampler.harvest_slow_sql(data)
+      @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
 
       assert_equal('select * from test where foo = ?', sql_traces[0].sql)
@@ -265,7 +265,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                                                          "Database/test/select", {}, 1.5),
                             NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
                                                          "Database/test/select", {}, 1.2)])
-      @sampler.harvest_slow_sql(data)
+      @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
 
       assert_equal('select * from test where foo = ?', sql_traces[0].sql)
@@ -280,7 +280,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test",
                                                          "Database/test/select",
                                                          {}, 1.5, &explainer)])
-      @sampler.harvest_slow_sql(data)
+      @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
 
       Marshal.dump(sql_traces)
@@ -295,7 +295,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test",
                                                          "Database/test/select",
                                                          {}, 1.5)])
-      @sampler.harvest_slow_sql(data)
+      @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
 
       if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
@@ -363,5 +363,20 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def test_on_finishing_transaction_with_busted_transaction_state_does_not_crash
     state = NewRelic::Agent::TransactionState.tl_get
     @sampler.on_finishing_transaction(state, "whatever", Time.now)
+  end
+
+  def test_caps_collection_of_unique_statements
+    data = NewRelic::Agent::TransactionSqlData.new
+    data.set_transaction_info("/c/a", 'guid')
+    data.set_transaction_name("WebTransaction/Controller/c/a")
+
+    count = NewRelic::Agent::SqlSampler::MAX_SAMPLES + 1
+    count.times do |i|
+      data.sql_data << NewRelic::Agent::SlowSql.new("SELECT * FROM table#{i}", "Database/table#{i}/select", {}, i)
+    end
+
+    @sampler.save_slow_sql(data)
+
+    assert_equal NewRelic::Agent::SqlSampler::MAX_SAMPLES, @sampler.sql_traces.size
   end
 end
