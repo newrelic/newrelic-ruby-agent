@@ -401,7 +401,8 @@ module NewRelic
 
       def user_defined_rules_ignore?
         NewRelic::Agent.config[:"rules.ignore"].each do |rule|
-          return true if uri.match(rule)
+          filtered_uri = NewRelic::Agent::HTTPClients::URIUtil.filter_uri(URI(uri))
+          return true if filtered_uri.match(rule)
         end
         false
       end

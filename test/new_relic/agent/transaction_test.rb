@@ -800,6 +800,24 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_transactions_are_not_ignored_if_rules_match_http_auth
+    with_config(:rules => { :ignore => ['ignored'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://ignored_user:ignored_pass@foo.com/bar/baz')
+        txn.expects(:ignore!).never
+      end
+    end
+  end
+
+  def test_transactions_are_not_ignored_if_rules_match_query_string
+    with_config(:rules => { :ignore => ['ignored'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo.com/bar/baz/?ignored=1')
+        txn.expects(:ignore!).never
+      end
+    end
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end
