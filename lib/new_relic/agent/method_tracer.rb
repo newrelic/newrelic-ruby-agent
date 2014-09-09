@@ -224,11 +224,9 @@ module NewRelic
           # instrumentation into effectively one method call overhead
           # when the agent is disabled
           def assemble_code_header(method_name, metric_name_code, options)
-              header = "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?\n"
-
-              header += options[:code_header].to_s
-
-              header
+            header = "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?\n"
+            header += options[:code_header].to_s
+            header
           end
 
           # returns an eval-able string that contains the traced
