@@ -15,7 +15,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   Dir.chdir(test_dir) do
     Dir.glob("*.txt") do |file|
-      if file =~ /^((\d+)pack_(\d+)core_(\d+)logical).txt$/
+      if file =~ /^((\d+|X)pack_(\d+|X)core_(\d+|X)logical).txt$/
         test_name = "test_#{$1}"
         test_path = File.join(test_dir, file)
 
