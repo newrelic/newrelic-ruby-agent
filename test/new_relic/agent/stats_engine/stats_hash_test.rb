@@ -147,6 +147,32 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     assert_equal(1, hash[specs[3]].call_count)
   end
 
+  def test_hash_limits_unique_key_count_when_calling_record
+    hash = NewRelic::Agent::StatsHash.new
+    count = NewRelic::Agent::StatsHash::MAX_METRICS + 1
+    count.times do |i|
+      hash.record("foo#{i}", 1)
+    end
+
+    assert_equal NewRelic::Agent::StatsHash::MAX_METRICS, hash.size
+    refute_includes hash.keys, "foo#{count}"
+  end
+
+  def test_hash_limits_unique_key_count_when_calling_merge!
+    hash = NewRelic::Agent::StatsHash.new
+    incoming = {}
+
+    count = NewRelic::Agent::StatsHash::MAX_METRICS + 1
+    count.times do |i|
+      incoming["foo#{i}"] = NewRelic::Agent::Stats.new
+    end
+
+    hash.merge!(incoming)
+
+    assert_equal NewRelic::Agent::StatsHash::MAX_METRICS, hash.size
+    refute_includes hash.keys, "foo#{count}"
+  end
+
   def test_marshal_dump
     @hash.record('foo', 1)
     @hash.record('bar', 2)
