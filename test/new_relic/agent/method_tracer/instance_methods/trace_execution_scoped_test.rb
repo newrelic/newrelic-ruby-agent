@@ -11,28 +11,6 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     NewRelic::Agent.agent.stats_engine.clear_stats
   end
 
-  def test_get_stats_unscoped
-    fake_engine = mocked_object('stat_engine')
-    fake_engine.expects(:get_stats_no_scope).with('foob').returns('fakestats')
-    assert_equal 'fakestats', get_stats_unscoped('foob')
-  end
-
-  def test_get_stats_scoped_scoped_only
-    fake_engine = mocked_object('stat_engine')
-    fake_engine.expects(:get_stats).with('foob', true, true).returns('fakestats')
-    assert_equal 'fakestats', get_stats_scoped('foob', true)
-  end
-
-  def test_get_stats_scoped_no_scoped_only
-    fake_engine = mocked_object('stat_engine')
-    fake_engine.expects(:get_stats).with('foob', true, false).returns('fakestats')
-    assert_equal 'fakestats', get_stats_scoped('foob', false)
-  end
-
-  def test_stat_engine
-    assert_equal NewRelic::Agent.instance.stats_engine, stat_engine
-  end
-
   def test_metric_recording_outside_transaction
     trace_execution_scoped(['foo']) do
       # meh
@@ -131,7 +109,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
   def test_log_errors_base
     ran = false
-    log_errors("name") do
+    NewRelic::Agent::MethodTracerHelpers.log_errors("name") do
       ran = true
     end
     assert ran, "should run the contents of the block"
@@ -139,7 +117,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
   def test_log_errors_with_return
     ran = false
-    return_val = log_errors('name') do
+    return_val = NewRelic::Agent::MethodTracerHelpers.log_errors('name') do
       ran = true
       'happy trees'
     end
@@ -153,7 +131,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       includes("Caught exception in name."),
       instance_of(RuntimeError))
 
-    log_errors("name") do
+    NewRelic::Agent::MethodTracerHelpers.log_errors("name") do
       raise "should not propagate out of block"
     end
   end
@@ -161,9 +139,9 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   def test_trace_execution_scoped_header
     state = NewRelic::Agent::TransactionState.tl_get
     stack = state.traced_method_stack
-    self.expects(:log_errors).with(:trace_execution_scoped_header).yields
+    NewRelic::Agent::MethodTracerHelpers.expects(:log_errors).with(:trace_execution_scoped_header).yields
     stack.expects(:push_frame).with(state, :method_tracer, 1.0)
-    trace_execution_scoped_header(state, 1.0)
+    NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, 1.0)
   end
 
   def test_trace_execution_scoped_calculates_exclusive_time

@@ -93,7 +93,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
   def test_record_metrics_does_not_raise_outside_transaction
     state = NewRelic::Agent::TransactionState.tl_get
-    NewRelic::Agent::MethodTracer::TraceExecutionScoped.record_metrics(state, 'a', ['b'], 12, 10, :metric => true)
+    NewRelic::Agent::MethodTracerHelpers.record_metrics(state, 'a', ['b'], 12, 10, :metric => true)
 
     expected = { :call_count => 1, :total_call_time => 12, :total_exclusive_time => 10 }
     assert_metrics_recorded('a' => expected, 'b' => expected)
@@ -388,6 +388,20 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     cls.new.traced_method
+  end
+
+  def test_get_stats_unscoped
+    host_class = Class.new { include ::NewRelic::Agent::MethodTracer }
+    expected_stats = NewRelic::Agent.get_stats('foobar')
+    stats = host_class.new.get_stats_unscoped('foobar')
+    assert_same(expected_stats, stats)
+  end
+
+  def test_get_stats_scoped
+    host_class = Class.new { include ::NewRelic::Agent::MethodTracer }
+    expected_stats = NewRelic::Agent.get_stats('foobar', true)
+    stats = host_class.new.get_stats_scoped('foobar', false)
+    assert_same(expected_stats, stats)
   end
 
   def trace_no_push_scope
