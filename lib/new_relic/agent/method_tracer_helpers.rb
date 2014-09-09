@@ -24,14 +24,12 @@ module NewRelic
 
       def record_metrics(state, first_name, other_names, duration, exclusive, options)
         record_scoped_metric = options.has_key?(:scoped_metric) ? options[:scoped_metric] : true
-        if options[:metric]
-          stat_engine = NewRelic::Agent.instance.stats_engine
-          if record_scoped_metric
-            stat_engine.record_scoped_and_unscoped_metrics(state, first_name, other_names, duration, exclusive)
-          else
-            metrics = [first_name].concat(other_names)
-            stat_engine.record_unscoped_metrics(state, metrics, duration, exclusive)
-          end
+        stat_engine = NewRelic::Agent.instance.stats_engine
+        if record_scoped_metric
+          stat_engine.record_scoped_and_unscoped_metrics(state, first_name, other_names, duration, exclusive)
+        else
+          metrics = [first_name].concat(other_names)
+          stat_engine.record_unscoped_metrics(state, metrics, duration, exclusive)
         end
       end
 
@@ -39,7 +37,7 @@ module NewRelic
         log_errors(:trace_method_execution_footer) do
           if expected_frame
             stack = state.traced_method_stack
-            create_metrics = !!options[:metric]
+            create_metrics = options.has_key?(:metric) ? options[:metric] : true
             frame = stack.pop_frame(state, expected_frame, first_name, t1, create_metrics)
             if create_metrics
               duration = t1 - t0
@@ -73,8 +71,6 @@ module NewRelic
         metric_names = Array(metric_names)
         first_name   = metric_names.shift
         return yield unless first_name
-
-        options[:metric] = true unless options.has_key?(:metric)
 
         additional_metrics_callback = options[:additional_metrics_callback]
         start_time = Time.now.to_f
