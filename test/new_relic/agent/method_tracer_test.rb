@@ -390,6 +390,31 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     cls.new.traced_method
   end
 
+  # This test validates that including the MethodTracer module does not pollute
+  # the host class with any additional helper methods that are not part of the
+  # official public API.
+  def test_only_adds_methods_to_host_that_are_part_of_public_api
+    host_class  = Class.new { include ::NewRelic::Agent::MethodTracer }
+    plain_class = Class.new
+
+    host_instance_methods  = host_class.new.methods
+    plain_instance_methods = plain_class.new.methods
+
+    added_methods = host_instance_methods - plain_instance_methods
+
+    public_api_methods = [
+      :trace_execution_unscoped,
+      :trace_execution_scoped,
+      :trace_method_execution,            # deprecated
+      :trace_method_execution_with_scope, # deprecated
+      :trace_method_execution_no_scope,   # deprecated
+      :get_stats_scoped,                  # deprecated
+      :get_stats_unscoped                 # deprecated
+    ]
+
+    assert_equal(public_api_methods.sort, added_methods.sort)
+  end
+
   def test_get_stats_unscoped
     host_class = Class.new { include ::NewRelic::Agent::MethodTracer }
     expected_stats = NewRelic::Agent.get_stats('foobar')
