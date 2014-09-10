@@ -169,7 +169,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
               ]
     data.sql_data.concat(queries)
     @sampler.save_slow_sql data
-    sql_traces = @sampler.harvest!
+    sql_traces = @sampler.harvest!.sort_by(&:total_call_time).reverse
+
     assert_equal(["header0", "header1", "header2"],
                  sql_traces[0].params[:explain_plan][0].sort)
     assert_equal(["header0", "header1", "header2"],
@@ -245,7 +246,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                             NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
                                                          "Database/test/select", {}, 1.2)])
       @sampler.save_slow_sql(data)
-      sql_traces = @sampler.harvest!
+      sql_traces = @sampler.harvest!.sort_by(&:total_call_time).reverse
 
       assert_equal('select * from test where foo = ?', sql_traces[0].sql)
       assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
@@ -266,7 +267,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                             NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
                                                          "Database/test/select", {}, 1.2)])
       @sampler.save_slow_sql(data)
-      sql_traces = @sampler.harvest!
+      sql_traces = @sampler.harvest!.sort_by(&:total_call_time).reverse
 
       assert_equal('select * from test where foo = ?', sql_traces[0].sql)
       assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
@@ -278,8 +279,9 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     data.set_transaction_info("/c/a", 'guid')
     data.set_transaction_name("WebTransaction/Controller/c/a")
 
-    count = NewRelic::Agent::SqlSampler::MAX_SAMPLES + 1
-    count.times do |i|
+    count = NewRelic::Agent::SqlSampler::MAX_SAMPLES * 2
+    durations = (0...count).to_a.shuffle
+    durations.each do |i|
       data.sql_data << NewRelic::Agent::SlowSql.new("SELECT * FROM table#{i}", "Database/table#{i}/select", {}, i)
     end
 
@@ -287,7 +289,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     sql_traces = @sampler.harvest!
 
     harvested_durations = sql_traces.map(&:total_call_time).sort
-    expected_durations  = (1..count-1).to_a
+    expected_durations  = durations.sort.last(10)
 
     assert_equal expected_durations, harvested_durations
   end

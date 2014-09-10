@@ -129,7 +129,7 @@ module NewRelic
 
       # this should always be called under the @samples_lock
       def remove_shortest_trace
-        shortest_key, _ = @sql_traces.min { |(_, trace)| trace.max_call_time }
+        shortest_key, _ = @sql_traces.min_by { |(_, trace)| trace.max_call_time }
         @sql_traces.delete(shortest_key)
       end
 
