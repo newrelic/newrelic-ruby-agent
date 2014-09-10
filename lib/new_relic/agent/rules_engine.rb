@@ -54,7 +54,9 @@ module NewRelic
       end
 
       class SegmentTermsRule
-        SEGMENT_PLACEHOLDER = '*'.freeze
+        SEGMENT_PLACEHOLDER               = '*'.freeze
+        ADJACENT_PLACEHOLDERS_REGEX       = %r{((?:^|/)\*)(?:/\*)*}.freeze
+        ADJACENT_PLACEHOLDERS_REPLACEMENT = '\1'.freeze
 
         attr_reader :prefix, :terms
 
@@ -74,18 +76,15 @@ module NewRelic
 
           segments = rest.split(SEGMENT_SEPARATOR)
           segments.map! { |s| @terms.include?(s) ? s : SEGMENT_PLACEHOLDER }
-          segments = collapse_adjacent_placeholder_segments(segments)
+          transformed_suffix = collapse_adjacent_placeholder_segments(segments)
 
-          "#{@prefix}#{leading_slash}#{segments.join(SEGMENT_SEPARATOR)}"
+          "#{@prefix}#{leading_slash}#{transformed_suffix}"
         end
 
         def collapse_adjacent_placeholder_segments(segments)
-          segments.reduce([]) do |collapsed, segment|
-            unless (segment == SEGMENT_PLACEHOLDER && collapsed.last == SEGMENT_PLACEHOLDER)
-              collapsed << segment
-            end
-            collapsed
-          end
+          joined = segments.join(SEGMENT_SEPARATOR)
+          joined.gsub!(ADJACENT_PLACEHOLDERS_REGEX, ADJACENT_PLACEHOLDERS_REPLACEMENT)
+          joined
         end
       end
 
