@@ -273,6 +273,25 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     end
   end
 
+  def test_takes_slowest_samples
+    data = NewRelic::Agent::TransactionSqlData.new
+    data.set_transaction_info("/c/a", 'guid')
+    data.set_transaction_name("WebTransaction/Controller/c/a")
+
+    count = NewRelic::Agent::SqlSampler::MAX_SAMPLES + 1
+    count.times do |i|
+      data.sql_data << NewRelic::Agent::SlowSql.new("SELECT * FROM table#{i}", "Database/table#{i}/select", {}, i)
+    end
+
+    @sampler.save_slow_sql(data)
+    sql_traces = @sampler.harvest!
+
+    harvested_durations = sql_traces.map(&:total_call_time).sort
+    expected_durations  = (1..count-1).to_a
+
+    assert_equal expected_durations, harvested_durations
+  end
+
   def test_can_directly_marshal_traces_for_pipe_transmittal
     with_config(:'transaction_tracer.explain_enabled' => false) do
       data = NewRelic::Agent::TransactionSqlData.new
