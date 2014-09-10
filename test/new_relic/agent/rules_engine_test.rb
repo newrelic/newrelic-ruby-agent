@@ -6,8 +6,8 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 class RulesEngineTest < Minitest::Test
   def test_rule_defaults
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '.*',
-                                                  'replacement'      => '*')
+    rule = create_rule('match_expression' => '.*',
+                       'replacement'      => '*')
     assert !rule.terminate_chain
     assert !rule.each_segment
     assert !rule.ignore
@@ -16,45 +16,46 @@ class RulesEngineTest < Minitest::Test
   end
 
   def test_rule_applies_regex_rename
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
-                                                  'replacement'      => '*')
+    rule = create_rule('match_expression' => '[0-9]+',
+                       'replacement'      => '*')
     assert_equal(['foo/*/bar/22', true], rule.apply('foo/1/bar/22'))
   end
 
   def test_rules_can_apply_to_frozen_strings
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
-                                                  'replacement'      => '*')
+    rule = create_rule('match_expression' => '[0-9]+',
+                       'replacement'      => '*')
     assert_equal(['foo/*/bar/22', true], rule.apply('foo/1/bar/22'.freeze))
   end
 
   def test_rule_applies_grouping_with_replacements
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '([0-9]+)',
-                                                  'replacement'      => '\\1\\1')
+    rule = create_rule('match_expression' => '([0-9]+)',
+                       'replacement'      => '\\1\\1')
     assert_equal(['foo/11/bar/22', true], rule.apply('foo/1/bar/22'))
   end
 
   def test_rule_renames_all_matches_when_replace_all_is_true
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
-                                                  'replacement'      => '*',
-                                                  'replace_all'      => true)
+    rule = create_rule('match_expression' => '[0-9]+',
+                       'replacement'      => '*',
+                       'replace_all'      => true)
     assert_equal(['foo/*/bar/*', true], rule.apply('foo/1/bar/22'))
   end
 
   def test_rule_with_no_match
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => 'QQ',
-                                                  'replacement'      => 'qq')
+    rule = create_rule('match_expression' => 'QQ',
+                       'replacement'      => 'qq')
     assert_equal(['foo/1/bar/22', false], rule.apply('foo/1/bar/22'))
   end
 
   def test_applies_rules_in_order
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
-                                                  'replacement'      => '*',
-                                                  'replace_all'      => true,
-                                                  'eval_order'       => 0)
-    rerule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '\*',
-                                                    'replacement'      => 'x',
-                                                    'replace_all'      => true,
-                                                    'eval_order'       => 1)
+    rule = create_rule('match_expression' => '[0-9]+',
+                       'replacement'      => '*',
+                       'replace_all'      => true,
+                       'eval_order'       => 0)
+
+    rerule = create_rule('match_expression' => '\*',
+                         'replacement'      => 'x',
+                         'replace_all'      => true,
+                         'eval_order'       => 1)
 
     engine = NewRelic::Agent::RulesEngine.new([rerule, rule])
 
@@ -62,9 +63,9 @@ class RulesEngineTest < Minitest::Test
   end
 
   def test_can_apply_rules_to_all_segments
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+.*',
-                                                  'replacement'      => '*',
-                                                  'each_segment'     => true)
+    rule = create_rule('match_expression' => '[0-9]+.*',
+                       'replacement'      => '*',
+                       'each_segment'     => true)
 
     engine = NewRelic::Agent::RulesEngine.new([rule])
 
@@ -72,19 +73,24 @@ class RulesEngineTest < Minitest::Test
   end
 
   def test_stops_after_terminate_chain
-    rule0 = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
-                                                   'replacement'      => '*',
-                                                   'each_segment'     => true,
-                                                   'eval_order'       => 0,
-                                                   'terminate_chain'  => true)
-    rule1 = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '.*',
-                                                   'replacement'      => 'X',
-                                                   'replace_all'      => true,
-                                                   'eval_order'       => 1)
+    rule0 = create_rule('match_expression' => '[0-9]+',
+                        'replacement'      => '*',
+                        'each_segment'     => true,
+                        'eval_order'       => 0,
+                        'terminate_chain'  => true)
+
+    rule1 = create_rule('match_expression' => '.*',
+                        'replacement'      => 'X',
+                        'replace_all'      => true,
+                        'eval_order'       => 1)
 
     engine = NewRelic::Agent::RulesEngine.new([rule0, rule1])
 
     assert_equal('foo/*/bar/*', engine.rename('foo/1/bar/22'))
+  end
+
+  def create_rule(spec)
+    NewRelic::Agent::RulesEngine::ReplacementRule.new(spec)
   end
 
   load_cross_agent_test('rules').each do |testcase|

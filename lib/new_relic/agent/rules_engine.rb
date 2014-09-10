@@ -15,7 +15,7 @@ module NewRelic
 
       def self.create_metric_rules(connect_response)
         specs = connect_response['metric_name_rules'] || []
-        rules = specs.map { |spec| Rule.new(spec) }
+        rules = specs.map { |spec| ReplacementRule.new(spec) }
         self.new(rules)
       end
 
@@ -23,7 +23,7 @@ module NewRelic
         txn_name_specs     = connect_response['transaction_name_rules']    || []
         segment_rule_specs = connect_response['transaction_segment_terms'] || []
 
-        txn_name_rules = txn_name_specs.map     { |s| Rule.new(s) }
+        txn_name_rules = txn_name_specs.map     { |s| ReplacementRule.new(s) }
         segment_rules  = segment_rule_specs.map { |s| SegmentTermsRule.new(s) }
 
         self.new(txn_name_rules, segment_rules)
@@ -88,7 +88,7 @@ module NewRelic
         end
       end
 
-      class Rule
+      class ReplacementRule
         attr_reader(:terminate_chain, :each_segment, :ignore, :replace_all, :eval_order,
                     :match_expression, :replacement)
 

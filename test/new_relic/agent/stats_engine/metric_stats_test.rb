@@ -246,7 +246,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
   end
 
   def test_harvest_applies_metric_rename_rules
-    rule = NewRelic::Agent::RulesEngine::Rule.new(
+    rule = NewRelic::Agent::RulesEngine::ReplacementRule.new(
       'match_expression' => '[0-9]+',
       'replacement'      => '*',
       'replace_all'      => true
@@ -268,7 +268,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
   end
 
   def test_apply_rules_to_metric_data_respects_ignore_rules
-    rule = NewRelic::Agent::RulesEngine::Rule.new(
+    rule = NewRelic::Agent::RulesEngine::ReplacementRule.new(
       'match_expression' => 'bar',
       'ignore'           => 'true'
     )
