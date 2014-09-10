@@ -89,7 +89,7 @@ class RulesEngineTest < Minitest::Test
 
   load_cross_agent_test('rules').each do |testcase|
     define_method("test_#{testcase['testname']}") do
-      engine = NewRelic::Agent::RulesEngine.from_rule_specs(testcase['rules'])
+      engine = NewRelic::Agent::RulesEngine.create_metric_rules('metric_name_rules' => testcase['rules'])
 
       testcase["tests"].each do |test|
         assert_equal(test["expected"], engine.rename(test["input"]), "Input: #{test['input'].inspect}")
@@ -99,7 +99,7 @@ class RulesEngineTest < Minitest::Test
 
   load_cross_agent_test('transaction_segment_terms').each do |testcase|
     define_method("test_app_segment_terms_#{testcase['testname']}") do
-      engine = NewRelic::Agent::RulesEngine.from_connect_response(testcase)
+      engine = NewRelic::Agent::RulesEngine.create_transaction_rules(testcase)
       testcase['tests'].each do |test|
         assert_equal(test["expected"], engine.rename(test["input"]), "Input: #{test['input'].inspect}")
       end

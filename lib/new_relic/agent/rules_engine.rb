@@ -13,12 +13,13 @@ module NewRelic
 
       def_delegators :@rules, :size, :inspect, :each, :clear
 
-      def self.from_rule_specs(specs)
-        rules = (specs || []).map { |spec| Rule.new(spec) }
+      def self.create_metric_rules(connect_response)
+        specs = connect_response['metric_name_rules'] || []
+        rules = specs.map { |spec| Rule.new(spec) }
         self.new(rules)
       end
 
-      def self.from_connect_response(connect_response)
+      def self.create_transaction_rules(connect_response)
         txn_name_specs     = connect_response['transaction_name_rules']    || []
         segment_rule_specs = connect_response['transaction_segment_terms'] || []
 
