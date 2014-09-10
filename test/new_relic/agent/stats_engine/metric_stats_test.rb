@@ -343,4 +343,15 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
       :total_call_time => 0
     })
   end
+
+  def test_applies_metric_cap_on_merge!
+    hash = NewRelic::Agent::StatsHash.new
+    count = NewRelic::Agent::StatsEngine::MAX_METRICS + 1
+    count.times do |i|
+      hash.record("foo#{i}", 1)
+    end
+
+    result = @engine.merge!(hash)
+    assert_equal NewRelic::Agent::StatsEngine::MAX_METRICS, result.size
+  end
 end

@@ -183,6 +183,19 @@ module NewRelic
         def merge!(other_stats_hash)
           with_stats_lock do
             @stats_hash.merge!(other_stats_hash)
+            cap_metrics_if_necessary
+            @stats_hash
+          end
+        end
+
+        MAX_METRICS = 2000
+
+        def cap_metrics_if_necessary
+          return unless @stats_hash.size > MAX_METRICS
+
+          keys_to_remove = @stats_hash.keys[MAX_METRICS..-1]
+          if keys_to_remove
+            @stats_hash.reject! { |(key, _)| keys_to_remove.include?(key) }
           end
         end
 
