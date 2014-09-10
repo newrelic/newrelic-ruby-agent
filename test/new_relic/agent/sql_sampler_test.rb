@@ -169,7 +169,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
               ]
     data.sql_data.concat(queries)
     @sampler.save_slow_sql data
-    sql_traces = @sampler.harvest!
+    sql_traces = @sampler.harvest!.sort_by(&:total_call_time).reverse
+
     assert_equal(["header0", "header1", "header2"],
                  sql_traces[0].params[:explain_plan][0].sort)
     assert_equal(["header0", "header1", "header2"],
@@ -245,7 +246,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                             NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
                                                          "Database/test/select", {}, 1.2)])
       @sampler.save_slow_sql(data)
-      sql_traces = @sampler.harvest!
+      sql_traces = @sampler.harvest!.sort_by(&:total_call_time).reverse
 
       assert_equal('select * from test where foo = ?', sql_traces[0].sql)
       assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
@@ -266,7 +267,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                             NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
                                                          "Database/test/select", {}, 1.2)])
       @sampler.save_slow_sql(data)
-      sql_traces = @sampler.harvest!
+      sql_traces = @sampler.harvest!.sort_by(&:total_call_time).reverse
 
       assert_equal('select * from test where foo = ?', sql_traces[0].sql)
       assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
