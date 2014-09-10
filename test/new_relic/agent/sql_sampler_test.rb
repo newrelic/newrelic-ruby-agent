@@ -278,8 +278,9 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     data.set_transaction_info("/c/a", 'guid')
     data.set_transaction_name("WebTransaction/Controller/c/a")
 
-    count = NewRelic::Agent::SqlSampler::MAX_SAMPLES + 1
-    count.times do |i|
+    count = NewRelic::Agent::SqlSampler::MAX_SAMPLES * 2
+    durations = (0...count).to_a.shuffle
+    durations.each do |i|
       data.sql_data << NewRelic::Agent::SlowSql.new("SELECT * FROM table#{i}", "Database/table#{i}/select", {}, i)
     end
 
@@ -287,7 +288,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     sql_traces = @sampler.harvest!
 
     harvested_durations = sql_traces.map(&:total_call_time).sort
-    expected_durations  = (1..count-1).to_a
+    expected_durations  = durations.sort.last(10)
 
     assert_equal expected_durations, harvested_durations
   end
