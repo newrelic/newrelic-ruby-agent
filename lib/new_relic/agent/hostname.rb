@@ -6,7 +6,8 @@ module NewRelic
   module Agent
     module Hostname
       def self.get
-        if (dyno_name = ENV['DYNO']) && ::NewRelic::Agent.config[:use_heroku_dyno_names]
+        dyno_name = ENV['DYNO']
+        if dyno_name && ::NewRelic::Agent.config[:'heroku.use_dyno_names']
           dyno_name
         else
           Socket.gethostname

@@ -1032,7 +1032,7 @@ module NewRelic
           :type         => Boolean,
           :description  => 'Defines whether the agent will wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
         },
-        :use_heroku_dyno_names => {
+        :'heroku.use_dyno_names' => {
           :default      => false,
           :public       => false,
           :type         => Boolean,
