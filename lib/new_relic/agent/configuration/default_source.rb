@@ -1033,14 +1033,14 @@ module NewRelic
           :description  => 'Defines whether the agent will wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
         },
         :'heroku.use_dyno_names' => {
-          :default      => false,
-          :public       => false,
+          :default      => true,
+          :public       => true,
           :type         => Boolean,
           :description  => 'Controls whether or not we use the heroku dyno name as the hostname.'
         },
         :'heroku.dyno_name_prefixes_to_shorten' => {
           :default      => ['scheduler', 'run'],
-          :public       => false,
+          :public       => true,
           :type         => Array,
           :description  => 'List of prefixes for heroku dyno names (such as "scheduler") to report as hostname without trailing dot and process ID.'
         },
