@@ -39,6 +39,8 @@ module NewRelic
       # this is for unit tests only
       attr_reader :sql_traces
 
+      MAX_SAMPLES = 10
+
       def initialize
         @sql_traces = {}
 
@@ -82,25 +84,53 @@ module NewRelic
         data.set_transaction_name(name)
         if data.sql_data.size > 0
           @samples_lock.synchronize do
-            ::NewRelic::Agent.logger.debug "Harvesting #{data.sql_data.size} slow transaction sql statement(s)"
-            harvest_slow_sql data
+            ::NewRelic::Agent.logger.debug "Examining #{data.sql_data.size} slow transaction sql statement(s)"
+            save_slow_sql data
           end
         end
       end
 
       # this should always be called under the @samples_lock
-      def harvest_slow_sql(transaction_sql_data)
+      def save_slow_sql(transaction_sql_data)
+        path = transaction_sql_data.path
+        uri  = transaction_sql_data.uri
+
         transaction_sql_data.sql_data.each do |sql_item|
           normalized_sql = sql_item.normalize
           sql_trace = @sql_traces[normalized_sql]
           if sql_trace
-            sql_trace.aggregate(sql_item, transaction_sql_data.path,
-                                transaction_sql_data.uri)
+            sql_trace.aggregate(sql_item, path, uri)
           else
-            @sql_traces[normalized_sql] = SqlTrace.new(normalized_sql,
-                sql_item, transaction_sql_data.path, transaction_sql_data.uri)
+            if has_room?
+              sql_trace = SqlTrace.new(normalized_sql, sql_item, path, uri)
+            elsif should_add_trace?(sql_item)
+              remove_shortest_trace
+              sql_trace = SqlTrace.new(normalized_sql, sql_item, path, uri)
+            end
+
+            if sql_trace
+              @sql_traces[normalized_sql] = sql_trace
+            end
           end
         end
+      end
+
+      # this should always be called under the @samples_lock
+      def should_add_trace?(sql_item)
+        @sql_traces.any? do |(_, existing_trace)|
+          existing_trace.max_call_time < sql_item.duration
+        end
+      end
+
+      # this should always be called under the @samples_lock
+      def has_room?
+        @sql_traces.size < MAX_SAMPLES
+      end
+
+      # this should always be called under the @samples_lock
+      def remove_shortest_trace
+        shortest_key, _ = @sql_traces.min { |(_, trace)| trace.max_call_time }
+        @sql_traces.delete(shortest_key)
       end
 
       # Records an SQL query, potentially creating a new slow SQL trace, or
@@ -150,12 +180,11 @@ module NewRelic
       def harvest!
         return [] unless enabled?
 
-        result = []
+        slowest = []
         @samples_lock.synchronize do
-          result = @sql_traces.values
+          slowest = @sql_traces.values
           @sql_traces = {}
         end
-        slowest = result.sort{|a,b| b.max_call_time <=> a.max_call_time}[0,10]
         slowest.each {|trace| trace.prepare_to_send }
         slowest
       end
