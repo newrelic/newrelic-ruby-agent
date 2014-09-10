@@ -1038,6 +1038,12 @@ module NewRelic
           :type         => Boolean,
           :description  => 'Controls whether or not we use the heroku dyno name as the hostname.'
         },
+        :'heroku.dyno_name_prefixes_to_shorten' => {
+          :default      => ['scheduler', 'run'],
+          :public       => false,
+          :type         => Array,
+          :description  => 'List of prefixes for heroku dyno names (such as "scheduler") to report as hostname without trailing dot and process ID.'
+        },
         :'process_host.display_name' => {
           :default      => nil,
           :allow_nil    => true,

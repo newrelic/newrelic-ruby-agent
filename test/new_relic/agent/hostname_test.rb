@@ -28,6 +28,29 @@ module NewRelic
         end
       end
 
+      def test_shortens_to_prefix_if_using_dyno_names_and_matches
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
+                                     :'heroku.dyno_name_prefixes_to_shorten' => ['Imladris']) do
+          assert_equal 'Imladris', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_does_not_shorten_if_not_using_dyno_names
+        with_dyno_name('Imladris', :'heroku.use_dyno_names' => false,
+                                   :'heroku.dyno_name_prefixes_to_shorten' => ['Rivendell']) do
+          Socket.stubs(:gethostname).returns('Rivendell.1')
+          assert_equal 'Rivendell.1', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_only_shortens_if_matches_prefix_and_dot
+        with_dyno_name('ImladrisImladrisFakeout.1',
+                       :'heroku.use_dyno_names' => true,
+                       :'heroku.dyno_name_prefixes_to_shorten' => ['Imladris']) do
+          assert_equal 'ImladrisImladrisFakeout.1', NewRelic::Agent::Hostname.get
+        end
+      end
+
       def with_dyno_name(dyno_name, config_options)
         with_config(config_options) do
           ENV['DYNO'] = dyno_name
