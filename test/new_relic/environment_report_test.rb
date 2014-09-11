@@ -67,7 +67,7 @@ class EnvironmentReportTest < Minitest::Test
       :ruby_os_identifier     => 'wiggleos'
     })
     report = ::NewRelic::EnvironmentReport.new
-    assert_equal(8, report['Processors'])
+    assert_equal(8, report['Logical Processors'])
     assert_equal('x86_64', report['Arch'])
     assert_equal('WiggleOS 1.1.1', report['OS version'])
     assert_equal('wiggleos', report['OS'])
@@ -83,7 +83,8 @@ class EnvironmentReportTest < Minitest::Test
       "Ruby patchlevel",
       'JRuby version',
       'Java VM version',
-      'Processors',
+      'Logical Processors',
+      'Physical Cores',
       'Database adapter',
       'Framework',
       'Dispatcher',
