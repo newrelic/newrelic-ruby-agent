@@ -114,14 +114,25 @@ module NewRelic
         NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options, &blk)
       end
 
-      # BMW: fixme
-      # returns a scoped metric stat for the specified name
+      #
+      # This method is deprecated and exists only for backwards-compatibility
+      # reasons. Usages should be replaced with calls to
+      # NewRelic::Agent.record_metric.
+      #
+      # @api public
+      # @deprecated
+      #
       def get_stats_scoped(first_name, scoped_metric_only)
         NewRelic::Agent.instance.stats_engine.get_stats(first_name, true, scoped_metric_only)
       end
 
-      # BMW: fixme
-      # Shorthand method to get stats from the stat engine
+      # This method is deprecated and exists only for backwards-compatibility
+      # reasons. Usages should be replaced with calls to
+      # NewRelic::Agent.record_metric.
+      #
+      # @api public
+      # @deprecated
+      #
       def get_stats_unscoped(name)
         NewRelic::Agent.instance.stats_engine.get_stats_no_scope(name)
       end
