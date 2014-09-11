@@ -373,6 +373,15 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_evaluate_procs_returns_evaluated_value_if_it_responds_to_call
+      callable = Proc.new { 'test' }
+      assert_equal 'test', @manager.evaluate_procs(callable)
+    end
+
+    def test_evaluate_procs_returns_original_value_if_it_does_not_respond_to_call
+      assert_equal 'test', @manager.evaluate_procs('test')
+    end
+
     def assert_parsed_labels(expected)
       result = @manager.parsed_labels
 

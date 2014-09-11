@@ -117,11 +117,7 @@ module NewRelic
             accessor = key.to_sym
 
             if config.has_key?(accessor)
-              if config[accessor].respond_to?(:call)
-                value = instance_eval(&config[accessor])
-              else
-                value = config[accessor]
-              end
+              value = evaluate_procs(config[accessor])
 
               if transform = transform_from_default(accessor)
                 return transform.call(value)
@@ -132,6 +128,14 @@ module NewRelic
           end
 
           nil
+        end
+
+        def evaluate_procs(value)
+          if value.respond_to?(:call)
+            instance_eval(&value)
+          else
+            value
+          end
         end
 
         def transform_from_default(key)
