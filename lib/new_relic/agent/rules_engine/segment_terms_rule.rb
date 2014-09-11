@@ -18,6 +18,10 @@ module NewRelic
           @trim_range      = (@prefix.size..-1)
         end
 
+        def terminal?
+          true
+        end
+
         def matches?(string)
           string.start_with?(@prefix)
         end

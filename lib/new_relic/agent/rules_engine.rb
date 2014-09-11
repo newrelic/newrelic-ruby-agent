@@ -37,22 +37,20 @@ module NewRelic
         @segment_term_rules = segment_term_rules
       end
 
-      def rename(original_string)
-        renamed = @rules.inject(original_string) do |string,rule|
-          result, matched = rule.apply(string)
-          break result if (matched && rule.terminate_chain) || result.nil?
-          result
-        end
-
-        if renamed && !@segment_term_rules.empty?
-          @segment_term_rules.each do |rule|
-            if rule.matches?(renamed)
-              renamed = rule.apply(renamed)
-              break
-            end
+      def apply_rules(rules, string)
+        rules.each do |rule|
+          if rule.matches?(string)
+            string = rule.apply(string)
+            break if rule.terminal?
           end
         end
+        string
+      end
 
+      def rename(original_string)
+        renamed = apply_rules(@rules, original_string)
+        return nil unless renamed
+        renamed = apply_rules(@segment_term_rules, renamed)
         renamed
       end
     end

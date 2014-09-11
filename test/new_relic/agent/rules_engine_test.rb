@@ -18,32 +18,53 @@ class RulesEngineTest < Minitest::Test
   def test_rule_applies_regex_rename
     rule = create_rule('match_expression' => '[0-9]+',
                        'replacement'      => '*')
-    assert_equal(['foo/*/bar/22', true], rule.apply('foo/1/bar/22'))
+
+    input = 'foo/1/bar/22'
+
+    refute(rule.terminal?)
+    assert(rule.matches?(input))
+    assert_equal('foo/*/bar/22', rule.apply(input))
   end
 
   def test_rules_can_apply_to_frozen_strings
     rule = create_rule('match_expression' => '[0-9]+',
                        'replacement'      => '*')
-    assert_equal(['foo/*/bar/22', true], rule.apply('foo/1/bar/22'.freeze))
+
+    input = 'foo/1/bar/22'.freeze
+
+    refute(rule.terminal?)
+    assert(rule.matches?(input))
+    assert_equal('foo/*/bar/22', rule.apply('foo/1/bar/22'.freeze))
   end
 
   def test_rule_applies_grouping_with_replacements
     rule = create_rule('match_expression' => '([0-9]+)',
                        'replacement'      => '\\1\\1')
-    assert_equal(['foo/11/bar/22', true], rule.apply('foo/1/bar/22'))
+
+    input = 'foo/1/bar/22'
+
+    refute(rule.terminal?)
+    assert(rule.matches?(input))
+    assert_equal('foo/11/bar/22', rule.apply('foo/1/bar/22'))
   end
 
   def test_rule_renames_all_matches_when_replace_all_is_true
     rule = create_rule('match_expression' => '[0-9]+',
                        'replacement'      => '*',
                        'replace_all'      => true)
-    assert_equal(['foo/*/bar/*', true], rule.apply('foo/1/bar/22'))
+
+    refute(rule.terminal?)
+    assert(rule.matches?('foo/1/bar/22'))
+    assert_equal('foo/*/bar/*', rule.apply('foo/1/bar/22'))
   end
 
   def test_rule_with_no_match
     rule = create_rule('match_expression' => 'QQ',
                        'replacement'      => 'qq')
-    assert_equal(['foo/1/bar/22', false], rule.apply('foo/1/bar/22'))
+
+    refute(rule.terminal?)
+    refute(rule.matches?('foo/1/bar/22'))
+    assert_equal('foo/1/bar/22', rule.apply('foo/1/bar/22'))
   end
 
   def test_applies_rules_in_order
