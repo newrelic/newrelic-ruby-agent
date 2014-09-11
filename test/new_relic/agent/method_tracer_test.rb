@@ -403,16 +403,16 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     added_methods = host_instance_methods - plain_instance_methods
 
     public_api_methods = [
-      :trace_execution_unscoped,
-      :trace_execution_scoped,
-      :trace_method_execution,            # deprecated
-      :trace_method_execution_with_scope, # deprecated
-      :trace_method_execution_no_scope,   # deprecated
-      :get_stats_scoped,                  # deprecated
-      :get_stats_unscoped                 # deprecated
+      'trace_execution_unscoped',
+      'trace_execution_scoped',
+      'trace_method_execution',            # deprecated
+      'trace_method_execution_with_scope', # deprecated
+      'trace_method_execution_no_scope',   # deprecated
+      'get_stats_scoped',                  # deprecated
+      'get_stats_unscoped'                 # deprecated
     ]
 
-    assert_equal(public_api_methods.sort, added_methods.sort)
+    assert_equal(public_api_methods.sort, added_methods.map(&:to_s).sort)
   end
 
   def test_get_stats_unscoped
