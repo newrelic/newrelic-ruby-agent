@@ -110,8 +110,10 @@ module NewRelic
       #
       # @api public
       #
-      def trace_execution_scoped(metric_names, options={}, &blk) #THREAD_LOCAL_ACCESS
-        NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options, &blk)
+      def trace_execution_scoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
+        NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options) do
+          yield
+        end
       end
 
       #
