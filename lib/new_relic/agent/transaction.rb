@@ -400,14 +400,14 @@ module NewRelic
       end
 
       def user_defined_rules_ignore?
+        return if (rules = NewRelic::Agent.config[:"rules.ignore"]).empty?
+
         parsed = NewRelic::Agent::HTTPClients::URIUtil.parse_url(uri)
         filtered_uri = NewRelic::Agent::HTTPClients::URIUtil.filter_uri(parsed)
 
-        NewRelic::Agent.config[:"rules.ignore"].each do |rule|
-          return true if filtered_uri.match(rule)
+        NewRelic::Agent.config[:"rules.ignore"].any? do |rule|
+          filtered_uri.match(rule)
         end
-
-        false
       end
 
       def commit!(state, end_time, outermost_segment_name)

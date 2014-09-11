@@ -818,6 +818,24 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_user_defined_rules_ignore_does_not_parse_the_uri_if_rules_are_empty
+    with_config(:rules => { :ignore => [] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo.com/bar/baz')
+        NewRelic::Agent::HTTPClients::URIUtil.expects(:parse_url).never
+      end
+    end
+  end
+
+  def test_user_defined_rules_ignore_does_not_filter_the_uri_if_rules_are_empty
+    with_config(:rules => { :ignore => [] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo.com/bar/baz')
+        NewRelic::Agent::HTTPClients::URIUtil.expects(:filter_uri).never
+      end
+    end
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end
