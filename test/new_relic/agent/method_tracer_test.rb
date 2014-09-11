@@ -93,7 +93,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
   def test_record_metrics_does_not_raise_outside_transaction
     state = NewRelic::Agent::TransactionState.tl_get
-    NewRelic::Agent::MethodTracer::TraceExecutionScoped.record_metrics(state, 'a', ['b'], 12, 10, :metric => true)
+    NewRelic::Agent::MethodTracerHelpers.record_metrics(state, 'a', ['b'], 12, 10, :metric => true)
 
     expected = { :call_count => 1, :total_call_time => 12, :total_exclusive_time => 10 }
     assert_metrics_recorded('a' => expected, 'b' => expected)
@@ -376,6 +376,57 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     method_to_be_traced 1,2,3,false,'XX'
 
     assert_equal ['YY'], @scope_listener.scopes
+  end
+
+  def test_add_method_tracer_module_double_inclusion
+    mod = Module.new { def traced_method; end }
+    cls = Class.new { include mod }
+
+    mod.module_eval do
+      include NewRelic::Agent::MethodTracer
+      add_method_tracer :traced_method
+    end
+
+    cls.new.traced_method
+  end
+
+  # This test validates that including the MethodTracer module does not pollute
+  # the host class with any additional helper methods that are not part of the
+  # official public API.
+  def test_only_adds_methods_to_host_that_are_part_of_public_api
+    host_class  = Class.new { include ::NewRelic::Agent::MethodTracer }
+    plain_class = Class.new
+
+    host_instance_methods  = host_class.new.methods
+    plain_instance_methods = plain_class.new.methods
+
+    added_methods = host_instance_methods - plain_instance_methods
+
+    public_api_methods = [
+      :trace_execution_unscoped,
+      :trace_execution_scoped,
+      :trace_method_execution,            # deprecated
+      :trace_method_execution_with_scope, # deprecated
+      :trace_method_execution_no_scope,   # deprecated
+      :get_stats_scoped,                  # deprecated
+      :get_stats_unscoped                 # deprecated
+    ]
+
+    assert_equal(public_api_methods.sort, added_methods.sort)
+  end
+
+  def test_get_stats_unscoped
+    host_class = Class.new { include ::NewRelic::Agent::MethodTracer }
+    expected_stats = NewRelic::Agent.get_stats('foobar')
+    stats = host_class.new.get_stats_unscoped('foobar')
+    assert_same(expected_stats, stats)
+  end
+
+  def test_get_stats_scoped
+    host_class = Class.new { include ::NewRelic::Agent::MethodTracer }
+    expected_stats = NewRelic::Agent.get_stats('foobar', true)
+    stats = host_class.new.get_stats_scoped('foobar', false)
+    assert_same(expected_stats, stats)
   end
 
   def trace_no_push_scope
