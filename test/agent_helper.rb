@@ -393,6 +393,18 @@ def with_config_low_priority(config_hash)
   end
 end
 
+def with_transaction_renaming_rules(rule_specs)
+  original_engine = NewRelic::Agent.agent.instance_variable_get(:@transaction_rules)
+  begin
+    new_engine = NewRelic::Agent::RulesEngine.create_transaction_rules('transaction_name_rules' => rule_specs)
+    NewRelic::Agent.agent.instance_variable_set(:@transaction_rules, new_engine)
+    yield
+  ensure
+    NewRelic::Agent.agent.instance_variable_set(:@transaction_rules, original_engine)
+  end
+end
+
+
 def freeze_time(now=Time.now)
   Time.stubs(:now).returns(now)
   now

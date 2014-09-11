@@ -1,0 +1,101 @@
+[
+  {
+    "testname": "basic",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Custom",
+        "terms":  ["one", "two", "three"]
+      },
+      {
+        "prefix": "WebTransaction/Uri",
+        "terms": ["seven", "eight", "nine"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Uri/one/two/seven/user/nine/account",
+        "expected": "WebTransaction/Uri/*/seven/*/nine/*"
+      },
+      {
+        "input": "WebTransaction/Custom/one/two/seven/user/nine/account",
+        "expected": "WebTransaction/Custom/one/two/*"
+      },
+      {
+        "input": "WebTransaction/Other/one/two/foo/bar",
+        "expected": "WebTransaction/Other/one/two/foo/bar"
+      }
+    ]
+  },
+  {
+    "testname": "prefix_with_trailing_slash",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Custom/",
+        "terms": ["a", "b"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Custom/a/b/c",
+        "expected": "WebTransaction/Custom/a/b/*"
+      },
+      {
+        "input": "WebTransaction/Customer/a/b/c",
+        "expected": "WebTransaction/Customer/a/b/c"
+      }
+    ]
+  },
+  {
+    "testname": "rule_chaining",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTransaction/Foo",
+        "terms": ["one", "two", "three"]
+      },
+      {
+        "prefix": "WebTransaction/Foo/one",
+        "terms": ["one", "two"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Foo/one/two/three/four",
+        "expected": "WebTransaction/Foo/one/two/three/*"
+      }
+    ]
+  },
+  {
+    "testname": "rule_with_prefix_not_ending_in_segment_boundary",
+    "transaction_segment_terms": [
+      {
+        "prefix": "WebTrans",
+        "terms": ["one", "two"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "WebTransaction/Foo/one/two",
+        "expected": "WebTrans*/one/two"
+      }
+    ]
+  },
+  {
+    "testname": "terms_are_order_independent",
+    "transaction_segment_terms": [
+      {
+        "prefix": "Foo",
+        "terms": ["one", "two", "three"]
+      }
+    ],
+    "tests": [
+      {
+        "input": "Foo/bar/one/three/two",
+        "expected": "Foo/*/one/three/two"
+      },
+      {
+        "input": "Foo/three/one/one/two/three",
+        "expected": "Foo/three/one/one/two/three"
+      }
+    ]
+  }
+]

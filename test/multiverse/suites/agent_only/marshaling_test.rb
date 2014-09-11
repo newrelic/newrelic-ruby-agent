@@ -67,12 +67,10 @@ class MarshalingTest < Minitest::Test
   end
 
   def test_sql_trace_data_marshalling
-    state = NewRelic::Agent::TransactionState.tl_get
-    agent.sql_sampler.on_start_transaction(state, nil)
-    agent.sql_sampler.notice_sql("select * from test",
-                                  "Database/test/select",
-                                  nil, 1.5, state)
-    agent.sql_sampler.on_finishing_transaction(state, 'txn')
+    in_transaction do
+      agent.sql_sampler.notice_sql("select * from test", "Database/test/select",
+                                    nil, 1.5)
+    end
 
     agent.service.connect
     agent.send(:harvest_and_send_slowest_sql)

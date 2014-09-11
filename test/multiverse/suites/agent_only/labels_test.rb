@@ -14,31 +14,26 @@ class LabelsTest < Minitest::Test
   EXPECTED     = [{'label_type' => 'Server', 'label_value' => 'East'}]
   YML_EXPECTED = [{'label_type' => 'Server', 'label_value' => 'Yaml'}]
 
-  def after_setup
-    $collector.reset
-    make_sure_agent_reconnects({})
-  end
-
   def test_yaml_makes_it_to_the_collector
     # Relies on the agent_only/config/newrelic.yml!
-    NewRelic::Agent.manual_start
+    trigger_agent_reconnect
     assert_connect_had_labels(YML_EXPECTED)
   end
 
   def test_labels_from_config_hash_make_it_to_the_collector
     with_config("labels" => { "Server" => "East" }) do
-      NewRelic::Agent.manual_start
+      trigger_agent_reconnect
       assert_connect_had_labels(EXPECTED)
     end
   end
 
   def test_labels_from_manual_start_hash_make_it_to_the_collector
-    NewRelic::Agent.manual_start(:labels => { "Server" => "East" })
+    trigger_agent_reconnect(:labels => { "Server" => "East" })
     assert_connect_had_labels(EXPECTED)
   end
 
   def test_numeric_values_for_labels
-    NewRelic::Agent.manual_start(:labels => { "Server" => 42 })
+    trigger_agent_reconnect(:labels => { "Server" => 42 })
     expected = [
       { 'label_type' => 'Server', 'label_value' => '42' }
     ]
@@ -46,7 +41,7 @@ class LabelsTest < Minitest::Test
   end
 
   def test_boolean_values_for_labels
-    NewRelic::Agent.manual_start(:labels => { "Server" => true })
+    trigger_agent_reconnect(:labels => { "Server" => true })
     expected = [
       { 'label_type' => 'Server', 'label_value' => 'true' }
     ]
@@ -58,13 +53,13 @@ class LabelsTest < Minitest::Test
   load_cross_agent_test("labels").each do |testcase|
     define_method("test_#{testcase['name']}_from_config_string") do
       with_config("labels" => testcase["labelString"]) do
-        NewRelic::Agent.manual_start
+        trigger_agent_reconnect
         assert_connect_had_labels(testcase["expected"])
       end
     end
 
     define_method("test_#{testcase['name']}_from_manual_start") do
-      NewRelic::Agent.manual_start(:labels => testcase["labelString"])
+      trigger_agent_reconnect(:labels => testcase["labelString"])
       assert_connect_had_labels(testcase["expected"])
     end
 
@@ -74,7 +69,7 @@ class LabelsTest < Minitest::Test
         ENV['NEW_RELIC_LABELS'] = testcase["labelString"]
         NewRelic::Agent.config.reset_to_defaults
 
-        NewRelic::Agent.manual_start
+        trigger_agent_reconnect
         assert_connect_had_labels(testcase["expected"])
       ensure
         ENV['NEW_RELIC_LABELS'] = nil
@@ -83,7 +78,7 @@ class LabelsTest < Minitest::Test
   end
 
   def assert_connect_had_labels(expected)
-    result = $collector.calls_for('connect').first['labels']
+    result = $collector.calls_for('connect').last['labels']
     assert_equal expected, result
   end
 end

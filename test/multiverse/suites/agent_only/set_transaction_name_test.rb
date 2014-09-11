@@ -85,9 +85,17 @@ class SetTransactionNameTest < Minitest::Test
   end
 
   def test_set_name_is_subject_to_txn_name_rules
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => 'child',
-                                                  'replacement'      => 'kid')
-    NewRelic::Agent.instance.transaction_rules << rule
+    connect_response = {
+      'agent_run_id' => 1,
+      'transaction_name_rules' => [
+        { 'match_expression' => 'child', 'replacement' => 'kid' }
+      ]
+    }
+
+    $collector.stub('connect', connect_response)
+
+    trigger_agent_reconnect
+
     TestTransactor.new.parent_txn
     assert_metrics_recorded(['Controller/TestTransactor/kid'])
   end

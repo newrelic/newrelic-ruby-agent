@@ -253,17 +253,20 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_end_applies_transaction_name_rules
-    in_transaction('Controller/foo/1/bar/22') do |txn|
-      rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
-                                                    'replacement'      => '*',
-                                                    'replace_all'      => true)
-      NewRelic::Agent.instance.transaction_rules << rule
-      NewRelic::Agent::Transaction.tl_current.freeze_name_and_execute_if_not_ignored
-      assert_equal 'Controller/foo/*/bar/*', txn.best_name
+    rules = [
+      {
+        'match_expression' => '[0-9]+',
+        'replacement'      => '*',
+        'replace_all'      => true
+      }
+    ]
+
+    with_transaction_renaming_rules(rules) do
+      in_transaction('Controller/foo/1/bar/22') do |txn|
+        NewRelic::Agent::Transaction.tl_current.freeze_name_and_execute_if_not_ignored
+        assert_equal 'Controller/foo/*/bar/*', txn.best_name
+      end
     end
-  ensure
-    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
-                                              NewRelic::Agent::RulesEngine.new)
   end
 
   def test_end_fires_a_transaction_finished_event
