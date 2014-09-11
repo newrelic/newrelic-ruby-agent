@@ -102,14 +102,9 @@ module NewRelic
       module TraceExecutionScoped
         extend self
 
-        # Shorthand to return the NewRelic::Agent.instance
-        def agent_instance
-          NewRelic::Agent.instance
-        end
-
         # Shorthand to return the current statistics engine
         def stat_engine
-          agent_instance.stats_engine
+          NewRelic::Agent.instance.stats_engine
         end
 
         # returns a scoped metric stat for the specified name
@@ -122,13 +117,6 @@ module NewRelic
           stat_engine.get_stats_no_scope(name)
         end
 
-        # Helper for setting a hash key if the hash key is nil,
-        # instead of the default ||= behavior which sets if it is
-        # false as well
-        def set_if_nil(hash, key)
-          hash[key] = true if hash[key].nil?
-        end
-
         # helper for logging errors to the newrelic_agent.log
         # properly. Logs the error at error level
         def log_errors(code_area)
@@ -137,13 +125,6 @@ module NewRelic
           ::NewRelic::Agent.logger.error("Caught exception in #{code_area}.", e)
         end
 
-        # provides the header for our traced execution scoped
-        # method - gets the initial time, sets the tracing flag if
-        # needed, and pushes the frame onto the metric stack
-        # logs any errors that occur and returns the start time and
-        # the frame so that we can check for it later, to maintain
-        # sanity. If the frame stack becomes unbalanced, this
-        # transaction loses meaning.
         def trace_execution_scoped_header(state, t0)
           log_errors(:trace_execution_scoped_header) do
             stack = state.traced_method_stack
@@ -152,10 +133,7 @@ module NewRelic
         end
 
         def record_metrics(state, first_name, other_names, duration, exclusive, options)
-          # The default value for :scoped_metric is true, so set it as true
-          # if it was unset.
           record_scoped_metric = options.has_key?(:scoped_metric) ? options[:scoped_metric] : true
-
           if options[:metric]
             if record_scoped_metric
               stat_engine.record_scoped_and_unscoped_metrics(state, first_name, other_names, duration, exclusive)
@@ -163,8 +141,6 @@ module NewRelic
               metrics = [first_name].concat(other_names)
               stat_engine.record_unscoped_metrics(state, metrics, duration, exclusive)
             end
-          else
-            stat_engine.record_unscoped_metrics(state, other_names, duration, exclusive)
           end
         end
 
@@ -180,24 +156,28 @@ module NewRelic
           log_errors(:trace_method_execution_footer) do
             if expected_frame
               stack = state.traced_method_stack
-              frame = stack.pop_frame(state, expected_frame, first_name, t1, !!options[:metric])
-              duration = t1 - t0
-              if duration < 1_000_000_000 # roughly 31 years
-                if duration < 0
-                  ::NewRelic::Agent.logger.log_once(:warn, "metric_duration_negative:#{first_name}",
-                    "Metric #{first_name} has negative duration: #{duration} s")
-                end
-
+              create_metrics = !!options[:metric]
+              frame = stack.pop_frame(state, expected_frame, first_name, t1, create_metrics)
+              if create_metrics
+                duration = t1 - t0
                 exclusive = duration - frame.children_time
-                if exclusive < 0
-                  ::NewRelic::Agent.logger.log_once(:warn, "metric_exclusive_negative:#{first_name}",
-                    "Metric #{first_name} has negative exclusive time: duration = #{duration} s, child_time = #{frame.children_time}")
-                end
 
-                record_metrics(state, first_name, metric_names, duration, exclusive, options)
-              else
-                ::NewRelic::Agent.logger.log_once(:warn, "too_huge_metric:#{first_name}",
-                  "Ignoring metric #{first_name} with unacceptably large duration: #{duration} s")
+                if duration < 1_000_000_000 # roughly 31 years
+                  if duration < 0
+                    ::NewRelic::Agent.logger.log_once(:warn, "metric_duration_negative:#{first_name}",
+                      "Metric #{first_name} has negative duration: #{duration} s")
+                  end
+
+                  if exclusive < 0
+                    ::NewRelic::Agent.logger.log_once(:warn, "metric_exclusive_negative:#{first_name}",
+                      "Metric #{first_name} has negative exclusive time: duration = #{duration} s, child_time = #{frame.children_time}")
+                  end
+
+                  record_metrics(state, first_name, metric_names, duration, exclusive, options)
+                else
+                  ::NewRelic::Agent.logger.log_once(:warn, "too_huge_metric:#{first_name}",
+                    "Ignoring metric #{first_name} with unacceptably large duration: #{duration} s")
+                end
               end
             end
           end
@@ -222,10 +202,11 @@ module NewRelic
         return yield unless state.is_execution_traced?
 
         metric_names = Array(metric_names)
-        first_name = metric_names.shift
-        return yield if first_name.nil?
+        first_name   = metric_names.shift
+        return yield unless first_name
 
-        set_if_nil(options, :metric)
+        options[:metric] = true unless options.has_key?(:metric)
+
         additional_metrics_callback = options[:additional_metrics_callback]
         start_time = Time.now.to_f
         expected_scope = trace_execution_scoped_header(state, start_time)
