@@ -367,6 +367,13 @@ module NewRelic::Agent::Configuration
       assert_parsed_labels(expected)
     end
 
+    def test_apply_transformations
+      transform = Proc.new { |value| value.gsub('foo', 'baz') }
+      ::NewRelic::Agent::Configuration::DefaultSource.stubs(:transform_for).returns(transform)
+
+      assert_equal 'bazbar', @manager.apply_transformations(:test, 'foobar')
+    end
+
     def test_fetch_with_a_transform_returns_the_transformed_value
       with_config(:rules => { :ignore => ['more than meets the eye'] }) do
         assert_equal [/more than meets the eye/], @manager.fetch(:'rules.ignore')
