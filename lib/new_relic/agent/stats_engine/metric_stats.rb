@@ -193,10 +193,8 @@ module NewRelic
         def cap_metrics_if_necessary
           return unless @stats_hash.size > MAX_METRICS
 
-          keys_to_remove = @stats_hash.keys[MAX_METRICS..-1]
-          if keys_to_remove
-            @stats_hash.reject! { |(key, _)| keys_to_remove.include?(key) }
-          end
+          NewRelic::Agent.logger.warn("Maximum metric count #{MAX_METRICS} exceeded on merging back metrics.")
+          @stats_hash = Hash[@stats_hash.first(MAX_METRICS)]
         end
 
         def merge_transaction_metrics!(txn_metrics, scope)

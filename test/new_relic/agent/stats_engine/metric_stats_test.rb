@@ -351,7 +351,11 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
       hash.record("foo#{i}", 1)
     end
 
+    expects_logging(:warn, any_parameters)
+
     result = @engine.merge!(hash)
+
     assert_equal NewRelic::Agent::StatsEngine::MAX_METRICS, result.size
   end
+
 end
