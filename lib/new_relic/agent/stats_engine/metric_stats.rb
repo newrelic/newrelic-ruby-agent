@@ -193,7 +193,8 @@ module NewRelic
         def cap_metrics_if_necessary
           return unless @stats_hash.size > MAX_METRICS
 
-          NewRelic::Agent.logger.warn("Maximum metric count #{MAX_METRICS} exceeded on merging back metrics.")
+          drop_count = @stats_hash.size - MAX_METRICS
+          NewRelic::Agent.logger.warn("Maximum metric count of #{MAX_METRICS} exceeded - dropping #{drop_count} metrics on merge.")
           @stats_hash = Hash[@stats_hash.first(MAX_METRICS)]
         end
 
