@@ -405,7 +405,7 @@ module NewRelic
         parsed = NewRelic::Agent::HTTPClients::URIUtil.parse_url(uri)
         filtered_uri = NewRelic::Agent::HTTPClients::URIUtil.filter_uri(parsed)
 
-        NewRelic::Agent.config[:"rules.ignore"].any? do |rule|
+        rules.any? do |rule|
           filtered_uri.match(rule)
         end
       end
