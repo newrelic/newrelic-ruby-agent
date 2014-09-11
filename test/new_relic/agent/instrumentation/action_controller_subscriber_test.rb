@@ -206,19 +206,15 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_applies_txn_name_rules
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => 'test',
-                                                  'replacement'      => 'taste')
-    NewRelic::Agent.instance.transaction_rules << rule
-    @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    rule_specs = [{'match_expression' => 'test', 'replacement' => 'taste'}]
 
-    assert NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('Controller/taste/index')
-    assert_nil NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('Controller/test/index')
-  ensure
-    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
-                                             NewRelic::Agent::RulesEngine.new)
+    with_transaction_renaming_rules(rule_specs) do
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    end
+
+    assert_metrics_recorded(['Controller/taste/index'])
+    assert_metrics_not_recorded(['Controller/test/index'])
   end
 
   def test_record_queue_time_metrics
