@@ -31,7 +31,7 @@ module NewRelic
       def test_shortens_to_prefix_if_using_dyno_names_and_matches
         with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
                                      :'heroku.dyno_name_prefixes_to_shorten' => ['Imladris']) do
-          assert_equal 'Imladris', NewRelic::Agent::Hostname.get
+          assert_equal 'Imladris.*', NewRelic::Agent::Hostname.get
         end
       end
 
