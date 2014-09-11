@@ -64,10 +64,8 @@ module NewRelic
     report_on('Ruby patchlevel'   ) { RUBY_PATCHLEVEL.to_s               }
     report_on('JRuby version'     ) { JRUBY_VERSION                      }
     report_on('Java VM version'   ) { ENV_JAVA['java.vm.version']        }
-    report_on('Processors'        ) { ::NewRelic::Agent::SystemInfo.num_logical_processors }
     report_on('Logical Processors') { ::NewRelic::Agent::SystemInfo.num_logical_processors }
     report_on('Physical Cores'    ) { ::NewRelic::Agent::SystemInfo.num_physical_cores     }
-    report_on('Physical Packages' ) { ::NewRelic::Agent::SystemInfo.num_physical_packages  }
     report_on('Arch'              ) { ::NewRelic::Agent::SystemInfo.processor_arch         }
     report_on('OS version'        ) { ::NewRelic::Agent::SystemInfo.os_version             }
     report_on('OS'                ) { ::NewRelic::Agent::SystemInfo.ruby_os_identifier     }
