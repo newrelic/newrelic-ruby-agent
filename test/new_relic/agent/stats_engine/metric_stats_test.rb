@@ -344,18 +344,17 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     })
   end
 
-  def test_applies_metric_cap_on_merge!
-    hash = NewRelic::Agent::StatsHash.new
+  def test_trim!
+    state = NewRelic::Agent::TransactionState.tl_get
     count = NewRelic::Agent::StatsEngine::MAX_METRICS + 1
     count.times do |i|
-      hash.record("foo#{i}", 1)
+      @engine.record_unscoped_metrics(state, "foo#{i}", 42)
     end
 
     expects_logging(:warn, any_parameters)
 
-    result = @engine.merge!(hash)
-
-    assert_equal NewRelic::Agent::StatsEngine::MAX_METRICS, result.size
+    @engine.trim!
+    assert_equal NewRelic::Agent::StatsEngine::MAX_METRICS, @engine.metrics.size
   end
 
 end
