@@ -183,19 +183,21 @@ module NewRelic
         def merge!(other_stats_hash)
           with_stats_lock do
             @stats_hash.merge!(other_stats_hash)
-            cap_metrics_if_necessary
             @stats_hash
           end
         end
 
         MAX_METRICS = 2000
 
-        def cap_metrics_if_necessary
+        def trim!
           return unless @stats_hash.size > MAX_METRICS
 
           drop_count = @stats_hash.size - MAX_METRICS
-          NewRelic::Agent.logger.warn("Maximum metric count of #{MAX_METRICS} exceeded - dropping #{drop_count} metrics on merge.")
-          @stats_hash = Hash[@stats_hash.first(MAX_METRICS)]
+          NewRelic::Agent.logger.warn("Maximum metric count of #{MAX_METRICS} exceeded - dropping #{drop_count} metrics.")
+
+          with_stats_lock do
+            @stats_hash = Hash[@stats_hash.first(MAX_METRICS)]
+          end
         end
 
         def merge_transaction_metrics!(txn_metrics, scope)

@@ -1040,6 +1040,14 @@ module NewRelic
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
 
+          # We do this here rather than on metric recording / merging because
+          # those are both very hot paths.
+          #
+          # This also needs to happen *outside* of the session call below, since
+          # we need to do it regardless of whether we can establish a connection
+          # to the collector or not.
+          @stats_engine.trim!
+
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive
             harvest_and_send_errors
