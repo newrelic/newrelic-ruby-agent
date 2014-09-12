@@ -51,18 +51,22 @@ module NewRelic
         clazz.extend ClassMethods
       end
 
-      # Deprecated: original method preserved for API backward compatibility.
-      # Use either #trace_execution_scoped or #trace_execution_unscoped
+      # Trace a given block with stats and keep track of the caller.
+      # See NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer for a description of the arguments.
+      # +metric_names+ is either a single name or an array of metric names.
+      # If more than one metric is passed, the +produce_metric+ option only applies to the first.  The
+      # others are always recorded.  Only the first metric is pushed onto the scope stack.
+      #
+      # Generally you pass an array of metric names if you want to record the metric under additional
+      # categories, but generally this *should never ever be done*.  Most of the time you can aggregate
+      # on the server.
       #
       # @api public
-      # @deprecated
       #
-      def trace_method_execution(metric_names, push_scope, produce_metric, deduct_call_time_from_parent, &block) #:nodoc:
-        if push_scope
-          trace_execution_scoped(metric_names, :metric => produce_metric,
-                                 :deduct_call_time_from_parent => deduct_call_time_from_parent, &block)
-        else
-          trace_execution_unscoped(metric_names, &block)
+      def trace_execution_scoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
+        NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options) do
+          # Using an implicit block avoids object allocation for a &block param
+          yield
         end
       end
 
@@ -85,6 +89,21 @@ module NewRelic
         end
       end
 
+      # Deprecated: original method preserved for API backward compatibility.
+      # Use either #trace_execution_scoped or #trace_execution_unscoped
+      #
+      # @api public
+      # @deprecated
+      #
+      def trace_method_execution(metric_names, push_scope, produce_metric, deduct_call_time_from_parent, &block) #:nodoc:
+        if push_scope
+          trace_execution_scoped(metric_names, :metric => produce_metric,
+                                 :deduct_call_time_from_parent => deduct_call_time_from_parent, &block)
+        else
+          trace_execution_unscoped(metric_names, &block)
+        end
+      end
+
       # Deprecated. Use #trace_execution_scoped, a version with an options hash.
       #
       # @deprecated
@@ -97,24 +116,6 @@ module NewRelic
       end
 
       alias trace_method_execution_no_scope trace_execution_unscoped #:nodoc:
-
-      # Trace a given block with stats and keep track of the caller.
-      # See NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer for a description of the arguments.
-      # +metric_names+ is either a single name or an array of metric names.
-      # If more than one metric is passed, the +produce_metric+ option only applies to the first.  The
-      # others are always recorded.  Only the first metric is pushed onto the scope stack.
-      #
-      # Generally you pass an array of metric names if you want to record the metric under additional
-      # categories, but generally this *should never ever be done*.  Most of the time you can aggregate
-      # on the server.
-      #
-      # @api public
-      #
-      def trace_execution_scoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
-        NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options) do
-          yield
-        end
-      end
 
       #
       # This method is deprecated and exists only for backwards-compatibility
@@ -224,11 +225,9 @@ module NewRelic
           # instrumentation into effectively one method call overhead
           # when the agent is disabled
           def assemble_code_header(method_name, metric_name_code, options)
-              header = "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?\n"
-
-              header += options[:code_header].to_s
-
-              header
+            header = "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?\n"
+            header += options[:code_header].to_s
+            header
           end
 
           # returns an eval-able string that contains the traced
