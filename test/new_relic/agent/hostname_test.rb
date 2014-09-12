@@ -8,30 +8,53 @@ require 'new_relic/agent/hostname'
 module NewRelic
   module Agent
     class HostnameTest < Minitest::Test
-      def test_get_returns_socket_hostname
+      def setup
         Socket.stubs(:gethostname).returns('Rivendell')
+      end
+
+      def test_get_returns_socket_hostname
         assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
       end
 
       def test_get_uses_dyno_name_if_dyno_env_set_and_dyno_names_enabled
-        with_config(:use_heroku_dyno_names => true) do
-          Socket.stubs(:gethostname).returns('Rivendell')
-          ENV['DYNO'] = 'Imladris'
-
-          expected = 'Imladris'
-          assert_equal expected, NewRelic::Agent::Hostname.get
+        with_dyno_name('Imladris', :'heroku.use_dyno_names' => true) do
+          assert_equal 'Imladris', NewRelic::Agent::Hostname.get
         end
-      ensure
-        ENV.delete('DYNO')
       end
 
       def test_get_uses_socket_gethostname_if_dyno_env_set_and_dyno_names_disabled
-        with_config(:use_heroku_dyno_names => false) do
-          Socket.stubs(:gethostname).returns('Rivendell')
-          ENV['DYNO'] = 'Imladris'
+        with_dyno_name('Imladris', :'heroku.use_dyno_names' => false) do
+          assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
+        end
+      end
 
-          expected = 'Rivendell'
-          assert_equal expected, NewRelic::Agent::Hostname.get
+      def test_shortens_to_prefix_if_using_dyno_names_and_matches
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
+                                     :'heroku.dyno_name_prefixes_to_shorten' => ['Imladris']) do
+          assert_equal 'Imladris.*', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_does_not_shorten_if_not_using_dyno_names
+        with_dyno_name('Imladris', :'heroku.use_dyno_names' => false,
+                                   :'heroku.dyno_name_prefixes_to_shorten' => ['Rivendell']) do
+          Socket.stubs(:gethostname).returns('Rivendell.1')
+          assert_equal 'Rivendell.1', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_only_shortens_if_matches_prefix_and_dot
+        with_dyno_name('ImladrisImladrisFakeout.1',
+                       :'heroku.use_dyno_names' => true,
+                       :'heroku.dyno_name_prefixes_to_shorten' => ['Imladris']) do
+          assert_equal 'ImladrisImladrisFakeout.1', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def with_dyno_name(dyno_name, config_options)
+        with_config(config_options) do
+          ENV['DYNO'] = dyno_name
+          yield
         end
       ensure
         ENV.delete('DYNO')
