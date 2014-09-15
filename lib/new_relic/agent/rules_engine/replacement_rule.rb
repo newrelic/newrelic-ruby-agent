@@ -42,7 +42,7 @@ module NewRelic
 
         def apply(string)
           if @ignore
-            return nil
+            nil
           elsif @each_segment
             apply_to_each_segment(string)
           else
