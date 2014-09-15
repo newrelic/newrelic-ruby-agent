@@ -26,13 +26,23 @@ module NewRelic
           @terminate_chain  = options['terminate_chain'] || false
         end
 
+        def terminal?
+          @terminate_chain || @ignore
+        end
+
+        def matches?(string)
+          if @each_segment
+            string.split(SEGMENT_SEPARATOR).any? do |segment|
+              segment.match(@match_expression)
+            end
+          else
+            string.match @match_expression
+          end
+        end
+
         def apply(string)
           if @ignore
-            if string.match @match_expression
-              [nil, true]
-            else
-              [string, false]
-            end
+            nil
           elsif @each_segment
             apply_to_each_segment(string)
           else
@@ -42,9 +52,7 @@ module NewRelic
 
         def apply_replacement(string)
           method = @replace_all ? :gsub : :sub
-          result = string.send(method, @match_expression, @replacement)
-          match_found = ($~ != nil)
-          [result, match_found]
+          string.send(method, @match_expression, @replacement)
         end
 
         def apply_to_each_segment(string)
@@ -52,20 +60,11 @@ module NewRelic
           leading_slash = string.slice!(LEADING_SLASH_REGEX)
           segments      = string.split(SEGMENT_SEPARATOR)
 
-          segments, matched = map_to_list(segments)
-          result = "#{leading_slash}#{segments.join(SEGMENT_SEPARATOR)}" if segments
-
-          [result, matched]
-        end
-
-        def map_to_list(list)
-          matched = false
-          result = list.map do |string|
-            str_result, str_match = apply_replacement(string)
-            matched ||= str_match
-            str_result
+          segments.map! do |segment|
+            apply_replacement(segment)
           end
-          [result, matched]
+
+          "#{leading_slash}#{segments.join(SEGMENT_SEPARATOR)}"
         end
 
         def <=>(other)
