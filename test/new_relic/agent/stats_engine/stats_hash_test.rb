@@ -184,44 +184,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     end
   end
 
-  STAT_SETTERS = [:call_count=, :min_call_time=, :max_call_time=, :total_call_time=, :total_exclusive_time=, :sum_of_squares=]
   DEFAULT_SPEC = NewRelic::MetricSpec.new('foo')
-
-  STAT_SETTERS.each do |setter|
-    define_method("test_merge_allows_nil_destination_for_#{setter.to_s.gsub('=', '')}") do
-      dest = NewRelic::Agent::Stats.new
-      dest.send(setter, nil)
-      expected = dest.dup
-
-      @hash[DEFAULT_SPEC] = dest
-
-      incoming = NewRelic::Agent::StatsHash.new
-      incoming[DEFAULT_SPEC] = NewRelic::Agent::Stats.new
-
-      @hash.merge!(incoming)
-
-      assert_equal expected, @hash[DEFAULT_SPEC]
-      assert_has_error NewRelic::Agent::StatsHash::StatsMergerError
-    end
-  end
-
-  STAT_SETTERS.each do |setter|
-    define_method("test_merge_allows_nil_source_for_#{setter.to_s.gsub('=', '')}") do
-      dest = NewRelic::Agent::Stats.new
-      expected = dest.dup
-
-      @hash[DEFAULT_SPEC] = dest
-
-      source = NewRelic::Agent::Stats.new
-      source.send(setter, nil)
-      incoming = NewRelic::Agent::StatsHash.new
-      incoming[DEFAULT_SPEC] = source
-
-      @hash.merge!(incoming)
-
-      assert_equal expected, @hash[DEFAULT_SPEC]
-    end
-  end
 
   def fake_borked_default_proc(hash)
     exception = NoMethodError.new("borked default proc gives a NoMethodError on `yield'")

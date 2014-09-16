@@ -68,24 +68,12 @@ module NewRelic
         end
       end
 
-      class StatsMergerError < NewRelic::Agent::InternalAgentError
-        def initialize(key, destination, source, original_exception)
-          super("Failure when merging stats '#{key}'. In Hash: #{destination.inspect_full}. Merging: #{source.inspect_full}. Original exception: #{original_exception.class} #{original_exception.message}")
-          set_backtrace(original_exception.backtrace)
-        end
-      end
-
       def merge!(other)
         if other.is_a?(StatsHash) && other.started_at < @started_at
           @started_at = other.started_at
         end
         other.each do |key, val|
-          begin
-            merge_or_insert(key, val)
-          rescue => err
-            NewRelic::Agent.instance.error_collector. \
-              notice_agent_error(StatsMergerError.new(key, self.fetch(key, nil), val, err))
-          end
+          merge_or_insert(key, val)
         end
         self
       end
