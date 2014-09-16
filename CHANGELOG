@@ -1,5 +1,48 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.9.5 ##
+
+  * HTTP response codes in Insights events
+
+  The Ruby agent will now capture HTTP response codes from Rack applications
+  (including Rails and Sinatra apps) and include them under the httpResponseCode
+  attribute on events sent to Insights.
+
+  * Stricter limits on memory usage of metrics and SQL traces
+
+  The agent now imposes stricter limits on the number of distinct SQL traces and
+  metrics that it will buffer in memory at any point in time, leading to more
+  predictable memory consumption even in exceptional circumstances.
+
+  * Improved reliability of thread profiling
+
+  Several issues that would previously have prevented the successful completion
+  and transmission of thread profiles to New Relic's servers have been fixed.
+
+  These issues were related to the use of recursion in processing thread
+  profiles, and have been addressed by both limiting the maximum depth of the
+  backtraces recorded in thread profiles, and eliminating the agent's use of
+  recursion in processing profile data.
+
+  * Allow tracing Rails view helpers with add_method_tracer
+
+  Previously, attempting to trace a Rails view helper method using
+  add_method_tracer on the view helper module would lead to a NoMethodError
+  when the traced method was called (undefined method `trace_execution_scoped').
+  This has been fixed.
+
+  This issue was an instance of the Ruby 'dynamic module inclusion' or 'double
+  inclusion' problem. Usage of add_method_tracer now no longer relies upon the
+  target class having actually picked up the trace_execution_scoped method from
+  the NewRelic::Agent::MethodTracer module.
+
+  * Improved performance of queue time parsing
+
+  The number of objects allocated while parsing the front-end timestamps on
+  incoming HTTP requests has been significantly reduced.
+
+  Thanks to Aleksei Magusev for the contribution!
+
 ## v3.9.4 ##
 
   * Allow agent to use alternate certificate stores
