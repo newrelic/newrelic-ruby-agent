@@ -52,7 +52,7 @@ module NewRelic
         Array(metric_specs).each do |metric_spec|
           stats = nil
           begin
-            next if full? && !self.has_key?(metric_spec)
+            next if @full && !self.has_key?(metric_spec)
             stats = self[metric_spec]
           rescue NoMethodError => e
             # This only happen in the case of a corrupted default_proc
@@ -98,15 +98,11 @@ module NewRelic
       def merge_or_insert(metric_spec, stats)
         if self.has_key?(metric_spec)
           self[metric_spec].merge!(stats)
-        elsif !full?
+        elsif !@full
           self[metric_spec] = stats
           mark_if_full
           stats
         end
-      end
-
-      def full?
-        @full
       end
 
       def mark_if_full
