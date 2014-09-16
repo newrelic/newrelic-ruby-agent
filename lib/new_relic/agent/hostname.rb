@@ -32,12 +32,21 @@ module NewRelic
       end
 
       def self.heroku_dyno_name_prefix(dyno_name)
-        # TODO: Once the config transforms are in, protect this better in the
-        # config layer itself. Allow CSV list, make sure we're an array, etc.
-        dyno_prefixes = ::NewRelic::Agent.config[:'heroku.dyno_name_prefixes_to_shorten'] || []
-        dyno_prefixes.find do |dyno_prefix|
+        get_dyno_prefixes.find do |dyno_prefix|
           dyno_name.start_with?(dyno_prefix + ".")
         end
+      end
+
+      # TODO: Once config transforms are in, use those instead of handcoding
+      def self.get_dyno_prefixes
+        dyno_prefixes = ::NewRelic::Agent.config[:'heroku.dyno_name_prefixes_to_shorten'] || []
+        if dyno_prefixes.is_a?(String)
+          dyno_prefixes = dyno_prefixes.split(',')
+        elsif !dyno_prefixes.respond_to?(:find)
+          ::NewRelic::Agent.logger.warn("Ignoring invalid setting found for 'heroku.dyno_name_prefixes_to_shorten', #{dyno_prefixes}.")
+          dyno_prefixes = []
+        end
+        dyno_prefixes
       end
     end
   end
