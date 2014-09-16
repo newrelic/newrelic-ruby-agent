@@ -51,6 +51,35 @@ module NewRelic
         end
       end
 
+      def test_shortens_to_prefixes_from_string
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
+                                     :'heroku.dyno_name_prefixes_to_shorten' => 'Imladris') do
+          assert_equal 'Imladris.*', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_shortens_to_prefixes_from_string_allows_csv
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
+                                     :'heroku.dyno_name_prefixes_to_shorten' => 'Rivendell,Imladris') do
+          assert_equal 'Imladris.*', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_shortens_to_prefixes_with_empty_string
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
+                                     :'heroku.dyno_name_prefixes_to_shorten' => '') do
+          assert_equal 'Imladris.1', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_shortens_to_prefixes_with_unsupported_object
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
+                                     :'heroku.dyno_name_prefixes_to_shorten' => Object.new) do
+          expects_logging(:warn, includes('Object'))
+          assert_equal 'Imladris.1', NewRelic::Agent::Hostname.get
+        end
+      end
+
       def with_dyno_name(dyno_name, config_options)
         with_config(config_options) do
           ENV['DYNO'] = dyno_name
