@@ -343,18 +343,4 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
       :total_call_time => 0
     })
   end
-
-  def test_trim!
-    state = NewRelic::Agent::TransactionState.tl_get
-    count = NewRelic::Agent::StatsEngine::MAX_METRICS + 1
-    count.times do |i|
-      @engine.record_unscoped_metrics(state, "foo#{i}", 42)
-    end
-
-    expects_logging(:warn, any_parameters)
-
-    @engine.trim!
-    assert_equal NewRelic::Agent::StatsEngine::MAX_METRICS, @engine.metrics.size
-  end
-
 end
