@@ -62,7 +62,7 @@ module Multiverse
         full_path = File.join(SUITES_DIRECTORY, dir)
 
         next if dir =~ /\A\./
-        next unless filter.nil? || dir.include?(filter)
+        next unless passes_filter?(dir, filter)
         next unless File.exists?(File.join(full_path, "Envfile"))
 
         begin
@@ -79,6 +79,27 @@ module Multiverse
 
       OutputCollector.overall_report
       exit exit_status
+    end
+
+    GROUPS = {
+      "rails"       => ["rails"],
+      "mongo"       => ["mongo"],
+      "httpclients" => ["curb", "excon", "httpclient", "typhoeus", "net_http"]
+    }
+
+    def passes_filter?(dir, filter)
+      return true if filter.nil?
+
+      if filter.include?("group=")
+        key = filter.sub("group=", "")
+        if key != "rest"
+          GROUPS[key].include?(dir)
+        else
+          !GROUPS.values.flatten.include?(dir)
+        end
+      else
+        dir.include?(filter)
+      end
     end
   end
 end
