@@ -18,13 +18,14 @@ class SidekiqServer
   def run(file="test_worker.rb")
     @sidekiq.parse(["--require", File.join(File.dirname(__FILE__), file),
                     "--queue", "#{queue_name},1"])
-    Thread.new { @sidekiq.run }
+    @cli_thread = Thread.new { @sidekiq.run }
   end
 
   # If we just let the process go away, occasional timing issues cause the
   # Launcher actor in Sidekiq to throw a fuss and exit with a failed code.
   def stop
-    puts "Trying to stop Sidekiq gracefully"
-    @sidekiq.launcher.stop
+    puts "Trying to stop Sidekiq gracefully from #{$$}"
+    Process.kill("INT", $$)
+    @cli_thread.join
   end
 end

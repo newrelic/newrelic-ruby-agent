@@ -395,7 +395,7 @@ module Multiverse
       Dir.chdir directory
       ordered_ruby_files(directory).each do |file|
         puts yellow("Executing #{file.inspect}") if verbose?
-        load file
+        require "./" + File.basename(file, ".rb")
       end
     end
 
