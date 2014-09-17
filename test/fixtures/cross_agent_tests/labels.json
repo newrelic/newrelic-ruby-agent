@@ -10,9 +10,7 @@
     "labelString": "Data Center: East;Data Center :West; Server : North;Server:South; ",
     "warning":     false,
     "expected":    [
-        { "label_type": "Data Center", "label_value": "East" },
         { "label_type": "Data Center", "label_value": "West" },
-        { "label_type": "Server", "label_value": "North" },
         { "label_type": "Server", "label_value": "South" }
     ]
   },

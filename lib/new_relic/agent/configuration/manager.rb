@@ -259,6 +259,7 @@ module NewRelic
           end
 
           pairs = limit_number_of_labels(pairs)
+          pairs = remove_duplicates(pairs)
           pairs.map do |key, value|
             {
               'label_type'  => truncate(key),
@@ -288,6 +289,12 @@ module NewRelic
           else
             pairs
           end
+        end
+
+        # We only take the last value provided for a given label type key
+        def remove_duplicates(pairs)
+          grouped_by_type = pairs.group_by(&:first)
+          grouped_by_type.values.map(&:last)
         end
 
         def parse_labels_from_dictionary
