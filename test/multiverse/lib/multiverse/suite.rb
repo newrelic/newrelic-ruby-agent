@@ -8,6 +8,7 @@
 # Rubies starting with 1.9.x
 require 'rubygems'
 require 'base64'
+require 'fileutils'
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 
@@ -85,10 +86,30 @@ module Multiverse
       print_environment if should_print
     end
 
+    def bundling_lock_file
+      dir = File.expand_path(File.join('~', 'tmp', 'bundling'))
+      FileUtils.mkdir_p(dir)
+      File.join(dir, "bundling-#{RUBY_DESCRIPTION}")
+    end
+
+    # Running the bundle should only happen one at a time per Ruby version or
+    # we occasionally get compilation errors. With the groups and parallelizing
+    # things out more, this is more of an issue, so start locking it down.
+    def exclusive_bundle
+      bundler_out = nil
+      File.open(bundling_lock_file, File::RDWR|File::CREAT) do |f|
+        puts "Waiting for our chance to bundle" if verbose?
+        f.flock(File::LOCK_EX)
+        puts "Let's get ready to BUNDLE!" if verbose?
+        bundler_out = `bundle`
+      end
+      bundler_out
+    end
+
     def bundle
       require 'rubygems'
       require 'bundler'
-      bundler_out = `bundle`
+      bundler_out = exclusive_bundle
       puts bundler_out if verbose? || $? != 0
       raise "bundle command failed with (#{$?})" unless $? == 0
       Bundler.require
