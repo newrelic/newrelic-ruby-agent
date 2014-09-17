@@ -54,8 +54,8 @@ module NewRelic
 
     attr_accessor :agent_data, :mock
 
-    def initialize
-      super
+    def initialize(ssl=false)
+      super(DEFAULT_PORT, ssl)
       @id_counter = 0
       @mock = {
         'get_redirect_host'       => Response.new(200, {'return_value' => 'localhost'}),

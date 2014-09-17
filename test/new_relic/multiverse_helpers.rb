@@ -99,11 +99,11 @@ module MultiverseHelpers
   # This helps so the runner process can decide before spawning the child
   # whether we want the collector running or not.
 
-  def setup_collector
+  def setup_collector(use_ssl=false)
     return if omit_collector?
 
     require 'fake_collector'
-    $collector ||= NewRelic::FakeCollector.new
+    $collector ||= NewRelic::FakeCollector.new(use_ssl)
     $collector.reset
     $collector.run
 

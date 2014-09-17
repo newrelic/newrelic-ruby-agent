@@ -22,13 +22,15 @@ module NewRelic
       :AccessLog => [ ['/dev/null', ''] ]
     }
 
-    CONFIG_PATH = File.join(File.dirname(__FILE__), "..", "config")
+    CONFIG_PATH        = File.join(File.dirname(__FILE__), "..", "config")
+    FAKE_SSL_CERT_PATH = File.join(CONFIG_PATH, "test.cert.crt")
+    FAKE_SSL_KEY_PATH  = File.join(CONFIG_PATH, "test.cert.key")
 
     SSL_OPTIONS = {
       :SSLEnable => true,
       :SSLVerifyClient => OpenSSL::SSL::VERIFY_NONE,
-      :SSLPrivateKey => OpenSSL::PKey::RSA.new(File.open(File.join(CONFIG_PATH, "test.cert.key")).read),
-      :SSLCertificate => OpenSSL::X509::Certificate.new(File.open(File.join(CONFIG_PATH, "test.cert.crt")).read),
+      :SSLPrivateKey => OpenSSL::PKey::RSA.new(File.read(FAKE_SSL_KEY_PATH)),
+      :SSLCertificate => OpenSSL::X509::Certificate.new(File.read(FAKE_SSL_CERT_PATH)),
       :SSLCertName => [["CN", "newrelic.com"]]
     }
 

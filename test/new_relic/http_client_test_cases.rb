@@ -38,10 +38,6 @@ module HttpClientTestCases
 
   # Helpers to support shared tests
 
-  def use_ssl
-    @ssl = true
-  end
-
   def use_ssl?
     @ssl
   end

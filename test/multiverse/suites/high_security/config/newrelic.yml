@@ -20,8 +20,11 @@ development:
   license_key: bootstrap_newrelic_admin_license_key_000
   developer_mode: false
   app_name: test
-  host: 127.0.0.1
-  api_host: 127.0.0.1
+  host: localhost
+  api_host: localhost
   port: <%= $collector && $collector.port %>
   browser_monitoring:
     auto_instrument: true
+
+  # Fake collector uses SSL, and we want agent to trust its self-signed cert.
+  ca_bundle_path: ../../../config/test.cert.crt
