@@ -10,6 +10,11 @@
 # Missing keys will be automatically created as empty NewRelic::Agent::Stats
 # instances, so use has_key? explicitly to check for key existence.
 #
+# Note that instances of this class are intended to be append-only with respect
+# to new metrics. That is, you should not attempt to *remove* an entry after it
+# has been added, only update it (create a new instance if you need to start
+# over with a blank slate).
+#
 # This class makes no provisions for safe usage from multiple threads, such
 # measures should be externally provided.
 
@@ -110,6 +115,11 @@ module NewRelic
           NewRelic::Agent.logger.warn("Metric storage full at #{MAX_METRICS} items. Further metrics before next harvest will not be recorded.")
           @full = true
         end
+      end
+
+      def clear
+        super
+        @full = false
       end
     end
   end

@@ -186,6 +186,21 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     assert_equal(@hash.started_at, copy.started_at)
   end
 
+  def test_clear_resets_full
+    max_metrics = NewRelic::Agent::StatsHash::MAX_METRICS
+    max_metrics.times do |i|
+      @hash.record("foo#{i}")
+    end
+
+    assert_equal(max_metrics, @hash.size)
+    @hash.record('bar')
+    assert_equal(max_metrics, @hash.size)
+
+    @hash.clear
+    @hash.record('bar')
+    assert_equal(1, @hash.size)
+  end
+
   def test_borked_default_proc_can_record_metric
     fake_borked_default_proc(@hash)
 
