@@ -89,8 +89,6 @@ module NewRelic
         txn_header = from_headers(request_headers, NEWRELIC_TXN_HEADER_KEYS) or return
         txn_header = obfuscator.deobfuscate(txn_header)
         txn_info = NewRelic::JSONWrapper.load(txn_header)
-        NewRelic::Agent.logger.debug("Referring txn_info: %p" % [txn_info])
-
         state.referring_transaction_info = txn_info
       end
 
@@ -170,7 +168,6 @@ module NewRelic
 
         referring_guid = client_referring_transaction_guid(state)
         if referring_guid
-          NewRelic::Agent.logger.debug "Referring transaction guid: %p" % [referring_guid]
           NewRelic::Agent.add_custom_parameters(:referring_transaction_guid => referring_guid)
         end
       end
