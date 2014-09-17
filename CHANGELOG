@@ -2,6 +2,13 @@
 
 ## v3.9.5 ##
 
+  * Per-dyno data on Heroku
+
+  When running on Heroku, data from the agent can now be broken out by dyno
+  name, allowing you to more easily see what's happening on a per-dyno level.
+  Dynos on Heroku are now treated in the same way that distinct hosts on other
+  platforms work.
+
   * HTTP response codes in Insights events
 
   The Ruby agent will now capture HTTP response codes from Rack applications
