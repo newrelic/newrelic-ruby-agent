@@ -298,7 +298,8 @@ module NewRelic::Agent::Configuration
         @manager.add_config_for_testing(:labels => testcase["labelString"])
 
         assert_warning if testcase["warning"]
-        assert_equal(testcase["expected"], @manager.parse_labels_from_string)
+        assert_equal(testcase["expected"].sort_by { |h| h["label_type"] },
+                     @manager.parse_labels_from_string.sort_by { |h| h["label_type"] })
       end
     end
 
