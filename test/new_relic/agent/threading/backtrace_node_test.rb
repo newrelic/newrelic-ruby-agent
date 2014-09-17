@@ -73,6 +73,18 @@ module NewRelic::Agent::Threading
         node.as_array)
     end
 
+    def test_nodes_without_line_numbers
+      line = "transaction_sample_buffer.rb:in `visit_segment'"
+      node = create_node(line)
+      convert_nodes_to_array([node])
+
+      assert_equal([
+                   ["transaction_sample_buffer.rb", "visit_segment", 0],
+                   0, 0,
+                   []],
+                   node.as_array)
+    end
+
     def test_gracefully_handle_bad_values_in_to_array
       node = BacktraceNode.new(SINGLE_LINE)
       node.stubs(:parse_backtrace_frame).returns(["irb.rb", "catch", "blarg"])

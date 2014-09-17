@@ -124,8 +124,8 @@ module NewRelic
 
         # Returns [filename, method, line number]
         def parse_backtrace_frame(frame)
-          frame =~ /(.*)\:(\d+)\:in `(.*)'/
-          [$1, $3, $2] # sic
+          frame =~ /([^:]*)(\:(\d+))?\:in `(.*)'/
+          [$1, $4, $3] # sic
         end
       end
 
