@@ -28,24 +28,6 @@ module NewRelic
         end
       end
 
-      def test_get_display_host
-        with_config(:'process_host.display_name' => 'Mordor') do
-          assert_equal 'Mordor', NewRelic::Agent::Hostname.get_display_host
-        end
-      end
-
-      def test_get_display_host_is_nil_if_missing
-        assert_nil NewRelic::Agent::Hostname.get_display_host
-      end
-
-      def test_get_display_host_warns_if_too_long
-        original = 'J' * 1000
-        expects_logging(:warn, any_parameters)
-        with_config(:'process_host.display_name' => original) do
-          refute_equal original, NewRelic::Agent::Hostname.get_display_host
-        end
-      end
-
       def test_shortens_to_prefix_if_using_dyno_names_and_matches
         with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
                                      :'heroku.dyno_name_prefixes_to_shorten' => ['Imladris']) do
