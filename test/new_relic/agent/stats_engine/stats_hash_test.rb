@@ -147,12 +147,58 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     assert_equal(1, hash[specs[3]].call_count)
   end
 
+  def test_hash_limits_unique_key_count_when_calling_record
+    hash = NewRelic::Agent::StatsHash.new
+
+    count = NewRelic::Agent::StatsHash::MAX_METRICS + 1
+    attempted_metrics = (1..count).to_a.map { |i| "metric#{i}" }
+
+    attempted_metrics.each do |metric|
+      hash.record(metric, 1)
+    end
+
+    assert_equal NewRelic::Agent::StatsHash::MAX_METRICS, hash.size
+    refute_includes hash.keys, attempted_metrics.last
+  end
+
+  def test_hash_limits_unique_key_count_when_calling_merge!
+    hash = NewRelic::Agent::StatsHash.new
+
+    count = NewRelic::Agent::StatsHash::MAX_METRICS + 1
+    attempted_metrics = (1..count).to_a.map { |i| "metric#{i}" }
+
+    incoming = {}
+    attempted_metrics.each do |metric|
+      incoming[metric] = NewRelic::Agent::Stats.new
+    end
+
+    hash.merge!(incoming)
+
+    assert_equal NewRelic::Agent::StatsHash::MAX_METRICS, hash.size
+    refute_includes hash.keys, attempted_metrics.last
+  end
+
   def test_marshal_dump
     @hash.record('foo', 1)
     @hash.record('bar', 2)
     copy = Marshal.load(Marshal.dump(@hash))
     assert_equal(@hash, copy)
     assert_equal(@hash.started_at, copy.started_at)
+  end
+
+  def test_clear_resets_full
+    max_metrics = NewRelic::Agent::StatsHash::MAX_METRICS
+    max_metrics.times do |i|
+      @hash.record("foo#{i}")
+    end
+
+    assert_equal(max_metrics, @hash.size)
+    @hash.record('bar')
+    assert_equal(max_metrics, @hash.size)
+
+    @hash.clear
+    @hash.record('bar')
+    assert_equal(1, @hash.size)
   end
 
   def test_borked_default_proc_can_record_metric
@@ -184,44 +230,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     end
   end
 
-  STAT_SETTERS = [:call_count=, :min_call_time=, :max_call_time=, :total_call_time=, :total_exclusive_time=, :sum_of_squares=]
   DEFAULT_SPEC = NewRelic::MetricSpec.new('foo')
-
-  STAT_SETTERS.each do |setter|
-    define_method("test_merge_allows_nil_destination_for_#{setter.to_s.gsub('=', '')}") do
-      dest = NewRelic::Agent::Stats.new
-      dest.send(setter, nil)
-      expected = dest.dup
-
-      @hash[DEFAULT_SPEC] = dest
-
-      incoming = NewRelic::Agent::StatsHash.new
-      incoming[DEFAULT_SPEC] = NewRelic::Agent::Stats.new
-
-      @hash.merge!(incoming)
-
-      assert_equal expected, @hash[DEFAULT_SPEC]
-      assert_has_error NewRelic::Agent::StatsHash::StatsMergerError
-    end
-  end
-
-  STAT_SETTERS.each do |setter|
-    define_method("test_merge_allows_nil_source_for_#{setter.to_s.gsub('=', '')}") do
-      dest = NewRelic::Agent::Stats.new
-      expected = dest.dup
-
-      @hash[DEFAULT_SPEC] = dest
-
-      source = NewRelic::Agent::Stats.new
-      source.send(setter, nil)
-      incoming = NewRelic::Agent::StatsHash.new
-      incoming[DEFAULT_SPEC] = source
-
-      @hash.merge!(incoming)
-
-      assert_equal expected, @hash[DEFAULT_SPEC]
-    end
-  end
 
   def fake_borked_default_proc(hash)
     exception = NoMethodError.new("borked default proc gives a NoMethodError on `yield'")
