@@ -118,8 +118,8 @@ module NewRelic
       end
 
       def clear
-        super
         @full = false
+        super
       end
     end
   end
