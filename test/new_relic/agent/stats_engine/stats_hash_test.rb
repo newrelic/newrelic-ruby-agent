@@ -175,7 +175,6 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     hash.merge!(incoming)
 
     assert_equal NewRelic::Agent::StatsHash::MAX_METRICS, hash.size
-    refute_includes hash.keys, attempted_metrics.last
   end
 
   def test_marshal_dump
