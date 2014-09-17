@@ -9,6 +9,13 @@
   Dynos on Heroku are now treated in the same way that distinct hosts on other
   platforms work.
 
+  By default, 'scheduler' and 'run' dyno names will be aggregated into
+  'scheduler.*' and 'run.*' to avoid unbounded growth in the number of reported
+  hostnames.
+
+  Read more about this feature on our Heroku docs page:
+  https://docs.newrelic.com/docs/agents/ruby-agent/miscellaneous/ruby-agent-heroku
+
   * HTTP response codes in Insights events
 
   The Ruby agent will now capture HTTP response codes from Rack applications
