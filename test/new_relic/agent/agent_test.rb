@@ -314,7 +314,6 @@ module NewRelic
         expected = [
          :pid,
          :host,
-         :display_host,
          :app_name,
          :language,
          :labels,
@@ -348,19 +347,6 @@ module NewRelic
             {"label_type"=>"Server", "label_value"=>"West"}
           ]
           assert_equal expected, @agent.connect_settings[:labels]
-        end
-      end
-
-      def test_connect_settings_includes_display_host_from_config
-        with_config(:'process_host.display_name' => 'docker') do
-          assert_equal 'docker', @agent.connect_settings[:display_host]
-        end
-      end
-
-      def test_connect_settings_uses_local_host_when_process_host_display_name_is_nil
-        with_config(:'process_host.display_name' => nil) do
-          @agent.stubs(:local_host).returns('hosuto')
-          assert_equal 'hosuto', @agent.connect_settings[:display_host]
         end
       end
 
