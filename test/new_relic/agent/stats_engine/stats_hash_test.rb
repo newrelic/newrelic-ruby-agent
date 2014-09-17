@@ -149,28 +149,33 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
 
   def test_hash_limits_unique_key_count_when_calling_record
     hash = NewRelic::Agent::StatsHash.new
+
     count = NewRelic::Agent::StatsHash::MAX_METRICS + 1
-    count.times do |i|
-      hash.record("foo#{i}", 1)
+    attempted_metrics = (1..count).to_a.map { |i| "metric#{i}" }
+
+    attempted_metrics.each do |metric|
+      hash.record(metric, 1)
     end
 
     assert_equal NewRelic::Agent::StatsHash::MAX_METRICS, hash.size
-    refute_includes hash.keys, "foo#{count}"
+    refute_includes hash.keys, attempted_metrics.last
   end
 
   def test_hash_limits_unique_key_count_when_calling_merge!
     hash = NewRelic::Agent::StatsHash.new
-    incoming = {}
 
     count = NewRelic::Agent::StatsHash::MAX_METRICS + 1
-    count.times do |i|
-      incoming["foo#{i}"] = NewRelic::Agent::Stats.new
+    attempted_metrics = (1..count).to_a.map { |i| "metric#{i}" }
+
+    incoming = {}
+    attempted_metrics.each do |metric|
+      incoming[metric] = NewRelic::Agent::Stats.new
     end
 
     hash.merge!(incoming)
 
     assert_equal NewRelic::Agent::StatsHash::MAX_METRICS, hash.size
-    refute_includes hash.keys, "foo#{count}"
+    refute_includes hash.keys, attempted_metrics.last
   end
 
   def test_marshal_dump
