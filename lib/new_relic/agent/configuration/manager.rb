@@ -224,10 +224,9 @@ module NewRelic
         end
 
         def break_label_string_into_pairs(labels)
-          # Strip whitespaces immediately before and after colons or semicolons
-          stripped_labels = labels.gsub(/\s*(:|;)\s*/, '\1')
+          stripped_labels = labels.strip
           stripped_labels.split(';').map do |pair|
-            pair.split(':')
+            pair.split(':').map(&:strip)
           end
         end
 
