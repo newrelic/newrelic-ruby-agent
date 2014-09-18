@@ -83,11 +83,11 @@ bazbangbarn:
   end
 
   def test_config_loads_from_config_newrelic_yml
-    assert_config_read_from(File.dirname(__FILE__) + "/config/newrelic.yml")
+    assert_config_read_from(File.join(@cwd, "config/newrelic.yml"))
   end
 
   def test_config_loads_from_newrelic_yml
-    assert_config_read_from(File.dirname(__FILE__) + "/newrelic.yml")
+    assert_config_read_from(File.join(@cwd, "newrelic.yml"))
   end
 
   def test_config_loads_from_home_newrelic_yml
@@ -99,7 +99,7 @@ bazbangbarn:
   end
 
   def test_config_loads_from_config_path_option_to_manual_start
-    path = File.join(File.dirname(__FILE__), 'otherplace', 'newrelic.yml')
+    path = File.join(@cwd, 'otherplace', 'newrelic.yml')
     assert_config_read_from(path, :config_path => path)
   end
 
@@ -139,7 +139,7 @@ bazbangbarn:
   end
 
   def test_warning_logged_when_config_file_yaml_parsing_error
-    path = File.join(File.dirname(__FILE__), 'config', 'newrelic.yml')
+    path = File.join(@cwd, 'config', 'newrelic.yml')
     setup_config(path, {}, '<< bogus junk')
     setup_agent
 
@@ -149,7 +149,7 @@ bazbangbarn:
   end
 
   def test_warning_logged_when_config_file_erb_error
-    path = File.join(File.dirname(__FILE__), 'config', 'newrelic.yml')
+    path = File.join(@cwd, 'config', 'newrelic.yml')
     setup_config(path, {}, "\n\n\n<%= this is not ruby %>") # the error is on line 4
     setup_agent
 
@@ -169,7 +169,7 @@ boom:
   # <%= this is not ruby %>
         YAML
 
-    path = File.join(File.dirname(__FILE__), 'config', 'newrelic.yml')
+    path = File.join(@cwd, 'config', 'newrelic.yml')
     setup_config(path, {}, config_contents)
     setup_agent
 
@@ -189,11 +189,11 @@ boom:
   end
 
   def test_config_isnt_loaded_from_somewhere_crazy
-    assert_config_not_read_from(File.dirname(__FILE__) + "/somewhere/crazy/newrelic.yml")
+    assert_config_not_read_from(File.join(@cwd, "somewhere/crazy/newrelic.yml"))
   end
 
   def test_config_will_load_settings_for_environment_passed_manual_start
-    path = File.dirname(__FILE__) + "/config/newrelic.yml"
+    path = File.join(@cwd, "config/newrelic.yml")
 
     # pass an env key to NewRelic::Agent.manual_start which should cause it to
     # load that section of newrelic.yml
