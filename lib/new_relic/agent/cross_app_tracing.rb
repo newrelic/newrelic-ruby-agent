@@ -237,8 +237,6 @@ module NewRelic
       def response_is_crossapp?( response )
         return false unless cross_app_enabled?
         unless response[NR_APPDATA_HEADER]
-          NewRelic::Agent.logger.debug "Response doesn't have the %p header: %p" %
-            [ NR_APPDATA_HEADER, response.to_hash ]
           return false
         end
 
@@ -253,8 +251,6 @@ module NewRelic
 
         check_crossapp_id( xp_id )
         check_transaction_name( txn_name )
-
-        NewRelic::Agent.logger.debug "CAT xp_id: %p, txn_name: %p." % [ xp_id, txn_name ]
 
         metrics = []
         metrics << "ExternalApp/#{request.host}/#{xp_id}/all"
