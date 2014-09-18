@@ -343,7 +343,6 @@ module NewRelic
       def test_connect_settings_includes_labels_from_semicolon_separated_config
         with_config(:labels => "Server:East;Server:West;") do
           expected = [
-            {"label_type"=>"Server", "label_value"=>"East"},
             {"label_type"=>"Server", "label_value"=>"West"}
           ]
           assert_equal expected, @agent.connect_settings[:labels]
