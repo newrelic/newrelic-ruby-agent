@@ -5,9 +5,9 @@
 require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marshalling_test_cases')
 
-# These tests are intended to exercise the basic marshalling functionality of
-# the agent in it's different permutations (Ruby and JSON)
-class MarshallingTest < Minitest::Test
+# This is intended as a sanity check for our serialization to JSON via the
+# json gem across various Ruby versions.
+class JsonTest < Minitest::Test
 
   include MultiverseHelpers
   include MarshallingTestCases

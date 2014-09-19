@@ -8,12 +8,19 @@ module NewRelic
       begin
         require 'json' unless defined?(::JSON)
 
-        # Replacement JSON's override both dump and generate. Stdlib dump then
-        # ends up calling the replacement's generate, which is what we're
-        # trying to avoid. As such, just skip dump and call generate instead.
+        # yajl's replacement methods on ::JSON override both dump and generate.
+        # Because stdlib dump just calls generate, we end up calling into yajl
+        # when we don't want to. As such, we use generate directly instead of
+        # dump, although we have to fuss with defaults to make that ok.
         generate_method = ::JSON.method(:generate)
+        if ::JSON.respond_to?(:dump_default_options)
+          options = ::JSON.dump_default_options
+        else
+          # These were the defaults from json 1.1.9 up to 1.6.1
+          options = { :allow_nan => true, :max_nesting => false }
+        end
         @dump_method    = Proc.new do |obj|
-          generate_method.call(obj, ::JSON.dump_default_options)
+          generate_method.call(obj, options)
         end
 
         @load_method    = ::JSON.method(:load)
