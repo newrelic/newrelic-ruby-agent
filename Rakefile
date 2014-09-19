@@ -125,6 +125,27 @@ task :update_ca_bundle do |t|
   puts "Done, please commit your changes to #{bundle_path}"
 end
 
+namespace :cross_agent_tests do
+  cross_agent_tests_upstream_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'cross_agent_tests'))
+  cross_agent_tests_local_path    = File.expand_path(File.join(File.dirname(__FILE__), 'test', 'fixtures', 'cross_agent_tests'))
+
+  desc 'Pull latest changes from cross_agent_tests repo'
+  task :pull do
+    puts "Updating embedded cross_agent_tests from #{cross_agent_tests_upstream_path}..."
+    cmd = "rsync -avu --exclude .git #{cross_agent_tests_upstream_path}/ #{cross_agent_tests_local_path}/"
+    puts cmd
+    system(cmd)
+  end
+
+  desc 'Copy changes from embedded cross_agent_tests to official repo working copy'
+  task :push do
+    puts "Copying changes from embedded cross_agent_tests to #{cross_agent_tests_upstream_path}..."
+    cmd = "rsync -avu #{cross_agent_tests_local_path}/ #{cross_agent_tests_upstream_path}/"
+    puts cmd
+    system(cmd)
+  end
+end
+
 task :console do
   require 'pry'
   require 'newrelic_rpm'
