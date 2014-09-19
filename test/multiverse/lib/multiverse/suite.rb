@@ -87,7 +87,7 @@ module Multiverse
     end
 
     def bundling_lock_file
-      dir = File.expand_path(File.join('~', 'tmp', 'bundling'))
+      dir = File.expand_path(File.join('~', 'tmp', 'multiverse-bundler.lock'))
       FileUtils.mkdir_p(dir)
       File.join(dir, "bundling-#{RUBY_DESCRIPTION}")
     end
