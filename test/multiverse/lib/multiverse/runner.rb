@@ -82,6 +82,7 @@ module Multiverse
     end
 
     GROUPS = {
+      "rest"        => [],  # Specially handled below
       "rails"       => ["rails"],
       "mongo"       => ["mongo"],
       "httpclients" => ["curb", "excon", "httpclient", "typhoeus", "net_http"]
@@ -92,7 +93,11 @@ module Multiverse
 
       if filter.include?("group=")
         key = filter.sub("group=", "")
-        if key != "rest"
+        group = GROUPS[key]
+        if group.nil?
+          puts red("Unrecognized group '#{key}'. Stopping!")
+          exit 1
+        elsif group.any?
           GROUPS[key].include?(dir)
         else
           !GROUPS.values.flatten.include?(dir)
