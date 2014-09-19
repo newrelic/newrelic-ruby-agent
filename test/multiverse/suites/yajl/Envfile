@@ -1,3 +1,7 @@
+suite_condition("Yajl not supported for JRuby") do
+  RUBY_PLATFORM != 'java'
+end
+
 gemfile <<-RB
   gem 'rack'
   gem 'yajl-ruby', '~> 1.2.1'
