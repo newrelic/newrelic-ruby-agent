@@ -98,7 +98,7 @@ module Multiverse
     def exclusive_bundle
       bundler_out = nil
       File.open(bundling_lock_file, File::RDWR|File::CREAT) do |f|
-        puts "Waiting for our chance to bundle" if verbose?
+        puts "Waiting on '#{bundling_lock_file}' for our chance to bundle" if verbose?
         f.flock(File::LOCK_EX)
         puts "Let's get ready to BUNDLE!" if verbose?
         bundler_out = `bundle`
