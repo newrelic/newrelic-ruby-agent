@@ -7,9 +7,17 @@ module NewRelic
     def self.load_native_json
       begin
         require 'json' unless defined?(::JSON)
-        @load_method = ::JSON.method(:load)
-        @dump_method = ::JSON.method(:dump)
-        @backend_name = :json
+
+        # Replacement JSON's override both dump and generate. Stdlib dump then
+        # ends up calling the replacement's generate, which is what we're
+        # trying to avoid. As such, just skip dump and call generate instead.
+        generate_method = ::JSON.method(:generate)
+        @dump_method    = Proc.new do |obj|
+          generate_method.call(obj, ::JSON.dump_default_options)
+        end
+
+        @load_method    = ::JSON.method(:load)
+        @backend_name   = :json
         return true
       rescue StandardError, ScriptError
         NewRelic::Agent.logger.debug "%p while loading JSON library: %s" % [ err, err.message ] if

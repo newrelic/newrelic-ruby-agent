@@ -1,0 +1,9 @@
+gemfile <<-RB
+  gem 'rack'
+  gem 'yajl-ruby', '~> 1.2.1'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'yajl-ruby', '~> 1.1.0'
+RB
