@@ -79,7 +79,7 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node])
 
       assert_equal([
-                   ["transaction_sample_buffer.rb", "visit_segment", 0],
+                   ["transaction_sample_buffer.rb", "visit_segment", -1],
                    0, 0,
                    []],
                    node.as_array)
