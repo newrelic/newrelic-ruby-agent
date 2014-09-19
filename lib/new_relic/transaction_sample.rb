@@ -53,7 +53,7 @@ module NewRelic
     end
 
     def to_json
-      JSON.dump(self.to_array)
+      ::NewRelic::JSONWrapper.dump(self.to_array)
     end
 
     def set_custom_param(name, value)
