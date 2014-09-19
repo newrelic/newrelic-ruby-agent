@@ -313,7 +313,7 @@ module NewRelic::Agent::Configuration
 
     def test_parse_labels_from_string_with_hard_failure
       bad_string = "baaaad"
-      bad_string.stubs(:gsub).raises("Booom")
+      bad_string.stubs(:strip).raises("Booom")
       @manager.add_config_for_testing(:labels => bad_string)
 
       assert_parsing_error

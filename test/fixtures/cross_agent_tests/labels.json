@@ -15,10 +15,25 @@
     ]
   },
   {
+    "name":        "multiple_labels_with_leading_and_trailing_whitespaces",
+    "labelString": "   Data Center   : East Coast  ;   Deployment Flavor    :  Integration Environment   ",
+    "warning":     false,
+    "expected":    [ 
+        { "label_type": "Data Center", "label_value": "East Coast" },
+        { "label_type": "Deployment Flavor", "label_value": "Integration Environment" }
+    ]
+  }, 
+  {
     "name":        "single",
     "labelString": "Server:East",
     "warning":     false,
     "expected":    [ { "label_type": "Server", "label_value": "East" } ]
+  },
+  {
+    "name":        "single_label_with_leading_and_trailing_whitespaces",
+    "labelString": "   Data Center   : East Coast ",
+    "warning":     false,
+    "expected":    [ { "label_type": "Data Center", "label_value": "East Coast" } ]
   },
   {
     "name":        "single_trailing_semicolon",
@@ -44,6 +59,22 @@
       "label_value": "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"
     } ]
   },
+  {
+    "name":        "single_label_key_to_be_truncated_with_leading_and_trailing_whitespaces",
+    "labelString": "           123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345TTTTT       :value",
+    "warning":     false,
+    "expected":    [ 
+        { "label_type": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345", "label_value": "value" }
+    ]
+  }, 
+  {
+    "name":        "single_label_value_to_be_truncated_with_leading_and_trailing_whitespaces",
+    "labelString": "key:           123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345TTTTT       ",
+    "warning":     false,
+    "expected":    [ 
+        { "label_type": "key", "label_value": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345" } 
+    ]
+  }, 
   {
     "name":        "failed_no_delimiters",
     "labelString": "Server",
