@@ -132,7 +132,7 @@ namespace :cross_agent_tests do
   desc 'Pull latest changes from cross_agent_tests repo'
   task :pull do
     puts "Updating embedded cross_agent_tests from #{cross_agent_tests_upstream_path}..."
-    cmd = "rsync -av --exclude .git #{cross_agent_tests_upstream_path}/ #{cross_agent_tests_local_path}/"
+    cmd = "rsync -avu --exclude .git #{cross_agent_tests_upstream_path}/ #{cross_agent_tests_local_path}/"
     puts cmd
     system(cmd)
   end
@@ -140,7 +140,7 @@ namespace :cross_agent_tests do
   desc 'Copy changes from embedded cross_agent_tests to official repo working copy'
   task :push do
     puts "Copying changes from embedded cross_agent_tests to #{cross_agent_tests_upstream_path}..."
-    cmd = "rsync -av #{cross_agent_tests_local_path}/ #{cross_agent_tests_upstream_path}/"
+    cmd = "rsync -avu #{cross_agent_tests_local_path}/ #{cross_agent_tests_upstream_path}/"
     puts cmd
     system(cmd)
   end
