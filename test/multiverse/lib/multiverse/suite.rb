@@ -87,9 +87,7 @@ module Multiverse
     end
 
     def bundling_lock_file
-      dir = File.expand_path(File.join('~', 'tmp', 'multiverse-bundler.lock'))
-      FileUtils.mkdir_p(dir)
-      File.join(dir, "bundling-#{RUBY_DESCRIPTION}")
+      File.join(Bundler.bundle_path, 'multiverse-bundler.lock')
     end
 
     # Running the bundle should only happen one at a time per Ruby version or
