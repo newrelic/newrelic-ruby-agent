@@ -33,6 +33,12 @@ module NewRelic
         assert_nil segment
       end
 
+      def test_finish_trace_treats_nil_start_time_as_agent_error
+        expects_logging(:error, any_parameters)
+        expects_no_pop_frame
+        CrossAppTracing.finish_trace(@state, nil, segment, request, response)
+      end
+
       # Since we log and swallow errors, assert on the logging to ensure these
       # paths are cleanly accepting nils, not just smothering the exceptions.
 
@@ -53,9 +59,12 @@ module NewRelic
         CrossAppTracing.finish_trace(@state, Time.now, segment, request, nil)
       end
 
-
       def expects_pop_frame
         @state.traced_method_stack.stubs(:pop_frame).once
+      end
+
+      def expects_no_pop_frame
+        @state.traced_method_stack.stubs(:pop_frame).never
       end
     end
   end

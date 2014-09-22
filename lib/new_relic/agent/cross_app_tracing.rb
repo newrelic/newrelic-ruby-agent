@@ -93,6 +93,11 @@ module NewRelic
       # * to_hash - Converts response headers to a Hash
       #
       def finish_trace(state, t0, segment, request, response)
+        unless t0
+          NewRelic::Agent.logger.error("HTTP request trace finished without start time. This is probably an agent bug.")
+          return
+        end
+
         t1 = Time.now
         duration = t1.to_f - t0.to_f
 
