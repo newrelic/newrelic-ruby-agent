@@ -109,7 +109,7 @@ module NewRelic
           status, body = @mock[method].evaluate
           res.status = status
           if format == :json
-            res.write JSON.dump(body)
+            res.write ::NewRelic::JSONWrapper.dump(body)
           else
             res.write Marshal.dump(body)
           end
@@ -125,7 +125,7 @@ module NewRelic
           raw_body = Zlib::Inflate.inflate(raw_body) if req.env["HTTP_CONTENT_ENCODING"] == "deflate"
 
           body = if format == :json
-            body = JSON.load(raw_body)
+            body = ::NewRelic::JSONWrapper.load(raw_body)
           else
             body = Marshal.load(raw_body)
 

@@ -53,10 +53,6 @@ module NewRelic
           [ (@called_segments ? @called_segments.map{|s| s.to_array} : []) ]
       end
 
-      def to_json
-        JSON.dump(self.to_array)
-      end
-
       def path_string
         "#{metric_name}[#{called_segments.collect {|segment| segment.path_string }.join('')}]"
       end

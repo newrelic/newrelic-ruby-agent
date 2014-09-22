@@ -14,6 +14,20 @@ module NewRelic
           unless self.class.is_supported?
             ::NewRelic::Agent.logger.warn "The JSON marshaller in use (#{NewRelic::JSONWrapper.backend_name}) is not recommended. Ensure the 'json' gem is available in your application for better performance."
           end
+          warn_for_yajl
+        end
+
+        OK_YAJL_VERSION = NewRelic::VersionNumber.new("1.2.1")
+
+        def warn_for_yajl
+          if defined?(::Yajl)
+            require 'yajl/version'
+            if NewRelic::VersionNumber.new(::Yajl::VERSION) < OK_YAJL_VERSION
+              ::NewRelic::Agent.logger.warn "Detected yajl-ruby version #{::Yajl::VERSION} which can cause segfaults with newrelic_rpm's thread profiling features. We strongly recommend you upgrade to the latest yajl-ruby version available."
+            end
+          end
+        rescue => err
+          ::NewRelic::Agent.logger.warn "Failed trying to watch for problematic yajl-ruby version.", err
         end
 
         def dump(ruby, opts={})

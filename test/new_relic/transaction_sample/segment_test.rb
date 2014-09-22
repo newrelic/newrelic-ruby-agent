@@ -62,19 +62,6 @@ class NewRelic::TransactionSample::SegmentTest < Minitest::Test
     assert_equal(expected, segment.to_array)
   end
 
-  if RUBY_VERSION >= '1.9.2'
-    def test_to_json
-      parent = NewRelic::TransactionSample::Segment.new(1, 'Custom/test/parent')
-      parent.params[:test] = 'value'
-      child = NewRelic::TransactionSample::Segment.new(2, 'Custom/test/child')
-      child.end_trace(3)
-      parent.add_called_segment(child)
-      parent.end_trace(4)
-      expected_string = "[1000,4000,\"Custom/test/parent\",{\"test\":\"value\"},[[2000,3000,\"Custom/test/child\",{},[]]]]"
-      assert_equal(expected_string, parent.to_json)
-    end
-  end
-
   def test_path_string
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric')
     assert_equal("Custom/test/metric[]", s.path_string)

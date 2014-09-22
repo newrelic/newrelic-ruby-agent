@@ -7,9 +7,24 @@ module NewRelic
     def self.load_native_json
       begin
         require 'json' unless defined?(::JSON)
-        @load_method = ::JSON.method(:load)
-        @dump_method = ::JSON.method(:dump)
-        @backend_name = :json
+
+        # yajl's replacement methods on ::JSON override both dump and generate.
+        # Because stdlib dump just calls generate, we end up calling into yajl
+        # when we don't want to. As such, we use generate directly instead of
+        # dump, although we have to fuss with defaults to make that ok.
+        generate_method = ::JSON.method(:generate)
+        if ::JSON.respond_to?(:dump_default_options)
+          options = ::JSON.dump_default_options
+        else
+          # These were the defaults from json 1.1.9 up to 1.6.1
+          options = { :allow_nan => true, :max_nesting => false }
+        end
+        @dump_method = Proc.new do |obj|
+          generate_method.call(obj, options)
+        end
+
+        @load_method    = ::JSON.method(:load)
+        @backend_name   = :json
         return true
       rescue StandardError, ScriptError
         NewRelic::Agent.logger.debug "%p while loading JSON library: %s" % [ err, err.message ] if

@@ -1,0 +1,23 @@
+all_versions = [ '~> 1.8.1', '~> 1.7.7', '~> 1.6.8', '~> 1.5.5' ]
+before_2_0_0 = [ '~> 1.4.6', '~> 1.2.4', '~> 1.1.9' ]
+before_1_9_2 = [ '1.1.2' ]
+
+json_gems = all_versions.dup
+json_gems += before_2_0_0 if RUBY_VERSION < '2.0.0'
+json_gems += before_1_9_2 if RUBY_VERSION < '1.9.2'
+
+if defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
+  json_gems.delete('~> 1.7.7')
+end
+
+if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
+  json_gems.delete('~> 1.2.4')
+  json_gems.delete('~> 1.1.9')
+end
+
+json_gems.each do |version|
+  gemfile <<-RB
+    gem 'rack'
+    gem 'json', '#{version}'
+  RB
+end

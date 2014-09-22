@@ -1,0 +1,21 @@
+---
+development:
+  error_collector:
+    enabled: true
+  apdex_t: 0.24
+  ssl: false
+  log_level: debug
+  monitor_mode: true
+  license_key: bootstrap_newrelic_admin_license_key_000
+  developer_mode: false
+  app_name: test
+  host: 127.0.0.1
+  api_host: 127.0.0.1
+  port: <%= $collector && $collector.port %>
+  transaction_tracer:
+    record_sql: obfuscated
+    enabled: true
+    stack_trace_threshold: 0.5
+  capture_params: false
+  browser_monitoring:
+    auto_instrument: true

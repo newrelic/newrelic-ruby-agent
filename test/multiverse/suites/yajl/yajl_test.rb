@@ -5,13 +5,15 @@
 require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marshalling_test_cases')
 
-# These tests are intended to exercise the basic marshalling functionality of
-# the agent in it's different permutations (Ruby and JSON)
-class MarshallingTest < Minitest::Test
+# This is the problematic thing that overrides our JSON marshalling
+require 'yajl/json_gem'
+
+class YajlTest < Minitest::Test
 
   include MultiverseHelpers
   include MarshallingTestCases
 
-  setup_and_teardown_agent
-
+  setup_and_teardown_agent do
+    Yajl::Encoder.expects(:encode).never
+  end
 end

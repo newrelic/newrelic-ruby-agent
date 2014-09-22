@@ -253,16 +253,6 @@ class NewRelic::TransactionSampleTest < Minitest::Test
     assert_equal expected, transaction.to_array
   end
 
-  if RUBY_VERSION >= '1.9.2'
-    def test_to_json
-      expected_string = JSON.dump([@t.start_time.to_f,
-                                   @t.params[:request_params],
-                                   @t.params[:custom_params],
-                                   @t.root_segment.to_array])
-      assert_equal expected_string, @t.to_json
-    end
-  end
-
   def test_to_collector_array
     expected_array = [(@t.start_time.to_f * 1000).round,
                       (@t.duration * 1000).round,
@@ -323,7 +313,7 @@ class NewRelic::TransactionSampleTest < Minitest::Test
 
   def trace_tree(transaction=@t)
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-      trace_tree = compress(transaction.to_json)
+      trace_tree = compress(JSON.dump(transaction.to_array))
     else
       trace_tree = transaction.to_array
     end
