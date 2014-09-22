@@ -429,6 +429,18 @@ class NewRelicServiceTest < Minitest::Test
       end
     end
 
+    def test_json_marshaller_logs_on_empty_response_from_collector
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      expects_logging(:debug, any_parameters)
+      assert_nil marshaller.load('')
+    end
+
+    def test_json_marshaller_logs_on_nil_response_from_collector
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      expects_logging(:debug, any_parameters)
+      assert_nil marshaller.load(nil)
+    end
+
     def test_raises_serialization_error_if_json_serialization_fails
       ::NewRelic::JSONWrapper.stubs(:dump).raises(RuntimeError.new('blah'))
       assert_raises(NewRelic::Agent::SerializationError) do
@@ -527,6 +539,18 @@ class NewRelicServiceTest < Minitest::Test
       marshaller.load(Marshal.dump({"exception" => {"message" => "error message",
                                        "error_type" => "JavaCrash"}}))
     end
+  end
+
+  def test_pruby_marshaller_logs_on_empty_response_from_collector
+    marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+    expects_logging(:debug, any_parameters)
+    assert_nil marshaller.load('')
+  end
+
+  def test_pruby_marshaller_logs_on_nil_response_from_collector
+    marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+    expects_logging(:debug, any_parameters)
+    assert_nil marshaller.load(nil)
   end
 
   def test_compress_request_if_needed_compresses_large_payloads

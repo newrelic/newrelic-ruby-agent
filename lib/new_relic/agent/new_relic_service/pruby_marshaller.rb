@@ -30,7 +30,11 @@ module NewRelic
         end
 
         def load(data)
-          return unless data && data != ''
+          if data.nil? || data.empty?
+            ::NewRelic::Agent.logger.debug "Empty pruby response from collector: '#{data.inspect}'"
+            return nil
+          end
+
           NewRelic::LanguageSupport.with_cautious_gc do
             return_value(Marshal.load(data))
           end

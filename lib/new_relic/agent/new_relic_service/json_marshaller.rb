@@ -29,7 +29,12 @@ module NewRelic
         end
 
         def load(data)
-          return_value(NewRelic::JSONWrapper.load(data)) if data && data != ''
+          if data.nil? || data.empty?
+            ::NewRelic::Agent.logger.debug "Empty JSON response from collector: '#{data.inspect}'"
+            return nil
+          end
+
+          return_value(NewRelic::JSONWrapper.load(data))
         rescue => e
           ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered loading collector response: #{data}"
           raise
