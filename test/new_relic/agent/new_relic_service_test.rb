@@ -431,13 +431,13 @@ class NewRelicServiceTest < Minitest::Test
 
     def test_json_marshaller_logs_on_empty_response_from_collector
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      expects_logging(:debug, any_parameters)
+      expects_logging(:error, any_parameters)
       assert_nil marshaller.load('')
     end
 
     def test_json_marshaller_logs_on_nil_response_from_collector
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      expects_logging(:debug, any_parameters)
+      expects_logging(:error, any_parameters)
       assert_nil marshaller.load(nil)
     end
 
@@ -543,13 +543,13 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_pruby_marshaller_logs_on_empty_response_from_collector
     marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    expects_logging(:debug, any_parameters)
+    expects_logging(:error, any_parameters)
     assert_nil marshaller.load('')
   end
 
   def test_pruby_marshaller_logs_on_nil_response_from_collector
     marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    expects_logging(:debug, any_parameters)
+    expects_logging(:error, any_parameters)
     assert_nil marshaller.load(nil)
   end
 

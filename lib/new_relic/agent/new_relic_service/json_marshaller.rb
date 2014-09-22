@@ -30,7 +30,7 @@ module NewRelic
 
         def load(data)
           if data.nil? || data.empty?
-            ::NewRelic::Agent.logger.debug "Empty JSON response from collector: '#{data.inspect}'"
+            ::NewRelic::Agent.logger.error "Empty JSON response from collector: '#{data.inspect}'"
             return nil
           end
 

@@ -31,7 +31,7 @@ module NewRelic
 
         def load(data)
           if data.nil? || data.empty?
-            ::NewRelic::Agent.logger.debug "Empty pruby response from collector: '#{data.inspect}'"
+            ::NewRelic::Agent.logger.error "Empty pruby response from collector: '#{data.inspect}'"
             return nil
           end
 
