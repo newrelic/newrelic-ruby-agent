@@ -37,8 +37,10 @@ module NewRelic
         state = NewRelic::Agent::TransactionState.tl_get
         return yield unless state.is_execution_traced?
 
+        # It's important to set t0 outside the ensured block, otherwise there's
+        # a race condition if we raise after begin but before t0's set.
+        t0 = Time.now
         begin
-          t0 = Time.now
           segment = start_trace(state, t0, request)
           response = yield
         ensure
@@ -91,6 +93,11 @@ module NewRelic
       # * to_hash - Converts response headers to a Hash
       #
       def finish_trace(state, t0, segment, request, response)
+        unless t0
+          NewRelic::Agent.logger.error("HTTP request trace finished without start time. This is probably an agent bug.")
+          return
+        end
+
         t1 = Time.now
         duration = t1.to_f - t0.to_f
 
