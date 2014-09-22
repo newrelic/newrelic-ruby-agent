@@ -37,8 +37,10 @@ module NewRelic
         state = NewRelic::Agent::TransactionState.tl_get
         return yield unless state.is_execution_traced?
 
+        # It's important to set t0 outside the ensured block, otherwise there's
+        # a race condition if we raise after begin but before t0's set.
+        t0 = Time.now
         begin
-          t0 = Time.now
           segment = start_trace(state, t0, request)
           response = yield
         ensure
