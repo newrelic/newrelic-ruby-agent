@@ -23,7 +23,7 @@ module NewRelic
           if defined?(::Yajl)
             require 'yajl/version'
             if NewRelic::VersionNumber.new(::Yajl::VERSION) < OK_YAJL_VERSION
-              ::NewRelic::Agent.logger.warn "Detected yajl-ruby version #{::Yajl::VERSION} which causes segfaults with newrelic_rpm's thread profiling features. We strongly recommend you upgrade to the latest yajl-ruby version available."
+              ::NewRelic::Agent.logger.warn "Detected yajl-ruby version #{::Yajl::VERSION} which can cause segfaults with newrelic_rpm's thread profiling features. We strongly recommend you upgrade to the latest yajl-ruby version available."
             end
           end
         rescue => err
