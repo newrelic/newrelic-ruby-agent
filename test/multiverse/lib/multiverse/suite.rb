@@ -116,7 +116,7 @@ module Multiverse
     def generate_gemfile(gemfile_text, env_index, local = true)
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
       File.open(gemfile,'w') do |f|
-        f.puts '  source :rubygems' unless local
+        f.puts '  source "https://rubygems.org"' unless local
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./
