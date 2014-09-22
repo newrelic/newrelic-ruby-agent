@@ -52,10 +52,6 @@ module NewRelic
       @start_time - @@start_time.to_f
     end
 
-    def to_json
-      ::NewRelic::JSONWrapper.dump(self.to_array)
-    end
-
     def set_custom_param(name, value)
       @params[:custom_params] ||= {}
       @params[:custom_params][name] = value
