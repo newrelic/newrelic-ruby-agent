@@ -6,6 +6,7 @@ module NewRelic
   module Agent
     module Threading
       MAX_THREAD_PROFILE_DEPTH = 500
+      UNKNOWN_LINE_NUMBER = -1
 
       class BacktraceBase
         attr_reader :children
@@ -108,7 +109,7 @@ module NewRelic
 
           file, method, line = parse_backtrace_frame(@raw_line)
 
-          @as_array << [string(file), string(method), int(line)]
+          @as_array << [string(file), string(method), line ? int(line) : UNKNOWN_LINE_NUMBER]
           @as_array << int(@runnable_count)
           @as_array << 0
           @as_array << child_arrays
