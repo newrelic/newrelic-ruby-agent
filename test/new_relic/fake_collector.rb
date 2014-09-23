@@ -162,7 +162,7 @@ module NewRelic
     end
 
     def calls_for(method)
-      @agent_data.select {|d| d.action == method }
+      @agent_data.select { |d| d.action == method.to_s }
     end
 
     def reported_stats_for_metric(name, scope=nil)
