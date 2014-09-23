@@ -21,8 +21,12 @@ gemfile <<-RB
   gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
+# Older curb's than 0.8.6 don't build against Ruby 2.2.0-preview1
+# Recheck on later RC's, but for now, just skip this env for Ruby 2.2.0
+if RUBY_VERSION < "2.2.0"
 gemfile <<-RB
   gem 'curb', '0.8.1'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 RB
+end
