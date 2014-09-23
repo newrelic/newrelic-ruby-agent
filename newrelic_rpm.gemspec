@@ -56,7 +56,7 @@ EOS
   if RUBY_PLATFORM == 'java'
     s.add_development_dependency 'activerecord-jdbcsqlite3-adapter'
   else
-    s.add_development_dependency 'sqlite3', '1.3.8'
+    s.add_development_dependency 'sqlite3'
   end
 
   if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
