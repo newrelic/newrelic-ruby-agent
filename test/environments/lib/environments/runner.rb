@@ -14,6 +14,9 @@ module Environments
       "1.9"         => ["rails21", "rails22"],
       "2"           => ["rails21", "rails22", "rails23"],
 
+      # https://github.com/rails/rails/issues/17017
+      "2.2"         => ["rails30", "rails31", "rails32"],
+
       "1.8.7"       => ["rails40", "rails41", "rails42"],
       "1.9.2"       => ["rails40", "rails41", "rails42"],
       "ree"         => ["rails40", "rails41", "rails42"],
