@@ -29,11 +29,11 @@ module NewRelic
 
           if GC.respond_to?(:stat)
             gc_stats = GC.stat
-            snap.total_allocated_object = gc_stats[:total_allocated_object]
+            snap.total_allocated_object = gc_stats[:total_allocated_object] || gc_stats[:total_allocated_objects]
             snap.major_gc_count = gc_stats[:major_gc_count]
             snap.minor_gc_count = gc_stats[:minor_gc_count]
-            snap.heap_live = gc_stats[:heap_live_slot] || gc_stats[:heap_live_num]
-            snap.heap_free = gc_stats[:heap_free_slot] || gc_stats[:heap_free_num]
+            snap.heap_live = gc_stats[:heap_live_slot] || gc_stats[:heap_live_slots] || gc_stats[:heap_live_num]
+            snap.heap_free = gc_stats[:heap_free_slot] || gc_stats[:heap_free_slots] || gc_stats[:heap_free_num]
           end
         end
 
