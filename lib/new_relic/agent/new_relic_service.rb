@@ -124,22 +124,26 @@ module NewRelic
         metric_data_array = build_metric_data_array(stats_hash)
         result = invoke_remote(
           :metric_data,
-          [@agent_id, timeslice_start.to_f, timeslice_end.to_f, metric_data_array]
+          [@agent_id, timeslice_start.to_f, timeslice_end.to_f, metric_data_array],
+          :item_count => metric_data_array.size
         )
         fill_metric_id_cache(result)
         result
       end
 
       def error_data(unsent_errors)
-        invoke_remote(:error_data, [@agent_id, unsent_errors])
+        invoke_remote(:error_data, [@agent_id, unsent_errors],
+          :item_count => unsent_errors.size)
       end
 
       def transaction_sample_data(traces)
-        invoke_remote(:transaction_sample_data, [@agent_id, traces])
+        invoke_remote(:transaction_sample_data, [@agent_id, traces],
+          :item_count => traces.size)
       end
 
       def sql_trace_data(sql_traces)
-        invoke_remote(:sql_trace_data, [sql_traces])
+        invoke_remote(:sql_trace_data, [sql_traces],
+          :item_count => sql_traces.size)
       end
 
       def profile_data(profile)
@@ -160,7 +164,8 @@ module NewRelic
 
       # Send fine-grained analytic data to the collector.
       def analytic_event_data(data)
-        invoke_remote(:analytic_event_data, [@agent_id, data])
+        invoke_remote(:analytic_event_data, [@agent_id, data],
+          :item_count => data.size)
       end
 
       # We do not compress if content is smaller than 64kb.  There are
@@ -332,7 +337,10 @@ module NewRelic
                                 :collector => @collector)
         @marshaller.load(decompress_response(response))
       ensure
-        record_supportability_metrics(method, start_ts, serialize_finish_ts, size)
+        record_timing_supportability_metrics(method, start_ts, serialize_finish_ts)
+        if size
+          record_size_supportability_metrics(method, size, options[:item_count])
+        end
       end
 
       def handle_serialization_error(method, e)
@@ -344,7 +352,7 @@ module NewRelic
         raise error
       end
 
-      def record_supportability_metrics(method, start_ts, serialize_finish_ts, size)
+      def record_timing_supportability_metrics(method, start_ts, serialize_finish_ts)
         serialize_time = serialize_finish_ts && (serialize_finish_ts - start_ts)
         duration = (Time.now - start_ts).to_f
         NewRelic::Agent.record_metric("Supportability/invoke_remote", duration)
@@ -353,10 +361,24 @@ module NewRelic
           NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize", serialize_time)
           NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize/#{method.to_s}", serialize_time)
         end
-        if size
-          NewRelic::Agent.record_metric("Supportability/invoke_remote_size", size)
-          NewRelic::Agent.record_metric("Supportability/invoke_remote_size/#{method.to_s}", size)
-        end
+      end
+
+      # For these metrics, we use the following fields:
+      # call_count           => number of times this remote method was invoked
+      # total_call_time      => total size in bytes of payloads across all invocations
+      # total_exclusive_time => total size in items (e.g. unique metrics, traces, events, etc) across all invocations
+      #
+      # The last field doesn't make sense for all methods (e.g. get_agent_commands),
+      # so we omit it for those methods that don't really take collections
+      # of items as arguments.
+      def record_size_supportability_metrics(method, size_bytes, item_count)
+        metrics = [
+          "Supportability/invoke_remote_size",
+          "Supportability/invoke_remote_size/#{method.to_s}"
+        ]
+        # we may not have an item count, in which case, just record 0 for the exclusive time
+        item_count ||= 0
+        NewRelic::Agent.agent.stats_engine.tl_record_unscoped_metrics(metrics, size_bytes, item_count)
       end
 
       # Raises an UnrecoverableServerException if the post_string is longer

@@ -653,6 +653,82 @@ class NewRelicServiceTest < Minitest::Test
     refute @service.valid_to_marshal?({})
   end
 
+  def test_supportability_metrics_with_item_count
+    NewRelic::Agent.drop_buffered_data
+
+    payload = ['eggs', 'spam']
+    @http_handle.respond_to(:foobar, 'foobar')
+    @service.send(:invoke_remote, :foobar, payload, :item_count => 12)
+
+    expected_size_bytes = @service.marshaller.dump(payload).size
+    expected_values = {
+      :call_count           => 1,
+      :total_call_time      => expected_size_bytes,
+      :total_exclusive_time => 12
+    }
+
+    assert_metrics_recorded(
+      'Supportability/invoke_remote'                  => { :call_count => 1 },
+      'Supportability/invoke_remote/foobar'           => { :call_count => 1 },
+      'Supportability/invoke_remote_serialize'        => { :call_count => 1 },
+      'Supportability/invoke_remote_serialize/foobar' => { :call_count => 1},
+      'Supportability/invoke_remote_size'             => expected_values,
+      'Supportability/invoke_remote_size/foobar'      => expected_values
+    )
+  end
+
+  def test_supportability_metrics_without_item_count
+    NewRelic::Agent.drop_buffered_data
+
+    payload = ['eggs', 'spam']
+    @http_handle.respond_to(:foobar, 'foobar')
+    @service.send(:invoke_remote, :foobar, payload)
+
+    expected_size_bytes = @service.marshaller.dump(payload).size
+    expected_values = {
+      :call_count           => 1,
+      :total_call_time      => expected_size_bytes,
+      :total_exclusive_time => 0
+    }
+
+    assert_metrics_recorded(
+      'Supportability/invoke_remote'                  => { :call_count => 1 },
+      'Supportability/invoke_remote/foobar'           => { :call_count => 1 },
+      'Supportability/invoke_remote_serialize'        => { :call_count => 1 },
+      'Supportability/invoke_remote_serialize/foobar' => { :call_count => 1},
+      'Supportability/invoke_remote_size'             => expected_values,
+      'Supportability/invoke_remote_size/foobar'      => expected_values
+    )
+  end
+
+  def test_supportability_metrics_with_serialization_failure
+    NewRelic::Agent.drop_buffered_data
+
+    payload = ['eggs', 'spam']
+    @http_handle.respond_to(:foobar, 'foobar')
+    @service.marshaller.stubs(:dump).raises(StandardError.new)
+
+    assert_raises(NewRelic::Agent::SerializationError) do
+      @service.send(:invoke_remote, :foobar, payload)
+    end
+
+    expected_values = { :call_count => 1 }
+
+    assert_metrics_recorded(
+      'Supportability/invoke_remote'                => expected_values,
+      'Supportability/invoke_remote/foobar'         => expected_values,
+      'Supportability/serialization_failure'        => expected_values,
+      'Supportability/serialization_failure/foobar' => expected_values
+    )
+
+    assert_metrics_not_recorded([
+      'Supportability/invoke_remote_serialize',
+      'Supportability/invoke_remote_serialize/foobar',
+      'Supportability/invoke_remote_size',
+      'Supportability/invoke_remote_size/foobar'
+    ])
+  end
+
   def build_stats_hash(items={})
     hash = NewRelic::Agent::StatsHash.new
     items.each do |key, value|
