@@ -24,7 +24,16 @@ class RumAutoInsertion < Performance::TestCase
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
 
-    @browser_monitor = NewRelic::Rack::BrowserMonitoring.new(nil)
+    @app = Class.new do
+      attr_accessor :text
+
+      def call(*_)
+        [200, { "Content-Type" => "text/html" }, [text]]
+      end
+    end.new
+
+    @browser_monitor = NewRelic::Rack::BrowserMonitoring.new(@app)
+
     @html = "<html><head>#{'<script>alert("boo");</script>' * 1_000}</head><body></body></html>"
     @html_with_meta = "<html><head><meta http-equiv='X-UA-Compatible' content='IE=7'/>#{'<script>alert("boo");</script>' * 1_000}</head><body></body></html>"
     @html_with_meta_after = "<html><head>#{'<script>alert("boo");</script>' * 1_000}<meta http-equiv='X-UA-Compatible' content='IE=7'/></head><body></body></html>"
@@ -58,9 +67,10 @@ class RumAutoInsertion < Performance::TestCase
   end
 
   def run_autoinstrument_source(text)
+    @app.text = text
     @host.run do
       iterations.times do
-        browser_monitor.autoinstrument_source([text], {})
+        browser_monitor.call({})
       end
     end
   end
