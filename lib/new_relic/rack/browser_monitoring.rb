@@ -41,7 +41,8 @@ module NewRelic::Rack
     ALREADY_INSTRUMENTED_KEY = "newrelic.browser_monitoring_already_instrumented"
 
     def should_instrument?(env, status, headers)
-      status == 200 &&
+      NewRelic::Agent.config[:'browser_monitoring.auto_instrument'] &&
+        status == 200 &&
         !env[ALREADY_INSTRUMENTED_KEY] &&
         is_html?(headers) &&
         !is_attachment?(headers) &&

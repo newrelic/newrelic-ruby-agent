@@ -97,6 +97,12 @@ EOL
     assert !app.should_instrument?({NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY => true}, 200, {'Content-Type' => 'text/html'})
   end
 
+  def test_should_not_instrument_when_disabled_by_config
+    with_config(:'browser_monitoring.auto_instrument' => false) do
+      refute app.should_instrument?({}, 200, {'Content-Type' => 'text/html'})
+    end
+  end
+
   def test_insert_header_should_mark_environment
     get '/'
     assert last_request.env.key?(NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY)
