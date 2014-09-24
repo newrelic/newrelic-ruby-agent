@@ -24,12 +24,9 @@ module NewRelic
   module Agent
     class StatsHash < ::Hash
 
-      MAX_METRICS = 2000
-
       attr_accessor :started_at, :harvested_at
 
       def initialize(started_at=Time.now)
-        @full       = false
         @started_at = started_at.to_f
         super() { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
       end
@@ -57,7 +54,6 @@ module NewRelic
         Array(metric_specs).each do |metric_spec|
           stats = nil
           begin
-            next if @full && !self.has_key?(metric_spec)
             stats = self[metric_spec]
           rescue NoMethodError => e
             # This only happen in the case of a corrupted default_proc
@@ -74,7 +70,6 @@ module NewRelic
             end
           end
 
-          mark_if_full
           stats.record(value, aux, &blk)
         end
       end
@@ -103,23 +98,9 @@ module NewRelic
       def merge_or_insert(metric_spec, stats)
         if self.has_key?(metric_spec)
           self[metric_spec].merge!(stats)
-        elsif !@full
+        else
           self[metric_spec] = stats
-          mark_if_full
-          stats
         end
-      end
-
-      def mark_if_full
-        if self.size == MAX_METRICS
-          NewRelic::Agent.logger.warn("Metric storage full at #{MAX_METRICS} items. Further metrics before next harvest will not be recorded.")
-          @full = true
-        end
-      end
-
-      def clear
-        @full = false
-        super
       end
     end
   end
