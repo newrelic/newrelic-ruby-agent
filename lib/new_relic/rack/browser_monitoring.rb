@@ -22,8 +22,9 @@ module NewRelic::Rack
     def traced_call(env)
       result = @app.call(env)   # [status, headers, response]
 
-      if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1])
-        response_string = autoinstrument_source(result[2], result[1])
+      js_to_inject = NewRelic::Agent.browser_timing_header
+      if (js_to_inject != "") && should_instrument?(env, result[0], result[1])
+        response_string = autoinstrument_source(result[2], result[1], js_to_inject)
 
         env[ALREADY_INSTRUMENTED_KEY] = true
         if response_string
@@ -64,7 +65,7 @@ module NewRelic::Rack
     CHARSET_RE         = /<\s*meta[^>]+charset\s*=[^>]*>/im.freeze
     X_UA_COMPATIBLE_RE = /<\s*meta[^>]+http-equiv\s*=\s*['"]x-ua-compatible['"][^>]*>/im.freeze
 
-    def autoinstrument_source(response, headers)
+    def autoinstrument_source(response, headers, js_to_inject)
       source = gather_source(response)
       close_old_response(response)
       return nil unless source
@@ -86,7 +87,7 @@ module NewRelic::Rack
 
         if insertion_index
           source = source[0...insertion_index] <<
-            NewRelic::Agent.browser_timing_header <<
+            js_to_inject <<
             source[insertion_index..-1]
         else
           NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Could not properly determine location to inject script."
