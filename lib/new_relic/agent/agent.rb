@@ -570,11 +570,11 @@ module NewRelic
             @event_loop.on(:report_data) do
               transmit_data
             end
-            @event_loop.on(:report_transaction_event_data) do
-              transmit_transaction_event_data
+            @event_loop.on(:report_event_data) do
+              transmit_event_data
             end
             @event_loop.fire_every(Agent.config[:data_report_period],       :report_data)
-            @event_loop.fire_every(report_period_for(:analytic_event_data), :report_transaction_event_data)
+            @event_loop.fire_every(report_period_for(:analytic_event_data), :report_event_data)
             @event_loop.run
           end
 
@@ -1019,7 +1019,7 @@ module NewRelic
           end
         end
 
-        def transmit_transaction_event_data
+        def transmit_event_data
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending analytics data to New Relic Service"
 
@@ -1071,7 +1071,7 @@ module NewRelic
 
               @events.notify(:before_shutdown)
               transmit_data
-              transmit_transaction_event_data
+              transmit_event_data
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"
