@@ -147,57 +147,12 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     assert_equal(1, hash[specs[3]].call_count)
   end
 
-  def test_hash_limits_unique_key_count_when_calling_record
-    hash = NewRelic::Agent::StatsHash.new
-
-    count = NewRelic::Agent::StatsHash::MAX_METRICS + 1
-    attempted_metrics = (1..count).to_a.map { |i| "metric#{i}" }
-
-    attempted_metrics.each do |metric|
-      hash.record(metric, 1)
-    end
-
-    assert_equal NewRelic::Agent::StatsHash::MAX_METRICS, hash.size
-    refute_includes hash.keys, attempted_metrics.last
-  end
-
-  def test_hash_limits_unique_key_count_when_calling_merge!
-    hash = NewRelic::Agent::StatsHash.new
-
-    count = NewRelic::Agent::StatsHash::MAX_METRICS + 1
-    attempted_metrics = (1..count).to_a.map { |i| "metric#{i}" }
-
-    incoming = {}
-    attempted_metrics.each do |metric|
-      incoming[metric] = NewRelic::Agent::Stats.new
-    end
-
-    hash.merge!(incoming)
-
-    assert_equal NewRelic::Agent::StatsHash::MAX_METRICS, hash.size
-  end
-
   def test_marshal_dump
     @hash.record('foo', 1)
     @hash.record('bar', 2)
     copy = Marshal.load(Marshal.dump(@hash))
     assert_equal(@hash, copy)
     assert_equal(@hash.started_at, copy.started_at)
-  end
-
-  def test_clear_resets_full
-    max_metrics = NewRelic::Agent::StatsHash::MAX_METRICS
-    max_metrics.times do |i|
-      @hash.record("foo#{i}")
-    end
-
-    assert_equal(max_metrics, @hash.size)
-    @hash.record('bar')
-    assert_equal(max_metrics, @hash.size)
-
-    @hash.clear
-    @hash.record('bar')
-    assert_equal(1, @hash.size)
   end
 
   def test_borked_default_proc_can_record_metric
