@@ -82,15 +82,16 @@ module Multiverse
     end
 
     GROUPS = {
-      "agent"       => ["agent_only", "bare", "config_file_loading",
-                        "deferred_instrumentation", "high_security", "json",
-                        "marshalling"],
-      "background"  => ["resque", "sidekiq"],
-      "database"    => ["datamapper", "mongo", "sequel"],
-      "httpclients" => ["curb", "excon", "httpclient", "typhoeus", "net_http"],
-      "rails"       => ["active_record", "rails"],
+      "agent"         => ["agent_only", "bare", "config_file_loading",
+                          "deferred_instrumentation", "high_security"],
+      "background"    => ["resque", "sidekiq"],
+      "database"      => ["datamapper", "mongo", "sequel"],
+      "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http"],
+      "rails"         => ["active_record", "rails"],
+      "serialization" => ["json", "marshalling", "yajl"],
+      "sinatra"       => ["sinatra", "padrino"],
 
-      "rest"        => []  # Specially handled below
+      "rest"          => []  # Specially handled below
     }
 
     def passes_filter?(dir, filter)
