@@ -82,10 +82,15 @@ module Multiverse
     end
 
     GROUPS = {
-      "rest"        => [],  # Specially handled below
-      "rails"       => ["rails"],
-      "mongo"       => ["mongo"],
-      "httpclients" => ["curb", "excon", "httpclient", "typhoeus", "net_http"]
+      "agent"       => ["agent_only", "bare", "config_file_loading",
+                        "deferred_instrumentation", "high_security", "json",
+                        "marshalling"],
+      "background"  => ["resque", "sidekiq"],
+      "database"    => ["datamapper", "mongo", "sequel"],
+      "httpclients" => ["curb", "excon", "httpclient", "typhoeus", "net_http"],
+      "rails"       => ["active_record", "rails"],
+
+      "rest"        => []  # Specially handled below
     }
 
     def passes_filter?(dir, filter)
