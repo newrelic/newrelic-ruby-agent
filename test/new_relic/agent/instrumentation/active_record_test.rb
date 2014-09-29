@@ -326,7 +326,6 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
     # the actual test is here
     query = "SELECT * FROM #{ActiveRecordFixtures::Order.table_name} WHERE name = 'Oberon'"
     in_web_transaction do
-      ActiveRecordFixtures::Order.create(:name => 'Oberon')
       ActiveRecordFixtures::Order.connection.cache do
         ActiveRecordFixtures::Order.connection.select_all(query)
         ActiveRecordFixtures::Order.connection.select_all(query)
