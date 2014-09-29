@@ -9,6 +9,7 @@
 require 'rubygems'
 require 'base64'
 require 'fileutils'
+require 'digest'
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 
@@ -47,6 +48,10 @@ module Multiverse
       opts.fetch(:names, [])
     end
 
+    def use_cache?
+      !opts.fetch(:nocache, false)
+    end
+
     def filter_env
       value = opts.fetch(:env, nil)
       value = value.to_i if value
@@ -61,11 +66,14 @@ module Multiverse
       FileUtils.rm_rf File.join(directory, "Gemfile.#{env_index}.lock")
     end
 
+    def envfile_path
+      File.join(directory, 'Envfile')
+    end
 
     def environments
       @environments ||= (
         Dir.chdir directory
-        Envfile.new(File.join(directory, 'Envfile'))
+        Envfile.new(envfile_path)
       )
     end
 
@@ -75,19 +83,23 @@ module Multiverse
       clean_gemfiles(env_index)
       begin
         generate_gemfile(gemfile_text, env_index)
-        bundle
+        ensure_bundle(env_index)
       rescue => e
         puts "#{e.class}: #{e}"
         puts "Fast local bundle failed.  Attempting to install from rubygems.org"
         clean_gemfiles(env_index)
         generate_gemfile(gemfile_text, env_index, false)
-        bundle
+        ensure_bundle(env_index)
       end
       print_environment if should_print
     end
 
     def bundling_lock_file
       File.join(Bundler.bundle_path, 'multiverse-bundler.lock')
+    end
+
+    def bundler_cache_dir
+      File.join(Bundler.bundle_path, 'multiverse-cache')
     end
 
     # Running the bundle should only happen one at a time per Ruby version or
@@ -104,13 +116,54 @@ module Multiverse
       bundler_out
     end
 
-    def bundle
+    def ensure_bundle(env_index)
       require 'rubygems'
       require 'bundler'
+      if use_cache?
+        ensure_bundle_cached(env_index) || ensure_bundle_uncached(env_index)
+      else
+        ensure_bundle_uncached(env_index)
+      end
+      Bundler.require
+    end
+
+    def envfile_hash
+      Digest::MD5.hexdigest(File.read(envfile_path))
+    end
+
+    def cached_gemfile_lock_filename(env_index)
+      "Gemfile.#{suite}.#{env_index}.#{envfile_hash}.lock"
+    end
+
+    def cache_gemfile_lock(env_index)
+      filename = cached_gemfile_lock_filename(env_index)
+      dst_path = File.join(bundler_cache_dir, filename)
+      src_path = File.join(directory, "Gemfile.#{env_index}.lock")
+      puts "Caching Gemfile.lock from #{src_path} to #{dst_path}" if verbose?
+      FileUtils.cp(src_path, dst_path)
+    end
+
+    def ensure_bundle_cached(env_index)
+      cache_dir = bundler_cache_dir
+      FileUtils.mkdir_p(cache_dir)
+      filename = cached_gemfile_lock_filename(env_index)
+      path = File.join(cache_dir, filename)
+
+      if File.exist?(path)
+        dst_path = File.join(directory, "Gemfile.#{env_index}.lock")
+        puts "Using cached Gemfile.lock from #{path} at #{dst_path}" if verbose?
+        FileUtils.cp(path, dst_path)
+        true
+      else
+        false
+      end
+    end
+
+    def ensure_bundle_uncached(env_index)
       bundler_out = exclusive_bundle
       puts bundler_out if verbose? || $? != 0
       raise "bundle command failed with (#{$?})" unless $? == 0
-      Bundler.require
+      cache_gemfile_lock(env_index)
     end
 
     def generate_gemfile(gemfile_text, env_index, local = true)
