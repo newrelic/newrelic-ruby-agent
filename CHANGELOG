@@ -22,10 +22,10 @@
   (including Rails and Sinatra apps) and include them under the httpResponseCode
   attribute on events sent to Insights.
 
-  * Stricter limits on memory usage of metrics and SQL traces
+  * Stricter limits on memory usage of SQL traces
 
-  The agent now imposes stricter limits on the number of distinct SQL traces and
-  metrics that it will buffer in memory at any point in time, leading to more
+  The agent now imposes stricter limits on the number of distinct SQL traces
+  that it will buffer in memory at any point in time, leading to more
   predictable memory consumption even in exceptional circumstances.
 
   * Improved reliability of thread profiling
