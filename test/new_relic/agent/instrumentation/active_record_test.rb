@@ -13,8 +13,7 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
     NewRelic::Agent.manual_start
     ActiveRecord::Base.establish_connection unless ActiveRecord::Base.connection.active?
     ActiveRecordFixtures.setup
-    NewRelic::Agent.instance.transaction_sampler.reset!
-    NewRelic::Agent.instance.stats_engine.clear_stats
+    NewRelic::Agent.drop_buffered_data
   end
 
   def teardown
@@ -317,9 +316,16 @@ class NewRelic::Agent::Instrumentation::NewActiveRecordInstrumentationTest < Min
   end
 
   def test_cached_calls_are_not_recorded_with_select_all
-    query = "SELECT * FROM #{ActiveRecordFixtures::Order.table_name} WHERE name = 'Oberon'"
+    # If this is the first create, ActiveRecord needs to warm up,
+    # send some SQL SELECTS, etc.
     in_web_transaction do
       ActiveRecordFixtures::Order.create(:name => 'Oberon')
+    end
+    NewRelic::Agent.drop_buffered_data
+
+    # the actual test is here
+    query = "SELECT * FROM #{ActiveRecordFixtures::Order.table_name} WHERE name = 'Oberon'"
+    in_web_transaction do
       ActiveRecordFixtures::Order.connection.cache do
         ActiveRecordFixtures::Order.connection.select_all(query)
         ActiveRecordFixtures::Order.connection.select_all(query)
