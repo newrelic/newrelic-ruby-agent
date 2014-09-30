@@ -56,7 +56,7 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
     SinatraTestApp.stubs(:middleware).returns([])
 
     SinatraTestApp.expects(:build_without_newrelic).once
-    SinatraTestApp.expects(:use).at_least(3)
+    SinatraTestApp.expects(:use).at_least(2)
 
     SinatraTestApp.build_with_newrelic(@app)
   end

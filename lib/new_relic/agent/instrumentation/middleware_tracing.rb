@@ -62,9 +62,9 @@ module NewRelic
             end
 
             result
-          rescue => e
+          rescue Exception => e
             NewRelic::Agent.notice_error(e)
-            raise
+            raise e
           ensure
             Transaction.stop(state)
           end

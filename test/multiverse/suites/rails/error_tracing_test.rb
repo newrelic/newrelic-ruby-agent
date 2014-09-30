@@ -94,7 +94,6 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
       assert NewRelic::Agent.config[:agent_enabled]
       assert NewRelic::Agent.config[:'error_collector.enabled']
       assert @error_collector.enabled?
-      assert Rails.application.config.middleware.include?(NewRelic::Rack::ErrorCollector)
     end
 
     def test_should_capture_routing_error
@@ -113,9 +112,17 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
     end
 
     def test_should_capture_request_uri_and_params
-      get '/bad_route?eat=static'
-      assert_equal('/bad_route', last_error.params[:request_uri])
-      assert_equal({'eat' => 'static'}, last_error.params[:request_params])
+      get '/error/controller_error?eat=static'
+      assert_equal('/error/controller_error', last_error.params[:request_uri])
+
+      expected_params = { 'eat' => 'static' }
+
+      if Rails::VERSION::MAJOR == 3
+        expected_params['action']     = 'controller_error'
+        expected_params['controller'] = 'error'
+      end
+
+      assert_equal(expected_params, last_error.params[:request_params])
     end
   end
 
@@ -179,7 +186,7 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
     assert_equal('whatever', params['other'])
   end
 
-  def test_should_apply_parameter_filtering_for_errors_captured_by_rack_error_collector
+  def test_should_apply_parameter_filtering_for_non_standard_errors
     get '/error/exception_error?secret=shouldnotbecaptured&other=whatever'
     params = last_error.params[:request_params]
     assert_equal('[FILTERED]', params['secret'])
