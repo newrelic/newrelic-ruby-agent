@@ -47,6 +47,41 @@ class ParameterCaptureTest < RailsMultiverseTest
     assert_equal({}, last_transaction_trace_request_params)
   end
 
+  def test_uri_on_traced_errors_never_contains_query_string
+    with_config(:capture_params => false) do
+      get '/parameter_capture/error?other=1234&secret=4567'
+    end
+    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
+
+    with_config(:capture_params => true) do
+      get '/parameter_capture/error?other=1234&secret=4567'
+    end
+    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
+  end
+
+  def test_referrer_on_traced_errors_never_contains_query_string
+    with_config(:capture_params => false) do
+      get '/parameter_capture/error?other=1234&secret=4567', {}, { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+    end
+    assert_equal('/foo/bar', last_traced_error.params[:request_referer])
+    with_config(:capture_params => true) do
+      get '/parameter_capture/error?other=1234&secret=4567', {}, { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+    end
+    assert_equal('/foo/bar', last_traced_error.params[:request_referer])
+  end
+
+  def test_uri_on_tts_never_contains_query_string
+    with_config(:capture_params => false) do
+      get '/parameter_capture/transaction?other=1234&secret=4567'
+    end
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+
+    with_config(:capture_params => true) do
+      get '/parameter_capture/transaction?other=1234&secret=4567'
+    end
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+  end
+
   def test_filters_parameters_on_traced_errors
     with_config(:capture_params => true) do
       get '/parameter_capture/error?other=1234&secret=4567'
