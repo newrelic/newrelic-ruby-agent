@@ -59,24 +59,73 @@ class ActiveJobTest < Minitest::Test
   ENQUEUE_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Produce/Named"
   PERFORM_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Consume/Named"
 
+  PERFORM_TRANSACTION_NAME   = 'OtherTransaction/ActiveJob::Inline/MyJob/perform'
+  PERFORM_TRANSACTION_ROLLUP = 'OtherTransaction/ActiveJob::Inline/all'
+
   def test_record_enqueue_metrics
-    MyJob.perform_later
+    in_web_transaction do
+      MyJob.perform_later
+    end
+
     assert_metrics_recorded("#{ENQUEUE_PREFIX}/default")
   end
 
   def test_record_enqueue_metrics_with_alternate_queue
-    MyJobWithAlternateQueue.perform_later
+    in_web_transaction do
+      MyJobWithAlternateQueue.perform_later
+    end
+
     assert_metrics_recorded("#{ENQUEUE_PREFIX}/my_jobs")
   end
 
-  def test_record_perform_metrics
-    MyJob.perform_later
+  def test_record_perform_metrics_in_web
+    in_web_transaction do
+      MyJob.perform_later
+    end
+
     assert_metrics_recorded("#{PERFORM_PREFIX}/default")
   end
 
-  def test_record_perform_metrics_with_alternate_queue
-    MyJobWithAlternateQueue.perform_later
+  def test_record_perform_metrics_with_alternate_queue_in_web
+    in_web_transaction do
+      MyJobWithAlternateQueue.perform_later
+    end
+
     assert_metrics_recorded("#{PERFORM_PREFIX}/my_jobs")
+  end
+
+  def test_doesnt_record_perform_metrics_from_background
+    in_background_transaction do
+      MyJob.perform_later
+    end
+
+    assert_metrics_not_recorded("#{PERFORM_PREFIX}/default")
+  end
+
+  def test_starts_transaction_if_there_isnt_one
+    MyJob.perform_later
+    assert_metrics_recorded([PERFORM_TRANSACTION_ROLLUP,
+                             PERFORM_TRANSACTION_NAME])
+  end
+
+  def test_nests_other_transaction_if_already_running
+    in_background_transaction do
+      MyJob.perform_later
+    end
+
+    assert_metrics_recorded([PERFORM_TRANSACTION_ROLLUP,
+                             PERFORM_TRANSACTION_NAME])
+  end
+
+  # If running tasks inline, either in a dev environment or from
+  # misconfiguration we shouldn't accidentally rename our web transaction
+  def test_doesnt_nest_transactions_if_in_web
+    in_web_transaction do
+      MyJob.perform_later
+    end
+
+    assert_metrics_not_recorded([PERFORM_TRANSACTION_ROLLUP,
+                                 PERFORM_TRANSACTION_NAME])
   end
 
   def test_doesnt_interfere_with_params_on_job
