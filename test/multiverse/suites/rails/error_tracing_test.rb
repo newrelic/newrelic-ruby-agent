@@ -114,7 +114,15 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
     def test_should_capture_request_uri_and_params
       get '/error/controller_error?eat=static'
       assert_equal('/error/controller_error', last_error.params[:request_uri])
-      assert_equal({'eat' => 'static'}, last_error.params[:request_params])
+
+      expected_params = { 'eat' => 'static' }
+
+      if Rails::VERSION::MAJOR == 3
+        expected_params['action']     = 'controller_error'
+        expected_params['controller'] = 'error'
+      end
+
+      assert_equal(expected_params, last_error.params[:request_params])
     end
   end
 
