@@ -58,7 +58,7 @@ class ActiveJobTest < Minitest::Test
     end
   end
 
-  ENQUEUE_PREFIX = "MessageBroker/ActiveJob::QueueAdapters::InlineAdapter/Queue/Produce/Named"
+  ENQUEUE_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Produce/Named"
 
   def test_record_metrics
     MyJob.perform_later

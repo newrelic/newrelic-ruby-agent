@@ -20,6 +20,7 @@ DependencyDetection.defer do
 
     ::ActiveJob::Base.around_enqueue do |job, block|
       adapter = ::ActiveJob::Base.queue_adapter.name
+      adapter = ::NewRelic::Agent::Instrumentation::ActiveJobHelper.clean_adapter_name(adapter)
       queue   = job.queue_name
 
       trace_execution_scoped("MessageBroker/#{adapter}/Queue/Produce/Named/#{queue}") do
@@ -27,5 +28,20 @@ DependencyDetection.defer do
       end
     end
 
+  end
+end
+
+module NewRelic
+  module Agent
+    module Instrumentation
+      module ActiveJobHelper
+        ADAPTER_REGEX = /ActiveJob::QueueAdapters::(.*)Adapter/
+
+        def self.clean_adapter_name(name)
+          name = "ActiveJob::#{$1}" if ADAPTER_REGEX =~ name
+          name
+        end
+      end
+    end
   end
 end
