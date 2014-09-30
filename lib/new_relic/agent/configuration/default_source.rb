@@ -595,6 +595,13 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable active record instrumentation.'
         },
+        :disable_activejob => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :dynamic_name => true,
+          :description => 'Enable or disable ActiveJob instrumentation.'
+        },
         :disable_memcache_instrumentation => {
           :default => false,
           :public => true,
@@ -1031,6 +1038,12 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :description  => 'Defines whether the agent will wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
+        },
+        :disable_rails_middleware => {
+          :default      => false,
+          :public       => false,
+          :type         => Boolean,
+          :description  => 'Internal name for controlling Rails 3+ middleware instrumentation'
         },
         :'heroku.use_dyno_names' => {
           :default      => true,

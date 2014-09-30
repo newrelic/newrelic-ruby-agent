@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 DependencyDetection.defer do
-  named :active_job
+  named :activejob
 
   depends_on do
     defined?(::ActiveJob::Base)
