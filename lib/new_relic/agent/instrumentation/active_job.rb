@@ -19,13 +19,11 @@ DependencyDetection.defer do
     end
 
     ::ActiveJob::Base.around_enqueue do |job, block|
-      adapter = ::ActiveJob::Base.queue_adapter.name
-      adapter = ::NewRelic::Agent::Instrumentation::ActiveJobHelper.clean_adapter_name(adapter)
-      queue   = job.queue_name
+      ::NewRelic::Agent::Instrumentation::ActiveJobHelper.trace(job, block, :Produce)
+    end
 
-      trace_execution_scoped("MessageBroker/#{adapter}/Queue/Produce/Named/#{queue}") do
-        block.call
-      end
+    ::ActiveJob::Base.around_perform do |job, block|
+      ::NewRelic::Agent::Instrumentation::ActiveJobHelper.trace(job, block, :Consume)
     end
 
   end
@@ -35,6 +33,14 @@ module NewRelic
   module Agent
     module Instrumentation
       module ActiveJobHelper
+        def self.trace(job, block, event)
+          adapter = clean_adapter_name(::ActiveJob::Base.queue_adapter.name)
+          queue   = job.queue_name
+          trace_execution_scoped("MessageBroker/#{adapter}/Queue/#{event}/Named/#{queue}") do
+            block.call
+          end
+        end
+
         ADAPTER_REGEX = /ActiveJob::QueueAdapters::(.*)Adapter/
 
         def self.clean_adapter_name(name)

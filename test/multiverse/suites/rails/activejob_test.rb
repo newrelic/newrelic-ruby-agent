@@ -59,15 +59,26 @@ class ActiveJobTest < Minitest::Test
   end
 
   ENQUEUE_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Produce/Named"
+  PERFORM_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Consume/Named"
 
-  def test_record_metrics
+  def test_record_enqueue_metrics
     MyJob.perform_later
     assert_metrics_recorded("#{ENQUEUE_PREFIX}/default")
   end
 
-  def test_record_metrics_with_alternate_queue
+  def test_record_enqueue_metrics_with_alternate_queue
     MyJobWithAlternateQueue.perform_later
     assert_metrics_recorded("#{ENQUEUE_PREFIX}/my_jobs")
+  end
+
+  def test_record_perform_metrics
+    MyJob.perform_later
+    assert_metrics_recorded("#{PERFORM_PREFIX}/default")
+  end
+
+  def test_record_perform_metrics_with_alternate_queue
+    MyJobWithAlternateQueue.perform_later
+    assert_metrics_recorded("#{PERFORM_PREFIX}/my_jobs")
   end
 
   def test_doesnt_interfere_with_params_on_job
