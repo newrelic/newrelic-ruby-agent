@@ -13,8 +13,9 @@ module NewRelic::Rack
   # middleware configuration files.
   #
   # The agent will instead now automatically collect errors for all Rack
-  # applications when automatic Rack middleware instrumentation is enabled (this
-  # is the default).
+  # applications if automatic Rack middleware instrumentation is enabled (it is
+  # by default), or if you have manually added any New Relic middlewares into
+  # your middleware stack.
   #
   # @api public
   # @deprecated
