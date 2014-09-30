@@ -86,8 +86,7 @@ module NewRelic
         module ClassMethods
           def newrelic_middlewares
             [ NewRelic::Rack::AgentHooks,
-              NewRelic::Rack::BrowserMonitoring,
-              NewRelic::Rack::ErrorCollector ]
+              NewRelic::Rack::BrowserMonitoring ]
           end
 
           def build_with_newrelic(*args, &block)
