@@ -12,12 +12,8 @@ class OrphanedConfigTest < Minitest::Test
   end
 
   def test_all_agent_config_keys_are_declared_in_default_source
-    non_test_files = all_rb_files.reject { |filename| filename.include? 'test.rb' }
-
     non_test_files.each do |file|
-      lines = File.read(file).split("\n")
-
-      lines.each_with_index do |line, index|
+      lines_in(file).each_with_index do |line, index|
         config_match = line.match(/Agent\.config\[:['"]?([a-z\._]+)['"]?\]/)
         next unless config_match
 
@@ -35,21 +31,15 @@ class OrphanedConfigTest < Minitest::Test
 
   AGENT_CONFIG_PATTERN      = /Agent\.config\[:['"]?([a-z\._]+)['"]?\s*\]/
   REGISTER_CALLBACK_PATTERN = /register_callback\(:['"]?([a-z\._]+)['"]?\)/
-  NAMED_DEPENDENCY_PATTERN  = /^\s*named[ (]+\:?([a-z\._]+).*$/
+  NAMED_DEPENDENCY_PATTERN  = /^\s*named[ (]+\:?([a-z0-9\._]+).*$/
 
   def test_all_default_source_config_keys_are_used_in_the_agent
-    non_test_files = all_rb_files.reject { |filename| filename.include? 'test.rb' }
-
     non_test_files.each do |file|
-      lines = File.read(file).split("\n")
-
-      lines.each_with_index do |line, index|
+      lines_in(file).each do |line|
         captures = []
         captures << line.scan(AGENT_CONFIG_PATTERN)
         captures << line.scan(REGISTER_CALLBACK_PATTERN)
         captures << line.scan(NAMED_DEPENDENCY_PATTERN).map(&method(:disable_name))
-
-        next if captures.empty?
 
         captures.flatten.map do |key|
           @default_keys.delete key.gsub("'", "").to_sym
@@ -65,6 +55,28 @@ class OrphanedConfigTest < Minitest::Test
     end
 
     assert_empty @default_keys
+  end
+
+  def test_documented_all_named_instrumentation_files
+    non_test_files.each do |file|
+      next unless file.include?("new_relic/agent/instrumentation")
+
+      lines_in(file).each_with_index do |line, index|
+        captures = line.scan(NAMED_DEPENDENCY_PATTERN).map(&method(:disable_name))
+
+        captures.flatten.map do |key|
+          refute NewRelic::Agent::Configuration::DEFAULTS[key.to_sym].nil?, "#{file}:#{index+1} - Document key `#{key}` found as name for instrumentation.\n"
+        end
+      end
+    end
+  end
+
+  def lines_in(file)
+    File.read(file).split("\n")
+  end
+
+  def non_test_files
+    all_rb_files.reject { |filename| filename.include? 'test.rb' }
   end
 
   def disable_name(names)
