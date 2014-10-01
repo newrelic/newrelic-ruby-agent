@@ -719,6 +719,16 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_not_recorded(['Controller/sinatra', 'Controller/toddler', 'Controller/infant'])
   end
 
+  def test_nested_other_transaction
+    in_transaction('OtherTransaction/outer', :category => :task) do
+      in_transaction('OtherTransaction/inner', :category => :task) do
+      end
+    end
+
+    assert_metrics_recorded(['OtherTransaction/inner'])
+    assert_metrics_not_recorded(['OtherTransaction/outer'])
+  end
+
   def test_failure_during_ignore_error_filter_doesnt_prevent_transaction
     filter = Proc.new do |*_|
       raise "HAHAHAHAH, error in the filter for ignoring errors!"

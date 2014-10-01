@@ -22,6 +22,7 @@ module NewRelic
       TASK_PREFIX                  = 'OtherTransaction/Background/'.freeze
       RACK_PREFIX                  = 'Controller/Rack/'.freeze
       SINATRA_PREFIX               = 'Controller/Sinatra/'.freeze
+      OTHER_TRANSACTION_PREFIX     = 'OtherTransaction/'.freeze
 
       CONTROLLER_MIDDLEWARE_PREFIX = 'Controller/Middleware/Rack'.freeze
 
@@ -183,7 +184,7 @@ module NewRelic
       end
 
       def self.nested_transaction_name(name)
-        if name.start_with?(CONTROLLER_PREFIX)
+        if name.start_with?(CONTROLLER_PREFIX) || name.start_with?(OTHER_TRANSACTION_PREFIX)
           "#{SUBTRANSACTION_PREFIX}#{name}"
         else
           name
