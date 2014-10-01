@@ -423,7 +423,7 @@ module NewRelic
       def record_summary_metrics(outermost_segment_name, end_time)
         metrics = summary_metrics
         metrics << @frozen_name unless @frozen_name == outermost_segment_name
-        @metrics.record_unscoped(metrics, end_time - start_time, 0)
+        @metrics.record_unscoped(metrics, end_time.to_f - start_time.to_f, 0)
       end
 
       # This event is fired when the transaction is fully completed. The metric
