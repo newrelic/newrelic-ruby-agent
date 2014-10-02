@@ -145,6 +145,10 @@ module NewRelic
         @already_logged
       end
 
+      def clear_already_logged
+        @already_logged = {}
+      end
+
       def wants_stdout?
         ::NewRelic::Agent.config[:log_file_path].upcase == "STDOUT"
       end

@@ -14,6 +14,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def teardown
     # Failed transactions can leave partial stack, so pave it for next test
+
+    ::NewRelic::Agent.logger.clear_already_logged
     cleanup_transaction
   end
 

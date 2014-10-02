@@ -348,6 +348,16 @@ class AgentLoggerTest < Minitest::Test
     assert_logged log_message.reverse
   end
 
+  def test_clear_already_logged
+    logger = create_basic_logger
+    logger.log_once(:warn, :clear_already_logged, "Kill me")
+
+    refute_empty logger.already_logged
+    logger.clear_already_logged
+
+    assert_empty logger.already_logged
+  end
+
   #
   # Helpers
   #
