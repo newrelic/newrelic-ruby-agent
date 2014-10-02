@@ -630,6 +630,22 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, false)
   end
 
+  def test_jruby_cpu_time_logs_errors_once_at_warn
+    in_transaction do |txn|
+      ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
+      bean = mock
+      bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'JRuby CPU Time Test Error')
+      ManagementFactory.stubs(:getThreadMXBean).returns(bean)
+
+      expects_logging(:warn, includes("JRuby CPU Time Test Error"))
+      txn.send(:jruby_cpu_time)
+      expects_no_logging(:warn)
+      txn.send(:jruby_cpu_time)
+    end
+  ensure
+    ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, false)
+  end
+
   def test_cpu_burn_normal
     in_transaction do |txn|
       txn.expects(:normal_cpu_burn).twice.returns(1)
