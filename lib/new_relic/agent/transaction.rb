@@ -780,6 +780,7 @@ module NewRelic
       rescue => e
         ::NewRelic::Agent.logger.log_once(:warn, :jruby_cpu_time, "Error calculating JRuby CPU Time: #{e.message}")
         ::NewRelic::Agent.logger.debug("Error calculating JRuby CPU Time: #{e.message}")
+        nil
       end
 
       def agent
