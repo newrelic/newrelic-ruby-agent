@@ -779,6 +779,7 @@ module NewRelic
         -1 == java_utime ? 0.0 : java_utime/1e9
       rescue => e
         ::NewRelic::Agent.logger.log_once(:warn, :jruby_cpu_time, "Error calculating JRuby CPU Time: #{e.message}")
+        ::NewRelic::Agent.logger.debug("Error calculating JRuby CPU Time: #{e.message}")
       end
 
       def agent
