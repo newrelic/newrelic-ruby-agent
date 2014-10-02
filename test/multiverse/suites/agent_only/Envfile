@@ -1,5 +1,4 @@
 gemfile <<-RB
   gem 'rack'
   gem 'rack-test'
-  gem 'pry-nav'
 RB
