@@ -37,7 +37,7 @@ module NewRelic
 
           # Don't nest transactions if we're already in a web transaction.
           # Probably inline processing the job if that happens, so just trace.
-          if state.current_transaction && state.current_transaction.recording_web_transaction?
+          if state.in_web_transaction?
             run_in_trace(job, block, :Consume)
           else
             run_in_transaction(state, job, block)

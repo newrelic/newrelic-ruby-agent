@@ -32,8 +32,7 @@ module NewRelic::Agent::Threading
 
       t = Thread.new do
         begin
-          in_transaction do |txn|
-            txn.request = 'whatever'
+          in_web_transaction do
             q0.push 'unblock main thread'
             q1.pop
           end

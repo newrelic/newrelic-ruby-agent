@@ -114,11 +114,11 @@ module NewRelic
       end
 
       def in_background_transaction?
-        !current_transaction.nil? && current_transaction.request.nil?
+        !current_transaction.nil? && !current_transaction.recording_web_transaction?
       end
 
-      def in_request_transaction?
-        !current_transaction.nil? && !current_transaction.request.nil?
+      def in_web_transaction?
+        !current_transaction.nil? && current_transaction.recording_web_transaction?
       end
 
       # Execution tracing on current thread
