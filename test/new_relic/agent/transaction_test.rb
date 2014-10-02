@@ -606,6 +606,16 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  class ::ManagementFactory; end
+  def test_jruby_cpu_time_returns_0_for_neg1_java_utime
+    in_transaction do |txn|
+      txn.class.class_variable_set(:@@java_classes_loaded, true)
+      bean = mock(:getCurrentThreadUserTime => -1)
+      ManagementFactory.stubs(:getThreadMXBean).returns(bean)
+      assert_equal 0.0, txn.send(:jruby_cpu_time)
+    end
+  end
+
   def test_cpu_burn_normal
     in_transaction do |txn|
       txn.expects(:normal_cpu_burn).twice.returns(1)
