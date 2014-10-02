@@ -613,6 +613,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction do |txn|
       ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
       bean = mock(:getCurrentThreadUserTime => -1)
+      bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
       ManagementFactory.stubs(:getThreadMXBean).returns(bean)
       assert_equal 0.0, txn.send(:jruby_cpu_time)
     end
@@ -625,6 +626,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction do |txn|
       ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
       bean = mock(:getCurrentThreadUserTime => java_utime)
+      bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
       ManagementFactory.stubs(:getThreadMXBean).returns(bean)
       assert_equal java_utime/1e9, txn.send(:jruby_cpu_time)
     end
@@ -636,6 +638,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction do |txn|
       ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
       bean = mock
+      bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
       bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'JRuby CPU Time Test Error')
       ManagementFactory.stubs(:getThreadMXBean).returns(bean)
 
@@ -652,6 +655,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction do |txn|
       ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
       bean = mock
+      bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
       bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'JRuby CPU Time Test Error')
       ManagementFactory.stubs(:getThreadMXBean).returns(bean)
 
@@ -668,8 +672,23 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction do |txn|
       ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
       bean = mock
+      bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
       bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'JRuby CPU Time Test Error')
       ManagementFactory.stubs(:getThreadMXBean).returns(bean)
+
+      assert_nil txn.send(:jruby_cpu_time)
+    end
+  ensure
+    ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, false)
+  end
+
+  def test_jruby_cpu_time_does_not_call_get_current_thread_user_time_if_unsupported
+    in_transaction do |txn|
+      ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
+      bean = mock
+      bean.stubs(:isCurrentThreadCpuTimeSupported).returns(false)
+      ManagementFactory.stubs(:getThreadMXBean).returns(bean)
+      bean.expects(:getCurrentThreadUserTime).never
 
       assert_nil txn.send(:jruby_cpu_time)
     end

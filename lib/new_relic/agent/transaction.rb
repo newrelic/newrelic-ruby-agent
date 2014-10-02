@@ -775,7 +775,10 @@ module NewRelic
       def jruby_cpu_time
         return nil unless @@java_classes_loaded
         threadMBean = ManagementFactory.getThreadMXBean()
+
+        return nil unless threadMBean.isCurrentThreadCpuTimeSupported
         java_utime = threadMBean.getCurrentThreadUserTime()  # ns
+
         -1 == java_utime ? 0.0 : java_utime/1e9
       rescue => e
         ::NewRelic::Agent.logger.log_once(:warn, :jruby_cpu_time, "Error calculating JRuby CPU Time: #{e.message}")
