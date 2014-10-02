@@ -609,11 +609,25 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   class ::ManagementFactory; end
   def test_jruby_cpu_time_returns_0_for_neg1_java_utime
     in_transaction do |txn|
-      txn.class.class_variable_set(:@@java_classes_loaded, true)
+      ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
       bean = mock(:getCurrentThreadUserTime => -1)
       ManagementFactory.stubs(:getThreadMXBean).returns(bean)
       assert_equal 0.0, txn.send(:jruby_cpu_time)
     end
+  ensure
+    ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, false)
+  end
+
+  def test_jruby_cpu_time_returns_java_utime_over_1e9_if_java_utime_is_1
+    java_utime = 1
+    in_transaction do |txn|
+      ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
+      bean = mock(:getCurrentThreadUserTime => java_utime)
+      ManagementFactory.stubs(:getThreadMXBean).returns(bean)
+      assert_equal java_utime/1e9, txn.send(:jruby_cpu_time)
+    end
+  ensure
+    ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, false)
   end
 
   def test_cpu_burn_normal
