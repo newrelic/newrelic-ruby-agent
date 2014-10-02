@@ -40,7 +40,7 @@ module NewRelic
             state = TransactionState.tl_state_for(thread)
             if state.in_background_transaction?
               :background
-            elsif state.in_request_transaction?
+            elsif state.in_web_transaction?
               :request
             else
               :other

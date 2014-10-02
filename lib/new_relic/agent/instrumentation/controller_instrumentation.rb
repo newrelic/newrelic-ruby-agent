@@ -430,7 +430,8 @@ module NewRelic
 
         def create_transaction_options(trace_options, available_params)
           txn_options = {}
-          txn_options[:request] = trace_options[:request] || (respond_to?(:request) && request)
+          txn_options[:request]   = trace_options[:request]
+          txn_options[:request] ||= request if respond_to?(:request)
 
           if available_params
             txn_options[:filtered_params] = (respond_to?(:filter_parameters)) ? filter_parameters(available_params) : available_params

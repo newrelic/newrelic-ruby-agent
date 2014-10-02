@@ -22,6 +22,7 @@ module NewRelic
       TASK_PREFIX                  = 'OtherTransaction/Background/'.freeze
       RACK_PREFIX                  = 'Controller/Rack/'.freeze
       SINATRA_PREFIX               = 'Controller/Sinatra/'.freeze
+      OTHER_TRANSACTION_PREFIX     = 'OtherTransaction/'.freeze
 
       CONTROLLER_MIDDLEWARE_PREFIX = 'Controller/Middleware/Rack'.freeze
 
@@ -183,7 +184,7 @@ module NewRelic
       end
 
       def self.nested_transaction_name(name)
-        if name.start_with?(CONTROLLER_PREFIX)
+        if name.start_with?(CONTROLLER_PREFIX) || name.start_with?(OTHER_TRANSACTION_PREFIX)
           "#{SUBTRANSACTION_PREFIX}#{name}"
         else
           name
@@ -422,7 +423,7 @@ module NewRelic
       def record_summary_metrics(outermost_segment_name, end_time)
         metrics = summary_metrics
         metrics << @frozen_name unless @frozen_name == outermost_segment_name
-        @metrics.record_unscoped(metrics, end_time - start_time, 0)
+        @metrics.record_unscoped(metrics, end_time.to_f - start_time.to_f, 0)
       end
 
       # This event is fired when the transaction is fully completed. The metric

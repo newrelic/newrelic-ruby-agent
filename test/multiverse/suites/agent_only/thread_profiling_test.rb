@@ -61,8 +61,8 @@ class ThreadProfilingTest < Minitest::Test
   # go only let a few cycles through, so we check less than 10
 
   def test_thread_profiling
-    run_transaction_in_thread(:type => :controller, :request => stub)
-    run_transaction_in_thread(:type => :task)
+    run_transaction_in_thread(:controller)
+    run_transaction_in_thread(:task)
 
     issue_command(START_COMMAND)
 
@@ -80,8 +80,8 @@ class ThreadProfilingTest < Minitest::Test
 
   def test_thread_profiling_with_pruby_marshaller
     with_config(:marshaller => 'pruby') do
-      run_transaction_in_thread(:type => :controller, :request => stub)
-      run_transaction_in_thread(:type => :task)
+      run_transaction_in_thread(:controller)
+      run_transaction_in_thread(:task)
 
       issue_command(START_COMMAND)
 
@@ -118,11 +118,11 @@ class ThreadProfilingTest < Minitest::Test
   end
 
   # Runs a thread we expect to span entire test and be killed at the end
-  def run_transaction_in_thread(opts)
+  def run_transaction_in_thread(category)
     q = Queue.new
     @threads ||= []
     @threads << Thread.new do
-      in_transaction(opts) do
+      in_transaction(:category => category) do
         q.push('.')
         sleep # sleep until explicitly woken in join_background_threads
       end

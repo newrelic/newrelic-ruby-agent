@@ -11,21 +11,14 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing ActiveJob instrumentation'
-  end
-
-  executes do
-    class ::ActiveJob::Base
-      include ::NewRelic::Agent::MethodTracer
-    end
 
     ::ActiveJob::Base.around_enqueue do |job, block|
-      ::NewRelic::Agent::Instrumentation::ActiveJobHelper.trace(job, block, :Produce)
+      ::NewRelic::Agent::Instrumentation::ActiveJobHelper.enqueue(job, block)
     end
 
     ::ActiveJob::Base.around_perform do |job, block|
-      ::NewRelic::Agent::Instrumentation::ActiveJobHelper.trace(job, block, :Consume)
+      ::NewRelic::Agent::Instrumentation::ActiveJobHelper.perform(job, block)
     end
-
   end
 end
 
@@ -33,15 +26,45 @@ module NewRelic
   module Agent
     module Instrumentation
       module ActiveJobHelper
-        def self.trace(job, block, event)
-          adapter = clean_adapter_name(::ActiveJob::Base.queue_adapter.name)
-          queue   = job.queue_name
-          trace_execution_scoped("MessageBroker/#{adapter}/Queue/#{event}/Named/#{queue}") do
+        include ::NewRelic::Agent::MethodTracer
+
+        def self.enqueue(job, block)
+          run_in_trace(job, block, :Produce)
+        end
+
+        def self.perform(job, block)
+          state = ::NewRelic::Agent::TransactionState.tl_get
+
+          # Don't nest transactions if we're already in a web transaction.
+          # Probably inline processing the job if that happens, so just trace.
+          if state.in_web_transaction?
+            run_in_trace(job, block, :Consume)
+          else
+            run_in_transaction(state, job, block)
+          end
+        end
+
+        def self.run_in_trace(job, block, event)
+          trace_execution_scoped("MessageBroker/#{adapter}/Queue/#{event}/Named/#{job.queue_name}") do
             block.call
           end
         end
 
+        def self.run_in_transaction(state, job, block)
+          begin
+            name = "OtherTransaction/#{adapter}/#{job.class}/perform"
+            ::NewRelic::Agent::Transaction.start(state, :other, :transaction_name => name)
+            block.call
+          ensure
+            ::NewRelic::Agent::Transaction.stop(state)
+          end
+        end
+
         ADAPTER_REGEX = /ActiveJob::QueueAdapters::(.*)Adapter/
+
+        def self.adapter
+          clean_adapter_name(::ActiveJob::Base.queue_adapter.name)
+        end
 
         def self.clean_adapter_name(name)
           name = "ActiveJob::#{$1}" if ADAPTER_REGEX =~ name

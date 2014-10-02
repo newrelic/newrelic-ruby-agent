@@ -341,5 +341,20 @@ module NewRelic::Agent::Instrumentation
         host.doit
       end
     end
+
+    def test_should_not_set_request
+      clazz = Class.new do
+        include ControllerInstrumentation
+
+        def doit
+          perform_action_with_newrelic_trace do
+            NewRelic::Agent::TransactionState.tl_get.current_transaction.request
+          end
+        end
+      end
+
+      request = clazz.new.doit
+      assert_nil request
+    end
   end
 end
