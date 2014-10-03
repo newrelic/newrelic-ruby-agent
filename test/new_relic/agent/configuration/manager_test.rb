@@ -393,7 +393,7 @@ module NewRelic::Agent::Configuration
       bomb = Proc.new { raise StandardError.new }
       @manager.stubs(:transform_from_default).returns(bomb)
 
-      expects_logging(:error, includes("Error applying transformation"))
+      expects_logging(:error, includes("Error applying transformation"), any_parameters)
       @manager.apply_transformations(:test_key, 'test_value')
     end
 
