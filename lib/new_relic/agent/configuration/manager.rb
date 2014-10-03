@@ -118,7 +118,12 @@ module NewRelic
 
             if config.has_key?(accessor)
               evaluated = evaluate_procs(config[accessor])
-              return apply_transformations(accessor, evaluated)
+
+              begin
+                return apply_transformations(accessor, evaluated)
+              rescue
+                next
+              end
             end
           end
 

@@ -380,6 +380,21 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_fetch_skips_the_config_layer_if_transformation_raises_error
+      bomb = Proc.new do |value|
+        if value == 'boom'
+          raise StandardError.new
+        else
+          value
+        end
+      end
+      @manager.stubs(:transform_from_default).returns(bomb)
+
+      with_config(:'rules.ignore' => 'boom') do
+        assert_equal [], @manager.fetch(:'rules.ignore')
+      end
+    end
+
     def test_evaluate_procs_returns_evaluated_value_if_it_responds_to_call
       callable = Proc.new { 'test' }
       assert_equal 'test', @manager.evaluate_procs(callable)
