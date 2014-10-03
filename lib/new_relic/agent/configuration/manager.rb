@@ -139,7 +139,7 @@ module NewRelic
               transform.call(value)
             rescue => e
               ::NewRelic::Agent.logger.error("Error applying transformation for #{key}, falling back to #{value}.", e)
-              value
+              raise e
             end
           else
             value
