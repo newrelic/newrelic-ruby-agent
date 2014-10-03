@@ -774,7 +774,7 @@ module NewRelic
 
       def jruby_cpu_time
         return nil unless @@java_classes_loaded
-        threadMBean = ManagementFactory.getThreadMXBean()
+        threadMBean = Java::JavaLangManagement::ManagementFactory.getThreadMXBean()
 
         return nil unless threadMBean.isCurrentThreadCpuTimeSupported
         java_utime = threadMBean.getCurrentThreadUserTime()  # ns
