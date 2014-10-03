@@ -389,6 +389,14 @@ module NewRelic::Agent::Configuration
       assert_equal 'test', @manager.evaluate_procs('test')
     end
 
+    def test_apply_transformations_logs_error_if_transformation_fails
+      bomb = Proc.new { raise StandardError.new }
+      @manager.stubs(:transform_from_default).returns(bomb)
+
+      expects_logging(:error, includes("Error applying transformation"))
+      @manager.apply_transformations(:test_key, 'test_value')
+    end
+
     def assert_parsed_labels(expected)
       result = @manager.parsed_labels
 
