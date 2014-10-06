@@ -644,10 +644,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
       bean = mock
       bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
-      bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'JRuby CPU Time Test Error')
+      bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'Error calculating JRuby CPU Time')
       ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
 
-      expects_logging(:warn, includes("JRuby CPU Time Test Error"))
+      expects_logging(:warn, includes("Error calculating JRuby CPU Time"), any_parameters)
       txn.send(:jruby_cpu_time)
       expects_no_logging(:warn)
       txn.send(:jruby_cpu_time)
@@ -661,12 +661,12 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
       bean = mock
       bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
-      bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'JRuby CPU Time Test Error')
+      bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'Error calculating JRuby CPU Time')
       ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
 
-      expects_logging(:debug, includes("JRuby CPU Time Test Error"))
+      expects_logging(:warn, includes("Error calculating JRuby CPU Time"), any_parameters)
       txn.send(:jruby_cpu_time)
-      expects_logging(:debug, includes("JRuby CPU Time Test Error"))
+      expects_logging(:debug, includes("Error calculating JRuby CPU Time"), any_parameters)
       txn.send(:jruby_cpu_time)
     end
   ensure
@@ -678,7 +678,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       ::NewRelic::Agent::Transaction.class_variable_set(:@@java_classes_loaded, true)
       bean = mock
       bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
-      bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'JRuby CPU Time Test Error')
+      bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'Error calculating JRuby CPU Time')
       ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
 
       assert_nil txn.send(:jruby_cpu_time)
