@@ -98,6 +98,12 @@ module NewRelic::Agent::Configuration
       assert_equal ['Foo'], result
     end
 
+    def test_rules_ignore_converts_comma_delimited_string_to_array
+      with_config(:'rules.ignore' => 'Foo,Bar,Baz') do
+        assert_equal [/Foo/, /Bar/, /Baz/], NewRelic::Agent.config[:'rules.ignore']
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 
