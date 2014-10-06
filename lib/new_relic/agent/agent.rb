@@ -25,6 +25,7 @@ require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
+require 'new_relic/agent/usage_data_collector'
 require 'new_relic/environment_report'
 
 module NewRelic
@@ -69,6 +70,8 @@ module NewRelic
 
         @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
+
+        @event_aggregator.register_event_type(:UsageData, 10)
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -583,6 +586,7 @@ module NewRelic
           # Never allow any data type to be reported more frequently than once
           # per second.
           MIN_ALLOWED_REPORT_PERIOD = 1.0
+          USAGE_DATA_GATHER_PERIOD  = 30 * 60 # every half hour
 
           def report_period_for(method)
             config_key = "data_report_periods.#{method}".to_sym
@@ -600,6 +604,11 @@ module NewRelic
 
           LOG_ONCE_KEYS_RESET_PERIOD = 60.0
 
+          def record_usage_data
+            data = UsageDataCollector.gather_usage_data
+            @event_aggregator.record(:UsageData, data)
+          end
+
           def create_and_run_event_loop
             @event_loop = create_event_loop
             @event_loop.on(:report_data) do
@@ -614,6 +623,15 @@ module NewRelic
             @event_loop.fire_every(Agent.config[:data_report_period],       :report_data)
             @event_loop.fire_every(report_period_for(:analytic_event_data), :report_event_data)
             @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD,              :reset_log_once_keys)
+
+            if Agent.config[:collect_usage_data]
+              @event_loop.on(:gather_usage_data) do
+                record_usage_data
+              end
+              @event_loop.fire(:gather_usage_data)
+              @event_loop.fire_every(USAGE_DATA_GATHER_PERIOD, :gather_usage_data)
+            end
+
             @event_loop.run
           end
 
