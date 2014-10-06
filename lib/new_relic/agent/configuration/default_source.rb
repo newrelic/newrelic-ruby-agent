@@ -187,6 +187,10 @@ module NewRelic
         def self.monitor_mode
           Proc.new { NewRelic::Agent.config[:enabled] }
         end
+
+        def self.split_comma_delimited(comma_delimited)
+          comma_delimited.split(',')
+        end
       end
 
       AUTOSTART_BLACKLISTED_RAKE_TASKS = [
