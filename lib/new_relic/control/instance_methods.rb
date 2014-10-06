@@ -76,6 +76,8 @@ module NewRelic
           install_instrumentation
         elsif !Agent.config[:agent_enabled]
           install_shim
+        else
+          DependencyDetection.detect!
         end
       end
 
