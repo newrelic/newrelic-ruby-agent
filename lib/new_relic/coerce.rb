@@ -61,8 +61,37 @@ module NewRelic
         when Symbol
           memo[key.to_s] = val.to_s
         end
-      memo
+        memo
       end
+    rescue => error
+      log_failure(value.class, 'valid event params', context, error)
+      {}
+    end
+    # Like event_params(), but mutates the hash passed in. The goal is to have
+    # as few allocations as possible.
+    def event_params!(value, context=nil)
+      unless value.is_a? Hash
+        raise ArgumentError, "Expected Hash but got #{value.class}"
+      end
+
+      # We iterate over the array of keys so we can
+      # mutate the hash during iteration.
+      value.keys.each do |key|
+        val = value[key]
+        case val
+        when String, Float, Integer, Symbol
+          val = val.to_s if Symbol === val
+
+          unless String === key
+            value.delete(key)
+            key = key.to_s
+          end
+
+          value[key] = val
+        end
+      end
+
+      value
     rescue => error
       log_failure(value.class, 'valid event params', context, error)
       {}

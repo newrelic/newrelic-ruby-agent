@@ -20,6 +20,7 @@ require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/request_sampler'
+require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
@@ -51,6 +52,7 @@ module NewRelic
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
+        @event_aggregator      = NewRelic::Agent::CustomEventAggregator.new
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
         @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
         @harvester             = NewRelic::Agent::Harvester.new(@events)
@@ -112,6 +114,7 @@ module NewRelic
         attr_reader :harvest_lock
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
+        attr_reader :event_aggregator
 
         # This method should be called in a forked process after a fork.
         # It assumes the parent process initialized the agent, but does
@@ -503,6 +506,7 @@ module NewRelic
           @error_collector.reset!
           @transaction_sampler.reset!
           @request_sampler.reset!
+          @event_aggregator.reset!
           @sql_sampler.reset!
         end
 
@@ -1001,6 +1005,7 @@ module NewRelic
 
         def harvest_and_send_analytic_event_data
           harvest_and_send_from_container(@request_sampler, :analytic_event_data)
+          harvest_and_send_from_container(@event_aggregator, :analytic_event_data)
         end
 
         def check_for_and_handle_agent_commands
