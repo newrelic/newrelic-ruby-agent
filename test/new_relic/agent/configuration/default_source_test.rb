@@ -88,9 +88,14 @@ module NewRelic::Agent::Configuration
       assert_nil DefaultSource.transform_for(:ca_bundle_path)
     end
 
-    def test_split_comma_delimited
-      result = DefaultSource.split_comma_delimited("Foo,Bar,Baz")
+    def test_convert_to_list
+      result = DefaultSource.convert_to_list("Foo,Bar,Baz")
       assert_equal ['Foo', 'Bar', 'Baz'], result
+    end
+
+    def test_convert_to_list_returns_original_argument_given_array
+      result = DefaultSource.convert_to_list(['Foo'])
+      assert_equal ['Foo'], result
     end
 
     def get_config_value_class(value)

@@ -188,8 +188,13 @@ module NewRelic
           Proc.new { NewRelic::Agent.config[:enabled] }
         end
 
-        def self.split_comma_delimited(comma_delimited)
-          comma_delimited.split(',')
+        def self.convert_to_list(value)
+          case value
+          when String
+            value.split(',')
+          else
+            value
+          end
         end
       end
 
@@ -1076,7 +1081,7 @@ module NewRelic
           :default      => [],
           :public       => true,
           :type         => Array,
-          :transform    => Proc.new { |rules| rules.map { |rule| /#{rule}/ } },
+          # :transform    => DefaultSource.gimme_the_smack,
           :description  => 'A list of patterns that will cause a transaction to be ignored if any of them match the URI.'
          }
       }.freeze
