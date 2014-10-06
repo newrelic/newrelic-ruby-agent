@@ -89,6 +89,18 @@ module NewRelic
       NewRelic::Agent.shutdown
     end
 
+    def test_manual_start_kicks_dependency_check_again
+      with_config(:monitor_mode => true, :license_key => "a" * 40, :sync_startup => true) do
+        NewRelic::Agent.manual_start
+        assert NewRelic::Agent.instance.started?
+
+        NewRelic::Control.instance.stubs(:init_config)
+        DependencyDetection.expects(:detect!).once
+
+        NewRelic::Agent.manual_start
+      end
+    end
+
     def test_get_stats
       agent = mocked_agent
       mock_stats_engine = mock('stats_engine')
@@ -266,7 +278,7 @@ module NewRelic
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('new_name')
       end
-      assert engine.lookup_stats('Controller/new_name')
+      assert_metrics_recorded(['Controller/new_name'])
     end
 
     def test_get_transaction_name_returns_nil_outside_transaction
