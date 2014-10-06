@@ -39,6 +39,11 @@ module NewRelic
           # Probably inline processing the job if that happens, so just trace.
           if state.in_web_transaction?
             run_in_trace(job, block, :Consume)
+          elsif state.in_background_transaction?
+            ::NewRelic::Agent::Transaction.set_default_transaction_name(
+              transaction_name_suffix_for_job(job),
+              :category => transaction_category)
+            block.call
           else
             run_in_transaction(state, job, block)
           end
@@ -52,19 +57,31 @@ module NewRelic
 
         def self.run_in_transaction(state, job, block)
           begin
-            name = "OtherTransaction/#{adapter}/#{job.class}/perform"
-            ::NewRelic::Agent::Transaction.start(state, :other, :transaction_name => name)
+            ::NewRelic::Agent::Transaction.start(state, :other,
+              :transaction_name => transaction_name_for_job(job))
             block.call
           ensure
             ::NewRelic::Agent::Transaction.stop(state)
           end
         end
 
-        ADAPTER_REGEX = /ActiveJob::QueueAdapters::(.*)Adapter/
+        def self.transaction_category
+          "OtherTransaction/#{adapter}"
+        end
+
+        def self.transaction_name_suffix_for_job(job)
+          "#{job.class}/execute"
+        end
+
+        def self.transaction_name_for_job(job)
+          "#{transaction_category}/#{transaction_name_suffix_for_job(job)}"
+        end
 
         def self.adapter
           clean_adapter_name(::ActiveJob::Base.queue_adapter.name)
         end
+
+        ADAPTER_REGEX = /ActiveJob::QueueAdapters::(.*)Adapter/
 
         def self.clean_adapter_name(name)
           name = "ActiveJob::#{$1}" if ADAPTER_REGEX =~ name
