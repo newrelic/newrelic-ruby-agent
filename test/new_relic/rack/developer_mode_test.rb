@@ -64,6 +64,14 @@ class DeveloperModeTest < Minitest::Test
     assert last_response.body.include?('Key Length')
     assert last_response.body.include?('Using index')
   end
+
+  def test_doesnt_record_transaction
+    NewRelic::Agent.instance.transaction_sampler.dev_mode_sample_buffer.reset!
+
+    get "/newrelic"
+
+    assert_empty NewRelic::Agent.instance.transaction_sampler.dev_mode_sample_buffer.samples
+  end
 end
 
 else
