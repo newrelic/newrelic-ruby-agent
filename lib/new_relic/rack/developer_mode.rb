@@ -52,6 +52,8 @@ module NewRelic
       protected
 
       def _call(env)
+        NewRelic::Agent.ignore_transaction
+
         @req = ::Rack::Request.new(env)
         @rendered = false
         case @req.path_info
