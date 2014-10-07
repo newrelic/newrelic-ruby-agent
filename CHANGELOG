@@ -2,7 +2,7 @@
 
 ## v3.9.6 ##
 
-  * Preview Rails 4.2 ActiveJob support
+  * Rails 4.2 ActiveJob support
 
   A new version of Rails is coming! One of the highlight features is
   ActiveJob, a framework for interacting with background job processors. This
@@ -26,9 +26,11 @@
   * Ignoring transactions by URL
 
   While you could always ignore transactions by controller and action, the
-  Ruby agent previously lacked a way to ignore by specific URLs or patterns.
-  With this release, you can use the setting `rules.ignore_url_regexes` to
-  ignore specific transactions based on the request URL as well.
+  Ruby agent previously lacked a way to ignore by specific URLs or patterns
+  without code changes. This release adds the config setting,
+  `rules.ignore_url_regexes` to ignore specific transactions based on the
+  request URL as well. For more information, see the documentation at:
+  https://docs.newrelic.com/docs/agents/ruby-agent/installation-configuration/ignoring-specific-transactions#config-ignoring
 
   * Better dependency detection in non-Rack applications
 
@@ -48,12 +50,11 @@
   Timeouts during certain external HTTP requests could result in incorrect
   large spikes in the time recorded by the agent. This has been fixed.
 
-  * Disabling JavaScript auto-instrumentation in non-Rails apps
+  * Recognize browser_monitoring.auto_instrument setting in non-Rails apps
 
-  The setting `browser_monitoring.auto_instrument` disables auto-injection of
-  JavaScript for browser monitoring into your outgoing HTML response. This
-  setting was not properly obeyed in Sinatra and other non-Rails contexts.
-  This has been fixed.
+  The `browser_monitoring.auto_instrument` config setting disables
+  auto-injection of JavaScript into your pages, but was not properly obeyed in
+  Sinatra and other non-Rails contexts.  This has been fixed.
 
   * Failures to gather CPU thread time on JRuby
 
