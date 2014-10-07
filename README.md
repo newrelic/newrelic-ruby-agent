@@ -67,7 +67,7 @@ The initial configuration is done in the `newrelic.yml` file.  This file
 is by default read from the `config` directory of the application root
 and is subsequently searched for in the application root directory,
 and then in a `~/.newrelic` directory.  Once you're up and running you can
-enable Server Side Config and manage your newrelic configuation from the web
+enable Server Side Config and manage your newrelic configuration from the web
 UI.
 
 #### Rails Installation
