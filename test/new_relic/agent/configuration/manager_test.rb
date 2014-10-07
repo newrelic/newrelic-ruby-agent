@@ -368,6 +368,63 @@ module NewRelic::Agent::Configuration
       assert_parsed_labels(expected)
     end
 
+    def test_apply_transformations
+      transform = Proc.new { |value| value.gsub('foo', 'baz') }
+      ::NewRelic::Agent::Configuration::DefaultSource.stubs(:transform_for).returns(transform)
+
+      assert_equal 'bazbar', @manager.apply_transformations(:test, 'foobar')
+    end
+
+    def test_fetch_with_a_transform_returns_the_transformed_value
+      with_config(:rules => { :ignore => ['more than meets the eye'] }) do
+        assert_equal [/more than meets the eye/], @manager.fetch(:'rules.ignore')
+      end
+    end
+
+    def test_fetch_skips_the_config_layer_if_transformation_raises_error
+      bomb = Proc.new do |value|
+        if value == 'boom'
+          raise StandardError.new
+        else
+          value
+        end
+      end
+      @manager.stubs(:transform_from_default).returns(bomb)
+
+      with_config(:'rules.ignore' => 'boom') do
+        assert_equal [], @manager.fetch(:'rules.ignore')
+      end
+    end
+
+    def test_evaluate_procs_returns_evaluated_value_if_it_responds_to_call
+      callable = Proc.new { 'test' }
+      assert_equal 'test', @manager.evaluate_procs(callable)
+    end
+
+    def test_evaluate_procs_returns_original_value_if_it_does_not_respond_to_call
+      assert_equal 'test', @manager.evaluate_procs('test')
+    end
+
+    def test_apply_transformations_logs_error_if_transformation_fails
+      bomb = Proc.new { raise StandardError.new }
+      @manager.stubs(:transform_from_default).returns(bomb)
+
+      expects_logging(:error, includes("Error applying transformation"), any_parameters)
+
+      assert_raises StandardError do
+        @manager.apply_transformations(:test_key, 'test_value')
+      end
+    end
+
+    def test_apply_transformations_reraises_errors
+      bomb = Proc.new { raise StandardError.new }
+      @manager.stubs(:transform_from_default).returns(bomb)
+
+      assert_raises StandardError do
+        @manager.apply_transformations(:test_key, 'test_value')
+      end
+    end
+
     def assert_parsed_labels(expected)
       result = @manager.parsed_labels
 

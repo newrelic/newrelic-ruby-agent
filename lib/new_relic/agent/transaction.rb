@@ -369,6 +369,7 @@ module NewRelic
       def stop(state, end_time)
         return if !state.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
+        ignore! if user_defined_rules_ignore?
 
         if @name_from_child
           name = Transaction.nested_transaction_name(@default_name)
@@ -398,6 +399,17 @@ module NewRelic
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
         commit!(state, end_time, name) unless @ignore_this_transaction
+      end
+
+      def user_defined_rules_ignore?
+        return if (rules = NewRelic::Agent.config[:"rules.ignore"]).empty?
+
+        parsed = NewRelic::Agent::HTTPClients::URIUtil.parse_url(uri)
+        filtered_uri = NewRelic::Agent::HTTPClients::URIUtil.filter_uri(parsed)
+
+        rules.any? do |rule|
+          filtered_uri.match(rule)
+        end
       end
 
       def commit!(state, end_time, outermost_segment_name)

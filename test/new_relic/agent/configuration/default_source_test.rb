@@ -80,6 +80,30 @@ module NewRelic::Agent::Configuration
       nil
     end
 
+    def test_transform_for_returns_a_proc_for_settings_with_a_transform
+      assert_equal Proc, DefaultSource.transform_for(:'rules.ignore').class
+    end
+
+    def test_transform_for_returns_nil_for_settings_that_do_not_have_a_transform
+      assert_nil DefaultSource.transform_for(:ca_bundle_path)
+    end
+
+    def test_convert_to_list
+      result = DefaultSource.convert_to_list("Foo,Bar,Baz")
+      assert_equal ['Foo', 'Bar', 'Baz'], result
+    end
+
+    def test_convert_to_list_returns_original_argument_given_array
+      result = DefaultSource.convert_to_list(['Foo'])
+      assert_equal ['Foo'], result
+    end
+
+    def test_rules_ignore_converts_comma_delimited_string_to_array
+      with_config(:'rules.ignore' => 'Foo,Bar,Baz') do
+        assert_equal [/Foo/, /Bar/, /Baz/], NewRelic::Agent.config[:'rules.ignore']
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 

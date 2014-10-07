@@ -892,6 +892,61 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::Transaction.stop(state)
   end
 
+  def test_user_defined_rules_ignore_returns_true_for_matched_uri
+    rule = 'ignored'
+    with_config(:rules => { :ignore => [rule] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns(rule + '/uri')
+        assert txn.user_defined_rules_ignore?, "URIs should be ignored based on user defined rules. Rule: '#{rule}', URI: '#{txn.uri}'."
+      end
+    end
+  end
+
+  def test_stop_ignores_transactions_from_ignored_uris
+    with_config(:rules => { :ignore => ['ignored/uri'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('ignored/uri')
+        txn.expects(:ignore!)
+      end
+    end
+  end
+
+  def test_transactions_are_not_ignored_if_rules_match_http_auth
+    with_config(:rules => { :ignore => ['ignored'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://ignored_user:ignored_pass@foo.com/bar/baz')
+        txn.expects(:ignore!).never
+      end
+    end
+  end
+
+  def test_transactions_are_not_ignored_if_rules_match_query_string
+    with_config(:rules => { :ignore => ['ignored'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo.com/bar/baz/?ignored=1')
+        txn.expects(:ignore!).never
+      end
+    end
+  end
+
+  def test_user_defined_rules_ignore_does_not_parse_the_uri_if_rules_are_empty
+    with_config(:rules => { :ignore => [] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo.com/bar/baz')
+        NewRelic::Agent::HTTPClients::URIUtil.expects(:parse_url).never
+      end
+    end
+  end
+
+  def test_user_defined_rules_ignore_does_not_filter_the_uri_if_rules_are_empty
+    with_config(:rules => { :ignore => [] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo.com/bar/baz')
+        NewRelic::Agent::HTTPClients::URIUtil.expects(:filter_uri).never
+      end
+    end
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end

@@ -115,15 +115,44 @@ module NewRelic
           config_stack.each do |config|
             next unless config
             accessor = key.to_sym
+
             if config.has_key?(accessor)
-              if config[accessor].respond_to?(:call)
-                return instance_eval(&config[accessor])
-              else
-                return config[accessor]
+              evaluated = evaluate_procs(config[accessor])
+
+              begin
+                return apply_transformations(accessor, evaluated)
+              rescue
+                next
               end
             end
           end
+
           nil
+        end
+
+        def evaluate_procs(value)
+          if value.respond_to?(:call)
+            instance_eval(&value)
+          else
+            value
+          end
+        end
+
+        def apply_transformations(key, value)
+          if transform = transform_from_default(key)
+            begin
+              transform.call(value)
+            rescue => e
+              ::NewRelic::Agent.logger.error("Error applying transformation for #{key}, falling back to #{value}.", e)
+              raise e
+            end
+          else
+            value
+          end
+        end
+
+        def transform_from_default(key)
+          ::NewRelic::Agent::Configuration::DefaultSource.transform_for(key)
         end
 
         def register_callback(key, &proc)
@@ -134,6 +163,7 @@ module NewRelic
         def invoke_callbacks(direction, source)
           return unless source
           source.keys.each do |key|
+
             if @cache[key] != source[key]
               @callbacks[key].each do |proc|
                 if direction == :add
