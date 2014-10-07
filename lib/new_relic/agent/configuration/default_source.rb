@@ -198,14 +198,23 @@ module NewRelic
           end
         end
 
+        def self.convert_to_list_proc
+          Proc.new do |value|
+            DefaultSource.convert_to_list(value)
+          end
+        end
+
         def self.convert_to_list(value)
           case value
           when String
             value.split(',')
-          else
+          when Array
             value
+          else
+            raise ArgumentError.new("Config value '#{value}' couldn't be turned into a list.")
           end
         end
+
       end
 
       AUTOSTART_BLACKLISTED_RAKE_TASKS = [
@@ -1079,6 +1088,7 @@ module NewRelic
           :default      => ['scheduler', 'run'],
           :public       => true,
           :type         => Array,
+          :transform    => DefaultSource.convert_to_list_proc,
           :description  => 'List of prefixes for heroku dyno names (such as "scheduler") to report as hostname without trailing dot and process ID.'
         },
         :labels => {

@@ -22,16 +22,8 @@ module NewRelic
         end
       end
 
-      # TODO: Once config transforms are in, use those instead of handcoding
       def self.get_dyno_prefixes
-        dyno_prefixes = ::NewRelic::Agent.config[:'heroku.dyno_name_prefixes_to_shorten'] || []
-        if dyno_prefixes.is_a?(String)
-          dyno_prefixes = dyno_prefixes.split(',')
-        elsif !dyno_prefixes.respond_to?(:find)
-          ::NewRelic::Agent.logger.warn("Ignoring invalid setting found for 'heroku.dyno_name_prefixes_to_shorten', #{dyno_prefixes}.")
-          dyno_prefixes = []
-        end
-        dyno_prefixes
+        ::NewRelic::Agent.config[:'heroku.dyno_name_prefixes_to_shorten']
       end
     end
   end
