@@ -73,7 +73,7 @@ end
 desc 'Record build number and stage'
 task :record_build, [ :build_number, :stage ] do |t, args|
   build_string = args.build_number
-  build_string << ".#{args.stage}" if args.stage
+  build_string << ".#{args.stage}" unless args.stage.nil? || args.stage.empty?
 
   gitsha = File.exists?(".git") ? `git rev-parse HEAD` : "Unknown"
   gitsha.chomp!
