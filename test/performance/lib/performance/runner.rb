@@ -177,7 +177,7 @@ module Performance
         suite, _method = @options[:identifier].split('#')
         TestCase.subclasses.select { |cls| cls.name == suite }
       elsif @options[:suite]
-        TestCase.subclasses.select { |cls| cls.name == @options[:suite] }
+        TestCase.subclasses.select { |cls| @options[:suite].include?(cls.name) }
       else
         TestCase.subclasses
       end
