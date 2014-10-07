@@ -26,9 +26,9 @@
   * Ignoring transactions by URL
 
   While you could always ignore transactions by controller and action, the
-  Ruby agent previously lacked a way to ignore by specific URLs patterns. With
-  this release, you can use the setting `rules.ignore_url_regexes` to ignore
-  specific transactions based on the request URL as well.
+  Ruby agent previously lacked a way to ignore by specific URLs or patterns.
+  With this release, you can use the setting `rules.ignore_url_regexes` to
+  ignore specific transactions based on the request URL as well.
 
   * Better dependency detection in non-Rack applications
 
@@ -48,7 +48,7 @@
   Timeouts during certain external HTTP requests could result in incorrect
   large spikes in the time recorded by the agent. This has been fixed.
 
-  * Disabling JavaScript autoinstrumentation in non-Rails apps
+  * Disabling JavaScript auto-instrumentation in non-Rails apps
 
   The setting `browser_monitoring.auto_instrument` disables auto-injection of
   JavaScript for browser monitoring into your outgoing HTML response. This
