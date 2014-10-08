@@ -2,30 +2,22 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-class SizedBuffer
-  attr_reader :dropped
+require 'new_relic/agent/event_buffer'
 
-  def initialize(capacity)
-    @capacity = capacity
-    reset!
-  end
+module NewRelic
+  module Agent
+    class SizedBuffer < EventBuffer
 
-  def append(x)
-    if @samples.size < @capacity
-      @samples << x
-      return true
-    else
-      @dropped += 1
-      return false
+      def append_event(x)
+        if @items.size < @capacity
+          @items << x
+          return x
+        else
+          return nil
+        end
+      end
+
     end
   end
-
-  def to_a
-    @samples.dup
-  end
-
-  def reset!
-    @samples = []
-    @dropped = 0
-  end
 end
+

@@ -24,14 +24,14 @@ module NewRelic
         @type_strings = Hash.new { |hash, key| hash[key] = key.to_s.freeze }
       end
 
-      def register_event_type(type, capacity)
+      def register_event_type(type, capacity, buffer_class = SizedBuffer)
         type = @type_strings[type]
         @lock.synchronize do
           if @buffers[type]
             NewRelic::Agent.logger.warn("Ignoring attempt to re-register custom event type '#{type}'.")
             return
           end
-          @buffers[type] = SizedBuffer.new(capacity)
+          @buffers[type] = buffer_class.new(capacity)
         end
         NewRelic::Agent.logger.debug("Registered custom event buffer of type '#{type}' with capacity #{capacity}")
       end
@@ -56,7 +56,7 @@ module NewRelic
         @lock.synchronize do
           @buffers.each do |type, buffer|
             results.concat(buffer.to_a)
-            drop_count += buffer.dropped
+            drop_count += buffer.num_dropped
             buffer.reset!
           end
         end

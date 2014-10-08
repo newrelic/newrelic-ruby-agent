@@ -58,9 +58,9 @@ class NewRelic::Agent::RequestSampler
 
     self.synchronize do
       sample_count = @samples.size
-      request_count = @samples.seen
+      request_count = @samples.num_seen
       old_samples = @samples.to_a
-      @samples.reset
+      @samples.reset!
       @notified_full = false
     end
 
@@ -124,8 +124,8 @@ class NewRelic::Agent::RequestSampler
     main_event = create_main_event(payload)
     custom_params = create_custom_parameters(payload)
 
-    is_full = self.synchronize { @samples.append([main_event, custom_params]) }
-    notify_full if is_full && !@notified_full
+    self.synchronize { @samples.append([main_event, custom_params]) }
+    notify_full if !@notified_full && @samples.full?
   end
 
   def self.map_metric(metric_name, to_add={})
