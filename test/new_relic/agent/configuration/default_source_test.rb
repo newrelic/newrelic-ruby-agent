@@ -81,7 +81,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_transform_for_returns_a_proc_for_settings_with_a_transform
-      assert_equal Proc, DefaultSource.transform_for(:'rules.ignore').class
+      assert_equal Proc, DefaultSource.transform_for(:'rules.ignore_url_regexes').class
     end
 
     def test_transform_for_returns_nil_for_settings_that_do_not_have_a_transform
@@ -99,8 +99,8 @@ module NewRelic::Agent::Configuration
     end
 
     def test_rules_ignore_converts_comma_delimited_string_to_array
-      with_config(:'rules.ignore' => 'Foo,Bar,Baz') do
-        assert_equal [/Foo/, /Bar/, /Baz/], NewRelic::Agent.config[:'rules.ignore']
+      with_config(:'rules.ignore_url_regexes' => 'Foo,Bar,Baz') do
+        assert_equal [/Foo/, /Bar/, /Baz/], NewRelic::Agent.config[:'rules.ignore_url_regexes']
       end
     end
 
