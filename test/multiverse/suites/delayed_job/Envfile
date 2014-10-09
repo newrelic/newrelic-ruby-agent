@@ -1,0 +1,52 @@
+boilerplate_gems = <<-SQLITE
+  gem 'rack'
+  if RUBY_PLATFORM == 'java'
+    gem 'activerecord-jdbcsqlite3-adapter'
+  else
+    gem 'sqlite3'
+  end
+SQLITE
+
+if RUBY_VERSION >= '1.9.3'
+  # JRuby currently having problem with Rails 4.2 beta. Remove condition on GA.
+  #if !defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby'
+  #gemfile <<-RB
+    #gem 'activerecord', '~> 4.2.0.beta2'
+    #gem 'minitest', '~> 5.2.3'
+    ##{boilerplate_gems}
+  #RB
+  #end
+
+  #gemfile <<-RB
+    #gem 'activerecord', '~> 4.1.6'
+    #gem 'delayed_job', '~> 4.0.4'
+    #gem 'delayed_job_active_record', '~> 4.0.2'
+    #gem 'minitest', '~> 5.2.3'
+    ##{boilerplate_gems}
+  #RB
+end
+
+gemfile <<-RB
+  gem 'activerecord', '~> 3.2.19'
+  gem 'delayed_job', '~> 4.0.4'
+  gem 'delayed_job_active_record', '~> 4.0.2'
+  gem 'pry-nav'
+  #{boilerplate_gems}
+RB
+
+#gemfile <<-RB
+  #gem 'activerecord', '~> 3.1.12'
+  ##{boilerplate_gems}
+#RB
+
+#gemfile <<-RB
+  #gem 'activerecord', '~> 3.0.20'
+  ##{boilerplate_gems}
+#RB
+
+#if RUBY_VERSION <= '1.9.3'
+#gemfile <<-RB
+  #gem 'activerecord', '~> 2.3.18'
+  ##{boilerplate_gems}
+#RB
+#end
