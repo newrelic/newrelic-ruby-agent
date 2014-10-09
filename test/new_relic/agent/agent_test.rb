@@ -593,6 +593,13 @@ module NewRelic
         assert !config_classes.include?(NewRelic::Agent::Configuration::ManualSource)
         assert !config_classes.include?(NewRelic::Agent::Configuration::ServerSource)
       end
+
+      def test_log_ignore_url_regexes
+        with_config(:rules => { :ignore_url_regexes => ['foo', 'bar', 'baz'] }) do
+          expects_logging(:info, includes("/foo/, /bar/, /baz/"))
+          @agent.log_ignore_url_regexes
+        end
+      end
     end
 
     class AgentStartingTest < Minitest::Test
