@@ -58,13 +58,30 @@ module NewRelic
 
         def record_queue_length_across_dimension(column)
           all_count = 0
-          Delayed::Job.count(:group => column, :conditions => ['run_at < ? and failed_at is NULL', Time.now]).each do | column_val, count |
+          queue_counts(column).each do |column_val, count|
             all_count += count
             metric = "Workers/DelayedJob/queue_length/#{column == 'queue' ? 'name' : column}/#{column_val}"
             NewRelic::Agent.record_metric(metric, count)
           end
+
           all_metric = "Workers/DelayedJob/queue_length/all"
           NewRelic::Agent.record_metric(all_metric, all_count)
+        end
+
+        QUEUE_QUERY_CONDITION = 'run_at < ? and failed_at is NULL'.freeze
+
+        def queue_counts(column)
+          # There is not an ActiveRecord syntax for what we're trying to do
+          # here that's valid on 2.x through 4.1, so split it up.
+          result = if ActiveRecord::VERSION::MAJOR.to_i < 4
+            Delayed::Job.count(:group => column,
+                                        :conditions => [QUEUE_QUERY_CONDITION, Time.now])
+          else
+            Delayed::Job.where(QUEUE_QUERY_CONDITION, Time.now).
+                         group(column).
+                         count
+          end
+          result.to_a
         end
 
         # Figure out if we get the queues.
