@@ -227,6 +227,7 @@ module Multiverse
 
     def execute_child_environment(env_index)
       with_clean_env do
+        ENV["MULTIVERSE_ENV"] = env_index.to_s
         log_test_running_process
         configure_before_bundling
 
