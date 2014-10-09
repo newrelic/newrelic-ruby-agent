@@ -31,12 +31,23 @@ module NewRelic
           NewRelic::Agent.record_metric("Workers/DelayedJob/locked_jobs", value)
         end
 
+        FAILED_QUERY = 'failed_at is not NULL'.freeze
+        LOCKED_QUERY = 'locked_by is not NULL'.freeze
+
         def failed_jobs
-          Delayed::Job.count(:conditions => 'failed_at is not NULL')
+          count(FAILED_QUERY)
         end
 
         def locked_jobs
-          Delayed::Job.count(:conditions => 'locked_by is not NULL')
+          count(LOCKED_QUERY)
+        end
+
+        def count(query)
+          if ActiveRecord::VERSION::MAJOR.to_i < 4
+            Delayed::Job.count(query)
+          else
+            Delayed::Job.where(query).count
+          end
         end
 
         def self.supported_on_this_platform?
@@ -75,7 +86,7 @@ module NewRelic
           # here that's valid on 2.x through 4.1, so split it up.
           result = if ActiveRecord::VERSION::MAJOR.to_i < 4
             Delayed::Job.count(:group => column,
-                                        :conditions => [QUEUE_QUERY_CONDITION, Time.now])
+                               :conditions => [QUEUE_QUERY_CONDITION, Time.now])
           else
             Delayed::Job.where(QUEUE_QUERY_CONDITION, Time.now).
                          group(column).
