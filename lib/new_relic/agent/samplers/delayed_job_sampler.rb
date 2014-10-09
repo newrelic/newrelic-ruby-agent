@@ -18,9 +18,16 @@ module NewRelic
       class DelayedJobSampler < NewRelic::Agent::Sampler
         named :delayed_job
 
+        # DelayedJob supports multiple backends, only some of which we can
+        # handle. Check whether we think we've got what we need here.
+        def self.supported_backend?
+          Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
+        end
+
         def initialize
-          raise Unsupported, "DJ instrumentation disabled" if Agent.config[:disable_dj]
-          raise Unsupported, "No DJ worker present" unless NewRelic::DelayedJobInjection.worker_name
+          raise Unsupported, "DJ queue sampler disabled" if Agent.config[:disable_dj]
+          raise Unsupported, "Unsupported DJ backend #{Delayed::Worker.backend}" unless self.class.supported_backend?
+          raise Unsupported, "No DJ worker present. Skipping DJ queue sampler" unless NewRelic::DelayedJobInjection.worker_name
         end
 
         def record_failed_jobs(value)

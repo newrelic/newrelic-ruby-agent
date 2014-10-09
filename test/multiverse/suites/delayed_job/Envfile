@@ -7,6 +7,17 @@ boilerplate_gems = <<-SQLITE
   end
 SQLITE
 
+# delayed_job_mongoid is currently unsupported, but check that we behave
+# mongoid 3.x is only supported on Ruby 1.9.3, though
+if RUBY_VERSION >= '1.9.3'
+  gemfile <<-RB
+    gem 'delayed_job', '~> 4.0.4'
+    gem 'delayed_job_mongoid', '~> 2.1.0'
+    #{boilerplate_gems}
+  RB
+end
+
+# delayed_job_active_record (and older baked into delayed_job) support
 dj4_with_active_record = <<-DJ
   gem 'delayed_job', '~> 4.0.4'
   gem 'delayed_job_active_record', '~> 4.0.2'
