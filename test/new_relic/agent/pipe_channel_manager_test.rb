@@ -223,6 +223,44 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     assert_nil pipe.read
   end
 
+  def test_listener_pipes_race_condition
+    # 1.8.7 doesn't have easy singleton_class access, but also doesn't have
+    # races thanks to green threads and the GIL, so pitch it!
+    return if RUBY_VERSION < "1.9.2"
+
+    begin
+      listener = NewRelic::Agent::PipeChannelManager.listener
+      listener.instance_variable_set(:@select_timeout, 0.00001)
+      listener.start
+
+      listener.register_pipe(0)
+      pipe_out = listener.pipes[0].out
+
+      mutex = Mutex.new
+      mutex.lock
+      tried_to_close = false
+      pipe_out.singleton_class.send(:define_method, :closed?, Proc.new do
+        tried_to_close = true
+        mutex.synchronize do
+        end
+      end)
+
+      # Make sure we're actually paused in closed? call
+      until tried_to_close
+      end
+
+      t = Thread.new do
+        listener.register_pipe(1)
+      end
+
+      mutex.unlock
+      t.join
+    ensure
+      listener.close_all_pipes
+      listener.stop
+    end
+  end
+
   def run_child(channel_id)
     pid = Process.fork do
       yield
