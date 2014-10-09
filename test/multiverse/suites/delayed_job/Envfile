@@ -7,46 +7,53 @@ boilerplate_gems = <<-SQLITE
   end
 SQLITE
 
-if RUBY_VERSION >= '1.9.3'
-  # JRuby currently having problem with Rails 4.2 beta. Remove condition on GA.
-  #if !defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby'
-  #gemfile <<-RB
-    #gem 'activerecord', '~> 4.2.0.beta2'
-    #gem 'minitest', '~> 5.2.3'
-    ##{boilerplate_gems}
-  #RB
-  #end
+dj4_with_active_record = <<-DJ
+  gem 'delayed_job', '~> 4.0.4'
+  gem 'delayed_job_active_record', '~> 4.0.2'
+  #{boilerplate_gems}
+DJ
 
+dj3_with_active_record = <<-DJ
+  gem 'delayed_job', '~> 3.0.5'
+  gem 'delayed_job_active_record', '~> 0.4.4'
+  #{boilerplate_gems}
+DJ
+
+dj2_with_active_record3 = <<-DJ
+  gem 'delayed_job', '~> 2.1.4'
+  #{boilerplate_gems}
+DJ
+
+if RUBY_VERSION >= '1.9.3'
+  # RUBY-1389, doesn't work right on ActiveRecord 4.x yet
   #gemfile <<-RB
     #gem 'activerecord', '~> 4.1.6'
-    #gem 'delayed_job', '~> 4.0.4'
-    #gem 'delayed_job_active_record', '~> 4.0.2'
+    ##{dj4_with_active_record}
     #gem 'minitest', '~> 5.2.3'
-    ##{boilerplate_gems}
   #RB
 end
 
+[dj4_with_active_record, dj3_with_active_record, dj2_with_active_record3].each do |dj|
+  gemfile <<-RB
+    gem 'activerecord', '~> 3.2.19'
+    #{dj}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 3.1.12'
+    #{dj}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 3.0.20'
+    #{dj}
+  RB
+end
+
+if RUBY_VERSION <= '1.9.3'
 gemfile <<-RB
-  gem 'activerecord', '~> 3.2.19'
-  gem 'delayed_job', '~> 4.0.4'
-  gem 'delayed_job_active_record', '~> 4.0.2'
-  gem 'pry-nav'
+  gem 'activerecord', '~> 2.3.18'
+  gem 'delayed_job', '~> 2.0.8'
   #{boilerplate_gems}
 RB
-
-#gemfile <<-RB
-  #gem 'activerecord', '~> 3.1.12'
-  ##{boilerplate_gems}
-#RB
-
-#gemfile <<-RB
-  #gem 'activerecord', '~> 3.0.20'
-  ##{boilerplate_gems}
-#RB
-
-#if RUBY_VERSION <= '1.9.3'
-#gemfile <<-RB
-  #gem 'activerecord', '~> 2.3.18'
-  ##{boilerplate_gems}
-#RB
-#end
+end

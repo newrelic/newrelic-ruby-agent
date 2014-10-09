@@ -46,6 +46,8 @@ class DelayedJobSamplerTest < Minitest::Test
 
   def test_sampler_sees_failures
     job = IWantToWait.new.delay.take_action
+
+    return unless job.respond_to?(:fail!)
     job.fail!
 
     @sampler.poll
@@ -65,7 +67,7 @@ class DelayedJobSamplerTest < Minitest::Test
   end
 
   def test_sampler_queue_depth_with_job
-    IWantToWait.new.delay.take_action
+    IWantToWait.new.delay(:run_at => Time.now - 5).take_action
 
     @sampler.poll
 
@@ -75,7 +77,7 @@ class DelayedJobSamplerTest < Minitest::Test
   end
 
   def test_sampler_queue_depth_with_alternate_priority
-    IWantToWait.new.delay(:priority => 7).take_action
+    job = IWantToWait.new.delay(:run_at => Time.now - 5, :priority => 7).take_action
 
     @sampler.poll
 
