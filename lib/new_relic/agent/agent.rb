@@ -298,6 +298,14 @@ module NewRelic
             ::NewRelic::Agent.logger.info "Application: #{Agent.config.app_names.join(", ")}"
           end
 
+          def log_ignore_url_regexes
+            regexes = NewRelic::Agent.config[:'rules.ignore_url_regexes']
+
+            unless regexes.empty?
+              ::NewRelic::Agent.logger.info "Ignoring URLs that match the following regexes: #{regexes.map(&:inspect).join(", ")}."
+            end
+          end
+
           # Logs the configured application names
           def app_name_configured?
             names = Agent.config.app_names
@@ -495,6 +503,10 @@ module NewRelic
           log_startup
           check_config_and_start_agent
           log_version_and_pid
+
+          events.subscribe(:finished_configuring) do
+            log_ignore_url_regexes
+          end
         end
 
         # Clear out the metric data, errors, and transaction traces, etc.

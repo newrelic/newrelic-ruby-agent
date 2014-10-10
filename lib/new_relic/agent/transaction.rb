@@ -402,7 +402,7 @@ module NewRelic
       end
 
       def user_defined_rules_ignore?
-        return if (rules = NewRelic::Agent.config[:"rules.ignore"]).empty?
+        return if (rules = NewRelic::Agent.config[:"rules.ignore_url_regexes"]).empty?
 
         parsed = NewRelic::Agent::HTTPClients::URIUtil.parse_url(uri)
         filtered_uri = NewRelic::Agent::HTTPClients::URIUtil.filter_uri(parsed)
