@@ -198,12 +198,6 @@ module NewRelic
           end
         end
 
-        def self.convert_to_list_proc
-          Proc.new do |value|
-            DefaultSource.convert_to_list(value)
-          end
-        end
-
         def self.convert_to_list(value)
           case value
           when String
@@ -1088,7 +1082,7 @@ module NewRelic
           :default      => ['scheduler', 'run'],
           :public       => true,
           :type         => Array,
-          :transform    => DefaultSource.convert_to_list_proc,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description  => 'List of prefixes for heroku dyno names (such as "scheduler") to report as hostname without trailing dot and process ID.'
         },
         :labels => {
