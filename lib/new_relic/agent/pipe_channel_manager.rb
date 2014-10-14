@@ -129,10 +129,19 @@ module NewRelic
 
       class Listener
         attr_reader   :thread
+
+        # This attr_accessor intentionally provides unsynchronized access to the
+        # @pipes hash. It is used to look up the write end of the pipe from
+        # within the Resque child process, and must be unsynchronized in order
+        # to avoid a potential deadlock in which the PipeChannelManager::Listener
+        # thread in the parent process is holding the @pipes_lock at the time of
+        # the fork.
         attr_accessor :pipes, :timeout, :select_timeout
 
         def initialize
           @pipes = {}
+          @pipes_lock = Mutex.new
+
           @timeout = 360
           @select_timeout = 60
         end
@@ -142,7 +151,10 @@ module NewRelic
         end
 
         def register_pipe(id)
-          @pipes[id] = Pipe.new
+          @pipes_lock.synchronize do
+            @pipes[id] = Pipe.new
+          end
+
           wakeup
         end
 
@@ -153,7 +165,10 @@ module NewRelic
             now = nil
             loop do
               clean_up_pipes
-              pipes_to_listen_to = @pipes.values.map{|pipe| pipe.out} + [wake.out]
+
+              pipes_to_listen_to = @pipes_lock.synchronize do
+                @pipes.values.map{|pipe| pipe.out} + [wake.out]
+              end
 
               NewRelic::Agent.record_metric('Supportability/Listeners',
                 (Time.now - now).to_f) if now
@@ -190,10 +205,12 @@ module NewRelic
         end
 
         def close_all_pipes
-          @pipes.each do |id, pipe|
-            pipe.close if pipe
+          @pipes_lock.synchronize do
+            @pipes.each do |id, pipe|
+              pipe.close if pipe
+            end
+            @pipes = {}
           end
-          @pipes = {}
         end
 
         def wake
@@ -235,20 +252,24 @@ module NewRelic
         end
 
         def should_keep_listening?
-          @started || @pipes.values.find{|pipe| !pipe.in.closed?}
+          @started || @pipes_lock.synchronize { @pipes.values.find{|pipe| !pipe.in.closed?} }
         end
 
         def clean_up_pipes
-          @pipes.values.each do |pipe|
-            if pipe.last_read.to_f + @timeout < Time.now.to_f
-              pipe.close unless pipe.closed?
+          @pipes_lock.synchronize do
+            @pipes.values.each do |pipe|
+              if pipe.last_read.to_f + @timeout < Time.now.to_f
+                pipe.close unless pipe.closed?
+              end
             end
+            @pipes.reject! {|id, pipe| pipe.out.closed? }
           end
-          @pipes.reject! {|id, pipe| pipe.out.closed? }
         end
 
         def find_pipe_for_handle(out_handle)
-          @pipes.values.find{|pipe| pipe.out == out_handle }
+          @pipes_lock.synchronize do
+            @pipes.values.find{|pipe| pipe.out == out_handle }
+          end
         end
       end
     end
