@@ -1,3 +1,8 @@
+suite_condition("Rails 2.2.0-preview1 problem prevents these from running") do
+  # https://github.com/rails/rails/issues/17017
+  RUBY_VERSION != '2.2.0'
+end
+
 boilerplate_gems = <<-SQLITE
   gem 'rack'
   if RUBY_PLATFORM == 'java'
