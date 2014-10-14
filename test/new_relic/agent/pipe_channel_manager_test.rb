@@ -13,12 +13,16 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     @test_config = { :developer_mode => true }
     NewRelic::Agent.agent.drop_buffered_data
     NewRelic::Agent.config.add_config_for_testing(@test_config)
-    NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
+
+    listener = NewRelic::Agent::PipeChannelManager::Listener.new
+    NewRelic::Agent::PipeChannelManager.instance_variable_set(:@listener, listener)
+
     NewRelic::Agent.manual_start
     NewRelic::Agent::TransactionState.tl_clear_for_testing
   end
 
   def teardown
+    NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     NewRelic::Agent::PipeChannelManager.listener.stop
     NewRelic::Agent.shutdown
     NewRelic::Agent.config.remove_config(@test_config)
