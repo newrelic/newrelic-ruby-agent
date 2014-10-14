@@ -5,14 +5,14 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
-require 'new_relic/agent/request_sampler'
+require 'new_relic/agent/transaction_event_aggregator'
 
-class NewRelic::Agent::RequestSamplerTest < Minitest::Test
+class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def setup
     freeze_time
     @event_listener = NewRelic::Agent::EventListener.new
-    @sampler = NewRelic::Agent::RequestSampler.new( @event_listener )
+    @sampler = NewRelic::Agent::TransactionEventAggregator.new(@event_listener)
   end
 
   # Helpers for DataContainerTests
@@ -207,7 +207,7 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
   end
 
   def test_resets_limits_on_harvest
-    with_sampler_config( :'request_sampler.max_samples_stored' => 100 ) do
+    with_sampler_config( :'analytics_events.max_samples_stored' => 100 ) do
       50.times { generate_request('before') }
       samples_before = @sampler.samples
       assert_equal 50, samples_before.size

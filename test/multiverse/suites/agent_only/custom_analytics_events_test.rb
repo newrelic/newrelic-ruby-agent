@@ -11,7 +11,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
 
   def test_custom_analytics_events_are_submitted
     t0 = freeze_time
-    event_aggregator = NewRelic::Agent.agent.event_aggregator
+    event_aggregator = NewRelic::Agent.agent.custom_event_aggregator
     event_aggregator.record(:dummy_type, :foo => :bar, :baz => :qux)
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)

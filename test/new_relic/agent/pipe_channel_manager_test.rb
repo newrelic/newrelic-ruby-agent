@@ -98,13 +98,13 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     end
 
     def test_listener_merges_analytics_events
-      request_sampler = NewRelic::Agent.agent.instance_variable_get(:@request_sampler)
+      transaction_event_aggregator = NewRelic::Agent.agent.instance_variable_get(:@transaction_event_aggregator)
 
       start_listener_with_pipe(699)
       NewRelic::Agent.agent.stubs(:connected?).returns(true)
       run_child(699) do
         NewRelic::Agent.after_fork(:report_to_channel => 699)
-        request_sampler.on_transaction_finished({
+        transaction_event_aggregator.on_transaction_finished({
           :start_timestamp => Time.now,
           :name => 'whatever',
           :duration => 10,
@@ -113,7 +113,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         NewRelic::Agent.agent.send(:transmit_event_data)
       end
 
-      assert_equal(1, request_sampler.samples.size)
+      assert_equal(1, transaction_event_aggregator.samples.size)
     end
 
     def test_listener_merges_sql_traces

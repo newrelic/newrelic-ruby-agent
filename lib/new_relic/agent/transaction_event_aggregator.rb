@@ -8,7 +8,7 @@ require 'monitor'
 require 'newrelic_rpm' unless defined?( NewRelic )
 require 'new_relic/agent' unless defined?( NewRelic::Agent )
 
-class NewRelic::Agent::RequestSampler
+class NewRelic::Agent::TransactionEventAggregator
   include NewRelic::Coerce,
           MonitorMixin
 
@@ -51,8 +51,6 @@ class NewRelic::Agent::RequestSampler
   end
 
   def reset!
-    NewRelic::Agent.logger.debug "Resetting RequestSampler"
-
     sample_count, request_count = 0
     old_samples = nil
 
@@ -96,13 +94,13 @@ class NewRelic::Agent::RequestSampler
     ])
 
     engine = NewRelic::Agent.instance.stats_engine
-    engine.tl_record_supportability_metric_count("RequestSampler/requests", request_count)
-    engine.tl_record_supportability_metric_count("RequestSampler/samples", sample_count)
+    engine.tl_record_supportability_metric_count("TransactionEventAggregator/requests", request_count)
+    engine.tl_record_supportability_metric_count("TransactionEventAggregator/samples", sample_count)
   end
 
   def register_config_callbacks
     NewRelic::Agent.config.register_callback(:'analytics_events.max_samples_stored') do |max_samples|
-      NewRelic::Agent.logger.debug "RequestSampler max_samples set to #{max_samples}"
+      NewRelic::Agent.logger.debug "TransactionEventAggregator max_samples set to #{max_samples}"
       self.synchronize { @samples.capacity = max_samples }
       self.reset!
     end
@@ -113,7 +111,7 @@ class NewRelic::Agent::RequestSampler
   end
 
   def notify_full
-    NewRelic::Agent.logger.debug "Request Sampler capacity of #{@samples.capacity} reached, beginning sampling"
+    NewRelic::Agent.logger.debug "Transaction event capacity of #{@samples.capacity} reached, beginning sampling"
     @notified_full = true
   end
 
