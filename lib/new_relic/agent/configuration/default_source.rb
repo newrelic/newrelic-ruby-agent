@@ -202,10 +202,13 @@ module NewRelic
           case value
           when String
             value.split(',')
-          else
+          when Array
             value
+          else
+            raise ArgumentError.new("Config value '#{value}' couldn't be turned into a list.")
           end
         end
+
       end
 
       AUTOSTART_BLACKLISTED_RAKE_TASKS = [
@@ -1079,6 +1082,7 @@ module NewRelic
           :default      => ['scheduler', 'run'],
           :public       => true,
           :type         => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description  => 'List of prefixes for heroku dyno names (such as "scheduler") to report as hostname without trailing dot and process ID.'
         },
         :labels => {

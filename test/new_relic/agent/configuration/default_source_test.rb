@@ -98,6 +98,12 @@ module NewRelic::Agent::Configuration
       assert_equal ['Foo'], result
     end
 
+    def test_convert_to_list_raises_on_totally_wrong_object
+      assert_raises(ArgumentError) do
+        DefaultSource.convert_to_list(Object.new)
+      end
+    end
+
     def test_rules_ignore_converts_comma_delimited_string_to_array
       with_config(:'rules.ignore_url_regexes' => 'Foo,Bar,Baz') do
         assert_equal [/Foo/, /Bar/, /Baz/], NewRelic::Agent.config[:'rules.ignore_url_regexes']
