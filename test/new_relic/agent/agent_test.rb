@@ -199,7 +199,7 @@ module NewRelic
         @agent.stats_engine.expects(:merge!).never
         @agent.error_collector.expects(:merge!).never
         @agent.transaction_sampler.expects(:merge!).never
-        @agent.instance_variable_get(:@request_sampler).expects(:merge!).never
+        @agent.instance_variable_get(:@transaction_event_aggregator).expects(:merge!).never
         @agent.sql_sampler.expects(:merge!).never
         @agent.merge_data_for_endpoint(:metric_data, [])
         @agent.merge_data_for_endpoint(:transaction_sample_data, [])
@@ -232,11 +232,11 @@ module NewRelic
 
       def test_harvest_and_send_analytic_event_data_merges_in_samples_on_failure
         service = @agent.service
-        request_sampler = @agent.instance_variable_get(:@request_sampler)
+        transaction_event_aggregator = @agent.instance_variable_get(:@transaction_event_aggregator)
         samples = [mock('some analytics event')]
 
-        request_sampler.expects(:harvest!).returns(samples)
-        request_sampler.expects(:merge!).with(samples)
+        transaction_event_aggregator.expects(:harvest!).returns(samples)
+        transaction_event_aggregator.expects(:merge!).with(samples)
 
         # simulate a failure in transmitting analytics events
         service.stubs(:analytic_event_data).raises(StandardError.new)

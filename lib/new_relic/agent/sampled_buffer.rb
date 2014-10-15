@@ -7,67 +7,39 @@
 # in the Array is equal. It uses reservoir sampling in order to achieve this:
 # http://xlinux.nist.gov/dads/HTML/reservoirSampling.html
 
+require 'new_relic/agent/event_buffer'
+
 module NewRelic
   module Agent
-    class SampledBuffer
-      attr_reader :seen, :capacity, :seen_lifetime, :captured_lifetime
+    class SampledBuffer < EventBuffer
+      attr_reader :seen_lifetime, :captured_lifetime
 
       def initialize(capacity)
-        @items = []
-        @capacity = capacity
+        super
         @captured_lifetime = 0
-        @seen = 0
-        @seen_lifetime = 0
+        @seen_lifetime     = 0
       end
 
-      def reset
+      def reset!
         @captured_lifetime += @items.size
-        @seen_lifetime += @seen
-        @items = []
-        @seen = 0
+        @seen_lifetime     += @seen
+        super
       end
 
-      def full?
-        @items.size >= @capacity
-      end
-
-      # Like '<<', but returns the value of full?
-      def append(x)
-        (self << x).full?
-      end
-
-      def <<(x)
-        @seen += 1
+      def append_event(x)
         if @items.size < @capacity
           @items << x
+          return x
         else
           m = rand(@seen) # [0, @seen)
           if m < @capacity
             @items[m] = x
+            return x
           else
             # discard current sample
+            return nil
           end
         end
-        return self
-      end
-
-      def size
-        @items.size
-      end
-
-      def to_a
-        @items.dup
-      end
-
-      def capacity=(new_capacity)
-        @capacity = new_capacity
-        old_items = @items
-        @items = []
-        old_items.each { |i| self << i }
-      end
-
-      def sample_rate
-        @seen > 0 ? (size.to_f / @seen) : 0.0
       end
 
       def sample_rate_lifetime
