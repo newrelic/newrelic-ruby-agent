@@ -26,17 +26,21 @@ class NewRelic::Agent::Transaction
     end
 
     def test_stores_up_to_truncate_max
-      sample = stub
-      @buffer.capacity.times { @buffer.store(sample) }
+      with_config(:developer_mode => true) do
+        sample = stub
+        @buffer.capacity.times { @buffer.store(sample) }
 
-      assert_equal(Array.new(@buffer.capacity, sample), @buffer.samples)
+        assert_equal(Array.new(@buffer.capacity, sample), @buffer.samples)
+      end
     end
 
     def test_stores_and_truncates
-      sample = stub
-      (@buffer.capacity * 2).times { @buffer.store(sample) }
+      with_config(:developer_mode => true) do
+        sample = stub
+        (@buffer.capacity * 2).times { @buffer.store(sample) }
 
-      assert_equal(Array.new(@buffer.capacity, sample), @buffer.samples)
+        assert_equal(Array.new(@buffer.capacity, sample), @buffer.samples)
+      end
     end
 
     def test_visit_segment_takes_backtraces_in_dev_mode
@@ -62,8 +66,10 @@ class NewRelic::Agent::Transaction
     end
 
     def test_doesnt_store_previous
-      @buffer.store_previous([stub])
-      assert @buffer.samples.empty?
+      with_config(:developer_mode => true) do
+        @buffer.store_previous([stub])
+        assert @buffer.samples.empty?
+      end
     end
   end
 end
