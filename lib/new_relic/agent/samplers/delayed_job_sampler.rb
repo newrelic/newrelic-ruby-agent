@@ -80,9 +80,9 @@ module NewRelic
 
         QUEUE_QUERY_CONDITION = 'run_at < ? and failed_at is NULL'.freeze
 
-        def record_counts_by(column, metric_segment = column)
+        def record_counts_by(column_name, metric_segment = column_name)
           all_count = 0
-          queue_counts(column).each do |column_val, count|
+          queue_counts(column_name).each do |column_val, count|
             all_count += count
             column_val = "default" if column_val.nil? || column_val == ""
             metric = "Workers/DelayedJob/queue_length/#{metric_segment}/#{column_val}"
@@ -91,15 +91,15 @@ module NewRelic
           all_count
         end
 
-        def queue_counts(column)
+        def queue_counts(column_name)
           # There is not an ActiveRecord syntax for what we're trying to do
           # here that's valid on 2.x through 4.1, so split it up.
           result = if ::ActiveRecord::VERSION::MAJOR.to_i < 4
-            ::Delayed::Job.count(:group => column,
+            ::Delayed::Job.count(:group => column_name,
                                  :conditions => [QUEUE_QUERY_CONDITION, Time.now])
           else
             ::Delayed::Job.where(QUEUE_QUERY_CONDITION, Time.now).
-                           group(column).
+                           group(column_name).
                            count
           end
           result.to_a
