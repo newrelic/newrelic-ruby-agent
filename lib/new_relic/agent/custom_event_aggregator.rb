@@ -15,6 +15,7 @@ module NewRelic
       DEFAULT_CAPACITY = 1000
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
+      EVENT_PARAMS_CTX = 'recording custom event'.freeze
 
       def initialize
         @lock    = Mutex.new
@@ -42,7 +43,7 @@ module NewRelic
           { TYPE => type, TIMESTAMP => Time.now.to_i },
           attributes
         ]
-        event.map! { |h| event_params!(h, 'recording custom event') }
+        event.each { |h| event_params!(h, EVENT_PARAMS_CTX) }
 
         stored = @lock.synchronize do
           append_event_locked(type, event)
