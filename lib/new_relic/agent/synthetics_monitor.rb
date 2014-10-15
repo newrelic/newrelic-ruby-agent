@@ -25,19 +25,29 @@ module NewRelic
       end
 
       def on_before_call(request)
-        encoded_header = request[SYNTHETICS_HEADER_KEY]
-        if encoded_header
-          decoded_header = @obfuscator.deobfuscate(encoded_header)
-          incoming_payload  = NewRelic::JSONWrapper.load(decoded_header)
+        incoming_payload = decode_payload(request)
+        return unless incoming_payload &&
+            is_supported_version?(incoming_payload) &&
+            is_trusted?(incoming_payload)
 
-          if is_supported_version?(incoming_payload)
-            NewRelic::Agent::TransactionState.tl_get.synthetics_info = incoming_payload
-          end
-        end
+        NewRelic::Agent::TransactionState.tl_get.synthetics_info = incoming_payload
+      end
+
+      def decode_payload(request)
+        encoded_header = request[SYNTHETICS_HEADER_KEY]
+        return nil unless encoded_header
+
+        decoded_header = @obfuscator.deobfuscate(encoded_header)
+        NewRelic::JSONWrapper.load(decoded_header)
       end
 
       def is_supported_version?(incoming_payload)
         incoming_payload.first == SUPPORTED_VERSION
+      end
+
+      def is_trusted?(incoming_payload)
+        account_id = incoming_payload[1]
+        NewRelic::Agent.config[:trusted_account_ids].include?(account_id)
       end
     end
   end
