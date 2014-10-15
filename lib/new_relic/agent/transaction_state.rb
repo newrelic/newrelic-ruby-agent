@@ -88,6 +88,9 @@ module NewRelic
         is_cross_app_caller? || is_cross_app_callee?
       end
 
+      # Synthetics
+      attr_accessor :synthetics_info
+
       # Request data
       attr_reader :request
       attr_accessor :request_token
