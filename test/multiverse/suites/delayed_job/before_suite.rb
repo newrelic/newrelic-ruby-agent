@@ -3,10 +3,16 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'delayed_job'
+begin
+  require 'active_record'
+rescue LoadError
+  # Let it fail, might be working with another library
+end
+
+# Deprecated on some versions, required on others. Hurray!
 Delayed::Worker.guess_backend
 
 if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
-  require 'active_record'
 
   $database_name = "testdb.#{ENV["MULTIVERSE_ENV"]}.sqlite3"
   $db_connection = ActiveRecord::Base.establish_connection(:adapter => 'sqlite3',
