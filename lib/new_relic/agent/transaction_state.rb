@@ -61,6 +61,7 @@ module NewRelic
         @is_cross_app_caller = false
         @client_cross_app_id = nil
         @referring_transaction_info = nil
+        @synthetics_info = nil
 
         @transaction_sample_builder = nil
         @sql_sampler_transaction_data = nil
