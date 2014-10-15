@@ -21,12 +21,12 @@ module NewRelic
         # DelayedJob supports multiple backends, only some of which we can
         # handle. Check whether we think we've got what we need here.
         def self.supported_backend?
-          Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
+          ::Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
         end
 
         def initialize
           raise Unsupported, "DJ queue sampler disabled" if Agent.config[:disable_dj]
-          raise Unsupported, "DJ queue sampling unsupported with backend '#{Delayed::Worker.backend}'" unless self.class.supported_backend?
+          raise Unsupported, "DJ queue sampling unsupported with backend '#{::Delayed::Worker.backend}'" unless self.class.supported_backend?
           raise Unsupported, "No DJ worker present. Skipping DJ queue sampler" unless NewRelic::DelayedJobInjection.worker_name
         end
 
@@ -50,67 +50,59 @@ module NewRelic
         end
 
         def count(query)
-          if ActiveRecord::VERSION::MAJOR.to_i < 4
-            Delayed::Job.count(query)
+          if ::ActiveRecord::VERSION::MAJOR.to_i < 4
+            ::Delayed::Job.count(query)
           else
-            Delayed::Job.where(query).count
+            ::Delayed::Job.where(query).count
           end
         end
 
         def self.supported_on_this_platform?
-          defined?(Delayed::Job)
+          defined?(::Delayed::Job)
         end
 
         def poll
           record_failed_jobs(failed_jobs)
           record_locked_jobs(locked_jobs)
-
-          if @queue
-            record_queue_length_across_dimension('queue')
-          else
-            record_queue_length_across_dimension('priority')
-          end
+          record_queue_length_metrics
         end
 
         private
 
-        def record_queue_length_across_dimension(column)
-          all_count = 0
-          queue_counts(column).each do |column_val, count|
-            all_count += count
-            metric = "Workers/DelayedJob/queue_length/#{column == 'queue' ? 'name' : column}/#{column_val}"
-            NewRelic::Agent.record_metric(metric, count)
-          end
+        def record_queue_length_metrics
+          counts = []
+          counts << record_counts_by("queue", "name") if ::Delayed::Job.instance_methods.include?(:queue)
+          counts << record_counts_by("priority")
 
           all_metric = "Workers/DelayedJob/queue_length/all"
-          NewRelic::Agent.record_metric(all_metric, all_count)
+          NewRelic::Agent.record_metric(all_metric, counts.max)
         end
 
         QUEUE_QUERY_CONDITION = 'run_at < ? and failed_at is NULL'.freeze
 
+        def record_counts_by(column, metric_segment = column)
+          all_count = 0
+          queue_counts(column).each do |column_val, count|
+            all_count += count
+            column_val = "default" if column_val.nil? || column_val == ""
+            metric = "Workers/DelayedJob/queue_length/#{metric_segment}/#{column_val}"
+            NewRelic::Agent.record_metric(metric, count)
+          end
+          all_count
+        end
+
         def queue_counts(column)
           # There is not an ActiveRecord syntax for what we're trying to do
           # here that's valid on 2.x through 4.1, so split it up.
-          result = if ActiveRecord::VERSION::MAJOR.to_i < 4
-            Delayed::Job.count(:group => column,
-                               :conditions => [QUEUE_QUERY_CONDITION, Time.now])
+          result = if ::ActiveRecord::VERSION::MAJOR.to_i < 4
+            ::Delayed::Job.count(:group => column,
+                                 :conditions => [QUEUE_QUERY_CONDITION, Time.now])
           else
-            Delayed::Job.where(QUEUE_QUERY_CONDITION, Time.now).
-                         group(column).
-                         count
+            ::Delayed::Job.where(QUEUE_QUERY_CONDITION, Time.now).
+                           group(column).
+                           count
           end
           result.to_a
-        end
-
-        # Figure out if we get the queues.
-        def setup
-          return unless @queue.nil?
-          @setup = true
-          columns = Delayed::Job.columns
-          columns.each do | c |
-            @queue = true if c.name.to_s == 'priority'
-          end
-          @queue ||= false
         end
       end
     end
