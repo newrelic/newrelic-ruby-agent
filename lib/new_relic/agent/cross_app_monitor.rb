@@ -4,13 +4,13 @@
 
 require 'digest'
 
+require 'new_relic/agent/inbound_request_monitor'
 require 'new_relic/agent/transaction_state'
 require 'new_relic/agent/threading/agent_thread'
 
 module NewRelic
   module Agent
-
-    class CrossAppMonitor
+    class CrossAppMonitor < InboundRequestMonitor
 
       NEWRELIC_ID_HEADER = 'X-NewRelic-ID'
       NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'
@@ -23,32 +23,17 @@ module NewRelic
       }
       CONTENT_LENGTH_HEADER_KEYS = %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH}
 
-      attr_reader :obfuscator
-
-      def initialize(events = nil)
-        # When we're starting up for real in the agent, we get passed the events
-        # Other spots can pull from the agent, during startup the agent doesn't exist yet!
-        events ||= Agent.instance.events
-
-        events.subscribe(:finished_configuring) do
-          on_finished_configuring
-        end
-      end
-
-      def on_finished_configuring
-        setup_obfuscator
-        register_event_listeners
+      def on_finished_configuring(events)
+        register_event_listeners(events)
       end
 
       # Expected sequence of events:
       #   :before_call will save our cross application request id to the thread
-      #   :start_transaction will get called when a transaction starts up
       #   :after_call will write our response headers/metrics and clean up the thread
-      def register_event_listeners
+      def register_event_listeners(events)
         NewRelic::Agent.logger.
           debug("Wiring up Cross Application Tracing to events after finished configuring")
 
-        events = Agent.instance.events
         events.subscribe(:before_call) do |env| #THREAD_LOCAL_ACCESS
           if should_process_request(env)
             state = NewRelic::Agent::TransactionState.tl_get
@@ -72,11 +57,6 @@ module NewRelic
         end
       end
 
-      # This requires :encoding_key, so must wait until :finished_configuring
-      def setup_obfuscator
-        @obfuscator = NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
-      end
-
       def save_client_cross_app_id(state, request_headers)
         state.client_cross_app_id = decoded_id(request_headers)
       end
@@ -87,8 +67,7 @@ module NewRelic
 
       def save_referring_transaction_info(state, request_headers)
         txn_header = from_headers(request_headers, NEWRELIC_TXN_HEADER_KEYS) or return
-        txn_header = obfuscator.deobfuscate(txn_header)
-        txn_info = NewRelic::JSONWrapper.load(txn_header)
+        txn_info = deserialize_header(txn_header)
         state.referring_transaction_info = txn_info
       end
 
