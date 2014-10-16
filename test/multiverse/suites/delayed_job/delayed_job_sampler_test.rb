@@ -58,7 +58,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
     end
 
     def test_sampler_sees_locks
-      job = IWantToWait.new.delay.take_action
+      IWantToWait.new.delay.take_action
       ::Delayed::Job.reserve(@worker)
 
       @sampler.poll
@@ -78,13 +78,54 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
     end
 
     def test_sampler_queue_depth_with_alternate_priority
-      job = IWantToWait.new.delay(:run_at => Time.now - 5, :priority => 7).take_action
+      IWantToWait.new.delay(:run_at => Time.now - 5, :priority => 7).take_action
 
       @sampler.poll
 
       assert_metrics_recorded(
         "Workers/DelayedJob/queue_length/priority/7" => { :total_call_time => 1 },
         "Workers/DelayedJob/queue_length/all"        => { :total_call_time => 1 })
+    end
+
+    def test_sampler_queue_depth_with_default_queue
+      return unless Delayed::Job.instance_methods.include?(:queue)
+
+      IWantToWait.new.delay(:run_at => Time.now - 5).take_action
+
+      @sampler.poll
+
+      assert_metrics_recorded(
+        "Workers/DelayedJob/queue_length/name/default" => { :total_call_time => 1 },
+        "Workers/DelayedJob/queue_length/all"          => { :total_call_time => 1 })
+    end
+
+    def test_sampler_queue_depth_with_alternate_queues
+      return unless Delayed::Job.instance_methods.include?(:queue)
+
+      IWantToWait.new.delay(:run_at => Time.now - 5, :queue  => "cue").take_action
+      IWantToWait.new.delay(:run_at => Time.now - 5, :queue  => "cute").take_action
+
+      @sampler.poll
+
+      assert_metrics_recorded(
+        "Workers/DelayedJob/queue_length/name/cue"   => { :total_call_time => 1 },
+        "Workers/DelayedJob/queue_length/name/cute"  => { :total_call_time => 1 },
+        "Workers/DelayedJob/queue_length/all"        => { :total_call_time => 2 })
+    end
+
+    def test_sampler_queue_depth_with_queues_and_priorities
+      return unless Delayed::Job.instance_methods.include?(:queue)
+
+      IWantToWait.new.delay(:run_at => Time.now - 5, :priority => 1, :queue  => "cue").take_action
+      IWantToWait.new.delay(:run_at => Time.now - 5, :priority => 1, :queue  => "cute").take_action
+
+      @sampler.poll
+
+      assert_metrics_recorded(
+        "Workers/DelayedJob/queue_length/name/cue"   => { :total_call_time => 1 },
+        "Workers/DelayedJob/queue_length/name/cute"  => { :total_call_time => 1 },
+        "Workers/DelayedJob/queue_length/priority/1" => { :total_call_time => 2 },
+        "Workers/DelayedJob/queue_length/all"        => { :total_call_time => 2 })
     end
   end
 end
