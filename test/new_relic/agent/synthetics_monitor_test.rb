@@ -59,6 +59,13 @@ module NewRelic::Agent
       end
     end
 
+    def test_doesnt_record_synthetics_if_data_too_short
+      synthetics_info = [VERSION_ID, ACCOUNT_ID]
+      with_synthetics_headers(synthetics_info) do
+        assert_no_synthetics_info
+      end
+    end
+
     def test_records_synthetics_state
       synthetics_info = [VERSION_ID] + STANDARD_DATA
       with_synthetics_headers(synthetics_info) do

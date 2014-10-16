@@ -8,6 +8,7 @@ module NewRelic
 
       SYNTHETICS_HEADER_KEY = 'X-NewRelic-Synthetics'.freeze
       SUPPORTED_VERSION = 1
+      EXPECTED_PAYLOAD_LENGTH = 5
 
       def initialize(events = nil)
         # When we're starting up for real in the agent, we get passed the events
@@ -27,6 +28,7 @@ module NewRelic
       def on_before_call(request)
         incoming_payload = decode_payload(request)
         return unless incoming_payload &&
+            is_valid_payload?(incoming_payload) &&
             is_supported_version?(incoming_payload) &&
             is_trusted?(incoming_payload)
 
@@ -48,6 +50,10 @@ module NewRelic
       def is_trusted?(incoming_payload)
         account_id = incoming_payload[1]
         NewRelic::Agent.config[:trusted_account_ids].include?(account_id)
+      end
+
+      def is_valid_payload?(incoming_payload)
+        incoming_payload.length == EXPECTED_PAYLOAD_LENGTH
       end
     end
   end
