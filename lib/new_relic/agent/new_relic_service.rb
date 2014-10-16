@@ -414,7 +414,7 @@ module NewRelic
         end
         case response
         when Net::HTTPSuccess
-          true # fall through
+          true # do nothing
         when Net::HTTPUnauthorized
           raise LicenseException, 'Invalid license key, please visit support.newrelic.com'
         when Net::HTTPServiceUnavailable
