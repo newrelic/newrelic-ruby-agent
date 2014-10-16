@@ -172,15 +172,19 @@ module NewRelic
 
         state.is_cross_app_caller = true
         txn_guid = state.request_guid
-        if state.current_transaction
-          trip_id   = state.current_transaction.cat_trip_id(state)
-          path_hash = state.current_transaction.cat_path_hash(state)
+        txn = state.current_transaction
+        if txn
+          trip_id   = txn.cat_trip_id(state)
+          path_hash = txn.cat_path_hash(state)
+
+          if txn.synthetics_header
+            request[NR_SYNTHETICS] = txn.synthetics_header
+          end
         end
         txn_data  = NewRelic::JSONWrapper.dump([txn_guid, false, trip_id, path_hash])
 
         request[NR_ID_HEADER]  = obfuscator.obfuscate(cross_app_id)
         request[NR_TXN_HEADER] = obfuscator.obfuscate(txn_data)
-        request[NR_SYNTHETICS] = state.synthetics_header if state.synthetics_header
 
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "Not injecting x-process header", err

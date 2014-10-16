@@ -480,7 +480,7 @@ module HttpClientTestCases
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction do
         state = NewRelic::Agent::TransactionState.tl_get
-        state.synthetics_header = "boo"
+        state.current_transaction.synthetics_header = "boo"
 
         get_response
 
