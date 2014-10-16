@@ -984,7 +984,9 @@ module NewRelic
           rescue UnrecoverableServerException => e
             NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
           rescue => e
-            NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
+            NewRelic::Agent.logger.debug("Unable to send #{endpoint} data, will try again later. Error: ", e)
+            NewRelic::Agent.record_metric("Supportability/remote_unavailable", 0.0)
+            NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
             container.merge!(items)
           end
         end
