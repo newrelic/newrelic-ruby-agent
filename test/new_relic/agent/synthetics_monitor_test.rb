@@ -70,7 +70,7 @@ module NewRelic::Agent
       define_method(:"test_records_synthetics_state_#{key.gsub("-", "")}") do
         synthetics_info = [VERSION_ID] + STANDARD_DATA
         with_synthetics_headers(synthetics_info, key) do
-          assert_equal synthetics_info, NewRelic::Agent::TransactionState.tl_get.synthetics_info
+          assert_equal synthetics_info, NewRelic::Agent::TransactionState.tl_get.current_transaction.synthetics_info
         end
       end
     end
@@ -80,7 +80,7 @@ module NewRelic::Agent
     end
 
     def assert_no_synthetics_info
-      assert_nil NewRelic::Agent::TransactionState.tl_get.synthetics_info
+      assert_nil NewRelic::Agent::TransactionState.tl_get.current_transaction.synthetics_info
     end
 
     def with_synthetics_headers(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY)

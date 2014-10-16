@@ -63,6 +63,9 @@ module NewRelic
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
 
+      # Fields for tracking synthetics requests
+      attr_accessor :synthetics_header, :synthetics_info
+
       # Return the currently active transaction, or nil.
       def self.tl_current
         TransactionState.tl_get.current_transaction

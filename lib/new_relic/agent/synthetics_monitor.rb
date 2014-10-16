@@ -27,7 +27,7 @@ module NewRelic
             is_supported_version?(incoming_payload) &&
             is_trusted?(incoming_payload)
 
-        NewRelic::Agent::TransactionState.tl_get.synthetics_info = incoming_payload
+        NewRelic::Agent::TransactionState.tl_get.current_transaction.synthetics_info = incoming_payload
       end
 
       def decode_payload(request)
