@@ -1,6 +1,6 @@
-suite_condition("Rails 2.2.0-preview1 problem prevents these from running") do
+suite_condition("Rails 2.2.0-preview1 and Rubinius problems prevent these from running") do
   # https://github.com/rails/rails/issues/17017
-  RUBY_VERSION != '2.2.0'
+  RUBY_VERSION != '2.2.0' && (!defined?(RUBY_ENGINE) || RUBY_ENGINE != "rbx")
 end
 
 boilerplate_gems = <<-SQLITE
