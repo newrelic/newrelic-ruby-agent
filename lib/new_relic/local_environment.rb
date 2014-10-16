@@ -146,14 +146,10 @@ module NewRelic
     end
 
     def check_for_resque
-      using_resque = (
-        defined?(::Resque) &&
-        (ENV['QUEUE'] || ENV['QUEUES']) &&
-        (File.basename($0) == 'rake' && ARGV.include?('resque:work'))
-      ) || (
-        defined?(::Resque::Pool) &&
-        (File.basename($0) == 'resque-pool')
-      )
+      using_resque = defined?(::Resque) &&
+        ((ENV['QUEUE'] || ENV['QUEUES']) && (File.basename($0) == 'rake' && ARGV.include?('resque:work'))) ||
+        (defined?(::Resque::Pool) && File.basename($0) == 'resque-pool') ||
+        (File.basename($0) == 'rake' && ARGV.include?('resque:pool'))
 
       @discovered_dispatcher = :resque if using_resque
     end
