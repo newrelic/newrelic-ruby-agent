@@ -36,12 +36,6 @@ module NewRelic
         txn.synthetics_info   = incoming_payload
       end
 
-      def decode_payload(request)
-        encoded_header = from_headers(request, SYNTHETICS_HEADER_KEYS)
-        return nil unless encoded_header
-
-      end
-
       def is_supported_version?(incoming_payload)
         incoming_payload.first == SUPPORTED_VERSION
       end
