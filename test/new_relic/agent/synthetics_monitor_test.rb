@@ -41,39 +41,39 @@ module NewRelic::Agent
         expects_no_logging(:debug)
 
         @events.notify(:before_call, {})
-        assert_no_synthetics_info
+        assert_no_synthetics_payload
       end
     end
 
     def test_doesnt_record_synthetics_if_incoming_request_higher_version
-      synthetics_info = [BAD_VERSION_ID] + STANDARD_DATA
-      with_synthetics_headers(synthetics_info) do
-        assert_no_synthetics_info
+      synthetics_payload = [BAD_VERSION_ID] + STANDARD_DATA
+      with_synthetics_headers(synthetics_payload) do
+        assert_no_synthetics_payload
       end
     end
 
     def test_doesnt_record_synthetics_if_not_trusted_account
-      synthetics_info = [VERSION_ID, BAD_ACCOUNT_ID] + STANDARD_DATA[1..-1]
-      with_synthetics_headers(synthetics_info) do
-        assert_no_synthetics_info
+      synthetics_payload = [VERSION_ID, BAD_ACCOUNT_ID] + STANDARD_DATA[1..-1]
+      with_synthetics_headers(synthetics_payload) do
+        assert_no_synthetics_payload
       end
     end
 
     def test_doesnt_record_synthetics_if_data_too_short
-      synthetics_info = [VERSION_ID, ACCOUNT_ID]
-      with_synthetics_headers(synthetics_info) do
-        assert_no_synthetics_info
+      synthetics_payload = [VERSION_ID, ACCOUNT_ID]
+      with_synthetics_headers(synthetics_payload) do
+        assert_no_synthetics_payload
       end
     end
 
     SyntheticsMonitor::SYNTHETICS_HEADER_KEYS.each do |key|
       define_method(:"test_records_synthetics_state_#{key.gsub("-", "")}") do
-        synthetics_info = [VERSION_ID] + STANDARD_DATA
-        with_synthetics_headers(synthetics_info, key) do
+        synthetics_payload = [VERSION_ID] + STANDARD_DATA
+        with_synthetics_headers(synthetics_payload, key) do
           state = NewRelic::Agent::TransactionState.tl_get
           txn = state.current_transaction
-          assert_equal @last_encoded_header, txn.synthetics_header
-          assert_equal synthetics_info,      txn.synthetics_info
+          assert_equal @last_encoded_header, txn.raw_synthetics_header
+          assert_equal synthetics_payload,   txn.synthetics_payload
         end
       end
     end
@@ -83,8 +83,8 @@ module NewRelic::Agent
       { header_key => @last_encoded_header }
     end
 
-    def assert_no_synthetics_info
-      assert_nil NewRelic::Agent::TransactionState.tl_get.current_transaction.synthetics_info
+    def assert_no_synthetics_payload
+      assert_nil NewRelic::Agent::TransactionState.tl_get.current_transaction.synthetics_payload
     end
 
     def with_synthetics_headers(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY)

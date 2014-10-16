@@ -20,7 +20,7 @@ module NewRelic
       NR_TXN_HEADER = 'X-NewRelic-Transaction'
 
       # The cross app synthetics header
-      NR_SYNTHETICS = 'X-NewRelic-Synthetics'
+      NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'
 
       # The index of the transaction GUID in the appdata header of responses
       APPDATA_TXN_GUID_INDEX = 5
@@ -177,8 +177,8 @@ module NewRelic
           trip_id   = txn.cat_trip_id(state)
           path_hash = txn.cat_path_hash(state)
 
-          if txn.synthetics_header
-            request[NR_SYNTHETICS] = txn.synthetics_header
+          if txn.raw_synthetics_header
+            request[NR_SYNTHETICS_HEADER] = txn.raw_synthetics_header
           end
         end
         txn_data  = NewRelic::JSONWrapper.dump([txn_guid, false, trip_id, path_hash])

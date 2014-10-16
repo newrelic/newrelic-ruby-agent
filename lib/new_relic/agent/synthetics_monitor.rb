@@ -32,8 +32,8 @@ module NewRelic
 
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.synthetics_header = encoded_header
-        txn.synthetics_info   = incoming_payload
+        txn.raw_synthetics_header = encoded_header
+        txn.synthetics_payload    = incoming_payload
       end
 
       def is_supported_version?(incoming_payload)
