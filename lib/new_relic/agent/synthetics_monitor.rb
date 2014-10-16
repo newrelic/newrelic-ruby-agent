@@ -8,7 +8,11 @@ module NewRelic
   module Agent
     class SyntheticsMonitor < InboundRequestMonitor
 
-      SYNTHETICS_HEADER_KEY = 'X-NewRelic-Synthetics'.freeze
+      SYNTHETICS_HEADER_KEY  = 'X-NewRelic-Synthetics'.freeze
+      SYNTHETICS_HEADER_KEYS = %W{
+        #{SYNTHETICS_HEADER_KEY} HTTP_X_NEWRELIC_SYNTHETICS X_NEWRELIC_SYNTHETICS
+      }
+
       SUPPORTED_VERSION = 1
       EXPECTED_PAYLOAD_LENGTH = 5
 
@@ -27,7 +31,7 @@ module NewRelic
       end
 
       def decode_payload(request)
-        encoded_header = request[SYNTHETICS_HEADER_KEY]
+        encoded_header = from_headers(request, SYNTHETICS_HEADER_KEYS)
         return nil unless encoded_header
 
         deserialize_header(encoded_header)

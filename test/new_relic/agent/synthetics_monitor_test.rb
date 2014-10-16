@@ -66,24 +66,26 @@ module NewRelic::Agent
       end
     end
 
-    def test_records_synthetics_state
-      synthetics_info = [VERSION_ID] + STANDARD_DATA
-      with_synthetics_headers(synthetics_info) do
-        assert_equal synthetics_info, NewRelic::Agent::TransactionState.tl_get.synthetics_info
+    SyntheticsMonitor::SYNTHETICS_HEADER_KEYS.each do |key|
+      define_method(:"test_records_synthetics_state_#{key.gsub("-", "")}") do
+        synthetics_info = [VERSION_ID] + STANDARD_DATA
+        with_synthetics_headers(synthetics_info, key) do
+          assert_equal synthetics_info, NewRelic::Agent::TransactionState.tl_get.synthetics_info
+        end
       end
     end
 
-    def synthetics_header(payload)
-      { SyntheticsMonitor::SYNTHETICS_HEADER_KEY => json_dump_and_encode(payload) }
+    def synthetics_header(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY)
+      { header_key => json_dump_and_encode(payload) }
     end
 
     def assert_no_synthetics_info
       assert_nil NewRelic::Agent::TransactionState.tl_get.synthetics_info
     end
 
-    def with_synthetics_headers(payload)
+    def with_synthetics_headers(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY)
       in_transaction do
-        @events.notify(:before_call, synthetics_header(payload))
+        @events.notify(:before_call, synthetics_header(payload, header_key))
         yield
       end
     end
