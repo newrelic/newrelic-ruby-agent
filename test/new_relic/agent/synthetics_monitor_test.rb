@@ -70,13 +70,17 @@ module NewRelic::Agent
       define_method(:"test_records_synthetics_state_#{key.gsub("-", "")}") do
         synthetics_info = [VERSION_ID] + STANDARD_DATA
         with_synthetics_headers(synthetics_info, key) do
-          assert_equal synthetics_info, NewRelic::Agent::TransactionState.tl_get.current_transaction.synthetics_info
+          state = NewRelic::Agent::TransactionState.tl_get
+          txn = state.current_transaction
+          assert_equal @last_encoded_header, txn.synthetics_header
+          assert_equal synthetics_info,      txn.synthetics_info
         end
       end
     end
 
     def synthetics_header(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY)
-      { header_key => json_dump_and_encode(payload) }
+      @last_encoded_header = json_dump_and_encode(payload)
+      { header_key => @last_encoded_header }
     end
 
     def assert_no_synthetics_info
