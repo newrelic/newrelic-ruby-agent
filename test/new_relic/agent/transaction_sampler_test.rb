@@ -614,17 +614,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
   end
 
-  def test_stack_trace_scope
-    with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
-      t = Time.now
-      @sampler.on_start_transaction(@state, t.to_f)
-      @sampler.notice_push_frame(@state, (t+1).to_f)
-
-      segment = @sampler.send(:tl_builder).current_segment
-      assert segment[:backtrace]
-    end
-  end
-
   def test_nil_stacktrace
     with_config(:'transaction_tracer.stack_trace_threshold' => 2) do
       @sampler.on_start_transaction(@state, Time.now.to_f)
