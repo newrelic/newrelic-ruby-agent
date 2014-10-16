@@ -8,15 +8,10 @@ module NewRelic
 
       attr_reader :obfuscator
 
-      def initialize(events = nil)
-        # When we're starting up for real in the agent, we get passed the events
-        # Other spots can pull from the agent, during startup the agent doesn't exist yet!
-        events ||= Agent.instance.events
-
+      def initialize(events)
         events.subscribe(:finished_configuring) do
           # This requires :encoding_key, so must wait until :finished_configuring
           setup_obfuscator
-
           on_finished_configuring(events)
         end
       end
