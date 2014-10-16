@@ -19,6 +19,9 @@ module NewRelic
       # The cross app transaction header for "outgoing" calls
       NR_TXN_HEADER = 'X-NewRelic-Transaction'
 
+      # The cross app synthetics header
+      NR_SYNTHETICS = 'X-NewRelic-Synthetics'
+
       # The index of the transaction GUID in the appdata header of responses
       APPDATA_TXN_GUID_INDEX = 5
 
@@ -177,6 +180,7 @@ module NewRelic
 
         request[NR_ID_HEADER]  = obfuscator.obfuscate(cross_app_id)
         request[NR_TXN_HEADER] = obfuscator.obfuscate(txn_data)
+        request[NR_SYNTHETICS] = state.synthetics_header if state.synthetics_header
 
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "Not injecting x-process header", err
