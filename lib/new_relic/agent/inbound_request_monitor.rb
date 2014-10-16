@@ -2,6 +2,14 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+# This class serves as the base for objects wanting to monitor and respond to
+# incoming web requests. Examples include cross application tracing and
+# synthetics.
+#
+# Subclasses are expected to define on_finished_configuring(events) which will
+# be called when the agent is fully configured. That method is expected to
+# subscribe to the necessary request events, such as before_call and after_call
+# for the monitor to do its work.
 module NewRelic
   module Agent
     class InboundRequestMonitor
