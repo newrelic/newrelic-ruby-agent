@@ -39,7 +39,7 @@ class NewRelic::Agent::TransactionEventAggregator
     @notified_full = false
 
     @samples            = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[:'analytics_events.max_samples_stored'])
-    @synthetics_samples = ::NewRelic::Agent::SizedBuffer.new(NewRelic::Agent.config[:'synthetics.transaction_events_limit'])
+    @synthetics_samples = ::NewRelic::Agent::SizedBuffer.new(NewRelic::Agent.config[:'synthetics.events_limit'])
 
     event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
     self.register_config_callbacks
@@ -125,7 +125,7 @@ class NewRelic::Agent::TransactionEventAggregator
       self.reset!
     end
 
-    NewRelic::Agent.config.register_callback(:'synthetics.transaction_events_limit') do |max_samples|
+    NewRelic::Agent.config.register_callback(:'synthetics.events_limit') do |max_samples|
       NewRelic::Agent.logger.debug "TransactionEventAggregator limit for synthetics events set to #{max_samples}"
       self.synchronize { @synthetics_samples.capacity = max_samples }
       self.reset!
