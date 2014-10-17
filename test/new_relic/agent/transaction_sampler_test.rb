@@ -42,6 +42,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
                 :custom_parameters => {},
                 :cat_trip_id => '',
                 :cat_path_hash => '',
+                :is_synthetics_request? => false,
                 :filtered_params => {} )
   end
 
@@ -826,6 +827,38 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
 
     assert_equal path_hash, custom_params_from_last_sample[:'nr.path_hash']
+  end
+
+  def test_synthetics_parameters_not_included_if_not_valid_synthetics_request
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      in_transaction do |txn|
+        txn.raw_synthetics_header = nil
+        txn.synthetics_payload = nil
+      end
+    end
+
+    sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
+
+    custom_params = sample.params[:custom_params]
+    assert_nil sample.synthetics_resource_id
+    assert_nil custom_params[:'nr.synthetics_resource_id']
+    assert_nil custom_params[:'nr.synthetics_job_id']
+    assert_nil custom_params[:'nr.synthetics_monitor_id']
+  end
+
+  def test_synthetics_parameters_included
+    in_transaction do |txn|
+      txn.raw_synthetics_header = ""
+      txn.synthetics_payload = [1, 1, 100, 200, 300]
+    end
+
+    sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
+
+    custom_params = sample.params[:custom_params]
+    assert_equal 100, sample.synthetics_resource_id
+    assert_equal 100, custom_params[:'nr.synthetics_resource_id']
+    assert_equal 200, custom_params[:'nr.synthetics_job_id']
+    assert_equal 300, custom_params[:'nr.synthetics_monitor_id']
   end
 
   class Dummy

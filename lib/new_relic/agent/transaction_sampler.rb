@@ -8,6 +8,7 @@ require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/developer_mode_sample_buffer'
 require 'new_relic/agent/transaction/force_persist_sample_buffer'
 require 'new_relic/agent/transaction/slowest_sample_buffer'
+require 'new_relic/agent/transaction/synthetics_sample_buffer'
 require 'new_relic/agent/transaction/xray_sample_buffer'
 
 module NewRelic
@@ -41,6 +42,7 @@ module NewRelic
         @sample_buffers << @dev_mode_sample_buffer
         @sample_buffers << @xray_sample_buffer
         @sample_buffers << NewRelic::Agent::Transaction::SlowestSampleBuffer.new
+        @sample_buffers << NewRelic::Agent::Transaction::SyntheticsSampleBuffer.new
         @sample_buffers << NewRelic::Agent::Transaction::ForcePersistSampleBuffer.new
 
         # This lock is used to synchronize access to the @last_sample
@@ -133,6 +135,17 @@ module NewRelic
         if state.is_cross_app?
           last_sample.set_custom_param(:'nr.trip_id', txn.cat_trip_id(state))
           last_sample.set_custom_param(:'nr.path_hash', txn.cat_path_hash(state))
+        end
+
+        if txn.is_synthetics_request?
+          last_sample.set_custom_param(:'nr.synthetics_resource_id',
+                                       txn.synthetics_resource_id(state))
+          last_sample.set_custom_param(:'nr.synthetics_job_id',
+                                       txn.synthetics_job_id(state))
+          last_sample.set_custom_param(:'nr.synthetics_monitor_id',
+                                       txn.synthetics_monitor_id(state))
+
+          last_sample.synthetics_resource_id = txn.synthetics_resource_id(state)
         end
 
         @samples_lock.synchronize do
