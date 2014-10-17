@@ -496,27 +496,27 @@ module NewRelic
         synthetics_payload != nil && raw_synthetics_header != nil
       end
 
-      def synthetics_version(state)
+      def synthetics_version
         info = synthetics_payload or return nil
         info[0]
       end
 
-      def synthetics_account_id(state)
+      def synthetics_account_id
         info = synthetics_payload or return nil
         info[1]
       end
 
-      def synthetics_resource_id(state)
+      def synthetics_resource_id
         info = synthetics_payload or return nil
         info[2]
       end
 
-      def synthetics_job_id(state)
+      def synthetics_job_id
         info = synthetics_payload or return nil
         info[3]
       end
 
-      def synthetics_monitor_id(state)
+      def synthetics_monitor_id
         info = synthetics_payload or return nil
         info[4]
       end

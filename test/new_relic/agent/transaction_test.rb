@@ -500,11 +500,11 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       txn = state.current_transaction
       txn.synthetics_payload = [1,2,3,4,5]
 
-      assert_equal 1, txn.synthetics_version(state)
-      assert_equal 2, txn.synthetics_account_id(state)
-      assert_equal 3, txn.synthetics_resource_id(state)
-      assert_equal 4, txn.synthetics_job_id(state)
-      assert_equal 5, txn.synthetics_monitor_id(state)
+      assert_equal 1, txn.synthetics_version
+      assert_equal 2, txn.synthetics_account_id
+      assert_equal 3, txn.synthetics_resource_id
+      assert_equal 4, txn.synthetics_job_id
+      assert_equal 5, txn.synthetics_monitor_id
     end
   end
 
