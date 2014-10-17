@@ -472,6 +472,42 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     refute_includes keys, :cat_path_hash
   end
 
+  def test_is_not_synthetic_request_without_payload
+    in_transaction do |txn|
+      txn.raw_synthetics_header = ""
+      refute txn.is_synthetics_request?
+    end
+  end
+
+  def test_is_not_synthetic_request_without_header
+    in_transaction do |txn|
+      txn.synthetics_payload = [1,2,3,4,5]
+      refute txn.is_synthetics_request?
+    end
+  end
+
+  def test_is_synthetic_request
+    in_transaction do |txn|
+      txn.raw_synthetics_header = ""
+      txn.synthetics_payload = [1,2,3,4,5]
+      assert txn.is_synthetics_request?
+    end
+  end
+
+  def test_synthetics_accessors
+    in_transaction do
+      state = NewRelic::Agent::TransactionState.tl_get
+      txn = state.current_transaction
+      txn.synthetics_payload = [1,2,3,4,5]
+
+      assert_equal 1, txn.synthetics_version(state)
+      assert_equal 2, txn.synthetics_account_id(state)
+      assert_equal 3, txn.synthetics_resource_id(state)
+      assert_equal 4, txn.synthetics_job_id(state)
+      assert_equal 5, txn.synthetics_monitor_id(state)
+    end
+  end
+
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
     expects_logging(:warn, includes("add_custom_parameters"))
     in_transaction do
