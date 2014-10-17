@@ -77,7 +77,8 @@ module NewRelic
         string(@guid),
         nil,
         forced?,
-        int_or_nil(xray_session_id)
+        int_or_nil(xray_session_id),
+        int_or_nil(synthetics_resource_id)
       ]
     end
 

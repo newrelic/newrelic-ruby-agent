@@ -6,8 +6,12 @@ require File.expand_path('../../test_helper.rb', __FILE__)
 
 class NewRelic::TransactionSampleTest < Minitest::Test
   include TransactionSampleTestHelper
+
   ::SQL_STATEMENT = "SELECT * from sandwiches WHERE meat='bacon'"
   ::OBFUSCATED_SQL_STATEMENT = "SELECT * from sandwiches WHERE meat=?"
+
+  FORCE_PERSIST_POSITION = 7
+  SYNTHETICS_POSITION    = 9
 
   def setup
     @test_config = { :developer_mode => true }
@@ -258,7 +262,9 @@ class NewRelic::TransactionSampleTest < Minitest::Test
                       (@t.duration * 1000).round,
                       @t.params[:path], @t.params[:uri],
                       trace_tree,
-                      @t.guid, nil, !!@t.force_persist, @t.xray_session_id]
+                      @t.guid, nil, !!@t.force_persist,
+                      @t.xray_session_id,
+                      @t.synthetics_resource_id]
 
     assert_collector_arrays_match expected_array, @t.to_collector_array(@marshaller.default_encoder)
 
@@ -271,13 +277,17 @@ class NewRelic::TransactionSampleTest < Minitest::Test
     assert_equal expected_array, actual_array
   end
 
-  FORCE_PERSIST_POSITION = 7
-
   def test_to_collector_array_forces_xrays
     @t.force_persist = false
     @t.xray_session_id = 123
     result = @t.to_collector_array(@marshaller.default_encoder)
     assert_equal true, result[FORCE_PERSIST_POSITION]
+  end
+
+  def test_to_collector_array_uses_synthetics_resource_id
+    @t.synthetics_resource_id = 42
+    result = @t.to_collector_array(@marshaller.default_encoder)
+    assert_equal 42, result[SYNTHETICS_POSITION]
   end
 
   def test_to_collector_array_with_bad_values
@@ -290,7 +300,7 @@ class NewRelic::TransactionSampleTest < Minitest::Test
       nil, nil,
       trace_tree(transaction),
       transaction.guid,
-      nil, false, nil]
+      nil, false, nil, nil]
 
     actual = transaction.to_collector_array(@marshaller.default_encoder)
     assert_collector_arrays_match expected, actual
