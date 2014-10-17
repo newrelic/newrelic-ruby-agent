@@ -13,10 +13,8 @@ end
 Delayed::Worker.guess_backend
 
 if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
-
-  $database_name = "testdb.#{ENV["MULTIVERSE_ENV"]}.sqlite3"
-  $db_connection = ActiveRecord::Base.establish_connection(:adapter => 'sqlite3',
-                                                           :database => $database_name)
+  $db_connection = ActiveRecord::Base.establish_connection(:adapter  => "sqlite3",
+                                                           :database => ":memory:")
 
   begin
     require 'generators/delayed_job/templates/migration'
