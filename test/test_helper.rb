@@ -22,6 +22,23 @@ unless defined?(Minitest::Test)
   Minitest::Test = MiniTest::Unit::TestCase
 end
 
+# Set up a watcher for leaking agent threads out of tests.  It'd be nice to
+# disable the threads everywhere, but not all tests have newrelic.yml loaded to
+# us to rely on, so instead we'll just watch for it.
+class Minitest::Test
+  def before_setup
+    @__thread_count = Thread.list.count
+    super
+  end
+
+  def after_teardown
+    if @__thread_count != Thread.list.count
+      fail "Thread count changed in this test from #{@__thread_count} to #{Thread.list.count}"
+    end
+    super
+  end
+end
+
 Dir.glob('test/helpers/*').each { |f| require f }
 
 Dir.glob(File.join(NEWRELIC_PLUGIN_DIR,'test/helpers/*.rb')).each do |helper|

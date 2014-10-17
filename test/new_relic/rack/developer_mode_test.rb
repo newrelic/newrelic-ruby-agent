@@ -21,7 +21,7 @@ class DeveloperModeTest < Minitest::Test
   end
 
   def setup
-    @test_config = { :developer_mode => true }
+    @test_config = { :developer_mode => true, :disable_harvest_thread => true }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
     run_sample_trace('/here')
     run_sample_trace('/there')
