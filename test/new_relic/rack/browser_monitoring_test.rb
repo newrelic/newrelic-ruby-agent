@@ -66,6 +66,7 @@ EOL
       :'rum.enabled' => true,
       :license_key => 'a' * 40,
       :js_agent_loader => 'loader',
+      :disable_harvest_thread => true
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
   end
