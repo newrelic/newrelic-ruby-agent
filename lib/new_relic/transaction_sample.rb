@@ -16,7 +16,8 @@ module NewRelic
   class TransactionSample
 
     attr_accessor :params, :root_segment, :profile, :force_persist, :guid,
-                  :threshold, :finished, :xray_session_id, :start_time
+                  :threshold, :finished, :xray_session_id, :start_time,
+                  :synthetics_resource_id
     attr_reader :root_segment, :params, :sample_id
     attr_writer :prepared
 
@@ -76,7 +77,8 @@ module NewRelic
         string(@guid),
         nil,
         forced?,
-        int_or_nil(xray_session_id)
+        int_or_nil(xray_session_id),
+        int_or_nil(synthetics_resource_id)
       ]
     end
 

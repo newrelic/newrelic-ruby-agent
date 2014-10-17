@@ -1116,7 +1116,13 @@ module NewRelic
           :type         => Array,
           :transform    => DefaultSource.rules_ignore,
           :description  => 'A list of patterns that will cause a transaction to be ignored if any of them match the URI.'
-         }
+        },
+        :'synthetics.transactions_limit' => {
+          :default      => 20,
+          :public       => false,
+          :type         => Fixnum,
+          :description  => 'Maximum number of synthetics transaction traces to hold for a given harvest'
+        }
       }.freeze
 
     end

@@ -492,6 +492,35 @@ module NewRelic
         NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_path_hash(state)
       end
 
+      def is_synthetics_request?
+        synthetics_payload != nil && raw_synthetics_header != nil
+      end
+
+      def synthetics_version(state)
+        info = synthetics_payload or return nil
+        info[0]
+      end
+
+      def synthetics_account_id(state)
+        info = synthetics_payload or return nil
+        info[1]
+      end
+
+      def synthetics_resource_id(state)
+        info = synthetics_payload or return nil
+        info[2]
+      end
+
+      def synthetics_job_id(state)
+        info = synthetics_payload or return nil
+        info[3]
+      end
+
+      def synthetics_monitor_id(state)
+        info = synthetics_payload or return nil
+        info[4]
+      end
+
       APDEX_S = 'S'.freeze
       APDEX_T = 'T'.freeze
       APDEX_F = 'F'.freeze

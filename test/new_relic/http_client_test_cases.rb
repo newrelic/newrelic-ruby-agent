@@ -476,7 +476,7 @@ module HttpClientTestCases
     end
   end
 
-  def test_synthetics_header_is_passed_along_if_present
+  def test_raw_synthetics_header_is_passed_along_if_present
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction do
         state = NewRelic::Agent::TransactionState.tl_get
@@ -489,7 +489,7 @@ module HttpClientTestCases
     end
   end
 
-  def test_no_synthetics_header_if_not_present
+  def test_no_raw_synthetics_header_if_not_present
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction do
         get_response
