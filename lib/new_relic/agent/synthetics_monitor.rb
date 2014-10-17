@@ -21,20 +21,19 @@ module NewRelic
       end
 
       def on_before_call(request) #THREAD_LOCAL_ACCESS
-        incoming_payload = decode_payload(request)
+        encoded_header = from_headers(request, SYNTHETICS_HEADER_KEYS)
+        return unless encoded_header
+
+        incoming_payload = deserialize_header(encoded_header)
         return unless incoming_payload &&
             is_valid_payload?(incoming_payload) &&
             is_supported_version?(incoming_payload) &&
             is_trusted?(incoming_payload)
 
-        NewRelic::Agent::TransactionState.tl_get.current_transaction.synthetics_info = incoming_payload
-      end
-
-      def decode_payload(request)
-        encoded_header = from_headers(request, SYNTHETICS_HEADER_KEYS)
-        return nil unless encoded_header
-
-        deserialize_header(encoded_header)
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.raw_synthetics_header = encoded_header
+        txn.synthetics_payload    = incoming_payload
       end
 
       def is_supported_version?(incoming_payload)
