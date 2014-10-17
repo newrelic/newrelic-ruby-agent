@@ -5,6 +5,8 @@
 module NewRelic
   module Agent
     module MethodTracerHelpers
+      MAX_ALLOWED_METRIC_DURATION = 1_000_000_000 # roughly 31 years
+
       extend self
 
       # helper for logging errors to the newrelic_agent.log
@@ -43,7 +45,7 @@ module NewRelic
               duration = t1 - t0
               exclusive = duration - frame.children_time
 
-              if duration < 1_000_000_000 # roughly 31 years
+              if duration < MAX_ALLOWED_METRIC_DURATION
                 if duration < 0
                   ::NewRelic::Agent.logger.log_once(:warn, "metric_duration_negative:#{first_name}",
                     "Metric #{first_name} has negative duration: #{duration} s")

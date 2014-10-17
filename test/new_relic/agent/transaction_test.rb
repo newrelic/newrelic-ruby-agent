@@ -983,6 +983,34 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_doesnt_record_queue_time_if_it_is_zero
+    in_transaction('boo') do
+      # nothing
+    end
+    assert_metrics_not_recorded(['WebFrontend/QueueTime'])
+  end
+
+  def test_doesnt_record_scoped_queue_time_metric
+    t0 = freeze_time
+    advance_time 10.0
+    in_transaction('boo', :apdex_start_time => t0) do
+      # nothing
+    end
+    assert_metrics_recorded('WebFrontend/QueueTime' => { :call_count => 1, :total_call_time => 10.0 })
+    assert_metrics_not_recorded(
+      [['WebFrontend/QueueTime', 'boo']]
+    )
+  end
+
+  def test_doesnt_record_crazy_high_queue_times
+    t0 = freeze_time(Time.at(10.0))
+    advance_time(40 * 365 * 24 * 60 * 60) # 40 years
+    in_transaction('boo', :apdex_start_time => t0) do
+      # nothing
+    end
+    assert_metrics_not_recorded(['WebFrontend/QueueTime'])
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end
