@@ -78,7 +78,7 @@ module NewRelic
           NewRelic::Agent.record_metric(all_metric, counts.max)
         end
 
-        QUEUE_QUERY_CONDITION = 'run_at < ? and failed_at is NULL'.freeze
+        QUEUE_QUERY_CONDITION = 'run_at <= ? and failed_at is NULL'.freeze
 
         def record_counts_by(column_name, metric_segment = column_name)
           all_count = 0
