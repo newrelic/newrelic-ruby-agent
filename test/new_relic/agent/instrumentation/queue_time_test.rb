@@ -73,25 +73,6 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
     assert_in_delta(now, QueueTime.parse_frontend_timestamp(header, now), 0.001)
   end
 
-  def test_recording_queue_time_metric
-    QueueTime.record_frontend_metrics(Time.at(Time.now.to_f - 60))
-    assert_metrics_recorded(
-      'WebFrontend/QueueTime' => {
-        :call_count      => 1,
-        :total_call_time => 60
-      }
-    )
-  end
-
-  def test_doesnt_record_scoped_queue_time_metric
-    in_transaction('boo') do
-      QueueTime.record_frontend_metrics(Time.at(Time.now.to_f - 60))
-    end
-    assert_metrics_not_recorded(
-      [['WebFrontend/QueueTime', 'boo']]
-    )
-  end
-
   def test_parsing_malformed_header
     header = { 'HTTP_X_REQUEST_START' => 'gobledy gook' }
 

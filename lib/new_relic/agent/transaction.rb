@@ -425,7 +425,7 @@ module NewRelic
 
         record_summary_metrics(outermost_segment_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
-        NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
+        record_queue_time
 
         record_exceptions
         merge_metrics
@@ -598,6 +598,23 @@ module NewRelic
         end
       end
 
+      QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'.freeze
+
+      def queue_time
+        @apdex_start ? @start_time - @apdex_start : 0
+      end
+
+      def record_queue_time
+        value = queue_time
+        if value > 0.0
+          if value < MethodTracerHelpers::MAX_ALLOWED_METRIC_DURATION
+            @metrics.record_unscoped(QUEUE_TIME_METRIC, value)
+          else
+            ::NewRelic::Agent.logger.log_once(:warn, :too_high_queue_time, "Not recording unreasonably large queue time of #{value} s")
+          end
+        end
+      end
+
       APDEX_METRIC = 'Apdex'.freeze
 
       def had_error?
@@ -671,10 +688,6 @@ module NewRelic
 
       alias_method :user_attributes, :custom_parameters
       alias_method :set_user_attributes, :add_custom_parameters
-
-      def queue_time
-        @apdex_start ? @start_time - @apdex_start : 0
-      end
 
       # Returns truthy if the current in-progress transaction is considered a
       # a web transaction (as opposed to, e.g., a background transaction).
