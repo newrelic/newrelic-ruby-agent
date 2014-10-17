@@ -56,12 +56,14 @@ class NewRelic::Agent::TransactionEventAggregator
   end
 
   def reset!
-    sample_count, request_count = 0
+    sample_count, request_count, synthetics_dropped = 0
     old_samples = nil
 
     self.synchronize do
       sample_count = @samples.size
       request_count = @samples.num_seen
+
+      synthetics_dropped = @synthetics_samples.num_dropped
 
       old_samples = @samples.to_a + @synthetics_samples.to_a
       @samples.reset!
@@ -70,14 +72,15 @@ class NewRelic::Agent::TransactionEventAggregator
       @notified_full = false
     end
 
-    [old_samples, sample_count, request_count]
+    [old_samples, sample_count, request_count, synthetics_dropped]
   end
 
   # Clear any existing samples, reset the last sample time, and return the
   # previous set of samples. (Synchronized)
   def harvest!
-    old_samples, sample_count, request_count = reset!
+    old_samples, sample_count, request_count, synthetics_dropped = reset!
     record_sampling_rate(request_count, sample_count) if @enabled
+    record_dropped_synthetics(synthetics_dropped)
     old_samples
   end
 
@@ -104,6 +107,15 @@ class NewRelic::Agent::TransactionEventAggregator
     engine = NewRelic::Agent.instance.stats_engine
     engine.tl_record_supportability_metric_count("TransactionEventAggregator/requests", request_count)
     engine.tl_record_supportability_metric_count("TransactionEventAggregator/samples", sample_count)
+  end
+
+  def record_dropped_synthetics(synthetics_dropped)
+    return unless synthetics_dropped > 0
+
+    NewRelic::Agent.logger.debug("Synthetics transaction event limit (#{@samples.capacity}) reached. Further synthetics events this harvest period dropped.")
+
+    engine = NewRelic::Agent.instance.stats_engine
+    engine.tl_record_supportability_metric_count("TransactionEventAggregator/synthetics_events_dropped", synthetics_dropped)
   end
 
   def register_config_callbacks

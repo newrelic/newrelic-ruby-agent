@@ -253,6 +253,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     end
   end
 
+
   def test_merging_synthetics_still_applies_limit
     samples = with_sampler_config(:'synthetics.transaction_events_limit' => 20) do
       20.times do
@@ -264,6 +265,32 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     with_sampler_config(:'synthetics.transaction_events_limit' => 10) do
       @sampler.merge!(samples)
       assert_equal 10, @sampler.samples.size
+    end
+  end
+
+  def test_synthetics_event_dropped_records_supportability_metrics
+    with_sampler_config(:'synthetics.transaction_events_limit' => 20) do
+      20.times do
+        generate_request('synthetic', :synthetics_resource_id => 100)
+      end
+
+      @sampler.harvest!
+
+      metric = 'Supportability/TransactionEventAggregator/synthetics_events_dropped'
+      assert_metrics_not_recorded(metric)
+    end
+  end
+
+  def test_synthetics_event_dropped_records_supportability_metrics
+    with_sampler_config(:'synthetics.transaction_events_limit' => 10) do
+      20.times do
+        generate_request('synthetic', :synthetics_resource_id => 100)
+      end
+
+      @sampler.harvest!
+
+      metric = 'Supportability/TransactionEventAggregator/synthetics_events_dropped'
+      assert_metrics_recorded(metric => { :call_count => 10 })
     end
   end
 
