@@ -29,15 +29,16 @@ module NewRelic::Agent
 
     def setup
       NewRelic::Agent.reset_config
-      NewRelic::Agent.instance.stats_engine.clear_stats
+      NewRelic::Agent.drop_buffered_data
       @events = NewRelic::Agent::EventListener.new
       @response = {}
 
       @monitor = NewRelic::Agent::CrossAppMonitor.new(@events)
       @config = {
-        :cross_process_id    => AGENT_CROSS_APP_ID,
-        :encoding_key        => ENCODING_KEY_NOOP,
-        :trusted_account_ids => TRUSTED_ACCOUNT_IDS
+        :cross_process_id       => AGENT_CROSS_APP_ID,
+        :encoding_key           => ENCODING_KEY_NOOP,
+        :trusted_account_ids    => TRUSTED_ACCOUNT_IDS,
+        :disable_harvest_thread => true
       }
 
       NewRelic::Agent.config.add_config_for_testing(@config)
