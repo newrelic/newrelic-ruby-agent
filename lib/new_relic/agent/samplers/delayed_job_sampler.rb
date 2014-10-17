@@ -78,7 +78,7 @@ module NewRelic
           NewRelic::Agent.record_metric(all_metric, counts.max)
         end
 
-        QUEUE_QUERY_CONDITION = 'run_at < ? and failed_at is NULL'.freeze
+        QUEUE_QUERY_CONDITION = 'run_at <= ? and failed_at is NULL'.freeze
 
         def record_counts_by(column_name, metric_segment = column_name)
           all_count = 0
@@ -92,13 +92,14 @@ module NewRelic
         end
 
         def queue_counts(column_name)
+          now = ::Delayed::Job.db_time_now
           # There is not an ActiveRecord syntax for what we're trying to do
           # here that's valid on 2.x through 4.1, so split it up.
           result = if ::ActiveRecord::VERSION::MAJOR.to_i < 4
             ::Delayed::Job.count(:group => column_name,
-                                 :conditions => [QUEUE_QUERY_CONDITION, Time.now])
+                                 :conditions => [QUEUE_QUERY_CONDITION, now])
           else
-            ::Delayed::Job.where(QUEUE_QUERY_CONDITION, Time.now).
+            ::Delayed::Job.where(QUEUE_QUERY_CONDITION, now).
                            group(column_name).
                            count
           end
