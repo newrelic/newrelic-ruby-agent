@@ -508,6 +508,37 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_synthetics_fields_in_finish_event_payload
+    keys = []
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      keys = payload.keys
+    end
+
+    in_transaction do |txn|
+      txn.raw_synthetics_header = "something"
+      txn.synthetics_payload = [1, 1, 100, 200, 300]
+    end
+
+    assert_includes keys, :synthetics_resource_id
+    assert_includes keys, :synthetics_job_id
+    assert_includes keys, :synthetics_monitor_id
+  end
+
+  def test_synthetics_fields_not_in_finish_event_payload_if_no_cross_app_calls
+    keys = []
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      keys = payload.keys
+    end
+
+    in_transaction do |txn|
+      # Make totally sure we're not synthetic
+      txn.raw_synthetics_header = nil
+    end
+
+    refute_includes keys, :synthetics_resource_id
+    refute_includes keys, :synthetics_job_id
+    refute_includes keys, :synthetics_monitor_id
+  end
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
     expects_logging(:warn, includes("add_custom_parameters"))
     in_transaction do
