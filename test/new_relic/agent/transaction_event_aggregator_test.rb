@@ -243,6 +243,30 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     assert_equal('404', code)
   end
 
+  def test_synthetics_aggregation_limits
+    with_sampler_config(:'synthetics.transaction_events_limit' => 10) do
+      20.times do
+        generate_request('synthetic', :synthetics_resource_id => 100)
+      end
+
+      assert_equal 10, @sampler.samples.size
+    end
+  end
+
+  def test_merging_synthetics_still_applies_limit
+    samples = with_sampler_config(:'synthetics.transaction_events_limit' => 20) do
+      20.times do
+        generate_request('synthetic', :synthetics_resource_id => 100)
+      end
+      @sampler.harvest!
+    end
+
+    with_sampler_config(:'synthetics.transaction_events_limit' => 10) do
+      @sampler.merge!(samples)
+      assert_equal 10, @sampler.samples.size
+    end
+  end
+
   #
   # Helpers
   #

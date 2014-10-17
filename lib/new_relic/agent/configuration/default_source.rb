@@ -1122,6 +1122,12 @@ module NewRelic
           :public       => false,
           :type         => Fixnum,
           :description  => 'Maximum number of synthetics transaction traces to hold for a given harvest'
+        },
+        :'synthetics.transaction_events_limit' => {
+          :default      => 200,
+          :public       => false,
+          :type         => Fixnum,
+          :description  => 'Maximum number of synthetics transaction events to hold for a given harvest'
         }
       }.freeze
 
