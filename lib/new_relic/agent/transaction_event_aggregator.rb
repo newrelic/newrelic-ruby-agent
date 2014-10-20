@@ -52,7 +52,7 @@ class NewRelic::Agent::TransactionEventAggregator
 
   # Fetch a copy of the sampler's gathered samples. (Synchronized)
   def samples
-    return self.synchronize { @samples.to_a + @synthetics_samples.to_a }
+    return self.synchronize { @samples.to_a.concat(@synthetics_samples.to_a) }
   end
 
   def reset!
