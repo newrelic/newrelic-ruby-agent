@@ -30,24 +30,28 @@ Hometown.watch(::Thread)
 # us to rely on, so instead we'll just watch for it.
 class Minitest::Test
   def before_setup
-    @__thread_count = Thread.list.count
+    @__thread_count = ruby_threads.count
     super
   end
 
   def after_teardown
-    if @__thread_count != Thread.list.count
-      backtraces = Thread.list.map do |thread|
+    threads = ruby_threads
+    if @__thread_count != threads.count
+      backtraces = threads.map do |thread|
         trace = Hometown.for(thread)
-        if trace
-          trace.backtrace.join("\n    ")
-        else
-          "No trace for thread #{thread}"
-        end
+        trace.backtrace.join("\n    ")
       end.join("\n\n")
 
-      fail "Thread count changed in this test from #{@__thread_count} to #{Thread.list.count}\n#{backtraces}"
+      fail "Thread count changed in this test from #{@__thread_count} to #{threads.count}\n#{backtraces}"
     end
+
     super
+  end
+
+  # We only want to count threads that were spun up from Ruby (i.e.
+  # Thread.new) JRuby has system threads we don't care to track.
+  def ruby_threads
+    Thread.list.select { |t| Hometown.for(t) }
   end
 end
 
