@@ -40,3 +40,4 @@ end
 gem "newrelic_rpm", :path => "../../.."
 
 gem 'pry', '~> 0.9.12'
+gem 'hometown', '~> 0.2.5'
