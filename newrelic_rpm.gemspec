@@ -51,6 +51,7 @@ EOS
   s.add_development_dependency 'guard', '~> 1.8.3' # Guard 2.0 is Ruby 1.9 only
   s.add_development_dependency 'guard-minitest'
   s.add_development_dependency 'rb-fsevent', '~> 0.9.1'
+  s.add_development_dependency 'hometown', '~> 0.2.5'
   s.add_development_dependency 'jruby-openssl' if RUBY_PLATFORM == 'java'
 
   if RUBY_PLATFORM == 'java'
