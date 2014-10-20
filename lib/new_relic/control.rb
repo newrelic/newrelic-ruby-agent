@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'yaml'
-require 'conditional_vendored_metric_parser'
 require 'conditional_vendored_dependency_detection'
 require 'new_relic/local_environment'
 require 'new_relic/language_support'

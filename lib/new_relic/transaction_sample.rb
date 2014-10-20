@@ -23,8 +23,6 @@ module NewRelic
 
     @@start_time = Time.now
 
-    include TransactionAnalysis
-
     def initialize(time = Time.now.to_f, sample_id = nil)
       @sample_id = sample_id || object_id
       @start_time = time
