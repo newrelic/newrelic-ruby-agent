@@ -9,7 +9,7 @@ module NewRelic
     class Transaction
       class SyntheticsSampleBuffer < TransactionSampleBuffer
         def capacity
-          NewRelic::Agent.config[:'synthetics.transactions_limit']
+          NewRelic::Agent.config[:'synthetics.traces_limit']
         end
 
         def allow_sample?(sample)

@@ -454,6 +454,7 @@ module NewRelic
         }
         append_cat_info(state, duration, payload)
         append_apdex_perf_zone(duration, payload)
+        append_synthetics_to(state, payload)
         append_referring_transaction_guid_to(state, payload)
         append_http_response_code(payload)
 
@@ -496,27 +497,27 @@ module NewRelic
         synthetics_payload != nil && raw_synthetics_header != nil
       end
 
-      def synthetics_version(state)
+      def synthetics_version
         info = synthetics_payload or return nil
         info[0]
       end
 
-      def synthetics_account_id(state)
+      def synthetics_account_id
         info = synthetics_payload or return nil
         info[1]
       end
 
-      def synthetics_resource_id(state)
+      def synthetics_resource_id
         info = synthetics_payload or return nil
         info[2]
       end
 
-      def synthetics_job_id(state)
+      def synthetics_job_id
         info = synthetics_payload or return nil
         info[3]
       end
 
-      def synthetics_monitor_id(state)
+      def synthetics_monitor_id
         info = synthetics_payload or return nil
         info[4]
       end
@@ -558,6 +559,14 @@ module NewRelic
             payload[:cat_alternate_path_hashes] = alternate_path_hashes
           end
         end
+      end
+
+      def append_synthetics_to(state, payload)
+        return unless is_synthetics_request?
+
+        payload[:synthetics_resource_id] = synthetics_resource_id
+        payload[:synthetics_job_id]      = synthetics_job_id
+        payload[:synthetics_monitor_id]  = synthetics_monitor_id
       end
 
       def append_referring_transaction_guid_to(state, payload)
