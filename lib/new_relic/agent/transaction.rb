@@ -360,9 +360,24 @@ module NewRelic
         transaction_sampler.ignore_transaction(state)
       end
 
+      WEB_SUMMARY_METRIC   = 'HttpDispatcher'.freeze
+      OTHER_SUMMARY_METRIC = 'OtherTransaction/all'.freeze
+
       def summary_metrics
-        metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@frozen_name)
-        metric_parser.summary_metrics
+        if @frozen_name.start_with?(CONTROLLER_PREFIX)
+          [WEB_SUMMARY_METRIC]
+        else
+          background_summary_metrics
+        end
+      end
+
+      def background_summary_metrics
+        segments = @frozen_name.split('/')
+        if segments.size > 2
+          ["OtherTransaction/#{segments[1]}/all", OTHER_SUMMARY_METRIC]
+        else
+          []
+        end
       end
 
       def needs_middleware_summary_metrics?(name)
