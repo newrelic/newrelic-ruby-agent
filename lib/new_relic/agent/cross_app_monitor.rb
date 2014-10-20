@@ -67,7 +67,7 @@ module NewRelic
 
       def save_referring_transaction_info(state, request_headers)
         txn_header = from_headers(request_headers, NEWRELIC_TXN_HEADER_KEYS) or return
-        txn_info = deserialize_header(txn_header)
+        txn_info = deserialize_header(txn_header, NEWRELIC_TXN_HEADER)
         state.referring_transaction_info = txn_info
       end
 
