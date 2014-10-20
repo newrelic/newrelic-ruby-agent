@@ -63,6 +63,14 @@
   This would result in a failure during those transactions. This has been
   fixed.
 
+  * Fix for rare race condition in Resque instrumentation
+
+  A race condition in the agent's Resque instrumentation that could cause rare
+  Resque job failures in high-throughput Resque setups has been fixed. This bug
+  would manifest as an exception with the following error message:
+  "RuntimeError: can't add a new key into hash during iteration" and a backtrace
+  leading through the PipeChannelManager class in the agent.
+
 ## v3.9.5 ##
 
   * Per-dyno data on Heroku
