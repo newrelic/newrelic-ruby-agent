@@ -414,7 +414,7 @@ def advance_time(seconds)
   freeze_time(Time.now + seconds)
 end
 
-def with_constant_defined(constant_symbol, implementation)
+def with_constant_defined(constant_symbol, implementation=Module.new)
   const_path = constant_path(constant_symbol.to_s)
 
   if const_path
@@ -517,6 +517,19 @@ def with_environment(env)
     yield
   ensure
     old_env.each { |key, old_val| ENV[key] = old_val }
+  end
+end
+
+def with_argv(argv)
+  old_argv = ARGV.dup
+  ARGV.clear
+  ARGV.concat(argv)
+
+  begin
+    yield
+  ensure
+    ARGV.clear
+    ARGV.concat(old_argv)
   end
 end
 
