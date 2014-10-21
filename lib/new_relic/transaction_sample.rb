@@ -172,10 +172,6 @@ module NewRelic
       @params = params
     end
 
-    def force_persist_sample? #THREAD_LOCAL_ACCESS
-      false
-    end
-
   private
 
     def strip_sql!
