@@ -481,7 +481,7 @@ module NewRelic
       end
 
       def include_guid?(state, duration)
-        state.is_cross_app?
+        state.is_cross_app? || is_synthetics_request?
       end
 
       def cat_trip_id(state)
