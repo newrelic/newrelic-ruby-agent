@@ -420,6 +420,23 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_guid_in_finish_event_payload_if_incoming_synthetics_header
+    keys = []
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      keys = payload.keys
+    end
+
+    raw_synthetics_header = 'dummy data'
+    synthetics_payload    = [123, 456, 789, 111]
+
+    in_transaction do |txn|
+      txn.raw_synthetics_header = raw_synthetics_header
+      txn.synthetics_payload    = synthetics_payload
+    end
+
+    assert_includes keys, :guid
+  end
+
   def test_cross_app_fields_in_finish_event_payload
     keys = []
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
