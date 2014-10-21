@@ -481,8 +481,7 @@ module NewRelic
       end
 
       def include_guid?(state, duration)
-        state.is_cross_app? ||
-        (state.request_token && duration > apdex_t)
+        state.is_cross_app?
       end
 
       def cat_trip_id(state)

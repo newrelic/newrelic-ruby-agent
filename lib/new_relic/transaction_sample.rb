@@ -172,12 +172,6 @@ module NewRelic
       @params = params
     end
 
-    def force_persist_sample? #THREAD_LOCAL_ACCESS
-      state = NewRelic::Agent::TransactionState.tl_get
-
-      state.request_token && self.duration > state.current_transaction.apdex_t
-    end
-
   private
 
     def strip_sql!

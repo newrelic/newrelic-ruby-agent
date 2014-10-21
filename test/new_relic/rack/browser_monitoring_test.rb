@@ -179,24 +179,6 @@ EOL
     assert last_response.ok?
   end
 
-  def test_token_is_set_in_footer_when_set_by_cookie
-    token = '1234567890987654321'
-    set_cookie "NRAGENT=tk=#{token}"
-    get '/'
-
-    assert(last_response.body.include?(token), last_response.body)
-  end
-
-  def test_guid_is_set_in_footer_when_token_is_set
-    guid = 'abcdefgfedcba'
-    NewRelic::Agent::Transaction.any_instance.stubs(:guid).returns(guid)
-    set_cookie "NRAGENT=tk=token"
-    with_config(:apdex_t => 0.0001) do
-      get '/'
-      assert(last_response.body.include?(guid), last_response.body)
-    end
-  end
-
   def test_calculate_content_length_accounts_for_multibyte_characters_for_186
     String.stubs(:respond_to?).with(:bytesize).returns(false)
     browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(mock('app'))
