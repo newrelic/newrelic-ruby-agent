@@ -10,7 +10,7 @@ namespace :newrelic do
   desc "Record a deployment in New Relic (newrelic.com)"
   task :notice_deployment do
     run_locally do
-      rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
+      environment = fetch(:newrelic_env, fetch(:rails_env, "production"))
 
       require 'new_relic/cli/command.rb'
 
@@ -30,7 +30,7 @@ namespace :newrelic do
 
         new_revision = rev
         deploy_options = {
-          :environment => rails_env,
+          :environment => environment,
           :revision    => new_revision,
           :changelog   => changelog,
           :description => description,
