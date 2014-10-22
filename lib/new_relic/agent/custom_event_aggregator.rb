@@ -19,10 +19,10 @@ module NewRelic
 
       def initialize
         @lock    = Mutex.new
-        @buffers = {
-          DEFAULT_TYPE => SizedBuffer.new(DEFAULT_CAPACITY)
-        }
+        @buffers = {}
         @type_strings = Hash.new { |hash, key| hash[key] = key.to_s.freeze }
+
+        register_event_type(DEFAULT_TYPE, DEFAULT_CAPACITY, SizedBuffer)
       end
 
       def register_event_type(type, capacity, buffer_class = SizedBuffer)
