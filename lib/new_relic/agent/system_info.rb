@@ -125,17 +125,24 @@ module NewRelic
       end
 
       def self.docker_container_id
-        cpu_cgroup = parse_cgroup_ids['cpu']
+        return unless ruby_os_identifier =~ /linux/
+
+        cgroup_info = proc_try_read('/proc/self/cgroup')
+        return unless cgroup_info
+
+        parse_docker_container_id(cgroup_info)
+      end
+
+      def self.parse_docker_container_id(cgroup_info)
+        cpu_cgroup = parse_cgroup_ids(cgroup_info)['cpu']
         return unless cpu_cgroup && cpu_cgroup =~ %r{^/docker/(.*)}
         return $1
       end
 
-      def self.parse_cgroup_ids
+      def self.parse_cgroup_ids(cgroup_info)
         cgroup_ids = {}
-        return cgroup_ids unless ruby_os_identifier =~ /linux/
 
-        cgroups = proc_try_read('/proc/self/cgroup')
-        cgroups.split("\n").each do |line|
+        cgroup_info.split("\n").each do |line|
           parts = line.split(':')
           next unless parts.size == 3
           _, type, cgroup_id = parts

@@ -24,6 +24,7 @@ Please be careful when adding new tests from real world failures.
 | [proc_cpuinfo](proc_cpuinfo) | These test correct processing of `/proc/cpuinfo` output on Linux hosts. |
 | [proc_meminfo](proc_meminfo) | These test correct processing of `/proc/meminfo` output on Linux hosts. |
 | [transaction_segment_terms.json](transaction_segment_terms.json) | These tests cover agent implementations of the `transaction_segment_terms` transaction renaming rules introduced in collector protocol 14. See [the spec](https://newrelic.atlassian.net/wiki/display/eng/Language+agent+transaction+segment+terms+rules) for details. |
+| [docker_container_id](docker_container_id) | These tests cover parsing of Docker container IDs from `/proc` on Linux hosts. |
 
 ### CAT Map test details
 
