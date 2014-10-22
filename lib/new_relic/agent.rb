@@ -455,6 +455,29 @@ module NewRelic
       agent.pop_trace_execution_flag
     end
 
+    # Record a custom event to be sent to New Relic Insights.
+    # The recorded event will be buffered in memory until the next time the
+    # agent sends data to New Relic's servers.
+    #
+    # A timestamp will be automatically added to the recorded event when this
+    # method is called.
+    #
+    # @param [Symbol] event_type The name of the event type to record.
+    # @param [Hash] event_attrs A Hash of attributes to be attached to the event.
+    #                           Keys should be strings or symbols, and values
+    #                           may be strings, symbols, numeric values or
+    #                           booleans.
+    #
+    # @return A truthy value if the event was successfully stored, or a falsy
+    #         value if the event was not stored (due to the internal buffer
+    #         being full).
+    #
+    # @api public
+    #
+    def record_custom_event(event_type, event_attrs)
+      agent && agent.custom_event_aggregator.record(event_type, event_attrs)
+    end
+
     # Check to see if we are capturing metrics currently on this thread.
     def tl_is_execution_traced?
       NewRelic::Agent::TransactionState.tl_get.is_execution_traced?
