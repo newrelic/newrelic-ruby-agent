@@ -122,13 +122,11 @@ class NewRelic::Agent::TransactionEventAggregator
     NewRelic::Agent.config.register_callback(:'analytics_events.max_samples_stored') do |max_samples|
       NewRelic::Agent.logger.debug "TransactionEventAggregator max_samples set to #{max_samples}"
       self.synchronize { @samples.capacity = max_samples }
-      self.reset!
     end
 
     NewRelic::Agent.config.register_callback(:'synthetics.events_limit') do |max_samples|
       NewRelic::Agent.logger.debug "TransactionEventAggregator limit for synthetics events set to #{max_samples}"
       self.synchronize { @synthetics_samples.capacity = max_samples }
-      self.reset!
     end
 
     NewRelic::Agent.config.register_callback(:'analytics_events.enabled') do |enabled|
