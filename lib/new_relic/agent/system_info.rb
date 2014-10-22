@@ -124,6 +124,27 @@ module NewRelic
         proc_try_read('/proc/version')
       end
 
+      def self.docker_container_id
+        cpu_cgroup = parse_cgroup_ids['cpu']
+        return unless cpu_cgroup && cpu_cgroup =~ %r{^/docker/(.*)}
+        return $1
+      end
+
+      def self.parse_cgroup_ids
+        cgroup_ids = {}
+        return cgroup_ids unless ruby_os_identifier =~ /linux/
+
+        cgroups = proc_try_read('/proc/self/cgroup')
+        cgroups.split("\n").each do |line|
+          parts = line.split(':')
+          next unless parts.size == 3
+          _, type, cgroup_id = parts
+          cgroup_ids[type] = cgroup_id
+        end
+
+        cgroup_ids
+      end
+
       # A File.read against /(proc|sysfs)/* can hang with some older Linuxes.
       # See https://bugzilla.redhat.com/show_bug.cgi?id=604887, RUBY-736, and
       # https://github.com/opscode/ohai/commit/518d56a6cb7d021b47ed3d691ecf7fba7f74a6a7
