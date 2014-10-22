@@ -32,11 +32,11 @@ module NewRelic
         end
 
         def failed_jobs
-          Delayed::Job.count(:conditions => 'failed_at is not NULL')
+          Delayed::Job.where('failed_at is not NULL').count
         end
 
         def locked_jobs
-          Delayed::Job.count(:conditions => 'locked_by is not NULL')
+          Delayed::Job.where('locked_by is not NULL').count
         end
 
         def self.supported_on_this_platform?
@@ -58,7 +58,7 @@ module NewRelic
 
         def record_queue_length_across_dimension(column)
           all_count = 0
-          Delayed::Job.count(:group => column, :conditions => ['run_at < ? and failed_at is NULL', Time.now]).each do | column_val, count |
+          Delayed::Job.where('run_at < ? and failed_at is NULL', Time.now).group(column).count.each do | column_val, count |
             all_count += count
             metric = "Workers/DelayedJob/queue_length/#{column == 'queue' ? 'name' : column}/#{column_val}"
             NewRelic::Agent.record_metric(metric, count)
