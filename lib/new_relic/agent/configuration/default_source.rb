@@ -1128,6 +1128,13 @@ module NewRelic
           :public       => false,
           :type         => Fixnum,
           :description  => 'Maximum number of synthetics transaction events to hold for a given harvest'
+        },
+        :'custom_insights_events.max_samples_stored' => {
+          :default      => 1000,
+          :public       => true,
+          :type         => Fixnum,
+          :description  => 'Maximum number of custom Insights events buffered in memory at a time.',
+          :dynamic_name => true
         }
       }.freeze
 

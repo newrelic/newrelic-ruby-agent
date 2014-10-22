@@ -11,18 +11,30 @@ module NewRelic
 
       # Because DEFAULT_TYPE is a symbol, it cannot have name clashes
       # with user-defined types, all of which are strings.
-      DEFAULT_TYPE     = :default_type
-      DEFAULT_CAPACITY = 1000
+      DEFAULT_TYPE     = 'default_type'.freeze
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
       EVENT_PARAMS_CTX = 'recording custom event'.freeze
+
+      DEFAULT_CAPACITY_KEY = :'custom_insights_events.max_samples_stored'
 
       def initialize
         @lock    = Mutex.new
         @buffers = {}
         @type_strings = Hash.new { |hash, key| hash[key] = key.to_s.freeze }
 
-        register_event_type(DEFAULT_TYPE, DEFAULT_CAPACITY, SizedBuffer)
+        capacity = NewRelic::Agent.config[DEFAULT_CAPACITY_KEY]
+        register_event_type(DEFAULT_TYPE, capacity, SizedBuffer)
+        register_config_callbacks
+      end
+
+      def register_config_callbacks
+        NewRelic::Agent.config.register_callback(DEFAULT_CAPACITY_KEY) do |max_samples|
+          NewRelic::Agent.logger.debug "CustomEventAggregator max_samples set to #{max_samples}"
+          @lock.synchronize do
+            @buffers[DEFAULT_TYPE].capacity = max_samples
+          end
+        end
       end
 
       def register_event_type(type, capacity, buffer_class = SizedBuffer)
