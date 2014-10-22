@@ -23,4 +23,19 @@ class CustomAnalyticsEventsTest < Minitest::Test
     expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i}, {'foo' => 'bar', 'baz' => 'qux'}]
     assert_equal(expected_event, events.first)
   end
+
+  def test_record_custom_event_returns_truthy_if_event_was_buffered
+    result = NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar)
+    assert(result)
+  end
+
+  def test_record_custom_event_returns_falsy_if_event_was_dropped
+    max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
+    max_samples.times do
+      NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar)
+    end
+
+    result = NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar)
+    refute(result)
+  end
 end
