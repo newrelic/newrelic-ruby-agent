@@ -56,7 +56,7 @@ module NewRelic
       end
       value.inject({}) do |memo, (key, val)|
         case val
-        when String, Float, Integer, true, false
+        when String, Float, Integer, TrueClass, FalseClass
           memo[key.to_s] = val
         when Symbol
           memo[key.to_s] = val.to_s
@@ -79,7 +79,7 @@ module NewRelic
       value.keys.each do |key|
         val = value[key]
         case val
-        when String, Float, Integer, Symbol, true, false
+        when String, Float, Integer, Symbol, TrueClass, FalseClass
           val = val.to_s if Symbol === val
 
           unless String === key
