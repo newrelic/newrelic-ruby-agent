@@ -284,6 +284,10 @@ module NewRelic
         def xray_id
           @body[8]
         end
+
+        def synthetics_resource_id
+          @body[9]
+        end
       end
 
       class SubmittedTransactionTraceTree
