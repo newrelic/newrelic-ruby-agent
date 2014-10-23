@@ -104,11 +104,28 @@ class CoerceTest < Minitest::Test
     )
   end
 
-  def test_event_params_coerce_only_allow_values_that_are_strings_symbols_floats_or_ints
+  def test_event_params_coerce_only_allow_values_that_are_strings_symbols_floats_or_ints_or_bools
     assert_equal(
-      {'foo' => 1.0, 'bar' => 2, 'bang' => 'woot', 'ok' => 'dokey'},
+      {
+        'foo'    => 1.0,
+        'bar'    => 2,
+        'bang'   => 'woot',
+        'ok'     => 'dokey',
+        'truthy' => true,
+        'falsy'  => false
+      },
       event_params(
-        {'foo' => 1.0, 'bar' => 2, 'bang' => 'woot', 'ok' => :dokey, 'bad' => [], 'worse' => {}, 'nope' => Rational(1)}
+        {
+          'foo'    => 1.0,
+          'bar'    => 2,
+          'bang'   => 'woot',
+          'ok'     => :dokey,
+          'bad'    => [],
+          'worse'  => {},
+          'nope'   => Rational(1),
+          'truthy' => true,
+          'falsy'  => false
+        }
       )
     )
   end
