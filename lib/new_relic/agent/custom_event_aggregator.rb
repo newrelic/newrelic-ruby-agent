@@ -9,9 +9,7 @@ module NewRelic
     class CustomEventAggregator
       include NewRelic::Coerce
 
-      # Because DEFAULT_TYPE is a symbol, it cannot have name clashes
-      # with user-defined types, all of which are strings.
-      DEFAULT_TYPE     = 'default_type'.freeze
+      DEFAULT_TYPE     = '__default_type__'.freeze
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
       EVENT_PARAMS_CTX = 'recording custom event'.freeze
