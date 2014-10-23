@@ -29,13 +29,28 @@ module NewRelic::Agent
     include NewRelic::DataContainerTests
 
     def test_record_without_pre_registration_abides_by_default_limit
-      n = CustomEventAggregator::DEFAULT_CAPACITY + 1
+      max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
+      n = max_samples + 1
       n.times do |i|
         @aggregator.record(:footype, :number => i)
       end
 
       results = @aggregator.harvest!
-      assert_equal(CustomEventAggregator::DEFAULT_CAPACITY, results.size)
+      assert_equal(max_samples, results.size)
+    end
+
+    def test_lowering_limit_truncates_buffer
+      orig_max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
+
+      orig_max_samples.times do |i|
+        @aggregator.record(:footype, :number => i)
+      end
+
+      new_max_samples = orig_max_samples - 10
+      with_config(:'custom_insights_events.max_samples_stored' => new_max_samples) do
+        results = @aggregator.harvest!
+        assert_equal(new_max_samples, results.size)
+      end
     end
 
     def test_record_with_pre_registration_abides_by_registered_limit
