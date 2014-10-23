@@ -41,16 +41,16 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     end
   end
 
-  cgroup_test_dir   = File.join(cross_agent_tests_dir, 'docker_container_id')
-  cgroup_test_cases = load_cross_agent_test(File.join('docker_container_id', 'manifest'))
+  docker_id_test_dir   = File.join(cross_agent_tests_dir, 'docker_container_id')
+  docker_id_test_cases = load_cross_agent_test(File.join('docker_container_id', 'cases'))
 
-  cgroup_test_cases.each do |test_case|
+  docker_id_test_cases.each do |test_case|
     filename = test_case['filename']
     basename = File.basename(filename, '.txt')
     test_name = "test_docker_container_id_#{basename}"
 
     define_method(test_name) do
-      input = File.read(File.join(cgroup_test_dir, filename))
+      input = File.read(File.join(docker_id_test_dir, filename))
       container_id = @sysinfo.parse_docker_container_id(input)
 
       message = "Parsed incorrect Docker container ID from #{filename}"
