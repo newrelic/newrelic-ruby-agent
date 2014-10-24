@@ -462,13 +462,16 @@ module NewRelic
     # A timestamp will be automatically added to the recorded event when this
     # method is called.
     #
-    # @param [Symbol] event_type The name of the event type to record.
+    # @param [Symbol or String] event_type The name of the event type to record. Event
+    #                            types must consist of only alphanumeric
+    #                            characters, '_', ':', or ' '.
+    #
     # @param [Hash] event_attrs A Hash of attributes to be attached to the event.
     #                           Keys should be strings or symbols, and values
     #                           may be strings, symbols, numeric values or
     #                           booleans.
     #
-    # @return A truthy value if the event was successfully stored, or a falsy
+    # @return A truthy value if the event was successfully buffered, or a falsy
     #         value if the event was not stored (due to the internal buffer
     #         being full).
     #
