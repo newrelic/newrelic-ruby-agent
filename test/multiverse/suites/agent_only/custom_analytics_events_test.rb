@@ -14,12 +14,8 @@ class CustomAnalyticsEventsTest < Minitest::Test
     NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar, :baz => :qux)
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+    events = last_analytics_event_submission
 
-    submissions = $collector.calls_for('analytic_event_data')
-    assert_equal(1, submissions.size)
-
-    events = submissions.first.events
-    assert_equal(1, events.size)
     expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i}, {'foo' => 'bar', 'baz' => 'qux'}]
     assert_equal(expected_event, events.first)
   end
@@ -37,5 +33,25 @@ class CustomAnalyticsEventsTest < Minitest::Test
 
     result = NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar)
     refute(result)
+  end
+
+  def test_record_doesnt_record_if_invalid_event_type
+    bad_event_type  = 'bad$news'
+    good_event_type = 'good news'
+
+    NewRelic::Agent.record_custom_event(bad_event_type,  :foo => :bar)
+    NewRelic::Agent.record_custom_event(good_event_type, :foo => :bar)
+
+    NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+    events = last_analytics_event_submission
+
+    assert_equal(1, events.size)
+    assert_equal(good_event_type, events.first[0]['type'])
+  end
+
+  def last_analytics_event_submission
+    submissions = $collector.calls_for('analytic_event_data')
+    assert_equal(1, submissions.size)
+    submissions.first.events
   end
 end

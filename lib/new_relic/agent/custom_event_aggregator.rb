@@ -13,6 +13,7 @@ module NewRelic
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
       EVENT_PARAMS_CTX = 'recording custom event'.freeze
+      EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
 
       DEFAULT_CAPACITY_KEY = :'custom_insights_events.max_samples_stored'
 
@@ -48,6 +49,12 @@ module NewRelic
       end
 
       def record(type, attributes)
+        type = type.to_s
+        unless type =~ EVENT_TYPE_REGEX
+          ::NewRelic::Agent.logger.warn("Invalid event type name '#{type}', not recording.")
+          return false
+        end
+
         type = @type_strings[type]
         event = [
           { TYPE => type, TIMESTAMP => Time.now.to_i },
