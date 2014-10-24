@@ -459,6 +459,12 @@ module NewRelic
     # The recorded event will be buffered in memory until the next time the
     # agent sends data to New Relic's servers.
     #
+    # If you want to be able to tie the information recorded via this call back
+    # to the web request or background job that it happened in, you may want to
+    # instead use the add_custom_parameters API call to attach attributes to
+    # the Transaction event that will automatically be generated for the
+    # request.
+    #
     # A timestamp will be automatically added to the recorded event when this
     # method is called.
     #
