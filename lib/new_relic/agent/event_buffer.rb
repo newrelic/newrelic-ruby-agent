@@ -58,6 +58,10 @@ module NewRelic
         @items.size
       end
 
+      def note_dropped
+        @seen += 1
+      end
+
       def num_seen
         @seen
       end

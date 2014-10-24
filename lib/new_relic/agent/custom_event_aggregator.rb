@@ -51,7 +51,7 @@ module NewRelic
       def record(type, attributes)
         type = type.to_s
         unless type =~ EVENT_TYPE_REGEX
-          ::NewRelic::Agent.logger.warn("Invalid event type name '#{type}', not recording.")
+          note_dropped_event(type)
           return false
         end
 
@@ -101,6 +101,11 @@ module NewRelic
         @lock.synchronize do
           @buffers.each_value(&:reset!)
         end
+      end
+
+      def note_dropped_event(type)
+        ::NewRelic::Agent.logger.warn("Invalid event type name '#{type}', not recording.")
+        @lock.synchronize { @buffers[DEFAULT_TYPE].note_dropped }
       end
 
       # This should only be called with @lock held
