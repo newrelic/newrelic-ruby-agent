@@ -28,7 +28,7 @@ module NewRelic::Agent
 
     include NewRelic::DataContainerTests
 
-    def test_record_without_pre_registration_abides_by_default_limit
+    def test_record_by_default_limit
       max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
       n = max_samples + 1
       n.times do |i|
@@ -53,62 +53,23 @@ module NewRelic::Agent
       end
     end
 
-    def test_record_with_pre_registration_abides_by_registered_limit
-      @aggregator.register_event_type(:type, 10)
-
-      11.times do |i|
-        @aggregator.record(:type, :foo => :bar)
-      end
-
-      results = @aggregator.harvest!
-      assert_equal(10, results.size)
-    end
-
-    def test_record_respects_event_limits_by_type
-      @aggregator.register_event_type(:a, 10)
-      @aggregator.register_event_type(:b, 5)
-
-      11.times do |i|
-        @aggregator.record(:a, :foo => :bar)
-        @aggregator.record(:b, :foo => :bar)
-      end
-
-      events = @aggregator.harvest!
-
-      assert_equal(15, events.size)
-
-      a_events = events.select { |e| e[0]['type'] == 'a' }
-      b_events = events.select { |e| e[0]['type'] == 'b' }
-
-      assert_equal(10, a_events.size)
-      assert_equal(5,  b_events.size)
-    end
-
     def test_merge_respects_event_limits_by_type
-      @aggregator.register_event_type(:a, 10)
-      @aggregator.register_event_type(:b, 5)
+      with_config(:'custom_insights_events.max_samples_stored' => 10) do
+        11.times do |i|
+          @aggregator.record(:t, :foo => :bar)
+        end
+        old_events = @aggregator.harvest!
 
-      11.times do |i|
-        @aggregator.record(:a, :foo => :bar)
-        @aggregator.record(:b, :foo => :bar)
+        3.times do |i|
+          @aggregator.record(:t, :foo => :bar)
+        end
+
+        @aggregator.merge!(old_events)
+
+        events = @aggregator.harvest!
+
+        assert_equal(10, events.size)
       end
-
-      old_events = @aggregator.harvest!
-
-      3.times do |i|
-        @aggregator.record(:a, :foo => :bar)
-        @aggregator.record(:b, :foo => :bar)
-      end
-
-      @aggregator.merge!(old_events)
-
-      events = @aggregator.harvest!
-
-      a_events = events.select { |e| e[0]['type'] == 'a' }
-      b_events = events.select { |e| e[0]['type'] == 'b' }
-
-      assert_equal(10, a_events.size)
-      assert_equal(5,  b_events.size)
     end
 
     def test_record_adds_type_and_timestamp
