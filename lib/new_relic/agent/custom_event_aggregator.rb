@@ -67,6 +67,8 @@ module NewRelic
         if dropped_count > 0
           total_count = captured_count + dropped_count
           NewRelic::Agent.logger.warn("Dropped #{dropped_count} events out of #{total_count}.")
+          engine = NewRelic::Agent.instance.stats_engine
+          engine.tl_record_supportability_metric_count("CustomEvents/dropped", dropped_count)
         end
       end
 
@@ -86,7 +88,6 @@ module NewRelic
         ::NewRelic::Agent.logger.log_once(:warn, "dropping_event_of_type:#{type}",
           "Invalid event type name '#{type}', not recording.")
         @buffer.note_dropped
-        NewRelic::Agent.record_metric('Supportability/CustomEvents/dropped', 0.0)
       end
 
     end
