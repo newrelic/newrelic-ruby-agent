@@ -25,6 +25,7 @@ module NewRelic
         return unless encoded_header
 
         incoming_payload = deserialize_header(encoded_header, SYNTHETICS_HEADER_KEY)
+
         return unless incoming_payload &&
             is_valid_payload?(incoming_payload) &&
             is_supported_version?(incoming_payload) &&

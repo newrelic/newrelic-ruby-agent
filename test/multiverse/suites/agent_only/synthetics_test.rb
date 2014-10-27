@@ -109,13 +109,16 @@ class SyntheticsTest < Minitest::Test
     end
   end
 
+  # These tests do *not* cover passing on the correct synthetics header to
+  # outgoing HTTP requests, since testing that requires our various HTTP client
+  # libraries to be present. That aspect is tested in http_client_test_cases.rb
   load_cross_agent_test('synthetics').each do |test|
     define_method("test_synthetics_#{test['name']}") do
       config = {
+        :encoding_key        => test['settings']['agentEncodingKey'],
+        :trusted_account_ids => test['settings']['trustedAccountIds'],
         :'transaction_tracer.transaction_threshold' => 0.0
       }
-      config[:encoding_key]        = test['settings']['agentEncodingKey']
-      config[:trusted_account_ids] = test['settings']['trustedAccountIds']
 
       with_config(config) do
         NewRelic::Agent.instance.events.notify(:finished_configuring)
