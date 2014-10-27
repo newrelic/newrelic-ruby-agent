@@ -540,7 +540,7 @@ module HttpClientTestCases
   # of appropriate data to analytics events or transaction traces.
   #
   # The tests in agent_only/synthetics_test.rb cover that.
-  load_cross_agent_test('synthetics').each do |test|
+  load_cross_agent_test('synthetics/synthetics').each do |test|
     define_method("test_synthetics_http_#{test['name']}") do
       config = {
         :encoding_key        => test['settings']['agentEncodingKey'],

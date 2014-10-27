@@ -112,7 +112,7 @@ class SyntheticsTest < Minitest::Test
   # These tests do *not* cover passing on the correct synthetics header to
   # outgoing HTTP requests, since testing that requires our various HTTP client
   # libraries to be present. That aspect is tested in http_client_test_cases.rb
-  load_cross_agent_test('synthetics').each do |test|
+  load_cross_agent_test('synthetics/synthetics').each do |test|
     define_method("test_synthetics_#{test['name']}") do
       config = {
         :encoding_key        => test['settings']['agentEncodingKey'],
