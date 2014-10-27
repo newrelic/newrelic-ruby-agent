@@ -32,6 +32,7 @@ module HttpClientTestCases
     $fake_secure_server.run
 
     NewRelic::Agent.instance.events.notify(:finished_configuring)
+    NewRelic::Agent::CrossAppTracing.instance_variable_set(:@obfuscator, nil)
 
     @engine = NewRelic::Agent.instance.stats_engine
   end
@@ -507,6 +508,8 @@ module HttpClientTestCases
           :'cross_application_tracer.enabled' => true
         }
         with_config(config) do
+          NewRelic::Agent.instance.events.notify(:finished_configuring)
+
           in_transaction do
             state = NewRelic::Agent::TransactionState.tl_get
             state.referring_transaction_info = test_case['inboundPayload']
