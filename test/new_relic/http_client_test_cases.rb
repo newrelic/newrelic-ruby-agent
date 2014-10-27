@@ -33,8 +33,6 @@ module HttpClientTestCases
 
     NewRelic::Agent.instance.events.notify(:finished_configuring)
     NewRelic::Agent::CrossAppTracing.instance_variable_set(:@obfuscator, nil)
-
-    @engine = NewRelic::Agent.instance.stats_engine
   end
 
   # Helpers to support shared tests
