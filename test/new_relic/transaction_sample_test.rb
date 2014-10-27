@@ -285,9 +285,9 @@ class NewRelic::TransactionSampleTest < Minitest::Test
   end
 
   def test_to_collector_array_uses_synthetics_resource_id
-    @t.synthetics_resource_id = 42
+    @t.synthetics_resource_id = '42'
     result = @t.to_collector_array(@marshaller.default_encoder)
-    assert_equal 42, result[SYNTHETICS_POSITION]
+    assert_equal '42', result[SYNTHETICS_POSITION]
   end
 
   def test_to_collector_array_with_bad_values
