@@ -83,7 +83,8 @@ module NewRelic
       end
 
       def note_dropped_event(type)
-        ::NewRelic::Agent.logger.warn("Invalid event type name '#{type}', not recording.")
+        ::NewRelic::Agent.logger.log_once(:warn, "dropping_event_of_type:#{type}",
+          "Invalid event type name '#{type}', not recording.")
         @buffer.note_dropped
       end
 
