@@ -39,10 +39,10 @@ module NewRelic
 
       # For lookups, upcase all our keys on both sides just to be safe
       def from_headers(request, try_keys)
-        upcased_keys = try_keys.map{|k| k.upcase}
-        upcased_keys.each do |header|
-          found_key = request.keys.find { |k| k.upcase == header }
-          return request[found_key] unless found_key.nil?
+        try_keys.each do |candidate_key|
+          request.each_key do |key|
+            return request[key] if key.casecmp(candidate_key) == 0
+          end
         end
         nil
       end
