@@ -70,8 +70,6 @@ module NewRelic
 
         @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
-
-        @event_aggregator.register_event_type(:UsageData, 10)
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -606,7 +604,7 @@ module NewRelic
 
           def record_usage_data
             data = UsageDataCollector.gather_usage_data
-            @event_aggregator.record(:UsageData, data)
+            @custom_event_aggregator.record(:UsageData, data)
           end
 
           def create_and_run_event_loop
