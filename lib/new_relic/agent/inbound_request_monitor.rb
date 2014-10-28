@@ -36,17 +36,6 @@ module NewRelic
         NewRelic::Agent.logger.debug("Failure deserializing encoded header '#{key}' in #{self.class}, #{err.class}, #{err.message}")
         nil
       end
-
-      # For lookups, upcase all our keys on both sides just to be safe
-      def from_headers(request, try_keys)
-        try_keys.each do |candidate_key|
-          request.each_key do |key|
-            return request[key] if key.casecmp(candidate_key) == 0
-          end
-        end
-        nil
-      end
-
     end
   end
 end

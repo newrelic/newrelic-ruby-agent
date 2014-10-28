@@ -6,8 +6,9 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 module NewRelic::Agent
   class CrossAppMonitorTest < Minitest::Test
-    NEWRELIC_ID_HEADER        = NewRelic::Agent::CrossAppMonitor::NEWRELIC_ID_HEADER
-    NEWRELIC_TXN_HEADER       = NewRelic::Agent::CrossAppMonitor::NEWRELIC_TXN_HEADER
+    NEWRELIC_ID_HEADER        = NewRelic::Agent::CrossAppMonitor::NEWRELIC_ID_HEADER_KEY
+    NEWRELIC_TXN_HEADER       = NewRelic::Agent::CrossAppMonitor::NEWRELIC_TXN_HEADER_KEY
+    CONTENT_LENGTH_KEY        = "HTTP_CONTENT_LENGTH"
 
     AGENT_CROSS_APP_ID        = "qwerty"
     REQUEST_CROSS_APP_ID      = "42#1234"
@@ -125,17 +126,13 @@ module NewRelic::Agent
     def test_includes_content_length
       with_default_timings
 
-      when_request_runs(for_id(REQUEST_CROSS_APP_ID).merge("Content-Length" => 3000))
+      when_request_runs(for_id(REQUEST_CROSS_APP_ID).merge(CONTENT_LENGTH_KEY => 3000))
       assert_equal 3000, unpacked_response[CONTENT_LENGTH_POSITION]
     end
 
     def test_finds_content_length_from_headers
-      %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH cOnTeNt-LeNgTh}.each do |key|
-        request = { key => 42 }
-
-        assert_equal(42, @monitor.content_length_from_request(request), \
-          "Failed to find header on key #{key}")
-      end
+      request = { 'HTTP_CONTENT_LENGTH' => 42 }
+      assert_equal(42, @monitor.content_length_from_request(request))
     end
 
     def test_writes_custom_parameters

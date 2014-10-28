@@ -93,11 +93,11 @@ class RequestStatsTest < RailsMultiverseTest
                 :'cross_process_id' => 'boo',
                 :'encoding_key' => "\0",
                 :'trusted_account_ids' => [1]) do
-      request_headers = {
-        'X-NewRelic-ID' => Base64.encode64('1#234'),
-        'X-NewRelic-Transaction' => Base64.encode64('["8badf00d",1]')
+      rack_env = {
+        'HTTP_X_NEWRELIC_ID'          => Base64.encode64('1#234'),
+        'HTTP_X_NEWRELIC_TRANSACTION' => Base64.encode64('["8badf00d",1]')
       }
-      get '/request_stats/cross_app_action', {}, request_headers
+      get '/request_stats/cross_app_action', {}, rack_env
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 

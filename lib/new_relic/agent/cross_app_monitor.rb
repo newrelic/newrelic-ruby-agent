@@ -12,16 +12,13 @@ module NewRelic
   module Agent
     class CrossAppMonitor < InboundRequestMonitor
 
-      NEWRELIC_ID_HEADER = 'X-NewRelic-ID'
+      NEWRELIC_ID_HEADER      = 'X-NewRelic-ID'
+      NEWRELIC_TXN_HEADER     = 'X-NewRelic-Transaction'
       NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'
-      NEWRELIC_TXN_HEADER = 'X-NewRelic-Transaction'
-      NEWRELIC_TXN_HEADER_KEYS = %W{
-        #{NEWRELIC_TXN_HEADER} HTTP_X_NEWRELIC_TRANSACTION X_NEWRELIC_TRANSACTION
-      }
-      NEWRELIC_ID_HEADER_KEYS = %W{
-        #{NEWRELIC_ID_HEADER} HTTP_X_NEWRELIC_ID X_NEWRELIC_ID
-      }
-      CONTENT_LENGTH_HEADER_KEYS = %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH}
+
+      NEWRELIC_ID_HEADER_KEY    = 'HTTP_X_NEWRELIC_ID'.freeze
+      NEWRELIC_TXN_HEADER_KEY   = 'HTTP_X_NEWRELIC_TRANSACTION'.freeze
+      CONTENT_LENGTH_HEADER_KEY = 'HTTP_CONTENT_LENGTH'.freeze
 
       def on_finished_configuring(events)
         register_event_listeners(events)
@@ -66,7 +63,7 @@ module NewRelic
       end
 
       def save_referring_transaction_info(state, request_headers)
-        txn_header = from_headers(request_headers, NEWRELIC_TXN_HEADER_KEYS) or return
+        txn_header = request_headers[NEWRELIC_TXN_HEADER_KEY] or return
         txn_info = deserialize_header(txn_header, NEWRELIC_TXN_HEADER)
         state.referring_transaction_info = txn_info
       end
@@ -161,14 +158,14 @@ module NewRelic
       end
 
       def decoded_id(request)
-        encoded_id = from_headers(request, NEWRELIC_ID_HEADER_KEYS)
+        encoded_id = request[NEWRELIC_ID_HEADER_KEY]
         return "" if encoded_id.nil?
 
         obfuscator.deobfuscate(encoded_id)
       end
 
       def content_length_from_request(request)
-        from_headers(request, CONTENT_LENGTH_HEADER_KEYS) || -1
+        request[CONTENT_LENGTH_HEADER_KEY] || -1
       end
 
       def hash_transaction_name(identifier)

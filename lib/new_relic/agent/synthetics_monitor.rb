@@ -7,11 +7,7 @@ require 'new_relic/agent/inbound_request_monitor'
 module NewRelic
   module Agent
     class SyntheticsMonitor < InboundRequestMonitor
-
-      SYNTHETICS_HEADER_KEY  = 'X-NewRelic-Synthetics'.freeze
-      SYNTHETICS_HEADER_KEYS = %W{
-        #{SYNTHETICS_HEADER_KEY} HTTP_X_NEWRELIC_SYNTHETICS X_NEWRELIC_SYNTHETICS
-      }
+      SYNTHETICS_HEADER_KEY  = 'HTTP_X_NEWRELIC_SYNTHETICS'.freeze
 
       SUPPORTED_VERSION = 1
       EXPECTED_PAYLOAD_LENGTH = 5
@@ -21,7 +17,7 @@ module NewRelic
       end
 
       def on_before_call(request) #THREAD_LOCAL_ACCESS
-        encoded_header = from_headers(request, SYNTHETICS_HEADER_KEYS)
+        encoded_header = request[SYNTHETICS_HEADER_KEY]
         return unless encoded_header
 
         incoming_payload = deserialize_header(encoded_header, SYNTHETICS_HEADER_KEY)
