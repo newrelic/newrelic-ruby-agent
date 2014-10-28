@@ -88,6 +88,8 @@ module NewRelic
           end
 
           value[key] = val
+        else
+          value.delete(key)
         end
       end
 
