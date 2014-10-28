@@ -56,7 +56,7 @@ class SyntheticsTest < Minitest::Test
   def request_headers_for_test(test)
     header_value = generate_synthetics_header(test)
     if header_value
-      { 'X-NewRelic-Synthetics' => header_value }
+      { 'HTTP_X_NEWRELIC_SYNTHETICS' => header_value }
     else
       {}
     end

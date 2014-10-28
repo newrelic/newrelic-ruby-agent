@@ -66,15 +66,14 @@ module NewRelic::Agent
       end
     end
 
-    SyntheticsMonitor::SYNTHETICS_HEADER_KEYS.each do |key|
-      define_method(:"test_records_synthetics_state_#{key.gsub("-", "")}") do
-        synthetics_payload = [VERSION_ID] + STANDARD_DATA
-        with_synthetics_headers(synthetics_payload, key) do
-          state = NewRelic::Agent::TransactionState.tl_get
-          txn = state.current_transaction
-          assert_equal @last_encoded_header, txn.raw_synthetics_header
-          assert_equal synthetics_payload,   txn.synthetics_payload
-        end
+    def test_records_synthetics_state_from_header
+      key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY
+      synthetics_payload = [VERSION_ID] + STANDARD_DATA
+      with_synthetics_headers(synthetics_payload, key) do
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        assert_equal @last_encoded_header, txn.raw_synthetics_header
+        assert_equal synthetics_payload,   txn.synthetics_payload
       end
     end
 
