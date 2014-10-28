@@ -64,12 +64,14 @@ module NewRelic
       end
 
       def note_dropped_events(captured_count, dropped_count)
+        total_count = captured_count + dropped_count
         if dropped_count > 0
-          total_count = captured_count + dropped_count
           NewRelic::Agent.logger.warn("Dropped #{dropped_count} events out of #{total_count}.")
-          engine = NewRelic::Agent.instance.stats_engine
-          engine.tl_record_supportability_metric_count("CustomEvents/dropped", dropped_count)
         end
+        engine = NewRelic::Agent.instance.stats_engine
+        engine.tl_record_supportability_metric_count("Events/Custom/Seen"   ,    total_count)
+        engine.tl_record_supportability_metric_count("Events/Custom/Sent"   , captured_count)
+        engine.tl_record_supportability_metric_count("Events/Custom/Dropped",  dropped_count)
       end
 
       def merge!(events)
