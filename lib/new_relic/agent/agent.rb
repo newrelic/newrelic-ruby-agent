@@ -584,6 +584,8 @@ module NewRelic
             period
           end
 
+          LOG_ONCE_KEYS_RESET_PERIOD = 60.0
+
           def create_and_run_event_loop
             @event_loop = create_event_loop
             @event_loop.on(:report_data) do
@@ -592,8 +594,12 @@ module NewRelic
             @event_loop.on(:report_event_data) do
               transmit_event_data
             end
+            @event_loop.on(:reset_log_once_keys) do
+              ::NewRelic::Agent.logger.clear_already_logged
+            end
             @event_loop.fire_every(Agent.config[:data_report_period],       :report_data)
             @event_loop.fire_every(report_period_for(:analytic_event_data), :report_event_data)
+            @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD,              :reset_log_once_keys)
             @event_loop.run
           end
 
