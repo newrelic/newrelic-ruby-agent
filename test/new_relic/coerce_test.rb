@@ -130,6 +130,31 @@ class CoerceTest < Minitest::Test
     )
   end
 
+  def test_event_params_coerce_bang
+    mutate_me = {
+      'foo'    => 1.0,
+      'bar'    => 2,
+      'bang'   => 'woot',
+      'ok'     => :dokey,
+      'bad'    => [],
+      'worse'  => {},
+      'nope'   => Rational(1),
+      'truthy' => true,
+      'falsy'  => false
+    }
+
+    event_params!(mutate_me)
+
+    assert_equal(mutate_me, {
+      'foo'    => 1.0,
+      'bar'    => 2,
+      'bang'   => 'woot',
+      'ok'     => 'dokey',
+      'truthy' => true,
+      'falsy'  => false
+    })
+  end
+
   class Unstringable
     undef :to_s
   end
