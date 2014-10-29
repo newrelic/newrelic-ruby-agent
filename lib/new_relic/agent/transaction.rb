@@ -43,7 +43,8 @@ module NewRelic
       attr_accessor :exceptions,
                     :filtered_params,
                     :jruby_cpu_start,
-                    :process_cpu_start
+                    :process_cpu_start,
+                    :is_rack_cascade
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -216,6 +217,7 @@ module NewRelic
         @name_from_child = nil
         @name_from_api   = nil
         @frozen_name     = nil
+        @is_rack_cascade = false
 
         @category = category
         @start_time = Time.now

@@ -57,6 +57,10 @@ module NewRelic
               result = target.call(env)
             end
 
+            if target.class == ::Rack::Cascade
+              state.current_transaction.is_rack_cascade = true
+            end
+
             if result.is_a?(Array)
               state.current_transaction.http_response_code = result[0]
             end
