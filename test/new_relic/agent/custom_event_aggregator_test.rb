@@ -29,7 +29,7 @@ module NewRelic::Agent
     include NewRelic::DataContainerTests
 
     def test_record_by_default_limit
-      max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
+      max_samples = NewRelic::Agent.config[:'custom_insights_events.max_events_stored']
       n = max_samples + 1
       n.times do |i|
         @aggregator.record(:footype, :number => i)
@@ -40,21 +40,21 @@ module NewRelic::Agent
     end
 
     def test_lowering_limit_truncates_buffer
-      orig_max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
+      orig_max_samples = NewRelic::Agent.config[:'custom_insights_events.max_events_stored']
 
       orig_max_samples.times do |i|
         @aggregator.record(:footype, :number => i)
       end
 
       new_max_samples = orig_max_samples - 10
-      with_config(:'custom_insights_events.max_samples_stored' => new_max_samples) do
+      with_config(:'custom_insights_events.max_events_stored' => new_max_samples) do
         results = @aggregator.harvest!
         assert_equal(new_max_samples, results.size)
       end
     end
 
     def test_merge_respects_event_limits_by_type
-      with_config(:'custom_insights_events.max_samples_stored' => 10) do
+      with_config(:'custom_insights_events.max_events_stored' => 10) do
         11.times do |i|
           @aggregator.record(:t, :foo => :bar)
         end
@@ -72,7 +72,7 @@ module NewRelic::Agent
       end
     end
 
-    def test_record_adds_type_and_timestamp
+    def test_record_adds_type_and_timestamp_and_source
       t0 = Time.now
       @aggregator.record(:type_a, :foo => :bar, :baz => :qux)
 
@@ -81,8 +81,8 @@ module NewRelic::Agent
       assert_equal(1, events.size)
       event = events.first
 
-      assert_equal({ 'type' => 'type_a', 'timestamp' => t0.to_i }, event[0])
-      assert_equal({ 'foo'  => 'bar'   , 'baz'       => 'qux'   }, event[1])
+      assert_equal({ 'type' => 'type_a', 'timestamp' => t0.to_i, 'source' => 'customer' }, event[0])
+      assert_equal({ 'foo'  => 'bar'   , 'baz'       => 'qux'                           }, event[1])
     end
   end
 end

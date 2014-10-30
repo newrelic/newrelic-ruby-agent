@@ -469,22 +469,19 @@ module NewRelic
     # method is called.
     #
     # @param [Symbol or String] event_type The name of the event type to record. Event
-    #                            types must consist of only alphanumeric
-    #                            characters, '_', ':', or ' '.
+    #                           types must consist of only alphanumeric
+    #                           characters, '_', ':', or ' '.
     #
     # @param [Hash] event_attrs A Hash of attributes to be attached to the event.
     #                           Keys should be strings or symbols, and values
     #                           may be strings, symbols, numeric values or
     #                           booleans.
     #
-    # @return A truthy value if the event was successfully buffered, or a falsy
-    #         value if the event was not stored (due to the internal buffer
-    #         being full).
-    #
     # @api public
     #
     def record_custom_event(event_type, event_attrs)
       agent && agent.custom_event_aggregator.record(event_type, event_attrs)
+      nil
     end
 
     # Check to see if we are capturing metrics currently on this thread.

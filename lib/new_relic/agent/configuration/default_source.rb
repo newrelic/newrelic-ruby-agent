@@ -1129,7 +1129,7 @@ module NewRelic
           :type         => Fixnum,
           :description  => 'Maximum number of synthetics transaction events to hold for a given harvest'
         },
-        :'custom_insights_events.max_samples_stored' => {
+        :'custom_insights_events.max_events_stored' => {
           :default      => 1000,
           :public       => true,
           :type         => Fixnum,
