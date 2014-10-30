@@ -1049,6 +1049,14 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_recorded(['foo'])
   end
 
+  def test_transaction_start_sets_name_from_child_for_transactions_with_matching_categories
+    in_transaction('outside_cascade') do
+      in_transaction('inside_cascade') do |txn|
+        assert_equal 'inside_cascade', txn.name_from_child
+      end
+    end
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end

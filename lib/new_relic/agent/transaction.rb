@@ -124,6 +124,11 @@ module NewRelic
           nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
           nested_frame.name = options[:transaction_name]
           nested_frame.category = category
+
+          if transaction_category_is_web?(nested_frame.category) == transaction_category_is_web?(txn.category)
+            txn.name_from_child = options[:transaction_name]
+          end
+
           txn.frame_stack << nested_frame
         else
           txn = Transaction.new(category, options)
@@ -152,17 +157,6 @@ module NewRelic
           state.reset
         else
           nested_frame = txn.frame_stack.pop
-
-          # Parent transaction inherits the name of the first child
-          # to complete, if they are both/neither web transactions.
-          nested_is_web_category = transaction_category_is_web?(nested_frame.category)
-          txn_is_web_category    = transaction_category_is_web?(txn.category)
-
-          if (nested_is_web_category == txn_is_web_category)
-            # first child to finish wins
-            txn.name_from_child ||= nested_frame.name
-          end
-
           nested_name = nested_transaction_name(nested_frame.name)
 
           if nested_name.start_with?(MIDDLEWARE_PREFIX)
