@@ -6,15 +6,15 @@ module NewRelic
   module Agent
     class UtilizationData
 
-      # No persistent data, so no need for merging or resetting
-      def merge!(*_); end
-      def reset!(*_); end
-
       REMOTE_DATA_VALID_CHARS = /^[0-9a-zA-Z_ .\/-]$/.freeze
 
       def harvest!
         [hostname, container_name, cpu_count, instance_type]
       end
+
+      # No persistent data, so no need for merging or resetting
+      def merge!(*_); end
+      def reset!(*_); end
 
       def hostname
         NewRelic::Agent::Hostname.get
@@ -30,17 +30,15 @@ module NewRelic
       end
 
       def instance_type
-        begin
-          Timeout::timeout(1) do
-            remote_fetch('instance-type')
-          end
-        rescue Timeout::Error
-          NewRelic::Agent.logger.debug("UsageDataCollector timed out fetching remote keys.")
-          nil
-        rescue StandardError, LoadError => e
-          NewRelic::Agent.logger.debug("UsageDataCollector encountered error fetching remote keys:\n#{e}")
-          nil
+        Timeout::timeout(1) do
+          remote_fetch('instance-type')
         end
+      rescue Timeout::Error
+        NewRelic::Agent.logger.debug("UtilizationData timed out fetching remote keys.")
+        nil
+      rescue StandardError, LoadError => e
+        NewRelic::Agent.logger.debug("UtilizationData encountered error fetching remote keys:\n#{e}")
+        nil
       end
 
       def remote_fetch(remote_key)
