@@ -28,6 +28,8 @@ module NewRelic
             :'slow_sql.record_sql'           => record_sql_setting(local_settings, :'slow_sql.record_sql'),
             :'mongo.obfuscate_queries'       => true,
 
+            :'custom_insights_events.enabled' => false,
+
             :'strip_exception_messages.enabled' => true
           })
         end

@@ -480,7 +480,9 @@ module NewRelic
     # @api public
     #
     def record_custom_event(event_type, event_attrs)
-      agent && agent.custom_event_aggregator.record(event_type, event_attrs)
+      if NewRelic::Agent.config[:'custom_insights_events.enabled']
+        agent && agent.custom_event_aggregator.record(event_type, event_attrs)
+      end
       nil
     end
 
