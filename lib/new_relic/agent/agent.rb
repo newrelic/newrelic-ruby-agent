@@ -1087,31 +1087,27 @@ module NewRelic
         end
 
         def transmit_event_data
-          now = Time.now
-          ::NewRelic::Agent.logger.debug "Sending analytics data to New Relic Service"
-
-          harvest_lock.synchronize do
-            @service.session do # use http keep-alive
-              harvest_and_send_analytic_event_data
-            end
-          end
-        ensure
-          duration = (Time.now - now).to_f
-          NewRelic::Agent.record_metric('Supportability/TransactionEventHarvest', duration)
+          transmit_single_data_type(:harvest_and_send_analytic_event_data, "TransactionEvent")
         end
 
         def transmit_utilization_data
+          transmit_single_data_type(:harvest_and_send_utilization_data, "UtilizationData")
+        end
+
+        def transmit_single_data_type(harvest_method, supportability_name)
           now = Time.now
-          ::NewRelic::Agent.logger.debug "Sending utilization data to New Relic Service"
+
+          msg = "Sending #{harvest_method.to_s.gsub("harvest_and_send_", "")} to New Relic Service"
+          ::NewRelic::Agent.logger.debug msg
 
           harvest_lock.synchronize do
             @service.session do # use http keep-alive
-              harvest_and_send_utilization_data
+              self.send(harvest_method)
             end
           end
         ensure
           duration = (Time.now - now).to_f
-          NewRelic::Agent.record_metric('Supportability/UtilizationDataHarvest', duration)
+          NewRelic::Agent.record_metric("Supportability/#{supportability_name}Harvest", duration)
         end
 
         # This method is expected to only be called with the harvest_lock
