@@ -4,42 +4,46 @@
 
 module NewRelic
   module Agent
+    class UtilizationData
 
-    module UsageDataCollector
+      # No persistent data, so no need for merging or resetting
+      def merge!(*_); end
+      def reset!(*_); end
 
       REMOTE_DATA_VALID_CHARS = /^[0-9a-zA-Z_ .\/-]$/.freeze
 
-      def self.gather_usage_data
+      def harvest!
+        [hostname, container_name, cpu_count, instance_type]
+      end
+
+      def hostname
+        NewRelic::Agent::Hostname.get
+      end
+
+      def container_name
+        nil
+      end
+
+      def cpu_count
         ::NewRelic::Agent::SystemInfo.clear_processor_info
+        ::NewRelic::Agent::SystemInfo.num_logical_processors
+      end
 
-        data = {
-          'logicalProcessors' => ::NewRelic::Agent::SystemInfo.num_logical_processors,
-          'physicalCores'     => ::NewRelic::Agent::SystemInfo.num_physical_cores,
-          'physicalPackages'  => ::NewRelic::Agent::SystemInfo.num_physical_packages
-        }
-
+      def instance_type
         begin
           Timeout::timeout(1) do
-            keys_for_names = {
-              'instanceType' => 'instance-type',
-              'dataCenter'   => 'placement/availability-zone',
-              'instanceId'   => 'instance-id'
-            }
-
-            keys_for_names.each do |name, key|
-              data[name] = remote_fetch(key)
-            end
+            remote_fetch('instance-type')
           end
         rescue Timeout::Error
           NewRelic::Agent.logger.debug("UsageDataCollector timed out fetching remote keys.")
+          nil
         rescue StandardError, LoadError => e
           NewRelic::Agent.logger.debug("UsageDataCollector encountered error fetching remote keys:\n#{e}")
+          nil
         end
-
-        Hash[data.select{|k,v| v}] # filter out falsey values
       end
 
-      def self.remote_fetch(remote_key)
+      def remote_fetch(remote_key)
         host        = '169.254.169.254'
         api_version = '2008-02-01'
 
@@ -55,7 +59,7 @@ module NewRelic
         data
       end
 
-      def self.validate_remote_data(data_str)
+      def validate_remote_data(data_str)
         return nil unless data_str.kind_of?(String)
         return nil unless data_str.size <= 255
 
@@ -71,6 +75,5 @@ module NewRelic
       end
 
     end
-
   end
 end

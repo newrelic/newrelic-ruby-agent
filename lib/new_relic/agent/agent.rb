@@ -25,7 +25,7 @@ require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
-require 'new_relic/agent/usage_data_collector'
+require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
 
 module NewRelic
@@ -53,10 +53,11 @@ module NewRelic
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @synthetics_monitor    = NewRelic::Agent::SyntheticsMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
+        @utilization_data      = NewRelic::Agent::UtilizationData.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
-        @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
         @monotonic_gc_profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
+        @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
 
         @harvester       = NewRelic::Agent::Harvester.new(@events)
         @after_fork_lock = Mutex.new
@@ -584,7 +585,7 @@ module NewRelic
           # Never allow any data type to be reported more frequently than once
           # per second.
           MIN_ALLOWED_REPORT_PERIOD = 1.0
-          USAGE_DATA_GATHER_PERIOD  = 30 * 60 # every half hour
+          UTILIZATION_REPORT_PERIOD = 30 * 60 # every half hour
 
           def report_period_for(method)
             config_key = "data_report_periods.#{method}".to_sym
@@ -602,11 +603,6 @@ module NewRelic
 
           LOG_ONCE_KEYS_RESET_PERIOD = 60.0
 
-          def record_usage_data
-            data = UsageDataCollector.gather_usage_data
-            @custom_event_aggregator.record(:UsageData, data)
-          end
-
           def create_and_run_event_loop
             @event_loop = create_event_loop
             @event_loop.on(:report_data) do
@@ -622,12 +618,12 @@ module NewRelic
             @event_loop.fire_every(report_period_for(:analytic_event_data), :report_event_data)
             @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD,              :reset_log_once_keys)
 
-            if Agent.config[:collect_usage_data]
-              @event_loop.on(:gather_usage_data) do
-                record_usage_data
+            if Agent.config[:collect_utilization]
+              @event_loop.on(:report_utilization_data) do
+                transmit_utilization_data
               end
-              @event_loop.fire(:gather_usage_data)
-              @event_loop.fire_every(USAGE_DATA_GATHER_PERIOD, :gather_usage_data)
+              @event_loop.fire(:report_utilization_data)
+              @event_loop.fire_every(UTILIZATION_REPORT_PERIOD, :report_utilization_data)
             end
 
             @event_loop.run
@@ -1062,6 +1058,10 @@ module NewRelic
           harvest_and_send_from_container(@custom_event_aggregator,      :analytic_event_data)
         end
 
+        def harvest_and_send_utilization_data
+          harvest_and_send_from_container(@utilization_data, :utilization_data)
+        end
+
         def check_for_and_handle_agent_commands
           begin
             @agent_command_router.check_for_and_handle_agent_commands
@@ -1098,6 +1098,20 @@ module NewRelic
         ensure
           duration = (Time.now - now).to_f
           NewRelic::Agent.record_metric('Supportability/TransactionEventHarvest', duration)
+        end
+
+        def transmit_utilization_data
+          now = Time.now
+          ::NewRelic::Agent.logger.debug "Sending utilization data to New Relic Service"
+
+          harvest_lock.synchronize do
+            @service.session do # use http keep-alive
+              harvest_and_send_utilization_data
+            end
+          end
+        ensure
+          duration = (Time.now - now).to_f
+          NewRelic::Agent.record_metric('Supportability/UtilizationDataHarvest', duration)
         end
 
         # This method is expected to only be called with the harvest_lock
@@ -1139,6 +1153,7 @@ module NewRelic
               @events.notify(:before_shutdown)
               transmit_data
               transmit_event_data
+              transmit_utilization_data if NewRelic::Agent.config[:collect_utilization]
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"

@@ -9,7 +9,14 @@ require 'fake_instance_metadata_service'
 class UsageDataCollectionTest < Minitest::Test
   include MultiverseHelpers
 
-  setup_and_teardown_agent
+  setup_and_teardown_agent do
+    @config = NewRelic::Agent::Configuration::DottedHash.new({:collect_utilization => true }, true)
+    NewRelic::Agent.config.add_config_for_testing(@config, true)
+  end
+
+  def after_teardown
+    NewRelic::Agent.config.remove_config(@config)
+  end
 
   def test_gathers_instance_metadata
     instance_type     = 'test.type'
@@ -22,9 +29,8 @@ class UsageDataCollectionTest < Minitest::Test
       trigger_usage_data_collection_and_submission
     end
 
-    attrs = last_submitted_usage_data_event
-    assert_equal(instance_type,     attrs['instanceType'])
-    assert_equal(availability_zone, attrs['dataCenter'])
+    attrs = last_submitted_utilization_data
+    assert_equal(instance_type,     attrs.instance_type)
   end
 
   def test_omits_instance_metadata_if_contains_invalid_characters
@@ -38,9 +44,8 @@ class UsageDataCollectionTest < Minitest::Test
       trigger_usage_data_collection_and_submission
     end
 
-    attrs = last_submitted_usage_data_event
-    assert_nil(attrs['instanceType'])
-    assert_nil(attrs['dataCenter'])
+    attrs = last_submitted_utilization_data
+    assert_nil(attrs.instance_type)
   end
 
   def test_omits_instance_metadata_if_too_long
@@ -54,9 +59,8 @@ class UsageDataCollectionTest < Minitest::Test
       trigger_usage_data_collection_and_submission
     end
 
-    attrs = last_submitted_usage_data_event
-    assert_nil(attrs['instanceType'])
-    assert_nil(attrs['dataCenter'])
+    attrs = last_submitted_utilization_data
+    assert_nil(attrs.instance_type)
   end
 
   def test_gathers_cpu_metadata
@@ -69,64 +73,51 @@ class UsageDataCollectionTest < Minitest::Test
 
     trigger_usage_data_collection_and_submission
 
-    attrs = last_submitted_usage_data_event
+    attrs = last_submitted_utilization_data
 
-    assert_equal(fake_processor_info[:num_physical_cores],     attrs['physicalCores'])
-    assert_equal(fake_processor_info[:num_logical_processors], attrs['logicalProcessors'])
+    assert_equal(fake_processor_info[:num_logical_processors], attrs.cpu_count)
   end
 
-  def test_nil_values_are_not_reported
+  def test_nil_values_reported
     fake_processor_info = {
-      :num_physical_cores     => nil,
-      :num_logical_processors => 8
+      :num_physical_cores     => 8,
+      :num_logical_processors => nil
     }
     NewRelic::Agent::SystemInfo.stubs(:get_processor_info).returns(fake_processor_info)
 
     trigger_usage_data_collection_and_submission
 
-    attrs = last_submitted_usage_data_event
+    attrs = last_submitted_utilization_data
 
-    refute_includes(attrs.keys, 'physicalCores')
-    assert_equal(fake_processor_info[:num_logical_processors], attrs['logicalProcessors'])
+    assert_nil(attrs.cpu_count)
   end
 
   def test_retries_upon_failure_to_submit_usage_data
-    $collector.stub_exception('analytic_event_data', nil, 503).once
+    $collector.stub_exception('utilization_data', nil, 503).once
 
     trigger_usage_data_collection_and_submission
-    first_event_attempt = last_submitted_usage_data_event
+    first_attempt = last_submitted_utilization_data
 
     $collector.reset
 
-    trigger_usage_data_submission
-    next_event_attempt = last_submitted_usage_data_event
+    trigger_usage_data_collection_and_submission
+    next_attempt = last_submitted_utilization_data
 
-    assert_equal(first_event_attempt, next_event_attempt)
+    assert_equal(first_attempt, next_attempt)
   end
 
-  def last_submitted_usage_data_event
-    submissions = $collector.calls_for(:analytic_event_data)
+  def last_submitted_utilization_data
+    submissions = $collector.calls_for(:utilization_data)
     assert_equal(1, submissions.size)
 
-    events = submissions.last.events
-    assert_equal(1, events.size)
+    data = submissions.last
+    assert_equal(4, data.body.size)
 
-    event = events.last
-    attributes = event[1]
-    attributes
-  end
-
-  def trigger_usage_data_collection
-    NewRelic::Agent.agent.record_usage_data
-  end
-
-  def trigger_usage_data_submission
-    agent.send(:transmit_event_data)
+    data
   end
 
   def trigger_usage_data_collection_and_submission
-    trigger_usage_data_collection
-    trigger_usage_data_submission
+    agent.send(:transmit_utilization_data)
   end
 
   def with_fake_metadata_service
