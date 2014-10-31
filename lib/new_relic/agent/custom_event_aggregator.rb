@@ -20,7 +20,7 @@ module NewRelic
 
       def initialize
         @lock         = Mutex.new
-        @buffer       = SizedBuffer.new(NewRelic::Agent.config[DEFAULT_CAPACITY_KEY])
+        @buffer       = SampledBuffer.new(NewRelic::Agent.config[DEFAULT_CAPACITY_KEY])
         @type_strings = Hash.new { |hash, key| hash[key] = key.to_s.freeze }
         register_config_callbacks
       end
