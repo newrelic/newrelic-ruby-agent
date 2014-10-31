@@ -11,14 +11,16 @@ module NewRelic
 
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
+      SOURCE           = 'source'.freeze
+      CUSTOMER         = 'customer'.freeze
       EVENT_PARAMS_CTX = 'recording custom event'.freeze
       EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
 
-      DEFAULT_CAPACITY_KEY = :'custom_insights_events.max_samples_stored'
+      DEFAULT_CAPACITY_KEY = :'custom_insights_events.max_events_stored'
 
       def initialize
         @lock         = Mutex.new
-        @buffer       = SizedBuffer.new(NewRelic::Agent.config[DEFAULT_CAPACITY_KEY])
+        @buffer       = SampledBuffer.new(NewRelic::Agent.config[DEFAULT_CAPACITY_KEY])
         @type_strings = Hash.new { |hash, key| hash[key] = key.to_s.freeze }
         register_config_callbacks
       end
@@ -40,10 +42,9 @@ module NewRelic
         end
 
         event = [
-          { TYPE => type, TIMESTAMP => Time.now.to_i },
-          attributes
+          { TYPE => type, TIMESTAMP => Time.now.to_i, SOURCE => CUSTOMER },
+          event_params(attributes, EVENT_PARAMS_CTX)
         ]
-        event.each { |h| event_params!(h, EVENT_PARAMS_CTX) }
 
         stored = @lock.synchronize do
           @buffer.append(event)
@@ -66,7 +67,7 @@ module NewRelic
       def note_dropped_events(captured_count, dropped_count)
         total_count = captured_count + dropped_count
         if dropped_count > 0
-          NewRelic::Agent.logger.warn("Dropped #{dropped_count} events out of #{total_count}.")
+          NewRelic::Agent.logger.warn("Dropped #{dropped_count} custom events out of #{total_count}.")
         end
         engine = NewRelic::Agent.instance.stats_engine
         engine.tl_record_supportability_metric_count("Events/Custom/Seen"   ,    total_count)
