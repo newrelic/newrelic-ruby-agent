@@ -6,7 +6,7 @@ require 'newrelic_rpm'
 require 'multiverse_helpers'
 require 'fake_instance_metadata_service'
 
-class UsageDataCollectionTest < Minitest::Test
+class UtilizationDataCollectionTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent do
@@ -18,78 +18,68 @@ class UsageDataCollectionTest < Minitest::Test
     NewRelic::Agent.config.remove_config(@config)
   end
 
+  def test_hostname
+    NewRelic::Agent::Hostname.stubs(:get).returns("hostile")
+    trigger_usage_data_collection_and_submission
+
+    data = last_submitted_utilization_data
+    assert_equal("hostile", data.hostname)
+  end
+
   def test_gathers_instance_metadata
-    instance_type     = 'test.type'
-    availability_zone = 'us-west-2b'
+    instance_type = 'test.type'
 
     with_fake_metadata_service do |service|
       service.set_response_for_path('/2008-02-01/meta-data/instance-type', instance_type)
-      service.set_response_for_path('/2008-02-01/meta-data/placement/availability-zone', availability_zone)
-
       trigger_usage_data_collection_and_submission
     end
 
-    attrs = last_submitted_utilization_data
-    assert_equal(instance_type,     attrs.instance_type)
+    data = last_submitted_utilization_data
+    assert_equal(instance_type, data.instance_type)
   end
 
   def test_omits_instance_metadata_if_contains_invalid_characters
-    instance_type     = '<script>lol</script>'
-    availability_zone = ';us-west-2b'
+    instance_type = '<script>lol</script>'
 
     with_fake_metadata_service do |service|
       service.set_response_for_path('/2008-02-01/meta-data/instance-type', instance_type)
-      service.set_response_for_path('/2008-02-01/meta-data/placement/availability-zone', availability_zone)
-
       trigger_usage_data_collection_and_submission
     end
 
-    attrs = last_submitted_utilization_data
-    assert_nil(attrs.instance_type)
+    data = last_submitted_utilization_data
+    assert_nil(data.instance_type)
   end
 
   def test_omits_instance_metadata_if_too_long
-    instance_type     = 'a' * 1024
-    availability_zone = 'b' * 1024
+    instance_type = 'a' * 1024
 
     with_fake_metadata_service do |service|
       service.set_response_for_path('/2008-02-01/meta-data/instance-type', instance_type)
-      service.set_response_for_path('/2008-02-01/meta-data/placement/availability-zone', availability_zone)
-
       trigger_usage_data_collection_and_submission
     end
 
-    attrs = last_submitted_utilization_data
-    assert_nil(attrs.instance_type)
+    data = last_submitted_utilization_data
+    assert_nil(data.instance_type)
   end
 
   def test_gathers_cpu_metadata
-    fake_processor_info = {
-      :num_physical_packages  => 2,
-      :num_physical_cores     => 4,
-      :num_logical_processors => 8
-    }
+    fake_processor_info = { :num_logical_processors => 8 }
     NewRelic::Agent::SystemInfo.stubs(:get_processor_info).returns(fake_processor_info)
 
     trigger_usage_data_collection_and_submission
 
-    attrs = last_submitted_utilization_data
-
-    assert_equal(fake_processor_info[:num_logical_processors], attrs.cpu_count)
+    data = last_submitted_utilization_data
+    assert_equal(fake_processor_info[:num_logical_processors], data.cpu_count)
   end
 
-  def test_nil_values_reported
-    fake_processor_info = {
-      :num_physical_cores     => 8,
-      :num_logical_processors => nil
-    }
+  def test_nil_cpu_values_reported
+    fake_processor_info = { :num_logical_processors => nil }
     NewRelic::Agent::SystemInfo.stubs(:get_processor_info).returns(fake_processor_info)
 
     trigger_usage_data_collection_and_submission
 
-    attrs = last_submitted_utilization_data
-
-    assert_nil(attrs.cpu_count)
+    data = last_submitted_utilization_data
+    assert_nil(data.cpu_count)
   end
 
   def test_retries_upon_failure_to_submit_usage_data
