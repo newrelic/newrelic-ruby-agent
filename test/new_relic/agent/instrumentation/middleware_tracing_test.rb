@@ -34,31 +34,4 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
       middleware_class.new.call({})
     end
   end
-
-  def test_rack_cascade_sets_transaction_as_rack_cascade
-    middleware_class = Class.new do
-      include NewRelic::Agent::Instrumentation::MiddlewareTracing
-
-      attr_reader :category
-
-      def target
-        self
-      end
-
-      def transaction_options
-        {}
-      end
-
-      def traced_call(env)
-      end
-    end
-
-    Kernel.const_set("Rack", Module.new)
-    Rack.const_set("Cascade", middleware_class)
-
-    in_transaction do |txn|
-      middleware_class.new.call({})
-      assert txn.is_rack_cascade
-    end
-  end
 end
