@@ -21,6 +21,7 @@ module NewRelic::Rack
 
     def traced_call(env)
       result = @app.call(env)   # [status, headers, response]
+      set_transaction_http_response_code(result[0])
 
       js_to_inject = NewRelic::Agent.browser_timing_header
       if (js_to_inject != "") && should_instrument?(env, result[0], result[1])
