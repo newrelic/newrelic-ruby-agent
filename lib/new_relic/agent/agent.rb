@@ -992,9 +992,7 @@ module NewRelic
           rescue UnrecoverableServerException => e
             NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
           rescue ServerConnectionException => e
-            NewRelic::Agent.logger.debug("Unable to send #{endpoint} data, will try again later. Error: ", e)
-            NewRelic::Agent.record_metric("Supportability/remote_unavailable", 0.0)
-            NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
+            log_remote_unavailable(endpoint, e)
             container.merge!(items)
           rescue => e
             NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
@@ -1039,9 +1037,17 @@ module NewRelic
             @agent_command_router.check_for_and_handle_agent_commands
           rescue ForceRestartException, ForceDisconnectException
             raise
+          rescue ServerConnectionException => e
+            log_remote_unavailable(:get_agent_commands, e)
           rescue => e
             NewRelic::Agent.logger.info("Error during check_for_and_handle_agent_commands, will retry later: ", e)
           end
+        end
+
+        def log_remote_unavailable(endpoint, e)
+          NewRelic::Agent.logger.debug("Unable to send #{endpoint} data, will try again later. Error: ", e)
+          NewRelic::Agent.record_metric("Supportability/remote_unavailable", 0.0)
+          NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
         end
 
         def transmit_data
