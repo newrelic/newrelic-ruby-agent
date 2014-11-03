@@ -14,6 +14,8 @@ class HarvestTimestampsTest < Minitest::Test
     freeze_time
 
     t1 = advance_time 10
+
+    simulate_fork
     NewRelic::Agent.after_fork
 
     t2 = advance_time 10
@@ -29,6 +31,7 @@ class HarvestTimestampsTest < Minitest::Test
   def test_start_timestamp_maintained_on_harvest_failure
     t0 = freeze_time.to_f
 
+    simulate_fork
     NewRelic::Agent.after_fork
 
     $collector.stub('metric_data', {}, 503)
@@ -48,6 +51,7 @@ class HarvestTimestampsTest < Minitest::Test
   def test_timestamps_updated_even_if_filling_metric_id_cache_fails
     t0 = freeze_time.to_f
 
+    simulate_fork
     NewRelic::Agent.after_fork
 
     # Induce a failure in filling the metric ID cache by handing back a bogus
@@ -72,5 +76,9 @@ class HarvestTimestampsTest < Minitest::Test
 
   def last_metric_data_post
     $collector.calls_for('metric_data').last
+  end
+
+  def simulate_fork
+    NewRelic::Agent.instance.harvester.instance_variable_set(:@starting_pid, nil)
   end
 end
