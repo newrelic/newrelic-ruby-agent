@@ -90,7 +90,9 @@ DependencyDetection.defer do
       end
 
       ::Resque.before_fork do |job|
-        NewRelic::Agent.register_report_channel(job.object_id)
+        if ENV['FORK_PER_JOB'] != 'false'
+          NewRelic::Agent.register_report_channel(job.object_id)
+        end
       end
 
       ::Resque.after_fork do |job|
