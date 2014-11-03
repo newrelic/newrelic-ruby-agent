@@ -541,6 +541,13 @@ module NewRelic
           reset_harvest_locks
         end
 
+        def flush_pipe_data
+          if connected? && @service.is_a?(::NewRelic::Agent::PipeService)
+            transmit_data
+            transmit_event_data
+          end
+        end
+
         private
 
         # All of this module used to be contained in the

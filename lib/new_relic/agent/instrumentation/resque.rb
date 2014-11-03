@@ -15,12 +15,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    # == Resque Instrumentation
-    #
-    # Installs a hook to ensure the agent starts manually when the worker
-    # starts and also adds the tracer to the process method which executes
-    # in the forked task.
-
     module Resque
       module Plugins
         module NewRelicInstrumentation
@@ -40,8 +34,7 @@ DependencyDetection.defer do
                 yield(*args)
               end
             ensure
-              NewRelic::Agent.shutdown if NewRelic::LanguageSupport.can_fork? &&
-                                          (!Resque.respond_to?(:inline) || !Resque.inline)
+              NewRelic::Agent.agent.flush_pipe_data
             end
           end
         end
