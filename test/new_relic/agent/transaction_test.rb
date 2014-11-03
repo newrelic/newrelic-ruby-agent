@@ -1040,6 +1040,15 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_not_recorded(['WebFrontend/QueueTime'])
   end
 
+  def test_background_transactions_with_ignore_rules_are_ok
+    with_config(:'rules.ignore_url_regexes' => ['foobar']) do
+      in_transaction('foo') do
+      end
+    end
+
+    assert_metrics_recorded(['foo'])
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end
