@@ -24,7 +24,7 @@ module NewRelic
         if @processor_info.nil?
           case ruby_os_identifier
 
-          when /darwin/, /freebsd/
+          when /darwin/
             @processor_info = {
               :num_physical_packages  => `sysctl -n hw.packages`.to_i,
               :num_physical_cores     => `sysctl -n hw.physicalcpu_max`.to_i,
@@ -44,11 +44,21 @@ module NewRelic
           when /linux/
             cpuinfo = proc_try_read('/proc/cpuinfo')
             @processor_info = cpuinfo ? parse_cpuinfo(cpuinfo) : {}
+
+          when /freebsd/
+            @processor_info = {
+              :num_physical_packages  => nil,
+              :num_physical_cores     => nil,
+              :num_logical_processors => `sysctl -n hw.ncpu`.to_i
+            }
           end
 
           # give nils for obviously wrong values
           @processor_info.keys.each do |key|
-            @processor_info[key] = nil if @processor_info[key] <= 0
+            value = @processor_info[key]
+            if value.is_a?(Numeric) && value <= 0
+              @processor_info[key] = nil
+            end
           end
         end
 
