@@ -90,6 +90,7 @@ module NewRelic
         return '' unless js_enabled_and_ready? # fast exit
 
         state = NewRelic::Agent::TransactionState.tl_get
+
         return '' unless insert_js?(state) # slower exit
 
         bt_config = browser_timing_config(state)

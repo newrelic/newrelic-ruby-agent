@@ -84,10 +84,10 @@ EOL
     end
   end
 
-  def test_should_only_instrument_successfull_html_requests
-    assert app.should_instrument?({}, 200, {'Content-Type' => 'text/html'})
-    assert !app.should_instrument?({}, 500, {'Content-Type' => 'text/html'})
-    assert !app.should_instrument?({}, 200, {'Content-Type' => 'text/xhtml'})
+  def test_should_only_instrument_successful_html_requests
+    assert app.should_instrument?({}, 200, {'Content-Type' => 'text/html'}), "Expected to instrument 200 requests."
+    assert !app.should_instrument?({}, 500, {'Content-Type' => 'text/html'}), "Expected not to instrument 500 requests."
+    assert !app.should_instrument?({}, 200, {'Content-Type' => 'text/xhtml'}), "Expected not to instrument requests with content type other than text/html."
   end
 
   def test_should_not_instrument_when_content_disposition

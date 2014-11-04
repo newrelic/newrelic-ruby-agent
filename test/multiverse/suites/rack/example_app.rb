@@ -4,7 +4,10 @@
 
 class ExampleApp
   def call(env)
-    ['200', {'Content-Type' => 'text/html', 'ExampleApp' => '0'}, ['A barebones rack app.']]
+    req = Rack::Request.new(env)
+    body = req.params['body'] || 'A barebones rack app.'
+
+    ['200', {'Content-Type' => 'text/html', 'ExampleApp' => '0'}, [body]]
   end
 end
 

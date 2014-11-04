@@ -39,15 +39,20 @@ module NewRelic::Rack
       end
     end
 
+    def set_transaction_http_response_code(status_code)
+      txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
+      txn.http_response_code = status_code
+    end
+
     ALREADY_INSTRUMENTED_KEY = "newrelic.browser_monitoring_already_instrumented"
 
     def should_instrument?(env, status, headers)
       NewRelic::Agent.config[:'browser_monitoring.auto_instrument'] &&
-        status == 200 &&
         !env[ALREADY_INSTRUMENTED_KEY] &&
         is_html?(headers) &&
         !is_attachment?(headers) &&
-        !is_streaming?(env)
+        !is_streaming?(env) &&
+        status == 200
     end
 
     def is_html?(headers)
