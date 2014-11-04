@@ -1,5 +1,40 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.9.7 ##
+
+  * Custom Insights events API
+
+  The Ruby agent sends events to Insights for each transaction in your
+  application, but sometimes that isn't enough. Previously the only solution
+  was to call the Insights JSON API. With this release of the agent you can
+  simply call NewRelic::Agent.record_custom_event instead to record your event.
+
+  For more details, see TDB
+
+  * Support for New Relic Synthetics
+
+  The Ruby agent now gives you additional information for requests from New
+  Relic Synthetics. More transaction traces and events give you a clearer look
+  into how your applicaiton is performing around the world.
+
+  For more details, see https://docs.newrelic.com/docs/synthetics/new-relic-synthetics/getting-started/new-relic-synthetics
+
+  * Support agent when starting Resque Pool from Rake task
+
+  When running resque-pool with its provided rake tasks, the agent would not
+  start up properly. Thanks Tiago Sousa for the fix!
+
+  * Fix for DelayedJob + Rails 4.x queue depth metrics
+
+  The Ruby agent records metrics around job queue depth at each harvest for
+  DelayedJob, but this didn't work properly in appliation running Rails 4.x.
+  This has been fixed.
+
+  * Fix for failure in background transactions with rules.ignore_url_regexes
+
+  The recently added feature for ignoring transactions via URL regexes caused
+  errors for non-web transactions. This has been fixed.
+
 ## v3.9.6 ##
 
   * Rails 4.2 ActiveJob support
