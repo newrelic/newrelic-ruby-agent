@@ -455,6 +455,7 @@ module NewRelic
       agent.pop_trace_execution_flag
     end
 
+    CUSTOMER_SOURCE = 'Customer'.freeze
     # Record a custom event to be sent to New Relic Insights.
     # The recorded event will be buffered in memory until the next time the
     # agent sends data to New Relic's servers.
@@ -480,8 +481,8 @@ module NewRelic
     # @api public
     #
     def record_custom_event(event_type, event_attrs)
-      if NewRelic::Agent.config[:'custom_insights_events.enabled']
-        agent && agent.custom_event_aggregator.record(event_type, event_attrs)
+      if agent && NewRelic::Agent.config[:'custom_insights_events.enabled']
+        agent.custom_event_aggregator.record(event_type, event_attrs, CUSTOMER_SOURCE)
       end
       nil
     end

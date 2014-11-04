@@ -12,7 +12,7 @@ module NewRelic
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
       SOURCE           = 'source'.freeze
-      CUSTOMER         = 'customer'.freeze
+      AGENT_SOURCE     = 'Agent'.freeze
       EVENT_PARAMS_CTX = 'recording custom event'.freeze
       EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
 
@@ -34,7 +34,7 @@ module NewRelic
         end
       end
 
-      def record(type, attributes)
+      def record(type, attributes, source=AGENT_SOURCE)
         type = @type_strings[type]
         unless type =~ EVENT_TYPE_REGEX
           note_dropped_event(type)
@@ -42,7 +42,7 @@ module NewRelic
         end
 
         event = [
-          { TYPE => type, TIMESTAMP => Time.now.to_i, SOURCE => CUSTOMER },
+          { TYPE => type, TIMESTAMP => Time.now.to_i, SOURCE => source },
           event_params(attributes, EVENT_PARAMS_CTX)
         ]
 
@@ -70,9 +70,9 @@ module NewRelic
           NewRelic::Agent.logger.warn("Dropped #{dropped_count} custom events out of #{total_count}.")
         end
         engine = NewRelic::Agent.instance.stats_engine
-        engine.tl_record_supportability_metric_count("Events/Custom/Seen"   ,    total_count)
-        engine.tl_record_supportability_metric_count("Events/Custom/Sent"   , captured_count)
-        engine.tl_record_supportability_metric_count("Events/Custom/Dropped",  dropped_count)
+        engine.tl_record_supportability_metric_count("Events/Customer/Seen"   ,    total_count)
+        engine.tl_record_supportability_metric_count("Events/Customer/Sent"   , captured_count)
+        engine.tl_record_supportability_metric_count("Events/Customer/Dropped",  dropped_count)
       end
 
       def merge!(events)

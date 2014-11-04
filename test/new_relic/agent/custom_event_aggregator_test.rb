@@ -81,8 +81,8 @@ module NewRelic::Agent
       assert_equal(1, events.size)
       event = events.first
 
-      assert_equal({ 'type' => 'type_a', 'timestamp' => t0.to_i, 'source' => 'customer' }, event[0])
-      assert_equal({ 'foo'  => 'bar'   , 'baz'       => 'qux'                           }, event[1])
+      assert_equal({ 'type' => 'type_a', 'timestamp' => t0.to_i, 'source' => 'Agent' }, event[0])
+      assert_equal({ 'foo'  => 'bar'   , 'baz'       => 'qux'                        }, event[1])
     end
   end
 end
