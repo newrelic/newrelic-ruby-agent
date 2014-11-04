@@ -43,9 +43,6 @@ module NewRelic
             if @processor_info[:num_logical_processors] <= 0
               @processor_info[:num_logical_processors] = `sysctl -n hw.availcpu`.to_i
             end
-            if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = `sysctl -n hw.activecpu`.to_i
-            end
 
           when /linux/
             cpuinfo = proc_try_read('/proc/cpuinfo')
