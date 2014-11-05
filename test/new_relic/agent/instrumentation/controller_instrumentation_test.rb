@@ -145,53 +145,53 @@ module NewRelic::Agent::Instrumentation
 
     def test_transaction_name_calls_newrelic_metric_path
       @object.stubs(:newrelic_metric_path).returns('some/wacky/path')
-      assert_equal('Controller/some/wacky/path', @txn_namer.name(nil, @object, :controller))
+      assert_equal('Controller/some/wacky/path', @txn_namer.txn_name(nil, @object, :controller))
     end
 
     def test_transaction_name_applies_category_and_path
       assert_equal('Controller/metric/path',
-                   @txn_namer.name(nil,
-                                   @object,
-                                   :controller,
-                                   :path => 'metric/path'))
+                   @txn_namer.txn_name(nil,
+                                       @object,
+                                       :controller,
+                                       :path => 'metric/path'))
       assert_equal('OtherTransaction/Background/metric/path',
-                   @txn_namer.name(nil,
-                                   @object,
-                                   :task,
-                                   :path => 'metric/path'))
+                   @txn_namer.txn_name(nil,
+                                       @object,
+                                       :task,
+                                       :path => 'metric/path'))
       assert_equal('Controller/Rack/metric/path',
-                   @txn_namer.name(nil,
-                                   @object,
-                                   :rack,
-                                   :path => 'metric/path'))
+                   @txn_namer.txn_name(nil,
+                                       @object,
+                                       :rack,
+                                       :path => 'metric/path'))
       assert_equal('Controller/metric/path',
-                   @txn_namer.name(nil,
-                                   @object,
-                                   :uri,
-                                   :path => 'metric/path'))
+                   @txn_namer.txn_name(nil,
+                                       @object,
+                                       :uri,
+                                       :path => 'metric/path'))
       assert_equal('Controller/Sinatra/metric/path',
-                   @txn_namer.name(nil,
-                                   @object,
-                                   :sinatra,
-                                   :path => 'metric/path'))
+                   @txn_namer.txn_name(nil,
+                                       @object,
+                                       :sinatra,
+                                       :path => 'metric/path'))
       assert_equal('Blarg/metric/path',
-                   @txn_namer.name(nil,
-                                   @object,
-                                   'Blarg',
-                                   :path => 'metric/path'))
+                   @txn_namer.txn_name(nil,
+                                       @object,
+                                       'Blarg',
+                                       :path => 'metric/path'))
     end
 
     def test_transaction_name_uses_class_name_if_path_not_specified
       assert_equal('Controller/NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject',
-                   @txn_namer.name(nil, @object, :controller))
+                   @txn_namer.txn_name(nil, @object, :controller))
     end
 
     def test_transaction_name_applies_action_name_if_specified_and_not_path
       assert_equal('Controller/NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/action',
-                     @txn_namer.name(nil,
-                                     @object,
-                                     :controller,
-                                     :name => 'action'))
+                     @txn_namer.txn_name(nil,
+                                         @object,
+                                         :controller,
+                                         :name => 'action'))
     end
 
     def test_transaction_path_name
