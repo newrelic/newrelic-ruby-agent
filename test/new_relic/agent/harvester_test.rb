@@ -20,19 +20,9 @@ module NewRelic
         assert_nil harvester.starting_pid
       end
 
-      def test_marks_started_in_process
-        pretend_started_in_another_process
-
-        with_config(:restart_thread_in_children => true) do
-          harvester.on_transaction
-        end
-
-        assert_false harvester.needs_restart?
-      end
-
       def test_skips_out_early_if_already_started
         harvester.mark_started
-        ::Mutex.any_instance.expects(:synchronize).never
+        @after_forker.expects(:after_fork).never
 
         with_config(:restart_thread_in_children => true) do
           harvester.on_transaction
@@ -73,9 +63,9 @@ module NewRelic
         end
       end
 
-      def test_calls_to_restart_only_once
+      def test_calls_restart_every_time_until_marked_started
         pretend_started_in_another_process
-        @after_forker.expects(:after_fork).once
+        @after_forker.expects(:after_fork).times(100)
 
         with_config(:restart_thread_in_children => true) do
           threads = []

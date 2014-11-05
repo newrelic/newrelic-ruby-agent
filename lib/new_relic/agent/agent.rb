@@ -55,8 +55,10 @@ module NewRelic
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
         @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
-        @harvester             = NewRelic::Agent::Harvester.new(@events)
         @monotonic_gc_profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
+
+        @harvester       = NewRelic::Agent::Harvester.new(@events)
+        @after_fork_lock = Mutex.new
 
         @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new(@events)
         @custom_event_aggregator      = NewRelic::Agent::CustomEventAggregator.new
@@ -139,14 +141,16 @@ module NewRelic
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
         def after_fork(options={})
-          needs_restart = @harvester.needs_restart?
-          @harvester.mark_started
+          needs_restart = false
+          @after_fork_lock.synchronize do
+            needs_restart = @harvester.needs_restart?
+            @harvester.mark_started
+          end
 
           return if !needs_restart ||
             !Agent.config[:agent_enabled] ||
             !Agent.config[:monitor_mode] ||
-            disconnected? ||
-            @worker_thread && @worker_thread.alive?
+            disconnected?
 
           ::NewRelic::Agent.logger.debug "Starting the worker thread in #{Process.pid} (parent #{Process.ppid}) after forking."
 
