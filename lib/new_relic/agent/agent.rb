@@ -55,8 +55,10 @@ module NewRelic
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
         @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
-        @harvester             = NewRelic::Agent::Harvester.new(@events)
         @monotonic_gc_profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
+
+        @harvester       = NewRelic::Agent::Harvester.new(@events)
+        @after_fork_lock = Mutex.new
 
         @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new(@events)
         @custom_event_aggregator      = NewRelic::Agent::CustomEventAggregator.new
@@ -139,33 +141,38 @@ module NewRelic
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
         def after_fork(options={})
-          # Mark started early because if we've explicitly called after_fork,
-          # we should be ready to run and shouldn't restarting if we can't.
-          @harvester.mark_started
-
-          if channel_id = options[:report_to_channel]
-            @service = NewRelic::Agent::PipeService.new(channel_id)
-            if connected?
-              @connected_pid = Process.pid
-            else
-              ::NewRelic::Agent.logger.debug("Child process #{Process.pid} not reporting to non-connected parent (process #{Process.ppid}).")
-              @service.shutdown(Time.now)
-              disconnect
-            end
+          needs_restart = false
+          @after_fork_lock.synchronize do
+            needs_restart = @harvester.needs_restart?
+            @harvester.mark_started
           end
 
-          return if !Agent.config[:agent_enabled] ||
+          return if !needs_restart ||
+            !Agent.config[:agent_enabled] ||
             !Agent.config[:monitor_mode] ||
-            disconnected? ||
-            @worker_thread && @worker_thread.alive?
+            disconnected?
 
           ::NewRelic::Agent.logger.debug "Starting the worker thread in #{Process.pid} (parent #{Process.ppid}) after forking."
+
+          channel_id = options[:report_to_channel]
+          install_pipe_service(channel_id) if channel_id
 
           # Clear out locks and stats left over from parent process
           reset_objects_with_locks
           drop_buffered_data
 
           setup_and_start_agent(options)
+        end
+
+        def install_pipe_service(channel_id)
+          @service = NewRelic::Agent::PipeService.new(channel_id)
+          if connected?
+            @connected_pid = Process.pid
+          else
+            ::NewRelic::Agent.logger.debug("Child process #{Process.pid} not reporting to non-connected parent (process #{Process.ppid}).")
+            @service.shutdown(Time.now)
+            disconnect
+          end
         end
 
         # True if we have initialized and completed 'start'
@@ -536,6 +543,13 @@ module NewRelic
         def reset_objects_with_locks
           @stats_engine = NewRelic::Agent::StatsEngine.new
           reset_harvest_locks
+        end
+
+        def flush_pipe_data
+          if connected? && @service.is_a?(::NewRelic::Agent::PipeService)
+            transmit_data
+            transmit_event_data
+          end
         end
 
         private

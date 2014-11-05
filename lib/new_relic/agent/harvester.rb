@@ -13,9 +13,7 @@ module NewRelic
         # We intentionally don't set our pid as started at this point.
         # Startup routines must call mark_started when they consider us set!
         @starting_pid = nil
-
         @after_forker = after_forker
-        @lock = Mutex.new
 
         if events
           events.subscribe(:start_transaction, &method(:on_transaction))
@@ -23,17 +21,11 @@ module NewRelic
       end
 
       def on_transaction(*_)
-        return unless restart_in_children_enabled? && needs_restart? && harvest_thread_enabled?
+        return unless restart_in_children_enabled? &&
+                        needs_restart? &&
+                        harvest_thread_enabled?
 
-        needs_thread_start = false
-        @lock.synchronize do
-          needs_thread_start = needs_restart?
-          mark_started
-        end
-
-        if needs_thread_start
-          restart_harvest_thread
-        end
+        restart_harvest_thread
       end
 
       def mark_started(pid = Process.pid)
@@ -53,11 +45,8 @@ module NewRelic
       end
 
       def restart_harvest_thread
-        # Daemonize reports thread as still alive when it isn't... whack!
-        NewRelic::Agent.instance.instance_variable_set(:@worker_thread, nil)
         @after_forker.after_fork(:force_reconnect => true)
       end
-
     end
   end
 end
