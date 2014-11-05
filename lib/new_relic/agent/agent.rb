@@ -19,7 +19,9 @@ require 'new_relic/agent/database'
 require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
-require 'new_relic/agent/request_sampler'
+require 'new_relic/agent/synthetics_monitor'
+require 'new_relic/agent/transaction_event_aggregator'
+require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
@@ -48,13 +50,18 @@ module NewRelic
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
         @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
+        @synthetics_monitor    = NewRelic::Agent::SyntheticsMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
-        @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
         @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
-        @harvester             = NewRelic::Agent::Harvester.new(@events)
         @monotonic_gc_profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
+
+        @harvester       = NewRelic::Agent::Harvester.new(@events)
+        @after_fork_lock = Mutex.new
+
+        @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new(@events)
+        @custom_event_aggregator      = NewRelic::Agent::CustomEventAggregator.new
 
         @connect_state      = :pending
         @connect_attempts   = 0
@@ -112,6 +119,7 @@ module NewRelic
         attr_reader :harvest_lock
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
+        attr_reader :custom_event_aggregator
 
         # This method should be called in a forked process after a fork.
         # It assumes the parent process initialized the agent, but does
@@ -133,33 +141,38 @@ module NewRelic
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
         def after_fork(options={})
-          # Mark started early because if we've explicitly called after_fork,
-          # we should be ready to run and shouldn't restarting if we can't.
-          @harvester.mark_started
-
-          if channel_id = options[:report_to_channel]
-            @service = NewRelic::Agent::PipeService.new(channel_id)
-            if connected?
-              @connected_pid = Process.pid
-            else
-              ::NewRelic::Agent.logger.debug("Child process #{Process.pid} not reporting to non-connected parent (process #{Process.ppid}).")
-              @service.shutdown(Time.now)
-              disconnect
-            end
+          needs_restart = false
+          @after_fork_lock.synchronize do
+            needs_restart = @harvester.needs_restart?
+            @harvester.mark_started
           end
 
-          return if !Agent.config[:agent_enabled] ||
+          return if !needs_restart ||
+            !Agent.config[:agent_enabled] ||
             !Agent.config[:monitor_mode] ||
-            disconnected? ||
-            @worker_thread && @worker_thread.alive?
+            disconnected?
 
           ::NewRelic::Agent.logger.debug "Starting the worker thread in #{Process.pid} (parent #{Process.ppid}) after forking."
+
+          channel_id = options[:report_to_channel]
+          install_pipe_service(channel_id) if channel_id
 
           # Clear out locks and stats left over from parent process
           reset_objects_with_locks
           drop_buffered_data
 
           setup_and_start_agent(options)
+        end
+
+        def install_pipe_service(channel_id)
+          @service = NewRelic::Agent::PipeService.new(channel_id)
+          if connected?
+            @connected_pid = Process.pid
+          else
+            ::NewRelic::Agent.logger.debug("Child process #{Process.pid} not reporting to non-connected parent (process #{Process.ppid}).")
+            @service.shutdown(Time.now)
+            disconnect
+          end
         end
 
         # True if we have initialized and completed 'start'
@@ -514,7 +527,8 @@ module NewRelic
           @stats_engine.reset!
           @error_collector.reset!
           @transaction_sampler.reset!
-          @request_sampler.reset!
+          @transaction_event_aggregator.reset!
+          @custom_event_aggregator.reset!
           @sql_sampler.reset!
         end
 
@@ -529,6 +543,13 @@ module NewRelic
         def reset_objects_with_locks
           @stats_engine = NewRelic::Agent::StatsEngine.new
           reset_harvest_locks
+        end
+
+        def flush_pipe_data
+          if connected? && @service.is_a?(::NewRelic::Agent::PipeService)
+            transmit_data
+            transmit_event_data
+          end
         end
 
         private
@@ -577,6 +598,8 @@ module NewRelic
             period
           end
 
+          LOG_ONCE_KEYS_RESET_PERIOD = 60.0
+
           def create_and_run_event_loop
             @event_loop = create_event_loop
             @event_loop.on(:report_data) do
@@ -585,8 +608,12 @@ module NewRelic
             @event_loop.on(:report_event_data) do
               transmit_event_data
             end
+            @event_loop.on(:reset_log_once_keys) do
+              ::NewRelic::Agent.logger.clear_already_logged
+            end
             @event_loop.fire_every(Agent.config[:data_report_period],       :report_data)
             @event_loop.fire_every(report_period_for(:analytic_event_data), :report_event_data)
+            @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD,              :reset_log_once_keys)
             @event_loop.run
           end
 
@@ -854,7 +881,7 @@ module NewRelic
           when :metric_data             then @stats_engine
           when :transaction_sample_data then @transaction_sampler
           when :error_data              then @error_collector
-          when :analytic_event_data     then @request_sampler
+          when :analytic_event_data     then @transaction_event_aggregator
           when :sql_trace_data          then @sql_sampler
           end
         end
@@ -978,6 +1005,9 @@ module NewRelic
             NewRelic::Agent.logger.warn("Failed to serialize data for #{endpoint}, discarding. Error: ", e)
           rescue UnrecoverableServerException => e
             NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
+          rescue ServerConnectionException => e
+            log_remote_unavailable(endpoint, e)
+            container.merge!(items)
           rescue => e
             NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
             container.merge!(items)
@@ -1012,7 +1042,8 @@ module NewRelic
         end
 
         def harvest_and_send_analytic_event_data
-          harvest_and_send_from_container(@request_sampler, :analytic_event_data)
+          harvest_and_send_from_container(@transaction_event_aggregator, :analytic_event_data)
+          harvest_and_send_from_container(@custom_event_aggregator,      :analytic_event_data)
         end
 
         def check_for_and_handle_agent_commands
@@ -1020,9 +1051,17 @@ module NewRelic
             @agent_command_router.check_for_and_handle_agent_commands
           rescue ForceRestartException, ForceDisconnectException
             raise
+          rescue ServerConnectionException => e
+            log_remote_unavailable(:get_agent_commands, e)
           rescue => e
             NewRelic::Agent.logger.info("Error during check_for_and_handle_agent_commands, will retry later: ", e)
           end
+        end
+
+        def log_remote_unavailable(endpoint, e)
+          NewRelic::Agent.logger.debug("Unable to send #{endpoint} data, will try again later. Error: ", e)
+          NewRelic::Agent.record_metric("Supportability/remote_unavailable", 0.0)
+          NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
         end
 
         def transmit_data

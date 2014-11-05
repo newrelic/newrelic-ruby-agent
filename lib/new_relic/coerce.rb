@@ -56,12 +56,12 @@ module NewRelic
       end
       value.inject({}) do |memo, (key, val)|
         case val
-        when String, Float, Integer
+        when String, Float, Integer, TrueClass, FalseClass
           memo[key.to_s] = val
         when Symbol
           memo[key.to_s] = val.to_s
         end
-      memo
+        memo
       end
     rescue => error
       log_failure(value.class, 'valid event params', context, error)

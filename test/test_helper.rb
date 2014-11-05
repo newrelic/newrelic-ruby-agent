@@ -22,6 +22,39 @@ unless defined?(Minitest::Test)
   Minitest::Test = MiniTest::Unit::TestCase
 end
 
+require 'hometown'
+Hometown.watch(::Thread)
+
+# Set up a watcher for leaking agent threads out of tests.  It'd be nice to
+# disable the threads everywhere, but not all tests have newrelic.yml loaded to
+# us to rely on, so instead we'll just watch for it.
+class Minitest::Test
+  def before_setup
+    @__thread_count = ruby_threads.count
+    super
+  end
+
+  def after_teardown
+    threads = ruby_threads
+    if @__thread_count != threads.count
+      backtraces = threads.map do |thread|
+        trace = Hometown.for(thread)
+        trace.backtrace.join("\n    ")
+      end.join("\n\n")
+
+      fail "Thread count changed in this test from #{@__thread_count} to #{threads.count}\n#{backtraces}"
+    end
+
+    super
+  end
+
+  # We only want to count threads that were spun up from Ruby (i.e.
+  # Thread.new) JRuby has system threads we don't care to track.
+  def ruby_threads
+    Thread.list.select { |t| Hometown.for(t) }
+  end
+end
+
 Dir.glob('test/helpers/*').each { |f| require f }
 
 Dir.glob(File.join(NEWRELIC_PLUGIN_DIR,'test/helpers/*.rb')).each do |helper|

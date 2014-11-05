@@ -414,7 +414,7 @@ def advance_time(seconds)
   freeze_time(Time.now + seconds)
 end
 
-def with_constant_defined(constant_symbol, implementation)
+def with_constant_defined(constant_symbol, implementation=Module.new)
   const_path = constant_path(constant_symbol.to_s)
 
   if const_path
@@ -520,6 +520,19 @@ def with_environment(env)
   end
 end
 
+def with_argv(argv)
+  old_argv = ARGV.dup
+  ARGV.clear
+  ARGV.concat(argv)
+
+  begin
+    yield
+  ensure
+    ARGV.clear
+    ARGV.concat(old_argv)
+  end
+end
+
 def with_ignore_error_filter(filter, &blk)
   original_filter = NewRelic::Agent.ignore_error_filter
   NewRelic::Agent.ignore_error_filter(&filter)
@@ -534,7 +547,7 @@ def json_dump_and_encode(object)
 end
 
 def get_last_analytics_event
-  NewRelic::Agent.agent.instance_variable_get(:@request_sampler).samples.last
+  NewRelic::Agent.agent.instance_variable_get(:@transaction_event_aggregator).samples.last
 end
 
 def swap_instance_method(target, method_name, new_method_implementation, &blk)

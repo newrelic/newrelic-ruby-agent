@@ -63,6 +63,9 @@ module NewRelic
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
 
+      # Fields for tracking synthetics requests
+      attr_accessor :raw_synthetics_header, :synthetics_payload
+
       # Return the currently active transaction, or nil.
       def self.tl_current
         TransactionState.tl_get.current_transaction
@@ -357,9 +360,24 @@ module NewRelic
         transaction_sampler.ignore_transaction(state)
       end
 
+      WEB_SUMMARY_METRIC   = 'HttpDispatcher'.freeze
+      OTHER_SUMMARY_METRIC = 'OtherTransaction/all'.freeze
+
       def summary_metrics
-        metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@frozen_name)
-        metric_parser.summary_metrics
+        if @frozen_name.start_with?(CONTROLLER_PREFIX)
+          [WEB_SUMMARY_METRIC]
+        else
+          background_summary_metrics
+        end
+      end
+
+      def background_summary_metrics
+        segments = @frozen_name.split('/')
+        if segments.size > 2
+          ["OtherTransaction/#{segments[1]}/all", OTHER_SUMMARY_METRIC]
+        else
+          []
+        end
       end
 
       def needs_middleware_summary_metrics?(name)
@@ -402,6 +420,7 @@ module NewRelic
       end
 
       def user_defined_rules_ignore?
+        return unless uri
         return if (rules = NewRelic::Agent.config[:"rules.ignore_url_regexes"]).empty?
 
         parsed = NewRelic::Agent::HTTPClients::URIUtil.parse_url(uri)
@@ -422,7 +441,7 @@ module NewRelic
 
         record_summary_metrics(outermost_segment_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
-        NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
+        record_queue_time
 
         record_exceptions
         merge_metrics
@@ -451,6 +470,7 @@ module NewRelic
         }
         append_cat_info(state, duration, payload)
         append_apdex_perf_zone(duration, payload)
+        append_synthetics_to(state, payload)
         append_referring_transaction_guid_to(state, payload)
         append_http_response_code(payload)
 
@@ -462,8 +482,7 @@ module NewRelic
       end
 
       def include_guid?(state, duration)
-        state.is_cross_app? ||
-        (state.request_token && duration > apdex_t)
+        state.is_cross_app? || is_synthetics_request?
       end
 
       def cat_trip_id(state)
@@ -487,6 +506,35 @@ module NewRelic
 
       def cat_referring_path_hash(state)
         NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_path_hash(state)
+      end
+
+      def is_synthetics_request?
+        synthetics_payload != nil && raw_synthetics_header != nil
+      end
+
+      def synthetics_version
+        info = synthetics_payload or return nil
+        info[0]
+      end
+
+      def synthetics_account_id
+        info = synthetics_payload or return nil
+        info[1]
+      end
+
+      def synthetics_resource_id
+        info = synthetics_payload or return nil
+        info[2]
+      end
+
+      def synthetics_job_id
+        info = synthetics_payload or return nil
+        info[3]
+      end
+
+      def synthetics_monitor_id
+        info = synthetics_payload or return nil
+        info[4]
       end
 
       APDEX_S = 'S'.freeze
@@ -526,6 +574,14 @@ module NewRelic
             payload[:cat_alternate_path_hashes] = alternate_path_hashes
           end
         end
+      end
+
+      def append_synthetics_to(state, payload)
+        return unless is_synthetics_request?
+
+        payload[:synthetics_resource_id] = synthetics_resource_id
+        payload[:synthetics_job_id]      = synthetics_job_id
+        payload[:synthetics_monitor_id]  = synthetics_monitor_id
       end
 
       def append_referring_transaction_guid_to(state, payload)
@@ -592,6 +648,23 @@ module NewRelic
           @exceptions[error].merge! options
         else
           @exceptions[error] = options
+        end
+      end
+
+      QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'.freeze
+
+      def queue_time
+        @apdex_start ? @start_time - @apdex_start : 0
+      end
+
+      def record_queue_time
+        value = queue_time
+        if value > 0.0
+          if value < MethodTracerHelpers::MAX_ALLOWED_METRIC_DURATION
+            @metrics.record_unscoped(QUEUE_TIME_METRIC, value)
+          else
+            ::NewRelic::Agent.logger.log_once(:warn, :too_high_queue_time, "Not recording unreasonably large queue time of #{value} s")
+          end
         end
       end
 
@@ -668,10 +741,6 @@ module NewRelic
 
       alias_method :user_attributes, :custom_parameters
       alias_method :set_user_attributes, :add_custom_parameters
-
-      def queue_time
-        @apdex_start ? @start_time - @apdex_start : 0
-      end
 
       # Returns truthy if the current in-progress transaction is considered a
       # a web transaction (as opposed to, e.g., a background transaction).

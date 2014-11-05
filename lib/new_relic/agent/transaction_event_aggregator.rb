@@ -8,7 +8,7 @@ require 'monitor'
 require 'newrelic_rpm' unless defined?( NewRelic )
 require 'new_relic/agent' unless defined?( NewRelic::Agent )
 
-class NewRelic::Agent::RequestSampler
+class NewRelic::Agent::TransactionEventAggregator
   include NewRelic::Coerce,
           MonitorMixin
 
@@ -28,13 +28,18 @@ class NewRelic::Agent::RequestSampler
   CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'.freeze
   CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'.freeze
   APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'.freeze
+  SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId".freeze
+  SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
+  SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
 
   def initialize( event_listener )
     super()
 
     @enabled       = false
-    @samples       = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[:'analytics_events.max_samples_stored'])
     @notified_full = false
+
+    @samples            = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[:'analytics_events.max_samples_stored'])
+    @synthetics_samples = ::NewRelic::Agent::SizedBuffer.new(NewRelic::Agent.config[:'synthetics.events_limit'])
 
     event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
     self.register_config_callbacks
@@ -47,31 +52,35 @@ class NewRelic::Agent::RequestSampler
 
   # Fetch a copy of the sampler's gathered samples. (Synchronized)
   def samples
-    return self.synchronize { @samples.to_a }
+    return self.synchronize { @samples.to_a.concat(@synthetics_samples.to_a) }
   end
 
   def reset!
-    NewRelic::Agent.logger.debug "Resetting RequestSampler"
-
-    sample_count, request_count = 0
+    sample_count, request_count, synthetics_dropped = 0
     old_samples = nil
 
     self.synchronize do
       sample_count = @samples.size
-      request_count = @samples.seen
-      old_samples = @samples.to_a
-      @samples.reset
+      request_count = @samples.num_seen
+
+      synthetics_dropped = @synthetics_samples.num_dropped
+
+      old_samples = @samples.to_a + @synthetics_samples.to_a
+      @samples.reset!
+      @synthetics_samples.reset!
+
       @notified_full = false
     end
 
-    [old_samples, sample_count, request_count]
+    [old_samples, sample_count, request_count, synthetics_dropped]
   end
 
   # Clear any existing samples, reset the last sample time, and return the
   # previous set of samples. (Synchronized)
   def harvest!
-    old_samples, sample_count, request_count = reset!
+    old_samples, sample_count, request_count, synthetics_dropped = reset!
     record_sampling_rate(request_count, sample_count) if @enabled
+    record_dropped_synthetics(synthetics_dropped)
     old_samples
   end
 
@@ -79,7 +88,7 @@ class NewRelic::Agent::RequestSampler
   # transmission to the collector. (Synchronized)
   def merge!(old_samples)
     self.synchronize do
-      old_samples.each { |s| @samples.append(s) }
+      old_samples.each { |s| append_event(s) }
     end
   end
 
@@ -96,15 +105,28 @@ class NewRelic::Agent::RequestSampler
     ])
 
     engine = NewRelic::Agent.instance.stats_engine
-    engine.tl_record_supportability_metric_count("RequestSampler/requests", request_count)
-    engine.tl_record_supportability_metric_count("RequestSampler/samples", sample_count)
+    engine.tl_record_supportability_metric_count("TransactionEventAggregator/requests", request_count)
+    engine.tl_record_supportability_metric_count("TransactionEventAggregator/samples", sample_count)
+  end
+
+  def record_dropped_synthetics(synthetics_dropped)
+    return unless synthetics_dropped > 0
+
+    NewRelic::Agent.logger.debug("Synthetics transaction event limit (#{@samples.capacity}) reached. Further synthetics events this harvest period dropped.")
+
+    engine = NewRelic::Agent.instance.stats_engine
+    engine.tl_record_supportability_metric_count("TransactionEventAggregator/synthetics_events_dropped", synthetics_dropped)
   end
 
   def register_config_callbacks
     NewRelic::Agent.config.register_callback(:'analytics_events.max_samples_stored') do |max_samples|
-      NewRelic::Agent.logger.debug "RequestSampler max_samples set to #{max_samples}"
+      NewRelic::Agent.logger.debug "TransactionEventAggregator max_samples set to #{max_samples}"
       self.synchronize { @samples.capacity = max_samples }
-      self.reset!
+    end
+
+    NewRelic::Agent.config.register_callback(:'synthetics.events_limit') do |max_samples|
+      NewRelic::Agent.logger.debug "TransactionEventAggregator limit for synthetics events set to #{max_samples}"
+      self.synchronize { @synthetics_samples.capacity = max_samples }
     end
 
     NewRelic::Agent.config.register_callback(:'analytics_events.enabled') do |enabled|
@@ -113,7 +135,7 @@ class NewRelic::Agent::RequestSampler
   end
 
   def notify_full
-    NewRelic::Agent.logger.debug "Request Sampler capacity of #{@samples.capacity} reached, beginning sampling"
+    NewRelic::Agent.logger.debug "Transaction event capacity of #{@samples.capacity} reached, beginning sampling"
     @notified_full = true
   end
 
@@ -124,8 +146,17 @@ class NewRelic::Agent::RequestSampler
     main_event = create_main_event(payload)
     custom_params = create_custom_parameters(payload)
 
-    is_full = self.synchronize { @samples.append([main_event, custom_params]) }
-    notify_full if is_full && !@notified_full
+    self.synchronize { append_event([main_event, custom_params]) }
+    notify_full if !@notified_full && @samples.full?
+  end
+
+  def append_event(event)
+    main_event, _ = event
+    if main_event.include?(SYNTHETICS_RESOURCE_ID_KEY)
+      @synthetics_samples.append(event)
+    else
+      @samples.append(event)
+    end
   end
 
   def self.map_metric(metric_name, to_add={})
@@ -186,6 +217,9 @@ class NewRelic::Agent::RequestSampler
     optionally_append(CAT_PATH_HASH_KEY,              :cat_path_hash, sample, payload)
     optionally_append(CAT_REFERRING_PATH_HASH_KEY,    :cat_referring_path_hash, sample, payload)
     optionally_append(APDEX_PERF_ZONE_KEY,            :apdex_perf_zone, sample, payload)
+    optionally_append(SYNTHETICS_RESOURCE_ID_KEY,     :synthetics_resource_id, sample, payload)
+    optionally_append(SYNTHETICS_JOB_ID_KEY,          :synthetics_job_id, sample, payload)
+    optionally_append(SYNTHETICS_MONITOR_ID_KEY,      :synthetics_monitor_id, sample, payload)
     append_http_response_code(sample, payload)
     append_cat_alternate_path_hashes(sample, payload)
     sample

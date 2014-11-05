@@ -1,0 +1,79 @@
+suite_condition("Rails 2.2.0-preview1 and Rubinius problems prevent these from running") do
+  # https://github.com/rails/rails/issues/17017
+  RUBY_VERSION != '2.2.0' && (!defined?(RUBY_ENGINE) || RUBY_ENGINE != "rbx")
+end
+
+boilerplate_gems = <<-SQLITE
+  gem 'rack'
+  if RUBY_PLATFORM == 'java'
+    gem 'activerecord-jdbcsqlite3-adapter'
+  else
+    gem 'sqlite3'
+  end
+SQLITE
+
+# delayed_job_mongoid is currently unsupported, but check that we behave
+# mongoid 3.x is only supported on Ruby 1.9.3, though
+if RUBY_VERSION >= '1.9.3'
+  gemfile <<-RB
+    gem 'delayed_job', '~> 4.0.4'
+    gem 'delayed_job_mongoid', '~> 2.1.0'
+    #{boilerplate_gems}
+  RB
+end
+
+# delayed_job_active_record (and older baked into delayed_job) support
+dj4_with_active_record = <<-DJ
+  gem 'delayed_job', '~> 4.0.4'
+  gem 'delayed_job_active_record', '~> 4.0.2'
+  #{boilerplate_gems}
+DJ
+
+dj3_with_active_record = <<-DJ
+  gem 'delayed_job', '~> 3.0.5'
+  gem 'delayed_job_active_record', '~> 0.4.4'
+  #{boilerplate_gems}
+DJ
+
+dj2_with_active_record3 = <<-DJ
+  gem 'delayed_job', '~> 2.1.4'
+  #{boilerplate_gems}
+DJ
+
+if RUBY_VERSION >= '1.9.3'
+  gemfile <<-RB
+    gem 'activerecord', '~> 4.1.6'
+    #{dj4_with_active_record}
+    gem 'minitest', '~> 5.2.3'
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~>4.0.10'
+    #{dj4_with_active_record}
+  RB
+end
+
+[dj4_with_active_record, dj3_with_active_record, dj2_with_active_record3].each do |dj|
+  gemfile <<-RB
+    gem 'activerecord', '~> 3.2.19'
+    #{dj}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 3.1.12'
+    #{dj}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 3.0.20'
+    #{dj}
+  RB
+end
+
+if RUBY_VERSION <= '1.9.3'
+gemfile <<-RB
+  gem 'activerecord', '~> 2.3.18'
+  gem 'delayed_job', '~> 2.0.8'
+  #{boilerplate_gems}
+RB
+end

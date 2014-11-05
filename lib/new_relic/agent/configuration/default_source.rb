@@ -202,10 +202,13 @@ module NewRelic
           case value
           when String
             value.split(',')
-          else
+          when Array
             value
+          else
+            raise ArgumentError.new("Config value '#{value}' couldn't be turned into a list.")
           end
         end
+
       end
 
       AUTOSTART_BLACKLISTED_RAKE_TASKS = [
@@ -1079,6 +1082,7 @@ module NewRelic
           :default      => ['scheduler', 'run'],
           :public       => true,
           :type         => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description  => 'List of prefixes for heroku dyno names (such as "scheduler") to report as hostname without trailing dot and process ID.'
         },
         :labels => {
@@ -1112,7 +1116,32 @@ module NewRelic
           :type         => Array,
           :transform    => DefaultSource.rules_ignore,
           :description  => 'A list of patterns that will cause a transaction to be ignored if any of them match the URI.'
-         }
+        },
+        :'synthetics.traces_limit' => {
+          :default      => 20,
+          :public       => false,
+          :type         => Fixnum,
+          :description  => 'Maximum number of synthetics transaction traces to hold for a given harvest'
+        },
+        :'synthetics.events_limit' => {
+          :default      => 200,
+          :public       => false,
+          :type         => Fixnum,
+          :description  => 'Maximum number of synthetics transaction events to hold for a given harvest'
+        },
+        :'custom_insights_events.enabled' => {
+          :default      => true,
+          :public       => true,
+          :type         => Boolean,
+          :description  => 'Enable or disable custom Insights event recording.'
+        },
+        :'custom_insights_events.max_events_stored' => {
+          :default      => 1000,
+          :public       => true,
+          :type         => Fixnum,
+          :description  => 'Maximum number of custom Insights events buffered in memory at a time.',
+          :dynamic_name => true
+        }
       }.freeze
 
     end

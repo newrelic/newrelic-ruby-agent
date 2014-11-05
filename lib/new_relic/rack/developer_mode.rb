@@ -6,12 +6,21 @@ require 'rack'
 require 'rack/request'
 require 'rack/response'
 require 'rack/file'
+
+require 'conditional_vendored_metric_parser'
 require 'new_relic/collection_helper'
 require 'new_relic/metric_parser/metric_parser'
 require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/instrumentation/middleware_proxy'
 
+require 'new_relic/transaction_sample'
+require 'new_relic/transaction_analysis'
+
 module NewRelic
+  class TransactionSample
+    include TransactionAnalysis
+  end
+
   module Rack
     # This middleware provides the 'developer mode' feature of newrelic_rpm,
     # which allows you to see data about local web transactions in development
@@ -32,7 +41,6 @@ module NewRelic
       VIEW_PATH   = File.expand_path('../../../../ui/views/'  , __FILE__)
       HELPER_PATH = File.expand_path('../../../../ui/helpers/', __FILE__)
       require File.join(HELPER_PATH, 'developer_mode_helper.rb')
-
 
       include NewRelic::DeveloperModeHelper
 
