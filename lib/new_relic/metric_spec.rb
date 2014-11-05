@@ -13,9 +13,18 @@ class NewRelic::MetricSpec
   EMPTY_SCOPE = ''.freeze
 
   def initialize(metric_name='', metric_scope=nil)
-    @name = metric_name.to_s[LENGTH_RANGE]
+    if metric_name.length > MAX_LENGTH
+      @name = metric_name.to_s[LENGTH_RANGE]
+    else
+      @name = metric_name.to_s
+    end
+
     if metric_scope
-      @scope = metric_scope.to_s[LENGTH_RANGE]
+      if metric_scope.length > MAX_LENGTH
+        @scope = metric_scope.to_s[LENGTH_RANGE]
+      else
+        @scope = metric_scope.to_s
+      end
     else
       @scope = EMPTY_SCOPE
     end
