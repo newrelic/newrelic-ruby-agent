@@ -41,7 +41,8 @@ DependencyDetection.defer do
               end
             ensure
               NewRelic::Agent.shutdown if NewRelic::LanguageSupport.can_fork? &&
-                                          (!Resque.respond_to?(:inline) || !Resque.inline)
+                                          (!Resque.respond_to?(:inline) || !Resque.inline) &&
+                                          ENV['FORK_PER_JOB'] != 'false'
             end
           end
         end
