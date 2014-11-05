@@ -4,12 +4,11 @@
 
   * Custom Insights events API
 
-  The Ruby agent sends events to Insights for each transaction in your
-  application, but sometimes that isn't enough. Previously the only solution
-  was to call the Insights JSON API. With this release of the agent you can
-  simply call NewRelic::Agent.record_custom_event instead to record your event.
+  In addition to attaching custom parameters to the events that the agent
+  generates automatically for each transaction, you can now record custom event
+  types into Insights using the new NewRelic::Agent.record_custom_event API.
 
-  For more details, see https://docs.newrelic.com/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events
+  For details, see https://docs.newrelic.com/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events
 
   * Support for New Relic Synthetics
 
@@ -22,8 +21,11 @@
   * Support for multiple job per fork gems with Resque
 
   The resque-jobs-per-fork and resque-multi-job-forks gems alter Resque to
-  fork every N jobs instead of every job. This caused issues for the Ruby
-  agent, but those problems are resolved and these gems are fully supported.
+  fork every N jobs instead of every job. This previously caused issues for
+  the Ruby agent, but those have been resolved. These gems are fully supported.
+
+  Running Resque with the FORK_PER_JOB=false environment variable setting is
+  also supported now.
 
   For more details on our Resque support, see https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation
 
@@ -34,9 +36,9 @@
 
   * Fix for DelayedJob + Rails 4.x queue depth metrics
 
-  The Ruby agent records metrics around job queue depth at each harvest for
-  DelayedJob, but this didn't work properly in appliation running Rails 4.x.
-  This has been fixed.
+  The Ruby agent periodically records DelayedJob queuedepth as a metric, but
+  this didn't work properly in Rails 4.x applications.  This has been fixed.
+  Thanks Jonathan del Strother for his help with the issue!
 
   * Fix for failure in background transactions with rules.ignore_url_regexes
 
