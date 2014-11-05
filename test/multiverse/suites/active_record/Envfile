@@ -44,4 +44,16 @@ gemfile <<-RB
   gem 'activerecord', '~> 2.3.18'
   #{boilerplate_gems}
 RB
+
+gemfile <<-RB
+  gem "rails", "~> 2.2.3"
+  #{boilerplate_gems}
+RB
+end
+
+if RUBY_VERSION < '1.9.3'
+gemfile <<-RB
+  gem "rails", "~> 2.1.2"
+  #{boilerplate_gems}
+RB
 end
