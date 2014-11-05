@@ -70,6 +70,14 @@ class ResqueTest < Minitest::Test
     assert NewRelic::Agent.instance.started?
   end
 
+  def test_agent_still_running_after_non_forked_job
+    fork_per_job = ENV['FORK_PER_JOB']
+    ENV['FORK_PER_JOB'] = 'false'
+    run_jobs
+    assert NewRelic::Agent.instance.started?
+    ENV['FORK_PER_JOB'] = fork_per_job
+  end
+
   def test_doesnt_capture_args_by_default
     run_jobs
     assert_no_params_on_jobs
