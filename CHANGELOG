@@ -9,7 +9,7 @@
   was to call the Insights JSON API. With this release of the agent you can
   simply call NewRelic::Agent.record_custom_event instead to record your event.
 
-  For more details, see TDB
+  For more details, see https://docs.newrelic.com/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events
 
   * Support for New Relic Synthetics
 
@@ -18,6 +18,14 @@
   into how your applicaiton is performing around the world.
 
   For more details, see https://docs.newrelic.com/docs/synthetics/new-relic-synthetics/getting-started/new-relic-synthetics
+
+  * Support for multiple job per fork gems with Resque
+
+  The resque-jobs-per-fork and resque-multi-job-forks gems alter Resque to
+  fork every N jobs instead of every job. This caused issues for the Ruby
+  agent, but those problems are resolved and these gems are fully supported.
+
+  For more details on our Resque support, see https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation
 
   * Support agent when starting Resque Pool from Rake task
 
