@@ -213,7 +213,7 @@ module NewRelic
         end
 
         class TransactionNamer
-          def self.name(txn, traced_obj, category, options={})
+          def self.txn_name(txn, traced_obj, category, options={})
             "#{prefix_for_category(txn, category)}#{path_name(traced_obj, options)}"
           end
 
@@ -354,7 +354,7 @@ module NewRelic
 
           category    = trace_options[:category] || :controller
           txn_options = create_transaction_options(trace_options, available_params)
-          txn_options[:transaction_name] = TransactionNamer.name(nil, self, category, trace_options)
+          txn_options[:transaction_name] = TransactionNamer.txn_name(nil, self, category, trace_options)
           txn_options[:apdex_start_time] = detect_queue_start_time(state)
 
           begin
