@@ -77,27 +77,3 @@ else
   Rake::Task["db:load_config"].clear if Rake::Task.task_defined? "db:load_config"
   Rake::Task.define_task("db:rails_env")
 end
-
-class User < ActiveRecord::Base
-  include NewRelic::Agent::MethodTracer
-  has_many :aliases
-
-  add_method_tracer :save!
-  add_method_tracer :persisted?
-end
-
-class Alias < ActiveRecord::Base
-  include NewRelic::Agent::MethodTracer
-
-  add_method_tracer :save!
-  add_method_tracer :persisted?
-  add_method_tracer :destroyed?
-end
-
-class Order < ActiveRecord::Base
-  has_and_belongs_to_many :shipments, :join_table => 'order_shipments'
-end
-
-class Shipment < ActiveRecord::Base
-  has_and_belongs_to_many :orders, :join_table => 'order_shipments'
-end

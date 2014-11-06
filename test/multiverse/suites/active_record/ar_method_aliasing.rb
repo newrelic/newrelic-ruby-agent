@@ -10,6 +10,8 @@ require 'active_support/multibyte'
 require 'multiverse/color'
 require 'multiverse_helpers'
 
+require File.expand_path(File.join(__FILE__, "..", "app", "models", "models"))
+
 class InstrumentActiveRecordMethods < Minitest::Test
   extend Multiverse::Color
 
