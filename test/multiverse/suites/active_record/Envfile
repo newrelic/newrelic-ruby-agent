@@ -48,10 +48,14 @@ gemfile <<-RB
   #{boilerplate_gems}
 RB
 
+# Had problems on JRuby with Rails 2.2, not worth worry about
+if !defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby'
 gemfile <<-RB
   gem "rails", "~> 2.2.3"
   #{boilerplate_gems}
 RB
+end
+
 end
 
 if RUBY_VERSION < '1.9.3'
