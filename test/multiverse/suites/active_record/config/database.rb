@@ -1,6 +1,12 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'active_record'
 require 'erb'
 require 'newrelic_rpm'
+
+DependencyDetection.detect!
 
 db_dir = File.expand_path('../../db', __FILE__)
 config_dir = File.expand_path(File.dirname(__FILE__))
@@ -86,4 +92,12 @@ class Alias < ActiveRecord::Base
   add_method_tracer :save!
   add_method_tracer :persisted?
   add_method_tracer :destroyed?
+end
+
+class Order < ActiveRecord::Base
+  has_and_belongs_to_many :shipments, :join_table => 'order_shipments'
+end
+
+class Shipment < ActiveRecord::Base
+  has_and_belongs_to_many :orders, :join_table => 'order_shipments'
 end
