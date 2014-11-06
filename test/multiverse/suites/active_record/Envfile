@@ -2,10 +2,8 @@ boilerplate_gems = <<-SQLITE
   gem 'rack'
   gem 'rake'
   if RUBY_PLATFORM == 'java'
-    gem 'activerecord-jdbcsqlite3-adapter'
     gem "activerecord-jdbcmysql-adapter"
   else
-    gem 'sqlite3'
     gem 'mysql'
   end
 SQLITE
