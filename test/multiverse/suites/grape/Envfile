@@ -1,0 +1,5 @@
+gemfile <<-RB
+  gem 'rack'
+  gem 'rack-test'
+  gem 'grape'
+RB
