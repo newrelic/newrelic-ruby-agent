@@ -21,18 +21,24 @@ DependencyDetection.defer do
   def instrument_call
     ::Grape::API.class_eval do
       def call_with_new_relic(env)
-        response = call_without_new_relic(env)
+        begin
+          response = call_without_new_relic(env)
+        rescue Exception => e
+          exception = e
+        end
 
-        route_obj     = env['api.endpoint'].params['route_info']
-        route_ns      = env['api.endpoint'].namespace
+        endpoint = env['api.endpoint']
 
-        class_name    = self.class.name
-        resource_name = route_ns.split('/')[1]
-        method_name   = route_obj.route_method
-        action_name   = route_obj.route_path.split('/').last.gsub('(.:format)','')
+        if endpoint
+          route_obj   = endpoint.params['route_info']
+          action_name = route_obj.route_path.gsub('(.:format)','')
+          method_name = route_obj.route_method
 
-        txn_name = [class_name, resource_name, method_name, action_name].join('/')
-        ::NewRelic::Agent.set_transaction_name(txn_name)
+          txn_name = "#{self.class.name}#{action_name} (#{method_name})"
+          ::NewRelic::Agent.set_transaction_name(txn_name)
+        end
+
+        raise exception if exception
 
         response
       end
