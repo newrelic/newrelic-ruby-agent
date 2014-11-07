@@ -139,9 +139,10 @@ class CoerceTest < Minitest::Test
       },
       event_params(
         {
-          'nan'  => Float::NAN,
-          'inf'  => Float::INFINITY,
-          'ninf' => -Float::INFINITY
+          # Ruby 1.8.7 doesn't have Float::NAN, INFINITY so we have to hack it
+          'nan'  => 0.0  / 0.0,
+          'inf'  => 1.0  / 0.0,
+          'ninf' => -1.0 / 0.0
         }
       )
     )
