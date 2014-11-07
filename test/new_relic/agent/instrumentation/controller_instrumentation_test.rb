@@ -145,37 +145,37 @@ module NewRelic::Agent::Instrumentation
 
     def test_transaction_name_calls_newrelic_metric_path
       @object.stubs(:newrelic_metric_path).returns('some/wacky/path')
-      assert_equal('Controller/some/wacky/path', @txn_namer.name(nil, @object, :controller))
+      assert_equal('Controller/some/wacky/path', @txn_namer.name_for(nil, @object, :controller))
     end
 
     def test_transaction_name_applies_category_and_path
       assert_equal('Controller/metric/path',
-                   @txn_namer.name(nil,
+                   @txn_namer.name_for(nil,
                                    @object,
                                    :controller,
                                    :path => 'metric/path'))
       assert_equal('OtherTransaction/Background/metric/path',
-                   @txn_namer.name(nil,
+                   @txn_namer.name_for(nil,
                                    @object,
                                    :task,
                                    :path => 'metric/path'))
       assert_equal('Controller/Rack/metric/path',
-                   @txn_namer.name(nil,
+                   @txn_namer.name_for(nil,
                                    @object,
                                    :rack,
                                    :path => 'metric/path'))
       assert_equal('Controller/metric/path',
-                   @txn_namer.name(nil,
+                   @txn_namer.name_for(nil,
                                    @object,
                                    :uri,
                                    :path => 'metric/path'))
       assert_equal('Controller/Sinatra/metric/path',
-                   @txn_namer.name(nil,
+                   @txn_namer.name_for(nil,
                                    @object,
                                    :sinatra,
                                    :path => 'metric/path'))
       assert_equal('Blarg/metric/path',
-                   @txn_namer.name(nil,
+                   @txn_namer.name_for(nil,
                                    @object,
                                    'Blarg',
                                    :path => 'metric/path'))
@@ -183,12 +183,12 @@ module NewRelic::Agent::Instrumentation
 
     def test_transaction_name_uses_class_name_if_path_not_specified
       assert_equal('Controller/NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject',
-                   @txn_namer.name(nil, @object, :controller))
+                   @txn_namer.name_for(nil, @object, :controller))
     end
 
     def test_transaction_name_applies_action_name_if_specified_and_not_path
       assert_equal('Controller/NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/action',
-                     @txn_namer.name(nil,
+                     @txn_namer.name_for(nil,
                                      @object,
                                      :controller,
                                      :name => 'action'))
