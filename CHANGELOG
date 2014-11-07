@@ -8,7 +8,7 @@
   generates automatically for each transaction, you can now record custom event
   types into Insights using the new NewRelic::Agent.record_custom_event API.
 
-  For details, see https://docs.newrelic.com/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events
+  For details, see https://docs.newrelic.com/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-agents
 
   * Support for New Relic Synthetics
 
