@@ -37,7 +37,7 @@ class NewRelicServiceKeepAliveTest < Minitest::Test
     assert(!block_ran, "Expected block passed to #session to have not run")
   end
 
-  def test_session_block_reuses_http_handle
+  def test_session_block_reuses_http_handle_with_aggressive_keepalive_off
     handle1 = stub_net_http_handle
     handle2 = stub_net_http_handle
     @service.stubs(:create_http_connection).returns(handle1, handle2)
@@ -47,13 +47,15 @@ class NewRelicServiceKeepAliveTest < Minitest::Test
     handle2.expects(:start).never
 
     block_ran = false
-    @service.session do
-      block_ran = true
-      assert(@service.http_connection)
+    with_config(:aggressive_keepalive => false) do
+      @service.session do
+        block_ran = true
+        assert(@service.http_connection)
 
-      # check we get the same object back each time we call http_connection in the block
-      assert_equal(@service.http_connection.object_id, handle1.object_id)
-      assert_equal(@service.http_connection.object_id, handle1.object_id)
+        # check we get the same object back each time we call http_connection in the block
+        assert_equal(@service.http_connection.object_id, handle1.object_id)
+        assert_equal(@service.http_connection.object_id, handle1.object_id)
+      end
     end
     assert(block_ran)
   end
@@ -67,17 +69,20 @@ class NewRelicServiceKeepAliveTest < Minitest::Test
   end
 
 
-  def test_session_starts_and_finishes_http_session
+  def test_session_starts_and_finishes_http_session_with_aggressive_keepalive_off
     handle1 = stub_net_http_handle
     handle1.expects(:start).once
     handle1.expects(:finish).once
     @service.stubs(:create_http_connection).returns(handle1)
 
     block_ran = false
-    @service.session do
-      block_ran = true
-      # mocks expect #start and #finish to be called.  This is how Net::HTTP
-      # implements keep alive
+
+    with_config(:aggressive_keepalive => false) do
+      @service.session do
+        block_ran = true
+        # mocks expect #start and #finish to be called.  This is how Net::HTTP
+        # implements keep alive
+      end
     end
     assert(block_ran)
   end
