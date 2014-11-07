@@ -130,6 +130,23 @@ class CoerceTest < Minitest::Test
     )
   end
 
+  def test_event_params_turns_nan_or_infinity_into_null
+    assert_equal(
+      {
+        'nan'  => nil,
+        'inf'  => nil,
+        'ninf' => nil
+      },
+      event_params(
+        {
+          'nan'  => Float::NAN,
+          'inf'  => Float::INFINITY,
+          'ninf' => -Float::INFINITY
+        }
+      )
+    )
+  end
+
   class Unstringable
     undef :to_s
   end
