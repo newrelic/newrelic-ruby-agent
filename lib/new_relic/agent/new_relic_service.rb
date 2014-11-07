@@ -233,6 +233,17 @@ module NewRelic
         end
       end
 
+      def ssl_cert_store
+        path = cert_file_path
+        if !@ssl_cert_store || path != @cached_cert_store_path
+          ::NewRelic::Agent.logger.debug("Creating SSL certificate store from file at #{path}")
+          @ssl_cert_store = OpenSSL::X509::Store.new
+          @ssl_cert_store.add_file(path)
+          @cached_cert_store_path = path
+        end
+        @ssl_cert_store
+      end
+
       # Return a Net::HTTP connection object to make a call to the collector.
       # We'll reuse the same handle for cases where we're using keep-alive, or
       # otherwise create a new one.
@@ -253,9 +264,9 @@ module NewRelic
             # Jruby 1.6.8 requires a gem for full ssl support and will throw
             # an error when use_ssl=(true) is called and jruby-openssl isn't
             # installed
-            http.use_ssl = true
+            http.use_ssl     = true
             http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            http.ca_file = cert_file_path
+            http.cert_store  = ssl_cert_store
           rescue StandardError, LoadError
             msg = "Agent is configured to use SSL, but SSL is not available in the environment. "
             msg << "Either disable SSL in the agent configuration, or install SSL support."
