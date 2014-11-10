@@ -97,6 +97,34 @@ module NewRelic
         end
       end
 
+      def test_after_fork_should_not_start_agent_multiple_times
+        with_config(:monitor_mode => true) do
+          $queue = Queue.new
+          def @agent.setup_and_start_agent(*_)
+            $queue << 'started!'
+          end
+
+          # This is a hack to make the race condition that we're trying to test
+          # for more likely for the purposes of this test.
+          harvester = @agent.harvester
+          def harvester.mark_started
+            sleep 0.01
+            super
+          end
+
+          threads = []
+          100.times do
+            threads << Thread.new do
+              @agent.after_fork
+            end
+          end
+
+          threads.each(&:join)
+
+          assert_equal(1, $queue.size)
+        end
+      end
+
       def test_transmit_data_should_emit_before_harvest_event
         got_it = false
         @agent.events.subscribe(:before_harvest) { got_it = true }

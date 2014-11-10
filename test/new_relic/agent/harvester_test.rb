@@ -65,20 +65,10 @@ module NewRelic
 
       def test_calls_restart_every_time_until_marked_started
         pretend_started_in_another_process
-        @after_forker.expects(:after_fork).times(100)
+        @after_forker.expects(:after_fork).times(2)
 
-        with_config(:restart_thread_in_children => true) do
-          threads = []
-          100.times do
-            threads << Thread.new do
-              harvester.on_transaction
-            end
-          end
-
-          threads.each do |thread|
-            thread.join
-          end
-        end
+        harvester.on_transaction
+        harvester.on_transaction
       end
 
       def pretend_started_in_another_process
