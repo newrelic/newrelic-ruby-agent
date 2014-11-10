@@ -58,7 +58,8 @@ module NewRelic
 
   class FakeSecureExternalServer < FakeExternalServer
     def initialize
-      super(0, true)
+      super(0)
+      self.use_ssl = true
     end
   end
 end

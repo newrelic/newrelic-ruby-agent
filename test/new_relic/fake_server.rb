@@ -34,37 +34,63 @@ module NewRelic
       :SSLCertName     => [["CN", "newrelic.com"]]
     }
 
-    def initialize(port=DEFAULT_PORT, ssl=false)
-      @thread = nil
-
-      @options = DEFAULT_OPTIONS.merge(:Port => port)
-      @options.merge!(SSL_OPTIONS) if ssl
-
-      @server = WEBrick::HTTPServer.new(@options)
-      @server.mount "/", ::Rack::Handler.get(:webrick), app
+    def initialize(port=DEFAULT_PORT)
+      @port    = port
+      @thread  = nil
+      @sever   = nil
+      @use_ssl = false
     end
 
-    attr_reader :server
+    def use_ssl=(value)
+      @use_ssl = value
+    end
 
-    # Run the server, returning the Thread it is running in.
+    def use_ssl?
+      @use_ssl
+    end
+
+    def needs_restart?
+      @started_options != build_webrick_options
+    end
+
+    def restart
+      stop
+      run
+    end
+
+    def running?
+      @thread && @thread.alive?
+    end
+
     def run
-      return if @thread && @thread.alive?
-      @thread = Thread.new(&self.method(:run_server))
-      return @thread
-    end
+      return if running?
 
-    # Thread routine for running the server.
-    def run_server
-      Thread.current.abort_on_exception = true
-      @server.start
+      @started_options = build_webrick_options
+
+      @server = WEBrick::HTTPServer.new(@started_options)
+      @server.mount "/", ::Rack::Handler.get(:webrick), app
+
+      @thread = Thread.new(&self.method(:run_server))
     end
 
     def stop
-      return unless @thread.alive?
+      return unless running?
       @server.shutdown
       @server = nil
       @thread.join
+      @started_options = nil
       reset
+    end
+
+    def build_webrick_options
+      options = DEFAULT_OPTIONS.merge(:Port => @port)
+      options.merge!(SSL_OPTIONS) if use_ssl?
+      options
+    end
+
+    def run_server
+      Thread.current.abort_on_exception = true
+      @server.start
     end
 
     def ports
@@ -74,7 +100,5 @@ module NewRelic
     def port
       self.ports.first
     end
-    alias_method :determine_port, :port
-
   end
 end

@@ -13,14 +13,10 @@ class HighSecurityTest < Minitest::Test
 
   include MultiverseHelpers
 
-  setup_and_teardown_agent do |_collector|
-    $collector = nil
-    setup_collector(true)
-
-    $collector.stub('connect', {
+  setup_and_teardown_agent do |collector|
+    collector.use_ssl = true
+    collector.stub('connect', {
       "agent_run_id" => 1,
-      "listen_to_server_config" => true,
-
       "agent_config" => {
         "capture_params" => true,
       }
@@ -29,9 +25,7 @@ class HighSecurityTest < Minitest::Test
 
   def test_connects_via_ssl_no_matter_what
     assert_equal 1, $collector.calls_for('connect').size
-
     trigger_agent_reconnect(:ssl => false)
-
     assert_equal 2, $collector.calls_for('connect').size
   end
 
@@ -62,5 +56,4 @@ class HighSecurityTest < Minitest::Test
     refute_nil last_transaction_trace.params[:custom_params][:'nr.trip_id']
     refute_nil last_transaction_trace.params[:custom_params][:'nr.path_hash']
   end
-
 end

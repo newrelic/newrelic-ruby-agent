@@ -3,5 +3,3 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'multiverse_helpers'
-
-MultiverseHelpers.setup_collector
