@@ -56,6 +56,14 @@
   The recently added feature for ignoring transactions via URL regexes caused
   errors for non-web transactions. This has been fixed.
 
+  * Rename the TransactionNamer.name method to TransactionNamer.name_for
+
+  The internal TransactionNamer class had a class method called 'name', with a
+  different signature than the existing Class#name method and could cause
+  problems when trying to introspect instances of the class.
+
+  Thanks to Dennis Taylor for contributing this fix!
+
 ## v3.9.6 ##
 
   * Rails 4.2 ActiveJob support
