@@ -48,8 +48,6 @@ class AuditLogTest < Minitest::Test
   end
 
   def perform_actions
-    reset_collector
-
     state = NewRelic::Agent::TransactionState.tl_get
     NewRelic::Agent.instance.sql_sampler.on_start_transaction(state, nil)
     NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",

@@ -130,6 +130,24 @@ class CoerceTest < Minitest::Test
     )
   end
 
+  def test_event_params_turns_nan_or_infinity_into_null
+    assert_equal(
+      {
+        'nan'  => nil,
+        'inf'  => nil,
+        'ninf' => nil
+      },
+      event_params(
+        {
+          # Ruby 1.8.7 doesn't have Float::NAN, INFINITY so we have to hack it
+          'nan'  => 0.0  / 0.0,
+          'inf'  => 1.0  / 0.0,
+          'ninf' => -1.0 / 0.0
+        }
+      )
+    )
+  end
+
   class Unstringable
     undef :to_s
   end

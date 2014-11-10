@@ -56,8 +56,14 @@ module NewRelic
       end
       value.inject({}) do |memo, (key, val)|
         case val
-        when String, Float, Integer, TrueClass, FalseClass
+        when String, Integer, TrueClass, FalseClass
           memo[key.to_s] = val
+        when Float
+          if val.finite?
+            memo[key.to_s] = val
+          else
+            memo[key.to_s] = nil
+          end
         when Symbol
           memo[key.to_s] = val.to_s
         end
