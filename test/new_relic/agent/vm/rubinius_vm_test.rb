@@ -7,62 +7,63 @@ require 'new_relic/agent/vm/rubinius_vm'
 
 if NewRelic::LanguageSupport.rubinius?
   class NewRelic::Agent::VM::RubiniusVMTest < Minitest::Test
-    def test_normal_usage
-      with_stats({ :gc => {
-        :full  => { :count => 1 },
-        :young => { :count => 2 }
-      }})
-
-      has_major_minor(1, 2)
+    def setup
+      @snap = NewRelic::Agent::VM::Snapshot.new
+      @vm = NewRelic::Agent::VM::RubiniusVM.new
     end
 
-    def test_missing_full
-      with_stats({ :gc => {
-        :young => { :count => 2 }
-      }})
+    def test_gc_runs
+      @vm.gather_gc_stats(@snap)
 
-      has_major_minor(nil, 2)
+      refute_nil @snap.gc_runs
     end
 
-    def test_missing_full_count
-      with_stats({ :gc => {
-        :full  => { },
-        :young => { :count => 2 }
-      }})
+    def test_gather_stats_from_metrics_sets_major_gc_count
+      @vm.gather_stats_from_metrics(@snap)
 
-      has_major_minor(nil, 2)
+      refute_nil @snap.major_gc_count
     end
 
-    def test_missing_young
-      with_stats({ :gc => {
-        :full => { :count => 1 }
-      }})
+    def test_gather_stats_from_metrics_sets_minor_gc_count
+      @vm.gather_stats_from_metrics(@snap)
 
-      has_major_minor(1, nil)
+      refute_nil @snap.minor_gc_count
     end
 
-    def test_missing_young_count
-      with_stats({ :gc => {
-        :full  => { :count => 1},
-        :young => { }
-      }})
+    def test_gather_stats_from_metrics_sets_major_gc_count
+      @vm.gather_stats_from_metrics(@snap)
 
-      has_major_minor(1, nil)
+      refute_nil @snap.major_gc_count
     end
 
-    def test_missing_gc
-      with_stats({})
-      has_major_minor(nil, nil)
+    def test_gather_stats_from_metrics_sets_heap_live_slots
+      @vm.gather_stats_from_metrics(@snap)
+
+      refute_nil @snap.heap_live
     end
 
-    def with_stats(stats)
-      GC.stubs(:stat).returns(stats)
+    def test_gather_stats_from_metrics_sets_total_allocated_objects
+      @vm.gather_stats_from_metrics(@snap)
+
+      refute_nil @snap.total_allocated_object
     end
 
-    def has_major_minor(major, minor)
-      snapshot = NewRelic::Agent::VM::RubiniusVM.new.snapshot
-      assert_equal(major, snapshot.major_gc_count)
-      assert_equal(minor, snapshot.minor_gc_count)
+    def test_gather_stats_from_metrics_sets_method_cache_invalidations
+      @vm.gather_stats_from_metrics(@snap)
+
+      refute_nil @snap.method_cache_invalidations
+    end
+
+    def test_gather_gc_time
+      @vm.gather_gc_time(@snap)
+
+      refute_nil @snap.gc_total_time
+    end
+
+    def test_gather_tread_stats
+      @vm.gather_thread_stats(@snap)
+
+      refute_nil @snap.thread_count
     end
   end
 end
