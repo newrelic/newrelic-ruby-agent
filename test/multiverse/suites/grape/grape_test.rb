@@ -36,31 +36,31 @@ class GrapeTest < Minitest::Test
   include MultiverseHelpers
 
   def app
-    TestApi.new
+    Rack::Builder.app { run TestApi.new }
   end
 
   def test_getting_a_list_of_grape_apes
-    NewRelic::Agent.expects(:set_transaction_name).with('TestApi/grape_ape (GET)')
     get '/grape_ape'
+    assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape (GET)'])
   end
 
   def test_showing_a_grape_ape
-    NewRelic::Agent.expects(:set_transaction_name).with('TestApi/grape_ape/:id (GET)')
     get '/grape_ape/1'
+    assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape/:id (GET)'])
   end
 
   def test_creating_a_grape_ape
-    NewRelic::Agent.expects(:set_transaction_name).with('TestApi/grape_ape (POST)')
     post '/grape_ape', {}
+    assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape (POST)'])
   end
 
   def test_updating_a_grape_ape
-    NewRelic::Agent.expects(:set_transaction_name).with('TestApi/grape_ape/:id (PUT)')
     put '/grape_ape/1', {}
+    assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape/:id (PUT)'])
   end
 
   def test_deleting_a_grape_ape
-    NewRelic::Agent.expects(:set_transaction_name).with('TestApi/grape_ape/:id (DELETE)')
     delete '/grape_ape/1'
+    assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape/:id (DELETE)'])
   end
 end
