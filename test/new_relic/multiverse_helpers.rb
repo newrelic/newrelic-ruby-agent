@@ -32,19 +32,21 @@ module MultiverseHelpers
   end
 
   def setup_agent(opts = {}, &block)
-    setup_collector
+    ensure_fake_collector unless omit_collector?
 
     # Give caller a shot to setup before we start
-    # Don't just yield, as that won't necessary have the intended receiver
+    # Don't just yield, as that won't necessarily have the intended receiver
     # (the test case instance itself)
     self.instance_exec($collector, &block) if block_given? && self.respond_to?(:instance_exec)
+
+    # It's important that this is called after the insance_exec above, so that
+    # test cases have the chance to change settings on the fake collector first
+    start_fake_collector unless omit_collector?
 
     trigger_agent_reconnect(opts)
   end
 
   def teardown_agent
-    reset_collector
-
     # Put the configs back where they belong....
     NewRelic::Agent.config.reset_to_defaults
 
@@ -99,24 +101,15 @@ module MultiverseHelpers
   # This helps so the runner process can decide before spawning the child
   # whether we want the collector running or not.
 
-  def setup_collector(use_ssl=false)
-    return if omit_collector?
-
+  def ensure_fake_collector
     require 'fake_collector'
-    $collector ||= NewRelic::FakeCollector.new(use_ssl)
+    $collector ||= NewRelic::FakeCollector.new
     $collector.reset
-    $collector.run
-
-    if (NewRelic::Agent.instance &&
-        NewRelic::Agent.instance.service &&
-        NewRelic::Agent.instance.service.collector)
-      NewRelic::Agent.instance.service.collector.port = $collector.port
-    end
   end
 
-  def reset_collector
-    return if omit_collector?
-    $collector.reset
+  def start_fake_collector
+    $collector.restart if $collector.needs_restart?
+    agent.service.collector.port = $collector.port if agent
   end
 
   def omit_collector?
