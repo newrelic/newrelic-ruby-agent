@@ -35,23 +35,19 @@ DependencyDetection.defer do
       def call_with_new_relic(env)
         begin
           response = call_without_new_relic(env)
-        rescue Exception => e
-          exception = e
+        ensure
+          endpoint = env[::NewRelic::Agent::GrapeConstants::API_ENDPOINT]
+
+          if endpoint
+            route_obj   = endpoint.params[::NewRelic::Agent::GrapeConstants::ROUTE_INFO]
+            action_name = route_obj.route_path.gsub(::NewRelic::Agent::GrapeConstants::FORMAT,
+                                                    ::NewRelic::Agent::GrapeConstants::EMPTY_STRING)
+            method_name = route_obj.route_method
+
+            txn_name = "#{self.class.name}#{action_name} (#{method_name})"
+            ::NewRelic::Agent.set_transaction_name(txn_name)
+          end
         end
-
-        endpoint = env[::NewRelic::Agent::GrapeConstants::API_ENDPOINT]
-
-        if endpoint
-          route_obj   = endpoint.params[::NewRelic::Agent::GrapeConstants::ROUTE_INFO]
-          action_name = route_obj.route_path.gsub(::NewRelic::Agent::GrapeConstants::FORMAT,
-                                                  ::NewRelic::Agent::GrapeConstants::EMPTY_STRING)
-          method_name = route_obj.route_method
-
-          txn_name = "#{self.class.name}#{action_name} (#{method_name})"
-          ::NewRelic::Agent.set_transaction_name(txn_name)
-        end
-
-        raise exception if exception
 
         response
       end
