@@ -54,11 +54,6 @@ module NewRelic
         result
       end
     end
-
-    def fallback_port
-      # Only use fallback port on the FakeCollector....
-      nil
-    end
   end
 
   class FakeSecureExternalServer < FakeExternalServer
