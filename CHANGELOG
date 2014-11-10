@@ -29,6 +29,17 @@
 
   For more details on our Resque support, see https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation
 
+  * Reduced memory usage for idling applications
+
+  Idling applications using the agent could previously appear to leak memory
+  because of native allocations associated with the creation of new SSL
+  connections to our servers on each data submission that didn't factor into
+  triggering Ruby's garbage collector.
+
+  The agent will now re-use a single TCP connection to our servers for as long
+  as possible, resulting in improved memory usage for applications that are
+  idling and not having GC triggered for other reasons.
+
   * Support agent when starting Resque Pool from Rake task
 
   When running resque-pool with its provided rake tasks, the agent would not
