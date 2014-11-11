@@ -35,16 +35,23 @@ DependencyDetection.defer do
         begin
           response = call_without_new_relic(env)
         ensure
-          endpoint = env[::NewRelic::Agent::GrapeInstrumentation::API_ENDPOINT]
+          # We don't want an error in our transaction naming to kill the request.
+          begin
+            endpoint = env[::NewRelic::Agent::GrapeInstrumentation::API_ENDPOINT]
 
-          if endpoint
-            route_obj   = endpoint.params[::NewRelic::Agent::GrapeInstrumentation::ROUTE_INFO]
-            action_name = route_obj.route_path.gsub(::NewRelic::Agent::GrapeInstrumentation::FORMAT,
-                                                    ::NewRelic::Agent::GrapeInstrumentation::EMPTY_STRING)
-            method_name = route_obj.route_method
+            if endpoint
+              route_obj   = endpoint.params[::NewRelic::Agent::GrapeInstrumentation::ROUTE_INFO]
+              if route_obj
+                action_name = route_obj.route_path.gsub(::NewRelic::Agent::GrapeInstrumentation::FORMAT,
+                                                        ::NewRelic::Agent::GrapeInstrumentation::EMPTY_STRING)
+                method_name = route_obj.route_method
 
-            txn_name = "#{self.class.name}#{action_name} (#{method_name})"
-            ::NewRelic::Agent.set_transaction_name(txn_name)
+                txn_name = "#{self.class.name}#{action_name} (#{method_name})"
+                ::NewRelic::Agent.set_transaction_name(txn_name)
+              end
+            end
+          rescue StandardError => e
+            ::NewRelic::Agent.logger.warn("Error in Grape transaction naming", e)
           end
         end
 
