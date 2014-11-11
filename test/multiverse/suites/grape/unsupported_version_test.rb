@@ -9,7 +9,7 @@ require './test_api'
 
 require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
-class GrapeTest < Minitest::Test
+class UnsupportedGrapeTest < Minitest::Test
   include Rack::Test::Methods
   include MultiverseHelpers
 
