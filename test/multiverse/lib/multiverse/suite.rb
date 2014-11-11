@@ -242,7 +242,7 @@ module Multiverse
     end
 
     def log_test_running_process
-      puts yellow("Starting tests in child PID #{Process.pid}\n")
+      puts yellow("Starting tests in child PID #{Process.pid} at #{Time.now}\n")
     end
 
     def should_serialize?
