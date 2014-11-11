@@ -24,10 +24,6 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent.logger.info 'Installing Grape instrumentation'
-    install_grape_instrumentation
-  end
-
-  def install_grape_instrumentation
     instrument_call
   end
 
