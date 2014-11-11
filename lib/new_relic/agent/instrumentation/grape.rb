@@ -40,7 +40,7 @@ DependencyDetection.defer do
             if endpoint
               route_obj   = endpoint.params[::NewRelic::Agent::GrapeInstrumentation::ROUTE_INFO]
               if route_obj
-                action_name = route_obj.route_path.gsub(::NewRelic::Agent::GrapeInstrumentation::FORMAT,
+                action_name = route_obj.route_path.sub(::NewRelic::Agent::GrapeInstrumentation::FORMAT,
                                                         ::NewRelic::Agent::GrapeInstrumentation::EMPTY_STRING)
                 method_name = route_obj.route_method
 
