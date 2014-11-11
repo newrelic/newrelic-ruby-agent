@@ -24,43 +24,52 @@ module NewRelic
         if @processor_info.nil?
           case ruby_os_identifier
 
-          when /darwin/, /freebsd/
+          when /darwin/
             @processor_info = {
-              :num_physical_packages  => `sysctl -n hw.packages`.to_i,
-              :num_physical_cores     => `sysctl -n hw.physicalcpu_max`.to_i,
-              :num_logical_processors => `sysctl -n hw.logicalcpu_max`.to_i
+              :num_physical_packages  => sysctl_value('hw.packages').to_i,
+              :num_physical_cores     => sysctl_value('hw.physicalcpu_max').to_i,
+              :num_logical_processors => sysctl_value('hw.logicalcpu_max').to_i
             }
             # in case those don't work, try backup values
             if @processor_info[:num_physical_cores] <= 0
-              @processor_info[:num_physical_cores] = `sysctl -n hw.physicalcpu`.to_i
+              @processor_info[:num_physical_cores] = sysctl_value('hw.physicalcpu').to_i
             end
             if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = `sysctl -n hw.logicalcpu`.to_i
+              @processor_info[:num_logical_processors] = sysctl_value('hw.logicalcpu').to_i
             end
             if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = `sysctl -n hw.ncpu`.to_i
-            end
-            if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = `sysctl -n hw.availcpu`.to_i
-            end
-            if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = `sysctl -n hw.activecpu`.to_i
+              @processor_info[:num_logical_processors] = sysctl_value('hw.ncpu').to_i
             end
 
           when /linux/
             cpuinfo = proc_try_read('/proc/cpuinfo')
             @processor_info = cpuinfo ? parse_cpuinfo(cpuinfo) : {}
+
+          when /freebsd/
+            @processor_info = {
+              :num_physical_packages  => nil,
+              :num_physical_cores     => nil,
+              :num_logical_processors => sysctl_value('hw.ncpu').to_i
+            }
           end
 
           # give nils for obviously wrong values
           @processor_info.keys.each do |key|
-            @processor_info[key] = nil if @processor_info[key] <= 0
+            value = @processor_info[key]
+            if value.is_a?(Numeric) && value <= 0
+              @processor_info[key] = nil
+            end
           end
         end
 
         @processor_info
       rescue
         {}
+      end
+
+      def self.sysctl_value(name)
+        # make sure to redirect stderr so we don't spew if the name is unknown
+        `sysctl -n #{name} 2>/dev/null`
       end
 
       def self.parse_cpuinfo(cpuinfo)
