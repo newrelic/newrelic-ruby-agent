@@ -49,6 +49,11 @@ module NewRelic
               paths << File.join(ENV["HOME"], "newrelic.yml")
             end
 
+            # If we're packaged for warbler, we can tell from GEM_HOME
+            if ENV["GEM_HOME"] && ENV["GEM_HOME"].end_with?(".jar!")
+              paths << File.join(ENV["GEM_HOME"], "config", "newrelic.yml")
+            end
+
             paths
           }
         end

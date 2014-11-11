@@ -110,6 +110,20 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_config_search_paths_with_home
+      with_environment("HOME" => "/home") do
+        paths = DefaultSource.config_search_paths.call()
+        assert_includes paths, "/home/.newrelic/newrelic.yml"
+        assert_includes paths, "/home/newrelic.yml"
+      end
+    end
+
+    def test_config_search_path_in_warbler
+      with_environment("GEM_HOME" => "/some/path.jar!") do
+        assert_includes DefaultSource.config_search_paths.call(), "/some/path.jar!/config/newrelic.yml"
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 
