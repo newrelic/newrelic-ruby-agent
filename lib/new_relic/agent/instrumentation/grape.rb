@@ -48,7 +48,7 @@ DependencyDetection.defer do
                 ::NewRelic::Agent.set_transaction_name(txn_name)
               end
             end
-          rescue StandardError => e
+          rescue => e
             ::NewRelic::Agent.logger.warn("Error in Grape transaction naming", e)
           end
         end
