@@ -493,7 +493,7 @@ module Multiverse
     end
 
     def verbose?
-      ENV['VERBOSE']
+      ENV['VERBOSE'] == "1" || ENV['VERBOSE'] == "true"
     end
   end
 end
