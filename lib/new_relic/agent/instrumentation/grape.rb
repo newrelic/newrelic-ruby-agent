@@ -9,6 +9,7 @@ module NewRelic
       ROUTE_INFO   = 'route_info'.freeze
       FORMAT       = '(.:format)'.freeze
       EMPTY_STRING = ''.freeze
+      MIN_VERSION  = ::NewRelic::VersionNumber.new("0.2.0")
     end
   end
 end
@@ -17,7 +18,8 @@ DependencyDetection.defer do
   named :grape
 
   depends_on do
-    defined?(::Grape) && defined?(::Grape::API)
+    defined?(::Grape) && defined?(::Grape::VERSION) &&
+      ::NewRelic::VersionNumber.new(::Grape::VERSION) >= ::NewRelic::Agent::GrapeInstrumentation::MIN_VERSION
   end
 
   executes do
