@@ -75,7 +75,50 @@ class NewRelic::MetricSpecTest < Minitest::Test
     assert_equal("b" * 255, spec.scope, "should have shortened the scope")
   end
 
+  # These next three tests are here only because rpm_site uses our MetricSpec
+  # class in silly ways (specifically, it passes in non-String values for
+  # name/scope). If we can get rid of those silly usages, we can remove these
+  # tests.
+
+  def test_initialize_can_take_a_nil_name
+    spec = NewRelic::MetricSpec.new(nil)
+
+    assert_equal('', spec.name)
+    assert_equal('', spec.scope)
+  end
+
+  def test_initialize_can_take_a_non_string_name
+    name  = string_wrapper_class.new("name")
+
+    spec = NewRelic::MetricSpec.new(name)
+
+    assert_equal('name',  spec.name)
+    assert_equal('',      spec.scope)
+  end
+
+  def test_initialize_can_take_a_non_string_scope
+    name  = "name"
+    scope = string_wrapper_class.new("scope")
+
+    spec = NewRelic::MetricSpec.new(name, scope)
+
+    assert_equal('name',  spec.name)
+    assert_equal('scope', spec.scope)
+  end
+
   private
+
+  def string_wrapper_class
+    Class.new do
+      def initialize(value)
+        @value = value
+      end
+
+      def to_s
+        @value
+      end
+    end
+  end
 
   def compare_spec(spec, import)
     assert_equal 2, import.length
