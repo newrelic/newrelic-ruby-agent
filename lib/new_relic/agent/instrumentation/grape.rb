@@ -18,7 +18,7 @@ DependencyDetection.defer do
   named :grape
 
   depends_on do
-    defined?(::Grape) && defined?(::Grape::VERSION) &&
+    defined?(::Grape::VERSION) &&
       ::NewRelic::VersionNumber.new(::Grape::VERSION) >= ::NewRelic::Agent::GrapeInstrumentation::MIN_VERSION
   end
 
