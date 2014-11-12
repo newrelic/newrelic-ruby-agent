@@ -22,7 +22,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
   end
 
   def test_record_custom_event_returns_falsy_if_event_was_dropped
-    max_samples = NewRelic::Agent.config[:'custom_insights_events.max_events_stored']
+    max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
     max_samples.times do
       NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar)
     end
