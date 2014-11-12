@@ -216,6 +216,19 @@ def assert_metrics_not_recorded(not_expected)
   assert_equal([], found_but_not_expected, "Found unexpected metrics: #{format_metric_spec_list(found_but_not_expected)}")
 end
 
+def assert_no_metrics_match(regex)
+  matching_metrics = []
+  NewRelic::Agent.instance.stats_engine.metrics.each do |metric|
+    matching_metrics << metric if metric.match regex
+  end
+
+  assert_equal(
+    [],
+    matching_metrics,
+    "Found unexpected metrics:\n" +  matching_metrics.map { |m| "  '#{m}'"}.join("\n") + "\n\n"
+  )
+end
+
 def format_metric_spec_list(specs)
   spec_strings = specs.map do |spec|
     "#{spec.name} (#{spec.scope.empty? ? '<unscoped>' : spec.scope})"
