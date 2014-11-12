@@ -13,7 +13,18 @@
 # populated with for the purposes of testing.
 
 module NewRelic
+  module BasicDataContainerMethodTests
+    def test_should_respond_to_required_methods
+      c = create_container
+      assert c.respond_to?(:harvest!)
+      assert c.respond_to?(:reset!)
+      assert c.respond_to?(:merge!)
+    end
+  end
+
   module BasicDataContainerTests
+    include BasicDataContainerMethodTests
+
     def num_data_items
       self.respond_to?(:max_data_items) ? max_data_items : 5
     end
@@ -41,13 +52,6 @@ module NewRelic
 
       populate_container(c, num_data_items)
       assert_equal(num_data_items, c.harvest!.size)
-    end
-
-    def test_should_respond_to_required_methods
-      c = create_container
-      assert c.respond_to?(:harvest!)
-      assert c.respond_to?(:reset!)
-      assert c.respond_to?(:merge!)
     end
   end
 
