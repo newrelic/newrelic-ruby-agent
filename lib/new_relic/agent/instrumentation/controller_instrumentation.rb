@@ -330,9 +330,10 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           state.request = newrelic_request(args)
 
-          # Skip instrumentation based on the value of 'do_not_trace?' and if
-          # we aren't calling directly with a block.
-          if !block_given? && do_not_trace?
+          # If we're not in the block form of this method, and we aren't
+          # tracing, make sure we get out here!
+          skip_tracing = do_not_trace? || !state.is_execution_traced?
+          if !block_given? && skip_tracing
             state.current_transaction.ignore! if state.current_transaction
             NewRelic::Agent.disable_all_tracing do
               return perform_action_without_newrelic_trace(*args)
