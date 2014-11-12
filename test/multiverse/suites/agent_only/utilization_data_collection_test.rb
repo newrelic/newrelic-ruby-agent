@@ -82,6 +82,24 @@ class UtilizationDataCollectionTest < Minitest::Test
     assert_nil(data.cpu_count)
   end
 
+  def test_gathers_docker_container_id
+    NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("whale")
+
+    trigger_usage_data_collection_and_submission
+
+    data = last_submitted_utilization_data
+    assert_equal "whale", data.container_id
+  end
+
+  def test_nil_docker_container_id
+    NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns(nil)
+
+    trigger_usage_data_collection_and_submission
+
+    data = last_submitted_utilization_data
+    assert_nil data.container_id
+  end
+
   def test_retries_upon_failure_to_submit_usage_data
     $collector.stub_exception('utilization_data', nil, 503).once
 

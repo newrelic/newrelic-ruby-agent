@@ -344,11 +344,11 @@ module NewRelic
 
     class UtilizationDataPost < AgentPost
 
-      attr_reader :hostname, :container_name, :cpu_count, :instance_type
+      attr_reader :hostname, :container_id, :cpu_count, :instance_type
 
       def initialize(opts={})
         super
-        @hostname, @container_name, @cpu_count, @instance_type = body
+        @hostname, @container_id, @cpu_count, @instance_type = body
       end
 
       def ==(other)

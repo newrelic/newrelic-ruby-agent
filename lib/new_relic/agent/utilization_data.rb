@@ -21,7 +21,7 @@ module NewRelic
       end
 
       def container_name
-        nil
+        ::NewRelic::Agent::SystemInfo.docker_container_id
       end
 
       def cpu_count
