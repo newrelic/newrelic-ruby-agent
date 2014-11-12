@@ -42,20 +42,19 @@ RB
 
 # We pull in Rails on the older verions because ActiveRecord didn't have all
 # the tasks we need for setup, and there are some TestUnit vs Minitest oddities
-if RUBY_VERSION <= '1.9.3'
+#
+# JRuby testing with 1.7 on Rails 2.x has issues and was already excluded in
+# test:env
+if RUBY_VERSION <= '1.9.3' && (!defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby')
 gemfile <<-RB
   gem 'rails', '~> 2.3.18'
   #{boilerplate_gems}
 RB
 
-# Had problems on JRuby with Rails 2.2, not worth worry about
-if !defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby'
 gemfile <<-RB
   gem "rails", "~> 2.2.3"
   #{boilerplate_gems}
 RB
-end
-
 end
 
 if RUBY_VERSION < '1.9.3'

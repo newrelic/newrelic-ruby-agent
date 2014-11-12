@@ -336,13 +336,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def adapter
     adapter_string = Order.configurations[RAILS_ENV]['adapter']
-    case adapter_string
-    when /postgres/i then :postgres
-    when /mysql/i    then :mysql
-    when /sqlite/i   then :sqlite3
-    else
-      adapter_string.downcase.to_sym
-    end
+    adapter_string.downcase.to_sym
   end
 
   def supports_show_tables?
