@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path('../../test_helper.rb', __FILE__)
+require 'new_relic/rack/developer_mode'
 
 class NewRelic::TransactionSampleTest < Minitest::Test
   include TransactionSampleTestHelper
