@@ -13,32 +13,39 @@ class GrapeTest < Minitest::Test
   include Rack::Test::Methods
   include MultiverseHelpers
 
+  setup_and_teardown_agent
+
   unless ::Grape::VERSION == '0.1.5'
     def app
       Rack::Builder.app { run TestApi.new }
     end
 
-    def test_getting_a_list_of_grape_apes
+    def test_nonexistent_route
+      get '/not_grape_ape'
+      assert_no_metrics_match(/grape_ape/)
+    end
+
+    def _test_getting_a_list_of_grape_apes
       get '/grape_ape'
       assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape (GET)'])
     end
 
-    def test_showing_a_grape_ape
+    def _test_showing_a_grape_ape
       get '/grape_ape/1'
       assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape/:id (GET)'])
     end
 
-    def test_creating_a_grape_ape
+    def _test_creating_a_grape_ape
       post '/grape_ape', {}
       assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape (POST)'])
     end
 
-    def test_updating_a_grape_ape
+    def _test_updating_a_grape_ape
       put '/grape_ape/1', {}
       assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape/:id (PUT)'])
     end
 
-    def test_deleting_a_grape_ape
+    def _test_deleting_a_grape_ape
       delete '/grape_ape/1'
       assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape/:id (DELETE)'])
     end
