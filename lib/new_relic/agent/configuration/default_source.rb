@@ -1135,7 +1135,7 @@ module NewRelic
           :type         => Boolean,
           :description  => 'Enable or disable custom Insights event recording.'
         },
-        :'custom_insights_events.max_events_stored' => {
+        :'custom_insights_events.max_samples_stored' => {
           :default      => 1000,
           :public       => true,
           :type         => Fixnum,
