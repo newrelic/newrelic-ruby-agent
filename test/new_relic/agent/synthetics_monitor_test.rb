@@ -37,9 +37,6 @@ module NewRelic::Agent
 
     def test_doesnt_record_synthetics_state_without_header
       in_transaction do
-        # Make sure we're not just erroring in the event notification handler
-        expects_no_logging(:debug)
-
         @events.notify(:before_call, {})
         assert_no_synthetics_payload
       end
