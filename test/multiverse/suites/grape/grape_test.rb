@@ -5,7 +5,7 @@
 require "grape"
 require "newrelic_rpm"
 require 'multiverse_helpers'
-require './test_api'
+require './grape_test_api'
 
 require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
@@ -17,7 +17,7 @@ class GrapeTest < Minitest::Test
 
   unless ::Grape::VERSION == '0.1.5'
     def app
-      Rack::Builder.app { run TestApi.new }
+      Rack::Builder.app { run GrapeTestApi.new }
     end
 
     def test_nonexistent_route
@@ -25,29 +25,29 @@ class GrapeTest < Minitest::Test
       assert_no_metrics_match(/grape_ape/)
     end
 
-    def _test_getting_a_list_of_grape_apes
+    def test_getting_a_list_of_grape_apes
       get '/grape_ape'
-      assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape (GET)'])
+      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape (GET)'])
     end
 
-    def _test_showing_a_grape_ape
+    def test_showing_a_grape_ape
       get '/grape_ape/1'
-      assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape/:id (GET)'])
+      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape/:id (GET)'])
     end
 
-    def _test_creating_a_grape_ape
+    def test_creating_a_grape_ape
       post '/grape_ape', {}
-      assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape (POST)'])
+      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape (POST)'])
     end
 
-    def _test_updating_a_grape_ape
+    def test_updating_a_grape_ape
       put '/grape_ape/1', {}
-      assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape/:id (PUT)'])
+      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape/:id (PUT)'])
     end
 
-    def _test_deleting_a_grape_ape
+    def test_deleting_a_grape_ape
       delete '/grape_ape/1'
-      assert_metrics_recorded(['Controller/Rack/TestApi/grape_ape/:id (DELETE)'])
+      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape/:id (DELETE)'])
     end
   end
 end

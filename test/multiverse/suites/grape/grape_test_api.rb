@@ -1,6 +1,6 @@
 require 'grape'
 
-class TestApi < Grape::API
+class GrapeTestApi < Grape::API
   # namespace, group, resource, and resources all do the same thing.
   # They are aliases for namespace.
   namespace :grape_ape do
