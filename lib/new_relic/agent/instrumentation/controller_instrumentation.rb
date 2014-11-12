@@ -330,17 +330,17 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           state.request = newrelic_request(args)
 
-          # If we're not in the block form of this method, and we aren't
-          # tracing, make sure we get out here!
           skip_tracing = do_not_trace? || !state.is_execution_traced?
-          if !block_given? && skip_tracing
-            state.current_transaction.ignore! if state.current_transaction
-            NewRelic::Agent.disable_all_tracing do
-              return perform_action_without_newrelic_trace(*args)
+          if skip_tracing
+            if block_given?
+              return yield
+            else
+              state.current_transaction.ignore! if state.current_transaction
+              NewRelic::Agent.disable_all_tracing do
+                return perform_action_without_newrelic_trace(*args)
+              end
             end
           end
-
-          return yield unless state.is_execution_traced?
 
           # If a block was passed in, then the arguments represent options for
           # the instrumentation, not app method arguments.
