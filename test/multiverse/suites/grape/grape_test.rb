@@ -25,6 +25,13 @@ class GrapeTest < Minitest::Test
       assert_no_metrics_match(/grape_ape/)
     end
 
+    def test_route_raises_an_error
+      assert_raises(GrapeTestApiError) do
+        get '/self_destruct'
+      end
+      assert_metrics_recorded(['Errors/Controller/Rack/GrapeTestApi/self_destruct (GET)'])
+    end
+
     def test_getting_a_list_of_grape_apes
       get '/grape_ape'
       assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape (GET)'])

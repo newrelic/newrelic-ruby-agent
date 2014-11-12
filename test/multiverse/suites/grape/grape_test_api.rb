@@ -1,15 +1,19 @@
 require 'grape'
 
+class GrapeTestApiError < StandardError; end
 class GrapeTestApi < Grape::API
   # namespace, group, resource, and resources all do the same thing.
   # They are aliases for namespace.
+
+  get :self_destruct do
+    raise GrapeTestApiError.new("I'm sorry Dave, I'm afraid I can't do that.")
+  end
+
   namespace :grape_ape do
     get do
       'List grape apes!'
     end
-  end
 
-  group :grape_ape do
     get ':id' do
       'Show grape ape!'
     end
@@ -27,7 +31,7 @@ class GrapeTestApi < Grape::API
     end
   end
 
-  namespace :grape_ape do
+  group :grape_ape do
     delete ':id' do
       'Destroy grape ape!'
     end
