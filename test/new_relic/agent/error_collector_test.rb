@@ -238,7 +238,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def test_increment_error_count_record_summary_and_txn_metric
     in_web_transaction('Controller/class/method') do
-      @error_collector.increment_error_count!(StandardError.new('Boo'))
+      @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get, StandardError.new('Boo'))
     end
 
     assert_metrics_recorded(['Errors/all',
@@ -248,7 +248,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def test_increment_error_count_record_summary_and_txn_metric
     in_background_transaction('OtherTransaction/AnotherFramework/Job/perform') do
-      @error_collector.increment_error_count!(StandardError.new('Boo'))
+      @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get, StandardError.new('Boo'))
     end
 
     assert_metrics_recorded(['Errors/all',
@@ -257,14 +257,15 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_icrement_error_count_summary_outside_transaction
-    @error_collector.increment_error_count!(StandardError.new('Boo'))
+    @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get, StandardError.new('Boo'))
 
     assert_metrics_recorded(['Errors/all'])
     assert_metrics_not_recorded(['Errors/allWeb', 'Errors/allOther'])
   end
 
   def test_doesnt_increment_error_count_on_transaction_if_nameless
-    @error_collector.increment_error_count!(StandardError.new('Boo'),
+    @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get,
+                                            StandardError.new('Boo'),
                                             :metric => '(unknown)')
 
     assert_metrics_not_recorded(['Errors/(unknown)'])
@@ -393,6 +394,28 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def test_blamed_metric_with_no_transaction_and_no_options
     @error_collector.notice_error(StandardError.new('wut'))
     assert_metrics_recorded_exclusive(['Errors/all'])
+  end
+
+  def test_doesnt_double_count_same_exception
+    in_transaction do
+      error = StandardError.new('wat')
+      @error_collector.notice_error(error)
+      @error_collector.notice_error(error)
+    end
+
+    assert_metrics_recorded('Errors/all' => { :call_count => 1 })
+    assert_equal 1, @error_collector.errors.length
+  end
+
+  def test_doesnt_count_seen_exceptions
+    in_transaction do
+      error = StandardError.new('wat')
+      @error_collector.tag_as_seen(NewRelic::Agent::TransactionState.tl_get, error)
+      @error_collector.notice_error(error)
+    end
+
+    assert_metrics_not_recorded(['Errors/all'])
+    assert_empty @error_collector.errors
   end
 
   private

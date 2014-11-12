@@ -121,7 +121,8 @@ module NewRelic
           error_ids.include?(exception.object_id)
         end
 
-        def tag_as_seen(txn, exception)
+        def tag_as_seen(state, exception)
+          txn = state.current_transaction
           txn.noticed_error_ids << exception.object_id if txn
         end
 
@@ -147,13 +148,8 @@ module NewRelic
         end
 
         # Increments a statistic that tracks total error rate
-        # Be sure not to double-count same exception. This clears per harvest.
-        def increment_error_count!(exception, options={}) #THREAD_LOCAL_ACCESS
-          state = ::NewRelic::Agent::TransactionState.tl_get
+        def increment_error_count!(state, exception, options={})
           txn = state.current_transaction
-
-          return if seen?(txn, exception)
-          tag_as_seen(txn, exception)
 
           metric_names  = aggregated_metric_names(txn)
           blamed_metric = blamed_metric_name(txn, options)
@@ -165,8 +161,11 @@ module NewRelic
           end
         end
 
-        def skip_notice_error?(exception)
-          disabled? || error_is_ignored?(exception) || exception.nil?
+        def skip_notice_error?(state, exception)
+          disabled? ||
+            error_is_ignored?(exception) ||
+            exception.nil? ||
+            seen?(state.current_transaction, exception)
         end
 
         # acts just like Hash#fetch, but deletes the key from the hash
@@ -278,13 +277,19 @@ module NewRelic
       #
       # If anything is left over, it's added to custom params
       # If exception is nil, the error count is bumped and no traced error is recorded
-      def notice_error(exception, options={})
-        return if skip_notice_error?(exception)
-        increment_error_count!(exception, options)
+      def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
+        state = ::NewRelic::Agent::TransactionState.tl_get
+
+        return if skip_notice_error?(state, exception)
+        tag_as_seen(state, exception)
+
+        increment_error_count!(state, exception, options)
         NewRelic::Agent.instance.events.notify(:notice_error, exception, options)
+
         action_path       = fetch_from_options(options, :metric, "")
         exception_options = error_params_from_options(options).merge(exception_info(exception))
         add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))
+
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)
