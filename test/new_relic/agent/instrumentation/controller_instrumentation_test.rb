@@ -39,6 +39,29 @@ module NewRelic::Agent::Instrumentation
       add_transaction_tracer :bar
     end
 
+    class TestNonBlockObject
+      attr_reader :called
+
+      def perform_action_without_newrelic_trace(*args)
+        @called = true
+      end
+
+      include ControllerInstrumentation
+
+      alias_method :perform_action, :perform_action_with_newrelic_trace
+    end
+
+    def test_non_block_form
+      state =  NewRelic::Agent::TransactionState.tl_get
+      state.push_traced(false)
+
+      object = TestNonBlockObject.new
+      object.perform_action
+      assert object.called
+    ensure
+      state.pop_traced if state
+    end
+
     def setup
       NewRelic::Agent.drop_buffered_data
       @object = TestObject.new
