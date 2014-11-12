@@ -41,11 +41,11 @@ module NewRelic
         nil
       end
 
-      def remote_fetch(remote_key)
-        host        = '169.254.169.254'
-        api_version = '2008-02-01'
+      INSTANCE_HOST = '169.254.169.254'
+      API_VERSION   = '2008-02-01'
 
-        uri = URI("http://#{host}/#{api_version}/meta-data/#{remote_key}")
+      def remote_fetch(remote_key)
+        uri = URI("http://#{INSTANCE_HOST}/#{API_VERSION}/meta-data/#{remote_key}")
         request = Net::HTTP::get(uri)
 
         data = validate_remote_data(request)

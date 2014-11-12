@@ -1119,7 +1119,7 @@ module NewRelic
           :default      => false,
           :public       => false,
           :type         => Boolean,
-          :description  => "Controls whether to collect processor and instance sizing data and send it to Insights"
+          :description  => "Controls whether to collect processor and instance sizing data and send it to New Relic"
         },
         :'rules.ignore_url_regexes' => {
           :default      => [],
