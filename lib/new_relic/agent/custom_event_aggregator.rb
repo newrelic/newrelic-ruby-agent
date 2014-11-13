@@ -16,7 +16,7 @@ module NewRelic
       EVENT_PARAMS_CTX = 'recording custom event'.freeze
       EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
 
-      DEFAULT_CAPACITY_KEY = :'custom_insights_events.max_events_stored'
+      DEFAULT_CAPACITY_KEY = :'custom_insights_events.max_samples_stored'
 
       def initialize
         @lock         = Mutex.new
