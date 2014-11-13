@@ -244,7 +244,8 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
   end
 
   def test_synthetics_aggregation_limits
-    with_sampler_config(:'synthetics.events_limit' => 10) do
+    with_sampler_config(:'synthetics.events_limit' => 10,
+                        :'analytics_events.max_samples_stored' => 0) do
       20.times do
         generate_request('synthetic', :synthetics_resource_id => 100)
       end
@@ -253,6 +254,15 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     end
   end
 
+  def test_synthetics_events_overflow_to_transaction_buffer
+    with_sampler_config(:'synthetics.events_limit' => 10) do
+      20.times do
+        generate_request('synthetic', :synthetics_resource_id => 100)
+      end
+
+      assert_equal 20, @sampler.samples.size
+    end
+  end
 
   def test_merging_synthetics_still_applies_limit
     samples = with_sampler_config(:'synthetics.events_limit' => 20) do
@@ -262,7 +272,8 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       @sampler.harvest!
     end
 
-    with_sampler_config(:'synthetics.events_limit' => 10) do
+    with_sampler_config(:'synthetics.events_limit' => 10,
+                        :'analytics_events.max_samples_stored' => 0) do
       @sampler.merge!(samples)
       assert_equal 10, @sampler.samples.size
     end

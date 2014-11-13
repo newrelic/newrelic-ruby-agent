@@ -152,11 +152,15 @@ class NewRelic::Agent::TransactionEventAggregator
 
   def append_event(event)
     main_event, _ = event
+
     if main_event.include?(SYNTHETICS_RESOURCE_ID_KEY)
-      @synthetics_samples.append(event)
-    else
-      @samples.append(event)
+      # Try adding to synthetics buffer. If we fail, fall through to give it
+      # a shot with the main transaction events (where it may get sampled)
+      result = @synthetics_samples.append(event)
+      return result unless result.nil?
     end
+
+    @samples.append(event)
   end
 
   def self.map_metric(metric_name, to_add={})
