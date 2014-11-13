@@ -2,14 +2,6 @@
 
 ## v3.9.7 ##
 
-  * Custom Insights events API
-
-  In addition to attaching custom parameters to the events that the agent
-  generates automatically for each transaction, you can now record custom event
-  types into Insights using the new NewRelic::Agent.record_custom_event API.
-
-  For details, see https://docs.newrelic.com/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-agents
-
   * Support for New Relic Synthetics
 
   The Ruby agent now gives you additional information for requests from New
