@@ -6,7 +6,7 @@
 
   The Ruby agent now gives you additional information for requests from New
   Relic Synthetics. More transaction traces and events give you a clearer look
-  into how your applicaiton is performing around the world.
+  into how your application is performing around the world.
 
   For more details, see https://docs.newrelic.com/docs/synthetics/new-relic-synthetics/getting-started/new-relic-synthetics
 
