@@ -29,9 +29,11 @@ module NewRelic
         end
       end
 
+      TIMESTAMP = "timestamp".freeze
+
       def timestamp_for(event)
         main_event, _ = event
-        main_event["timestamp"]
+        main_event[TIMESTAMP]
       end
 
     end
