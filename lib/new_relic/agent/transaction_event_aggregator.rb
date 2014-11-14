@@ -39,7 +39,7 @@ class NewRelic::Agent::TransactionEventAggregator
     @notified_full = false
 
     @samples            = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[:'analytics_events.max_samples_stored'])
-    @synthetics_samples = ::NewRelic::Agent::SizedBuffer.new(NewRelic::Agent.config[:'synthetics.events_limit'])
+    @synthetics_samples = ::NewRelic::Agent::SyntheticsEventBuffer.new(NewRelic::Agent.config[:'synthetics.events_limit'])
 
     event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
     self.register_config_callbacks
@@ -152,8 +152,15 @@ class NewRelic::Agent::TransactionEventAggregator
 
   def append_event(event)
     main_event, _ = event
+
     if main_event.include?(SYNTHETICS_RESOURCE_ID_KEY)
-      @synthetics_samples.append(event)
+      # Try adding to synthetics buffer. If anything is rejected, give it a
+      # shot in the main transaction events (where it may get sampled)
+      result, rejected = @synthetics_samples.append_with_reject(event)
+
+      if rejected
+        @samples.append(rejected)
+      end
     else
       @samples.append(event)
     end
