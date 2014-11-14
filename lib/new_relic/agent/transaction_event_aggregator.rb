@@ -39,7 +39,7 @@ class NewRelic::Agent::TransactionEventAggregator
     @notified_full = false
 
     @samples            = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[:'analytics_events.max_samples_stored'])
-    @synthetics_samples = ::NewRelic::Agent::SizedBuffer.new(NewRelic::Agent.config[:'synthetics.events_limit'])
+    @synthetics_samples = ::NewRelic::Agent::SyntheticsEventBuffer.new(NewRelic::Agent.config[:'synthetics.events_limit'])
 
     event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
     self.register_config_callbacks
@@ -154,13 +154,16 @@ class NewRelic::Agent::TransactionEventAggregator
     main_event, _ = event
 
     if main_event.include?(SYNTHETICS_RESOURCE_ID_KEY)
-      # Try adding to synthetics buffer. If we fail, fall through to give it
-      # a shot with the main transaction events (where it may get sampled)
-      result = @synthetics_samples.append(event)
-      return result unless result.nil?
-    end
+      # Try adding to synthetics buffer. If anything is rejected, give it a
+      # shot in the main transaction events (where it may get sampled)
+      result, rejected = @synthetics_samples.append_with_reject(event)
 
-    @samples.append(event)
+      if rejected
+        @samples.append(rejected)
+      end
+    else
+      @samples.append(event)
+    end
   end
 
   def self.map_metric(metric_name, to_add={})

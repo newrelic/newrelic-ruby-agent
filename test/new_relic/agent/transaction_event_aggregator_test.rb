@@ -264,6 +264,36 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     end
   end
 
+  def test_synthetics_events_kept_by_timestamp
+    with_sampler_config(:'synthetics.events_limit' => 10,
+                        :'analytics_events.max_samples_stored' => 0) do
+      10.times do |i|
+        generate_request('synthetic', :timestamp => i + 10, :synthetics_resource_id => 100)
+      end
+
+      generate_request('synthetic', :timestamp => 1, :synthetics_resource_id => 100)
+
+      assert_equal 10, @sampler.samples.size
+      timestamps = @sampler.samples.map do |(main, _)|
+        main["timestamp"]
+      end.sort
+
+      assert_equal ([1] + (10..18).to_a), timestamps
+    end
+  end
+
+  def test_synthetics_events_timestamp_bumps_go_to_main_buffer
+    with_sampler_config(:'synthetics.events_limit' => 10) do
+      10.times do |i|
+        generate_request('synthetic', :timestamp => i + 10, :synthetics_resource_id => 100)
+      end
+
+      generate_request('synthetic', :timestamp => 1, :synthetics_resource_id => 100)
+
+      assert_equal 11, @sampler.samples.size
+    end
+  end
+
   def test_merging_synthetics_still_applies_limit
     samples = with_sampler_config(:'synthetics.events_limit' => 20) do
       20.times do
@@ -313,7 +343,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     payload = {
       :name => "Controller/#{name}",
       :type => :controller,
-      :start_timestamp => Time.now.to_f,
+      :start_timestamp => options[:timestamp] || Time.now.to_f,
       :duration => 0.1,
       :custom_params => {}
     }.merge(options)
