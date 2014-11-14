@@ -11,7 +11,7 @@ module NewRelic
 
       def append_with_reject(x)
         @seen += 1
-        if @items.size == @capacity
+        if full?
           timestamp = timestamp_for(x)
           latest_event = @items.max_by do |item|
             timestamp_for(item)
