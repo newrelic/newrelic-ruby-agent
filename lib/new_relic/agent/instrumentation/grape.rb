@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     module GrapeInstrumentation
       API_ENDPOINT = 'api.endpoint'.freeze
-      ROUTE_INFO   = 'route_info'.freeze
       FORMAT       = '(.:format)'.freeze
       EMPTY_STRING = ''.freeze
       MIN_VERSION  = ::NewRelic::VersionNumber.new("0.2.0")
@@ -38,7 +37,7 @@ DependencyDetection.defer do
             endpoint = env[::NewRelic::Agent::GrapeInstrumentation::API_ENDPOINT]
 
             if endpoint
-              route_obj   = endpoint.params[::NewRelic::Agent::GrapeInstrumentation::ROUTE_INFO]
+              route_obj = endpoint.route
               if route_obj
                 action_name = route_obj.route_path.sub(::NewRelic::Agent::GrapeInstrumentation::FORMAT,
                                                         ::NewRelic::Agent::GrapeInstrumentation::EMPTY_STRING)
