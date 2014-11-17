@@ -6,29 +6,33 @@ require 'cgi'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/commands/thread_profiler_session'
 
-# Tests of HTTP Keep Alive implementation that require a different setup and
-# set of mocks.
-class NewRelicServiceKeepAliveTest < Minitest::Test
+class NewRelicServiceTest < Minitest::Test
   def setup
     @server = NewRelic::Control::Server.new('somewhere.example.com',
                                             30303, '10.10.10.10')
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
+
+    @http_handle = create_http_handle
+    @http_handle.respond_to(:get_redirect_host, 'localhost')
+    connect_response = {
+      'config' => 'some config directives',
+      'agent_run_id' => 1
+    }
+    @http_handle.respond_to(:connect, connect_response)
+
+    @service.stubs(:create_http_connection).returns(@http_handle)
   end
 
-  def stub_net_http_handle(overrides = {})
-    defaults = { :address => '10.10.10.10', :port => 30303, :started? => true }
-    stub('http_handle', defaults.merge(overrides))
+  def create_http_handle(name='connection')
+    HTTPHandle.new(name)
   end
 
   def test_session_handles_timeouts_opening_connection_gracefully
-    conn = stub_net_http_handle(:started? => false)
-    conn.stubs(:start).raises(Timeout::Error)
-    conn.stubs(:finish).raises(RuntimeError)
-    @service.stubs(:create_http_connection).returns(conn)
+    @http_handle.stubs(:start).raises(Timeout::Error)
 
     block_ran = false
 
-    assert_raises(Timeout::Error) do
+    assert_raises(::NewRelic::Agent::ServerConnectionException) do
       @service.session do
         block_ran = true
       end
@@ -38,13 +42,9 @@ class NewRelicServiceKeepAliveTest < Minitest::Test
   end
 
   def test_session_block_reuses_http_handle_with_aggressive_keepalive_off
-    handle1 = stub_net_http_handle
-    handle2 = stub_net_http_handle
+    handle1 = create_http_handle
+    handle2 = create_http_handle
     @service.stubs(:create_http_connection).returns(handle1, handle2)
-
-    handle1.expects(:start).once
-    handle1.expects(:finish).once
-    handle2.expects(:start).never
 
     block_ran = false
     with_config(:aggressive_keepalive => false) do
@@ -58,44 +58,33 @@ class NewRelicServiceKeepAliveTest < Minitest::Test
       end
     end
     assert(block_ran)
+
+    assert_equal([:start, :finish], handle1.calls)
+    assert_equal([],                handle2.calls)
   end
 
   def test_multiple_http_handles_are_used_outside_session_block
-    handle1 = stub_net_http_handle
-    handle2 = stub_net_http_handle
+    handle1 = create_http_handle
+    handle2 = create_http_handle
     @service.stubs(:create_http_connection).returns(handle1, handle2)
     assert_equal(@service.http_connection.object_id, handle1.object_id)
     assert_equal(@service.http_connection.object_id, handle2.object_id)
   end
 
-
   def test_session_starts_and_finishes_http_session_with_aggressive_keepalive_off
-    handle1 = stub_net_http_handle
-    handle1.expects(:start).once
-    handle1.expects(:finish).once
-    @service.stubs(:create_http_connection).returns(handle1)
-
     block_ran = false
 
     with_config(:aggressive_keepalive => false) do
       @service.session do
         block_ran = true
-        # mocks expect #start and #finish to be called.  This is how Net::HTTP
-        # implements keep alive
       end
     end
+
     assert(block_ran)
+    assert_equal([:start, :finish], @http_handle.calls)
   end
 
   def test_session_does_not_close_connection_if_aggressive_keepalive_on
-    defaults = { :address => '10.10.10.10', :port => 30303, :started? => true }
-    handle = stub('http_handle', defaults)
-
-    handle.expects(:start).once
-    handle.expects(:finish).never
-
-    @service.stubs(:create_http_connection).returns(handle)
-
     calls_to_block = 0
 
     with_config(:aggressive_keepalive => true) do
@@ -105,48 +94,72 @@ class NewRelicServiceKeepAliveTest < Minitest::Test
     end
 
     assert_equal(2, calls_to_block)
+    assert_equal([:start], @http_handle.calls)
   end
-end
 
-class NewRelicServiceTest < Minitest::Test
-  def initialize(*_)
-    [ :HTTPSuccess,
-      :HTTPUnauthorized,
-      :HTTPNotFound,
-      :HTTPRequestEntityTooLarge,
-      :HTTPUnsupportedMediaType ].each do |class_name|
-      extend_with_mock(class_name)
+  def test_requests_after_connection_failure_in_session_still_use_connection_caching
+    conn0 = create_http_handle('first connection')
+    conn1 = create_http_handle('second connection')
+    conn2 = create_http_handle('third connection')
+    @service.stubs(:create_http_connection).returns(conn0, conn1, conn2)
+
+    rsp_payload = ['ok']
+
+    conn0.respond_to(:foo, EOFError.new)
+    conn1.respond_to(:foo, rsp_payload)
+    conn1.respond_to(:bar, rsp_payload)
+    conn1.respond_to(:baz, rsp_payload)
+
+    @service.session do
+      @service.send(:invoke_remote, :foo, ['payload'])
+      @service.send(:invoke_remote, :bar, ['payload'])
+      @service.send(:invoke_remote, :baz, ['payload'])
     end
-    super
+
+    assert_equal([:start, :request, :finish], conn0.calls)
+    assert_equal([:start, :request, :request, :request, :finish], conn1.calls)
+    assert_equal([], conn2.calls)
   end
 
-  def extend_with_mock(class_name)
-    if !self.class.const_defined?(class_name)
-      klass = self.class.const_set(class_name,
-                Class.new(Object.const_get(:Net).const_get(class_name)))
-      klass.class_eval { include HTTPResponseMock }
-    end
-  end
-  protected :extend_with_mock
+  def test_repeated_connection_failures
+    conn0 = create_http_handle('first connection')
+    conn1 = create_http_handle('second connection')
+    conn2 = create_http_handle('third connection')
+    @service.stubs(:create_http_connection).returns(conn0, conn1, conn2)
 
-  def setup
-    @server = NewRelic::Control::Server.new('somewhere.example.com',
-                                            30303, '10.10.10.10')
-    @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
-    @http_handle = HTTPHandle.new
-    @service.stubs(:create_http_connection).returns(@http_handle)
+    rsp_payload = ['ok']
 
-    @http_handle.respond_to(:get_redirect_host, 'localhost')
-    connect_response = {
-      'config' => 'some config directives',
-      'agent_run_id' => 1
-    }
-    @http_handle.respond_to(:connect, connect_response)
+    conn0.respond_to(:foo, EOFError.new)
+    conn1.respond_to(:foo, EOFError.new)
+    conn2.respond_to(:bar, rsp_payload)
+    conn2.respond_to(:baz, rsp_payload)
 
-    @reverse_encoder = Module.new do
-      def self.encode(data)
-        data.reverse
+    @service.session do
+      assert_raises(::NewRelic::Agent::ServerConnectionException) do
+        @service.send(:invoke_remote, :foo, ['payload'])
       end
+      @service.send(:invoke_remote, :bar, ['payload'])
+      @service.send(:invoke_remote, :baz, ['payload'])
+    end
+
+    assert_equal([:start, :request, :finish], conn0.calls)
+    assert_equal([:start, :request, :finish], conn1.calls)
+    assert_equal([:start, :request, :request, :finish], conn2.calls)
+  end
+
+  def test_repeated_connection_failures_on_reconnect
+    conn0 = create_http_handle('first connection')
+    conn1 = create_http_handle('second connection')
+    conn2 = create_http_handle('third connection')
+
+    conn0.expects(:start).once.raises(EOFError.new)
+    conn1.expects(:start).once.raises(EOFError.new)
+    conn2.expects(:start).never
+
+    @service.stubs(:create_http_connection).returns(conn0, conn1, conn2)
+
+    assert_raises(::NewRelic::Agent::ServerConnectionException) do
+      @service.send(:invoke_remote, :foo, ['payload'])
     end
   end
 
@@ -584,7 +597,7 @@ class NewRelicServiceTest < Minitest::Test
     prepared = marshaller.prepare(dummy, :encoder => identity_encoder)
     assert_equal(dummy, prepared)
 
-    prepared = marshaller.prepare(dummy, :encoder => @reverse_encoder)
+    prepared = marshaller.prepare(dummy, :encoder => ReverseEncoder)
     decoded = prepared.map { |x| x.reverse }
     assert_equal(dummy, decoded)
   end
@@ -596,7 +609,7 @@ class NewRelicServiceTest < Minitest::Test
     end
     dummy = [[inner_array]]
     marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
-    prepared = marshaller.prepare(dummy, :encoder => @reverse_encoder)
+    prepared = marshaller.prepare(dummy, :encoder => ReverseEncoder)
     assert_equal([[['dcba']]], prepared)
   end
 
@@ -826,14 +839,82 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
-  class HTTPHandle
-    attr_accessor :read_timeout, :route_table
+  module ReverseEncoder
+    def self.encode(data)
+      data.reverse
+    end
+  end
 
-    def initialize
+  # This class acts as a stand-in for instances of Net::HTTP, which represent
+  # HTTP connections.
+  #
+  # It can record the start / finish / request calls made to it, and exposes
+  # that call sequence via the #calls accessor.
+  #
+  # It can also be configured to generate dummy responses for calls to request,
+  # via the #respond_to method.
+  class HTTPHandle
+    # This module gets included into the Net::HTTPResponse subclasses that we
+    # create below. We do this because the code in NewRelicService switches
+    # behavior based on the type of response that is returned, and we want to be
+    # able to create dummy responses for testing easily.
+    module HTTPResponseMock
+      attr_accessor :code, :body, :message, :headers
+
+      def initialize(body, code=200, message='OK')
+        @code = code
+        @body = body
+        @message = message
+        @headers = {}
+      end
+
+      def [](key)
+        @headers[key]
+      end
+    end
+
+    HTTPSuccess               = Class.new(Net::HTTPSuccess)               { include HTTPResponseMock }
+    HTTPUnauthorized          = Class.new(Net::HTTPUnauthorized)          { include HTTPResponseMock }
+    HTTPNotFound              = Class.new(Net::HTTPNotFound)              { include HTTPResponseMock }
+    HTTPRequestEntityTooLarge = Class.new(Net::HTTPRequestEntityTooLarge) { include HTTPResponseMock }
+    HTTPUnsupportedMediaType  = Class.new(Net::HTTPUnsupportedMediaType)  { include HTTPResponseMock }
+
+    attr_accessor :read_timeout
+    attr_reader :calls, :last_request
+
+    def initialize(name)
+      @name    = name
+      @started = false
       reset
     end
 
-    def respond_to(method, payload, opts={})
+    def start
+      @calls << :start
+      @started = true
+    end
+
+    def finish
+      @calls << :finish
+      @started = false
+    end
+
+    def inspect
+      "<HTTPHandle: #{@name}>"
+    end
+
+    def started?
+      @started
+    end
+
+    def address
+      'whereever.com'
+    end
+
+    def port
+      8080
+    end
+
+    def create_response_mock(payload, opts={})
       if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
         format = :json
       else
@@ -858,37 +939,42 @@ class NewRelicServiceTest < Minitest::Test
       end
 
       if opts[:format] == :json
-        register(klass.new(JSON.dump('return_value' => payload), opts[:code])) do |request|
-          request.path.include?(method.to_s)
-        end
+        klass.new(JSON.dump('return_value' => payload), opts[:code], {})
       else
-        register(klass.new(Marshal.dump('return_value' => payload), opts[:code])) do |request|
-          request.path.include?(method.to_s)
-        end
+        klass.new(Marshal.dump('return_value' => payload), opts[:code], {})
       end
     end
 
-    def register(response, &block)
-      @route_table[block] = response
+    def respond_to(method, payload, opts={})
+      case payload
+      when Exception then rsp = payload
+      else                rsp = create_response_mock(payload, opts)
+      end
+
+      @route_table[method.to_s] = rsp
     end
 
     def request(*args)
-      @last_request = args.first
-      @route_table.each_pair do |condition, response|
-        if condition.call(args[0])
-          return response
-        end
+      @calls << :request
+
+      request = args.first
+      @last_request = request
+
+      route = @route_table.keys.find { |r| request.path.include?(r) }
+
+      if route
+        response = @route_table[route]
+        raise response if response.kind_of?(Exception)
+        response
+      else
+        HTTPNotFound.new('not found', 404)
       end
-      HTTPNotFound.new('not found', 404)
     end
 
     def reset
+      @calls = []
       @route_table = {}
       @last_request = nil
-    end
-
-    def last_request
-      @last_request
     end
 
     def last_request_payload
@@ -906,21 +992,6 @@ class NewRelicServiceTest < Minitest::Test
       else
         Marshal.load(body)
       end
-    end
-  end
-
-  module HTTPResponseMock
-    attr_accessor :code, :body, :message, :headers
-
-    def initialize(body, code=200, message='OK')
-      @code = code
-      @body = body
-      @message = message
-      @headers = {}
-    end
-
-    def [](key)
-      @headers[key]
     end
   end
 end
