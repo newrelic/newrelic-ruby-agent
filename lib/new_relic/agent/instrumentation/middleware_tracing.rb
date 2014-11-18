@@ -57,7 +57,7 @@ module NewRelic
               result = target.call(env)
             end
 
-            if result.is_a?(Array)
+            if result.is_a?(Array) && state.current_transaction
               state.current_transaction.http_response_code = result[0]
             end
 
