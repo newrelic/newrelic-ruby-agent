@@ -53,6 +53,7 @@ module NewRelic
     end
 
     attr_accessor :agent_data, :mock
+    attr_reader :last_socket
 
     def initialize
       super(DEFAULT_PORT)
@@ -99,6 +100,8 @@ module NewRelic
     end
 
     def call(env)
+      @last_socket = Thread.current[:WEBrickSocket]
+
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
       uri = URI.parse(req.url)
