@@ -448,9 +448,10 @@ module NewRelic
 
         begin
           attempts += 1
+          conn = http_connection
           ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]}"
           NewRelic::TimerLib.timeout(@request_timeout) do
-            response = http_connection.request(request)
+            response = conn.request(request)
           end
         rescue Timeout::Error, EOFError, SystemCallError, SocketError => e
           close_shared_connection
