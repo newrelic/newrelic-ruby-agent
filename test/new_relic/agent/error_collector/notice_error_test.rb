@@ -143,7 +143,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
   def test_skip_notice_error_is_true_if_the_error_collector_is_disabled
     error = mocked_error
     with_error_collector_config(:'error_collector.enabled' => false) do |error_collector|
-      assert error_collector.skip_notice_error?(error)
+      assert error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
     end
   end
 
@@ -151,7 +151,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
     error = nil
     with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
       error_collector.expects(:error_is_ignored?).with(error).returns(false)
-      assert error_collector.skip_notice_error?(error)
+      assert error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
     end
   end
 
@@ -159,7 +159,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
     error = mocked_error
     with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
       error_collector.expects(:error_is_ignored?).with(error).returns(true)
-      assert error_collector.skip_notice_error?(error)
+      assert error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
     end
   end
 
@@ -167,7 +167,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
     error = mocked_error
     with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
       error_collector.expects(:error_is_ignored?).with(error).returns(false)
-      assert !error_collector.skip_notice_error?(error)
+      assert !error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
     end
   end
 
