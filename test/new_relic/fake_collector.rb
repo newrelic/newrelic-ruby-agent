@@ -200,6 +200,8 @@ module NewRelic
           TransactionSampleDataPost.new(opts)
         when 'analytic_event_data'
           AnalyticEventDataPost.new(opts)
+        when 'custom_event_data'
+          AnalyticEventDataPost.new(opts)
         when 'error_data'
           ErrorDataPost.new(opts)
         when 'utilization_data'
