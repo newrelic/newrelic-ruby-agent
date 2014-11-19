@@ -1056,7 +1056,7 @@ module NewRelic
 
         def harvest_and_send_analytic_event_data
           harvest_and_send_from_container(@transaction_event_aggregator, :analytic_event_data)
-          harvest_and_send_from_container(@custom_event_aggregator,      :analytic_event_data)
+          harvest_and_send_from_container(@custom_event_aggregator,      :custom_event_data)
         end
 
         def harvest_and_send_utilization_data

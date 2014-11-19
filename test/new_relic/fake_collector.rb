@@ -69,6 +69,7 @@ module NewRelic
         'profile_data'            => Response.new(200, {'return_value' => nil}),
         'shutdown'                => Response.new(200, {'return_value' => nil}),
         'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
+        'custom_event_data'       => Response.new(200, {'return_value' => nil}),
         'utilization_data'        => Response.new(200, {'return_value' => nil}),
       }
       reset
