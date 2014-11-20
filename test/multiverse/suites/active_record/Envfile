@@ -1,4 +1,4 @@
-boilerplate_gems = <<-SQLITE
+boilerplate_gems = <<-BOILERPLATE
   gem 'rack'
   gem 'rake'
   if RUBY_PLATFORM == 'java'
@@ -6,7 +6,7 @@ boilerplate_gems = <<-SQLITE
   else
     gem 'mysql'
   end
-SQLITE
+BOILERPLATE
 
 if RUBY_VERSION >= '1.9.3'
   # JRuby currently having problem with Rails 4.2 beta. Remove condition on GA.
@@ -57,7 +57,7 @@ gemfile <<-RB
 RB
 end
 
-if RUBY_VERSION < '1.9.3'
+if RUBY_VERSION < '1.9.2'
 gemfile <<-RB
   gem "rails", "~> 2.1.2"
   #{boilerplate_gems}
