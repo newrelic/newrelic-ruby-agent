@@ -619,7 +619,7 @@ module NewRelic
             @event_loop.fire_every(report_period_for(:analytic_event_data), :report_event_data)
             @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD,              :reset_log_once_keys)
 
-            if Agent.config[:collect_utilization]
+            if Agent.config[:collect_utilization] && !in_resque_child_process?
               @event_loop.on(:report_utilization_data) do
                 transmit_utilization_data
               end
