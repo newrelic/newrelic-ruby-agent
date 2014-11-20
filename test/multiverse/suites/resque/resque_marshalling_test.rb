@@ -5,6 +5,8 @@
 require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marshalling_test_cases')
 
+if NewRelic::LanguageSupport.can_fork?
+
 class ResqueMarshallingTest < Minitest::Test
 
   include MultiverseHelpers
@@ -41,4 +43,6 @@ class ResqueMarshallingTest < Minitest::Test
   def after_each
     NewRelic::Agent::PipeChannelManager.listener.stop
   end
+end
+
 end
