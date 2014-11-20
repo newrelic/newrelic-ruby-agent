@@ -46,7 +46,7 @@ module MarshallingTestCases
   end
 
   def test_sends_transaction_events
-    t0 = freeze_time
+    t0 = freeze_time(Time.at(Time.now.to_i))
 
     with_around_hook do
       Transactioner.new.do_it
@@ -69,7 +69,12 @@ module MarshallingTestCases
       {}
     ]
 
-    assert_equal(expected_event, events.first)
+    event = events.first
+    # this is only present on REE, and we don't really care - the point of this
+    # test is just to validate basic marshalling
+    event[0].delete("gcCumulative")
+
+    assert_equal(expected_event, event)
   end
 
   def test_sends_custom_events
