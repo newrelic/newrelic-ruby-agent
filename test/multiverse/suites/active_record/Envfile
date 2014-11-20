@@ -1,9 +1,10 @@
 boilerplate_gems = <<-SQLITE
   gem 'rack'
+  gem 'rake'
   if RUBY_PLATFORM == 'java'
-    gem 'activerecord-jdbcsqlite3-adapter'
+    gem "activerecord-jdbcmysql-adapter"
   else
-    gem 'sqlite3'
+    gem 'mysql'
   end
 SQLITE
 
@@ -39,9 +40,26 @@ gemfile <<-RB
   #{boilerplate_gems}
 RB
 
-if RUBY_VERSION <= '1.9.3'
+# We pull in Rails on the older verions because ActiveRecord didn't have all
+# the tasks we need for setup, and there are some TestUnit vs Minitest oddities
+#
+# JRuby testing with 1.7 on Rails 2.x has issues and was already excluded in
+# test:env
+if RUBY_VERSION <= '1.9.3' && (!defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby')
 gemfile <<-RB
-  gem 'activerecord', '~> 2.3.18'
+  gem 'rails', '~> 2.3.18'
+  #{boilerplate_gems}
+RB
+
+gemfile <<-RB
+  gem "rails", "~> 2.2.3"
+  #{boilerplate_gems}
+RB
+end
+
+if RUBY_VERSION < '1.9.3'
+gemfile <<-RB
+  gem "rails", "~> 2.1.2"
   #{boilerplate_gems}
 RB
 end

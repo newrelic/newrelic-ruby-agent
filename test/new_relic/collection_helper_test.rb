@@ -4,7 +4,6 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 require 'ostruct'
-require 'active_record_fixtures' if defined?(::ActiveRecord)
 
 require 'new_relic/collection_helper'
 class NewRelic::CollectionHelperTest < Minitest::Test
