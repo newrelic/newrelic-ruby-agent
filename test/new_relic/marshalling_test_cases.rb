@@ -7,7 +7,9 @@
 module MarshallingTestCases
 
   def test_sends_metrics
-    NewRelic::Agent.record_metric('Boo', 42)
+    with_around_hook do
+      NewRelic::Agent.record_metric('Boo', 42)
+    end
 
     transmit_data
 
@@ -17,7 +19,9 @@ module MarshallingTestCases
   end
 
   def test_sends_errors
-    NewRelic::Agent.notice_error(StandardError.new("Boom"))
+    with_around_hook do
+      NewRelic::Agent.notice_error(StandardError.new("Boom"))
+    end
 
     transmit_data
 
@@ -29,26 +33,103 @@ module MarshallingTestCases
 
   def test_sends_transaction_traces
     with_config(:'transaction_tracer.transaction_threshold' => -1.0) do
-      Transactioner.new.do_it
+      with_around_hook do
+        Transactioner.new.do_it
+      end
     end
 
     transmit_data
 
     result = $collector.calls_for('transaction_sample_data')
     assert_equal 1, result.length
-    assert_equal "Controller/MarshallingTestCases::Transactioner/do_it", result.first.metric_name
+    assert_equal "TestTransaction/do_it", result.first.metric_name
+  end
+
+  def test_sends_transaction_events
+    t0 = freeze_time
+
+    with_around_hook do
+      Transactioner.new.do_it
+    end
+
+    transmit_event_data
+
+    result = $collector.calls_for('analytic_event_data')
+    assert_equal 1, result.length
+    events = result.first.events
+    assert_equal 1, events.length
+
+    expected_event = [
+      {
+        "type"      => "Transaction",
+        "timestamp" => t0.to_f,
+        "name"      => "TestTransaction/do_it",
+        "duration"  => 0.0,
+      },
+      {}
+    ]
+
+    assert_equal(expected_event, events.first)
+  end
+
+  def test_sends_custom_events
+    t0 = freeze_time
+
+    with_around_hook do
+      NewRelic::Agent.record_custom_event("CustomEventType", :foo => 'bar', :baz => 'qux')
+    end
+
+    transmit_event_data
+
+    result = $collector.calls_for('custom_event_data')
+    assert_equal 1, result.length
+    events = result.first.events
+    assert_equal 1, events.length
+
+    expected_event = [
+      {
+        "type"      => "CustomEventType",
+        "timestamp" => t0.to_i,
+        "source"    => "Customer"
+      },
+      {
+        "foo" => "bar",
+        "baz" => "qux"
+      }
+    ]
+
+    assert_equal(expected_event, events.first)
   end
 
   class Transactioner
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
     def do_it
+      NewRelic::Agent.set_transaction_name("do_it", :category => "TestTransaction")
     end
 
     add_transaction_tracer :do_it
   end
 
+  def with_around_hook(&blk)
+    if respond_to?(:around_each)
+      around_each do
+        blk.call
+      end
+    else
+      blk.call
+    end
+
+    if respond_to?(:after_each)
+      after_each
+    end
+  end
+
   def transmit_data
     NewRelic::Agent.instance.send(:transmit_data)
+  end
+
+  def transmit_event_data
+    NewRelic::Agent.instance.send(:transmit_event_data)
   end
 end
