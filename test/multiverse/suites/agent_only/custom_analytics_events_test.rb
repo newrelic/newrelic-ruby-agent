@@ -16,7 +16,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
     events = last_custom_event_submission
 
-    expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i, 'source' => 'Customer'},
+    expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i },
                       {'foo' => 'bar', 'baz' => 'qux'}]
     assert_equal(expected_event, events.first)
   end

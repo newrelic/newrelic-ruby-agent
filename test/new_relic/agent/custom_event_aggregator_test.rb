@@ -72,7 +72,7 @@ module NewRelic::Agent
       end
     end
 
-    def test_record_adds_type_and_timestamp_and_source
+    def test_record_adds_type_and_timestamp
       t0 = Time.now
       @aggregator.record(:type_a, :foo => :bar, :baz => :qux)
 
@@ -81,8 +81,8 @@ module NewRelic::Agent
       assert_equal(1, events.size)
       event = events.first
 
-      assert_equal({ 'type' => 'type_a', 'timestamp' => t0.to_i, 'source' => 'Agent' }, event[0])
-      assert_equal({ 'foo'  => 'bar'   , 'baz'       => 'qux'                        }, event[1])
+      assert_equal({ 'type' => 'type_a', 'timestamp' => t0.to_i }, event[0])
+      assert_equal({ 'foo'  => 'bar'   , 'baz'       => 'qux'   }, event[1])
     end
   end
 end

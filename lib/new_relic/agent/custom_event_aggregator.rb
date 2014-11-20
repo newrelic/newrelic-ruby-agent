@@ -11,8 +11,6 @@ module NewRelic
 
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
-      SOURCE           = 'source'.freeze
-      AGENT_SOURCE     = 'Agent'.freeze
       EVENT_PARAMS_CTX = 'recording custom event'.freeze
       EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
 
@@ -34,7 +32,7 @@ module NewRelic
         end
       end
 
-      def record(type, attributes, source=AGENT_SOURCE)
+      def record(type, attributes)
         type = @type_strings[type]
         unless type =~ EVENT_TYPE_REGEX
           note_dropped_event(type)
@@ -42,7 +40,7 @@ module NewRelic
         end
 
         event = [
-          { TYPE => type, TIMESTAMP => Time.now.to_i, SOURCE => source },
+          { TYPE => type, TIMESTAMP => Time.now.to_i },
           event_params(attributes, EVENT_PARAMS_CTX)
         ]
 
