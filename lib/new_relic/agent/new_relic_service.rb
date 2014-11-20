@@ -26,6 +26,10 @@ module NewRelic
       # 1754:  v3 (tag 2.3.0)
       # 534:   v2 (shows up in 2.1.0, our first tag)
 
+      # These include Errno connection errors, and all indicate that the
+      # underlying TCP connection may be in a bad state.
+      CONNECTION_ERRORS = [Timeout::Error, EOFError, SystemCallError, SocketError].freeze
+
       attr_accessor :request_timeout, :agent_id
       attr_reader :collector, :marshaller, :metric_id_cache
 
@@ -199,9 +203,7 @@ module NewRelic
           else
             session_without_keepalive(&block)
           end
-        rescue Timeout::Error, EOFError, SystemCallError, SocketError => e
-          # These include Errno connection errors, and all indicate that the
-          # connection may be in a bad state, so drop it and re-create if needed.
+        rescue *CONNECTION_ERRORS => e
           elapsed = Time.now - t0
           raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to #{@collector} after #{elapsed} seconds: #{e}"
         ensure
@@ -453,7 +455,7 @@ module NewRelic
           NewRelic::TimerLib.timeout(@request_timeout) do
             response = conn.request(request)
           end
-        rescue Timeout::Error, EOFError, SystemCallError, SocketError => e
+        rescue *CONNECTION_ERRORS => e
           close_shared_connection
           if attempts < max_attempts
             ::NewRelic::Agent.logger.debug("Retrying request to #{opts[:collector]}#{opts[:uri]} after #{e}")
@@ -471,7 +473,7 @@ module NewRelic
         when Net::HTTPServiceUnavailable
           raise ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
         when Net::HTTPGatewayTimeOut
-          raise Timeout::Error, response.message
+          raise ServerConnectionException, "Gateway timeout (#{response.code}): #{response.message}"
         when Net::HTTPRequestEntityTooLarge
           raise UnrecoverableServerException, '413 Request Entity Too Large'
         when Net::HTTPUnsupportedMediaType
