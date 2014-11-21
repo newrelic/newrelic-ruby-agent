@@ -120,7 +120,7 @@ module NewRelic::Agent::Configuration
 
     def test_config_search_path_in_warbler
       with_environment("GEM_HOME" => "/some/path.jar!") do
-        assert_includes DefaultSource.config_search_paths.call(), "/some/path.jar!/config/newrelic.yml"
+        assert_includes DefaultSource.config_search_paths.call(), "/some/path.jar!/path/config/newrelic.yml"
       end
     end
 
