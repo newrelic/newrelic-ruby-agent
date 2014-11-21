@@ -258,7 +258,7 @@ module NewRelic
         if @in_session
           establish_shared_connection
         else
-          create_and_start_http_connection
+          create_http_connection
         end
       end
 

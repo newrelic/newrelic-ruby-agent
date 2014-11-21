@@ -71,6 +71,19 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal(@service.http_connection.object_id, handle2.object_id)
   end
 
+  # Calling start on a Net::HTTP instance results in connection keep-alive
+  # being used, which means that the connection won't be automatically closed
+  # once a request is issued. For calls to the service outside of a session
+  # block (/get_redirect_host and /connect, namely), we actually want the
+  # connection to only be used for a single request.
+  def test_connections_not_explicitly_started_outside_session_block
+    @http_handle.respond_to(:foo, ['blah'])
+
+    @service.send(:invoke_remote, :foo, ['payload'])
+
+    assert_equal([:request], @http_handle.calls)
+  end
+
   def test_session_starts_and_finishes_http_session_with_aggressive_keepalive_off
     block_ran = false
 
@@ -152,15 +165,36 @@ class NewRelicServiceTest < Minitest::Test
     conn1 = create_http_handle('second connection')
     conn2 = create_http_handle('third connection')
 
-    conn0.expects(:start).once.raises(EOFError.new)
+    conn0.respond_to(:foo, EOFError.new)
     conn1.expects(:start).once.raises(EOFError.new)
     conn2.expects(:start).never
 
     @service.stubs(:create_http_connection).returns(conn0, conn1, conn2)
 
     assert_raises(::NewRelic::Agent::ServerConnectionException) do
+      @service.session do
+        @service.send(:invoke_remote, :foo, ['payload'])
+      end
+    end
+  end
+
+  def test_repeated_connection_failures_outside_session
+    conn0 = create_http_handle('first connection')
+    conn1 = create_http_handle('second connection')
+    conn2 = create_http_handle('third connection')
+
+    conn0.respond_to(:foo, EOFError.new)
+    conn1.respond_to(:foo, EOFError.new)
+
+    @service.stubs(:create_http_connection).returns(conn0, conn1, conn2)
+
+    assert_raises(::NewRelic::Agent::ServerConnectionException) do
       @service.send(:invoke_remote, :foo, ['payload'])
     end
+
+    assert_equal([:request], conn0.calls)
+    assert_equal([:request], conn1.calls)
+    assert_equal([],         conn2.calls)
   end
 
   def test_cert_file_path
