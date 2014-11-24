@@ -70,6 +70,7 @@ module NewRelic
         'profile_data'            => Response.new(200, {'return_value' => nil}),
         'shutdown'                => Response.new(200, {'return_value' => nil}),
         'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
+        'custom_event_data'       => Response.new(200, {'return_value' => nil}),
         'utilization_data'        => Response.new(200, {'return_value' => nil}),
       }
       reset
@@ -201,6 +202,8 @@ module NewRelic
         when 'transaction_sample_data'
           TransactionSampleDataPost.new(opts)
         when 'analytic_event_data'
+          AnalyticEventDataPost.new(opts)
+        when 'custom_event_data'
           AnalyticEventDataPost.new(opts)
         when 'error_data'
           ErrorDataPost.new(opts)
