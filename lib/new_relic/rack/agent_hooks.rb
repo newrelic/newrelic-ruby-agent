@@ -14,24 +14,24 @@ module NewRelic::Rack
   # @api public
   #
   class AgentHooks < AgentMiddleware
-    FIRED_FORMATS = {
-      :before_call => "newrelic.agent_hooks_before_fired",
-      :after_call  => "newrelic.agent_hooks_after_fired"
-    }
+    # We use this key in the Rack env hash to note when we've already fired
+    # events for a given request, in case this middleware gets installed
+    # multiple times in the middleware chain because of a misconfiguration.
+    ENV_KEY = "newrelic.agent_hooks_fired".freeze
 
-    # method required by Rack interface
-    # [status, headers, response]
     def traced_call(env)
-      notify(:before_call, env)
-      result = @app.call(env)
-      notify(:after_call, env, result)
-      result
-    end
+      if env[ENV_KEY]
+        # Already fired the hooks, just pass through
+        @app.call(env)
+      else
+        env[ENV_KEY] = true
 
-    def notify(event, env, *args)
-      key = FIRED_FORMATS[event]
-      events.notify(event, *([env] + args)) unless env[key]
-      env[key] = true
+        events.notify(:before_call, env)
+        result = @app.call(env)
+        events.notify(:after_call, env, result)
+
+        result
+      end
     end
 
     def events
