@@ -51,8 +51,7 @@ module NewRelic
 
             # If we're packaged for warbler, we can tell from GEM_HOME
             if ENV["GEM_HOME"] && ENV["GEM_HOME"].end_with?(".jar!")
-              ending = ENV["GEM_HOME"].split("/").last
-              app_name = ending.sub(".jar!", "")
+              app_name = File.basename(ENV["GEM_HOME"], ".jar!")
               paths << File.join(ENV["GEM_HOME"], app_name, "config", "newrelic.yml")
             end
 
