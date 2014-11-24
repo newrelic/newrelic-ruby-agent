@@ -21,6 +21,10 @@ DependencyDetection.defer do
       ::NewRelic::VersionNumber.new(::Grape::VERSION) >= ::NewRelic::Agent::GrapeInstrumentation::MIN_VERSION
   end
 
+  depends_on do
+    false
+  end
+
   executes do
     NewRelic::Agent.logger.info 'Installing Grape instrumentation'
     instrument_call
