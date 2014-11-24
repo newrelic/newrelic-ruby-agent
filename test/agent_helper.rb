@@ -280,16 +280,14 @@ def in_transaction(*args)
   category = (opts && opts.delete(:category)) || :other
   state = NewRelic::Agent::TransactionState.tl_get
 
-  with_config(:disable_harvest_thread => true) do
-    NewRelic::Agent::Transaction.start(state, category, opts)
-    val = nil
-    begin
-      val = yield state.current_transaction
-    ensure
-      NewRelic::Agent::Transaction.stop(state)
-    end
-    val
+  NewRelic::Agent::Transaction.start(state, category, opts)
+  val = nil
+  begin
+    val = yield state.current_transaction
+  ensure
+    NewRelic::Agent::Transaction.stop(state)
   end
+  val
 end
 
 def stub_transaction_guid(guid)
