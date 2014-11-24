@@ -1098,7 +1098,7 @@ module NewRelic
           :description  => 'A dictionary of label names and values that will be applied to the data sent from this agent. May also be expressed as a semi-colon delimited string of colon-separated pairs (e.g. "Server:One;Data Center:Primary".'
         },
         :aggressive_keepalive => {
-          :default      => false,
+          :default      => true,
           :public       => false,
           :type         => Boolean,
           :description  => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'

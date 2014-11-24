@@ -130,7 +130,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_equal([:start, :request, :finish], conn0.calls)
-    assert_equal([:start, :request, :request, :request, :finish], conn1.calls)
+    assert_equal([:start, :request, :request, :request], conn1.calls)
     assert_equal([], conn2.calls)
   end
 
@@ -157,7 +157,7 @@ class NewRelicServiceTest < Minitest::Test
 
     assert_equal([:start, :request, :finish], conn0.calls)
     assert_equal([:start, :request, :finish], conn1.calls)
-    assert_equal([:start, :request, :request, :finish], conn2.calls)
+    assert_equal([:start, :request, :request], conn2.calls)
   end
 
   def test_repeated_connection_failures_on_reconnect
