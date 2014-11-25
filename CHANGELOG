@@ -1,5 +1,48 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.9.8 ##
+
+  * Custom Insights events API
+
+  In addition to attaching custom parameters to the events that the Ruby agent
+  generates automatically for each transaction, you can now record custom event
+  types into Insights with the new NewRelic::Agent.record_custom_event API.
+
+  For details, see https://docs.newrelic.com/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-agents
+
+  * Reduced memory usage for idling applications
+
+  Idling applications using the agent could previously appear to leak memory
+  because of native allocations during creation of new SSL connections to our
+  servers. These native allocations didn't factor into triggering Ruby's
+  garbage collector.
+
+  The agent will now re-use a single TCP connection to our servers for as long
+  as possible, resulting in improved memory usage for applications that are
+  idling and not having GC triggered for other reasons.
+
+  * Don't write to stderr during CPU sampling
+
+  The Ruby agent's code for gathering CPU information would write error
+  messages to stderr on some FreeBSD systems. This has been fixed.
+
+  * LocalJumpError on Rails 2.x
+
+  Under certain conditions, Rails 2.x controller instrumentation could fail
+  with a LocalJumpError when an action was not being traced. This has been
+  fixed.
+
+  * Fixed config lookup in warbler packaged apps
+
+  When running a Ruby application from a standalone warbler .jar file on
+  JRuby, the packaged config/newrelic.yml was not properly found. This has
+  been fixed, and thanks to Bob Beaty for the help getting it fixed!
+
+  * Hash iteration failure in middleware
+
+  If a background thread iterated over the keys in the Rack env hash, it could
+  cause failures in New Relic's AgentHooks middleware. This has been fixed.
+
 ## v3.9.7 ##
 
   * Support for New Relic Synthetics
