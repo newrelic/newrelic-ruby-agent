@@ -41,20 +41,20 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     end
   end
 
-  docker_id_test_dir   = File.join(cross_agent_tests_dir, 'docker_container_id')
-  docker_id_test_cases = load_cross_agent_test(File.join('docker_container_id', 'cases'))
+  container_id_test_dir   = File.join(cross_agent_tests_dir, 'linux_container_id')
+  container_id_test_cases = load_cross_agent_test(File.join('linux_container_id', 'cases'))
 
-  docker_id_test_cases.each do |test_case|
+  container_id_test_cases.each do |test_case|
     filename = test_case['filename']
     basename = File.basename(filename, '.txt')
-    test_name = "test_docker_container_id_#{basename}"
+    test_name = "test_container_id_#{basename}"
 
     define_method(test_name) do
-      input = File.read(File.join(docker_id_test_dir, filename))
-      container_id = @sysinfo.parse_docker_container_id(input)
+      input = File.read(File.join(container_id_test_dir, filename))
+      container_id = @sysinfo.parse_linux_container_id(input)
 
-      message = "Parsed incorrect Docker container ID from #{filename}"
-      assert_equal(test_case['dockerContainerId'], container_id, message)
+      message = "Parsed incorrect Docker/LXC container ID from #{filename}"
+      assert_equal(test_case['containerId'], container_id, message)
     end
   end
 end

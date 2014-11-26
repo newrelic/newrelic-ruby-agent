@@ -133,19 +133,35 @@ module NewRelic
         proc_try_read('/proc/version')
       end
 
-      def self.docker_container_id
+      def self.linux_container_id
         return unless ruby_os_identifier =~ /linux/
 
         cgroup_info = proc_try_read('/proc/self/cgroup')
         return unless cgroup_info
 
-        parse_docker_container_id(cgroup_info)
+        parse_linux_container_id(cgroup_info)
       end
 
-      def self.parse_docker_container_id(cgroup_info)
+      def self.parse_linux_container_id(cgroup_info)
         cpu_cgroup = parse_cgroup_ids(cgroup_info)['cpu']
-        return unless cpu_cgroup && cpu_cgroup =~ %r{^/docker/(.*)}
-        return $1
+        return unless cpu_cgroup
+
+        case cpu_cgroup
+        # docker native driver w/out systemd (fs)
+        when %r{^/docker/([0-9a-f]+)$}                      then $1
+        # docker native driver with systemd
+        when %r{^/system\.slice/docker-([0-9a-f]+)\.scope$} then $1
+        # docker lxc driver
+        when %r{^/lxc/([0-9a-f]+)$}                         then $1
+        # non-docker lxc
+        when %r{^/lxc/([^/]+)$}                             then $1
+        # not in any cgroup
+        when '/'                                            then nil
+        # in a cgroup, but we don't recognize its format
+        else
+          ::NewRelic::Agent.logger.debug("Ignoring unrecognized cgroup ID format: '#{cpu_cgroup}'")
+          nil
+        end
       end
 
       def self.parse_cgroup_ids(cgroup_info)
@@ -154,8 +170,11 @@ module NewRelic
         cgroup_info.split("\n").each do |line|
           parts = line.split(':')
           next unless parts.size == 3
-          _, type, cgroup_id = parts
-          cgroup_ids[type] = cgroup_id
+          _, subsystems, cgroup_id = parts
+          subsystems = subsystems.split(',')
+          subsystems.each do |subsystem|
+            cgroup_ids[subsystem] = cgroup_id
+          end
         end
 
         cgroup_ids
