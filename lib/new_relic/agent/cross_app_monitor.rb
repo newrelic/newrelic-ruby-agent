@@ -80,7 +80,7 @@ module NewRelic
 
       def client_referring_transaction_trip_id(state)
         info = state.referring_transaction_info or return nil
-        return info[2]
+        return info[2].is_a?(String) && info[2]
       end
 
       def client_referring_transaction_path_hash(state)
