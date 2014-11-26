@@ -9,7 +9,7 @@ module NewRelic
       REMOTE_DATA_VALID_CHARS = /^[0-9a-zA-Z_ .\/-]$/.freeze
 
       def harvest!
-        [hostname, container_name, cpu_count, instance_type]
+        [hostname, container_id, cpu_count, instance_type]
       end
 
       # No persistent data, so no need for merging or resetting
@@ -20,8 +20,8 @@ module NewRelic
         NewRelic::Agent::Hostname.get
       end
 
-      def container_name
-        ::NewRelic::Agent::SystemInfo.docker_container_id
+      def container_id
+        ::NewRelic::Agent::SystemInfo.linux_container_id
       end
 
       def cpu_count
