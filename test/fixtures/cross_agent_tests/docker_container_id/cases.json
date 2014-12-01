@@ -25,7 +25,7 @@
   },
   {
     "filename": "heroku.txt",
-    "containerId": "b6d196c1-50f2-4949-abdb-5d4909864487"
+    "containerId": null
   },
   {
     "filename": "ubuntu-14.04-no-container.txt",
@@ -33,7 +33,7 @@
   },
   {
     "filename": "ubuntu-14.04-lxc-container.txt",
-    "containerId": "p1"
+    "containerId": null
   },
   {
     "filename": "ubuntu-14.10-no-container.txt",

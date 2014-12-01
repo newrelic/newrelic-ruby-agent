@@ -82,8 +82,8 @@ class UtilizationDataCollectionTest < Minitest::Test
     assert_nil(data.cpu_count)
   end
 
-  def test_gathers_linux_container_id
-    NewRelic::Agent::SystemInfo.stubs(:linux_container_id).returns("whale")
+  def test_gathers_docker_container_id
+    NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("whale")
 
     trigger_usage_data_collection_and_submission
 
@@ -91,8 +91,8 @@ class UtilizationDataCollectionTest < Minitest::Test
     assert_equal "whale", data.container_id
   end
 
-  def test_nil_linux_container_id
-    NewRelic::Agent::SystemInfo.stubs(:linux_container_id).returns(nil)
+  def test_nil_docker_container_id
+    NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns(nil)
 
     trigger_usage_data_collection_and_submission
 
