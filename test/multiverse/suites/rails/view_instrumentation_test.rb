@@ -97,7 +97,8 @@ class ViewInstrumentationTest < RailsMultiverseTest
     end
   end
 
-  (ViewsController.action_methods - ['raise_render']).each do |method|
+  # https://github.com/rails/rails/pull/17862 for 4.2.0.rc1 _generate_paths_by_default
+  (ViewsController.action_methods - ['raise_render', '_generate_paths_by_default']).each do |method|
 
     # proc rendering doesn't work on Rails 2
     next if method == 'proc_render' && Rails::VERSION::MAJOR <= 2
