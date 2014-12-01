@@ -25,24 +25,20 @@ if RUBY_VERSION >= '1.9.3'
   RB
 end
 
-# Remove this exclusion once we move past 2.2.0-preview1
-# https://github.com/rails/rails/issues/17017
-if RUBY_VERSION != "2.2.0"
-  gemfile <<-RB
-    gem 'activerecord', '~> 3.2.19'
-    #{boilerplate_gems}
-  RB
+gemfile <<-RB
+  gem 'activerecord', '~> 3.2.19'
+  #{boilerplate_gems}
+RB
 
-  gemfile <<-RB
-    gem 'activerecord', '~> 3.1.12'
-    #{boilerplate_gems}
-  RB
+gemfile <<-RB
+  gem 'activerecord', '~> 3.1.12'
+  #{boilerplate_gems}
+RB
 
-  gemfile <<-RB
-    gem 'activerecord', '~> 3.0.20'
-    #{boilerplate_gems}
-  RB
-end
+gemfile <<-RB
+  gem 'activerecord', '~> 3.0.20'
+  #{boilerplate_gems}
+RB
 
 # We pull in Rails on the older verions because ActiveRecord didn't have all
 # the tasks we need for setup, and there are some TestUnit vs Minitest oddities

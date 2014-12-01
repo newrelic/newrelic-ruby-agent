@@ -11,14 +11,10 @@ module Environments
     include Multiverse::Color
 
     BLACKLIST = {
-      "1.9"         => ["rails21", "rails22"],
       "2"           => ["rails21", "rails22", "rails23"],
-
-      # https://github.com/rails/rails/issues/17017
-      "2.2"         => ["rails30", "rails31", "rails32"],
-
-      "1.8.7"       => ["rails40", "rails41", "rails42"],
+      "1.9"         => ["rails21", "rails22"],
       "1.9.2"       => ["rails40", "rails41", "rails42"],
+      "1.8.7"       => ["rails40", "rails41", "rails42"],
       "ree"         => ["rails40", "rails41", "rails42"],
       "jruby-1.6"   => ["rails40", "rails41", "rails42"],
       "jruby-1.7"   => ["rails21", "rails22", "rails23"],
