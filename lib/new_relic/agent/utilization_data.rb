@@ -21,7 +21,7 @@ module NewRelic
       end
 
       def container_id
-        ::NewRelic::Agent::SystemInfo.linux_container_id
+        ::NewRelic::Agent::SystemInfo.docker_container_id
       end
 
       def cpu_count
