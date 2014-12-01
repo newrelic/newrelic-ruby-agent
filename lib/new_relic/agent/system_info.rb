@@ -153,8 +153,6 @@ module NewRelic
         when %r{^/system\.slice/docker-([0-9a-f]+)\.scope$} then $1
         # docker lxc driver
         when %r{^/lxc/([0-9a-f]+)$}                         then $1
-        # non-docker lxc
-        when %r{^/lxc/([^/]+)$}                             then $1
         # not in any cgroup
         when '/'                                            then nil
         # in a cgroup, but we don't recognize its format
