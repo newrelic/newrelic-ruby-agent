@@ -9,8 +9,8 @@ module NewRelic
 
       DST_TRANSACTION_EVENTS = 1 << 0
       DST_TRANSACTION_TRACER = 1 << 1
-      DST_ERROR_COLLECTOR       = 1 << 2
-      DST_BROWSER_MONITORING     = 1 << 3
+      DST_ERROR_COLLECTOR    = 1 << 2
+      DST_BROWSER_MONITORING = 1 << 3
 
       DST_ALL = 0xF
 
@@ -79,6 +79,10 @@ module NewRelic
         @is_include     = is_include
       end
 
+      # Rules are sorted from least specific to most specific
+      #
+      # All else being the same, wildcards are considered less specific
+      # All else being the same, include rules are less specific than excludes
       def <=>(other)
         name_cmp = @attribute_name <=> other.attribute_name
         return name_cmp unless name_cmp == 0
