@@ -27,6 +27,10 @@ platforms :rbx do
   # hook and run when we run our rake task to create the test DB.
   gem "rubysl-test-unit", :require => false
   gem "racc"  # https://github.com/rubinius/rubinius/issues/2632
+
+  # Compilation issues with rubysl-openssl 2.2.1, lock at 2.1.0 for now.
+  # https://github.com/rubysl/rubysl-openssl/issues/11
+  gem "rubysl-openssl", "2.1.0"
 end
 
 gem "newrelic_rpm", :path => "../../.."
