@@ -1166,6 +1166,28 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :description  => 'Disables installation of Grape instrumentation.'
+        },
+
+        # TODO: Tidy up....
+        :'attributes.enabled' => {
+          :default      => true,
+          :type         => Boolean,
+        },
+        :'transaction_tracer.attributes.enabled' => {
+          :default      => true,
+          :type         => Boolean,
+        },
+        :'transaction_events.attributes.enabled' => {
+          :default      => true,
+          :type         => Boolean,
+        },
+        :'error_collector.attributes.enabled' => {
+          :default      => true,
+          :type         => Boolean,
+        },
+        :'browser_monitoring.attributes.enabled' => {
+          :default      => false,
+          :type         => Boolean,
         }
       }.freeze
     end
