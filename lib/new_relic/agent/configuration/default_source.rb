@@ -1173,6 +1173,26 @@ module NewRelic
           :default      => true,
           :type         => Boolean,
         },
+        :'attributes.exclude' => {
+          :default => [],
+          :type    => Array
+        },
+        :'transaction_tracer.attributes.exclude' => {
+          :default => [],
+          :type    => Array
+        },
+        :'transaction_events.attributes.exclude' => {
+          :default => [],
+          :type    => Array
+        },
+        :'error_collector.attributes.exclude' => {
+          :default => [],
+          :type    => Array
+        },
+        :'browser_monitoring.attributes.exclude' => {
+          :default => [],
+          :type    => Array
+        },
         :'transaction_tracer.attributes.enabled' => {
           :default      => true,
           :type         => Boolean,

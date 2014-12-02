@@ -4,6 +4,8 @@
 
 module NewRelic
   module Agent
+    AttributeFilterRule = Struct.new(:attribute_name, :destinations, :is_include)
+
     class AttributeFilter
       DST_NONE = 0x0
 
@@ -23,10 +25,35 @@ module NewRelic
         @enabled_destinations << DST_BROWSER_AGENT     if config[:'browser_monitoring.attributes.enabled']
 
         @enabled_destinations.clear unless config[:'attributes.enabled']
+
+        @rules = []
+
+        build_exclusion(config[:'attributes.exclude'], DST_ALL)
+        build_exclusion(config[:'transaction_tracer.attributes.exclude'], DST_TRANSACTION_TRACE)
+        build_exclusion(config[:'transaction_events.attributes.exclude'], DST_TRANSACTION_EVENT)
+        build_exclusion(config[:'error_collector.attributes.exclude'], DST_ERROR_TRACE)
+        build_exclusion(config[:'browser_monitoring.attributes.exclude'], DST_BROWSER_AGENT)
+      end
+
+      def build_exclusion(exclude_names, destinations)
+        exclude_names.each do |attribute_name|
+          @rules << AttributeFilterRule.new(attribute_name, destinations, false)
+        end
       end
 
       def apply(attribute_name, desired_destinations)
-        @enabled_destinations.inject(0) { |result, dest| dest | result }
+        destinations = @enabled_destinations.inject(DST_NONE) { |result, dest| dest | result }
+
+        @rules.each do |rule|
+          if rule.attribute_name == attribute_name
+            if rule.is_include
+            else
+              destinations &= ~rule.destinations
+            end
+          end
+        end
+
+        destinations
       end
     end
   end

@@ -19,13 +19,11 @@ module NewRelic::Agent
           attribute_name            = test_case['input_key']
           desired_destination_names = test_case['input_default_destinations']
 
-          puts "  #{test_case}"
-
           desired_destinations  = to_bitfield(desired_destination_names)
           actual_destinations   = filter.apply(attribute_name, desired_destinations)
           expected_destinations = to_bitfield(test_case['expected_destinations'])
 
-          assert_equal(to_names(expected_destinations), to_names(actual_destinations))
+          assert_equal(to_names(expected_destinations), to_names(actual_destinations), test_case.to_s)
         end
       end
     end
