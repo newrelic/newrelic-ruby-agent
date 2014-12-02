@@ -4,45 +4,6 @@
 
 module NewRelic
   module Agent
-    class AttributeFilterRule
-      attr_reader :attribute_name, :destinations, :is_include
-
-      def initialize(attribute_name, destinations, is_include)
-        @attribute_name = attribute_name.sub(/\*$/, "")
-        @wildcard       = attribute_name.end_with?("*")
-        @destinations   = destinations
-        @is_include     = is_include
-      end
-
-      def <=>(other)
-        name_cmp = @attribute_name <=> other.attribute_name
-        return name_cmp unless name_cmp == 0
-
-        if wildcard? != other.wildcard?
-          return wildcard? ? -1 : 1
-        end
-
-        if is_include != other.is_include
-          return is_include ? -1 : 1
-        end
-
-        return 0
-      end
-
-      def wildcard?
-        @wildcard
-      end
-
-      def match?(name)
-        if wildcard?
-          name.start_with?(@attribute_name)
-        else
-          @attribute_name == name
-        end
-      end
-    end
-
-
     class AttributeFilter
       DST_NONE = 0x0
 
@@ -105,6 +66,44 @@ module NewRelic
         end
 
         destinations
+      end
+    end
+
+    class AttributeFilterRule
+      attr_reader :attribute_name, :destinations, :is_include
+
+      def initialize(attribute_name, destinations, is_include)
+        @attribute_name = attribute_name.sub(/\*$/, "")
+        @wildcard       = attribute_name.end_with?("*")
+        @destinations   = destinations
+        @is_include     = is_include
+      end
+
+      def <=>(other)
+        name_cmp = @attribute_name <=> other.attribute_name
+        return name_cmp unless name_cmp == 0
+
+        if wildcard? != other.wildcard?
+          return wildcard? ? -1 : 1
+        end
+
+        if is_include != other.is_include
+          return is_include ? -1 : 1
+        end
+
+        return 0
+      end
+
+      def wildcard?
+        @wildcard
+      end
+
+      def match?(name)
+        if wildcard?
+          name.start_with?(@attribute_name)
+        else
+          @attribute_name == name
+        end
       end
     end
   end
