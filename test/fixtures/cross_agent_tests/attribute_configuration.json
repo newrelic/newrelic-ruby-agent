@@ -345,5 +345,40 @@
       ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
     "expected_destinations":
       ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"]
+  },
+
+  {
+    "testname":"include with attributes globally disabled",
+    "config":
+    {
+      "attributes.enabled":false,
+      "transaction_events.attributes.include":["alpha"],
+      "transaction_tracer.attributes.include":["alpha"],
+      "error_collector.attributes.include":["alpha"],
+      "browser_monitoring.attributes.include":["alpha"]
+    },
+    "input_key":"alpha",
+    "input_default_destinations":
+      ["transaction_events", "transaction_tracer", "error_collector", "browser_monitoring"],
+    "expected_destinations":
+      []
+  },
+
+  {
+    "testname":"include with disabled destinations",
+    "config":
+    {
+      "transaction_events.attributes.include":["alpha"],
+      "transaction_events.attributes.enabled":false,
+      "transaction_tracer.attributes.include":["alpha"],
+      "error_collector.attributes.include":["alpha"],
+      "browser_monitoring.attributes.enabled":true,
+      "browser_monitoring.attributes.include":["alpha"]
+    },
+    "input_key":"alpha",
+    "input_default_destinations":
+      ["transaction_events", "transaction_tracer", "error_collector", "browser_monitoring"],
+    "expected_destinations":
+      ["transaction_tracer", "error_collector", "browser_monitoring"]
   }
 ]

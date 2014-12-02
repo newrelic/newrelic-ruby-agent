@@ -56,14 +56,14 @@ module NewRelic
       attr_reader :rules
 
       def initialize(config)
-        @enabled_destinations = []
+        @enabled_destinations = DST_NONE
 
-        @enabled_destinations << DST_TRANSACTION_TRACE if config[:'transaction_tracer.attributes.enabled']
-        @enabled_destinations << DST_TRANSACTION_EVENT if config[:'transaction_events.attributes.enabled']
-        @enabled_destinations << DST_ERROR_TRACE       if config[:'error_collector.attributes.enabled']
-        @enabled_destinations << DST_BROWSER_AGENT     if config[:'browser_monitoring.attributes.enabled']
+        @enabled_destinations |= DST_TRANSACTION_TRACE if config[:'transaction_tracer.attributes.enabled']
+        @enabled_destinations |= DST_TRANSACTION_EVENT if config[:'transaction_events.attributes.enabled']
+        @enabled_destinations |= DST_ERROR_TRACE       if config[:'error_collector.attributes.enabled']
+        @enabled_destinations |= DST_BROWSER_AGENT     if config[:'browser_monitoring.attributes.enabled']
 
-        @enabled_destinations.clear unless config[:'attributes.enabled']
+        @enabled_destinations = DST_NONE unless config[:'attributes.enabled']
 
         @rules = []
 
@@ -89,13 +89,15 @@ module NewRelic
       end
 
       def apply(attribute_name, desired_destinations)
-        destinations = @enabled_destinations.inject(DST_NONE) { |result, dest| dest | result }
+        destinations = @enabled_destinations
+        return DST_NONE if destinations == DST_NONE
+
         destinations &= desired_destinations
 
         @rules.each do |rule|
           if rule.match?(attribute_name)
             if rule.is_include
-              destinations |= rule.destinations
+              destinations |= (rule.destinations & @enabled_destinations)
             else
               destinations &= ~rule.destinations
             end
