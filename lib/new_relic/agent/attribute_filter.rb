@@ -50,10 +50,9 @@ module NewRelic
       end
 
       def apply(attribute_name, default_destinations)
-        destinations = @enabled_destinations
-        return DST_NONE if destinations == DST_NONE
+        return DST_NONE if @enabled_destinations == DST_NONE
 
-        destinations &= default_destinations
+        destinations = @enabled_destinations & default_destinations
 
         @rules.each do |rule|
           if rule.match?(attribute_name)
