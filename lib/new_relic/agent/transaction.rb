@@ -78,9 +78,14 @@ module NewRelic
         if txn.frame_stack.empty?
           txn.set_default_transaction_name(name, options)
         else
-          txn.frame_stack.last.name = name
-          txn.frame_stack.last.category = options[:category] if options[:category]
+          txn.name_last_frame(name, options[:category])
         end
+      end
+
+      def name_last_frame(name, category)
+        frame_stack.last.name = name
+        frame_stack.last.category = category if category
+        @name_from_child = name if frame_stack.last.similar_category?(self)
       end
 
       def self.set_overriding_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
@@ -134,12 +139,10 @@ module NewRelic
         end
 
         nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
-        nested_frame.name = options[:transaction_name]
-        nested_frame.category = category
-
-        txn.name_from_child = options[:transaction_name] if nested_frame.similar_category?(txn)
-
         txn.frame_stack << nested_frame
+        name = options[:TransactionNamer]
+
+        txn.name_last_frame(options[:transaction_name], category)
       end
 
       FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
