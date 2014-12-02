@@ -5,12 +5,22 @@
 module NewRelic
   module Agent
     class TracedMethodFrame
+      WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :middleware].freeze
+
       attr_reader :tag
       attr_accessor :name, :start_time, :children_time, :category
       def initialize(tag, start_time)
         @tag = tag
         @start_time = start_time
         @children_time = 0
+      end
+
+      def similar_category?(txn)
+        web_category?(category) == web_category?(txn.category)
+      end
+
+      def web_category?(category)
+        WEB_TRANSACTION_CATEGORIES.include?(category)
       end
     end
 

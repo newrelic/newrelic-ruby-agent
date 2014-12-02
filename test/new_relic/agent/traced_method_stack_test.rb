@@ -177,6 +177,35 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
     @frame_stack.fetch_matching_frame(frame)
   end
 
+  def test_traced_method_frame_similar_category?
+    frame = NewRelic::Agent::TracedMethodFrame.new(nil, nil)
+    web_category = NewRelic::Agent::TracedMethodFrame::WEB_TRANSACTION_CATEGORIES.sample
+
+    frame.category = web_category
+    txn = stub(:category => web_category)
+
+    assert frame.similar_category?(txn)
+  end
+
+  def test_traced_method_frame_similar_category_returns_false_with_mismatched_categories
+    frame = NewRelic::Agent::TracedMethodFrame.new(nil, nil)
+    web_category = NewRelic::Agent::TracedMethodFrame::WEB_TRANSACTION_CATEGORIES.sample
+
+    frame.category = web_category
+    txn = stub(:category => :other)
+
+    refute frame.similar_category?(txn)
+  end
+
+  def test_traced_method_frame_similar_category_returns_true_with_nonweb_categories
+    frame = NewRelic::Agent::TracedMethodFrame.new(nil, nil)
+
+    frame.category = :other
+    txn = stub(:category => :other)
+
+    assert frame.similar_category?(txn)
+  end
+
   def assert_sampler_enabled_with(expected, opts={})
     with_config(opts) do
       assert_equal expected, @frame_stack.sampler_enabled?

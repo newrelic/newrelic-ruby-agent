@@ -92,17 +92,11 @@ module NewRelic
         if txn.frame_stack.empty?
           txn.set_overriding_transaction_name(name, options)
         else
-          txn.frame_stack.last.name = name
-          txn.frame_stack.last.category = options[:category] if options[:category]
+          last_frame = txn.frame_stack.last
+          last_frame.name = name
+          last_frame.category = options[:category] if options[:category]
 
-          # Parent transaction also takes this name, but only if they
-          # are both/neither web transactions.
-          child_is_web_category = transaction_category_is_web?(txn.frame_stack.last.category)
-          txn_is_web_category   = transaction_category_is_web?(txn.category)
-
-          if (child_is_web_category == txn_is_web_category)
-            txn.name_from_api = name
-          end
+          txn.name_from_api = name if last_frame.similar_category?(txn)
         end
       end
 
@@ -116,29 +110,36 @@ module NewRelic
         txn = state.current_transaction
 
         if txn
-          if options[:filtered_params] && !options[:filtered_params].empty?
-            txn.filtered_params = options[:filtered_params]
-          end
-
-          nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
-          nested_frame.name = options[:transaction_name]
-          nested_frame.category = category
-
-          if transaction_category_is_web?(nested_frame.category) == transaction_category_is_web?(txn.category)
-            txn.name_from_child = options[:transaction_name]
-          end
-
-          txn.frame_stack << nested_frame
+          create_nested_frame(txn, state, category, options)
         else
-          txn = Transaction.new(category, options)
-          state.reset(txn)
-          txn.start(state)
+          txn = start_new_transaction(state, category, options)
         end
 
         txn
       rescue => e
         NewRelic::Agent.logger.error("Exception during Transaction.start", e)
         nil
+      end
+
+      def self.start_new_transaction(state, category, options)
+        txn = Transaction.new(category, options)
+        state.reset(txn)
+        txn.start(state)
+        txn
+      end
+
+      def self.create_nested_frame(txn, state, category, options)
+        if options[:filtered_params] && !options[:filtered_params].empty?
+          txn.filtered_params = options[:filtered_params]
+        end
+
+        nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
+        nested_frame.name = options[:transaction_name]
+        nested_frame.category = category
+
+        txn.name_from_child = options[:transaction_name] if nested_frame.similar_category?(txn)
+
+        txn.frame_stack << nested_frame
       end
 
       FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
