@@ -88,11 +88,11 @@ module NewRelic
         end
       end
 
-      def apply(attribute_name, desired_destinations)
+      def apply(attribute_name, default_destinations)
         destinations = @enabled_destinations
         return DST_NONE if destinations == DST_NONE
 
-        destinations &= desired_destinations
+        destinations &= default_destinations
 
         @rules.each do |rule|
           if rule.match?(attribute_name)
