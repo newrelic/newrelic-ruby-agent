@@ -1167,70 +1167,95 @@ module NewRelic
           :type         => Boolean,
           :description  => 'Disables installation of Grape instrumentation.'
         },
-
-        # TODO: Tidy up....
         :'attributes.enabled' => {
-          :default      => true,
-          :type         => Boolean,
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for all destinations.'
         },
-
-        :'attributes.exclude' => {
-          :default => [],
-          :type    => Array
-        },
-        :'transaction_tracer.attributes.exclude' => {
-          :default => [],
-          :type    => Array
-        },
-        :'transaction_events.attributes.exclude' => {
-          :default => [],
-          :type    => Array
-        },
-        :'error_collector.attributes.exclude' => {
-          :default => [],
-          :type    => Array
-        },
-        :'browser_monitoring.attributes.exclude' => {
-          :default => [],
-          :type    => Array
-        },
-
-        :'attributes.include' => {
-          :default => [],
-          :type    => Array
-        },
-        :'transaction_tracer.attributes.include' => {
-          :default => [],
-          :type    => Array
-        },
-        :'transaction_events.attributes.include' => {
-          :default => [],
-          :type    => Array
-        },
-        :'error_collector.attributes.include' => {
-          :default => [],
-          :type    => Array
-        },
-        :'browser_monitoring.attributes.include' => {
-          :default => [],
-          :type    => Array
-        },
-
         :'transaction_tracer.attributes.enabled' => {
-          :default      => true,
-          :type         => Boolean,
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for transaction traces.'
         },
         :'transaction_events.attributes.enabled' => {
-          :default      => true,
-          :type         => Boolean,
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for transaction events.'
         },
         :'error_collector.attributes.enabled' => {
-          :default      => true,
-          :type         => Boolean,
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for error collection.'
         },
         :'browser_monitoring.attributes.enabled' => {
-          :default      => false,
-          :type         => Boolean,
+          :default     => false,
+          :public      => true,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for browser monitoring.'
+        },
+        :'attributes.exclude' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :description => 'Prefix of attributes to exclude from all destinations. Allows * as wildcard at end.'
+        },
+        :'transaction_tracer.attributes.exclude' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :description => 'Prefix of attributes to exclude from transaction traces. Allows * as wildcard at end.'
+        },
+        :'transaction_events.attributes.exclude' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :description => 'Prefix of attributes to exclude from transaction events. Allows * as wildcard at end.'
+        },
+        :'error_collector.attributes.exclude' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :description => 'Prefix of attributes to exclude from error collection. Allows * as wildcard at end.'
+        },
+        :'browser_monitoring.attributes.exclude' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :description => 'Prefix of attributes to exclude from browser monitoring. Allows * as wildcard at end.'
+        },
+        :'attributes.include' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :description => 'Prefix of attributes to include from all destinations. Allows * as wildcard at end.'
+        },
+        :'transaction_tracer.attributes.include' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :description => 'Prefix of attributes to include from transaction traces. Allows * as wildcard at end.'
+        },
+        :'transaction_events.attributes.include' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :description => 'Prefix of attributes to include from transaction events. Allows * as wildcard at end.'
+        },
+        :'error_collector.attributes.include' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :description => 'Prefix of attributes to include from error collection. Allows * as wildcard at end.'
+        },
+        :'browser_monitoring.attributes.include' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :description => 'Prefix of attributes to include from browser monitoring. Allows * as wildcard at end.'
         }
       }.freeze
     end
