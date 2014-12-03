@@ -47,7 +47,6 @@ class RackMiddleware < Performance::TestCase
 
     @config = {
       :beacon                 => 'beacon',
-      :disable_mobile_headers => false,
       :browser_key            => 'browserKey',
       :js_agent_loader        => 'loader',
       :encoding_key           => 'lolz',

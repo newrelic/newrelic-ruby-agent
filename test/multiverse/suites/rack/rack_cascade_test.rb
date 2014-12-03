@@ -15,12 +15,10 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
     setup_and_teardown_agent(
       :beacon                 => 'beacon',
-      :disable_mobile_headers => false,
       :browser_key            => 'browserKey',
       :js_agent_loader        => 'loader',
       :application_id         => '5',
       :'rum.enabled'          => true,
-      :episodes_file          => 'this_is_my_file',
       :license_key            => 'a' * 40
     )
 
