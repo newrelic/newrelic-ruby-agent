@@ -151,7 +151,6 @@ module NewRelic
 
         nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
         txn.frame_stack << nested_frame
-        name = options[:TransactionNamer]
 
         txn.name_last_frame(options[:transaction_name], category)
       end
