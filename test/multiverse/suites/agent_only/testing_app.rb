@@ -23,7 +23,7 @@ class TestingApp
       opts = {}
       if params['transaction_category']
         opts[:category] = params['transaction_category']
-        NewRelic::Agent::Transaction.stubs(:transaction_category_is_web?).returns(true)
+        NewRelic::Agent::TransactionState.tl_get.current_transaction.frame_stack.last.stubs(:similar_category?).returns true
       end
       NewRelic::Agent.set_transaction_name(params['transaction_name'], opts)
     end
