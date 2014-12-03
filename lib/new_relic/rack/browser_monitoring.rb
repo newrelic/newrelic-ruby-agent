@@ -48,11 +48,11 @@ module NewRelic::Rack
 
     def should_instrument?(env, status, headers)
       NewRelic::Agent.config[:'browser_monitoring.auto_instrument'] &&
+        status == 200 &&
         !env[ALREADY_INSTRUMENTED_KEY] &&
         is_html?(headers) &&
         !is_attachment?(headers) &&
-        !is_streaming?(env) &&
-        status == 200
+        !is_streaming?(env)
     end
 
     def is_html?(headers)
