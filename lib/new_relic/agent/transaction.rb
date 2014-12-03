@@ -28,6 +28,7 @@ module NewRelic
 
       NESTED_TRACE_STOP_OPTIONS    = { :metric => true }.freeze
       WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :middleware].freeze
+      TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
       EMPTY_SUMMARY_METRICS        = [].freeze
@@ -59,7 +60,8 @@ module NewRelic
                   :metrics,
                   :gc_start_snapshot,
                   :category,
-                  :name_from_child
+                  :name_from_child,
+                  :name_from_api
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -83,10 +85,22 @@ module NewRelic
         end
       end
 
-      def name_last_frame(name, category)
-        frame_stack.last.name = name
-        frame_stack.last.category = category if category
-        @name_from_child = name if similar_category?(frame_stack.last)
+      def name_last_frame(name, category, source = :child)
+        return unless last_frame = frame_stack.last
+
+        unless TRANSACTION_NAMING_SOURCES.include? source
+          NewRelic::Agent.logger.debug("Attempted to name last frame with invalid transaction naming source: #{source}")
+          return
+        end
+
+        last_frame.name = name
+        last_frame.category = category if category
+
+        if source == :child
+          @name_from_child = name if similar_category?(last_frame)
+        elsif source == :api
+          @name_from_api = name if similar_category?(last_frame)
+        end
       end
 
       def self.set_overriding_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
@@ -98,11 +112,7 @@ module NewRelic
         if txn.frame_stack.empty?
           txn.set_overriding_transaction_name(name, options)
         else
-          last_frame = txn.frame_stack.last
-          last_frame.name = name
-          last_frame.category = options[:category] if options[:category]
-
-          txn.name_from_api = name if similar_category?(last_frame)
+          txn.name_last_frame(name, options[:category], :api)
         end
       end
 

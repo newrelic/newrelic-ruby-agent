@@ -1085,6 +1085,46 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_name_last_frame
+    in_transaction('test') do |txn|
+      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+
+      txn.name_last_frame('name', 'category')
+
+      assert_equal 'name', txn.frame_stack.last.name
+      assert_equal 'category', txn.frame_stack.last.category
+    end
+  end
+
+  def test_name_last_frame_sets_name_from_child
+    in_transaction('test') do |txn|
+      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+
+      txn.name_last_frame('name_from_child', 'category')
+
+      assert_equal 'name_from_child', txn.name_from_child
+    end
+  end
+
+  def test_name_last_frame_sets_name_from_api
+    in_transaction('test') do |txn|
+      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+
+      txn.name_last_frame('name_from_api', 'category', :api)
+
+      assert_equal 'name_from_api', txn.name_from_api
+    end
+  end
+
+  def test_set_overriding_transaction_name_sets_name_from_api
+    in_transaction('test') do |txn|
+      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+      NewRelic::Agent::Transaction.set_overriding_transaction_name('override_name')
+
+      assert_equal '/override_name', txn.name_from_api
+    end
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end
