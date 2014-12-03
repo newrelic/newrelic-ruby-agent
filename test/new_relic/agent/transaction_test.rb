@@ -1057,6 +1057,34 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_similar_category?
+    web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.sample
+
+    in_transaction('test') do |txn|
+      txn.category = web_category
+      frame = stub(:category => web_category)
+      assert txn.similar_category?(frame)
+    end
+  end
+
+  def test_similar_category_returns_false_with_mismatched_categories
+    web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.sample
+
+    in_transaction('test') do |txn|
+      txn.category = web_category
+      frame = stub(:category => :other)
+      refute txn.similar_category?(frame)
+    end
+  end
+
+  def test_similar_category_returns_true_with_nonweb_categories
+    in_transaction('test') do |txn|
+      txn.category = :other
+      frame = stub(:category => :other)
+      assert txn.similar_category?(frame)
+    end
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end

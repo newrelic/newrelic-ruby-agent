@@ -43,7 +43,8 @@ module NewRelic
       attr_accessor :exceptions,
                     :filtered_params,
                     :jruby_cpu_start,
-                    :process_cpu_start
+                    :process_cpu_start,
+                    :category
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -85,7 +86,7 @@ module NewRelic
       def name_last_frame(name, category)
         frame_stack.last.name = name
         frame_stack.last.category = category if category
-        @name_from_child = name if frame_stack.last.similar_category?(self)
+        @name_from_child = name if similar_category?(frame_stack.last)
       end
 
       def self.set_overriding_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
@@ -101,7 +102,7 @@ module NewRelic
           last_frame.name = name
           last_frame.category = options[:category] if options[:category]
 
-          txn.name_from_api = name if last_frame.similar_category?(txn)
+          txn.name_from_api = name if similar_category?(last_frame)
         end
       end
 
@@ -750,12 +751,16 @@ module NewRelic
         txn && txn.recording_web_transaction?
       end
 
+      def recording_web_transaction?
+        web_category?(@category)
+      end
+
       def web_category?(category)
         WEB_TRANSACTION_CATEGORIES.include?(category)
       end
 
-      def recording_web_transaction?
-        web_category?(@category)
+      def similar_category?(frame)
+        web_category?(@category) == web_category?(frame.category)
       end
 
       # Make a safe attempt to get the referer from a request object, generally successful when
