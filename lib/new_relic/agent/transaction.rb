@@ -750,12 +750,12 @@ module NewRelic
         txn && txn.recording_web_transaction?
       end
 
-      def self.transaction_category_is_web?(category)
+      def web_category?(category)
         WEB_TRANSACTION_CATEGORIES.include?(category)
       end
 
       def recording_web_transaction?
-        self.class.transaction_category_is_web?(@category)
+        web_category?(@category)
       end
 
       # Make a safe attempt to get the referer from a request object, generally successful when
