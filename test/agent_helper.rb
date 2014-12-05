@@ -237,12 +237,12 @@ def format_metric_spec_list(specs)
 end
 
 def assert_truthy(expected, msg = nil)
-  msg = "Expected #{expected.inspect} to be truthy"
+  msg ||= "Expected #{expected.inspect} to be truthy"
   assert !!expected, msg
 end
 
 def assert_falsy(expected, msg = nil)
-  msg = "Expected #{expected.inspect} to be falsy"
+  msg ||= "Expected #{expected.inspect} to be falsy"
   assert !expected, msg
 end
 

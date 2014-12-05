@@ -29,7 +29,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
         use NewRelic::Rack::AgentHooks
         use NewRelic::Rack::BrowserMonitoring
         use ResponseCodeMiddleware
-        run ExampleApp.new
+        run Rack::Cascade.new([ExampleApp.new, CascadeExampleApp.new])
       end
     end
 
@@ -38,5 +38,9 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
       refute(rsp.body.include?('script'), "\nExpected\n---\n#{rsp.body}\n---\nnot to include 'script'.")
     end
 
+    def test_rack_cascade_transactions_are_named_for_the_last_app
+      rsp = get '/cascade'
+      assert_metrics_recorded('Controller/CascadeExampleApp/call')
+    end
   end
 end
