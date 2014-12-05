@@ -55,37 +55,44 @@ module NewRelic::Agent::Configuration
       rsp = {
         'collect_errors' => false,
         'collect_traces' => false,
-        'collect_analytics_events' => false
+        'collect_analytics_events' => false,
+        'collect_custom_events'    => false
       }
       existing_config = {
-        :'error_collector.enabled'    => true,
-        :'slow_sql.enabled'           => true,
-        :'transaction_tracer.enabled' => true,
-        :'analytics_events.enabled'   => true
+        :'error_collector.enabled'        => true,
+        :'slow_sql.enabled'               => true,
+        :'transaction_tracer.enabled'     => true,
+        :'analytics_events.enabled'       => true,
+        :'custom_insights_events.enabled' => true
       }
       @source = ServerSource.new(rsp, existing_config)
-      assert !@source[:'error_collector.enabled']
-      assert !@source[:'slow_sql.enabled']
-      assert !@source[:'transaction_tracer.enabled']
+      refute @source[:'error_collector.enabled']
+      refute @source[:'slow_sql.enabled']
+      refute @source[:'transaction_tracer.enabled']
+      refute @source[:'analytics_events.enabled']
+      refute @source[:'custom_insights_events.enabled']
     end
 
     def test_should_enable_gated_features_when_server_says_to
       rsp = {
         'collect_errors' => true,
         'collect_traces' => true,
-        'collect_analytics_events' => true
+        'collect_analytics_events' => true,
+        'collect_custom_events'    => true
       }
       existing_config = {
-        :'error_collector.enabled'    => true,
-        :'slow_sql.enabled'           => true,
-        :'transaction_tracer.enabled' => true,
-        :'analytics_events.enabled'   => true
+        :'error_collector.enabled'        => true,
+        :'slow_sql.enabled'               => true,
+        :'transaction_tracer.enabled'     => true,
+        :'analytics_events.enabled'       => true,
+        :'custom_insights_events.enabled' => true
       }
       @source = ServerSource.new(rsp, existing_config)
       assert @source[:'error_collector.enabled']
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
       assert @source[:'analytics_events.enabled']
+      assert @source[:'custom_insights_events.enabled']
     end
 
     def test_should_allow_manual_disable_of_gated_features
@@ -112,18 +119,21 @@ module NewRelic::Agent::Configuration
         'collect_errors' => true,
         'collect_traces' => true,
         'collect_analytics_events' => true,
+        'collect_custom_events'    => true,
         'agent_config' => {
-          'transaction_tracer.enabled' => true,
-          'slow_sql.enabled'           => true,
-          'error_collector.enabled'    => true,
-          'analytics_events.enabled'   => true
+          'transaction_tracer.enabled'     => true,
+          'slow_sql.enabled'               => true,
+          'error_collector.enabled'        => true,
+          'analytics_events.enabled'       => true,
+          'custom_insights_events.enabled' => true
         }
       }
       existing_config = {
-        :'error_collector.enabled'    => false,
-        :'slow_sql.enabled'           => false,
-        :'transaction_tracer.enabled' => false,
-        :'analytics_events.enabled'   => false
+        :'error_collector.enabled'        => false,
+        :'slow_sql.enabled'               => false,
+        :'transaction_tracer.enabled'     => false,
+        :'analytics_events.enabled'       => false,
+        :'custom_insights_events.enabled' => false
       }
       @source = ServerSource.new(rsp, existing_config)
       assert @source[:'error_collector.enabled']
@@ -135,10 +145,11 @@ module NewRelic::Agent::Configuration
     def test_should_not_gate_when_gating_keys_absent
       rsp = {
         'agent_config' => {
-          'transaction_tracer.enabled' => true,
-          'slow_sql.enabled'           => true,
-          'error_collector.enabled'    => true,
-          'analytics_events.enabled'   => true
+          'transaction_tracer.enabled'     => true,
+          'slow_sql.enabled'               => true,
+          'error_collector.enabled'        => true,
+          'analytics_events.enabled'       => true,
+          'custom_insights_events.enabled' => true
         }
       }
       @source = ServerSource.new(rsp, {})
@@ -146,6 +157,7 @@ module NewRelic::Agent::Configuration
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
       assert @source[:'analytics_events.enabled']
+      assert @source[:'custom_insights_events.enabled']
     end
   end
 end
