@@ -29,7 +29,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
         use NewRelic::Rack::AgentHooks
         use NewRelic::Rack::BrowserMonitoring
         use ResponseCodeMiddleware
-        run Rack::Cascade.new([ExampleApp.new, CascadeExampleApp.new])
+        run Rack::Cascade.new([FirstCascadeExampleApp.new, SecondCascadeExampleApp.new])
       end
     end
 
@@ -40,7 +40,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
     def test_rack_cascade_transactions_are_named_for_the_last_app
       rsp = get '/cascade'
-      assert_metrics_recorded('Controller/CascadeExampleApp/call')
+      assert_metrics_recorded('Controller/SecondCascadeExampleApp/call')
     end
   end
 end

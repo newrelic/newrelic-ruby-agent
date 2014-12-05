@@ -3,8 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 class ExampleApp
-  include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-
   def call(env)
     req = Rack::Request.new(env)
     body = req.params['body'] || 'A barebones rack app.'
@@ -12,17 +10,30 @@ class ExampleApp
     status = '404' unless req.path == '/'
     [status || '200', {'Content-Type' => 'text/html', 'ExampleApp' => '0'}, [body]]
   end
-  add_transaction_tracer :call
 end
 
-class CascadeExampleApp
+class FirstCascadeExampleApp
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
   def call(env)
     req = Rack::Request.new(env)
     body = req.params['body'] || 'A barebones rack cascade app.'
 
-    ['200', {'Content-Type' => 'text/html', 'ExampleApp' => '0'}, [body]]
+    status = '404' unless req.path == '/'
+    [status || '200', {'Content-Type' => 'text/html', 'FirstCascadeExampleApp' => '0'}, [body]]
+  end
+  add_transaction_tracer :call
+end
+
+class SecondCascadeExampleApp
+  include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+  def call(env)
+    req = Rack::Request.new(env)
+    body = req.params['body'] || 'A barebones rack cascade app.'
+
+    status = '404' unless req.path == '/'
+    [status || '200', {'Content-Type' => 'text/html', 'SecondCascadeExampleApp' => '0'}, [body]]
   end
   add_transaction_tracer :call
 end
