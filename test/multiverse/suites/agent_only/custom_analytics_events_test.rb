@@ -45,6 +45,22 @@ class CustomAnalyticsEventsTest < Minitest::Test
     assert_equal(good_event_type, events.first[0]['type'])
   end
 
+  def test_events_are_not_recorded_when_disabled_by_feature_gate
+    connect_response = {
+      'agent_run_id'          => 1,
+      'collect_custom_events' => false
+    }
+
+    $collector.stub('connect', connect_response)
+
+    trigger_agent_reconnect
+
+    NewRelic::Agent.record_custom_event('whatever', :foo => :bar)
+
+    NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+    assert_equal(0, $collector.calls_for(:custom_event_data).size)
+  end
+
   def last_custom_event_submission
     submissions = $collector.calls_for('custom_event_data')
     assert_equal(1, submissions.size)

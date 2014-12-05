@@ -31,10 +31,11 @@ module NewRelic
         # do the real enforcement there.
         def apply_feature_gates(server_config, existing_config)
           gated_features = {
-            :'transaction_tracer.enabled' => 'collect_traces',
-            :'slow_sql.enabled'           => 'collect_traces',
-            :'error_collector.enabled'    => 'collect_errors',
-            :'analytics_events.enabled'   => 'collect_analytics_events'
+            :'transaction_tracer.enabled'     => 'collect_traces',
+            :'slow_sql.enabled'               => 'collect_traces',
+            :'error_collector.enabled'        => 'collect_errors',
+            :'analytics_events.enabled'       => 'collect_analytics_events',
+            :'custom_insights_events.enabled' => 'collect_custom_events'
           }
           gated_features.each do |feature, gate_key|
             if server_config.has_key?(gate_key)
