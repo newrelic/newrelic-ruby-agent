@@ -2,6 +2,63 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+# This class applies filtering rules as specified in the Agent Attributes
+# cross-agent spec.
+#
+# Instances of it are constructed by deriving a set of rules from the agent
+# configuration. Instances are immutable once they are constructed - if the
+# config changes, a new instance should be constructed and swapped in to
+# replace the existing one.
+#
+# The #apply method is the main external interface of this class. It takes an
+# attribute name and a set of default destinations (represented as a bitfield)
+# and returns a set of actual destinations after applying the filtering rules
+# specified in the config.
+#
+# Each set of destinations is represented as a bitfield, where the bit positions
+# specified in the DST_* constants are used to indicate whether an attribute
+# should be sent to the corresponding destination.
+#
+# The choice of a bitfield here rather than an Array was made to avoid the need
+# for any transient object allocations during the application of rules. Since
+# rule application will happen once per attribute per transaction, this is a hot
+# code path.
+#
+# The algorithm for applying filtering rules is as follows:
+#
+# 1. Start with a bitfield representing the set of default destinations passed
+#    in to #apply.
+# 2. Mask this bitfield against the set of destinations that have attribute
+#    enabled at all.
+# 3. Traverse the list of rules in order (more on the ordering later), applying
+#    each matching rule, but taking care to not let rules override the enabled
+#    status of each destination. Each matching rule may mutate the bitfield.
+# 4. Return the resulting bitfield after all rules have been applied.
+#
+# Each rule consists of a name, a flag indicating whether it ends with a
+# wildcard, a bitfield representing the set of destinations that it applies to,
+# and a flag specifying whether it is an include or exclude rule.
+#
+# During construction, rules are sorted according to the following criteria:
+#
+# 1. First, the names are compared lexicographically. This has the impact of
+#    forcing shorter (more general) rules towards the top of the list and longer
+#    (more specific) rules towards the bottom. This is important, because the
+#    Agent Attributes spec stipulates that the most specific rule for a given
+#    destination should take precedence. Since rules are applied top-to-bottom,
+#    this sorting guarantees that the most specific rule will be applied last.
+# 2. If the names are identical, we next examine the wildcard flag. Rules ending
+#    with a wildcard are considered more general (and thus 'less than') rules
+#    not ending with a wildcard.
+# 3. If the names and wildcard flags are identical, we next examine whether the
+#    rules being compared are include or exclude rules. Exclude rules have
+#    precedence by the spec, so they are considered 'greater than' include
+#    rules.
+#
+# This approach to rule evaluation was taken from the PHP agent's
+# implementation.
+#
+
 module NewRelic
   module Agent
     class AttributeFilter
