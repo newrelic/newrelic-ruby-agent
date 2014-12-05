@@ -189,12 +189,4 @@ EOL
     browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(mock('app'))
     assert_equal 18, browser_monitoring.calculate_content_length("七転び八起き")
   end
-
-  def test_set_transaction_http_response_code
-    in_transaction do |txn|
-      browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(mock('app'))
-      browser_monitoring.set_transaction_http_response_code(9000)
-      assert_equal 9000, txn.http_response_code
-    end
-  end
 end
