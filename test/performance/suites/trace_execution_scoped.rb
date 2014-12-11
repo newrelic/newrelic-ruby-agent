@@ -23,10 +23,10 @@ class TraceExecutionScopedTests < Performance::TestCase
   end
 
   def test_without_callback
-    iterations.times { @test_class.method_1 }
+    measure { @test_class.method_1 }
   end
 
   def test_with_callback
-    iterations.times { @test_class.method_2 }
+    measure { @test_class.method_2 }
   end
 end

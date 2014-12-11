@@ -67,7 +67,7 @@ class RumAutoInsertion < Performance::TestCase
   def run_autoinstrument_source(text)
     @app.text = text
     @host.run do
-      iterations.times do
+      measure do
         browser_monitor.call({})
       end
     end

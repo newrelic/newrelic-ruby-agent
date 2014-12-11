@@ -79,7 +79,7 @@ class RackMiddleware < Performance::TestCase
   end
 
   def test_basic_middleware_stack()
-    iterations.times do
+    measure do
       @stack.call(@env.dup)
     end
   end

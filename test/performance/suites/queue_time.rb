@@ -12,7 +12,7 @@ class QueueTimePerfTests < Performance::TestCase
   end
 
   def test_queue_time_parsing
-    iterations.times do
+    measure do
       @headers.each do |h|
         NewRelic::Agent::Instrumentation::QueueTime.parse_frontend_timestamp(h)
       end

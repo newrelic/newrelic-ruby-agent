@@ -56,8 +56,15 @@ parser = OptionParser.new do |opts|
     options[:reporter_classes] = ['BaselineCompareReporter']
   end
 
-  opts.on("-N", "--iterations=NUM", "Change the number of iterations for each test") do |iterations|
+  opts.on("-N", "--iterations=NUM",
+    "Set a fixed number of iterations for each test.",
+    "Overrides the -d / --duration option.") do |iterations|
     options[:iterations] = iterations.to_i
+  end
+
+  opts.on("-d", "--duration=TIME",
+    "Run each test for TIME seconds. Defaults to 5s.") do |duration|
+    options[:duration] = duration.to_f
   end
 
   opts.on("-I", "--inline", "Run tests inline - do not isolate each test into a sub-invocation") do |i|
