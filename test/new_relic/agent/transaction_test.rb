@@ -1015,9 +1015,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_user_defined_rules_ignore_logs_uri_parsing_failures
     with_config(:rules => { :ignore_url_regexes => ['notempty'] }) do
       in_transaction do |txn|
-        txn.stubs(:uri).returns('http://foo_bar.com')
+        txn.stubs(:uri).returns('http://foo bar.com')
         NewRelic::Agent.logger.expects(:debug)
-        NewRelic::Agent.logger.expects(:debug).with(regexp_matches(/foo_bar.com/), anything).at_least_once
+        NewRelic::Agent.logger.expects(:debug).with(regexp_matches(/foo bar.com/), anything).at_least_once
       end
     end
   end
@@ -1025,7 +1025,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_stop_resets_the_transaction_state_if_there_is_an_error
     in_transaction do |txn|
       state = mock
-      state.define_singleton_method(:current_transaction, Proc.new { raise })
+      state.stubs(:current_transaction).raises(StandardError, 'StandardError')
+
       state.expects(:reset)
       NewRelic::Agent::Transaction.stop(state)
     end
