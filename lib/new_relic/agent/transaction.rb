@@ -182,6 +182,7 @@ module NewRelic
 
         :transaction_stopped
       rescue => e
+        state.reset
         NewRelic::Agent.logger.error("Exception during Transaction.stop", e)
         nil
       end
@@ -429,6 +430,8 @@ module NewRelic
         rules.any? do |rule|
           filtered_uri.match(rule)
         end
+      rescue URI::InvalidURIError => e
+        NewRelic::Agent.logger.debug("Error parsing URI: #{uri}", e)
       end
 
       def commit!(state, end_time, outermost_segment_name)
