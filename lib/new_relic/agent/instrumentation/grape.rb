@@ -14,7 +14,13 @@ module NewRelic
 end
 
 DependencyDetection.defer do
-  named :grape
+  # Why not just :grape? newrelic-grape used that name already, and while we're
+  # not shipping yet, overloading the name interferes with the plugin.
+  named :grape_instrumentation
+
+  depends_on do
+    ::NewRelic::Agent.config[:disable_grape] == false
+  end
 
   depends_on do
     defined?(::Grape::VERSION) &&
