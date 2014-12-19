@@ -1,5 +1,34 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.9.9 ##
+
+  * Support for Ruby 2.2.0
+
+  A new version of Ruby is available, and the Ruby agent is ready to run on
+  it. We've been testing things out since the early previews so you can
+  upgrade to the latest and greatest and use New Relic right away to see how
+  the new Ruby's performing for you.
+
+  * Rails 4.2.0 and ActiveJob
+
+  Not only is a new Ruby available, but a new Rails is out too! The Ruby agent
+  provides all the usual support for Rails that you'd expect, and we
+  instrument the newly released ActiveJob framework that's part of 4.2.
+
+  * Fix for transactions with invalid URI's
+
+  If an application used the agent's `ignore_url_regexes` config setting to
+  ignore certain transactions, but received an invalid URI, the agent would
+  fail to record the transaction. This has been fixed.
+
+  * Incompatibility with newrelic-grape
+
+  The 3.9.8 release of the Ruby agent included some early, disabled
+  instrumentation for the Grape API framework. This introduced an
+  incompatibility with the existing third party extension newrelic-grape. This
+  has been fixed, so newrelic-grape continues to be the right solution until
+  full agent support for Grape is available.
+
 ## v3.9.8 ##
 
   * Custom Insights events API
