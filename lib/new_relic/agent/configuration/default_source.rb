@@ -1121,6 +1121,12 @@ module NewRelic
           :description  => 'Maximum number of custom Insights events buffered in memory at a time.',
           :dynamic_name => true
         },
+        :disable_grape_instrumentation => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :description  => 'Disables installation of Grape instrumentation.'
+        },
         :disable_grape => {
           :default      => false,
           :public       => true,
