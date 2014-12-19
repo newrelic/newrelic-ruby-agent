@@ -21,7 +21,7 @@ automatically in Rails applications.
 
 ## Supported Environments
 
-* Ruby 1.8.7, REE, 1.9.x, 2.0.x, 2.1.x
+* Ruby 1.8.7, REE, 1.9.x, 2.0.x, 2.1.x, 2.2.x
 * JRuby 1.6 and 1.7
 * Rubinius 2.x (Experimental support only)
 * Rails 2.1 or later for Production Mode
