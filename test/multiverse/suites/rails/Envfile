@@ -1,6 +1,6 @@
 if RUBY_VERSION >= '1.9.3'
   gemfile <<-RB
-    gem 'rails', '~>4.2.0.rc3'
+    gem 'rails', '~>4.2.0'
     gem 'haml', :require => false
     gem 'minitest', '5.2.3'
   RB
