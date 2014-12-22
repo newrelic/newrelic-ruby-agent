@@ -647,13 +647,33 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal([[['dcba']]], prepared)
   end
 
-  def test_marshaller_handles_known_errors
+  def test_marshaller_handles_force_restart_exception
     error_data = {
       'error_type' => 'NewRelic::Agent::ForceRestartException',
       'message'    => 'test'
     }
     error = @service.marshaller.parsed_error(error_data)
     assert_equal NewRelic::Agent::ForceRestartException, error.class
+    assert_equal 'test', error.message
+  end
+
+  def test_marshaller_handles_force_disconnect_exception
+    error_data = {
+      'error_type' => 'NewRelic::Agent::ForceDisconnectException',
+      'message'    => 'test'
+    }
+    error = @service.marshaller.parsed_error(error_data)
+    assert_equal NewRelic::Agent::ForceDisconnectException, error.class
+    assert_equal 'test', error.message
+  end
+
+  def test_marshaller_handles_license_exception
+    error_data = {
+      'error_type' => 'NewRelic::Agent::LicenseException',
+      'message'    => 'test'
+    }
+    error = @service.marshaller.parsed_error(error_data)
+    assert_equal NewRelic::Agent::LicenseException, error.class
     assert_equal 'test', error.message
   end
 
