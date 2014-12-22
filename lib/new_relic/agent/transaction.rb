@@ -432,6 +432,7 @@ module NewRelic
         end
       rescue URI::InvalidURIError => e
         NewRelic::Agent.logger.debug("Error parsing URI: #{uri}", e)
+        false
       end
 
       def commit!(state, end_time, outermost_segment_name)
