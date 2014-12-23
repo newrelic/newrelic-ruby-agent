@@ -337,37 +337,52 @@ module NewRelic
             NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) }
           end
 
-          # If we're using sinatra, old versions run in an at_exit
-          # block so we should probably know that
-          def using_sinatra?
-            defined?(Sinatra::Application)
+          # This matters when the following three criteria are met:
+          #
+          # 1. A Sinatra 'classic' application is being run
+          # 2. The app is being run by executing the main file directly, rather
+          #    than via a config.ru file.
+          # 3. newrelic_rpm is required *after* sinatra
+          #
+          # In this case, the entire application runs from an at_exit handler in
+          # Sinatra, and if we were to install ours, it would be executed before
+          # the one in Sinatra, meaning that we'd shutdown the agent too early
+          # and never collect any data.
+          def sinatra_classic_app?
+            (
+              defined?(Sinatra::Application) &&
+              Sinatra::Application.respond_to?(:run) &&
+              Sinatra::Application.run?
+            )
           end
 
-          # we should not set an at_exit block if people are using
-          # these as they don't do standard at_exit behavior per MRI/YARV
-          def weird_ruby?
-            NewRelic::LanguageSupport.using_engine?('rbx') ||
-              NewRelic::LanguageSupport.using_engine?('jruby') ||
-              using_sinatra?
+          def should_install_exit_handler?
+            (
+              Agent.config[:send_data_on_exit]                  &&
+              !NewRelic::LanguageSupport.using_engine?('rbx')   &&
+              !NewRelic::LanguageSupport.using_engine?('jruby') &&
+              !sinatra_classic_app?
+            )
           end
 
-          # Installs our exit handler, which exploits the weird
-          # behavior of at_exit blocks to make sure it runs last, by
-          # doing an at_exit within an at_exit block.
+          # There's an MRI 1.9 bug that loses exit codes in at_exit blocks.
+          # A workaround is necessary to get correct exit codes for the agent's
+          # test suites.
+          # http://bugs.ruby-lang.org/issues/5218
+          def need_exit_code_workaround?
+            defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby" && RUBY_VERSION.match(/^1\.9/)
+          end
+
           def install_exit_handler
-            if Agent.config[:send_data_on_exit] && !weird_ruby?
-              at_exit do
-                # Workaround for MRI 1.9 bug that loses exit codes in at_exit blocks.
-                # This is necessary to get correct exit codes for the agent's
-                # test suites.
-                # http://bugs.ruby-lang.org/issues/5218
-                if defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby" && RUBY_VERSION.match(/^1\.9/)
-                  exit_status = $!.status if $!.is_a?(SystemExit)
-                  shutdown
-                  exit exit_status if exit_status
-                else
-                  shutdown
-                end
+            return unless should_install_exit_handler?
+            NewRelic::Agent.logger.debug("Installing at_exit handler")
+            at_exit do
+              if need_exit_code_workaround?
+                exit_status = $!.status if $!.is_a?(SystemExit)
+                shutdown
+                exit exit_status if exit_status
+              else
+                shutdown
               end
             end
           end
