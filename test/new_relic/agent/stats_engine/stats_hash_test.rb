@@ -154,45 +154,4 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     assert_equal(@hash, copy)
     assert_equal(@hash.started_at, copy.started_at)
   end
-
-  def test_borked_default_proc_can_record_metric
-    fake_borked_default_proc(@hash)
-
-    @hash.record(DEFAULT_SPEC, 1)
-
-    assert_equal(1, @hash.fetch(DEFAULT_SPEC, nil).call_count)
-  end
-
-  def test_borked_default_proc_notices_agent_error
-    fake_borked_default_proc(@hash)
-
-    @hash.record(DEFAULT_SPEC, 1)
-
-    assert_has_error NewRelic::Agent::StatsHash::StatsHashLookupError
-  end
-
-  # We can only fix up the default proc on Rubies that let us set it
-  if {}.respond_to?(:default_proc=)
-    def test_borked_default_proc_heals_thyself
-      fake_borked_default_proc(@hash)
-
-      @hash.record(DEFAULT_SPEC, 1)
-      NewRelic::Agent.instance.error_collector.errors.clear
-
-      @hash.record(NewRelic::MetricSpec.new('something/else/entirely'), 1)
-      assert_equal 0, NewRelic::Agent.instance.error_collector.errors.size
-    end
-  end
-
-  DEFAULT_SPEC = NewRelic::MetricSpec.new('foo')
-
-  def fake_borked_default_proc(hash)
-    exception = NoMethodError.new("borked default proc gives a NoMethodError on `yield'")
-    if hash.respond_to?(:default_proc=)
-      hash.default_proc = Proc.new { raise exception }
-    else
-      hash.stubs(:[]).raises(exception)
-    end
-  end
-
 end

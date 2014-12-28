@@ -22,26 +22,49 @@ require 'new_relic/agent/internal_agent_error'
 
 module NewRelic
   module Agent
-    class StatsHash < ::Hash
+    class StatsHash
 
       attr_accessor :started_at, :harvested_at
 
       def initialize(started_at=Time.now)
         @started_at = started_at.to_f
-        super() { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
+        @hash       = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
       end
 
       def marshal_dump
-        [@started_at, Hash[self]]
+        [@started_at, Hash[@hash]]
       end
 
       def marshal_load(data)
         @started_at = data.shift
-        self.merge!(data.shift)
+        @hash = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @hash.merge!(data.shift)
       end
 
       def ==(other)
-        Hash[self] == Hash[other]
+        Hash[@hash] == Hash[other.to_h]
+      end
+
+      def to_h
+        @hash
+      end
+
+      def [](key)
+        @hash[key]
+      end
+
+      def each
+        @hash.each do |k, v|
+          yield k, v
+        end
+      end
+
+      def empty?
+        @hash.empty?
+      end
+
+      def size
+        @hash.size
       end
 
       def to_h
@@ -58,19 +81,19 @@ module NewRelic
         Array(metric_specs).each do |metric_spec|
           stats = nil
           begin
-            stats = self[metric_spec]
+            stats = @hash[metric_spec]
           rescue NoMethodError => e
             # This only happen in the case of a corrupted default_proc
             # Side-step it manually, notice the issue, and carry on....
             NewRelic::Agent.instance.error_collector. \
-              notice_agent_error(StatsHashLookupError.new(e, self, metric_spec))
+              notice_agent_error(StatsHashLookupError.new(e, @hash, metric_spec))
 
             stats = NewRelic::Agent::Stats.new
-            self[metric_spec] = stats
+            @hash[metric_spec] = stats
 
             # Try to restore the default_proc so we won't continually trip the error
             if respond_to?(:default_proc=)
-              self.default_proc = Proc.new { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
+              @hash.default_proc = Proc.new { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
             end
           end
 
@@ -100,10 +123,10 @@ module NewRelic
       end
 
       def merge_or_insert(metric_spec, stats)
-        if self.has_key?(metric_spec)
-          self[metric_spec].merge!(stats)
+        if @hash.has_key?(metric_spec)
+          @hash[metric_spec].merge!(stats)
         else
-          self[metric_spec] = stats
+          @hash[metric_spec] = stats
         end
       end
     end
