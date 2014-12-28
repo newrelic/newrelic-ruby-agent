@@ -45,7 +45,7 @@ class PipeServiceTest < Minitest::Test
         @service.metric_data(metric_data0)
       end
 
-      assert_equal 'Custom/something', received_data[:metric_data].keys.sort[0].name
+      assert_equal 'Custom/something', received_data[:metric_data].to_h.keys.sort[0].name
     end
 
     def test_transaction_sample_data
@@ -105,7 +105,7 @@ class PipeServiceTest < Minitest::Test
 
       received_data = read_from_pipe
 
-      assert_equal 'Custom/something', received_data[:metric_data].keys.sort[0].name
+      assert_equal 'Custom/something', received_data[:metric_data].to_h.keys.sort[0].name
       assert_equal ['txn0'], received_data[:transaction_sample_data]
       assert_equal ['err0'], received_data[:error_data].sort
     end

@@ -282,7 +282,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     renamed = @engine.apply_rules_to_metric_data(rules_engine, stats_hash)
 
     assert_equal(1    , renamed.size)
-    assert_equal('foo', renamed.keys.first.name)
+    assert_equal('foo', renamed.to_h.keys.first.name)
   end
 
   def test_harvest_with_merge
