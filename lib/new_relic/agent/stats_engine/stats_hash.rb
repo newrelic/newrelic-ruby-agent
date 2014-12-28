@@ -28,43 +28,62 @@ module NewRelic
 
       def initialize(started_at=Time.now)
         @started_at = started_at.to_f
-        @hash       = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @scoped     = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @unscoped   = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
       end
 
       def marshal_dump
-        [@started_at, Hash[@hash]]
+        [@started_at, Hash[@scoped], Hash[@unscoped]]
       end
 
       def marshal_load(data)
         @started_at = data.shift
-        @hash = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
-        @hash.merge!(data.shift)
+        @scoped   = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @unscoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @scoped.merge!(data.shift)
+        @unscoped.merge!(data.shift)
       end
 
       def ==(other)
-        Hash[@hash] == Hash[other.to_h]
+        self.to_h == other.to_h
       end
 
       def to_h
-        @hash
+        hash = {}
+        @scoped.each   { |k, v| hash[k] = v }
+        @unscoped.each { |k, v| hash[NewRelic::MetricSpec.new(k)] = v }
+        hash
       end
 
       def [](key)
-        @hash[key]
+        case key
+        when String
+          @unscoped[key]
+        when NewRelic::MetricSpec
+          if key.scope.empty?
+            @unscoped[key.name]
+          else
+            @scoped[key]
+          end
+        end
       end
 
       def each
-        @hash.each do |k, v|
+        @scoped.each do |k, v|
           yield k, v
+        end
+        @unscoped.each do |k, v|
+          spec = NewRelic::MetricSpec.new(k)
+          yield spec, v
         end
       end
 
       def empty?
-        @hash.empty?
+        @unscoped.empty? && @scoped.empty?
       end
 
       def size
-        @hash.size
+        @unscoped.size + @scoped.size
       end
 
       def to_h
@@ -79,24 +98,11 @@ module NewRelic
 
       def record(metric_specs, value=nil, aux=nil, &blk)
         Array(metric_specs).each do |metric_spec|
-          stats = nil
-          begin
-            stats = @hash[metric_spec]
-          rescue NoMethodError => e
-            # This only happen in the case of a corrupted default_proc
-            # Side-step it manually, notice the issue, and carry on....
-            NewRelic::Agent.instance.error_collector. \
-              notice_agent_error(StatsHashLookupError.new(e, @hash, metric_spec))
-
-            stats = NewRelic::Agent::Stats.new
-            @hash[metric_spec] = stats
-
-            # Try to restore the default_proc so we won't continually trip the error
-            if respond_to?(:default_proc=)
-              @hash.default_proc = Proc.new { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
-            end
+          if metric_spec.scope.empty?
+            stats = @unscoped[metric_spec.name]
+          else
+            stats = @scoped[metric_spec]
           end
-
           stats.record(value, aux, &blk)
         end
       end
@@ -105,28 +111,31 @@ module NewRelic
         if other.is_a?(StatsHash) && other.started_at < @started_at
           @started_at = other.started_at
         end
-        other.each do |key, val|
-          merge_or_insert(key, val)
+        other.each do |spec, val|
+          if spec.scope.empty?
+            merge_or_insert(@unscoped, spec.name, val)
+          else
+            merge_or_insert(@scoped, spec, val)
+          end
         end
         self
       end
 
       def merge_transaction_metrics!(txn_metrics, scope)
         txn_metrics.each_unscoped do |name, stats|
-          spec = NewRelic::MetricSpec.new(name)
-          merge_or_insert(spec, stats)
+          merge_or_insert(@unscoped, name, stats)
         end
         txn_metrics.each_scoped do |name, stats|
           spec = NewRelic::MetricSpec.new(name, scope)
-          merge_or_insert(spec, stats)
+          merge_or_insert(@scoped, spec, stats)
         end
       end
 
-      def merge_or_insert(metric_spec, stats)
-        if @hash.has_key?(metric_spec)
-          @hash[metric_spec].merge!(stats)
+      def merge_or_insert(target, name, stats)
+        if target.has_key?(name)
+          target[name].merge!(stats)
         else
-          @hash[metric_spec] = stats
+          target[name] = stats
         end
       end
     end

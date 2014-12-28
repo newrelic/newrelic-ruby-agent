@@ -11,7 +11,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
   end
 
   def test_creates_default_entries
-    stats = @hash['a/b/c/d']
+    stats = @hash[NewRelic::MetricSpec.new('a/b/c/d')]
     assert_kind_of(NewRelic::Agent::Stats, stats)
   end
 
@@ -148,8 +148,8 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
   end
 
   def test_marshal_dump
-    @hash.record('foo', 1)
-    @hash.record('bar', 2)
+    @hash.record(NewRelic::MetricSpec.new('foo'), 1)
+    @hash.record(NewRelic::MetricSpec.new('bar'), 2)
     copy = Marshal.load(Marshal.dump(@hash))
     assert_equal(@hash, copy)
     assert_equal(@hash.started_at, copy.started_at)
