@@ -726,7 +726,7 @@ class NewRelicServiceTest < Minitest::Test
     spec1 = NewRelic::MetricSpec.new('foo')
     spec2 = NewRelic::MetricSpec.new('bar')
     hash.record(spec1, 1)
-    hash[spec2] = NewRelic::Agent::Stats.new()
+    hash.record(spec2) { |s| s.call_count = 0 }
 
     metric_data_array = @service.build_metric_data_array(hash)
     assert_equal(1, metric_data_array.size)
