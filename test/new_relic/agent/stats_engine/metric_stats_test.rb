@@ -301,7 +301,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     # so the stats for metric "a" should have 2 data points
     @engine.merge!(harvest)
     harvest = @engine.harvest!
-    stats = harvest.fetch(NewRelic::MetricSpec.new("a"))
+    stats = harvest[NewRelic::MetricSpec.new("a")]
     assert_equal 2, stats.call_count
     assert_equal 3, stats.total_call_time
   end
