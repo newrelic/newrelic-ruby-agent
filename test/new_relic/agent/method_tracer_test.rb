@@ -212,9 +212,8 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
     method_c1
 
-    refute_nil @stats_engine.lookup_stats("c1")
-    assert_nil @stats_engine.lookup_stats("c2")
-    refute_nil @stats_engine.lookup_stats("c3")
+    assert_metrics_recorded(['c1', 'c3'])
+    assert_metrics_not_recorded('c2')
 
     assert_equal ['c2', 'c1'], @scope_listener.scopes
   end
