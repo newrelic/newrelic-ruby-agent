@@ -55,7 +55,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         service.metric_data(new_engine.harvest!)
       end
 
-      assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
+      assert_metrics_recorded(metric => { :total_call_time => 3.0 })
       engine.reset!
     end
 
