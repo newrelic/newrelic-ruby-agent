@@ -1022,6 +1022,15 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_user_defined_rules_ignore_returns_false_if_cannot_parse_uri
+    with_config(:rules => { :ignore_url_regexes => ['notempty'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo bar.com')
+        refute txn.user_defined_rules_ignore?
+      end
+    end
+  end
+
   def test_stop_resets_the_transaction_state_if_there_is_an_error
     in_transaction do |txn|
       state = mock
