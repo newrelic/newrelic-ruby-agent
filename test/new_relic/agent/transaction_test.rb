@@ -1012,6 +1012,35 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_user_defined_rules_ignore_logs_uri_parsing_failures
+    with_config(:rules => { :ignore_url_regexes => ['notempty'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo bar.com')
+        NewRelic::Agent.logger.expects(:debug)
+        NewRelic::Agent.logger.expects(:debug).with(regexp_matches(/foo bar.com/), anything).at_least_once
+      end
+    end
+  end
+
+  def test_user_defined_rules_ignore_returns_false_if_cannot_parse_uri
+    with_config(:rules => { :ignore_url_regexes => ['notempty'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo bar.com')
+        refute txn.user_defined_rules_ignore?
+      end
+    end
+  end
+
+  def test_stop_resets_the_transaction_state_if_there_is_an_error
+    in_transaction do |txn|
+      state = mock
+      state.stubs(:current_transaction).raises(StandardError, 'StandardError')
+
+      state.expects(:reset)
+      NewRelic::Agent::Transaction.stop(state)
+    end
+  end
+
   def test_doesnt_record_queue_time_if_it_is_zero
     in_transaction('boo') do
       # nothing

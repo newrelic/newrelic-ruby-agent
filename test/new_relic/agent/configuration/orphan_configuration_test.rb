@@ -30,6 +30,7 @@ class OrphanedConfigTest < Minitest::Test
   end
 
   AGENT_CONFIG_PATTERN      = /Agent\.config\[:['"]?([a-z\._]+)['"]?\s*\]/
+  DEFAULT_VALUE_OF_PATTERN  = /:default\s*=>\s*value_of\(:['"]?([a-z\._]+)['"]?\)\s*/
   REGISTER_CALLBACK_PATTERN = /register_callback\(:['"]?([a-z\._]+)['"]?\)/
   NAMED_DEPENDENCY_PATTERN  = /^\s*named[ (]+\:?([a-z0-9\._]+).*$/
 
@@ -38,6 +39,7 @@ class OrphanedConfigTest < Minitest::Test
       lines_in(file).each do |line|
         captures = []
         captures << line.scan(AGENT_CONFIG_PATTERN)
+        captures << line.scan(DEFAULT_VALUE_OF_PATTERN)
         captures << line.scan(REGISTER_CALLBACK_PATTERN)
         captures << line.scan(NAMED_DEPENDENCY_PATTERN).map(&method(:disable_name))
 
