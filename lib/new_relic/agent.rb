@@ -543,11 +543,13 @@ module NewRelic
       nil # don't return a noticed error datastructure. it can only hurt.
     end
 
-    # Add parameters to any Transaction Trace, Error or Analytics Events that
-    # are recorded during the current transaction.
+    # Add parameters to the transaction trace, Insights Transaction event, and
+    # any traced errors recorded for the current transaction.
     #
-    # If configured to allow it, these custom parameters will also be present
-    # in the RUM script injected into the page.
+    # If Browser Monitoring is enabled, and the
+    # browser_monitoring.capture_attributes configuration setting is enabled,
+    # these custom parameters will also be present in the RUM script injected
+    # into the response body, making them available on Insights PageView events.
     #
     # @api public
     #
