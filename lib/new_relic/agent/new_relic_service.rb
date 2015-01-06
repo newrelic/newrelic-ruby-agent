@@ -469,6 +469,8 @@ module NewRelic
           end
         end
 
+        log_response(response)
+
         case response
         when Net::HTTPSuccess
           true # do nothing
@@ -488,16 +490,17 @@ module NewRelic
         response
       end
 
+      def log_response(response)
+        ::NewRelic::Agent.logger.debug "Received response, status: #{response.code}, encoding: '#{response['content-encoding']}'"
+      end
+
       # Decompresses the response from the server, if it is gzip
       # encoded, otherwise returns it verbatim
       def decompress_response(response)
-        if response['content-encoding'] != 'gzip'
-          ::NewRelic::Agent.logger.debug "Uncompressed content returned"
-          response.body
+        if response['content-encoding'] == 'gzip'
+          Zlib::GzipReader.new(StringIO.new(response.body)).read
         else
-          ::NewRelic::Agent.logger.debug "Decompressing return value"
-          i = Zlib::GzipReader.new(StringIO.new(response.body))
-          i.read
+          response.body
         end
       end
 
