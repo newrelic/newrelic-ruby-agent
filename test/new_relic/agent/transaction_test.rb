@@ -1078,6 +1078,82 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_recorded(['foo'])
   end
 
+  def test_transaction_start_sets_name_from_child_for_transactions_with_matching_categories
+    in_transaction('outside_cascade') do
+      in_transaction('inside_cascade') do |txn|
+        assert_equal 'inside_cascade', txn.name_from_child
+      end
+    end
+  end
+
+  def test_similar_category?
+    web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.sample
+
+    in_transaction('test') do |txn|
+      txn.category = web_category
+      frame = stub(:category => web_category)
+      assert txn.similar_category?(frame)
+    end
+  end
+
+  def test_similar_category_returns_false_with_mismatched_categories
+    web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.sample
+
+    in_transaction('test') do |txn|
+      txn.category = web_category
+      frame = stub(:category => :other)
+      refute txn.similar_category?(frame)
+    end
+  end
+
+  def test_similar_category_returns_true_with_nonweb_categories
+    in_transaction('test') do |txn|
+      txn.category = :other
+      frame = stub(:category => :other)
+      assert txn.similar_category?(frame)
+    end
+  end
+
+  def test_name_last_frame
+    in_transaction('test') do |txn|
+      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+
+      txn.name_last_frame('name', 'category')
+
+      assert_equal 'name', txn.frame_stack.last.name
+      assert_equal 'category', txn.frame_stack.last.category
+    end
+  end
+
+  def test_name_last_frame_sets_name_from_child
+    in_transaction('test') do |txn|
+      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+
+      txn.name_last_frame('name_from_child', 'category')
+
+      assert_equal 'name_from_child', txn.name_from_child
+    end
+  end
+
+  def test_name_last_frame_sets_name_from_api
+    in_transaction('test') do |txn|
+      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+
+      txn.name_last_frame('name_from_api', 'category', :api)
+
+      assert_equal 'name_from_api', txn.name_from_api
+    end
+  end
+
+  def test_set_overriding_transaction_name_sets_name_from_api
+    in_transaction('test') do |txn|
+      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+      NewRelic::Agent::Transaction.set_overriding_transaction_name('override_name')
+
+      assert_equal '/override_name', txn.name_from_api
+    end
+  end
+
   def assert_has_custom_parameter(txn, key, value = key)
     assert_equal(value, txn.custom_parameters[key])
   end

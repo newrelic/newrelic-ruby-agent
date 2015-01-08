@@ -28,6 +28,7 @@ module NewRelic
 
       NESTED_TRACE_STOP_OPTIONS    = { :metric => true }.freeze
       WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :middleware].freeze
+      TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
       EMPTY_SUMMARY_METRICS        = [].freeze
@@ -43,7 +44,8 @@ module NewRelic
       attr_accessor :exceptions,
                     :filtered_params,
                     :jruby_cpu_start,
-                    :process_cpu_start
+                    :process_cpu_start,
+                    :category
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -58,7 +60,8 @@ module NewRelic
                   :metrics,
                   :gc_start_snapshot,
                   :category,
-                  :name_from_child
+                  :name_from_child,
+                  :name_from_api
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -78,8 +81,25 @@ module NewRelic
         if txn.frame_stack.empty?
           txn.set_default_transaction_name(name, options)
         else
-          txn.frame_stack.last.name = name
-          txn.frame_stack.last.category = options[:category] if options[:category]
+          txn.name_last_frame(name, options[:category])
+        end
+      end
+
+      def name_last_frame(name, category, source = :child)
+        return unless last_frame = frame_stack.last
+
+        unless TRANSACTION_NAMING_SOURCES.include? source
+          NewRelic::Agent.logger.debug("Attempted to name last frame with invalid transaction naming source: #{source}")
+          return
+        end
+
+        last_frame.name = name
+        last_frame.category = category if category
+
+        if source == :child
+          @name_from_child = name if similar_category?(last_frame)
+        elsif source == :api
+          @name_from_api = name if similar_category?(last_frame)
         end
       end
 
@@ -92,17 +112,7 @@ module NewRelic
         if txn.frame_stack.empty?
           txn.set_overriding_transaction_name(name, options)
         else
-          txn.frame_stack.last.name = name
-          txn.frame_stack.last.category = options[:category] if options[:category]
-
-          # Parent transaction also takes this name, but only if they
-          # are both/neither web transactions.
-          child_is_web_category = transaction_category_is_web?(txn.frame_stack.last.category)
-          txn_is_web_category   = transaction_category_is_web?(txn.category)
-
-          if (child_is_web_category == txn_is_web_category)
-            txn.name_from_api = name
-          end
+          txn.name_last_frame(name, options[:category], :api)
         end
       end
 
@@ -116,24 +126,33 @@ module NewRelic
         txn = state.current_transaction
 
         if txn
-          if options[:filtered_params] && !options[:filtered_params].empty?
-            txn.filtered_params = options[:filtered_params]
-          end
-
-          nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
-          nested_frame.name = options[:transaction_name]
-          nested_frame.category = category
-          txn.frame_stack << nested_frame
+          create_nested_frame(txn, state, category, options)
         else
-          txn = Transaction.new(category, options)
-          state.reset(txn)
-          txn.start(state)
+          txn = start_new_transaction(state, category, options)
         end
 
         txn
       rescue => e
         NewRelic::Agent.logger.error("Exception during Transaction.start", e)
         nil
+      end
+
+      def self.start_new_transaction(state, category, options)
+        txn = Transaction.new(category, options)
+        state.reset(txn)
+        txn.start(state)
+        txn
+      end
+
+      def self.create_nested_frame(txn, state, category, options)
+        if options[:filtered_params] && !options[:filtered_params].empty?
+          txn.filtered_params = options[:filtered_params]
+        end
+
+        nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
+        txn.frame_stack << nested_frame
+
+        txn.name_last_frame(options[:transaction_name], category)
       end
 
       FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
@@ -151,17 +170,6 @@ module NewRelic
           state.reset
         else
           nested_frame = txn.frame_stack.pop
-
-          # Parent transaction inherits the name of the first child
-          # to complete, if they are both/neither web transactions.
-          nested_is_web_category = transaction_category_is_web?(nested_frame.category)
-          txn_is_web_category    = transaction_category_is_web?(txn.category)
-
-          if (nested_is_web_category == txn_is_web_category)
-            # first child to finish wins
-            txn.name_from_child ||= nested_frame.name
-          end
-
           nested_name = nested_transaction_name(nested_frame.name)
 
           if nested_name.start_with?(MIDDLEWARE_PREFIX)
@@ -756,12 +764,16 @@ module NewRelic
         txn && txn.recording_web_transaction?
       end
 
-      def self.transaction_category_is_web?(category)
+      def recording_web_transaction?
+        web_category?(@category)
+      end
+
+      def web_category?(category)
         WEB_TRANSACTION_CATEGORIES.include?(category)
       end
 
-      def recording_web_transaction?
-        self.class.transaction_category_is_web?(@category)
+      def similar_category?(frame)
+        web_category?(@category) == web_category?(frame.category)
       end
 
       # Make a safe attempt to get the referer from a request object, generally successful when
