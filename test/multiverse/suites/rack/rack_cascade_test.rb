@@ -10,7 +10,7 @@ require 'new_relic/rack/error_collector'
 
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
-  class HttpResponseCodeTest < Minitest::Test
+  class RackCascadeTest < Minitest::Test
     include MultiverseHelpers
 
     setup_and_teardown_agent(
