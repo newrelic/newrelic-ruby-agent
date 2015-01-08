@@ -1087,7 +1087,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_similar_category?
-    web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.sample
+    web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.first
 
     in_transaction('test') do |txn|
       txn.category = web_category
@@ -1097,7 +1097,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_similar_category_returns_false_with_mismatched_categories
-    web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.sample
+    web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.first
 
     in_transaction('test') do |txn|
       txn.category = web_category
