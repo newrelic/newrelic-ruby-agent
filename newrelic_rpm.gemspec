@@ -52,6 +52,8 @@ EOS
   s.add_development_dependency 'rb-fsevent', '~> 0.9.1'
   s.add_development_dependency 'hometown', '~> 0.2.5'
   s.add_development_dependency 'jruby-openssl' if RUBY_PLATFORM == 'java'
+  # version lock down for i18n that is compatible with Ruby 1.8.7
+  s.add_development_dependency 'i18n', '0.6.11'
 
   if RUBY_PLATFORM == 'java'
     s.add_development_dependency 'activerecord-jdbcsqlite3-adapter'
