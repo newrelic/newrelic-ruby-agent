@@ -60,7 +60,7 @@ module NewRelic
                   :metrics,
                   :gc_start_snapshot,
                   :category,
-                  :name_from_child,
+                  :default_name,
                   :name_from_api
 
       # Populated with the trace sample once this transaction is completed.
@@ -95,9 +95,9 @@ module NewRelic
 
         last_frame.name = name
         last_frame.category = category if category
-
+        # fix
         if source == :child
-          @name_from_child = name if similar_category?(last_frame)
+          @default_name = name if similar_category?(last_frame)
         elsif source == :api
           @name_from_api = name if similar_category?(last_frame)
         end
@@ -222,7 +222,7 @@ module NewRelic
         @frame_stack = []
 
         @default_name    = Helper.correctly_encoded(options[:transaction_name])
-        @name_from_child = nil
+        @org_name = @default_name
         @name_from_api   = nil
         @frozen_name     = nil
 
@@ -248,14 +248,6 @@ module NewRelic
         @noticed_error_ids ||= []
       end
 
-      def default_name=(name)
-        @default_name = Helper.correctly_encoded(name)
-      end
-
-      def name_from_child=(name)
-        @name_from_child = Helper.correctly_encoded(name)
-      end
-
       def name_from_api=(name)
         if @frozen_name
           NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@frozen_name}'.")
@@ -265,7 +257,7 @@ module NewRelic
       end
 
       def set_default_transaction_name(name, options)
-        self.default_name = name
+        @default_name = Helper.correctly_encoded(name)
         @category = options[:category] if options[:category]
       end
 
@@ -283,22 +275,12 @@ module NewRelic
       end
 
       def best_name
-        return @frozen_name   if @frozen_name
-        return @name_from_api if @name_from_api
-
-        if @name_from_child
-          return @name_from_child
-        elsif !@frame_stack.empty?
-          return @frame_stack.last.name
-        end
-
-        return @default_name if @default_name
-
-        NewRelic::Agent::UNKNOWN_METRIC
+        @frozen_name  || @name_from_api ||
+          @default_name || NewRelic::Agent::UNKNOWN_METRIC
       end
 
       def name_set?
-        (@name_from_api || @name_from_child || @default_name) ? true : false
+        (@name_from_api || @default_name) ? true : false
       end
 
       def promoted_transaction_name(name)
@@ -398,8 +380,8 @@ module NewRelic
         freeze_name_and_execute_if_not_ignored
         ignore! if user_defined_rules_ignore?
 
-        if @name_from_child
-          name = Transaction.nested_transaction_name(@default_name)
+        if frame_stack.max_depth > 0
+          name = Transaction.nested_transaction_name(@org_name)
           @trace_options[:scoped_metric] = true
         else
           name = @frozen_name

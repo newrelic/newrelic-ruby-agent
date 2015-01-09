@@ -236,8 +236,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_name_is_unset_if_nil
-    in_transaction do |txn|
-      txn.default_name = nil
+    in_transaction(:transaction_name => nil) do |txn|
       assert !txn.name_set?
     end
   end
@@ -1078,10 +1077,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_recorded(['foo'])
   end
 
-  def test_transaction_start_sets_name_from_child_for_transactions_with_matching_categories
+  def test_transaction_start_sets_default_name_for_transactions_with_matching_categories
     in_transaction('outside_cascade') do
       in_transaction('inside_cascade') do |txn|
-        assert_equal 'inside_cascade', txn.name_from_child
+        assert_equal 'inside_cascade', txn.default_name
       end
     end
   end
@@ -1125,13 +1124,13 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_name_last_frame_sets_name_from_child
+  def test_name_last_frame_sets_default_name
     in_transaction('test') do |txn|
       txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
 
-      txn.name_last_frame('name_from_child', 'category')
+      txn.name_last_frame('default_name', 'category')
 
-      assert_equal 'name_from_child', txn.name_from_child
+      assert_equal 'default_name', txn.default_name
     end
   end
 
