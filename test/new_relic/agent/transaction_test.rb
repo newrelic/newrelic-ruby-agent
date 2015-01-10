@@ -1115,7 +1115,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_name_last_frame
     in_transaction('test') do |txn|
-      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+      txn.frame_stack.push NewRelic::Agent::TracedMethodFrame.new('', '')
 
       txn.name_last_frame('name', 'category')
 
@@ -1126,7 +1126,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_name_last_frame_sets_default_name
     in_transaction('test') do |txn|
-      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+      txn.frame_stack.push NewRelic::Agent::TracedMethodFrame.new('', '')
 
       txn.name_last_frame('default_name', 'category')
 
@@ -1136,7 +1136,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_name_last_frame_sets_name_from_api
     in_transaction('test') do |txn|
-      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+      txn.frame_stack.push NewRelic::Agent::TracedMethodFrame.new('', '')
 
       txn.name_last_frame('name_from_api', 'category', :api)
 
@@ -1146,7 +1146,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_set_overriding_transaction_name_sets_name_from_api
     in_transaction('test') do |txn|
-      txn.frame_stack << NewRelic::Agent::TracedMethodFrame.new('', '')
+      txn.frame_stack.push NewRelic::Agent::TracedMethodFrame.new('', '')
       NewRelic::Agent::Transaction.set_overriding_transaction_name('override_name')
 
       assert_equal '/override_name', txn.name_from_api

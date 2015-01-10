@@ -6,6 +6,7 @@ require 'new_relic/agent/transaction_timings'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
+require 'new_relic/agent/transaction/frame_stack'
 
 module NewRelic
   module Agent
@@ -150,7 +151,7 @@ module NewRelic
         end
 
         nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
-        txn.frame_stack << nested_frame
+        txn.frame_stack.push nested_frame
 
         txn.name_last_frame(options[:transaction_name], category)
       end
@@ -219,7 +220,7 @@ module NewRelic
       attr_accessor :http_response_code
 
       def initialize(category, options)
-        @frame_stack = []
+        @frame_stack = FrameStack.new
 
         @default_name    = Helper.correctly_encoded(options[:transaction_name])
         @org_name = @default_name
