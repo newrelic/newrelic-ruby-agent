@@ -96,7 +96,7 @@ module NewRelic
 
         last_frame.name = name
         last_frame.category = category if category
-        # fix
+        # fix - change :child to something more sensible
         if source == :child
           @default_name = name if similar_category?(last_frame)
         elsif source == :api
@@ -263,6 +263,7 @@ module NewRelic
       end
 
       def set_overriding_transaction_name(name, options)
+        @org_name = name
         self.name_from_api = name
         set_default_transaction_name(name, options)
       end
