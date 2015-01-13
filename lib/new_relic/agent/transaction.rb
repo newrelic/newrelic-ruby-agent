@@ -84,13 +84,6 @@ module NewRelic
         txn.set_default_transaction_name(name, category)
       end
 
-      def name_last_frame(name, category)
-        return unless last_frame = frame_stack.last
-
-        last_frame.name = name
-        last_frame.category = category if category
-      end
-
       def self.set_overriding_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
         txn = tl_current
         return unless txn
@@ -98,11 +91,6 @@ module NewRelic
         name = txn.make_transaction_name(name, category)
 
         txn.set_overriding_transaction_name(name, category)
-      end
-
-      def make_transaction_name(name, category=nil)
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        "#{namer.prefix_for_category(self, category)}#{name}"
       end
 
       def self.start(state, category, options)
@@ -187,6 +175,88 @@ module NewRelic
         end
       end
 
+      # Indicate that you don't want to keep the currently saved transaction
+      # information
+      def self.abort_transaction! #THREAD_LOCAL_ACCESS
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.abort_transaction!(state) if txn
+      end
+
+      # If we have an active transaction, notice the error and increment the error metric.
+      # Options:
+      # * <tt>:request</tt> => Request object to get the uri and referer
+      # * <tt>:uri</tt> => The request path, minus any request params or query string.
+      # * <tt>:referer</tt> => The URI of the referer
+      # * <tt>:metric</tt> => The metric name associated with the transaction
+      # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
+      # * <tt>:custom_params</tt> => Custom parameters
+      # Anything left over is treated as custom params
+
+      def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
+        options = extract_request_options(options)
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        if txn
+          txn.notice_error(e, options)
+        else
+          NewRelic::Agent.instance.error_collector.notice_error(e, options)
+        end
+      end
+
+      def self.extract_request_options(options)
+        req = options.delete(:request)
+        if req
+          options[:uri]     = uri_from_request(req)
+          options[:referer] = referer_from_request(req)
+        end
+        options
+      end
+
+      # Returns truthy if the current in-progress transaction is considered a
+      # a web transaction (as opposed to, e.g., a background transaction).
+      #
+      # @api public
+      #
+      def self.recording_web_transaction? #THREAD_LOCAL_ACCESS
+        txn = tl_current
+        txn && txn.recording_web_transaction?
+      end
+
+      # Make a safe attempt to get the referer from a request object, generally successful when
+      # it's a Rack request.
+      def self.referer_from_request(req)
+        if req && req.respond_to?(:referer)
+          req.referer.to_s.split('?').first
+        end
+      end
+
+      # Make a safe attempt to get the URI, without the host and query string.
+      def self.uri_from_request(req)
+        approximate_uri = case
+                          when req.respond_to?(:fullpath   ) then req.fullpath
+                          when req.respond_to?(:path       ) then req.path
+                          when req.respond_to?(:request_uri) then req.request_uri
+                          when req.respond_to?(:uri        ) then req.uri
+                          when req.respond_to?(:url        ) then req.url
+                          end
+        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
+      end
+
+
+      def self.apdex_bucket(duration, failed, apdex_t)
+        case
+        when failed
+          :apdex_f
+        when duration <= apdex_t
+          :apdex_s
+        when duration <= 4 * apdex_t
+          :apdex_t
+        else
+          :apdex_f
+        end
+      end
+
       @@java_classes_loaded = false
 
       if defined? JRuby
@@ -240,6 +310,18 @@ module NewRelic
 
       def default_name=(name)
         @default_name = Helper.correctly_encoded(name)
+      end
+
+      def name_last_frame(name, category)
+        return unless last_frame = frame_stack.last
+
+        last_frame.name = name
+        last_frame.category = category if category
+      end
+
+      def make_transaction_name(name, category=nil)
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
+        "#{namer.prefix_for_category(self, category)}#{name}"
       end
 
       def set_default_transaction_name(name, category)
@@ -319,14 +401,6 @@ module NewRelic
         frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
 
         name_last_frame(@default_name, @category)
-      end
-
-      # Indicate that you don't want to keep the currently saved transaction
-      # information
-      def self.abort_transaction! #THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        txn.abort_transaction!(state) if txn
       end
 
       # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
@@ -589,37 +663,6 @@ module NewRelic
         end
       end
 
-      # If we have an active transaction, notice the error and increment the error metric.
-      # Options:
-      # * <tt>:request</tt> => Request object to get the uri and referer
-      # * <tt>:uri</tt> => The request path, minus any request params or query string.
-      # * <tt>:referer</tt> => The URI of the referer
-      # * <tt>:metric</tt> => The metric name associated with the transaction
-      # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
-      # * <tt>:custom_params</tt> => Custom parameters
-      # Anything left over is treated as custom params
-
-      def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
-        options = extract_request_options(options)
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        if txn
-          txn.notice_error(e, options)
-        else
-          NewRelic::Agent.instance.error_collector.notice_error(e, options)
-        end
-      end
-
-      def self.extract_request_options(options)
-        req = options.delete(:request)
-        if req
-          options[:uri]     = uri_from_request(req)
-          options[:referer] = referer_from_request(req)
-        end
-        options
-      end
-
-
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options={}) # :nodoc:
         options[:uri]     ||= uri     if uri
@@ -729,16 +772,6 @@ module NewRelic
       alias_method :user_attributes, :custom_parameters
       alias_method :set_user_attributes, :add_custom_parameters
 
-      # Returns truthy if the current in-progress transaction is considered a
-      # a web transaction (as opposed to, e.g., a background transaction).
-      #
-      # @api public
-      #
-      def self.recording_web_transaction? #THREAD_LOCAL_ACCESS
-        txn = tl_current
-        txn && txn.recording_web_transaction?
-      end
-
       def recording_web_transaction?
         web_category?(@category)
       end
@@ -749,40 +782,6 @@ module NewRelic
 
       def similar_category?(frame)
         web_category?(@category) == web_category?(frame.category)
-      end
-
-      # Make a safe attempt to get the referer from a request object, generally successful when
-      # it's a Rack request.
-      def self.referer_from_request(req)
-        if req && req.respond_to?(:referer)
-          req.referer.to_s.split('?').first
-        end
-      end
-
-      # Make a safe attempt to get the URI, without the host and query string.
-      def self.uri_from_request(req)
-        approximate_uri = case
-                          when req.respond_to?(:fullpath   ) then req.fullpath
-                          when req.respond_to?(:path       ) then req.path
-                          when req.respond_to?(:request_uri) then req.request_uri
-                          when req.respond_to?(:uri        ) then req.uri
-                          when req.respond_to?(:url        ) then req.url
-                          end
-        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
-      end
-
-
-      def self.apdex_bucket(duration, failed, apdex_t)
-        case
-        when failed
-          :apdex_f
-        when duration <= apdex_t
-          :apdex_s
-        when duration <= 4 * apdex_t
-          :apdex_t
-        else
-          :apdex_f
-        end
       end
 
       def cpu_burn
