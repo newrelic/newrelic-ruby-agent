@@ -16,11 +16,13 @@ class SetTransactionNameTest < Minitest::Test
 
   class TestTransactor
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
     def parent_txn(child_category=nil)
       NewRelic::Agent.set_transaction_name('TestTransactor/parent')
       yield if block_given?
       child_txn(child_category)
     end
+
     add_transaction_tracer :parent_txn
 
     def child_txn(category)
@@ -28,9 +30,11 @@ class SetTransactionNameTest < Minitest::Test
       opts[:category] = category if category
       NewRelic::Agent.set_transaction_name('TestTransactor/child', opts)
     end
+
     add_transaction_tracer :child_txn
 
     newrelic_ignore :only => :ignored_txn
+
     def ignored_txn
       NewRelic::Agent.set_transaction_name('Ignore/me')
     end

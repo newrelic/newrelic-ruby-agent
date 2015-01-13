@@ -79,11 +79,11 @@ module NewRelic
         txn  = tl_current
         name = txn.make_transaction_name(name, options[:category])
 
-        if txn.frame_stack.empty?
-          txn.set_default_transaction_name(name, options)
-        else
+        #if txn.frame_stack.empty?
+        #  txn.set_default_transaction_name(name, options)
+        #else
           txn.name_last_frame(name, options[:category])
-        end
+        #end
       end
 
       def name_last_frame(name, category, source = :child)
@@ -94,13 +94,16 @@ module NewRelic
           return
         end
 
+        #@category = category if source == :api
+
         last_frame.name = name
         last_frame.category = category if category
         # fix - change :child to something more sensible
         if source == :child
           @default_name = name if similar_category?(last_frame)
         elsif source == :api
-          @name_from_api = name if similar_category?(last_frame)
+          @name_from_api = name #removed if similar_category?(last_frame) guard
+          @category = category
         end
       end
 
@@ -110,11 +113,11 @@ module NewRelic
 
         name = txn.make_transaction_name(name, options[:category])
 
-        if txn.frame_stack.empty?
-          txn.set_overriding_transaction_name(name, options)
-        else
+        #if txn.frame_stack.empty?
+        #  txn.set_overriding_transaction_name(name, options)
+        #else
           txn.name_last_frame(name, options[:category], :api)
-        end
+        #end
       end
 
       def make_transaction_name(name, category=nil)
@@ -166,11 +169,12 @@ module NewRelic
           return
         end
 
+        nested_frame = txn.frame_stack.pop
+
         if txn.frame_stack.empty?
-          txn.stop(state, end_time)
+          txn.stop(state, end_time, nested_frame)
           state.reset
         else
-          nested_frame = txn.frame_stack.pop
           nested_name = nested_transaction_name(nested_frame.name)
 
           if nested_name.start_with?(MIDDLEWARE_PREFIX)
@@ -328,6 +332,9 @@ module NewRelic
 
         @trace_options = { :metric => true, :scoped_metric => false }
         @expected_scope = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
+        frame_stack.push @expected_scope
+
+        name_last_frame(@default_name, @category)
       end
 
       # Indicate that you don't want to keep the currently saved transaction
@@ -377,13 +384,13 @@ module NewRelic
         name.start_with?(MIDDLEWARE_PREFIX)
       end
 
-      def stop(state, end_time)
+      def stop(state, end_time, outermost_frame)
         return if !state.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
         ignore! if user_defined_rules_ignore?
 
-        if frame_stack.max_depth > 0
-          name = Transaction.nested_transaction_name(@org_name)
+        if frame_stack.max_depth > 1
+          name = Transaction.nested_transaction_name(outermost_frame.name)
           @trace_options[:scoped_metric] = true
         else
           name = @frozen_name
