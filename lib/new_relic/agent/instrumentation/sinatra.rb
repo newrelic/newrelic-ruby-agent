@@ -126,7 +126,7 @@ module NewRelic
             txn_name = TransactionNamer.transaction_name_for_route(env, request)
             unless txn_name.nil?
               ::NewRelic::Agent::Transaction.set_default_transaction_name(
-                "#{self.class.name}/#{txn_name}", :category => :sinatra)
+                "#{self.class.name}/#{txn_name}", :sinatra)
             end
           rescue => e
             ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)

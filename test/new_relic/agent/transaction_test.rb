@@ -1126,7 +1126,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_set_overriding_transaction_name_sets_name_from_api
     in_transaction('test') do |txn|
-      txn.class.set_overriding_transaction_name('name_from_api', :category => 'category')
+      txn.class.set_overriding_transaction_name('name_from_api', 'category')
 
       assert_equal 'name_from_api', txn.name_from_api
     end

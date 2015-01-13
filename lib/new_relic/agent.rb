@@ -590,7 +590,7 @@ module NewRelic
     # @api public
     #
     def set_transaction_name(name, options={})
-      Transaction.set_overriding_transaction_name(name, options)
+      Transaction.set_overriding_transaction_name(name, options[:category])
     end
 
     # Get the name of the current running transaction.  This is useful if you

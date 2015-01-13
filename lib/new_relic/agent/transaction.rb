@@ -75,10 +75,10 @@ module NewRelic
         TransactionState.tl_get.current_transaction
       end
 
-      def self.set_default_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
+      def self.set_default_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
-        name = txn.make_transaction_name(name, options[:category])
-        txn.set_default_transaction_name(name, options)
+        name = txn.make_transaction_name(name, category)
+        txn.set_default_transaction_name(name, category)
       end
 
       def name_last_frame(name, category)
@@ -88,13 +88,13 @@ module NewRelic
         last_frame.category = category if category
       end
 
-      def self.set_overriding_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
+      def self.set_overriding_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
         txn = tl_current
         return unless txn
 
-        name = txn.make_transaction_name(name, options[:category])
+        name = txn.make_transaction_name(name, category)
 
-        txn.set_overriding_transaction_name(name, options)
+        txn.set_overriding_transaction_name(name, category)
       end
 
       def make_transaction_name(name, category=nil)
@@ -130,10 +130,9 @@ module NewRelic
           txn.filtered_params = options[:filtered_params]
         end
 
-        nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
-        txn.frame_stack.push nested_frame
+        txn.frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
 
-        txn.set_default_transaction_name(options[:transaction_name], :category => category)
+        txn.set_default_transaction_name(options[:transaction_name], category)
       end
 
       FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
@@ -223,6 +222,8 @@ module NewRelic
         @ignore_this_transaction = false
         @ignore_apdex = false
         @ignore_enduser = false
+
+        @trace_options = { :metric => true, :scoped_metric => false }
       end
 
       def noticed_error_ids
@@ -241,19 +242,19 @@ module NewRelic
         @default_name = Helper.correctly_encoded(name)
       end
 
-      def set_default_transaction_name(name, options)
-        name_last_frame(name, options[:category])
+      def set_default_transaction_name(name, category)
+        name_last_frame(name, category)
         if frame_stack.size == 1 || similar_category?(frame_stack.last)
           self.default_name = name
-          @category = options[:category] if options[:category]
+          @category = category if category
         end
       end
 
-      def set_overriding_transaction_name(name, options)
-        name_last_frame(name, options[:category])
+      def set_overriding_transaction_name(name, category)
+        name_last_frame(name, category)
         if frame_stack.size == 1 || similar_category?(frame_stack.last)
           self.name_from_api = name
-          @category = options[:category] if options[:category]
+          @category = category if category
         end
       end
 
@@ -315,7 +316,6 @@ module NewRelic
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
-        @trace_options = { :metric => true, :scoped_metric => false }
         frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
 
         name_last_frame(@default_name, @category)
