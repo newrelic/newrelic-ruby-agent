@@ -94,16 +94,19 @@ module NewRelic
           return
         end
 
-        #@category = category if source == :api
-
         last_frame.name = name
         last_frame.category = category if category
         # fix - change :child to something more sensible
         if source == :child
           @default_name = name if similar_category?(last_frame)
         elsif source == :api
-          @name_from_api = name #removed if similar_category?(last_frame) guard
-          @category = category
+          if frame_stack.size == 1
+            @name_from_api = name #removed if similar_category?(last_frame) guard
+            @category = category if category
+          elsif similar_category?(last_frame)
+            @name_from_api = name
+            @category = category if category
+          end
         end
       end
 

@@ -8,7 +8,7 @@ module NewRelic
       class FrameStack
         extend Forwardable
 
-        def_delegators :@frames, :empty?, :pop, :last
+        def_delegators :@frames, :empty?, :pop, :last, :size
 
         attr_reader :max_depth
 
