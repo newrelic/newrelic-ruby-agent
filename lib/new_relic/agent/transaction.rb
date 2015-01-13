@@ -46,7 +46,8 @@ module NewRelic
                     :filtered_params,
                     :jruby_cpu_start,
                     :process_cpu_start,
-                    :category
+                    :category,
+                    :http_response_code
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -62,7 +63,9 @@ module NewRelic
                   :gc_start_snapshot,
                   :category,
                   :default_name,
-                  :name_from_api
+                  :name_from_api,
+                  :frame_stack,
+                  :cat_path_hashes
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -195,9 +198,6 @@ module NewRelic
         rescue
         end
       end
-
-      attr_reader :frame_stack, :cat_path_hashes
-      attr_accessor :http_response_code
 
       def initialize(category, options)
         @frame_stack = FrameStack.new
