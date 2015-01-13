@@ -78,36 +78,14 @@ module NewRelic
       def self.set_default_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
         txn  = tl_current
         name = txn.make_transaction_name(name, options[:category])
-
-        #if txn.frame_stack.empty?
-        #  txn.set_default_transaction_name(name, options)
-        #else
-          txn.name_last_frame(name, options[:category])
-        #end
+        txn.set_default_transaction_name(name, options)
       end
 
-      def name_last_frame(name, category, source = :child)
+      def name_last_frame(name, category)
         return unless last_frame = frame_stack.last
-
-        unless TRANSACTION_NAMING_SOURCES.include? source
-          NewRelic::Agent.logger.debug("Attempted to name last frame with invalid transaction naming source: #{source}")
-          return
-        end
 
         last_frame.name = name
         last_frame.category = category if category
-        # fix - change :child to something more sensible
-        if source == :child
-          @default_name = name if similar_category?(last_frame)
-        elsif source == :api
-          if frame_stack.size == 1
-            @name_from_api = name #removed if similar_category?(last_frame) guard
-            @category = category if category
-          elsif similar_category?(last_frame)
-            @name_from_api = name
-            @category = category if category
-          end
-        end
       end
 
       def self.set_overriding_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
@@ -116,11 +94,7 @@ module NewRelic
 
         name = txn.make_transaction_name(name, options[:category])
 
-        #if txn.frame_stack.empty?
-        #  txn.set_overriding_transaction_name(name, options)
-        #else
-          txn.name_last_frame(name, options[:category], :api)
-        #end
+        txn.set_overriding_transaction_name(name, options)
       end
 
       def make_transaction_name(name, category=nil)
@@ -159,7 +133,7 @@ module NewRelic
         nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
         txn.frame_stack.push nested_frame
 
-        txn.name_last_frame(options[:transaction_name], category)
+        txn.set_default_transaction_name(options[:transaction_name], :category => category)
       end
 
       FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
@@ -229,10 +203,9 @@ module NewRelic
       def initialize(category, options)
         @frame_stack = FrameStack.new
 
-        @default_name    = Helper.correctly_encoded(options[:transaction_name])
-        @org_name = @default_name
-        @name_from_api   = nil
-        @frozen_name     = nil
+        self.default_name = options[:transaction_name]
+        @name_from_api    = nil
+        @frozen_name      = nil
 
         @category = category
         @start_time = Time.now
@@ -264,15 +237,24 @@ module NewRelic
         @name_from_api = Helper.correctly_encoded(name)
       end
 
-      def set_default_transaction_name(name, options)
+      def default_name=(name)
         @default_name = Helper.correctly_encoded(name)
-        @category = options[:category] if options[:category]
+      end
+
+      def set_default_transaction_name(name, options)
+        name_last_frame(name, options[:category])
+        if frame_stack.size == 1 || similar_category?(frame_stack.last)
+          self.default_name = name
+          @category = options[:category] if options[:category]
+        end
       end
 
       def set_overriding_transaction_name(name, options)
-        @org_name = name
-        self.name_from_api = name
-        set_default_transaction_name(name, options)
+        name_last_frame(name, options[:category])
+        if frame_stack.size == 1 || similar_category?(frame_stack.last)
+          self.name_from_api = name
+          @category = options[:category] if options[:category]
+        end
       end
 
       def best_category
@@ -334,8 +316,7 @@ module NewRelic
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
         @trace_options = { :metric => true, :scoped_metric => false }
-        @expected_scope = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
-        frame_stack.push @expected_scope
+        frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
 
         name_last_frame(@default_name, @category)
       end
@@ -413,7 +394,7 @@ module NewRelic
           start_time.to_f,
           name,
           summary_metrics_with_exclusive_time,
-          @expected_scope,
+          outermost_frame,
           @trace_options,
           end_time.to_f)
 

@@ -1124,21 +1124,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_name_last_frame_sets_default_name
+  def test_set_overriding_transaction_name_sets_name_from_api
     in_transaction('test') do |txn|
-      txn.frame_stack.push NewRelic::Agent::TracedMethodFrame.new('', '')
-
-      txn.name_last_frame('default_name', 'category')
-
-      assert_equal 'default_name', txn.default_name
-    end
-  end
-
-  def test_name_last_frame_sets_name_from_api
-    in_transaction('test') do |txn|
-      txn.frame_stack.push NewRelic::Agent::TracedMethodFrame.new('', '')
-
-      txn.name_last_frame('name_from_api', 'category', :api)
+      txn.class.set_overriding_transaction_name('name_from_api', :category => 'category')
 
       assert_equal 'name_from_api', txn.name_from_api
     end
