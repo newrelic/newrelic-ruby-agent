@@ -27,8 +27,17 @@ DependencyDetection.defer do
       ::NewRelic::VersionNumber.new(::Grape::VERSION) >= ::NewRelic::Agent::GrapeInstrumentation::MIN_VERSION
   end
 
+  depends_on do
+    if defined?(Bundler) && Bundler.rubygems.all_specs.map(&:name).include?("newrelic-grape")
+      ::NewRelic::Agent.logger.info("Not installing native Grape instrumentation because the third party newrelic-grape gem is present")
+      false
+    else
+      true
+    end
+  end
+
   executes do
-    NewRelic::Agent.logger.info 'Installing Grape instrumentation'
+    NewRelic::Agent.logger.info 'Installing native Grape instrumentation'
     instrument_call
   end
 
