@@ -56,5 +56,10 @@ class GrapeTest < Minitest::Test
       delete '/grape_ape/1'
       assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape/:id (DELETE)'])
     end
+
+    def test_transaction_renaming
+      get '/grape_ape/renamed'
+      assert_metrics_recorded(['Controller/Rack/RenamedTxn'])
+    end
   end
 end

@@ -18,6 +18,11 @@ class GrapeTestApi < Grape::API
       'List grape apes!'
     end
 
+    get 'renamed' do
+      ::NewRelic::Agent.set_transaction_name("RenamedTxn")
+      'Totally renamed it.'
+    end
+
     get ':id' do
       'Show grape ape!'
     end
