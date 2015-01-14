@@ -6,7 +6,6 @@ require 'new_relic/agent/transaction_timings'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
-require 'new_relic/agent/transaction/frame_stack'
 
 module NewRelic
   module Agent
@@ -98,7 +97,7 @@ module NewRelic
         txn = state.current_transaction
 
         if txn
-          create_nested_frame(txn, state, category, options)
+          txn.create_nested_frame(state, category, options)
         else
           txn = start_new_transaction(state, category, options)
         end
@@ -114,16 +113,6 @@ module NewRelic
         state.reset(txn)
         txn.start(state)
         txn
-      end
-
-      def self.create_nested_frame(txn, state, category, options)
-        if options[:filtered_params] && !options[:filtered_params].empty?
-          txn.filtered_params = options[:filtered_params]
-        end
-
-        txn.frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
-
-        txn.set_default_transaction_name(options[:transaction_name], category)
       end
 
       FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
@@ -270,7 +259,8 @@ module NewRelic
       end
 
       def initialize(category, options)
-        @frame_stack = FrameStack.new
+        @frame_stack = []
+        @has_children = false
 
         self.default_name = options[:transaction_name]
         @name_from_api    = nil
@@ -310,6 +300,17 @@ module NewRelic
 
       def default_name=(name)
         @default_name = Helper.correctly_encoded(name)
+      end
+
+      def create_nested_frame(state, category, options)
+        @has_children = true
+        if options[:filtered_params] && !options[:filtered_params].empty?
+          @filtered_params = options[:filtered_params]
+        end
+
+        frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
+
+        set_default_transaction_name(options[:transaction_name], category)
       end
 
       def name_last_frame(name, category)
@@ -447,7 +448,7 @@ module NewRelic
         freeze_name_and_execute_if_not_ignored
         ignore! if user_defined_rules_ignore?
 
-        if frame_stack.max_depth > 1
+        if @has_children
           name = Transaction.nested_transaction_name(outermost_frame.name)
           @trace_options[:scoped_metric] = true
         else
