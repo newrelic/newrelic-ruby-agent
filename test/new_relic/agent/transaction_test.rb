@@ -1090,8 +1090,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     in_transaction('test') do |txn|
       txn.category = web_category
-      frame = stub(:category => web_category)
-      assert txn.similar_category?(frame)
+      assert txn.similar_category?(web_category)
     end
   end
 
@@ -1113,31 +1112,11 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_name_last_frame
-    in_transaction('test') do |txn|
-      txn.frame_stack.push NewRelic::Agent::TracedMethodFrame.new('', '')
-
-      txn.name_last_frame('name', 'category')
-
-      assert_equal 'name', txn.frame_stack.last.name
-      assert_equal 'category', txn.frame_stack.last.category
-    end
-  end
-
   def test_set_overriding_transaction_name_sets_name_from_api
     in_transaction('test') do |txn|
       txn.class.set_overriding_transaction_name('name_from_api', 'category')
 
-      assert_equal 'name_from_api', txn.name_from_api
-    end
-  end
-
-  def test_set_overriding_transaction_name_sets_name_from_api
-    in_transaction('test') do |txn|
-      txn.frame_stack.push NewRelic::Agent::TracedMethodFrame.new('', '')
-      NewRelic::Agent::Transaction.set_overriding_transaction_name('override_name')
-
-      assert_equal '/override_name', txn.name_from_api
+      assert_equal 'category/name_from_api', txn.name_from_api
     end
   end
 

@@ -313,40 +313,29 @@ module NewRelic
         set_default_transaction_name(options[:transaction_name], category)
       end
 
-      def name_last_frame(name, category)
-        return unless last_frame = frame_stack.last
-
-        last_frame.name = name
-        last_frame.category = category if category
-      end
-
       def make_transaction_name(name, category=nil)
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
         "#{namer.prefix_for_category(self, category)}#{name}"
       end
 
       def set_default_transaction_name(name, category)
-        name_last_frame(name, category)
-        if frame_stack.size == 1 || similar_category?(frame_stack.last)
+        frame_stack.last.name = name
+        if influences_transaction_name?(category)
           self.default_name = name
           @category = category if category
         end
       end
 
       def set_overriding_transaction_name(name, category)
-        name_last_frame(name, category)
-        if frame_stack.size == 1 || similar_category?(frame_stack.last)
+        frame_stack.last.name = name
+        if influences_transaction_name?(category)
           self.name_from_api = name
           @category = category if category
         end
       end
 
-      def best_category
-        if frame_stack.empty?
-          category
-        else
-          frame_stack.last.category
-        end
+      def influences_transaction_name?(category)
+        !category || frame_stack.size == 1 || similar_category?(category)
       end
 
       def best_name
@@ -389,8 +378,6 @@ module NewRelic
         @frozen_name ? true : false
       end
 
-      # Indicate that we are entering a measured controller action or task.
-      # Make sure you unwind every push with a pop call.
       def start(state)
         return if !state.is_execution_traced?
 
@@ -399,9 +386,9 @@ module NewRelic
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
-        frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
-
-        name_last_frame(@default_name, @category)
+        last_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
+        last_frame.name = @default_name
+        frame_stack.push last_frame
       end
 
       # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
@@ -781,8 +768,8 @@ module NewRelic
         WEB_TRANSACTION_CATEGORIES.include?(category)
       end
 
-      def similar_category?(frame)
-        web_category?(@category) == web_category?(frame.category)
+      def similar_category?(category)
+        web_category?(@category) == web_category?(category)
       end
 
       def cpu_burn
