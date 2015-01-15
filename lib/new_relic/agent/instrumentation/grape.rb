@@ -5,10 +5,11 @@
 module NewRelic
   module Agent
     module GrapeInstrumentation
-      API_ENDPOINT = 'api.endpoint'.freeze
-      FORMAT       = '(.:format)'.freeze
-      EMPTY_STRING = ''.freeze
-      MIN_VERSION  = ::NewRelic::VersionNumber.new("0.2.0")
+      API_ENDPOINT   = 'api.endpoint'.freeze
+      FORMAT         = '(.:format)'.freeze
+      VERSION_PREFIX = ':version/'.freeze
+      EMPTY_STRING   = ''.freeze
+      MIN_VERSION    = ::NewRelic::VersionNumber.new("0.2.0")
     end
   end
 end
@@ -55,7 +56,13 @@ DependencyDetection.defer do
               route_obj = endpoint.route
               if route_obj
                 action_name = route_obj.route_path.sub(::NewRelic::Agent::GrapeInstrumentation::FORMAT,
-                                                        ::NewRelic::Agent::GrapeInstrumentation::EMPTY_STRING)
+                                                       ::NewRelic::Agent::GrapeInstrumentation::EMPTY_STRING)
+
+                if endpoint.version
+                  action_name = action_name.sub(::NewRelic::Agent::GrapeInstrumentation::VERSION_PREFIX,
+                                                "#{endpoint.version}/")
+                end
+
                 method_name = route_obj.route_method
 
                 txn_name = "#{self.class.name}#{action_name} (#{method_name})"
