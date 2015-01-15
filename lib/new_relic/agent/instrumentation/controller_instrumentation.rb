@@ -226,6 +226,7 @@ module NewRelic
             when :uri        then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
             when :sinatra    then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
             when :middleware then ::NewRelic::Agent::Transaction::MIDDLEWARE_PREFIX
+            when :grape      then ::NewRelic::Agent::Transaction::GRAPE_PREFIX
             else "#{category.to_s}/" # for internal use only
             end
           end

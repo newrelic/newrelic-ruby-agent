@@ -20,22 +20,22 @@ unless ::Grape::VERSION == '0.1.5'
 
     def test_version_from_path_is_recorded_in_transaction_name
       get '/v1/fish'
-      assert_metrics_recorded('Controller/Rack/GrapeVersioning::TestApi/v1/fish (GET)')
+      assert_metrics_recorded('Controller/Grape/GrapeVersioning::TestApi/v1/fish (GET)')
     end
 
     def test_when_using_version_from_param_version_is_not_recorded_in_transaction_name
       get '/fish?apiver=v2'
-      assert_metrics_recorded('Controller/Rack/GrapeVersioning::TestApi/fish (GET)')
+      assert_metrics_recorded('Controller/Grape/GrapeVersioning::TestApi/fish (GET)')
     end
 
     def test_when_using_version_from_header_is_not_recorded_in_transaction_name
       get '/fish', nil, 'HTTP_ACCEPT' => "application/vnd.newrelic-v3+json"
-      assert_metrics_recorded('Controller/Rack/GrapeVersioning::TestApi/fish (GET)')
+      assert_metrics_recorded('Controller/Grape/GrapeVersioning::TestApi/fish (GET)')
     end
 
     def test_when_using_version_from_accept_version_header_is_not_recorded_in_transaction_name
       get '/fish', nil, 'HTTP_ACCEPT_VERSION' => 'v4'
-      assert_metrics_recorded('Controller/Rack/GrapeVersioning::TestApi/fish (GET)')
+      assert_metrics_recorded('Controller/Grape/GrapeVersioning::TestApi/fish (GET)')
     end
   end
 end

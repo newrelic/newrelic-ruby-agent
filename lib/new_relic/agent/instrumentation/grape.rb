@@ -71,7 +71,7 @@ DependencyDetection.defer do
                 method_name = route_obj.route_method
 
                 txn_name = "#{self.class.name}#{action_name} (#{method_name})"
-                ::NewRelic::Agent::Transaction.set_default_transaction_name(txn_name)
+                ::NewRelic::Agent::Transaction.set_default_transaction_name(txn_name, :grape)
               end
             end
           rescue => e

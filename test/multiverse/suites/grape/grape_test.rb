@@ -29,36 +29,45 @@ class GrapeTest < Minitest::Test
       assert_raises(GrapeTestApiError) do
         get '/self_destruct'
       end
-      assert_metrics_recorded(['Errors/Controller/Rack/GrapeTestApi/self_destruct (GET)'])
+      assert_metrics_recorded(['Errors/Controller/Grape/GrapeTestApi/self_destruct (GET)'])
     end
 
     def test_getting_a_list_of_grape_apes
       get '/grape_ape'
-      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape (GET)'])
+      assert_metrics_recorded(['Controller/Grape/GrapeTestApi/grape_ape (GET)'])
     end
 
     def test_showing_a_grape_ape
       get '/grape_ape/1'
-      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape/:id (GET)'])
+      assert_metrics_recorded(['Controller/Grape/GrapeTestApi/grape_ape/:id (GET)'])
     end
 
     def test_creating_a_grape_ape
       post '/grape_ape', {}
-      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape (POST)'])
+      assert_metrics_recorded(['Controller/Grape/GrapeTestApi/grape_ape (POST)'])
     end
 
     def test_updating_a_grape_ape
       put '/grape_ape/1', {}
-      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape/:id (PUT)'])
+      assert_metrics_recorded(['Controller/Grape/GrapeTestApi/grape_ape/:id (PUT)'])
     end
 
     def test_deleting_a_grape_ape
       delete '/grape_ape/1'
-      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape/:id (DELETE)'])
+      assert_metrics_recorded(['Controller/Grape/GrapeTestApi/grape_ape/:id (DELETE)'])
     end
 
     def test_transaction_renaming
       get '/grape_ape/renamed'
+      # The second segment here is 'Rack' because of an idiosyncrasy of
+      # the set_transaction_name API: when you call set_transaction_name and
+      # don't provide an explicit category, you lock in the category prefix
+      # that was in use at the time you made the call.
+      #
+      # We may change this behavior in the future, once we have a better
+      # internal representation of the name and category of a transaction as
+      # truly separate entities.
+      #
       assert_metrics_recorded(['Controller/Rack/RenamedTxn'])
     end
   end
