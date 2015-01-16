@@ -45,7 +45,6 @@ module NewRelic
                     :filtered_params,
                     :jruby_cpu_start,
                     :process_cpu_start,
-                    :category,
                     :http_response_code
 
       # Give the current transaction a request context.  Use this to

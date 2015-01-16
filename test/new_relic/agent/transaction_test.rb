@@ -1086,27 +1086,25 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_similar_category?
-    web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.first
+    web_category1 = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.first
+    web_category2 = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.last
 
-    in_transaction('test') do |txn|
-      txn.category = web_category
-      assert txn.similar_category?(web_category)
+    in_transaction('test', :category => web_category1) do |txn|
+      assert txn.similar_category?(web_category2)
     end
   end
 
   def test_similar_category_returns_false_with_mismatched_categories
     web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.first
 
-    in_transaction('test') do |txn|
-      txn.category = web_category
+    in_transaction('test', :category => web_category) do |txn|
       frame = stub(:category => :other)
       refute txn.similar_category?(frame)
     end
   end
 
   def test_similar_category_returns_true_with_nonweb_categories
-    in_transaction('test') do |txn|
-      txn.category = :other
+    in_transaction('test', :category => :other) do |txn|
       frame = stub(:category => :other)
       assert txn.similar_category?(frame)
     end
