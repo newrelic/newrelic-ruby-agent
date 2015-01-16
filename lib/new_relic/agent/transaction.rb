@@ -80,6 +80,7 @@ module NewRelic
       def self.set_default_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
         name = txn.make_transaction_name(name, category)
+        txn.name_last_frame(name)
         txn.set_default_transaction_name(name, category)
       end
 
@@ -89,6 +90,7 @@ module NewRelic
 
         name = txn.make_transaction_name(name, category)
 
+        txn.name_last_frame(name)
         txn.set_overriding_transaction_name(name, category)
       end
 
@@ -289,10 +291,6 @@ module NewRelic
       end
 
       def overridden_name=(name)
-        if @frozen_name
-          NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@frozen_name}'.")
-        end
-
         @overridden_name = Helper.correctly_encoded(name)
       end
 
@@ -307,6 +305,7 @@ module NewRelic
         end
 
         frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
+        name_last_frame(options[:transaction_name])
 
         set_default_transaction_name(options[:transaction_name], category)
       end
@@ -317,7 +316,7 @@ module NewRelic
       end
 
       def set_default_transaction_name(name, category)
-        frame_stack.last.name = name
+        return log_frozen_name(name) if name_frozen?
         if influences_transaction_name?(category)
           self.default_name = name
           @category = category if category
@@ -325,11 +324,20 @@ module NewRelic
       end
 
       def set_overriding_transaction_name(name, category)
-        frame_stack.last.name = name
+        return log_frozen_name(name) if name_frozen?
         if influences_transaction_name?(category)
           self.overridden_name = name
           @category = category if category
         end
+      end
+
+      def name_last_frame(name)
+        frame_stack.last.name = name
+      end
+
+      def log_frozen_name(name)
+        NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@frozen_name}'.")
+        nil
       end
 
       def influences_transaction_name?(category)
@@ -384,9 +392,8 @@ module NewRelic
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
-        last_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
-        last_frame.name = @default_name
-        frame_stack.push last_frame
+        frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
+        name_last_frame @default_name
       end
 
       # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
