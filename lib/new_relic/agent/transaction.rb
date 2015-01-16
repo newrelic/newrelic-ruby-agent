@@ -63,8 +63,6 @@ module NewRelic
                   :metrics,
                   :gc_start_snapshot,
                   :category,
-                  :default_name,
-                  :name_from_api,
                   :frame_stack,
                   :cat_path_hashes
 
@@ -265,7 +263,7 @@ module NewRelic
         @has_children = false
 
         self.default_name = options[:transaction_name]
-        @name_from_api    = nil
+        @overridden_name    = nil
         @frozen_name      = nil
 
         @category = category
@@ -290,12 +288,12 @@ module NewRelic
         @noticed_error_ids ||= []
       end
 
-      def name_from_api=(name)
+      def overridden_name=(name)
         if @frozen_name
           NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@frozen_name}'.")
         end
 
-        @name_from_api = Helper.correctly_encoded(name)
+        @overridden_name = Helper.correctly_encoded(name)
       end
 
       def default_name=(name)
@@ -329,7 +327,7 @@ module NewRelic
       def set_overriding_transaction_name(name, category)
         frame_stack.last.name = name
         if influences_transaction_name?(category)
-          self.name_from_api = name
+          self.overridden_name = name
           @category = category if category
         end
       end
@@ -339,12 +337,12 @@ module NewRelic
       end
 
       def best_name
-        @frozen_name  || @name_from_api ||
+        @frozen_name  || @overridden_name ||
           @default_name || NewRelic::Agent::UNKNOWN_METRIC
       end
 
       def name_set?
-        (@name_from_api || @default_name) ? true : false
+        (@overridden_name || @default_name) ? true : false
       end
 
       def promoted_transaction_name(name)

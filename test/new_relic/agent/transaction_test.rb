@@ -1080,7 +1080,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_transaction_start_sets_default_name_for_transactions_with_matching_categories
     in_transaction('outside_cascade') do
       in_transaction('inside_cascade') do |txn|
-        assert_equal 'inside_cascade', txn.default_name
+        assert_equal 'inside_cascade', txn.best_name
       end
     end
   end
@@ -1114,7 +1114,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction('test') do |txn|
       txn.class.set_overriding_transaction_name('name_from_api', 'category')
 
-      assert_equal 'category/name_from_api', txn.name_from_api
+      assert_equal 'category/name_from_api', txn.best_name
     end
   end
 
