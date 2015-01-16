@@ -3,8 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 unless ::Grape::VERSION == '0.1.5'
-  require "grape"
-  require "newrelic_rpm"
   require 'multiverse_helpers'
   require './grape_versioning_test_api'
 
