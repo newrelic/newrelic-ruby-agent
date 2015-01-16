@@ -33,6 +33,9 @@ module NewRelic
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
       EMPTY_SUMMARY_METRICS        = [].freeze
 
+      TRACE_OPTIONS_SCOPED         = { :metric => true, :scoped_metric => true }.freeze
+      TRACE_OPTIONS_UNSCOPED       = { :metric => true, :scoped_metric => false }.freeze
+
       # A Time instance for the start time, never nil
       attr_accessor :start_time
 
@@ -281,8 +284,6 @@ module NewRelic
         @ignore_this_transaction = false
         @ignore_apdex = false
         @ignore_enduser = false
-
-        @trace_options = { :metric => true, :scoped_metric => false }
       end
 
       def noticed_error_ids
@@ -436,9 +437,10 @@ module NewRelic
 
         if @has_children
           name = Transaction.nested_transaction_name(outermost_frame.name)
-          @trace_options[:scoped_metric] = true
+          trace_options = TRACE_OPTIONS_SCOPED
         else
           name = @frozen_name
+          trace_options = TRACE_OPTIONS_UNSCOPED
         end
 
         # These metrics are recorded here instead of in record_summary_metrics
@@ -456,7 +458,7 @@ module NewRelic
           name,
           summary_metrics_with_exclusive_time,
           outermost_frame,
-          @trace_options,
+          trace_options,
           end_time.to_f)
 
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
