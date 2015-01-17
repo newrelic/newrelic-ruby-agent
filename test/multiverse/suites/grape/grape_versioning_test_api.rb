@@ -41,7 +41,10 @@ unless ::Grape::VERSION == '0.1.5'
     end
 
     class ApiV4 < Grape::API
-      version 'v4', :using => :accept_version_header
+      #version from http accept header is not supported in older versions of grape
+      if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('4.0.0')
+        version 'v4', :using => :accept_version_header
+      end
 
       format :json
 
@@ -52,11 +55,14 @@ unless ::Grape::VERSION == '0.1.5'
       end
     end
 
-    class TestApi < Grape::API
-      mount ApiV1
-      mount ApiV2
-      mount ApiV3
-      mount ApiV4
+    class ApiV5 < Grape::API
+      format :json
+
+      resource :fish do
+        get do
+          "api v5"
+        end
+      end
     end
   end
 end

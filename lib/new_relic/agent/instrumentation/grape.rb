@@ -58,19 +58,21 @@ DependencyDetection.defer do
             endpoint = env[::NewRelic::Agent::GrapeInstrumentation::API_ENDPOINT]
 
             if endpoint
-              route_obj = endpoint.route
-              if route_obj
-                action_name = route_obj.route_path.sub(::NewRelic::Agent::GrapeInstrumentation::FORMAT,
+              route = endpoint.route
+              if route
+                action_name = route.route_path.sub(::NewRelic::Agent::GrapeInstrumentation::FORMAT,
                                                        ::NewRelic::Agent::GrapeInstrumentation::EMPTY_STRING)
 
-                if endpoint.version
+                method_name = route.route_method
+
+                if route.route_version
                   action_name = action_name.sub(::NewRelic::Agent::GrapeInstrumentation::VERSION_PREFIX,
-                                                "#{endpoint.version}/")
+                                                "#{route.route_version}/")
+                  txn_name = "#{self.class.name}-#{route.route_version}#{action_name} (#{method_name})"
+                else
+                  txn_name = "#{self.class.name}#{action_name} (#{method_name})"
                 end
 
-                method_name = route_obj.route_method
-
-                txn_name = "#{self.class.name}#{action_name} (#{method_name})"
                 ::NewRelic::Agent::Transaction.set_default_transaction_name(txn_name, :grape)
               end
             end
