@@ -42,7 +42,7 @@ module NewRelic
           elsif state.in_background_transaction?
             ::NewRelic::Agent::Transaction.set_default_transaction_name(
               transaction_name_suffix_for_job(job),
-              :category => transaction_category)
+              transaction_category)
             block.call
           else
             run_in_transaction(state, job, block)

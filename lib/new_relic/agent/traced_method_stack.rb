@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     class TracedMethodFrame
       attr_reader :tag
-      attr_accessor :name, :start_time, :children_time, :category
+      attr_accessor :name, :start_time, :children_time
       def initialize(tag, start_time)
         @tag = tag
         @start_time = start_time

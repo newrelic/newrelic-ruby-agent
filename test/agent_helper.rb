@@ -276,7 +276,9 @@ end
 #
 def in_transaction(*args)
   opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
-  opts[:transaction_name] = args.first || 'dummy'
+  unless opts.key?(:transaction_name)
+    opts[:transaction_name] = args.first || 'dummy'
+  end
   category = (opts && opts.delete(:category)) || :other
   state = NewRelic::Agent::TransactionState.tl_get
 

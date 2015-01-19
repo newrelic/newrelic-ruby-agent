@@ -352,15 +352,20 @@ module NewRelic
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('new_name', :category => :task)
       end
-      assert engine.lookup_stats('OtherTransaction/Background/new_name')
+
+      assert_metrics_recorded 'OtherTransaction/Background/new_name'
+
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('new_name', :category => :rack)
       end
-      assert engine.lookup_stats('Controller/Rack/new_name')
+
+      assert_metrics_recorded 'Controller/Rack/new_name'
+
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('new_name', :category => :sinatra)
       end
-      assert engine.lookup_stats('Controller/Sinatra/new_name')
+
+      assert_metrics_recorded 'Controller/Sinatra/new_name'
     end
 
     def test_set_transaction_name_uses_current_txn_category_default

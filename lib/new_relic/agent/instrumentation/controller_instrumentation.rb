@@ -218,7 +218,7 @@ module NewRelic
           end
 
           def self.prefix_for_category(txn, category = nil)
-            category ||= (txn && txn.best_category)
+            category ||= (txn && txn.category)
             case category
             when :controller then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
             when :task       then ::NewRelic::Agent::Transaction::TASK_PREFIX

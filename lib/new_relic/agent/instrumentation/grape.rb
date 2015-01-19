@@ -27,10 +27,6 @@ DependencyDetection.defer do
       ::NewRelic::VersionNumber.new(::Grape::VERSION) >= ::NewRelic::Agent::GrapeInstrumentation::MIN_VERSION
   end
 
-  depends_on do
-    false
-  end
-
   executes do
     NewRelic::Agent.logger.info 'Installing Grape instrumentation'
     instrument_call
@@ -54,7 +50,7 @@ DependencyDetection.defer do
                 method_name = route_obj.route_method
 
                 txn_name = "#{self.class.name}#{action_name} (#{method_name})"
-                ::NewRelic::Agent.set_transaction_name(txn_name)
+                ::NewRelic::Agent::Transaction.set_default_transaction_name(txn_name)
               end
             end
           rescue => e
