@@ -59,6 +59,31 @@ module NewRelic
           end
         end
 
+        SUPPORTED_KEYS_GC_STAT = [
+          :gc_runs,
+          :major_gc_count,
+          :minor_gc_count,
+          :thread_count
+        ].freeze
+
+        SUPPORTED_KEYS_GC_RBX_METRICS = [
+          :gc_runs,
+          :heap_live,
+          :major_gc_count,
+          :minor_gc_count,
+          :method_cache_invalidations,
+          :thread_count,
+          :total_allocated_object
+        ].freeze
+
+        def supports?(key)
+          if has_metrics?
+            SUPPORTED_KEYS_GC_RBX_METRICS.include?(key)
+          else
+            SUPPORTED_KEYS_GC_STAT.include?(key)
+          end
+        end
+
         def gather_thread_stats(snap)
           snap.thread_count = Thread.list.size
         end
