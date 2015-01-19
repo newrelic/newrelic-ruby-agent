@@ -98,9 +98,29 @@ module NewRelic::Agent::Configuration
       assert_equal ['Foo'], result
     end
 
+    def test_convert_to_list_raises_on_totally_wrong_object
+      assert_raises(ArgumentError) do
+        DefaultSource.convert_to_list(Object.new)
+      end
+    end
+
     def test_rules_ignore_converts_comma_delimited_string_to_array
       with_config(:'rules.ignore_url_regexes' => 'Foo,Bar,Baz') do
         assert_equal [/Foo/, /Bar/, /Baz/], NewRelic::Agent.config[:'rules.ignore_url_regexes']
+      end
+    end
+
+    def test_config_search_paths_with_home
+      with_environment("HOME" => "/home") do
+        paths = DefaultSource.config_search_paths.call()
+        assert_includes paths, "/home/.newrelic/newrelic.yml"
+        assert_includes paths, "/home/newrelic.yml"
+      end
+    end
+
+    def test_config_search_path_in_warbler
+      with_environment("GEM_HOME" => "/some/path.jar!") do
+        assert_includes DefaultSource.config_search_paths.call(), "/some/path.jar!/path/config/newrelic.yml"
       end
     end
 

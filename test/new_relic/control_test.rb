@@ -227,5 +227,6 @@ class NewRelic::ControlTest < Minitest::Test
     NewRelic::Agent.instance.harvest_samplers.clear
     NewRelic::Agent.instance.instance_variable_set(:@connect_state, :pending)
     NewRelic::Agent.instance.instance_variable_set(:@worker_thread, nil)
+    NewRelic::Agent.instance.harvester.instance_variable_set(:@starting_pid, nil)
   end
 end

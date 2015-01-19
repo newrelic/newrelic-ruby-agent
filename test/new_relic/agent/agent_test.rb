@@ -97,6 +97,34 @@ module NewRelic
         end
       end
 
+      def test_after_fork_should_not_start_agent_multiple_times
+        with_config(:monitor_mode => true) do
+          $queue = Queue.new
+          def @agent.setup_and_start_agent(*_)
+            $queue << 'started!'
+          end
+
+          # This is a hack to make the race condition that we're trying to test
+          # for more likely for the purposes of this test.
+          harvester = @agent.harvester
+          def harvester.mark_started
+            sleep 0.01
+            super
+          end
+
+          threads = []
+          100.times do
+            threads << Thread.new do
+              @agent.after_fork
+            end
+          end
+
+          threads.each(&:join)
+
+          assert_equal(1, $queue.size)
+        end
+      end
+
       def test_transmit_data_should_emit_before_harvest_event
         got_it = false
         @agent.events.subscribe(:before_harvest) { got_it = true }
@@ -199,7 +227,7 @@ module NewRelic
         @agent.stats_engine.expects(:merge!).never
         @agent.error_collector.expects(:merge!).never
         @agent.transaction_sampler.expects(:merge!).never
-        @agent.instance_variable_get(:@request_sampler).expects(:merge!).never
+        @agent.instance_variable_get(:@transaction_event_aggregator).expects(:merge!).never
         @agent.sql_sampler.expects(:merge!).never
         @agent.merge_data_for_endpoint(:metric_data, [])
         @agent.merge_data_for_endpoint(:transaction_sample_data, [])
@@ -232,11 +260,11 @@ module NewRelic
 
       def test_harvest_and_send_analytic_event_data_merges_in_samples_on_failure
         service = @agent.service
-        request_sampler = @agent.instance_variable_get(:@request_sampler)
+        transaction_event_aggregator = @agent.instance_variable_get(:@transaction_event_aggregator)
         samples = [mock('some analytics event')]
 
-        request_sampler.expects(:harvest!).returns(samples)
-        request_sampler.expects(:merge!).with(samples)
+        transaction_event_aggregator.expects(:harvest!).returns(samples)
+        transaction_event_aggregator.expects(:merge!).with(samples)
 
         # simulate a failure in transmitting analytics events
         service.stubs(:analytic_event_data).raises(StandardError.new)
@@ -567,6 +595,43 @@ module NewRelic
         @agent.instance_variable_set(:@event_loop, fake_loop)
 
         @agent.stop_event_loop
+      end
+
+      def test_doesnt_wire_up_utilization_in_resque_child
+        fake_loop = create_utilization_loop
+        fake_loop.expects(:on).with(:report_utilization_data).never
+
+        @agent.stubs(:in_resque_child_process?).returns(true)
+
+        with_config(:collect_utilization => true) do
+          @agent.create_and_run_event_loop
+        end
+      end
+
+      def test_wires_up_utilization_when_not_in_resque
+        fake_loop = create_utilization_loop
+        fake_loop.expects(:on).with(:report_utilization_data).once
+
+        @agent.stubs(:in_resque_child_process?).returns(false)
+
+        with_config(:collect_utilization => true) do
+          @agent.create_and_run_event_loop
+        end
+      end
+
+      def create_utilization_loop
+        fake_loop = stub
+        fake_loop.stubs(:on).with(:report_utilization_data)
+        fake_loop.stubs(:on).with(:report_data)
+        fake_loop.stubs(:on).with(:report_event_data)
+        fake_loop.stubs(:on).with(:reset_log_once_keys)
+
+        fake_loop.stubs(:fire)
+        fake_loop.stubs(:fire_every)
+        fake_loop.stubs(:run)
+
+        @agent.stubs(:create_event_loop).returns(fake_loop)
+        fake_loop
       end
 
       def test_untraced_graceful_disconnect_logs_errors

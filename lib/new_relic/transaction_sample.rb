@@ -16,13 +16,12 @@ module NewRelic
   class TransactionSample
 
     attr_accessor :params, :root_segment, :profile, :force_persist, :guid,
-                  :threshold, :finished, :xray_session_id, :start_time
+                  :threshold, :finished, :xray_session_id, :start_time,
+                  :synthetics_resource_id
     attr_reader :root_segment, :params, :sample_id
     attr_writer :prepared
 
     @@start_time = Time.now
-
-    include TransactionAnalysis
 
     def initialize(time = Time.now.to_f, sample_id = nil)
       @sample_id = sample_id || object_id
@@ -76,7 +75,8 @@ module NewRelic
         string(@guid),
         nil,
         forced?,
-        int_or_nil(xray_session_id)
+        int_or_nil(xray_session_id),
+        string(synthetics_resource_id)
       ]
     end
 
@@ -170,12 +170,6 @@ module NewRelic
 
     def params=(params)
       @params = params
-    end
-
-    def force_persist_sample? #THREAD_LOCAL_ACCESS
-      state = NewRelic::Agent::TransactionState.tl_get
-
-      state.request_token && self.duration > state.current_transaction.apdex_t
     end
 
   private

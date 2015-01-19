@@ -11,13 +11,13 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     @sysinfo.clear_processor_info
   end
 
-  test_dir = File.join(cross_agent_tests_dir, 'proc_cpuinfo')
+  cpuinfo_test_dir = File.join(cross_agent_tests_dir, 'proc_cpuinfo')
 
-  Dir.chdir(test_dir) do
+  Dir.chdir(cpuinfo_test_dir) do
     Dir.glob("*.txt") do |file|
       if file =~ /^((\d+|X)pack_(\d+|X)core_(\d+|X)logical).txt$/
         test_name = "test_#{$1}"
-        test_path = File.join(test_dir, file)
+        test_path = File.join(cpuinfo_test_dir, file)
 
         num_physical_packages  = $2.to_i
         num_physical_cores     = $3.to_i
@@ -41,5 +41,21 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     end
   end
 
+  container_id_test_dir   = File.join(cross_agent_tests_dir, 'docker_container_id')
+  container_id_test_cases = load_cross_agent_test(File.join('docker_container_id', 'cases'))
+
+  container_id_test_cases.each do |test_case|
+    filename = test_case['filename']
+    basename = File.basename(filename, '.txt')
+    test_name = "test_container_id_#{basename}"
+
+    define_method(test_name) do
+      input = File.read(File.join(container_id_test_dir, filename))
+      container_id = @sysinfo.parse_docker_container_id(input)
+
+      message = "Parsed incorrect Docker container ID from #{filename}"
+      assert_equal(test_case['containerId'], container_id, message)
+    end
+  end
 end
 

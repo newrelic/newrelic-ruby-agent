@@ -236,8 +236,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_name_is_unset_if_nil
-    in_transaction do |txn|
-      txn.default_name = nil
+    in_transaction(:transaction_name => nil) do |txn|
       assert !txn.name_set?
     end
   end
@@ -343,24 +342,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     refute found_guid
   end
 
-  def test_end_fires_a_transaction_finished_event_with_guid_if_request_token_and_too_long
-    guid = nil
-    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-      guid = payload[:guid]
-    end
-
-    with_config(:apdex_t => 2.0) do
-      freeze_time
-      in_transaction do
-        state = NewRelic::Agent::TransactionState.tl_get
-        state.request_token = 'token'
-        advance_time 4.0
-      end
-    end
-
-    refute_empty guid
-  end
-
   def test_end_fires_a_transaction_finished_event_with_guid_if_referring_transaction
     guid = nil
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
@@ -438,6 +419,23 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_guid_in_finish_event_payload_if_incoming_synthetics_header
+    keys = []
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      keys = payload.keys
+    end
+
+    raw_synthetics_header = 'dummy data'
+    synthetics_payload    = [123, 456, 789, 111]
+
+    in_transaction do |txn|
+      txn.raw_synthetics_header = raw_synthetics_header
+      txn.synthetics_payload    = synthetics_payload
+    end
+
+    assert_includes keys, :guid
+  end
+
   def test_cross_app_fields_in_finish_event_payload
     keys = []
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
@@ -464,7 +462,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       advance_time(10)
 
       state = NewRelic::Agent::TransactionState.tl_get
-      state.request_token = 'token'
       state.is_cross_app_caller = false
     end
 
@@ -472,6 +469,73 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     refute_includes keys, :cat_path_hash
   end
 
+  def test_is_not_synthetic_request_without_payload
+    in_transaction do |txn|
+      txn.raw_synthetics_header = ""
+      refute txn.is_synthetics_request?
+    end
+  end
+
+  def test_is_not_synthetic_request_without_header
+    in_transaction do |txn|
+      txn.synthetics_payload = [1,2,3,4,5]
+      refute txn.is_synthetics_request?
+    end
+  end
+
+  def test_is_synthetic_request
+    in_transaction do |txn|
+      txn.raw_synthetics_header = ""
+      txn.synthetics_payload = [1,2,3,4,5]
+      assert txn.is_synthetics_request?
+    end
+  end
+
+  def test_synthetics_accessors
+    in_transaction do
+      state = NewRelic::Agent::TransactionState.tl_get
+      txn = state.current_transaction
+      txn.synthetics_payload = [1,2,3,4,5]
+
+      assert_equal 1, txn.synthetics_version
+      assert_equal 2, txn.synthetics_account_id
+      assert_equal 3, txn.synthetics_resource_id
+      assert_equal 4, txn.synthetics_job_id
+      assert_equal 5, txn.synthetics_monitor_id
+    end
+  end
+
+  def test_synthetics_fields_in_finish_event_payload
+    keys = []
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      keys = payload.keys
+    end
+
+    in_transaction do |txn|
+      txn.raw_synthetics_header = "something"
+      txn.synthetics_payload = [1, 1, 100, 200, 300]
+    end
+
+    assert_includes keys, :synthetics_resource_id
+    assert_includes keys, :synthetics_job_id
+    assert_includes keys, :synthetics_monitor_id
+  end
+
+  def test_synthetics_fields_not_in_finish_event_payload_if_no_cross_app_calls
+    keys = []
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      keys = payload.keys
+    end
+
+    in_transaction do |txn|
+      # Make totally sure we're not synthetic
+      txn.raw_synthetics_header = nil
+    end
+
+    refute_includes keys, :synthetics_resource_id
+    refute_includes keys, :synthetics_job_id
+    refute_includes keys, :synthetics_monitor_id
+  end
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
     expects_logging(:warn, includes("add_custom_parameters"))
     in_transaction do
@@ -944,6 +1008,113 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
         txn.stubs(:uri).returns('http://foo.com/bar/baz')
         NewRelic::Agent::HTTPClients::URIUtil.expects(:filter_uri).never
       end
+    end
+  end
+
+  def test_user_defined_rules_ignore_logs_uri_parsing_failures
+    with_config(:rules => { :ignore_url_regexes => ['notempty'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo bar.com')
+        NewRelic::Agent.logger.expects(:debug)
+        NewRelic::Agent.logger.expects(:debug).with(regexp_matches(/foo bar.com/), anything).at_least_once
+      end
+    end
+  end
+
+  def test_user_defined_rules_ignore_returns_false_if_cannot_parse_uri
+    with_config(:rules => { :ignore_url_regexes => ['notempty'] }) do
+      in_transaction do |txn|
+        txn.stubs(:uri).returns('http://foo bar.com')
+        refute txn.user_defined_rules_ignore?
+      end
+    end
+  end
+
+  def test_stop_resets_the_transaction_state_if_there_is_an_error
+    in_transaction do |txn|
+      state = mock
+      state.stubs(:current_transaction).raises(StandardError, 'StandardError')
+
+      state.expects(:reset)
+      NewRelic::Agent::Transaction.stop(state)
+    end
+  end
+
+  def test_doesnt_record_queue_time_if_it_is_zero
+    in_transaction('boo') do
+      # nothing
+    end
+    assert_metrics_not_recorded(['WebFrontend/QueueTime'])
+  end
+
+  def test_doesnt_record_scoped_queue_time_metric
+    t0 = freeze_time
+    advance_time 10.0
+    in_transaction('boo', :apdex_start_time => t0) do
+      # nothing
+    end
+    assert_metrics_recorded('WebFrontend/QueueTime' => { :call_count => 1, :total_call_time => 10.0 })
+    assert_metrics_not_recorded(
+      [['WebFrontend/QueueTime', 'boo']]
+    )
+  end
+
+  def test_doesnt_record_crazy_high_queue_times
+    t0 = freeze_time(Time.at(10.0))
+    advance_time(40 * 365 * 24 * 60 * 60) # 40 years
+    in_transaction('boo', :apdex_start_time => t0) do
+      # nothing
+    end
+    assert_metrics_not_recorded(['WebFrontend/QueueTime'])
+  end
+
+  def test_background_transactions_with_ignore_rules_are_ok
+    with_config(:'rules.ignore_url_regexes' => ['foobar']) do
+      in_transaction('foo') do
+      end
+    end
+
+    assert_metrics_recorded(['foo'])
+  end
+
+  def test_transaction_start_sets_default_name_for_transactions_with_matching_categories
+    in_transaction('outside_cascade') do
+      in_transaction('inside_cascade') do |txn|
+        assert_equal 'inside_cascade', txn.best_name
+      end
+    end
+  end
+
+  def test_similar_category?
+    web_category1 = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.first
+    web_category2 = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.last
+
+    in_transaction('test', :category => web_category1) do |txn|
+      assert txn.similar_category?(web_category2)
+    end
+  end
+
+  def test_similar_category_returns_false_with_mismatched_categories
+    web_category = NewRelic::Agent::Transaction::WEB_TRANSACTION_CATEGORIES.first
+
+    in_transaction('test', :category => web_category) do |txn|
+      frame = stub(:category => :other)
+      refute txn.similar_category?(frame)
+    end
+  end
+
+  def test_similar_category_returns_true_with_nonweb_categories
+    in_transaction('test', :category => :other) do |txn|
+      frame = stub(:category => :other)
+      assert txn.similar_category?(frame)
+    end
+  end
+
+  def test_set_overriding_transaction_name_sets_name_from_api
+    in_transaction('test') do |txn|
+      txn.class.set_overriding_transaction_name('name_from_api', 'category')
+
+      assert_equal 'category/name_from_api', txn.best_name
     end
   end
 

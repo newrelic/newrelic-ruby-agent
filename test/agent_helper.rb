@@ -216,6 +216,19 @@ def assert_metrics_not_recorded(not_expected)
   assert_equal([], found_but_not_expected, "Found unexpected metrics: #{format_metric_spec_list(found_but_not_expected)}")
 end
 
+def assert_no_metrics_match(regex)
+  matching_metrics = []
+  NewRelic::Agent.instance.stats_engine.metrics.each do |metric|
+    matching_metrics << metric if metric.match regex
+  end
+
+  assert_equal(
+    [],
+    matching_metrics,
+    "Found unexpected metrics:\n" +  matching_metrics.map { |m| "  '#{m}'"}.join("\n") + "\n\n"
+  )
+end
+
 def format_metric_spec_list(specs)
   spec_strings = specs.map do |spec|
     "#{spec.name} (#{spec.scope.empty? ? '<unscoped>' : spec.scope})"
@@ -224,12 +237,12 @@ def format_metric_spec_list(specs)
 end
 
 def assert_truthy(expected, msg = nil)
-  msg = "Expected #{expected.inspect} to be truthy"
+  msg ||= "Expected #{expected.inspect} to be truthy"
   assert !!expected, msg
 end
 
 def assert_falsy(expected, msg = nil)
-  msg = "Expected #{expected.inspect} to be falsy"
+  msg ||= "Expected #{expected.inspect} to be falsy"
   assert !expected, msg
 end
 
@@ -263,20 +276,19 @@ end
 #
 def in_transaction(*args)
   opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
-  opts[:transaction_name] = args.first || 'dummy'
+  unless opts.key?(:transaction_name)
+    opts[:transaction_name] = args.first || 'dummy'
+  end
   category = (opts && opts.delete(:category)) || :other
   state = NewRelic::Agent::TransactionState.tl_get
 
   NewRelic::Agent::Transaction.start(state, category, opts)
-
   val = nil
-
   begin
     val = yield state.current_transaction
   ensure
     NewRelic::Agent::Transaction.stop(state)
   end
-
   val
 end
 
@@ -414,7 +426,7 @@ def advance_time(seconds)
   freeze_time(Time.now + seconds)
 end
 
-def with_constant_defined(constant_symbol, implementation)
+def with_constant_defined(constant_symbol, implementation=Module.new)
   const_path = constant_path(constant_symbol.to_s)
 
   if const_path
@@ -520,6 +532,19 @@ def with_environment(env)
   end
 end
 
+def with_argv(argv)
+  old_argv = ARGV.dup
+  ARGV.clear
+  ARGV.concat(argv)
+
+  begin
+    yield
+  ensure
+    ARGV.clear
+    ARGV.concat(old_argv)
+  end
+end
+
 def with_ignore_error_filter(filter, &blk)
   original_filter = NewRelic::Agent.ignore_error_filter
   NewRelic::Agent.ignore_error_filter(&filter)
@@ -534,7 +559,7 @@ def json_dump_and_encode(object)
 end
 
 def get_last_analytics_event
-  NewRelic::Agent.agent.instance_variable_get(:@request_sampler).samples.last
+  NewRelic::Agent.agent.instance_variable_get(:@transaction_event_aggregator).samples.last
 end
 
 def swap_instance_method(target, method_name, new_method_implementation, &blk)

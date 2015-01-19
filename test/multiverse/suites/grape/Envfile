@@ -1,0 +1,13 @@
+suite_condition("Grape is only supported for versions >= 1.9.3") do
+  RUBY_VERSION >= '1.9.3'
+end
+
+versions = %w(0.9.0 0.8.0 0.7.0 0.6.1 0.5.0 0.4.1 0.3.2 0.2.6 0.2.0 0.1.5)
+
+versions.each do |version|
+  gemfile <<-RB
+    gem 'rack'
+    gem 'rack-test'
+    gem 'grape', '~> #{version}'
+  RB
+end

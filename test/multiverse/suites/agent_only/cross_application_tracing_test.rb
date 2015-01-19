@@ -42,18 +42,18 @@ class CrossApplicationTracingTest < Minitest::Test
   end
 
   def test_cross_app_doesnt_modify_with_invalid_header
-    get '/', nil, {'X-NewRelic-ID' => Base64.encode64('otherjunk')}
+    get '/', nil, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('otherjunk')}
     assert_nil last_response.headers["X-NewRelic-App-Data"]
   end
 
   def test_cross_app_writes_out_information
-    get '/', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
+    get '/', nil, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')}
     refute_nil last_response.headers["X-NewRelic-App-Data"]
     assert_metrics_recorded(['ClientApplication/1#234/all'])
   end
 
   def test_cross_app_doesnt_modify_if_txn_is_ignored
-    get '/', {'transaction_name' => 'ignored_transaction'}, {'X-NewRelic-ID' => Base64.encode64('1#234')}
+    get '/', {'transaction_name' => 'ignored_transaction'}, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')}
     assert_nil last_response.headers["X-NewRelic-App-Data"]
   end
 
@@ -62,15 +62,18 @@ class CrossApplicationTracingTest < Minitest::Test
     if !test_case["outboundRequests"]
       if test_case['inboundPayload']
         request_headers = {
-          'X-NewRelic-ID'          => Base64.encode64('1#234'),
-          'X-NewRelic-Transaction' => json_dump_and_encode(test_case['inboundPayload'])
+          'HTTP_X_NEWRELIC_ID'          => Base64.encode64('1#234'),
+          'HTTP_X_NEWRELIC_TRANSACTION' => json_dump_and_encode(test_case['inboundPayload'])
         }
       else
         request_headers = {}
       end
 
       define_method("test_#{test_case['name']}") do
-        txn_category, txn_name = test_case['transactionName'].split('/')
+        txn_name_parts = test_case['transactionName'].split('/')
+        txn_category   = txn_name_parts[0..1].join('/')
+        txn_name       = txn_name_parts[2..-1].join('/')
+
         request_params = {
           'transaction_name' => txn_name,
           'transaction_category' => txn_category,

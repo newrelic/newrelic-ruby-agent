@@ -76,7 +76,6 @@ module NewRelic
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
     require 'new_relic/collection_helper'
-    require 'new_relic/transaction_analysis'
     require 'new_relic/transaction_sample'
     require 'new_relic/url_rule'
     require 'new_relic/noticed_error'
@@ -456,6 +455,37 @@ module NewRelic
       agent.pop_trace_execution_flag
     end
 
+    # Record a custom event to be sent to New Relic Insights.
+    # The recorded event will be buffered in memory until the next time the
+    # agent sends data to New Relic's servers.
+    #
+    # If you want to be able to tie the information recorded via this call back
+    # to the web request or background job that it happened in, you may want to
+    # instead use the add_custom_parameters API call to attach attributes to
+    # the Transaction event that will automatically be generated for the
+    # request.
+    #
+    # A timestamp will be automatically added to the recorded event when this
+    # method is called.
+    #
+    # @param [Symbol or String] event_type The name of the event type to record. Event
+    #                           types must consist of only alphanumeric
+    #                           characters, '_', ':', or ' '.
+    #
+    # @param [Hash] event_attrs A Hash of attributes to be attached to the event.
+    #                           Keys should be strings or symbols, and values
+    #                           may be strings, symbols, numeric values or
+    #                           booleans.
+    #
+    # @api public
+    #
+    def record_custom_event(event_type, event_attrs)
+      if agent && NewRelic::Agent.config[:'custom_insights_events.enabled']
+        agent.custom_event_aggregator.record(event_type, event_attrs)
+      end
+      nil
+    end
+
     # Check to see if we are capturing metrics currently on this thread.
     def tl_is_execution_traced?
       NewRelic::Agent::TransactionState.tl_get.is_execution_traced?
@@ -513,11 +543,13 @@ module NewRelic
       nil # don't return a noticed error datastructure. it can only hurt.
     end
 
-    # Add parameters to any Transaction Trace, Error or Analytics Events that
-    # are recorded during the current transaction.
+    # Add parameters to the transaction trace, Insights Transaction event, and
+    # any traced errors recorded for the current transaction.
     #
-    # If configured to allow it, these custom parameters will also be present
-    # in the RUM script injected into the page.
+    # If Browser Monitoring is enabled, and the
+    # browser_monitoring.capture_attributes configuration setting is enabled,
+    # these custom parameters will also be present in the RUM script injected
+    # into the response body, making them available on Insights PageView events.
     #
     # @api public
     #
@@ -560,7 +592,7 @@ module NewRelic
     # @api public
     #
     def set_transaction_name(name, options={})
-      Transaction.set_overriding_transaction_name(name, options)
+      Transaction.set_overriding_transaction_name(name, options[:category])
     end
 
     # Get the name of the current running transaction.  This is useful if you

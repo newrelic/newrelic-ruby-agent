@@ -1,0 +1,317 @@
+[
+  {
+    "name": "valid_synthetics_request",
+    "settings": {
+      "agentEncodingKey": "1234567890123456789012345678901234567890",
+      "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
+      "transactionGuid": "9323dc260548ed0e",
+      "trustedAccountIds": [
+        444
+      ]
+    },
+    "inputHeaderPayload": [
+      1,
+      444,
+      "rrrrrrr-rrrr-1234-rrrr-rrrrrrrrrrrr",
+      "jjjjjjj-jjjj-1234-jjjj-jjjjjjjjjjjj",
+      "mmmmmmm-mmmm-1234-mmmm-mmmmmmmmmmmm"
+    ],
+    "inputObfuscatedHeader": {
+      "X-NewRelic-Synthetics": "agMfAAECGxpLQkNAQUZHG0VKS0IcAwEHARtFSktCHEBBRkdERUpLQkNAQRYZFF1SU1pbWFkZX1xdUhQBAwEHGV9cXVIUWltYWV5fXF1SU1pbEB8WWFtaVVRdXB9eWVhbGgkLAwUfXllYWxpVVF1cX15ZWFtaVVQSbA=="
+    },
+    "outputTransactionTrace": {
+      "header": {
+        "field_9": "rrrrrrr-rrrr-1234-rrrr-rrrrrrrrrrrr"
+      },
+      "expectedIntrinsics": {
+        "synthetics_resource_id": "rrrrrrr-rrrr-1234-rrrr-rrrrrrrrrrrr",
+        "synthetics_job_id": "jjjjjjj-jjjj-1234-jjjj-jjjjjjjjjjjj",
+        "synthetics_monitor_id": "mmmmmmm-mmmm-1234-mmmm-mmmmmmmmmmmm"
+      },
+      "nonExpectedIntrinsics": []
+    },
+    "outputTransactionEvent": {
+      "expectedAttributes": {
+        "nr.guid": "9323dc260548ed0e",
+        "nr.syntheticsResourceId": "rrrrrrr-rrrr-1234-rrrr-rrrrrrrrrrrr",
+        "nr.syntheticsJobId": "jjjjjjj-jjjj-1234-jjjj-jjjjjjjjjjjj",
+        "nr.syntheticsMonitorId": "mmmmmmm-mmmm-1234-mmmm-mmmmmmmmmmmm"
+      },
+      "nonExpectedAttributes": []
+    },
+    "outputExternalRequestHeader": {
+      "expectedHeader": {
+        "X-NewRelic-Synthetics": "agMfAAECGxpLQkNAQUZHG0VKS0IcAwEHARtFSktCHEBBRkdERUpLQkNAQRYZFF1SU1pbWFkZX1xdUhQBAwEHGV9cXVIUWltYWV5fXF1SU1pbEB8WWFtaVVRdXB9eWVhbGgkLAwUfXllYWxpVVF1cX15ZWFtaVVQSbA=="
+      },
+      "nonExpectedHeader": []
+    }
+  },
+  {
+    "name": "non_synthetics_request",
+    "settings": {
+      "agentEncodingKey": "1234567890123456789012345678901234567890",
+      "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
+      "transactionGuid": "9323dc260548ed0e",
+      "trustedAccountIds": [
+        444
+      ]
+    },
+    "inputHeaderPayload": [],
+    "inputObfuscatedHeader": {},
+    "outputTransactionTrace": {
+      "header": {
+        "field_9": null
+      },
+      "expectedIntrinsics": {},
+      "nonExpectedIntrinsics": [
+        "synthetics_resource_id",
+        "synthetics_job_id",
+        "synthetics_monitor_id"
+      ]
+    },
+    "outputTransactionEvent": {
+      "expectedAttributes": {},
+      "nonExpectedAttributes": [
+        "nr.syntheticsResourceId",
+        "nr.syntheticsJobId",
+        "nr.syntheticsMonitorId"
+      ]
+    },
+    "outputExternalRequestHeader": {
+      "expectedHeader": {},
+      "nonExpectedHeader": [
+        "X-NewRelic-Synthetics"
+      ]
+    }
+  },
+  {
+    "name": "invalid_synthetics_request_unsupported_version",
+    "settings": {
+      "encodingKey": "1234567890123456789012345678901234567890",
+      "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
+      "transactionGuid": "9323dc260548ed0e",
+      "trustedAccountIds": [
+        444
+      ]
+    },
+    "inputHeaderPayload": [
+      777,
+      444,
+      "rrrrrrr-rrrr-1234-rrrr-rrrrrrrrrrrr",
+      "jjjjjjj-jjjj-1234-jjjj-jjjjjjjjjjjj",
+      "mmmmmmm-mmmm-1234-mmmm-mmmmmmmmmmmm"
+    ],
+    "inputObfuscatedHeader": {
+      "X-NewRelic-Synthetics": "agUEAxkCAwwVEkNAQUZHREUVS0JDQB4FBwUDFUtCQ0AeRkdERUpLQkNAQUZHFBsaU1pbWFleXxtdUlNaHAMBBwEbXVJTWhxYWV5fXF1SU1pbWFkWGRRaVVRdXF9eGVhbWlUUAQMBBxlYW1pVFF1cX15ZWFtaVVRdXBBu"
+    },
+    "outputTransactionTrace": {
+      "header": {
+        "field_9": null
+      },
+      "expectedIntrinsics": {},
+      "nonExpectedIntrinsics": [
+        "synthetics_resource_id",
+        "synthetics_job_id",
+        "synthetics_monitor_id"
+      ]
+    },
+    "outputTransactionEvent": {
+      "expectedAttributes": {},
+      "nonExpectedAttributes": [
+        "nr.syntheticsResourceId",
+        "nr.syntheticsJobId",
+        "nr.syntheticsMonitorId"
+      ]
+    },
+    "outputExternalRequestHeader": {
+      "expectedHeader": {},
+      "nonExpectedHeader": [
+        "X-NewRelic-Synthetics"
+      ]
+    }
+  },
+  {
+    "name": "invalid_synthetics_request_untrusted_account_id",
+    "settings": {
+      "encodingKey": "1234567890123456789012345678901234567890",
+      "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
+      "transactionGuid": "9323dc260548ed0e",
+      "trustedAccountIds": [
+        444
+      ]
+    },
+    "inputHeaderPayload": [
+      1,
+      999,
+      "rrrrrrr-rrrr-1234-rrrr-rrrrrrrrrrrr",
+      "jjjjjjj-jjjj-1234-jjjj-jjjjjjjjjjjj",
+      "mmmmmmm-mmmm-1234-mmmm-mmmmmmmmmmmm"
+    ],
+    "inputObfuscatedHeader": {
+      "X-NewRelic-Synthetics": "agMfDQwPGxpLQkNAQUZHG0VKS0IcAwEHARtFSktCHEBBRkdERUpLQkNAQRYZFF1SU1pbWFkZX1xdUhQBAwEHGV9cXVIUWltYWV5fXF1SU1pbEB8WWFtaVVRdXB9eWVhbGgkLAwUfXllYWxpVVF1cX15ZWFtaVVQSbA=="
+    },
+    "outputTransactionTrace": {
+      "header": {
+        "field_9": null
+      },
+      "expectedIntrinsics": {},
+      "nonExpectedIntrinsics": [
+        "synthetics_resource_id",
+        "synthetics_job_id",
+        "synthetics_monitor_id"
+      ]
+    },
+    "outputTransactionEvent": {
+      "expectedAttributes": {},
+      "nonExpectedAttributes": [
+        "nr.syntheticsResourceId",
+        "nr.syntheticsJobId",
+        "nr.syntheticsMonitorId"
+      ]
+    },
+    "outputExternalRequestHeader": {
+      "expectedHeader": {},
+      "nonExpectedHeader": [
+        "X-NewRelic-Synthetics"
+      ]
+    }
+  },
+  {
+    "name": "invalid_synthetics_request_mismatched_encoding_key",
+    "settings": {
+      "encodingKey": "0000000000000000000000000000000000000000",
+      "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
+      "transactionGuid": "9323dc260548ed0e",
+      "trustedAccountIds": [
+        444
+      ]
+    },
+    "inputHeaderPayload": [
+      1,
+      444,
+      "rrrrrrr-rrrr-1234-rrrr-rrrrrrrrrrrr",
+      "jjjjjjj-jjjj-1234-jjjj-jjjjjjjjjjjj",
+      "mmmmmmm-mmmm-1234-mmmm-mmmmmmmmmmmm"
+    ],
+    "inputObfuscatedHeader": {
+      "X-NewRelic-Synthetics": "agMfAAECGxpLQkNAQUZHG0VKS0IcAwEHARtFSktCHEBBRkdERUpLQkNAQRYZFF1SU1pbWFkZX1xdUhQBAwEHGV9cXVIUWltYWV5fXF1SU1pbEB8WWFtaVVRdXB9eWVhbGgkLAwUfXllYWxpVVF1cX15ZWFtaVVQSbA=="
+    },
+    "outputTransactionTrace": {
+      "header": {
+        "field_9": null
+      },
+      "expectedIntrinsics": {},
+      "nonExpectedIntrinsics": [
+        "synthetics_resource_id",
+        "synthetics_job_id",
+        "synthetics_monitor_id"
+      ]
+    },
+    "outputTransactionEvent": {
+      "expectedAttributes": {},
+      "nonExpectedAttributes": [
+        "nr.syntheticsResourceId",
+        "nr.syntheticsJobId",
+        "nr.syntheticsMonitorId"
+      ]
+    },
+    "outputExternalRequestHeader": {
+      "expectedHeader": {},
+      "nonExpectedHeader": [
+        "X-NewRelic-Synthetics"
+      ]
+    }
+  },
+  {
+    "name": "invalid_synthetics_request_too_few_header_elements",
+    "settings": {
+      "encodingKey": "1234567890123456789012345678901234567890",
+      "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
+      "transactionGuid": "9323dc260548ed0e",
+      "trustedAccountIds": [
+        444
+      ]
+    },
+    "inputHeaderPayload": [
+      1,
+      444,
+      "rrrrrrr-rrrr-1234-rrrr-rrrrrrrrrrrr",
+      "jjjjjjj-jjjj-1234-jjjj-jjjjjjjjjjjj"
+    ],
+    "inputObfuscatedHeader": {
+      "X-NewRelic-Synthetics": "agMfAAECGxpLQkNAQUZHG0VKS0IcAwEHARtFSktCHEBBRkdERUpLQkNAQRYZFF1SU1pbWFkZX1xdUhQBAwEHGV9cXVIUWltYWV5fXF1SU1pbEG4="
+    },
+    "outputTransactionTrace": {
+      "header": {
+        "field_9": null
+      },
+      "expectedIntrinsics": {},
+      "nonExpectedIntrinsics": [
+        "synthetics_resource_id",
+        "synthetics_job_id",
+        "synthetics_monitor_id"
+      ]
+    },
+    "outputTransactionEvent": {
+      "expectedAttributes": {},
+      "nonExpectedAttributes": [
+        "nr.syntheticsResourceId",
+        "nr.syntheticsJobId",
+        "nr.syntheticsMonitorId"
+      ]
+    },
+    "outputExternalRequestHeader": {
+      "expectedHeader": {},
+      "nonExpectedHeader": [
+        "X-NewRelic-Synthetics"
+      ]
+    }
+  },
+  {
+    "name": "invalid_synthetics_request_too_many_header_elements",
+    "settings": {
+      "encodingKey": "1234567890123456789012345678901234567890",
+      "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
+      "transactionGuid": "9323dc260548ed0e",
+      "trustedAccountIds": [
+        444
+      ]
+    },
+    "inputHeaderPayload": [
+      1,
+      444,
+      "rrrrrrr-rrrr-1234-rrrr-rrrrrrrrrrrr",
+      "jjjjjjj-jjjj-1234-jjjj-jjjjjjjjjjjj",
+      "mmmmmmm-mmmm-1234-mmmm-mmmmmmmmmmmm",
+      "this doesn't belong here"
+    ],
+    "inputObfuscatedHeader": {
+      "X-NewRelic-Synthetics": "agMfAAECGxpLQkNAQUZHG0VKS0IcAwEHARtFSktCHEBBRkdERUpLQkNAQRYZFF1SU1pbWFkZX1xdUhQBAwEHGV9cXVIUWltYWV5fXF1SU1pbEB8WWFtaVVRdXB9eWVhbGgkLAwUfXllYWxpVVF1cX15ZWFtaVVQSHRBHXFxFF1xWVUJcFEAVVFJUVl5WEltRR1MVZQ=="
+    },
+    "outputTransactionTrace": {
+      "header": {
+        "field_9": null
+      },
+      "expectedIntrinsics": {},
+      "nonExpectedIntrinsics": [
+        "synthetics_resource_id",
+        "synthetics_job_id",
+        "synthetics_monitor_id"
+      ]
+    },
+    "outputTransactionEvent": {
+      "expectedAttributes": {},
+      "nonExpectedAttributes": [
+        "nr.syntheticsResourceId",
+        "nr.syntheticsJobId",
+        "nr.syntheticsMonitorId"
+      ]
+    },
+    "outputExternalRequestHeader": {
+      "expectedHeader": {},
+      "nonExpectedHeader": [
+        "X-NewRelic-Synthetics"
+      ]
+    }
+  }
+]

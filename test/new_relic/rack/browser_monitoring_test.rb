@@ -66,6 +66,7 @@ EOL
       :'rum.enabled' => true,
       :license_key => 'a' * 40,
       :js_agent_loader => 'loader',
+      :disable_harvest_thread => true
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
   end
@@ -83,10 +84,10 @@ EOL
     end
   end
 
-  def test_should_only_instrument_successfull_html_requests
-    assert app.should_instrument?({}, 200, {'Content-Type' => 'text/html'})
-    assert !app.should_instrument?({}, 500, {'Content-Type' => 'text/html'})
-    assert !app.should_instrument?({}, 200, {'Content-Type' => 'text/xhtml'})
+  def test_should_only_instrument_successful_html_requests
+    assert app.should_instrument?({}, 200, {'Content-Type' => 'text/html'}), "Expected to instrument 200 requests."
+    assert !app.should_instrument?({}, 500, {'Content-Type' => 'text/html'}), "Expected not to instrument 500 requests."
+    assert !app.should_instrument?({}, 200, {'Content-Type' => 'text/xhtml'}), "Expected not to instrument requests with content type other than text/html."
   end
 
   def test_should_not_instrument_when_content_disposition
@@ -176,24 +177,6 @@ EOL
     get '/'
 
     assert last_response.ok?
-  end
-
-  def test_token_is_set_in_footer_when_set_by_cookie
-    token = '1234567890987654321'
-    set_cookie "NRAGENT=tk=#{token}"
-    get '/'
-
-    assert(last_response.body.include?(token), last_response.body)
-  end
-
-  def test_guid_is_set_in_footer_when_token_is_set
-    guid = 'abcdefgfedcba'
-    NewRelic::Agent::Transaction.any_instance.stubs(:guid).returns(guid)
-    set_cookie "NRAGENT=tk=token"
-    with_config(:apdex_t => 0.0001) do
-      get '/'
-      assert(last_response.body.include?(guid), last_response.body)
-    end
   end
 
   def test_calculate_content_length_accounts_for_multibyte_characters_for_186

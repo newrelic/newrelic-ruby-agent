@@ -100,7 +100,6 @@ module NewRelic::Agent
       state.is_cross_app_caller = true
       state.client_cross_app_id = :client_cross_app_id
       state.referring_transaction_info = :referring_transaction_info
-      state.request_token = :request_token
       state.busy_entries = 1
       state.sql_sampler_transaction_data = Object.new
       state.transaction_sample_builder = Object.new

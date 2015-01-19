@@ -146,14 +146,14 @@ module NewRelic
     end
 
     def check_for_resque
-      using_resque = (
-        defined?(::Resque) &&
-        (ENV['QUEUE'] || ENV['QUEUES']) &&
-        (File.basename($0) == 'rake' && ARGV.include?('resque:work'))
-      ) || (
-        defined?(::Resque::Pool) &&
-        (File.basename($0) == 'resque-pool')
-      )
+      has_queue              = ENV['QUEUE'] || ENV['QUEUES']
+      resque_rake            = executable == 'rake' && ARGV.include?('resque:work')
+      resque_pool_rake       = executable == 'rake' && ARGV.include?('resque:pool')
+      resque_pool_executable = executable == 'resque-pool' && defined?(::Resque::Pool)
+
+      using_resque = defined?(::Resque) &&
+        (has_queue && resque_rake) ||
+        (resque_pool_executable || resque_pool_rake)
 
       @discovered_dispatcher = :resque if using_resque
     end
@@ -196,6 +196,10 @@ module NewRelic
       s = "LocalEnvironment["
       s << ";dispatcher=#{@discovered_dispatcher}" if @discovered_dispatcher
       s << "]"
+    end
+
+    def executable
+      File.basename($0)
     end
 
   end

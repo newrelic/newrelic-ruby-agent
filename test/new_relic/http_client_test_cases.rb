@@ -32,8 +32,7 @@ module HttpClientTestCases
     $fake_secure_server.run
 
     NewRelic::Agent.instance.events.notify(:finished_configuring)
-
-    @engine = NewRelic::Agent.instance.stats_engine
+    NewRelic::Agent::CrossAppTracing.instance_variable_set(:@obfuscator, nil)
   end
 
   # Helpers to support shared tests
@@ -476,6 +475,28 @@ module HttpClientTestCases
     end
   end
 
+  def test_raw_synthetics_header_is_passed_along_if_present
+    with_config(:"cross_application_tracer.enabled" => true) do
+      in_transaction do
+        state = NewRelic::Agent::TransactionState.tl_get
+        state.current_transaction.raw_synthetics_header = "boo"
+
+        get_response
+
+        assert_equal "boo", server.requests.last["HTTP_X_NEWRELIC_SYNTHETICS"]
+      end
+    end
+  end
+
+  def test_no_raw_synthetics_header_if_not_present
+    with_config(:"cross_application_tracer.enabled" => true) do
+      in_transaction do
+        get_response
+        refute_includes server.requests.last.keys, "HTTP_X_NEWRELIC_SYNTHETICS"
+      end
+    end
+  end
+
   load_cross_agent_test("cat_map").each do |test_case|
     # Test cases that don't involve outgoing calls are done elsewhere
     if test_case['outboundRequests']
@@ -485,6 +506,8 @@ module HttpClientTestCases
           :'cross_application_tracer.enabled' => true
         }
         with_config(config) do
+          NewRelic::Agent.instance.events.notify(:finished_configuring)
+
           in_transaction do
             state = NewRelic::Agent::TransactionState.tl_get
             state.referring_transaction_info = test_case['inboundPayload']
@@ -511,6 +534,52 @@ module HttpClientTestCases
         )
       end
     end
+  end
+
+  # These tests only cover receiving, validating, and passing on the synthetics
+  # request header to any outgoing HTTP requests. They do *not* cover attaching
+  # of appropriate data to analytics events or transaction traces.
+  #
+  # The tests in agent_only/synthetics_test.rb cover that.
+  load_cross_agent_test('synthetics/synthetics').each do |test|
+    define_method("test_synthetics_http_#{test['name']}") do
+      config = {
+        :encoding_key        => test['settings']['agentEncodingKey'],
+        :trusted_account_ids => test['settings']['trustedAccountIds'],
+        :'cross_application_tracer.enabled' => true
+      }
+
+      with_config(config) do
+        NewRelic::Agent.instance.events.notify(:finished_configuring)
+
+        fake_rack_env = {}
+        test['inputObfuscatedHeader'].each do |key, value|
+          fake_rack_env[http_header_name_to_rack_key(key)] = value
+        end
+
+        in_transaction do
+          NewRelic::Agent.agent.events.notify(:before_call, fake_rack_env)
+          get_response
+
+          last_outbound_request = server.requests.last
+          header_specs = test['outputExternalRequestHeader']
+
+          header_specs['expectedHeader'].each do |key, value|
+            expected_key = http_header_name_to_rack_key(key)
+            assert_equal(value, last_outbound_request[expected_key])
+          end
+
+          header_specs['nonExpectedHeader'].each do |key|
+            non_expected_key = http_header_name_to_rack_key(key)
+            refute_includes(last_outbound_request.keys, non_expected_key)
+          end
+        end
+      end
+    end
+  end
+
+  def http_header_name_to_rack_key(name)
+    "HTTP_" + name.upcase.gsub('-', '_')
   end
 
   def make_app_data_payload( *args )

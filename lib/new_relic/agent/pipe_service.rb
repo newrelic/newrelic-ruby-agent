@@ -32,6 +32,10 @@ module NewRelic
         write_to_pipe(:analytic_event_data, events) if events
       end
 
+      def custom_event_data(events)
+        write_to_pipe(:custom_event_data, events) if events
+      end
+
       def metric_data(unsent_timeslice_data)
         write_to_pipe(:metric_data, unsent_timeslice_data)
         {}

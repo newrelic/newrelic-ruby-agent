@@ -110,7 +110,9 @@ module NewRelic
         @sample.params[:custom_params] ||= {}
         @sample.params[:custom_params].merge!(normalize_params(custom_params))
 
-        @sample.force_persist = sample.force_persist_sample?
+        # If we ever implement saving of TTs based on the record_tt flag on the
+        # calling and called applications, we should change this flag's value.
+        @sample.force_persist = false
         @sample.threshold = transaction_trace_threshold
         @sample.finished = true
         @current_segment = nil

@@ -104,11 +104,46 @@ class CoerceTest < Minitest::Test
     )
   end
 
-  def test_event_params_coerce_only_allow_values_that_are_strings_symbols_floats_or_ints
+  def test_event_params_coerce_only_allow_values_that_are_strings_symbols_floats_or_ints_or_bools
     assert_equal(
-      {'foo' => 1.0, 'bar' => 2, 'bang' => 'woot', 'ok' => 'dokey'},
+      {
+        'foo'    => 1.0,
+        'bar'    => 2,
+        'bang'   => 'woot',
+        'ok'     => 'dokey',
+        'truthy' => true,
+        'falsy'  => false
+      },
       event_params(
-        {'foo' => 1.0, 'bar' => 2, 'bang' => 'woot', 'ok' => :dokey, 'bad' => [], 'worse' => {}, 'nope' => Rational(1)}
+        {
+          'foo'    => 1.0,
+          'bar'    => 2,
+          'bang'   => 'woot',
+          'ok'     => :dokey,
+          'bad'    => [],
+          'worse'  => {},
+          'nope'   => Rational(1),
+          'truthy' => true,
+          'falsy'  => false
+        }
+      )
+    )
+  end
+
+  def test_event_params_turns_nan_or_infinity_into_null
+    assert_equal(
+      {
+        'nan'  => nil,
+        'inf'  => nil,
+        'ninf' => nil
+      },
+      event_params(
+        {
+          # Ruby 1.8.7 doesn't have Float::NAN, INFINITY so we have to hack it
+          'nan'  => 0.0  / 0.0,
+          'inf'  => 1.0  / 0.0,
+          'ninf' => -1.0 / 0.0
+        }
       )
     )
   end

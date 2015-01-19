@@ -7,6 +7,14 @@ require 'forwardable'
 module NewRelic
   module Agent
     module Configuration
+
+      # Helper since default Procs are evaluated in the context of this module
+      def self.value_of(key)
+        Proc.new do
+          NewRelic::Agent.config[key]
+        end
+      end
+
       class Boolean; end
 
       class DefaultSource
@@ -47,6 +55,12 @@ module NewRelic
             if ENV["HOME"]
               paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
               paths << File.join(ENV["HOME"], "newrelic.yml")
+            end
+
+            # If we're packaged for warbler, we can tell from GEM_HOME
+            if ENV["GEM_HOME"] && ENV["GEM_HOME"].end_with?(".jar!")
+              app_name = File.basename(ENV["GEM_HOME"], ".jar!")
+              paths << File.join(ENV["GEM_HOME"], app_name, "config", "newrelic.yml")
             end
 
             paths
@@ -122,10 +136,6 @@ module NewRelic
           Proc.new { NewRelic::Agent::Threading::BacktraceService.is_supported? }
         end
 
-        def self.browser_monitoring_auto_instrument
-          Proc.new { NewRelic::Agent.config[:'rum.enabled'] }
-        end
-
         # This check supports the js_errors_beta key we've asked clients to
         # set. Once JS errors are GA, browser_monitoring.loader can stop
         # being dynamic.
@@ -133,44 +143,12 @@ module NewRelic
           Proc.new { NewRelic::Agent.config[:js_errors_beta] ? "full" : "rum"}
         end
 
-        def self.slow_sql_record_sql
-          Proc.new { NewRelic::Agent.config[:'transaction_tracer.record_sql'] }
-        end
-
-        def self.slow_sql_explain_enabled
-          Proc.new { NewRelic::Agent.config[:'transaction_tracer.explain_enabled'] }
-        end
-
-        def self.slow_sql_explain_threshold
-          Proc.new { NewRelic::Agent.config[:'transaction_tracer.explain_threshold'] }
-        end
-
-        def self.slow_sql_enabled
-          Proc.new { NewRelic::Agent.config[:'transaction_tracer.enabled'] }
-        end
-
         def self.transaction_tracer_transaction_threshold
           Proc.new { NewRelic::Agent.config[:apdex_t] * 4 }
         end
 
-        def self.disable_activerecord_instrumentation
-          Proc.new { NewRelic::Agent.config[:skip_ar_instrumentation] }
-        end
-
-        def self.api_port
-          Proc.new { NewRelic::Agent.config[:port] }
-        end
-
         def self.port
           Proc.new { NewRelic::Agent.config[:ssl] ? 443 : 80 }
-        end
-
-        def self.strip_exception_messages_enabled
-          Proc.new { NewRelic::Agent.config[:high_security] }
-        end
-
-        def self.developer_mode
-          Proc.new { NewRelic::Agent.config[:developer] }
         end
 
         def self.profiling_available
@@ -182,10 +160,6 @@ module NewRelic
               false
             end
           }
-        end
-
-        def self.monitor_mode
-          Proc.new { NewRelic::Agent.config[:enabled] }
         end
 
         def self.rules_ignore
@@ -202,8 +176,10 @@ module NewRelic
           case value
           when String
             value.split(',')
-          else
+          when Array
             value
+          else
+            raise ArgumentError.new("Config value '#{value}' couldn't be turned into a list.")
           end
         end
       end
@@ -286,13 +262,13 @@ module NewRelic
           :description => 'Semicolon-delimited list of <a href="/docs/apm/new-relic-apm/installation-and-configuration/naming-your-application">application names</a> to which the agent will report metrics (e.g. \'MyApplication\' or \'MyAppStaging;Instance1\'). For more information, see <a href="/docs/apm/new-relic-apm/installation-and-configuration/naming-your-application">Naming your application</a>.'
         },
         :monitor_mode => {
-          :default => DefaultSource.monitor_mode,
+          :default => value_of(:enabled),
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable the transmission of data to the New Relic <a href="/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>).'
         },
         :developer_mode => {
-          :default => DefaultSource.developer_mode,
+          :default => value_of(:developer),
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable developer mode, a local analytics package built into the agent for rack applications. Access developer mode analytics by visiting <b>/newrelic</b> in your application.'
@@ -420,7 +396,7 @@ module NewRelic
           :description => 'Enables or disables the agent for background processes. No longer necessary as the agent now automatically instruments background processes.'
         },
         :'strip_exception_messages.enabled' => {
-          :default => DefaultSource.strip_exception_messages_enabled,
+          :default => value_of(:high_security),
           :public => true,
           :type => Boolean,
           :description => 'Defines whether the agent should strip messages from all exceptions that are not specified in the whitelist. Enabled automatically in <a href="/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>.'
@@ -450,7 +426,7 @@ module NewRelic
           :description => 'Port for the New Relic data collection service.'
         },
         :api_port => {
-          :default => DefaultSource.api_port,
+          :default => value_of(:port),
           :public => false,
           :type => Fixnum,
           :description => 'Port for the New Relic API host.'
@@ -614,7 +590,7 @@ module NewRelic
           :description => 'Enable or disable active record instrumentation.'
         },
         :disable_activerecord_instrumentation => {
-          :default => DefaultSource.disable_activerecord_instrumentation,
+          :default => value_of(:skip_ar_instrumentation),
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable active record instrumentation.'
@@ -725,25 +701,25 @@ module NewRelic
           :description  => 'Defines whether the agent will install <a href="/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.'
         },
         :'slow_sql.enabled' => {
-          :default => DefaultSource.slow_sql_enabled,
+          :default => value_of(:'transaction_tracer.enabled'),
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable collection of slow SQL queries.'
         },
         :'slow_sql.explain_threshold' => {
-          :default => DefaultSource.slow_sql_explain_threshold,
+          :default => value_of(:'transaction_tracer.explain_threshold'),
           :public => true,
           :type => Float,
           :description => 'Defines a duration threshold, over which the agent will collect explain plans in slow SQL queries.'
         },
         :'slow_sql.explain_enabled' => {
-          :default => DefaultSource.slow_sql_explain_enabled,
+          :default => value_of(:'transaction_tracer.explain_enabled'),
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable the collection of explain plans in slow SQL queries. If this setting is omitted, the transaction_tracer.explain_enabled setting will be applied as the default setting for explain plans in Slow SQL as well.'
         },
         :'slow_sql.record_sql' => {
-          :default => DefaultSource.slow_sql_record_sql,
+          :default => value_of(:'transaction_tracer.record_sql'),
           :public => true,
           :type => String,
           :description => 'Defines an obfuscation level for slow SQL queries. Valid options are <code>obfuscated</code>, <code>raw</code>, <code>none</code>).'
@@ -815,7 +791,7 @@ module NewRelic
           :description => 'Javascript agent file for real user monitoring.'
         },
         :'browser_monitoring.auto_instrument' => {
-          :default => DefaultSource.browser_monitoring_auto_instrument,
+          :default => value_of(:'rum.enabled'),
           :public => true,
           :type => Boolean,
           :description => 'Enable or disable automatic insertion of the JavaScript header into outgoing responses for page load timing (sometimes referred to as real user monitoring or RUM).'
@@ -1079,6 +1055,7 @@ module NewRelic
           :default      => ['scheduler', 'run'],
           :public       => true,
           :type         => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description  => 'List of prefixes for heroku dyno names (such as "scheduler") to report as hostname without trailing dot and process ID.'
         },
         :labels => {
@@ -1088,7 +1065,7 @@ module NewRelic
           :description  => 'A dictionary of label names and values that will be applied to the data sent from this agent. May also be expressed as a semi-colon delimited string of colon-separated pairs (e.g. "Server:One;Data Center:Primary".'
         },
         :aggressive_keepalive => {
-          :default      => false,
+          :default      => true,
           :public       => false,
           :type         => Boolean,
           :description  => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'
@@ -1106,15 +1083,57 @@ module NewRelic
           :type         => String,
           :description  => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic's data collection service."
         },
+        :collect_utilization => {
+          :default      => false,
+          :public       => false,
+          :type         => Boolean,
+          :description  => "Controls whether to collect processor and instance sizing data and send it to New Relic"
+        },
         :'rules.ignore_url_regexes' => {
           :default      => [],
           :public       => true,
           :type         => Array,
           :transform    => DefaultSource.rules_ignore,
           :description  => 'A list of patterns that will cause a transaction to be ignored if any of them match the URI.'
-         }
+        },
+        :'synthetics.traces_limit' => {
+          :default      => 20,
+          :public       => false,
+          :type         => Fixnum,
+          :description  => 'Maximum number of synthetics transaction traces to hold for a given harvest'
+        },
+        :'synthetics.events_limit' => {
+          :default      => 200,
+          :public       => false,
+          :type         => Fixnum,
+          :description  => 'Maximum number of synthetics transaction events to hold for a given harvest'
+        },
+        :'custom_insights_events.enabled' => {
+          :default      => true,
+          :public       => true,
+          :type         => Boolean,
+          :description  => 'Enable or disable custom Insights event recording.'
+        },
+        :'custom_insights_events.max_samples_stored' => {
+          :default      => 1000,
+          :public       => true,
+          :type         => Fixnum,
+          :description  => 'Maximum number of custom Insights events buffered in memory at a time.',
+          :dynamic_name => true
+        },
+        :disable_grape_instrumentation => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :description  => 'Disables installation of Grape instrumentation.'
+        },
+        :disable_grape => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :description  => 'Disables installation of Grape instrumentation.'
+        }
       }.freeze
-
     end
   end
 end

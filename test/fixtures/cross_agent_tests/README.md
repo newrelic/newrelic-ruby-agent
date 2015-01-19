@@ -13,7 +13,6 @@ Please be careful when adding new tests from real world failures.
 | [rum_footer_insertion_location](rum_footer_insertion_location) | Describe where the RUM footer (aka "client config") should be inserted.  These tests do not apply to agents which insert the footer directly after the loader. |
 | [rules.json](rules.json) | Describe how url/metric/txn-name rules should be applied. |
 | [rum_client_config.json](rum_client_config.json) | These tests dictate the format and contents of the browser monitoring client configuration.  For more information see: [SPEC](https://newrelic.atlassian.net/wiki/display/eng/JavaScript+Agent+Auto-Instrumentation) |
-| [rum_cookie.json](rum_cookie.json)      | These tests indicate the format requirements of a valid RUM cookie. |
 | [sql_parsing.json](sql_parsing.json) | These tests show how an SQL string should be parsed for the operation and table name. |
 | [url_clean.json](url_clean.json) | These tests show how URLs should be cleaned before putting them into a trace segment's parameter hash (under the key 'uri'). |
 | [url_domain_extraction.json](url_domain_extraction.json) | These tests show how the domain of a URL should be extracted (for the purpose of creating external metrics). |
@@ -21,14 +20,19 @@ Please be careful when adding new tests from real world failures.
 | [sql_obfuscation](sql_obfuscation) | Describe how agents should obfuscate SQL queries before transmission to the collector. |
 | [attribute_configuration](attribute_configuration.json) | These tests show how agents should respond to the various attribute configuration settings.  For more information see: [Attributes SPEC](https://newrelic.atlassian.net/wiki/display/eng/Agent+Attributes) |
 | [cat_map](cat_map.json) | These tests cover the new Dirac attributes that are added for the CAT Map project. See the [CAT Map Spec](https://newrelic.jiveon.com/docs/DOC-1798) and the section below for details.|
-| [labels](labels.json) | These tests cover the Labels for Language Agents project. See the [Labels for Language Agents Spec](https://newrelic.atlassian.net/wiki/display/eng/Labels+for+Language+Agents+-+draft+spec) for details.|
+| [labels](labels.json) | These tests cover the Labels for Language Agents project. See the [Labels for Language Agents Spec](https://newrelic.atlassian.net/wiki/display/eng/Labels+for+Language+Agents) for details.|
 | [proc_cpuinfo](proc_cpuinfo) | These test correct processing of `/proc/cpuinfo` output on Linux hosts. |
+| [proc_meminfo](proc_meminfo) | These test correct processing of `/proc/meminfo` output on Linux hosts. |
+| [transaction_segment_terms.json](transaction_segment_terms.json) | These tests cover agent implementations of the `transaction_segment_terms` transaction renaming rules introduced in collector protocol 14. See [the spec](https://newrelic.atlassian.net/wiki/display/eng/Language+agent+transaction+segment+terms+rules) for details. |
+| [docker_container_id](docker_container_id) | These tests cover parsing of Docker container IDs from `/proc/*/cgroup` on Linux hosts. |
 
 ### CAT Map test details
 
 The CAT map test cases in `cat_map.json` are meant to be used to verify the
 attributes that agents collect and attach to analytics transaction events for
 the CAT map project.
+
+**NOTE** currently `nr.apdexPerfZone` is not covered by these tests, make sure you test for this yourself until it is added to these tests.
 
 Each test case should correspond to a simulated transaction in the agent under
 test. Here's what the various fields in each test case mean:

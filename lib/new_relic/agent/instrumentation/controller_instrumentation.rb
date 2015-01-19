@@ -213,12 +213,12 @@ module NewRelic
         end
 
         class TransactionNamer
-          def self.name(txn, traced_obj, category, options={})
+          def self.name_for(txn, traced_obj, category, options={})
             "#{prefix_for_category(txn, category)}#{path_name(traced_obj, options)}"
           end
 
           def self.prefix_for_category(txn, category = nil)
-            category ||= (txn && txn.best_category)
+            category ||= (txn && txn.category)
             case category
             when :controller then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
             when :task       then ::NewRelic::Agent::Transaction::TASK_PREFIX
@@ -330,16 +330,17 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           state.request = newrelic_request(args)
 
-          # Skip instrumentation based on the value of 'do_not_trace?' and if
-          # we aren't calling directly with a block.
-          if !block_given? && do_not_trace?
-            state.current_transaction.ignore! if state.current_transaction
-            NewRelic::Agent.disable_all_tracing do
-              return perform_action_without_newrelic_trace(*args)
+          skip_tracing = do_not_trace? || !state.is_execution_traced?
+          if skip_tracing
+            if block_given?
+              return yield
+            else
+              state.current_transaction.ignore! if state.current_transaction
+              NewRelic::Agent.disable_all_tracing do
+                return perform_action_without_newrelic_trace(*args)
+              end
             end
           end
-
-          return yield unless state.is_execution_traced?
 
           # If a block was passed in, then the arguments represent options for
           # the instrumentation, not app method arguments.
@@ -354,7 +355,7 @@ module NewRelic
 
           category    = trace_options[:category] || :controller
           txn_options = create_transaction_options(trace_options, available_params)
-          txn_options[:transaction_name] = TransactionNamer.name(nil, self, category, trace_options)
+          txn_options[:transaction_name] = TransactionNamer.name_for(nil, self, category, trace_options)
           txn_options[:apdex_start_time] = detect_queue_start_time(state)
 
           begin

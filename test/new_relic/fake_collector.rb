@@ -53,9 +53,10 @@ module NewRelic
     end
 
     attr_accessor :agent_data, :mock
+    attr_reader :last_socket
 
-    def initialize(ssl=false)
-      super(DEFAULT_PORT, ssl)
+    def initialize
+      super(DEFAULT_PORT)
       @id_counter = 0
       @mock = {
         'get_redirect_host'       => Response.new(200, {'return_value' => 'localhost'}),
@@ -69,6 +70,8 @@ module NewRelic
         'profile_data'            => Response.new(200, {'return_value' => nil}),
         'shutdown'                => Response.new(200, {'return_value' => nil}),
         'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
+        'custom_event_data'       => Response.new(200, {'return_value' => nil}),
+        'utilization_data'        => Response.new(200, {'return_value' => nil}),
       }
       reset
     end
@@ -98,6 +101,8 @@ module NewRelic
     end
 
     def call(env)
+      @last_socket = Thread.current[:WEBrickSocket]
+
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
       uri = URI.parse(req.url)
@@ -198,8 +203,12 @@ module NewRelic
           TransactionSampleDataPost.new(opts)
         when 'analytic_event_data'
           AnalyticEventDataPost.new(opts)
+        when 'custom_event_data'
+          AnalyticEventDataPost.new(opts)
         when 'error_data'
           ErrorDataPost.new(opts)
+        when 'utilization_data'
+          UtilizationDataPost.new(opts)
         else
           new(opts)
         end
@@ -284,6 +293,10 @@ module NewRelic
         def xray_id
           @body[8]
         end
+
+        def synthetics_resource_id
+          @body[9]
+        end
       end
 
       class SubmittedTransactionTraceTree
@@ -332,6 +345,20 @@ module NewRelic
       def initialize(opts={})
         super
         @errors = @body[1].map { |e| SubmittedError.new(e) }
+      end
+    end
+
+    class UtilizationDataPost < AgentPost
+
+      attr_reader :hostname, :container_id, :cpu_count, :instance_type
+
+      def initialize(opts={})
+        super
+        @hostname, @container_id, @cpu_count, @instance_type = body
+      end
+
+      def ==(other)
+        @body == other.body
       end
     end
 

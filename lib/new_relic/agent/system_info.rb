@@ -24,43 +24,52 @@ module NewRelic
         if @processor_info.nil?
           case ruby_os_identifier
 
-          when /darwin/, /freebsd/
+          when /darwin/
             @processor_info = {
-              :num_physical_packages  => `sysctl -n hw.packages`.to_i,
-              :num_physical_cores     => `sysctl -n hw.physicalcpu_max`.to_i,
-              :num_logical_processors => `sysctl -n hw.logicalcpu_max`.to_i
+              :num_physical_packages  => sysctl_value('hw.packages').to_i,
+              :num_physical_cores     => sysctl_value('hw.physicalcpu_max').to_i,
+              :num_logical_processors => sysctl_value('hw.logicalcpu_max').to_i
             }
             # in case those don't work, try backup values
             if @processor_info[:num_physical_cores] <= 0
-              @processor_info[:num_physical_cores] = `sysctl -n hw.physicalcpu`.to_i
+              @processor_info[:num_physical_cores] = sysctl_value('hw.physicalcpu').to_i
             end
             if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = `sysctl -n hw.logicalcpu`.to_i
+              @processor_info[:num_logical_processors] = sysctl_value('hw.logicalcpu').to_i
             end
             if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = `sysctl -n hw.ncpu`.to_i
-            end
-            if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = `sysctl -n hw.availcpu`.to_i
-            end
-            if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = `sysctl -n hw.activecpu`.to_i
+              @processor_info[:num_logical_processors] = sysctl_value('hw.ncpu').to_i
             end
 
           when /linux/
             cpuinfo = proc_try_read('/proc/cpuinfo')
             @processor_info = cpuinfo ? parse_cpuinfo(cpuinfo) : {}
+
+          when /freebsd/
+            @processor_info = {
+              :num_physical_packages  => nil,
+              :num_physical_cores     => nil,
+              :num_logical_processors => sysctl_value('hw.ncpu').to_i
+            }
           end
 
           # give nils for obviously wrong values
           @processor_info.keys.each do |key|
-            @processor_info[key] = nil if @processor_info[key] <= 0
+            value = @processor_info[key]
+            if value.is_a?(Numeric) && value <= 0
+              @processor_info[key] = nil
+            end
           end
         end
 
         @processor_info
       rescue
         {}
+      end
+
+      def self.sysctl_value(name)
+        # make sure to redirect stderr so we don't spew if the name is unknown
+        `sysctl -n #{name} 2>/dev/null`
       end
 
       def self.parse_cpuinfo(cpuinfo)
@@ -122,6 +131,51 @@ module NewRelic
 
       def self.os_version
         proc_try_read('/proc/version')
+      end
+
+      def self.docker_container_id
+        return unless ruby_os_identifier =~ /linux/
+
+        cgroup_info = proc_try_read('/proc/self/cgroup')
+        return unless cgroup_info
+
+        parse_docker_container_id(cgroup_info)
+      end
+
+      def self.parse_docker_container_id(cgroup_info)
+        cpu_cgroup = parse_cgroup_ids(cgroup_info)['cpu']
+        return unless cpu_cgroup
+
+        case cpu_cgroup
+        # docker native driver w/out systemd (fs)
+        when %r{^/docker/([0-9a-f]+)$}                      then $1
+        # docker native driver with systemd
+        when %r{^/system\.slice/docker-([0-9a-f]+)\.scope$} then $1
+        # docker lxc driver
+        when %r{^/lxc/([0-9a-f]+)$}                         then $1
+        # not in any cgroup
+        when '/'                                            then nil
+        # in a cgroup, but we don't recognize its format
+        else
+          ::NewRelic::Agent.logger.debug("Ignoring unrecognized cgroup ID format: '#{cpu_cgroup}'")
+          nil
+        end
+      end
+
+      def self.parse_cgroup_ids(cgroup_info)
+        cgroup_ids = {}
+
+        cgroup_info.split("\n").each do |line|
+          parts = line.split(':')
+          next unless parts.size == 3
+          _, subsystems, cgroup_id = parts
+          subsystems = subsystems.split(',')
+          subsystems.each do |subsystem|
+            cgroup_ids[subsystem] = cgroup_id
+          end
+        end
+
+        cgroup_ids
       end
 
       # A File.read against /(proc|sysfs)/* can hang with some older Linuxes.

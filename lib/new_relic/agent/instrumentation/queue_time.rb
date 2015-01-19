@@ -49,11 +49,6 @@ module NewRelic
           earliest
         end
 
-        def record_frontend_metrics(start_time, now=Time.now) #THREAD_LOCAL_ACCESS
-          NewRelic::Agent.instance.stats_engine.tl_record_unscoped_metrics(
-            ALL_QUEUE_METRIC, (now - start_time).to_f)
-        end
-
         def timestamp_string_from_header_value(value)
           case value
           when /^\s*([\d+\.]+)\s*$/ then $1

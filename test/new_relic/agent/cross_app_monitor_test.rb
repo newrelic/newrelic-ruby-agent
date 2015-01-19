@@ -6,8 +6,9 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 module NewRelic::Agent
   class CrossAppMonitorTest < Minitest::Test
-    NEWRELIC_ID_HEADER        = NewRelic::Agent::CrossAppMonitor::NEWRELIC_ID_HEADER
-    NEWRELIC_TXN_HEADER       = NewRelic::Agent::CrossAppMonitor::NEWRELIC_TXN_HEADER
+    NEWRELIC_ID_HEADER        = NewRelic::Agent::CrossAppMonitor::NEWRELIC_ID_HEADER_KEY
+    NEWRELIC_TXN_HEADER       = NewRelic::Agent::CrossAppMonitor::NEWRELIC_TXN_HEADER_KEY
+    CONTENT_LENGTH_KEY        = "HTTP_CONTENT_LENGTH"
 
     AGENT_CROSS_APP_ID        = "qwerty"
     REQUEST_CROSS_APP_ID      = "42#1234"
@@ -29,19 +30,20 @@ module NewRelic::Agent
 
     def setup
       NewRelic::Agent.reset_config
-      NewRelic::Agent.instance.stats_engine.clear_stats
-      NewRelic::Agent.instance.events.clear
+      NewRelic::Agent.drop_buffered_data
+      @events = NewRelic::Agent::EventListener.new
       @response = {}
 
-      @monitor = NewRelic::Agent::CrossAppMonitor.new
+      @monitor = NewRelic::Agent::CrossAppMonitor.new(@events)
       @config = {
-        :cross_process_id    => AGENT_CROSS_APP_ID,
-        :encoding_key        => ENCODING_KEY_NOOP,
-        :trusted_account_ids => TRUSTED_ACCOUNT_IDS
+        :cross_process_id       => AGENT_CROSS_APP_ID,
+        :encoding_key           => ENCODING_KEY_NOOP,
+        :trusted_account_ids    => TRUSTED_ACCOUNT_IDS,
+        :disable_harvest_thread => true
       }
 
       NewRelic::Agent.config.add_config_for_testing(@config)
-      @monitor.on_finished_configuring
+      @events.notify(:finished_configuring)
     end
 
     def teardown
@@ -124,17 +126,13 @@ module NewRelic::Agent
     def test_includes_content_length
       with_default_timings
 
-      when_request_runs(for_id(REQUEST_CROSS_APP_ID).merge("Content-Length" => 3000))
+      when_request_runs(for_id(REQUEST_CROSS_APP_ID).merge(CONTENT_LENGTH_KEY => 3000))
       assert_equal 3000, unpacked_response[CONTENT_LENGTH_POSITION]
     end
 
     def test_finds_content_length_from_headers
-      %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH cOnTeNt-LeNgTh}.each do |key|
-        request = { key => 42 }
-
-        assert_equal(42, @monitor.content_length_from_request(request), \
-          "Failed to find header on key #{key}")
-      end
+      request = { 'HTTP_CONTENT_LENGTH' => 42 }
+      assert_equal(42, @monitor.content_length_from_request(request))
     end
 
     def test_writes_custom_parameters
@@ -181,25 +179,23 @@ module NewRelic::Agent
     def test_setting_response_headers_freezes_transaction_name
       in_transaction do
         request = for_id(REQUEST_CROSS_APP_ID)
-        event_listener = NewRelic::Agent.instance.events
-        event_listener.notify(:before_call, request)
+        @events.notify(:before_call, request)
 
         assert !NewRelic::Agent::Transaction.tl_current.name_frozen?
-        event_listener.notify(:after_call, request, [200, @response, ''])
+        @events.notify(:after_call, request, [200, @response, ''])
         assert NewRelic::Agent::Transaction.tl_current.name_frozen?
       end
     end
 
     def test_listener_in_other_thread_has_correct_txn_state
       t = Thread.new do
-        event_listener = NewRelic::Agent.instance.events
         in_transaction('transaction') do
           request = for_id(REQUEST_CROSS_APP_ID)
 
-          event_listener.notify(:before_call, request)
+          @events.notify(:before_call, request)
           # Fake out our GUID for easier comparison in tests
           NewRelic::Agent::Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
-          event_listener.notify(:after_call, request, [200, @response, ''])
+          @events.notify(:after_call, request, [200, @response, ''])
         end
       end
 
@@ -229,21 +225,19 @@ module NewRelic::Agent
     #
 
     def when_request_runs(request=for_id(REQUEST_CROSS_APP_ID))
-      event_listener = NewRelic::Agent.instance.events
       in_transaction('transaction') do
-        event_listener.notify(:before_call, request)
+        @events.notify(:before_call, request)
         # Fake out our GUID for easier comparison in tests
         NewRelic::Agent::Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
-        event_listener.notify(:after_call, request, [200, @response, ''])
+        @events.notify(:after_call, request, [200, @response, ''])
       end
     end
 
     def when_request_has_error(request=for_id(REQUEST_CROSS_APP_ID))
       options = {}
-      event_listener = NewRelic::Agent.instance.events
-      event_listener.notify(:before_call, request)
-      event_listener.notify(:notice_error, nil, options)
-      event_listener.notify(:after_call, request, [500, @response, ''])
+      @events.notify(:before_call, request)
+      @events.notify(:notice_error, nil, options)
+      @events.notify(:after_call, request, [500, @response, ''])
 
       options
     end

@@ -42,7 +42,6 @@ digraph AgentEnabled {
   "[log_file_path]"
   "[dispatcher]"
   "[force_send]"
-  "[disable_mobile_headers]"
   "[textmate]"
   "[post_size_limit]"
   "[sync_startup]"
@@ -223,8 +222,6 @@ digraph AgentEnabled {
   "ErrorCollector#initialize" -> "[error_collector.capture_source]"
   "ErrorCollector#initialize" -> "[error_collector.ignore_errors]"
   "ErrorCollector#request_params_from_opts" -> "[capture_params]"
-
-  "ControllerInstrumentation#perform_action_with_newrelic_trace" -> "[disable_mobile_headers]"
 
   "NewRelicService#initialize" -> "[timeout]"
   "NewRelicService#initialize" -> "[license_key]"

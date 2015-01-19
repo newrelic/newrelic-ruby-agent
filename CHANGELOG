@@ -1,5 +1,136 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.9.9 ##
+
+  * Support for Ruby 2.2
+
+  A new version of Ruby is available, and the Ruby agent is ready to run on
+  it. We've been testing things out since the early previews so you can
+  upgrade to the latest and greatest and use New Relic right away to see how
+  the new Ruby's performing for you.
+
+  * Support for Rails 4.2 and ActiveJob
+
+  Not only is a new Ruby available, but a new Rails is out too! The Ruby agent
+  provides all the usual support for Rails that you'd expect, and we
+  instrument the newly released ActiveJob framework that's part of 4.2.
+
+  * Security fix for handling of error responses from New Relic servers
+
+  This release fixes a potential security issue wherein an attacker who was able
+  to impersonate New Relic's servers could have triggered arbitrary code
+  execution in agent's host processes by sending a specially-crafted error
+  response to a data submission request.
+
+  This issue is mitigated by the fact that the agent uses SSL certificate
+  checking in order to verify the identity of the New Relic servers to which it
+  connects. SSL is enabled by default by the agent, and can be enforced
+  account-wide by enabling High Security Mode for your account:
+
+  https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security
+
+  * Fix for transactions with invalid URIs
+
+  If an application used the agent's `ignore_url_regexes` config setting to
+  ignore certain transactions, but received an invalid URI, the agent would
+  fail to record the transaction. This has been fixed.
+
+  * Fixed incompatibility with newrelic-grape
+
+  The 3.9.8 release of the Ruby agent included disabled prototyped
+  instrumentation for the Grape API framework. This introduced an
+  incompatibility with the existing third party extension newrelic-grape. This
+  has been fixed. Newrelic-grape continues to be the right solution until
+  full agent support for Grape is available.
+
+## v3.9.8 ##
+
+  * Custom Insights events API
+
+  In addition to attaching custom parameters to the events that the Ruby agent
+  generates automatically for each transaction, you can now record custom event
+  types into Insights with the new NewRelic::Agent.record_custom_event API.
+
+  For details, see https://docs.newrelic.com/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-agents
+
+  * Reduced memory usage for idling applications
+
+  Idling applications using the agent could previously appear to leak memory
+  because of native allocations during creation of new SSL connections to our
+  servers. These native allocations didn't factor into triggering Ruby's
+  garbage collector.
+
+  The agent will now re-use a single TCP connection to our servers for as long
+  as possible, resulting in improved memory usage for applications that are
+  idling and not having GC triggered for other reasons.
+
+  * Don't write to stderr during CPU sampling
+
+  The Ruby agent's code for gathering CPU information would write error
+  messages to stderr on some FreeBSD systems. This has been fixed.
+
+  * LocalJumpError on Rails 2.x
+
+  Under certain conditions, Rails 2.x controller instrumentation could fail
+  with a LocalJumpError when an action was not being traced. This has been
+  fixed.
+
+  * Fixed config lookup in warbler packaged apps
+
+  When running a Ruby application from a standalone warbler .jar file on
+  JRuby, the packaged config/newrelic.yml was not properly found. This has
+  been fixed, and thanks to Bob Beaty for the help getting it fixed!
+
+  * Hash iteration failure in middleware
+
+  If a background thread iterated over the keys in the Rack env hash, it could
+  cause failures in New Relic's AgentHooks middleware. This has been fixed.
+
+## v3.9.7 ##
+
+  * Support for New Relic Synthetics
+
+  The Ruby agent now gives you additional information for requests from New
+  Relic Synthetics. More transaction traces and events give you a clearer look
+  into how your application is performing around the world.
+
+  For more details, see https://docs.newrelic.com/docs/synthetics/new-relic-synthetics/getting-started/new-relic-synthetics
+
+  * Support for multiple job per fork gems with Resque
+
+  The resque-jobs-per-fork and resque-multi-job-forks gems alter Resque to
+  fork every N jobs instead of every job. This previously caused issues for
+  the Ruby agent, but those have been resolved. These gems are fully supported.
+
+  Running Resque with the FORK_PER_JOB=false environment variable setting is
+  also supported now.
+
+  For more details on our Resque support, see https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation
+
+  * Support agent when starting Resque Pool from Rake task
+
+  When running resque-pool with its provided rake tasks, the agent would not
+  start up properly. Thanks Tiago Sousa for the fix!
+
+  * Fix for DelayedJob + Rails 4.x queue depth metrics
+
+  The Ruby agent periodically records DelayedJob queuedepth as a metric, but
+  this didn't work properly in Rails 4.x applications.  This has been fixed.
+  Thanks Jonathan del Strother for his help with the issue!
+
+  * Fix for failure in background transactions with rules.ignore_url_regexes
+
+  The recently added feature for ignoring transactions via URL regexes caused
+  errors for non-web transactions. This has been fixed.
+
+  * Rename the TransactionNamer.name method to TransactionNamer.name_for
+
+  The internal TransactionNamer class had a class method called 'name', with a
+  different signature than the existing Class#name method and could cause
+  problems when trying to introspect instances of the class.
+
+  Thanks to Dennis Taylor for contributing this fix!
+
 ## v3.9.6 ##
 
   * Rails 4.2 ActiveJob support

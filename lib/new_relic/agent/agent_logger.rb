@@ -9,7 +9,10 @@ module NewRelic
   module Agent
     class AgentLogger
 
+      attr_reader :already_logged
+
       def initialize(root = "", override_logger=nil)
+        clear_already_logged
         create_log(root, override_logger)
         set_log_level!
         set_log_format!
@@ -40,10 +43,14 @@ module NewRelic
       NUM_LOG_ONCE_KEYS = 1000
 
       def log_once(level, key, *msgs)
-        return if already_logged.include?(key)
+        # Since `already_logged` might change between calls, just grab it once
+        # and use it throughout this method.
+        logged = already_logged
 
-        if already_logged.size >= NUM_LOG_ONCE_KEYS && key.kind_of?(String)
-          # The reason for preventing too many keys in `already_logged` is for
+        return if logged.include?(key)
+
+        if logged.size >= NUM_LOG_ONCE_KEYS && key.kind_of?(String)
+          # The reason for preventing too many keys in `logged` is for
           # memory concerns.
           # The reason for checking the type of the key is that we always want
           # to allow symbols to log, since there are very few of them.
@@ -54,7 +61,7 @@ module NewRelic
           return
         end
 
-        already_logged[key] = true
+        logged[key] = true
         self.send(level, *msgs)
       end
 
@@ -138,11 +145,6 @@ module NewRelic
 
       def create_null_logger
         @log = ::NewRelic::Agent::NullLogger.new
-      end
-
-      def already_logged
-        @already_logged ||= {}
-        @already_logged
       end
 
       def clear_already_logged

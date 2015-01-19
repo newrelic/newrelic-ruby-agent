@@ -5,14 +5,14 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
-require 'new_relic/agent/request_sampler'
+require 'new_relic/agent/transaction_event_aggregator'
 
-class NewRelic::Agent::RequestSamplerTest < Minitest::Test
+class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def setup
     freeze_time
     @event_listener = NewRelic::Agent::EventListener.new
-    @sampler = NewRelic::Agent::RequestSampler.new( @event_listener )
+    @sampler = NewRelic::Agent::TransactionEventAggregator.new(@event_listener)
   end
 
   # Helpers for DataContainerTests
@@ -207,7 +207,7 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
   end
 
   def test_resets_limits_on_harvest
-    with_sampler_config( :'request_sampler.max_samples_stored' => 100 ) do
+    with_sampler_config( :'analytics_events.max_samples_stored' => 100 ) do
       50.times { generate_request('before') }
       samples_before = @sampler.samples
       assert_equal 50, samples_before.size
@@ -243,6 +243,98 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     assert_equal('404', code)
   end
 
+  def test_synthetics_aggregation_limits
+    with_sampler_config(:'synthetics.events_limit' => 10,
+                        :'analytics_events.max_samples_stored' => 0) do
+      20.times do
+        generate_request('synthetic', :synthetics_resource_id => 100)
+      end
+
+      assert_equal 10, @sampler.samples.size
+    end
+  end
+
+  def test_synthetics_events_overflow_to_transaction_buffer
+    with_sampler_config(:'synthetics.events_limit' => 10) do
+      20.times do
+        generate_request('synthetic', :synthetics_resource_id => 100)
+      end
+
+      assert_equal 20, @sampler.samples.size
+    end
+  end
+
+  def test_synthetics_events_kept_by_timestamp
+    with_sampler_config(:'synthetics.events_limit' => 10,
+                        :'analytics_events.max_samples_stored' => 0) do
+      10.times do |i|
+        generate_request('synthetic', :timestamp => i + 10, :synthetics_resource_id => 100)
+      end
+
+      generate_request('synthetic', :timestamp => 1, :synthetics_resource_id => 100)
+
+      assert_equal 10, @sampler.samples.size
+      timestamps = @sampler.samples.map do |(main, _)|
+        main["timestamp"]
+      end.sort
+
+      assert_equal ([1] + (10..18).to_a), timestamps
+    end
+  end
+
+  def test_synthetics_events_timestamp_bumps_go_to_main_buffer
+    with_sampler_config(:'synthetics.events_limit' => 10) do
+      10.times do |i|
+        generate_request('synthetic', :timestamp => i + 10, :synthetics_resource_id => 100)
+      end
+
+      generate_request('synthetic', :timestamp => 1, :synthetics_resource_id => 100)
+
+      assert_equal 11, @sampler.samples.size
+    end
+  end
+
+  def test_merging_synthetics_still_applies_limit
+    samples = with_sampler_config(:'synthetics.events_limit' => 20) do
+      20.times do
+        generate_request('synthetic', :synthetics_resource_id => 100)
+      end
+      @sampler.harvest!
+    end
+
+    with_sampler_config(:'synthetics.events_limit' => 10,
+                        :'analytics_events.max_samples_stored' => 0) do
+      @sampler.merge!(samples)
+      assert_equal 10, @sampler.samples.size
+    end
+  end
+
+  def test_synthetics_event_dropped_records_supportability_metrics
+    with_sampler_config(:'synthetics.events_limit' => 20) do
+      20.times do
+        generate_request('synthetic', :synthetics_resource_id => 100)
+      end
+
+      @sampler.harvest!
+
+      metric = 'Supportability/TransactionEventAggregator/synthetics_events_dropped'
+      assert_metrics_not_recorded(metric)
+    end
+  end
+
+  def test_synthetics_event_dropped_records_supportability_metrics
+    with_sampler_config(:'synthetics.events_limit' => 10) do
+      20.times do
+        generate_request('synthetic', :synthetics_resource_id => 100)
+      end
+
+      @sampler.harvest!
+
+      metric = 'Supportability/TransactionEventAggregator/synthetics_events_dropped'
+      assert_metrics_recorded(metric => { :call_count => 10 })
+    end
+  end
+
   #
   # Helpers
   #
@@ -251,7 +343,7 @@ class NewRelic::Agent::RequestSamplerTest < Minitest::Test
     payload = {
       :name => "Controller/#{name}",
       :type => :controller,
-      :start_timestamp => Time.now.to_f,
+      :start_timestamp => options[:timestamp] || Time.now.to_f,
       :duration => 0.1,
       :custom_params => {}
     }.merge(options)

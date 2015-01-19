@@ -26,6 +26,10 @@ module NewRelic
       # 1754:  v3 (tag 2.3.0)
       # 534:   v2 (shows up in 2.1.0, our first tag)
 
+      # These include Errno connection errors, and all indicate that the
+      # underlying TCP connection may be in a bad state.
+      CONNECTION_ERRORS = [Timeout::Error, EOFError, SystemCallError, SocketError].freeze
+
       attr_accessor :request_timeout, :agent_id
       attr_reader :collector, :marshaller, :metric_id_cache
 
@@ -162,10 +166,18 @@ module NewRelic
         invoke_remote(:get_xray_metadata, [@agent_id, *xray_ids])
       end
 
-      # Send fine-grained analytic data to the collector.
       def analytic_event_data(data)
         invoke_remote(:analytic_event_data, [@agent_id, data],
           :item_count => data.size)
+      end
+
+      def custom_event_data(data)
+        invoke_remote(:custom_event_data, [@agent_id, data],
+          :item_count => data.size)
+      end
+
+      def utilization_data(data)
+        invoke_remote(:utilization_data, data)
       end
 
       # We do not compress if content is smaller than 64kb.  There are
@@ -189,15 +201,17 @@ module NewRelic
 
         begin
           t0 = Time.now
+          @in_session = true
           if NewRelic::Agent.config[:aggressive_keepalive]
             session_with_keepalive(&block)
           else
             session_without_keepalive(&block)
           end
-        rescue Timeout::Error
+        rescue *CONNECTION_ERRORS => e
           elapsed = Time.now - t0
-          ::NewRelic::Agent.logger.warn "Timed out opening connection to collector after #{elapsed} seconds. If this problem persists, please see http://status.newrelic.com"
-          raise
+          raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to #{@collector} after #{elapsed} seconds: #{e}"
+        ensure
+          @in_session = false
         end
       end
 
@@ -217,10 +231,7 @@ module NewRelic
 
       def establish_shared_connection
         unless @shared_tcp_connection
-          connection = create_http_connection
-          NewRelic::Agent.logger.debug("Opening shared TCP connection to #{connection.address}:#{connection.port}")
-          NewRelic::TimerLib.timeout(@request_timeout) { connection.start }
-          @shared_tcp_connection = connection
+          @shared_tcp_connection = create_and_start_http_connection
         end
         @shared_tcp_connection
       end
@@ -233,11 +244,54 @@ module NewRelic
         end
       end
 
+      def ssl_cert_store
+        path = cert_file_path
+        if !@ssl_cert_store || path != @cached_cert_store_path
+          ::NewRelic::Agent.logger.debug("Creating SSL certificate store from file at #{path}")
+          @ssl_cert_store = OpenSSL::X509::Store.new
+          @ssl_cert_store.add_file(path)
+          @cached_cert_store_path = path
+        end
+        @ssl_cert_store
+      end
+
       # Return a Net::HTTP connection object to make a call to the collector.
       # We'll reuse the same handle for cases where we're using keep-alive, or
       # otherwise create a new one.
       def http_connection
-        @shared_tcp_connection || create_http_connection
+        if @in_session
+          establish_shared_connection
+        else
+          create_http_connection
+        end
+      end
+
+      def setup_connection_for_ssl(conn)
+        # Jruby 1.6.8 requires a gem for full ssl support and will throw
+        # an error when use_ssl=(true) is called and jruby-openssl isn't
+        # installed
+        conn.use_ssl     = true
+        conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        conn.cert_store  = ssl_cert_store
+      rescue StandardError, LoadError
+        msg = "Agent is configured to use SSL, but SSL is not available in the environment. "
+        msg << "Either disable SSL in the agent configuration, or install SSL support."
+        raise UnrecoverableAgentException.new(msg)
+      end
+
+      def start_connection(conn)
+        NewRelic::Agent.logger.debug("Opening TCP connection to #{conn.address}:#{conn.port}")
+        NewRelic::TimerLib.timeout(@request_timeout) { conn.start }
+        conn
+      end
+
+      def setup_connection_timeouts(conn)
+        # We use Timeout explicitly instead of this
+        conn.read_timeout = nil
+
+        if conn.respond_to?(:keep_alive_timeout) && NewRelic::Agent.config[:aggressive_keepalive]
+          conn.keep_alive_timeout = NewRelic::Agent.config[:keep_alive_timeout]
+        end
       end
 
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
@@ -247,30 +301,19 @@ module NewRelic
         http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
                                       proxy_server.user, proxy_server.password)
 
-        http = http_class.new((@collector.ip || @collector.name), @collector.port)
-        if Agent.config[:ssl]
-          begin
-            # Jruby 1.6.8 requires a gem for full ssl support and will throw
-            # an error when use_ssl=(true) is called and jruby-openssl isn't
-            # installed
-            http.use_ssl = true
-            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            http.ca_file = cert_file_path
-          rescue StandardError, LoadError
-            msg = "Agent is configured to use SSL, but SSL is not available in the environment. "
-            msg << "Either disable SSL in the agent configuration, or install SSL support."
-            raise UnrecoverableAgentException.new(msg)
-          end
-        end
+        conn = http_class.new((@collector.ip || @collector.name), @collector.port)
+        setup_connection_for_ssl(conn) if Agent.config[:ssl]
+        setup_connection_timeouts(conn)
 
-        if http.respond_to?(:keep_alive_timeout) && NewRelic::Agent.config[:aggressive_keepalive]
-          http.keep_alive_timeout = NewRelic::Agent.config[:keep_alive_timeout]
-        end
-
-        ::NewRelic::Agent.logger.debug("Created net/http handle to #{http.address}:#{http.port}")
-        http
+        ::NewRelic::Agent.logger.debug("Created net/http handle to #{conn.address}:#{conn.port}")
+        conn
       end
 
+      def create_and_start_http_connection
+        conn = create_http_connection
+        start_connection(conn)
+        conn
+      end
 
       # The path to the certificate file used to verify the SSL
       # connection if verify_peer is enabled
@@ -405,22 +448,38 @@ module NewRelic
         request.content_type = "application/octet-stream"
         request.body = opts[:data]
 
-        response = nil
-        http = http_connection
-        http.read_timeout = nil
-        NewRelic::TimerLib.timeout(@request_timeout) do
+        response     = nil
+        attempts     = 0
+        max_attempts = 2
+
+        begin
+          attempts += 1
+          conn = http_connection
           ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]}"
-          response = http.request(request)
+          NewRelic::TimerLib.timeout(@request_timeout) do
+            response = conn.request(request)
+          end
+        rescue *CONNECTION_ERRORS => e
+          close_shared_connection
+          if attempts < max_attempts
+            ::NewRelic::Agent.logger.debug("Retrying request to #{opts[:collector]}#{opts[:uri]} after #{e}")
+            retry
+          else
+            raise ServerConnectionException, "Recoverable error talking to #{@collector} after #{attempts} attempts: #{e}"
+          end
         end
+
+        log_response(response)
+
         case response
         when Net::HTTPSuccess
-          true # fall through
+          true # do nothing
         when Net::HTTPUnauthorized
           raise LicenseException, 'Invalid license key, please visit support.newrelic.com'
         when Net::HTTPServiceUnavailable
           raise ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
         when Net::HTTPGatewayTimeOut
-          raise Timeout::Error, response.message
+          raise ServerConnectionException, "Gateway timeout (#{response.code}): #{response.message}"
         when Net::HTTPRequestEntityTooLarge
           raise UnrecoverableServerException, '413 Request Entity Too Large'
         when Net::HTTPUnsupportedMediaType
@@ -429,25 +488,19 @@ module NewRelic
           raise ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
         end
         response
-      rescue Timeout::Error, EOFError, SystemCallError, SocketError => e
-        # These include Errno connection errors, and all signify that the
-        # connection may be in a bad state, so drop it and re-create if needed.
-        close_shared_connection
-        raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to #{@collector}: #{e}"
       end
 
-
+      def log_response(response)
+        ::NewRelic::Agent.logger.debug "Received response, status: #{response.code}, encoding: '#{response['content-encoding']}'"
+      end
 
       # Decompresses the response from the server, if it is gzip
       # encoded, otherwise returns it verbatim
       def decompress_response(response)
-        if response['content-encoding'] != 'gzip'
-          ::NewRelic::Agent.logger.debug "Uncompressed content returned"
-          response.body
+        if response['content-encoding'] == 'gzip'
+          Zlib::GzipReader.new(StringIO.new(response.body)).read
         else
-          ::NewRelic::Agent.logger.debug "Decompressing return value"
-          i = Zlib::GzipReader.new(StringIO.new(response.body))
-          i.read
+          response.body
         end
       end
 

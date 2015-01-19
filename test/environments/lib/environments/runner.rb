@@ -11,14 +11,10 @@ module Environments
     include Multiverse::Color
 
     BLACKLIST = {
-      "1.9"         => ["rails21", "rails22"],
       "2"           => ["rails21", "rails22", "rails23"],
-
-      # https://github.com/rails/rails/issues/17017
-      "2.2"         => ["rails30", "rails31", "rails32"],
-
-      "1.8.7"       => ["rails40", "rails41", "rails42"],
+      "1.9"         => ["rails21", "rails22"],
       "1.9.2"       => ["rails40", "rails41", "rails42"],
+      "1.8.7"       => ["rails40", "rails41", "rails42"],
       "ree"         => ["rails40", "rails41", "rails42"],
       "jruby-1.6"   => ["rails40", "rails41", "rails42"],
       "jruby-1.7"   => ["rails21", "rails22", "rails23"],
@@ -45,10 +41,7 @@ module Environments
           dir = File.expand_path(dir)
           puts "", yellow("Running tests for #{dir}")
           status = bundle(dir)
-          if status.success?
-            create_database(dir)
-            status = run(dir)
-          end
+          status = run(dir) if status.success?
 
           if !status.success?
             overall_status += 1
@@ -105,15 +98,6 @@ module Environments
       bundling = red(bundling) unless $?.success?
       puts bundling
       $?
-    end
-
-    # Would be nice to get our unit tests decoupled from the actual DB, but
-    # until then this is necessary
-    def create_database(dir)
-      return if File.basename(dir) == "norails"
-
-      puts "Making sure the database is there for '#{File.basename(dir)}'..."
-      `cd #{dir} && RAILS_ENV=test bundle exec rake --trace db:create`
     end
 
     def run(dir)

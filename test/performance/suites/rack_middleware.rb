@@ -47,16 +47,17 @@ class RackMiddleware < Performance::TestCase
 
     @config = {
       :beacon                 => 'beacon',
-      :disable_mobile_headers => false,
       :browser_key            => 'browserKey',
       :js_agent_loader        => 'loader',
+      :encoding_key           => 'lolz',
       :application_id         => '5, 6', # collector can return app multiple ids
       :'rum.enabled'          => true,
-      :episodes_file          => 'this_is_my_file',
       :license_key            => 'a' * 40,
       :developer_mode         => false
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
+
+    NewRelic::Agent.agent.events.notify(:finished_configuring)
 
     @stack = Rack::Builder.new do
       use TestMiddlewareA

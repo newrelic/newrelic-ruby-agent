@@ -7,11 +7,21 @@ module NewRelic
     class NewRelicService
       class Marshaller
         def parsed_error(error)
-          error_class = error['error_type'].split('::') \
-            .inject(Module) {|mod,const| mod.const_get(const) }
-          error_class.new(error['message'])
-        rescue NameError
-          CollectorError.new("#{error['error_type']}: #{error['message']}")
+          error_type    = error['error_type']
+          error_message = error['message']
+
+          exception = case error_type
+          when 'NewRelic::Agent::LicenseException'
+            LicenseException.new(error_message)
+          when 'NewRelic::Agent::ForceRestartException'
+            ForceRestartException.new(error_message)
+          when 'NewRelic::Agent::ForceDisconnectException'
+            ForceDisconnectException.new(error_message)
+          else
+            CollectorError.new("#{error['error_type']}: #{error['message']}")
+          end
+
+          exception
         end
 
         def prepare(data, options={})

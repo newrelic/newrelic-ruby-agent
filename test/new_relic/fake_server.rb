@@ -19,7 +19,7 @@ module NewRelic
     # Default server options
     DEFAULT_OPTIONS = {
       :Logger    => ::WEBrick::Log.new('/dev/null'),
-      :AccessLog => [ ['/dev/null', ''] ]
+      :AccessLog => [['/dev/null', '']]
     }
 
     CONFIG_PATH        = File.join(File.dirname(__FILE__), "..", "config")
@@ -27,61 +27,78 @@ module NewRelic
     FAKE_SSL_KEY_PATH  = File.join(CONFIG_PATH, "test.cert.key")
 
     SSL_OPTIONS = {
-      :SSLEnable => true,
+      :SSLEnable       => true,
       :SSLVerifyClient => OpenSSL::SSL::VERIFY_NONE,
-      :SSLPrivateKey => OpenSSL::PKey::RSA.new(File.read(FAKE_SSL_KEY_PATH)),
-      :SSLCertificate => OpenSSL::X509::Certificate.new(File.read(FAKE_SSL_CERT_PATH)),
-      :SSLCertName => [["CN", "newrelic.com"]]
+      :SSLPrivateKey   => OpenSSL::PKey::RSA.new(File.read(FAKE_SSL_KEY_PATH)),
+      :SSLCertificate  => OpenSSL::X509::Certificate.new(File.read(FAKE_SSL_CERT_PATH)),
+      :SSLCertName     => [["CN", "newrelic.com"]]
     }
 
-    def initialize( port=DEFAULT_PORT, ssl=false )
-      @thread = nil
-
-      defaults = $DEBUG ? {} : DEFAULT_OPTIONS
-      @options = defaults.merge( :Port => port )
-
-      @options.merge!(SSL_OPTIONS) if ssl
-
-      @server = WEBrick::HTTPServer.new( @options )
-      @server.mount "/", ::Rack::Handler.get( :webrick ), app
+    def initialize(port=DEFAULT_PORT)
+      @port    = port
+      @thread  = nil
+      @sever   = nil
+      @use_ssl = false
     end
 
-
-    attr_reader :server
-
-    # Run the server, returning the Thread it is running in.
-    def run( port=nil )
-      return if @thread && @thread.alive?
-      @server.listen( @options[:BindAddress], port ) if port
-      @thread = Thread.new( &self.method(:run_server) )
-      return @thread
+    def use_ssl=(value)
+      @use_ssl = value
     end
 
+    def use_ssl?
+      @use_ssl
+    end
 
-    # Thread routine for running the server.
+    def needs_restart?
+      @started_options != build_webrick_options
+    end
+
+    def restart
+      stop
+      run
+    end
+
+    def running?
+      @thread && @thread.alive?
+    end
+
+    def run
+      return if running?
+
+      @started_options = build_webrick_options
+
+      @server = WEBrick::HTTPServer.new(@started_options)
+      @server.mount "/", ::Rack::Handler.get(:webrick), app
+
+      @thread = Thread.new(&self.method(:run_server))
+    end
+
+    def stop
+      return unless running?
+      @server.shutdown
+      @server = nil
+      @thread.join
+      @started_options = nil
+      reset
+    end
+
+    def build_webrick_options
+      options = DEFAULT_OPTIONS.merge(:Port => @port)
+      options.merge!(SSL_OPTIONS) if use_ssl?
+      options
+    end
+
     def run_server
       Thread.current.abort_on_exception = true
       @server.start
     end
 
-
-    def stop
-      return unless @thread.alive?
-      @server.shutdown
-      @server = nil
-      @thread.join
-      reset
-    end
-
-
     def ports
-      @server.listeners.map {|sock| sock.addr[1] }
+      @server.listeners.map { |sock| sock.addr[1] }
     end
 
     def port
       self.ports.first
     end
-    alias_method :determine_port, :port
-
   end
 end

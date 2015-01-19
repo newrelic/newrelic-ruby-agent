@@ -2,13 +2,10 @@
   {
     "testname":"all fields present",
 
-    "cookie":"tk=0123456789ABCDEF",
     "apptime_microseconds":5,
     "queuetime_microseconds":3,
-    "trace_threshold_microseconds":1,
     "browser_monitoring.attributes.enabled":true,
     "transaction_name":"WebTransaction/brink/of/glory",
-    "guid":"FEDCBA9876543210",
     "license_key":"0000111122223333444455556666777788889999",
     "connect_reply":
     {
@@ -27,78 +24,6 @@
       "transactionName":"Z1VSZENQX0JTUUZbXF4fUkJYX1oeXVQdVV9fQkk=",
       "queueTime":3,
       "applicationTime":5,
-      "ttGuid":"FEDCBA9876543210",
-      "agentToken":"0123456789ABCDEF",
-      "atts":"SxJFEgtKE1BeQlpTEQoSUlVFUBNMTw==",
-      "errorBeacon":"my_error_beacon",
-      "agent":"my_js_agent_file"
-    }
-  },
-  {
-    "testname":"app time below trace threshold",
-
-    "cookie":"tk=0123456789ABCDEF",
-    "apptime_microseconds":5,
-    "queuetime_microseconds":3,
-    "trace_threshold_microseconds":10,
-    "browser_monitoring.attributes.enabled":true,
-    "transaction_name":"WebTransaction/brink/of/glory",
-    "guid":"FEDCBA9876543210",
-    "license_key":"0000111122223333444455556666777788889999",
-    "connect_reply":
-    {
-      "beacon":"my_beacon",
-      "browser_key":"my_browser_key",
-      "application_id":"my_application_id",
-      "error_beacon":"my_error_beacon",
-      "js_agent_file":"my_js_agent_file"
-    },
-    "user_attributes":{"alpha":"beta"},
-    "expected":
-    {
-      "beacon":"my_beacon",
-      "licenseKey":"my_browser_key",
-      "applicationID":"my_application_id",
-      "transactionName":"Z1VSZENQX0JTUUZbXF4fUkJYX1oeXVQdVV9fQkk=",
-      "queueTime":3,
-      "applicationTime":5,
-      "ttGuid":"",
-      "agentToken":"0123456789ABCDEF",
-      "atts":"SxJFEgtKE1BeQlpTEQoSUlVFUBNMTw==",
-      "errorBeacon":"my_error_beacon",
-      "agent":"my_js_agent_file"
-    }
-  },
-  {
-    "testname":"bad cookie",
-
-    "cookie":"tk=<123456789ABCDEF",
-    "apptime_microseconds":5,
-    "queuetime_microseconds":3,
-    "trace_threshold_microseconds":1,
-    "browser_monitoring.attributes.enabled":true,
-    "transaction_name":"WebTransaction/brink/of/glory",
-    "guid":"FEDCBA9876543210",
-    "license_key":"0000111122223333444455556666777788889999",
-    "connect_reply":
-    {
-      "beacon":"my_beacon",
-      "browser_key":"my_browser_key",
-      "application_id":"my_application_id",
-      "error_beacon":"my_error_beacon",
-      "js_agent_file":"my_js_agent_file"
-    },
-    "user_attributes":{"alpha":"beta"},
-    "expected":
-    {
-      "beacon":"my_beacon",
-      "licenseKey":"my_browser_key",
-      "applicationID":"my_application_id",
-      "transactionName":"Z1VSZENQX0JTUUZbXF4fUkJYX1oeXVQdVV9fQkk=",
-      "queueTime":3,
-      "applicationTime":5,
-      "ttGuid":"",
-      "agentToken":"",
       "atts":"SxJFEgtKE1BeQlpTEQoSUlVFUBNMTw==",
       "errorBeacon":"my_error_beacon",
       "agent":"my_js_agent_file"
@@ -107,13 +32,10 @@
   {
     "testname":"browser_monitoring.attributes.enabled disabled",
 
-    "cookie":"tk=0123456789ABCDEF",
     "apptime_microseconds":5,
     "queuetime_microseconds":3,
-    "trace_threshold_microseconds":1,
     "browser_monitoring.attributes.enabled":false,
     "transaction_name":"WebTransaction/brink/of/glory",
-    "guid":"FEDCBA9876543210",
     "license_key":"0000111122223333444455556666777788889999",
     "connect_reply":
     {
@@ -132,8 +54,6 @@
       "transactionName":"Z1VSZENQX0JTUUZbXF4fUkJYX1oeXVQdVV9fQkk=",
       "queueTime":3,
       "applicationTime":5,
-      "ttGuid":"FEDCBA9876543210",
-      "agentToken":"0123456789ABCDEF",
       "atts":"",
       "errorBeacon":"my_error_beacon",
       "agent":"my_js_agent_file"

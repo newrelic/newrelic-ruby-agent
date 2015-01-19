@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 1.8.7'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Jason Clark", "Tim Krajcar", "Chris Pine", "Jonan Scheffler", "Ben Weintraub" ]
+  s.authors = [ "Jason Clark", "Tim Krajcar", "Jonan Scheffler", "Matthew Wear", "Ben Weintraub" ]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.licenses    = ['New Relic', 'MIT', 'Ruby']
   s.description = <<-EOS
@@ -47,11 +47,13 @@ EOS
   s.add_development_dependency 'yard'
   s.add_development_dependency 'rails', '~> 3.2.13'
   s.add_development_dependency 'pry', '~> 0.9.12'
-#  s.add_development_dependency 'pry-nav'
   s.add_development_dependency 'guard', '~> 1.8.3' # Guard 2.0 is Ruby 1.9 only
   s.add_development_dependency 'guard-minitest'
   s.add_development_dependency 'rb-fsevent', '~> 0.9.1'
+  s.add_development_dependency 'hometown', '~> 0.2.5'
   s.add_development_dependency 'jruby-openssl' if RUBY_PLATFORM == 'java'
+  # version lock down for i18n that is compatible with Ruby 1.8.7
+  s.add_development_dependency 'i18n', '0.6.11'
 
   if RUBY_PLATFORM == 'java'
     s.add_development_dependency 'activerecord-jdbcsqlite3-adapter'

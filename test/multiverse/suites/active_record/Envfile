@@ -1,13 +1,65 @@
-gemfile <<-RB
+boilerplate_gems = <<-BOILERPLATE
   gem 'rack'
-  if RUBY_VERSION == '1.8.6'
-    gem 'activerecord', '2.3.14'
-  elsif RUBY_PLATFORM == 'java'
-    gem 'activerecord-jdbcsqlite3-adapter', '1.2.2.1'
-    gem 'jdbc-sqlite3', '3.7.2'
-    gem 'activerecord', '~> 3.2.0'
+  gem 'rake'
+  if RUBY_PLATFORM == 'java'
+    gem "activerecord-jdbcmysql-adapter"
   else
-    gem 'activerecord', '~> 3.2.0'
-    gem 'sqlite3'
+    gem 'mysql'
   end
+BOILERPLATE
+
+if RUBY_VERSION >= '1.9.3'
+  # JRuby currently having problem with Rails 4.2 beta. Remove condition on GA.
+  if !defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby'
+  gemfile <<-RB
+    gem 'activerecord', '~> 4.2.0.rc1'
+    gem 'minitest', '~> 5.2.3'
+    #{boilerplate_gems}
+  RB
+  end
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 4.1.6'
+    gem 'minitest', '~> 5.2.3'
+    #{boilerplate_gems}
+  RB
+end
+
+gemfile <<-RB
+  gem 'activerecord', '~> 3.2.19'
+  #{boilerplate_gems}
 RB
+
+gemfile <<-RB
+  gem 'activerecord', '~> 3.1.12'
+  #{boilerplate_gems}
+RB
+
+gemfile <<-RB
+  gem 'activerecord', '~> 3.0.20'
+  #{boilerplate_gems}
+RB
+
+# We pull in Rails on the older verions because ActiveRecord didn't have all
+# the tasks we need for setup, and there are some TestUnit vs Minitest oddities
+#
+# JRuby testing with 1.7 on Rails 2.x has issues and was already excluded in
+# test:env
+if RUBY_VERSION <= '1.9.3' && (!defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby')
+gemfile <<-RB
+  gem 'rails', '~> 2.3.18'
+  #{boilerplate_gems}
+RB
+
+gemfile <<-RB
+  gem "rails", "~> 2.2.3"
+  #{boilerplate_gems}
+RB
+end
+
+if RUBY_VERSION < '1.9.2'
+gemfile <<-RB
+  gem "rails", "~> 2.1.2"
+  #{boilerplate_gems}
+RB
+end

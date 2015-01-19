@@ -199,6 +199,10 @@ module Multiverse
       return unless is_rbx?
 
       f.puts "gem 'rubysl', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .rubysl./
+      # Compilation issues with rubysl-openssl 2.2.1, lock at 2.1.0 for now.
+      # https://github.com/rubysl/rubysl-openssl/issues/11
+      f.puts "gem 'rubysl-openssl', '2.1.0', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .rubysl-openssl./
+
       f.puts "gem 'json', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .json./
       f.puts "gem 'racc', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .racc./
     end
@@ -227,6 +231,7 @@ module Multiverse
 
     def execute_child_environment(env_index)
       with_clean_env do
+        ENV["MULTIVERSE_ENV"] = env_index.to_s
         log_test_running_process
         configure_before_bundling
 
@@ -241,7 +246,7 @@ module Multiverse
     end
 
     def log_test_running_process
-      puts yellow("Starting tests in child PID #{Process.pid}\n")
+      puts yellow("Starting tests in child PID #{Process.pid} at #{Time.now}\n")
     end
 
     def should_serialize?
@@ -492,7 +497,7 @@ module Multiverse
     end
 
     def verbose?
-      ENV['VERBOSE']
+      ENV['VERBOSE'] == "1" || ENV['VERBOSE'] == "true"
     end
   end
 end

@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/browser_token'
 require 'new_relic/agent/traced_method_stack'
 
 module NewRelic
@@ -40,11 +39,6 @@ module NewRelic
         @current_transaction = nil
       end
 
-      def request=(request)
-        @request = request
-        @request_token = BrowserToken.get_token(request)
-      end
-
       # This starts the timer for the transaction.
       def reset(transaction=nil)
         # We purposefully don't reset @untraced, @record_tt and @record_sql
@@ -57,7 +51,6 @@ module NewRelic
 
         @traced_method_stack.clear
 
-        @request_token = nil
         @is_cross_app_caller = false
         @client_cross_app_id = nil
         @referring_transaction_info = nil
@@ -89,8 +82,7 @@ module NewRelic
       end
 
       # Request data
-      attr_reader :request
-      attr_accessor :request_token
+      attr_accessor :request
 
       def request_guid
         return nil unless current_transaction

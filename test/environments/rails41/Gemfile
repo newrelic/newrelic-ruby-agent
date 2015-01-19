@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gem 'rake'
 
-gem 'rails', '~>4.1.6'
+gem 'rails', '~>4.1.7'
 
 gem 'minitest', '5.2.3'
 gem 'mocha', :require => false
@@ -30,4 +30,6 @@ platforms :rbx do
 end
 
 gem "newrelic_rpm", :path => "../../.."
+
 gem 'pry', '~> 0.9.12'
+gem 'hometown', '~> 0.2.5'

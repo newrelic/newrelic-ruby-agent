@@ -28,9 +28,13 @@ module NewRelic
 
       NESTED_TRACE_STOP_OPTIONS    = { :metric => true }.freeze
       WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :middleware].freeze
+      TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
       EMPTY_SUMMARY_METRICS        = [].freeze
+
+      TRACE_OPTIONS_SCOPED         = { :metric => true, :scoped_metric => true }.freeze
+      TRACE_OPTIONS_UNSCOPED       = { :metric => true, :scoped_metric => false }.freeze
 
       # A Time instance for the start time, never nil
       attr_accessor :start_time
@@ -43,7 +47,8 @@ module NewRelic
       attr_accessor :exceptions,
                     :filtered_params,
                     :jruby_cpu_start,
-                    :process_cpu_start
+                    :process_cpu_start,
+                    :http_response_code
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -58,54 +63,35 @@ module NewRelic
                   :metrics,
                   :gc_start_snapshot,
                   :category,
-                  :name_from_child
+                  :frame_stack,
+                  :cat_path_hashes
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
+
+      # Fields for tracking synthetics requests
+      attr_accessor :raw_synthetics_header, :synthetics_payload
 
       # Return the currently active transaction, or nil.
       def self.tl_current
         TransactionState.tl_get.current_transaction
       end
 
-      def self.set_default_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
+      def self.set_default_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
-        name = txn.make_transaction_name(name, options[:category])
-
-        if txn.frame_stack.empty?
-          txn.set_default_transaction_name(name, options)
-        else
-          txn.frame_stack.last.name = name
-          txn.frame_stack.last.category = options[:category] if options[:category]
-        end
+        name = txn.make_transaction_name(name, category)
+        txn.name_last_frame(name)
+        txn.set_default_transaction_name(name, category)
       end
 
-      def self.set_overriding_transaction_name(name, options = {}) #THREAD_LOCAL_ACCESS
+      def self.set_overriding_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
         txn = tl_current
         return unless txn
 
-        name = txn.make_transaction_name(name, options[:category])
+        name = txn.make_transaction_name(name, category)
 
-        if txn.frame_stack.empty?
-          txn.set_overriding_transaction_name(name, options)
-        else
-          txn.frame_stack.last.name = name
-          txn.frame_stack.last.category = options[:category] if options[:category]
-
-          # Parent transaction also takes this name, but only if they
-          # are both/neither web transactions.
-          child_is_web_category = transaction_category_is_web?(txn.frame_stack.last.category)
-          txn_is_web_category   = transaction_category_is_web?(txn.category)
-
-          if (child_is_web_category == txn_is_web_category)
-            txn.name_from_api = name
-          end
-        end
-      end
-
-      def make_transaction_name(name, category=nil)
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        "#{namer.prefix_for_category(self, category)}#{name}"
+        txn.name_last_frame(name)
+        txn.set_overriding_transaction_name(name, category)
       end
 
       def self.start(state, category, options)
@@ -113,24 +99,22 @@ module NewRelic
         txn = state.current_transaction
 
         if txn
-          if options[:filtered_params] && !options[:filtered_params].empty?
-            txn.filtered_params = options[:filtered_params]
-          end
-
-          nested_frame = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
-          nested_frame.name = options[:transaction_name]
-          nested_frame.category = category
-          txn.frame_stack << nested_frame
+          txn.create_nested_frame(state, category, options)
         else
-          txn = Transaction.new(category, options)
-          state.reset(txn)
-          txn.start(state)
+          txn = start_new_transaction(state, category, options)
         end
 
         txn
       rescue => e
         NewRelic::Agent.logger.error("Exception during Transaction.start", e)
         nil
+      end
+
+      def self.start_new_transaction(state, category, options)
+        txn = Transaction.new(category, options)
+        state.reset(txn)
+        txn.start(state)
+        txn
       end
 
       FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
@@ -143,22 +127,12 @@ module NewRelic
           return
         end
 
+        nested_frame = txn.frame_stack.pop
+
         if txn.frame_stack.empty?
-          txn.stop(state, end_time)
+          txn.stop(state, end_time, nested_frame)
           state.reset
         else
-          nested_frame = txn.frame_stack.pop
-
-          # Parent transaction inherits the name of the first child
-          # to complete, if they are both/neither web transactions.
-          nested_is_web_category = transaction_category_is_web?(nested_frame.category)
-          txn_is_web_category    = transaction_category_is_web?(txn.category)
-
-          if (nested_is_web_category == txn_is_web_category)
-            # first child to finish wins
-            txn.name_from_child ||= nested_frame.name
-          end
-
           nested_name = nested_transaction_name(nested_frame.name)
 
           if nested_name.start_with?(MIDDLEWARE_PREFIX)
@@ -179,6 +153,7 @@ module NewRelic
 
         :transaction_stopped
       rescue => e
+        state.reset
         NewRelic::Agent.logger.error("Exception during Transaction.stop", e)
         nil
       end
@@ -188,6 +163,88 @@ module NewRelic
           "#{SUBTRANSACTION_PREFIX}#{name}"
         else
           name
+        end
+      end
+
+      # Indicate that you don't want to keep the currently saved transaction
+      # information
+      def self.abort_transaction! #THREAD_LOCAL_ACCESS
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.abort_transaction!(state) if txn
+      end
+
+      # If we have an active transaction, notice the error and increment the error metric.
+      # Options:
+      # * <tt>:request</tt> => Request object to get the uri and referer
+      # * <tt>:uri</tt> => The request path, minus any request params or query string.
+      # * <tt>:referer</tt> => The URI of the referer
+      # * <tt>:metric</tt> => The metric name associated with the transaction
+      # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
+      # * <tt>:custom_params</tt> => Custom parameters
+      # Anything left over is treated as custom params
+
+      def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
+        options = extract_request_options(options)
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        if txn
+          txn.notice_error(e, options)
+        else
+          NewRelic::Agent.instance.error_collector.notice_error(e, options)
+        end
+      end
+
+      def self.extract_request_options(options)
+        req = options.delete(:request)
+        if req
+          options[:uri]     = uri_from_request(req)
+          options[:referer] = referer_from_request(req)
+        end
+        options
+      end
+
+      # Returns truthy if the current in-progress transaction is considered a
+      # a web transaction (as opposed to, e.g., a background transaction).
+      #
+      # @api public
+      #
+      def self.recording_web_transaction? #THREAD_LOCAL_ACCESS
+        txn = tl_current
+        txn && txn.recording_web_transaction?
+      end
+
+      # Make a safe attempt to get the referer from a request object, generally successful when
+      # it's a Rack request.
+      def self.referer_from_request(req)
+        if req && req.respond_to?(:referer)
+          req.referer.to_s.split('?').first
+        end
+      end
+
+      # Make a safe attempt to get the URI, without the host and query string.
+      def self.uri_from_request(req)
+        approximate_uri = case
+                          when req.respond_to?(:fullpath   ) then req.fullpath
+                          when req.respond_to?(:path       ) then req.path
+                          when req.respond_to?(:request_uri) then req.request_uri
+                          when req.respond_to?(:uri        ) then req.uri
+                          when req.respond_to?(:url        ) then req.url
+                          end
+        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
+      end
+
+
+      def self.apdex_bucket(duration, failed, apdex_t)
+        case
+        when failed
+          :apdex_f
+        when duration <= apdex_t
+          :apdex_s
+        when duration <= 4 * apdex_t
+          :apdex_t
+        else
+          :apdex_f
         end
       end
 
@@ -203,16 +260,13 @@ module NewRelic
         end
       end
 
-      attr_reader :frame_stack, :cat_path_hashes
-      attr_accessor :http_response_code
-
       def initialize(category, options)
         @frame_stack = []
+        @has_children = false
 
-        @default_name    = Helper.correctly_encoded(options[:transaction_name])
-        @name_from_child = nil
-        @name_from_api   = nil
-        @frozen_name     = nil
+        self.default_name = options[:transaction_name]
+        @overridden_name    = nil
+        @frozen_name      = nil
 
         @category = category
         @start_time = Time.now
@@ -236,57 +290,67 @@ module NewRelic
         @noticed_error_ids ||= []
       end
 
+      def overridden_name=(name)
+        @overridden_name = Helper.correctly_encoded(name)
+      end
+
       def default_name=(name)
         @default_name = Helper.correctly_encoded(name)
       end
 
-      def name_from_child=(name)
-        @name_from_child = Helper.correctly_encoded(name)
-      end
-
-      def name_from_api=(name)
-        if @frozen_name
-          NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@frozen_name}'.")
+      def create_nested_frame(state, category, options)
+        @has_children = true
+        if options[:filtered_params] && !options[:filtered_params].empty?
+          @filtered_params = options[:filtered_params]
         end
 
-        @name_from_api = Helper.correctly_encoded(name)
+        frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
+        name_last_frame(options[:transaction_name])
+
+        set_default_transaction_name(options[:transaction_name], category)
       end
 
-      def set_default_transaction_name(name, options)
-        self.default_name = name
-        @category = options[:category] if options[:category]
+      def make_transaction_name(name, category=nil)
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
+        "#{namer.prefix_for_category(self, category)}#{name}"
       end
 
-      def set_overriding_transaction_name(name, options)
-        self.name_from_api = name
-        set_default_transaction_name(name, options)
-      end
-
-      def best_category
-        if frame_stack.empty?
-          category
-        else
-          frame_stack.last.category
+      def set_default_transaction_name(name, category)
+        return log_frozen_name(name) if name_frozen?
+        if influences_transaction_name?(category)
+          self.default_name = name
+          @category = category if category
         end
+      end
+
+      def set_overriding_transaction_name(name, category)
+        return log_frozen_name(name) if name_frozen?
+        if influences_transaction_name?(category)
+          self.overridden_name = name
+          @category = category if category
+        end
+      end
+
+      def name_last_frame(name)
+        frame_stack.last.name = name
+      end
+
+      def log_frozen_name(name)
+        NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@frozen_name}'.")
+        nil
+      end
+
+      def influences_transaction_name?(category)
+        !category || frame_stack.size == 1 || similar_category?(category)
       end
 
       def best_name
-        return @frozen_name   if @frozen_name
-        return @name_from_api if @name_from_api
-
-        if @name_from_child
-          return @name_from_child
-        elsif !@frame_stack.empty?
-          return @frame_stack.last.name
-        end
-
-        return @default_name if @default_name
-
-        NewRelic::Agent::UNKNOWN_METRIC
+        @frozen_name  || @overridden_name ||
+          @default_name || NewRelic::Agent::UNKNOWN_METRIC
       end
 
       def name_set?
-        (@name_from_api || @name_from_child || @default_name) ? true : false
+        (@overridden_name || @default_name) ? true : false
       end
 
       def promoted_transaction_name(name)
@@ -320,8 +384,6 @@ module NewRelic
         @frozen_name ? true : false
       end
 
-      # Indicate that we are entering a measured controller action or task.
-      # Make sure you unwind every push with a pop call.
       def start(state)
         return if !state.is_execution_traced?
 
@@ -330,16 +392,8 @@ module NewRelic
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
-        @trace_options = { :metric => true, :scoped_metric => false }
-        @expected_scope = NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
-      end
-
-      # Indicate that you don't want to keep the currently saved transaction
-      # information
-      def self.abort_transaction! #THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        txn.abort_transaction!(state) if txn
+        frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
+        name_last_frame @default_name
       end
 
       # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
@@ -357,25 +411,41 @@ module NewRelic
         transaction_sampler.ignore_transaction(state)
       end
 
+      WEB_SUMMARY_METRIC   = 'HttpDispatcher'.freeze
+      OTHER_SUMMARY_METRIC = 'OtherTransaction/all'.freeze
+
       def summary_metrics
-        metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(@frozen_name)
-        metric_parser.summary_metrics
+        if @frozen_name.start_with?(CONTROLLER_PREFIX)
+          [WEB_SUMMARY_METRIC]
+        else
+          background_summary_metrics
+        end
+      end
+
+      def background_summary_metrics
+        segments = @frozen_name.split('/')
+        if segments.size > 2
+          ["OtherTransaction/#{segments[1]}/all", OTHER_SUMMARY_METRIC]
+        else
+          []
+        end
       end
 
       def needs_middleware_summary_metrics?(name)
         name.start_with?(MIDDLEWARE_PREFIX)
       end
 
-      def stop(state, end_time)
+      def stop(state, end_time, outermost_frame)
         return if !state.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
         ignore! if user_defined_rules_ignore?
 
-        if @name_from_child
-          name = Transaction.nested_transaction_name(@default_name)
-          @trace_options[:scoped_metric] = true
+        if @has_children
+          name = Transaction.nested_transaction_name(outermost_frame.name)
+          trace_options = TRACE_OPTIONS_SCOPED
         else
           name = @frozen_name
+          trace_options = TRACE_OPTIONS_UNSCOPED
         end
 
         # These metrics are recorded here instead of in record_summary_metrics
@@ -392,8 +462,8 @@ module NewRelic
           start_time.to_f,
           name,
           summary_metrics_with_exclusive_time,
-          @expected_scope,
-          @trace_options,
+          outermost_frame,
+          trace_options,
           end_time.to_f)
 
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
@@ -402,6 +472,7 @@ module NewRelic
       end
 
       def user_defined_rules_ignore?
+        return unless uri
         return if (rules = NewRelic::Agent.config[:"rules.ignore_url_regexes"]).empty?
 
         parsed = NewRelic::Agent::HTTPClients::URIUtil.parse_url(uri)
@@ -410,6 +481,9 @@ module NewRelic
         rules.any? do |rule|
           filtered_uri.match(rule)
         end
+      rescue URI::InvalidURIError => e
+        NewRelic::Agent.logger.debug("Error parsing URI: #{uri}", e)
+        false
       end
 
       def commit!(state, end_time, outermost_segment_name)
@@ -422,7 +496,7 @@ module NewRelic
 
         record_summary_metrics(outermost_segment_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
-        NewRelic::Agent::Instrumentation::QueueTime.record_frontend_metrics(apdex_start, start_time) if queue_time > 0.0
+        record_queue_time
 
         record_exceptions
         merge_metrics
@@ -451,6 +525,7 @@ module NewRelic
         }
         append_cat_info(state, duration, payload)
         append_apdex_perf_zone(duration, payload)
+        append_synthetics_to(state, payload)
         append_referring_transaction_guid_to(state, payload)
         append_http_response_code(payload)
 
@@ -462,8 +537,7 @@ module NewRelic
       end
 
       def include_guid?(state, duration)
-        state.is_cross_app? ||
-        (state.request_token && duration > apdex_t)
+        state.is_cross_app? || is_synthetics_request?
       end
 
       def cat_trip_id(state)
@@ -487,6 +561,35 @@ module NewRelic
 
       def cat_referring_path_hash(state)
         NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_path_hash(state)
+      end
+
+      def is_synthetics_request?
+        synthetics_payload != nil && raw_synthetics_header != nil
+      end
+
+      def synthetics_version
+        info = synthetics_payload or return nil
+        info[0]
+      end
+
+      def synthetics_account_id
+        info = synthetics_payload or return nil
+        info[1]
+      end
+
+      def synthetics_resource_id
+        info = synthetics_payload or return nil
+        info[2]
+      end
+
+      def synthetics_job_id
+        info = synthetics_payload or return nil
+        info[3]
+      end
+
+      def synthetics_monitor_id
+        info = synthetics_payload or return nil
+        info[4]
       end
 
       APDEX_S = 'S'.freeze
@@ -528,6 +631,14 @@ module NewRelic
         end
       end
 
+      def append_synthetics_to(state, payload)
+        return unless is_synthetics_request?
+
+        payload[:synthetics_resource_id] = synthetics_resource_id
+        payload[:synthetics_job_id]      = synthetics_job_id
+        payload[:synthetics_monitor_id]  = synthetics_monitor_id
+      end
+
       def append_referring_transaction_guid_to(state, payload)
         referring_guid = NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_guid(state)
         if referring_guid
@@ -546,37 +657,6 @@ module NewRelic
         end
       end
 
-      # If we have an active transaction, notice the error and increment the error metric.
-      # Options:
-      # * <tt>:request</tt> => Request object to get the uri and referer
-      # * <tt>:uri</tt> => The request path, minus any request params or query string.
-      # * <tt>:referer</tt> => The URI of the referer
-      # * <tt>:metric</tt> => The metric name associated with the transaction
-      # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
-      # * <tt>:custom_params</tt> => Custom parameters
-      # Anything left over is treated as custom params
-
-      def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
-        options = extract_request_options(options)
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        if txn
-          txn.notice_error(e, options)
-        else
-          NewRelic::Agent.instance.error_collector.notice_error(e, options)
-        end
-      end
-
-      def self.extract_request_options(options)
-        req = options.delete(:request)
-        if req
-          options[:uri]     = uri_from_request(req)
-          options[:referer] = referer_from_request(req)
-        end
-        options
-      end
-
-
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options={}) # :nodoc:
         options[:uri]     ||= uri     if uri
@@ -592,6 +672,23 @@ module NewRelic
           @exceptions[error].merge! options
         else
           @exceptions[error] = options
+        end
+      end
+
+      QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'.freeze
+
+      def queue_time
+        @apdex_start ? @start_time - @apdex_start : 0
+      end
+
+      def record_queue_time
+        value = queue_time
+        if value > 0.0
+          if value < MethodTracerHelpers::MAX_ALLOWED_METRIC_DURATION
+            @metrics.record_unscoped(QUEUE_TIME_METRIC, value)
+          else
+            ::NewRelic::Agent.logger.log_once(:warn, :too_high_queue_time, "Not recording unreasonably large queue time of #{value} s")
+          end
         end
       end
 
@@ -669,60 +766,16 @@ module NewRelic
       alias_method :user_attributes, :custom_parameters
       alias_method :set_user_attributes, :add_custom_parameters
 
-      def queue_time
-        @apdex_start ? @start_time - @apdex_start : 0
+      def recording_web_transaction?
+        web_category?(@category)
       end
 
-      # Returns truthy if the current in-progress transaction is considered a
-      # a web transaction (as opposed to, e.g., a background transaction).
-      #
-      # @api public
-      #
-      def self.recording_web_transaction? #THREAD_LOCAL_ACCESS
-        txn = tl_current
-        txn && txn.recording_web_transaction?
-      end
-
-      def self.transaction_category_is_web?(category)
+      def web_category?(category)
         WEB_TRANSACTION_CATEGORIES.include?(category)
       end
 
-      def recording_web_transaction?
-        self.class.transaction_category_is_web?(@category)
-      end
-
-      # Make a safe attempt to get the referer from a request object, generally successful when
-      # it's a Rack request.
-      def self.referer_from_request(req)
-        if req && req.respond_to?(:referer)
-          req.referer.to_s.split('?').first
-        end
-      end
-
-      # Make a safe attempt to get the URI, without the host and query string.
-      def self.uri_from_request(req)
-        approximate_uri = case
-                          when req.respond_to?(:fullpath   ) then req.fullpath
-                          when req.respond_to?(:path       ) then req.path
-                          when req.respond_to?(:request_uri) then req.request_uri
-                          when req.respond_to?(:uri        ) then req.uri
-                          when req.respond_to?(:url        ) then req.url
-                          end
-        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
-      end
-
-
-      def self.apdex_bucket(duration, failed, apdex_t)
-        case
-        when failed
-          :apdex_f
-        when duration <= apdex_t
-          :apdex_s
-        when duration <= 4 * apdex_t
-          :apdex_t
-        else
-          :apdex_f
-        end
+      def similar_category?(category)
+        web_category?(@category) == web_category?(category)
       end
 
       def cpu_burn
