@@ -9,6 +9,10 @@ unless ::Grape::VERSION == '0.1.5'
 
       format :json
 
+      get do
+        "root"
+      end
+
       resource :fish do
         get do
           "api v1"

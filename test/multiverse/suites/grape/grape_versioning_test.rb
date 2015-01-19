@@ -22,7 +22,19 @@ unless ::Grape::VERSION == '0.1.5'
     def test_version_from_path_is_recorded_in_transaction_name
       @app_class = GrapeVersioning::ApiV1
       get '/v1/fish'
-      assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV1-v1/v1/fish (GET)')
+      assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV1-v1/fish (GET)')
+    end
+
+    def test_version_is_stripped_when_requesting_root_route
+      @app_class = GrapeVersioning::ApiV1
+      get '/v1'
+      assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV1-v1/ (GET)')
+    end
+
+    def test_version_is_stripped_when_requesting_root_route_with_trailing_slash
+      @app_class = GrapeVersioning::ApiV1
+      get '/v1/'
+      assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV1-v1/ (GET)')
     end
 
     def test_version_from_param_version_is_recorded_in_transaction_name
