@@ -4,12 +4,60 @@
 
 module NewRelic
   module Agent
-    module GrapeInstrumentation
-      API_ENDPOINT   = 'api.endpoint'.freeze
-      FORMAT_REGEX   = /\(\/?\.:format\)/.freeze
-      VERSION_REGEX  = /:version(\/|$)/.freeze
-      EMPTY_STRING   = ''.freeze
-      MIN_VERSION    = ::NewRelic::VersionNumber.new("0.2.0")
+    module Instrumentation
+      module GrapeInstrumentation
+        extend self
+
+        API_ENDPOINT   = 'api.endpoint'.freeze
+        FORMAT_REGEX   = /\(\/?\.:format\)/.freeze
+        VERSION_REGEX  = /:version(\/|$)/.freeze
+        EMPTY_STRING   = ''.freeze
+        MIN_VERSION    = ::NewRelic::VersionNumber.new("0.2.0")
+
+        def instrument(endpoint, class_name)
+          return unless endpoint && route = endpoint.route
+          name_transaction(route, class_name)
+          capture_params(endpoint)
+        end
+
+        def name_transaction(route, class_name)
+          txn_name = name_for_transaction(route, class_name)
+          ::NewRelic::Agent::Transaction.set_default_transaction_name(txn_name, :grape)
+        end
+
+        def name_for_transaction(route, class_name)
+          action_name = route.route_path.sub(FORMAT_REGEX, EMPTY_STRING)
+          method_name = route.route_method
+
+          if route.route_version
+            action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
+            "#{class_name}-#{route.route_version}#{action_name} (#{method_name})"
+          else
+            "#{class_name}#{action_name} (#{method_name})"
+          end
+        end
+
+        def capture_params(endpoint)
+          txn = ::NewRelic::Agent::Transaction.tl_current
+          txn.filtered_params = params_for_capture(endpoint)
+        end
+
+        def params_for_capture(endpoint)
+          content_type = endpoint.request.content_type
+          multipart = content_type && content_type.start_with?("multipart")
+
+          endpoint.params.inject({}) do |memo, (k,v)|
+            if k == "route_info"
+              #skip
+            elsif multipart && v.is_a?(Hash) && v["tempfile"]
+              memo[k] = "[FILE]"
+            else
+              memo[k] = v
+            end
+            memo
+          end
+        end
+      end
     end
   end
 end
@@ -25,7 +73,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(::Grape::VERSION) &&
-      ::NewRelic::VersionNumber.new(::Grape::VERSION) >= ::NewRelic::Agent::GrapeInstrumentation::MIN_VERSION
+      ::NewRelic::VersionNumber.new(::Grape::VERSION) >= ::NewRelic::Agent::Instrumentation::GrapeInstrumentation::MIN_VERSION
   end
 
   depends_on do
@@ -53,47 +101,11 @@ DependencyDetection.defer do
         begin
           response = call_without_new_relic(env)
         ensure
-          # We don't want an error in our transaction naming to kill the request.
           begin
-            endpoint = env[::NewRelic::Agent::GrapeInstrumentation::API_ENDPOINT]
-
-            if endpoint
-              route = endpoint.route
-              if route
-                action_name = route.route_path.sub(::NewRelic::Agent::GrapeInstrumentation::FORMAT_REGEX,
-                                                   ::NewRelic::Agent::GrapeInstrumentation::EMPTY_STRING)
-
-                method_name = route.route_method
-
-                if route.route_version
-                  action_name = action_name.sub(::NewRelic::Agent::GrapeInstrumentation::VERSION_REGEX,
-                                                ::NewRelic::Agent::GrapeInstrumentation::EMPTY_STRING)
-                  txn_name = "#{self.class.name}-#{route.route_version}#{action_name} (#{method_name})"
-                else
-                  txn_name = "#{self.class.name}#{action_name} (#{method_name})"
-                end
-
-                ::NewRelic::Agent::Transaction.set_default_transaction_name(txn_name, :grape)
-
-                params = endpoint.params.to_h
-                params.delete("route_info")
-
-                content_type = endpoint.request.content_type
-
-                if content_type && content_type.start_with?("multipart")
-                  params.each_pair do |k, v|
-                    if v.is_a?(Hash) && v["tempfile"]
-                      params[k] = "[FILE]"
-                    end
-                  end
-                end
-
-                txn = ::NewRelic::Agent::Transaction.tl_current
-                txn.filtered_params = params
-              end
-            end
+            endpoint = env[::NewRelic::Agent::Instrumentation::GrapeInstrumentation::API_ENDPOINT]
+            ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.instrument(endpoint, self.class.name)
           rescue => e
-            ::NewRelic::Agent.logger.warn("Error in Grape transaction naming", e)
+            ::NewRelic::Agent.logger.warn("Error in Grape instrumentation", e)
           end
         end
 
