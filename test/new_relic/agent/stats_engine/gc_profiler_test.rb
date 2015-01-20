@@ -94,7 +94,7 @@ class NewRelic::Agent::StatsEngine
         GC::Profiler.clear
         count_after_clear = GC.count
 
-        assert_operator count_before_allocations, :<,  count_after_allocations
+        assert_operator count_before_allocations, :<=, count_after_allocations
         assert_operator count_after_allocations,  :<=, count_after_clear
       ensure
         GC::Profiler.disable if defined?(::GC::Profiler)

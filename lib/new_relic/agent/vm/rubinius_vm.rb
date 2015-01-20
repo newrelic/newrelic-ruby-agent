@@ -15,26 +15,85 @@ module NewRelic
         end
 
         def gather_stats(snap)
+          gather_gc_stats(snap)
+          gather_thread_stats(snap)
+        end
+
+        def gather_gc_stats(snap)
           snap.gc_runs = GC.count
 
+          # Rubinius::Metrics is available since Rubinius 2.3
+          if has_metrics?
+            gather_stats_from_metrics(snap)
+          else
+            gather_stats_from_gc_stat(snap)
+          end
+
+          gather_gc_time(snap)
+        end
+
+        def gather_stats_from_metrics(snap)
+          snap.major_gc_count = metric(:'gc.immix.count')
+          snap.minor_gc_count = metric(:'gc.young.count')
+
+          snap.heap_live = metric(:'memory.large.objects.current')
+
+          snap.total_allocated_object = metric(:'memory.large.objects.total')
+
+          snap.method_cache_invalidations = metric(:'vm.inline_cache.resets')
+        end
+
+        def gather_stats_from_gc_stat(snap)
           gc_stats = GC.stat[:gc]
+
           if gc_stats
             snap.major_gc_count = gc_stats[:full][:count] if gc_stats[:full]
             snap.minor_gc_count = gc_stats[:young][:count] if gc_stats[:young]
           end
-
-          snap.thread_count = Thread.list.size
         end
 
-        SUPPORTED_KEYS = [
+        def gather_gc_time(snap)
+          if GC.respond_to?(:time)
+            # On Rubinius GC.time returns a time in miliseconds, not seconds.
+            snap.gc_total_time = GC.time / 1000
+          end
+        end
+
+        SUPPORTED_KEYS_GC_STAT = [
           :gc_runs,
           :major_gc_count,
           :minor_gc_count,
           :thread_count
         ].freeze
 
+        SUPPORTED_KEYS_GC_RBX_METRICS = [
+          :gc_runs,
+          :heap_live,
+          :major_gc_count,
+          :minor_gc_count,
+          :method_cache_invalidations,
+          :thread_count,
+          :total_allocated_object
+        ].freeze
+
         def supports?(key)
-          SUPPORTED_KEYS.include?(key)
+          if has_metrics?
+            SUPPORTED_KEYS_GC_RBX_METRICS.include?(key)
+          else
+            SUPPORTED_KEYS_GC_STAT.include?(key)
+          end
+        end
+
+        def gather_thread_stats(snap)
+          snap.thread_count = Thread.list.size
+        end
+
+        def has_metrics?
+          Rubinius.const_defined?(:Metrics)
+        end
+
+        def metric(key)
+          Rubinius::Metrics.data[key]
         end
       end
     end
