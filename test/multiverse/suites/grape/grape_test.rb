@@ -70,5 +70,59 @@ class GrapeTest < Minitest::Test
       #
       assert_metrics_recorded(['Controller/Rack/RenamedTxn'])
     end
+
+    def test_params_are_not_captured_with_capture_params_disabled
+      with_config(:capture_params => false) do
+        get '/grape_ape/10'
+        assert_equal({}, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_route_params_are_captured
+      with_config(:capture_params => true) do
+        get '/grape_ape/10'
+        assert_equal({"id" => "10"}, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_query_params_are_captured
+      with_config(:capture_params => true) do
+        get '/grape_ape?q=1234&foo=bar'
+        assert_equal({'q' => '1234', 'foo' => 'bar'}, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_post_body_params_are_captured
+      with_config(:capture_params => true) do
+        post '/grape_ape', {'q' => '1234', 'foo' => 'bar'}.to_json, "CONTENT_TYPE" => "application/json"
+        assert_equal({'q' => '1234', 'foo' => 'bar'}, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_post_body_with_nested_params_are_captured
+      with_config(:capture_params => true) do
+        params = {"ape" => {"first_name" => "koko", "last_name" => "gorilla"}}
+        post '/grape_ape', params.to_json, "CONTENT_TYPE" => "application/json"
+        assert_equal(params, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_file_upload_params_are_filtered
+      with_config(:capture_params => true) do
+        params = {
+          :title => "blah",
+          :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
+        }
+        post '/grape_ape', params
+        assert_equal({"title" => "blah", "file" => "[FILE]"}, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_404_with_params_does_not_capture_them
+      with_config(:capture_params => true) do
+        post '/grape_catfish', {"foo" => "bar"}
+        assert_equal({}, last_transaction_trace_request_params)
+      end
+    end
   end
 end

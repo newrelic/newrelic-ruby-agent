@@ -74,6 +74,22 @@ DependencyDetection.defer do
                 end
 
                 ::NewRelic::Agent::Transaction.set_default_transaction_name(txn_name, :grape)
+
+                params = endpoint.params.to_h
+                params.delete("route_info")
+
+                content_type = endpoint.request.content_type
+
+                if content_type && content_type.start_with?("multipart")
+                  params.each_pair do |k, v|
+                    if v.is_a?(Hash) && v["tempfile"]
+                      params[k] = "[FILE]"
+                    end
+                  end
+                end
+
+                txn = ::NewRelic::Agent::Transaction.tl_current
+                txn.filtered_params = params
               end
             end
           rescue => e
