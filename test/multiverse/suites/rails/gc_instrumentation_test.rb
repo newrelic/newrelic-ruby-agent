@@ -4,9 +4,11 @@
 
 require './app'
 
-# GC instrumentation only works with REE or MRI >= 1.9.2
+# These tests only return consistent results for REE or MRI >= 1.9.2
 if NewRelic::LanguageSupport.ree? ||
-    (RUBY_VERSION >= '1.9.2' && !NewRelic::LanguageSupport.jruby?)
+    (RUBY_VERSION >= '1.9.2' &&
+     !NewRelic::LanguageSupport.jruby? &&
+     !NewRelic::LanguageSupport.rubinius?)
 
 class GcController < ApplicationController
   def gc_action
