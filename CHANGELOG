@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.9.10 ##
+
+  * Updated support for Rubinius 2.3+ metrics
+
+  Rubinius 2.3 introduced a new system for gathering metrics from the
+  underlying VM. Data capture for the Ruby VM's page has been updated to take
+  advantage of these. Thanks Yorick Peterse for the contribution!
+
 ## v3.9.9 ##
 
   * Support for Ruby 2.2
