@@ -49,18 +49,19 @@ unless ::Grape::VERSION == '0.1.5'
       assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV3-v3/fish (GET)')
     end
 
-    def test_version_from_accept_version_header_is_recorded_in_transaction_name
-      @app_class = GrapeVersioning::ApiV4
-      #version from http accept header is not supported in older versions of grape
-      return unless NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('4.0.0')
-      get '/fish', {}, 'HTTP_ACCEPT_VERSION' => 'v4'
-      assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV4-v4/fish (GET)')
+    #version from http accept header is not supported in older versions of grape
+    if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('4.0.0')
+      def test_version_from_accept_version_header_is_recorded_in_transaction_name
+        @app_class = GrapeVersioning::ApiV4
+        get '/fish', {}, 'HTTP_ACCEPT_VERSION' => 'v4'
+        assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV4-v4/fish (GET)')
+      end
     end
 
     def test_app_not_using_versioning_does_not_record_version_in_transaction_name
-      @app_class = GrapeVersioning::ApiV5
+      @app_class = GrapeVersioning::Unversioned
       get '/fish'
-      assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV5/fish (GET)')
+      assert_metrics_recorded('Controller/Grape/GrapeVersioning::Unversioned/fish (GET)')
     end
   end
 end

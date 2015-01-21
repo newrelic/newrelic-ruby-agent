@@ -59,7 +59,7 @@ unless ::Grape::VERSION == '0.1.5'
       end
     end
 
-    class ApiV5 < Grape::API
+    class Unversioned < Grape::API
       format :json
 
       resource :fish do

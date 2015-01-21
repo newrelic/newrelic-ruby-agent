@@ -14,7 +14,7 @@ module NewRelic
         EMPTY_STRING   = ''.freeze
         MIN_VERSION    = ::NewRelic::VersionNumber.new("0.2.0")
 
-        def instrument(endpoint, class_name)
+        def handle_transaction(endpoint, class_name)
           return unless endpoint && route = endpoint.route
           name_transaction(route, class_name)
           capture_params(endpoint)
@@ -103,7 +103,7 @@ DependencyDetection.defer do
         ensure
           begin
             endpoint = env[::NewRelic::Agent::Instrumentation::GrapeInstrumentation::API_ENDPOINT]
-            ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.instrument(endpoint, self.class.name)
+            ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.handle_transaction(endpoint, self.class.name)
           rescue => e
             ::NewRelic::Agent.logger.warn("Error in Grape instrumentation", e)
           end
