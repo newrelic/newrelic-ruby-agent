@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'multiverse_helpers'
 require 'filtering_test_app'
 
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?

@@ -81,6 +81,7 @@ if !defined?(MyApp)
     mount SinatraTestApp, :at => '/sinatra_app' if defined?(Sinatra)
     post '/filtering_test' => FilteringTestApp.new
     get '/:controller(/:action(/:id))'
+    post '/filtering_test' => FilteringTestApp.new
   end
 
   class ApplicationController < ActionController::Base; end
