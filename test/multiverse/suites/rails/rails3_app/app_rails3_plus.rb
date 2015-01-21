@@ -5,6 +5,7 @@
 require 'action_controller/railtie'
 require 'active_model'
 require 'rails/test_help'
+require 'filtering_test_app'
 
 # We define our single Rails application here, one time, upon the first inclusion
 # Tests should feel free to define their own Controllers locally, but if they
@@ -33,7 +34,6 @@ if !defined?(MyApp)
       @name = 'InstanceMiddleware'
     end
 
-    # Yes, this is nuts. See the comment above initialize_with_new_relic_trace.
     def new(app)
       @app = app
       self
@@ -70,6 +70,7 @@ if !defined?(MyApp)
           raise ActionController::RoutingError.new('this is an uncaught routing error')
         end)
     get '/:controller(/:action(/:id))'
+    post '/filtering_test' => FilteringTestApp.new
   end
 
   class ApplicationController < ActionController::Base; end
