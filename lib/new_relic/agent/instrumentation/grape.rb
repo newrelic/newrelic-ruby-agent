@@ -19,7 +19,7 @@ module NewRelic
         def handle_transaction(endpoint, class_name)
           return unless endpoint && route = endpoint.route
           name_transaction(route, class_name)
-          capture_params(endpoint)
+          capture_params(endpoint) if Agent.config[:capture_params]
         end
 
         def name_transaction(route, class_name)
