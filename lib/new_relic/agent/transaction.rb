@@ -22,12 +22,13 @@ module NewRelic
       TASK_PREFIX                  = 'OtherTransaction/Background/'.freeze
       RACK_PREFIX                  = 'Controller/Rack/'.freeze
       SINATRA_PREFIX               = 'Controller/Sinatra/'.freeze
+      GRAPE_PREFIX                 = 'Controller/Grape/'.freeze
       OTHER_TRANSACTION_PREFIX     = 'OtherTransaction/'.freeze
 
       CONTROLLER_MIDDLEWARE_PREFIX = 'Controller/Middleware/Rack'.freeze
 
       NESTED_TRACE_STOP_OPTIONS    = { :metric => true }.freeze
-      WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :middleware].freeze
+      WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :grape, :middleware].freeze
       TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze

@@ -29,37 +29,100 @@ class GrapeTest < Minitest::Test
       assert_raises(GrapeTestApiError) do
         get '/self_destruct'
       end
-      assert_metrics_recorded(['Errors/Controller/Rack/GrapeTestApi/self_destruct (GET)'])
+      assert_metrics_recorded(['Errors/Controller/Grape/GrapeTestApi/self_destruct (GET)'])
     end
 
     def test_getting_a_list_of_grape_apes
       get '/grape_ape'
-      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape (GET)'])
+      assert_metrics_recorded(['Controller/Grape/GrapeTestApi/grape_ape (GET)'])
     end
 
     def test_showing_a_grape_ape
       get '/grape_ape/1'
-      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape/:id (GET)'])
+      assert_metrics_recorded(['Controller/Grape/GrapeTestApi/grape_ape/:id (GET)'])
     end
 
     def test_creating_a_grape_ape
       post '/grape_ape', {}
-      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape (POST)'])
+      assert_metrics_recorded(['Controller/Grape/GrapeTestApi/grape_ape (POST)'])
     end
 
     def test_updating_a_grape_ape
       put '/grape_ape/1', {}
-      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape/:id (PUT)'])
+      assert_metrics_recorded(['Controller/Grape/GrapeTestApi/grape_ape/:id (PUT)'])
     end
 
     def test_deleting_a_grape_ape
       delete '/grape_ape/1'
-      assert_metrics_recorded(['Controller/Rack/GrapeTestApi/grape_ape/:id (DELETE)'])
+      assert_metrics_recorded(['Controller/Grape/GrapeTestApi/grape_ape/:id (DELETE)'])
     end
 
     def test_transaction_renaming
       get '/grape_ape/renamed'
+      # The second segment here is 'Rack' because of an idiosyncrasy of
+      # the set_transaction_name API: when you call set_transaction_name and
+      # don't provide an explicit category, you lock in the category prefix
+      # that was in use at the time you made the call.
+      #
+      # We may change this behavior in the future, once we have a better
+      # internal representation of the name and category of a transaction as
+      # truly separate entities.
+      #
       assert_metrics_recorded(['Controller/Rack/RenamedTxn'])
+    end
+
+    def test_params_are_not_captured_with_capture_params_disabled
+      with_config(:capture_params => false) do
+        get '/grape_ape/10'
+        assert_equal({}, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_route_params_are_captured
+      with_config(:capture_params => true) do
+        get '/grape_ape/10'
+        assert_equal({"id" => "10"}, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_query_params_are_captured
+      with_config(:capture_params => true) do
+        get '/grape_ape?q=1234&foo=bar'
+        assert_equal({'q' => '1234', 'foo' => 'bar'}, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_post_body_params_are_captured
+      with_config(:capture_params => true) do
+        post '/grape_ape', {'q' => '1234', 'foo' => 'bar'}.to_json, "CONTENT_TYPE" => "application/json"
+        assert_equal({'q' => '1234', 'foo' => 'bar'}, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_post_body_with_nested_params_are_captured
+      with_config(:capture_params => true) do
+        params = {"ape" => {"first_name" => "koko", "last_name" => "gorilla"}}
+        post '/grape_ape', params.to_json, "CONTENT_TYPE" => "application/json"
+        assert_equal(params, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_file_upload_params_are_filtered
+      with_config(:capture_params => true) do
+        params = {
+          :title => "blah",
+          :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
+        }
+        post '/grape_ape', params
+        assert_equal({"title" => "blah", "file" => "[FILE]"}, last_transaction_trace_request_params)
+      end
+    end
+
+    def test_404_with_params_does_not_capture_them
+      with_config(:capture_params => true) do
+        post '/grape_catfish', {"foo" => "bar"}
+        assert_equal({}, last_transaction_trace_request_params)
+      end
     end
   end
 end
