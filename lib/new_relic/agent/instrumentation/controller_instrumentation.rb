@@ -332,12 +332,13 @@ module NewRelic
           state.request = newrelic_request(args)
 
           skip_tracing = do_not_trace? || !state.is_execution_traced?
+
           if skip_tracing
-            if block_given?
-              return yield
-            else
-              state.current_transaction.ignore! if state.current_transaction
-              NewRelic::Agent.disable_all_tracing do
+            state.current_transaction.ignore! if state.current_transaction
+            NewRelic::Agent.disable_all_tracing do
+              if block_given?
+                return yield
+              else
                 return perform_action_without_newrelic_trace(*args)
               end
             end
@@ -348,14 +349,11 @@ module NewRelic
           trace_options = NR_DEFAULT_OPTIONS
 
           if block_given?
-            trace_options    = args.last if args.last.is_a?(Hash)
-            available_params = trace_options[:params]
-          else
-            available_params = respond_to?(:params) && params
+            trace_options = args.last if args.last.is_a?(Hash)
           end
 
           category    = trace_options[:category] || :controller
-          txn_options = create_transaction_options(trace_options, available_params)
+          txn_options = create_transaction_options(trace_options)
           txn_options[:transaction_name] = TransactionNamer.name_for(nil, self, category, trace_options)
           txn_options[:apdex_start_time] = detect_queue_start_time(state)
 
@@ -430,15 +428,12 @@ module NewRelic
 
         private
 
-        def create_transaction_options(trace_options, available_params)
+        def create_transaction_options(trace_options)
           txn_options = {}
           txn_options[:request]   = trace_options[:request]
           txn_options[:request] ||= request if respond_to?(:request)
-
-          if available_params
-            txn_options[:filtered_params] = (respond_to?(:filter_parameters)) ? filter_parameters(available_params) : available_params
-          end
-
+          # try to get rid of this
+          txn_options[:filtered_params] = trace_options[:params]
           txn_options
         end
 

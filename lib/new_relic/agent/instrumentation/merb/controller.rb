@@ -29,8 +29,16 @@ DependencyDetection.defer do
 
       protected
 
-      alias_method :perform_action_without_newrelic_trace, :_dispatch
-      alias_method :_dispatch, :perform_action_with_newrelic_trace
+      def _dispatch_with_newrelic_trace(*args)
+        options = {}
+        options[:params] = params
+        perform_action_with_newrelic_trace(options) do
+          _dispatch_without_newrelic_trace(*args)
+        end
+      end
+
+      alias_method :_dispatch_without_newrelic_trace, :_dispatch
+      alias_method :_dispatch, :_dispatch_with_newrelic_trace
     end
   end
 end

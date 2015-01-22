@@ -320,29 +320,6 @@ module NewRelic::Agent::Instrumentation
       host.doit
     end
 
-    def test_should_call_params_on_host_if_no_block_given_and_host_responds
-      host_class = Class.new do
-        include ControllerInstrumentation
-
-        attr_reader :params_called
-
-        def params
-          @params_called = true
-          {}
-        end
-
-        def doit
-          perform_action_with_newrelic_trace
-        end
-
-        def perform_action_without_newrelic_trace; end
-      end
-
-      host = host_class.new
-      host.doit
-      assert host.params_called
-    end
-
     class UserError < StandardError
     end
 
