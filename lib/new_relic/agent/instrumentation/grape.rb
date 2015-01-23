@@ -42,7 +42,7 @@ module NewRelic
         def capture_params(endpoint)
           txn = Transaction.tl_current
           env = endpoint.request.env
-          params = ParameterFiltering::apply_filters(env, endpoint.params.to_h)
+          params = ParameterFiltering::apply_filters(env, endpoint.params)
           params.delete("route_info")
           txn.filtered_params = params
         end
