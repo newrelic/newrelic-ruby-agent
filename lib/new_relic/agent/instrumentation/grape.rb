@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/parameter_filtering'
+
 module NewRelic
   module Agent
     module Instrumentation
@@ -12,17 +14,17 @@ module NewRelic
         FORMAT_REGEX   = /\(\/?\.:format\)/.freeze
         VERSION_REGEX  = /:version(\/|$)/.freeze
         EMPTY_STRING   = ''.freeze
-        MIN_VERSION    = ::NewRelic::VersionNumber.new("0.2.0")
+        MIN_VERSION    = VersionNumber.new("0.2.0")
 
         def handle_transaction(endpoint, class_name)
           return unless endpoint && route = endpoint.route
           name_transaction(route, class_name)
-          capture_params(endpoint)
+          capture_params(endpoint) if Agent.config[:capture_params]
         end
 
         def name_transaction(route, class_name)
           txn_name = name_for_transaction(route, class_name)
-          ::NewRelic::Agent::Transaction.set_default_transaction_name(txn_name, :grape)
+          Transaction.set_default_transaction_name(txn_name, :grape)
         end
 
         def name_for_transaction(route, class_name)
@@ -38,24 +40,11 @@ module NewRelic
         end
 
         def capture_params(endpoint)
-          txn = ::NewRelic::Agent::Transaction.tl_current
-          txn.filtered_params = params_for_capture(endpoint)
-        end
-
-        def params_for_capture(endpoint)
-          content_type = endpoint.request.content_type
-          multipart = content_type && content_type.start_with?("multipart")
-
-          endpoint.params.inject({}) do |memo, (k,v)|
-            if k == "route_info"
-              #skip
-            elsif multipart && v.is_a?(Hash) && v["tempfile"]
-              memo[k] = "[FILE]"
-            else
-              memo[k] = v
-            end
-            memo
-          end
+          txn = Transaction.tl_current
+          env = endpoint.request.env
+          params = ParameterFiltering::apply_filters(env, endpoint.params)
+          params.delete("route_info")
+          txn.filtered_params = params
         end
       end
     end
