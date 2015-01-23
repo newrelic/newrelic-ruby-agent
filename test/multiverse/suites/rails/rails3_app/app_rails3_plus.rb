@@ -46,6 +46,15 @@ if !defined?(MyApp)
     end
   end
 
+  if defined?(Sinatra)
+    class SinatraTestApp < Sinatra::Base
+      get '/' do
+        raise "Intentional error" if params["raise"]
+        "SinatraTestApp#index"
+      end
+    end
+  end
+
   class MyApp < Rails::Application
     # We need a secret token for session, cookies, etc.
     config.active_support.deprecation = :log
@@ -69,8 +78,9 @@ if !defined?(MyApp)
         :constraints => lambda do |_|
           raise ActionController::RoutingError.new('this is an uncaught routing error')
         end)
-    get '/:controller(/:action(/:id))'
+    mount SinatraTestApp, :at => '/sinatra_app' if defined?(Sinatra)
     post '/filtering_test' => FilteringTestApp.new
+    get '/:controller(/:action(/:id))'
   end
 
   class ApplicationController < ActionController::Base; end
