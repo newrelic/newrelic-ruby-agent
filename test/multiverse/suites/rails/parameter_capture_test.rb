@@ -167,6 +167,15 @@ class ParameterCaptureTest < RailsMultiverseTest
     assert_equal('/parameter_capture/sql', last_sql_trace.url)
   end
 
+  def test_parameter_filtering_should_not_mutate_argument
+    input = { "foo" => "bar", "secret" => "baz" }
+    env   = { "action_dispatch.parameter_filter" => ["secret"] }
+    filtered = NewRelic::Agent::ParameterFiltering.apply_filters(env, input)
+
+    assert_equal({ "foo" => "bar", "secret" => "[FILTERED]" }, filtered)
+    assert_equal({ "foo" => "bar", "secret" => "baz" }, input)
+  end
+
   if Rails::VERSION::MAJOR > 2
     def test_params_tts_should_be_filtered_when_serviced_by_rack_app
       params = {"secret" => "shhhhhhh", "name" => "name"}

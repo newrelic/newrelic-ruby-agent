@@ -22,14 +22,17 @@ module NewRelic
         params = {
           :name => "name",
           :file => {
-              :filename => "data.jpg",
-              :tempfile => "file_data"
-            }
+            :filename => "data.jpg",
+            :tempfile => "file_data"
+          }
         }
 
         expected = {:name => "name", :file => "[FILE]"}
         result = ParameterFiltering.apply_filters(env, params)
         assert_equal expected, result
+
+        # argument should not be mutated
+        assert_equal({ :filename => "data.jpg", :tempfile => "file_data" }, params[:file])
       end
     end
   end
