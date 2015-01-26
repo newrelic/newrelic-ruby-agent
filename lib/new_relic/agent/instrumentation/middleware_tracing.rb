@@ -27,6 +27,7 @@ module NewRelic
     module Instrumentation
       module MiddlewareTracing
         CAPTURED_REQUEST_KEY = 'newrelic.captured_request'.freeze unless defined?(CAPTURED_REQUEST_KEY)
+        AGENT_HOOKS_FIRED_KEY = "newrelic.agent_hooks_fired".freeze
 
         def _nr_has_middleware_tracing
           true
@@ -45,12 +46,25 @@ module NewRelic
           end
         end
 
+        def check_emit_events_and_set_key(env)
+          if env.key?(AGENT_HOOKS_FIRED_KEY)
+            false
+          else
+            env[AGENT_HOOKS_FIRED_KEY] = true
+            true
+          end
+        end
+
         def call(env)
           opts = build_transaction_options(env)
           state = NewRelic::Agent::TransactionState.tl_get
 
+          emit_events = check_emit_events_and_set_key(env)
+
           begin
             Transaction.start(state, category, opts)
+            events.notify(:before_call, env) if emit_events
+
             if target == self
               result = traced_call(env)
             else
@@ -61,6 +75,8 @@ module NewRelic
               state.current_transaction.http_response_code = result[0]
             end
 
+            events.notify(:after_call, env, result) if emit_events
+
             result
           rescue Exception => e
             NewRelic::Agent.notice_error(e)
@@ -68,6 +84,10 @@ module NewRelic
           ensure
             Transaction.stop(state)
           end
+        end
+
+        def events
+          NewRelic::Agent.instance.events
         end
       end
     end

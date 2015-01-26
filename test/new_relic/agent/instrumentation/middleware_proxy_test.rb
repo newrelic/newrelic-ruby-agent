@@ -185,5 +185,54 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
 
     assert_metrics_recorded('Controller/Rack/GreatClass/call')
   end
+
+  def test_should_emit_events_once
+    app = Proc.new { |env| [200, {}, ["nothing"]]}
+    middleware = Proc.new { |env| app.call(env) }
+    wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
+    wrapped_middleware = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware, true)
+
+    before_call_count = 0
+    after_call_count = 0
+
+    NewRelic::Agent.instance.events.subscribe(:before_call) { before_call_count += 1}
+    NewRelic::Agent.instance.events.subscribe(:after_call) { after_call_count += 1}
+
+    result = wrapped_middleware.call({})
+    assert_equal 1, before_call_count
+    assert_equal 1, after_call_count
+  end
+
+  def test_before_call_should_recieve_rack_env_hash
+    app = Proc.new { |env| [200, {}, ["nothing"]]}
+    wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
+
+    original_env = {}
+    env_from_before_call = nil
+
+    NewRelic::Agent.instance.events.subscribe(:before_call) { |env| env_from_before_call = env }
+
+    wrapped_app.call(original_env)
+    assert_same original_env, env_from_before_call
+  end
+
+  def test_before_call_should_recieve_rack_env_hash
+    app = Proc.new { |env| [200, {}, ["nothing"]] }
+    wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
+
+    original_env = {}
+    env_from_after_call = nil
+    result_from_after_call = nil
+
+    NewRelic::Agent.instance.events.subscribe(:after_call) do |env, result|
+      env_from_after_call = env
+      result_from_after_call = result
+    end
+
+    result = wrapped_app.call(original_env)
+
+    assert_same original_env, env_from_after_call
+    assert_same result, result_from_after_call
+  end
 end
 
