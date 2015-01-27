@@ -85,8 +85,11 @@ module NewRelic
 
         module ClassMethods
           def newrelic_middlewares
-            [ NewRelic::Rack::AgentHooks,
-              NewRelic::Rack::BrowserMonitoring ]
+            middlewares = [NewRelic::Rack::BrowserMonitoring]
+            if NewRelic::Rack::AgentHooks.needed?
+              middlewares << NewRelic::Rack::AgentHooks
+            end
+            middlewares
           end
 
           def build_with_newrelic(*args, &block)
