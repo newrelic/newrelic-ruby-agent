@@ -2,6 +2,14 @@
 
 ## v3.9.10 ##
 
+  * Automatic Cross Application Tracing support for all Rack applications *
+
+  Previously Rack apps not using Rails or Sinatra needed to include the
+  AgentHooks middleware to get Cross Application Tracing Support.  With
+  these changes, this is no longer necessary.  Any explicit references to
+  AgentHooks can be removed unless the disable_middleware_instrumentation
+  setting is set to true.
+
   * Updated support for Rubinius 2.3+ metrics
 
   Rubinius 2.3 introduced a new system for gathering metrics from the
