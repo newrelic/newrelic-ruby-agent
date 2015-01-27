@@ -8,20 +8,13 @@ require 'new_relic/rack/agent_hooks'
 require './testing_app'
 
 class SyntheticsTest < Minitest::Test
-  @app = TestingApp.new
-  @wrapper_app = NewRelic::Rack::AgentHooks.new(@app)
-
-  def self.wrapper_app
-    @wrapper_app
-  end
-
   include MultiverseHelpers
   include Rack::Test::Methods
 
   setup_and_teardown_agent
 
   def app
-    self.class.wrapper_app
+    Rack::Builder.app { run TestingApp.new }
   end
 
   def last_sent_analytics_event
