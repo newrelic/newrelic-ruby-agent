@@ -113,6 +113,13 @@ module NewRelic
         :url         => "https://rubygems.org/gems/rack",
         :feed        => "https://rubygems.org/gems/rack/versions.atom"
       },
+      :grape =>
+      {
+        :type        => :web,
+        :supported   => [">= 0.2.0"],
+        :url         => "https://rubygems.org/gems/grape",
+        :feed        => "https://rubygems.org/gems/grape/versions.atom"
+      },
 
       # Database
       :activerecord =>
