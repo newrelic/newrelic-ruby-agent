@@ -9,11 +9,6 @@ require 'multiverse_helpers'
 require 'new_relic/rack/agent_hooks'
 
 class CrossApplicationTracingTest < Minitest::Test
-
-  # Important because the hooks are global that we only wire one AgentHooks up
-  @@app = TestingApp.new
-  @@wrapper_app = NewRelic::Rack::AgentHooks.new(@@app)
-
   include MultiverseHelpers
   setup_and_teardown_agent(:cross_process_id => "boo",
                            :encoding_key => "\0",
@@ -25,15 +20,10 @@ class CrossApplicationTracingTest < Minitest::Test
                                     "ignore"           => true}]})
   end
 
-  def after_setup
-    @@app.reset_headers
-    @@app.response = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
-  end
-
   include Rack::Test::Methods
 
   def app
-    @@wrapper_app
+    Rack::Builder.app { run TestingApp.new }
   end
 
   def test_cross_app_doesnt_modify_without_header
@@ -58,7 +48,7 @@ class CrossApplicationTracingTest < Minitest::Test
   end
 
   load_cross_agent_test("cat_map").each do |test_case|
-    # We only can do test cases here that don't involve outgoing calls 
+    # We only can do test cases here that don't involve outgoing calls
     if !test_case["outboundRequests"]
       if test_case['inboundPayload']
         request_headers = {

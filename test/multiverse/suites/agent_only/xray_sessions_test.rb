@@ -28,11 +28,11 @@ class XraySessionsTest < Minitest::Test
   end
 
   def app
-    @app ||= TestingApp.new
+    Rack::Builder.app { run TestingApp.new }
   end
 
   def test_tags_transaction_traces_with_xray_id
-    session = build_xray_session('key_transaction_name' => 'Controller/Middleware/Rack/A')
+    session = build_xray_session('key_transaction_name' => 'Controller/Rack/A')
     with_xray_sessions(session) do
       5.times { get '/?transaction_name=A' }
       trigger_harvest
@@ -43,12 +43,12 @@ class XraySessionsTest < Minitest::Test
 
     traces = posts.first.samples
     assert_equal(5, traces.size)
-    assert traces.all? { |t| t.metric_name == 'Controller/Middleware/Rack/A' }
+    assert traces.all? { |t| t.metric_name == 'Controller/Rack/A' }
     assert traces.all? { |t| t.xray_id == session['x_ray_id'] }
   end
 
   def test_does_not_collect_traces_for_non_xrayed_transactions
-    session = build_xray_session('key_transaction_name' => 'Controller/Middleware/Rack/A')
+    session = build_xray_session('key_transaction_name' => 'Controller/Rack/A')
     with_xray_sessions(session) do
       get '/?transaction_name=OtherThing'
       get '/?transaction_name=A'
@@ -63,8 +63,8 @@ class XraySessionsTest < Minitest::Test
   end
 
   def test_gathers_transaction_traces_from_multiple_concurrent_xray_sessions
-    sessionA = build_xray_session('x_ray_id' => 12, 'key_transaction_name' => 'Controller/Middleware/Rack/A')
-    sessionB = build_xray_session('x_ray_id' => 13, 'key_transaction_name' => 'Controller/Middleware/Rack/B')
+    sessionA = build_xray_session('x_ray_id' => 12, 'key_transaction_name' => 'Controller/Rack/A')
+    sessionB = build_xray_session('x_ray_id' => 13, 'key_transaction_name' => 'Controller/Rack/B')
 
     with_xray_sessions(sessionA, sessionB) do
       2.times do
@@ -80,14 +80,14 @@ class XraySessionsTest < Minitest::Test
     traces = posts.first.samples
     assert_equal(4, traces.size)
 
-    tracesA = traces.select { |t| t.metric_name == 'Controller/Middleware/Rack/A' }
-    tracesB = traces.select { |t| t.metric_name == 'Controller/Middleware/Rack/B' }
+    tracesA = traces.select { |t| t.metric_name == 'Controller/Rack/A' }
+    tracesB = traces.select { |t| t.metric_name == 'Controller/Rack/B' }
     assert_equal(2, tracesA.size, "Expected 2 traces for transaction A")
     assert_equal(2, tracesB.size, "Expected 2 traces for transaction B")
   end
 
   def test_gathers_thread_profiles
-    session = build_xray_session('key_transaction_name' => 'Controller/Middleware/Rack/A')
+    session = build_xray_session('key_transaction_name' => 'Controller/Rack/A')
     with_xray_sessions(session) do
       wait_for_backtrace_service_poll
       get '/?transaction_name=A&sleep=1'
@@ -115,7 +115,7 @@ class XraySessionsTest < Minitest::Test
     defaults = {
       "x_ray_id"              => next_xray_session_id,
       "xray_session_name"     => "Test XRay Session",
-      "key_transaction_name"  => "Controller/Middleware/Rack/Transaction",
+      "key_transaction_name"  => "Controller/Rack/Transaction",
       "requested_trace_count" => 10,
       "duration"              => 100,
       "sample_period"         => 0.1,
@@ -137,7 +137,7 @@ class XraySessionsTest < Minitest::Test
   def with_xray_sessions(*xray_metadatas)
     xray_session_ids = xray_metadatas.map { |m| m['x_ray_id'] }
     activate_cmd = build_active_xrays_command(xray_session_ids)
-    
+
     $collector.stub('get_xray_metadata', xray_metadatas)
     issue_command(activate_cmd)
 

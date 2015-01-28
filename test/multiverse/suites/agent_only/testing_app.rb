@@ -9,10 +9,6 @@ class TestingApp
   attr_accessor :response, :headers
 
   def initialize
-    reset_headers
-  end
-
-  def reset_headers
     @headers = {'Content-Type' => 'text/html'}
   end
 
@@ -34,6 +30,4 @@ class TestingApp
     sleep(params['sleep'].to_f) if params['sleep']
     [200, headers, [response]]
   end
-
-  include NewRelic::Agent::Instrumentation::Rack
 end

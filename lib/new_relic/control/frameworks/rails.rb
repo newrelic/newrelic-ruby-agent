@@ -70,6 +70,7 @@ module NewRelic
           return if config.nil? || !config.respond_to?(:middleware)
           begin
             require 'new_relic/rack/agent_hooks'
+            return unless NewRelic::Rack::AgentHooks.needed?
             config.middleware.use NewRelic::Rack::AgentHooks
             ::NewRelic::Agent.logger.debug("Installed New Relic Agent Hooks middleware")
           rescue => e
