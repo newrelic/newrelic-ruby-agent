@@ -27,7 +27,7 @@ module NewRelic
     module Instrumentation
       module MiddlewareTracing
         CAPTURED_REQUEST_KEY = 'newrelic.captured_request'.freeze unless defined?(CAPTURED_REQUEST_KEY)
-        AGENT_HOOKS_FIRED_KEY = "newrelic.agent_hooks_fired".freeze
+        AGENT_HOOKS_FIRED_KEY = "newrelic.agent_hooks_fired".freeze unless defined?(AGENT_HOOKS_FIRED_KEY)
 
         def _nr_has_middleware_tracing
           true
