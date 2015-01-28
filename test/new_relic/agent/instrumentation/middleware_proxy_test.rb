@@ -195,15 +195,15 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     before_call_count = 0
     after_call_count = 0
 
-    NewRelic::Agent.instance.events.subscribe(:before_call) { before_call_count += 1}
-    NewRelic::Agent.instance.events.subscribe(:after_call) { after_call_count += 1}
+    NewRelic::Agent.instance.events.subscribe(:before_call) { before_call_count += 1 }
+    NewRelic::Agent.instance.events.subscribe(:after_call) { after_call_count += 1 }
 
     result = wrapped_middleware.call({})
     assert_equal 1, before_call_count
     assert_equal 1, after_call_count
   end
 
-  def test_before_call_should_recieve_rack_env_hash
+  def test_before_call_should_receive_rack_env_hash
     app = Proc.new { |env| [200, {}, ["nothing"]]}
     wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
 
@@ -216,7 +216,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     assert_same original_env, env_from_before_call
   end
 
-  def test_before_call_should_recieve_rack_env_hash
+  def test_before_call_should_receive_rack_env_hash
     app = Proc.new { |env| [200, {}, ["nothing"]] }
     wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
 
