@@ -1,12 +1,21 @@
 # New Relic Ruby Agent Release Notes #
 
-## v3.9.10 ##
+## v3.10.0 ##
+  * Support for the Grape Framework
+
+  We now provide Grape instrumentation out of the box. To avoid conflicts
+  with the third party newrelic-grape gem our instrumentation will not be
+  installed if newrelic-grape is required in the Gemfile.
+
+  For more details, see:
+
+  https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/grape-instrumentation
 
   * Automatic Cross Application Tracing support for all Rack applications *
 
   Previously Rack apps not using Rails or Sinatra needed to include the
-  AgentHooks middleware to get Cross Application Tracing Support.  With
-  these changes, this is no longer necessary.  Any explicit references to
+  AgentHooks middleware to get Cross Application Tracing Support. With
+  these changes, this is no longer necessary. Any explicit references to
   AgentHooks can be removed unless the disable_middleware_instrumentation
   setting is set to true.
 
