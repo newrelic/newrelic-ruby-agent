@@ -15,11 +15,9 @@ gemfile <<-RB
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
 RB
 
-# rbx 2.5.0 fails loading ActiveMerchant::Billing::CreditCard::Validateable
-# Since this is pretty fringe ase and works on modern ActiveMerchant, skipping.
-unless defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
 gemfile <<-RB
   gem 'activemerchant', '~>1.25.0'
+  gem 'active_utils', '2.2.3'
   gem 'rack'
 
   if RUBY_VERSION <= '1.9.2'
@@ -34,4 +32,3 @@ gemfile <<-RB
   # Need to load newrelic_rpm after ActiveMerchant Gateways are required
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
 RB
-end
