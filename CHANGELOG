@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes #
 
-## v3.9.10 ##
+## v3.10.0 ##
   * Support for the Grape Framework
 
   We now provide Grape instrumentation out of the box. To avoid conflicts
