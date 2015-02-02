@@ -163,7 +163,7 @@ module Multiverse
       bundler_out = exclusive_bundle
       puts bundler_out if verbose? || $? != 0
       raise "bundle command failed with (#{$?})" unless $? == 0
-      cache_gemfile_lock(env_index)
+      cache_gemfile_lock(env_index) if use_cache?
     end
 
     def generate_gemfile(gemfile_text, env_index, local = true)
