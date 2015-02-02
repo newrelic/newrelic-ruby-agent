@@ -139,19 +139,13 @@ module NewRelic
         end
 
         def dispatch_with_newrelic #THREAD_LOCAL_ACCESS
-          if ignore_request?
-            env['newrelic.ignored'] = true
-            txn = ::NewRelic::Agent::Transaction.tl_current
-            txn.ignore! if txn
-            return dispatch_without_newrelic
-          end
-
           request_params = get_request_params
+          filtered_params = ParameterFiltering::apply_filters(request.env, request_params || {})
 
           name = TransactionNamer.initial_transaction_name(request)
           perform_action_with_newrelic_trace(:category => :sinatra,
                                              :name => name,
-                                             :params => request_params) do
+                                             :params => filtered_params) do
             dispatch_and_notice_errors_with_newrelic
           end
         end
@@ -174,7 +168,7 @@ module NewRelic
           ::NewRelic::Agent.notice_error(env['sinatra.error']) if had_error
         end
 
-        def ignore_request?
+        def do_not_trace?
           Ignorer.should_ignore?(self, :routes)
         end
 

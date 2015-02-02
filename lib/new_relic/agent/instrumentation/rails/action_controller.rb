@@ -95,10 +95,14 @@ DependencyDetection.defer do
     ActionController::Base.class_eval do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-      # Compare with #alias_method_chain, which is not available in
-      # Rails 1.1:
+      def perform_action_with_newrelic_trace_wrapper
+        options = {}
+        options[:params] = (respond_to?(:filter_parameters)) ? filter_parameters(params) : params
+        perform_action_with_newrelic_trace(options) { perform_action_without_newrelic_trace }
+      end
+
       alias_method :perform_action_without_newrelic_trace, :perform_action
-      alias_method :perform_action, :perform_action_with_newrelic_trace
+      alias_method :perform_action, :perform_action_with_newrelic_trace_wrapper
       private :perform_action
 
       # determine the path that is used in the metric name for

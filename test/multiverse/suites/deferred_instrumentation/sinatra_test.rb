@@ -78,6 +78,10 @@ class DeferredSinatraTestApp < Sinatra::Base
   get(/\/regex.*/) do
     "Yeah, regex's!"
   end
+
+  post '/files' do
+    "file uploaded"
+  end
 end
 
 class DeferredSinatraTest < Minitest::Test

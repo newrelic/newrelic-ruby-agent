@@ -332,42 +332,25 @@ module NewRelic
           state.request = newrelic_request(args)
 
           skip_tracing = do_not_trace? || !state.is_execution_traced?
+
           if skip_tracing
-            if block_given?
-              return yield
-            else
-              state.current_transaction.ignore! if state.current_transaction
-              NewRelic::Agent.disable_all_tracing do
-                return perform_action_without_newrelic_trace(*args)
-              end
-            end
+            state.current_transaction.ignore! if state.current_transaction
+            NewRelic::Agent.disable_all_tracing { return yield }
           end
 
-          # If a block was passed in, then the arguments represent options for
-          # the instrumentation, not app method arguments.
-          trace_options = NR_DEFAULT_OPTIONS
+          # This method has traditionally taken a variable number of arguments, but the
+          # only one that is expected / used is a single options hash.  We are preserving
+          # the *args method signature to ensure backwards compatibility.
 
-          if block_given?
-            trace_options    = args.last if args.last.is_a?(Hash)
-            available_params = trace_options[:params]
-          else
-            available_params = respond_to?(:params) && params
-          end
-
-          category    = trace_options[:category] || :controller
-          txn_options = create_transaction_options(trace_options, available_params)
-          txn_options[:transaction_name] = TransactionNamer.name_for(nil, self, category, trace_options)
-          txn_options[:apdex_start_time] = detect_queue_start_time(state)
+          trace_options = args.last.is_a?(Hash) ? args.last : NR_DEFAULT_OPTIONS
+          category      = trace_options[:category] || :controller
+          txn_options   = create_transaction_options(trace_options, category, state)
 
           begin
             txn = Transaction.start(state, category, txn_options)
 
             begin
-              if block_given?
-                yield
-              else
-                perform_action_without_newrelic_trace(*args)
-              end
+              yield
             rescue => e
               NewRelic::Agent.notice_error(e)
               raise
@@ -430,15 +413,14 @@ module NewRelic
 
         private
 
-        def create_transaction_options(trace_options, available_params)
+        def create_transaction_options(trace_options, category, state)
           txn_options = {}
           txn_options[:request]   = trace_options[:request]
           txn_options[:request] ||= request if respond_to?(:request)
-
-          if available_params
-            txn_options[:filtered_params] = (respond_to?(:filter_parameters)) ? filter_parameters(available_params) : available_params
-          end
-
+          # params should have been filtered before calling perform_action_with_newrelic_trace
+          txn_options[:filtered_params] = trace_options[:params]
+          txn_options[:transaction_name] = TransactionNamer.name_for(nil, self, category, trace_options)
+          txn_options[:apdex_start_time] = detect_queue_start_time(state)
           txn_options
         end
 

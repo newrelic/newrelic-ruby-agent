@@ -19,15 +19,6 @@ module NewRelic
           end
 
           def process_action(*args) #THREAD_LOCAL_ACCESS
-            # skip instrumentation if we are in an ignored action
-            if _is_filtered?(ControllerInstrumentation::NR_DO_NOT_TRACE_KEY)
-              txn = NewRelic::Agent::Transaction.tl_current
-              txn.ignore! if txn
-              NewRelic::Agent.disable_all_tracing do
-                return super
-              end
-            end
-
             perform_action_with_newrelic_trace(:category => :controller, :name => self.action_name, :path => newrelic_metric_path, :params => request.filtered_parameters, :class_name => self.class.name)  do
               super
             end

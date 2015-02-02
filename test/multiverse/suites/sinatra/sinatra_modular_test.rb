@@ -79,6 +79,10 @@ class SinatraModularTestApp < Sinatra::Base
   get(/\/regex.*/) do
     "Yeah, regex's!"
   end
+
+  post '/files' do
+    "file uploaded"
+  end
 end
 
 class SinatraModularTest < Minitest::Test
