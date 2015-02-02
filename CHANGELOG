@@ -1,6 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
 ## v3.10.0 ##
+
   * Support for the Grape framework
 
   We now instrument the Grape REST API framework! To avoid conflicts with the
@@ -16,6 +17,14 @@
   these changes, this is no longer necessary. Any explicit references to
   AgentHooks can be removed unless the `disable_middleware_instrumentation`
   setting is set to `true`.
+
+  * Metrics no longer reported from Puma master processes
+
+  When using Puma's cluster mode with the preload_app! configuration directive,
+  the agent will no longer start its reporting thread in the Puma master
+  process. This should result in more accurate instance counts, and more
+  accurate stats on the Ruby VMs page (since the master process will be
+  excluded).
 
   * Updated support for Rubinius 2.3+ metrics
 

@@ -428,10 +428,10 @@ module NewRelic
 
           # If we're using a dispatcher that forks before serving
           # requests, we need to wait until the children are forked
-          # before connecting, otherwise the parent process sends odd data
+          # before connecting, otherwise the parent process sends useless data
           def using_forking_dispatcher?
-            if [:passenger, :rainbows, :unicorn].include? Agent.config[:dispatcher]
-              ::NewRelic::Agent.logger.info 'Connecting workers after forking.'
+            if [:puma, :passenger, :rainbows, :unicorn].include? Agent.config[:dispatcher]
+              ::NewRelic::Agent.logger.info "Deferring startup of agent reporting thread because #{Agent.config[:dispatcher]} may fork."
               true
             else
               false

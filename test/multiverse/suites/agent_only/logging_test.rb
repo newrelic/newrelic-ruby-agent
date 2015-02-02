@@ -140,7 +140,7 @@ class LoggingTest < Minitest::Test
   def test_logs_forking_workers
     running_agent_writes_to_log(
       { :dispatcher => :passenger },
-      "Connecting workers after forking.")
+      "Deferring startup of agent reporting thread")
   end
 
   # Helpers
