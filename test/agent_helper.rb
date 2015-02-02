@@ -418,8 +418,17 @@ end
 
 
 def freeze_time(now=Time.now)
-  Time.stubs(:now).returns(now)
-  now
+  if block_given?
+    begin
+      Time.stubs(:now).returns(now)
+      yield now
+    ensure
+      Time.unstub(:now)
+    end
+  else
+    Time.stubs(:now).returns(now)
+    now
+  end
 end
 
 def advance_time(seconds)

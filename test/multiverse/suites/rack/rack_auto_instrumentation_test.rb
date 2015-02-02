@@ -101,13 +101,14 @@ class RackAutoInstrumentationTest < Minitest::Test
   end
 
   def test_middlewares_record_queue_time
-    t0 = freeze_time
-    advance_time(5.0)
-    get '/', {}, { 'HTTP_X_REQUEST_START' => "t=#{t0.to_f}" }
+    freeze_time do |t0|
+      advance_time(5.0)
+      get '/', {}, { 'HTTP_X_REQUEST_START' => "t=#{t0.to_f}" }
 
-    assert_metrics_recorded(
-      'WebFrontend/QueueTime' => { :total_call_time => 5.0 }
-    )
+      assert_metrics_recorded(
+        'WebFrontend/QueueTime' => { :total_call_time => 5.0 }
+      )
+    end
   end
 
   def test_middleware_that_returns_early_records_middleware_rollup_metric
@@ -126,10 +127,10 @@ class RackAutoInstrumentationTest < Minitest::Test
   end
 
   def test_middleware_that_returns_early_middleware_all_has_correct_call_times
-    freeze_time
-
-    get '/?return-early=true'
-    assert_metrics_recorded('Middleware/all' => { :total_exclusive_time => 3.0, :call_count => 2 })
+    freeze_time do
+      get '/?return-early=true'
+      assert_metrics_recorded('Middleware/all' => { :total_exclusive_time => 3.0, :call_count => 2 })
+    end
   end
 
   def test_middleware_created_with_args_works
