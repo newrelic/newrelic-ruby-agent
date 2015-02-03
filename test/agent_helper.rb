@@ -278,22 +278,19 @@ end
 # With a transaction name plus category:
 #   in_transaction('foobar', :category => :controller) { ... }
 #
-def in_transaction(*args)
-  opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
-  unless opts.key?(:transaction_name)
-    opts[:transaction_name] = args.first || 'dummy'
-  end
+def in_transaction(*args, &blk)
+  opts     = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
   category = (opts && opts.delete(:category)) || :other
-  state = NewRelic::Agent::TransactionState.tl_get
 
-  NewRelic::Agent::Transaction.start(state, category, opts)
-  val = nil
-  begin
-    val = yield state.current_transaction
-  ensure
-    NewRelic::Agent::Transaction.stop(state)
+  # At least one test passes `:transaction_name => nil`, so handle it gently
+  name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) :
+                                        args.first || 'dummy'
+
+  state    = NewRelic::Agent::TransactionState.tl_get
+
+  NewRelic::Agent::Transaction.wrap(state, name, category, opts) do
+    yield state.current_transaction
   end
-  val
 end
 
 def stub_transaction_guid(guid)
