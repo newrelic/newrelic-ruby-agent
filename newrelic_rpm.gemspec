@@ -47,16 +47,21 @@ EOS
   s.add_development_dependency 'yard'
   s.add_development_dependency 'rails', '~> 3.2.13'
   s.add_development_dependency 'pry', '~> 0.9.12'
-  s.add_development_dependency 'guard', '~> 1.8.3' # Guard 2.0 is Ruby 1.9 only
-  s.add_development_dependency 'guard-minitest'
-  s.add_development_dependency 'rb-fsevent', '~> 0.9.1'
   s.add_development_dependency 'hometown', '~> 0.2.5'
-  s.add_development_dependency 'jruby-openssl' if RUBY_PLATFORM == 'java'
+
+  # Only let Guard run on newer Rubies
+  if RUBY_VERSION > "1.8.7"
+    s.add_development_dependency 'guard'
+    s.add_development_dependency 'guard-minitest'
+    s.add_development_dependency 'rb-fsevent'
+  end
+
   # version lock down for i18n that is compatible with Ruby 1.8.7
   s.add_development_dependency 'i18n', '0.6.11'
 
   if RUBY_PLATFORM == 'java'
     s.add_development_dependency 'activerecord-jdbcsqlite3-adapter'
+    s.add_development_dependency 'jruby-openssl'
   else
     s.add_development_dependency 'sqlite3'
   end
