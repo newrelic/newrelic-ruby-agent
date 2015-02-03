@@ -95,6 +95,21 @@ module NewRelic
         txn.set_overriding_transaction_name(name, category)
       end
 
+      def self.wrap(state, name, category, options = {})
+        Transaction.start(state, category, options.merge(:transaction_name => name))
+
+        begin
+          # We shouldn't raise from Transaction.start, but only wrap the yield
+          # to be absolutely sure we don't report agent problems as app errors
+          yield
+        rescue => e
+          Transaction.notice_error(e)
+          raise e
+        ensure
+          Transaction.stop(state)
+        end
+      end
+
       def self.start(state, category, options)
         category ||= :controller
         txn = state.current_transaction

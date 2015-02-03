@@ -1122,4 +1122,44 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal(value, txn.custom_parameters[key])
   end
 
+  def test_wrap_transaction
+    state = NewRelic::Agent::TransactionState.tl_get
+    NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
+      # No-op
+    end
+
+    assert_metrics_recorded(['test'])
+  end
+
+  def test_wrap_transaction_with_early_failure
+    yielded = false
+    state = NewRelic::Agent::TransactionState.tl_get
+    NewRelic::Agent::Transaction.any_instance.stubs(:start).raises("Boom")
+    NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
+      yielded = true
+    end
+
+    assert yielded
+  end
+
+  def test_wrap_transaction_with_late_failure
+    state = NewRelic::Agent::TransactionState.tl_get
+    NewRelic::Agent::Transaction.any_instance.stubs(:stop).raises("Boom")
+    NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
+      # No-op
+    end
+
+    refute_metrics_recorded(['test'])
+  end
+
+  def test_wrap_transaction_notices_errors
+    state = NewRelic::Agent::TransactionState.tl_get
+    assert_raises RuntimeError do
+      NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
+        raise "O_o"
+      end
+    end
+
+    assert_metrics_recorded(["Errors/all"])
+  end
 end

@@ -216,6 +216,8 @@ def assert_metrics_not_recorded(not_expected)
   assert_equal([], found_but_not_expected, "Found unexpected metrics: #{format_metric_spec_list(found_but_not_expected)}")
 end
 
+alias :refute_metrics_recorded :assert_metrics_not_recorded
+
 def assert_no_metrics_match(regex)
   matching_metrics = []
   NewRelic::Agent.instance.stats_engine.metrics.each do |metric|
@@ -228,6 +230,8 @@ def assert_no_metrics_match(regex)
     "Found unexpected metrics:\n" +  matching_metrics.map { |m| "  '#{m}'"}.join("\n") + "\n\n"
   )
 end
+
+alias :refute_metrics_match :assert_no_metrics_match
 
 def format_metric_spec_list(specs)
   spec_strings = specs.map do |spec|
@@ -274,22 +278,19 @@ end
 # With a transaction name plus category:
 #   in_transaction('foobar', :category => :controller) { ... }
 #
-def in_transaction(*args)
-  opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
-  unless opts.key?(:transaction_name)
-    opts[:transaction_name] = args.first || 'dummy'
-  end
+def in_transaction(*args, &blk)
+  opts     = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
   category = (opts && opts.delete(:category)) || :other
+
+  # At least one test passes `:transaction_name => nil`, so handle it gently
+  name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) :
+                                        args.first || 'dummy'
+
   state = NewRelic::Agent::TransactionState.tl_get
 
-  NewRelic::Agent::Transaction.start(state, category, opts)
-  val = nil
-  begin
-    val = yield state.current_transaction
-  ensure
-    NewRelic::Agent::Transaction.stop(state)
+  NewRelic::Agent::Transaction.wrap(state, name, category, opts) do
+    yield state.current_transaction
   end
-  val
 end
 
 def stub_transaction_guid(guid)
