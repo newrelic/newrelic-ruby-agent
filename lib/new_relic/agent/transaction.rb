@@ -97,12 +97,17 @@ module NewRelic
 
       def self.wrap(state, name, category, options = {})
         Transaction.start(state, category, options.merge(:transaction_name => name))
-        yield
-      rescue => e
-        Transaction.notice_error(e)
-        raise e
-      ensure
-        Transaction.stop(state)
+
+        begin
+          # We shouldn't raise from Transaction.start, but only wrap the yield
+          # to be absolutely sure we don't report agent problems as app errors
+          yield
+        rescue => e
+          Transaction.notice_error(e)
+          raise e
+        ensure
+          Transaction.stop(state)
+        end
       end
 
       def self.start(state, category, options)
