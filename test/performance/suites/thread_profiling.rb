@@ -51,6 +51,18 @@ class ThreadProfiling < Performance::TestCase
   def teardown
     @cvar.broadcast
     @threads.each(&:join)
+  rescue Exception => e
+    if e.message =~ /Deadlock/
+      Thread.list.select(&:alive?).each do |t|
+        STDERR.puts "*" * 80
+        STDERR.puts "Live thread: #{t.inspect}"
+        STDERR.puts "Backtrace:"
+        STDERR.puts (t.backtrace || []).join("\n")
+        STDERR.puts "*" * 80
+      end
+    end
+
+    raise e
   end
 
   def test_gather_backtraces(timer)
