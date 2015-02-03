@@ -286,7 +286,7 @@ def in_transaction(*args, &blk)
   name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) :
                                         args.first || 'dummy'
 
-  state    = NewRelic::Agent::TransactionState.tl_get
+  state = NewRelic::Agent::TransactionState.tl_get
 
   NewRelic::Agent::Transaction.wrap(state, name, category, opts) do
     yield state.current_transaction
