@@ -26,6 +26,13 @@
   accurate stats on the Ruby VMs page (since the master process will be
   excluded).
 
+  * Better support for Sinatra apps used with Rack::Cascade
+
+  Previously, using a Sinatra application as part of a Rack::Cascade chain would
+  cause all transactions to be named after the Sinatra application, rather than
+  allowing downstream applications to set the transaction name when the Sinatra
+  application returned a 404 response. This has been fixed.
+
   * Updated support for Rubinius 2.3+ metrics
 
   Rubinius 2.3 introduced a new system for gathering metrics from the
