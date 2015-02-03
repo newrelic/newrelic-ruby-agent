@@ -7,7 +7,7 @@ require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/instrumentation/middleware_proxy'
 
 module NewRelic::Rack
-  # This middlware is used internally by the agent in the rare case
+  # This middleware is used internally by the agent in the rare case
   # where the disable_middleware_instrumentation configuration setting
   # is true.  In Rails and Sinatra applications this middleware will be
   # automatically injected if necessary.

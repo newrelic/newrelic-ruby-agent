@@ -26,56 +26,48 @@ module NewRelic
   module Agent
     module Instrumentation
       module MiddlewareTracing
-        CAPTURED_REQUEST_KEY = 'newrelic.captured_request'.freeze unless defined?(CAPTURED_REQUEST_KEY)
-        AGENT_HOOKS_FIRED_KEY = "newrelic.agent_hooks_fired".freeze unless defined?(AGENT_HOOKS_FIRED_KEY)
+        TXN_STARTED_KEY = 'newrelic.transaction_started'.freeze unless defined?(TXN_STARTED_KEY)
 
         def _nr_has_middleware_tracing
           true
         end
 
-        def build_transaction_options(env)
-          if env[CAPTURED_REQUEST_KEY]
-            transaction_options
-          else
-            env[CAPTURED_REQUEST_KEY] = true
-            queue_timefrontend_timestamp = QueueTime.parse_frontend_timestamp(env)
-            transaction_options.merge(
-              :request          => ::Rack::Request.new(env),
-              :apdex_start_time => queue_timefrontend_timestamp
-            )
-          end
+        def build_transaction_options(env, first_middleware)
+          opts = transaction_options
+          opts = merge_first_middleware_options(opts, env) if first_middleware
+          opts
         end
 
-        def check_emit_events_and_set_key(env)
-          if env.key?(AGENT_HOOKS_FIRED_KEY)
-            false
-          else
-            env[AGENT_HOOKS_FIRED_KEY] = true
-            true
+        def merge_first_middleware_options(opts, env)
+          opts.merge(
+            :request          => ::Rack::Request.new(env),
+            :apdex_start_time => QueueTime.parse_frontend_timestamp(env)
+          )
+        end
+
+        def note_transaction_started(env)
+          env[TXN_STARTED_KEY] = true unless env[TXN_STARTED_KEY]
+        end
+
+        def capture_http_response_code(state, result)
+          if result.is_a?(Array)
+            state.current_transaction.http_response_code = result[0]
           end
         end
 
         def call(env)
-          opts = build_transaction_options(env)
+          first_middleware = note_transaction_started(env)
+
           state = NewRelic::Agent::TransactionState.tl_get
 
-          emit_events = check_emit_events_and_set_key(env)
-
           begin
-            Transaction.start(state, category, opts)
-            events.notify(:before_call, env) if emit_events
+            Transaction.start(state, category, build_transaction_options(env, first_middleware))
+            events.notify(:before_call, env) if first_middleware
 
-            if target == self
-              result = traced_call(env)
-            else
-              result = target.call(env)
-            end
+            result = (target == self) ? traced_call(env) : target.call(env)
 
-            if result.is_a?(Array)
-              state.current_transaction.http_response_code = result[0]
-            end
-
-            events.notify(:after_call, env, result) if emit_events
+            capture_http_response_code(state, result)
+            events.notify(:after_call, env, result) if first_middleware
 
             result
           rescue Exception => e
