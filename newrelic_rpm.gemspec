@@ -50,7 +50,7 @@ EOS
   s.add_development_dependency 'hometown', '~> 0.2.5'
 
   # Only let Guard run on newer Rubies
-  if RUBY_VERSION > "1.8.7"
+  if RUBY_VERSION >= "1.9.3"
     s.add_development_dependency 'guard'
     s.add_development_dependency 'guard-minitest'
     s.add_development_dependency 'rb-fsevent'
