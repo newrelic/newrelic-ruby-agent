@@ -1122,4 +1122,21 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal(value, txn.custom_parameters[key])
   end
 
+  def test_wrap_transaction
+    state = NewRelic::Agent::TransactionState.tl_get
+    NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
+      # No-op
+    end
+
+    assert_metrics_recorded(['test'])
+  end
+
+  def test_wrap_transaction_notices_errors
+    state = NewRelic::Agent::TransactionState.tl_get
+    assert_raises RuntimeError do
+      NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
+        raise "O_o"
+      end
+    end
+  end
 end

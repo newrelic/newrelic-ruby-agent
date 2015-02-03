@@ -95,6 +95,16 @@ module NewRelic
         txn.set_overriding_transaction_name(name, category)
       end
 
+      def self.wrap(state, name, category, options = {})
+        Transaction.start(state, category, options.merge(:transaction_name => name))
+        yield
+      rescue => e
+        Transaction.notice_error(e)
+        raise e
+      ensure
+        Transaction.stop(state)
+      end
+
       def self.start(state, category, options)
         category ||= :controller
         txn = state.current_transaction
