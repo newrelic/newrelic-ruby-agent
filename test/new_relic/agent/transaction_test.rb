@@ -1159,5 +1159,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
         raise "O_o"
       end
     end
+
+    assert_metrics_recorded(["Errors/all"])
   end
 end
