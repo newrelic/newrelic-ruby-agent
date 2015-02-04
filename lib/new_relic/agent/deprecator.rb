@@ -9,7 +9,7 @@ module NewRelic
         msgs = ["The method #{method_name} is deprecated."]
         msgs << "Please use #{new_method_name} instead." if new_method_name
         NewRelic::Agent.logger.log_once(:warn, "deprecated_#{method_name}".to_sym, msgs)
-        NewRelic::Agent.record_metric("Supportability/Deprecator/#{method_name}", 1)
+        NewRelic::Agent.record_metric("Supportability/Deprecated/#{method_name}", 1)
       end
     end
   end
