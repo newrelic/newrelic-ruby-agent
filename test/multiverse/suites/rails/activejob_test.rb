@@ -40,6 +40,13 @@ class MyJobWithParams < ActiveJob::Base
   end
 end
 
+class MyFailure < ActiveJob::Base
+
+  def perform
+    raise ArgumentError.new("No it isn't!")
+  end
+end
+
 class ActiveJobTest < Minitest::Test
 
   include MultiverseHelpers
@@ -51,6 +58,7 @@ class ActiveJobTest < Minitest::Test
 
   def after_teardown
     unless passed?
+      puts "\nEmitting log from failure: #{self.name}"
       @log.rewind
       puts @log.read
     end
@@ -131,6 +139,14 @@ class ActiveJobTest < Minitest::Test
   def test_doesnt_interfere_with_params_on_job
     MyJobWithParams.perform_later("1", "2")
     assert_equal(["1", "2"], MyJobWithParams.last_params)
+  end
+
+  def test_captures_errors
+    # Because we're processing inline, we get the error raised here
+    assert_raises ArgumentError do
+      MyFailure.perform_later
+    end
+    assert_metrics_recorded(["Errors/all"])
   end
 end
 

@@ -39,6 +39,12 @@
   underlying VM. Data capture for the Ruby VM's page has been updated to take
   advantage of these. Thanks Yorick Peterse for the contribution!
 
+  * Fix for missing ActiveJob traced errors
+
+  ActiveJobs processed by backends where the Ruby agent lacked existing
+  instrumentation missed reporting traced errors. This did not impact
+  ActiveJobs used with Sidekiq or Resque, and has been fixed.
+
 ## v3.9.9 ##
 
   * Support for Ruby 2.2

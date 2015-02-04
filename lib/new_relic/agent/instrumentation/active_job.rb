@@ -56,13 +56,10 @@ module NewRelic
         end
 
         def self.run_in_transaction(state, job, block)
-          begin
-            ::NewRelic::Agent::Transaction.start(state, :other,
-              :transaction_name => transaction_name_for_job(job))
-            block.call
-          ensure
-            ::NewRelic::Agent::Transaction.stop(state)
-          end
+          ::NewRelic::Agent::Transaction.wrap(state,
+                                              transaction_name_for_job(job),
+                                              :other,
+                                              &block)
         end
 
         def self.transaction_category
