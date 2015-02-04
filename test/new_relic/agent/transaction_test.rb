@@ -247,6 +247,30 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_set_default_transaction_name_without_category
+    in_transaction('foo', :category => :controller) do |txn|
+      NewRelic::Agent::Transaction.set_default_transaction_name('bar')
+      assert_equal("Controller/bar", txn.best_name)
+      assert_equal("Controller/bar", txn.frame_stack.last.name)
+    end
+  end
+
+  def test_set_default_transaction_name_with_category
+    in_transaction('foo', :category => :controller) do |txn|
+      NewRelic::Agent::Transaction.set_default_transaction_name('bar', :rack)
+      assert_equal("Controller/Rack/bar", txn.best_name)
+      assert_equal("Controller/Rack/bar", txn.frame_stack.last.name)
+    end
+  end
+
+  def test_set_default_transaction_name_with_category_and_segment_name
+    in_transaction('foo', :category => :controller) do |txn|
+      NewRelic::Agent::Transaction.set_default_transaction_name('bar', :grape, 'baz')
+      assert_equal("Controller/Grape/bar", txn.best_name)
+      assert_equal("baz", txn.frame_stack.last.name)
+    end
+  end
+
   def test_generates_guid_on_initialization
     in_transaction do |txn|
       refute_empty txn.guid

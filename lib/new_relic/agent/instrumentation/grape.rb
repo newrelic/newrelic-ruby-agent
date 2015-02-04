@@ -24,7 +24,8 @@ module NewRelic
 
         def name_transaction(route, class_name)
           txn_name = name_for_transaction(route, class_name)
-          Transaction.set_default_transaction_name(txn_name, :grape)
+          segment_name = "Middleware/Grape/#{class_name}/call"
+          Transaction.set_default_transaction_name(txn_name, :grape, segment_name)
         end
 
         def name_for_transaction(route, class_name)

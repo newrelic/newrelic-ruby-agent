@@ -78,10 +78,10 @@ module NewRelic
         TransactionState.tl_get.current_transaction
       end
 
-      def self.set_default_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
+      def self.set_default_transaction_name(name, category = nil, segment_name = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
         name = txn.make_transaction_name(name, category)
-        txn.name_last_frame(name)
+        txn.name_last_frame(segment_name || name)
         txn.set_default_transaction_name(name, category)
       end
 
