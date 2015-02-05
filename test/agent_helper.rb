@@ -5,6 +5,13 @@
 # These helpers should not have any gem dependencies except on newrelic_rpm
 # itself, and should be usable from within any multiverse suite.
 
+class Minitest::Test
+  def after_teardown
+    unfreeze_time
+    super
+  end
+end
+
 class ArrayLogDevice
   def initialize( array=[] )
     @array = array
@@ -417,19 +424,27 @@ def with_transaction_renaming_rules(rule_specs)
   end
 end
 
+# Need to guard against double-installing this patch because in 1.8.x the same
+# file can be required multiple times under different non-canonicalized paths.
+unless Time.respond_to?(:__original_now)
+  Time.instance_eval do
+    class << self
+      attr_accessor :__frozen_now
+      alias_method :__original_now, :now
+
+      def now
+        __frozen_now || __original_now
+      end
+    end
+  end
+end
 
 def freeze_time(now=Time.now)
-  if block_given?
-    begin
-      Time.stubs(:now).returns(now)
-      yield now
-    ensure
-      Time.unstub(:now)
-    end
-  else
-    Time.stubs(:now).returns(now)
-    now
-  end
+  Time.__frozen_now = now
+end
+
+def unfreeze_time
+  Time.__frozen_now = nil
 end
 
 def advance_time(seconds)
