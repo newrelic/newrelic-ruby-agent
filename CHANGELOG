@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.10.1 ##
+
+  * Fix for anonymous class middleware naming
+
+  Metric names based off anonymous middlewares lacked a class name in the UI.
+  The Ruby agent will now look for a superclass, or default to AnonymousClass
+  in those cases.
+
 ## v3.10.0 ##
 
   * Support for the Grape framework
