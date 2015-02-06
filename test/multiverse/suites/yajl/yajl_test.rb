@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marshalling_test_cases')
 
 # This is the problematic thing that overrides our JSON marshalling

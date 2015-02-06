@@ -8,8 +8,6 @@ require 'resque'
 require 'logger'
 require 'newrelic_rpm'
 require 'fake_collector'
-require 'multiverse_helpers'
-require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
 class ResqueTest < Minitest::Test
   include MultiverseHelpers

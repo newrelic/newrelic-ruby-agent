@@ -6,8 +6,6 @@ require "typhoeus"
 require "newrelic_rpm"
 require "http_client_test_cases"
 
-require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
-
 if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
 
   class TyphoeusTest < Minitest::Test

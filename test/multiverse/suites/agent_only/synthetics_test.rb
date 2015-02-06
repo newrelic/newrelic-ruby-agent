@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'rack/test'
-require 'multiverse_helpers'
 require 'new_relic/rack/agent_hooks'
 require './testing_app'
 

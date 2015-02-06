@@ -4,7 +4,6 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-765
 require 'fake_collector'
-require 'multiverse_helpers'
 
 class HttpResponseCodeTest < Minitest::Test
   include MultiverseHelpers

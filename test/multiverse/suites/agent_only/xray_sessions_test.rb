@@ -8,7 +8,6 @@
 if RUBY_VERSION >= '1.9'
 
 require 'rack/test'
-require 'multiverse_helpers'
 require './testing_app'
 
 class XraySessionsTest < Minitest::Test

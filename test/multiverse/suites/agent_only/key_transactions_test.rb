@@ -2,9 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
-require 'multiverse_helpers'
-
 class KeyTransactionsTest < Minitest::Test
 
   include MultiverseHelpers

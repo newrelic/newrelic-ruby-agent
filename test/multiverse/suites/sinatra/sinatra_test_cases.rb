@@ -6,8 +6,6 @@
 # module Sinatra apps. The sinatra_class_test and sinatra_modular_test files
 # both maintain the same app structure in both forms, and this exercises them.
 
-require 'multiverse_helpers'
-
 module SinatraTestCases
   include Rack::Test::Methods
   include MultiverseHelpers

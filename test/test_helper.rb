@@ -35,6 +35,8 @@ class Minitest::Test
   end
 
   def after_teardown
+    unfreeze_time
+
     threads = ruby_threads
     if @__thread_count != threads.count
       backtraces = threads.map do |thread|

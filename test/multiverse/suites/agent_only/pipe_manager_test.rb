@@ -4,8 +4,6 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-669
 
-require 'multiverse_helpers'
-
 class PipeManagerTest < Minitest::Test
   include MultiverseHelpers
 

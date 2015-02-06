@@ -418,6 +418,7 @@ module Multiverse
       patch_minitest_base_for_old_versions
       prevent_minitest_auto_run
       require_mocha
+      require_helpers
     end
 
     def patch_minitest_base_for_old_versions
@@ -462,6 +463,10 @@ module Multiverse
 
     def configure_fake_collector
       ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] = "true" if environments.omit_collector
+    end
+
+    def require_helpers
+      require 'multiverse_helpers'
     end
 
     def execute_ruby_files

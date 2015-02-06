@@ -5,13 +5,6 @@
 # These helpers should not have any gem dependencies except on newrelic_rpm
 # itself, and should be usable from within any multiverse suite.
 
-class Minitest::Test
-  def after_teardown
-    unfreeze_time
-    super
-  end
-end
-
 class ArrayLogDevice
   def initialize( array=[] )
     @array = array

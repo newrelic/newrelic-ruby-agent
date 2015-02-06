@@ -4,9 +4,6 @@
 
 require 'data_mapper'
 
-require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
-require 'multiverse_helpers'
-
 DataMapper::Logger.new("/dev/null", :debug)
 DataMapper.setup(:default, 'sqlite::memory:')
 class Post

@@ -4,10 +4,7 @@
 
 require "grape"
 require "newrelic_rpm"
-require 'multiverse_helpers'
 require './grape_test_api'
-
-require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
 class UnsupportedGrapeTest < Minitest::Test
   include Rack::Test::Methods
