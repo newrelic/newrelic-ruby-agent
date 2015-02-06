@@ -57,11 +57,8 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_anonymous_class_naming
-    middleware_class = Class.new do
-    end
-
-    generator = NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
-    wrapped_instance = generator.new()
+    middleware_class = Class.new
+    wrapped_instance = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware_class.new)
 
     name = wrapped_instance.transaction_options[:transaction_name]
     assert_equal("Middleware/Rack/AnonymousClass/call", name)
@@ -71,11 +68,8 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_anonymous_derived_class_naming
-    middleware_class = Class.new(BaseForAnonymous) do
-    end
-
-    generator = NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
-    wrapped_instance = generator.new()
+    middleware_class = Class.new(BaseForAnonymous)
+    wrapped_instance = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware_class.new)
 
     name = wrapped_instance.transaction_options[:transaction_name]
     assert_equal("Middleware/Rack/#{BaseForAnonymous.name}/call", name)
