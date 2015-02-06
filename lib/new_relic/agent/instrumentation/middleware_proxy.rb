@@ -15,6 +15,9 @@ module NewRelic
       class MiddlewareProxy
         include MiddlewareTracing
 
+        ANONYMOUS_CLASS   = "AnonymousClass".freeze unless defined?(ANONYMOUS_CLASS)
+        OBJECT_CLASS_NAME = "Object".freeze unless defined?(OBJECT_CLASS_NAME)
+
         # This class is used to wrap classes that are passed to
         # Rack::Builder#use without synchronously instantiating those classes.
         # A MiddlewareProxy::Generator responds to new, like a Class would, and
@@ -84,12 +87,22 @@ module NewRelic
         # to a singleton instance of the the subclass. We need to ensure that we
         # capture the correct name in both cases.
         def determine_class_name
+          clazz = class_for_target
+
+          name = clazz.name
+          name = clazz.superclass.name if name.nil? || name == ""
+          name = ANONYMOUS_CLASS       if name.nil? || name == OBJECT_CLASS_NAME
+          name
+        end
+
+        def class_for_target
           if @target.is_a?(Class)
-            @target.name
+            @target
           else
-            @target.class.name
+            @target.class
           end
         end
+
       end
     end
   end
