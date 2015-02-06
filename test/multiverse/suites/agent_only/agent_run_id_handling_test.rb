@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'newrelic_rpm'
-require 'multiverse_helpers'
 
 class AgentRunIdHandlingTest < Minitest::Test
   include MultiverseHelpers

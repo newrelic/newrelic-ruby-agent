@@ -14,9 +14,7 @@ require 'logger'
 require 'stringio'
 
 require 'fake_collector'
-require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), "test_worker")
-require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
 class SidekiqTest < Minitest::Test
   JOB_COUNT = 5

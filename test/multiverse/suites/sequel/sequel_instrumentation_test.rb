@@ -9,7 +9,6 @@ if Sequel.const_defined?( :MAJOR ) &&
         Sequel::MAJOR == 3 && Sequel::MINOR >= 37 )
 
 require 'newrelic_rpm'
-require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Test
 

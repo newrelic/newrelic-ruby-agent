@@ -8,8 +8,6 @@ require 'newrelic_rpm'
 require 'http_client_test_cases'
 require 'new_relic/agent/http_clients/curb_wrappers'
 
-require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
-
 class CurbTest < Minitest::Test
 
   #

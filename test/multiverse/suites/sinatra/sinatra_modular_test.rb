@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'sinatra_test_cases'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
 
 class SinatraModularTestApp < Sinatra::Base

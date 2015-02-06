@@ -14,9 +14,6 @@ end
 
 require 'newrelic_rpm'
 
-require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper.rb')
-require 'multiverse_helpers'
-
 class ActiveMerchantTest < Minitest::Test
 
   attr_reader :gateway

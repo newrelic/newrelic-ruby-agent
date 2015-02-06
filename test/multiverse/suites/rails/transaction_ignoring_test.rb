@@ -3,8 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require './app'
-require 'multiverse_helpers'
-require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 require 'transaction_ignoring_test_cases'
 
 class TransactionIgnorerController < ApplicationController

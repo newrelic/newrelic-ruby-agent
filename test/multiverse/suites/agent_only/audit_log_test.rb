@@ -5,7 +5,6 @@
 # RUBY-981 Audit Log
 
 require 'newrelic_rpm'
-require 'multiverse_helpers'
 
 class AuditLogTest < Minitest::Test
   include MultiverseHelpers

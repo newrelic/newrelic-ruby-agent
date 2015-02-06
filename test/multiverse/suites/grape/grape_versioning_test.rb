@@ -3,10 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 unless ::Grape::VERSION == '0.1.5'
-  require 'multiverse_helpers'
   require './grape_versioning_test_api'
-
-  require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
   class GrapeVersioningTest < Minitest::Test
     include Rack::Test::Methods

@@ -5,7 +5,6 @@
 # https://newrelic.atlassian.net/wiki/display/eng/The+Terror+and+Glory+of+Transaction+Traces
 # https://newrelic.atlassian.net/browse/RUBY-914
 require 'ostruct'
-require 'multiverse_helpers'
 
 class MarshalingTest < Minitest::Test
   include MultiverseHelpers
