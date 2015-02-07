@@ -5,9 +5,11 @@
 module NewRelic
   module Agent
     module Deprecator
-      def self.deprecate(method_name, new_method_name = nil)
+      def self.deprecate(method_name, new_method_name = nil, version = nil)
         msgs = ["The method #{method_name} is deprecated."]
+        msgs << "It will be removed in version #{version}." if version
         msgs << "Please use #{new_method_name} instead." if new_method_name
+
         NewRelic::Agent.logger.log_once(:warn, "deprecated_#{method_name}".to_sym, msgs)
         NewRelic::Agent.record_metric("Supportability/Deprecated/#{method_name}", 1)
       end
