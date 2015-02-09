@@ -115,7 +115,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       advance_time 0.05
     end
 
-    assert_empty @stats_engine.metrics
+    assert_metrics_recorded_exclusive([])
   end
 
   def test_trace_execution_scoped_records_metric_data_from_callback

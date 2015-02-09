@@ -225,18 +225,12 @@ module NewRelic
           NewRelic::Agent::BusyCalculator.reset
         end
 
-        # Returns all of the metric names of all the stats in the engine.
         # For use by test code only.
-        def metrics
-          with_stats_lock do
-            @stats_hash.keys.map { |spec| spec.to_s }
-          end
-        end
-
         def metric_specs
           with_stats_lock { @stats_hash.keys }
         end
 
+        # For use by test code only.
         def to_h
           with_stats_lock { Hash[@stats_hash] }
         end
