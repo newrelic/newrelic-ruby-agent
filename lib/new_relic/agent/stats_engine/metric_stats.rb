@@ -150,14 +150,6 @@ module NewRelic
           stats
         end
 
-        # Returns a stat if one exists, otherwise returns nil.
-        def lookup_stats(metric_name, scope_name = '')
-          spec = NewRelic::MetricSpec.new(metric_name, scope_name)
-          with_stats_lock do
-            @stats_hash.has_key?(spec) ? @stats_hash[spec] : nil
-          end
-        end
-
         # Helper for recording a straight value into the count
         def tl_record_supportability_metric_count(metric, value)
           real_name = "Supportability/#{metric}"
@@ -243,6 +235,10 @@ module NewRelic
 
         def metric_specs
           with_stats_lock { @stats_hash.keys }
+        end
+
+        def to_h
+          with_stats_lock { Hash[@stats_hash] }
         end
       end
     end

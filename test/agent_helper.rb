@@ -156,7 +156,7 @@ def assert_metrics_recorded(expected)
   expected = _normalize_metric_expectations(expected)
   expected.each do |specish, expected_attrs|
     expected_spec = metric_spec_from_specish(specish)
-    actual_stats = NewRelic::Agent.instance.stats_engine.lookup_stats(*Array(specish))
+    actual_stats = NewRelic::Agent.instance.stats_engine.to_h[expected_spec]
     if !actual_stats
       all_specs = NewRelic::Agent.instance.stats_engine.metric_specs.sort
       matches = all_specs.select { |spec| spec.name == expected_spec.name }
@@ -209,7 +209,7 @@ def assert_metrics_not_recorded(not_expected)
   found_but_not_expected = []
   not_expected.each do |specish, _|
     spec = metric_spec_from_specish(specish)
-    if NewRelic::Agent.instance.stats_engine.lookup_stats(*Array(specish))
+    if NewRelic::Agent.instance.stats_engine.to_h[spec]
       found_but_not_expected << spec
     end
   end
