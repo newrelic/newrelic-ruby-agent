@@ -220,7 +220,7 @@ alias :refute_metrics_recorded :assert_metrics_not_recorded
 
 def assert_no_metrics_match(regex)
   matching_metrics = []
-  NewRelic::Agent.instance.stats_engine.metrics.each do |metric|
+  NewRelic::Agent.instance.stats_engine.to_h.keys.map(&:to_s).each do |metric|
     matching_metrics << metric if metric.match regex
   end
 
