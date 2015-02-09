@@ -6,6 +6,10 @@ module NewRelic
   module Agent
     module Datastores
       module MetricHelper
+        ROLLUP_METRIC        = "Datastore/all".freeze
+        ALL_CONTEXT_METRIC   = "Datastore/allWeb".freeze
+        OTHER_CONTEXT_METRIC = "Datastore/allOther".freeze
+
         def self.statement_metric_for(product, collection, operation)
           "Datastore/statement/#{product}/#{collection}/#{operation}"
         end
@@ -16,19 +20,45 @@ module NewRelic
 
         def self.context_metric
           if NewRelic::Agent::Transaction.recording_web_transaction?
-            "Datastore/allWeb"
+            ALL_CONTEXT_METRIC
           else
-            "Datastore/allOther"
+            OTHER_CONTEXT_METRIC
           end
         end
 
         def self.metrics_for(product, collection, operation)
           [
-            "Datastore/all",
+            ROLLUP_METRIC,
             context_metric,
             statement_metric_for(product, collection, operation),
             operation_metric_for(product, operation)
           ]
+        end
+
+        def self.active_record_metric_for_name(name)
+          return unless name && name.respond_to?(:split)
+          parts = name.split
+          return if parts.size > 2
+
+          model = parts.first
+          operation_name = active_record_operation_from_name(parts.last.downcase)
+
+          "Datastore/#{model}/#{operation_name}" if operation_name
+        end
+
+        OPERATION_NAMES = {
+          'load' => 'find',
+          'count' => 'find',
+          'exists' => 'find',
+          'find' => 'find',
+          'destroy' => 'destroy',
+          'create' => 'create',
+          'update' => 'save',
+          'save' => 'save'
+        }.freeze
+
+        def self.active_record_operation_from_name(operation)
+          OPERATION_NAMES[operation]
         end
       end
     end
