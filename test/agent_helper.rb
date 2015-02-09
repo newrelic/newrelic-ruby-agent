@@ -158,7 +158,7 @@ def assert_metrics_recorded(expected)
     expected_spec = metric_spec_from_specish(specish)
     actual_stats = NewRelic::Agent.instance.stats_engine.to_h[expected_spec]
     if !actual_stats
-      all_specs = NewRelic::Agent.instance.stats_engine.metric_specs.sort
+      all_specs = NewRelic::Agent.instance.stats_engine.to_h.keys.sort
       matches = all_specs.select { |spec| spec.name == expected_spec.name }
       matches.map! { |m| "  #{m.inspect}" }
 
@@ -187,7 +187,7 @@ def assert_metrics_recorded_exclusive(expected, options={})
   expected = _normalize_metric_expectations(expected)
   assert_metrics_recorded(expected)
 
-  recorded_metrics = NewRelic::Agent.instance.stats_engine.metric_specs
+  recorded_metrics = NewRelic::Agent.instance.stats_engine.to_h.keys
 
   if options[:filter]
     recorded_metrics = recorded_metrics.select { |m| m.name.match(options[:filter]) }

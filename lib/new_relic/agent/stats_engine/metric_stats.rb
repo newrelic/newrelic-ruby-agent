@@ -226,11 +226,6 @@ module NewRelic
         end
 
         # For use by test code only.
-        def metric_specs
-          with_stats_lock { @stats_hash.keys }
-        end
-
-        # For use by test code only.
         def to_h
           with_stats_lock { Hash[@stats_hash] }
         end
