@@ -132,6 +132,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   KEY_TRANSACTION_CONFIG = {
       :web_transactions_apdex => {
         'Controller/slow/txn' => 4,
+        'OtherTransaction/back/ground' => 8
       },
       :apdex => 1
   }
@@ -173,6 +174,39 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
         'Apdex'           => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
         'Apdex/other/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
       )
+    end
+  end
+
+  def test_update_apdex_records_for_background_key_transaction
+    t0 = freeze_time
+    with_config(KEY_TRANSACTION_CONFIG) do
+      in_background_transaction('OtherTransaction/back/ground') do
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.record_apdex(state, t0 + 7.5)
+        txn.record_apdex(state, t0 + 9.5)
+        txn.record_apdex(state, t0 + 32.5)
+      end
+
+      assert_metrics_recorded(
+        'ApdexOther' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
+        'ApdexOther/Transaction/back/ground' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
+      )
+    end
+  end
+
+  def test_skips_apdex_records_for_background_non_key_transaction
+    t0 = freeze_time
+    with_config(KEY_TRANSACTION_CONFIG) do
+      in_background_transaction('OtherTransaction/other/task') do
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.record_apdex(state, t0 + 7.5)
+        txn.record_apdex(state, t0 + 9.5)
+        txn.record_apdex(state, t0 + 32.5)
+      end
+
+      refute_metrics_recorded(['ApdexOther', 'ApdexOther/Transaction/other/task'])
     end
   end
 

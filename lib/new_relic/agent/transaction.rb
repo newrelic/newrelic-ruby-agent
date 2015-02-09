@@ -708,7 +708,11 @@ module NewRelic
         end
       end
 
-      APDEX_METRIC = 'Apdex'.freeze
+      APDEX_METRIC       = 'Apdex'.freeze
+      APDEX_OTHER_METRIC = 'ApdexOther'.freeze
+
+      APDEX_TXN_METRIC_PREFIX       = 'Apdex/'.freeze
+      APDEX_OTHER_TXN_METRIC_PREFIX = 'ApdexOther/Transaction/'.freeze
 
       def had_error?
         !notable_exceptions.empty?
@@ -719,19 +723,31 @@ module NewRelic
       end
 
       def record_apdex(state, end_time=Time.now)
-        return unless recording_web_transaction? && state.is_execution_traced?
+        return unless state.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
-          action_duration = end_time - start_time
           total_duration  = end_time - apdex_start
+          action_duration = end_time - start_time
 
-          apdex_bucket_global = apdex_bucket(total_duration)
-          apdex_bucket_txn    = apdex_bucket(action_duration)
-
-          @metrics.record_unscoped(APDEX_METRIC, apdex_bucket_global, apdex_t)
-          txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, 'Apdex/')
-          @metrics.record_unscoped(txn_apdex_metric, apdex_bucket_txn, apdex_t)
+          if recording_web_transaction?
+            record_apdex_metrics(APDEX_METRIC, APDEX_TXN_METRIC_PREFIX,
+                                 total_duration, action_duration, apdex_t)
+          else
+            record_apdex_metrics(APDEX_OTHER_METRIC, APDEX_OTHER_TXN_METRIC_PREFIX,
+                                 total_duration, action_duration, transaction_specific_apdex_t)
+          end
         end
+      end
+
+      def record_apdex_metrics(rollup_metric, transaction_prefix, total_duration, action_duration, current_apdex_t)
+        return unless current_apdex_t
+
+        apdex_bucket_global = apdex_bucket(total_duration)
+        apdex_bucket_txn    = apdex_bucket(action_duration)
+
+        @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
+        txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, transaction_prefix)
+        @metrics.record_unscoped(txn_apdex_metric, apdex_bucket_txn, current_apdex_t)
       end
 
       def apdex_t
