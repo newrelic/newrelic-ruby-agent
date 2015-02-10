@@ -60,6 +60,17 @@ module NewRelic
         def self.active_record_operation_from_name(operation)
           OPERATION_NAMES[operation]
         end
+
+        PRODUCT_NAMES = {
+          "MySQL" => "MySQL",
+          "Mysql2" => "MySQL",
+          "PostgreSQL" => "Postgres",
+          "SQLite" => "SQLite"
+        }.freeze
+
+        def self.active_record_product_name_from_adapter(adapter_name)
+          PRODUCT_NAMES.fetch(adapter_name, "ActiveRecord")
+        end
       end
     end
   end
