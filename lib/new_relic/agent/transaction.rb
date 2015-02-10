@@ -615,8 +615,8 @@ module NewRelic
       def append_apdex_perf_zone(duration, payload)
         if recording_web_transaction?
           bucket = apdex_bucket(duration, apdex_t)
-        elsif transaction_specific_apdex_t
-          bucket = apdex_bucket(duration, transaction_specific_apdex_t)
+        elsif background_apdex_t = transaction_specific_apdex_t
+          bucket = apdex_bucket(duration, background_apdex_t)
         end
 
         return unless bucket
