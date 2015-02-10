@@ -613,9 +613,14 @@ module NewRelic
       APDEX_F = 'F'.freeze
 
       def append_apdex_perf_zone(duration, payload)
-        return unless recording_web_transaction?
+        if recording_web_transaction?
+          bucket = apdex_bucket(duration, apdex_t)
+        elsif transaction_specific_apdex_t
+          bucket = apdex_bucket(duration, transaction_specific_apdex_t)
+        end
 
-        bucket = apdex_bucket(duration)
+        return unless bucket
+
         bucket_str = case bucket
         when :apdex_s then APDEX_S
         when :apdex_t then APDEX_T
@@ -718,8 +723,8 @@ module NewRelic
         !notable_exceptions.empty?
       end
 
-      def apdex_bucket(duration)
-        self.class.apdex_bucket(duration, had_error?, apdex_t)
+      def apdex_bucket(duration, current_apdex_t)
+        self.class.apdex_bucket(duration, had_error?, current_apdex_t)
       end
 
       def record_apdex(state, end_time=Time.now)
@@ -742,8 +747,8 @@ module NewRelic
       def record_apdex_metrics(rollup_metric, transaction_prefix, total_duration, action_duration, current_apdex_t)
         return unless current_apdex_t
 
-        apdex_bucket_global = apdex_bucket(total_duration)
-        apdex_bucket_txn    = apdex_bucket(action_duration)
+        apdex_bucket_global = apdex_bucket(total_duration, current_apdex_t)
+        apdex_bucket_txn    = apdex_bucket(action_duration, current_apdex_t)
 
         @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
         txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, transaction_prefix)

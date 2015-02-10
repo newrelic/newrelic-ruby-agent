@@ -463,7 +463,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_background_transaction_event_doesnt_include_apdex_perf_zone
+  def test_default_background_transaction_event_doesnt_include_apdex_perf_zone
     apdex = nil
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
       apdex = payload[:apdex_perf_zone]
@@ -474,6 +474,29 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     with_config(:apdex_t => 1.0) do
       in_background_transaction { advance_time 0.5 }
       assert_nil apdex
+    end
+  end
+
+  def test_background_transaction_event_include_apdex_perf_zone_if_key_transaction
+    apdex = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      apdex = payload[:apdex_perf_zone]
+    end
+
+    freeze_time
+
+    txn_name = 'OtherTransaction/back/ground'
+    key_transactions = { txn_name => 1.0 }
+
+    with_config(:apdex_t => 1.0, :web_transactions_apdex => key_transactions) do
+      in_background_transaction(txn_name) { advance_time 0.5 }
+      assert_equal('S', apdex)
+
+      in_background_transaction(txn_name) { advance_time 1.5 }
+      assert_equal('T', apdex)
+
+      in_background_transaction(txn_name) { advance_time 4.5 }
+      assert_equal('F', apdex)
     end
   end
 
