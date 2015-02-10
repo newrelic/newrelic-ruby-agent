@@ -325,6 +325,21 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_transaction_finished('foo', (t0 + 1).to_f, 2.0, thread)
       end
 
+      def test_on_transaction_finished_delivers_background_backtraces
+        fake_worker_loop(@service)
+
+        thread0 = fake_thread(:background)
+
+        profile = @service.subscribe('foo')
+
+        t0 = Time.now
+        @service.poll
+
+        profile.expects(:aggregate).with(thread0.backtrace, :background, thread0).once
+
+        fake_transaction_finished('foo', t0.to_f, 1, thread0)
+      end
+
       def test_does_not_deliver_non_request_backtraces_to_subscribed_profiles
         fake_worker_loop(@service)
 

@@ -119,7 +119,7 @@ module NewRelic
           end_time = start + duration
           backtraces.each do |(timestamp, backtrace)|
             if timestamp >= start && timestamp < end_time
-              @profiles[name].aggregate(backtrace, :request, thread)
+              @profiles[name].aggregate(backtrace, AgentThread.bucket_thread(thread, false), thread)
             end
           end
         end
@@ -169,7 +169,8 @@ module NewRelic
 
         # This method is expected to be called with @lock held.
         def should_buffer?(bucket)
-          bucket == :request && @profiles.keys.any? { |k| k != ALL_TRANSACTIONS }
+          (bucket == :request || bucket == :background) &&
+            @profiles.keys.any? { |k| k != ALL_TRANSACTIONS }
         end
 
         # This method is expected to be called with @lock held.
