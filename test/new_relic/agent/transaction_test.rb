@@ -190,7 +190,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
       assert_metrics_recorded(
         'ApdexOther' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
-        'ApdexOther/Transaction/back/ground' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
+        'ApdexOther/Transaction/back/ground' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
       )
     end
   end
