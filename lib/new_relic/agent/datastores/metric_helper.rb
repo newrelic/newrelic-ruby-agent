@@ -26,13 +26,15 @@ module NewRelic
           end
         end
 
-        def self.metrics_for(product, collection, operation)
-          [
+        def self.metrics_for(product, operation, collection = nil)
+          metrics = [
             ROLLUP_METRIC,
             context_metric,
-            statement_metric_for(product, collection, operation),
             operation_metric_for(product, operation)
           ]
+          metrics << statement_metric_for(product, collection, operation) if collection
+
+          metrics
         end
 
         def self.active_record_metric_for_name(name)
