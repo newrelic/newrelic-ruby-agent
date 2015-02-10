@@ -104,10 +104,11 @@ module NewRelic
           start    = payload[:start_timestamp]
           duration = payload[:duration]
           thread   = payload[:thread] || Thread.current
+          bucket   = payload[:bucket]
           @lock.synchronize do
             backtraces = @buffer.delete(thread)
             if backtraces && @profiles.has_key?(name)
-              aggregate_backtraces(backtraces, name, start, duration, thread)
+              aggregate_backtraces(backtraces, name, start, duration, bucket, thread)
             end
           end
         end
@@ -115,11 +116,11 @@ module NewRelic
         # Internals
 
         # This method is expected to be called with @lock held.
-        def aggregate_backtraces(backtraces, name, start, duration, thread)
+        def aggregate_backtraces(backtraces, name, start, duration, bucket, thread)
           end_time = start + duration
           backtraces.each do |(timestamp, backtrace)|
             if timestamp >= start && timestamp < end_time
-              @profiles[name].aggregate(backtrace, AgentThread.bucket_thread(thread, false), thread)
+              @profiles[name].aggregate(backtrace, bucket, thread)
             end
           end
         end

@@ -337,7 +337,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile.expects(:aggregate).with(thread0.backtrace, :background, thread0).once
 
-        fake_transaction_finished('foo', t0.to_f, 1, thread0)
+        fake_transaction_finished('foo', t0.to_f, 1, thread0, :background)
       end
 
       def test_does_not_deliver_non_request_backtraces_to_subscribed_profiles
@@ -366,7 +366,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.poll
 
         profile.expects(:aggregate).once
-        fake_transaction_finished('foo', t0.to_f, 1.0)
+        fake_transaction_finished('foo', t0.to_f, 1.0, Thread.current)
       end
 
       def test_service_increments_profile_poll_counts
@@ -486,11 +486,12 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         end
       end
 
-      def fake_transaction_finished(name, start_timestamp, duration, thread=nil)
+      def fake_transaction_finished(name, start_timestamp, duration, thread, bucket=:request)
         payload = {
-          :name => name,
+          :name            => name,
+          :bucket          => bucket,
           :start_timestamp => start_timestamp,
-          :duration => duration
+          :duration        => duration
         }
         payload[:thread] = thread if thread
         @event_listener.notify(:transaction_finished, payload)
