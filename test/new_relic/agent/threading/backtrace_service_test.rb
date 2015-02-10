@@ -34,6 +34,15 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         assert @service.running?
       end
 
+      def test_doesnt_start_on_resque
+        with_config(:dispatcher => :resque) do
+          fake_worker_loop(@service)
+
+          @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
+          refute @service.running?
+        end
+      end
+
       def test_stops_when_subscription_is_removed
         fake_worker_loop(@service)
 

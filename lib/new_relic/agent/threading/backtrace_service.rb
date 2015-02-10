@@ -9,7 +9,14 @@ module NewRelic
         ALL_TRANSACTIONS = "**ALL**".freeze
 
         def self.is_supported?
-          RUBY_VERSION >= "1.9.2"
+          RUBY_VERSION >= "1.9.2" && !is_resque?
+        end
+
+        # Because of Resque's forking, we don't poll thread backtraces for it.
+        # To accomplish that would require starting a new backtracing thread in
+        # each forked worker, and merging profiles across the pipe channel.
+        def self.is_resque?
+          NewRelic::Agent.config[:dispatcher] == :resque
         end
 
         attr_reader :worker_loop, :buffer, :effective_polling_period,
@@ -45,6 +52,11 @@ module NewRelic
         end
 
         def subscribe(transaction_name, command_arguments={})
+          if self.class.is_resque?
+            NewRelic::Agent.logger.info("Backtracing threads on Resque is not supported, so not subscribing transaction '#{transaction_name}'")
+            return
+          end
+
           if !self.class.is_supported?
             NewRelic::Agent.logger.debug("Backtracing not supported, so not subscribing transaction '#{transaction_name}'")
             return
