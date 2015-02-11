@@ -35,19 +35,19 @@ module MemcacheTestCases
     end
   end
 
+  def commands
+    ['get', 'get_multi']
+  end
+
   def test_reads_web
-    commands = ['get']
-    commands << 'get_multi'
-    expected_metrics = commands
-    expected_metrics = ['single_get', 'multi_get'] if @cache.class.name == 'Memcached' && Memcached::VERSION >= '1.8.0'
-    commands.zip(expected_metrics) do |method, metric|
-      if @cache.class.method_defined?(method)
-        _call_test_method_in_web_transaction(method)
+    commands.each do |command|
+      if @cache.class.method_defined?(command)
+        _call_test_method_in_web_transaction(command)
 
         expected_metrics = [
-          "Memcache/#{metric}",
+          "Memcache/#{command}",
           "Memcache/allWeb",
-          ["Memcache/#{metric}", "Controller/#{self.class}/action"]
+          ["Memcache/#{command}", "Controller/#{self.class}/action"]
         ]
 
         assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
@@ -87,18 +87,14 @@ module MemcacheTestCases
   end
 
   def test_reads_background
-    commands = ['get']
-    commands << 'get_multi'
-    expected_metrics = commands
-    expected_metrics = ['single_get', 'multi_get'] if @cache.class.name == 'Memcached' && Memcached::VERSION >= '1.8.0'
-    commands.zip(expected_metrics) do |method, metric|
-      if @cache.class.method_defined?(method)
-        _call_test_method_in_background_task(method)
+    commands.each do |command|
+      if @cache.class.method_defined?(command)
+        _call_test_method_in_background_task(command)
 
         expected_metrics = [
-          "Memcache/#{metric}",
+          "Memcache/#{command}",
           "Memcache/allOther",
-          ["Memcache/#{metric}", "OtherTransaction/Background/#{self.class}/bg_task"]
+          ["Memcache/#{command}", "OtherTransaction/Background/#{self.class}/bg_task"]
         ]
 
         assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i

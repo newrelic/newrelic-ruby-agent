@@ -12,6 +12,14 @@ if defined?(Memcached)
       @cache = Memcached.new('localhost', :support_cas => true)
     end
 
+    def commands
+      if Memcached::VERSION >= '1.8.0'
+        ['single_get', 'multi_get']
+      else
+        super
+      end
+    end
+
     def test_handles_cas
       methods = ["cas"]
       methods = ["single_get", "single_cas"] if @cache.class.name == 'Memcached' && Memcached::VERSION >= '1.8.0'
