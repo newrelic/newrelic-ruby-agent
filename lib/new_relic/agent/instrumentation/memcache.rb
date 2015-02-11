@@ -60,11 +60,13 @@ DependencyDetection.defer do
 
   executes do
     commands = %w[get get_multi set add incr decr delete replace append prepend]
+
     if defined? ::MemCache
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::MemCache,
                                                                     commands)
       ::NewRelic::Agent.logger.info 'Installing MemCache instrumentation'
     end
+
     if defined? ::Memcached
       if ::Memcached::VERSION >= '1.8.0'
         commands -= %w[get get_multi]
@@ -76,11 +78,13 @@ DependencyDetection.defer do
                                                                     commands)
       ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation'
     end
+
     if defined? ::Dalli::Client
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client,
                                                                     commands)
       ::NewRelic::Agent.logger.info 'Installing Dalli Memcache instrumentation'
     end
+
     if defined? ::Spymemcached
       commands << 'multiget'
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Spymemcached,
