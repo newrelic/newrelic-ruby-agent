@@ -182,8 +182,7 @@ module NewRelic
 
         # This method is expected to be called with @lock held.
         def should_buffer?(bucket)
-          (bucket == :request || bucket == :background) &&
-            @profiles.keys.any? { |k| k != ALL_TRANSACTIONS }
+          allowed_bucket?(bucket) && watching_for_transaction?
         end
 
         # This method is expected to be called with @lock held.
@@ -192,6 +191,16 @@ module NewRelic
             bucket != :ignore &&
             (@profiles[ALL_TRANSACTIONS] || should_buffer?(bucket))
           )
+        end
+
+        # This method is expected to be called with @lock held
+        def watching_for_transaction?
+          @profiles.size > 1 ||
+          (@profiles.size == 1 && @profiles[ALL_TRANSACTIONS].nil?)
+        end
+
+        def allowed_bucket?(bucket)
+          bucket == :request || bucket == :background
         end
 
         MAX_BUFFER_LENGTH = 500

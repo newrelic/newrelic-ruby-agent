@@ -31,7 +31,7 @@ class ThreadProfiling < Performance::TestCase
       @threads << Thread.new do
         @threadq << self
         transaction_state = NewRelic::Agent::TransactionState.tl_get
-        def transaction_state.in_request_transaction?; true; end
+        def transaction_state.in_web_transaction?; true; end
         recurse(50, method(:block))
       end
     end
@@ -83,6 +83,7 @@ class ThreadProfiling < Performance::TestCase
         @service.poll
         payload = {
           :name => 'eagle',
+          :bucket => :request,
           :start_timestamp => t0,
           :duration => Time.now.to_f-t0,
           :thread => @threads.sample
