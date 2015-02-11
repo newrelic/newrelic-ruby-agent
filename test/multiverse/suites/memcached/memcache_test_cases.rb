@@ -3,133 +3,153 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 module MemcacheTestCases
-  include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-
   def after_setup
-    NewRelic::Agent.manual_start
-    @engine = NewRelic::Agent.instance.stats_engine
-
-    @key = randomized_key
-    @cache.set(@key, 1)
+    @keys = []
   end
 
   def teardown
-    @cache.delete(@key) rescue nil
+    @keys.each { |key| @cache.delete(key) rescue nil }
+    NewRelic::Agent.drop_buffered_data
   end
 
   def randomized_key
-    "test_#{rand(1e18)}"
-  end
-
-  def _call_test_method_in_web_transaction(method, *args)
-    @engine.clear_stats
-    perform_action_with_newrelic_trace(:name=>'action', :category => :controller) do
-      @cache.send(method.to_sym, *[@key, *args])
+    "test_#{rand(1e18)}".tap do |key|
+      @keys << key
     end
   end
 
-  def _call_test_method_in_background_task(method, *args)
-    @engine.clear_stats
-    perform_action_with_newrelic_trace(:name => 'bg_task', :category => :task) do
-      @cache.send(method.to_sym, *[@key, *args])
+  def set_key_for_testcase(value = "value")
+    randomized_key.tap do |key|
+      @cache.set(key, value)
+      NewRelic::Agent.drop_buffered_data
     end
   end
 
-  def commands
-    ['get', 'get_multi']
+  def expected_web_metrics(command)
+    [
+      "Memcache/#{command}",
+      "Memcache/allWeb",
+      ["Memcache/#{command}", "Controller/#{self.class}/action"]
+    ]
   end
 
-  def test_reads_web
-    commands.each do |command|
-      if @cache.class.method_defined?(command)
-        _call_test_method_in_web_transaction(command)
-
-        expected_metrics = [
-          "Memcache/#{command}",
-          "Memcache/allWeb",
-          ["Memcache/#{command}", "Controller/#{self.class}/action"]
-        ]
-
-        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
-      end
-    end
+  def expected_bg_metrics(command)
+    [
+      "Memcache/#{command}",
+      "Memcache/allOther",
+      ["Memcache/#{command}", "OtherTransaction/Background/#{self.class}/bg_task"]
+    ]
   end
 
-  def test_writes_web
-    %w[delete].each do |method|
-      if @cache.class.method_defined?(method)
-        _call_test_method_in_web_transaction(method)
+  def test_get_in_web
+    key = set_key_for_testcase
 
-        expected_metrics = [
-          "Memcache/#{method}",
-          "Memcache/allWeb",
-          ["Memcache/#{method}", "Controller/#{self.class}/action"]
-        ]
+    expected_metrics = expected_web_metrics(:get)
 
-        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
-      end
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.get(key)
     end
 
-    %w[set add].each do |method|
-      @cache.delete(@key) rescue nil
-      if @cache.class.method_defined?(method)
-
-        expected_metrics = [
-          "Memcache/#{method}",
-          "Memcache/allWeb",
-          ["Memcache/#{method}", "Controller/#{self.class}/action"]
-        ]
-
-        _call_test_method_in_web_transaction(method, 'value')
-        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
-      end
-    end
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
   end
 
-  def test_reads_background
-    commands.each do |command|
-      if @cache.class.method_defined?(command)
-        _call_test_method_in_background_task(command)
+  def test_get_multi_in_web
+    key = set_key_for_testcase
 
-        expected_metrics = [
-          "Memcache/#{command}",
-          "Memcache/allOther",
-          ["Memcache/#{command}", "OtherTransaction/Background/#{self.class}/bg_task"]
-        ]
+    expected_metrics = expected_web_metrics(:get_multi)
 
-        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
-      end
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.get_multi(key)
     end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
   end
 
-  def test_writes_background
-    %w[delete].each do |method|
+  def test_set_in_web
+    expected_metrics = expected_web_metrics(:set)
 
-      expected_metrics = [
-        "Memcache/#{method}",
-        "Memcache/allOther",
-        ["Memcache/#{method}", "OtherTransaction/Background/#{self.class}/bg_task"]
-      ]
-
-      if @cache.class.method_defined?(method)
-        _call_test_method_in_background_task(method)
-        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
-      end
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.set(randomized_key, "value")
     end
 
-    %w[set add].each do |method|
-      @cache.delete(@key) rescue nil
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
 
-      expected_metrics = [
-        "Memcache/#{method}",
-        "Memcache/allOther",
-        ["Memcache/#{method}", "OtherTransaction/Background/#{self.class}/bg_task"]
-      ]
+  def test_add_in_web
+    expected_metrics = expected_web_metrics(:add)
 
-      if @cache.class.method_defined?(method)
-        _call_test_method_in_background_task(method, 'value')
-        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
-      end
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.add(randomized_key, "value")
     end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_delete_in_web
+    key = set_key_for_testcase
+
+    expected_metrics = expected_web_metrics(:delete)
+
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.delete(key)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_get_in_background
+    key = set_key_for_testcase
+
+    expected_metrics = expected_bg_metrics(:get)
+
+    in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+      @cache.get(key)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_get_multi_in_background
+    key = set_key_for_testcase
+
+    expected_metrics = expected_bg_metrics(:get_multi)
+
+    in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+      @cache.get_multi(key)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_set_in_background
+    expected_metrics = expected_bg_metrics(:set)
+
+    in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+      @cache.set(randomized_key, "value")
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_add_in_background
+    expected_metrics = expected_bg_metrics(:add)
+
+    in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+      @cache.add(randomized_key, "value")
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_delete_in_background
+    key = set_key_for_testcase
+
+    expected_metrics = expected_bg_metrics(:delete)
+
+    in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+      @cache.delete(key)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
   end
 end
