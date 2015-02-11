@@ -13,9 +13,14 @@ if defined?(Memcached)
     end
 
     def test_handles_cas
-      expected_metrics = ["cas"]
-      expected_metrics = ["single_get", "single_cas"] if @cache.class.name == 'Memcached' && Memcached::VERSION >= '1.8.0'
-      expected_metrics = ["Memcache/allOther"] + expected_metrics.map {|m| ["Memcache/#{m}", "Memcache/#{m}:OtherTransaction/Background/#{self.class}/bg_task"] }.flatten
+      methods = ["cas"]
+      methods = ["single_get", "single_cas"] if @cache.class.name == 'Memcached' && Memcached::VERSION >= '1.8.0'
+      expected_metrics = ["Memcache/allOther"]
+
+      methods.map do |m|
+        expected_metrics << "Memcache/#{m}"
+        expected_metrics << ["Memcache/#{m}", "OtherTransaction/Background/#{self.class}/bg_task"]
+      end
 
       @engine.clear_stats
 
@@ -23,7 +28,7 @@ if defined?(Memcached)
         @cache.cas(@key) {|val| val += 2}
       end
 
-      compare_metrics expected_metrics, @engine.metrics.select{|m| m =~ /^memcache.*/i}
+      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
       assert_equal 3, @cache.get(@key)
     end
   end

@@ -43,8 +43,14 @@ module MemcacheTestCases
     commands.zip(expected_metrics) do |method, metric|
       if @cache.class.method_defined?(method)
         _call_test_method_in_web_transaction(method)
-        compare_metrics ["Memcache/#{metric}", "Memcache/allWeb", "Memcache/#{metric}:Controller/#{self.class}/action"],
-        @engine.metrics.select{|m| m =~ /^memcache.*/i}
+
+        expected_metrics = [
+          "Memcache/#{metric}",
+          "Memcache/allWeb",
+          ["Memcache/#{metric}", "Controller/#{self.class}/action"]
+        ]
+
+        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
       end
     end
   end
@@ -53,17 +59,29 @@ module MemcacheTestCases
     %w[delete].each do |method|
       if @cache.class.method_defined?(method)
         _call_test_method_in_web_transaction(method)
-        expected_metrics = ["Memcache/#{method}", "Memcache/allWeb", "Memcache/#{method}:Controller/#{self.class}/action"]
-        compare_metrics expected_metrics, @engine.metrics.select{|m| m =~ /^memcache.*/i}
+
+        expected_metrics = [
+          "Memcache/#{method}",
+          "Memcache/allWeb",
+          ["Memcache/#{method}", "Controller/#{self.class}/action"]
+        ]
+
+        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
       end
     end
 
     %w[set add].each do |method|
       @cache.delete(@key) rescue nil
       if @cache.class.method_defined?(method)
-        expected_metrics = ["Memcache/#{method}", "Memcache/allWeb", "Memcache/#{method}:Controller/#{self.class}/action"]
+
+        expected_metrics = [
+          "Memcache/#{method}",
+          "Memcache/allWeb",
+          ["Memcache/#{method}", "Controller/#{self.class}/action"]
+        ]
+
         _call_test_method_in_web_transaction(method, 'value')
-        compare_metrics expected_metrics, @engine.metrics.select{|m| m =~ /^memcache.*/i}
+        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
       end
     end
   end
@@ -76,27 +94,45 @@ module MemcacheTestCases
     commands.zip(expected_metrics) do |method, metric|
       if @cache.class.method_defined?(method)
         _call_test_method_in_background_task(method)
-        compare_metrics ["Memcache/#{metric}", "Memcache/allOther", "Memcache/#{metric}:OtherTransaction/Background/#{self.class}/bg_task"],
-        @engine.metrics.select{|m| m =~ /^memcache.*/i}
+
+        expected_metrics = [
+          "Memcache/#{metric}",
+          "Memcache/allOther",
+          ["Memcache/#{metric}", "OtherTransaction/Background/#{self.class}/bg_task"]
+        ]
+
+        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
       end
     end
   end
 
   def test_writes_background
     %w[delete].each do |method|
-      expected_metrics = ["Memcache/#{method}", "Memcache/allOther", "Memcache/#{method}:OtherTransaction/Background/#{self.class}/bg_task"]
+
+      expected_metrics = [
+        "Memcache/#{method}",
+        "Memcache/allOther",
+        ["Memcache/#{method}", "OtherTransaction/Background/#{self.class}/bg_task"]
+      ]
+
       if @cache.class.method_defined?(method)
         _call_test_method_in_background_task(method)
-        compare_metrics expected_metrics, @engine.metrics.select{|m| m =~ /^memcache.*/i}
+        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
       end
     end
 
     %w[set add].each do |method|
       @cache.delete(@key) rescue nil
-      expected_metrics = ["Memcache/#{method}", "Memcache/allOther", "Memcache/#{method}:OtherTransaction/Background/#{self.class}/bg_task"]
+
+      expected_metrics = [
+        "Memcache/#{method}",
+        "Memcache/allOther",
+        ["Memcache/#{method}", "OtherTransaction/Background/#{self.class}/bg_task"]
+      ]
+
       if @cache.class.method_defined?(method)
         _call_test_method_in_background_task(method, 'value')
-        compare_metrics expected_metrics, @engine.metrics.select{|m| m =~ /^memcache.*/i}
+        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
       end
     end
   end
