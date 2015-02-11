@@ -42,16 +42,18 @@ class SinatraMetricExplosionTest < Minitest::Test
 
   def test_transaction_name_from_route
     get '/hello/world'
-    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
-    assert metric_names.include?('Controller/Sinatra/SinatraTestApp/GET hello/([^/?#]+)')
-    assert metric_names.include?('Apdex/Sinatra/SinatraTestApp/GET hello/([^/?#]+)')
+    assert_metrics_recorded([
+      'Controller/Sinatra/SinatraTestApp/GET hello/([^/?#]+)',
+      'Apdex/Sinatra/SinatraTestApp/GET hello/([^/?#]+)'
+    ])
   end
 
   def test_transaction_name_from_path
     get '/wrong'
-    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
-    assert metric_names.include?('Controller/Sinatra/SinatraTestApp/GET (unknown)')
-    assert metric_names.include?('Apdex/Sinatra/SinatraTestApp/GET (unknown)')
+    assert_metrics_recorded([
+      'Controller/Sinatra/SinatraTestApp/GET (unknown)',
+      'Apdex/Sinatra/SinatraTestApp/GET (unknown)'
+    ])
   end
 
   def test_transaction_name_does_not_explode
@@ -61,7 +63,7 @@ class SinatraMetricExplosionTest < Minitest::Test
     get '/hello/isitmeyourelookingfor?'
     get '/another_controller'
 
-    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
+    metric_names = ::NewRelic::Agent.agent.stats_engine.to_h.keys.map(&:to_s)
     metric_names -= [
       'CPU/User Time',
       "Middleware/all",
@@ -85,8 +87,9 @@ class SinatraMetricExplosionTest < Minitest::Test
   def test_does_not_break_when_no_verb_matches
     post '/some/garbage'
 
-    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
-    assert metric_names.include?('Controller/Sinatra/SinatraTestApp/POST (unknown)')
-    assert metric_names.include?('Apdex/Sinatra/SinatraTestApp/POST (unknown)')
+    assert_metrics_recorded([
+      'Controller/Sinatra/SinatraTestApp/POST (unknown)',
+      'Apdex/Sinatra/SinatraTestApp/POST (unknown)'
+    ])
   end
 end

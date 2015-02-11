@@ -310,7 +310,7 @@ module NewRelic
         new_name = NewRelic::Agent.get_transaction_name + "2"
         NewRelic::Agent.set_transaction_name(new_name)
       end
-      assert engine.lookup_stats('OtherTransaction/Background/a_new_name2')
+      assert_metrics_recorded 'OtherTransaction/Background/a_new_name2'
     end
 
     def test_set_transaction_name_applies_proper_scopes
@@ -343,7 +343,7 @@ module NewRelic
           NewRelic::Agent.set_transaction_name('new_name')
         end
       end
-      assert_nil engine.lookup_stats('Controller/new_name')
+      refute_metrics_recorded('Controller/new_name')
     end
 
     def test_set_transaction_name_applies_category
@@ -374,7 +374,7 @@ module NewRelic
       Transactor.new.task_txn do
         NewRelic::Agent.set_transaction_name('new_name')
       end
-      assert engine.lookup_stats('OtherTransaction/Background/new_name')
+      assert_metrics_recorded 'OtherTransaction/Background/new_name'
     end
 
     # It's not uncommon for customers to conclude a rescue block with a call to

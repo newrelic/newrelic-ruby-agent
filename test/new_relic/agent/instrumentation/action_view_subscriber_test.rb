@@ -19,6 +19,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
 
   def test_records_metrics_for_simple_template
     params = { :identifier => '/root/app/views/model/index.html.erb' }
+
     t0 = Time.now
     Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
 
@@ -29,9 +30,8 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
                        :virtual_path => 'model/index')
     @subscriber.finish('render_template.action_view', :id, params)
 
-    metric = @stats_engine.lookup_stats('View/model/index.html.erb/Rendering')
-    assert_equal(1, metric.call_count)
-    assert_equal(2.0, metric.total_call_time)
+    expected = { :call_count => 1, :total_call_time => 2.0 }
+    assert_metrics_recorded('View/model/index.html.erb/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_file
@@ -46,9 +46,8 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
                        :virtual_path => nil)
     @subscriber.finish('render_template.action_view', :id, params)
 
-    metric = @stats_engine.lookup_stats('View/file/Rendering')
-    assert_equal(1, metric.call_count)
-    assert_equal(2.0, metric.total_call_time)
+    expected = { :call_count => 1, :total_call_time => 2.0 }
+    assert_metrics_recorded('View/file/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_inline
@@ -63,9 +62,8 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
                        :virtual_path => nil)
     @subscriber.finish('render_template.action_view', :id, params)
 
-    metric = @stats_engine.lookup_stats('View/inline template/Rendering')
-    assert_equal(1, metric.call_count)
-    assert_equal(2.0, metric.total_call_time)
+    expected = { :call_count => 1, :total_call_time => 2.0 }
+    assert_metrics_recorded('View/inline template/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_text
@@ -76,9 +74,8 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     @subscriber.start('render_template.action_view', :id, params)
     @subscriber.finish('render_template.action_view', :id, params)
 
-    metric = @stats_engine.lookup_stats('View/text template/Rendering')
-    assert_equal(1, metric.call_count)
-    assert_equal(2.0, metric.total_call_time)
+    expected = { :call_count => 1, :total_call_time => 2.0 }
+    assert_metrics_recorded('View/text template/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_partial
@@ -93,9 +90,8 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
                        :virtual_path => 'model/_form')
     @subscriber.finish('render_partial.action_view', :id, params)
 
-    metric = @stats_engine.lookup_stats('View/model/_form.html.erb/Partial')
-    assert_equal(1, metric.call_count)
-    assert_equal(2.0, metric.total_call_time)
+    expected = { :call_count => 1, :total_call_time => 2.0 }
+    assert_metrics_recorded('View/model/_form.html.erb/Partial' => expected)
   end
 
   def test_records_metrics_for_simple_collection
@@ -110,9 +106,8 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
                        :virtual_path => 'model/_user')
     @subscriber.finish('render_collection.action_view', :id, params)
 
-    metric = @stats_engine.lookup_stats('View/model/_user.html.erb/Partial')
-    assert_equal(1, metric.call_count)
-    assert_equal(2.0, metric.total_call_time)
+    expected = { :call_count => 1, :total_call_time => 2.0 }
+    assert_metrics_recorded('View/model/_user.html.erb/Partial' => expected)
   end
 
   def test_records_metrics_for_layout
@@ -124,9 +119,8 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     @subscriber.finish('!render_template.action_view', :id,
                        :virtual_path => 'layouts/application')
 
-    metric = @stats_engine.lookup_stats('View/layouts/application/Rendering')
-    assert_equal(1, metric.call_count)
-    assert_equal(2.0, metric.total_call_time)
+    expected = { :call_count => 1, :total_call_time => 2.0 }
+    assert_metrics_recorded('View/layouts/application/Rendering' => expected)
   end
 
   def test_records_scoped_metric
@@ -141,9 +135,10 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_template.action_view', :id, params)
     end
 
-    metric = @stats_engine.lookup_stats('View/model/index.html.erb/Rendering',
-                                        'test_txn')
-    assert_equal(1, metric.call_count)
+    expected = { :call_count => 1 }
+    assert_metrics_recorded(
+      ['View/model/index.html.erb/Rendering', 'test_txn'] => expected
+    )
   end
 
   def test_records_nothing_if_tracing_disabled
@@ -154,8 +149,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_collection.action_view', :id, params)
     end
 
-    metric = @stats_engine.lookup_stats('View/model/_user.html.erb/Partial')
-    assert_nil metric
+    assert_metrics_not_recorded('View/model/_user.html.erb/Partial')
   end
 
   def test_creates_txn_segment_for_simple_render

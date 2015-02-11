@@ -39,12 +39,12 @@ class RenameRuleTest < Minitest::Test
   def test_transaction_names_rules
     TestWidget.new.txn
 
-    metric_names = NewRelic::Agent.instance.stats_engine.metrics
+    assert_metrics_recorded([
+      'Controller/Class::TestWidget/txn',
+      'Apdex/Class::TestWidget/txn'
+    ])
 
-    assert_includes(metric_names, 'Controller/Class::TestWidget/txn')
-    assert_includes(metric_names, 'Apdex/Class::TestWidget/txn')
-
-    assert_not_includes(metric_names, 'Controller/RenameRuleTest::TestWidget/txn')
+    refute_metrics_recorded('Controller/RenameRuleTest::TestWidget/txn')
   end
 
   def test_metric_name_rules

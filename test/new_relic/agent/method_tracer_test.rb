@@ -115,7 +115,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       advance_time 0.05
     end
 
-    assert_empty @stats_engine.metrics
+    assert_metrics_recorded_exclusive([])
   end
 
   def test_trace_execution_scoped_records_metric_data_from_callback
@@ -212,9 +212,8 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
     method_c1
 
-    refute_nil @stats_engine.lookup_stats("c1")
-    assert_nil @stats_engine.lookup_stats("c2")
-    refute_nil @stats_engine.lookup_stats("c3")
+    assert_metrics_recorded(['c1', 'c3'])
+    assert_metrics_not_recorded('c2')
 
     assert_equal ['c2', 'c1'], @scope_listener.scopes
   end
