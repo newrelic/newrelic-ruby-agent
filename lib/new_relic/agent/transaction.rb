@@ -720,7 +720,10 @@ module NewRelic
       APDEX_OTHER_TXN_METRIC_PREFIX = 'ApdexOther/Transaction/'.freeze
 
       def had_error?
-        !notable_exceptions.empty?
+        @exceptions.each do |exception, _|
+          return true unless NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
+        end
+        false
       end
 
       def apdex_bucket(duration, current_apdex_t)
@@ -858,12 +861,6 @@ module NewRelic
 
       def ignore_enduser?
         @ignore_enduser
-      end
-
-      def notable_exceptions
-        @exceptions.keys.select do |exception|
-          !NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
-        end
       end
 
       private
