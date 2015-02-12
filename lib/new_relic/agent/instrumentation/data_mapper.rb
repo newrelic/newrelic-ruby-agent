@@ -2,45 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-## NewRelic instrumentation for DataMapper
-#
-# Instrumenting DM has different key challenges versus AR:
-#
-#   1. The hooking of SQL logging in DM is decoupled from any knowledge of the
-#      Model#method that invoked it.  But on the positive side, the duration is
-#      already calculated for you (and it happens inside the C-based DO code, so
-#      it's faster than a Ruby equivalent).
-#
-#   2. There are a lot more entry points that need to be hooked in order to
-#      understand call flow: DM::Model (model class) vs. DM::Resource (model
-#      instance) vs. DM::Collection (collection of model instances).  And
-#      others.
-#
-#   3. Strategic Eager Loading (SEL) combined with separately-grouped
-#      lazy-loaded attributes presents a unique problem for tying resulting
-#      SEL-invoked SQL calls to their proper scope.
-#
-# NOTE: On using "Database" versus "ActiveRecord" as base metric name
-#
-#   Using "Database" as the metric name base seems to properly identify methods
-#   as being DB-related in call graphs, but certain New Relic views that show
-#   aggregations of DB CPM, etc still seem to rely solely on "ActiveRecord"
-#   being the base name, thus AFAICT "Database" calls to this are lost.  (Though
-#   I haven't yet tested "Database/SQL/{find/save/destroy/all}" yet, as it seems
-#   like an intuitively good name to use.)
-#
-#   So far I think these are the rules:
-#
-#     - ActiveRecord/{find/save/destroy} populates "Database Throughput" and
-#       "Database Response Time" in the Database tab. [non-scoped]
-#
-#     - ActiveRecord/all populates the main Overview tab of DB time.  (still
-#       unsure about this one). [non-scoped]
-#
-#     These metrics are represented as :push_scope => false or included as the
-#     non-first metric in trace_execution_scoped() (docs say only first counts
-#     towards scope) so they don't show up ine normal call graph/trace.
-
 DependencyDetection.defer do
   @name = :data_mapper
 
