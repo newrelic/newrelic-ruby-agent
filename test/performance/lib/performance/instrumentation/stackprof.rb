@@ -12,8 +12,12 @@ module Performance
         require 'stackprof'
       end
 
+      def mode
+        :wall
+      end
+
       def before(test, test_name)
-        StackProf.start(:mode => :wall)
+        StackProf.start(:mode => mode)
       end
 
       def after(test, test_name)
@@ -30,6 +34,12 @@ module Performance
           report.print_graphviz(nil, f)
         end
         @artifacts << output_dot_path
+      end
+    end
+
+    class StackProfAllocationProfile < StackProfProfile
+      def mode
+        :object
       end
     end
   end

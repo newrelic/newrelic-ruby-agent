@@ -30,6 +30,11 @@ parser = OptionParser.new do |opts|
     end
   end
 
+  opts.on("-a", "--profile-alloc", "Do profiling around each test for object allocations") do
+    options[:inline] = true
+    options[:instrumentors] = [Performance::Instrumentation::StackProfAllocationProfile.to_s]
+  end
+
   opts.on("-l", "--list", "List all available suites and tests") do
     options[:list] = true
   end
