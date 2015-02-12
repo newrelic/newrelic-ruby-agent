@@ -73,16 +73,12 @@ DependencyDetection.defer do
   executes do
     # DM::Validations overrides Model#create, so we patch it here as well
     if defined?(::DataMapper::Validations::ClassMethods)
-      ::DataMapper::Validations::ClassMethods.class_eval do
-        NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Validations::ClassMethods, :create
-      end
+      NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Validations::ClassMethods, :create
     end
   end
 
   executes do
-    # NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
-    # up in traces twice -- second time subordinate to the first's scope.  Works
-    # well enough.
+    # DM::Transaction calls commit() twice, so potentially shows up twice.
     if defined?(::DataMapper::Transaction)
       NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Transaction, :commit, true
     end
@@ -164,7 +160,6 @@ module NewRelic
         ensure
           super
         end
-
       end
     end
   end
