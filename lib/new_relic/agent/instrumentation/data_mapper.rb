@@ -14,67 +14,52 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing DataMapper instrumentation'
+    require 'new_relic/agent/datastores/metric_helper'
   end
 
   executes do
-    DataMapper::Model.class_eval do
-      add_method_tracer :get,      'ActiveRecord/#{self.name}/get'
-      add_method_tracer :first,    'ActiveRecord/#{self.name}/first'
-      add_method_tracer :last,     'ActiveRecord/#{self.name}/last'
-      add_method_tracer :all,      'ActiveRecord/#{self.name}/all'
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :get
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :first
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :last
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :all
 
-      add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
-      add_method_tracer :create!,  'ActiveRecord/#{self.name}/create'
-      add_method_tracer :update,   'ActiveRecord/#{self.name}/update'
-      add_method_tracer :update!,  'ActiveRecord/#{self.name}/update'
-      add_method_tracer :destroy,  'ActiveRecord/#{self.name}/destroy'
-      add_method_tracer :destroy!, 'ActiveRecord/#{self.name}/destroy'
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :create
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :create!
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :update
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :update!
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :destroy
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :destroy!
 
-      # For dm-aggregates and partial dm-ar-finders support:
-      for method in [ :aggregate, :find, :find_by_sql ] do
-        next unless method_defined? method
-        add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
-      end
-
-    end
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :aggregate
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :find
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Model, :find_by_sql
   end
 
   executes do
-    DataMapper::Resource.class_eval do
-      add_method_tracer :update,   'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
-      add_method_tracer :update!,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
-      add_method_tracer :save,     'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
-      add_method_tracer :save!,    'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
-      add_method_tracer :destroy,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
-      add_method_tracer :destroy!, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
-
-    end
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Resource, :update
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Resource, :update!
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Resource, :save
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Resource, :save!
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Resource, :destroy
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Resource, :destroy!
   end
 
   executes do
-    DataMapper::Collection.class_eval do
-      # DM's Collection instance methods
-      add_method_tracer :get,       'ActiveRecord/#{self.name}/get'
-      add_method_tracer :first,     'ActiveRecord/#{self.name}/first'
-      add_method_tracer :last,      'ActiveRecord/#{self.name}/last'
-      add_method_tracer :all,       'ActiveRecord/#{self.name}/all'
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :get
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :first
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :last
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :all
 
-      add_method_tracer :lazy_load, 'ActiveRecord/#{self.name}/lazy_load'
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :lazy_load
 
-      add_method_tracer :create,    'ActiveRecord/#{self.name}/create'
-      add_method_tracer :create!,   'ActiveRecord/#{self.name}/create'
-      add_method_tracer :update,    'ActiveRecord/#{self.name}/update'
-      add_method_tracer :update!,   'ActiveRecord/#{self.name}/update'
-      add_method_tracer :destroy,   'ActiveRecord/#{self.name}/destroy'
-      add_method_tracer :destroy!,  'ActiveRecord/#{self.name}/destroy'
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :create
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :create!
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :update
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :update!
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :destroy
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :destroy!
 
-      # For dm-aggregates support:
-      for method in [ :aggregate ] do
-        next unless method_defined? method
-        add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
-      end
-
-    end
+    NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :aggregate
   end
 end
 
@@ -109,32 +94,68 @@ DependencyDetection.defer do
   # to make it instrumentable by putting the create method inside ClassMethods.
   # This will pick it up if/when that patch is accepted.
   executes do
-    DataMapper::Validations::ClassMethods.class_eval do
-      next unless method_defined? :create
-      add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
+    ::DataMapper::Validations::ClassMethods.class_eval do
+      NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Validations::ClassMethods, :create
     end
   end
 end
 
 DependencyDetection.defer do
-
   depends_on do
-    defined?(DataMapper) && defined?(DataMapper::Transaction)
+    defined?(::DataMapper) &&
+      defined?(::DataMapper::Transaction)
   end
 
   # NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
   # up in traces twice -- second time subordinate to the first's scope.  Works
   # well enough.
   executes do
-    DataMapper::Transaction.module_eval do
+    ::DataMapper::Transaction.module_eval do
       add_method_tracer :commit, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/commit'
     end
   end
 end
 
-
 module NewRelic
   module Agent
+    module DataMapperTracing
+      def self.add_tracer(clazz, method_name)
+        clazz.class_eval do
+          if method_defined?(method_name)
+            define_method("#{method_name}_with_newrelic",
+                          NewRelic::Agent::DataMapperTracing.method_body(method_name))
+
+            alias_method "#{method_name}_without_newrelic", method_name
+            alias_method method_name, "#{method_name}_with_newrelic"
+          end
+        end
+      end
+
+      DATA_MAPPER = "DataMapper".freeze
+
+      def self.method_body(method_name)
+        metric_operation = method_name.to_s.gsub(/[!?]/, "")
+
+        Proc.new do |*args, &blk|
+        begin
+          name = self.is_a?(Class) ? self.name : self.class.name
+          t0 = Time.now
+          metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_for(
+            DATA_MAPPER,
+            metric_operation,
+            name)
+            scoped_metric = metrics.pop
+
+            self.send("#{method_name}_without_newrelic", *args, &blk)
+        ensure
+          if t0
+            NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(scoped_metric, metrics, Time.now - t0)
+          end
+        end
+        end
+      end
+    end
+
     module Instrumentation
       module DataMapperInstrumentation
         # Unlike in AR, log is called in DM after the query actually ran,
@@ -147,24 +168,9 @@ module NewRelic
         def log(msg) #THREAD_LOCAL_ACCESS
           state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
-          return unless operation = case NewRelic::Helper.correctly_encoded(msg.query)
-                                    when /^\s*select/i          then 'find'
-                                    when /^\s*(update|insert)/i then 'save'
-                                    when /^\s*delete/i          then 'destroy'
-                                    else nil
-                                    end
 
-          # FYI: self.to_s will yield connection URI string.
           duration = msg.duration / 1000000.0
-
-          # Attach SQL to current segment/scope.
           NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, nil, duration, state)
-
-          # Record query duration associated with each of the desired metrics.
-          metric = "ActiveRecord/#{operation}"
-          rollup_metrics = ActiveRecordHelper.rollup_metrics_for(metric)
-          metrics = [metric] + rollup_metrics
-          NewRelic::Agent.instance.stats_engine.tl_record_unscoped_metrics(metrics, duration)
         ensure
           super
         end
