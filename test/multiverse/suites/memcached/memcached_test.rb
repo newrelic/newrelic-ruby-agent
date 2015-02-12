@@ -12,6 +12,22 @@ if defined?(Memcached)
       @cache = Memcached.new('localhost', :support_cas => true)
     end
 
+    def test_get_in_web
+      if Memcached::VERSION >= '1.8.0'
+        key = set_key_for_testcase
+
+        expected_metrics = expected_web_metrics(:single_get)
+
+        in_web_transaction("Controller/#{self.class}/action") do
+          @cache.get(key)
+        end
+
+        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      else
+        super
+      end
+    end
+
     def test_get_multi_in_web
       return unless Memcached::VERSION >= '1.8.0'
       key = set_key_for_testcase
@@ -19,20 +35,38 @@ if defined?(Memcached)
       expected_metrics = expected_web_metrics(:multi_get)
 
       in_web_transaction("Controller/#{self.class}/action") do
-        @cache.multi_get(key)
+        @cache.get([key])
       end
 
       assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+
+    end
+
+    def test_get_in_background
+      if Memcached::VERSION >= '1.8.0'
+        key = set_key_for_testcase
+
+        expected_metrics = expected_bg_metrics(:single_get)
+
+        in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+          @cache.get(key)
+        end
+
+        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      else
+        super
+      end
     end
 
     def test_get_multi_in_background
       return unless Memcached::VERSION >= '1.8.0'
+
       key = set_key_for_testcase
 
       expected_metrics = expected_bg_metrics(:multi_get)
 
       in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
-        @cache.multi_get(key)
+        @cache.get([key])
       end
 
       assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
