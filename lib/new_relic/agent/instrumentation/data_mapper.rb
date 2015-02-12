@@ -112,9 +112,9 @@ module NewRelic
     module DataMapperTracing
       def self.add_tracer(clazz, method_name, operation_only = false)
         clazz.class_eval do
-          if method_defined?(method_name)
+          if method_defined?(method_name) || private_method_defined?(method_name)
             define_method("#{method_name}_with_newrelic",
-                          NewRelic::Agent::DataMapperTracing.method_body(method_name, operation_only))
+                          NewRelic::Agent::DataMapperTracing.method_body(clazz, method_name, operation_only))
 
             alias_method "#{method_name}_without_newrelic", method_name
             alias_method method_name, "#{method_name}_with_newrelic"
@@ -124,33 +124,36 @@ module NewRelic
 
       DATA_MAPPER = "DataMapper".freeze
 
-      def self.method_body(method_name, operation_only)
+      def self.method_body(clazz, method_name, operation_only)
+        use_model_name   = NewRelic::Helper.instance_methods_include?(clazz, :model)
         metric_operation = method_name.to_s.gsub(/[!?]/, "")
 
         Proc.new do |*args, &blk|
-        begin
-          name = self.is_a?(Class) ? self.name : self.class.name
-          name = nil if operation_only
+          begin
+            if operation_only
+              name = nil
+            elsif use_model_name
+              name = self.model.name
+            elsif self.is_a?(Class)
+              name = self.name
+            else
+              name = self.class.name
+            end
 
-          t0 = Time.now
-          metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_for(
-            DATA_MAPPER,
-            metric_operation,
-            name)
+            t0 = Time.now
+            metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_for(
+              DATA_MAPPER,
+              metric_operation,
+              name)
 
-          scoped_metric = metrics.pop
+            scoped_metric = metrics.pop
 
-          self.send("#{method_name}_without_newrelic", *args, &blk)
-        ensure
-          if $!
-            puts $!
-            puts ($!.backtrace || []).join("\n\t")
+            self.send("#{method_name}_without_newrelic", *args, &blk)
+          ensure
+            if t0
+              NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(scoped_metric, metrics, Time.now - t0)
+            end
           end
-
-          if t0
-            NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(scoped_metric, metrics, Time.now - t0)
-          end
-        end
         end
       end
     end

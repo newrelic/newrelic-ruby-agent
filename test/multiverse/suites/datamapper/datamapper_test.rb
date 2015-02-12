@@ -167,6 +167,82 @@ class DataMapperTest < Minitest::Test
     ])
   end
 
+  def test_collection_get
+    assert_against_record(:get) do
+      Post.all.get(1)
+    end
+  end
+
+  def test_collection_first
+    assert_against_record(:first) do
+      Post.all.first
+    end
+  end
+
+  def test_collection_last
+    assert_against_record(:last) do
+      Post.all.last
+    end
+  end
+
+  def test_collection_all
+    assert_against_record(:all) do
+      Post.all.all # sic
+    end
+
+    assert_metrics_recorded(
+      'Datastore/statement/DataMapper/Post/all' => { :call_count => 2 }
+    )
+  end
+
+  def test_collection_lazy_load
+    assert_against_record(:lazy_load) do
+      Post.all.send(:lazy_load)
+    end
+  end
+
+  def test_collection_create
+    assert_against_record(:create) do
+      Post.all.create(:title => "The Title", :body => "Body")
+    end
+  end
+
+  def test_collection_create!
+    assert_against_record(:create) do
+      Post.all.create!(:title => "The Title", :body => "Body")
+    end
+  end
+
+  def test_collection_update
+    assert_against_record(:update) do
+      Post.all.update(:title => "Another")
+    end
+  end
+
+  def test_collection_update!
+    assert_against_record(:update) do
+      Post.all.update!(:title => "Another")
+    end
+  end
+
+  def test_collection_destroy
+    assert_against_record(:destroy) do
+      Post.all.destroy
+    end
+  end
+
+  def test_collection_destroy!
+    assert_against_record(:destroy) do
+      Post.all.destroy!
+    end
+  end
+
+  def test_collection_aggregate
+    assert_against_record(:aggregate) do
+      Post.all.aggregate(:title, :all.count)
+    end
+  end
+
   def test_notices_sql
     in_web_transaction do
       Post.get(42)

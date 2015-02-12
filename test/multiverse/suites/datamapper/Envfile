@@ -12,7 +12,6 @@ gemfile <<-RB
   gem 'datamapper', '~> 1.2.0', :require => 'data_mapper'
   gem 'dm-ar-finders', '~> 1.2.0'
   #{adapter_gems}
-  gem 'pry-nav'
 RB
 
 if RUBY_VERSION < '2.0.0'
