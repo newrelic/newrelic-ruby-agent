@@ -63,30 +63,19 @@ DependencyDetection.defer do
   end
 
   executes do
-    # Catch the two entry points into DM::Repository::Adapter that bypass CRUD
-    # (for when SQL is run directly).
+    # Catch direct SQL calls that bypass CRUD
     if defined?(::DataMapper::Adapters::DataObjectsAdapter)
       NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Adapters::DataObjectsAdapter, :select, true
       NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Adapters::DataObjectsAdapter, :execute, true
     end
   end
-end
 
-DependencyDetection.defer do
-
-  depends_on do
-    defined?(::DataMapper) &&
-      defined?(::DataMapper::Validations) &&
-      defined?(::DataMapper::Validations::ClassMethods)
-  end
-
-  # DM::Validations overrides Model#create, but currently in a way that makes it
-  # impossible to instrument from one place.  I've got a patch pending inclusion
-  # to make it instrumentable by putting the create method inside ClassMethods.
-  # This will pick it up if/when that patch is accepted.
   executes do
-    ::DataMapper::Validations::ClassMethods.class_eval do
-      NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Validations::ClassMethods, :create
+    # DM::Validations overrides Model#create, so we patch it here as well
+    if defined?(::DataMapper::Validations::ClassMethods)
+      ::DataMapper::Validations::ClassMethods.class_eval do
+        NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Validations::ClassMethods, :create
+      end
     end
   end
 end
