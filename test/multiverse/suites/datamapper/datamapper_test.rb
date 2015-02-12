@@ -148,6 +148,32 @@ class DataMapperTest < Minitest::Test
     refute_nil sql_segment.obfuscated_sql
   end
 
+  def test_direct_select_on_adapter
+    in_web_transaction('dm4evr') do
+      DataMapper.repository.adapter.select('select * from posts limit 1')
+    end
+
+    assert_metrics_recorded([
+      'Datastore/all',
+      'Datastore/allWeb',
+      'Datastore/operation/DataMapper/select',
+      ['Datastore/operation/DataMapper/select', 'dm4evr'],
+    ])
+  end
+
+  def test_direct_execute_on_adapter
+    in_transaction('background') do
+      DataMapper.repository.adapter.execute('update posts set title=title')
+    end
+
+    assert_metrics_recorded([
+      'Datastore/all',
+      'Datastore/allOther',
+      'Datastore/operation/DataMapper/execute',
+      ['Datastore/operation/DataMapper/execute', 'background'],
+    ])
+  end
+
   # https://support.newrelic.com/tickets/2101
   # https://github.com/newrelic/rpm/pull/42
   # https://github.com/newrelic/rpm/pull/45

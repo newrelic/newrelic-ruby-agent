@@ -61,22 +61,13 @@ DependencyDetection.defer do
 
     NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Collection, :aggregate
   end
-end
-
-DependencyDetection.defer do
-
-  depends_on do
-    defined?(::DataMapper) &&
-      defined?(::DataMapper::Adapters) &&
-      defined?(::DataMapper::Adapters::DataObjectsAdapter)
-  end
 
   executes do
     # Catch the two entry points into DM::Repository::Adapter that bypass CRUD
     # (for when SQL is run directly).
-    ::DataMapper::Adapters::DataObjectsAdapter.class_eval do
-      add_method_tracer :select,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/select'
-      add_method_tracer :execute, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/execute'
+    if defined?(::DataMapper::Adapters::DataObjectsAdapter)
+      NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Adapters::DataObjectsAdapter, :select, true
+      NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Adapters::DataObjectsAdapter, :execute, true
     end
   end
 end
@@ -119,11 +110,11 @@ end
 module NewRelic
   module Agent
     module DataMapperTracing
-      def self.add_tracer(clazz, method_name)
+      def self.add_tracer(clazz, method_name, operation_only = false)
         clazz.class_eval do
           if method_defined?(method_name)
             define_method("#{method_name}_with_newrelic",
-                          NewRelic::Agent::DataMapperTracing.method_body(method_name))
+                          NewRelic::Agent::DataMapperTracing.method_body(method_name, operation_only))
 
             alias_method "#{method_name}_without_newrelic", method_name
             alias_method method_name, "#{method_name}_with_newrelic"
@@ -133,21 +124,29 @@ module NewRelic
 
       DATA_MAPPER = "DataMapper".freeze
 
-      def self.method_body(method_name)
+      def self.method_body(method_name, operation_only)
         metric_operation = method_name.to_s.gsub(/[!?]/, "")
 
         Proc.new do |*args, &blk|
         begin
           name = self.is_a?(Class) ? self.name : self.class.name
+          name = nil if operation_only
+
           t0 = Time.now
           metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_for(
             DATA_MAPPER,
             metric_operation,
             name)
-            scoped_metric = metrics.pop
 
-            self.send("#{method_name}_without_newrelic", *args, &blk)
+          scoped_metric = metrics.pop
+
+          self.send("#{method_name}_without_newrelic", *args, &blk)
         ensure
+          if $!
+            puts $!
+            puts ($!.backtrace || []).join("\n\t")
+          end
+
           if t0
             NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(scoped_metric, metrics, Time.now - t0)
           end
