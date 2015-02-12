@@ -97,6 +97,62 @@ module MemcacheTestCases
     assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
   end
 
+  def test_incr_in_web
+    expected_metrics = expected_web_metrics(:incr)
+
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.incr("incr_test", 0)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_decr_in_web
+    expected_metrics = expected_web_metrics(:decr)
+
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.decr("decr_test", 1)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_replace_in_web
+    key = set_key_for_testcase
+
+    expected_metrics = expected_web_metrics(:replace)
+
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.replace(key, 1337807)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_append_in_web
+    key = set_key_for_testcase
+
+    expected_metrics = expected_web_metrics(:append)
+
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.append(key, 1337807)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_prepend_in_web
+    key = set_key_for_testcase
+
+    expected_metrics = expected_web_metrics(:prepend)
+
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.prepend(key, 1337807)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
   def test_get_in_background
     key = set_key_for_testcase
 
@@ -148,6 +204,62 @@ module MemcacheTestCases
 
     in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
       @cache.delete(key)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_incr_in_background
+    expected_metrics = expected_bg_metrics(:incr)
+
+    in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+      @cache.incr("incr_test", 0)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_decr_in_background
+    expected_metrics = expected_bg_metrics(:decr)
+
+    in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+      @cache.decr("decr_test", 0)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_replace_in_background
+    key = set_key_for_testcase
+
+    expected_metrics = expected_bg_metrics(:replace)
+
+    in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+      @cache.replace(key, 1337807)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_append_in_background
+    key = set_key_for_testcase
+
+    expected_metrics = expected_bg_metrics(:append)
+
+    in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+      @cache.append(key, 1337807)
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
+  def test_prepend_in_background
+    key = set_key_for_testcase
+
+    expected_metrics = expected_bg_metrics(:prepend)
+
+    in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+      @cache.prepend(key, 1337807)
     end
 
     assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
