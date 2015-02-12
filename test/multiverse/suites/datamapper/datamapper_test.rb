@@ -51,6 +51,12 @@ class DataMapperTest < Minitest::Test
     end
   end
 
+  def test_get!
+    assert_against_record(:get) do |post|
+      Post.get!(post.id)
+    end
+  end
+
   def test_first
     assert_against_record(:first) do
       Post.first
@@ -123,6 +129,30 @@ class DataMapperTest < Minitest::Test
     end
   end
 
+  def test_save!
+    assert_against_record(:save) do |post|
+      post.save!
+    end
+  end
+
+  def test_aggregate
+    assert_against_record(:aggregate) do
+      Post.aggregate(:title, :all.count)
+    end
+  end
+
+  def test_find
+    assert_against_record(:find) do
+      Post.find(1)
+    end
+  end
+
+  def test_find_by_sql
+    assert_against_record(:find_by_sql) do
+      Post.find_by_sql('select * from posts')
+    end
+  end
+
   def test_in_web_transaction
     in_web_transaction("dm4evr") do
       Post.all
@@ -135,8 +165,6 @@ class DataMapperTest < Minitest::Test
       'Datastore/statement/DataMapper/Post/all',
       ['Datastore/statement/DataMapper/Post/all', 'dm4evr']
     ])
-
-    assert_metrics_not_recorded(['Datastore/allOther'])
   end
 
   def test_notices_sql
