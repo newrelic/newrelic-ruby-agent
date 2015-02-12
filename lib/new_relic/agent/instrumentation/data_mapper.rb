@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 DependencyDetection.defer do
-  @name = :data_mapper
+  named :data_mapper
 
   depends_on do
     defined?(::DataMapper)
