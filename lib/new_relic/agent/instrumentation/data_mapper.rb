@@ -6,19 +6,10 @@ DependencyDetection.defer do
   named :data_mapper
 
   depends_on do
-    defined?(::DataMapper)
-  end
-
-  depends_on do
-    defined?(DataMapper::Model)
-  end
-
-  depends_on do
-    defined?(DataMapper::Resource)
-  end
-
-  depends_on do
-    defined?(DataMapper::Collection)
+    defined?(::DataMapper) &&
+      defined?(::DataMapper::Model) &&
+      defined?(::DataMapper::Resource) &&
+      defined?(::DataMapper::Collection)
   end
 
   executes do
@@ -90,18 +81,17 @@ end
 DependencyDetection.defer do
 
   depends_on do
-    defined?(DataMapper) && defined?(DataMapper::Adapters) && defined?(DataMapper::Adapters::DataObjectsAdapter)
+    defined?(::DataMapper) &&
+      defined?(::DataMapper::Adapters) &&
+      defined?(::DataMapper::Adapters::DataObjectsAdapter)
   end
 
   executes do
-
     # Catch the two entry points into DM::Repository::Adapter that bypass CRUD
     # (for when SQL is run directly).
-    DataMapper::Adapters::DataObjectsAdapter.class_eval do
-
+    ::DataMapper::Adapters::DataObjectsAdapter.class_eval do
       add_method_tracer :select,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/select'
       add_method_tracer :execute, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/execute'
-
     end
   end
 end
@@ -109,7 +99,9 @@ end
 DependencyDetection.defer do
 
   depends_on do
-    defined?(DataMapper) && defined?(DataMapper::Validations) && defined?(DataMapper::Validations::ClassMethods)
+    defined?(::DataMapper) &&
+      defined?(::DataMapper::Validations) &&
+      defined?(::DataMapper::Validations::ClassMethods)
   end
 
   # DM::Validations overrides Model#create, but currently in a way that makes it
@@ -177,19 +169,19 @@ module NewRelic
           super
         end
 
-      end # DataMapperInstrumentation
-    end # Instrumentation
-  end # Agent
-end # NewRelic
+      end
+    end
+  end
+end
 
 DependencyDetection.defer do
-
   depends_on do
-    defined?(DataObjects) && defined?(DataObjects::Connection)
+    defined?(::DataObjects) &&
+      defined?(::DataObjects::Connection)
   end
 
   executes do
-    DataObjects::Connection.class_eval do
+    ::DataObjects::Connection.class_eval do
       include ::NewRelic::Agent::Instrumentation::DataMapperInstrumentation
     end
   end
