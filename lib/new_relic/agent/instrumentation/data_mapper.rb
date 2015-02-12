@@ -87,6 +87,14 @@ DependencyDetection.defer do
       NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Transaction, :commit, true
     end
   end
+
+  executes do
+    if defined?(::DataObjects::Connection)
+      ::DataObjects::Connection.class_eval do
+        include ::NewRelic::Agent::Instrumentation::DataMapperInstrumentation
+      end
+    end
+  end
 end
 
 module NewRelic
@@ -158,19 +166,6 @@ module NewRelic
         end
 
       end
-    end
-  end
-end
-
-DependencyDetection.defer do
-  depends_on do
-    defined?(::DataObjects) &&
-      defined?(::DataObjects::Connection)
-  end
-
-  executes do
-    ::DataObjects::Connection.class_eval do
-      include ::NewRelic::Agent::Instrumentation::DataMapperInstrumentation
     end
   end
 end
