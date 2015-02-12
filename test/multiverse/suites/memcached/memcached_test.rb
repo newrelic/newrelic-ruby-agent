@@ -68,6 +68,22 @@ if defined?(Memcached)
       assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
     end
 
+    def test_cas_in_web
+      key = set_key_for_testcase(1)
+      if Memcached::VERSION >= '1.8.0'
+        expected_metrics = (expected_web_metrics(:single_get) + expected_web_metrics(:single_cas)).uniq
+      else
+        expected_metrics = expected_web_metrics(:cas)
+      end
+
+      in_web_transaction("Controller/#{self.class}/action") do
+        @cache.cas(key) {|val| val += 2}
+      end
+
+      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_equal 3, @cache.get(key)
+    end
+
     def test_get_in_background
       if Memcached::VERSION >= '1.8.0'
         key = set_key_for_testcase
@@ -124,15 +140,12 @@ if defined?(Memcached)
       assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
     end
 
-    def test_handles_cas
+    def test_cas_in_background
       key = set_key_for_testcase(1)
-      methods = ["cas"]
-      methods = ["single_get", "single_cas"] if Memcached::VERSION >= '1.8.0'
-      expected_metrics = ["Memcache/allOther"]
-
-      methods.map do |m|
-        expected_metrics << "Memcache/#{m}"
-        expected_metrics << ["Memcache/#{m}", "OtherTransaction/Background/#{self.class}/bg_task"]
+      if Memcached::VERSION >= '1.8.0'
+        expected_metrics = (expected_bg_metrics(:single_get) + expected_bg_metrics(:single_cas)).uniq
+      else
+        expected_metrics = expected_bg_metrics(:cas)
       end
 
       in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do

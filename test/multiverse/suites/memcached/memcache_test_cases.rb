@@ -27,17 +27,21 @@ module MemcacheTestCases
 
   def expected_web_metrics(command)
     [
-      "Memcache/#{command}",
-      "Memcache/allWeb",
-      ["Memcache/#{command}", "Controller/#{self.class}/action"]
+      "Datastore/all",
+      "Datastore/operation/Memcache/#{command}",
+      "Datastore/allWeb",
+      "Datastore/Memcache/allWeb",
+      ["Datastore/operation/Memcache/#{command}", "Controller/#{self.class}/action"]
     ]
   end
 
   def expected_bg_metrics(command)
     [
-      "Memcache/#{command}",
-      "Memcache/allOther",
-      ["Memcache/#{command}", "OtherTransaction/Background/#{self.class}/bg_task"]
+      "Datastore/all",
+      "Datastore/operation/Memcache/#{command}",
+      "Datastore/allOther",
+      "Datastore/Memcache/allOther",
+      ["Datastore/operation/Memcache/#{command}", "OtherTransaction/Background/#{self.class}/bg_task"]
     ]
   end
 

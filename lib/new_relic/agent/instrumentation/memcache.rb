@@ -21,8 +21,16 @@ module NewRelic
             the_class.class_eval <<-EOD
               #{visibility}
               def #{method_name}_with_newrelic_trace(*args, &block)
-                metrics = ["Memcache/#{method_name}",
-                           (NewRelic::Agent::Transaction.recording_web_transaction? ? 'Memcache/allWeb' : 'Memcache/allOther')]
+                metrics = [ "Datastore/operation/Memcache/#{method_name}", "Datastore/all"]
+
+                if NewRelic::Agent::Transaction.recording_web_transaction?
+                  metrics << 'Datastore/Memcache/allWeb'
+                  metrics << 'Datastore/allWeb'
+                else
+                  metrics << 'Datastore/Memcache/allOther'
+                  metrics << 'Datastore/allOther'
+                end
+
                 self.class.trace_execution_scoped(metrics) do
                   t0 = Time.now
                   begin
