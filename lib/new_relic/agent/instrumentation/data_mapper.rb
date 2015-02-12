@@ -122,18 +122,16 @@ module NewRelic
               name = self.class.name
             end
 
-            t0 = Time.now
             metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_for(
               DATA_MAPPER,
               metric_operation,
               name)
 
-            scoped_metric = metrics.pop
+            # Most specific first to work with trace_execution_scoped
+            metrics.reverse!
 
-            self.send("#{method_name}_without_newrelic", *args, &blk)
-          ensure
-            if t0
-              NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(scoped_metric, metrics, Time.now - t0)
+            NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
+              self.send("#{method_name}_without_newrelic", *args, &blk)
             end
           end
         end
