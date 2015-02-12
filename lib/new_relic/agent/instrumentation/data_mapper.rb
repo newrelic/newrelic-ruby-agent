@@ -78,20 +78,13 @@ DependencyDetection.defer do
       end
     end
   end
-end
 
-DependencyDetection.defer do
-  depends_on do
-    defined?(::DataMapper) &&
-      defined?(::DataMapper::Transaction)
-  end
-
-  # NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
-  # up in traces twice -- second time subordinate to the first's scope.  Works
-  # well enough.
   executes do
-    ::DataMapper::Transaction.module_eval do
-      add_method_tracer :commit, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/commit'
+    # NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
+    # up in traces twice -- second time subordinate to the first's scope.  Works
+    # well enough.
+    if defined?(::DataMapper::Transaction)
+      NewRelic::Agent::DataMapperTracing.add_tracer ::DataMapper::Transaction, :commit, true
     end
   end
 end

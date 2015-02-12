@@ -278,6 +278,18 @@ class DataMapperTest < Minitest::Test
     ])
   end
 
+  def test_datamapper_transaction_commit
+    Post.transaction do |t|
+      Post.destroy!
+    end
+
+    assert_metrics_recorded([
+      'Datastore/all',
+      'Datastore/allOther',
+      'Datastore/operation/DataMapper/commit'
+    ])
+  end
+
   # https://support.newrelic.com/tickets/2101
   # https://github.com/newrelic/rpm/pull/42
   # https://github.com/newrelic/rpm/pull/45
