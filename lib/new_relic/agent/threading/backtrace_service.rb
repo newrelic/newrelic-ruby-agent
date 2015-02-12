@@ -9,7 +9,14 @@ module NewRelic
         ALL_TRANSACTIONS = "**ALL**".freeze
 
         def self.is_supported?
-          RUBY_VERSION >= "1.9.2"
+          RUBY_VERSION >= "1.9.2" && !is_resque?
+        end
+
+        # Because of Resque's forking, we don't poll thread backtraces for it.
+        # To accomplish that would require starting a new backtracing thread in
+        # each forked worker, and merging profiles across the pipe channel.
+        def self.is_resque?
+          NewRelic::Agent.config[:dispatcher] == :resque
         end
 
         attr_reader :worker_loop, :buffer, :effective_polling_period,
@@ -45,6 +52,11 @@ module NewRelic
         end
 
         def subscribe(transaction_name, command_arguments={})
+          if self.class.is_resque?
+            NewRelic::Agent.logger.info("Backtracing threads on Resque is not supported, so not subscribing transaction '#{transaction_name}'")
+            return
+          end
+
           if !self.class.is_supported?
             NewRelic::Agent.logger.debug("Backtracing not supported, so not subscribing transaction '#{transaction_name}'")
             return
@@ -104,10 +116,11 @@ module NewRelic
           start    = payload[:start_timestamp]
           duration = payload[:duration]
           thread   = payload[:thread] || Thread.current
+          bucket   = payload[:bucket]
           @lock.synchronize do
             backtraces = @buffer.delete(thread)
             if backtraces && @profiles.has_key?(name)
-              aggregate_backtraces(backtraces, name, start, duration, thread)
+              aggregate_backtraces(backtraces, name, start, duration, bucket, thread)
             end
           end
         end
@@ -115,11 +128,11 @@ module NewRelic
         # Internals
 
         # This method is expected to be called with @lock held.
-        def aggregate_backtraces(backtraces, name, start, duration, thread)
+        def aggregate_backtraces(backtraces, name, start, duration, bucket, thread)
           end_time = start + duration
           backtraces.each do |(timestamp, backtrace)|
             if timestamp >= start && timestamp < end_time
-              @profiles[name].aggregate(backtrace, :request, thread)
+              @profiles[name].aggregate(backtrace, bucket, thread)
             end
           end
         end
@@ -169,7 +182,7 @@ module NewRelic
 
         # This method is expected to be called with @lock held.
         def should_buffer?(bucket)
-          bucket == :request && @profiles.keys.any? { |k| k != ALL_TRANSACTIONS }
+          allowed_bucket?(bucket) && watching_for_transaction?
         end
 
         # This method is expected to be called with @lock held.
@@ -178,6 +191,16 @@ module NewRelic
             bucket != :ignore &&
             (@profiles[ALL_TRANSACTIONS] || should_buffer?(bucket))
           )
+        end
+
+        # This method is expected to be called with @lock held
+        def watching_for_transaction?
+          @profiles.size > 1 ||
+          (@profiles.size == 1 && @profiles[ALL_TRANSACTIONS].nil?)
+        end
+
+        def allowed_bucket?(bucket)
+          bucket == :request || bucket == :background
         end
 
         MAX_BUFFER_LENGTH = 500

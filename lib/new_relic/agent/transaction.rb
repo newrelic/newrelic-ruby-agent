@@ -534,6 +534,7 @@ module NewRelic
         duration = end_time.to_f - start_time.to_f
         payload = {
           :name             => @frozen_name,
+          :bucket           => recording_web_transaction? ? :request : :background,
           :start_timestamp  => start_time.to_f,
           :duration         => duration,
           :metrics          => @metrics,

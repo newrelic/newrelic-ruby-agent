@@ -34,16 +34,9 @@ class XraySessionsTest < Minitest::Test
     session = build_xray_session('key_transaction_name' => 'Controller/Rack/A')
     with_xray_sessions(session) do
       5.times { get '/?transaction_name=A' }
-      trigger_harvest
     end
 
-    posts = $collector.calls_for('transaction_sample_data')
-    assert_equal(1, posts.size, "Expected exactly one transaction_sample_data post")
-
-    traces = posts.first.samples
-    assert_equal(5, traces.size)
-    assert traces.all? { |t| t.metric_name == 'Controller/Rack/A' }
-    assert traces.all? { |t| t.xray_id == session['x_ray_id'] }
+    assert_traced_transactions('Controller/Rack/A' => [5, session])
   end
 
   def test_does_not_collect_traces_for_non_xrayed_transactions
@@ -51,14 +44,10 @@ class XraySessionsTest < Minitest::Test
     with_xray_sessions(session) do
       get '/?transaction_name=OtherThing'
       get '/?transaction_name=A'
-      trigger_harvest
     end
 
-    posts = $collector.calls_for('transaction_sample_data')
-    assert_equal(1, posts.size, "Expected exactly one transaction_sample_data post")
-
     # We expect exactly one transaction trace, for A only
-    assert_equal(1, posts.first.samples.size)
+    assert_traced_transactions('Controller/Rack/A' => [1, session])
   end
 
   def test_gathers_transaction_traces_from_multiple_concurrent_xray_sessions
@@ -70,19 +59,10 @@ class XraySessionsTest < Minitest::Test
         get '/?transaction_name=A'
         get '/?transaction_name=B'
       end
-      trigger_harvest
     end
 
-    posts = $collector.calls_for('transaction_sample_data')
-    assert_equal(1, posts.size, "Expected exactly one transaction_sample_data post")
-
-    traces = posts.first.samples
-    assert_equal(4, traces.size)
-
-    tracesA = traces.select { |t| t.metric_name == 'Controller/Rack/A' }
-    tracesB = traces.select { |t| t.metric_name == 'Controller/Rack/B' }
-    assert_equal(2, tracesA.size, "Expected 2 traces for transaction A")
-    assert_equal(2, tracesB.size, "Expected 2 traces for transaction B")
+    assert_traced_transactions('Controller/Rack/A' => [2, sessionA],
+                               'Controller/Rack/B' => [2, sessionB])
   end
 
   def test_gathers_thread_profiles
@@ -90,16 +70,42 @@ class XraySessionsTest < Minitest::Test
     with_xray_sessions(session) do
       wait_for_backtrace_service_poll
       get '/?transaction_name=A&sleep=1'
-      trigger_harvest
     end
 
-    # assert that a thread profile was submitted
-    posts = $collector.calls_for('profile_data')
-    assert_equal(1, posts.size, "Expected exactly one profile_data post")
+    assert_profile_submitted('REQUEST')
+  end
 
-    profile_data_post = posts.first
-    assert(profile_data_post.sample_count > 1, "Expected at least one sample")
-    assert_saw_traces(profile_data_post, 'REQUEST')
+  def test_tags_background_transaction_traces_with_xray_id
+    session = build_xray_session('key_transaction_name' => TestingBackgroundJob::FIRST_NAME)
+    with_xray_sessions(session) do
+      5.times { TestingBackgroundJob.new.first }
+    end
+
+    assert_traced_transactions(TestingBackgroundJob::FIRST_NAME => [5, session])
+  end
+
+
+  def test_tags_background_transaction_traces_concurrently
+    session1 = build_xray_session('key_transaction_name' => TestingBackgroundJob::FIRST_NAME)
+    session2 = build_xray_session('key_transaction_name' => TestingBackgroundJob::SECOND_NAME)
+
+    with_xray_sessions(session1, session2) do
+      2.times { TestingBackgroundJob.new.first }
+      2.times { TestingBackgroundJob.new.second }
+    end
+
+    assert_traced_transactions(TestingBackgroundJob::FIRST_NAME  => [2, session1],
+                               TestingBackgroundJob::SECOND_NAME => [2, session2])
+  end
+
+  def test_gathers_thread_profiles_for_background
+    session = build_xray_session('key_transaction_name' => TestingBackgroundJob::FIRST_NAME)
+    with_xray_sessions(session) do
+      wait_for_backtrace_service_poll
+      TestingBackgroundJob.new.first(1)
+    end
+
+    assert_profile_submitted('BACKGROUND')
   end
 
   ## Helpers
@@ -142,6 +148,8 @@ class XraySessionsTest < Minitest::Test
 
     yield
 
+    agent.send(:transmit_data)
+
     deactivate_cmd = build_active_xrays_command([])
     issue_command(deactivate_cmd)
   end
@@ -151,12 +159,40 @@ class XraySessionsTest < Minitest::Test
     agent.send(:check_for_and_handle_agent_commands)
   end
 
-  def trigger_harvest
-    agent.send(:transmit_data)
+  def single_transaction_sample_post
+    posts = $collector.calls_for('transaction_sample_data')
+    assert_equal(1, posts.size, "Expected exactly one transaction_sample_data post")
+
+    posts.first
+  end
+
+  def single_profile_post
+    posts = $collector.calls_for('profile_data')
+    assert_equal(1, posts.size, "Expected exactly one profile_data post")
+    posts.first
   end
 
   def assert_saw_traces(profile_data, type)
     assert !profile_data.traces[type].empty?, "Missing #{type} traces"
+  end
+
+  def assert_profile_submitted(type)
+    assert(single_profile_post.sample_count > 1, "Expected at least one sample")
+    assert_saw_traces(single_profile_post, type)
+  end
+
+  def assert_traced_transactions(txns)
+    traces = single_transaction_sample_post.samples
+
+    total_count = txns.inject(0) { |prior, (_, (count, *_))| prior + count }
+
+    assert_equal(total_count, traces.size)
+
+    txns.each do |name, (count, session)|
+      check_traces = traces.select { |t| t.metric_name == name }
+      assert_equal(count, check_traces.size, "Transaction #{name}")
+      assert check_traces.all? { |t| t.xray_id == session['x_ray_id'] }
+    end
   end
 
 end
