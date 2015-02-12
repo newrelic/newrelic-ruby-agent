@@ -42,6 +42,32 @@ if defined?(Memcached)
 
     end
 
+    def test_incr_in_web
+      # the memcached gem will raise NotFound error if calling incr on a nonexistent key
+      # this overrides the test in the shared memcache_test_cases file
+      key = set_key_for_testcase(1)
+      expected_metrics = expected_web_metrics(:incr)
+
+      in_web_transaction("Controller/#{self.class}/action") do
+        @cache.incr(key, 1)
+      end
+
+      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    end
+
+    def test_decr_in_web
+      # the memcached gem will raise NotFound error if calling incr on a nonexistent key
+      # this overrides the test in the shared memcache_test_cases file
+      key = set_key_for_testcase(1)
+      expected_metrics = expected_web_metrics(:decr)
+
+      in_web_transaction("Controller/#{self.class}/action") do
+        @cache.decr(key, 1)
+      end
+
+      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    end
+
     def test_get_in_background
       if Memcached::VERSION >= '1.8.0'
         key = set_key_for_testcase
@@ -67,6 +93,32 @@ if defined?(Memcached)
 
       in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
         @cache.get([key])
+      end
+
+      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    end
+
+    def test_incr_in_background
+      # the memcached gem will raise NotFound error if calling incr on a nonexistent key
+      # this overrides the test in the shared memcache_test_cases file
+      key = set_key_for_testcase(1)
+      expected_metrics = expected_bg_metrics(:incr)
+
+      in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+        @cache.incr(key, 1)
+      end
+
+      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    end
+
+    def test_decr_in_background
+      # the memcached gem will raise NotFound error if calling decr on a nonexistent key
+      # this overrides the test in the shared memcache_test_cases file
+      key = set_key_for_testcase(1)
+      expected_metrics = expected_bg_metrics(:decr)
+
+      in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+        @cache.decr(key, 1)
       end
 
       assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
