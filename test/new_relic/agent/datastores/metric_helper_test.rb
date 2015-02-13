@@ -67,7 +67,7 @@ module NewRelic
         assert_equal expected, result.to_set
       end
 
-      def test_metric_from_activerecord_name
+      def test_active_record_metric_for_name
         names = {
           "Wiggles Load" => "Datastore/Wiggles/find",
           "Wiggles Count" => "Datastore/Wiggles/find",
@@ -85,6 +85,21 @@ module NewRelic
           result = Datastores::MetricHelper.active_record_metric_for_name(name)
           assert_equal expected, result
         end
+      end
+
+      def test_active_record_metric_for_name_returns_nil_given_nil
+        result = Datastores::MetricHelper.active_record_metric_for_name(nil)
+        assert_nil result
+      end
+
+      def test_active_record_metric_for_name_returns_nil_given_a_spaceless_string
+        result = Datastores::MetricHelper.active_record_metric_for_name('load')
+        assert_nil result
+      end
+
+      def test_active_record_metric_for_name_returns_nil_given_a_string_with_three_spaces
+        result = Datastores::MetricHelper.active_record_metric_for_name('load count exists')
+        assert_nil result
       end
 
       def test_product_is_named_properly_for_mysql_adapter
