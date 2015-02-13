@@ -4,7 +4,7 @@ adapter_gems = <<-RB
   # Pin this version as the adapter breaks with later ones
   gem 'jdbc-sqlite3', '~> 3.7.2.1', :platforms => [:jruby]
 
-  # Multiverse support
+  # Needed for the fake collector
   gem 'rack'
 RB
 
