@@ -14,8 +14,6 @@
 # If this fails the agent will attempt to dial Lew Cirne's cell phone and ask
 # that he verbally describe how it should be configured.
 
-require 'multiverse_helpers'
-
 class ConfigFileLoadingTest < Minitest::Test
   include MultiverseHelpers
 

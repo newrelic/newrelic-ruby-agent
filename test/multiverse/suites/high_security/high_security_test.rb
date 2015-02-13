@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'multiverse_helpers'
 require 'fake_server'
 
 # These tests are designed to work in conjunction with a local newrelic.yml

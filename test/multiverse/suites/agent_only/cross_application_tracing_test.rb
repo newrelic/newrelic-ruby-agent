@@ -5,7 +5,6 @@
 require 'rack/test'
 require 'fake_collector'
 require './testing_app'
-require 'multiverse_helpers'
 require 'new_relic/rack/agent_hooks'
 
 class CrossApplicationTracingTest < Minitest::Test

@@ -1,5 +1,21 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.10.1 ##
+
+  * Fix for anonymous class middleware naming
+
+  Metric names based off anonymous middlewares lacked a class name in the UI.
+  The Ruby agent will now look for a superclass, or default to AnonymousClass
+  in those cases.
+
+  * Improved exit behavior in the presence of Sinatra
+
+  The agent uses an at_exit hook to ensure data from the last < 60s before a
+  process exits is sent to New Relic. Previously, this hook was skipped if
+  Sinatra::Application was defined. This unfortunately missed data for
+  short-lived background processes that required, but didn't run, Sinatra. Now
+  the agent only skips its at_exit hook if Sinatra actually runs from at_exit.
+
 ## v3.10.0 ##
 
   * Support for the Grape framework

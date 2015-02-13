@@ -56,6 +56,25 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     assert_equal(['abc', 123], wrapped_instance.target.initialize_args)
   end
 
+  def test_anonymous_class_naming
+    middleware_class = Class.new
+    wrapped_instance = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware_class.new)
+
+    name = wrapped_instance.transaction_options[:transaction_name]
+    assert_equal("Middleware/Rack/AnonymousClass/call", name)
+  end
+
+  class BaseForAnonymous
+  end
+
+  def test_anonymous_derived_class_naming
+    middleware_class = Class.new(BaseForAnonymous)
+    wrapped_instance = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware_class.new)
+
+    name = wrapped_instance.transaction_options[:transaction_name]
+    assert_equal("Middleware/Rack/#{BaseForAnonymous.name}/call", name)
+  end
+
   def test_does_not_wrap_sinatra_apps
     sinatra_dummy_module = Module.new
     sinatra_dummy_class  = Class.new(Object)

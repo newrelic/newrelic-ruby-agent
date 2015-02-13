@@ -91,7 +91,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_install_exit_handler_positive
     NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
     NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
-    self.expects(:using_sinatra?).returns(false)
+    self.expects(:sinatra_classic_app?).returns(false)
     # we are overriding at_exit above, to immediately return, so we can
     # test the shutdown logic. It's somewhat unfortunate, but we can't
     # kill the interpreter during a test.
@@ -112,7 +112,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     with_config(:send_data_one_exit => true) do
       NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
       NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
-      self.expects(:using_sinatra?).returns(true)
+      self.expects(:sinatra_classic_app?).returns(true)
       install_exit_handler
       NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
       NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(true)

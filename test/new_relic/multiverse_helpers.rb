@@ -4,6 +4,13 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "agent_helper"))
 
+class Minitest::Test
+  def after_teardown
+    unfreeze_time
+    super
+  end
+end
+
 module MultiverseHelpers
 
   #

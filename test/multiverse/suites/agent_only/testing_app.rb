@@ -30,4 +30,25 @@ class TestingApp
     sleep(params['sleep'].to_f) if params['sleep']
     [200, headers, [response]]
   end
+
+end
+
+class TestingBackgroundJob
+  FIRST_NAME = "OtherTransaction/Custom/TestingBackgroundJob/first"
+  SECOND_NAME = "OtherTransaction/Custom/TestingBackgroundJob/second"
+
+  def first(awhile=nil)
+    job(FIRST_NAME, awhile)
+  end
+
+  def second(awhile=nil)
+    job(SECOND_NAME, awhile)
+  end
+
+  def job(name, awhile)
+    state = ::NewRelic::Agent::TransactionState.tl_get
+    ::NewRelic::Agent::Transaction.wrap(state, name, :other) do
+      sleep(awhile) if awhile
+    end
+  end
 end

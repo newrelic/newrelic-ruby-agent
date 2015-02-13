@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'fake_rpm_site'
-require 'multiverse_helpers'
 require 'new_relic/cli/command'
 
 class DeploymentTest < Minitest::Test

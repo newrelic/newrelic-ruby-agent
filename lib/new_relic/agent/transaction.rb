@@ -534,6 +534,7 @@ module NewRelic
         duration = end_time.to_f - start_time.to_f
         payload = {
           :name             => @frozen_name,
+          :bucket           => recording_web_transaction? ? :request : :background,
           :start_timestamp  => start_time.to_f,
           :duration         => duration,
           :metrics          => @metrics,
@@ -613,9 +614,14 @@ module NewRelic
       APDEX_F = 'F'.freeze
 
       def append_apdex_perf_zone(duration, payload)
-        return unless recording_web_transaction?
+        if recording_web_transaction?
+          bucket = apdex_bucket(duration, apdex_t)
+        elsif background_apdex_t = transaction_specific_apdex_t
+          bucket = apdex_bucket(duration, background_apdex_t)
+        end
 
-        bucket = apdex_bucket(duration)
+        return unless bucket
+
         bucket_str = case bucket
         when :apdex_s then APDEX_S
         when :apdex_t then APDEX_T
@@ -708,30 +714,49 @@ module NewRelic
         end
       end
 
-      APDEX_METRIC = 'Apdex'.freeze
+      APDEX_METRIC       = 'Apdex'.freeze
+      APDEX_OTHER_METRIC = 'ApdexOther'.freeze
+
+      APDEX_TXN_METRIC_PREFIX       = 'Apdex/'.freeze
+      APDEX_OTHER_TXN_METRIC_PREFIX = 'ApdexOther/Transaction/'.freeze
 
       def had_error?
-        !notable_exceptions.empty?
+        @exceptions.each do |exception, _|
+          return true unless NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
+        end
+        false
       end
 
-      def apdex_bucket(duration)
-        self.class.apdex_bucket(duration, had_error?, apdex_t)
+      def apdex_bucket(duration, current_apdex_t)
+        self.class.apdex_bucket(duration, had_error?, current_apdex_t)
       end
 
       def record_apdex(state, end_time=Time.now)
-        return unless recording_web_transaction? && state.is_execution_traced?
+        return unless state.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
-          action_duration = end_time - start_time
           total_duration  = end_time - apdex_start
+          action_duration = end_time - start_time
 
-          apdex_bucket_global = apdex_bucket(total_duration)
-          apdex_bucket_txn    = apdex_bucket(action_duration)
-
-          @metrics.record_unscoped(APDEX_METRIC, apdex_bucket_global, apdex_t)
-          txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, 'Apdex/')
-          @metrics.record_unscoped(txn_apdex_metric, apdex_bucket_txn, apdex_t)
+          if recording_web_transaction?
+            record_apdex_metrics(APDEX_METRIC, APDEX_TXN_METRIC_PREFIX,
+                                 total_duration, action_duration, apdex_t)
+          else
+            record_apdex_metrics(APDEX_OTHER_METRIC, APDEX_OTHER_TXN_METRIC_PREFIX,
+                                 total_duration, action_duration, transaction_specific_apdex_t)
+          end
         end
+      end
+
+      def record_apdex_metrics(rollup_metric, transaction_prefix, total_duration, action_duration, current_apdex_t)
+        return unless current_apdex_t
+
+        apdex_bucket_global = apdex_bucket(total_duration, current_apdex_t)
+        apdex_bucket_txn    = apdex_bucket(action_duration, current_apdex_t)
+
+        @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
+        txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, transaction_prefix)
+        @metrics.record_unscoped(txn_apdex_metric, apdex_bucket_txn, current_apdex_t)
       end
 
       def apdex_t
@@ -837,12 +862,6 @@ module NewRelic
 
       def ignore_enduser?
         @ignore_enduser
-      end
-
-      def notable_exceptions
-        @exceptions.keys.select do |exception|
-          !NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
-        end
       end
 
       private

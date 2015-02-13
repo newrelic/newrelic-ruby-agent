@@ -9,7 +9,6 @@
 require 'logger'
 require 'newrelic_rpm'
 require 'fake_collector'
-require 'multiverse_helpers'
 
 class LoggingTest < Minitest::Test
 

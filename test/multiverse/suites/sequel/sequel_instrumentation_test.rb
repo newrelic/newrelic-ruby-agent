@@ -9,7 +9,6 @@ if Sequel.const_defined?( :MAJOR ) &&
         Sequel::MAJOR == 3 && Sequel::MINOR >= 37 )
 
 require 'newrelic_rpm'
-require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Test
 
@@ -259,9 +258,10 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
   def assert_remote_service_metrics
     engine = NewRelic::Agent.instance.stats_engine
     if (jruby?)
-      assert engine.metrics.none? {|s| s.start_with?("RemoteService/")}, "Sqlite on JRuby doesn't report adapter right for this metric. Why's it here?"
+      metric_names = engine.to_h.keys.map(&:to_s)
+      assert metric_names.none? {|s| s.start_with?("RemoteService/")}, "Sqlite on JRuby doesn't report adapter right for this metric. Why's it here?"
     else
-      assert_includes engine.metrics, "RemoteService/sql/sqlite/localhost"
+      assert_metrics_recorded "RemoteService/sql/sqlite/localhost"
     end
   end
 

@@ -2,9 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'multiverse_helpers'
-require 'minitest/unit'
-
 require 'new_relic/delayed_job_injection'
 
 if !NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?

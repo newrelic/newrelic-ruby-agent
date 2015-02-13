@@ -9,14 +9,11 @@ boilerplate_gems = <<-BOILERPLATE
 BOILERPLATE
 
 if RUBY_VERSION >= '1.9.3'
-  # JRuby currently having problem with Rails 4.2 beta. Remove condition on GA.
-  if !defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby'
   gemfile <<-RB
-    gem 'activerecord', '~> 4.2.0.rc1'
+    gem 'activerecord', '~> 4.2.0'
     gem 'minitest', '~> 5.2.3'
     #{boilerplate_gems}
   RB
-  end
 
   gemfile <<-RB
     gem 'activerecord', '~> 4.1.6'

@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'pathname'
+
 module Performance
   class ConsoleReporter
     include Reporting
@@ -32,11 +34,15 @@ module Performance
         unless result.artifacts.empty?
           puts "  artifacts:"
           result.artifacts.each do |artifact|
-            puts "    #{artifact}"
+            puts "    #{make_relative(artifact)}"
           end
         end
         puts '' if !@options[:brief] || !result.artifacts.empty?
       end
+    end
+
+    def make_relative(path)
+      "./#{Pathname.new(path).relative_path_from(Pathname.getwd)}"
     end
   end
 end
