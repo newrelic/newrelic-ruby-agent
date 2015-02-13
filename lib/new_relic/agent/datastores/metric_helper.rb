@@ -7,8 +7,8 @@ module NewRelic
     module Datastores
       module MetricHelper
         ROLLUP_METRIC        = "Datastore/all".freeze
-        ALL_CONTEXT_METRIC   = "Datastore/allWeb".freeze
-        OTHER_CONTEXT_METRIC = "Datastore/allOther".freeze
+        WEB_ROLLUP_METRIC    = "Datastore/allWeb".freeze
+        OTHER_ROLLUP_METRIC  = "Datastore/allOther".freeze
 
         def self.statement_metric_for(product, collection, operation)
           "Datastore/statement/#{product}/#{collection}/#{operation}"
@@ -20,9 +20,9 @@ module NewRelic
 
         def self.context_metric
           if NewRelic::Agent::Transaction.recording_web_transaction?
-            ALL_CONTEXT_METRIC
+            WEB_ROLLUP_METRIC
           else
-            OTHER_CONTEXT_METRIC
+            OTHER_ROLLUP_METRIC
           end
         end
 
