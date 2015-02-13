@@ -117,12 +117,16 @@ module NewRelic
         Proc.new do |*args, &blk|
           begin
             if operation_only
+              # Used by direct SQL, like ::DataMapper::Adapters::DataObjectsAdapter#select
               name = nil
             elsif use_model_name
+              # Used by ::DataMapper::Collection to get contained model name
               name = self.model.name
             elsif self.is_a?(Class)
+              # Used by class-style access, like Model.first()
               name = self.name
             else
+              # Used by instance-style access, like model.update(attr: "new")
               name = self.class.name
             end
 
