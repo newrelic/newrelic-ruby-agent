@@ -35,5 +35,13 @@ if defined?(MemCache)
     def test_replace_in_background
       super if MemCache::VERSION > "1.5.0"
     end
+
+    def test_cas_in_web
+      super if MemCache::VERSION > "1.7.0"
+    end
+
+    def test_cas_in_background
+      super if MemCache::VERSION > "1.7.0"
+    end
   end
 end

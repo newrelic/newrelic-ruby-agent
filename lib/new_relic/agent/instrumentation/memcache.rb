@@ -14,11 +14,22 @@ module NewRelic
     module Instrumentation
       module Memcache
         module_function
-        def instrument_methods(the_class, method_names)
-          method_names.each do |method_name|
-            next unless the_class.method_defined?(method_name.to_sym) || the_class.private_method_defined?(method_name.to_sym)
-            visibility = "private" unless the_class.method_defined?(method_name.to_sym)
-            the_class.class_eval <<-EOD
+
+        METHODS = [:get, :get_multi, :set, :add, :incr, :decr, :delete, :replace, :append,
+                   :prepend, :cas, :single_get, :multi_get, :single_cas, :multi_cas]
+
+        def supported_methods_for(client_class)
+          METHODS.select do |method_name|
+            client_class.method_defined?(method_name) || client_class.private_method_defined?(method_name)
+          end
+        end
+
+        def instrument_methods(client_class)
+          supported_methods_for(client_class).each do |method_name|
+
+            visibility = "private" unless client_class.method_defined?(method_name)
+
+            client_class.class_eval <<-EOD
               #{visibility}
               def #{method_name}_with_newrelic_trace(*args, &block)
                 metrics = [ "Datastore/operation/Memcache/#{method_name}", "Datastore/all"]
@@ -44,6 +55,7 @@ module NewRelic
               alias #{method_name} #{method_name}_with_newrelic_trace
             EOD
          end
+
         end
         def memcache_key_snippet(method_name)
           return "" unless NewRelic::Agent.config[:capture_memcache_keys]
@@ -67,37 +79,19 @@ DependencyDetection.defer do
   end
 
   executes do
-    commands = %w[get get_multi set add incr decr delete replace append prepend]
-
     if defined? ::MemCache
-      NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::MemCache,
-                                                                    commands)
       ::NewRelic::Agent.logger.info 'Installing MemCache instrumentation'
+      NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::MemCache)
     end
 
     if defined? ::Memcached
-      if ::Memcached::VERSION >= '1.8.0'
-        commands -= %w[get get_multi]
-        commands += %w[single_get multi_get single_cas multi_cas]
-      else
-        commands << 'cas'
-      end
-      NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Memcached,
-                                                                    commands)
       ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation'
+      NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Memcached)
     end
 
     if defined? ::Dalli::Client
-      NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client,
-                                                                    commands)
       ::NewRelic::Agent.logger.info 'Installing Dalli Memcache instrumentation'
-    end
-
-    if defined? ::Spymemcached
-      commands << 'multiget'
-      NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Spymemcached,
-                                                                    commands)
-      ::NewRelic::Agent.logger.info 'Installing Spymemcached instrumentation'
+      NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client)
     end
   end
 end

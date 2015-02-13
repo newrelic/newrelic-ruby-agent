@@ -157,6 +157,19 @@ module MemcacheTestCases
     assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
   end
 
+  def test_cas_in_web
+    key = set_key_for_testcase(1)
+
+    expected_metrics = expected_web_metrics(:cas)
+
+    in_web_transaction("Controller/#{self.class}/action") do
+      @cache.cas(key) {|val| val += 2}
+    end
+
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_equal 3, @cache.get(key)
+  end
+
   def test_get_in_background
     key = set_key_for_testcase
 
@@ -268,4 +281,16 @@ module MemcacheTestCases
 
     assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
   end
+
+  def test_cas_in_background
+      key = set_key_for_testcase(1)
+      expected_metrics = expected_bg_metrics(:cas)
+
+      in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+        @cache.cas(key) {|val| val += 2}
+      end
+
+      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_equal 3, @cache.get(key)
+    end
 end

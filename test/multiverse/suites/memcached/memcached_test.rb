@@ -70,6 +70,7 @@ if defined?(Memcached)
 
     def test_cas_in_web
       key = set_key_for_testcase(1)
+
       if Memcached::VERSION >= '1.8.0'
         expected_metrics = (expected_web_metrics(:single_get) + expected_web_metrics(:single_cas)).uniq
       else
