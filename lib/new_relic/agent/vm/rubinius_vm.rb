@@ -32,9 +32,14 @@ module NewRelic
           gather_gc_time(snap)
         end
 
+        # The '+ 0' bits in here are a workaround for a Rubinius bug wherein
+        # Rubinius::Metrics.data returns 0's as Bignums, and these Bignums
+        # cannot be safely subtraced from Fixnums. The + 0  has the effect of
+        # truncating to a Fixnum if possible without loss of precision.
+        # See https://github.com/rubinius/rubinius/issues/3316
         def gather_stats_from_metrics(snap)
-          snap.major_gc_count = metric(:'gc.immix.count')
-          snap.minor_gc_count = metric(:'gc.young.count')
+          snap.major_gc_count = metric(:'gc.immix.count') + 0
+          snap.minor_gc_count = metric(:'gc.young.count') + 0
 
           snap.heap_live = metric(:'memory.large.objects.current') +
             metric(:'memory.young.objects.current') +
@@ -45,7 +50,7 @@ module NewRelic
             metric(:'memory.young.objects.total') +
             metric(:'memory.immix.objects.total')
 
-          snap.method_cache_invalidations = metric(:'vm.inline_cache.resets')
+          snap.method_cache_invalidations = metric(:'vm.inline_cache.resets') + 0
         end
 
         def gather_stats_from_gc_stat(snap)
