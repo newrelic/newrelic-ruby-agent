@@ -1,10 +1,11 @@
-omit_collector!
-
 adapter_gems = <<-RB
   gem 'dm-sqlite-adapter'
 
   # Pin this version as the adapter breaks with later ones
   gem 'jdbc-sqlite3', '~> 3.7.2.1', :platforms => [:jruby]
+
+  # Multiverse support
+  gem 'rack'
 RB
 
 gemfile <<-RB
