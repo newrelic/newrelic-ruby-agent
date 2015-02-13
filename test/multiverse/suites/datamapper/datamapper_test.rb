@@ -158,6 +158,8 @@ class DataMapperTest < Minitest::Test
     assert_metrics_recorded([
       'Datastore/all',
       'Datastore/allWeb',
+      'Datastore/DataMapper/all',
+      'Datastore/DataMapper/allWeb',
       'Datastore/operation/DataMapper/all',
       'Datastore/statement/DataMapper/Post/all',
       ['Datastore/statement/DataMapper/Post/all', 'dm4evr']
@@ -257,6 +259,8 @@ class DataMapperTest < Minitest::Test
     assert_metrics_recorded([
       'Datastore/all',
       'Datastore/allWeb',
+      'Datastore/DataMapper/all',
+      'Datastore/DataMapper/allWeb',
       'Datastore/operation/DataMapper/select',
       ['Datastore/operation/DataMapper/select', 'dm4evr'],
     ])
@@ -270,6 +274,8 @@ class DataMapperTest < Minitest::Test
     assert_metrics_recorded([
       'Datastore/all',
       'Datastore/allOther',
+      'Datastore/DataMapper/all',
+      'Datastore/DataMapper/allOther',
       'Datastore/operation/DataMapper/execute',
       ['Datastore/operation/DataMapper/execute', 'background'],
     ])
@@ -283,6 +289,8 @@ class DataMapperTest < Minitest::Test
     assert_metrics_recorded([
       'Datastore/all',
       'Datastore/allOther',
+      'Datastore/DataMapper/all',
+      'Datastore/DataMapper/allOther',
       'Datastore/operation/DataMapper/commit'
     ])
   end

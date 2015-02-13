@@ -10,6 +10,8 @@ module NewRelic
         WEB_ROLLUP_METRIC    = "Datastore/allWeb".freeze
         OTHER_ROLLUP_METRIC  = "Datastore/allOther".freeze
 
+        ALL = "all".freeze
+
         def self.statement_metric_for(product, collection, operation)
           "Datastore/statement/#{product}/#{collection}/#{operation}"
         end
@@ -26,10 +28,17 @@ module NewRelic
           end
         end
 
+        def self.product_rollup_metric(metric, product)
+          metric.sub(ALL, "#{product}/#{ALL}")
+        end
+
         def self.metrics_for(product, operation, collection = nil)
+          current_context_metric = context_metric
           metrics = [
             ROLLUP_METRIC,
-            context_metric,
+            current_context_metric,
+            product_rollup_metric(ROLLUP_METRIC, product),
+            product_rollup_metric(current_context_metric, product),
             operation_metric_for(product, operation)
           ]
           metrics << statement_metric_for(product, collection, operation) if collection

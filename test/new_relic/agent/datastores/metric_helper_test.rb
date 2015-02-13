@@ -46,6 +46,8 @@ module NewRelic
         expected = Set.new [
           "Datastore/all",
           "Datastore/allWeb",
+          "Datastore/JonanDB/all",
+          "Datastore/JonanDB/allWeb",
           "Datastore/statement/JonanDB/wiggles/select",
           "Datastore/operation/JonanDB/select"
         ]
@@ -59,6 +61,8 @@ module NewRelic
         expected = Set.new [
           "Datastore/all",
           "Datastore/allOther",
+          "Datastore/JonanDB/all",
+          "Datastore/JonanDB/allOther",
           "Datastore/statement/JonanDB/wiggles/select",
           "Datastore/operation/JonanDB/select"
         ]
