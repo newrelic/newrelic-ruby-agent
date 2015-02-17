@@ -47,6 +47,10 @@ module MemcacheTestCases
     ]
   end
 
+  def assert_memcache_metrics_recorded(expected_metrics)
+    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+  end
+
   def test_get_in_web
     key = set_key_for_testcase
 
@@ -56,7 +60,7 @@ module MemcacheTestCases
       @cache.get(key)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_get_multi_in_web
@@ -68,7 +72,7 @@ module MemcacheTestCases
       @cache.get_multi(key)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_set_in_web
@@ -78,7 +82,7 @@ module MemcacheTestCases
       @cache.set(randomized_key, "value")
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_add_in_web
@@ -88,7 +92,7 @@ module MemcacheTestCases
       @cache.add(randomized_key, "value")
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_delete_in_web
@@ -100,7 +104,7 @@ module MemcacheTestCases
       @cache.delete(key)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_incr_in_web
@@ -110,7 +114,7 @@ module MemcacheTestCases
       @cache.incr("incr_test", 0)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_decr_in_web
@@ -120,7 +124,7 @@ module MemcacheTestCases
       @cache.decr("decr_test", 1)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_replace_in_web
@@ -132,7 +136,7 @@ module MemcacheTestCases
       @cache.replace(key, 1337807)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_append_in_web
@@ -144,7 +148,7 @@ module MemcacheTestCases
       @cache.append(key, 1337807)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_prepend_in_web
@@ -156,7 +160,7 @@ module MemcacheTestCases
       @cache.prepend(key, 1337807)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_cas_in_web
@@ -168,7 +172,7 @@ module MemcacheTestCases
       @cache.cas(key) {|val| val += 2}
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
     assert_equal 3, @cache.get(key)
   end
 
@@ -181,7 +185,7 @@ module MemcacheTestCases
       @cache.get(key)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_get_multi_in_background
@@ -193,7 +197,7 @@ module MemcacheTestCases
       @cache.get_multi(key)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_set_in_background
@@ -203,7 +207,7 @@ module MemcacheTestCases
       @cache.set(randomized_key, "value")
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_add_in_background
@@ -213,7 +217,7 @@ module MemcacheTestCases
       @cache.add(randomized_key, "value")
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_delete_in_background
@@ -225,7 +229,7 @@ module MemcacheTestCases
       @cache.delete(key)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_incr_in_background
@@ -235,7 +239,7 @@ module MemcacheTestCases
       @cache.incr("incr_test", 0)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_decr_in_background
@@ -245,7 +249,7 @@ module MemcacheTestCases
       @cache.decr("decr_test", 0)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_replace_in_background
@@ -257,7 +261,7 @@ module MemcacheTestCases
       @cache.replace(key, 1337807)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_append_in_background
@@ -269,7 +273,7 @@ module MemcacheTestCases
       @cache.append(key, 1337807)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_prepend_in_background
@@ -281,7 +285,7 @@ module MemcacheTestCases
       @cache.prepend(key, 1337807)
     end
 
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+    assert_memcache_metrics_recorded expected_metrics
   end
 
   def test_cas_in_background
@@ -292,7 +296,7 @@ module MemcacheTestCases
         @cache.cas(key) {|val| val += 2}
       end
 
-      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_memcache_metrics_recorded expected_metrics
       assert_equal 3, @cache.get(key)
     end
 end

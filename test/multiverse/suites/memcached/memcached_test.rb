@@ -22,7 +22,7 @@ if defined?(Memcached)
           @cache.get(key)
         end
 
-        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+        assert_memcache_metrics_recorded expected_metrics
       else
         super
       end
@@ -38,7 +38,7 @@ if defined?(Memcached)
         @cache.get([key])
       end
 
-      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_memcache_metrics_recorded expected_metrics
 
     end
 
@@ -52,7 +52,7 @@ if defined?(Memcached)
         @cache.incr(key, 1)
       end
 
-      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_memcache_metrics_recorded expected_metrics
     end
 
     def test_decr_in_web
@@ -65,7 +65,7 @@ if defined?(Memcached)
         @cache.decr(key, 1)
       end
 
-      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_memcache_metrics_recorded expected_metrics
     end
 
     def test_cas_in_web
@@ -81,7 +81,7 @@ if defined?(Memcached)
         @cache.cas(key) {|val| val += 2}
       end
 
-      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_memcache_metrics_recorded expected_metrics
       assert_equal 3, @cache.get(key)
     end
 
@@ -95,7 +95,7 @@ if defined?(Memcached)
           @cache.get(key)
         end
 
-        assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+        assert_memcache_metrics_recorded expected_metrics
       else
         super
       end
@@ -112,7 +112,7 @@ if defined?(Memcached)
         @cache.get([key])
       end
 
-      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_memcache_metrics_recorded expected_metrics
     end
 
     def test_incr_in_background
@@ -125,7 +125,7 @@ if defined?(Memcached)
         @cache.incr(key, 1)
       end
 
-      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_memcache_metrics_recorded expected_metrics
     end
 
     def test_decr_in_background
@@ -138,7 +138,7 @@ if defined?(Memcached)
         @cache.decr(key, 1)
       end
 
-      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_memcache_metrics_recorded expected_metrics
     end
 
     def test_cas_in_background
@@ -153,7 +153,7 @@ if defined?(Memcached)
         @cache.cas(key) {|val| val += 2}
       end
 
-      assert_metrics_recorded_exclusive expected_metrics, :filter => /^memcache.*/i
+      assert_memcache_metrics_recorded expected_metrics
       assert_equal 3, @cache.get(key)
     end
   end
