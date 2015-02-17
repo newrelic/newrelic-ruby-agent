@@ -28,6 +28,7 @@ module MemcacheTestCases
   def expected_web_metrics(command)
     [
       "Datastore/all",
+      "Datastore/Memcache/all",
       "Datastore/operation/Memcache/#{command}",
       "Datastore/allWeb",
       "Datastore/Memcache/allWeb",
@@ -38,6 +39,7 @@ module MemcacheTestCases
   def expected_bg_metrics(command)
     [
       "Datastore/all",
+      "Datastore/Memcache/all",
       "Datastore/operation/Memcache/#{command}",
       "Datastore/allOther",
       "Datastore/Memcache/allOther",

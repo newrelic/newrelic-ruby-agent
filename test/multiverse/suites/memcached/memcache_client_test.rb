@@ -13,17 +13,13 @@ if defined?(MemCache)
     end
 
     if MemCache::VERSION <= "1.5.0"
-      undef_method :test_append_in_web
-      undef_method :test_prepend_in_web
-      undef_method :test_replace_in_web
-      undef_method :test_append_in_background
-      undef_method :test_prepend_in_background
-      undef_method :test_replace_in_background
+      undef_method :test_append_in_web, :test_prepend_in_web, :test_replace_in_web,
+                   :test_append_in_background, :test_prepend_in_background,
+                   :test_replace_in_background
     end
 
     if MemCache::VERSION <= "1.7.0"
-      undef_method :test_cas_in_web
-      undef_method :test_cas_in_background
+      undef_method :test_cas_in_web, :test_cas_in_background
     end
   end
 end

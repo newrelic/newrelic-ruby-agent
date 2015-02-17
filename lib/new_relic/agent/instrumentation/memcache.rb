@@ -33,6 +33,7 @@ module NewRelic
               #{visibility}
               def #{method_name}_with_newrelic_trace(*args, &block)
                 metrics = [ "Datastore/operation/Memcache/#{method_name}", "Datastore/all"]
+                metrics << "Datastore/Memcache/all"
 
                 if NewRelic::Agent::Transaction.recording_web_transaction?
                   metrics << 'Datastore/Memcache/allWeb'
