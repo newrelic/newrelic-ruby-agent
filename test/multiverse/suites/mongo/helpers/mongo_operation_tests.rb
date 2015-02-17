@@ -286,6 +286,24 @@ module MongoOperationTests
     assert_metrics_recorded(expected)
   end
 
+  def test_web_scoped_metrics
+    in_web_transaction("webby") do
+      @collection.insert(@tribble)
+    end
+
+    metric = statement_metric(:insert)
+    assert_metrics_recorded([[metric, "webby"]])
+  end
+
+  def test_background_scoped_metrics
+    in_background_transaction("backed-up") do
+      @collection.insert(@tribble)
+    end
+
+    metric = statement_metric(:insert)
+    assert_metrics_recorded([[metric, "backed-up"]])
+  end
+
   def test_notices_nosql
     segment = nil
 
@@ -477,5 +495,10 @@ module MongoOperationTests
     client = @collection.db.respond_to?(:client) && @collection.db.client
     return false unless client
     client.respond_to?(:max_wire_version) && client.max_wire_version >= 2
+  end
+
+  def statement_metric(action)
+    metrics = build_test_metrics(action)
+    metrics.select { |m| m.start_with?("Datastore/statement") }.first
   end
 end
