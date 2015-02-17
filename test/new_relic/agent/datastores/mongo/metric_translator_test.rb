@@ -21,33 +21,31 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_build_metrics_includes_web
-    metrics = build_test_metrics('test')
-    assert_includes metrics, 'Datastore/allWeb'
+    in_web_transaction do
+      metrics = build_test_metrics('test')
+      assert_includes metrics, 'Datastore/allWeb'
+    end
   end
 
   def test_build_metrics_includes_other
-    metrics = build_test_metrics('test', :other)
-    assert_includes metrics, 'Datastore/allOther'
+    in_background_transaction do
+      metrics = build_test_metrics('test')
+      assert_includes metrics, 'Datastore/allOther'
+    end
   end
 
   def test_build_metrics_includes_all_for_web
-    metrics = build_test_metrics('test')
-    assert_includes metrics, 'Datastore/all'
+    in_web_transaction do
+      metrics = build_test_metrics('test')
+      assert_includes metrics, 'Datastore/all'
+    end
   end
 
   def test_build_metrics_includes_all_for_other
-    metrics = build_test_metrics('test', :other)
-    assert_includes metrics, 'Datastore/all'
-  end
-
-  def test_build_metrics_includes_activerecord_all_on_web
-    metrics = build_test_metrics('test', :web)
-    assert_includes metrics, 'ActiveRecord/all'
-  end
-
-  def test_build_metrics_doesnt_include_activerecord_all_on_other
-    metrics = build_test_metrics('test', :other)
-    assert_not_includes metrics, 'ActiveRecord/all'
+    in_background_transaction do
+      metrics = build_test_metrics('test')
+      assert_includes metrics, 'Datastore/all'
+    end
   end
 
   def test_metrics_for_find

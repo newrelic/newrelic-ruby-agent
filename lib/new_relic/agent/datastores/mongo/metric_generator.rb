@@ -10,13 +10,7 @@ module NewRelic
       module Mongo
         module MetricGenerator
           def self.generate_metrics_for(name, payload)
-            if NewRelic::Agent::Transaction.recording_web_transaction?
-              request_type = :web
-            else
-              request_type = :other
-            end
-
-            NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(name, payload, request_type)
+            NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(name, payload)
           rescue => e
             NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
             []

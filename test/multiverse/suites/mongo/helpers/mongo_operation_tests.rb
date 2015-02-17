@@ -151,7 +151,8 @@ module MongoOperationTests
       metrics = create_index_metrics
     elsif client_is_1_10_or_later && !server_is_2_6_or_later?
       metrics = create_index_metrics.merge(create_indexes_metrics)
-      metrics['ActiveRecord/all'][:call_count] += 1
+      metrics['Datastore/MongoDB/allWeb'][:call_count] += 1
+      metrics['Datastore/MongoDB/all'][:call_count]    += 1
       metrics['Datastore/allWeb'][:call_count] += 1
       metrics['Datastore/all'][:call_count]    += 1
     elsif client_is_1_10_or_later && server_is_2_6_or_later?
@@ -435,7 +436,7 @@ module MongoOperationTests
     NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(false)
     @collection.insert(@tribble)
 
-    metrics = build_test_metrics(:insert, :other)
+    metrics = build_test_metrics(:insert)
     expected = metrics_with_attributes(metrics)
 
     assert_metrics_recorded(expected)
