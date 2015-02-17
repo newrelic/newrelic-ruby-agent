@@ -60,8 +60,10 @@ http://newrelic.com/ .  There you can
 sign up for a free Lite account or one of our paid subscriptions.
 
 Once you receive the welcome e-mail with a license key and
-`newrelic.yml` file, copy the `newrelic.yml` file into your app config
-directory.
+`newrelic.yml` file. You can copy the `newrelic.yml` file into your app config
+directory OR can generate the file manually with command:
+
+    newrelic install --license_key="YOUR_KEY" --destdir="./config" "My application"
 
 The initial configuration is done in the `newrelic.yml` file.  This file
 is by default read from the `config` directory of the application root
