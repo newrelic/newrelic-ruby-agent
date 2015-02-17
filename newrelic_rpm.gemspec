@@ -44,8 +44,15 @@ EOS
   s.add_development_dependency 'rake', '10.1.0'
   s.add_development_dependency 'minitest', '~> 4.7.5'
   s.add_development_dependency 'mocha', '~> 0.13.0'
-  s.add_development_dependency 'yard'
+
+  # ActiveSupport > 3.2.9 depends on il18n ~> 0.7
+  # which in turn only support Ruby 1.9.3
+  # This following workaround to ensure we could test
+  # Rails 3 on Ruby <= 1.9.2
+  s.add_development_dependency 'i18n', '~> 0.6'
   s.add_development_dependency 'rails', '~> 3.2.13'
+
+  s.add_development_dependency 'yard'
   s.add_development_dependency 'pry', '~> 0.9.12'
   s.add_development_dependency 'guard', '~> 1.8.3' # Guard 2.0 is Ruby 1.9 only
   s.add_development_dependency 'guard-minitest'
