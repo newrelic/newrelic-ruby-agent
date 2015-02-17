@@ -32,7 +32,7 @@ module NewRelic
             client_class.send :alias_method, :"#{method_name}_without_newrelic_trace", :"#{method_name}"
 
             client_class.send :define_method, method_name do |*args, &block|
-              metrics = Datastores::MetricHelper.metrics_for("Memcache", method_name).reverse!
+              metrics = Datastores::MetricHelper.metrics_for("Memcache", method_name)
 
               self.class.trace_execution_scoped(metrics) do
                 t0 = Time.now

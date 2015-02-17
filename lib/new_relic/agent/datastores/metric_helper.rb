@@ -35,13 +35,13 @@ module NewRelic
         def self.metrics_for(product, operation, collection = nil)
           current_context_metric = context_metric
           metrics = [
-            ROLLUP_METRIC,
-            current_context_metric,
-            product_rollup_metric(ROLLUP_METRIC, product),
+            operation_metric_for(product, operation),
             product_rollup_metric(current_context_metric, product),
-            operation_metric_for(product, operation)
+            product_rollup_metric(ROLLUP_METRIC, product),
+            current_context_metric,
+            ROLLUP_METRIC
           ]
-          metrics << statement_metric_for(product, collection, operation) if collection
+          metrics.unshift statement_metric_for(product, collection, operation) if collection
 
           metrics
         end
