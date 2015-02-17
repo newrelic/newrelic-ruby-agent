@@ -61,6 +61,12 @@
   instrumentation missed reporting traced errors. This did not impact
   ActiveJobs used with Sidekiq or Resque, and has been fixed.
 
+  * Fix possible crash in middleware tracing
+
+  In rare circumstances, a failure in the agent early during tracing of a web
+  request could lead to a cascading error when trying to capture the HTTP status
+  code of the request. This has been fixed. Thanks to Michal Cichra for the fix!
+
 ## v3.9.9 ##
 
   * Support for Ruby 2.2

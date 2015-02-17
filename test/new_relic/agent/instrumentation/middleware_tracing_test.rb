@@ -9,29 +9,41 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
   class UserError < StandardError
   end
 
-  def test_dont_block_errors_during_malfunctioning_transaction
-    middleware_class = Class.new do
-      include NewRelic::Agent::Instrumentation::MiddlewareTracing
+  class HostClass
+    include NewRelic::Agent::Instrumentation::MiddlewareTracing
 
-      attr_reader :category
+    attr_reader :category
 
-      def target
-        self
-      end
-
-      def transaction_options
-        {}
-      end
-
-      def traced_call(env)
-        raise UserError.new
-      end
+    def initialize(&blk)
+      @action = blk
     end
 
+    def target
+      self
+    end
+
+    def transaction_options
+      {}
+    end
+
+    def traced_call(env)
+      @action.call
+    end
+  end
+
+  def test_dont_block_errors_during_malfunctioning_transaction
     NewRelic::Agent::Transaction.stubs(:start).returns(nil)
 
+    middleware = HostClass.new { raise UserError }
     assert_raises(UserError) do
-      middleware_class.new.call({})
+      middleware.call({})
     end
+  end
+
+  def test_dont_raise_when_transaction_start_fails
+    NewRelic::Agent::Transaction.stubs(:start).returns(nil)
+
+    middleware = HostClass.new { [200, {}, ['hi!']] }
+    middleware.call({})
   end
 end
