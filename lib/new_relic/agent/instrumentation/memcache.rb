@@ -9,6 +9,8 @@
 #     http://seattlerb.rubyforge.org/memcache-client/ (Gem: memcache-client)
 #     http://github.com/mperham/dalli (Gem: dalli)
 
+require 'new_relic/agent/datastores/metric_helper'
+
 module NewRelic
   module Agent
     module Instrumentation
@@ -30,16 +32,7 @@ module NewRelic
             client_class.send :alias_method, :"#{method_name}_without_newrelic_trace", :"#{method_name}"
 
             client_class.send :define_method, method_name do |*args, &block|
-              metrics = [ "Datastore/operation/Memcache/#{method_name}", "Datastore/all"]
-              metrics << "Datastore/Memcache/all"
-
-              if NewRelic::Agent::Transaction.recording_web_transaction?
-                metrics << 'Datastore/Memcache/allWeb'
-                metrics << 'Datastore/allWeb'
-              else
-                metrics << 'Datastore/Memcache/allOther'
-                metrics << 'Datastore/allOther'
-              end
+              metrics = Datastores::MetricHelper.metrics_for("Memcache", method_name).reverse!
 
               self.class.trace_execution_scoped(metrics) do
                 t0 = Time.now
