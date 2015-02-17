@@ -24,6 +24,7 @@ automatically in Rails applications.
 * Ruby 1.8.7, REE, 1.9.x, 2.0.x, 2.1.x, 2.2.x
 * JRuby 1.6 and 1.7
 * Rubinius 2.x (Experimental support only)
+* Lotus 0.2 or later
 * Rails 2.1 or later for Production Mode
 * Rails 2.3 or later for Developer Mode
 * Sinatra
@@ -71,6 +72,37 @@ and is subsequently searched for in the application root directory,
 and then in a `~/.newrelic` directory.  Once you're up and running you can
 enable Server Side Config and manage your newrelic configuration from the web
 UI.
+
+#### Lotus Installation
+
+To use the Ruby Agent with a Lotus app, add
+
+    require 'newrelic_rpm'
+
+in your config/environment.rb, just before the Lotus::Container.configure directive.
+
+Then make sure you set `LOTUS_ENV` to the environment corresponding to the
+configuration definitions in the newrelic.yml file; e.g., development,
+staging, production, etc.
+
+To use Developer Mode in Lotus, add `NewRelic::Rack::DeveloperMode` to
+the middleware stack by modifying your config.ru file:
+
+```ruby
+require './config/environment'
+
+if ENV['LOTUS_ENV'] == 'development'
+  puts "Loading NewRelic in developer mode ..."
+  require 'new_relic/rack/developer_mode'
+  use NewRelic::Rack::DeveloperMode
+end
+
+NewRelic::Agent.manual_start
+
+run Lotus::Container.new
+```
+ 
+See the Developer Mode in Rack Applications section below for more details.
 
 #### Rails Installation
 
@@ -154,7 +186,7 @@ a `config.ru` as below.
 #### Developer Mode in Rack Applications
 
 Developer Mode is available for any Rack based application such as
-Sinatra by installing the NewRelic::Rack::DeveloperMode
+Sinatra and Lotus by installing the NewRelic::Rack::DeveloperMode
 middleware. This middleware passes all requests that do not start with
 /newrelic.
 

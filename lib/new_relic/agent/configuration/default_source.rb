@@ -93,7 +93,7 @@ module NewRelic
                 ::NewRelic::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
               end
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
-            when defined?(::NewRelic::IA) then :external
+            when defined?(::Lotus) then :lotus
             else :ruby
             end
           }

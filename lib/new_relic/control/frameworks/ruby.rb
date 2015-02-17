@@ -8,7 +8,7 @@ module NewRelic
       # A control used when no framework is detected - the default.
       class Ruby < NewRelic::Control
         def env
-          @env ||= ENV['NEW_RELIC_ENV'] || ENV['RUBY_ENV'] ||
+          @env ||= ENV['NEW_RELIC_ENV'] || ENV['RUBY_ENV'] || ENV['LOTUS_ENV']
                    ENV['RAILS_ENV']     || ENV['RACK_ENV'] || 'development'
         end
 
