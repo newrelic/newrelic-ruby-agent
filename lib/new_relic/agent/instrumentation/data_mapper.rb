@@ -135,9 +135,6 @@ module NewRelic
               metric_operation,
               name)
 
-            # Most specific first to work with trace_execution_scoped
-            metrics.reverse!
-
             NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
               self.send("#{method_name}_without_newrelic", *args, &blk)
             end

@@ -1,0 +1,52 @@
+dalli_versions = %w(1.0.5)
+dalli_versions += %w(2.7.2 2.6.4 2.2.1) if RUBY_VERSION >= "1.9.3"
+
+dalli_versions.each do |version|
+  gemfile <<-RB
+    gem 'dalli', '~> #{version}'
+  RB
+end
+
+memcache_client_versions = %w(1.8.5 1.5.0)
+
+memcache_client_versions.each do |version|
+  gemfile <<-RB
+    gem 'memcache-client', '~> #{version}', :require => 'memcache'
+    # version lockdown for ZenTest that cooperates with all Rubies
+    # and the build VMs
+    gem 'ZenTest', '3.4.2'
+  RB
+end
+
+
+if RUBY_VERSION == "1.8.7"
+  memcached_client_versions = ['1.4.1']
+elsif RUBY_VERSION > "1.9.3"
+  memcached_client_versions = ['1.8.0']
+else
+  memcached_client_versions = %w(1.8.0 1.4.1)
+end
+
+if RUBY_PLATFORM == 'java'
+  memcached_client_versions = []
+end
+
+memcached_client_versions.each do |version|
+  gemfile <<-RB
+    gem 'memcached', '~> #{version}'
+  RB
+end
+
+def memcache_running?
+  begin
+  require 'socket'
+    TCPSocket.new('localhost', 11211)
+    true
+  rescue => e
+    false
+  end
+end
+
+before_suite do
+  system('memcached -d -l localhost') unless memcache_running?
+end
