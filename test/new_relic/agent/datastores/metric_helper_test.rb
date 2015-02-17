@@ -4,7 +4,6 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/datastores/metric_helper'
-require 'set'
 
 module NewRelic
   module Agent
@@ -43,32 +42,32 @@ module NewRelic
 
       def test_metrics_for_in_web_context
         Transaction.stubs(:recording_web_transaction?).returns(true)
-        expected = Set.new [
-          "Datastore/all",
-          "Datastore/allWeb",
-          "Datastore/JonanDB/all",
-          "Datastore/JonanDB/allWeb",
+        expected = [
           "Datastore/statement/JonanDB/wiggles/select",
-          "Datastore/operation/JonanDB/select"
+          "Datastore/operation/JonanDB/select",
+          "Datastore/JonanDB/allWeb",
+          "Datastore/JonanDB/all",
+          "Datastore/allWeb",
+          "Datastore/all"
         ]
 
         result = Datastores::MetricHelper.metrics_for(@product, @operation, @collection)
-        assert_equal expected, result.to_set
+        assert_equal expected, result
       end
 
       def test_metrics_for_outside_web_context
         Transaction.stubs(:recording_web_transaction?).returns(false)
-        expected = Set.new [
-          "Datastore/all",
-          "Datastore/allOther",
-          "Datastore/JonanDB/all",
-          "Datastore/JonanDB/allOther",
+        expected = [
           "Datastore/statement/JonanDB/wiggles/select",
-          "Datastore/operation/JonanDB/select"
+          "Datastore/operation/JonanDB/select",
+          "Datastore/JonanDB/allOther",
+          "Datastore/JonanDB/all",
+          "Datastore/allOther",
+          "Datastore/all"
         ]
 
         result = Datastores::MetricHelper.metrics_for(@product, @operation, @collection)
-        assert_equal expected, result.to_set
+        assert_equal expected, result
       end
 
       def test_active_record_metric_for_name
