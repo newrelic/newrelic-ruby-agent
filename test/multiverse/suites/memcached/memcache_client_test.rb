@@ -12,36 +12,18 @@ if defined?(MemCache)
       @cache = MemCache.new("localhost:11211")
     end
 
-    def test_append_in_web
-      super if MemCache::VERSION > "1.5.0"
+    if MemCache::VERSION <= "1.5.0"
+      undef_method :test_append_in_web
+      undef_method :test_prepend_in_web
+      undef_method :test_replace_in_web
+      undef_method :test_append_in_background
+      undef_method :test_prepend_in_background
+      undef_method :test_replace_in_background
     end
 
-    def test_prepend_in_web
-      super if MemCache::VERSION > "1.5.0"
-    end
-
-    def test_replace_in_web
-      super if MemCache::VERSION > "1.5.0"
-    end
-
-    def test_append_in_background
-      super if MemCache::VERSION > "1.5.0"
-    end
-
-    def test_prepend_in_background
-      super if MemCache::VERSION > "1.5.0"
-    end
-
-    def test_replace_in_background
-      super if MemCache::VERSION > "1.5.0"
-    end
-
-    def test_cas_in_web
-      super if MemCache::VERSION > "1.7.0"
-    end
-
-    def test_cas_in_background
-      super if MemCache::VERSION > "1.7.0"
+    if MemCache::VERSION <= "1.7.0"
+      undef_method :test_cas_in_web
+      undef_method :test_cas_in_background
     end
   end
 end
