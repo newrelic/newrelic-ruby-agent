@@ -27,7 +27,9 @@ module NewRelic
         def instrument_methods(client_class)
           supported_methods_for(client_class).each do |method_name|
 
-            client_class.send :define_method, :"#{method_name}_with_newrelic_trace" do |*args, &block|
+            client_class.send :alias_method, :"#{method_name}_without_newrelic_trace", :"#{method_name}"
+
+            client_class.send :define_method, method_name do |*args, &block|
               metrics = [ "Datastore/operation/Memcache/#{method_name}", "Datastore/all"]
               metrics << "Datastore/Memcache/all"
 
@@ -50,9 +52,6 @@ module NewRelic
                 end
               end
             end
-
-            client_class.send :alias_method, :"#{method_name}_without_newrelic_trace", :"#{method_name}"
-            client_class.send :alias_method, :"#{method_name}", :"#{method_name}_with_newrelic_trace"
           end
 
           unless client_class.method_defined?(method_name)
