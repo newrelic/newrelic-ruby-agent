@@ -595,6 +595,12 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable active record instrumentation.'
         },
+        :disable_data_mapper => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable DataMapper instrumentation.'
+        },
         :disable_activejob => {
           :default => false,
           :public => true,

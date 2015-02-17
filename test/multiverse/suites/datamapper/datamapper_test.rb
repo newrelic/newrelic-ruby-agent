@@ -2,8 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'data_mapper'
-
 DataMapper::Logger.new("/dev/null", :debug)
 DataMapper.setup(:default, 'sqlite::memory:')
 class Post
@@ -29,55 +27,272 @@ class DataMapperTest < Minitest::Test
 
   setup_and_teardown_agent
 
-  def test_basic_metrics
-    post = Post.create(:title => "Dummy post", :body => "whatever, man")
-    post = Post.get(post.id)
-    post.update(:title => 'other title')
-    post.destroy
-    assert_metrics_recorded(
-      'ActiveRecord/Post/save' => { :call_count => 2 },
-      'ActiveRecord/Post/get'  => { :call_count => 1 },
-      'ActiveRecord/Post/update'  => { :call_count => 1 },
-      'ActiveRecord/Post/destroy' => { :call_count => 1 }
-    )
-  end
-
-  def test_rollup_metrics_for_create
-    post = Post.create(:title => 'foo', :body => 'bar')
-    post.save
-    assert_metrics_recorded(['ActiveRecord/save'])
-  end
-
-  def test_rollup_metrics_for_update
-    post = Post.create(:title => 'foo', :body => 'bar')
-    post.body = 'baz'
-    post.save
-    assert_metrics_recorded('ActiveRecord/save' => { :call_count => 2 })
-  end
-
-  def test_rollup_metrics_for_destroy
-    post = Post.create(:title => 'foo', :body => 'bar')
-    post.save
-    post.destroy
-    assert_metrics_recorded(['ActiveRecord/destroy'])
-  end
-
-  def test_rollup_metrics_should_include_all_if_in_web_transaction
-    in_web_transaction do
-      Post.create(:title => 'foo', :body => 'bar').save
+  def test_create
+    # DM 1.0 generates a create method on inclusion of a module that internally
+    # calls the instance #save method, so that's all we see on that version.
+    expected_metric = DataMapper::VERSION < "1.1" ? :save : :create
+    assert_basic_metrics(expected_metric) do
+      Post.create(:title => "Dummy post", :body => "whatever, man")
     end
+  end
+
+  def test_create!
+    assert_basic_metrics(:create) do
+      Post.create!(:title => "Dummy post", :body => "whatever, man")
+    end
+  end
+
+  def test_get
+    assert_against_record(:get) do |post|
+      Post.get(post.id)
+    end
+  end
+
+  def test_get!
+    assert_against_record(:get) do |post|
+      Post.get!(post.id)
+    end
+  end
+
+  def test_first
+    assert_against_record(:first) do
+      Post.first
+    end
+  end
+
+  def test_all
+    assert_against_record(:all) do
+      Post.all
+    end
+  end
+
+  def test_last
+    assert_against_record(:last) do
+      Post.last
+    end
+  end
+
+  def test_bulk_update
+    assert_against_record(:update) do
+      Post.update(:title => 'other title')
+    end
+  end
+
+  def test_bulk_update!
+    assert_against_record(:update) do
+      Post.update!(:title => 'other title')
+    end
+  end
+
+  def test_instance_update
+    assert_against_record(:update) do |post|
+      post.update(:title => 'other title')
+    end
+  end
+
+  def test_bulk_update!
+    assert_against_record(:update) do |post|
+      post.update!(:title => 'other title')
+    end
+  end
+
+  def test_bulk_destroy
+    assert_against_record(:destroy) do
+      Post.destroy
+    end
+  end
+
+  def test_bulk_destroy!
+    assert_against_record(:destroy) do
+      Post.destroy!
+    end
+  end
+
+  def test_instance_destroy
+    assert_against_record(:destroy) do |post|
+      post.destroy
+    end
+  end
+
+  def test_instance_destroy!
+    assert_against_record(:destroy) do |post|
+      post.destroy!
+    end
+  end
+
+  def test_save
+    assert_against_record(:save) do |post|
+      post.save
+    end
+  end
+
+  def test_save!
+    assert_against_record(:save) do |post|
+      post.save!
+    end
+  end
+
+  def test_aggregate
+    assert_against_record(:aggregate) do
+      Post.aggregate(:title, :all.count)
+    end
+  end
+
+  def test_find
+    assert_against_record(:find) do
+      Post.find(1)
+    end
+  end
+
+  def test_find_by_sql
+    assert_against_record(:find_by_sql) do
+      Post.find_by_sql('select * from posts')
+    end
+  end
+
+  def test_in_web_transaction
+    in_web_transaction("dm4evr") do
+      Post.all
+    end
+
     assert_metrics_recorded([
-      'ActiveRecord/save',
-      'ActiveRecord/all'
+      'Datastore/all',
+      'Datastore/allWeb',
+      'Datastore/DataMapper/all',
+      'Datastore/DataMapper/allWeb',
+      'Datastore/operation/DataMapper/all',
+      'Datastore/statement/DataMapper/Post/all',
+      ['Datastore/statement/DataMapper/Post/all', 'dm4evr']
     ])
   end
 
-  def test_rollup_metrics_should_omit_all_if_not_in_web_transaction
-    in_transaction do
-      Post.create(:title => 'foo', :body => 'bar').save
+  def test_collection_get
+    assert_against_record(:get) do
+      Post.all.get(1)
     end
-    assert_metrics_recorded(['ActiveRecord/save'])
-    assert_metrics_not_recorded(['ActiveRecord/all'])
+  end
+
+  def test_collection_first
+    assert_against_record(:first) do
+      Post.all.first
+    end
+  end
+
+  def test_collection_last
+    assert_against_record(:last) do
+      Post.all.last
+    end
+  end
+
+  def test_collection_all
+    assert_against_record(:all) do
+      Post.all.all # sic
+    end
+
+    assert_metrics_recorded(
+      'Datastore/statement/DataMapper/Post/all' => { :call_count => 2 }
+    )
+  end
+
+  def test_collection_lazy_load
+    assert_against_record(:lazy_load) do
+      Post.all.send(:lazy_load)
+    end
+  end
+
+  def test_collection_create
+    assert_against_record(:create) do
+      Post.all.create(:title => "The Title", :body => "Body")
+    end
+  end
+
+  def test_collection_create!
+    assert_against_record(:create) do
+      Post.all.create!(:title => "The Title", :body => "Body")
+    end
+  end
+
+  def test_collection_update
+    assert_against_record(:update) do
+      Post.all.update(:title => "Another")
+    end
+  end
+
+  def test_collection_update!
+    assert_against_record(:update) do
+      Post.all.update!(:title => "Another")
+    end
+  end
+
+  def test_collection_destroy
+    assert_against_record(:destroy) do
+      Post.all.destroy
+    end
+  end
+
+  def test_collection_destroy!
+    assert_against_record(:destroy) do
+      Post.all.destroy!
+    end
+  end
+
+  def test_collection_aggregate
+    assert_against_record(:aggregate) do
+      Post.all.aggregate(:title, :all.count)
+    end
+  end
+
+  def test_notices_sql
+    in_web_transaction do
+      Post.get(42)
+    end
+
+    sql_segment = find_last_transaction_segment(last_transaction_trace)
+    refute_nil sql_segment.obfuscated_sql
+  end
+
+  def test_direct_select_on_adapter
+    in_web_transaction('dm4evr') do
+      DataMapper.repository.adapter.select('select * from posts limit 1')
+    end
+
+    assert_metrics_recorded([
+      'Datastore/all',
+      'Datastore/allWeb',
+      'Datastore/DataMapper/all',
+      'Datastore/DataMapper/allWeb',
+      'Datastore/operation/DataMapper/select',
+      ['Datastore/operation/DataMapper/select', 'dm4evr'],
+    ])
+  end
+
+  def test_direct_execute_on_adapter
+    in_transaction('background') do
+      DataMapper.repository.adapter.execute('update posts set title=title')
+    end
+
+    assert_metrics_recorded([
+      'Datastore/all',
+      'Datastore/allOther',
+      'Datastore/DataMapper/all',
+      'Datastore/DataMapper/allOther',
+      'Datastore/operation/DataMapper/execute',
+      ['Datastore/operation/DataMapper/execute', 'background'],
+    ])
+  end
+
+  def test_datamapper_transaction_commit
+    Post.transaction do |t|
+      Post.destroy!
+    end
+
+    assert_metrics_recorded([
+      'Datastore/all',
+      'Datastore/allOther',
+      'Datastore/DataMapper/all',
+      'Datastore/DataMapper/allOther',
+      'Datastore/operation/DataMapper/commit'
+    ])
   end
 
   # https://support.newrelic.com/tickets/2101
@@ -95,4 +310,26 @@ class DataMapperTest < Minitest::Test
     assert_equal false, msg.query.valid_encoding? if RUBY_VERSION >= '1.9'
     db.send(:log, msg)
   end
+
+  def assert_against_record(operation)
+    post = Post.create!(:title => "Dummy post", :body => "whatever, man")
+
+    # Want to ignore our default record's creation for these tests
+    NewRelic::Agent.drop_buffered_data
+
+    assert_basic_metrics(operation) do
+      yield(post)
+    end
+  end
+
+  def assert_basic_metrics(operation)
+    yield
+    assert_metrics_recorded([
+      "Datastore/all",
+      "Datastore/allOther",
+      "Datastore/operation/DataMapper/#{operation}",
+      "Datastore/statement/DataMapper/Post/#{operation}"
+    ])
+  end
+
 end
