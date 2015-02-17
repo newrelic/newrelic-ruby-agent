@@ -27,40 +27,37 @@ module NewRelic
         def instrument_methods(client_class)
           supported_methods_for(client_class).each do |method_name|
 
-            visibility = "private" unless client_class.method_defined?(method_name)
+            client_class.send :define_method, :"#{method_name}_with_newrelic_trace" do |*args, &block|
+              metrics = [ "Datastore/operation/Memcache/#{method_name}", "Datastore/all"]
+              metrics << "Datastore/Memcache/all"
 
-            client_class.class_eval <<-EOD
-              #{visibility}
-              def #{method_name}_with_newrelic_trace(*args, &block)
-                metrics = [ "Datastore/operation/Memcache/#{method_name}", "Datastore/all"]
-                metrics << "Datastore/Memcache/all"
+              if NewRelic::Agent::Transaction.recording_web_transaction?
+                metrics << 'Datastore/Memcache/allWeb'
+                metrics << 'Datastore/allWeb'
+              else
+                metrics << 'Datastore/Memcache/allOther'
+                metrics << 'Datastore/allOther'
+              end
 
-                if NewRelic::Agent::Transaction.recording_web_transaction?
-                  metrics << 'Datastore/Memcache/allWeb'
-                  metrics << 'Datastore/allWeb'
-                else
-                  metrics << 'Datastore/Memcache/allOther'
-                  metrics << 'Datastore/allOther'
-                end
-
-                self.class.trace_execution_scoped(metrics) do
-                  t0 = Time.now
-                  begin
-                    #{method_name}_without_newrelic_trace(*args, &block)
-                  ensure
-                    #{memcache_key_snippet(method_name)}
+              self.class.trace_execution_scoped(metrics) do
+                t0 = Time.now
+                begin
+                  send :"#{method_name}_without_newrelic_trace", *args, &block
+                ensure
+                  if NewRelic::Agent.config[:capture_memcache_keys]
+                    NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
                   end
                 end
               end
-              alias #{method_name}_without_newrelic_trace #{method_name}
-              alias #{method_name} #{method_name}_with_newrelic_trace
-            EOD
-         end
+            end
 
-        end
-        def memcache_key_snippet(method_name)
-          return "" unless NewRelic::Agent.config[:capture_memcache_keys]
-          "NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil"
+            client_class.send :alias_method, :"#{method_name}_without_newrelic_trace", :"#{method_name}"
+            client_class.send :alias_method, :"#{method_name}", :"#{method_name}_with_newrelic_trace"
+          end
+
+          unless client_class.method_defined?(method_name)
+            send :private, :"#{method_name}_with_newrelic_trace"
+          end
         end
       end
     end

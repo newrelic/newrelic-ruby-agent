@@ -39,7 +39,6 @@ if defined?(Memcached)
       end
 
       assert_memcache_metrics_recorded expected_metrics
-
     end
 
     def test_incr_in_web
