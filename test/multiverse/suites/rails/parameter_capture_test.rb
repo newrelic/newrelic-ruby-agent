@@ -217,6 +217,7 @@ class ParameterCaptureTest < RailsMultiverseTest
       end
       expected = {"secret" => "[FILTERED]", "name" => "name", "raise" => "1"}
       assert_equal expected, last_traced_error_request_params
+    end
 
     def test_file_upload_params_are_replaced_with_placeholder
       with_config(:capture_params => true) do
