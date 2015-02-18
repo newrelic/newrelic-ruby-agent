@@ -47,14 +47,12 @@ module Sequel
         rescue => err
           NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
         ensure
-          t1 = Time.now
-          notice_sql(NewRelic::Agent::TransactionState.tl_get, sql, args, t0, t1)
+          notice_sql(sql, args, t0, Time.now)
         end
       end
 
       return rval
     end
-
 
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool),
@@ -62,7 +60,8 @@ module Sequel
 
     # Record the given +sql+ within a new frame, using the given +start+ and
     # +finish+ times.
-    def notice_sql(state, sql, args, start, finish)
+    def notice_sql(sql, args, start, finish)
+      state = NewRelic::Agent::TransactionState.tl_get
       metric   = NewRelic::Agent::Datastores::MetricHelper::metric_for_sql(sql)
       agent    = NewRelic::Agent.instance
       duration = finish - start
