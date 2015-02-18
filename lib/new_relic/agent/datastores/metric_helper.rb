@@ -83,7 +83,7 @@ module NewRelic
         }.freeze
         ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
 
-        def self.active_record_product_name_from_adapter(adapter_name)
+        def self.product_name_from_active_record_adapter(adapter_name)
           PRODUCT_NAMES.fetch(adapter_name, ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
         end
       end
