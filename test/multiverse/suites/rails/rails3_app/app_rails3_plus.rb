@@ -78,8 +78,13 @@ if !defined?(MyApp)
         :constraints => lambda do |_|
           raise ActionController::RoutingError.new('this is an uncaught routing error')
         end)
+
     mount SinatraTestApp, :at => '/sinatra_app' if defined?(Sinatra)
+
     post '/filtering_test' => FilteringTestApp.new
+
+    post '/parameter_capture', :to => 'parameter_capture#create'
+
     get '/:controller(/:action(/:id))'
   end
 

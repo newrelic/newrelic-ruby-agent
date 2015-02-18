@@ -9,6 +9,10 @@ class ParameterCaptureController < ApplicationController
     render :text => 'hi!'
   end
 
+  def create
+    render :text => 'created'
+  end
+
   def sql
     NewRelic::Agent.agent.sql_sampler.notice_sql(
       'SELECT * FROM table',
@@ -213,6 +217,15 @@ class ParameterCaptureTest < RailsMultiverseTest
       end
       expected = {"secret" => "[FILTERED]", "name" => "name", "raise" => "1"}
       assert_equal expected, last_traced_error_request_params
+    end
+
+    def test_file_upload_params_are_replaced_with_placeholder
+      with_config(:capture_params => true) do
+        params = { :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain') }
+        post '/parameter_capture', params
+        result = last_transaction_trace_request_params
+        assert_equal("#<ActionDispatch::Http::UploadedFile>", result["file"])
+      end
     end
   end
 end
