@@ -34,6 +34,9 @@ module NewRelic
 
         def self.metrics_for(product, operation, collection = nil)
           current_context_metric = context_metric
+
+          # Order of these metrics matters--the first metric in the list will
+          # be treated as the scoped metric in a bunch of different cases.
           metrics = [
             operation_metric_for(product, operation),
             product_rollup_metric(current_context_metric, product),
