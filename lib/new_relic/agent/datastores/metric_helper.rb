@@ -101,6 +101,34 @@ module NewRelic
         def self.product_name_from_sequel_adapter(adapter)
           SEQUEL_ADAPTER_TO_PRODUCT_NAME.fetch(adapter, DEFAULT_PRODUCT_NAME)
         end
+
+        def self.metric_for_sql(sql) #THREAD_LOCAL_ACCESS
+          txn = NewRelic::Agent::Transaction.tl_current
+          metric = txn && txn.database_metric_name
+          if metric.nil?
+            operation = NewRelic::Agent::Database.parse_operation_from_query(sql)
+            if operation
+              # Could not determine the model/operation so use a fallback metric
+              metric = "Database/SQL/#{operation}"
+            else
+              metric = "Database/SQL/other"
+            end
+          end
+          metric
+        end
+
+        def self.metrics_from_sql(sql, adapter, host) #THREAD_LOCAL_ACCESS
+          primary_metric = metric_for_sql(NewRelic::Helper.correctly_encoded(sql))
+
+          metrics = Instrumentation::ActiveRecordHelper.rollup_metrics_for(primary_metric)
+
+          if adapter
+           metrics << Instrumentation::ActiveRecordHelper.remote_service_metric(adapter, host)
+          end
+
+          [primary_metric, metrics].flatten
+        end
+
       end
     end
   end

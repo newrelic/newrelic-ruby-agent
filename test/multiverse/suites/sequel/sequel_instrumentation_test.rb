@@ -28,10 +28,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
     NewRelic::Agent.shutdown
   end
 
-  def test_sequel_database_instrumentation_is_loaded
-    assert DB.respond_to?( :primary_metric_for )
-  end
-
   def test_sequel_model_instrumentation_is_loaded
     assert Post.respond_to?( :trace_execution_scoped )
   end

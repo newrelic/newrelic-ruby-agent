@@ -6,6 +6,7 @@
 require 'sequel' unless defined?( Sequel )
 require 'newrelic_rpm' unless defined?( NewRelic )
 require 'new_relic/agent/instrumentation/active_record_helper'
+require 'new_relic/agent/datastores/metric_helper'
 
 module Sequel
 
@@ -37,7 +38,7 @@ module Sequel
     # Instrument all queries that go through #execute_query.
     def log_yield(sql, args=nil) #THREAD_LOCAL_ACCESS
       rval = nil
-      metrics = record_metrics(sql, args, Time.now - Time.now)
+      metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_from_sql(sql, self.opts[:adapter], self.opts[:host])
 
       NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
         t0 = Time.now
@@ -54,15 +55,6 @@ module Sequel
       return rval
     end
 
-    # Record metrics for the specified +sql+ and +args+ using the specified
-    # +duration+.
-    def record_metrics(sql, args, duration) #THREAD_LOCAL_ACCESS
-      primary_metric = primary_metric_for(sql, args)
-      metrics = rollup_metrics_for(primary_metric)
-      metrics << remote_service_metric(*self.opts.values_at(:adapter, :host)) if self.opts.key?(:adapter)
-
-      [primary_metric, metrics].flatten
-    end
 
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool),
@@ -71,7 +63,7 @@ module Sequel
     # Record the given +sql+ within a new frame, using the given +start+ and
     # +finish+ times.
     def notice_sql(state, sql, args, start, finish)
-      metric   = primary_metric_for(sql, args)
+      metric   = NewRelic::Agent::Datastores::MetricHelper::metric_for_sql(sql)
       agent    = NewRelic::Agent.instance
       duration = finish - start
 
@@ -92,12 +84,6 @@ module Sequel
       ensure
         stack.pop_frame(state, frame, metric, finish)
       end
-    end
-
-
-    # Derive a primary database metric for the specified +sql+.
-    def primary_metric_for(sql, _)
-      return metric_for_sql(NewRelic::Helper.correctly_encoded(sql))
     end
 
   end # module NewRelicInstrumentation
