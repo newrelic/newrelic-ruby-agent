@@ -10,8 +10,6 @@ module NewRelic
   module Agent
     class AgentLogger
 
-      attr_reader :already_logged
-
       def initialize(root = "", override_logger=nil)
         @already_logged_lock = Mutex.new
         clear_already_logged
@@ -46,9 +44,9 @@ module NewRelic
 
       def log_once(level, key, *msgs)
         @already_logged_lock.synchronize do
-          return if already_logged.include?(key)
+          return if @already_logged.include?(key)
 
-          if already_logged.size >= NUM_LOG_ONCE_KEYS && key.kind_of?(String)
+          if @already_logged.size >= NUM_LOG_ONCE_KEYS && key.kind_of?(String)
             # The reason for preventing too many keys in `logged` is for
             # memory concerns.
             # The reason for checking the type of the key is that we always want
@@ -60,7 +58,7 @@ module NewRelic
             return
           end
 
-          already_logged[key] = true
+          @already_logged[key] = true
         end
 
         self.send(level, *msgs)

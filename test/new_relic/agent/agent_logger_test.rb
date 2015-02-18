@@ -350,12 +350,15 @@ class AgentLoggerTest < Minitest::Test
 
   def test_clear_already_logged
     logger = create_basic_logger
-    logger.log_once(:warn, :clear_already_logged, "Kill me")
+    logger.log_once(:warn, :positive, "thoughts")
+    logger.log_once(:warn, :positive, "thoughts")
 
-    refute_empty logger.already_logged
+    assert_logged "thoughts"
+
     logger.clear_already_logged
+    logger.log_once(:warn, :positive, "thoughts")
 
-    assert_empty logger.already_logged
+    assert_logged "thoughts", "thoughts"
   end
 
   #
