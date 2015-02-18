@@ -9,6 +9,7 @@ module NewRelic
         ROLLUP_METRIC        = "Datastore/all".freeze
         WEB_ROLLUP_METRIC    = "Datastore/allWeb".freeze
         OTHER_ROLLUP_METRIC  = "Datastore/allOther".freeze
+        DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
 
         ALL = "all".freeze
 
@@ -75,16 +76,30 @@ module NewRelic
           OPERATION_NAMES[operation]
         end
 
-        PRODUCT_NAMES = {
+        ACTIVE_RECORD_ADAPTER_TO_PRODUCT_NAME = {
           "MySQL" => "MySQL",
           "Mysql2" => "MySQL",
           "PostgreSQL" => "Postgres",
           "SQLite" => "SQLite"
         }.freeze
-        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
 
-        def self.product_name_from_active_record_adapter(adapter_name)
-          PRODUCT_NAMES.fetch(adapter_name, ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
+        def self.product_name_from_active_record_adapter(adapter)
+          ACTIVE_RECORD_ADAPTER_TO_PRODUCT_NAME.fetch(adapter, DEFAULT_PRODUCT_NAME)
+        end
+
+        # A Sequel adapter is called an "adapter_scheme" and can be accessed from
+        # the database:
+        #
+        #   DB.adapter_scheme
+        SEQUEL_ADAPTER_TO_PRODUCT_NAME = {
+          :mysql => "MySQL",
+          :mysql2 => "MySQL",
+          :postgres => "Postgres",
+          :sqlite => "SQLite"
+        }.freeze
+
+        def self.product_name_from_sequel_adapter(adapter)
+          SEQUEL_ADAPTER_TO_PRODUCT_NAME.fetch(adapter, DEFAULT_PRODUCT_NAME)
         end
       end
     end

@@ -124,6 +124,25 @@ module NewRelic
         assert_equal expected_default, default_result
       end
 
+      def test_product_name_from_sequel_adapter
+        expected_default = "ActiveRecord"
+        default = Hash.new(expected_default)
+
+        adapter_to_name = {
+          :mysql => "MySQL",
+          :mysql2 => "MySQL",
+          :postgresql => "Postgres",
+          :sqlite => "SQLite"
+        }
+
+        default.merge(adapter_to_name).each do |adapter, name|
+          assert_equal name, Datastores::MetricHelper.product_name_from_sequel_adapter(adapter)
+        end
+
+        default_result = Datastores::MetricHelper.product_name_from_sequel_adapter("YouDontKnowThisAdapter")
+        assert_equal expected_default, default_result
+      end
+
     end
   end
 end
