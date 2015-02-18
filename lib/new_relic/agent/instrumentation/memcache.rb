@@ -32,25 +32,27 @@ module NewRelic
             visibility = NewRelic::Helper.instance_method_visibility client_class, method_name
             method_name_without = :"#{method_name}_without_newrelic_trace"
 
-            client_class.send :alias_method, method_name_without, method_name
+            client_class.class_eval do
+              alias_method method_name_without, method_name
 
-            client_class.send :define_method, method_name do |*args, &block|
-              metrics = Datastores::MetricHelper.metrics_for("Memcache", method_name)
+              define_method method_name do |*args, &block|
+                metrics = Datastores::MetricHelper.metrics_for("Memcache", method_name)
 
-              NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-                t0 = Time.now
-                begin
-                  send method_name_without, *args, &block
-                ensure
-                  if NewRelic::Agent.config[:capture_memcache_keys]
-                    NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
+                NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
+                  t0 = Time.now
+                  begin
+                    send method_name_without, *args, &block
+                  ensure
+                    if NewRelic::Agent.config[:capture_memcache_keys]
+                      NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
+                    end
                   end
                 end
               end
-            end
 
-            client_class.send visibility, method_name
-            client_class.send visibility, method_name_without
+              send visibility, method_name
+              send visibility, method_name_without
+            end
           end
         end
 
