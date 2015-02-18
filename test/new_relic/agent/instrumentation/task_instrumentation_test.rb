@@ -50,6 +50,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
       'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
       'Apdex/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
       'HttpDispatcher',
+      'ApdexAll',
       'Apdex'
     ])
   end

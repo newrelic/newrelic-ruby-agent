@@ -57,6 +57,7 @@ class RackAutoInstrumentationTest < Minitest::Test
     assert_metrics_recorded_exclusive(
       [
         "Apdex",
+        "ApdexAll",
         "HttpDispatcher",
         "Middleware/all",
         "Apdex/Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
@@ -78,6 +79,7 @@ class RackAutoInstrumentationTest < Minitest::Test
     assert_metrics_recorded_exclusive(
       [
         "Apdex",
+        "ApdexAll",
         "HttpDispatcher",
         "Middleware/all",
         "Apdex/Rack/ExampleApp/call",
@@ -113,6 +115,7 @@ class RackAutoInstrumentationTest < Minitest::Test
     get '/?return-early=true'
     assert_metrics_recorded_exclusive([
       "Apdex",
+      "ApdexAll",
       "HttpDispatcher",
       "Middleware/all",
       "Apdex/Middleware/Rack/MiddlewareTwo/call",

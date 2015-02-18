@@ -72,6 +72,7 @@ class SinatraMetricExplosionTest < Minitest::Test
     ]
 
     name_beginnings_to_ignore = [
+      "ApdexAll",
       "Supportability",
       "GC/Transaction",
       "Nested/Controller",
