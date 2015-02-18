@@ -69,8 +69,9 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    defined?(::MemCache) || defined?(::Memcached) ||
-      defined?(::Dalli::Client) || defined?(::Spymemcached)
+    defined?(::MemCache) ||
+      defined?(::Memcached) ||
+      defined?(::Dalli::Client)
   end
 
   executes do
