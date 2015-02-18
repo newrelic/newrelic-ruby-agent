@@ -131,7 +131,7 @@ module NewRelic
         adapter_to_name = {
           :mysql => "MySQL",
           :mysql2 => "MySQL",
-          :postgresql => "Postgres",
+          :postgres => "Postgres",
           :sqlite => "SQLite"
         }
 
