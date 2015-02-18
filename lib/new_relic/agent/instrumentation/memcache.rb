@@ -29,28 +29,33 @@ module NewRelic
         def instrument_methods(client_class)
           supported_methods_for(client_class).each do |method_name|
 
-            client_class.send :alias_method, :"#{method_name}_without_newrelic_trace", :"#{method_name}"
+            visibility = NewRelic::Helper.instance_method_visibility client_class, method_name
+            method_name_without = :"#{method_name}_without_newrelic_trace"
 
-            client_class.send :define_method, method_name do |*args, &block|
-              metrics = Datastores::MetricHelper.metrics_for("Memcache", method_name)
+            client_class.class_eval do
+              alias_method method_name_without, method_name
 
-              self.class.trace_execution_scoped(metrics) do
-                t0 = Time.now
-                begin
-                  send :"#{method_name}_without_newrelic_trace", *args, &block
-                ensure
-                  if NewRelic::Agent.config[:capture_memcache_keys]
-                    NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
+              define_method method_name do |*args, &block|
+                metrics = Datastores::MetricHelper.metrics_for("Memcache", method_name)
+
+                NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
+                  t0 = Time.now
+                  begin
+                    send method_name_without, *args, &block
+                  ensure
+                    if NewRelic::Agent.config[:capture_memcache_keys]
+                      NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
+                    end
                   end
                 end
               end
+
+              send visibility, method_name
+              send visibility, method_name_without
             end
           end
-
-          unless client_class.method_defined?(method_name)
-            send :private, :"#{method_name}_with_newrelic_trace"
-          end
         end
+
       end
     end
   end
