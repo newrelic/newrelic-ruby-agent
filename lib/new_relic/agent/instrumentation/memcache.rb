@@ -37,7 +37,7 @@ module NewRelic
             client_class.send :define_method, method_name do |*args, &block|
               metrics = Datastores::MetricHelper.metrics_for("Memcache", method_name)
 
-              self.class.trace_execution_scoped(metrics) do
+              NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
                 t0 = Time.now
                 begin
                   send method_name_without, *args, &block
