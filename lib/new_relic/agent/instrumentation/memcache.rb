@@ -29,7 +29,10 @@ module NewRelic
         def instrument_methods(client_class)
           supported_methods_for(client_class).each do |method_name|
 
-            client_class.send :alias_method, :"#{method_name}_without_newrelic_trace", :"#{method_name}"
+            visibility = NewRelic::Helper.instance_method_visibility client_class, method_name
+            method_name_without = :"#{method_name}_without_newrelic_trace"
+
+            client_class.send :alias_method, method_name_without, method_name
 
             client_class.send :define_method, method_name do |*args, &block|
               metrics = Datastores::MetricHelper.metrics_for("Memcache", method_name)
@@ -37,7 +40,7 @@ module NewRelic
               self.class.trace_execution_scoped(metrics) do
                 t0 = Time.now
                 begin
-                  send :"#{method_name}_without_newrelic_trace", *args, &block
+                  send method_name_without, *args, &block
                 ensure
                   if NewRelic::Agent.config[:capture_memcache_keys]
                     NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
@@ -45,12 +48,12 @@ module NewRelic
                 end
               end
             end
-          end
 
-          unless client_class.method_defined?(method_name)
-            send :private, :"#{method_name}_with_newrelic_trace"
+            client_class.send visibility, method_name
+            client_class.send visibility, method_name_without
           end
         end
+
       end
     end
   end
