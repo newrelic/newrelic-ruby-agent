@@ -117,14 +117,10 @@ module NewRelic
           metric
         end
 
-        def self.metrics_from_sql(sql, adapter, host) #THREAD_LOCAL_ACCESS
+        def self.metrics_from_sql(sql) #THREAD_LOCAL_ACCESS
           primary_metric = metric_for_sql(NewRelic::Helper.correctly_encoded(sql))
 
           metrics = Instrumentation::ActiveRecordHelper.rollup_metrics_for(primary_metric)
-
-          if adapter
-           metrics << Instrumentation::ActiveRecordHelper.remote_service_metric(adapter, host)
-          end
 
           [primary_metric, metrics].flatten
         end

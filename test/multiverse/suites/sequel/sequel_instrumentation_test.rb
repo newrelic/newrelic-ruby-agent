@@ -35,7 +35,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
   def test_model_enumerator_generates_metrics
     in_web_transaction { Post.all }
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       "Database/SQL/select",
       "ActiveRecord/all",
@@ -46,7 +45,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
   def test_model_index_operator_generates_metrics
     in_web_transaction { Post[11] }
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       "Database/SQL/select",
       "ActiveRecord/all",
@@ -59,7 +57,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
       Post.create( :title => 'The Thing', :content => 'A wicked short story.' )
     end
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       'Database/SQL/insert',
       'ActiveRecord/all',
@@ -73,7 +70,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
       post.update( :title => 'A Lot of the Things' )
     end
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       'Database/SQL/update',
       'ActiveRecord/all',
@@ -87,7 +83,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
       post.update_all( :title => 'A Whole Hell of a Lot of the Things' )
     end
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       "Database/SQL/update",
       "ActiveRecord/all",
@@ -101,7 +96,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
       post.update_except( {:title => 'A Bit More of the Things'} )
     end
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       "Database/SQL/update",
       "ActiveRecord/all",
@@ -115,7 +109,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
       post.update_fields( {:title => 'A Plethora of Things'}, [:title] )
     end
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       "Database/SQL/update",
       "ActiveRecord/all",
@@ -129,7 +122,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
       post.update_only( {:title => 'A Lot of the Things'}, :title )
     end
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       "Database/SQL/update",
       "ActiveRecord/all",
@@ -144,7 +136,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
       post.save
     end
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       "Database/SQL/insert",
       "ActiveRecord/all",
@@ -158,7 +149,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
       post.delete
     end
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       "Database/SQL/delete",
       "ActiveRecord/all",
@@ -172,7 +162,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
       post.destroy
     end
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       "Database/SQL/delete",
       "ActiveRecord/all",
@@ -186,7 +175,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
       author.destroy
     end
 
-    assert_remote_service_metrics
     assert_metrics_recorded([
       "Database/SQL/delete",
       "ActiveRecord/all",
@@ -249,16 +237,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
   def assert_segment_has_explain_plan( segment, msg=nil )
     msg = "Expected #{segment.inspect} to have an explain plan"
     assert_block( msg ) { segment.params[:explain_plan].join =~ SQLITE_EXPLAIN_PLAN_COLUMNS_RE }
-  end
-
-  def assert_remote_service_metrics
-    engine = NewRelic::Agent.instance.stats_engine
-    if (jruby?)
-      metric_names = engine.to_h.keys.map(&:to_s)
-      assert metric_names.none? {|s| s.start_with?("RemoteService/")}, "Sqlite on JRuby doesn't report adapter right for this metric. Why's it here?"
-    else
-      assert_metrics_recorded "RemoteService/sql/sqlite/localhost"
-    end
   end
 
   def last_segment_for(options={})
