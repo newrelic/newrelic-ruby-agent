@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'thread'
 require 'logger'
 require 'new_relic/agent/hostname'
 
@@ -9,9 +10,8 @@ module NewRelic
   module Agent
     class AgentLogger
 
-      attr_reader :already_logged
-
       def initialize(root = "", override_logger=nil)
+        @already_logged_lock = Mutex.new
         clear_already_logged
         create_log(root, override_logger)
         set_log_level!
@@ -43,25 +43,24 @@ module NewRelic
       NUM_LOG_ONCE_KEYS = 1000
 
       def log_once(level, key, *msgs)
-        # Since `already_logged` might change between calls, just grab it once
-        # and use it throughout this method.
-        logged = already_logged
+        @already_logged_lock.synchronize do
+          return if @already_logged.include?(key)
 
-        return if logged.include?(key)
+          if @already_logged.size >= NUM_LOG_ONCE_KEYS && key.kind_of?(String)
+            # The reason for preventing too many keys in `logged` is for
+            # memory concerns.
+            # The reason for checking the type of the key is that we always want
+            # to allow symbols to log, since there are very few of them.
+            # The assumption here is that you would NEVER pass dynamically-created
+            # symbols, because you would never create symbols dynamically in the
+            # first place, as that would already be a memory leak in most Rubies,
+            # even if we didn't hang on to them all here.
+            return
+          end
 
-        if logged.size >= NUM_LOG_ONCE_KEYS && key.kind_of?(String)
-          # The reason for preventing too many keys in `logged` is for
-          # memory concerns.
-          # The reason for checking the type of the key is that we always want
-          # to allow symbols to log, since there are very few of them.
-          # The assumption here is that you would NEVER pass dynamically-created
-          # symbols, because you would never create symbols dynamically in the
-          # first place, as that would already be a memory leak in most Rubies,
-          # even if we didn't hang on to them all here.
-          return
+          @already_logged[key] = true
         end
 
-        logged[key] = true
         self.send(level, *msgs)
       end
 
@@ -148,7 +147,9 @@ module NewRelic
       end
 
       def clear_already_logged
-        @already_logged = {}
+        @already_logged_lock.synchronize do
+          @already_logged = {}
+        end
       end
 
       def wants_stdout?
