@@ -36,19 +36,19 @@ module Sequel
 
     # Instrument all queries that go through #execute_query.
     def log_yield(sql, args=nil) #THREAD_LOCAL_ACCESS
-      state = NewRelic::Agent::TransactionState.tl_get
-      return super unless state.is_execution_traced?
+      rval = nil
+      metrics = record_metrics(sql, args, Time.now - Time.now)
 
-      t0 = Time.now
-      rval = super
-      t1 = Time.now
-
-      begin
-        duration = t1 - t0
-        record_metrics(sql, args, duration)
-        notice_sql(state, sql, args, t0, t1)
-      rescue => err
-        NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
+      NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
+        t0 = Time.now
+        begin
+          rval = super
+        rescue => err
+          NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
+        ensure
+          t1 = Time.now
+          notice_sql(NewRelic::Agent::TransactionState.tl_get, sql, args, t0, t1)
+        end
       end
 
       return rval
@@ -58,12 +58,10 @@ module Sequel
     # +duration+.
     def record_metrics(sql, args, duration) #THREAD_LOCAL_ACCESS
       primary_metric = primary_metric_for(sql, args)
-      engine         = NewRelic::Agent.instance.stats_engine
-
       metrics = rollup_metrics_for(primary_metric)
       metrics << remote_service_metric(*self.opts.values_at(:adapter, :host)) if self.opts.key?(:adapter)
 
-      engine.tl_record_scoped_and_unscoped_metrics(primary_metric, metrics, duration)
+      [primary_metric, metrics].flatten
     end
 
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [
@@ -76,6 +74,7 @@ module Sequel
       metric   = primary_metric_for(sql, args)
       agent    = NewRelic::Agent.instance
       duration = finish - start
+
       stack    = state.traced_method_stack
 
       begin
