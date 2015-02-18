@@ -21,7 +21,7 @@ module NewRelic
           "Datastore/operation/#{product}/#{operation}"
         end
 
-        def self.context_metric
+        def self.rollup_metric
           if NewRelic::Agent::Transaction.recording_web_transaction?
             WEB_ROLLUP_METRIC
           else
@@ -34,15 +34,15 @@ module NewRelic
         end
 
         def self.metrics_for(product, operation, collection = nil)
-          current_context_metric = context_metric
+          current_rollup_metric = rollup_metric
 
           # Order of these metrics matters--the first metric in the list will
           # be treated as the scoped metric in a bunch of different cases.
           metrics = [
             operation_metric_for(product, operation),
-            product_rollup_metric(current_context_metric, product),
+            product_rollup_metric(current_rollup_metric, product),
             product_rollup_metric(ROLLUP_METRIC, product),
-            current_context_metric,
+            current_rollup_metric,
             ROLLUP_METRIC
           ]
           metrics.unshift statement_metric_for(product, collection, operation) if collection
