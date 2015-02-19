@@ -17,19 +17,30 @@ module Sequel
       module MethodTracer
 
         OPERATIONS = {
-          'all' => 'select'
-        }
+          'all' => 'select',
+          'first' => 'select',
+          'get' => 'select',
+          'update' => 'update',
+          'update_all' => 'update',
+          'update_except' => 'update',
+          'update_fields' => 'update',
+          'update_only' => 'update',
+          'create' => 'insert',
+          'save' => 'insert',
+          'delete' => 'delete',
+          'destroy' => 'delete'
+        }.freeze
 
         # Make a lambda for the method body of the traced method
-        def make_tracer_method( method_name, options )
+        def make_tracer_method(method_name)
           body = Proc.new do |*args, &block|
-            klass = self.is_a?( Class ) ? self : self.class
+            klass = self.is_a?(Class) ? self : self.class
+            
             metric = "Datastore/statement/SQLite/%s/%s" % [ klass.table_name, OPERATIONS[method_name] ]
-
             metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for('SQLite', OPERATIONS[method_name], klass.table_name)
 
-            trace_execution_scoped( metrics, options ) do
-              super( *args, &block )
+            trace_execution_scoped(metrics) do
+              NewRelic::Agent.disable_all_tracing { super(*args, &block) }
             end
           end
 
@@ -37,21 +48,13 @@ module Sequel
         end
 
         # Install a method named +method_name+ that will trace execution
-        # with a metric name derived from +metric+ (or +method_name+ if +metric+
-        # isn't specified). The +options+ hash is passed as-is though to
-        # NewRelic::Agent::MethodTracer#trace_execution_scoped; see the
-        # docs for that method for valid settings.
-        def add_method_tracer( method_name, metric=nil, options={} )
-          # Shift options hash if metric is omitted
-          if metric.is_a?( Hash )
-            options = metric
-            metric = nil
-          end
+        # with a metric name derived from +operation_name+ (or +method_name+ if +operation_name+
+        # isn't specified).
+        def add_method_tracer(method_name, operation_name=nil)
+          operation_name ||= method_name.to_s
 
-          metric ||= method_name.to_s
-
-          body = make_tracer_method( metric, options )
-          define_method( method_name, &body )
+          body = make_tracer_method(operation_name)
+          define_method(method_name, &body)
         end
 
       end # module MethodTracer
@@ -79,7 +82,7 @@ module Sequel
         include NewRelic::Agent::MethodTracer
         extend Sequel::Plugins::NewrelicInstrumentation::MethodTracer
 
-        add_method_tracer :[], :get
+        add_method_tracer :[], "get"
         add_method_tracer :all
         add_method_tracer :first
         add_method_tracer :create
