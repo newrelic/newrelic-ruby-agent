@@ -61,7 +61,7 @@ module Sequel
     # Record the given +sql+ within a new frame, using the given +start+ and
     # +finish+ times.
     def notice_sql(sql, args, start, finish)
-      state = NewRelic::Agent::TransactionState.tl_get
+      state    = NewRelic::Agent::TransactionState.tl_get
       metric   = NewRelic::Agent::Datastores::MetricHelper::metric_for_sql(sql)
       agent    = NewRelic::Agent.instance
       duration = finish - start
