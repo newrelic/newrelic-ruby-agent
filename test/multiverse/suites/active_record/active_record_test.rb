@@ -331,19 +331,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     )
   end
 
-  def test_with_database_metric_name
-    in_web_transaction do
-      Order.create(:name => "eely")
-      NewRelic::Agent.with_database_metric_name('Eel', 'squirm') do
-        Order.connection.select_rows("SELECT id FROM #{Order.table_name}")
-      end
-    end
-
-    assert_metrics_recorded(
-      { 'ActiveRecord/Eel/squirm' => {:call_count => 1}}
-    )
-  end
-
   ## helpers
 
   def adapter
