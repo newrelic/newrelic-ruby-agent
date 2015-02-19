@@ -35,11 +35,19 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Minitest::Te
   def test_model_enumerator_generates_metrics
     in_web_transaction { Post.all }
 
-    assert_metrics_recorded([
-      "Database/SQL/select",
-      "ActiveRecord/all",
-      "ActiveRecord/#{Post.name}/all"
-    ])
+    expected = [
+      ["Datastore/statement/SQLite/posts/select", "dummy"],
+      "Datastore/statement/SQLite/posts/select",
+      "Datastore/operation/SQLite/select",
+      "Datastore/SQLite/allWeb",
+      "Datastore/allWeb",
+      "Datastore/SQLite/all",
+      "Datastore/all",
+      "dummy",
+      "Apdex"
+    ]
+
+    assert_metrics_recorded_exclusive(expected)
   end
 
   def test_model_index_operator_generates_metrics

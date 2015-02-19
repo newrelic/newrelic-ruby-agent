@@ -5,6 +5,7 @@
 
 require 'sequel' unless defined?( Sequel )
 require 'newrelic_rpm' unless defined?( NewRelic )
+require 'new_relic/agent/datastores/metric_helper'
 
 module Sequel
   module Plugins
@@ -15,12 +16,19 @@ module Sequel
       # Meta-programming for creating method tracers for the Sequel::Model plugin.
       module MethodTracer
 
+        OPERATIONS = {
+          'all' => 'select'
+        }
+
         # Make a lambda for the method body of the traced method
-        def make_tracer_method( opname, options )
+        def make_tracer_method( method_name, options )
           body = Proc.new do |*args, &block|
-            classname = self.is_a?( Class ) ? self.name : self.class.name
-            metric = "ActiveRecord/%s/%s" % [ classname, opname ]
-            trace_execution_scoped( metric, options ) do
+            klass = self.is_a?( Class ) ? self : self.class
+            metric = "Datastore/statement/SQLite/%s/%s" % [ klass.table_name, OPERATIONS[method_name] ]
+
+            metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for('SQLite', OPERATIONS[method_name], klass.table_name)
+
+            trace_execution_scoped( metrics, options ) do
               super( *args, &block )
             end
           end

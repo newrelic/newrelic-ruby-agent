@@ -38,7 +38,8 @@ module Sequel
     # Instrument all queries that go through #execute_query.
     def log_yield(sql, args=nil) #THREAD_LOCAL_ACCESS
       rval = nil
-      metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_from_sql(sql)
+      adapter = NewRelic::Agent::Datastores::MetricHelper.product_name_from_sequel_adapter(self.class.adapter_scheme)
+      metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_from_sql(adapter, sql)
 
       NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
         t0 = Time.now
