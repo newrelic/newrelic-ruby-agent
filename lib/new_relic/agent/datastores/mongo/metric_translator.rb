@@ -52,6 +52,9 @@ module NewRelic
             end
 
             build_metrics(name, collection)
+          rescue => e
+            NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
+            []
           end
 
           MONGO_PRODUCT_NAME = "MongoDB".freeze
@@ -63,6 +66,7 @@ module NewRelic
           end
 
           def self.instance_metric(host, port, database)
+            return unless host && port && database
             "Datastore/instance/MongoDB/#{host}:#{port}/#{database}"
           end
 

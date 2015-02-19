@@ -20,7 +20,7 @@ DependencyDetection.defer do
   end
 
   def install_mongo_instrumentation
-    require 'new_relic/agent/datastores/mongo/metric_generator'
+    require 'new_relic/agent/datastores/mongo/metric_translator'
     require 'new_relic/agent/datastores/mongo/statement_formatter'
 
     hook_instrument_methods
@@ -48,7 +48,7 @@ DependencyDetection.defer do
           end
 
           database_name = @db.name if @db
-          NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_instance_metric_for(host, port, database_name)
+          NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric(host, port, database_name)
         end
       end
 
@@ -65,7 +65,7 @@ DependencyDetection.defer do
 
       def new_relic_generate_metrics(operation, payload = nil)
         payload ||= { :collection => self.name, :database => self.db.name }
-        NewRelic::Agent::Datastores::Mongo::MetricGenerator.generate_metrics_for(operation, payload)
+        NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(operation, payload)
       end
 
       def instrument_with_new_relic_trace(name, payload = {}, &block)
