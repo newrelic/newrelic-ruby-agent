@@ -3,13 +3,14 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/datastores/mongo/obfuscator'
+require 'new_relic/agent/datastores/metric_helper'
 
 module NewRelic
   module Agent
     module Datastores
       module Mongo
         module MetricTranslator
-          def self.metrics_for(name, payload, request_type = :web)
+          def self.metrics_for(name, payload)
             payload ||= {}
 
             if collection_in_selector?(payload)
@@ -50,27 +51,22 @@ module NewRelic
               collection = collection_name_from_rename_selector(payload)
             end
 
-            build_metrics(name, collection, request_type)
+            build_metrics(name, collection)
+          rescue => e
+            NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
+            []
           end
 
-          def self.build_metrics(name, collection, request_type = :web)
-            default_metrics = [
-              "Datastore/statement/MongoDB/#{collection}/#{name}",
-              "Datastore/operation/MongoDB/#{name}",
-              "Datastore/all"
-            ]
+          MONGO_PRODUCT_NAME = "MongoDB".freeze
 
-            if request_type == :web
-              default_metrics << 'ActiveRecord/all'
-              default_metrics << 'Datastore/allWeb'
-            else
-              default_metrics << 'Datastore/allOther'
-            end
-
-            default_metrics
+          def self.build_metrics(name, collection)
+            NewRelic::Agent::Datastores::MetricHelper.metrics_for(MONGO_PRODUCT_NAME,
+                                                                  name,
+                                                                  collection)
           end
 
           def self.instance_metric(host, port, database)
+            return unless host && port && database
             "Datastore/instance/MongoDB/#{host}:#{port}/#{database}"
           end
 

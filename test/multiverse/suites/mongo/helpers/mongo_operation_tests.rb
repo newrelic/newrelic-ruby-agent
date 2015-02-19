@@ -151,7 +151,8 @@ module MongoOperationTests
       metrics = create_index_metrics
     elsif client_is_1_10_or_later && !server_is_2_6_or_later?
       metrics = create_index_metrics.merge(create_indexes_metrics)
-      metrics['ActiveRecord/all'][:call_count] += 1
+      metrics['Datastore/MongoDB/allWeb'][:call_count] += 1
+      metrics['Datastore/MongoDB/all'][:call_count]    += 1
       metrics['Datastore/allWeb'][:call_count] += 1
       metrics['Datastore/all'][:call_count]    += 1
     elsif client_is_1_10_or_later && server_is_2_6_or_later?
@@ -283,6 +284,24 @@ module MongoOperationTests
     expected = metrics_with_attributes(metrics)
 
     assert_metrics_recorded(expected)
+  end
+
+  def test_web_scoped_metrics
+    in_web_transaction("webby") do
+      @collection.insert(@tribble)
+    end
+
+    metric = statement_metric(:insert)
+    assert_metrics_recorded([[metric, "webby"]])
+  end
+
+  def test_background_scoped_metrics
+    in_background_transaction("backed-up") do
+      @collection.insert(@tribble)
+    end
+
+    metric = statement_metric(:insert)
+    assert_metrics_recorded([[metric, "backed-up"]])
   end
 
   def test_notices_nosql
@@ -435,7 +454,7 @@ module MongoOperationTests
     NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(false)
     @collection.insert(@tribble)
 
-    metrics = build_test_metrics(:insert, :other)
+    metrics = build_test_metrics(:insert)
     expected = metrics_with_attributes(metrics)
 
     assert_metrics_recorded(expected)
@@ -476,5 +495,10 @@ module MongoOperationTests
     client = @collection.db.respond_to?(:client) && @collection.db.client
     return false unless client
     client.respond_to?(:max_wire_version) && client.max_wire_version >= 2
+  end
+
+  def statement_metric(action)
+    metrics = build_test_metrics(action)
+    metrics.select { |m| m.start_with?("Datastore/statement") }.first
   end
 end

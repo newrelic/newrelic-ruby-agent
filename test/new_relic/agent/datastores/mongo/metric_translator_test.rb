@@ -21,33 +21,37 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_build_metrics_includes_web
-    metrics = build_test_metrics('test')
-    assert_includes metrics, 'Datastore/allWeb'
+    in_web_transaction do
+      metrics = build_test_metrics('test')
+      assert_includes metrics, 'Datastore/allWeb'
+    end
   end
 
   def test_build_metrics_includes_other
-    metrics = build_test_metrics('test', :other)
-    assert_includes metrics, 'Datastore/allOther'
+    in_background_transaction do
+      metrics = build_test_metrics('test')
+      assert_includes metrics, 'Datastore/allOther'
+    end
   end
 
   def test_build_metrics_includes_all_for_web
-    metrics = build_test_metrics('test')
-    assert_includes metrics, 'Datastore/all'
+    in_web_transaction do
+      metrics = build_test_metrics('test')
+      assert_includes metrics, 'Datastore/all'
+    end
   end
 
   def test_build_metrics_includes_all_for_other
-    metrics = build_test_metrics('test', :other)
-    assert_includes metrics, 'Datastore/all'
+    in_background_transaction do
+      metrics = build_test_metrics('test')
+      assert_includes metrics, 'Datastore/all'
+    end
   end
 
-  def test_build_metrics_includes_activerecord_all_on_web
-    metrics = build_test_metrics('test', :web)
-    assert_includes metrics, 'ActiveRecord/all'
-  end
-
-  def test_build_metrics_doesnt_include_activerecord_all_on_other
-    metrics = build_test_metrics('test', :other)
-    assert_not_includes metrics, 'ActiveRecord/all'
+  def test_build_metrics_is_graceful_if_exceptions_are_raised
+    NewRelic::Agent::Datastores::MetricHelper.stubs(:metrics_for).raises("Boom")
+    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, {})
+    assert_empty metrics
   end
 
   def test_metrics_for_find
@@ -317,5 +321,20 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   def test_instance_metric
     metric = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric('localhost', '27017', @database_name)
     assert_equal 'Datastore/instance/MongoDB/localhost:27017/multiverse', metric
+  end
+
+  def test_instance_metric_does_not_include_instance_metric_without_host
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric(nil, '27017', @database_name)
+    assert_nil result
+  end
+
+  def test_instance_metric_does_not_include_instance_metric_without_port
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric('localhost', nil, @database_name)
+    assert_nil result
+  end
+
+  def test_instance_metric_does_not_include_instance_metric_without_database_name
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric('localhost', '27017', nil)
+    assert_nil result
   end
 end
