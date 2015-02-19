@@ -10,8 +10,8 @@ module NewRelic
       module ActiveRecordHelper
         module_function
 
-        ACTIVE_RECORD = "ActiveRecord".freeze
-        OTHER         = "other".freeze
+        ACTIVE_RECORD = "ActiveRecord".freeze unless defined?(ACTIVE_RECORD)
+        OTHER         = "other".freeze unless defined?(OTHER)
 
         def metrics_for(name, sql, config=nil)
           product = map_product(config)
@@ -41,7 +41,7 @@ module NewRelic
           'count' => 'find',
           'exists' => 'find',
           'update' => 'save',
-        }.freeze
+        }.freeze unless defined?(OPERATION_NAMES)
 
         def map_operation(parts)
           operation = parts.last.downcase
@@ -75,9 +75,9 @@ module NewRelic
 
           # https://rubygems.org/gems/activerecord-oracle_enhanced-adapter
           "oracle_enhanced" => "Oracle"
-        }.freeze
+        }.freeze unless defined?(PRODUCT_NAMES)
 
-        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
+        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze unless defined?(ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
 
         def map_product(config)
           PRODUCT_NAMES.fetch(adapter_name(config),
