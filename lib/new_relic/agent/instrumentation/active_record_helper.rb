@@ -56,6 +56,15 @@ module NewRelic
 
           "sqlite3"    => "SQLite",
 
+          # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
+          "jdbcmysql"  => "MySQL",
+
+          # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
+          "jdbcpostgresql" => "Postgres",
+
+          # https://rubygems.org/gems/activerecord-jdbcsqlite3-adapter
+          "jdbcsqlite3"    => "SQLite",
+
           # https://rubygems.org/gems/activerecord-jdbcderby-adapter
           "derby"      => "Derby",
           "jdbcderby"  => "Derby",
