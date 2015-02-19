@@ -51,8 +51,30 @@ module NewRelic
         PRODUCT_NAMES = {
           "mysql"      => "MySQL",
           "mysql2"     => "MySQL",
+
           "postgresql" => "Postgres",
-          "sqlite3"    => "SQLite"
+
+          "sqlite3"    => "SQLite",
+
+          # https://rubygems.org/gems/activerecord-jdbcderby-adapter
+          "derby"      => "Derby",
+          "jdbcderby"  => "Derby",
+
+          # https://rubygems.org/gems/activerecord-jdbc-adapter
+          "jdbc"       => "JDBC",
+
+          # https://rubygems.org/gems/activerecord-jdbcmssql-adapter
+          "jdbcmssql"  => "MSSQL",
+          "mssql"      => "MSSQL",
+
+          # https://rubygems.org/gems/activerecord-sqlserver-adapter
+          "sqlserver"  => "MSSQL",
+
+          # https://rubygems.org/gems/activerecord-odbc-adapter
+          "odbc"       => "ODBC",
+
+          # https://rubygems.org/gems/activerecord-oracle_enhanced-adapter
+          "oracle_enhanced" => "Oracle"
         }.freeze
 
         ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
