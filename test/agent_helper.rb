@@ -516,7 +516,12 @@ def wait_for_backtrace_service_poll(opts={})
   until opts[:service].worker_loop.iterations > opts[:iterations]
     sleep(0.01)
     if Time.now > deadline
-      raise "Timed out waiting #{opts[:timeout]} s for backtrace service poll"
+      raise "Timed out waiting #{opts[:timeout]} s for backtrace service poll\n" +
+            "Worker loop ran for #{opts[:service].worker_loop.iterations} iterations\n\n" +
+            Thread.list.map { |t|
+              "#{t.to_s}: newrelic_label: #{t[:newrelic_label].inspect}\n\n" +
+              (t.backtrace || []).join("\n\t")
+            }.join("\n\n")
     end
   end
 end
