@@ -49,32 +49,6 @@ module NewRelic
           metrics
         end
 
-        def self.active_record_metric_for_name(name)
-          return unless name && name.respond_to?(:split)
-          parts = name.split
-          return unless parts.size == 2
-
-          model = parts.first
-          operation_name = active_record_operation_from_name(parts.last.downcase)
-
-          "Datastore/#{model}/#{operation_name}" if operation_name
-        end
-
-        OPERATION_NAMES = {
-          'load' => 'find',
-          'count' => 'find',
-          'exists' => 'find',
-          'find' => 'find',
-          'destroy' => 'destroy',
-          'create' => 'create',
-          'update' => 'save',
-          'save' => 'save'
-        }.freeze
-
-        def self.active_record_operation_from_name(operation)
-          OPERATION_NAMES[operation]
-        end
-
         PRODUCT_NAMES = {
           "MySQL" => "MySQL",
           "Mysql2" => "MySQL",

@@ -25,9 +25,9 @@ module NewRelic
           return if payload[:name] == CACHED_QUERY_NAME
           state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
-          event = pop_event(id)
-          record_metrics(event)
-          notice_sql(state, event)
+          event  = pop_event(id)
+          base_metric = record_metrics(event)
+          notice_sql(state, event, base_metric)
         rescue => e
           log_notification_error(e, name, 'finish')
         end
@@ -42,10 +42,9 @@ module NewRelic
           end
         end
 
-        def notice_sql(state, event)
+        def notice_sql(state, event, metric)
           stack  = state.traced_method_stack
           config = active_record_config_for_event(event)
-          metric = base_metric(event)
 
           # enter transaction trace segment
           frame = stack.push_frame(state, :active_record, event.time)
@@ -65,23 +64,14 @@ module NewRelic
         end
 
         def record_metrics(event) #THREAD_LOCAL_ACCESS
-          base = base_metric(event)
-
-          other_metrics = ActiveRecordHelper.rollup_metrics_for(base)
-          if config = active_record_config_for_event(event)
-            other_metrics << ActiveRecordHelper.remote_service_metric(config[:adapter], config[:host])
-          end
-          other_metrics.compact!
+          base, *other_metrics = ActiveRecordHelper.metrics_for(event.payload[:name],
+                                                               NewRelic::Helper.correctly_encoded(event.payload[:sql]))
 
           NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(
             base, other_metrics,
-            Helper.milliseconds_to_seconds(event.duration)
-          )
-        end
+            Helper.milliseconds_to_seconds(event.duration))
 
-        def base_metric(event)
-          ActiveRecordHelper.metric_for_name(event.payload[:name]) ||
-            ActiveRecordHelper.metric_for_sql(NewRelic::Helper.correctly_encoded(event.payload[:sql]))
+          base
         end
 
         def active_record_config_for_event(event)

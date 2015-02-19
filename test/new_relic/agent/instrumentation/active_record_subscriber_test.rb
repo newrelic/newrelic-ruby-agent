@@ -35,7 +35,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
 
     simulate_query(2)
 
-    metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
+    metric_name = 'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
     assert_metrics_recorded(
       metric_name => { :call_count => 1, :total_call_time => 2.0 }
     )
@@ -46,7 +46,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
 
     in_transaction('test_txn') { simulate_query(2) }
 
-    metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
+    metric_name = 'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
     assert_metrics_recorded(
       [metric_name, 'test_txn'] => { :call_count => 1, :total_call_time => 2 }
     )
@@ -57,7 +57,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
 
     NewRelic::Agent.disable_all_tracing { simulate_query(2) }
 
-    metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
+    metric_name = 'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
     assert_metrics_not_recorded([metric_name])
   end
 
@@ -67,22 +67,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     in_web_transaction { simulate_query(2) }
 
     assert_metrics_recorded(
-      'ActiveRecord/find' => { :call_count => 1, :total_call_time => 2 },
-      'ActiveRecord/all' => { :call_count => 1, :total_call_time => 2 }
-    )
-  end
-
-  def test_records_remote_service_metric
-    connection_pool = stub(:connections => [ @connection ])
-    connection_pool_list = [connection_pool]
-    ::ActiveRecord::Base.connection_handler.stubs(:connection_pool_list).returns(connection_pool_list)
-
-    freeze_time
-
-    simulate_query(2)
-
-    assert_metrics_recorded(
-      'RemoteService/sql/mysql/server' => { :call_count => 1, :total_call_time => 2.0 }
+      'Datastore/operation/ActiveRecord/find' => { :call_count => 1, :total_call_time => 2 },
+      'Datastore/allWeb' => { :call_count => 1, :total_call_time => 2 },
+      'Datastore/all' => { :call_count => 1, :total_call_time => 2 }
     )
   end
 
@@ -97,7 +84,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     sampler = NewRelic::Agent.instance.transaction_sampler
     sampler.last_sample.root_segment.each_segment{|s| last_segment = s }
 
-    assert_equal('ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
+    assert_equal('Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
                  last_segment.metric_name)
     assert_equal('SELECT * FROM sandwiches',
                  last_segment.params[:sql])
