@@ -54,7 +54,7 @@ module NewRelic
             NewRelic::Helper.correctly_encoded(sql),
             @config)
 
-          self.class.trace_execution_scoped(metrics) do
+          NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
             t0 = Time.now
             begin
               log_without_newrelic_instrumentation(*args, &block)
