@@ -37,6 +37,12 @@ module NewRelic::Agent::Instrumentation
       assert_equal(expected, metrics)
     end
 
+    def test_metric_with_product_name_from_adapter
+      metrics = ActiveRecordHelper.metrics_for('Model Load', nil, :adapter => "mysql")
+      expected = expected_statement_metrics("find", "Model/find", "MySQL")
+      assert_equal(expected, metrics)
+    end
+
     def test_metrics_from_sql
       metrics = ActiveRecordHelper.metrics_for('invalid', "SELECT * FROM boo")
       expected = expected_operation_metrics("select")
@@ -49,17 +55,17 @@ module NewRelic::Agent::Instrumentation
       assert_equal(expected, metrics)
     end
 
-    def expected_statement_metrics(operation, statement)
-      ["Datastore/statement/ActiveRecord/#{statement}"] +
-      expected_operation_metrics(operation)
+    def expected_statement_metrics(operation, statement, product = "ActiveRecord")
+      ["Datastore/statement/#{product}/#{statement}"] +
+        expected_operation_metrics(operation, product)
     end
 
-    def expected_operation_metrics(operation)
-      ["Datastore/operation/ActiveRecord/#{operation}",
-        "Datastore/ActiveRecord/allOther",
-          "Datastore/ActiveRecord/all",
-          "Datastore/allOther",
-          "Datastore/all"]
+    def expected_operation_metrics(operation, product = "ActiveRecord")
+      ["Datastore/operation/#{product}/#{operation}",
+        "Datastore/#{product}/allOther",
+        "Datastore/#{product}/all",
+        "Datastore/allOther",
+        "Datastore/all"]
     end
   end
 end

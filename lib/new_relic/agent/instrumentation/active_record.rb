@@ -51,7 +51,8 @@ module NewRelic
           sql, name, _ = args
           metrics = ActiveRecordHelper.metrics_for(
             NewRelic::Helper.correctly_encoded(name),
-            NewRelic::Helper.correctly_encoded(sql))
+            NewRelic::Helper.correctly_encoded(sql),
+            @config)
 
           self.class.trace_execution_scoped(metrics) do
             t0 = Time.now

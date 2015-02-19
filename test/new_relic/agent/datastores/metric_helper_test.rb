@@ -70,30 +70,6 @@ module NewRelic
         assert_equal expected, result
       end
 
-      def test_product_is_named_properly_for_mysql_adapter
-        product_name = Datastores::MetricHelper.active_record_product_name_from_adapter("MySQL")
-        assert_equal "MySQL", product_name
-      end
-
-      def test_product_is_named_properly_for_mysql2_adapter
-        product_name = Datastores::MetricHelper.active_record_product_name_from_adapter("Mysql2")
-        assert_equal "MySQL", product_name
-      end
-
-      def test_product_is_named_properly_for_postgres_adapter
-        product_name = Datastores::MetricHelper.active_record_product_name_from_adapter("PostgreSQL")
-        assert_equal "Postgres", product_name
-      end
-
-      def test_product_is_named_properly_for_sqlite_adapter
-        product_name = Datastores::MetricHelper.active_record_product_name_from_adapter("SQLite")
-        assert_equal "SQLite", product_name
-      end
-
-      def test_product_is_active_record_for_unkown_adapter
-        product_name = Datastores::MetricHelper.active_record_product_name_from_adapter("YouDontKnowThisAdapter")
-        assert_equal "ActiveRecord", product_name
-      end
     end
   end
 end

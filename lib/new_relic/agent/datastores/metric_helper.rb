@@ -49,17 +49,6 @@ module NewRelic
           metrics
         end
 
-        PRODUCT_NAMES = {
-          "MySQL" => "MySQL",
-          "Mysql2" => "MySQL",
-          "PostgreSQL" => "Postgres",
-          "SQLite" => "SQLite"
-        }.freeze
-        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
-
-        def self.active_record_product_name_from_adapter(adapter_name)
-          PRODUCT_NAMES.fetch(adapter_name, ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
-        end
       end
     end
   end

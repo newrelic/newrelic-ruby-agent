@@ -26,8 +26,9 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
           event  = pop_event(id)
-          base_metric = record_metrics(event)
-          notice_sql(state, event, base_metric)
+          config = active_record_config_for_event(event)
+          base_metric = record_metrics(event, config)
+          notice_sql(state, event, config, base_metric)
         rescue => e
           log_notification_error(e, name, 'finish')
         end
@@ -42,9 +43,8 @@ module NewRelic
           end
         end
 
-        def notice_sql(state, event, metric)
+        def notice_sql(state, event, config, metric)
           stack  = state.traced_method_stack
-          config = active_record_config_for_event(event)
 
           # enter transaction trace segment
           frame = stack.push_frame(state, :active_record, event.time)
@@ -63,9 +63,10 @@ module NewRelic
           stack.pop_frame(state, frame, metric, event.end)
         end
 
-        def record_metrics(event) #THREAD_LOCAL_ACCESS
+        def record_metrics(event, config) #THREAD_LOCAL_ACCESS
           base, *other_metrics = ActiveRecordHelper.metrics_for(event.payload[:name],
-                                                               NewRelic::Helper.correctly_encoded(event.payload[:sql]))
+                                                               NewRelic::Helper.correctly_encoded(event.payload[:sql]),
+                                                               config)
 
           NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(
             base, other_metrics,

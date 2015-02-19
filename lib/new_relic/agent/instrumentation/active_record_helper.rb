@@ -13,9 +13,11 @@ module NewRelic
         ACTIVE_RECORD = "ActiveRecord".freeze
         OTHER         = "other".freeze
 
-        def metrics_for(name, sql)
+        def metrics_for(name, sql, config=nil)
+          product = map_product(config)
           operation, model = operation_and_model(name, sql)
-          NewRelic::Agent::Datastores::MetricHelper.metrics_for(ACTIVE_RECORD,
+
+          NewRelic::Agent::Datastores::MetricHelper.metrics_for(product,
                                                                 operation,
                                                                 model)
         end
@@ -44,6 +46,24 @@ module NewRelic
         def map_operation(parts)
           operation = parts.last.downcase
           OPERATION_NAMES.fetch(operation, operation)
+        end
+
+        PRODUCT_NAMES = {
+          "mysql"      => "MySQL",
+          "mysql2"     => "MySQL",
+          "postgresql" => "Postgres",
+          "sqlite3"    => "SQLite"
+        }.freeze
+
+        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
+
+        def map_product(config)
+          PRODUCT_NAMES.fetch(adapter_name(config),
+                              ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
+        end
+
+        def adapter_name(config)
+          config[:adapter] if config
         end
 
       end

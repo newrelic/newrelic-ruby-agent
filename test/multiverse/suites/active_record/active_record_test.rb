@@ -211,9 +211,9 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.first
     end
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-    segment = find_segment_with_name(sample, 'Datastore/statement/ActiveRecord/Order/find')
-
-    assert_equal('Datastore/statement/ActiveRecord/Order/find', segment.metric_name)
+    metric = "Datastore/statement/#{current_product}/Order/find"
+    segment = find_segment_with_name(sample, metric)
+    assert_equal(metric, segment.metric_name)
 
     sql = segment.params[:sql]
     assert_match(/^SELECT /, sql)
@@ -230,7 +230,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       end
 
       sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-      sql_segment = find_segment_with_name(sample, 'Datastore/statement/ActiveRecord/Order/find')
+      metric = "Datastore/statement/#{current_product}/Order/find"
+      sql_segment = find_segment_with_name(sample, metric)
 
       assert_match(/^SELECT /, sql_segment.params[:sql])
 
@@ -285,7 +286,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      {'Datastore/operation/ActiveRecord/select' => {:call_count => 1}}
+      {"Datastore/operation/#{current_product}/select" => {:call_count => 1}}
     )
   end
 
@@ -302,6 +303,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def supports_explain_plans?
     [:mysql, :postgres].include?(adapter)
+  end
+
+  def current_product
+    NewRelic::Agent::Instrumentation::ActiveRecordHelper::PRODUCT_NAMES[adapter.to_s]
   end
 
   def active_record_major_version
@@ -330,8 +335,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def assert_activerecord_metrics(model, operation, stats={})
     assert_metrics_recorded({
-      "Datastore/statement/ActiveRecord/#{model}/#{operation}" => stats,
-      "Datastore/operation/ActiveRecord/#{operation}" => {},
+      "Datastore/statement/#{current_product}/#{model}/#{operation}" => stats,
+      "Datastore/operation/#{current_product}/#{operation}" => {},
       "Datastore/allWeb" => {},
       "Datastore/all" => {}
     })
@@ -339,7 +344,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def assert_generic_rollup_metrics(operation)
     assert_metrics_recorded([
-      "Datastore/operation/ActiveRecord/#{operation}",
+      "Datastore/operation/#{current_product}/#{operation}",
       "Datastore/allWeb",
       "Datastore/all"
     ])
