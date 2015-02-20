@@ -5,6 +5,7 @@
 
 require 'sequel' unless defined?( Sequel )
 require 'newrelic_rpm' unless defined?( NewRelic )
+require 'new_relic/agent/instrumentation/sequel_helper'
 require 'new_relic/agent/datastores/metric_helper'
 
 module Sequel
@@ -16,28 +17,14 @@ module Sequel
       # Meta-programming for creating method tracers for the Sequel::Model plugin.
       module MethodTracer
 
-        OPERATIONS = {
-          'all' => 'select',
-          'first' => 'select',
-          'get' => 'select',
-          'update' => 'update',
-          'update_all' => 'update',
-          'update_except' => 'update',
-          'update_fields' => 'update',
-          'update_only' => 'update',
-          'create' => 'insert',
-          'save' => 'insert',
-          'delete' => 'delete',
-          'destroy' => 'delete'
-        }.freeze
-
         # Make a lambda for the method body of the traced method
         def make_tracer_method(method_name)
           body = Proc.new do |*args, &block|
             klass = self.is_a?(Class) ? self : self.class
-            
-            metric = "Datastore/statement/SQLite/%s/%s" % [ klass.table_name, OPERATIONS[method_name] ]
-            metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for('SQLite', OPERATIONS[method_name], klass.table_name)
+
+            operation = NewRelic::Agent::Instrumentation::SequelHelper.operation_from_method_name(method_name)
+            metric = "Datastore/statement/SQLite/%s/%s" % [ klass.table_name, operation ]
+            metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for('SQLite', operation, klass.table_name)
 
             trace_execution_scoped(metrics) do
               NewRelic::Agent.disable_all_tracing { super(*args, &block) }

@@ -57,7 +57,7 @@ class SequelPluginTest < Minitest::Test
       post = NewRelic::Agent.disable_all_tracing do
         Post.create( :title => 'All The Things', :content => 'A story about beans.' )
       end
-      
+
       post.update( :title => 'A Lot of the Things' )
     end
 

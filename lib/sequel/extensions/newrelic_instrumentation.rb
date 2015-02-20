@@ -5,7 +5,7 @@
 
 require 'sequel' unless defined?( Sequel )
 require 'newrelic_rpm' unless defined?( NewRelic )
-require 'new_relic/agent/instrumentation/active_record_helper'
+require 'new_relic/agent/instrumentation/sequel_helper'
 require 'new_relic/agent/datastores/metric_helper'
 
 module Sequel
