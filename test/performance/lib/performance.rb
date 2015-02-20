@@ -17,6 +17,7 @@ require 'performance/reporting'
 require 'performance/table'
 require 'performance/console_reporter'
 require 'performance/json_reporter'
+require 'performance/formatting_helpers'
 
 require 'performance/hako_client'
 require 'performance/hako_reporter'

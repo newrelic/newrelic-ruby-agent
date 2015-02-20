@@ -20,21 +20,6 @@ module Performance
       report_failed_results
     end
 
-    def format_duration(d)
-      if d < 0.001
-        ds = d * 1000 * 1000
-        unit = "us"
-      elsif d < 1.0
-        ds = d * 1000
-        unit = "ms"
-      else
-        ds = d
-        unit = "s"
-      end
-
-      sprintf("%.2f %s", ds, unit)
-    end
-
     def format_measurements(result)
       key_width        = result.measurements.keys.map(&:size).max
       formatted_values = result.measurements.values.map { |v| sprintf("%g", v) }
@@ -53,7 +38,8 @@ module Performance
 
       puts ''
       results.each do |result|
-        puts "#{result.identifier}: %.3f ips (#{format_duration(result.time_per_iteration)} / iteration)" % [result.ips]
+        formatted_duration = FormattingHelpers.format_duration(result.time_per_iteration)
+        puts "#{result.identifier}: %.3f ips (#{formatted_duration} / iteration)" % [result.ips]
         puts "  #{result.iterations} iterations"
         unless @options[:brief]
           puts format_measurements(result)

@@ -119,7 +119,8 @@ module Performance
       total_iterations = 0
       start_time       = nil
       elapsed          = nil
-      batch_size       = batch_size_in_iterations(blk)
+
+      batch_size = batch_size_in_iterations(blk) unless target_iterations
 
       with_callbacks(@result.test_name, false) do
         start_time = Time.now
