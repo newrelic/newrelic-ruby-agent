@@ -301,6 +301,10 @@ module NewRelic
         http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
                                       proxy_server.user, proxy_server.password)
 
+        if proxy_server.name
+          ::NewRelic::Agent.logger.debug("Using proxy server #{proxy_server.name}:#{proxy_server.port}")
+        end
+
         conn = http_class.new((@collector.ip || @collector.name), @collector.port)
         setup_connection_for_ssl(conn) if Agent.config[:ssl]
         setup_connection_timeouts(conn)

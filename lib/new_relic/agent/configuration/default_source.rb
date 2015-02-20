@@ -306,7 +306,7 @@ module NewRelic
           :description => 'Defines a host for communicating with New Relic via a proxy server.'
         },
         :proxy_port => {
-          :default => nil,
+          :default => 8080,
           :allow_nil => true,
           :public => true,
           :type => Fixnum,
