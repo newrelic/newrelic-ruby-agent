@@ -28,7 +28,7 @@ module NewRelic
         end
 
         # Fallback if the product cannot be determined
-        DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
+        DEFAULT_PRODUCT_NAME = "Sequel".freeze
 
         # A Sequel adapter is called an "adapter_scheme" and can be accessed from
         # the database:

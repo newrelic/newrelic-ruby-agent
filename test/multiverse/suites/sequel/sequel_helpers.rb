@@ -49,4 +49,12 @@ module SequelHelpers
     end
     l_segment
   end
+
+  def product_name
+    if RUBY_ENGINE == "jruby"
+      "Sequel"
+    else
+      "SQLite"
+    end
+  end
 end

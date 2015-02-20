@@ -16,12 +16,12 @@ class SequelPluginTest < Minitest::Test
 
   def expected_metrics_for_operation(operation)
     [
-      ["Datastore/statement/SQLite/posts/#{operation}", "dummy"],
-      "Datastore/statement/SQLite/posts/#{operation}",
-      "Datastore/operation/SQLite/#{operation}",
-      "Datastore/SQLite/allWeb",
+      ["Datastore/statement/#{product_name}/posts/#{operation}", "dummy"],
+      "Datastore/statement/#{product_name}/posts/#{operation}",
+      "Datastore/operation/#{product_name}/#{operation}",
+      "Datastore/#{product_name}/allWeb",
       "Datastore/allWeb",
-      "Datastore/SQLite/all",
+      "Datastore/#{product_name}/all",
       "Datastore/all",
       "dummy",
       "Apdex"
@@ -209,7 +209,7 @@ class SequelPluginTest < Minitest::Test
     }
     with_config(config) do
       in_web_transaction { Post.all }
-      expected_metric_name = "Datastore/operation/SQLite/select"
+      expected_metric_name = "Datastore/operation/#{product_name}/select"
       recorded_metric_names = NewRelic::Agent.agent.sql_sampler.sql_traces.values.map(&:database_metric_name)
       assert recorded_metric_names.include? expected_metric_name
     end

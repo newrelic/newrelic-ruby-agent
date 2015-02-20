@@ -9,7 +9,7 @@ module NewRelic
   module Agent
     class SequelHelperTest < Minitest::Test
       def test_product_name_from_adapter
-        expected_default = "ActiveRecord"
+        expected_default = "Sequel"
         default = Hash.new(expected_default)
 
         adapter_to_name = {

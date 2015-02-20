@@ -23,8 +23,8 @@ module Sequel
             klass = self.is_a?(Class) ? self : self.class
 
             operation = NewRelic::Agent::Instrumentation::SequelHelper.operation_from_method_name(method_name)
-            metric = "Datastore/statement/SQLite/%s/%s" % [ klass.table_name, operation ]
-            metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for('SQLite', operation, klass.table_name)
+            product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(db.adapter_scheme)
+            metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for(product, operation, klass.table_name)
 
             trace_execution_scoped(metrics) do
               NewRelic::Agent.disable_all_tracing { super(*args, &block) }
