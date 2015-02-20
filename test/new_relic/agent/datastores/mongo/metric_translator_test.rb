@@ -317,24 +317,4 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
     assert_equal expected, metrics
     assert_metrics_recorded(["Supportability/Mongo/UnknownCollection"])
   end
-
-  def test_instance_metric
-    metric = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric('localhost', '27017', @database_name)
-    assert_equal 'Datastore/instance/MongoDB/localhost:27017/multiverse', metric
-  end
-
-  def test_instance_metric_does_not_include_instance_metric_without_host
-    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric(nil, '27017', @database_name)
-    assert_nil result
-  end
-
-  def test_instance_metric_does_not_include_instance_metric_without_port
-    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric('localhost', nil, @database_name)
-    assert_nil result
-  end
-
-  def test_instance_metric_does_not_include_instance_metric_without_database_name
-    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric('localhost', '27017', nil)
-    assert_nil result
-  end
 end
