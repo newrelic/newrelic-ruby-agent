@@ -21,13 +21,19 @@ module Performance
     end
 
     def format_measurements(result)
-      key_width        = result.measurements.keys.map(&:size).max
-      formatted_values = result.measurements.values.map { |v| sprintf("%g", v) }
+      measurements = result.measurements.merge(:iterations => result.iterations)
+
+      key_width        = measurements.keys.map(&:size).max
+      formatted_values = measurements.values.map { |v| sprintf("%g", v) }
       value_width      = formatted_values.map(&:size).max
 
-      rows = result.measurements.map do |key, value|
-        per_iteration = value / result.iterations.to_f
-        "  %#{key_width}s: %#{value_width}g (%.2f / iter)" % [key, value, per_iteration]
+      rows = measurements.map do |key, value|
+        if key == :iterations
+          "  %#{key_width}s: %#{value_width}g" % [key, value]
+        else
+          per_iteration = value / result.iterations.to_f
+          "  %#{key_width}s: %#{value_width}g (%.2f / iter)" % [key, value, per_iteration]
+        end
       end
 
       rows.join("\n") + "\n"
@@ -40,7 +46,6 @@ module Performance
       results.each do |result|
         formatted_duration = FormattingHelpers.format_duration(result.time_per_iteration)
         puts "#{result.identifier}: %.3f ips (#{formatted_duration} / iteration)" % [result.ips]
-        puts "  #{result.iterations} iterations"
         unless @options[:brief]
           puts format_measurements(result)
         end
