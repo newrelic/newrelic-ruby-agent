@@ -34,12 +34,11 @@ module Sequel
     include NewRelic::Agent::MethodTracer,
             NewRelic::Agent::Instrumentation::ActiveRecordHelper
 
-
     # Instrument all queries that go through #execute_query.
     def log_yield(sql, args=nil) #THREAD_LOCAL_ACCESS
       rval = nil
-      adapter = NewRelic::Agent::Datastores::MetricHelper.product_name_from_sequel_adapter(self.class.adapter_scheme)
-      metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_from_sql(adapter, sql)
+      product = NewRelic::Agent::Datastores::MetricHelper.product_name_from_sequel_adapter(self.class.adapter_scheme)
+      metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_from_sql(product, sql)
 
       NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
         t0 = Time.now
@@ -48,7 +47,7 @@ module Sequel
         rescue => err
           NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
         ensure
-          notice_sql(sql, args, t0, Time.now)
+          notice_sql(sql, metrics.first, args, t0, Time.now)
         end
       end
 
@@ -56,34 +55,25 @@ module Sequel
     end
 
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [
-      (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool),
-    ].compact.freeze
+      (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool)
+    ].freeze
 
     # Record the given +sql+ within a new frame, using the given +start+ and
     # +finish+ times.
-    def notice_sql(sql, args, start, finish)
+    def notice_sql(sql, metric_name, args, start, finish)
       state    = NewRelic::Agent::TransactionState.tl_get
-      metric   = NewRelic::Agent::Datastores::MetricHelper::metric_for_sql(sql)
-      agent    = NewRelic::Agent.instance
       duration = finish - start
 
-      stack    = state.traced_method_stack
-
-      begin
-        frame = stack.push_frame(state, :sequel, start)
-        explainer = Proc.new do |*|
-          if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
-            self[ sql ].explain
-          else
-            NewRelic::Agent.logger.log_once(:info, :sequel_explain_skipped, "Not running SQL explains because Sequel is not in recognized multi-threaded mode")
-            nil
-          end
+      explainer = Proc.new do |*|
+        if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
+          self[ sql ].explain
+        else
+          NewRelic::Agent.logger.log_once(:info, :sequel_explain_skipped, "Not running SQL explains because Sequel is not in recognized multi-threaded mode")
+          nil
         end
-        agent.transaction_sampler.notice_sql(sql, self.opts, duration, state, &explainer)
-        agent.sql_sampler.notice_sql(sql, metric, self.opts, duration, state, &explainer)
-      ensure
-        stack.pop_frame(state, frame, metric, finish)
       end
+      NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, self.opts, duration, state, &explainer)
+      NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric_name, self.opts, duration, state, &explainer)
     end
 
   end # module NewRelicInstrumentation

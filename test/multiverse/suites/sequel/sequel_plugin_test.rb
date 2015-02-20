@@ -201,6 +201,19 @@ class SequelPluginTest < Minitest::Test
       assert_segment_has_explain_plan( segment )
     end
   end
+
+  def test_notices_sql_with_proper_metric_name
+    config = {
+      :'transaction_tracer.explain_threshold' => -0.01,
+      :'transaction_tracer.record_sql' => 'obfuscated'
+    }
+    with_config(config) do
+      in_web_transaction { Post.all }
+      expected_metric_name ="Datastore/operation/SQLite/select"
+      recorded_metric_names = NewRelic::Agent.agent.sql_sampler.sql_traces.values.map(&:database_metric_name)
+      assert recorded_metric_names.include? expected_metric_name
+    end
+  end
 end
 
 else
