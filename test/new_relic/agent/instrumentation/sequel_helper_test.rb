@@ -8,12 +8,6 @@ require 'new_relic/agent/instrumentation/sequel_helper'
 module NewRelic
   module Agent
     class SequelHelperTest < Minitest::Test
-      def setup
-        @product = "JonanDB"
-        @collection = "wiggles"
-        @operation = "select"
-      end
-
       def test_product_name_from_adapter
         expected_default = "ActiveRecord"
         default = Hash.new(expected_default)
