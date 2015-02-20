@@ -467,21 +467,6 @@ module MongoOperationTests
     assert_metrics_not_recorded(['Datastore/allWeb'])
   end
 
-  def test_insert_records_instance_metric
-    @collection.insert(@tribble)
-    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@client.port}/#{@database_name}"])
-  end
-
-  def test_save_records_instance_metric
-    @collection.save(@tribble)
-    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@client.port}/#{@database_name}"])
-  end
-
-  def test_ensure_index_records_instance_metric
-    @collection.ensure_index([[unique_field_name, Mongo::ASCENDING]])
-    assert_metrics_recorded(["Datastore/instance/MongoDB/localhost:#{@client.port}/#{@database_name}"])
-  end
-
   def unique_field_name
     "field#{SecureRandom.hex(10)}"
   end

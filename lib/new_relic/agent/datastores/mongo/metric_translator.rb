@@ -65,11 +65,6 @@ module NewRelic
                                                                   collection)
           end
 
-          def self.instance_metric(host, port, database)
-            return unless host && port && database
-            "Datastore/instance/MongoDB/#{host}:#{port}/#{database}"
-          end
-
           def self.collection_in_selector?(payload)
             payload[:collection] == '$cmd' && payload[:selector]
           end

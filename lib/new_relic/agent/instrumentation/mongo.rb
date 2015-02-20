@@ -39,19 +39,6 @@ DependencyDetection.defer do
     target_class.class_eval do
       include NewRelic::Agent::MethodTracer
 
-      def new_relic_instance_metric_builder
-        Proc.new do
-          if @pool
-            host, port = @pool.host, @pool.port
-          elsif @connection && (primary = @connection.primary)
-            host, port = primary[0], primary[1]
-          end
-
-          database_name = @db.name if @db
-          NewRelic::Agent::Datastores::Mongo::MetricTranslator.instance_metric(host, port, database_name)
-        end
-      end
-
       # It's key that this method eats all exceptions, as it rests between the
       # Mongo operation the user called and us returning them the data. Be safe!
       def new_relic_notice_statement(t0, payload, name)
@@ -71,7 +58,7 @@ DependencyDetection.defer do
       def instrument_with_new_relic_trace(name, payload = {}, &block)
         metrics = new_relic_generate_metrics(name, payload)
 
-        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
+        trace_execution_scoped(metrics) do
           t0 = Time.now
 
           result = NewRelic::Agent.disable_all_tracing do
@@ -92,7 +79,7 @@ DependencyDetection.defer do
     ::Mongo::Collection.class_eval do
       def save_with_new_relic_trace(doc, opts = {}, &block)
         metrics = new_relic_generate_metrics(:save)
-        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
+        trace_execution_scoped(metrics) do
           t0 = Time.now
 
           result = NewRelic::Agent.disable_all_tracing do
@@ -113,7 +100,7 @@ DependencyDetection.defer do
     ::Mongo::Collection.class_eval do
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
         metrics = new_relic_generate_metrics(:ensureIndex)
-        trace_execution_scoped(metrics, :additional_metrics_callback => new_relic_instance_metric_builder) do
+        trace_execution_scoped(metrics) do
           t0 = Time.now
 
           result = NewRelic::Agent.disable_all_tracing do
