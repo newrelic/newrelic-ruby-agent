@@ -87,21 +87,6 @@ module NewRelic
           ACTIVE_RECORD_ADAPTER_TO_PRODUCT_NAME.fetch(adapter, DEFAULT_PRODUCT_NAME)
         end
 
-        # A Sequel adapter is called an "adapter_scheme" and can be accessed from
-        # the database:
-        #
-        #   DB.adapter_scheme
-        SEQUEL_ADAPTER_TO_PRODUCT_NAME = {
-          :mysql => "MySQL",
-          :mysql2 => "MySQL",
-          :postgres => "Postgres",
-          :sqlite => "SQLite"
-        }.freeze
-
-        def self.product_name_from_sequel_adapter(adapter)
-          SEQUEL_ADAPTER_TO_PRODUCT_NAME.fetch(adapter, DEFAULT_PRODUCT_NAME)
-        end
-
         def self.metrics_from_sql(product, sql) #THREAD_LOCAL_ACCESS
           operation = NewRelic::Agent::Database.parse_operation_from_query(sql) || "other"
           metrics = metrics_for(product, operation)
