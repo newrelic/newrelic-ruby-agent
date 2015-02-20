@@ -57,7 +57,7 @@ class SequelExtensionTest < Minitest::Test
   end
 
   def test_find
-    in_web_transaction do 
+    in_web_transaction do
       @posts[:id => 11]
     end
 
@@ -76,7 +76,7 @@ class SequelExtensionTest < Minitest::Test
     in_web_transaction do
       @posts.where(:id => @post[:id]).update( :title => 'A Lot of the Things' )
     end
-    
+
     assert_metrics_recorded_exclusive(expected_metrics_for_operation(:update))
   end
 
@@ -121,7 +121,7 @@ class SequelExtensionTest < Minitest::Test
     }
     with_config(config) do
       in_web_transaction { Post.all }
-      expected_metric_name ="Datastore/operation/SQLite/select"
+      expected_metric_name = "Datastore/operation/SQLite/select"
       recorded_metric_names = NewRelic::Agent.agent.sql_sampler.sql_traces.values.map(&:database_metric_name)
       assert recorded_metric_names.include? expected_metric_name
     end

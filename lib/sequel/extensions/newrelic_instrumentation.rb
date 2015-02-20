@@ -58,8 +58,6 @@ module Sequel
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool)
     ].freeze
 
-    # Record the given +sql+ within a new frame, using the given +start+ and
-    # +finish+ times.
     def notice_sql(sql, metric_name, args, start, finish)
       state    = NewRelic::Agent::TransactionState.tl_get
       duration = finish - start
