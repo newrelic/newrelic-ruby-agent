@@ -65,7 +65,7 @@ class TransactionTracingPerfTests < Performance::TestCase
 
   def test_long_transactions
     measure do
-      @dummy.long_transaction(iterations)
+      @dummy.long_transaction(10000)
     end
   end
 end
