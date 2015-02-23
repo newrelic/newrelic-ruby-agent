@@ -47,6 +47,49 @@ module NewRelic
         end
       end
 
+      # Wrap a call to a datastore and record New Relic Datastore metrics. This
+      # method can be used when a collection (i.e. table or model name) is
+      # known at runtime to be included in the metric naming. It is intended
+      # for situations that the simpler NewRelic::Agent::Datastores.trace can't
+      # properly handle.
+      #
+      # To use this, wrap the datastore operation in the block passed to wrap.
+      #
+      #   NewRelic::Agent::Datastores.wrap("FauxDB", "find", "items") do
+      #     FauxDB.find(query)
+      #   end
+      #
+      # +product+ datastore name for use in metric naming, e.g. "FauxDB"
+      #
+      # +operation+ name of operation, often named after the method that's
+      # being instrumented.
+      #
+      # +collection+ optional collection name to include. Will result in
+      # statement-level metrics (i.e. table or model name)
+      #
+      # +notice+ proc or other callable to invoke after running the datastore
+      # block. Receives three arguments: result of the yield, list of metric
+      # names, and elapsed call time call.
+      #
+      # @api public
+      #
+      def self.wrap(product, operation, collection = nil, notice = nil)
+        return yield unless operation
+
+        metrics = MetricHelper.metrics_for(product, operation, collection)
+        NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
+          t0 = Time.now
+          begin
+            result = yield
+          ensure
+            if notice
+              elapsed_time = (Time.now - t0).to_f
+              notice.call(result, metrics, elapsed_time)
+            end
+          end
+        end
+      end
+
     end
   end
 end

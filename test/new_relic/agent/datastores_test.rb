@@ -81,6 +81,70 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     assert_includes private_methods, :internal
   end
 
+  def test_wrap_doesnt_interfere
+    result = NewRelic::Agent::Datastores.wrap("MyFirstDatabase", "op") do
+      "yo"
+    end
+
+    assert_equal "yo", result
+  end
+
+  def test_wrap
+    in_background_transaction("txn") do
+      NewRelic::Agent::Datastores.wrap("MyFirstDatabase", "op", "coll") do
+      end
+    end
+
+    assert_statement_metrics("op", "coll", "Other")
+  end
+
+  def test_wrap_with_only_operation
+    in_background_transaction("txn") do
+      NewRelic::Agent::Datastores.wrap("MyFirstDatabase", "op") do
+      end
+    end
+
+    assert_metrics("op", "Other")
+  end
+
+  def test_wrap_with_no_operation
+    in_background_transaction("txn") do
+      NewRelic::Agent::Datastores.wrap("MyFirstDatabase", nil) do
+      end
+    end
+
+    refute_metrics_recorded([
+                            "Datastore/operation/MyFirstDatabase/",
+                            "Datastore/MyFirstDatabase/allOther",
+                            "Datastore/MyFirstDatabase/all",
+                            "Datastore/allOther",
+                            "Datastore/all"])
+  end
+
+  def test_wrap_calls_notice
+    noticed = nil
+    notice = Proc.new do |*args|
+      noticed = args
+    end
+
+    NewRelic::Agent::Datastores.wrap("MyFirstDatabase", "op", "coll", notice) do
+      "yo"
+    end
+
+    refute noticed.any?(&:nil?)
+  end
+
+  def assert_statement_metrics(operation, collection, type)
+    assert_metrics_recorded([
+                            "Datastore/statement/MyFirstDatabase/#{collection}/#{operation}",
+                            ["Datastore/statement/MyFirstDatabase/#{collection}/#{operation}", "txn"],
+                            "Datastore/operation/MyFirstDatabase/#{operation}",
+                            "Datastore/MyFirstDatabase/all#{type}",
+                            "Datastore/MyFirstDatabase/all",
+                            "Datastore/all#{type}",
+                            "Datastore/all"])
+  end
+
   def assert_metrics(operation, type)
     assert_metrics_recorded([
                             "Datastore/operation/MyFirstDatabase/#{operation}",
