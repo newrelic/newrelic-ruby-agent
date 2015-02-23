@@ -60,10 +60,12 @@ class TransactionTracingPerfTests < Performance::TestCase
   end
 
   def test_short_transactions
-    iterations.times { @dummy.short_transaction }
+    measure { @dummy.short_transaction }
   end
 
   def test_long_transactions
-    @dummy.long_transaction(iterations)
+    measure do
+      @dummy.long_transaction(10000)
+    end
   end
 end

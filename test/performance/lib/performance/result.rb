@@ -7,7 +7,7 @@ require 'time'
 module Performance
   class Result
     attr_reader :test_name, :measurements, :tags, :timer, :artifacts
-    attr_accessor :exception
+    attr_accessor :exception, :iterations
 
     def initialize(test_case, test_name)
       @test_case = test_case
@@ -15,7 +15,8 @@ module Performance
       @measurements   = {}
       @tags           = {}
       @timer = Timer.new
-      @artifacts = []
+      @iterations = 0
+      @artifacts  = []
     end
 
     def exception=(e)
@@ -58,16 +59,25 @@ module Performance
       t.utc.iso8601
     end
 
+    def ips
+      @iterations.to_f / elapsed
+    end
+
+    def time_per_iteration
+      elapsed / @iterations.to_f
+    end
+
     def to_h
       h = {
-        "suite"     => suite_name,
-        "name"      => @test_name,
+        "suite"        => suite_name,
+        "name"         => @test_name,
         "measurements" => measurements_hash,
-        "tags"         => @tags
+        "tags"         => @tags,
+        "iterations"   => @iterations
       }
       h['exception'] = @exception if @exception
       h['artifacts'] = @artifacts if @artifacts && !@artifacts.empty?
-      h['started_at'] = format_timestamp(@timer.start_timestamp) if @timer.start_timestamp
+      h['started_at']  = format_timestamp(@timer.start_timestamp) if @timer.start_timestamp
       h['finished_at'] = format_timestamp(@timer.stop_timestamp) if @timer.stop_timestamp
       h
     end
@@ -81,6 +91,7 @@ module Performance
       result.tags.merge! hash['tags']
       result.exception = hash['exception']
       result.elapsed = elapsed
+      result.iterations = hash['iterations']
       result.timer.start_timestamp = Time.iso8601(hash['started_at']) if hash['started_at']
       result.timer.stop_timestamp = Time.iso8601(hash['finished_at']) if hash['finished_at']
       result

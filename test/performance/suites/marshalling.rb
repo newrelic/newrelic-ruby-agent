@@ -10,67 +10,57 @@ class Marshalling < Performance::TestCase
     @tt_payload = build_transaction_trace_payload
   end
 
-  def test_basic_marshalling_json(timer)
+  def test_basic_marshalling_json
     with_config(:normalize_json_string_encodings => true) do
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      timer.measure do
-        (iterations / 100).times do
-          marshaller.dump(@payload)
-          marshaller.dump(@tt_payload)
-        end
+      measure do
+        marshaller.dump(@payload)
+        marshaller.dump(@tt_payload)
       end
     end
   end
 
-  def test_json_marshalling_binary_strings(timer)
+  def test_json_marshalling_binary_strings
     with_config(:normalize_json_string_encodings => true) do
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       convert_strings_to_binary(@payload)
       convert_strings_to_binary(@tt_payload)
-      timer.measure do
-        (iterations / 100).times do
-          marshaller.dump(@payload)
-          marshaller.dump(@tt_payload)
-        end
+      measure do
+        marshaller.dump(@payload)
+        marshaller.dump(@tt_payload)
       end
     end
   end
 
-  def test_json_marshalling_utf16_strings(timer)
+  def test_json_marshalling_utf16_strings
     with_config(:normalize_json_string_encodings => true) do
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       convert_strings_to_utf16(@payload)
       convert_strings_to_utf16(@tt_payload)
-      timer.measure do
-        (iterations / 100).times do
-          marshaller.dump(@payload)
-          marshaller.dump(@tt_payload)
-        end
+      measure do
+        marshaller.dump(@payload)
+        marshaller.dump(@tt_payload)
       end
     end
   end
 
-  def test_json_marshalling_latin1_strings(timer)
+  def test_json_marshalling_latin1_strings
     with_config(:normalize_json_string_encodings => true) do
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       convert_strings_to_latin1(@payload)
       convert_strings_to_latin1(@tt_payload)
-      timer.measure do
-        (iterations / 100).times do
-          marshaller.dump(@payload)
-          marshaller.dump(@tt_payload)
-        end
+      measure do
+        marshaller.dump(@payload)
+        marshaller.dump(@tt_payload)
       end
     end
   end
 
-  def test_basic_marshalling_pruby(timer)
+  def test_basic_marshalling_pruby
     marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    timer.measure do
-      (iterations / 100).times do
-        marshaller.dump(@payload)
-        marshaller.dump(@tt_payload)
-      end
+    measure do
+      marshaller.dump(@payload)
+      marshaller.dump(@tt_payload)
     end
   end
 

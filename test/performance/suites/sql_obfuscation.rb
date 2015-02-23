@@ -15,14 +15,14 @@ class SqlObfuscationTests < Performance::TestCase
   end
 
   def test_obfuscate_sql
-    iterations.times do
+    measure do
       NewRelic::Agent::Database.obfuscate_sql(@long_query)
       NewRelic::Agent::Database.obfuscate_sql(@short_query)
     end
   end
 
   def test_obfuscate_sql_postgres
-    iterations.times do
+    measure do
       NewRelic::Agent::Database.obfuscate_sql(@long_query_pg)
       NewRelic::Agent::Database.obfuscate_sql(@short_query_pg)
     end    

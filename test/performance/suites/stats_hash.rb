@@ -7,28 +7,24 @@ class StatsHashPerfTest < Performance::TestCase
     @hash = NewRelic::Agent::StatsHash.new
   end
 
-  def test_record(timer)
-    iterations.times do
+  def test_record
+    measure do
       hash = NewRelic::Agent::StatsHash.new
-      timer.measure do
-        100.times do |i|
-          hash.record("foo#{i}", 1)
-        end
+      100.times do |i|
+        hash.record("foo#{i}", 1)
       end
     end
   end
 
-  def test_merge(timer)
-    iterations.times do
+  def test_merge
+    measure do
       incoming = {}
       100.times do |i|
         incoming["foo#{i}"] = NewRelic::Agent::Stats.new
       end
 
       hash = NewRelic::Agent::StatsHash.new
-      timer.measure do
-        hash.merge!(incoming)
-      end
+      hash.merge!(incoming)
     end
   end
 end

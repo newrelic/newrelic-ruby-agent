@@ -30,7 +30,7 @@ Run one specific suite:
 $ rake test:performance[TransactionTracingPerfTests]
 ```
 
-Run one specif suite and test (test name matching is via regex):
+Run one specific suite and test (test name matching is via regex):
 
 ```
 $ rake test:performance[TransactionTracingPerfTests,test_short_transactions]
@@ -39,12 +39,18 @@ $ rake test:performance[TransactionTracingPerfTests,test_short_transactions]
 ### Invoking via the runner directly
 
 More advanced options can be specified by invoking the runner script directly.
-See `test/performance/script/runner -h` for a full list of options.
+See `./test/performance/script/runner -h` for a full list of options.
 
 Run all tests, report detailed results in a human-readable form
 
 ```
 $ ./test/performance/script/runner
+```
+
+List all available test suites and names:
+
+```
+$ ./test/performance/script/runner -l
 ```
 
 Run a specific test (test name matching is via regex):
@@ -53,10 +59,23 @@ Run a specific test (test name matching is via regex):
 $ ./test/performance/script/runner -n short
 ```
 
-Run all the tests, brief output (just timings):
+To compare results for a specific test between two versions of the code, use the
+`-B` (for Baseline) and `-C` for (for Compare) switches:
 
 ```
-$ ./test/performance/script/runner -b
+$ ./test/performance/script/runner -n short -B
+1 tests, 0 failures, 8.199975 s total
+Saved 1 results as baseline.
+
+... switch to another branch and run again with -C ...
+
+$ ./test/performance/script/runner -n short -C
+1 tests, 0 failures, 8.220509 s total
++-----------------------------------------------------+-----------+-----------+-------+---------------+--------------+--------------+
+| name                                                | before    | after     | delta | allocs_before | allocs_after | allocs_delta |
+|-----------------------------------------------------+-----------+-----------+-------+---------------+--------------+--------------|
+| TransactionTracingPerfTests#test_short_transactions | 214.27 µs | 210.31 µs | -1.8% |            97 |           97 |         0.0% |
++-----------------------------------------------------+-----------+-----------+-------+---------------+--------------+--------------+
 ```
 
 Run all the tests, produce machine readable JSON output (for eventual ingestion into a storage system):
@@ -65,16 +84,16 @@ Run all the tests, produce machine readable JSON output (for eventual ingestion 
 $ ./test/performance/script/runner -j | json_reformat
 ```
 
-Run a specific test using the perftools.rb CPU profiler, producing a call-graph style dot file:
+Run a specific test under a profiler (either stackprof or perftools.rb, depending on your Ruby version):
 
 ```
-$ ./test/performance/script/runner -n short -i PerfToolsProfile
+$ ./test/performance/script/runner -n short --profile
 ```
 
-Run with fewer iterations, and do object allocation profiling (again to a call-graph dot file):
+Run with a set number of iterations, and do object allocation profiling (again to a call-graph dot file):
 
 ```
-$ CPUPROFILE_OBJECTS=1 ./test/performance/script/runner -n short -i PerfToolsProfile -N 1000
+$ ./test/performance/script/runner -n short -a -N 1000
 ```
 
 ## Pointing at a different copy of the agent
@@ -100,16 +119,17 @@ under `test/performance/suites`, subclass `Performance::TestCase`, and write
 test methods that start with `test_`. You can also write `setup` and `teardown`
 methods that will be run before/after each test.
 
-Generally in your test, you'll want to do some operation N times (where N is
-large). You should base your N on the return value of
-`Performance::TestCase#iterations`, which is controlled by the `-N` command-line
-flag to `runner`. You may scale this value linearly as appropriate for your test
-if need be, but the idea is to have a single knob to turn that will change the
-iteration count for all tests.
+Within your `test_` method, you must call `measure` and pass it a block
+containing the code that you'd like to actually measure the timing of. This
+allows you to do test-specific setup that doesn't get counted towards your
+test timing.
 
-The invocation of each `test_*` method will be timed, so any setup / teardown
-you need for your test that you don't want included in the timing should be
-confined to the `setup` and `teardown` methods.
+The block that you pass to `measure` will automatically be run in a loop for a
+fixed amount of time by the performance runner harness (5s by default), and the
+number of iterations performed will be recorded so that measurements can be
+normalized to per-iteration values.
+
+You can look at the [existing tests](suites) for examples.
 
 ## Test Isolation
 

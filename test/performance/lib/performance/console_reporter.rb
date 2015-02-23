@@ -20,16 +20,34 @@ module Performance
       report_failed_results
     end
 
+    def format_measurements(result)
+      measurements = result.measurements.merge(:iterations => result.iterations)
+
+      key_width        = measurements.keys.map(&:size).max
+      formatted_values = measurements.values.map { |v| sprintf("%g", v) }
+      value_width      = formatted_values.map(&:size).max
+
+      rows = measurements.map do |key, value|
+        if key == :iterations
+          "  %#{key_width}s: %#{value_width}g" % [key, value]
+        else
+          per_iteration = value / result.iterations.to_f
+          "  %#{key_width}s: %#{value_width}g (%.2f / iter)" % [key, value, per_iteration]
+        end
+      end
+
+      rows.join("\n") + "\n"
+    end
+
     def report_successful_results(results)
       return if successes.empty?
 
       puts ''
       results.each do |result|
-        puts "#{result.identifier}: #{result.elapsed} s"
+        formatted_duration = FormattingHelpers.format_duration(result.time_per_iteration)
+        puts "#{result.identifier}: %.3f ips (#{formatted_duration} / iteration)" % [result.ips]
         unless @options[:brief]
-          result.measurements.each do |key, value|
-            puts "  %s: %g" % [key, value]
-          end
+          puts format_measurements(result)
         end
         unless result.artifacts.empty?
           puts "  artifacts:"

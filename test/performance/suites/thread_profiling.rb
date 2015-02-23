@@ -65,52 +65,46 @@ class ThreadProfiling < Performance::TestCase
     raise e
   end
 
-  def test_gather_backtraces(timer)
+  def test_gather_backtraces
     @service.subscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
-    timer.measure do
-      (iterations / 10).times do
-        @service.poll
-      end
+    measure do
+      @service.poll
     end
     @service.unsubscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
   end
 
-  def test_gather_backtraces_subscribed(timer)
+  def test_gather_backtraces_subscribed
     @service.subscribe('eagle')
-    timer.measure do
-      (iterations / 10).times do
-        t0 = Time.now.to_f
-        @service.poll
-        payload = {
-          :name => 'eagle',
-          :bucket => :request,
-          :start_timestamp => t0,
-          :duration => Time.now.to_f-t0,
-          :thread => @threads.sample
-        }
-        @service.on_transaction_finished(payload)
-      end
+    measure do
+      t0 = Time.now.to_f
+      @service.poll
+      payload = {
+        :name => 'eagle',
+        :bucket => :request,
+        :start_timestamp => t0,
+        :duration => Time.now.to_f-t0,
+        :thread => @threads.sample
+      }
+      @service.on_transaction_finished(payload)
     end
     @service.unsubscribe('eagle')
   end
 
-  def test_generating_traces(timer)
+  def test_generating_traces
     require 'new_relic/agent/threading/thread_profile'
 
-    (iterations/1000).times do
+    measure do
       profile = ::NewRelic::Agent::Threading::ThreadProfile.new({})
 
       aggregate_lots_of_nodes(profile, 5, [])
 
-      timer.measure do
-        profile.generate_traces
-      end
+      profile.generate_traces
     end
   end
 
   def aggregate_lots_of_nodes(profile, depth, trace)
     if depth > 0
-      10.times do |i|
+      7.times do |i|
         trace.push("path#{i}:#{i+50}:in `depth#{depth}'")
         aggregate_lots_of_nodes(profile, depth-1, trace)
         trace.pop
