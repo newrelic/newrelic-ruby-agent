@@ -77,6 +77,7 @@ DependencyDetection.defer do
       ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation'
     end
     if defined? ::Dalli::Client
+      commands += %w[cas get_cas get_multi_cas set_cas replace_cas delete_cas]
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client,
                                                                     commands)
       ::NewRelic::Agent.logger.info 'Installing Dalli Memcache instrumentation'
