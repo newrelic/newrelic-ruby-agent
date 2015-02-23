@@ -151,6 +151,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
       # apdex_s is 2 because the transaction itself records apdex
       assert_metrics_recorded(
+        'ApdexAll'       => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
         'Apdex'          => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
         'Apdex/slow/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
       )
@@ -171,6 +172,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
       # apdex_s is 2 because the transaction itself records apdex
       assert_metrics_recorded(
+        'ApdexAll'        => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
         'Apdex'           => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
         'Apdex/other/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
       )
@@ -189,6 +191,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       end
 
       assert_metrics_recorded(
+        'ApdexAll'   => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
         'ApdexOther' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
         'ApdexOther/Transaction/back/ground' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
       )
@@ -221,9 +224,40 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     expected = { :min_call_time => 2.5, :max_call_time => 2.5 }
     assert_metrics_recorded(
-      'Apdex' => expected,
+      'ApdexAll'       => expected,
+      'Apdex'          => expected,
       'Apdex/some/txn' => expected
     )
+  end
+
+  def test_records_apdex_all_for_both_transaction_types
+    t0 = freeze_time
+    with_config(KEY_TRANSACTION_CONFIG) do
+      in_background_transaction('OtherTransaction/back/ground') do
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.record_apdex(state, t0 + 7.5)
+        txn.record_apdex(state, t0 + 9.5)
+        txn.record_apdex(state, t0 + 32.5)
+      end
+
+      in_web_transaction('Controller/slow/txn') do
+        state = NewRelic::Agent::TransactionState.tl_get
+        txn = state.current_transaction
+        txn.record_apdex(state, t0 +  3.5)
+        txn.record_apdex(state, t0 +  5.5)
+        txn.record_apdex(state, t0 + 16.5)
+      end
+
+      # apdex_s is 2 because the transaction itself records apdex
+      assert_metrics_recorded(
+        'ApdexAll'       => { :apdex_s => 4, :apdex_t => 2, :apdex_f => 2 },
+        'Apdex'          => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
+        'Apdex/slow/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
+        'ApdexOther'     => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
+        'ApdexOther/Transaction/back/ground' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
+      )
+    end
   end
 
   class SillyError < StandardError

@@ -714,6 +714,8 @@ module NewRelic
         end
       end
 
+      APDEX_ALL_METRIC   = 'ApdexAll'.freeze
+
       APDEX_METRIC       = 'Apdex'.freeze
       APDEX_OTHER_METRIC = 'ApdexOther'.freeze
 
@@ -755,6 +757,7 @@ module NewRelic
         apdex_bucket_txn    = apdex_bucket(action_duration, current_apdex_t)
 
         @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
+        @metrics.record_unscoped(APDEX_ALL_METRIC, apdex_bucket_global, current_apdex_t)
         txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, transaction_prefix)
         @metrics.record_unscoped(txn_apdex_metric, apdex_bucket_txn, current_apdex_t)
       end

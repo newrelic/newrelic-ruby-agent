@@ -62,6 +62,7 @@ class UrlMapTest < Minitest::Test
 
       assert_metrics_recorded_exclusive([
         'Apdex',
+        'ApdexAll',
         'HttpDispatcher',
         'Middleware/all',
         'Controller/Rack/UrlMapTest::ExampleApp/call',
@@ -81,6 +82,7 @@ class UrlMapTest < Minitest::Test
 
     assert_metrics_recorded_exclusive([
       'Apdex',
+      'ApdexAll',
       'HttpDispatcher',
       'Middleware/all',
       'Controller/Rack/UrlMapTest::PrefixAppOne/call',
@@ -99,6 +101,7 @@ class UrlMapTest < Minitest::Test
 
     assert_metrics_recorded_exclusive([
       'Apdex',
+      'ApdexAll',
       'HttpDispatcher',
       'Middleware/all',
       'Controller/Rack/UrlMapTest::PrefixAppTwo/call',

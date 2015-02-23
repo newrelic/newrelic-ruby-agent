@@ -46,6 +46,7 @@ class NestedNonRackAppTest < Minitest::Test
     assert_metrics_recorded_exclusive(
       [
         "Apdex",
+        "ApdexAll",
         "Apdex/NestedNonRackAppTest::RailsishApp/inner",
         "Controller/NestedNonRackAppTest::RailsishApp/inner",
         "HttpDispatcher",
