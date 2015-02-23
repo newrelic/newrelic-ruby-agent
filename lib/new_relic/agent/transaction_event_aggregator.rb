@@ -186,14 +186,10 @@ class NewRelic::Agent::TransactionEventAggregator
 
   # Web Metrics
   map_metric('WebFrontend/QueueTime', :total_call_time => "queueDuration")
-  map_metric('Memcache/allWeb',       :total_call_time => "memcacheDuration")
-
   map_metric('External/allWeb',       :total_call_time => "externalDuration")
   map_metric('External/allWeb',       :call_count      => "externalCallCount")
 
   # Background Metrics
-  map_metric('Memcache/allOther',     :total_call_time => "memcacheDuration")
-
   map_metric('External/allOther',     :total_call_time => "externalDuration")
   map_metric('External/allOther',     :call_count      => "externalCallCount")
 

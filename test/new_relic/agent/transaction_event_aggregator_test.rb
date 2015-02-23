@@ -91,7 +91,6 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     txn_metrics.record_unscoped('External/allWeb',       14)
     txn_metrics.record_unscoped('Datastore/all',         15)
     txn_metrics.record_unscoped("GC/Transaction/all",    16)
-    txn_metrics.record_unscoped('Memcache/allWeb',       17)
 
     with_sampler_config do
       generate_request('name', :metrics => txn_metrics)
@@ -100,7 +99,6 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       assert_equal 14, event_data["externalDuration"]
       assert_equal 15, event_data["databaseDuration"]
       assert_equal 16, event_data["gcCumulative"]
-      assert_equal 17, event_data["memcacheDuration"]
 
       assert_equal 1, event_data["externalCallCount"]
       assert_equal 1, event_data["databaseCallCount"]
@@ -112,7 +110,6 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     txn_metrics.record_unscoped('External/allOther',  12)
     txn_metrics.record_unscoped('Datastore/all',      13)
     txn_metrics.record_unscoped("GC/Transaction/all", 14)
-    txn_metrics.record_unscoped('Memcache/allOther',  15)
 
     with_sampler_config do
       generate_request('name', :metrics => txn_metrics)
@@ -121,7 +118,6 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       assert_equal 12, event_data["externalDuration"]
       assert_equal 13, event_data["databaseDuration"]
       assert_equal 14, event_data["gcCumulative"]
-      assert_equal 15, event_data["memcacheDuration"]
 
       assert_equal 1, event_data["databaseCallCount"]
       assert_equal 1, event_data["externalCallCount"]
