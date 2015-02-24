@@ -26,8 +26,9 @@ module NewRelic
           end
         end
 
-        def instrument_methods(client_class)
-          supported_methods_for(client_class).each do |method_name|
+        def instrument_methods(client_class, supported_methods = nil)
+          supported_methods ||= supported_methods_for(client_class)
+          supported_methods.each do |method_name|
 
             visibility = NewRelic::Helper.instance_method_visibility client_class, method_name
             method_name_without = :"#{method_name}_without_newrelic_trace"
@@ -89,5 +90,30 @@ DependencyDetection.defer do
       ::NewRelic::Agent.logger.info 'Installing Dalli Memcache instrumentation'
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client)
     end
+  end
+end
+
+DependencyDetection.defer do
+  named :dalli_cas_client
+
+  depends_on do
+    !::NewRelic::Agent.config[:disable_memcache_instrumentation]
+  end
+
+  depends_on do
+    # These CAS client methods are only optionally defined if users require
+    # dalli/cas/client. Use a separate dependency block so it can potentially
+    # re-evaluate after they've done that require.
+    defined?(::Dalli::Client) &&
+      ::Dalli::Client.instance_methods.include?(:get_cas)
+  end
+
+  CAS_CLIENT_METHODS = [:get_cas, :get_multi_cas, :set_cas, :replace_cas,
+                        :delete_cas]
+
+  executes do
+    ::NewRelic::Agent.logger.info 'Installing Dalli CAS Client Memcache instrumentation'
+    ::NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client,
+                                                                    CAS_CLIENT_METHODS)
   end
 end
