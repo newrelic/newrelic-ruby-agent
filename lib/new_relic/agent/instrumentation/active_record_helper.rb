@@ -24,11 +24,9 @@ module NewRelic
 
         def operation_and_model(name, sql)
           if name && name.respond_to?(:split)
-            parts = name.split(' ')
-            if parts.size == 2
-              model = parts.first
-              operation = map_operation(parts)
-
+            model, raw_operation = name.split(' ')
+            if model && raw_operation
+              operation = map_operation(raw_operation)
               return [operation, model]
             end
           end
@@ -43,8 +41,8 @@ module NewRelic
           'update' => 'save',
         }.freeze unless defined?(OPERATION_NAMES)
 
-        def map_operation(parts)
-          operation = parts.last.downcase
+        def map_operation(raw_operation)
+          operation = raw_operation.downcase
           OPERATION_NAMES.fetch(operation, operation)
         end
 
