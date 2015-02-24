@@ -131,7 +131,16 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
       "yo"
     end
 
-    refute noticed.any?(&:nil?)
+    result, metrics, elapsed = noticed
+    expected_metrics = ["Datastore/operation/MyFirstDatabase/op",
+                        "Datastore/MyFirstDatabase/allOther",
+                        "Datastore/MyFirstDatabase/all",
+                        "Datastore/allOther",
+                        "Datastore/all"]
+
+    assert_equal "yo", result
+    assert_equal expected_metrics, metrics
+    assert_instance_of Float, elapsed
   end
 
   def test_notice_sql
