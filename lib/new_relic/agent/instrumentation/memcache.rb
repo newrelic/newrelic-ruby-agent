@@ -17,6 +17,10 @@ module NewRelic
       module Memcache
         module_function
 
+        def enabled?
+          !::NewRelic::Agent.config[:disable_memcache_instrumentation]
+        end
+
         METHODS = [:get, :get_multi, :set, :add, :incr, :decr, :delete, :replace, :append,
                    :prepend, :cas, :single_get, :multi_get, :single_cas, :multi_cas]
 
@@ -63,33 +67,53 @@ module NewRelic
 end
 
 DependencyDetection.defer do
-  @name = :memcache
+  named :memcache_client
 
   depends_on do
-    !NewRelic::Agent.config[:disable_memcache_instrumentation]
+    NewRelic::Agent::Instrumentation::Memcache.enabled?
   end
 
   depends_on do
-    defined?(::MemCache) ||
-      defined?(::Memcached) ||
-      defined?(::Dalli::Client)
+    defined?(::MemCache)
   end
 
   executes do
-    if defined? ::MemCache
-      ::NewRelic::Agent.logger.info 'Installing MemCache instrumentation'
-      NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::MemCache)
-    end
+    ::NewRelic::Agent.logger.info 'Installing MemCache instrumentation'
+    NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::MemCache)
+  end
+end
 
-    if defined? ::Memcached
-      ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation'
-      NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Memcached)
-    end
+DependencyDetection.defer do
+  named :memcached
 
-    if defined? ::Dalli::Client
-      ::NewRelic::Agent.logger.info 'Installing Dalli Memcache instrumentation'
-      NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client)
-    end
+  depends_on do
+    NewRelic::Agent::Instrumentation::Memcache.enabled?
+  end
+
+  depends_on do
+    defined?(::Memcached)
+  end
+
+  executes do
+    ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation'
+    ::NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Memcached)
+  end
+end
+
+DependencyDetection.defer do
+  named :dalli
+
+  depends_on do
+    NewRelic::Agent::Instrumentation::Memcache.enabled?
+  end
+
+  depends_on do
+    defined?(::Dalli::Client)
+  end
+
+  executes do
+    ::NewRelic::Agent.logger.info 'Installing Dalli Memcache instrumentation'
+    ::NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client)
   end
 end
 
@@ -97,7 +121,7 @@ DependencyDetection.defer do
   named :dalli_cas_client
 
   depends_on do
-    !::NewRelic::Agent.config[:disable_memcache_instrumentation]
+    NewRelic::Agent::Instrumentation::Memcache.enabled?
   end
 
   depends_on do
