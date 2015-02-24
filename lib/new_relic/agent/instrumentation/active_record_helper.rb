@@ -35,10 +35,9 @@ module NewRelic
         end
 
         OPERATION_NAMES = {
-          'load' => 'find',
-          'count' => 'find',
+          'load'   => 'find',
+          'count'  => 'find',
           'exists' => 'find',
-          'update' => 'save',
         }.freeze unless defined?(OPERATION_NAMES)
 
         def map_operation(raw_operation)

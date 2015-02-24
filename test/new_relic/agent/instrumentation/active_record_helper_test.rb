@@ -25,9 +25,9 @@ module NewRelic::Agent::Instrumentation
       assert_equal(expected, metrics)
     end
 
-    def test_metrics_for_save
+    def test_metrics_for_update
       metrics = ActiveRecordHelper.metrics_for('Model Update', nil)
-      expected = expected_statement_metrics("save", "Model/save")
+      expected = expected_statement_metrics("update", "Model/update")
       assert_equal(expected, metrics)
     end
 

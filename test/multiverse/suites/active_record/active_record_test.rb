@@ -117,11 +117,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       order.save
     end
 
-    if active_record_major_version >= 3
-      assert_generic_rollup_metrics('update')
-    else
-      assert_activerecord_metrics(Order, 'save')
-    end
+    assert_generic_rollup_metrics('update')
   end
 
   def test_metrics_for_destroy
