@@ -35,13 +35,13 @@ class SequelPluginTest < Minitest::Test
   def test_model_enumerator_generates_metrics
     in_web_transaction { Post.all }
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:select))
+    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:all))
   end
 
   def test_model_index_operator_generates_metrics
     in_web_transaction { Post[11] }
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:select))
+    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:get))
   end
 
   def test_model_create_method_generates_metrics
@@ -49,7 +49,7 @@ class SequelPluginTest < Minitest::Test
       Post.create( :title => 'The Thing', :content => 'A wicked short story.' )
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:insert))
+    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:create))
   end
 
   def test_model_update_method_generates_metrics
@@ -73,7 +73,7 @@ class SequelPluginTest < Minitest::Test
       post.update_all( :title => 'A Whole Hell of a Lot of the Things' )
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:update))
+    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:update_all))
   end
 
   def test_model_update_except_method_generates_metrics
@@ -85,7 +85,7 @@ class SequelPluginTest < Minitest::Test
       post.update_except( {:title => 'A Bit More of the Things'} )
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:update))
+    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:update_except))
   end
 
   def test_model_update_fields_method_generates_metrics
@@ -97,7 +97,7 @@ class SequelPluginTest < Minitest::Test
       post.update_fields( {:title => 'A Plethora of Things'}, [:title] )
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:update))
+    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:update_fields))
   end
 
   def test_model_update_only_method_generates_metrics
@@ -109,7 +109,7 @@ class SequelPluginTest < Minitest::Test
       post.update_only( {:title => 'A Lot of the Things'}, :title )
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:update))
+    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:update_only))
   end
 
   def test_model_save_method_generates_metrics
@@ -122,7 +122,7 @@ class SequelPluginTest < Minitest::Test
       post.save
     end
 
-   assert_metrics_recorded_exclusive(expected_metrics_for_operation(:insert))
+   assert_metrics_recorded_exclusive(expected_metrics_for_operation(:save))
   end
 
   def test_model_delete_method_generates_metrics
@@ -146,7 +146,7 @@ class SequelPluginTest < Minitest::Test
       post.destroy
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:delete))
+    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:destroy))
   end
 
   def test_model_destroy_uses_the_class_name_for_the_metric
@@ -158,7 +158,7 @@ class SequelPluginTest < Minitest::Test
       post.destroy
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:delete))
+    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:destroy))
   end
 
   def test_slow_queries_get_an_explain_plan
