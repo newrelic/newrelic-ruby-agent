@@ -8,18 +8,20 @@ module NewRelic
   module Agent
     module Datastores
 
-      # Add Datastore tracing to a method. This properly generates the
-      # metrics for New Relic's Datastore features.
+      # Add Datastore tracing to a method. This properly generates the metrics
+      # for New Relic's Datastore features. It does not capture the actual
+      # query content into Transaction Traces. Use wrap if you want to provide
+      # that functionality.
       #
-      # +clazz+ the class to instrument
+      # @param [Class] clazz the class to instrument
       #
-      # +method_name+ string or symbol with name of instance method to
+      # @param [String, Symbol] method_name the name of instance method to
       # instrument
       #
-      # +product+ name of your datastore for use in metric naming, e.g. "Redis"
+      # @param [String] product name of your datastore for use in metric naming, e.g. "Redis"
       #
-      # +operation+ optional name of operation to apply if different than the
-      # instrumented method name
+      # @param [optional,String] operation the name of operation if different
+      # than the instrumented method name
       #
       # @api public
       #
@@ -59,17 +61,34 @@ module NewRelic
       #     FauxDB.find(query)
       #   end
       #
-      # +product+ datastore name for use in metric naming, e.g. "FauxDB"
+      # @param [String] product the datastore name for use in metric naming,
+      # e.g. "FauxDB"
       #
-      # +operation+ name of operation, often named after the method that's
-      # being instrumented.
+      # @param [String,Symbol] operation the name of operation (e.g. "select"),
+      # often named after the method that's being instrumented.
       #
-      # +collection+ optional collection name to include. Will result in
+      # @param [optional, String] collection the collection name for use in
       # statement-level metrics (i.e. table or model name)
       #
-      # +notice+ proc or other callable to invoke after running the datastore
-      # block. Receives three arguments: result of the yield, list of metric
-      # names, and elapsed call time call.
+      # @param [Proc,#call] notice proc or other callable to invoke after
+      # running the datastore block. Receives three arguments: result of the
+      # yield, list of metric names, and elapsed call time call. An example use
+      # is attaching SQL to Transaction Traces at the end of a wrapped
+      # datastore call.
+      #
+      #   note = Proc.new do |result, metrics, elapsed|
+      #     NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
+      #   end
+      #
+      #   NewRelic::Agent::Datastores.wrap("FauxDB", "find", "items", note) do
+      #     FauxDB.find(query)
+      #   end
+      #
+      # **NOTE: THERE ARE SECURITY CONCERNS WHEN CAPTURING SQL!**
+      # New Relic's Transaction Tracing and Slow SQL features will
+      # attempt to apply obfuscation to the passed queries, but it is possible
+      # for a query format to be unsupported and result in exposing user
+      # information.
       #
       # @api public
       #
