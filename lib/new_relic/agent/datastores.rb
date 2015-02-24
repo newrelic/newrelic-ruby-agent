@@ -90,6 +90,34 @@ module NewRelic
         end
       end
 
+      # Wrapper for simplifying noticing SQL queries during a transaction.
+      #
+      #   NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
+      #
+      # @param [String] query the SQL text to be captured. Note that depending
+      # on user settings, this string will be run through obfuscation, but
+      # some dialects of SQL (or non-SQL queries) are not guaranteed to be
+      # properly obfuscated by these routines!
+      #
+      # @param [Array<String>] metrics a list of the metric names from most
+      # specific to least. Typically the result of
+      # NewRelic::Agent::Datastores::MetricHelper#metrics_for
+      #
+      # @param [Float] elapsed the elapsed time during query execution
+      #
+      # **NOTE: THERE ARE SECURITY CONCERNS WHEN CAPTURING SQL!**
+      # New Relic's Transaction Tracing and Slow SQL features will
+      # attempt to apply obfuscation to the passed queries, but it is possible
+      # for a query format to be unsupported and result in exposing user
+      # information.
+      #
+      def self.notice_sql(query, metrics, elapsed)
+        agent = NewRelic::Agent.instance
+        agent.transaction_sampler.notice_sql(query, nil, elapsed)
+        agent.sql_sampler.notice_sql(query, metrics.first, nil, elapsed)
+        nil
+      end
+
     end
   end
 end

@@ -134,6 +134,18 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     refute noticed.any?(&:nil?)
   end
 
+  def test_notice_sql
+    query   = "SELECT * FROM SomeThings"
+    metrics = ["Datastore/statement/MyFirstDatabase/SomeThing/find"]
+    elapsed = 1.0
+
+    agent = NewRelic::Agent.instance
+    agent.transaction_sampler.expects(:notice_sql).with(query, nil, elapsed)
+    agent.sql_sampler.expects(:notice_sql).with(query, metrics.first, nil, elapsed)
+
+    NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
+  end
+
   def assert_statement_metrics(operation, collection, type)
     assert_metrics_recorded([
                             "Datastore/statement/MyFirstDatabase/#{collection}/#{operation}",
