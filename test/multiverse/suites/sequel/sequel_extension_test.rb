@@ -19,10 +19,6 @@ class SequelExtensionTest < Minitest::Test
 
     DB.extension :newrelic_instrumentation
 
-    NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.transaction_sampler.reset!
-    NewRelic::Agent.instance.stats_engine.clear_stats
-
     @posts = DB[:posts]
 
     NewRelic::Agent.disable_all_tracing do
