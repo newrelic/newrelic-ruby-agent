@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/datastores/metric_helper'
+require 'new_relic/agent/deprecator'
 
 module NewRelic
   module Agent
@@ -20,6 +21,15 @@ module NewRelic
           NewRelic::Agent::Datastores::MetricHelper.metrics_for(product,
                                                                 operation,
                                                                 model)
+        end
+
+        # @deprecated
+        def rollup_metrics_for(*_)
+          NewRelic::Agent::Deprecator.deprecate("#{self.class}.rollup_metrics_for",
+                                                "NewRelic::Agent::Datastores::MetricHelper.metrics_for")
+
+          [NewRelic::Agent::Datastores::MetricHelper.context_metric,
+           NewRelic::Agent::Datastores::MetricHelper::ROLLUP_METRIC]
         end
 
         def operation_and_model(name, sql)

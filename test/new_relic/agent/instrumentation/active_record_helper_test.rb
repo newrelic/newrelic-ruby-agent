@@ -55,6 +55,12 @@ module NewRelic::Agent::Instrumentation
       assert_equal(expected, metrics)
     end
 
+    def test_rollup_metrics_for_is_deprecated
+      NewRelic::Agent::Deprecator.expects(:deprecate)
+      result = ActiveRecordHelper.rollup_metrics_for("boo")
+      assert_equal ["Datastore/allOther", "Datastore/all"], result
+    end
+
     def expected_statement_metrics(operation, statement, product = "ActiveRecord")
       ["Datastore/statement/#{product}/#{statement}"] +
         expected_operation_metrics(operation, product)
