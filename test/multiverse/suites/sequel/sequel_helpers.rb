@@ -8,9 +8,7 @@ module SequelHelpers
 
     DB.extension :newrelic_instrumentation
 
-    NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.transaction_sampler.reset!
-    NewRelic::Agent.instance.stats_engine.clear_stats
+    NewRelic::Agent.drop_buffered_data
   end
 
   def teardown
