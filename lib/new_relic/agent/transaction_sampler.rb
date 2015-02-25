@@ -187,6 +187,7 @@ module NewRelic
             if(sql && !sql.empty?)
               sql = self.class.truncate_message(sql << "\n#{message}") if sql.length <= MAX_DATA_LENGTH
             else
+              # message is expected to have been pre-truncated by notice_sql
               segment[:sql] = message
             end
           else

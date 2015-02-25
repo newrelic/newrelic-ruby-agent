@@ -10,6 +10,7 @@ module NewRelic
         WEB_ROLLUP_METRIC    = "Datastore/allWeb".freeze
         OTHER_ROLLUP_METRIC  = "Datastore/allOther".freeze
         DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
+        OTHER = "Other".freeze
 
         ALL = "all".freeze
 
@@ -88,7 +89,7 @@ module NewRelic
         end
 
         def self.metrics_from_sql(product, sql) #THREAD_LOCAL_ACCESS
-          operation = NewRelic::Agent::Database.parse_operation_from_query(sql) || "other"
+          operation = NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
           metrics = metrics_for(product, operation)
 
           txn = NewRelic::Agent::Transaction.tl_current
