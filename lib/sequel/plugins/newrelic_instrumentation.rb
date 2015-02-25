@@ -15,10 +15,10 @@ module Sequel
     module NewrelicInstrumentation
 
       # Meta-programming for creating method tracers for the Sequel::Model plugin.
-      module MethodTracer
+      module MethodWrapping
 
         # Make a lambda for the method body of the traced method
-        def make_tracer_method(method_name)
+        def make_wrapper_method(method_name)
           body = Proc.new do |*args, &block|
             klass = self.is_a?(Class) ? self : self.class
 
@@ -36,10 +36,10 @@ module Sequel
         # Install a method named +method_name+ that will trace execution
         # with a metric name derived from +operation_name+ (or +method_name+ if +operation_name+
         # isn't specified).
-        def add_method_tracer(method_name, operation_name=nil)
+        def wrap_sequel_method(method_name, operation_name=nil)
           operation_name ||= method_name.to_s
 
-          body = make_tracer_method(operation_name)
+          body = make_wrapper_method(operation_name)
           define_method(method_name, &body)
         end
 
@@ -49,16 +49,16 @@ module Sequel
       # Methods to be added to Sequel::Model instances.
       module InstanceMethods
         include NewRelic::Agent::MethodTracer
-        extend Sequel::Plugins::NewrelicInstrumentation::MethodTracer
+        extend Sequel::Plugins::NewrelicInstrumentation::MethodWrapping
 
-        add_method_tracer :delete
-        add_method_tracer :destroy
-        add_method_tracer :update
-        add_method_tracer :update_all
-        add_method_tracer :update_except
-        add_method_tracer :update_fields
-        add_method_tracer :update_only
-        add_method_tracer :save
+        wrap_sequel_method :delete
+        wrap_sequel_method :destroy
+        wrap_sequel_method :update
+        wrap_sequel_method :update_all
+        wrap_sequel_method :update_except
+        wrap_sequel_method :update_fields
+        wrap_sequel_method :update_only
+        wrap_sequel_method :save
 
       end # module InstanceMethods
 
@@ -66,12 +66,12 @@ module Sequel
       # Methods to be added to Sequel::Model classes.
       module ClassMethods
         include NewRelic::Agent::MethodTracer
-        extend Sequel::Plugins::NewrelicInstrumentation::MethodTracer
+        extend Sequel::Plugins::NewrelicInstrumentation::MethodWrapping
 
-        add_method_tracer :[], "get"
-        add_method_tracer :all
-        add_method_tracer :first
-        add_method_tracer :create
+        wrap_sequel_method :[], "get"
+        wrap_sequel_method :all
+        wrap_sequel_method :first
+        wrap_sequel_method :create
       end # module ClassMethods
 
     end # module NewRelicInstrumentation
