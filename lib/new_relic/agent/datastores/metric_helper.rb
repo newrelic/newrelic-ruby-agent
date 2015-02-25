@@ -35,6 +35,10 @@ module NewRelic
         def self.metrics_for(product, operation, collection = nil)
           current_context_metric = context_metric
 
+          if overrides = overridden_operation_and_collection
+            operation, collection = overrides
+          end
+
           # Order of these metrics matters--the first metric in the list will
           # be treated as the scoped metric in a bunch of different cases.
           metrics = [
@@ -44,9 +48,18 @@ module NewRelic
             current_context_metric,
             ROLLUP_METRIC
           ]
+
           metrics.unshift statement_metric_for(product, collection, operation) if collection
 
           metrics
+        end
+
+        # Allow Transaction#with_database_metric_name to override our
+        # collection and operation
+        def self.overridden_operation_and_collection #THREAD_LOCAL_ACCESS
+          state = NewRelic::Agent::TransactionState.tl_get
+          txn   = state.current_transaction
+          txn ?  txn.instrumentation_state[:datastore_override] : nil
         end
 
       end

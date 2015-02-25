@@ -785,6 +785,22 @@ module NewRelic
         Agent.config[key] && Agent.config[key][best_name]
       end
 
+      def with_database_metric_name(model, method)
+        previous = self.instrumentation_state[:datastore_override]
+        model_name = case model
+                     when Class
+                       model.name
+                     when String
+                       model
+                     else
+                       model.to_s
+                     end
+        self.instrumentation_state[:datastore_override] = [method, model_name]
+        yield
+      ensure
+        self.instrumentation_state[:datastore_override] = previous
+      end
+
       def custom_parameters
         @custom_parameters ||= {}
       end

@@ -608,16 +608,21 @@ module NewRelic
       end
     end
 
-    # Previously used to override the model name for ActiveRecord database
-    # instrumentation. No longer supported. Use custom instrumentation
-    # instead.
+    # Yield to a block that is run with a database metric name context.  This means
+    # the Database instrumentation will use this for the metric name if it does not
+    # otherwise know about a model.  This is re-entrant.
     #
-    # @api public
-    # @deprecated
+    # @param [String,Class,#to_s] model the DB model class
     #
-    def with_database_metric_name(*_, &block)
-      NewRelic::Agent::Deprecator.deprecate(:with_database_metric_name)
-      yield
+    # @param [String] method the name of the finder method or other method to
+    # identify the operation with.
+    #
+    def with_database_metric_name(model, method, &block) #THREAD_LOCAL_ACCESS
+      if txn = Transaction.tl_current
+        txn.with_database_metric_name(model, method, &block)
+      else
+        yield
+      end
     end
 
     # Remove after 5/9/15
