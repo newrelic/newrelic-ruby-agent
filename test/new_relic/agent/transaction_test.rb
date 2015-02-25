@@ -1277,4 +1277,11 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     assert_metrics_recorded(["Errors/all"])
   end
+
+  def test_instrumentation_state
+    in_transaction do |txn|
+      txn.instrumentation_state[:a] = 42
+      assert_equal(42, txn.instrumentation_state[:a])
+    end
+  end
 end

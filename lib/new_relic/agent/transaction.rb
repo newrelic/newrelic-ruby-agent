@@ -302,6 +302,24 @@ module NewRelic
         @ignore_enduser = false
       end
 
+      # This transaction-local hash may be used as temprory storage by
+      # instrumentation that needs to pass data from one instrumentation point
+      # to another.
+      #
+      # For example, if both A and B are instrumented, and A calls B
+      # but some piece of state needed by the instrumentation at B is only
+      # available at A, the instrumentation at A may write into the hash, call
+      # through, and then remove the key afterwards, allowing the
+      # instrumentation at B to read the value in between.
+      #
+      # Keys should be symbols, and care should be taken to not generate key
+      # names dynamically, and to ensure that keys are removed upon return from
+      # the method that creates them.
+      #
+      def instrumentation_state
+        @instrumentation_state ||= {}
+      end
+
       def noticed_error_ids
         @noticed_error_ids ||= []
       end
