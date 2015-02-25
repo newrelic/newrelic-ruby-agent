@@ -155,6 +155,28 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
   end
 
+  def test_notice_statement
+    query   = "key"
+    elapsed = 1.0
+
+    agent = NewRelic::Agent.instance
+    agent.transaction_sampler.expects(:notice_nosql_statement).with(query, elapsed)
+
+    NewRelic::Agent::Datastores.notice_statement(query, elapsed)
+  end
+
+  def test_dont_notice_statement_based_on_record_sql_setting
+    query   = "key"
+    elapsed = 1.0
+
+    agent = NewRelic::Agent.instance
+    agent.transaction_sampler.expects(:notice_nosql_statement).never
+
+    with_config(:'transaction_tracer.record_sql' => 'none') do
+      NewRelic::Agent::Datastores.notice_statement(query, elapsed)
+    end
+  end
+
   def assert_statement_metrics(operation, collection, type)
     assert_metrics_recorded([
                             "Datastore/statement/MyFirstDatabase/#{collection}/#{operation}",

@@ -109,7 +109,10 @@ module NewRelic
         end
       end
 
-      # Wrapper for simplifying noticing SQL queries during a transaction.
+      # Wrapper for simplifying attaching SQL queries during a transaction.
+      #
+      # If you are recording non-SQL data, please use the notice_statement
+      # method instead.
       #
       #   NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
       #
@@ -134,6 +137,37 @@ module NewRelic
         agent = NewRelic::Agent.instance
         agent.transaction_sampler.notice_sql(query, nil, elapsed)
         agent.sql_sampler.notice_sql(query, metrics.first, nil, elapsed)
+        nil
+      end
+
+      # Wrapper for simplifying attaching non-SQL data statements to a
+      # transaction. For instance, Mongo or CQL queries, Memcached or Redis
+      # keys would all be appropriate data to attach as statements.
+      #
+      # Data passed to this method is NOT obfuscated by New Relic, so please
+      # ensure that user information is obfuscated if the agent setting
+      # `transaction_tracer.record_sql` is set to `obfuscated`
+      #
+      #   NewRelic::Agent::Datastores.notice_statement("key", elapsed)
+      #
+      # @param [String] statement text of the statement to capture.
+      #
+      # @param [Float] elapsed the elapsed time during query execution
+      #
+      # **NOTE: THERE ARE SECURITY CONCERNS WHEN CAPTURING STATEMENTS!**
+      # This method will properly ignore statements when the user has turned
+      # off capturing queries, but it is not able to obfuscate arbitrary data!
+      # To prevent exposing user information embedded in captured queries,
+      # please ensure all data passed to this method is safe to transmit to
+      # New Relic.
+      #
+      def self.notice_statement(statement, elapsed)
+        # Settings may change eventually, but for now we follow the same
+        # capture rules as SQL for non-SQL statements.
+        return unless NewRelic::Agent::Database.should_record_sql?
+
+        agent = NewRelic::Agent.instance
+        agent.transaction_sampler.notice_nosql_statement(statement, elapsed)
         nil
       end
 
