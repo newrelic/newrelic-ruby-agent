@@ -13,8 +13,13 @@ module NewRelic
         default = Hash.new(expected_default)
 
         adapter_to_name = {
+          :ibmdb => "IBMDB2",
+          :firebird => "Firebird",
+          :informix => "Informix",
+          :jdbc => "JDBC",
           :mysql => "MySQL",
           :mysql2 => "MySQL",
+          :oracle => "Oracle",
           :postgres => "Postgres",
           :sqlite => "SQLite"
         }

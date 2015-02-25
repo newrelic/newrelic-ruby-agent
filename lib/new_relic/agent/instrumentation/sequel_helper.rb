@@ -16,8 +16,13 @@ module NewRelic
         #
         #   DB.adapter_scheme
         PRODUCT_NAMES = {
+          :ibmdb => "IBMDB2",
+          :firebird => "Firebird",
+          :informix => "Informix",
+          :jdbc => "JDBC",
           :mysql => "MySQL",
           :mysql2 => "MySQL",
+          :oracle => "Oracle",
           :postgres => "Postgres",
           :sqlite => "SQLite"
         }.freeze
