@@ -72,8 +72,8 @@ module NewRelic
       #
       # @param [Proc,#call] callback proc or other callable to invoke after
       # running the datastore block. Receives three arguments: result of the
-      # yield, list of metric names, and elapsed call time call. An example use
-      # is attaching SQL to Transaction Traces at the end of a wrapped
+      # yield, list of metric names, and elapsed time of the call. An example
+      # use is attaching SQL to Transaction Traces at the end of a wrapped
       # datastore call.
       #
       #   callback = Proc.new do |result, metrics, elapsed|
@@ -88,7 +88,7 @@ module NewRelic
       # New Relic's Transaction Tracing and Slow SQL features will
       # attempt to apply obfuscation to the passed queries, but it is possible
       # for a query format to be unsupported and result in exposing user
-      # information.
+      # information embedded within captured queries.
       #
       # @api public
       #
@@ -128,7 +128,7 @@ module NewRelic
       # New Relic's Transaction Tracing and Slow SQL features will
       # attempt to apply obfuscation to the passed queries, but it is possible
       # for a query format to be unsupported and result in exposing user
-      # information.
+      # information embedded within captured queries.
       #
       def self.notice_sql(query, metrics, elapsed)
         agent = NewRelic::Agent.instance
