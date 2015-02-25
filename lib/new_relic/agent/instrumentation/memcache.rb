@@ -24,15 +24,14 @@ module NewRelic
         METHODS = [:get, :get_multi, :set, :add, :incr, :decr, :delete, :replace, :append,
                    :prepend, :cas, :single_get, :multi_get, :single_cas, :multi_cas]
 
-        def supported_methods_for(client_class)
-          METHODS.select do |method_name|
+        def supported_methods_for(client_class, methods)
+          methods.select do |method_name|
             client_class.method_defined?(method_name) || client_class.private_method_defined?(method_name)
           end
         end
 
-        def instrument_methods(client_class, supported_methods = nil)
-          supported_methods ||= supported_methods_for(client_class)
-          supported_methods.each do |method_name|
+        def instrument_methods(client_class, requested_methods = METHODS)
+          supported_methods_for(client_class, requested_methods).each do |method_name|
 
             visibility = NewRelic::Helper.instance_method_visibility client_class, method_name
             method_name_without = :"#{method_name}_without_newrelic_trace"
@@ -129,7 +128,8 @@ DependencyDetection.defer do
     # dalli/cas/client. Use a separate dependency block so it can potentially
     # re-evaluate after they've done that require.
     defined?(::Dalli::Client) &&
-      ::Dalli::Client.instance_methods.include?(:get_cas)
+      ::NewRelic::Agent::Instrumentation::Memcache.supported_methods_for(::Dalli::Client,
+                                                                         CAS_CLIENT_METHODS).any?
   end
 
   CAS_CLIENT_METHODS = [:get_cas, :get_multi_cas, :set_cas, :replace_cas,
