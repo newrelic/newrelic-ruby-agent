@@ -70,17 +70,17 @@ module NewRelic
       # @param [optional, String] collection the collection name for use in
       # statement-level metrics (i.e. table or model name)
       #
-      # @param [Proc,#call] notice proc or other callable to invoke after
+      # @param [Proc,#call] callback proc or other callable to invoke after
       # running the datastore block. Receives three arguments: result of the
       # yield, list of metric names, and elapsed call time call. An example use
       # is attaching SQL to Transaction Traces at the end of a wrapped
       # datastore call.
       #
-      #   note = Proc.new do |result, metrics, elapsed|
+      #   callback = Proc.new do |result, metrics, elapsed|
       #     NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
       #   end
       #
-      #   NewRelic::Agent::Datastores.wrap("FauxDB", "find", "items", note) do
+      #   NewRelic::Agent::Datastores.wrap("FauxDB", "find", "items", callback) do
       #     FauxDB.find(query)
       #   end
       #
@@ -92,7 +92,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.wrap(product, operation, collection = nil, notice = nil)
+      def self.wrap(product, operation, collection = nil, callback = nil)
         return yield unless operation
 
         metrics = MetricHelper.metrics_for(product, operation, collection)
@@ -101,9 +101,9 @@ module NewRelic
           begin
             result = yield
           ensure
-            if notice
+            if callback
               elapsed_time = (Time.now - t0).to_f
-              notice.call(result, metrics, elapsed_time)
+              callback.call(result, metrics, elapsed_time)
             end
           end
         end
