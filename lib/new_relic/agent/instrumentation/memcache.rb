@@ -77,7 +77,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing MemCache instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation for memcache-client gem'
     NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::MemCache)
   end
 end
@@ -94,7 +94,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation for memcached gem'
     ::NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Memcached)
   end
 end
@@ -111,7 +111,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Dalli Memcache instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Memcache instrumentation for dalli gem'
     ::NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client)
   end
 end
