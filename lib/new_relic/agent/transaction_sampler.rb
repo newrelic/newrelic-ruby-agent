@@ -184,8 +184,8 @@ module NewRelic
         if segment
           if key == :sql
             sql = segment[:sql]
-            if(sql && sql.length > 0 && sql.length < MAX_DATA_LENGTH)
-              sql = self.class.truncate_message(sql << "\n#{message}")
+            if(sql && !sql.empty?)
+              sql = self.class.truncate_message(sql << "\n#{message}") if sql.length < MAX_DATA_LENGTH
             else
               segment[:sql] = message
             end
