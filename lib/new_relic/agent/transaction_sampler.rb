@@ -182,11 +182,15 @@ module NewRelic
         return unless builder
         segment = builder.current_segment
         if segment
-          if key != :sql
-            segment[key] = self.class.truncate_message(message)
+          if key == :sql
+            sql = segment[:sql]
+            if(sql && sql.length > 0 && sql.length < MAX_DATA_LENGTH)
+              sql = self.class.truncate_message(sql << "\n#{message}")
+            else
+              segment[:sql] = message
+            end
           else
-            # message is expected to have been pre-truncated by notice_sql
-            segment[key] = message
+            segment[key] = self.class.truncate_message(message)
           end
           append_backtrace(segment, duration)
         end

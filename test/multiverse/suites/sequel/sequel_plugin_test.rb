@@ -172,6 +172,15 @@ class SequelPluginTest < Minitest::Test
     end
   end
 
+  def test_sql_is_recorded_in_tt_for_non_select
+    with_config(:'transaction_tracer.record_sql' => 'raw') do
+      segment = last_segment_for do
+        Post.create(:title => 'title', :content => 'content')
+      end
+      assert_match %r{insert into `posts` \(`title`, `content`\) values \('title', 'content'\)}i, segment.params[:sql]
+    end
+  end
+
   def test_no_explain_plans_with_single_threaded_connection
     connect_opts = DB.opts
     single_threaded_db = Sequel.connect(connect_opts.merge(:single_threaded => true))
@@ -202,7 +211,7 @@ class SequelPluginTest < Minitest::Test
     end
   end
 
-  def test_notices_sql_with_proper_metric_name
+  def test_notices_sql_with_proper_metric_name_for_select
     config = {
       :'transaction_tracer.explain_threshold' => -0.01,
       :'transaction_tracer.record_sql' => 'obfuscated'

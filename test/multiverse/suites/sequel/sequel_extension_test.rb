@@ -99,6 +99,14 @@ class SequelExtensionTest < Minitest::Test
     end
   end
 
+  def test_sql_is_recorded_in_tt_for_non_select
+    with_config(:'transaction_tracer.record_sql' => 'raw') do
+      segment = last_segment_for do
+        @posts.insert(:title => 'title', :content => 'content')
+      end
+      assert_match %r{insert into `posts` \(`title`, `content`\) values \('title', 'content'\)}i, segment.params[:sql]
+    end
+  end
 
   def test_queries_can_get_explain_plan_with_obfuscated_sql
     config = {
