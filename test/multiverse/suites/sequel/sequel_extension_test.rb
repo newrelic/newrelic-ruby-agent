@@ -40,16 +40,14 @@ class SequelExtensionTest < Minitest::Test
       "Datastore/#{product_name}/allWeb",
       "Datastore/allWeb",
       "Datastore/#{product_name}/all",
-      "Datastore/all",
-      "dummy",
-      "Apdex"
+      "Datastore/all"
     ]
   end
 
   def test_all
     in_web_transaction { @posts.all }
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:select))
+    assert_datastore_metrics_recorded_exclusive(expected_metrics_for_operation(:select))
   end
 
   def test_find
@@ -57,7 +55,7 @@ class SequelExtensionTest < Minitest::Test
       @posts[:id => 11]
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:select))
+    assert_datastore_metrics_recorded_exclusive(expected_metrics_for_operation(:select))
   end
 
   def test_model_create_method_generates_metrics
@@ -65,7 +63,7 @@ class SequelExtensionTest < Minitest::Test
       @posts.insert( :title => 'The Thing', :content => 'A wicked short story.' )
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:insert))
+    assert_datastore_metrics_recorded_exclusive(expected_metrics_for_operation(:insert))
   end
 
   def test_update
@@ -73,7 +71,7 @@ class SequelExtensionTest < Minitest::Test
       @posts.where(:id => @post[:id]).update( :title => 'A Lot of the Things' )
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:update))
+    assert_datastore_metrics_recorded_exclusive(expected_metrics_for_operation(:update))
   end
 
   def test_delete
@@ -81,7 +79,7 @@ class SequelExtensionTest < Minitest::Test
       @posts.where(:id => @post[:id]).delete
     end
 
-    assert_metrics_recorded_exclusive(expected_metrics_for_operation(:delete))
+    assert_datastore_metrics_recorded_exclusive(expected_metrics_for_operation(:delete))
   end
 
   def test_slow_queries_get_an_explain_plan

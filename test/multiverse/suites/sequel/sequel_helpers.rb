@@ -55,4 +55,8 @@ module SequelHelpers
       "SQLite"
     end
   end
+
+  def assert_datastore_metrics_recorded_exclusive(metrics, options = {})
+    assert_metrics_recorded_exclusive(metrics, {:filter => /^Datastores/}.update(options))
+  end
 end
