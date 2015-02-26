@@ -14,31 +14,22 @@ module Sequel
     # Sequel::Model instrumentation for the New Relic agent.
     module NewrelicInstrumentation
 
-      module Helper
-      # Make a lambda for the method body of the traced method
-        def self.make_wrapper_method(method_name)
-          Proc.new do |*args, &block|
-            klass = self.is_a?(Class) ? self : self.class
-
-            product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(db.adapter_scheme)
-            metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for(product, method_name, klass.name)
-
-            trace_execution_scoped(metrics) do
-              NewRelic::Agent.disable_all_tracing { super(*args, &block) }
-            end
-          end
-        end
-      end
-
       # Meta-programming for creating method tracers for the Sequel::Model plugin.
       module MethodWrapping
         # Install a method named +method_name+ that will trace execution
         # with a metric name derived from +operation_name+ (or +method_name+ if +operation_name+
         # isn't specified).
-        def wrap_sequel_method(method_name, operation_name=nil)
-          operation_name ||= method_name.to_s
-          body = Helper.make_wrapper_method(operation_name)
-          define_method(method_name, &body)
+        def wrap_sequel_method(method_name, operation_name=method_name)
+          define_method(method_name) do |*args, &block|
+            klass = self.is_a?(Class) ? self : self.class
+
+            product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(db.adapter_scheme)
+            metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for(product, operation_name, klass.name)
+
+            trace_execution_scoped(metrics) do
+              NewRelic::Agent.disable_all_tracing { super(*args, &block) }
+            end
+          end
         end
 
       end # module MethodTracer
