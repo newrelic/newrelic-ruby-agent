@@ -66,7 +66,7 @@ module NewRelic
         def self.overridden_operation_and_collection #THREAD_LOCAL_ACCESS
           state = NewRelic::Agent::TransactionState.tl_get
           txn   = state.current_transaction
-          txn ?  txn.instrumentation_state[:datastore_override] : nil
+          txn ? txn.instrumentation_state[:datastore_override] : nil
         end
 
       end
