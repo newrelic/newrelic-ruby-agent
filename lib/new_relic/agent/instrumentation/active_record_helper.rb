@@ -31,11 +31,15 @@ module NewRelic
           end
         end
 
+        # this should be targeted for deprecation and removal in favor
+        # of MetricHelper#metric_for_sql
         def metric_for_sql(sql) #THREAD_LOCAL_ACCESS
           txn = NewRelic::Agent::Transaction.tl_current
           metric = txn && txn.database_metric_name
+
           if metric.nil?
             operation = NewRelic::Agent::Database.parse_operation_from_query(sql)
+
             if operation
               # Could not determine the model/operation so use a fallback metric
               metric = "Database/SQL/#{operation}"

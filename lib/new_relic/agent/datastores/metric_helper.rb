@@ -9,6 +9,8 @@ module NewRelic
         ROLLUP_METRIC        = "Datastore/all".freeze
         WEB_ROLLUP_METRIC    = "Datastore/allWeb".freeze
         OTHER_ROLLUP_METRIC  = "Datastore/allOther".freeze
+        DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
+        OTHER = "Other".freeze
 
         ALL = "all".freeze
 
@@ -20,7 +22,7 @@ module NewRelic
           "Datastore/operation/#{product}/#{operation}"
         end
 
-        def self.context_metric
+        def self.rollup_metric
           if NewRelic::Agent::Transaction.recording_web_transaction?
             WEB_ROLLUP_METRIC
           else
@@ -33,15 +35,15 @@ module NewRelic
         end
 
         def self.metrics_for(product, operation, collection = nil)
-          current_context_metric = context_metric
+          current_rollup_metric = rollup_metric
 
           # Order of these metrics matters--the first metric in the list will
           # be treated as the scoped metric in a bunch of different cases.
           metrics = [
             operation_metric_for(product, operation),
-            product_rollup_metric(current_context_metric, product),
+            product_rollup_metric(current_rollup_metric, product),
             product_rollup_metric(ROLLUP_METRIC, product),
-            current_context_metric,
+            current_rollup_metric,
             ROLLUP_METRIC
           ]
           metrics.unshift statement_metric_for(product, collection, operation) if collection
@@ -75,16 +77,29 @@ module NewRelic
           OPERATION_NAMES[operation]
         end
 
-        PRODUCT_NAMES = {
+        ACTIVE_RECORD_ADAPTER_TO_PRODUCT_NAME = {
           "MySQL" => "MySQL",
           "Mysql2" => "MySQL",
           "PostgreSQL" => "Postgres",
           "SQLite" => "SQLite"
         }.freeze
-        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
 
-        def self.active_record_product_name_from_adapter(adapter_name)
-          PRODUCT_NAMES.fetch(adapter_name, ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
+        def self.product_name_from_active_record_adapter(adapter)
+          ACTIVE_RECORD_ADAPTER_TO_PRODUCT_NAME.fetch(adapter, DEFAULT_PRODUCT_NAME)
+        end
+
+        def self.metrics_from_sql(product, sql) #THREAD_LOCAL_ACCESS
+          operation = NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
+          metrics = metrics_for(product, operation)
+
+          txn = NewRelic::Agent::Transaction.tl_current
+
+          if metric_override = txn && txn.database_metric_name
+            metrics.shift
+            metrics.unshift metric_override
+          end
+
+          metrics
         end
       end
     end

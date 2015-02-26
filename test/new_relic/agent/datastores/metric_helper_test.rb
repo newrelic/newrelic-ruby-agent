@@ -26,17 +26,17 @@ module NewRelic
         assert_equal expected, result
       end
 
-      def test_context_metric_returns_web_for_web_context
+      def test_rollup_metric_returns_web_for_web_context
         NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
         expected = "Datastore/allWeb"
-        result = Datastores::MetricHelper.context_metric
+        result = Datastores::MetricHelper.rollup_metric
         assert_equal expected, result
       end
 
-      def test_context_metric_returns_other_for_non_web_context
+      def test_rollup_metric_returns_other_for_non_web_context
         NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(false)
         expected = "Datastore/allOther"
-        result = Datastores::MetricHelper.context_metric
+        result = Datastores::MetricHelper.rollup_metric
         assert_equal expected, result
       end
 
@@ -105,29 +105,23 @@ module NewRelic
         assert_nil result
       end
 
-      def test_product_is_named_properly_for_mysql_adapter
-        product_name = Datastores::MetricHelper.active_record_product_name_from_adapter("MySQL")
-        assert_equal "MySQL", product_name
-      end
+      def test_product_name_from_active_record_adapter
+        expected_default = "ActiveRecord"
+        default = Hash.new(expected_default)
 
-      def test_product_is_named_properly_for_mysql2_adapter
-        product_name = Datastores::MetricHelper.active_record_product_name_from_adapter("Mysql2")
-        assert_equal "MySQL", product_name
-      end
+        adapter_to_name = {
+          "MySQL" => "MySQL",
+          "Mysql2" => "MySQL",
+          "PostgreSQL" => "Postgres",
+          "SQLite" => "SQLite"
+        }
 
-      def test_product_is_named_properly_for_postgres_adapter
-        product_name = Datastores::MetricHelper.active_record_product_name_from_adapter("PostgreSQL")
-        assert_equal "Postgres", product_name
-      end
+        default.merge(adapter_to_name).each do |adapter, name|
+          assert_equal name, Datastores::MetricHelper.product_name_from_active_record_adapter(adapter)
+        end
 
-      def test_product_is_named_properly_for_sqlite_adapter
-        product_name = Datastores::MetricHelper.active_record_product_name_from_adapter("SQLite")
-        assert_equal "SQLite", product_name
-      end
-
-      def test_product_is_active_record_for_unkown_adapter
-        product_name = Datastores::MetricHelper.active_record_product_name_from_adapter("YouDontKnowThisAdapter")
-        assert_equal "ActiveRecord", product_name
+        default_result = Datastores::MetricHelper.product_name_from_active_record_adapter("YouDontKnowThisAdapter")
+        assert_equal expected_default, default_result
       end
     end
   end

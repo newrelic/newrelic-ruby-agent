@@ -24,7 +24,7 @@ class NewRelic::TransactionSampleTest < Minitest::Test
     @connection_stub.stubs(:execute).returns(dummy_mysql_explain_result({'foo' => 'bar'}))
 
     NewRelic::Agent::Database.stubs(:get_connection).returns @connection_stub
-    @t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+    @t = make_sql_transaction(::SQL_STATEMENT)
 
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       @marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
@@ -314,12 +314,21 @@ class NewRelic::TransactionSampleTest < Minitest::Test
 
     t = nil
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
-      t = make_sql_transaction(query, query)
+      t = make_sql_transaction(query)
       t.prepare_to_send!
     end
 
     sql_statements = extract_captured_sql(t)
     assert_equal(["SELECT * FROM table WHERE col1=? AND col2=?"], sql_statements)
+  end
+
+  def test_multiple_calls_to_notice_sequel_appends_sql
+    queries = ["BEGIN", "INSERT items(title) VALUES('title')", "COMMIT"]
+
+    t = make_sql_transaction(*queries)
+    sql_statements = extract_captured_sql(t)
+
+    assert_equal [queries.join("\n")], sql_statements
   end
 
   def trace_tree(transaction=@t)
