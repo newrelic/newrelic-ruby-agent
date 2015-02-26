@@ -16,8 +16,8 @@ class SequelPluginTest < Minitest::Test
 
   def expected_metrics_for_operation(operation)
     [
-      ["Datastore/statement/#{product_name}/posts/#{operation}", "dummy"],
-      "Datastore/statement/#{product_name}/posts/#{operation}",
+      ["Datastore/statement/#{product_name}/Post/#{operation}", "dummy"],
+      "Datastore/statement/#{product_name}/Post/#{operation}",
       "Datastore/operation/#{product_name}/#{operation}",
       "Datastore/#{product_name}/allWeb",
       "Datastore/allWeb",

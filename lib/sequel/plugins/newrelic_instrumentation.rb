@@ -23,7 +23,7 @@ module Sequel
             klass = self.is_a?(Class) ? self : self.class
 
             product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(db.adapter_scheme)
-            metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for(product, method_name, klass.table_name)
+            metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for(product, method_name, klass.name)
 
             trace_execution_scoped(metrics) do
               NewRelic::Agent.disable_all_tracing { super(*args, &block) }
