@@ -28,7 +28,7 @@ module NewRelic
           NewRelic::Agent::Deprecator.deprecate("#{self.class}.rollup_metrics_for",
                                                 "NewRelic::Agent::Datastores::MetricHelper.metrics_for")
 
-          [NewRelic::Agent::Datastores::MetricHelper.context_metric,
+          [NewRelic::Agent::Datastores::MetricHelper.rollup_metric,
            NewRelic::Agent::Datastores::MetricHelper::ROLLUP_METRIC]
         end
 

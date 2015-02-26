@@ -5,7 +5,8 @@
 
 require 'sequel' unless defined?( Sequel )
 require 'newrelic_rpm' unless defined?( NewRelic )
-require 'new_relic/agent/instrumentation/active_record_helper'
+require 'new_relic/agent/instrumentation/sequel_helper'
+require 'new_relic/agent/datastores/metric_helper'
 
 module Sequel
 
@@ -33,72 +34,44 @@ module Sequel
     include NewRelic::Agent::MethodTracer,
             NewRelic::Agent::Instrumentation::ActiveRecordHelper
 
-
     # Instrument all queries that go through #execute_query.
     def log_yield(sql, args=nil) #THREAD_LOCAL_ACCESS
-      state = NewRelic::Agent::TransactionState.tl_get
-      return super unless state.is_execution_traced?
+      rval = nil
+      product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(self.class.adapter_scheme)
+      metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_from_sql(product, sql)
 
-      t0 = Time.now
-      rval = super
-      t1 = Time.now
-
-      begin
-        duration = t1 - t0
-        record_metrics(sql, args, duration)
-        notice_sql(state, sql, args, t0, t1)
-      rescue => err
-        NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
+      NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
+        t0 = Time.now
+        begin
+          rval = super
+        rescue => err
+          NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
+        ensure
+          notice_sql(sql, metrics.first, args, t0, Time.now)
+        end
       end
 
       return rval
     end
 
-    # Record metrics for the specified +sql+ and +args+ using the specified
-    # +duration+.
-    def record_metrics(sql, args, duration) #THREAD_LOCAL_ACCESS
-      primary_metric = primary_metric_for(sql, args)
-      engine         = NewRelic::Agent.instance.stats_engine
-
-      metrics = rollup_metrics_for(primary_metric)
-      metrics << remote_service_metric(*self.opts.values_at(:adapter, :host)) if self.opts.key?(:adapter)
-
-      engine.tl_record_scoped_and_unscoped_metrics(primary_metric, metrics, duration)
-    end
-
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [
-      (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool),
-    ].compact.freeze
+      (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool)
+    ].freeze
 
-    # Record the given +sql+ within a new frame, using the given +start+ and
-    # +finish+ times.
-    def notice_sql(state, sql, args, start, finish)
-      metric   = primary_metric_for(sql, args)
-      agent    = NewRelic::Agent.instance
+    def notice_sql(sql, metric_name, args, start, finish)
+      state    = NewRelic::Agent::TransactionState.tl_get
       duration = finish - start
-      stack    = state.traced_method_stack
 
-      begin
-        frame = stack.push_frame(state, :sequel, start)
-        explainer = Proc.new do |*|
-          if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
-            self[ sql ].explain
-          else
-            NewRelic::Agent.logger.log_once(:info, :sequel_explain_skipped, "Not running SQL explains because Sequel is not in recognized multi-threaded mode")
-            nil
-          end
+      explainer = Proc.new do |*|
+        if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
+          self[ sql ].explain
+        else
+          NewRelic::Agent.logger.log_once(:info, :sequel_explain_skipped, "Not running SQL explains because Sequel is not in recognized multi-threaded mode")
+          nil
         end
-        agent.transaction_sampler.notice_sql(sql, self.opts, duration, state, &explainer)
-        agent.sql_sampler.notice_sql(sql, metric, self.opts, duration, state, &explainer)
-      ensure
-        stack.pop_frame(state, frame, metric, finish)
       end
-    end
-
-
-    # Derive a primary database metric for the specified +sql+.
-    def primary_metric_for(sql, _)
-      return metric_for_sql(NewRelic::Helper.correctly_encoded(sql))
+      NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, self.opts, duration, state, &explainer)
+      NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric_name, self.opts, duration, state, &explainer)
     end
 
   end # module NewRelicInstrumentation

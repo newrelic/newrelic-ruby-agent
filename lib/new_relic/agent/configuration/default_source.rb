@@ -608,6 +608,30 @@ module NewRelic
           :dynamic_name => true,
           :description => 'Enable or disable ActiveJob instrumentation.'
         },
+        :disable_memcached => {
+          :default => value_of(:disable_memcache_instrumentation),
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable instrumentation for the memcached gem.'
+        },
+        :disable_memcache_client => {
+          :default => value_of(:disable_memcache_instrumentation),
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable instrumenation for the memcache-client gem.'
+        },
+        :disable_dalli => {
+          :default => value_of(:disable_memcache_instrumentation),
+          :public => true,
+          :type => Boolean,
+          :description => 'Enable or disable instrumentation for the dalli gem.'
+        },
+        :disable_dalli_cas_client => {
+          :default => value_of(:disable_memcache_instrumentation),
+          :public => true,
+          :type => Boolean,
+          :description => "Enable or disable instrumentation for the dalli gem's additional CAS client support."
+        },
         :disable_memcache_instrumentation => {
           :default => false,
           :public => true,
