@@ -98,7 +98,7 @@ class SequelExtensionTest < Minitest::Test
       segment = last_segment_for do
         @posts.insert(:title => 'title', :content => 'content')
       end
-      assert_match %r{insert into `posts` \(`title`, `content`\) values \('title', 'content'\)}i, segment.params[:sql]
+      assert_match %r{insert into `posts` \([^\)]*\) values \([^\)]*\)}i, segment.params[:sql]
     end
   end
 
