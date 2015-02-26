@@ -14,12 +14,10 @@ module Sequel
     # Sequel::Model instrumentation for the New Relic agent.
     module NewrelicInstrumentation
 
-      # Meta-programming for creating method tracers for the Sequel::Model plugin.
-      module MethodWrapping
-
-        # Make a lambda for the method body of the traced method
-        def make_wrapper_method(method_name)
-          body = Proc.new do |*args, &block|
+      module Helper
+      # Make a lambda for the method body of the traced method
+        def self.make_wrapper_method(method_name)
+          Proc.new do |*args, &block|
             klass = self.is_a?(Class) ? self : self.class
 
             product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(db.adapter_scheme)
@@ -29,22 +27,21 @@ module Sequel
               NewRelic::Agent.disable_all_tracing { super(*args, &block) }
             end
           end
-
-          return body
         end
+      end
 
+      # Meta-programming for creating method tracers for the Sequel::Model plugin.
+      module MethodWrapping
         # Install a method named +method_name+ that will trace execution
         # with a metric name derived from +operation_name+ (or +method_name+ if +operation_name+
         # isn't specified).
         def wrap_sequel_method(method_name, operation_name=nil)
           operation_name ||= method_name.to_s
-
-          body = make_wrapper_method(operation_name)
+          body = Helper.make_wrapper_method(operation_name)
           define_method(method_name, &body)
         end
 
       end # module MethodTracer
-
 
       # Methods to be added to Sequel::Model instances.
       module InstanceMethods
