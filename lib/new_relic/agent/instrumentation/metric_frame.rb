@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/deprecator'
+
 module NewRelic
   module Agent
     module Instrumentation
@@ -17,11 +19,18 @@ module NewRelic
 
         # @deprecated
         def self.recording_web_transaction?
+          NewRelic::Agent::Deprecator.deprecate(
+            "NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction?",
+            "NewRelic::Agent::Transaction.recording_web_transaction?")
+
           Transaction.recording_web_transaction?
         end
 
         # @deprecated
         def self.abort_transaction!
+          NewRelic::Agent::Deprecator.deprecate(
+            "NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!",
+            "NewRelic::Agent::Transaction.abort_transaction!")
           Transaction.abort_transaction!
         end
       end
