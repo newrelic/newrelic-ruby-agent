@@ -26,7 +26,7 @@ module Sequel
             product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(db.adapter_scheme)
             metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for(product, operation_name, klass.name)
 
-            trace_execution_scoped(metrics) do
+            NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
               NewRelic::Agent.disable_all_tracing { super(*args, &block) }
             end
           end
@@ -36,7 +36,6 @@ module Sequel
 
       # Methods to be added to Sequel::Model instances.
       module InstanceMethods
-        include NewRelic::Agent::MethodTracer
         extend Sequel::Plugins::NewrelicInstrumentation::MethodWrapping
 
         wrap_sequel_method :delete
@@ -53,7 +52,6 @@ module Sequel
 
       # Methods to be added to Sequel::Model classes.
       module ClassMethods
-        include NewRelic::Agent::MethodTracer
         extend Sequel::Plugins::NewrelicInstrumentation::MethodWrapping
 
         wrap_sequel_method :[], "get"

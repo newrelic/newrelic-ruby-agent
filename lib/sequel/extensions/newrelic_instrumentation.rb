@@ -31,8 +31,6 @@ module Sequel
   # `disable_activerecord_instrumentation` setting.
   #
   module NewRelicInstrumentation
-    include NewRelic::Agent::MethodTracer,
-            NewRelic::Agent::Instrumentation::ActiveRecordHelper
 
     # Instrument all queries that go through #execute_query.
     def log_yield(sql, args=nil) #THREAD_LOCAL_ACCESS
