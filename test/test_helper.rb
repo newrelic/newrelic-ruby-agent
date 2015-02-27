@@ -94,7 +94,9 @@ else
   end
 end
 
-require 'agent_helper'
+# This is the public method recommended for plugin developers to share our
+# agent helpers. Use it so we don't accidentally break it.
+NewRelic::Agent.require_test_helper
 
 def default_service(stubbed_method_overrides = {})
   service = stub

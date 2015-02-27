@@ -313,6 +313,14 @@ module NewRelic
       agent.drop_buffered_data
     end
 
+    # Require agent testing helper methods
+    #
+    # @api public
+    def require_test_helper
+      path = File.join(__FILE__, '..', '..', '..', 'test', 'agent_helper')
+      require File.expand_path(path)
+    end
+
     # Deprecated in favor of drop_buffered_data
     #
     # @api public
