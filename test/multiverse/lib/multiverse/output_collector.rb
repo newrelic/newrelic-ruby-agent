@@ -17,7 +17,7 @@ module Multiverse
     @buffer_lock = Mutex.new
 
     def self.failing_output
-      @failing ||= []
+      @failing_output ||= []
     end
 
     def self.buffer(suite, env)
@@ -30,8 +30,11 @@ module Multiverse
     end
 
     def self.failed(suite, env)
-      @failing ||= []
-      @failing << buffer(suite, env) + "\n"
+      @failing_suites ||= []
+      @failing_suites << [suite, env]
+
+      @failing_output ||= []
+      @failing_output << buffer(suite, env) + "\n"
     end
 
     def self.write(suite, env, msg)
@@ -47,13 +50,25 @@ module Multiverse
       if failing_output.empty?
         output(green("There were no test failures"))
       else
-        output(
-          red("*" * 80),
-          red("There were failures in #{failing_output.size} test suites"),
-          red("Here is their output"),
-          red("*" * 80),
-          *failing_output)
+        to_output = failing_output_header + failing_output + failing_output_footer
+        output(*to_output)
       end
+    end
+
+    def self.failing_output_header
+      [red("*" * 80),
+        red("Repeating failed test output"),
+        red("*" * 80),
+        ""]
+    end
+
+    def self.failing_output_footer
+      ["",
+        red("*" * 80),
+        red("There were failures in #{failing_output.size} test suites"),
+        "",
+        @failing_suites.map { |suite, env| red("#{suite} failed in env #{env}") },
+        red("*" * 80)]
     end
 
     # Because the various environments potentially run in separate threads to
