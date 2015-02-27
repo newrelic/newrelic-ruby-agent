@@ -20,15 +20,6 @@ module NewRelic
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
             include ::NewRelic::Agent::Instrumentation::ActiveRecord
           end
-
-          ::ActiveRecord::Base.class_eval do
-            class << self
-              add_method_tracer(:find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql',
-                                :metric => false)
-              add_method_tracer(:transaction, 'ActiveRecord/#{self.name}/transaction',
-                                :metric => false)
-            end
-          end
         end
 
         def self.included(instrumented_class)
