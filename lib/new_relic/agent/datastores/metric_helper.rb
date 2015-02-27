@@ -37,6 +37,10 @@ module NewRelic
         def self.metrics_for(product, operation, collection = nil)
           current_rollup_metric = rollup_metric
 
+          if overrides = overridden_operation_and_collection
+            operation, collection = overrides
+          end
+
           # Order of these metrics matters--the first metric in the list will
           # be treated as the scoped metric in a bunch of different cases.
           metrics = [
@@ -46,61 +50,25 @@ module NewRelic
             current_rollup_metric,
             ROLLUP_METRIC
           ]
+
           metrics.unshift statement_metric_for(product, collection, operation) if collection
 
           metrics
         end
 
-        def self.active_record_metric_for_name(name)
-          return unless name && name.respond_to?(:split)
-          parts = name.split
-          return unless parts.size == 2
-
-          model = parts.first
-          operation_name = active_record_operation_from_name(parts.last.downcase)
-
-          "Datastore/#{model}/#{operation_name}" if operation_name
-        end
-
-        OPERATION_NAMES = {
-          'load' => 'find',
-          'count' => 'find',
-          'exists' => 'find',
-          'find' => 'find',
-          'destroy' => 'destroy',
-          'create' => 'create',
-          'update' => 'save',
-          'save' => 'save'
-        }.freeze
-
-        def self.active_record_operation_from_name(operation)
-          OPERATION_NAMES[operation]
-        end
-
-        ACTIVE_RECORD_ADAPTER_TO_PRODUCT_NAME = {
-          "MySQL" => "MySQL",
-          "Mysql2" => "MySQL",
-          "PostgreSQL" => "Postgres",
-          "SQLite" => "SQLite"
-        }.freeze
-
-        def self.product_name_from_active_record_adapter(adapter)
-          ACTIVE_RECORD_ADAPTER_TO_PRODUCT_NAME.fetch(adapter, DEFAULT_PRODUCT_NAME)
-        end
-
-        def self.metrics_from_sql(product, sql) #THREAD_LOCAL_ACCESS
+        def self.metrics_from_sql(product, sql)
           operation = NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
-          metrics = metrics_for(product, operation)
-
-          txn = NewRelic::Agent::Transaction.tl_current
-
-          if metric_override = txn && txn.database_metric_name
-            metrics.shift
-            metrics.unshift metric_override
-          end
-
-          metrics
+          metrics_for(product, operation)
         end
+
+        # Allow Transaction#with_database_metric_name to override our
+        # collection and operation
+        def self.overridden_operation_and_collection #THREAD_LOCAL_ACCESS
+          state = NewRelic::Agent::TransactionState.tl_get
+          txn   = state.current_transaction
+          txn ? txn.instrumentation_state[:datastore_override] : nil
+        end
+
       end
     end
   end

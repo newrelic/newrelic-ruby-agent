@@ -70,59 +70,6 @@ module NewRelic
         assert_equal expected, result
       end
 
-      def test_active_record_metric_for_name
-        names = {
-          "Wiggles Load" => "Datastore/Wiggles/find",
-          "Wiggles Count" => "Datastore/Wiggles/find",
-          "Wiggles Exists" => "Datastore/Wiggles/find",
-          "Wiggles Indexes" => nil,
-          "Wiggles Columns" => nil,
-          "Wiggles Destroy" => "Datastore/Wiggles/destroy",
-          "Wiggles Find" => "Datastore/Wiggles/find",
-          "Wiggles Save" => "Datastore/Wiggles/save",
-          "Wiggles Create" => "Datastore/Wiggles/create",
-          "Wiggles Update" => "Datastore/Wiggles/save"
-        }
-
-        names.each do |name, expected|
-          result = Datastores::MetricHelper.active_record_metric_for_name(name)
-          assert_equal expected, result
-        end
-      end
-
-      def test_active_record_metric_for_name_returns_nil_given_nil
-        result = Datastores::MetricHelper.active_record_metric_for_name(nil)
-        assert_nil result
-      end
-
-      def test_active_record_metric_for_name_returns_nil_given_a_spaceless_string
-        result = Datastores::MetricHelper.active_record_metric_for_name('load')
-        assert_nil result
-      end
-
-      def test_active_record_metric_for_name_returns_nil_given_a_string_with_three_spaces
-        result = Datastores::MetricHelper.active_record_metric_for_name('load count exists')
-        assert_nil result
-      end
-
-      def test_product_name_from_active_record_adapter
-        expected_default = "ActiveRecord"
-        default = Hash.new(expected_default)
-
-        adapter_to_name = {
-          "MySQL" => "MySQL",
-          "Mysql2" => "MySQL",
-          "PostgreSQL" => "Postgres",
-          "SQLite" => "SQLite"
-        }
-
-        default.merge(adapter_to_name).each do |adapter, name|
-          assert_equal name, Datastores::MetricHelper.product_name_from_active_record_adapter(adapter)
-        end
-
-        default_result = Datastores::MetricHelper.product_name_from_active_record_adapter("YouDontKnowThisAdapter")
-        assert_equal expected_default, default_result
-      end
     end
   end
 end

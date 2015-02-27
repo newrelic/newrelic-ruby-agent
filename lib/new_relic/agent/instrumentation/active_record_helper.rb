@@ -1,85 +1,105 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
+require 'new_relic/agent/datastores/metric_helper'
+require 'new_relic/agent/deprecator'
+
 module NewRelic
   module Agent
     module Instrumentation
       module ActiveRecordHelper
         module_function
 
-        def metric_for_name(name)
-          return unless name && name.respond_to?(:split)
-          parts = name.split(' ')
-          if parts.size == 2
-            model = parts.first
-            operation = parts.last.downcase
-            case operation
-            when 'load', 'count', 'exists'
-              op_name = 'find'
-            when 'indexes', 'columns'
-              op_name = nil # fall back to DirectSQL
-            when 'destroy', 'find', 'save', 'create'
-              op_name = operation
-            when 'update'
-              op_name = 'save'
-            else
-              if model == 'Join'
-                op_name = operation
-              end
-            end
-            "ActiveRecord/#{model}/#{op_name}" if op_name
-          end
+        ACTIVE_RECORD = "ActiveRecord".freeze unless defined?(ACTIVE_RECORD)
+        OTHER         = "other".freeze unless defined?(OTHER)
+
+        def metrics_for(name, sql, adapter_name)
+          product = map_product(adapter_name)
+          operation, model = operation_and_model(name, sql)
+
+          NewRelic::Agent::Datastores::MetricHelper.metrics_for(product,
+                                                                operation,
+                                                                model)
         end
 
-        # this should be targeted for deprecation and removal in favor
-        # of MetricHelper#metric_for_sql
-        def metric_for_sql(sql) #THREAD_LOCAL_ACCESS
-          txn = NewRelic::Agent::Transaction.tl_current
-          metric = txn && txn.database_metric_name
+        # @deprecated
+        def rollup_metrics_for(*_)
+          NewRelic::Agent::Deprecator.deprecate("#{self.class}.rollup_metrics_for",
+                                                "NewRelic::Agent::Datastores::MetricHelper.metrics_for")
 
-          if metric.nil?
-            operation = NewRelic::Agent::Database.parse_operation_from_query(sql)
+          [NewRelic::Agent::Datastores::MetricHelper.rollup_metric,
+           NewRelic::Agent::Datastores::MetricHelper::ROLLUP_METRIC]
+        end
 
-            if operation
-              # Could not determine the model/operation so use a fallback metric
-              metric = "Database/SQL/#{operation}"
-            else
-              metric = "Database/SQL/other"
+        def operation_and_model(name, sql)
+          if name && name.respond_to?(:split)
+            model, raw_operation = name.split(' ')
+            if model && raw_operation
+              operation = map_operation(raw_operation)
+              return [operation, model]
             end
           end
-          metric
+
+          [NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER, nil]
         end
 
-        # Given a metric name such as "ActiveRecord/model/action" this
-        # returns an array of rollup metrics:
-        # [ "Datastore/all", "ActiveRecord/all", "ActiveRecord/action" ]
-        # If the metric name is in the form of "ActiveRecord/action"
-        # this returns merely: [ "Datastore/all", "ActiveRecord/all" ]
-        def rollup_metrics_for(metric)
-          metrics = ["Datastore/all"]
+        OPERATION_NAMES = {
+          'load'   => 'find',
+          'count'  => 'find',
+          'exists' => 'find',
+        }.freeze unless defined?(OPERATION_NAMES)
 
-          # If we're outside of a web transaction, don't record any rollup
-          # database metrics. This is to prevent metrics from background tasks
-          # from polluting the metrics used to drive overview graphs.
-          if NewRelic::Agent::Transaction.recording_web_transaction?
-            metrics << "ActiveRecord/all"
-          else
-            metrics << "Datastore/allOther"
-          end
-          metrics << "ActiveRecord/#{$1}" if metric =~ /ActiveRecord\/[\w|\:]+\/(\w+)/
-
-          metrics
+        def map_operation(raw_operation)
+          operation = raw_operation.downcase
+          OPERATION_NAMES.fetch(operation, operation)
         end
 
-        # Given a database adapter name and a database server host
-        # this returns a metric name in the form:
-        # "RemoteService/sql/adapter/host"
-        # Host defaults to "localhost".
-        def remote_service_metric(adapter, host)
-          host ||= 'localhost'
-          type = adapter.to_s.sub(/\d*/, '')
-          "RemoteService/sql/#{type}/#{host}"
+        PRODUCT_NAMES = {
+          "mysql"      => "MySQL",
+          "mysql2"     => "MySQL",
+
+          "postgresql" => "Postgres",
+
+          "sqlite3"    => "SQLite",
+
+          # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
+          "jdbcmysql"  => "MySQL",
+
+          # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
+          "jdbcpostgresql" => "Postgres",
+
+          # https://rubygems.org/gems/activerecord-jdbcsqlite3-adapter
+          "jdbcsqlite3"    => "SQLite",
+
+          # https://rubygems.org/gems/activerecord-jdbcderby-adapter
+          "derby"      => "Derby",
+          "jdbcderby"  => "Derby",
+
+          # https://rubygems.org/gems/activerecord-jdbc-adapter
+          "jdbc"       => "JDBC",
+
+          # https://rubygems.org/gems/activerecord-jdbcmssql-adapter
+          "jdbcmssql"  => "MSSQL",
+          "mssql"      => "MSSQL",
+
+          # https://rubygems.org/gems/activerecord-sqlserver-adapter
+          "sqlserver"  => "MSSQL",
+
+          # https://rubygems.org/gems/activerecord-odbc-adapter
+          "odbc"       => "ODBC",
+
+          # https://rubygems.org/gems/activerecord-oracle_enhanced-adapter
+          "oracle_enhanced" => "Oracle"
+        }.freeze unless defined?(PRODUCT_NAMES)
+
+        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze unless defined?(ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
+
+        def map_product(adapter_name)
+          PRODUCT_NAMES.fetch(adapter_name,
+                              ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
         end
+
       end
     end
   end

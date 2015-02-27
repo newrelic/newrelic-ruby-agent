@@ -56,10 +56,6 @@ module NewRelic
       # as a Rack::Request or an ActionController::AbstractRequest.
       attr_accessor :request
 
-      # This is the name of the model currently assigned to database
-      # measurements, overriding the default.
-      attr_reader :database_metric_name
-
       attr_reader :guid,
                   :metrics,
                   :gc_start_snapshot,
@@ -789,15 +785,8 @@ module NewRelic
         Agent.config[key] && Agent.config[key][best_name]
       end
 
-      # Yield to a block that is run with a database metric name context.  This means
-      # the Database instrumentation will use this for the metric name if it does not
-      # otherwise know about a model.  This is re-entrant.
-      #
-      # * <tt>model</tt> is the DB model class
-      # * <tt>method</tt> is the name of the finder method or other method to identify the operation with.
-      #
       def with_database_metric_name(model, method)
-        previous = @database_metric_name
+        previous = self.instrumentation_state[:datastore_override]
         model_name = case model
                      when Class
                        model.name
@@ -806,10 +795,10 @@ module NewRelic
                      else
                        model.to_s
                      end
-        @database_metric_name = "ActiveRecord/#{model_name}/#{method}"
+        self.instrumentation_state[:datastore_override] = [method, model_name]
         yield
       ensure
-        @database_metric_name=previous
+        self.instrumentation_state[:datastore_override] = previous
       end
 
       def custom_parameters

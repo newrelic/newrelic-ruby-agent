@@ -4,69 +4,74 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/active_record_helper'
 
-class NewRelic::Agent::Instrumentation::ActiveRecordHelperTest < Minitest::Test
-  include NewRelic::Agent::Instrumentation
+module NewRelic::Agent::Instrumentation
+  class ActiveRecordHelperTest < Minitest::Test
 
-  def test_metric_for_name_find
-    metric_name = 'ActiveRecord/Model/find'
-    assert_equal metric_name, ActiveRecordHelper.metric_for_name('Model Find')
-    assert_equal metric_name, ActiveRecordHelper.metric_for_name('Model Load')
-    assert_equal metric_name, ActiveRecordHelper.metric_for_name('Model Count')
-    assert_equal metric_name, ActiveRecordHelper.metric_for_name('Model Exists')
-  end
+    def test_metrics_for_find
+      metrics = ActiveRecordHelper.metrics_for('Namespace::Model Load', nil, nil)
+      expected = expected_statement_metrics("find", "Namespace::Model/find")
+      assert_equal(expected, metrics)
+    end
 
-  def test_metric_for_name_with_namespace
-    assert_equal('ActiveRecord/Namespace::Model/find',
-                 ActiveRecordHelper.metric_for_name('Namespace::Model Load'))
-  end
+    def test_metrics_for_destroy
+      metrics = ActiveRecordHelper.metrics_for('Model Destroy', nil, nil)
+      expected = expected_statement_metrics("destroy", "Model/destroy")
+      assert_equal(expected, metrics)
+    end
 
-  def test_metric_for_name_destroy
-    assert_equal('ActiveRecord/Model/destroy',
-                 ActiveRecordHelper.metric_for_name('Model Destroy'))
-  end
+    def test_metrics_for_create
+      metrics = ActiveRecordHelper.metrics_for('Model Create', nil, nil)
+      expected = expected_statement_metrics("create", "Model/create")
+      assert_equal(expected, metrics)
+    end
 
-  def test_metric_for_name_create
-    assert_equal('ActiveRecord/Model/create',
-                 ActiveRecordHelper.metric_for_name('Model Create'))
-  end
+    def test_metrics_for_update
+      metrics = ActiveRecordHelper.metrics_for('Model Update', nil, nil)
+      expected = expected_statement_metrics("update", "Model/update")
+      assert_equal(expected, metrics)
+    end
 
-  def test_metric_for_name_update
-    assert_equal('ActiveRecord/Model/save',
-                 ActiveRecordHelper.metric_for_name('Model Update'))
-  end
+    def test_metric_for_name_columns
+      metrics = ActiveRecordHelper.metrics_for('Model Columns', nil, nil)
+      expected = expected_statement_metrics("columns", "Model/columns")
+      assert_equal(expected, metrics)
+    end
 
-  def test_metric_for_name_columns
-    assert_nil ActiveRecordHelper.metric_for_name('Model Columns')
-  end
+    def test_metric_with_product_name_from_adapter
+      metrics = ActiveRecordHelper.metrics_for('Model Load', nil, "mysql")
+      expected = expected_statement_metrics("find", "Model/find", "MySQL")
+      assert_equal(expected, metrics)
+    end
 
-  def test_metric_for_name_with_integer_returns_nil
-    assert_nil ActiveRecordHelper.metric_for_name(1)
-  end
+    def test_metrics_from_sql
+      metrics = ActiveRecordHelper.metrics_for('invalid', "SELECT * FROM boo", nil)
+      expected = expected_operation_metrics("select")
+      assert_equal(expected, metrics)
+    end
 
-  def test_rollup_metrics_for_lists_rollups
-    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
-    base_metric = 'ActiveRecord/Namespace::Model/find'
-    rollup_metrics = ActiveRecordHelper.rollup_metrics_for(base_metric)
-    expected_metrics = ['Datastore/all', 'ActiveRecord/all', 'ActiveRecord/find']
-    assert_equal(expected_metrics.sort, rollup_metrics.sort)
-  end
+    def test_metric_for_name_with_integer_returns_nil
+      metrics = ActiveRecordHelper.metrics_for(1, '', nil)
+      expected = expected_operation_metrics("other")
+      assert_equal(expected, metrics)
+    end
 
-  def test_rollup_metrics_for_skips_operation_rollup_given_metric_without_model
-    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
-    rollup_metrics = ActiveRecordHelper.rollup_metrics_for('ActiveRecord/find')
-    expected_metrics = ['Datastore/all', 'ActiveRecord/all']
-    assert_equal(expected_metrics, rollup_metrics)
-  end
+    def test_rollup_metrics_for_is_deprecated
+      NewRelic::Agent::Deprecator.expects(:deprecate)
+      result = ActiveRecordHelper.rollup_metrics_for("boo")
+      assert_equal ["Datastore/allOther", "Datastore/all"], result
+    end
 
-  def test_rollup_metrics_for_omits_database_all_outside_web_transaction
-    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(false)
-    base_metric = 'ActiveRecord/Namespace::Model/find'
-    rollup_metrics = ActiveRecordHelper.rollup_metrics_for(base_metric)
-    assert_equal(['Datastore/all', 'Datastore/allOther', 'ActiveRecord/find'], rollup_metrics)
-  end
+    def expected_statement_metrics(operation, statement, product = "ActiveRecord")
+      ["Datastore/statement/#{product}/#{statement}"] +
+        expected_operation_metrics(operation, product)
+    end
 
-  def test_remote_service_metric
-    assert_equal('RemoteService/sql/mysql/server',
-                 ActiveRecordHelper.remote_service_metric('mysql', 'server'))
+    def expected_operation_metrics(operation, product = "ActiveRecord")
+      ["Datastore/operation/#{product}/#{operation}",
+        "Datastore/#{product}/allOther",
+        "Datastore/#{product}/all",
+        "Datastore/allOther",
+        "Datastore/all"]
+    end
   end
 end

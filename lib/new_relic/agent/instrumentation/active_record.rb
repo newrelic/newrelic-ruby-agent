@@ -20,15 +20,6 @@ module NewRelic
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
             include ::NewRelic::Agent::Instrumentation::ActiveRecord
           end
-
-          ::ActiveRecord::Base.class_eval do
-            class << self
-              add_method_tracer(:find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql',
-                                :metric => false)
-              add_method_tracer(:transaction, 'ActiveRecord/#{self.name}/transaction',
-                                :metric => false)
-            end
-          end
         end
 
         def self.included(instrumented_class)
@@ -49,35 +40,25 @@ module NewRelic
           end
 
           sql, name, _ = args
-          metric = ActiveRecordHelper.metric_for_name(NewRelic::Helper.correctly_encoded(name)) ||
-            ActiveRecordHelper.metric_for_sql(NewRelic::Helper.correctly_encoded(sql))
+          metrics = ActiveRecordHelper.metrics_for(
+            NewRelic::Helper.correctly_encoded(name),
+            NewRelic::Helper.correctly_encoded(sql),
+            @config && @config[:adapter])
 
-          if !metric
-            log_without_newrelic_instrumentation(*args, &block)
-          else
-            metrics = [metric, remote_service_metric].compact
-            metrics += ActiveRecordHelper.rollup_metrics_for(metric)
-            self.class.trace_execution_scoped(metrics) do
-              t0 = Time.now
-              begin
-                log_without_newrelic_instrumentation(*args, &block)
-              ensure
-                elapsed_time = (Time.now - t0).to_f
+          NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
+            t0 = Time.now
+            begin
+              log_without_newrelic_instrumentation(*args, &block)
+            ensure
+              elapsed_time = (Time.now - t0).to_f
 
-                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
-                                                      @config, elapsed_time,
-                                                      state, &EXPLAINER)
-                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric,
-                                                      @config, elapsed_time,
-                                                      state, &EXPLAINER)
-              end
+              NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
+                                                    @config, elapsed_time,
+                                                    state, &EXPLAINER)
+              NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metrics.first,
+                                                    @config, elapsed_time,
+                                                    state, &EXPLAINER)
             end
-          end
-        end
-
-        def remote_service_metric
-          if @config && @config[:adapter]
-            ActiveRecordHelper.remote_service_metric(@config[:adapter], @config[:host])
           end
         end
       end

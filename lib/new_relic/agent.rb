@@ -608,16 +608,14 @@ module NewRelic
       end
     end
 
-    # Yield to a block that is run with a database metric name
-    # context.  This means the Database instrumentation will use this
-    # for the metric name if it does not otherwise know about a model.
-    # This is re-entrant.
+    # Yield to a block that is run with a database metric name context.  This means
+    # the Database instrumentation will use this for the metric name if it does not
+    # otherwise know about a model.  This is re-entrant.
     #
-    # * <tt>model</tt> is the DB model class
-    # * <tt>method</tt> is the name of the finder method or other
-    #   method to identify the operation with.
+    # @param [String,Class,#to_s] model the DB model class
     #
-    # @api public
+    # @param [String] method the name of the finder method or other method to
+    # identify the operation with.
     #
     def with_database_metric_name(model, method, &block) #THREAD_LOCAL_ACCESS
       if txn = Transaction.tl_current

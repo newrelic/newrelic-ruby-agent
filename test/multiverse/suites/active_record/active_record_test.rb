@@ -24,7 +24,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     else
       assert_activerecord_metrics(Order, 'create')
     end
-    assert_remote_service_metrics
   end
 
   def test_metrics_for_create_via_association
@@ -35,7 +34,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_generic_rollup_metrics('insert')
-    assert_remote_service_metrics
   end
 
   def test_metrics_for_find
@@ -48,17 +46,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_activerecord_metrics(Order, 'find')
-    assert_remote_service_metrics
-  end
-
-  def test_metrics_for_find_by_id
-    in_web_transaction do
-      order = Order.create(:name => 'kathy')
-      Order.find(order.id)
-    end
-
-    assert_activerecord_metrics(Order, 'find')
-    assert_remote_service_metrics
   end
 
   def test_metrics_for_find_via_association
@@ -69,7 +56,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_activerecord_metrics(Shipment, 'find')
-    assert_remote_service_metrics
   end
 
   def test_metrics_for_find_all
@@ -85,7 +71,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_activerecord_metrics(Order, 'find')
-    assert_remote_service_metrics
   end
 
   def test_metrics_for_find_via_named_scope
@@ -110,7 +95,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_activerecord_metrics(Order, 'find')
-    assert_remote_service_metrics
   end
 
   def test_metrics_for_exists
@@ -124,7 +108,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     else
       assert_activerecord_metrics(Order, 'find')
     end
-    assert_remote_service_metrics
   end
 
   def test_metrics_for_update
@@ -134,12 +117,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       order.save
     end
 
-    if active_record_major_version >= 3
-      assert_generic_rollup_metrics('update')
-    else
-      assert_activerecord_metrics(Order, 'save')
-    end
-    assert_remote_service_metrics
+    assert_generic_rollup_metrics('update')
   end
 
   def test_metrics_for_destroy
@@ -153,7 +131,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     else
       assert_activerecord_metrics(Order, 'destroy')
     end
-    assert_remote_service_metrics
   end
 
   def test_metrics_for_direct_sql_select
@@ -163,7 +140,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_generic_rollup_metrics('select')
-    assert_remote_service_metrics
   end
 
   def test_metrics_for_direct_sql_other
@@ -174,7 +150,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_generic_rollup_metrics('other')
-    assert_remote_service_metrics
   end
 
   def test_metrics_for_direct_sql_show
@@ -185,7 +160,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       end
 
       assert_generic_rollup_metrics('show')
-      assert_remote_service_metrics
     end
   end
 
@@ -206,7 +180,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_generic_rollup_metrics('select')
-    assert_remote_service_metrics
   end
 
   def test_passes_through_errors
@@ -234,9 +207,9 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.first
     end
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-    segment = find_segment_with_name(sample, 'ActiveRecord/Order/find')
-
-    assert_equal('ActiveRecord/Order/find', segment.metric_name)
+    metric = "Datastore/statement/#{current_product}/Order/find"
+    segment = find_segment_with_name(sample, metric)
+    assert_equal(metric, segment.metric_name)
 
     sql = segment.params[:sql]
     assert_match(/^SELECT /, sql)
@@ -253,7 +226,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       end
 
       sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-      sql_segment = find_segment_with_name(sample, 'ActiveRecord/Order/find')
+      metric = "Datastore/statement/#{current_product}/Order/find"
+      sql_segment = find_segment_with_name(sample, metric)
 
       assert_match(/^SELECT /, sql_segment.params[:sql])
 
@@ -272,26 +246,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.create(:name => 'bob')
     end
 
-    assert_metrics_recorded(['Datastore/allOther'])
-    assert_metrics_not_recorded(['ActiveRecord/all'])
-  end
-
-  def test_remote_service_metric_respects_dynamic_connection_config
-    if supports_remote_service_metrics?
-      q = "SELECT * FROM #{Shipment.table_name} LIMIT 1"
-      Shipment.connection.execute(q)
-      assert_remote_service_metrics
-
-      config = Shipment.connection.instance_eval { @config }
-      config[:host] = '127.0.0.1'
-      Shipment.establish_connection(config)
-
-      Shipment.connection.execute(q)
-      assert_remote_service_metrics('127.0.0.1')
-
-      config[:host] = 'localhost'
-      Shipment.establish_connection(config)
-    end
+    assert_metrics_recorded(['Datastore/all', 'Datastore/allOther'])
+    assert_metrics_not_recorded(['Datastore/allWeb'])
   end
 
   def test_cached_calls_are_not_recorded_with_find
@@ -305,7 +261,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_activerecord_metrics(Order, 'find', :call_count => 1)
-    assert_remote_service_metrics
   end
 
   def test_cached_calls_are_not_recorded_with_select_all
@@ -327,7 +282,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      {'Database/SQL/select' => {:call_count => 1}}
+      {"Datastore/operation/#{current_product}/select" => {:call_count => 1}}
     )
   end
 
@@ -340,8 +295,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      { 'ActiveRecord/Eel/squirm' => {:call_count => 1}}
-    )
+      {
+        "Datastore/statement/#{current_product}/Eel/squirm" => {:call_count => 1},
+        "Datastore/operation/#{current_product}/squirm" => {:call_count => 1}
+      })
   end
 
   ## helpers
@@ -355,12 +312,12 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     [:mysql, :postgres].include?(adapter)
   end
 
-  def supports_remote_service_metrics?
+  def supports_explain_plans?
     [:mysql, :postgres].include?(adapter)
   end
 
-  def supports_explain_plans?
-    [:mysql, :postgres].include?(adapter)
+  def current_product
+    NewRelic::Agent::Instrumentation::ActiveRecordHelper::PRODUCT_NAMES[adapter.to_s]
   end
 
   def active_record_major_version
@@ -389,26 +346,18 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def assert_activerecord_metrics(model, operation, stats={})
     assert_metrics_recorded({
-      "ActiveRecord/all" => {},
-      "ActiveRecord/#{operation}" => {},
-      "ActiveRecord/#{model}/#{operation}" => stats,
+      "Datastore/statement/#{current_product}/#{model}/#{operation}" => stats,
+      "Datastore/operation/#{current_product}/#{operation}" => {},
+      "Datastore/allWeb" => {},
       "Datastore/all" => {}
     })
   end
 
   def assert_generic_rollup_metrics(operation)
     assert_metrics_recorded([
-      "ActiveRecord/all",
-      "Database/SQL/#{operation}",
+      "Datastore/operation/#{current_product}/#{operation}",
+      "Datastore/allWeb",
       "Datastore/all"
     ])
-  end
-
-  def assert_remote_service_metrics(host='localhost')
-    if supports_remote_service_metrics?
-      assert_metrics_recorded([
-        "RemoteService/sql/#{adapter}/#{host}"
-      ])
-    end
   end
 end
