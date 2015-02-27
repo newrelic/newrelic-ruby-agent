@@ -10,6 +10,7 @@ boilerplate_gems = <<-SQLITE
   else
     gem 'sqlite3'
   end
+  gem 'i18n', '< 0.7.0'
 SQLITE
 
 # delayed_job_mongoid is currently unsupported, but check that we behave
@@ -23,11 +24,21 @@ if RUBY_VERSION >= '1.9.3'
 end
 
 # delayed_job_active_record (and older baked into delayed_job) support
-dj4_with_active_record = <<-DJ
-  gem 'delayed_job', '~> 4.0.4'
-  gem 'delayed_job_active_record', '~> 4.0.2'
-  #{boilerplate_gems}
-DJ
+if RUBY_VERSION >= '1.9.3'
+  dj4_with_active_record = <<-DJ
+    gem 'delayed_job', '~> 4.0.4'
+    gem 'delayed_job_active_record', '~> 4.0.2'
+    #{boilerplate_gems}
+  DJ
+else
+  dj4_with_active_record = <<-DJ
+    gem 'delayed_job', '~> 4.0.4'
+
+    # 4.0.3 breaks 1.8.7 compatibility
+    gem 'delayed_job_active_record', '= 4.0.2'
+    #{boilerplate_gems}
+  DJ
+end
 
 dj3_with_active_record = <<-DJ
   gem 'delayed_job', '~> 3.0.5'
