@@ -66,7 +66,7 @@ module NewRelic
         def record_metrics(event, config) #THREAD_LOCAL_ACCESS
           base, *other_metrics = ActiveRecordHelper.metrics_for(event.payload[:name],
                                                                NewRelic::Helper.correctly_encoded(event.payload[:sql]),
-                                                               config)
+                                                               config && config[:adapter])
 
           NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(
             base, other_metrics,

@@ -14,8 +14,8 @@ module NewRelic
         ACTIVE_RECORD = "ActiveRecord".freeze unless defined?(ACTIVE_RECORD)
         OTHER         = "other".freeze unless defined?(OTHER)
 
-        def metrics_for(name, sql, config=nil)
-          product = map_product(config)
+        def metrics_for(name, sql, adapter_name)
+          product = map_product(adapter_name)
           operation, model = operation_and_model(name, sql)
 
           NewRelic::Agent::Datastores::MetricHelper.metrics_for(product,
@@ -95,13 +95,9 @@ module NewRelic
 
         ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze unless defined?(ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
 
-        def map_product(config)
-          PRODUCT_NAMES.fetch(adapter_name(config),
+        def map_product(adapter_name)
+          PRODUCT_NAMES.fetch(adapter_name,
                               ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
-        end
-
-        def adapter_name(config)
-          config[:adapter] if config
         end
 
       end
