@@ -77,7 +77,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_method_retains_visbility
-    private_methods = MyFirstDatabase.private_instance_methods.map(&:to_sym), :internal
+    private_methods = MyFirstDatabase.private_instance_methods.map(&:to_sym)
     assert_includes private_methods, :internal
   end
 
