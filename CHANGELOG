@@ -1,6 +1,10 @@
 # New Relic Ruby Agent Release Notes #
 
-## v3.10.1 ##
+## v3.11.0 ##
+  * Database metrics now recorded under the Datastore namespace
+
+  In order to accommodate both sql and nosql datastores we are now storing database
+  metrics under the more general Datastore namespace.
 
   * Fix for anonymous class middleware naming
 
