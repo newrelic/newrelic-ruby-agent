@@ -527,7 +527,7 @@ module NewRelic
           :description => 'Specifies a path to the audit log file (including the filename).'
         },
         :'audit_log.endpoints' => {
-          :default => [/.*/],
+          :default => [".*"],
           :public => true,
           :type => Array,
           :transform => DefaultSource.method(:convert_to_regexp_list),
