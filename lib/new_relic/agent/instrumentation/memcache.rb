@@ -40,7 +40,7 @@ module NewRelic
               alias_method method_name_without, method_name
 
               define_method method_name do |*args, &block|
-                metrics = Datastores::MetricHelper.metrics_for("Memcache", method_name)
+                metrics = Datastores::MetricHelper.metrics_for("Memcached", method_name)
 
                 NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
                   t0 = Time.now
