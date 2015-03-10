@@ -1,4 +1,9 @@
 gemfile <<-RB
+  gem 'rack', '~>1.6.0'
+  gem 'rack-test'
+RB
+
+gemfile <<-RB
   gem 'rack', '~>1.5.0'
   gem 'rack-test'
 RB
