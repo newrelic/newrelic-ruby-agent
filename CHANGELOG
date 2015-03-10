@@ -5,8 +5,8 @@
   * Unified view for SQL database and NoSQL datastore products.
 
   The response time charts in the application overview page will now include
-  NoSQL datastores, such as Memcached and MongoDB, and also the product name
-  of existing SQL databases such as MySQL, Postgres, etc.
+  NoSQL datastores, such as MongoDB, and also the product name of existing SQL
+  databases such as MySQL, Postgres, etc.
 
   The Databases page will now enable the filtering of metrics and operations
   by product, and includes a table listing all operations.
@@ -15,9 +15,9 @@
   statements and operations, the queries are now also associated with the
   database product being used.
 
-  For NoSQL datastores, such as Memcached and MongoDB, we have now added
-  information about operations performed against those products, similar to
-  what is being done for SQL databases.
+  For NoSQL datastores, such as MongoDB, we have now added information about
+  operations performed against those products, similar to what is being done
+  for SQL databases.
 
   Because this introduces a notable change to how SQL database metrics are
   collected, it is important that you upgrade the agent version on all hosts.
@@ -27,13 +27,13 @@
 
   For more information see https://docs.newrelic.com/docs/apm/applications-menu/monitoring/databases-slow-queries-dashboard
 
-  * Track Background Transactions as Key Transactions
+  * Track background transactions as Key Transactions
 
   In prior versions of the Ruby agent, only web transactions could be tracked
   as Key Transactions. This functionality is now available to all
   transactions, including custom Apdex values and X-Ray sessions.
 
-  For https://docs.newrelic.com/docs/apm/selected-transactions/key-transactions/key-transactions-tracking-important-transactions-or-events
+  For more information see https://docs.newrelic.com/docs/apm/selected-transactions/key-transactions/key-transactions-tracking-important-transactions-or-events
 
   * Fix for anonymous class middleware naming
 
@@ -43,11 +43,12 @@
 
   * Improved exit behavior in the presence of Sinatra
 
-  The agent uses an at_exit hook to ensure data from the last < 60s before a
+  The agent uses an `at_exit` hook to ensure data from the last < 60s before a
   process exits is sent to New Relic. Previously, this hook was skipped if
   Sinatra::Application was defined. This unfortunately missed data for
   short-lived background processes that required, but didn't run, Sinatra. Now
-  the agent only skips its at_exit hook if Sinatra actually runs from at_exit.
+  the agent only skips its `at_exit` hook if Sinatra actually runs from
+  `at_exit`.
 
 ## v3.10.0 ##
 
