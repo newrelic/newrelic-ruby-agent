@@ -25,10 +25,11 @@ class StartUpTest < Minitest::Test
   end
 
   def test_instrumentation_loads_clean_even_without_dependencies
-    output = `bundle exec ruby script/loading.rb`
+    assert_runs_without_errors("bundle exec ruby script/loading.rb")
+  end
 
-    problems = output.scan(/ERROR : .*/)
-    assert_empty problems
+  def test_manual_start_with_symbol_for_environment
+    assert_runs_without_errors("bundle exec ruby script/symbol_env.rb")
   end
 
   def test_after_fork_does_not_blow_away_manual_start_settings
@@ -37,5 +38,12 @@ class StartUpTest < Minitest::Test
     NewRelic::Agent.after_fork
 
     assert_equal('my great app', NewRelic::Agent.config[:app_name])
+  end
+
+  def assert_runs_without_errors(command)
+    output = `#{command}`
+
+    problems = output.scan(/ERROR : .*/)
+    assert_empty problems
   end
 end
