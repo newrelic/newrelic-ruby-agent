@@ -1053,6 +1053,13 @@ module NewRelic
           :dynamic_name => true,
           :description  => 'Defines whether the agent will hook into Rack::Builder\'s <code>to_app</code> method to find gems to instrument during application startup.'
         },
+        :disable_rack_urlmap => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Defines whether the agent will hook into Rack::URLMap to install middleware tracing.'
+        },
         :disable_rubyprof => {
           :default      => false,
           :public       => true,
