@@ -48,11 +48,7 @@ module NewRelic
       # init_config({}) which is called one or more times.
       #
       def init_plugin(options={})
-        env = options[:env] || self.env
-        env = env.to_s
-
-        Agent.logger.info("Starting the New Relic agent in #{env.inspect} environment.")
-        Agent.logger.info("To prevent agent startup add a NEWRELIC_AGENT_ENABLED=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
+        env = determine_env(options)
 
         configure_agent(env, options)
 
@@ -83,6 +79,21 @@ module NewRelic
         end
       end
 
+      def determine_env(options)
+        env = options[:env] || self.env
+        env = env.to_s
+
+        if @started_in_env && @started_in_env != env
+          Agent.logger.error("Attempted to start agent in #{env.inspect} environment, but agent was already running in #{@started_in_env.inspect}",
+                             "The agent will continue running in #{@started_in_env.inspect}. To alter this, ensure the desired environment is set before the agent starts.")
+        else
+          Agent.logger.info("Starting the New Relic agent in #{env.inspect} environment.",
+                            "To prevent agent startup add a NEWRELIC_AGENT_ENABLED=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
+        end
+
+        env
+      end
+
       def configure_agent(env, options)
         manual = Agent::Configuration::ManualSource.new(options)
         Agent.config.replace_or_add_config(manual)
@@ -98,6 +109,7 @@ module NewRelic
 
       # Install the real agent into the Agent module, and issue the start command.
       def start_agent
+        @started_in_env = self.env
         NewRelic::Agent.agent.start
       end
 

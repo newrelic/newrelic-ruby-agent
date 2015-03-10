@@ -32,6 +32,12 @@ class StartUpTest < Minitest::Test
     assert_runs_without_errors("bundle exec ruby script/symbol_env.rb")
   end
 
+  def test_manual_start_logs_about_mismatched_environment
+    output = `bundle exec ruby script/env_change.rb`
+
+    assert_match(/ERROR.*Attempted to start agent.*production.*development/, output, output)
+  end
+
   def test_after_fork_does_not_blow_away_manual_start_settings
     NewRelic::Agent.manual_start(:app_name => 'my great app')
 

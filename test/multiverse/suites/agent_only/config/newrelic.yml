@@ -20,3 +20,8 @@ development:
     auto_instrument: true
   labels:
     Server: Yaml
+
+# A few tests use this in confirming behavior around mis-matched environments
+# Doesn't need to actually support running the agent in production mode.
+production:
+  enabled: false
