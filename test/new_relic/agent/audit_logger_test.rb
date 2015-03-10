@@ -142,6 +142,24 @@ class AuditLoggerTest < Minitest::Test
     end
   end
 
+  def test_allows_through_endpoints
+    fake_metrics = { 'metric' => 'yup' }
+    with_config(:'audit_log.endpoints' => ['metric_data']) do
+      setup_fake_logger
+      @logger.log_request('host/metric_data', fake_metrics, @marshaller)
+      assert_log_contains_string(fake_metrics.inspect)
+    end
+  end
+
+  def test_filters_endpoints
+    fake_txn = { 'txn' => 'nope' }
+    with_config(:'audit_log.endpoints' => ['metric_data']) do
+      setup_fake_logger
+      @logger.log_request('host/transaction_sample_data', fake_txn, @marshaller)
+      assert_empty read_log_body
+    end
+  end
+
   def test_should_cache_hostname
     Socket.expects(:gethostname).once.returns('cachey-mccaherson')
     setup_fake_logger

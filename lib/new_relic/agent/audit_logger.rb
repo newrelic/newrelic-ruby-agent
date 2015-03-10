@@ -11,6 +11,7 @@ module NewRelic
     class AuditLogger
       def initialize
         @enabled = NewRelic::Agent.config[:'audit_log.enabled']
+        @endpoints = NewRelic::Agent.config[:'audit_log.endpoints']
         @encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
       end
 
@@ -25,21 +26,25 @@ module NewRelic
       end
 
       def log_request(uri, data, marshaller)
-        if enabled?
-          setup_logger unless setup?
-          request_body = if marshaller.class.human_readable?
-            marshaller.dump(data, :encoder => @encoder)
-          else
-            marshaller.prepare(data, :encoder => @encoder).inspect
-          end
-          @log.info("REQUEST: #{uri}")
-          @log.info("REQUEST BODY: #{request_body}")
+        return unless enabled? && allowed_endpoint?(uri)
+
+        setup_logger unless setup?
+        request_body = if marshaller.class.human_readable?
+          marshaller.dump(data, :encoder => @encoder)
+        else
+          marshaller.prepare(data, :encoder => @encoder).inspect
         end
+        @log.info("REQUEST: #{uri}")
+        @log.info("REQUEST BODY: #{request_body}")
       rescue StandardError, SystemStackError, SystemCallError => e
         ::NewRelic::Agent.logger.warn("Failed writing to audit log", e)
       rescue Exception => e
         ::NewRelic::Agent.logger.warn("Failed writing to audit log with exception. Re-raising in case of interupt.", e)
         raise
+      end
+
+      def allowed_endpoint?(uri)
+        @endpoints.any? { |endpoint| uri =~ endpoint }
       end
 
       def setup_logger

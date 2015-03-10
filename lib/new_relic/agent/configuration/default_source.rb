@@ -172,6 +172,13 @@ module NewRelic
           end
         end
 
+        def self.convert_to_regexp_list(raw_value)
+          value_list = convert_to_list(raw_value)
+          value_list.map do |value|
+            /#{value}/
+          end
+        end
+
         def self.convert_to_list(value)
           case value
           when String
@@ -528,6 +535,13 @@ module NewRelic
           :public => true,
           :type => String,
           :description => 'Specifies a path to the audit log file (including the filename).'
+        },
+        :'audit_log.endpoints' => {
+          :default => [/.*/],
+          :public => true,
+          :type => Array,
+          :transform => DefaultSource.method(:convert_to_regexp_list),
+          :description => 'List of allowed endpoings to include in audit log'
         },
         :disable_samplers => {
           :default => false,
