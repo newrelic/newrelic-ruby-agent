@@ -130,7 +130,7 @@ class ThreadProfilingTest < Minitest::Test
   end
 
   def let_it_finish
-    wait_for_backtrace_service_poll(:timeout => 10.0, :iterations => 10)
+    wait_for_backtrace_service_poll(:timeout => 10.0, :iterations => 1)
     harvest
     join_background_threads
   end
