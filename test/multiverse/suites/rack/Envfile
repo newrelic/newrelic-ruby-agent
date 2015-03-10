@@ -9,6 +9,11 @@ gemfile <<-RB
 RB
 
 gemfile <<-RB
+  gem 'rack', '1.3.10'
+  gem 'rack-test'
+RB
+
+gemfile <<-RB
   gem 'rack', '1.2.8'
   gem 'rack-test'
 RB
