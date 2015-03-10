@@ -43,14 +43,18 @@ module NewRelic
       end
 
       def setup_logger
-        path = ensure_log_path
-        if path
+        if wants_stdout?
+          # Using $stdout global for easier reassignment in testing
+          @log = ::Logger.new($stdout)
+          ::NewRelic::Agent.logger.info("Audit log enabled to STDOUT")
+        elsif path = ensure_log_path
           @log = ::Logger.new(path)
-          @log.formatter = create_log_formatter
           ::NewRelic::Agent.logger.info("Audit log enabled at '#{path}'")
         else
           @log = NewRelic::Agent::NullLogger.new
         end
+
+        @log.formatter = create_log_formatter
       end
 
       def ensure_log_path
@@ -69,10 +73,15 @@ module NewRelic
         path
       end
 
+      def wants_stdout?
+        ::NewRelic::Agent.config[:'audit_log.path'].upcase == "STDOUT"
+      end
+
       def create_log_formatter
         @hostname = NewRelic::Agent::Hostname.get
+        @prefix = wants_stdout? ? '** [NewRelic]' : ''
         Proc.new do |severity, time, progname, msg|
-          "[#{time} #{@hostname} (#{$$})] : #{msg}\n"
+          "#{@prefix}[#{time} #{@hostname} (#{$$})] : #{msg}\n"
         end
       end
     end

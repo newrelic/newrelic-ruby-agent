@@ -73,6 +73,18 @@ class AuditLoggerTest < Minitest::Test
     assert_equal(expected, result)
   end
 
+  def test_log_formatter_to_stdout
+    with_config(:'audit_log.path' => "STDOUT") do
+      Socket.stubs(:gethostname).returns('dummyhost')
+      formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
+      time = '2012-01-01 00:00:00'
+      msg = 'hello'
+      result = formatter.call(Logger::INFO, time, 'bleh', msg)
+      expected = "** [NewRelic][2012-01-01 00:00:00 dummyhost (#{$$})] : hello\n"
+      assert_equal(expected, result)
+    end
+  end
+
   def test_ensure_path_returns_nil_with_bogus_path
     with_config(:'audit_log.path' => '/really/really/not/a/path') do
       FileUtils.stubs(:mkdir_p).raises(SystemCallError, "i'd rather not")
@@ -160,4 +172,24 @@ class AuditLoggerTest < Minitest::Test
     end
   end
 
+  def test_writes_to_stdout
+    with_config(:'audit_log.path' => "STDOUT") do
+      output = capturing_stdout do
+        @logger = NewRelic::Agent::AuditLogger.new
+        @logger.log_request(@uri, @dummy_data, @marshaller)
+      end
+
+      assert_includes output, @dummy_data.inspect
+    end
+  end
+
+  def capturing_stdout
+    orig = $stdout.dup
+    output = ""
+    $stdout = StringIO.new(output)
+    yield
+    output
+  ensure
+    $stdout = orig
+  end
 end
