@@ -28,7 +28,13 @@ module NewRelic
           NewRelic::Agent::Deprecator.deprecate("#{self.class}.rollup_metrics_for",
                                                 "NewRelic::Agent::Datastores::MetricHelper.metrics_for")
 
-          [NewRelic::Agent::Datastores::MetricHelper.rollup_metric,
+          rollup_metric = if NewRelic::Agent::Transaction.recording_web_transaction?
+            NewRelic::Agent::Datastores::MetricHelper::WEB_ROLLUP_METRIC
+          else
+            NewRelic::Agent::Datastores::MetricHelper::OTHER_ROLLUP_METRIC
+          end
+
+          [rollup_metric,
            NewRelic::Agent::Datastores::MetricHelper::ROLLUP_METRIC]
         end
 
