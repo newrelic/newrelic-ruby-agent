@@ -67,15 +67,27 @@ module NewRelic
           end
         end
 
+        # These are used primarily to optimize and avoid allocation on well
+        # known operations coming in. Anything not matching the list is fine,
+        # it just needs to get downcased directly for use.
         OPERATION_NAMES = {
-          'load'   => 'find',
-          'count'  => 'find',
-          'exists' => 'find',
+          'Find'    => 'find',
+          'Load'    => 'find',
+          'Count'   => 'find',
+          'Exists'  => 'find',
+          'Create'  => 'create',
+          'Columns' => 'columns',
+          'Indexes' => 'indexes',
+          'Destroy' => 'destroy',
+          'Update'  => 'update',
+          'Save'    => 'save'
         }.freeze unless defined?(OPERATION_NAMES)
 
         def map_operation(raw_operation)
-          operation = raw_operation.downcase
-          OPERATION_NAMES.fetch(operation, operation)
+          direct_op = OPERATION_NAMES[raw_operation]
+          return direct_op if direct_op
+
+          raw_operation.downcase
         end
 
         PRODUCT_NAMES = {
