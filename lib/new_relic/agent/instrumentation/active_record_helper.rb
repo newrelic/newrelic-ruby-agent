@@ -15,8 +15,10 @@ module NewRelic
         OTHER         = "other".freeze unless defined?(OTHER)
 
         def metrics_for(name, sql, adapter_name)
-          product = map_product(adapter_name)
-          operation, model = operation_and_model(name, sql)
+          product   = map_product(adapter_name)
+          splits    = split_name(name)
+          model     = model_from_splits(splits)
+          operation = operation_from_splits(splits, sql)
 
           NewRelic::Agent::Datastores::MetricHelper.metrics_for(product,
                                                                 operation,
@@ -38,16 +40,31 @@ module NewRelic
            NewRelic::Agent::Datastores::MetricHelper::ROLLUP_METRIC]
         end
 
-        def operation_and_model(name, sql)
-          if name && name.respond_to?(:split)
-            model, raw_operation = name.split(' ')
-            if model && raw_operation
-              operation = map_operation(raw_operation)
-              return [operation, model]
-            end
-          end
+        SPACE = ' '.freeze unless defined?(SPACE)
+        EMPTY = [].freeze unless defined?(EMPTY)
 
-          [NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER, nil]
+        def split_name(name)
+          if name && name.respond_to?(:split)
+            name.split(SPACE)
+          else
+            EMPTY
+          end
+        end
+
+        def model_from_splits(splits)
+          if splits.length == 2
+            splits.first
+          else
+            nil
+          end
+        end
+
+        def operation_from_splits(splits, sql)
+          if splits.length == 2
+            map_operation(splits[1])
+          else
+            NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
+          end
         end
 
         OPERATION_NAMES = {
