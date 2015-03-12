@@ -248,7 +248,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       end
 
       metric = "Datastore/statement/#{current_product}/Order/find"
-      assert_equal metric, last_sql_trace.database_metric_name
+      refute_nil find_sql_trace(metric)
     end
   end
 

@@ -327,6 +327,12 @@ def last_transaction_trace_request_params
   last_transaction_trace.params[:request_params]
 end
 
+def find_sql_trace(metric_name)
+  NewRelic::Agent.agent.sql_sampler.sql_traces.values.detect do |trace|
+    trace.database_metric_name == metric_name
+  end
+end
+
 def last_sql_trace
   NewRelic::Agent.agent.sql_sampler.sql_traces.values.last
 end
