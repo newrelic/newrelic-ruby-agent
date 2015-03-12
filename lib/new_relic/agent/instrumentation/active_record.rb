@@ -45,6 +45,10 @@ module NewRelic
             NewRelic::Helper.correctly_encoded(sql),
             @config && @config[:adapter])
 
+          # It is critical that we grab this name before trace_execution_scoped
+          # because that method mutates the metrics list passed in.
+          scoped_metric = metrics.first
+
           NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
             t0 = Time.now
             begin
@@ -55,7 +59,7 @@ module NewRelic
               NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
                                                     @config, elapsed_time,
                                                     state, &EXPLAINER)
-              NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metrics.first,
+              NewRelic::Agent.instance.sql_sampler.notice_sql(sql, scoped_metric,
                                                     @config, elapsed_time,
                                                     state, &EXPLAINER)
             end
