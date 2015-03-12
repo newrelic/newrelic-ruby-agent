@@ -13,6 +13,8 @@ module NewRelic
         OTHER = "Other".freeze
 
         ALL = "all".freeze
+        ALL_WEB = "allWeb".freeze
+        ALL_OTHER = "allOther".freeze
 
         def self.statement_metric_for(product, collection, operation)
           "Datastore/statement/#{product}/#{collection}/#{operation}"
@@ -22,32 +24,40 @@ module NewRelic
           "Datastore/operation/#{product}/#{operation}"
         end
 
-        def self.rollup_metric
-          if NewRelic::Agent::Transaction.recording_web_transaction?
-            WEB_ROLLUP_METRIC
-          else
-            OTHER_ROLLUP_METRIC
-          end
+        def self.product_suffixed_rollup(product, suffix)
+          "Datastore/#{product}/#{suffix}"
         end
 
-        def self.product_rollup_metric(metric, product)
-          metric.sub(ALL, "#{product}/#{ALL}")
+        def self.product_rollup(product)
+          "Datastore/#{product}/all"
+        end
+
+        def self.suffixed_rollup(suffix)
+          "Datastore/#{suffix}"
+        end
+
+        def self.all_suffix
+          if NewRelic::Agent::Transaction.recording_web_transaction?
+            ALL_WEB
+          else
+            ALL_OTHER
+          end
         end
 
         def self.metrics_for(product, operation, collection = nil)
-          current_rollup_metric = rollup_metric
-
           if overrides = overridden_operation_and_collection
             operation, collection = overrides
           end
+
+          suffix = all_suffix
 
           # Order of these metrics matters--the first metric in the list will
           # be treated as the scoped metric in a bunch of different cases.
           metrics = [
             operation_metric_for(product, operation),
-            product_rollup_metric(current_rollup_metric, product),
-            product_rollup_metric(ROLLUP_METRIC, product),
-            current_rollup_metric,
+            product_suffixed_rollup(product, suffix),
+            product_rollup(product),
+            suffixed_rollup(suffix),
             ROLLUP_METRIC
           ]
 

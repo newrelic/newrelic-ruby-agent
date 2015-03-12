@@ -20,6 +20,11 @@ if RUBY_VERSION >= '1.9.3'
     gem 'minitest', '~> 5.2.3'
     #{boilerplate_gems}
   RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 4.0.11'
+    #{boilerplate_gems}
+  RB
 end
 
 gemfile <<-RB

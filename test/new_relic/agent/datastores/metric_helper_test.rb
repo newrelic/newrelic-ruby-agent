@@ -26,20 +26,6 @@ module NewRelic
         assert_equal expected, result
       end
 
-      def test_rollup_metric_returns_web_for_web_context
-        NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
-        expected = "Datastore/allWeb"
-        result = Datastores::MetricHelper.rollup_metric
-        assert_equal expected, result
-      end
-
-      def test_rollup_metric_returns_other_for_non_web_context
-        NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(false)
-        expected = "Datastore/allOther"
-        result = Datastores::MetricHelper.rollup_metric
-        assert_equal expected, result
-      end
-
       def test_metrics_for_in_web_context
         Transaction.stubs(:recording_web_transaction?).returns(true)
         expected = [

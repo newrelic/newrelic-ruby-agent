@@ -15,8 +15,10 @@ module NewRelic
         OTHER         = "other".freeze unless defined?(OTHER)
 
         def metrics_for(name, sql, adapter_name)
-          product = map_product(adapter_name)
-          operation, model = operation_and_model(name, sql)
+          product   = map_product(adapter_name)
+          splits    = split_name(name)
+          model     = model_from_splits(splits)
+          operation = operation_from_splits(splits, sql)
 
           NewRelic::Agent::Datastores::MetricHelper.metrics_for(product,
                                                                 operation,
@@ -28,31 +30,64 @@ module NewRelic
           NewRelic::Agent::Deprecator.deprecate("#{self.class}.rollup_metrics_for",
                                                 "NewRelic::Agent::Datastores::MetricHelper.metrics_for")
 
-          [NewRelic::Agent::Datastores::MetricHelper.rollup_metric,
+          rollup_metric = if NewRelic::Agent::Transaction.recording_web_transaction?
+            NewRelic::Agent::Datastores::MetricHelper::WEB_ROLLUP_METRIC
+          else
+            NewRelic::Agent::Datastores::MetricHelper::OTHER_ROLLUP_METRIC
+          end
+
+          [rollup_metric,
            NewRelic::Agent::Datastores::MetricHelper::ROLLUP_METRIC]
         end
 
-        def operation_and_model(name, sql)
-          if name && name.respond_to?(:split)
-            model, raw_operation = name.split(' ')
-            if model && raw_operation
-              operation = map_operation(raw_operation)
-              return [operation, model]
-            end
-          end
+        SPACE = ' '.freeze unless defined?(SPACE)
+        EMPTY = [].freeze unless defined?(EMPTY)
 
-          [NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER, nil]
+        def split_name(name)
+          if name && name.respond_to?(:split)
+            name.split(SPACE)
+          else
+            EMPTY
+          end
         end
 
+        def model_from_splits(splits)
+          if splits.length == 2
+            splits.first
+          else
+            nil
+          end
+        end
+
+        def operation_from_splits(splits, sql)
+          if splits.length == 2
+            map_operation(splits[1])
+          else
+            NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
+          end
+        end
+
+        # These are used primarily to optimize and avoid allocation on well
+        # known operations coming in. Anything not matching the list is fine,
+        # it just needs to get downcased directly for use.
         OPERATION_NAMES = {
-          'load'   => 'find',
-          'count'  => 'find',
-          'exists' => 'find',
+          'Find'    => 'find',
+          'Load'    => 'find',
+          'Count'   => 'find',
+          'Exists'  => 'find',
+          'Create'  => 'create',
+          'Columns' => 'columns',
+          'Indexes' => 'indexes',
+          'Destroy' => 'destroy',
+          'Update'  => 'update',
+          'Save'    => 'save'
         }.freeze unless defined?(OPERATION_NAMES)
 
         def map_operation(raw_operation)
-          operation = raw_operation.downcase
-          OPERATION_NAMES.fetch(operation, operation)
+          direct_op = OPERATION_NAMES[raw_operation]
+          return direct_op if direct_op
+
+          raw_operation.downcase
         end
 
         PRODUCT_NAMES = {
