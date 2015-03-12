@@ -651,7 +651,7 @@ module NewRelic
           def handle_force_restart(error)
             ::NewRelic::Agent.logger.debug error.message
             drop_buffered_data
-            @service.reset_metric_id_cache if @service
+            @service.force_restart if @service
             @connect_state = :pending
             sleep 30
           end
