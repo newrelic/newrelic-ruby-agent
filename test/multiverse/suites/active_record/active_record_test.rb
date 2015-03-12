@@ -241,6 +241,17 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
+  def test_sql_samplers_get_proper_metrics
+    with_config(:'transaction_tracer.explain_threshold' => -0.1) do
+      in_web_transaction do
+        Order.first
+      end
+
+      metric = "Datastore/statement/#{current_product}/Order/find"
+      assert_equal metric, last_sql_trace.database_metric_name
+    end
+  end
+
   def test_records_metrics_on_background_transaction
     in_transaction('back it up') do
       Order.create(:name => 'bob')
