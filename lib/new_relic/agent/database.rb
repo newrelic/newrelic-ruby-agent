@@ -49,7 +49,9 @@ module NewRelic
       end
 
       def record_sql_method(config_section=:transaction_tracer)
-        case Agent.config["#{config_section}.record_sql".to_sym].to_s
+        key = record_sql_method_key(config_section)
+
+        case Agent.config[key].to_s
         when 'off'
           :off
         when 'none'
@@ -60,6 +62,17 @@ module NewRelic
           :raw
         else
           :obfuscated
+        end
+      end
+
+      def record_sql_method_key(config_section)
+        case config_section
+        when :transaction_tracer
+          :'transaction_tracer.record_sql'
+        when :slow_sql
+          :'slow_sql.record_sql'
+        else
+          "#{config_section}.record_sql".to_sym
         end
       end
 
