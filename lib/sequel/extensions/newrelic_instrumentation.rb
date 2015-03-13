@@ -37,6 +37,7 @@ module Sequel
       rval = nil
       product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(self.class.adapter_scheme)
       metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_from_sql(product, sql)
+      scoped_metric = metrics.first
 
       NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
         t0 = Time.now
@@ -45,7 +46,7 @@ module Sequel
         rescue => err
           NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
         ensure
-          notice_sql(sql, metrics.first, args, t0, Time.now)
+          notice_sql(sql, scoped_metric, args, t0, Time.now)
         end
       end
 
