@@ -72,9 +72,9 @@ module NewRelic
       #
       # @param [Proc,#call] callback proc or other callable to invoke after
       # running the datastore block. Receives three arguments: result of the
-      # yield, list of metric names, and elapsed time of the call. An example
-      # use is attaching SQL to Transaction Traces at the end of a wrapped
-      # datastore call.
+      # yield, the most specific (scoped) metric name, and elapsed time of the
+      # call. An example use is attaching SQL to Transaction Traces at the end
+      # of a wrapped datastore call.
       #
       #   callback = Proc.new do |result, metrics, elapsed|
       #     NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
@@ -96,6 +96,7 @@ module NewRelic
         return yield unless operation
 
         metrics = MetricHelper.metrics_for(product, operation, collection)
+        scoped_metric = metrics.first
         NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
           t0 = Time.now
           begin
@@ -103,7 +104,7 @@ module NewRelic
           ensure
             if callback
               elapsed_time = (Time.now - t0).to_f
-              callback.call(result, metrics, elapsed_time)
+              callback.call(result, scoped_metric, elapsed_time)
             end
           end
         end
@@ -121,8 +122,8 @@ module NewRelic
       # some dialects of SQL (or non-SQL queries) are not guaranteed to be
       # properly obfuscated by these routines!
       #
-      # @param [Array<String>] metrics a list of the metric names from most
-      # specific to least. Typically the result of
+      # @param [String] scoped_metric The most specific metric relating to this
+      # query. Typically the result of
       # NewRelic::Agent::Datastores::MetricHelper#metrics_for
       #
       # @param [Float] elapsed the elapsed time during query execution
@@ -133,10 +134,10 @@ module NewRelic
       # for a query format to be unsupported and result in exposing user
       # information embedded within captured queries.
       #
-      def self.notice_sql(query, metrics, elapsed)
+      def self.notice_sql(query, scoped_metric, elapsed)
         agent = NewRelic::Agent.instance
         agent.transaction_sampler.notice_sql(query, nil, elapsed)
-        agent.sql_sampler.notice_sql(query, metrics.first, nil, elapsed)
+        agent.sql_sampler.notice_sql(query, scoped_metric, nil, elapsed)
         nil
       end
 
