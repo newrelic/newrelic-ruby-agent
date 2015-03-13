@@ -35,6 +35,17 @@
 
   For more information see https://docs.newrelic.com/docs/apm/selected-transactions/key-transactions/key-transactions-tracking-important-transactions-or-events
 
+  * More support and documentation for third-party extensions
+
+  It's always been possible to write extension gems for the Ruby agent, but
+  now there's one location with best practices and recommendations to guide
+  you in writing extensions. Check out
+  https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/third-party-instrumentation
+
+  We've also added simpler APIs for tracing datastores and testing your
+  extensions. It's our way of giving back to everyone who's helped build on
+  the agent over the years. <3
+
   * Fix for anonymous class middleware naming
 
   Metric names based off anonymous middlewares lacked a class name in the UI.

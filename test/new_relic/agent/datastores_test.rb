@@ -131,28 +131,23 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
       "yo"
     end
 
-    result, metrics, elapsed = noticed
-    expected_metrics = ["Datastore/operation/MyFirstDatabase/op",
-                        "Datastore/MyFirstDatabase/allOther",
-                        "Datastore/MyFirstDatabase/all",
-                        "Datastore/allOther",
-                        "Datastore/all"]
+    result, scoped_metric, elapsed = noticed
 
     assert_equal "yo", result
-    assert_equal expected_metrics, metrics
+    assert_equal "Datastore/statement/MyFirstDatabase/coll/op", scoped_metric
     assert_instance_of Float, elapsed
   end
 
   def test_notice_sql
     query   = "SELECT * FROM SomeThings"
-    metrics = ["Datastore/statement/MyFirstDatabase/SomeThing/find"]
+    metric  = "Datastore/statement/MyFirstDatabase/SomeThing/find"
     elapsed = 1.0
 
     agent = NewRelic::Agent.instance
     agent.transaction_sampler.expects(:notice_sql).with(query, nil, elapsed)
-    agent.sql_sampler.expects(:notice_sql).with(query, metrics.first, nil, elapsed)
+    agent.sql_sampler.expects(:notice_sql).with(query, metric, nil, elapsed)
 
-    NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
+    NewRelic::Agent::Datastores.notice_sql(query, metric, elapsed)
   end
 
   def test_notice_statement
