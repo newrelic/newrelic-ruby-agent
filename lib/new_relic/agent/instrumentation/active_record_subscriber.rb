@@ -13,6 +13,13 @@ module NewRelic
       class ActiveRecordSubscriber < EventedSubscriber
         CACHED_QUERY_NAME = 'CACHE'.freeze unless defined? CACHED_QUERY_NAME
 
+        def initialize
+          # We cache this in an instance variable to avoid re-calling method
+          # on each query.
+          @explainer = method(:get_explain_plan)
+          super
+        end
+
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
           return if payload[:name] == CACHED_QUERY_NAME
           return unless NewRelic::Agent.tl_is_execution_traced?
@@ -52,12 +59,12 @@ module NewRelic
           NewRelic::Agent.instance.transaction_sampler \
             .notice_sql(event.payload[:sql], config,
                         Helper.milliseconds_to_seconds(event.duration),
-                        state, &method(:get_explain_plan))
+                        state, &@explainer)
 
           NewRelic::Agent.instance.sql_sampler \
             .notice_sql(event.payload[:sql], metric, config,
                         Helper.milliseconds_to_seconds(event.duration),
-                        state, &method(:get_explain_plan))
+                        state, &@explainer)
 
           # exit transaction trace segment
           stack.pop_frame(state, frame, metric, event.end)
