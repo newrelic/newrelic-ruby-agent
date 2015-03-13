@@ -42,7 +42,7 @@
   you in writing extensions. Check out
   https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/third-party-instrumentation
 
-  We've also added simpler API's for tracing datastores and testing your
+  We've also added simpler APIs for tracing datastores and testing your
   extensions. It's our way of giving back to everyone who's helped build on
   the agent over the years. <3
 
