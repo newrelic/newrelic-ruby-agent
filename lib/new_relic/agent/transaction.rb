@@ -845,7 +845,7 @@ module NewRelic
 
         @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
         @metrics.record_unscoped(APDEX_ALL_METRIC, apdex_bucket_global, current_apdex_t)
-        txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, transaction_prefix)
+        txn_apdex_metric = @frozen_name.sub(/^[^\/]+\//, transaction_prefix)
         @metrics.record_unscoped(txn_apdex_metric, apdex_bucket_txn, current_apdex_t)
       end
 
