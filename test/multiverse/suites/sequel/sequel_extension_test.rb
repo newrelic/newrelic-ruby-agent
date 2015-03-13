@@ -122,10 +122,10 @@ class SequelExtensionTest < Minitest::Test
       :'transaction_tracer.record_sql' => 'obfuscated'
     }
     with_config(config) do
-      in_web_transaction { Post.all }
+      in_web_transaction { @posts.all }
       expected_metric_name = "Datastore/operation/#{product_name}/select"
       recorded_metric_names = NewRelic::Agent.agent.sql_sampler.sql_traces.values.map(&:database_metric_name)
-      assert recorded_metric_names.include? expected_metric_name
+      assert_includes recorded_metric_names, expected_metric_name
     end
   end
 end
