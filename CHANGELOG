@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.11.1 ##
+
+  * Avoid performance regression in makara database adapter
+
+  Delegation in the makara database adapter caused performance issues when the
+  agent looked up a connection in the pool.  The agent now uses a faster
+  lookup to work around this problem in makara, and allocates less as well.
+  Thanks Mike Nelson for the help in resolving this!
+
 ## v3.11.0 ##
 
   * Unified view for SQL database and NoSQL datastore products.

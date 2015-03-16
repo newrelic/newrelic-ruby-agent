@@ -78,8 +78,16 @@ module NewRelic
         def active_record_config_for_event(event)
           return unless event.payload[:connection_id]
 
-          connections = ::ActiveRecord::Base.connection_handler.connection_pool_list.map { |handler| handler.connections }.flatten
-          connection = connections.detect { |cnxn| cnxn.object_id == event.payload[:connection_id] }
+          connection = nil
+          connection_id = event.payload[:connection_id]
+
+          ::ActiveRecord::Base.connection_handler.connection_pool_list.each do |handler|
+            connection = handler.connections.detect do |conn|
+              conn.object_id == connection_id
+            end
+
+            break if connection
+          end
 
           connection.instance_variable_get(:@config) if connection
         end
