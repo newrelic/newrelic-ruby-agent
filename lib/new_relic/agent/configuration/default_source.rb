@@ -531,7 +531,7 @@ module NewRelic
           :public => true,
           :type => Array,
           :transform => DefaultSource.method(:convert_to_regexp_list),
-          :description => 'List of allowed endpoings to include in audit log'
+          :description => 'List of allowed endpoints to include in audit log'
         },
         :disable_samplers => {
           :default => false,
