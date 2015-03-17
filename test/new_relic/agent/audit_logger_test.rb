@@ -73,6 +73,18 @@ class AuditLoggerTest < Minitest::Test
     assert_equal(expected, result)
   end
 
+  def test_log_formatter_to_stdout
+    with_config(:'audit_log.path' => "STDOUT") do
+      Socket.stubs(:gethostname).returns('dummyhost')
+      formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
+      time = '2012-01-01 00:00:00'
+      msg = 'hello'
+      result = formatter.call(Logger::INFO, time, 'bleh', msg)
+      expected = "** [NewRelic][2012-01-01 00:00:00 dummyhost (#{$$})] : hello\n"
+      assert_equal(expected, result)
+    end
+  end
+
   def test_ensure_path_returns_nil_with_bogus_path
     with_config(:'audit_log.path' => '/really/really/not/a/path') do
       FileUtils.stubs(:mkdir_p).raises(SystemCallError, "i'd rather not")
@@ -130,6 +142,24 @@ class AuditLoggerTest < Minitest::Test
     end
   end
 
+  def test_allows_through_endpoints
+    fake_metrics = { 'metric' => 'yup' }
+    with_config(:'audit_log.endpoints' => ['metric_data']) do
+      setup_fake_logger
+      @logger.log_request('host/metric_data', fake_metrics, @marshaller)
+      assert_log_contains_string(fake_metrics.inspect)
+    end
+  end
+
+  def test_filters_endpoints
+    fake_txn = { 'txn' => 'nope' }
+    with_config(:'audit_log.endpoints' => ['metric_data']) do
+      setup_fake_logger
+      @logger.log_request('host/transaction_sample_data', fake_txn, @marshaller)
+      assert_empty read_log_body
+    end
+  end
+
   def test_should_cache_hostname
     Socket.expects(:gethostname).once.returns('cachey-mccaherson')
     setup_fake_logger
@@ -160,4 +190,24 @@ class AuditLoggerTest < Minitest::Test
     end
   end
 
+  def test_writes_to_stdout
+    with_config(:'audit_log.path' => "STDOUT") do
+      output = capturing_stdout do
+        @logger = NewRelic::Agent::AuditLogger.new
+        @logger.log_request(@uri, @dummy_data, @marshaller)
+      end
+
+      assert_includes output, @dummy_data.inspect
+    end
+  end
+
+  def capturing_stdout
+    orig = $stdout.dup
+    output = ""
+    $stdout = StringIO.new(output)
+    yield
+    output
+  ensure
+    $stdout = orig
+  end
 end
