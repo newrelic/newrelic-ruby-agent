@@ -126,7 +126,7 @@ module NewRelic
     end
 
     class AttributeFilterRule
-      attr_reader :attribute_name, :destinations, :is_include
+      attr_reader :attribute_name, :destinations, :is_include, :wildcard
 
       def initialize(attribute_name, destinations, is_include)
         @attribute_name = attribute_name.sub(/\*$/, "")
@@ -143,8 +143,8 @@ module NewRelic
         name_cmp = @attribute_name <=> other.attribute_name
         return name_cmp unless name_cmp == 0
 
-        if wildcard? != other.wildcard?
-          return wildcard? ? -1 : 1
+        if wildcard != other.wildcard
+          return wildcard ? -1 : 1
         end
 
         if is_include != other.is_include
@@ -154,12 +154,8 @@ module NewRelic
         return 0
       end
 
-      def wildcard?
-        @wildcard
-      end
-
       def match?(name)
-        if wildcard?
+        if wildcard
           name.start_with?(@attribute_name)
         else
           @attribute_name == name
