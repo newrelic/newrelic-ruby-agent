@@ -9,74 +9,53 @@ class AgentAttributesTests < Performance::TestCase
     require 'new_relic/agent/attribute_filter'
   end
 
-  def test_empty_agent_attributes(timer)
+  ALPHA = "alpha".freeze
+  BETA  = "beta".freeze
+
+  def test_empty_agent_attributes
     @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
-    timer.measure do
-      iterations.times do
-        @filter.apply("alpha", NewRelic::Agent::AttributeFilter::DST_ALL)
-        @filter.apply("beta", NewRelic::Agent::AttributeFilter::DST_ALL)
-      end
+    measure do
+      @filter.apply(ALPHA, NewRelic::Agent::AttributeFilter::DST_ALL)
+      @filter.apply(BETA, NewRelic::Agent::AttributeFilter::DST_ALL)
     end
   end
 
-  def test_with_attribute_rules(timer)
+  def test_with_attribute_rules
     with_config(:'attributes.include' => ['alpha'],
                 :'attributes.exclude' => ['beta']) do
 
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
-      timer.measure do
-        iterations.times do
-          @filter.apply("alpha", NewRelic::Agent::AttributeFilter::DST_ALL)
-          @filter.apply("beta", NewRelic::Agent::AttributeFilter::DST_ALL)
-        end
+      measure do
+        @filter.apply(ALPHA, NewRelic::Agent::AttributeFilter::DST_ALL)
+        @filter.apply(BETA, NewRelic::Agent::AttributeFilter::DST_ALL)
       end
     end
   end
 
-  def test_with_wildcards(timer)
+  def test_with_wildcards
     with_config(:'attributes.include' => ['alpha*'],
                 :'attributes.exclude' => ['beta*']) do
 
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
-      timer.measure do
-        iterations.times do
-          @filter.apply("alpha", NewRelic::Agent::AttributeFilter::DST_ALL)
-          @filter.apply("beta", NewRelic::Agent::AttributeFilter::DST_ALL)
-        end
+      measure do
+        @filter.apply(ALPHA, NewRelic::Agent::AttributeFilter::DST_ALL)
+        @filter.apply(BETA, NewRelic::Agent::AttributeFilter::DST_ALL)
       end
     end
   end
 
-  def test_with_tons_o_rules(timer)
+  def test_with_tons_o_rules
     with_config(:'attributes.include' => 100.times.map { SecureRandom.hex },
                 :'attributes.exclude' => 100.times.map { SecureRandom.hex }) do
 
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
-      timer.measure do
-        iterations.times do
-          @filter.apply("alpha", NewRelic::Agent::AttributeFilter::DST_ALL)
-          @filter.apply("beta", NewRelic::Agent::AttributeFilter::DST_ALL)
-        end
-      end
-    end
-  end
-
-  def test_with_tons_o_rules_and_random_keys(timer)
-    with_config(:'attributes.include' => 100.times.map { SecureRandom.hex },
-                :'attributes.exclude' => 100.times.map { SecureRandom.hex }) do
-
-      @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
-
-      keys = iterations.times.map { [SecureRandom.hex, SecureRandom.hex] }
-      timer.measure do
-        keys.each do |key1, key2|
-          @filter.apply(key1, NewRelic::Agent::AttributeFilter::DST_ALL)
-          @filter.apply(key2, NewRelic::Agent::AttributeFilter::DST_ALL)
-        end
+      measure do
+        @filter.apply(ALPHA, NewRelic::Agent::AttributeFilter::DST_ALL)
+        @filter.apply(BETA, NewRelic::Agent::AttributeFilter::DST_ALL)
       end
     end
   end
