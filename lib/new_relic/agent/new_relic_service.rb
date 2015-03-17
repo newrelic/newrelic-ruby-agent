@@ -86,6 +86,11 @@ module NewRelic
         @metric_id_cache = {}
       end
 
+      def force_restart
+        reset_metric_id_cache
+        close_shared_connection
+      end
+
       # takes an array of arrays of spec and id, adds it into the
       # metric cache so we can save the collector some work by
       # sending integers instead of strings the next time around
@@ -242,6 +247,10 @@ module NewRelic
           @shared_tcp_connection.finish if @shared_tcp_connection.started?
           @shared_tcp_connection = nil
         end
+      end
+
+      def has_shared_connection?
+        !@shared_tcp_connection.nil?
       end
 
       def ssl_cert_store

@@ -28,7 +28,9 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
 
     self.expects(:drop_buffered_data)
     self.expects(:sleep).with(30)
+
     @connected = true
+    @service = mock('service', :force_restart => nil)
 
     handle_force_restart(error)
 
