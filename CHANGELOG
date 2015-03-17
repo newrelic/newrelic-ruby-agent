@@ -9,6 +9,11 @@
   lookup to work around this problem in makara, and allocates less as well.
   Thanks Mike Nelson for the help in resolving this!
 
+  * Fix for crash during startup when Rails required but not used
+
+  If an application requires Rails but wasn't actually running it, the Ruby
+  agent would fail during startup. This has been fixed.
+
 ## v3.11.0 ##
 
   * Unified view for SQL database and NoSQL datastore products.

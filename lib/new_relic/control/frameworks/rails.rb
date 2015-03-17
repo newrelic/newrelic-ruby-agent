@@ -62,6 +62,10 @@ module NewRelic
             install_browser_monitoring(rails_config)
             install_agent_hooks(rails_config)
           end
+        rescue => e
+          ::NewRelic::Agent.logger.error("Failure during init_config for Rails. Is Rails required in a non-Rails app? Set NEW_RELIC_FRAMEWORK=ruby to avoid this message.",
+                                         "The Ruby agent will continue running, but Rails-specific features may be missing.",
+                                         e)
         end
 
         def install_agent_hooks(config)
