@@ -2,6 +2,12 @@
 
 ## v3.11.1 ##
 
+  * Better naming for Rack::URLMap
+
+  If a Rack app made direct use of Rack::URLMap, instrumentation would miss
+  out on using the clearest naming based on the app class. This has been
+  fixed.
+
   * Avoid performance regression in makara database adapter
 
   Delegation in the makara database adapter caused performance issues when the
