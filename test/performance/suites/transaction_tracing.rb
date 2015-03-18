@@ -13,6 +13,11 @@ class TransactionTracingPerfTests < Performance::TestCase
         method_4
       end
 
+      def custom_transaction
+        method_4
+        NewRelic::Agent.add_custom_parameters("boo" => "hoo")
+      end
+
       def long_transaction(n)
         n.times do
           method_1
@@ -42,6 +47,7 @@ class TransactionTracingPerfTests < Performance::TestCase
         add_method_tracer :method_4
         add_transaction_tracer :short_transaction
         add_transaction_tracer :long_transaction
+        add_transaction_tracer :custom_transaction
       end
 
     end
@@ -67,5 +73,9 @@ class TransactionTracingPerfTests < Performance::TestCase
     measure do
       @dummy.long_transaction(10000)
     end
+  end
+
+  def test_with_custom_parameters
+    measure { @dummy.custom_transaction }
   end
 end
