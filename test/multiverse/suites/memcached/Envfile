@@ -14,7 +14,7 @@ memcache_client_versions.each do |version|
     gem 'memcache-client', '~> #{version}', :require => 'memcache'
     # version lockdown for ZenTest that cooperates with all Rubies
     # and the build VMs
-    gem 'ZenTest', '3.4.2'
+    gem 'ZenTest', '3.4.2' unless RUBY_VERSION >= '2.2.0'
   RB
 end
 
