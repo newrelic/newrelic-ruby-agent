@@ -9,7 +9,8 @@ module NewRelic
 
         attr_reader :custom, :agent, :intrinsic
 
-        def initialize
+        def initialize(filter)
+          @filter = filter
           @custom = {}
           @agent = {}
           @intrinsic = {}
@@ -25,6 +26,27 @@ module NewRelic
 
         def add_intrinsic(key, value)
           @intrinsic[key] = value
+        end
+
+        def custom_for_destination(destination)
+          filter_attrs_by_destination(custom, destination)
+        end
+
+        def agent_for_destination(destination)
+          filter_attrs_by_destination(agent, destination)
+        end
+
+        def intrinsic_for_destination(destination)
+          filter_attrs_by_destination(intrinsic, destination)
+        end
+
+        private
+
+        def filter_attrs_by_destination(attrs, destination)
+          attrs.inject({}) do |memo, (key, value)|
+            memo[key] = value if @filter.apply(key, destination) == destination
+            memo
+          end
         end
       end
     end
