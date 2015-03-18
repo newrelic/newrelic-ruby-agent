@@ -17,15 +17,19 @@ module NewRelic
         end
 
         def add_custom(key, value)
-          @custom[key] = value
+          custom[key] = value
         end
 
         def add_agent(key, value)
-          @agent[key] = value
+          agent[key] = value
         end
 
         def add_intrinsic(key, value)
-          @intrinsic[key] = value
+          intrinsic[key] = value
+        end
+
+        def merge_custom(attrs)
+          custom.merge!(attrs)
         end
 
         def custom_for_destination(destination)

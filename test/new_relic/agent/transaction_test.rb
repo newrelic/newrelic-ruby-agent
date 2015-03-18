@@ -1284,4 +1284,11 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       assert_equal(42, txn.instrumentation_state[:a])
     end
   end
+
+  def test_adding_custom_attributes
+    in_transaction do |txn|
+      NewRelic::Agent.add_custom_parameters(:foo => "bar")
+      assert_equal({:foo => "bar"}, txn.custom_attributes)
+    end
+  end
 end

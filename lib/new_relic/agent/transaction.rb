@@ -6,6 +6,7 @@ require 'new_relic/agent/transaction_timings'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
+require 'new_relic/agent/transaction/attributes'
 
 module NewRelic
   module Agent
@@ -61,7 +62,8 @@ module NewRelic
                   :gc_start_snapshot,
                   :category,
                   :frame_stack,
-                  :cat_path_hashes
+                  :cat_path_hashes,
+                  :attributes
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -296,6 +298,7 @@ module NewRelic
         @ignore_this_transaction = false
         @ignore_apdex = false
         @ignore_enduser = false
+        @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
       end
 
       # This transaction-local hash may be used as temprory storage by
@@ -805,17 +808,22 @@ module NewRelic
         @custom_parameters ||= {}
       end
 
-      def add_custom_parameters(p)
+      def custom_attributes
+        attributes.custom
+      end
+
+      def add_custom_attributes(p)
         if NewRelic::Agent.config[:high_security]
           NewRelic::Agent.logger.debug("Unable to add custom attributes #{p.keys.inspect} while in high security mode.")
           return
         end
-
+        attributes.merge_custom(p)
         custom_parameters.merge!(p)
       end
 
       alias_method :user_attributes, :custom_parameters
-      alias_method :set_user_attributes, :add_custom_parameters
+      alias_method :set_user_attributes, :add_custom_attributes
+      alias_method :add_custom_parameters, :add_custom_attributes
 
       def recording_web_transaction?
         web_category?(@category)
