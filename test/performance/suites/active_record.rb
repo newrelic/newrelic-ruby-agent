@@ -2,13 +2,13 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/instrumentation/active_record_helper'
 
 class ActiveRecordTest < Performance::TestCase
-
-  ActiveRecordHelper = NewRelic::Agent::Instrumentation::ActiveRecordHelper unless defined?(ActiveRecordHelper)
-
   def setup
+    require 'new_relic/agent/instrumentation/active_record_helper'
+
+    const_set(:ActiveRecordHelper, NewRelic::Agent::Instrumentation::ActiveRecordHelper) unless defined?(ActiveRecordHelper)
+
     if ActiveRecordHelper.respond_to?(:metrics_for)
       @run = ActiveRecordHelper.method(:metrics_for)
     else

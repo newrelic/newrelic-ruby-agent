@@ -29,7 +29,9 @@ class OrphanedConfigTest < Minitest::Test
     end
   end
 
-  AGENT_CONFIG_PATTERN      = /Agent\.config\[:['"]?([a-z\._]+)['"]?\s*\]/
+  # This is a bit loose (allows any config[] with the right key) so we can pass
+  # NewRelic::Agent.config into classes as long as we call the variable config
+  AGENT_CONFIG_PATTERN      = /config\[:['"]?([a-z\._]+)['"]?\s*\]/
   DEFAULT_VALUE_OF_PATTERN  = /:default\s*=>\s*value_of\(:['"]?([a-z\._]+)['"]?\)\s*/
   REGISTER_CALLBACK_PATTERN = /register_callback\(:['"]?([a-z\._]+)['"]?\)/
   NAMED_DEPENDENCY_PATTERN  = /^\s*named[ (]+\:?([a-z0-9\._]+).*$/

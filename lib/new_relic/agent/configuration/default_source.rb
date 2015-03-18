@@ -1173,6 +1173,96 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :description  => 'Disables installation of Grape instrumentation.'
+        },
+        :'attributes.enabled' => {
+          :default     => true,
+          :public      => false,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for all destinations.'
+        },
+        :'transaction_tracer.attributes.enabled' => {
+          :default     => true,
+          :public      => false,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for transaction traces.'
+        },
+        :'transaction_events.attributes.enabled' => {
+          :default     => true,
+          :public      => false,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for transaction events.'
+        },
+        :'error_collector.attributes.enabled' => {
+          :default     => true,
+          :public      => false,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for error collection.'
+        },
+        :'browser_monitoring.attributes.enabled' => {
+          :default     => false,
+          :public      => false,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for browser monitoring.'
+        },
+        :'attributes.exclude' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :description => 'Prefix of attributes to exclude from all destinations. Allows * as wildcard at end.'
+        },
+        :'transaction_tracer.attributes.exclude' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :description => 'Prefix of attributes to exclude from transaction traces. Allows * as wildcard at end.'
+        },
+        :'transaction_events.attributes.exclude' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :description => 'Prefix of attributes to exclude from transaction events. Allows * as wildcard at end.'
+        },
+        :'error_collector.attributes.exclude' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :description => 'Prefix of attributes to exclude from error collection. Allows * as wildcard at end.'
+        },
+        :'browser_monitoring.attributes.exclude' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :description => 'Prefix of attributes to exclude from browser monitoring. Allows * as wildcard at end.'
+        },
+        :'attributes.include' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :description => 'Prefix of attributes to include in all destinations. Allows * as wildcard at end.'
+        },
+        :'transaction_tracer.attributes.include' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :description => 'Prefix of attributes to include in transaction traces. Allows * as wildcard at end.'
+        },
+        :'transaction_events.attributes.include' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :description => 'Prefix of attributes to include in transaction events. Allows * as wildcard at end.'
+        },
+        :'error_collector.attributes.include' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :description => 'Prefix of attributes to include in error collection. Allows * as wildcard at end.'
+        },
+        :'browser_monitoring.attributes.include' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :description => 'Prefix of attributes to include in browser monitoring. Allows * as wildcard at end.'
         }
       }.freeze
     end
