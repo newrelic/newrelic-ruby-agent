@@ -21,7 +21,7 @@ module NewRelic
 
         def for_destination(destination)
           @attributes.inject({}) do |memo, (key, value)|
-            memo[key] = value if @filter.apply(key, destination) == destination
+            memo[key] = value if @filter.applies?(key, destination)
             memo
           end
         end

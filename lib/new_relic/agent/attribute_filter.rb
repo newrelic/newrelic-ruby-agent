@@ -123,6 +123,10 @@ module NewRelic
 
         destinations
       end
+
+      def applies?(attribute_name, destination)
+        apply(attribute_name, destination) == destination
+      end
     end
 
     class AttributeFilterRule
