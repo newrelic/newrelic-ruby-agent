@@ -10,75 +10,21 @@ class AttributesTest < Minitest::Test
 
   AttributeFilter = NewRelic::Agent::AttributeFilter
 
-  def test_adding_custom_attributes
-    attributes = create_attributes
-    attributes.add_custom(:foo, "bar")
-    assert_equal "bar", attributes.custom[:foo]
-  end
-
-  def test_adding_agent_attributes
-    attributes = create_attributes
-    attributes.add_agent(:foo, "bar")
-    assert_equal "bar", attributes.agent[:foo]
-  end
-
-  def test_adding_intrinsic_attributes
-    attributes = create_attributes
-    attributes.add_intrinsic(:foo, "bar")
-    assert_equal "bar", attributes.intrinsic[:foo]
-  end
-
-  def test_returns_hash_of_custom_attributes_for_destination
+  def test_returns_hash_of_attributes_for_destination
     with_config({}) do
       attributes = create_attributes
-      attributes.add_custom(:foo, "bar")
+      attributes.add(:foo, "bar")
 
-      assert_equal({:foo => "bar"}, attributes.custom_for_destination(AttributeFilter::DST_TRANSACTION_TRACER))
+      assert_equal({:foo => "bar"}, attributes.for_destination(AttributeFilter::DST_TRANSACTION_TRACER))
     end
   end
 
-  def test_returns_hash_of_agent_attributes_for_destination
-    with_config({}) do
-      attributes = create_attributes
-      attributes.add_agent(:foo, "bar")
-
-      assert_equal({:foo => "bar"}, attributes.agent_for_destination(AttributeFilter::DST_TRANSACTION_TRACER))
-    end
-  end
-
-  def test_returns_hash_of_intrinsic_attributes_for_destination
-    with_config({}) do
-      attributes = create_attributes
-      attributes.add_intrinsic(:foo, "bar")
-
-      assert_equal({:foo => "bar"}, attributes.intrinsic_for_destination(AttributeFilter::DST_TRANSACTION_TRACER))
-    end
-  end
-
-  def test_disabling_transaction_tracer_for_custom_attributes
+  def test_disabling_transaction_tracer_for_attributes
     with_config({:'transaction_tracer.attributes.enabled' => false}) do
       attributes = create_attributes
-      attributes.add_custom(:foo, "bar")
+      attributes.add(:foo, "bar")
 
-      assert_empty attributes.custom_for_destination(AttributeFilter::DST_TRANSACTION_TRACER)
-    end
-  end
-
-  def test_disabling_transaction_tracer_for_agent_attributes
-    with_config({:'transaction_tracer.attributes.enabled' => false}) do
-      attributes = create_attributes
-      attributes.add_agent(:foo, "bar")
-
-      assert_empty attributes.agent_for_destination(AttributeFilter::DST_TRANSACTION_TRACER)
-    end
-  end
-
-  def test_disabling_transaction_tracer_for_intrinsic_attributes
-    with_config({:'transaction_tracer.attributes.enabled' => false}) do
-      attributes = create_attributes
-      attributes.add_intrinsic(:foo, "bar")
-
-      assert_empty attributes.intrinsic_for_destination(AttributeFilter::DST_TRANSACTION_TRACER)
+      assert_empty attributes.for_destination(AttributeFilter::DST_TRANSACTION_TRACER)
     end
   end
 

@@ -6,48 +6,21 @@ module NewRelic
   module Agent
     class Transaction
       class Attributes
-
-        attr_reader :custom, :agent, :intrinsic
-
         def initialize(filter)
           @filter = filter
-          @custom = {}
-          @agent = {}
-          @intrinsic = {}
+          @attributes = {}
         end
 
-        def add_custom(key, value)
-          custom[key] = value
+        def add(key, value)
+          @attributes[key] = value
         end
 
-        def add_agent(key, value)
-          agent[key] = value
+        def merge!(other)
+          @attributes.merge!(other)
         end
 
-        def add_intrinsic(key, value)
-          intrinsic[key] = value
-        end
-
-        def merge_custom(attrs)
-          custom.merge!(attrs)
-        end
-
-        def custom_for_destination(destination)
-          filter_attrs_by_destination(custom, destination)
-        end
-
-        def agent_for_destination(destination)
-          filter_attrs_by_destination(agent, destination)
-        end
-
-        def intrinsic_for_destination(destination)
-          filter_attrs_by_destination(intrinsic, destination)
-        end
-
-        private
-
-        def filter_attrs_by_destination(attrs, destination)
-          attrs.inject({}) do |memo, (key, value)|
+        def for_destination(destination)
+          @attributes.inject({}) do |memo, (key, value)|
             memo[key] = value if @filter.apply(key, destination) == destination
             memo
           end

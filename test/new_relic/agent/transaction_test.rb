@@ -1288,7 +1288,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_adding_custom_attributes
     in_transaction do |txn|
       NewRelic::Agent.add_custom_parameters(:foo => "bar")
-      assert_equal({:foo => "bar"}, txn.custom_attributes)
+      actual = txn.custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+      assert_equal({:foo => "bar"}, actual)
     end
   end
 end
