@@ -63,7 +63,8 @@ module NewRelic
                   :category,
                   :frame_stack,
                   :cat_path_hashes,
-                  :custom_attributes
+                  :custom_attributes,
+                  :agent_attributes
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -262,6 +263,14 @@ module NewRelic
         end
       end
 
+      def self.add_agent_attribute(key, value)
+        if txn = tl_current
+          txn.agent_attributes.add(key, value)
+        else
+          NewRelic::Agent.logger.debug "Attempted to add agent attribute: #{key} without transaction"
+        end
+      end
+
       @@java_classes_loaded = false
 
       if defined? JRuby
@@ -298,7 +307,9 @@ module NewRelic
         @ignore_this_transaction = false
         @ignore_apdex = false
         @ignore_enduser = false
+
         @custom_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        @agent_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
       end
 
       # This transaction-local hash may be used as temprory storage by

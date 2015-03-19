@@ -1292,4 +1292,25 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       assert_equal({:foo => "bar"}, actual)
     end
   end
+
+  def test_adding_agent_attributes
+    in_transaction do |txn|
+      txn.agent_attributes.add(:foo, "bar")
+      actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+      assert_equal({:foo => "bar"}, actual)
+    end
+  end
+
+  def test_adding_agent_attributes_via_class
+    in_transaction do |txn|
+      NewRelic::Agent::Transaction.add_agent_attribute(:foo, "bar")
+      actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+      assert_equal({:foo => "bar"}, actual)
+    end
+  end
+
+  def test_adding_agent_attributes_via_class_outside_of_txn_is_safe
+    expects_logging(:debug, includes("foo"))
+    NewRelic::Agent::Transaction.add_agent_attribute(:foo, "bar")
+  end
 end
