@@ -144,6 +144,17 @@ module NewRelic::Agent
       when_request_runs
     end
 
+    def test_writes_intrinsic_attributes
+      with_default_timings
+
+      txn = when_request_runs
+      expected =  {
+        :client_cross_process_id => REQUEST_CROSS_APP_ID,
+        :referring_transaction_guid => REF_TRANSACTION_GUID
+      }
+      assert_equal(expected, txn.intrinsic_attributes.all)
+    end
+
     def test_error_writes_custom_parameters
       with_default_timings
 
@@ -225,11 +236,12 @@ module NewRelic::Agent
     #
 
     def when_request_runs(request=for_id(REQUEST_CROSS_APP_ID))
-      in_transaction('transaction') do
+      in_transaction('transaction') do |txn|
         @events.notify(:before_call, request)
         # Fake out our GUID for easier comparison in tests
         NewRelic::Agent::Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
         @events.notify(:after_call, request, [200, @response, ''])
+        txn
       end
     end
 

@@ -1313,4 +1313,12 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     expects_logging(:debug, includes("foo"))
     NewRelic::Agent::Transaction.add_agent_attribute(:foo, "bar")
   end
+
+  def test_adding_intrinsic_attributes
+    in_transaction do |txn|
+      txn.intrinsic_attributes.add(:foo, "bar")
+      actual = txn.intrinsic_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+      assert_equal({:foo => "bar"}, actual)
+    end
+  end
 end

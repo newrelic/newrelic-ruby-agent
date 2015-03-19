@@ -7,6 +7,7 @@ require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/transaction/intrinsic_attributes'
 
 module NewRelic
   module Agent
@@ -64,7 +65,8 @@ module NewRelic
                   :frame_stack,
                   :cat_path_hashes,
                   :custom_attributes,
-                  :agent_attributes
+                  :agent_attributes,
+                  :intrinsic_attributes
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -310,6 +312,7 @@ module NewRelic
 
         @custom_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
         @agent_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        @intrinsic_attributes = IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
       end
 
       # This transaction-local hash may be used as temprory storage by
