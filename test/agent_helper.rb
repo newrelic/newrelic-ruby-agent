@@ -287,10 +287,14 @@ def in_transaction(*args, &blk)
                                         args.first || 'dummy'
 
   state = NewRelic::Agent::TransactionState.tl_get
+  txn = nil
 
   NewRelic::Agent::Transaction.wrap(state, name, category, opts) do
+    txn = state.current_transaction
     yield state.current_transaction
   end
+
+  txn
 end
 
 def stub_transaction_guid(guid)

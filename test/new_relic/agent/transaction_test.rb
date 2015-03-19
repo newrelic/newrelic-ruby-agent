@@ -747,7 +747,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_record_transaction_cpu_positive
     in_transaction do |txn|
       state = NewRelic::Agent::TransactionState.tl_get
-      txn.expects(:cpu_burn).twice.returns(1.0)
+      txn.stubs(:cpu_burn).returns(1.0)
       NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).twice.with(state, 1.0)
       txn.record_transaction_cpu(state)
     end
@@ -756,7 +756,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_record_transaction_cpu_negative
     in_transaction do |txn|
       state = NewRelic::Agent::TransactionState.tl_get
-      txn.expects(:cpu_burn).twice.returns(nil)
+      txn.stubs(:cpu_burn).returns(nil)
       # should not be called for the nil case
       NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).never
       txn.record_transaction_cpu(state)
@@ -766,7 +766,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_normal_cpu_burn_positive
     in_transaction do |txn|
       txn.instance_variable_set(:@process_cpu_start, 3)
-      txn.expects(:process_cpu).twice.returns(4)
+      txn.stubs(:process_cpu).returns(4)
       assert_equal 1, txn.normal_cpu_burn
     end
   end
@@ -885,7 +885,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_cpu_burn_normal
     in_transaction do |txn|
-      txn.expects(:normal_cpu_burn).twice.returns(1)
+      txn.stubs(:normal_cpu_burn).returns(1)
       txn.expects(:jruby_cpu_burn).never
       assert_equal 1, txn.cpu_burn
     end
@@ -893,8 +893,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_cpu_burn_jruby
     in_transaction do |txn|
-      txn.expects(:normal_cpu_burn).twice.returns(nil)
-      txn.expects(:jruby_cpu_burn).twice.returns(2)
+      txn.stubs(:normal_cpu_burn).returns(nil)
+      txn.stubs(:jruby_cpu_burn).returns(2)
       assert_equal 2, txn.cpu_burn
     end
   end
@@ -1317,8 +1317,83 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_adding_intrinsic_attributes
     in_transaction do |txn|
       txn.intrinsic_attributes.add(:foo, "bar")
-      actual = txn.intrinsic_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+      actual = txn.intrinsic_attributes.all
       assert_equal({:foo => "bar"}, actual)
     end
+  end
+
+  def test_assigns_synthetics_to_intrinsic_attributes
+    txn = in_transaction do |txn|
+      txn.raw_synthetics_header = ""
+      txn.synthetics_payload = [1, 1, 100, 200, 300]
+      txn
+    end
+
+    assert_equal 100, txn.intrinsic_attributes.all[:synthetics_resource_id]
+    assert_equal 200, txn.intrinsic_attributes.all[:synthetics_job_id]
+    assert_equal 300, txn.intrinsic_attributes.all[:synthetics_monitor_id]
+  end
+
+
+  def test_intrinsic_attributes_include_gc_time
+    txn = in_transaction do |txn|
+      NewRelic::Agent::StatsEngine::GCProfiler.stubs(:record_delta).returns(10.0)
+    end
+
+    assert_equal 10.0, txn.intrinsic_attributes.all[:gc_time]
+  end
+
+  def test_intrinsic_attributes_include_tripid
+    guid = nil
+
+    NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
+
+    txn = in_transaction do |txn|
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+      guid = txn.guid
+    end
+
+    assert_equal 'PDX-NRT', txn.intrinsic_attributes.all[:trip_id]
+  end
+
+  def test_intrinsic_attributes_dont_include_tripid_if_not_cross_app_transaction
+    NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
+
+    txn = in_transaction do
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = false
+    end
+
+    assert_nil txn.intrinsic_attributes.all[:trip_id]
+  end
+
+  def test_intrinsic_attributes_include_path_hash
+    path_hash = nil
+
+    txn = in_transaction do |txn|
+      state = NewRelic::Agent::TransactionState.tl_get
+      state.is_cross_app_caller = true
+      path_hash = txn.cat_path_hash(state)
+    end
+
+    assert_equal path_hash, txn.intrinsic_attributes.all[:path_hash]
+  end
+
+  def test_synthetics_attributes_not_included_if_not_valid_synthetics_request
+    txn = in_transaction do |txn|
+      txn.raw_synthetics_header = nil
+      txn.synthetics_payload = nil
+    end
+
+    assert_nil txn.intrinsic_attributes.all[:synthetics_resource_id]
+    assert_nil txn.intrinsic_attributes.all[:synthetics_job_id]
+    assert_nil txn.intrinsic_attributes.all[:synthetics_monitor_id]
+  end
+
+  def test_intrinsic_attributes_include_cpu_time
+    txn = in_transaction do |txn|
+      txn.stubs(:cpu_burn).returns(22.0)
+    end
+
+    assert_equal 22.0, txn.intrinsic_attributes.all[:cpu_time]
   end
 end

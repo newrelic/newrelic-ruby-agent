@@ -535,9 +535,13 @@ module NewRelic
 
       def commit!(state, end_time, outermost_segment_name)
         record_transaction_cpu(state)
+
         gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
             gc_start_snapshot, gc_stop_snapshot)
+
+        assign_intrinsics(state, gc_delta)
+
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time, gc_delta)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
@@ -549,6 +553,25 @@ module NewRelic
         merge_metrics
 
         send_transaction_finished_event(state, start_time, end_time)
+      end
+
+      def assign_intrinsics(state, gc_time)
+        intrinsic_attributes.add(:gc_time, gc_time) if gc_time
+
+        if burn = cpu_burn
+          intrinsic_attributes.add(:cpu_time, burn)
+        end
+
+        if is_synthetics_request?
+          intrinsic_attributes.add(:synthetics_resource_id, synthetics_resource_id)
+          intrinsic_attributes.add(:synthetics_job_id, synthetics_job_id)
+          intrinsic_attributes.add(:synthetics_monitor_id, synthetics_monitor_id)
+        end
+
+        if state.is_cross_app?
+          intrinsic_attributes.add(:trip_id, cat_trip_id(state))
+          intrinsic_attributes.add(:path_hash, cat_path_hash(state))
+        end
       end
 
       # The summary metrics recorded by this method all end up with a duration

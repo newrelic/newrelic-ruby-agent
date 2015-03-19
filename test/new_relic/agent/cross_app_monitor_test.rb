@@ -148,11 +148,9 @@ module NewRelic::Agent
       with_default_timings
 
       txn = when_request_runs
-      expected =  {
-        :client_cross_process_id => REQUEST_CROSS_APP_ID,
-        :referring_transaction_guid => REF_TRANSACTION_GUID
-      }
-      assert_equal(expected, txn.intrinsic_attributes.all)
+
+      assert_equal REQUEST_CROSS_APP_ID, txn.intrinsic_attributes.all[:client_cross_process_id]
+      assert_equal REF_TRANSACTION_GUID, txn.intrinsic_attributes.all[:referring_transaction_guid]
     end
 
     def test_error_writes_custom_parameters
