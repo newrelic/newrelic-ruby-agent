@@ -1396,4 +1396,22 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     assert_equal 22.0, txn.intrinsic_attributes.all[:cpu_time]
   end
+
+  def test_request_params_included_in_agent_attributes
+    txn = in_transaction(:filtered_params => {:foo => "bar"}) do
+    end
+    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal "bar", actual[:'request.parameters.foo']
+  end
+
+  def test_request_params_included_in_agent_attributes_in_nested_txn
+    txn = in_transaction(:filtered_params => {:foo => "bar", :bar => "baz"}) do
+      in_transaction(:filtered_params => {:bar => "qux"}) do
+      end
+    end
+
+    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal "bar", actual[:'request.parameters.foo']
+    assert_equal "qux", actual[:'request.parameters.bar']
+  end
 end

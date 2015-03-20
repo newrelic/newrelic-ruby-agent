@@ -300,6 +300,7 @@ module NewRelic
         @process_cpu_start = process_cpu
         @gc_start_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         @filtered_params = options[:filtered_params] || {}
+
         @request = options[:request]
         @exceptions = {}
         @metrics = TransactionMetrics.new
@@ -313,6 +314,8 @@ module NewRelic
         @custom_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
         @agent_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
         @intrinsic_attributes = IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
+
+        merge_request_parameters(@filtered_params)
       end
 
       # This transaction-local hash may be used as temprory storage by
@@ -349,12 +352,20 @@ module NewRelic
         @has_children = true
         if options[:filtered_params] && !options[:filtered_params].empty?
           @filtered_params = options[:filtered_params]
+          merge_request_parameters(options[:filtered_params])
         end
 
         frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
         name_last_frame(options[:transaction_name])
 
         set_default_transaction_name(options[:transaction_name], category)
+      end
+
+      def merge_request_parameters(params)
+        params.each_pair do |k, v|
+          normalized_key = JSONWrapper.normalize_string(k.to_s)
+          @agent_attributes.add(:"request.parameters.#{normalized_key}", v)
+        end
       end
 
       def make_transaction_name(name, category=nil)

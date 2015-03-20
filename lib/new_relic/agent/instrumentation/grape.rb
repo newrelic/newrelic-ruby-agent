@@ -46,6 +46,7 @@ module NewRelic
           params = ParameterFiltering::apply_filters(env, endpoint.params)
           params.delete("route_info")
           txn.filtered_params = params
+          txn.merge_request_parameters(params)
         end
       end
     end
