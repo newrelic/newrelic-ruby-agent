@@ -7,6 +7,9 @@ class HttpClientOptions
   # headers after initiating request. We add `add_header` method to
   # HttpClientOptions, so newrelic_rpm can add any custom headers
   # (eg. cross application tracing headers) to request
+  #
+  # See more about HttpClientOptions
+  # https://github.com/igrigorik/em-http-request/blob/master/lib/em-http/http_client_options.rb
   def add_header(key, value)
     headers[key] = value
   end
@@ -16,6 +19,7 @@ module NewRelic
   module Agent
     module HTTPClients
       class EMHTTPResponse
+
         def initialize(response)
           @response = response
         end
@@ -25,11 +29,12 @@ module NewRelic
         end
 
         def to_hash
-          @response.dup
+          @response ? @response.dup : {}
         end
       end
 
       class EMHTTPRequest
+
         def initialize(request)
           @request = request
           @uri = request.uri
