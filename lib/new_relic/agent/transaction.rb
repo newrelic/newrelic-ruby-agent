@@ -6,6 +6,8 @@ require 'new_relic/agent/transaction_timings'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
+require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/transaction/intrinsic_attributes'
 
 module NewRelic
   module Agent
@@ -61,7 +63,10 @@ module NewRelic
                   :gc_start_snapshot,
                   :category,
                   :frame_stack,
-                  :cat_path_hashes
+                  :cat_path_hashes,
+                  :custom_attributes,
+                  :agent_attributes,
+                  :intrinsic_attributes
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -260,6 +265,14 @@ module NewRelic
         end
       end
 
+      def self.add_agent_attribute(key, value)
+        if txn = tl_current
+          txn.agent_attributes.add(key, value)
+        else
+          NewRelic::Agent.logger.debug "Attempted to add agent attribute: #{key} without transaction"
+        end
+      end
+
       @@java_classes_loaded = false
 
       if defined? JRuby
@@ -296,6 +309,10 @@ module NewRelic
         @ignore_this_transaction = false
         @ignore_apdex = false
         @ignore_enduser = false
+
+        @custom_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        @agent_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        @intrinsic_attributes = IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
       end
 
       # This transaction-local hash may be used as temprory storage by
@@ -518,9 +535,13 @@ module NewRelic
 
       def commit!(state, end_time, outermost_segment_name)
         record_transaction_cpu(state)
+
         gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
             gc_start_snapshot, gc_stop_snapshot)
+
+        assign_intrinsics(state, gc_delta)
+
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time, gc_delta)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
@@ -532,6 +553,25 @@ module NewRelic
         merge_metrics
 
         send_transaction_finished_event(state, start_time, end_time)
+      end
+
+      def assign_intrinsics(state, gc_time)
+        intrinsic_attributes.add(:gc_time, gc_time) if gc_time
+
+        if burn = cpu_burn
+          intrinsic_attributes.add(:cpu_time, burn)
+        end
+
+        if is_synthetics_request?
+          intrinsic_attributes.add(:synthetics_resource_id, synthetics_resource_id)
+          intrinsic_attributes.add(:synthetics_job_id, synthetics_job_id)
+          intrinsic_attributes.add(:synthetics_monitor_id, synthetics_monitor_id)
+        end
+
+        if state.is_cross_app?
+          intrinsic_attributes.add(:trip_id, cat_trip_id(state))
+          intrinsic_attributes.add(:path_hash, cat_path_hash(state))
+        end
       end
 
       # The summary metrics recorded by this method all end up with a duration
@@ -805,17 +845,19 @@ module NewRelic
         @custom_parameters ||= {}
       end
 
-      def add_custom_parameters(p)
+      def add_custom_attributes(p)
         if NewRelic::Agent.config[:high_security]
           NewRelic::Agent.logger.debug("Unable to add custom attributes #{p.keys.inspect} while in high security mode.")
           return
         end
 
+        custom_attributes.merge!(p)
         custom_parameters.merge!(p)
       end
 
       alias_method :user_attributes, :custom_parameters
-      alias_method :set_user_attributes, :add_custom_parameters
+      alias_method :set_user_attributes, :add_custom_attributes
+      alias_method :add_custom_parameters, :add_custom_attributes
 
       def recording_web_transaction?
         web_category?(@category)

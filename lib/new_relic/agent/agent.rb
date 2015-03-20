@@ -28,6 +28,7 @@ require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
 require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
+require 'new_relic/agent/attribute_filter'
 
 module NewRelic
   module Agent
@@ -72,6 +73,7 @@ module NewRelic
 
         @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
+        @attribute_filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -123,6 +125,8 @@ module NewRelic
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
         attr_reader :custom_event_aggregator
+
+        attr_reader :attribute_filter
 
         # This method should be called in a forked process after a fork.
         # It assumes the parent process initialized the agent, but does

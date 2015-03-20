@@ -140,10 +140,16 @@ module NewRelic
       def set_transaction_custom_parameters(state)
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
-        NewRelic::Agent.add_custom_parameters(:client_cross_process_id => state.client_cross_app_id) if state.client_cross_app_id
+        return unless txn = state.current_transaction
+
+        if state.client_cross_app_id
+          txn.intrinsic_attributes.add(:client_cross_process_id, state.client_cross_app_id)
+          NewRelic::Agent.add_custom_parameters(:client_cross_process_id => state.client_cross_app_id)
+        end
 
         referring_guid = client_referring_transaction_guid(state)
         if referring_guid
+          txn.intrinsic_attributes.add(:referring_transaction_guid, referring_guid)
           NewRelic::Agent.add_custom_parameters(:referring_transaction_guid => referring_guid)
         end
       end

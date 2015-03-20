@@ -28,6 +28,41 @@ module NewRelic::Agent
       end
     end
 
+    def test_applies_to_single_destination
+      with_config(
+        :'transaction_tracer.attributes.enabled' => true,
+        :'transaction_events.attributes.enabled' => true,
+        :'error_collector.attributes.enabled' => true,
+        :'browser_monitoring.attributes.enabled' => true) do
+
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+
+        assert filter.applies?(:foo, AttributeFilter::DST_TRANSACTION_EVENTS)
+        assert filter.applies?(:foo, AttributeFilter::DST_TRANSACTION_TRACER)
+        assert filter.applies?(:foo, AttributeFilter::DST_ERROR_COLLECTOR)
+        assert filter.applies?(:foo, AttributeFilter::DST_BROWSER_MONITORING)
+      end
+    end
+
+    def test_applies_to_multiple_destinations
+      with_config(
+        :'transaction_tracer.attributes.enabled' => true,
+        :'transaction_events.attributes.enabled' => true,
+        :'error_collector.attributes.enabled' => true,
+        :'browser_monitoring.attributes.enabled' => false) do
+
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+
+        assert filter.applies?(:foo,
+          AttributeFilter::DST_TRANSACTION_EVENTS |
+          AttributeFilter::DST_TRANSACTION_TRACER |
+          AttributeFilter::DST_ERROR_COLLECTOR
+        )
+
+        refute filter.applies?(:foo, AttributeFilter::DST_ALL)
+      end
+    end
+
     def to_names(bitfield)
       names = []
 
