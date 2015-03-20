@@ -38,9 +38,9 @@ module NewRelic
 
       def self.choose_normalizer
         if NewRelic::LanguageSupport.supports_string_encodings?
-          @normalizer = EncodingNormalizer
+          EncodingNormalizer
         else
-          @normalizer = IconvNormalizer
+          IconvNormalizer
         end
       end
 
