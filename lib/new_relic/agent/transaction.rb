@@ -363,7 +363,7 @@ module NewRelic
 
       def merge_request_parameters(params)
         params.each_pair do |k, v|
-          normalized_key = JSONWrapper.normalize_string(k.to_s)
+          normalized_key = EncodingNormalizer.normalize_string(k.to_s)
           @agent_attributes.add(:"request.parameters.#{normalized_key}", v)
         end
       end

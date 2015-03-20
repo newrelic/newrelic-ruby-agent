@@ -136,7 +136,7 @@ module NewRelic
 
             # Symbols remain in Ruby-marshalled data, so tidy up so tests can
             # rely on strings to compare against in fake collector results.
-            body = NewRelic::JSONWrapper.normalize(body)
+            body = NewRelic::Agent::EncodingNormalizer.normalize_object(body)
           end
         rescue
           body = "UNABLE TO DECODE BODY: #{raw_body}"
