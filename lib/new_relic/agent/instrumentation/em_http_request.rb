@@ -8,12 +8,12 @@
 # https://github.com/igrigorik/em-http-request/blob/master/lib/em-http.rb
 require 'em-http/version' if defined?(EventMachine::HttpRequest)
 
-module NewRelic::Agent::Instrumentation::EMHttpTracing
+module NewRelic::Agent::Instrumentation::EMHttpRequestTracing
 
   EM_HTTP_MIN_VERSION = NewRelic::VersionNumber.new("1.1.1")
 
   def self.is_supported_version?
-    NewRelic::VersionNumber.new(EventMachine::HttpRequest::VERSION) >= NewRelic::Agent::Instrumentation::EMHttpTracing::EM_HTTP_MIN_VERSION
+    NewRelic::VersionNumber.new(EventMachine::HttpRequest::VERSION) >= NewRelic::Agent::Instrumentation::EMHttpRequestTracing::EM_HTTP_MIN_VERSION
   end
 
   def self.trace(client)
@@ -49,6 +49,10 @@ module NewRelic::Agent::Instrumentation::EMHttpTracing
         self
       end
 
+      def size
+        @store.size
+      end
+
       def top
         return nil if size < 1
         @store[size - 1]
@@ -66,7 +70,7 @@ module NewRelic::Agent::Instrumentation::EMHttpTracing
 
     def setup_request_with_newrelic(*args)
       client = setup_request_without_newrelic(*args)
-      callback = NewRelic::Agent::Instrumentation::EMHttpTracing.trace(client)
+      callback = NewRelic::Agent::Instrumentation::EMHttpRequestTracing.trace(client)
       client.newrelic_callback = callback
       HttpConnectionInstr.frame_stack.push(callback)
       client
@@ -114,25 +118,25 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    NewRelic::Agent::Instrumentation::EMHttpTracing.is_supported_version?
+    NewRelic::Agent::Instrumentation::EMHttpRequestTracing.is_supported_version?
   end
 
   executes do
     ::NewRelic::Agent.logger.info "Installing EMHTTPRequest instrumentation"
     require 'new_relic/agent/cross_app_tracing'
-    require 'new_relic/agent/http_clients/em_http_wrappers'
+    require 'new_relic/agent/http_clients/em_http_request_wrappers'
   end
 
   executes do
     class EventMachine::HttpConnection
-      include NewRelic::Agent::Instrumentation::EMHttpTracing::HttpConnectionInstr
+      include NewRelic::Agent::Instrumentation::EMHttpRequestTracing::HttpConnectionInstr
 
       alias :setup_request_without_newrelic :setup_request
       alias :setup_request :setup_request_with_newrelic
     end
 
     class EventMachine::HttpClient
-      include NewRelic::Agent::Instrumentation::EMHttpTracing::HttpClientInstr
+      include NewRelic::Agent::Instrumentation::EMHttpRequestTracing::HttpClientInstr
 
       alias :parse_response_header_without_newrelic :parse_response_header
       alias :parse_response_header :parse_response_header_with_newrelic

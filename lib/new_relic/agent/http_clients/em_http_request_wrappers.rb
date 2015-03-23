@@ -21,11 +21,12 @@ module NewRelic
       class EMHTTPResponse
 
         def initialize(response)
-          @response = response
+          @response = Hash[response.map { |k, v| [k.downcase.gsub("_", "-"), v] }]
         end
 
         def [](key)
-          @response[key] unless @response.nil?
+          # puts "[#{key.downcase}]: #{@response[key.downcase]}"
+          @response[key.downcase] unless @response.nil?
         end
 
         def to_hash
@@ -45,7 +46,7 @@ module NewRelic
         end
 
         def host
-          @uri.host
+          self['host'] || self['Host'] || @uri.host
         end
 
         def method
