@@ -690,6 +690,17 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_notice_error_in_transaction_sends_attributes_along
+    txn = in_transaction('oops') do
+      NewRelic::Agent::Transaction.notice_error("wat?")
+    end
+
+    error = NewRelic::Agent.instance.error_collector.errors.first
+    assert_equal txn.custom_attributes, error.custom_attributes
+    assert_equal txn.agent_attributes, error.agent_attributes
+    assert_equal txn.intrinsic_attributes, error.intrinsic_attributes
+  end
+
   def test_notice_error_after_current_transaction_notifies_error_collector
     in_transaction('failing') do
       # no-op
