@@ -8,13 +8,18 @@ require 'new_relic/helper'
 class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
   attr_accessor :path, :timestamp, :params, :message, :exception_class_name
-  attr_reader   :exception_id, :is_internal
+  attr_reader   :exception_id, :is_internal,
+                :custom_attributes, :agent_attributes, :intrinsic_attributes
 
   STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
 
   def initialize(path, data, exception, timestamp = Time.now)
     @exception_id = exception.object_id
     @path = path
+
+    @custom_attributes    = data.delete(:custom_attributes)
+    @agent_attributes     = data.delete(:agent_attributes)
+    @intrinsic_attributes = data.delete(:intrinsic_attributes)
     @params = NewRelic::NoticedError.normalize_params(data)
 
     @exception_class_name = exception.is_a?(Exception) ? exception.class.name : 'Error'
