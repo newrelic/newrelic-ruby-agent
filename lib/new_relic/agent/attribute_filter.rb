@@ -159,6 +159,8 @@ module NewRelic
       end
 
       def match?(name)
+        name = name.to_s
+
         if wildcard
           name.start_with?(@attribute_name)
         else
