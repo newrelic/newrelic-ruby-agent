@@ -91,6 +91,8 @@ module NewRelic
         build_rule(config[:'error_collector.attributes.exclude'],    DST_ERROR_COLLECTOR,    false)
         build_rule(config[:'browser_monitoring.attributes.exclude'], DST_BROWSER_MONITORING, false)
 
+        build_rule(['request.parameters.*'], exclude_destinations_for_request_parameters(config), false)
+
         build_rule(config[:'attributes.include'], DST_ALL, true)
         build_rule(config[:'transaction_tracer.attributes.include'], DST_TRANSACTION_TRACER, true)
         build_rule(config[:'transaction_events.attributes.include'], DST_TRANSACTION_EVENTS, true)
@@ -98,6 +100,14 @@ module NewRelic
         build_rule(config[:'browser_monitoring.attributes.include'], DST_BROWSER_MONITORING, true)
 
         @rules.sort!
+      end
+
+      def exclude_destinations_for_request_parameters(config)
+        if config[:capture_params]
+          DST_TRANSACTION_EVENTS | DST_BROWSER_MONITORING
+        else
+          DST_ALL
+        end
       end
 
       def build_rule(attribute_names, destinations, is_include)
