@@ -125,6 +125,30 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_transaction_tracer_attributes_enabled_default
+      with_config(:'transaction_tracer.capture_attributes' => :foo) do
+        assert_equal :foo, NewRelic::Agent.config['transaction_tracer.attributes.enabled']
+      end
+    end
+
+    def test_transaction_events_attributes_enabled_default
+      with_config(:'analytics_events.capture_attributes' => :foo) do
+        assert_equal :foo, NewRelic::Agent.config['transaction_events.attributes.enabled']
+      end
+    end
+
+    def test_error_collector_attributes_enabled_default
+      with_config(:'error_collector.capture_attributes' => :foo) do
+        assert_equal :foo, NewRelic::Agent.config['error_collector.attributes.enabled']
+      end
+    end
+
+    def test_browser_monitoring_attributes_enabled_default
+      with_config(:'browser_monitoring.capture_attributes' => :foo) do
+        assert_equal :foo, NewRelic::Agent.config['browser_monitoring.attributes.enabled']
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 
