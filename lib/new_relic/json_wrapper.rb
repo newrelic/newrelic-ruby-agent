@@ -28,7 +28,7 @@ module NewRelic
         @load_method    = ::JSON.method(:load)
         @backend_name   = :json
         return true
-      rescue StandardError, ScriptError
+      rescue StandardError, ScriptError => err
         NewRelic::Agent.logger.debug "%p while loading JSON library: %s" % [ err, err.message ] if
           defined?( NewRelic::Agent ) && NewRelic::Agent.respond_to?( :logger )
       end
