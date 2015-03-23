@@ -8,7 +8,10 @@ require 'new_relic/agent/internal_agent_error'
 
 class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def setup
-    @test_config = { :capture_params => true }
+    @test_config = {
+      :capture_params => true,
+      :disable_harvest_thread => true
+    }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
 
     @error_collector = NewRelic::Agent::ErrorCollector.new
