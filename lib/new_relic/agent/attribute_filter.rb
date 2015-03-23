@@ -93,6 +93,7 @@ module NewRelic
 
         build_rule(['request.parameters.*'], exclude_destinations_for_capture_params(:capture_params, config), false)
         build_rule(['jobs.resque.arguments'], exclude_destinations_for_capture_params(:'resque.capture_params', config), false)
+        build_rule(['jobs.sidekiq.arguments'], exclude_destinations_for_capture_params(:'sidekiq.capture_params', config), false)
 
         build_rule(config[:'attributes.include'], DST_ALL, true)
         build_rule(config[:'transaction_tracer.attributes.include'], DST_TRANSACTION_TRACER, true)
