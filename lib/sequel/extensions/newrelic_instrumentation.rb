@@ -43,8 +43,6 @@ module Sequel
         t0 = Time.now
         begin
           rval = super
-        rescue => err
-          NewRelic::Agent.logger.debug "while recording metrics for Sequel", err
         ensure
           notice_sql(sql, scoped_metric, args, t0, Time.now)
         end
