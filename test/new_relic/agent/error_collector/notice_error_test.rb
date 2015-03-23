@@ -80,8 +80,9 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
     self.expects(:normalize_params).with(nil).returns(nil)
     self.expects(:normalize_params).with({}).returns({})
     with_config(:capture_params => true) do
-      assert_equal({:request_params => nil, :custom_params => {}},
-                   normalized_request_and_custom_params({}))
+      normalized = normalized_request_and_custom_params({})
+      assert_nil   normalized[:request_params]
+      assert_empty normalized[:custom_params]
     end
   end
 
