@@ -34,6 +34,7 @@ module NewRelic
       end
 
       class EMHTTPRequest
+        attr_reader :uri
 
         def initialize(request)
           @request = request
@@ -49,7 +50,7 @@ module NewRelic
         end
 
         def method
-          (@request.method || "GET").to_s.upcase
+          (@request.method || "GET").upcase
         end
 
         def [](key)
@@ -58,10 +59,6 @@ module NewRelic
 
         def []=(key, value)
           @request.add_header(key, value)
-        end
-
-        def uri
-          @uri
         end
       end
     end
