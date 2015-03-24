@@ -1181,25 +1181,25 @@ module NewRelic
           :description => 'Enable or disable capture of attributes for all destinations.'
         },
         :'transaction_tracer.attributes.enabled' => {
-          :default     => true,
+          :default     => value_of(:'transaction_tracer.capture_attributes'),
           :public      => false,
           :type        => Boolean,
           :description => 'Enable or disable capture of attributes for transaction traces.'
         },
         :'transaction_events.attributes.enabled' => {
-          :default     => true,
+          :default     => value_of(:'analytics_events.capture_attributes'),
           :public      => false,
           :type        => Boolean,
           :description => 'Enable or disable capture of attributes for transaction events.'
         },
         :'error_collector.attributes.enabled' => {
-          :default     => true,
+          :default     => value_of(:'error_collector.capture_attributes'),
           :public      => false,
           :type        => Boolean,
           :description => 'Enable or disable capture of attributes for error collection.'
         },
         :'browser_monitoring.attributes.enabled' => {
-          :default     => false,
+          :default     => value_of(:'browser_monitoring.capture_attributes'),
           :public      => false,
           :type        => Boolean,
           :description => 'Enable or disable capture of attributes for browser monitoring.'
