@@ -209,6 +209,10 @@ module NewRelic
         # them to the error. See NewRelic::CollectionHelper#normalize_params
         def normalized_request_and_custom_params(options)
           {
+            :custom_attributes    => options.delete(:custom_attributes),
+            :agent_attributes     => options.delete(:agent_attributes),
+            :intrinsic_attributes => options.delete(:intrinsic_attributes),
+
             :request_params => normalize_params(request_params_from_opts(options)),
             :custom_params  => normalize_params(custom_params_from_opts(options))
           }

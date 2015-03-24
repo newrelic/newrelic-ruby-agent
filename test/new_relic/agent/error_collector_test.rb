@@ -8,7 +8,10 @@ require 'new_relic/agent/internal_agent_error'
 
 class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def setup
-    @test_config = { :capture_params => true }
+    @test_config = {
+      :capture_params => true,
+      :disable_harvest_thread => true
+    }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
 
     @error_collector = NewRelic::Agent::ErrorCollector.new
@@ -416,6 +419,22 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     assert_metrics_not_recorded(['Errors/all'])
     assert_empty @error_collector.errors
+  end
+
+  def test_captures_attributes
+    error = StandardError.new('wat')
+    custom_attributes = Object.new
+    agent_attributes = Object.new
+    intrinsic_attributes = Object.new
+    @error_collector.notice_error(error,
+                                  :custom_attributes    => custom_attributes,
+                                  :agent_attributes     => agent_attributes,
+                                  :intrinsic_attributes => intrinsic_attributes)
+
+    noticed = @error_collector.errors.first
+    assert_equal custom_attributes, noticed.custom_attributes
+    assert_equal agent_attributes, noticed.agent_attributes
+    assert_equal intrinsic_attributes, noticed.intrinsic_attributes
   end
 
   private

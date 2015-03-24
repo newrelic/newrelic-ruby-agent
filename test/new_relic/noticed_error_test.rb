@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require 'new_relic/agent/transaction/attributes'
 
 class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   include NewRelic::TestHelpers::Exceptions
@@ -11,6 +12,10 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     @path = 'foo/bar/baz'
     @params = { 'key' => 'val' }
     @time = Time.now
+
+    @custom_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    @agent_attributes  = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    @intrinsic_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
   end
 
   def test_to_collector_array
@@ -89,6 +94,22 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     e.stubs(:original_exception).returns(nil)
     error = NewRelic::NoticedError.new(@path, @params, e, @time)
     assert_equal(error.message.to_s, 'Buffy FOREVER')
+  end
+
+  def test_pulls_out_attributes_from_incoming_data
+    params = {
+      :custom_attributes    => @custom_attributes,
+      :agent_attributes     => @agent_attributes,
+      :intrinsic_attributes => @intrinsic_attributes,
+    }
+
+    error = NewRelic::NoticedError.new(@path, params, Exception.new("O_o"))
+
+    assert_empty error.params
+
+    assert_equal @custom_attributes, error.custom_attributes
+    assert_equal @agent_attributes, error.agent_attributes
+    assert_equal @intrinsic_attributes, error.intrinsic_attributes
   end
 
 end

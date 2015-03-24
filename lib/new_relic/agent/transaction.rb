@@ -740,6 +740,9 @@ module NewRelic
       def record_exceptions
         @exceptions.each do |exception, options|
           options[:metric] = best_name
+          options[:custom_attributes] = @custom_attributes
+          options[:agent_attributes] = @agent_attributes
+          options[:intrinsic_attributes] = @intrinsic_attributes
           agent.error_collector.notice_error(exception, options)
         end
       end
