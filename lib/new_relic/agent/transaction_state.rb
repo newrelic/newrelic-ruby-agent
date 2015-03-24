@@ -18,7 +18,7 @@ module NewRelic
         if RUBY_VERSION >= "2.0"
           thread.thread_variable_set(key, object)
         else
-          thread.current[key] = object
+          thread[key] = object
         end
       end
 
