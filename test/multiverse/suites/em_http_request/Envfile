@@ -1,4 +1,4 @@
-em_http_request_versions = %w(1.1.1)
+em_http_request_versions = %w(1.1.1 1.1.2)
 
 em_http_request_versions.each do |em_http_request_version|
   gemfile <<-RB

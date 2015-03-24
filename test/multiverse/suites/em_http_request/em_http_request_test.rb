@@ -52,7 +52,7 @@ class EMHTTPRequestTest < Minitest::Test
     # https://github.com/newrelic/rpm/blob/master/lib/new_relic/agent/transaction_state.rb
     # All tests have wrapped with new Fiber with EventMachine loop and seems the wrap
     # causes the issue with accessing object in local thread. At the moment, we just
-    # exclude the tests but needs to be fixed.
+    # exclude the tests but need to be fixed.
     excluded_methods = Set.new [
       :test_transactional_metrics,
       :test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present,
