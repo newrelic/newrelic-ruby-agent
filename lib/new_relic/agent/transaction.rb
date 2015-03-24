@@ -602,7 +602,6 @@ module NewRelic
           :start_timestamp      => start_time.to_f,
           :duration             => duration,
           :metrics              => @metrics,
-          :custom_params        => custom_parameters,
           :custom_attributes    => @custom_attributes,
           :agent_attributes     => @agent_attributes,
           :intrinsic_attributes => @intrinsic_attributes

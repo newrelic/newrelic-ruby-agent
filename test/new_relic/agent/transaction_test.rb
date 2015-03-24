@@ -395,19 +395,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal 2.1, options['HttpDispatcher'].total_call_time
   end
 
-  def test_end_fires_a_transaction_finished_event_with_custom_params
-    options = nil
-    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-      options = payload[:custom_params]
-    end
-
-    in_web_transaction('Controller/foo/1/bar/22') do
-      NewRelic::Agent.add_custom_parameters('fooz' => 'barz')
-    end
-
-    assert_equal 'barz', options['fooz']
-  end
-
   def test_end_fires_a_transaction_finished_event_with_attributes_attached
     custom_attributes = nil
     agent_attributes = nil

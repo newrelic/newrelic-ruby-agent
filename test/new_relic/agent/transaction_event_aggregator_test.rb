@@ -6,6 +6,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/transaction_event_aggregator'
+require 'new_relic/agent/transaction/attributes'
 
 class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
@@ -13,6 +14,8 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     freeze_time
     @event_listener = NewRelic::Agent::EventListener.new
     @sampler = NewRelic::Agent::TransactionEventAggregator.new(@event_listener)
+
+    @custom_attributes = nil
   end
 
   # Helpers for DataContainerTests
@@ -43,7 +46,9 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_custom_parameters_in_event_are_normalized_to_string_keys
     with_sampler_config do
-      generate_request('whatever', :custom_params => {:bing => 2, 1 => 3})
+      custom_attributes.merge!(:bing => 2, 1 => 3)
+      generate_request('whatever')
+
       custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
       assert_equal 2, custom_attrs['bing']
       assert_equal 3, custom_attrs['1']
@@ -52,7 +57,9 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_includes_custom_parameters_in_event
     with_sampler_config do
-      generate_request('whatever', :custom_params => {'bing' => 2})
+      custom_attributes.merge!('bing' => 2)
+      generate_request('whatever')
+
       custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
       assert_equal 2, custom_attrs['bing']
     end
@@ -60,9 +67,11 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_doesnt_include_custom_parameters_in_event_when_configured_not_to
     with_sampler_config('analytics_events.capture_attributes' => false) do
-      generate_request('whatever', :custom_params => {'bing' => 2})
+      custom_attributes.merge!('bing' => 2)
+      generate_request('whatever')
+
       custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
-      assert_equal nil, custom_attrs['bing']
+      assert_empty custom_attrs
     end
   end
 
@@ -71,10 +80,9 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       metrics = NewRelic::Agent::TransactionMetrics.new()
       metrics.record_unscoped('HttpDispatcher', 0.01)
 
-      generate_request('whatever',
-        :metrics       => metrics,
-        :custom_params => {'type' => 'giraffe', 'duration' => 'hippo'}
-      )
+      custom_attributes.merge!('type' => 'giraffe', 'duration' => 'hippo')
+      generate_request('whatever', :metrics => metrics)
+
       txn_event = single_sample[EVENT_DATA_INDEX]
       assert_equal 'Transaction', txn_event['type']
       assert_equal 0.1, txn_event['duration']
@@ -341,7 +349,8 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       :type => :controller,
       :start_timestamp => options[:timestamp] || Time.now.to_f,
       :duration => 0.1,
-      :custom_params => {}
+      :custom_params => {},
+      :custom_attributes => custom_attributes
     }.merge(options)
     @event_listener.notify(:transaction_finished, payload)
   end
@@ -358,6 +367,15 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
   def single_sample
     assert_equal 1, @sampler.samples.size
     @sampler.samples.first
+  end
+
+  def custom_attributes
+    if @custom_attributes.nil?
+      filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
+      @custom_attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
+    end
+
+    @custom_attributes
   end
 
 end

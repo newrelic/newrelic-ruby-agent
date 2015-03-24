@@ -144,9 +144,9 @@ class NewRelic::Agent::TransactionEventAggregator
     return unless @enabled
 
     main_event = create_main_event(payload)
-    custom_params = create_custom_parameters(payload)
+    custom_attributes = create_custom_attributes(payload)
 
-    self.synchronize { append_event([main_event, custom_params]) }
+    self.synchronize { append_event([main_event, custom_attributes]) }
     notify_full if !@notified_full && @samples.full?
   end
 
@@ -246,12 +246,16 @@ class NewRelic::Agent::TransactionEventAggregator
     end
   end
 
-  def create_custom_parameters(payload)
-    custom_params = {}
-    if ::NewRelic::Agent.config[:'analytics_events.capture_attributes']
-      custom_params.merge!(event_params(payload[:custom_params] || {}))
+  EMPTY_HASH = {}.freeze
+
+  def create_custom_attributes(payload)
+    result = nil
+    if custom_attributes = payload[:custom_attributes]
+      result = custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+      result = event_params(result)
     end
-    custom_params
+
+    result || EMPTY_HASH
   end
 
 end
