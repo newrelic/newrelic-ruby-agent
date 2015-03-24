@@ -597,12 +597,15 @@ module NewRelic
       def send_transaction_finished_event(state, start_time, end_time)
         duration = end_time.to_f - start_time.to_f
         payload = {
-          :name             => @frozen_name,
-          :bucket           => recording_web_transaction? ? :request : :background,
-          :start_timestamp  => start_time.to_f,
-          :duration         => duration,
-          :metrics          => @metrics,
-          :custom_params    => custom_parameters
+          :name                 => @frozen_name,
+          :bucket               => recording_web_transaction? ? :request : :background,
+          :start_timestamp      => start_time.to_f,
+          :duration             => duration,
+          :metrics              => @metrics,
+          :custom_params        => custom_parameters,
+          :custom_attributes    => @custom_attributes,
+          :agent_attributes     => @agent_attributes,
+          :intrinsic_attributes => @intrinsic_attributes
         }
         append_cat_info(state, duration, payload)
         append_apdex_perf_zone(duration, payload)

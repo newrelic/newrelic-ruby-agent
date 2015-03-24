@@ -408,6 +408,25 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal 'barz', options['fooz']
   end
 
+  def test_end_fires_a_transaction_finished_event_with_attributes_attached
+    custom_attributes = nil
+    agent_attributes = nil
+    intrinsic_attributes = nil
+
+    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      custom_attributes    = payload[:custom_attributes]
+      agent_attributes     = payload[:agent_attributes]
+      intrinsic_attributes = payload[:intrinsic_attributes]
+    end
+
+    txn = in_web_transaction('Controller/foo/1/bar/22') do
+    end
+
+    assert_equal txn.custom_attributes, custom_attributes
+    assert_equal txn.agent_attributes, agent_attributes
+    assert_equal txn.intrinsic_attributes, intrinsic_attributes
+  end
+
   def test_end_fires_a_transaction_finished_event_with_transaction_guid
     guid = nil
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
