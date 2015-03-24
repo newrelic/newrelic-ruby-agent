@@ -1409,15 +1409,21 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_request_params_included_in_agent_attributes
-    txn = in_transaction(:filtered_params => {:foo => "bar"}) do
+    txn = with_config(:capture_params => true) do
+      NewRelic::Agent.instance.refresh_attribute_filter
+      in_transaction(:filtered_params => {:foo => "bar"}) do
+      end
     end
     actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_equal "bar", actual[:'request.parameters.foo']
   end
 
   def test_request_params_included_in_agent_attributes_in_nested_txn
-    txn = in_transaction(:filtered_params => {:foo => "bar", :bar => "baz"}) do
-      in_transaction(:filtered_params => {:bar => "qux"}) do
+    txn = with_config(:capture_params => true) do
+      NewRelic::Agent.instance.refresh_attribute_filter
+      in_transaction(:filtered_params => {:foo => "bar", :bar => "baz"}) do
+        in_transaction(:filtered_params => {:bar => "qux"}) do
+        end
       end
     end
 

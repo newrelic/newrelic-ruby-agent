@@ -73,11 +73,20 @@ module NewRelic
 
         @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
-        @attribute_filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
+
+        setup_attribute_filter
+      end
+
+      def setup_attribute_filter
+        refresh_attribute_filter
 
         @events.subscribe(:finished_configuring) do
-          @attribute_filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
+          refresh_attribute_filter
         end
+      end
+
+      def refresh_attribute_filter
+        @attribute_filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
