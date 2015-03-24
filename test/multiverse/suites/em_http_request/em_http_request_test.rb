@@ -48,29 +48,14 @@ class EMHTTPRequestTest < Minitest::Test
   end
 
   def setup_with_em
-    # These below tests have excluded because they are using object in local thread
-    # https://github.com/newrelic/rpm/blob/master/lib/new_relic/agent/transaction_state.rb
-    # All tests have wrapped with new Fiber with EventMachine loop and seems the wrap
-    # causes the issue with accessing object in local thread. At the moment, we just
-    # exclude the tests but need to be fixed.
-    excluded_methods = Set.new [
-      :test_transactional_metrics,
-      :test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present,
-      :test_crossapp_metrics_allow_valid_utf8_characters,
-      :test_includes_full_url_in_transaction_trace,
-      :test_failure_to_add_tt_node_doesnt_append_params_to_wrong_segment,
-      :test_still_records_tt_node_when_request_fails
-    ]
-
     test_methods = EMHTTPRequestTest.instance_methods.select do |method|
-      method[0..3] == "test" && !excluded_methods.include?(method)
+      method[0..3] == "test"
     end
 
     # Add EventMachine block to all existing test, because current
     # HttpClientTestCases tests are not built for event driven manner,
     # we need to wrap test methods with EventMachine loop.
     test_methods.each { |method| add_em_block(method) }
-    excluded_methods.each { |method| instance_eval %Q{ alias #{method} _method_nil } }
     setup_without_em
   end
 
