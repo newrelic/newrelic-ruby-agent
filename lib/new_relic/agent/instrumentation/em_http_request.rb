@@ -22,12 +22,10 @@ module NewRelic::Agent::Instrumentation::EMHttpRequestTracing
     state = NewRelic::Agent::TransactionState.tl_get
     frame = ::NewRelic::Agent::CrossAppTracing.start_trace(state, t0, wrapped_request)
 
-    callback = Proc.new do
+    Proc.new do
       wrapped_response = ::NewRelic::Agent::HTTPClients::EMHTTPResponse.new(client.response_header)
       ::NewRelic::Agent::CrossAppTracing.finish_trace(state, t0, frame, wrapped_request, wrapped_response)
     end
-
-    callback
   rescue => e
     NewRelic::Agent.logger.error("Exception during trace setup for EMHttp request", e)
   end

@@ -25,7 +25,6 @@ module NewRelic
         end
 
         def [](key)
-          # puts "[#{key.downcase}]: #{@response[key.downcase]}"
           @response[key.downcase] unless @response.nil?
         end
 
@@ -46,7 +45,7 @@ module NewRelic
         end
 
         def host
-          self['host'] || self['Host'] || @uri.host
+          self["host"] || self["Host"] || @uri.host
         end
 
         def method
