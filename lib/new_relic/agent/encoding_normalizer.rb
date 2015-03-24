@@ -7,9 +7,9 @@
 module NewRelic
   module Agent
     module EncodingNormalizer
-      def self.normalize_string(s)
+      def self.normalize_string(raw_string)
         @normalizer ||= choose_normalizer
-        @normalizer.normalize(s)
+        @normalizer.normalize(raw_string)
       end
 
       def self.normalize_object(object)
@@ -20,8 +20,7 @@ module NewRelic
           normalize_string(object.to_s)
         when Array
           return object if object.empty?
-          result = object.map { |x| normalize_object(x) }
-          result
+          object.map { |x| normalize_object(x) }
         when Hash
           return object if object.empty?
           hash = {}
@@ -45,16 +44,16 @@ module NewRelic
       end
 
       module EncodingNormalizer
-        def self.normalize(s)
-          encoding = s.encoding
-          if (encoding == Encoding::UTF_8 || encoding == Encoding::ISO_8859_1) && s.valid_encoding?
-            return s
+        def self.normalize(raw_string)
+          encoding = raw_string.encoding
+          if (encoding == Encoding::UTF_8 || encoding == Encoding::ISO_8859_1) && raw_string.valid_encoding?
+            return raw_string
           end
 
           # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
           # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
-          normalized = s.dup
-          if encoding == Encoding::ASCII_8BIT || !s.valid_encoding?
+          normalized = raw_string.dup
+          if encoding == Encoding::ASCII_8BIT || !raw_string.valid_encoding?
             normalized.force_encoding(Encoding::ISO_8859_1)
           else
             # Encoding is valid and non-binary, so it might be cleanly convertible
@@ -70,12 +69,12 @@ module NewRelic
       end
 
       module IconvNormalizer
-        def self.normalize(s)
+        def self.normalize(raw_string)
           if @iconv.nil?
             require 'iconv'
             @iconv = Iconv.new('utf-8', 'iso-8859-1')
           end
-          @iconv.iconv(s)
+          @iconv.iconv(raw_string)
         end
       end
     end
