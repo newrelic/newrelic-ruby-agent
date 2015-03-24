@@ -11,6 +11,7 @@ module NewRelic
 
       def setup
         super
+        @original_agent = NewRelic::Agent.agent
         @agent = NewRelic::Agent::Agent.new
         NewRelic::Agent.agent = @agent
 
@@ -23,6 +24,7 @@ module NewRelic
       end
 
       def teardown
+        NewRelic::Agent.agent = @original_agent
         NewRelic::Agent.config.reset_to_defaults
       end
 
