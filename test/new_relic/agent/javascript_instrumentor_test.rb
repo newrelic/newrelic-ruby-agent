@@ -153,9 +153,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     freeze_time
     with_config(CAPTURE_ATTRIBUTES => true) do
       in_transaction('most recent transaction') do
-        NewRelic::Agent.add_custom_attributes(:user => "user")
-        NewRelic::Agent::Transaction.add_agent_attribute(:agent, "attribute")
-
         txn = NewRelic::Agent::Transaction.tl_current
         txn.stubs(:queue_time).returns(0)
         txn.stubs(:start_time).returns(Time.now - 10)
@@ -172,16 +169,35 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
           "transactionName" => pack("most recent transaction"),
           "queueTime"       => 0,
           "applicationTime" => 10000,
-          "agent"           => "",
-          "atts"            => pack('{"u":{"user":"user"},"a":{"agent":"attribute"}}')
+          "agent"           => ""
         }
-
-        assert_equal(expected, data)
 
         js = instrumentor.browser_timing_config(state)
         expected.each do |key, value|
+          assert_equal(value, data[key])
           assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)
         end
+      end
+    end
+  end
+
+  def test_config_data_for_js_agent_attributes
+    freeze_time
+    with_config(CAPTURE_ATTRIBUTES => true) do
+      in_transaction('most recent transaction') do
+        NewRelic::Agent.add_custom_attributes(:user => "user")
+        NewRelic::Agent::Transaction.add_agent_attribute(:agent, "attribute")
+
+        state = NewRelic::Agent::TransactionState.tl_get
+        data = instrumentor.data_for_js_agent(state)
+
+        # Handle packed atts key specially since it's obfuscated
+        actual = unpack_to_object(data["atts"])
+        expected = {
+          "u" => {"user" => "user"},
+          "a" => {"agent" => "attribute"}
+        }
+        assert_equal expected, actual
       end
     end
   end
@@ -303,6 +319,11 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def pack(text)
     [text].pack("m0").gsub("\n", "")
+  end
+
+  def unpack_to_object(text)
+    unpacked_atts = instrumentor.obfuscator.deobfuscate(text)
+    NewRelic::JSONWrapper.load(unpacked_atts)
   end
 
   def formatted_for_matching(value)
