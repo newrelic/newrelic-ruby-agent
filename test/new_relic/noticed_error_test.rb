@@ -36,7 +36,9 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       'NewRelic::TestHelpers::Exceptions::TestError',
       {
         'key' => 'val',
-        'userAttributes' => { 'user' => 'params' }
+        'userAttributes'  => { 'user' => 'params' },
+        'agentAttributes' => {},
+        'intrinsics'      => {}
       }
     ]
     assert_equal expected, error.to_collector_array
@@ -53,7 +55,9 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       'userAttributes' => {
         'user'   => 'params',
         'custom' => 'attribute'
-      }
+      },
+      'agentAttributes' => {},
+      'intrinsics'      => {}
     }
 
     assert_equal expected, actual
@@ -86,7 +90,11 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       @path,
       "BOOM",
       "Error",
-      {}
+      {
+        'userAttributes'  => {},
+        'agentAttributes' => {},
+        'intrinsics'      => {}
+      }
     ]
     assert_equal expected, error.to_collector_array
   end
@@ -100,7 +108,9 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       "Error",
       {
         'key' => 'val',
-        'userAttributes'  => { 'user' => 'params' }
+        'userAttributes'  => { 'user' => 'params' },
+        'agentAttributes' => {},
+        'intrinsics'      => {}
       }
     ]
     assert_equal expected, error.to_collector_array
@@ -113,7 +123,12 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     error = NewRelic::NoticedError.new(@path, params, "BOOM")
 
     actual = extract_attributes(error)
-    assert_empty actual
+    expected = {
+      'userAttributes'  => {},
+      'agentAttributes' => {},
+      'intrinsics'      => {}
+    }
+    assert_equal expected, actual
   end
 
   def test_handles_non_string_exception_messages

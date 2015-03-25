@@ -116,9 +116,8 @@ class NewRelic::NoticedError
       attributes = extra_attributes
     end
 
-    if attributes && attributes.any?
-      outgoing_params[outgoing_key] = event_params(attributes)
-    end
+    attributes ||= {}
+    outgoing_params[outgoing_key] = event_params(attributes)
   end
 
 end
