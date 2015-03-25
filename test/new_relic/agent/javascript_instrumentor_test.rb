@@ -153,7 +153,8 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     freeze_time
     with_config(CAPTURE_ATTRIBUTES => true) do
       in_transaction('most recent transaction') do
-        NewRelic::Agent.set_user_attributes(:user => "user")
+        NewRelic::Agent.add_custom_attributes(:user => "user")
+        NewRelic::Agent::Transaction.add_agent_attribute(:agent, "attribute")
 
         txn = NewRelic::Agent::Transaction.tl_current
         txn.stubs(:queue_time).returns(0)
@@ -172,7 +173,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
           "queueTime"       => 0,
           "applicationTime" => 10000,
           "agent"           => "",
-          "atts"            => pack('{"u":{"user":"user"}}')
+          "atts"            => pack('{"u":{"user":"user"},"a":{"agent":"attribute"}}')
         }
 
         assert_equal(expected, data)

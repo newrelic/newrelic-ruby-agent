@@ -130,6 +130,7 @@ module NewRelic
       SSL_FOR_HTTP_KEY     = "sslForHttp".freeze
       ATTS_KEY             = "atts".freeze
       ATTS_USER_SUBKEY     = "u".freeze
+      ATTS_AGENT_SUBKEY    = "a".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def data_for_js_agent(state)
@@ -162,17 +163,26 @@ module NewRelic
       def add_attributes(data, txn)
         return unless txn
 
-        custom_attributes = txn.custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
-        if custom_attributes.any?
-          custom_attributes = event_params(custom_attributes)
-          atts ||= {}
-          atts[ATTS_USER_SUBKEY] = custom_attributes
-        end
+        atts = nil
+        atts = append_attributes(txn.custom_attributes, atts, ATTS_USER_SUBKEY)
+        atts = append_attributes(txn.agent_attributes, atts, ATTS_AGENT_SUBKEY)
 
         if atts
           json = NewRelic::JSONWrapper.dump(atts)
           data[ATTS_KEY] = obfuscator.obfuscate(json)
         end
+      end
+
+      def append_attributes(source_attributes, atts, subkey)
+        selected_attributes = source_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
+        if selected_attributes.any?
+          selected_attributes = event_params(selected_attributes)
+
+          atts ||= {}
+          atts[subkey] = selected_attributes
+        end
+
+        atts
       end
 
       def html_safe_if_needed(string)
