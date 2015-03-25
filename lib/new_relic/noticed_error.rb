@@ -99,11 +99,17 @@ class NewRelic::NoticedError
     end
 
     error_custom_attributes = params.delete(:custom_params)
-
     custom_attributes.merge!(error_custom_attributes) if error_custom_attributes
-    custom_attributes = event_params(custom_attributes)
 
-    params["userAttributes"] = custom_attributes
+    params["userAttributes"] = event_params(custom_attributes)
+
+    if @agent_attributes
+      agent_attributes = @agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+    else
+      agent_attributes = {}
+    end
+    params["agentAttributes"] = event_params(agent_attributes)
+
     params
   end
 end
