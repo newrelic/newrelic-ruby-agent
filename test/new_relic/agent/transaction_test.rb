@@ -1430,4 +1430,13 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal "bar", actual[:'request.parameters.foo']
     assert_equal "qux", actual[:'request.parameters.bar']
   end
+
+  def test_http_response_code_included_in_agent_attributes
+    txn = in_transaction do |txn|
+      txn.http_response_code = 418
+    end
+
+    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal 418, actual[:'httpResponseCode']
+  end
 end
