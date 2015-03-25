@@ -55,9 +55,13 @@ class RequestStatsTest < RailsMultiverseTest
       assert_kind_of Array, post.events
       assert_kind_of Array, post.events.first
 
-      sample = post.events.first.first
-      assert_kind_of Hash, sample
+      assert_equal 3, post.events.first.length
 
+      post.events.first.each do |event_chunk|
+        assert_kind_of Hash, event_chunk
+      end
+
+      sample = post.events.first.first
       assert_equal 'Controller/request_stats/stats_action', sample['name']
       assert_encoding 'utf-8', sample['name']
       assert_equal 'Transaction', sample['type']
