@@ -97,6 +97,11 @@ class NewRelic::NoticedError
 
   def build_params
     error_custom_attributes = params.delete(:custom_params)
+
+    # Old agents passed request_params in. With new attriutes we don't want
+    # that, so if anyone happens to call notices with that key, ignore it.
+    params.delete(:request_params)
+
     append_attributes(params, USER_ATTRIBUTES, @custom_attributes, error_custom_attributes)
     append_attributes(params, AGENT_ATTRIBUTES, @agent_attributes)
     append_attributes(params, INTRINSIC_ATTRIBUTES, @intrinsic_attributes)
