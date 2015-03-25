@@ -127,8 +127,9 @@ module NewRelic
       QUEUE_TIME_KEY       = "queueTime".freeze
       APPLICATION_TIME_KEY = "applicationTime".freeze
       AGENT_KEY            = "agent".freeze
-      USER_ATTRIBUTES_KEY  = "userAttributes".freeze
       SSL_FOR_HTTP_KEY     = "sslForHttp".freeze
+      ATTS_KEY             = "atts".freeze
+      ATTS_USER_SUBKEY     = "u".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def data_for_js_agent(state)
@@ -146,7 +147,7 @@ module NewRelic
         }
 
         add_ssl_for_http(data)
-        add_user_attributes(data, state.current_transaction)
+        add_attributes(data, state.current_transaction)
 
         data
       end
@@ -158,25 +159,20 @@ module NewRelic
         end
       end
 
-      def add_user_attributes(data, txn)
-        return unless include_custom_parameters?(txn)
+      def add_attributes(data, txn)
+        return unless txn
 
-        params = event_params(txn.custom_parameters)
-        json = NewRelic::JSONWrapper.dump(params)
-        data[USER_ATTRIBUTES_KEY] = obfuscator.obfuscate(json)
-      end
+        custom_attributes = txn.custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
+        if custom_attributes.any?
+          custom_attributes = event_params(custom_attributes)
+          atts ||= {}
+          atts[ATTS_USER_SUBKEY] = custom_attributes
+        end
 
-      # Still support deprecated capture_attributes.page_view_events for
-      # clients that use it. Could potentially be removed if we don't have
-      # anymore users with it set according to zeitgeist.
-      def include_custom_parameters?(txn)
-        has_custom_parameters?(txn) &&
-          (NewRelic::Agent.config[:'browser_monitoring.capture_attributes'] ||
-           NewRelic::Agent.config[:'capture_attributes.page_view_events'])
-      end
-
-      def has_custom_parameters?(txn)
-        txn && txn.custom_parameters && !txn.custom_parameters.empty?
+        if atts
+          json = NewRelic::JSONWrapper.dump(atts)
+          data[ATTS_KEY] = obfuscator.obfuscate(json)
+        end
       end
 
       def html_safe_if_needed(string)

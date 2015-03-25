@@ -16,7 +16,8 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
       :browser_key            => 'browserKey',
       :js_agent_loader        => 'loader',
       :license_key            => "\0",  # no-op obfuscation key
-      :'rum.enabled'          => true
+      :'rum.enabled'          => true,
+      :disable_harvest_thread => true
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
 
@@ -171,7 +172,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
           "queueTime"       => 0,
           "applicationTime" => 10000,
           "agent"           => "",
-          "userAttributes"  => pack('{"user":"user"}')
+          "atts"            => pack('{"u":{"user":"user"}}')
         }
 
         assert_equal(expected, data)
@@ -206,29 +207,40 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     end
   end
 
+  ATTRIBUTES_ENABLED = :'browser_monitoring.attributes.enabled'
   CAPTURE_ATTRIBUTES = :'browser_monitoring.capture_attributes'
-  CAPTURE_ATTRIBUTES_DEPRECATED = :'capture_attributes.page_view_events'
 
   def test_data_for_js_agent_doesnt_get_custom_attributes_by_default
-    in_transaction do
-      NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
-      assert_user_attributes_missing
+    with_config({}) do
+      in_transaction do
+        NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
+        assert_attributes_missing
+      end
     end
   end
 
   def test_data_for_js_agent_doesnt_get_custom_attributes_outside_transaction
     with_config(CAPTURE_ATTRIBUTES => true) do
       NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
-      assert_user_attributes_missing
+      assert_attributes_missing
     end
   end
 
 
-  def test_data_for_js_agent_gets_custom_attributes_when_configured
-    in_transaction do
-      with_config(CAPTURE_ATTRIBUTES => true) do
+  def test_data_for_js_agent_gets_custom_attributes_with_old_config
+    with_config(CAPTURE_ATTRIBUTES => true) do
+      in_transaction do
         NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
-        assert_user_attributes_are('{"boo":"hoo"}')
+        assert_attributes_are('{"u":{"boo":"hoo"}}')
+      end
+    end
+  end
+
+  def test_data_for_js_agent_gets_custom_attributes_when_configured
+    with_config(ATTRIBUTES_ENABLED => true) do
+      in_transaction do
+        NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
+        assert_attributes_are('{"u":{"boo":"hoo"}}')
       end
     end
   end
@@ -237,17 +249,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     with_config(CAPTURE_ATTRIBUTES => false) do
       in_transaction do
         NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
-        assert_user_attributes_missing
-      end
-    end
-  end
-
-  def test_data_for_js_agent_gets_custom_attributes_with_deprecated_key
-    with_config(CAPTURE_ATTRIBUTES => false,
-                CAPTURE_ATTRIBUTES_DEPRECATED => true) do
-      in_transaction do
-        NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
-        assert_user_attributes_are('{"boo":"hoo"}')
+        assert_attributes_missing
       end
     end
   end
@@ -286,16 +288,16 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     assert(footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
   end
 
-  def assert_user_attributes_are(expected)
+  def assert_attributes_are(expected)
     state = NewRelic::Agent::TransactionState.tl_get
     data = instrumentor.data_for_js_agent(state)
-    assert_equal pack(expected), data["userAttributes"]
+    assert_equal pack(expected), data["atts"]
   end
 
-  def assert_user_attributes_missing
+  def assert_attributes_missing
     state = NewRelic::Agent::TransactionState.tl_get
     data = instrumentor.data_for_js_agent(state)
-    assert_not_includes data, "userAttributes"
+    assert_not_includes data, "atts"
   end
 
   def pack(text)
