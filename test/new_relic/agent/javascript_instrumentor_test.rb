@@ -58,8 +58,8 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_browser_timing_scripts_with_rum_enabled_false
-    in_transaction do
-      with_config(:'rum.enabled' => false) do
+    with_config(:'rum.enabled' => false) do
+      in_transaction do
         assert_equal "", instrumentor.browser_timing_header
       end
     end
@@ -82,24 +82,24 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_browser_timing_header_without_loader
-    in_transaction do
-      with_config(:js_agent_loader => '') do
+    with_config(:js_agent_loader => '') do
+      in_transaction do
         assert_equal "", instrumentor.browser_timing_header
       end
     end
   end
 
   def test_browser_timing_header_without_beacon
-    in_transaction do
-      with_config(:beacon => '') do
+    with_config(:beacon => '') do
+      in_transaction do
         assert_equal "", instrumentor.browser_timing_header
       end
     end
   end
 
   def test_browser_timing_header_without_browser_key
-    in_transaction do
-      with_config(:browser_key => '') do
+    with_config(:browser_key => '') do
+      in_transaction do
         assert_equal "", instrumentor.browser_timing_header
       end
     end
@@ -150,8 +150,8 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def test_config_data_for_js_agent
     freeze_time
-    in_transaction('most recent transaction') do
-      with_config(CAPTURE_ATTRIBUTES => true) do
+    with_config(CAPTURE_ATTRIBUTES => true) do
+      in_transaction('most recent transaction') do
         NewRelic::Agent.set_user_attributes(:user => "user")
 
         txn = NewRelic::Agent::Transaction.tl_current
@@ -234,8 +234,8 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_data_for_js_agent_ignores_custom_attributes_by_config
-    in_transaction do
-      with_config(CAPTURE_ATTRIBUTES => false) do
+    with_config(CAPTURE_ATTRIBUTES => false) do
+      in_transaction do
         NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
         assert_user_attributes_missing
       end
@@ -243,9 +243,9 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_data_for_js_agent_gets_custom_attributes_with_deprecated_key
-    in_transaction do
-      with_config(CAPTURE_ATTRIBUTES => false,
-                  CAPTURE_ATTRIBUTES_DEPRECATED => true) do
+    with_config(CAPTURE_ATTRIBUTES => false,
+                CAPTURE_ATTRIBUTES_DEPRECATED => true) do
+      in_transaction do
         NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
         assert_user_attributes_are('{"boo":"hoo"}')
       end

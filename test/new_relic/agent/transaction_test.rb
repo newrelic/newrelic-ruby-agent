@@ -1411,7 +1411,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_request_params_included_in_agent_attributes
     txn = with_config(:capture_params => true) do
-      NewRelic::Agent.instance.refresh_attribute_filter
       in_transaction(:filtered_params => {:foo => "bar"}) do
       end
     end
@@ -1421,7 +1420,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_request_params_included_in_agent_attributes_in_nested_txn
     txn = with_config(:capture_params => true) do
-      NewRelic::Agent.instance.refresh_attribute_filter
       in_transaction(:filtered_params => {:foo => "bar", :bar => "baz"}) do
         in_transaction(:filtered_params => {:bar => "qux"}) do
         end
