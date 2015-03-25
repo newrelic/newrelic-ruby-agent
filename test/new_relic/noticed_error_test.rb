@@ -10,19 +10,72 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def setup
     @path = 'foo/bar/baz'
-    @params = { 'key' => 'val' }
     @time = Time.now
 
     @custom_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @agent_attributes  = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @intrinsic_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+
+    @params = {
+      'key' => 'val',
+      :custom_params => { :user => 'params' },
+
+      :custom_attributes    => @custom_attributes,
+      :agent_attributes     => @agent_attributes,
+      :intrinsic_attributes => @intrinsic_attributes
+    }
   end
 
   def test_to_collector_array
     e = TestError.new('test exception')
     error = NewRelic::NoticedError.new(@path, @params, e, @time)
     expected = [
-      (@time.to_f * 1000).round, @path, 'test exception', 'NewRelic::TestHelpers::Exceptions::TestError', @params
+      (@time.to_f * 1000).round,
+      @path,
+      'test exception',
+      'NewRelic::TestHelpers::Exceptions::TestError',
+      {
+        'key' => 'val',
+        'userAttributes' => {
+          'user' => 'params'
+        }
+      }
+    ]
+    assert_equal expected, error.to_collector_array
+  end
+
+  def test_to_collector_array_merges_custom_attributes_and_params
+    e = TestError.new('test exception')
+    @custom_attributes.add(:custom, "attribute")
+    error = NewRelic::NoticedError.new(@path, @params, e, @time)
+    expected = [
+      (@time.to_f * 1000).round,
+      @path,
+      'test exception',
+      'NewRelic::TestHelpers::Exceptions::TestError',
+      {
+        'key'    => 'val',
+        'userAttributes' => {
+          'user'   => 'params',
+          'custom' => 'attribute'
+        }
+      }
+    ]
+    assert_equal expected, error.to_collector_array
+  end
+
+  def test_to_collector_array_happy_without_attribute_collections
+    params = {}
+    error = NewRelic::NoticedError.new(@path, params, "BOOM")
+
+    expected = [
+      (@time.to_f * 1000).round,
+      @path,
+      "BOOM",
+      "Error",
+      {
+        "userAttributes" => {}
+      }
     ]
     assert_equal expected, error.to_collector_array
   end
@@ -30,7 +83,14 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_to_collector_array_with_bad_values
     error = NewRelic::NoticedError.new(@path, @params, nil, Rational(10, 1))
     expected = [
-      10_000.0, @path, "<no message>", "Error", @params
+      10_000.0,
+      @path,
+      "<no message>",
+      "Error",
+      {
+        'key' => 'val',
+        'userAttributes' => { 'user' => 'params' }
+      }
     ]
     assert_equal expected, error.to_collector_array
   end

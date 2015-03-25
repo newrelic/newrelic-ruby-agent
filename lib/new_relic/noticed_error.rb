@@ -88,6 +88,22 @@ class NewRelic::NoticedError
       string(path),
       string(message),
       string(exception_class_name),
-      params ]
+      build_params ]
+  end
+
+  def build_params
+    if @custom_attributes
+      custom_attributes = @custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+    else
+      custom_attributes = {}
+    end
+
+    error_custom_attributes = params.delete(:custom_params)
+
+    custom_attributes.merge!(error_custom_attributes) if error_custom_attributes
+    custom_attributes = event_params(custom_attributes)
+
+    params["userAttributes"] = custom_attributes
+    params
   end
 end
