@@ -469,7 +469,7 @@ module NewRelic
     #
     # If you want to be able to tie the information recorded via this call back
     # to the web request or background job that it happened in, you may want to
-    # instead use the add_custom_parameters API call to attach attributes to
+    # instead use the add_custom_attributes API call to attach attributes to
     # the Transaction event that will automatically be generated for the
     # request.
     #
@@ -561,20 +561,23 @@ module NewRelic
     #
     # @api public
     #
-    def add_custom_parameters(params) #THREAD_LOCAL_ACCESS
+    def add_custom_attributes(params) #THREAD_LOCAL_ACCESS
       if params.is_a? Hash
         txn = Transaction.tl_current
-        txn.add_custom_parameters(params) if txn
+        txn.add_custom_attributes(params) if txn
       else
-        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_parameters. Expected Hash but got #{params.class}")
+        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
       end
     end
 
     # @deprecated
-    alias add_request_parameters add_custom_parameters
+    alias add_custom_parameters add_custom_attributes
 
     # @deprecated
-    alias set_user_attributes add_custom_parameters
+    alias add_request_parameters add_custom_attributes
+
+    # @deprecated
+    alias set_user_attributes add_custom_attributes
 
     # Set the name of the current running transaction.  The agent will
     # apply a reasonable default based on framework routing, but in

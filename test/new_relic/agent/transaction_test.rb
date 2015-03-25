@@ -651,8 +651,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     refute_includes keys, :synthetics_job_id
     refute_includes keys, :synthetics_monitor_id
   end
-  def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
-    expects_logging(:warn, includes("add_custom_parameters"))
+
+  def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_attributes
+    expects_logging(:warn, includes("add_custom_attributes"))
     in_transaction do
       NewRelic::Agent.add_custom_parameters('fooz')
     end
