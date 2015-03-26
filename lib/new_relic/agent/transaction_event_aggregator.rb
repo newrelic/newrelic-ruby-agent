@@ -257,7 +257,8 @@ class NewRelic::Agent::TransactionEventAggregator
       result = event_params(result)
     end
 
-    result || EMPTY_HASH
+    # Since these aren't modified downstream, make sure to freeze consistently.
+    result.freeze || EMPTY_HASH
   end
 
 end
