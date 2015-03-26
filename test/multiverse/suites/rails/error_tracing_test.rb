@@ -130,17 +130,6 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
     end
   end
 
-  def agent_attributes_for_single_error_posted
-    NewRelic::Agent.instance.send(:transmit_data)
-
-    # If we don't just have a single post with a single error, ordering might
-    # foul the test so just throw your hands up
-    assert_equal 1, $collector.calls_for("error_data").length
-    assert_equal 1, $collector.calls_for("error_data").first.errors.length
-
-    $collector.calls_for("error_data").first.errors.first.params["agentAttributes"]
-  end
-
   def test_should_capture_error_raised_in_view
     get '/error/view_error'
     assert_error_reported_once('this is an uncaught view error',
