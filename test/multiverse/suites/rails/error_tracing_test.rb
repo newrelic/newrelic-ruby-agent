@@ -246,30 +246,27 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
     assert_error_reported_once('this is a server ignored error')
   end
 
-  # These really shouldn't be skipped for Rails 4, see RUBY-1242
-  if ::Rails::VERSION::MAJOR.to_i < 4
-    def test_captured_errors_should_include_custom_params
-      with_config(:'error_collector.capture_attributes' => true) do
-        get '/error/error_with_custom_params'
-        assert_error_reported_once('bad things')
+  def test_captured_errors_should_include_custom_params
+    with_config(:'error_collector.capture_attributes' => true) do
+      get '/error/error_with_custom_params'
+      assert_error_reported_once('bad things')
 
-        attributes = user_attributes_for_single_error_posted
-        assert_equal({'texture' => 'chunky'}, attributes)
-      end
-    end
-
-    def test_captured_errors_should_not_include_custom_params_if_config_says_no
-      with_config(:'error_collector.capture_attributes' => false) do
-        get '/error/error_with_custom_params'
-        assert_error_reported_once('bad things')
-
-        attributes = user_attributes_for_single_error_posted
-        assert_empty attributes
-      end
+      attributes = user_attributes_for_single_error_posted
+      assert_equal({'texture' => 'chunky'}, attributes)
     end
   end
 
- protected
+  def test_captured_errors_should_not_include_custom_params_if_config_says_no
+    with_config(:'error_collector.capture_attributes' => false) do
+      get '/error/error_with_custom_params'
+      assert_error_reported_once('bad things')
+
+      attributes = user_attributes_for_single_error_posted
+      assert_empty attributes
+    end
+  end
+
+  protected
 
   def errors_with_message(message)
     @error_collector.errors.select{|error| error.message == message}
