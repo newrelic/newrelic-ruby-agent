@@ -757,7 +757,6 @@ module NewRelic
         @exceptions.each do |exception, options|
           options[:metric]  = best_name
           options[:uri]     ||= uri     if uri
-          options[:referer] ||= referer if referer
 
           options[:custom_attributes] = @custom_attributes
           options[:agent_attributes] = @agent_attributes

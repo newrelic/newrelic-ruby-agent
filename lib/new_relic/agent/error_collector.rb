@@ -175,7 +175,6 @@ module NewRelic
       def uri_ref_and_root(options)
         {
           :request_uri => fetch_from_options(options, :uri, ''),
-          :request_referer => fetch_from_options(options, :referer, ''),
           :rails_root => NewRelic::Control.instance.root
         }
       end
