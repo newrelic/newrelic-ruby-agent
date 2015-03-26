@@ -185,12 +185,7 @@ module NewRelic
 
         # If anything else is left over, we treat it like a custom param
         def custom_params_from_opts(options)
-          # If anything else is left over, treat it like a custom param:
-          if Agent.config[:'error_collector.capture_attributes']
-            fetch_from_options(options, :custom_params, {}).merge(options)
-          else
-            {}
-          end
+          fetch_from_options(options, :custom_params, {}).merge(options)
         end
 
         # normalizes the request and custom parameters before attaching

@@ -16,7 +16,7 @@ elsif !defined?(RAILS_ROOT)
 end
 
 class RailsMultiverseTest
-  def agent_attributes_for_single_error_posted
+  def attributes_for_single_error_posted(key)
     NewRelic::Agent.instance.send(:transmit_data)
 
     # If we don't just have a single post with a single error, ordering might
@@ -24,7 +24,15 @@ class RailsMultiverseTest
     assert_equal 1, $collector.calls_for("error_data").length
     assert_equal 1, $collector.calls_for("error_data").first.errors.length
 
-    $collector.calls_for("error_data").first.errors.first.params["agentAttributes"]
+    $collector.calls_for("error_data").first.errors.first.params[key]
+  end
+
+  def user_attributes_for_single_error_posted
+    attributes_for_single_error_posted("userAttributes")
+  end
+
+  def agent_attributes_for_single_error_posted
+    attributes_for_single_error_posted("agentAttributes")
   end
 end
 
