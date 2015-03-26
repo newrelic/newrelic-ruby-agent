@@ -451,6 +451,187 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal intrinsic_attributes, noticed.intrinsic_attributes
   end
 
+  def test_error_params_from_options_mocked
+    options = {:initial => 'options'}
+    @error_collector.expects(:uri_ref_and_root).returns({:hi => 'there', :hello => 'bad'})
+    @error_collector.expects(:normalized_request_and_custom_params).with({:initial => 'options'}).returns({:hello => 'world'})
+    assert_equal({:hi => 'there', :hello => 'world'}, @error_collector.error_params_from_options(options))
+  end
+
+  module Winner
+    def winner
+      'yay'
+    end
+  end
+
+  def test_sense_method
+    object = Object.new
+    object.extend(Winner)
+    assert_equal nil,   @error_collector.sense_method(object, 'blab')
+    assert_equal 'yay', @error_collector.sense_method(object, 'winner')
+  end
+
+  def test_fetch_from_options
+    options = {:hello => 'world'}
+    assert_equal 'world', @error_collector.fetch_from_options(options, :hello, '')
+    assert_equal '', @error_collector.fetch_from_options(options, :none, '')
+    assert_empty options
+  end
+
+  def test_uri_ref_and_root_default
+    NewRelic::Control.instance.stubs(:root).returns('rootbeer')
+
+    options = {}
+
+    assert_equal({:request_referer => '', :rails_root => 'rootbeer', :request_uri => ''},
+                 @error_collector.uri_ref_and_root(options))
+  end
+
+  def test_uri_ref_and_root_values
+    NewRelic::Control.instance.stubs(:root).returns('rootbeer')
+
+    options = {:uri => 'whee', :referer => 'bang'}
+
+    expected = {:request_referer => 'bang', :rails_root => 'rootbeer', :request_uri => 'whee'}
+    assert_equal expected, @error_collector.uri_ref_and_root(options)
+  end
+
+  def test_custom_params_from_opts_base
+    assert_equal({}, @error_collector.custom_params_from_opts({}))
+  end
+
+  def test_custom_params_from_opts_custom_params
+    assert_equal({:foo => 'bar'}, @error_collector.custom_params_from_opts({:custom_params => {:foo => 'bar'}}))
+  end
+
+  def test_custom_params_from_opts_merged_params
+    assert_equal({:foo => 'baz'}, @error_collector.custom_params_from_opts({:custom_params => {:foo => 'bar'}, :foo => 'baz'}))
+  end
+
+  def test_normalized_request_and_custom_params_base
+    with_config(:capture_params => true) do
+      normalized = @error_collector.normalized_request_and_custom_params({})
+      assert_nil   normalized[:request_params]
+      assert_empty normalized[:custom_params]
+    end
+  end
+
+  def test_extract_stack_trace
+    exception = mock('exception', :original_exception => nil,
+                                  :backtrace => nil)
+
+    assert_equal('<no stack trace>', @error_collector.extract_stack_trace(exception))
+  end
+
+  def test_extract_stack_trace_positive
+    orig = mock('original', :backtrace => "STACK STACK STACK")
+    exception = mock('exception', :original_exception => orig)
+
+    assert_equal('STACK STACK STACK', @error_collector.extract_stack_trace(exception))
+  end
+
+  def test_over_queue_limit_negative
+    refute @error_collector.over_queue_limit?(nil)
+  end
+
+  def test_over_queue_limit_positive
+    expects_logging(:warn, includes('The error reporting queue has reached 20'))
+    21.times do
+      @error_collector.notice_error("", {})
+    end
+
+    assert @error_collector.over_queue_limit?('hooray')
+  end
+
+  def test_exception_info
+    exception = mock('exception', :file_name   => 'file_name',
+                                  :line_number => 'line_number',
+                                  :backtrace   => 'stack_trace')
+    assert_equal({:file_name => 'file_name', :line_number => 'line_number', :stack_trace => 'stack_trace'},
+                 @error_collector.exception_info(exception))
+  end
+
+  def test_skip_notice_error_is_true_if_the_error_collector_is_disabled
+    error = StandardError.new
+    with_config(:'error_collector.enabled' => false) do
+      assert @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+    end
+  end
+
+  def test_skip_notice_error_is_true_if_the_error_is_nil
+    error = nil
+    with_config(:'error_collector.enabled' => true) do
+      @error_collector.expects(:error_is_ignored?).with(error).returns(false)
+      assert @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+    end
+  end
+
+  def test_skip_notice_error_is_true_if_the_error_is_ignored
+    error = StandardError.new
+    with_config(:'error_collector.enabled' => true) do
+      @error_collector.expects(:error_is_ignored?).with(error).returns(true)
+      assert @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+    end
+  end
+
+  def test_skip_notice_error_returns_false_for_non_nil_unignored_errors_with_an_enabled_error_collector
+    error = StandardError.new
+    with_config(:'error_collector.enabled' => true) do
+      @error_collector.expects(:error_is_ignored?).with(error).returns(false)
+      refute @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+    end
+  end
+
+  class ::AnError
+  end
+
+  def test_filtered_error_positive
+    with_config(:'error_collector.ignore_errors' => 'AnError') do
+      error = AnError.new
+      assert @error_collector.filtered_error?(error)
+    end
+  end
+
+  def test_filtered_error_negative
+    error = AnError.new
+    refute @error_collector.filtered_error?(error)
+  end
+
+  def test_filtered_by_error_filter_empty
+    # should return right away when there's no filter
+    refute @error_collector.filtered_by_error_filter?(nil)
+  end
+
+  def test_filtered_by_error_filter_positive
+    saw_error = nil
+    NewRelic::Agent::ErrorCollector.ignore_error_filter = Proc.new do |e|
+      saw_error = e
+      false
+    end
+
+    error = StandardError.new
+    assert @error_collector.filtered_by_error_filter?(error)
+
+    assert_equal error, saw_error
+  end
+
+  def test_filtered_by_error_filter_negative
+    saw_error = nil
+    NewRelic::Agent::ErrorCollector.ignore_error_filter = Proc.new do |e|
+      saw_error = e
+      true
+    end
+
+    error = StandardError.new
+    refute @error_collector.filtered_by_error_filter?(error)
+
+    assert_equal error, saw_error
+  end
+
+  def test_error_is_ignored_no_error
+    refute @error_collector.error_is_ignored?(nil)
+  end
+
   private
 
   def expects_error_count_increase(increase)
