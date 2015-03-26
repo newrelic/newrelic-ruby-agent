@@ -1463,4 +1463,21 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_equal 418, actual[:'httpResponseCode']
   end
+
+  def test_referer_in_agent_attributes
+    txn = in_transaction do |txn|
+      txn.request = stub('request', :referer => "/referered")
+    end
+
+    assert_equal "/referered", txn.agent_attributes[:'request.headers.referer']
+  end
+
+  def test_referer_omitted_if_not_on_request
+    txn = in_transaction do |txn|
+      txn.request = stub('request')
+    end
+
+    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    refute_includes actual, :'request.headers.referer'
+  end
 end
