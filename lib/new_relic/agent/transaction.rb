@@ -761,12 +761,6 @@ module NewRelic
         options[:uri]     ||= uri     if uri
         options[:referer] ||= referer if referer
 
-        if filtered_params && !filtered_params.empty?
-          options[:request_params] = filtered_params
-        end
-
-        options.merge!(custom_parameters)
-
         if @exceptions[error]
           @exceptions[error].merge! options
         else
