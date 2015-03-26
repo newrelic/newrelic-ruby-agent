@@ -11,13 +11,19 @@ module NewRelic
           @attributes = {}
         end
 
-        def add(key, value)
+        def [](key)
+          @attributes[key]
+        end
+
+        def []=(key, value)
           @attributes[key] = value
         end
 
         def merge!(other)
           @attributes.merge!(other)
         end
+
+        alias_method :add, :[]=
 
         def for_destination(destination)
           @attributes.inject({}) do |memo, (key, value)|

@@ -861,13 +861,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable HTTPS instrumentation by JavaScript agent on HTTP pages.'
         },
-        :'capture_attributes.page_view_events' => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :deprecated => true,
-          :description => 'Correct setting is browser_monitoring.capture_attributes.'
-        },
         :js_agent_loader => {
           :default => '',
           :public => false,

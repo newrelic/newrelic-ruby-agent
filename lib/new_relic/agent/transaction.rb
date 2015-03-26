@@ -50,8 +50,7 @@ module NewRelic
       attr_accessor :exceptions,
                     :filtered_params,
                     :jruby_cpu_start,
-                    :process_cpu_start,
-                    :http_response_code
+                    :process_cpu_start
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -616,6 +615,14 @@ module NewRelic
 
       def append_http_response_code(payload)
         payload[:http_response_code] = http_response_code if http_response_code
+      end
+
+      def http_response_code
+        @agent_attributes[:httpResponseCode]
+      end
+
+      def http_response_code=(code)
+        @agent_attributes[:httpResponseCode] = code
       end
 
       def include_guid?(state, duration)
