@@ -722,6 +722,18 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
   end
 
+  def test_notice_error_sends_uri_and_referer_from_request
+    in_transaction do |txn|
+      txn.request = stub(:uri => "/here", :referer => "/there")
+      NewRelic::Agent::Transaction.notice_error("wat")
+    end
+
+    assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
+    error = NewRelic::Agent.instance.error_collector.errors.first
+    assert_equal "/here",  error.params[:request_uri]
+    assert_equal "/there", error.params[:request_referer]
+  end
+
   def test_records_gc_time
     gc_start = mock('gc start')
     gc_end   = mock('gc end')

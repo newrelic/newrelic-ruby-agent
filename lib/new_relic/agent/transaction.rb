@@ -748,19 +748,20 @@ module NewRelic
 
       def record_exceptions
         @exceptions.each do |exception, options|
-          options[:metric] = best_name
+          options[:metric]  = best_name
+          options[:uri]     ||= uri     if uri
+          options[:referer] ||= referer if referer
+
           options[:custom_attributes] = @custom_attributes
           options[:agent_attributes] = @agent_attributes
           options[:intrinsic_attributes] = @intrinsic_attributes
+
           agent.error_collector.notice_error(exception, options)
         end
       end
 
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options={}) # :nodoc:
-        options[:uri]     ||= uri     if uri
-        options[:referer] ||= referer if referer
-
         if @exceptions[error]
           @exceptions[error].merge! options
         else

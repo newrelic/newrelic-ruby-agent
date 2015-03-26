@@ -434,7 +434,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_empty @error_collector.errors
   end
 
-  def test_captures_attributes
+  def test_captures_attributes_on_notice_error
     error = StandardError.new('wat')
     custom_attributes = Object.new
     agent_attributes = Object.new
