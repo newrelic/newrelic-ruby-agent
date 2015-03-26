@@ -1,3 +1,10 @@
+if RUBY_VERSION >= '1.9.3'
+  gemfile <<-RB
+    gem 'mongo', '~>2.0.1'
+    gem 'bson_ext', :platforms => :ruby
+  RB
+end
+
 gemfile <<-RB
   gem 'mongo', '1.10.0'
   gem 'bson_ext', :platforms => :ruby
@@ -34,7 +41,7 @@ class PreExistingMongo
   end
 end
 
-$mongo = PreExistingMongo.new("localhost", 27017)
+$mongo = PreExistingMongo.new("127.0.0.1", 27017)
 
 def mongo_running?
   Timeout::timeout(1) do
