@@ -315,12 +315,14 @@ def in_background_transaction(name='silly')
   end
 end
 
-def last_traced_error
-  NewRelic::Agent.agent.error_collector.errors.last
+def refute_contains_request_params(attributes)
+  attributes.keys.each do |key|
+    refute_match /^request\.parameters\./, key.to_s
+  end
 end
 
-def last_traced_error_request_params
-  last_traced_error.params[:request_params]
+def last_traced_error
+  NewRelic::Agent.agent.error_collector.errors.last
 end
 
 def last_transaction_trace

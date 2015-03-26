@@ -193,27 +193,18 @@ module NewRelic
           end
         end
 
-        # takes the request parameters out of the options hash, and
-        # returns them if we are capturing parameters, otherwise
-        # returns nil
-        def request_params_from_opts(options)
-          value = options.delete(:request_params)
-          if Agent.config[:capture_params]
-            value
-          else
-            nil
-          end
-        end
-
         # normalizes the request and custom parameters before attaching
         # them to the error. See NewRelic::CollectionHelper#normalize_params
         def normalized_request_and_custom_params(options)
+          # Old agents passed request_params in. With new attributes we don't want
+          # that, so if anyone happens to call notices with that key, ignore it.
+          options.delete(:request_params)
+
           {
             :custom_attributes    => options.delete(:custom_attributes),
             :agent_attributes     => options.delete(:agent_attributes),
             :intrinsic_attributes => options.delete(:intrinsic_attributes),
 
-            :request_params => normalize_params(request_params_from_opts(options)),
             :custom_params  => normalize_params(custom_params_from_opts(options))
           }
         end

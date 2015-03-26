@@ -50,6 +50,10 @@ module MultiverseHelpers
     # test cases have the chance to change settings on the fake collector first
     start_fake_collector unless omit_collector?
 
+    # If a test not using the multiverse helper runs before us, we might need
+    # to clean up before a test too.
+    NewRelic::Agent.drop_buffered_data
+
     trigger_agent_reconnect(opts)
   end
 

@@ -116,21 +116,6 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     assert_equal expected, error.to_collector_array
   end
 
-  def test_to_collector_array_ignores_legacy_request_params
-    params = {
-      :request_params => { "boo" => "hoo" }
-    }
-    error = NewRelic::NoticedError.new(@path, params, "BOOM")
-
-    actual = extract_attributes(error)
-    expected = {
-      'userAttributes'  => {},
-      'agentAttributes' => {},
-      'intrinsics'      => {}
-    }
-    assert_equal expected, actual
-  end
-
   def test_handles_non_string_exception_messages
     e = Exception.new({ :non => :string })
     error = NewRelic::NoticedError.new(@path, @params, e, @time)

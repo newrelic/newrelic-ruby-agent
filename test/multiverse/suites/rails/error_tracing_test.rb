@@ -115,15 +115,30 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
       get '/error/controller_error?eat=static'
       assert_equal('/error/controller_error', last_error.params[:request_uri])
 
-      expected_params = { 'eat' => 'static' }
+      expected_params = {
+        'request.parameters.eat' => 'static',
+        'httpResponseCode' => 500
+      }
 
       if Rails::VERSION::MAJOR == 3
-        expected_params['action']     = 'controller_error'
-        expected_params['controller'] = 'error'
+        expected_params['request.parameters.action']     = 'controller_error'
+        expected_params['request.parameters.controller'] = 'error'
       end
 
-      assert_equal(expected_params, last_error.params[:request_params])
+      attributes = agent_attributes_for_single_error_posted
+      assert_equal(expected_params, attributes)
     end
+  end
+
+  def agent_attributes_for_single_error_posted
+    NewRelic::Agent.instance.send(:transmit_data)
+
+    # If we don't just have a single post with a single error, ordering might
+    # foul the test so just throw your hands up
+    assert_equal 1, $collector.calls_for("error_data").length
+    assert_equal 1, $collector.calls_for("error_data").first.errors.length
+
+    $collector.calls_for("error_data").first.errors.first.params["agentAttributes"]
   end
 
   def test_should_capture_error_raised_in_view
@@ -181,16 +196,16 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
 
   def test_should_apply_parameter_filtering
     get '/error/controller_error?secret=shouldnotbecaptured&other=whatever'
-    params = last_error.params[:request_params]
-    assert_equal('[FILTERED]', params['secret'])
-    assert_equal('whatever', params['other'])
+    attributes = agent_attributes_for_single_error_posted
+    assert_equal('[FILTERED]', attributes['request.parameters.secret'])
+    assert_equal('whatever', attributes['request.parameters.other'])
   end
 
   def test_should_apply_parameter_filtering_for_non_standard_errors
     get '/error/exception_error?secret=shouldnotbecaptured&other=whatever'
-    params = last_error.params[:request_params]
-    assert_equal('[FILTERED]', params['secret'])
-    assert_equal('whatever', params['other'])
+    attributes = agent_attributes_for_single_error_posted
+    assert_equal('[FILTERED]', attributes['request.parameters.secret'])
+    assert_equal('whatever', attributes['request.parameters.other'])
   end
 
   def test_should_not_notice_errors_from_ignored_action
