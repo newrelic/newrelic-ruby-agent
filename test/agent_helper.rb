@@ -408,6 +408,7 @@ def with_config(config_hash, at_start=true)
     yield
   ensure
     NewRelic::Agent.config.remove_config(config)
+    NewRelic::Agent.instance.refresh_attribute_filter
   end
 end
 

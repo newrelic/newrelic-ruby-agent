@@ -395,17 +395,23 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal 2.1, options['HttpDispatcher'].total_call_time
   end
 
-  def test_end_fires_a_transaction_finished_event_with_custom_params
-    options = nil
+  def test_end_fires_a_transaction_finished_event_with_attributes_attached
+    custom_attributes = nil
+    agent_attributes = nil
+    intrinsic_attributes = nil
+
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-      options = payload[:custom_params]
+      custom_attributes    = payload[:custom_attributes]
+      agent_attributes     = payload[:agent_attributes]
+      intrinsic_attributes = payload[:intrinsic_attributes]
     end
 
-    in_web_transaction('Controller/foo/1/bar/22') do
-      NewRelic::Agent.add_custom_parameters('fooz' => 'barz')
+    txn = in_web_transaction('Controller/foo/1/bar/22') do
     end
 
-    assert_equal 'barz', options['fooz']
+    assert_equal txn.custom_attributes, custom_attributes
+    assert_equal txn.agent_attributes, agent_attributes
+    assert_equal txn.intrinsic_attributes, intrinsic_attributes
   end
 
   def test_end_fires_a_transaction_finished_event_with_transaction_guid
@@ -1298,26 +1304,32 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_adding_custom_attributes
-    in_transaction do |txn|
-      NewRelic::Agent.add_custom_parameters(:foo => "bar")
-      actual = txn.custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
-      assert_equal({:foo => "bar"}, actual)
+    with_config(:'transaction_tracer.attributes.enabled' => true) do
+      in_transaction do |txn|
+        NewRelic::Agent.add_custom_parameters(:foo => "bar")
+        actual = txn.custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+        assert_equal({:foo => "bar"}, actual)
+      end
     end
   end
 
   def test_adding_agent_attributes
-    in_transaction do |txn|
-      txn.agent_attributes.add(:foo, "bar")
-      actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
-      assert_equal({:foo => "bar"}, actual)
+    with_config(:'transaction_tracer.attributes.enabled' => true) do
+      in_transaction do |txn|
+        txn.agent_attributes.add(:foo, "bar")
+        actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+        assert_equal({:foo => "bar"}, actual)
+      end
     end
   end
 
   def test_adding_agent_attributes_via_class
-    in_transaction do |txn|
-      NewRelic::Agent::Transaction.add_agent_attribute(:foo, "bar")
-      actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
-      assert_equal({:foo => "bar"}, actual)
+    with_config(:'transaction_tracer.attributes.enabled' => true) do
+      in_transaction do |txn|
+        NewRelic::Agent::Transaction.add_agent_attribute(:foo, "bar")
+        actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+        assert_equal({:foo => "bar"}, actual)
+      end
     end
   end
 
