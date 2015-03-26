@@ -163,26 +163,21 @@ module NewRelic
       def add_attributes(data, txn)
         return unless txn
 
-        atts = nil
-        atts = append_attributes(txn.custom_attributes, atts, ATTS_USER_SUBKEY)
-        atts = append_attributes(txn.agent_attributes, atts, ATTS_AGENT_SUBKEY)
+        atts = {}
+        append_attributes!(txn.custom_attributes, atts, ATTS_USER_SUBKEY)
+        append_attributes!(txn.agent_attributes, atts, ATTS_AGENT_SUBKEY)
 
-        if atts
+        if atts && atts.any?
           json = NewRelic::JSONWrapper.dump(atts)
           data[ATTS_KEY] = obfuscator.obfuscate(json)
         end
       end
 
-      def append_attributes(source_attributes, atts, subkey)
+      def append_attributes!(source_attributes, atts, subkey)
         selected_attributes = source_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
         if selected_attributes.any?
-          selected_attributes = event_params(selected_attributes)
-
-          atts ||= {}
-          atts[subkey] = selected_attributes
+          atts[subkey] = event_params(selected_attributes)
         end
-
-        atts
       end
 
       def html_safe_if_needed(string)
