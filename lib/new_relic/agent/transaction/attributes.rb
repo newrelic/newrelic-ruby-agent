@@ -15,15 +15,17 @@ module NewRelic
           @attributes[key]
         end
 
-        def []=(key, value)
+        def add(key, value)
           @attributes[key] = value
+        end
+
+        def length
+          @attributes.length
         end
 
         def merge!(other)
           @attributes.merge!(other)
         end
-
-        alias_method :add, :[]=
 
         def for_destination(destination)
           @attributes.inject({}) do |memo, (key, value)|

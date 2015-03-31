@@ -624,7 +624,7 @@ module NewRelic
       end
 
       def http_response_code=(code)
-        @agent_attributes[:httpResponseCode] = code
+        @agent_attributes.add(:httpResponseCode, code)
       end
 
       def include_guid?(state, duration)
