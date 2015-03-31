@@ -364,7 +364,13 @@ module NewRelic
       def merge_request_parameters(params)
         params.each_pair do |k, v|
           normalized_key = EncodingNormalizer.normalize_string(k.to_s)
-          @agent_attributes.add(:"request.parameters.#{normalized_key}", v)
+          prefixed_key = :"request.parameters.#{normalized_key}"
+
+          if prefixed_key.length > NewRelic::Agent::Transaction::Attributes::KEY_LIMIT
+            NewRelic::Agent.logger.debug("Request parameter #{prefixed_key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
+          else
+            @agent_attributes.add(prefixed_key, v)
+          end
         end
       end
 

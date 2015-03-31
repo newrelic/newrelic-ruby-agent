@@ -1455,6 +1455,16 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal "qux", actual[:'request.parameters.bar']
   end
 
+  def test_request_params_get_key_length_limits
+    txn = with_config(:capture_params => true) do
+      in_transaction(:filtered_params => {"x" * 1000 => "bar"}) do
+      end
+    end
+
+    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_empty actual
+  end
+
   def test_http_response_code_included_in_agent_attributes
     txn = in_transaction do |txn|
       txn.http_response_code = 418
