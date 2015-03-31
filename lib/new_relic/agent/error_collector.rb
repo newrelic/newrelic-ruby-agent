@@ -185,35 +185,26 @@ module NewRelic
 
         # If anything else is left over, we treat it like a custom param
         def custom_params_from_opts(options)
-          # If anything else is left over, treat it like a custom param:
-          if Agent.config[:'error_collector.capture_attributes']
-            fetch_from_options(options, :custom_params, {}).merge(options)
-          else
-            {}
-          end
+          fetch_from_options(options, :custom_params, {}).merge(options)
         end
 
-        # takes the request parameters out of the options hash, and
-        # returns them if we are capturing parameters, otherwise
-        # returns nil
-        def request_params_from_opts(options)
-          value = options.delete(:request_params)
-          if Agent.config[:capture_params]
-            value
-          else
-            nil
-          end
-        end
+        DEPRECATED_REQUEST_PARAMS_MSG = "Passing :request_params to notice_error is no longer supported. Associate a request with the enclosing transaction, or record them as custom attributes instead."
 
         # normalizes the request and custom parameters before attaching
         # them to the error. See NewRelic::CollectionHelper#normalize_params
         def normalized_request_and_custom_params(options)
+          # Old agents passed request_params in. With new attributes we don't want
+          # that, so if anyone happens to call notices with that key, ignore it.
+          if options.include?(:request_params)
+            NewRelic::Agent.logger.warn(DEPRECATED_REQUEST_PARAMS_MSG)
+            options.delete(:request_params)
+          end
+
           {
             :custom_attributes    => options.delete(:custom_attributes),
             :agent_attributes     => options.delete(:agent_attributes),
             :intrinsic_attributes => options.delete(:intrinsic_attributes),
 
-            :request_params => normalize_params(request_params_from_opts(options)),
             :custom_params  => normalize_params(custom_params_from_opts(options))
           }
         end
@@ -273,14 +264,16 @@ module NewRelic
 
       # Notice the error with the given available options:
       #
-      # * <tt>:uri</tt> => The request path, minus any request params or query string.
+      # * <tt>:uri</tt> => Request path, minus request params or query string
       # * <tt>:referer</tt> => The URI of the referer
       # * <tt>:metric</tt> => The metric name associated with the transaction
-      # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
       # * <tt>:custom_params</tt> => Custom parameters
       #
-      # If anything is left over, it's added to custom params
-      # If exception is nil, the error count is bumped and no traced error is recorded
+      # Previous versions of the agent allowed passing :request_params but
+      # those are now ignored. Associate the request with the enclosing
+      # transaction, or record additional information as custom attributes.
+      #
+      # If anything is left over, it's added to custom params.
       def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
         state = ::NewRelic::Agent::TransactionState.tl_get
 

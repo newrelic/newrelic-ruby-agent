@@ -15,6 +15,27 @@ elsif !defined?(RAILS_ROOT)
   class RailsMultiverseTest < ActionController::IntegrationTest; end
 end
 
+class RailsMultiverseTest
+  def attributes_for_single_error_posted(key)
+    NewRelic::Agent.instance.send(:transmit_data)
+
+    # If we don't just have a single post with a single error, ordering might
+    # foul the test so just throw your hands up
+    assert_equal 1, $collector.calls_for("error_data").length
+    assert_equal 1, $collector.calls_for("error_data").first.errors.length
+
+    $collector.calls_for("error_data").first.errors.first.params[key]
+  end
+
+  def user_attributes_for_single_error_posted
+    attributes_for_single_error_posted("userAttributes")
+  end
+
+  def agent_attributes_for_single_error_posted
+    attributes_for_single_error_posted("agentAttributes")
+  end
+end
+
 # a basic active model compliant model we can render
 class Foo
   extend ActiveModel::Naming if defined?(ActiveModel::Naming)

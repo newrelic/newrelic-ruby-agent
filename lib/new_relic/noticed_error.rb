@@ -88,6 +88,48 @@ class NewRelic::NoticedError
       string(path),
       string(message),
       string(exception_class_name),
-      params ]
+      build_params ]
   end
+
+  USER_ATTRIBUTES = "userAttributes".freeze
+  AGENT_ATTRIBUTES = "agentAttributes".freeze
+  INTRINSIC_ATTRIBUTES = "intrinsics".freeze
+
+  def build_params
+    append_attributes(params, USER_ATTRIBUTES, merged_custom_attributes)
+    append_attributes(params, AGENT_ATTRIBUTES, @agent_attributes)
+    append_attributes(params, INTRINSIC_ATTRIBUTES, @intrinsic_attributes)
+    params
+  end
+
+  # We can get custom attributes from two sources--the transaction, which we
+  # hold in @custom_attributes, or passed options to notice_error which show up
+  # in params[:custom_params]. Both need filtering, so merge them together in
+  # our Attributes class for consistent handling
+  def merged_custom_attributes
+    merged_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+
+    if @custom_attributes
+      custom_attributes_from_transaction = @custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+      merged_attributes.merge!(custom_attributes_from_transaction)
+    end
+
+    custom_attributes_from_notice_error = params.delete(:custom_params)
+    if custom_attributes_from_notice_error
+      merged_attributes.merge!(custom_attributes_from_notice_error)
+    end
+
+    merged_attributes
+  end
+
+  def append_attributes(outgoing_params, outgoing_key, source_attributes)
+    if source_attributes
+      attributes = source_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+    else
+      attributes = {}
+    end
+
+    outgoing_params[outgoing_key] = event_params(attributes)
+  end
+
 end

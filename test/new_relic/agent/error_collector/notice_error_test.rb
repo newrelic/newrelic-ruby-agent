@@ -60,24 +60,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Minitest::Test
     assert_equal({:foo => 'baz'}, custom_params_from_opts({:custom_params => {:foo => 'bar'}, :foo => 'baz'}))
   end
 
-  def test_request_params_from_opts_positive
-    with_config(:capture_params => true) do
-      val = {:request_params => 'foo'}
-      assert_equal('foo', request_params_from_opts(val))
-      assert_equal({}, val, "should delete request_params key from hash")
-    end
-  end
-
-  def test_request_params_from_opts_negative
-    with_config(:capture_params => false) do
-      val = {:request_params => 'foo'}
-      assert_equal(nil, request_params_from_opts(val))
-      assert_equal({}, val, "should delete request_params key from hash")
-    end
-  end
-
   def test_normalized_request_and_custom_params_base
-    self.expects(:normalize_params).with(nil).returns(nil)
     self.expects(:normalize_params).with({}).returns({})
     with_config(:capture_params => true) do
       normalized = normalized_request_and_custom_params({})
