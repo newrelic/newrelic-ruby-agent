@@ -7,6 +7,7 @@ require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/transaction/custom_attributes'
 require 'new_relic/agent/transaction/intrinsic_attributes'
 
 module NewRelic
@@ -310,7 +311,7 @@ module NewRelic
         @ignore_apdex = false
         @ignore_enduser = false
 
-        @custom_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        @custom_attributes = CustomAttributes.new(NewRelic::Agent.instance.attribute_filter)
         @agent_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
         @intrinsic_attributes = IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
 
