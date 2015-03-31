@@ -269,9 +269,9 @@ module NewRelic
       # * <tt>:metric</tt> => The metric name associated with the transaction
       # * <tt>:custom_params</tt> => Custom parameters
       #
-      # Previous versions of the agent allowed passed request parameters but
-      # those are now ignored. Request parameters can be set instead on the
-      # enclosing transaction.
+      # Previous versions of the agent allowed passing :request_params but
+      # those are now ignored. Associate the request with the enclosing
+      # transaction, or record additional information as custom attributes.
       #
       # If anything is left over, it's added to custom params.
       def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
