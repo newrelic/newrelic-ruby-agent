@@ -32,6 +32,14 @@ class NewRelic::Agent::Transaction
       assert_equal 0, @attributes.length
     end
 
+    def test_limits_key_length_on_merge
+      key = ("x" * (CustomAttributes::KEY_LIMIT + 1)).to_sym
+      expects_logging(:warn, includes(key.to_s))
+
+      @attributes.merge!(key => "")
+      assert_equal 0, @attributes.length
+    end
+
     def test_truncates_string_values
       value = "x" * 1000
 

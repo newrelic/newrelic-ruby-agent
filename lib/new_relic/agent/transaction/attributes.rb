@@ -24,7 +24,9 @@ module NewRelic
         end
 
         def merge!(other)
-          @attributes.merge!(other)
+          other.each do |key, value|
+            self.add(key, value)
+          end
         end
 
         def for_destination(destination)
