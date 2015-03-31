@@ -6,48 +6,57 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..','..','test
 require 'new_relic/agent/transaction/custom_attributes'
 require 'new_relic/agent/attribute_filter'
 
-class CustomAttributesTest < Minitest::Test
+class NewRelic::Agent::Transaction
+  class CustomAttributesTest < Minitest::Test
 
-  AttributeFilter = NewRelic::Agent::AttributeFilter
+    AttributeFilter = NewRelic::Agent::AttributeFilter
 
-  def setup
-    filter = AttributeFilter.new(NewRelic::Agent.config)
-    @attributes = NewRelic::Agent::Transaction::CustomAttributes.new(filter)
+    def setup
+      filter = AttributeFilter.new(NewRelic::Agent.config)
+      @attributes = CustomAttributes.new(filter)
+    end
+
+    def test_limits_key_length
+      key = "x" * (CustomAttributes::KEY_LIMIT + 1)
+      expects_logging(:warn, includes(key))
+
+      @attributes.add(key, "")
+      assert_equal 0, @attributes.length
+    end
+
+    def test_limits_key_length_symbol
+      key = ("x" * (CustomAttributes::KEY_LIMIT + 1)).to_sym
+      expects_logging(:warn, includes(key.to_s))
+
+      @attributes.add(key, "")
+      assert_equal 0, @attributes.length
+    end
+
+    def test_truncates_string_values
+      value = "x" * 1000
+
+      @attributes.add(:key, value)
+      assert_equal CustomAttributes::VALUE_LIMIT, @attributes[:key].length
+    end
+
+    def test_truncates_symbol_values
+      value = ("x" * 1000).to_sym
+
+      @attributes.add(:key, value)
+      assert_equal CustomAttributes::VALUE_LIMIT, @attributes[:key].length
+    end
+
+    def test_leaves_numbers_alone
+      @attributes.add(:key, 42)
+      assert_equal 42, @attributes[:key]
+    end
+
+    def test_limits_attribute_count
+      100.times do |i|
+        @attributes.add(i.to_s, i)
+      end
+
+      assert_equal CustomAttributes::COUNT_LIMIT, @attributes.length
+    end
   end
-
-  def test_limits_key_length
-    key = ("x" * 256)
-    expects_logging(:warn, includes(key))
-
-    @attributes.add(key, "")
-    assert_equal 0, @attributes.length
-  end
-
-  def test_limits_key_length_symbol
-    key = ("x" * 256).to_sym
-    expects_logging(:warn, includes(key.to_s))
-
-    @attributes.add(key, "")
-    assert_equal 0, @attributes.length
-  end
-
-  def test_truncates_string_values
-    value = "x" * 1000
-
-    @attributes.add(:key, value)
-    assert_equal 255, @attributes[:key].length
-  end
-
-  def test_truncates_symbol_values
-    value = ("x" * 1000).to_sym
-
-    @attributes.add(:key, value)
-    assert_equal 255, @attributes[:key].length
-  end
-
-  def test_leaves_numbers_alone
-    @attributes.add(:key, 42)
-    assert_equal 42, @attributes[:key]
-  end
-
 end

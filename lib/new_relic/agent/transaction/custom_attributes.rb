@@ -10,8 +10,14 @@ module NewRelic
       class CustomAttributes < Attributes
         KEY_LIMIT   = 255
         VALUE_LIMIT = 255
+        COUNT_LIMIT = 64
 
         def add(key, value)
+          if @attributes.count >= COUNT_LIMIT
+            NewRelic::Agent.logger.warn("Custom attributes count exceeded limit of #{COUNT_LIMIT}. Additional custom attributes will be dropped.")
+            return
+          end
+
           if key.length > KEY_LIMIT
             NewRelic::Agent.logger.warn("Custom attribute key '#{key}' was longer than limit of #{KEY_LIMIT}. This attribute will be dropped.")
             return
