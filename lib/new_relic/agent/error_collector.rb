@@ -188,12 +188,17 @@ module NewRelic
           fetch_from_options(options, :custom_params, {}).merge(options)
         end
 
+        DEPRECATED_REQUEST_PARAMS_MSG = "Passing :request_params to notice_error is no longer supported. Associate a request with the enclosing transaction, or record them as custom attributes instead."
+
         # normalizes the request and custom parameters before attaching
         # them to the error. See NewRelic::CollectionHelper#normalize_params
         def normalized_request_and_custom_params(options)
           # Old agents passed request_params in. With new attributes we don't want
           # that, so if anyone happens to call notices with that key, ignore it.
-          options.delete(:request_params)
+          if options.include?(:request_params)
+            NewRelic::Agent.logger.warn(DEPRECATED_REQUEST_PARAMS_MSG)
+            options.delete(:request_params)
+          end
 
           {
             :custom_attributes    => options.delete(:custom_attributes),
@@ -259,14 +264,16 @@ module NewRelic
 
       # Notice the error with the given available options:
       #
-      # * <tt>:uri</tt> => The request path, minus any request params or query string.
+      # * <tt>:uri</tt> => Request path, minus request params or query string
       # * <tt>:referer</tt> => The URI of the referer
       # * <tt>:metric</tt> => The metric name associated with the transaction
-      # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
       # * <tt>:custom_params</tt> => Custom parameters
       #
-      # If anything is left over, it's added to custom params
-      # If exception is nil, the error count is bumped and no traced error is recorded
+      # Previous versions of the agent allowed passed request parameters but
+      # those are now ignored. Request parameters can be set instead on the
+      # enclosing transaction.
+      #
+      # If anything is left over, it's added to custom params.
       def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
         state = ::NewRelic::Agent::TransactionState.tl_get
 

@@ -86,6 +86,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_drops_request_params
+    expects_logging(:warn, any_parameters)
     @error_collector.notice_error(StandardError.new("message"),
                                   :request_params => {:x => 'y'})
 
