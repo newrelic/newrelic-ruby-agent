@@ -8,7 +8,8 @@ module NewRelic
   module Agent
     class Transaction
       class CustomAttributes < Attributes
-        KEY_LIMIT = 255
+        KEY_LIMIT   = 255
+        VALUE_LIMIT = 255
 
         def add(key, value)
           if key.length > KEY_LIMIT
@@ -16,7 +17,19 @@ module NewRelic
             return
           end
 
+          if needs_length_limit?(value)
+            value = value[0, VALUE_LIMIT]
+          end
+
           super
+        end
+
+        def needs_length_limit?(value)
+          if value.is_a?(String) || value.is_a?(Symbol)
+            value.length > VALUE_LIMIT
+          else
+            false
+          end
         end
 
       end

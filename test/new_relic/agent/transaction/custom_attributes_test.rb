@@ -20,7 +20,6 @@ class CustomAttributesTest < Minitest::Test
     expects_logging(:warn, includes(key))
 
     @attributes.add(key, "")
-
     assert_equal 0, @attributes.length
   end
 
@@ -29,8 +28,26 @@ class CustomAttributesTest < Minitest::Test
     expects_logging(:warn, includes(key.to_s))
 
     @attributes.add(key, "")
-
     assert_equal 0, @attributes.length
+  end
+
+  def test_truncates_string_values
+    value = "x" * 1000
+
+    @attributes.add(:key, value)
+    assert_equal 255, @attributes[:key].length
+  end
+
+  def test_truncates_symbol_values
+    value = ("x" * 1000).to_sym
+
+    @attributes.add(:key, value)
+    assert_equal 255, @attributes[:key].length
+  end
+
+  def test_leaves_numbers_alone
+    @attributes.add(:key, 42)
+    assert_equal 42, @attributes[:key]
   end
 
 end
