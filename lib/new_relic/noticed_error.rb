@@ -107,19 +107,19 @@ class NewRelic::NoticedError
   # in params[:custom_params]. Both need filtering, so merge them together in
   # our Attributes class for consistent handling
   def merged_custom_attributes
-    custom_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    merged_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
     if @custom_attributes
-      transaction_custom_attributes = @custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
-      custom_attributes.merge!(transaction_custom_attributes)
+      custom_attributes_from_transaction = @custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+      merged_attributes.merge!(custom_attributes_from_transaction)
     end
 
-    error_custom_attributes = params.delete(:custom_params)
-    if error_custom_attributes
-      custom_attributes.merge!(error_custom_attributes)
+    custom_attributes_from_notice_error = params.delete(:custom_params)
+    if custom_attributes_from_notice_error
+      merged_attributes.merge!(custom_attributes_from_notice_error)
     end
 
-    custom_attributes
+    merged_attributes
   end
 
   def append_attributes(outgoing_params, outgoing_key, source_attributes)
