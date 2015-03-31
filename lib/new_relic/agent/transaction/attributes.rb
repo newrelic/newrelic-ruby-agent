@@ -6,6 +6,10 @@ module NewRelic
   module Agent
     class Transaction
       class Attributes
+
+        KEY_LIMIT   = 255
+        VALUE_LIMIT = 255
+
         def initialize(filter)
           @filter = filter
           @attributes = {}
@@ -16,6 +20,10 @@ module NewRelic
         end
 
         def add(key, value)
+          if needs_length_limit?(value)
+            value = value[0, VALUE_LIMIT]
+          end
+
           @attributes[key] = value
         end
 
@@ -33,6 +41,14 @@ module NewRelic
           @attributes.inject({}) do |memo, (key, value)|
             memo[key] = value if @filter.applies?(key, destination)
             memo
+          end
+        end
+
+        def needs_length_limit?(value)
+          if value.is_a?(String) || value.is_a?(Symbol)
+            value.length > VALUE_LIMIT
+          else
+            false
           end
         end
       end
