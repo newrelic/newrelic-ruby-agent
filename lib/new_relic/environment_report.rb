@@ -86,6 +86,7 @@ module NewRelic
         ENV['RAILS_ENV']
       end
     end
+    report_on('OpenSSL version') { ::OpenSSL::OPENSSL_VERSION }
     # end reporting logic
     ####################################
 
