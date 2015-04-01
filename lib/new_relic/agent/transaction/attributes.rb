@@ -45,7 +45,7 @@ module NewRelic
         end
 
         def needs_length_limit?(value)
-          if value.is_a?(String) || value.is_a?(Symbol)
+          if value.respond_to?(:length)
             value.length > VALUE_LIMIT
           else
             false

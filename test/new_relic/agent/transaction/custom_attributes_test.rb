@@ -40,6 +40,11 @@ class NewRelic::Agent::Transaction
       assert_equal 0, @attributes.length
     end
 
+    def test_allows_non_string_key_type
+      @attributes.add(1, "value")
+      assert_equal "value", @attributes[1]
+    end
+
     def test_truncates_string_values
       value = "x" * 1000
 

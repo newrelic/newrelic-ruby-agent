@@ -17,7 +17,7 @@ module NewRelic
             return
           end
 
-          if key.length > KEY_LIMIT
+          if key.respond_to?(:length) && key.length > KEY_LIMIT
             NewRelic::Agent.logger.warn("Custom attribute key '#{key}' was longer than limit of #{KEY_LIMIT}. This attribute will be dropped.")
             return
           end
