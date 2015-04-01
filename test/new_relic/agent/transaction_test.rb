@@ -1456,8 +1456,11 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_request_params_get_key_length_limits
+    key = "x" * 1000
+    expects_logging(:debug, includes(key))
+
     txn = with_config(:capture_params => true) do
-      in_transaction(:filtered_params => {"x" * 1000 => "bar"}) do
+      in_transaction(:filtered_params => {key => "bar"}) do
       end
     end
 
