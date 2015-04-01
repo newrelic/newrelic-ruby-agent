@@ -10,7 +10,10 @@ module NewRelic
         end
 
         def to_collector_array
-          [NewRelic::Helper.time_to_millis(self.start_time)]
+          [
+            NewRelic::Helper.time_to_millis(self.start_time),
+            NewRelic::Helper.time_to_millis(@root_segment.duration),
+          ]
         end
       end
     end

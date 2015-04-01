@@ -10,6 +10,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     freeze_time
     @start_time = Time.now
     @trace = NewRelic::Agent::Transaction::Trace.new(@start_time)
+    @trace.root_segment.end_trace(@start_time)
   end
 
   def test_start_time
@@ -26,8 +27,18 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal "ROOT", @trace.root_segment.metric_name
   end
 
+  def test_to_collector_array_includes_root_segment_duration
+    @trace.root_segment.end_trace(1)
+    assert_collector_array_contains(:duration, 1000)
+  end
+
+
   def assert_collector_array_contains(key, expected)
-    indices = { :start_time => 0 }
-    assert_equal expected, @trace.to_collector_array[indices[key]]
+    indices = [
+      :start_time,
+      :duration
+    ]
+
+    assert_equal expected, @trace.to_collector_array[indices.index(key)]
   end
 end
