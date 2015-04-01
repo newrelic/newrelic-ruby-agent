@@ -37,6 +37,11 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:transaction_name, 'zork')
   end
 
+  def test_transaction_name_gets_coerced_into_a_string
+    @trace.transaction_name = 1337807
+    assert_collector_array_contains(:transaction_name, '1337807')
+  end
+
   def assert_collector_array_contains(key, expected)
     indices = [
       :start_time,

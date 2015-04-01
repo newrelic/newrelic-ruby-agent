@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module NewRelic
   module Agent
     class Transaction
@@ -14,7 +18,7 @@ module NewRelic
           [
             NewRelic::Helper.time_to_millis(self.start_time),
             NewRelic::Helper.time_to_millis(@root_segment.duration),
-            self.transaction_name
+            NewRelic::Coerce.string(self.transaction_name)
           ]
         end
       end
