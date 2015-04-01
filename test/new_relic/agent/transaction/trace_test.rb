@@ -17,7 +17,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal @start_time, @trace.start_time
   end
 
-  def test_to_collector_array_contains_start_time
+  def test_collector_array_contains_start_time
     expected = NewRelic::Helper.time_to_millis(@start_time)
     assert_collector_array_contains(:start_time, expected)
   end
@@ -27,12 +27,12 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal "ROOT", @trace.root_segment.metric_name
   end
 
-  def test_to_collector_array_contains_root_segment_duration
+  def test_collector_array_contains_root_segment_duration
     @trace.root_segment.end_trace(1)
     assert_collector_array_contains(:duration, 1000)
   end
 
-  def test_to_collector_array_contains_transaction_name
+  def test_collector_array_contains_transaction_name
     @trace.transaction_name = 'zork'
     assert_collector_array_contains(:transaction_name, 'zork')
   end
@@ -42,7 +42,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:transaction_name, '1337807')
   end
 
-  def test_to_collector_array_contains_uri
+  def test_collector_array_contains_uri
     @trace.uri = 'http://windows95tips.com/'
     assert_collector_array_contains(:uri, 'http://windows95tips.com/')
   end
@@ -52,7 +52,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:uri, '95')
   end
 
-  def test_to_collector_array_contains_guid
+  def test_collector_array_contains_guid
     @trace.guid = 'DEADBEEF8BADF00D'
     assert_collector_array_contains(:guid, 'DEADBEEF8BADF00D')
   end
@@ -62,17 +62,17 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:guid, '42')
   end
 
-  def test_to_collector_array_contains_forced_true_if_in_an_xray_session
+  def test_collector_array_contains_forced_true_if_in_an_xray_session
     @trace.xray_session_id = 7
     assert_collector_array_contains(:forced?, true)
   end
 
-  def test_to_collector_array_contains_forced_false_if_not_in_an_xray_session
+  def test_collector_array_contains_forced_false_if_not_in_an_xray_session
     @trace.xray_session_id = nil
     assert_collector_array_contains(:forced?, false)
   end
 
-  def test_to_collector_array_contains_xray_session_id
+  def test_collector_array_contains_xray_session_id
     @trace.xray_session_id = 112357
     assert_collector_array_contains(:xray_session_id, 112357)
   end
@@ -87,6 +87,16 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:xray_session_id, nil)
   end
 
+  def test_collector_array_contains_synthetics_resource_id
+    @trace.synthetics_resource_id = '31415926'
+    assert_collector_array_contains(:synthetics_resource_id, '31415926')
+  end
+
+  def test_synthetics_resource_id_gets_coerced_to_a_string
+    @trace.synthetics_resource_id = 31415926
+    assert_collector_array_contains(:synthetics_resource_id, '31415926')
+  end
+
   def assert_collector_array_contains(key, expected)
     indices = [
       :start_time,
@@ -96,7 +106,8 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
       :trace_tree,
       :guid,
       :forced?,
-      :xray_session_id
+      :xray_session_id,
+      :synthetics_resource_id
     ]
 
     assert_equal expected, @trace.to_collector_array[indices.index(key)]

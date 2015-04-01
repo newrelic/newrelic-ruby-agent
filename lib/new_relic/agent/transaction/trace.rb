@@ -7,7 +7,8 @@ module NewRelic
     class Transaction
       class Trace
         attr_reader :start_time, :root_segment
-        attr_accessor :transaction_name, :uri, :guid, :xray_session_id
+        attr_accessor :transaction_name, :uri, :guid, :xray_session_id,
+                      :synthetics_resource_id
 
         def initialize(start_time)
           @start_time = start_time
@@ -23,7 +24,8 @@ module NewRelic
             nil,
             NewRelic::Coerce.string(self.guid),
             forced?,
-            NewRelic::Coerce.int_or_nil(xray_session_id)
+            NewRelic::Coerce.int_or_nil(xray_session_id),
+            NewRelic::Coerce.string(self.synthetics_resource_id)
           ]
         end
 
