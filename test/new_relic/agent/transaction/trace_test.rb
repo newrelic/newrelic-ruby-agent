@@ -17,7 +17,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal @start_time, @trace.start_time
   end
 
-  def test_to_collector_array_includes_start_time
+  def test_to_collector_array_contains_start_time
     expected = NewRelic::Helper.time_to_millis(@start_time)
     assert_collector_array_contains(:start_time, expected)
   end
@@ -27,16 +27,21 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal "ROOT", @trace.root_segment.metric_name
   end
 
-  def test_to_collector_array_includes_root_segment_duration
+  def test_to_collector_array_contains_root_segment_duration
     @trace.root_segment.end_trace(1)
     assert_collector_array_contains(:duration, 1000)
   end
 
+  def test_to_collector_array_contains_transaction_name
+    @trace.transaction_name = 'zork'
+    assert_collector_array_contains(:transaction_name, 'zork')
+  end
 
   def assert_collector_array_contains(key, expected)
     indices = [
       :start_time,
-      :duration
+      :duration,
+      :transaction_name
     ]
 
     assert_equal expected, @trace.to_collector_array[indices.index(key)]

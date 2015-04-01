@@ -3,6 +3,7 @@ module NewRelic
     class Transaction
       class Trace
         attr_reader :start_time, :root_segment
+        attr_accessor :transaction_name
 
         def initialize(start_time)
           @start_time = start_time
@@ -13,6 +14,7 @@ module NewRelic
           [
             NewRelic::Helper.time_to_millis(self.start_time),
             NewRelic::Helper.time_to_millis(@root_segment.duration),
+            self.transaction_name
           ]
         end
       end
