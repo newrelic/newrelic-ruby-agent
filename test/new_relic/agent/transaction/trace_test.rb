@@ -42,11 +42,22 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:transaction_name, '1337807')
   end
 
+  def test_to_collector_array_contains_uri
+    @trace.uri = 'http://windows95tips.com/'
+    assert_collector_array_contains(:uri, 'http://windows95tips.com/')
+  end
+
+  def test_uri_gets_coerced_into_a_string
+    @trace.uri = 95
+    assert_collector_array_contains(:uri, '95')
+  end
+
   def assert_collector_array_contains(key, expected)
     indices = [
       :start_time,
       :duration,
-      :transaction_name
+      :transaction_name,
+      :uri
     ]
 
     assert_equal expected, @trace.to_collector_array[indices.index(key)]
