@@ -21,6 +21,11 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:start_time, expected)
   end
 
+  def test_root_segment
+    assert_equal 0.0, @trace.root_segment.entry_timestamp
+    assert_equal "ROOT", @trace.root_segment.metric_name
+  end
+
   def assert_collector_array_contains(key, expected)
     indices = { :start_time => 0 }
     assert_equal expected, @trace.to_collector_array[indices[key]]
