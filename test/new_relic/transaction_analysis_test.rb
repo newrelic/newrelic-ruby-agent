@@ -10,16 +10,6 @@ class NewRelic::TransactionAnalysisTest < Minitest::Test
   # these are mostly stub tests just making sure that the API doesn't
   # change if anyone ever needs to modify it.
 
-  def test_database_time
-    self.expects(:time_percentage).with(/^Database\/.*/)
-    database_time
-  end
-
-  def test_render_time
-    self.expects(:time_percentage).with(/^View\/.*/)
-    render_time
-  end
-
   def test_breakdown_data_default
     root_segment = mock('root_segment')
     # this is for 1.9 compatibility - calling each on something calls
@@ -104,22 +94,5 @@ class NewRelic::TransactionAnalysisTest < Minitest::Test
     other_segment.stubs(:to_a).returns([other_segment])
     self.expects(:each_segment).multiple_yields(root_segment, other_segment)
     assert_equal [other_segment], sql_segments
-  end
-
-  def test_time_percentage_default
-    root_segment = mock('root_segment')
-    root_segment.expects(:metric_name).returns('ROOT')
-    # this is for 1.9 compatibility - calling each on something calls
-    # #to_a on it - which is fun and exciting
-    root_segment.stubs(:to_a).returns([root_segment])
-    other_segment = mock('other_segment')
-    other_segment.expects(:metric_name).returns('Controller/foo')
-    other_segment.expects(:duration).returns(0.1)
-    # this is for 1.9 compatibility - calling each on something calls
-    # #to_a on it - which is fun and exciting
-    other_segment.stubs(:to_a).returns([other_segment])
-    self.expects(:duration).returns(0.2)
-    self.expects(:each_segment).multiple_yields(root_segment, other_segment)
-    assert_equal 50.0, time_percentage(/Controller\/.*/)
   end
 end
