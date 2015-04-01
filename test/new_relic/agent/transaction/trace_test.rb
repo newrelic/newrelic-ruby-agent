@@ -72,6 +72,21 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:forced?, false)
   end
 
+  def test_to_collector_array_contains_xray_session_id
+    @trace.xray_session_id = 112357
+    assert_collector_array_contains(:xray_session_id, 112357)
+  end
+
+  def test_xray_session_id_gets_coerced_to_an_integer
+    @trace.xray_session_id = '112357'
+    assert_collector_array_contains(:xray_session_id, 112357)
+  end
+
+  def test_xray_session_id_does_not_coerce_nil_to_an_integer
+    @trace.xray_session_id = nil
+    assert_collector_array_contains(:xray_session_id, nil)
+  end
+
   def assert_collector_array_contains(key, expected)
     indices = [
       :start_time,
@@ -80,7 +95,8 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
       :uri,
       :trace_tree,
       :guid,
-      :forced?
+      :forced?,
+      :xray_session_id
     ]
 
     assert_equal expected, @trace.to_collector_array[indices.index(key)]

@@ -22,7 +22,8 @@ module NewRelic
             NewRelic::Coerce.string(self.uri),
             nil,
             NewRelic::Coerce.string(self.guid),
-            forced?
+            forced?,
+            NewRelic::Coerce.int_or_nil(xray_session_id)
           ]
         end
 
