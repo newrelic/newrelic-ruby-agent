@@ -52,12 +52,24 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:uri, '95')
   end
 
+  def test_to_collector_array_contains_guid
+    @trace.guid = 'DEADBEEF8BADF00D'
+    assert_collector_array_contains(:guid, 'DEADBEEF8BADF00D')
+  end
+
+  def test_guid_gets_coerced_into_a_string
+    @trace.guid = 42
+    assert_collector_array_contains(:guid, '42')
+  end
+
   def assert_collector_array_contains(key, expected)
     indices = [
       :start_time,
       :duration,
       :transaction_name,
-      :uri
+      :uri,
+      :trace_tree,
+      :guid
     ]
 
     assert_equal expected, @trace.to_collector_array[indices.index(key)]
