@@ -361,15 +361,16 @@ module NewRelic
         set_default_transaction_name(options[:transaction_name], category)
       end
 
+      # Symbol#length isn't in 1.8.7, so check length on string part of key
+      REQUEST_KEY_LIMIT = NewRelic::Agent::Transaction::Attributes::KEY_LIMIT - "request.parameters.".length
+
       def merge_request_parameters(params)
         params.each_pair do |k, v|
           normalized_key = EncodingNormalizer.normalize_string(k.to_s)
-          prefixed_key = :"request.parameters.#{normalized_key}"
-
-          if prefixed_key.length > NewRelic::Agent::Transaction::Attributes::KEY_LIMIT
-            NewRelic::Agent.logger.debug("Request parameter #{prefixed_key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
+          if normalized_key.length > REQUEST_KEY_LIMIT
+            NewRelic::Agent.logger.debug("Request parameter request.parameters.#{normalized_key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
           else
-            @agent_attributes.add(prefixed_key, v)
+            @agent_attributes.add(:"request.parameters.#{normalized_key}", v)
           end
         end
       end

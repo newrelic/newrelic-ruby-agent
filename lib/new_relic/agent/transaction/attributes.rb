@@ -20,8 +20,8 @@ module NewRelic
         end
 
         def add(key, value)
-          if needs_length_limit?(value)
-            value = value[0, VALUE_LIMIT]
+          if needs_length_limit?(value, VALUE_LIMIT)
+            value = value.to_s[0, VALUE_LIMIT]
           end
 
           @attributes[key] = value
@@ -44,9 +44,12 @@ module NewRelic
           end
         end
 
-        def needs_length_limit?(value)
+        def needs_length_limit?(value, limit)
           if value.respond_to?(:length)
-            value.length > VALUE_LIMIT
+            value.length > limit
+          elsif value.is_a?(Symbol)
+            # Symbol lacks length on 1.8.7, so if we get here, to_s first
+            value.to_s.length > limit
           else
             false
           end
