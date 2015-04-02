@@ -195,8 +195,20 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     assert_equal @intrinsic_attributes, error.intrinsic_attributes
   end
 
+  def test_intrinsics_always_get_sent
+    with_config(:'error_collector.attributes.enabled' => false) do
+      intrinsic_attributes = NewRelic::Agent::Transaction::IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
+      intrinsic_attributes.add(:intrinsic, "attribute")
+
+      params = { :intrinsic_attributes => intrinsic_attributes }
+      error = NewRelic::NoticedError.new(@path, params, Exception.new("O_o"))
+
+      serialized_attributes = extract_attributes(error)
+      assert_equal({ "intrinsic" => "attribute" }, serialized_attributes["intrinsics"])
+    end
+  end
+
   def extract_attributes(error)
     error.to_collector_array[4]
   end
-
 end

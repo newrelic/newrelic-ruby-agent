@@ -9,6 +9,17 @@ module NewRelic
         def all
           @attributes
         end
+
+        EMPTY_HASH = {}.freeze
+
+        def for_destination(destination)
+          if destination == NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER ||
+             destination == NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+            @attributes
+          else
+            EMPTY_HASH
+          end
+        end
       end
     end
   end
