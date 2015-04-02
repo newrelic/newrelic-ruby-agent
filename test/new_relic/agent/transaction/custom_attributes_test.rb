@@ -24,6 +24,16 @@ class NewRelic::Agent::Transaction
       assert_equal 0, @attributes.length
     end
 
+    MULTIBYTE_CHARACTER = "七"
+    def test_limits_key_length_by_bytes
+      key = MULTIBYTE_CHARACTER * CustomAttributes::KEY_LIMIT
+
+      expects_logging(:warn, includes(key))
+
+      @attributes.add(key, "")
+      assert_equal 0, @attributes.length
+    end
+
     def test_limits_key_length_symbol
       key = ("x" * (CustomAttributes::KEY_LIMIT + 1)).to_sym
       expects_logging(:warn, includes(key.to_s))

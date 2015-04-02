@@ -28,6 +28,25 @@ class AttributesTest < Minitest::Test
     end
   end
 
+  MULTIBYTE_CHARACTER = "七"
+
+  def test_trunates_multibyte_characters
+    # Leading single byte character gets offsets where a simple byteslice would
+    # yield an invalid string.
+    value = "j" + MULTIBYTE_CHARACTER * 1000
+
+    attributes = create_attributes
+    attributes.add(:key, value)
+
+    result = attributes[:key]
+    if RUBY_VERSION >= "1.9.3"
+      assert result.valid_encoding?
+      assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
+    else
+      assert_equal NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT, result.bytesize
+    end
+  end
+
   def create_attributes
     filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
     NewRelic::Agent::Transaction::Attributes.new(filter)

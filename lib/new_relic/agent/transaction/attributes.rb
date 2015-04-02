@@ -10,6 +10,8 @@ module NewRelic
         KEY_LIMIT   = 255
         VALUE_LIMIT = 255
 
+        CAN_BYTESLICE = String.instance_methods.include?(:byteslice)
+
         def initialize(filter)
           @filter = filter
           @attributes = {}
@@ -20,8 +22,8 @@ module NewRelic
         end
 
         def add(key, value)
-          if needs_length_limit?(value, VALUE_LIMIT)
-            value = value.to_s[0, VALUE_LIMIT]
+          if exceeds_bytesize_limit?(value, VALUE_LIMIT)
+            value = slice(value)
           end
 
           @attributes[key] = value
@@ -44,15 +46,29 @@ module NewRelic
           end
         end
 
-        def needs_length_limit?(value, limit)
-          if value.respond_to?(:length)
-            value.length > limit
+        def exceeds_bytesize_limit?(value, limit)
+          if value.respond_to?(:bytesize)
+            value.bytesize > limit
           elsif value.is_a?(Symbol)
-            # Symbol lacks length on 1.8.7, so if we get here, to_s first
-            value.to_s.length > limit
+            value.to_s.bytesize > limit
           else
             false
           end
+        end
+
+        # Take one byte past our limit. Why? This lets us unconditionally chop!
+        # the end. It'll either remove the one-character-too-many we have, or
+        # peel off the partial, mangled character left by the byteslice.
+        def slice(incoming)
+          if CAN_BYTESLICE
+            result = incoming.to_s.byteslice(0, VALUE_LIMIT + 1)
+          else
+            # < 1.9.3 doesn't have byteslice, so we take off bytes instead.
+            result = incoming.to_s.bytes.take(VALUE_LIMIT + 1).pack("C*")
+          end
+
+          result.chop!
+          result
         end
       end
     end
