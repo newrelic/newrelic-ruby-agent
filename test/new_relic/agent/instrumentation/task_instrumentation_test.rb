@@ -171,8 +171,8 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     assert_equal(1, errors.size)
     error = errors.first
     assert_equal("Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/run_task_exception", error.path)
-    refute_nil(error.params[:stack_trace])
-    refute_nil(error.params[:custom_params])
+    refute_nil(error.stack_trace)
+    refute_nil(error.custom_attributes[:custom_one])
   end
 
   def test_instrument_background_job

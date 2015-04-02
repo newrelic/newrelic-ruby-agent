@@ -7,21 +7,19 @@ require 'new_relic/helper'
 # This class encapsulates an error that was noticed by New Relic in a managed app.
 class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
-  attr_accessor :path, :timestamp, :params, :message, :exception_class_name
-  attr_reader   :exception_id, :is_internal,
-                :custom_attributes, :agent_attributes, :intrinsic_attributes
+
+  attr_accessor :path, :timestamp, :message, :exception_class_name,
+                :request_uri, :rails_root, :custom_params,
+                :custom_attributes, :agent_attributes, :intrinsic_attributes,
+                :file_name, :line_number, :stack_trace
+
+  attr_reader   :exception_id, :is_internal
 
   STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
 
-  def initialize(path, data, exception, timestamp = Time.now)
+  def initialize(path, exception, timestamp = Time.now)
     @exception_id = exception.object_id
     @path = path
-
-    @custom_attributes    = data.delete(:custom_attributes)
-    @agent_attributes     = data.delete(:agent_attributes)
-    @intrinsic_attributes = data.delete(:intrinsic_attributes)
-    @params = NewRelic::NoticedError.normalize_params(data)
-
     @exception_class_name = exception.is_a?(Exception) ? exception.class.name : 'Error'
 
     # It's critical that we not hold onto the exception class constant in this
@@ -96,9 +94,20 @@ class NewRelic::NoticedError
   INTRINSIC_ATTRIBUTES = "intrinsics".freeze
 
   def build_params
+    params = base_parameters
     append_attributes(params, USER_ATTRIBUTES, merged_custom_attributes)
     append_attributes(params, AGENT_ATTRIBUTES, @agent_attributes)
     append_attributes(params, INTRINSIC_ATTRIBUTES, @intrinsic_attributes)
+    params
+  end
+
+  def base_parameters
+    params = {}
+    params[:request_uri] = request_uri if request_uri
+    params[:rails_root]  = rails_root  if rails_root
+    params[:file_name]   = file_name   if file_name
+    params[:line_number] = line_number if line_number
+    params[:stack_trace] = stack_trace if stack_trace
     params
   end
 
@@ -114,8 +123,9 @@ class NewRelic::NoticedError
       merged_attributes.merge!(custom_attributes_from_transaction)
     end
 
-    custom_attributes_from_notice_error = params.delete(:custom_params)
+    custom_attributes_from_notice_error = custom_params
     if custom_attributes_from_notice_error
+      custom_attributes_from_notice_error = NewRelic::NoticedError.normalize_params(custom_attributes_from_notice_error)
       merged_attributes.merge!(custom_attributes_from_notice_error)
     end
 

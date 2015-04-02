@@ -50,19 +50,21 @@ class ParameterCaptureTest < RailsMultiverseTest
     assert_equal({}, last_transaction_trace_request_params)
   end
 
-  def test_uri_on_traced_errors_never_contains_query_string
+  def test_uri_on_traced_errors_never_contains_query_string_without_capture_params
     with_config(:capture_params => false) do
       get '/parameter_capture/error?other=1234&secret=4567'
+      assert_equal('/parameter_capture/error', single_error_posted.params["request_uri"])
     end
-    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
-
-    with_config(:capture_params => true) do
-      get '/parameter_capture/error?other=1234&secret=4567'
-    end
-    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
   end
 
-  def test_referrer_on_traced_errors_never_contains_query_string
+  def test_uri_on_traced_errors_never_contains_query_string_with
+    with_config(:capture_params => true) do
+      get '/parameter_capture/error?other=1234&secret=4567'
+      assert_equal('/parameter_capture/error', single_error_posted.params["request_uri"])
+    end
+  end
+
+  def test_referrer_on_traced_errors_never_contains_query_string_without_capture_params
     with_config(:capture_params => false) do
       get '/parameter_capture/error?other=1234&secret=4567', {}, { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
       attributes = agent_attributes_for_single_error_posted
@@ -156,15 +158,15 @@ class ParameterCaptureTest < RailsMultiverseTest
   def test_uri_on_traced_error_should_not_contain_query_string_with_capture_params_off
     with_config(:capture_params => false) do
       get '/parameter_capture/error?param1=value1&param2=value2'
+      assert_equal('/parameter_capture/error', single_error_posted.params["request_uri"])
     end
-    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
   end
 
   def test_uri_on_traced_error_should_not_contain_query_string_with_capture_params_on
     with_config(:capture_params => true) do
       get '/parameter_capture/error?param1=value1&param2=value2'
+      assert_equal('/parameter_capture/error', single_error_posted.params["request_uri"])
     end
-    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
   end
 
   def test_uri_on_sql_trace_should_not_contain_query_string_with_capture_params_off
