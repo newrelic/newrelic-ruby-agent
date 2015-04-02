@@ -6,14 +6,6 @@ require 'new_relic/transaction_analysis/segment_summary'
 # Add these methods to TransactionSample that enable performance analysis in the user interface.
 module NewRelic
   module TransactionAnalysis
-    def database_time
-      time_percentage(/^Database\/.*/)
-    end
-
-    def render_time
-      time_percentage(/^View\/.*/)
-    end
-
     # return the data that breaks down the performance of the transaction
     # as an array of SegmentSummary objects.  If a limit is specified, then
     # limit the data set to the top n
@@ -62,19 +54,6 @@ module NewRelic
         segments << segment if segment[:sql] || segment[:sql_obfuscated] || (show_non_sql_segments && segment[:key])
       end
       segments
-    end
-
-    private
-    def time_percentage(regex)
-      total = 0
-      each_segment do |segment|
-        if regex =~ segment.metric_name
-          total += segment.duration
-        end
-      end
-      fraction = 100.0 * total / duration
-      # percent value rounded to two digits:
-      return (100 * fraction).round / 100.0
     end
   end
 end
