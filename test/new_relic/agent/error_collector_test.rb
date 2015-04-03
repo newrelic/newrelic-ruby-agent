@@ -57,7 +57,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     err = errors.first
     assert_equal 'Some error message', err.message
     assert_equal '', err.params[:request_uri]
-    assert_equal '', err.params[:request_referer]
     assert_equal 'path', err.path
     assert_equal 'Error', err.exception_class_name
   end
@@ -65,8 +64,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def test_simple
     @error_collector.notice_error(StandardError.new("message"),
                                   :uri => '/myurl/',
-                                  :metric => 'path',
-                                  :referer => 'test_referer')
+                                  :metric => 'path')
 
     errors = @error_collector.harvest!
 
@@ -75,7 +73,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     err = errors.first
     assert_equal 'message', err.message
     assert_equal '/myurl/', err.params[:request_uri]
-    assert_equal 'test_referer', err.params[:request_referer]
     assert_equal 'path', err.path
     assert_equal 'StandardError', err.exception_class_name
 
@@ -483,16 +480,16 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     options = {}
 
-    assert_equal({:request_referer => '', :rails_root => 'rootbeer', :request_uri => ''},
+    assert_equal({:rails_root => 'rootbeer', :request_uri => ''},
                  @error_collector.uri_ref_and_root(options))
   end
 
   def test_uri_ref_and_root_values
     NewRelic::Control.instance.stubs(:root).returns('rootbeer')
 
-    options = {:uri => 'whee', :referer => 'bang'}
+    options = {:uri => 'whee'}
 
-    expected = {:request_referer => 'bang', :rails_root => 'rootbeer', :request_uri => 'whee'}
+    expected = {:rails_root => 'rootbeer', :request_uri => 'whee'}
     assert_equal expected, @error_collector.uri_ref_and_root(options)
   end
 

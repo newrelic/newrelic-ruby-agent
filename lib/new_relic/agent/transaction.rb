@@ -550,6 +550,7 @@ module NewRelic
         gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
             gc_start_snapshot, gc_stop_snapshot)
 
+        assign_agent_attributes
         assign_intrinsics(state, gc_delta)
 
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time, gc_delta)
@@ -563,6 +564,12 @@ module NewRelic
         merge_metrics
 
         send_transaction_finished_event(state, start_time, end_time)
+      end
+
+      def assign_agent_attributes
+        if refer = referer
+          agent_attributes.add(:'request.headers.referer', refer)
+        end
       end
 
       def assign_intrinsics(state, gc_time)
@@ -750,7 +757,6 @@ module NewRelic
         @exceptions.each do |exception, options|
           options[:metric]  = best_name
           options[:uri]     ||= uri     if uri
-          options[:referer] ||= referer if referer
 
           options[:custom_attributes] = @custom_attributes
           options[:agent_attributes] = @agent_attributes

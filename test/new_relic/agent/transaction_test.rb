@@ -724,14 +724,13 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_notice_error_sends_uri_and_referer_from_request
     in_transaction do |txn|
-      txn.request = stub(:uri => "/here", :referer => "/there")
+      txn.request = stub(:uri => "/here")
       NewRelic::Agent::Transaction.notice_error("wat")
     end
 
     assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
     error = NewRelic::Agent.instance.error_collector.errors.first
     assert_equal "/here",  error.params[:request_uri]
-    assert_equal "/there", error.params[:request_referer]
   end
 
   def test_records_gc_time
@@ -1462,5 +1461,22 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_equal 418, actual[:'httpResponseCode']
+  end
+
+  def test_referer_in_agent_attributes
+    txn = in_transaction do |txn|
+      txn.request = stub('request', :referer => "/referered")
+    end
+
+    assert_equal "/referered", txn.agent_attributes[:'request.headers.referer']
+  end
+
+  def test_referer_omitted_if_not_on_request
+    txn = in_transaction do |txn|
+      txn.request = stub('request')
+    end
+
+    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    refute_includes actual, :'request.headers.referer'
   end
 end

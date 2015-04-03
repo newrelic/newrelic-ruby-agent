@@ -126,7 +126,9 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
       end
 
       attributes = agent_attributes_for_single_error_posted
-      assert_equal(expected_params, attributes)
+      expected_params.each do |key, value|
+        assert_equal value, attributes[key]
+      end
     end
   end
 
