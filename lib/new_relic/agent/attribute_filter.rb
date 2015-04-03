@@ -136,8 +136,8 @@ module NewRelic
         destinations
       end
 
-      def applies?(attribute_name, destination)
-        apply(attribute_name, destination) == destination
+      def allows?(allowed_destinations, requested_destination)
+        allowed_destinations & requested_destination == requested_destination
       end
     end
 

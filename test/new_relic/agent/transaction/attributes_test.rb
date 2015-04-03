@@ -28,6 +28,15 @@ class AttributesTest < Minitest::Test
     end
   end
 
+  def test_attribute_defined_destination
+    with_config({}) do
+      attributes = create_attributes
+      attributes.add(:foo, "bar", AttributeFilter::DST_ERROR_COLLECTOR)
+
+      assert_empty attributes.for_destination(AttributeFilter::DST_TRANSACTION_TRACER)
+    end
+  end
+
   MULTIBYTE_CHARACTER = "七"
 
   def test_truncates_multibyte_string

@@ -28,38 +28,42 @@ module NewRelic::Agent
       end
     end
 
-    def test_applies_to_single_destination
-      with_config(
-        :'transaction_tracer.attributes.enabled' => true,
-        :'transaction_events.attributes.enabled' => true,
-        :'error_collector.attributes.enabled' => true,
-        :'browser_monitoring.attributes.enabled' => true) do
-
+    def test_allows?
+      with_all_enabled do
         filter = AttributeFilter.new(NewRelic::Agent.config)
+        default_destination = AttributeFilter::DST_ALL
 
-        assert filter.applies?(:foo, AttributeFilter::DST_TRANSACTION_EVENTS)
-        assert filter.applies?(:foo, AttributeFilter::DST_TRANSACTION_TRACER)
-        assert filter.applies?(:foo, AttributeFilter::DST_ERROR_COLLECTOR)
-        assert filter.applies?(:foo, AttributeFilter::DST_BROWSER_MONITORING)
+        assert filter.allows?(default_destination, AttributeFilter::DST_TRANSACTION_EVENTS)
+        assert filter.allows?(default_destination, AttributeFilter::DST_TRANSACTION_TRACER)
+        assert filter.allows?(default_destination, AttributeFilter::DST_ERROR_COLLECTOR)
+        assert filter.allows?(default_destination, AttributeFilter::DST_BROWSER_MONITORING)
       end
     end
 
-    def test_applies_to_multiple_destinations
-      with_config(
-        :'transaction_tracer.attributes.enabled' => true,
-        :'transaction_events.attributes.enabled' => true,
-        :'error_collector.attributes.enabled' => true,
-        :'browser_monitoring.attributes.enabled' => false) do
-
+    def test_allows_with_restricted_default_destination
+      with_all_enabled do
         filter = AttributeFilter.new(NewRelic::Agent.config)
+        default_destination = AttributeFilter::DST_ERROR_COLLECTOR
 
-        assert filter.applies?(:foo,
-          AttributeFilter::DST_TRANSACTION_EVENTS |
-          AttributeFilter::DST_TRANSACTION_TRACER |
-          AttributeFilter::DST_ERROR_COLLECTOR
-        )
+        assert filter.allows?(default_destination, AttributeFilter::DST_ERROR_COLLECTOR)
 
-        refute filter.applies?(:foo, AttributeFilter::DST_ALL)
+        refute filter.allows?(default_destination, AttributeFilter::DST_TRANSACTION_EVENTS)
+        refute filter.allows?(default_destination, AttributeFilter::DST_TRANSACTION_TRACER)
+        refute filter.allows?(default_destination, AttributeFilter::DST_BROWSER_MONITORING)
+      end
+    end
+
+
+    def test_allows_with_multiple_default_destinations
+      with_all_enabled do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        default_destination = AttributeFilter::DST_ERROR_COLLECTOR|AttributeFilter::DST_TRANSACTION_TRACER
+
+        assert filter.allows?(default_destination, AttributeFilter::DST_ERROR_COLLECTOR)
+        assert filter.allows?(default_destination, AttributeFilter::DST_TRANSACTION_TRACER)
+
+        refute filter.allows?(default_destination, AttributeFilter::DST_TRANSACTION_EVENTS)
+        refute filter.allows?(default_destination, AttributeFilter::DST_BROWSER_MONITORING)
       end
     end
 
@@ -145,6 +149,16 @@ module NewRelic::Agent
       end
 
       bitfield
+    end
+
+    def with_all_enabled
+      with_config(
+        :'transaction_tracer.attributes.enabled' => true,
+        :'transaction_events.attributes.enabled' => true,
+        :'error_collector.attributes.enabled' => true,
+        :'browser_monitoring.attributes.enabled' => true) do
+        yield
+      end
     end
   end
 end
