@@ -49,7 +49,7 @@ class ResqueTest < Minitest::Test
       end
     end
 
-    NewRelic::Agent.instance.send(:transmit_data)
+    run_harvest
   end
 
   def test_all_jobs_ran

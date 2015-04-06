@@ -186,7 +186,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     with_config(CAPTURE_ATTRIBUTES => true) do
       in_transaction('most recent transaction') do
         NewRelic::Agent.add_custom_attributes(:user => "user")
-        NewRelic::Agent::Transaction.add_agent_attribute(:agent, "attribute")
+        NewRelic::Agent::Transaction.add_agent_attribute(:agent, "attribute", NewRelic::Agent::AttributeFilter::DST_ALL)
 
         state = NewRelic::Agent::TransactionState.tl_get
         data = instrumentor.data_for_js_agent(state)
