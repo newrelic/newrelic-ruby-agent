@@ -29,6 +29,14 @@
   If an application requires Rails but wasn't actually running it, the Ruby
   agent would fail during startup. This has been fixed.
 
+  * Use IO.select explicitly in the event loop
+
+  If an application adds their own select method to Object/Kernel or mixes in a
+  module that overrides the select method (as with ActionView::Helpers) we would
+  previously have used their implementation instead of the intended IO.select,
+  leading to all sorts of unusual errors. We now explicitly reference IO.select
+  in the event loop to avoid these issues.
+
   * Fix for background thread hangs on old Linux kernels
 
   When running under Ruby 1.8.7 on Linux kernel versions 2.6.11 and earlier,
