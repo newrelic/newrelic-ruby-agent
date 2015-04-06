@@ -2,6 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+# These tests are for confirming that our direct support Rack::URLMap works
+# properly. Tests against the builder interface more commonly used (i.e. map)
+# can be found elsewhere in this suite.
+
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
 class UrlMapTest < Minitest::Test
@@ -23,7 +27,6 @@ class UrlMapTest < Minitest::Test
 
   class MiddlewareOne   < SimpleMiddleware; end
   class MiddlewareTwo   < SimpleMiddleware; end
-  class MiddlewareThree < SimpleMiddleware; end
 
   class ExampleApp
     def call(env)
@@ -39,20 +42,9 @@ class UrlMapTest < Minitest::Test
       use MiddlewareOne
       use MiddlewareTwo
 
-      map '/prefix1' do
-        run PrefixAppOne.new
-      end
-
-      map '/prefix2' do
-        use MiddlewareThree
-        run PrefixAppTwo.new
-      end
-
-      # Rack versions prior to 1.4 did not support combining map and run at the
-      # top-level in the same Rack::Builder.
-      if Rack::VERSION[1] >= 4
-        run ExampleApp.new
-      end
+      run Rack::URLMap.new(
+        '/prefix1' => PrefixAppOne.new,
+        '/prefix2' => PrefixAppTwo.new)
     end
   end
 
@@ -69,10 +61,12 @@ class UrlMapTest < Minitest::Test
         'Apdex/Rack/UrlMapTest::ExampleApp/call',
         'Middleware/Rack/UrlMapTest::MiddlewareOne/call',
         'Middleware/Rack/UrlMapTest::MiddlewareTwo/call',
+        'Nested/Controller/Rack/Rack::URLMap/call',
         'Nested/Controller/Rack/UrlMapTest::ExampleApp/call',
         ['Middleware/Rack/UrlMapTest::MiddlewareOne/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
         ['Middleware/Rack/UrlMapTest::MiddlewareTwo/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
-        ['Nested/Controller/Rack/UrlMapTest::ExampleApp/call', 'Controller/Rack/UrlMapTest::ExampleApp/call']
+        ['Nested/Controller/Rack/UrlMapTest::ExampleApp/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
+        ['Nested/Controller/Rack/Rack::URLMap/call', 'Controller/Rack/UrlMapTest::ExampleApp/call']
       ])
     end
   end
@@ -89,9 +83,11 @@ class UrlMapTest < Minitest::Test
       'Apdex/Rack/UrlMapTest::PrefixAppOne/call',
       'Middleware/Rack/UrlMapTest::MiddlewareOne/call',
       'Middleware/Rack/UrlMapTest::MiddlewareTwo/call',
+      'Nested/Controller/Rack/Rack::URLMap/call',
       'Nested/Controller/Rack/UrlMapTest::PrefixAppOne/call',
       ['Middleware/Rack/UrlMapTest::MiddlewareOne/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
       ['Middleware/Rack/UrlMapTest::MiddlewareTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
+      ['Nested/Controller/Rack/Rack::URLMap/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
       ['Nested/Controller/Rack/UrlMapTest::PrefixAppOne/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call']
     ])
   end
@@ -108,11 +104,11 @@ class UrlMapTest < Minitest::Test
       'Apdex/Rack/UrlMapTest::PrefixAppTwo/call',
       'Middleware/Rack/UrlMapTest::MiddlewareOne/call',
       'Middleware/Rack/UrlMapTest::MiddlewareTwo/call',
-      'Middleware/Rack/UrlMapTest::MiddlewareThree/call',
+      'Nested/Controller/Rack/Rack::URLMap/call',
       'Nested/Controller/Rack/UrlMapTest::PrefixAppTwo/call',
       ['Middleware/Rack/UrlMapTest::MiddlewareOne/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
       ['Middleware/Rack/UrlMapTest::MiddlewareTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
-      ['Middleware/Rack/UrlMapTest::MiddlewareThree/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
+      ['Nested/Controller/Rack/Rack::URLMap/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
       ['Nested/Controller/Rack/UrlMapTest::PrefixAppTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call']
     ])
   end

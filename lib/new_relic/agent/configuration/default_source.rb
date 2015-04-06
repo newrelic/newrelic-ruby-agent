@@ -162,13 +162,10 @@ module NewRelic
           }
         end
 
-        def self.rules_ignore
-          Proc.new do |rules|
-            rules = convert_to_list(rules)
-
-            rules.map do |rule|
-              /#{rule}/
-            end
+        def self.convert_to_regexp_list(raw_value)
+          value_list = convert_to_list(raw_value)
+          value_list.map do |value|
+            /#{value}/
           end
         end
 
@@ -528,6 +525,13 @@ module NewRelic
           :public => true,
           :type => String,
           :description => 'Specifies a path to the audit log file (including the filename).'
+        },
+        :'audit_log.endpoints' => {
+          :default => [".*"],
+          :public => true,
+          :type => Array,
+          :transform => DefaultSource.method(:convert_to_regexp_list),
+          :description => 'List of allowed endpoints to include in audit log'
         },
         :disable_samplers => {
           :default => false,
@@ -1049,6 +1053,13 @@ module NewRelic
           :dynamic_name => true,
           :description  => 'Defines whether the agent will hook into Rack::Builder\'s <code>to_app</code> method to find gems to instrument during application startup.'
         },
+        :disable_rack_urlmap => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Defines whether the agent will hook into Rack::URLMap to install middleware tracing.'
+        },
         :disable_rubyprof => {
           :default      => false,
           :public       => true,
@@ -1123,7 +1134,7 @@ module NewRelic
           :default      => [],
           :public       => true,
           :type         => Array,
-          :transform    => DefaultSource.rules_ignore,
+          :transform    => DefaultSource.method(:convert_to_regexp_list),
           :description  => 'A list of patterns that will cause a transaction to be ignored if any of them match the URI.'
         },
         :'synthetics.traces_limit' => {

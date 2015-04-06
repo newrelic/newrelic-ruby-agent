@@ -114,6 +114,15 @@ module NewRelic
           result
         end
       end
+
+      module RackURLMap
+        def self.generate_traced_map(map)
+          map.inject({}) do |traced_map, (url, handler)|
+            traced_map[url] = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(handler, true)
+            traced_map
+          end
+        end
+      end
     end
   end
 end
@@ -148,6 +157,30 @@ DependencyDetection.defer do
         alias_method :use, :use_with_newrelic
       end
     end
+
   end
 end
 
+DependencyDetection.defer do
+  named :rack_urlmap
+
+  depends_on do
+    defined?(::Rack) && defined?(::Rack::URLMap)
+  end
+
+  depends_on do
+    ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled? &&
+      !::NewRelic::Agent.config[:disable_rack]
+  end
+
+  executes do
+    class ::Rack::URLMap
+      alias_method :initialize_without_newrelic, :initialize
+
+      def initialize(map = {})
+        traced_map = ::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map)
+        initialize_without_newrelic(traced_map)
+      end
+    end
+  end
+end

@@ -1,8 +1,26 @@
 # New Relic Ruby Agent Release Notes #
 
-## v3.11.1 ##
+## v3.11.2 ##
 
-  * Fix for segmentation fault with sequel_pg 1.6.11
+* Better naming for Rack::URLMap
+
+  If a Rack app made direct use of Rack::URLMap, instrumentation would miss
+  out on using the clearest naming based on the app class. This has been
+  fixed.
+
+* Avoid performance regression in makara database adapter
+
+  Delegation in the makara database adapter caused performance issues when the
+  agent looked up a connection in the pool.  The agent now uses a faster
+  lookup to work around this problem in makara, and allocates less as well.
+  Thanks Mike Nelson for the help in resolving this!
+
+* Fix for crash during startup when Rails required but not used
+
+  If an application requires Rails but wasn't actually running it, the Ruby
+  agent would fail during startup. This has been fixed.
+
+## v3.11.1 ##
 
   The Ruby agent incorrectly rescued exceptions at a point which caused
   sequel_pg 1.6.11 to segfault. This has been fixed. Thanks to Oldrich

@@ -80,8 +80,9 @@ module NewRelic::Agent::Configuration
       nil
     end
 
-    def test_transform_for_returns_a_proc_for_settings_with_a_transform
-      assert_equal Proc, DefaultSource.transform_for(:'rules.ignore_url_regexes').class
+    def test_transform_for_returns_something_callable
+      transform = DefaultSource.transform_for(:'rules.ignore_url_regexes')
+      assert transform.respond_to?(:call)
     end
 
     def test_transform_for_returns_nil_for_settings_that_do_not_have_a_transform

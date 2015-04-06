@@ -825,6 +825,18 @@ class NewRelicServiceTest < Minitest::Test
     ])
   end
 
+  def test_force_restart_clears_metric_cache
+    @service.metric_id_cache[1] = "boo"
+    @service.force_restart
+    assert_empty @service.metric_id_cache
+  end
+
+  def test_force_restart_closes_shared_connections
+    @service.establish_shared_connection
+    @service.force_restart
+    refute @service.has_shared_connection?
+  end
+
   def build_stats_hash(items={})
     hash = NewRelic::Agent::StatsHash.new
     items.each do |key, value|
