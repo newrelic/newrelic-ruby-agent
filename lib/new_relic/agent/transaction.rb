@@ -194,14 +194,12 @@ module NewRelic
 
       # If we have an active transaction, notice the error and increment the error metric.
       # Options:
-      # * <tt>:request</tt> => Request object to get the uri and referer
       # * <tt>:uri</tt> => The request path, minus any request params or query string.
       # * <tt>:metric</tt> => The metric name associated with the transaction
       # * <tt>:custom_params</tt> => Custom parameters
       # Anything left over is treated as custom params
 
       def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
-        options = extract_request_options(options)
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
         if txn
@@ -209,14 +207,6 @@ module NewRelic
         else
           NewRelic::Agent.instance.error_collector.notice_error(e, options)
         end
-      end
-
-      def self.extract_request_options(options)
-        req = options.delete(:request)
-        if req
-          options[:uri] = uri_from_request(req)
-        end
-        options
       end
 
       # Returns truthy if the current in-progress transaction is considered a
