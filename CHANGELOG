@@ -20,6 +20,12 @@
   If an application requires Rails but wasn't actually running it, the Ruby
   agent would fail during startup. This has been fixed.
 
+  * Fix for background thread hangs on old Linux kernels
+
+  When running under Ruby 1.8.7 on Linux kernel versions 2.6.11 and earlier,
+  the background thread used by the agent to report data would hang, leading
+  to no data being reported. This has been be fixed.
+
 ## v3.11.1 ##
 
   * Fix for segmentation fault with sequel_pg 1.6.11
