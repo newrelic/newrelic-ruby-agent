@@ -227,8 +227,6 @@ module NewRelic
       end
 
       EMPTY_STRING = ''.freeze
-      FILE_NAME    = 'file_name'.freeze
-      LINE_NUMBER  = 'line_number'.freeze
 
       def create_noticed_error(exception, options)
         error_metric = options.delete(:metric) || EMPTY_STRING
@@ -240,8 +238,8 @@ module NewRelic
         noticed_error.agent_attributes     = options.delete(:agent_attributes)
         noticed_error.intrinsic_attributes = options.delete(:intrinsic_attributes)
 
-        noticed_error.file_name   = sense_method(exception, FILE_NAME)
-        noticed_error.line_number = sense_method(exception, LINE_NUMBER)
+        noticed_error.file_name   = sense_method(exception, :file_name)
+        noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = extract_stack_trace(exception)
 
         # Old agents passed request_params in. With new attributes we don't
