@@ -12,8 +12,11 @@ module NewRelic
         COUNT_LIMIT = 64
 
         def add(key, value)
-          if @attributes.count >= COUNT_LIMIT
-            NewRelic::Agent.logger.warn("Custom attributes count exceeded limit of #{COUNT_LIMIT}. Additional custom attributes will be dropped.")
+          if @attributes.size >= COUNT_LIMIT
+            unless @already_warned_count_limit
+              NewRelic::Agent.logger.warn("Custom attributes count exceeded limit of #{COUNT_LIMIT}. Any additional custom attributes during this transaction will be dropped.")
+              @already_warned_count_limit = true
+            end
             return
           end
 

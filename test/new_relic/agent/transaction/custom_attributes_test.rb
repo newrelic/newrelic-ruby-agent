@@ -75,6 +75,8 @@ class NewRelic::Agent::Transaction
     end
 
     def test_limits_attribute_count
+      ::NewRelic::Agent.logger.expects(:warn).once
+
       100.times do |i|
         @attributes.add(i.to_s, i)
       end
