@@ -466,7 +466,7 @@ module NewRelic
         },
         :'resque.use_harvest_lock' => {
           :default => false,
-          :public => true,
+          :public => false,
           :type => Boolean,
           :description => 'Enable or disable synchronizing Resque job forking with New Relic\'s harvest thread. The default is <code>false</code>. This helps prevent Resque jobs from deadlocking, but prevents New Relic from starting new jobs during harvest.'
         },
