@@ -54,11 +54,6 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code
 
-      # Give the current transaction a request context.  Use this to
-      # get the URI and referer.  The request is interpreted loosely
-      # as a Rack::Request or an ActionController::AbstractRequest.
-      attr_accessor :request
-
       attr_reader :guid,
                   :metrics,
                   :gc_start_snapshot,
@@ -67,7 +62,10 @@ module NewRelic
                   :cat_path_hashes,
                   :custom_attributes,
                   :agent_attributes,
-                  :intrinsic_attributes
+                  :intrinsic_attributes,
+                  :request,
+                  :uri,
+                  :referer
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -194,7 +192,6 @@ module NewRelic
 
       # If we have an active transaction, notice the error and increment the error metric.
       # Options:
-      # * <tt>:uri</tt> => The request path, minus any request params or query string.
       # * <tt>:metric</tt> => The metric name associated with the transaction
       # * <tt>:custom_params</tt> => Custom parameters
       # Anything left over is treated as custom params
@@ -308,6 +305,11 @@ module NewRelic
         @intrinsic_attributes = IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
+
+        if @request
+          @uri = self.class.uri_from_request(@request)
+          @referer = self.class.referer_from_request(@request)
+        end
       end
 
       # This transaction-local hash may be used as temprory storage by
@@ -453,16 +455,6 @@ module NewRelic
 
         frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
         name_last_frame @default_name
-      end
-
-      # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
-      def uri
-        @uri ||= self.class.uri_from_request(@request) unless @request.nil?
-      end
-
-      # For the current web transaction, return the full referer, minus the host string, or nil.
-      def referer
-        @referer ||= self.class.referer_from_request(@request)
       end
 
       # Call this to ensure that the current transaction is not saved

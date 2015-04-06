@@ -535,7 +535,6 @@ module NewRelic
     # * <tt>exception</tt> is the exception which will be recorded.  May also be
     #   an error message.
     # Options:
-    # * <tt>:uri</tt> => The request path, minus any request params or query string.
     # * <tt>:metric</tt> => The metric name associated with the transaction
     # * <tt>:custom_params</tt> => Custom parameters
     #
