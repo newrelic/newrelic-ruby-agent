@@ -537,7 +537,6 @@ module NewRelic
     # Options:
     # * <tt>:uri</tt> => The request path, minus any request params or query string.
     # * <tt>:metric</tt> => The metric name associated with the transaction
-    # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
     # * <tt>:custom_params</tt> => Custom parameters
     #
     # Anything left over is treated as custom params.
