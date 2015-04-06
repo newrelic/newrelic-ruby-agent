@@ -115,7 +115,7 @@ module NewRelic
 
       def wait_to_run(nonblock)
         timeout = nonblock ? 0 : next_timeout
-        ready = select([@self_pipe_rd], nil, nil, timeout)
+        ready = IO.select([@self_pipe_rd], nil, nil, timeout)
 
         if ready && ready[0] && ready[0][0] && ready[0][0] == @self_pipe_rd
           @self_pipe_rd.read(1)
@@ -182,7 +182,11 @@ module NewRelic
       end
 
       def wakeup
-        @self_pipe_wr << '.'
+        begin
+          @self_pipe_wr.write_nonblock '.'
+        rescue Errno::EAGAIN
+          ::NewRelic::Agent.logger.debug "Failed to wakeup event loop"
+        end
       end
     end
   end

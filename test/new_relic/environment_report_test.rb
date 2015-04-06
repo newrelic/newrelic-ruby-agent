@@ -59,6 +59,10 @@ class EnvironmentReportTest < Minitest::Test
     assert_equal RUBY_VERSION, @report['Ruby version']
   end
 
+  def test_gathers_openssl_version
+    refute_nil @report['OpenSSL version']
+  end
+
   def test_gathers_system_info
     NewRelic::Agent::SystemInfo.stubs({
       :num_logical_processors => 8,
@@ -95,6 +99,7 @@ class EnvironmentReportTest < Minitest::Test
       'Rails Env',
       'Rails version',
       'Rails threadsafe',
+      'OpenSSL version',
     ].each do |key|
       assert NewRelic::EnvironmentReport.registered_reporters.has_key?(key), "Expected logic for #{key.inspect} in EnvironmentReport."
     end
