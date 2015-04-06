@@ -56,7 +56,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     err = errors.first
     assert_equal 'Some error message', err.message
-    assert_equal '', err.params[:request_uri]
+    assert_equal '', err.request_uri
     assert_equal 'path', err.path
     assert_equal 'Error', err.exception_class_name
   end
@@ -72,7 +72,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     err = errors.first
     assert_equal 'message', err.message
-    assert_equal '/myurl/', err.params[:request_uri]
+    assert_equal '/myurl/', err.request_uri
     assert_equal 'path', err.path
     assert_equal 'StandardError', err.exception_class_name
 
@@ -89,8 +89,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     errors = @error_collector.harvest!
 
-    err = errors.first
-    assert_nil err.params[:request_params]
+    assert_empty errors.first.custom_params
   end
 
   def test_long_message
@@ -145,8 +144,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     errors = @error_collector.harvest!
     assert errors.length == max_q_length
     errors.each_index do |i|
-      err = errors.shift
-      assert_equal i.to_s, err.params[:custom_params][:x], err.params.inspect
+      error  = errors.shift
+      actual = error.to_collector_array.last["userAttributes"]["x"]
+      assert_equal i.to_s, actual
     end
   end
 
@@ -161,7 +161,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     types = [[1, '1'],
     [1.1, '1.1'],
     ['hi', 'hi'],
-    [:hi, :hi],
+    [:hi, 'hi'],
     [StandardError.new("test"), "#<StandardError>"],
     [TestClass.new, "#<NewRelic::Agent::ErrorCollectorTest::TestClass>"]
     ]
@@ -170,7 +170,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
       @error_collector.notice_error(StandardError.new("message"),
                                     :metric => 'path',
                                     :custom_params => {:x => test[0]})
-      assert_equal test[1], @error_collector.harvest![0].params[:custom_params][:x]
+      error = @error_collector.harvest![0].to_collector_array
+      actual = error.last["userAttributes"]["x"]
+      assert_equal test[1], actual
     end
   end
 
@@ -325,8 +327,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     err = @error_collector.errors.first
     assert_equal "NewRelic/AgentError", err.path
-    assert_kind_of Hash, err.params
-    refute_nil err.params[:stack_trace]
+    refute_nil err.stack_trace
   end
 
   def test_notice_agent_error_uses_exception_backtrace_if_present
@@ -335,7 +336,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     exception.set_backtrace(trace)
     @error_collector.notice_agent_error(exception)
 
-    assert_equal trace, @error_collector.errors.first.params[:stack_trace]
+    assert_equal trace, @error_collector.errors.first.stack_trace
   end
 
   def test_notice_agent_error_uses_caller_if_no_exception_backtrace
@@ -343,7 +344,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     exception.set_backtrace(nil)
     @error_collector.notice_agent_error(exception)
 
-    trace = @error_collector.errors.first.params[:stack_trace]
+    trace = @error_collector.errors.first.stack_trace
     assert trace.any? {|line| line.include?(__FILE__)}
   end
 
@@ -448,13 +449,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal intrinsic_attributes, noticed.intrinsic_attributes
   end
 
-  def test_error_params_from_options_mocked
-    options = {:initial => 'options'}
-    @error_collector.expects(:uri_ref_and_root).returns({:hi => 'there', :hello => 'bad'})
-    @error_collector.expects(:normalized_request_and_custom_params).with({:initial => 'options'}).returns({:hello => 'world'})
-    assert_equal({:hi => 'there', :hello => 'world'}, @error_collector.error_params_from_options(options))
-  end
-
   module Winner
     def winner
       'yay'
@@ -466,51 +460,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     object.extend(Winner)
     assert_equal nil,   @error_collector.sense_method(object, 'blab')
     assert_equal 'yay', @error_collector.sense_method(object, 'winner')
-  end
-
-  def test_fetch_from_options
-    options = {:hello => 'world'}
-    assert_equal 'world', @error_collector.fetch_from_options(options, :hello, '')
-    assert_equal '', @error_collector.fetch_from_options(options, :none, '')
-    assert_empty options
-  end
-
-  def test_uri_ref_and_root_default
-    NewRelic::Control.instance.stubs(:root).returns('rootbeer')
-
-    options = {}
-
-    assert_equal({:rails_root => 'rootbeer', :request_uri => ''},
-                 @error_collector.uri_ref_and_root(options))
-  end
-
-  def test_uri_ref_and_root_values
-    NewRelic::Control.instance.stubs(:root).returns('rootbeer')
-
-    options = {:uri => 'whee'}
-
-    expected = {:rails_root => 'rootbeer', :request_uri => 'whee'}
-    assert_equal expected, @error_collector.uri_ref_and_root(options)
-  end
-
-  def test_custom_params_from_opts_base
-    assert_equal({}, @error_collector.custom_params_from_opts({}))
-  end
-
-  def test_custom_params_from_opts_custom_params
-    assert_equal({:foo => 'bar'}, @error_collector.custom_params_from_opts({:custom_params => {:foo => 'bar'}}))
-  end
-
-  def test_custom_params_from_opts_merged_params
-    assert_equal({:foo => 'baz'}, @error_collector.custom_params_from_opts({:custom_params => {:foo => 'bar'}, :foo => 'baz'}))
-  end
-
-  def test_normalized_request_and_custom_params_base
-    with_config(:capture_params => true) do
-      normalized = @error_collector.normalized_request_and_custom_params({})
-      assert_nil   normalized[:request_params]
-      assert_empty normalized[:custom_params]
-    end
   end
 
   def test_extract_stack_trace
@@ -538,14 +487,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     end
 
     assert @error_collector.over_queue_limit?('hooray')
-  end
-
-  def test_exception_info
-    exception = mock('exception', :file_name   => 'file_name',
-                                  :line_number => 'line_number',
-                                  :backtrace   => 'stack_trace')
-    assert_equal({:file_name => 'file_name', :line_number => 'line_number', :stack_trace => 'stack_trace'},
-                 @error_collector.exception_info(exception))
   end
 
   def test_skip_notice_error_is_true_if_the_error_collector_is_disabled

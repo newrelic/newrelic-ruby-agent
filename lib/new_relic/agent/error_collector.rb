@@ -165,51 +165,7 @@ module NewRelic
           seen?(state.current_transaction, exception)
       end
 
-      # acts just like Hash#fetch, but deletes the key from the hash
-      def fetch_from_options(options, key, default=nil)
-        options.delete(key) || default
-      end
-
-      # returns some basic option defaults pulled from the provided
-      # options hash
-      def uri_ref_and_root(options)
-        {
-          :request_uri => fetch_from_options(options, :uri, ''),
-          :rails_root => NewRelic::Control.instance.root
-        }
-      end
-
-      # If anything else is left over, we treat it like a custom param
-      def custom_params_from_opts(options)
-        fetch_from_options(options, :custom_params, {}).merge(options)
-      end
-
       DEPRECATED_REQUEST_PARAMS_MSG = "Passing :request_params to notice_error is no longer supported. Associate a request with the enclosing transaction, or record them as custom attributes instead."
-
-      # normalizes the request and custom parameters before attaching
-      # them to the error. See NewRelic::CollectionHelper#normalize_params
-      def normalized_request_and_custom_params(options)
-        # Old agents passed request_params in. With new attributes we don't want
-        # that, so if anyone happens to call notices with that key, ignore it.
-        if options.include?(:request_params)
-          NewRelic::Agent.logger.warn(DEPRECATED_REQUEST_PARAMS_MSG)
-          options.delete(:request_params)
-        end
-
-        {
-          :custom_attributes    => options.delete(:custom_attributes),
-          :agent_attributes     => options.delete(:agent_attributes),
-          :intrinsic_attributes => options.delete(:intrinsic_attributes),
-
-          :custom_params  => normalize_params(custom_params_from_opts(options))
-        }
-      end
-
-      # Merges together many of the options into something that can
-      # actually be attached to the error
-      def error_params_from_options(options)
-        uri_ref_and_root(options).merge(normalized_request_and_custom_params(options))
-      end
 
       # calls a method on an object, if it responds to it - used for
       # detection and soft fail-safe. Returns nil if the method does
@@ -222,17 +178,6 @@ module NewRelic
       def extract_stack_trace(exception)
         actual_exception = sense_method(exception, 'original_exception') || exception
         sense_method(actual_exception, 'backtrace') || '<no stack trace>'
-      end
-
-      # extracts a bunch of information from the exception to include
-      # in the noticed error - some may or may not be available, but
-      # we try to include all of it
-      def exception_info(exception)
-        {
-          :file_name => sense_method(exception, 'file_name'),
-          :line_number => sense_method(exception, 'line_number'),
-          :stack_trace => extract_stack_trace(exception)
-        }
       end
 
       # checks the size of the error queue to make sure we are under
@@ -253,7 +198,6 @@ module NewRelic
           end
         end
       end
-
 
       # Notice the error with the given available options:
       #
@@ -276,13 +220,42 @@ module NewRelic
         increment_error_count!(state, exception, options)
         NewRelic::Agent.instance.events.notify(:notice_error, exception, options)
 
-        action_path       = fetch_from_options(options, :metric, "")
-        exception_options = error_params_from_options(options).merge(exception_info(exception))
-        add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))
-
+        add_to_error_queue(create_noticed_error(exception, options))
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)
+      end
+
+      EMPTY_STRING = ''.freeze
+
+      def create_noticed_error(exception, options)
+        error_metric = options.delete(:metric) || EMPTY_STRING
+
+        noticed_error = NewRelic::NoticedError.new(error_metric, exception)
+        noticed_error.request_uri = options.delete(:uri) || EMPTY_STRING
+
+        noticed_error.custom_attributes    = options.delete(:custom_attributes)
+        noticed_error.agent_attributes     = options.delete(:agent_attributes)
+        noticed_error.intrinsic_attributes = options.delete(:intrinsic_attributes)
+
+        noticed_error.file_name   = sense_method(exception, :file_name)
+        noticed_error.line_number = sense_method(exception, :line_number)
+        noticed_error.stack_trace = extract_stack_trace(exception)
+
+        # Old agents passed request_params in. With new attributes we don't
+        # want that, so make sure it's stricken from custom parameters.
+        if options.include?(:request_params)
+          NewRelic::Agent.logger.warn(DEPRECATED_REQUEST_PARAMS_MSG)
+          options.delete(:request_params)
+        end
+
+        noticed_error.custom_params = options.delete(:custom_params) || {}
+
+        # Any options that are passed to notice_error which aren't known keys
+        # get treated as custom attributes, so merge them into that hash.
+        noticed_error.custom_params.merge!(options)
+
+        noticed_error
       end
 
       # *Use sparingly for difficult to track bugs.*
@@ -305,9 +278,8 @@ module NewRelic
           return if @errors.any? { |err| err.exception_class_name == exception.class.name }
 
           trace = exception.backtrace || caller.dup
-          noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError",
-                                                     {:stack_trace => trace},
-                                                     exception)
+          noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError", exception)
+          noticed_error.stack_trace = trace
           @errors << noticed_error
         end
       rescue => e

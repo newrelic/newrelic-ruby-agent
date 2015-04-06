@@ -730,7 +730,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
     error = NewRelic::Agent.instance.error_collector.errors.first
-    assert_equal "/here",  error.params[:request_uri]
+    assert_equal "/here",  error.request_uri
   end
 
   def test_records_gc_time

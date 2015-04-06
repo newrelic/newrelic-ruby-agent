@@ -66,7 +66,7 @@ module NewRelic::Rack
         end
 
         assert_equal('unhandled error', last_error.message)
-        assert_equal('/foo/bar', last_error.params[:request_uri])
+        assert_equal('/foo/bar', last_error.request_uri)
       end
     end
 

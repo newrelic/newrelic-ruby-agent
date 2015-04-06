@@ -18,26 +18,23 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     @agent_attributes  = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @intrinsic_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
-    @params = {
-      'key' => 'val',
-      :custom_params => { :user => 'params' },
-
-      :custom_attributes    => @custom_attributes,
-      :agent_attributes     => @agent_attributes,
-      :intrinsic_attributes => @intrinsic_attributes
-    }
+    @custom_params = { :user => 'params' }
   end
 
   def test_to_collector_array
     e = TestError.new('test exception')
-    error = NewRelic::NoticedError.new(@path, @params, e, @time)
+
+    error = create_error(e)
+    error.request_uri = "http://com.google"
+    error.custom_params = @custom_params
+
     expected = [
       (@time.to_f * 1000).round,
       @path,
       'test exception',
       'NewRelic::TestHelpers::Exceptions::TestError',
       {
-        'key' => 'val',
+        :request_uri      => 'http://com.google',
         'userAttributes'  => { 'user' => 'params' },
         'agentAttributes' => {},
         'intrinsics'      => {}
@@ -49,11 +46,12 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_to_collector_array_merges_custom_attributes_and_params
     e = TestError.new('test exception')
     @custom_attributes.add(:custom, "attribute")
-    error = NewRelic::NoticedError.new(@path, @params, e, @time)
+
+    error = create_error(e)
+    error.custom_params = @custom_params
 
     actual = extract_attributes(error)
     expected = {
-      'key'    => 'val',
       'userAttributes' => {
         'user'   => 'params',
         'custom' => 'attribute'
@@ -68,7 +66,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_to_collector_array_includes_agent_attributes
     e = TestError.new('test exception')
     @agent_attributes.add(:agent, "attribute")
-    error = NewRelic::NoticedError.new(@path, @params, e, @time)
+    error = create_error(e)
 
     actual = extract_attributes(error)
     assert_equal({"agent" => "attribute"}, actual["agentAttributes"])
@@ -77,15 +75,14 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_to_collector_array_includes_intrinsic_attributes
     e = TestError.new('test exception')
     @intrinsic_attributes.add(:intrinsic, "attribute")
-    error = NewRelic::NoticedError.new(@path, @params, e, @time)
+    error = create_error(e)
 
     actual = extract_attributes(error)
     assert_equal({"intrinsic" => "attribute"}, actual["intrinsics"])
   end
 
   def test_to_collector_array_happy_without_attribute_collections
-    params = {}
-    error = NewRelic::NoticedError.new(@path, params, "BOOM")
+    error = NewRelic::NoticedError.new(@path, "BOOM")
 
     expected = [
       (@time.to_f * 1000).round,
@@ -102,15 +99,14 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   end
 
   def test_to_collector_array_with_bad_values
-    error = NewRelic::NoticedError.new(@path, @params, nil, Rational(10, 1))
+    error = NewRelic::NoticedError.new(@path, nil, Rational(10, 1))
     expected = [
       10_000.0,
       @path,
       "<no message>",
       "Error",
       {
-        'key' => 'val',
-        'userAttributes'  => { 'user' => 'params' },
+        'userAttributes'  => {},
         'agentAttributes' => {},
         'intrinsics'      => {}
       }
@@ -120,14 +116,14 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_handles_non_string_exception_messages
     e = Exception.new({ :non => :string })
-    error = NewRelic::NoticedError.new(@path, @params, e, @time)
+    error = NewRelic::NoticedError.new(@path, e, @time)
     assert_equal(String, error.message.class)
   end
 
   def test_strips_message_from_exceptions_in_high_security_mode
     with_config(:high_security => true) do
       e = TestError.new('test exception')
-      error = NewRelic::NoticedError.new(@path, @params, e, @time)
+      error = NewRelic::NoticedError.new(@path, e, @time)
 
       assert_equal NewRelic::NoticedError::STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE, error.message
     end
@@ -136,7 +132,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_permits_messages_from_whitelisted_exceptions_in_high_security_mode
     with_config(:'strip_exception_messages.whitelist' => 'NewRelic::TestHelpers::Exceptions::TestError') do
       e = TestError.new('whitelisted test exception')
-      error = NewRelic::NoticedError.new(@path, @params, e, @time)
+      error = NewRelic::NoticedError.new(@path, e, @time)
 
       assert_equal 'whitelisted test exception', error.message
     end
@@ -175,24 +171,16 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_handles_exception_with_nil_original_exception
     e = Exception.new('Buffy FOREVER')
     e.stubs(:original_exception).returns(nil)
-    error = NewRelic::NoticedError.new(@path, @params, e, @time)
+    error = NewRelic::NoticedError.new(@path, e, @time)
     assert_equal(error.message.to_s, 'Buffy FOREVER')
   end
 
-  def test_pulls_out_attributes_from_incoming_data
-    params = {
-      :custom_attributes    => @custom_attributes,
-      :agent_attributes     => @agent_attributes,
-      :intrinsic_attributes => @intrinsic_attributes,
-    }
-
-    error = NewRelic::NoticedError.new(@path, params, Exception.new("O_o"))
-
-    assert_empty error.params
-
-    assert_equal @custom_attributes, error.custom_attributes
-    assert_equal @agent_attributes, error.agent_attributes
-    assert_equal @intrinsic_attributes, error.intrinsic_attributes
+  def create_error(exception = StandardError.new)
+    noticed_error = NewRelic::NoticedError.new(@path, exception, @time)
+    noticed_error.custom_attributes = @custom_attributes
+    noticed_error.agent_attributes = @agent_attributes
+    noticed_error.intrinsic_attributes = @intrinsic_attributes
+    noticed_error
   end
 
   def test_intrinsics_always_get_sent
@@ -200,8 +188,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       intrinsic_attributes = NewRelic::Agent::Transaction::IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
       intrinsic_attributes.add(:intrinsic, "attribute")
 
-      params = { :intrinsic_attributes => intrinsic_attributes }
-      error = NewRelic::NoticedError.new(@path, params, Exception.new("O_o"))
+      error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
+      error.intrinsic_attributes = intrinsic_attributes
 
       serialized_attributes = extract_attributes(error)
       assert_equal({ "intrinsic" => "attribute" }, serialized_attributes["intrinsics"])
