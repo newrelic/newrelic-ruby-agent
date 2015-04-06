@@ -235,7 +235,6 @@ module NewRelic
 
         noticed_error = NewRelic::NoticedError.new(error_metric, exception)
         noticed_error.request_uri = options.delete(:uri) || EMPTY_STRING
-        noticed_error.rails_root  = NewRelic::Control.instance.root
 
         noticed_error.custom_attributes    = options.delete(:custom_attributes)
         noticed_error.agent_attributes     = options.delete(:agent_attributes)
