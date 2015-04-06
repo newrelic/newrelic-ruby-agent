@@ -202,7 +202,6 @@ module NewRelic
       # Notice the error with the given available options:
       #
       # * <tt>:uri</tt> => Request path, minus request params or query string
-      # * <tt>:referer</tt> => The URI of the referer
       # * <tt>:metric</tt> => The metric name associated with the transaction
       # * <tt>:custom_params</tt> => Custom parameters
       #

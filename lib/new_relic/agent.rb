@@ -536,7 +536,6 @@ module NewRelic
     #   an error message.
     # Options:
     # * <tt>:uri</tt> => The request path, minus any request params or query string.
-    # * <tt>:referer</tt> => The URI of the referer
     # * <tt>:metric</tt> => The metric name associated with the transaction
     # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
     # * <tt>:custom_params</tt> => Custom parameters

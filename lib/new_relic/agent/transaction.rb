@@ -196,7 +196,6 @@ module NewRelic
       # Options:
       # * <tt>:request</tt> => Request object to get the uri and referer
       # * <tt>:uri</tt> => The request path, minus any request params or query string.
-      # * <tt>:referer</tt> => The URI of the referer
       # * <tt>:metric</tt> => The metric name associated with the transaction
       # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
       # * <tt>:custom_params</tt> => Custom parameters
@@ -216,8 +215,7 @@ module NewRelic
       def self.extract_request_options(options)
         req = options.delete(:request)
         if req
-          options[:uri]     = uri_from_request(req)
-          options[:referer] = referer_from_request(req)
+          options[:uri] = uri_from_request(req)
         end
         options
       end
