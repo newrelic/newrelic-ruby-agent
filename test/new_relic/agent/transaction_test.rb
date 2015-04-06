@@ -1327,7 +1327,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_adding_agent_attributes
     with_config(:'transaction_tracer.attributes.enabled' => true) do
       in_transaction do |txn|
-        txn.agent_attributes.add(:foo, "bar")
+        txn.add_agent_attribute(:foo, "bar", NewRelic::Agent::AttributeFilter::DST_ALL)
         actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
         assert_equal({:foo => "bar"}, actual)
       end

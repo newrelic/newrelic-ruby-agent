@@ -273,6 +273,10 @@ module NewRelic
         end
       end
 
+      def add_agent_attribute(key, value, default_destination)
+        @agent_attributes.add(key, value, default_destination)
+      end
+
       @@java_classes_loaded = false
 
       if defined? JRuby
@@ -640,7 +644,10 @@ module NewRelic
       end
 
       def http_response_code=(code)
-        @agent_attributes.add(:httpResponseCode, code)
+        add_agent_attribute(:httpResponseCode, code,
+                            NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER|
+                            NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS|
+                            NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
       end
 
       def include_guid?(state, duration)

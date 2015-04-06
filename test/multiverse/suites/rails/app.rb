@@ -16,18 +16,8 @@ elsif !defined?(RAILS_ROOT)
 end
 
 class RailsMultiverseTest
-  def single_error_posted
-    NewRelic::Agent.instance.send(:transmit_data)
-
-    # If we don't just have a single post with a single error, ordering might
-    # foul the test so just throw your hands up
-    assert_equal 1, $collector.calls_for("error_data").length
-    assert_equal 1, $collector.calls_for("error_data").first.errors.length
-
-    $collector.calls_for("error_data").first.errors.first
-  end
-
   def attributes_for_single_error_posted(key)
+    run_harvest
     single_error_posted.params[key]
   end
 
