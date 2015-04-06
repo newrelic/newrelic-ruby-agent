@@ -587,7 +587,7 @@ module NewRelic
 
       def assign_agent_attributes
         if refer = referer
-          agent_attributes.add(:'request.headers.referer', refer)
+          add_agent_attribute(:'request.headers.referer', refer, NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
         end
       end
 

@@ -17,7 +17,19 @@ class AgentAttributesTest < Minitest::Test
     assert_event_has_agent_attribute("httpResponseCode", 418)
     assert_error_has_agent_attribute("httpResponseCode", 418)
 
-    refute_browser_monitoring_has_agent_attributes
+    refute_browser_monitoring_has_agent_attribute("httpResponseCode")
+  end
+
+  def test_request_headers_referer_default_destinations
+    run_transaction do |txn|
+      txn.request = stub(:referer => "referrer")
+    end
+
+    assert_error_has_agent_attribute("request.headers.referer", "referrer")
+
+    refute_transaction_trace_has_agent_attribute("request.headers.referer")
+    refute_event_has_agent_attribute("request.headers.referer")
+    refute_browser_monitoring_has_agent_attribute("request.headers.referer")
   end
 
   def test_request_parameters_default_destinations_without_capture_params
@@ -28,7 +40,7 @@ class AgentAttributesTest < Minitest::Test
     refute_transaction_trace_has_agent_attribute("request.parameters.duly")
     refute_event_has_agent_attribute("request.parameters.duly")
     refute_error_has_agent_attribute("request.parameters.duly")
-    refute_browser_monitoring_has_agent_attributes
+    refute_browser_monitoring_has_agent_attribute("request.parameters.duly")
   end
 
   def test_request_parameters_default_destinations_with_capture_params
@@ -40,7 +52,7 @@ class AgentAttributesTest < Minitest::Test
     assert_error_has_agent_attribute("request.parameters.duly", "noted")
 
     refute_event_has_agent_attribute("request.parameters.duly")
-    refute_browser_monitoring_has_agent_attributes
+    refute_browser_monitoring_has_agent_attribute("request.parameters.duly")
   end
 
   def run_transaction(config = {})
@@ -87,7 +99,6 @@ class AgentAttributesTest < Minitest::Test
     assert_equal expected, single_error_posted.params["agentAttributes"][attribute]
   end
 
-
   def refute_transaction_trace_has_agent_attribute(attribute)
     # TODO: Implement once we've updated TT's with attributes!
   end
@@ -100,7 +111,7 @@ class AgentAttributesTest < Minitest::Test
     refute_includes single_error_posted.params["agentAttributes"], attribute
   end
 
-  def refute_browser_monitoring_has_agent_attributes
+  def refute_browser_monitoring_has_agent_attribute(_)
     refute_includes @js_data, "atts"
   end
 end
