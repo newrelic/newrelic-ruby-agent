@@ -20,13 +20,39 @@ class AgentAttributesTest < Minitest::Test
     refute_browser_monitoring_has_agent_attributes
   end
 
-  def run_transaction
+  def test_request_parameters_default_destinations_without_capture_params
+    run_transaction(:capture_params => false) do |txn|
+      txn.merge_request_parameters(:duly => "noted")
+    end
+
+    refute_transaction_trace_has_agent_attribute("request.parameters.duly")
+    refute_event_has_agent_attribute("request.parameters.duly")
+    refute_error_has_agent_attribute("request.parameters.duly")
+    refute_browser_monitoring_has_agent_attributes
+  end
+
+  def test_request_parameters_default_destinations_with_capture_params
+    run_transaction(:capture_params => true) do |txn|
+      txn.merge_request_parameters(:duly => "noted")
+    end
+
+    assert_transaction_trace_has_agent_attribute("request.parameters.duly", "noted")
+    assert_error_has_agent_attribute("request.parameters.duly", "noted")
+
+    refute_event_has_agent_attribute("request.parameters.duly")
+    refute_browser_monitoring_has_agent_attributes
+  end
+
+  def run_transaction(config = {})
+    default_config = {
+      :'transaction_tracer.attributes.enabled' => true,
+      :'transaction_events.attributes.enabled' => true,
+      :'error_collector.attributes.enabled'    => true,
+      :'browser_monitoring.attributes.enabled' => true
+    }
+
     assert_raises(RuntimeError) do
-      with_config(
-        :'transaction_tracer.attributes.enabled' => true,
-        :'transaction_events.attributes.enabled' => true,
-        :'error_collector.attributes.enabled'    => true,
-        :'browser_monitoring.attributes.enabled' => true) do
+      with_config(default_config.merge(config)) do
         in_transaction do |txn|
           yield(txn)
 
@@ -59,6 +85,19 @@ class AgentAttributesTest < Minitest::Test
 
   def assert_error_has_agent_attribute(attribute, expected)
     assert_equal expected, single_error_posted.params["agentAttributes"][attribute]
+  end
+
+
+  def refute_transaction_trace_has_agent_attribute(attribute)
+    # TODO: Implement once we've updated TT's with attributes!
+  end
+
+  def refute_event_has_agent_attribute(attribute)
+    refute_includes single_event_posted.last, attribute
+  end
+
+  def refute_error_has_agent_attribute(attribute)
+    refute_includes single_error_posted.params["agentAttributes"], attribute
   end
 
   def refute_browser_monitoring_has_agent_attributes
