@@ -7,6 +7,7 @@ require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/transaction/custom_attributes'
 require 'new_relic/agent/transaction/intrinsic_attributes'
 
 module NewRelic
@@ -310,7 +311,7 @@ module NewRelic
         @ignore_apdex = false
         @ignore_enduser = false
 
-        @custom_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        @custom_attributes = CustomAttributes.new(NewRelic::Agent.instance.attribute_filter)
         @agent_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
         @intrinsic_attributes = IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
 
@@ -360,10 +361,18 @@ module NewRelic
         set_default_transaction_name(options[:transaction_name], category)
       end
 
+      # Can't check length (on 1.8.7) or bytesize (on any version) against
+      # Symbol, so check bytesize on string portion used to build the key
+      REQUEST_KEY_LIMIT = NewRelic::Agent::Transaction::Attributes::KEY_LIMIT - "request.parameters.".bytesize
+
       def merge_request_parameters(params)
         params.each_pair do |k, v|
           normalized_key = EncodingNormalizer.normalize_string(k.to_s)
-          @agent_attributes.add(:"request.parameters.#{normalized_key}", v)
+          if normalized_key.bytesize > REQUEST_KEY_LIMIT
+            NewRelic::Agent.logger.debug("Request parameter request.parameters.#{normalized_key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
+          else
+            @agent_attributes.add(:"request.parameters.#{normalized_key}", v)
+          end
         end
       end
 
@@ -631,7 +640,7 @@ module NewRelic
       end
 
       def http_response_code=(code)
-        @agent_attributes[:httpResponseCode] = code
+        @agent_attributes.add(:httpResponseCode, code)
       end
 
       def include_guid?(state, duration)

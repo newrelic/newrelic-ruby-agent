@@ -71,18 +71,5 @@ module NewRelic
     def self.normalize(o)
       NewRelic::Agent::EncodingNormalizer.normalize_object(o)
     end
-
-    def self.supports_normalization?
-      NewRelic::LanguageSupport.supports_string_encodings?
-    end
-
-    def self.dump(object, options={})
-      object = normalize(object) if options[:normalize]
-      @dump_method.call(object)
-    end
-
-    def self.load(string)
-      @load_method.call(string)
-    end
   end
 end
