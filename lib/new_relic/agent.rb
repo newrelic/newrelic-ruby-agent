@@ -77,7 +77,6 @@ module NewRelic
     require 'new_relic/metric_data'
     require 'new_relic/collection_helper'
     require 'new_relic/transaction_sample'
-    require 'new_relic/url_rule'
     require 'new_relic/noticed_error'
     require 'new_relic/timer_lib'
 
