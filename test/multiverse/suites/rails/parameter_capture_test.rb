@@ -57,7 +57,7 @@ class ParameterCaptureTest < RailsMultiverseTest
     end
   end
 
-  def test_uri_on_traced_errors_never_contains_query_string_with
+  def test_uri_on_traced_errors_never_contains_query_string_with_capture_params
     with_config(:capture_params => true) do
       get '/parameter_capture/error?other=1234&secret=4567'
       assert_equal('/parameter_capture/error', single_error_posted.params["request_uri"])
