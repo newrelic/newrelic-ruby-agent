@@ -231,9 +231,9 @@ module NewRelic
       LINE_NUMBER  = 'line_number'.freeze
 
       def create_noticed_error(exception, options)
-        action_path = options.delete(:metric) || EMPTY_STRING
+        error_metric = options.delete(:metric) || EMPTY_STRING
 
-        noticed_error = NewRelic::NoticedError.new(action_path, exception)
+        noticed_error = NewRelic::NoticedError.new(error_metric, exception)
         noticed_error.request_uri = options.delete(:uri) || EMPTY_STRING
         noticed_error.rails_root  = NewRelic::Control.instance.root
 
