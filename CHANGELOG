@@ -15,6 +15,13 @@
   lookup to work around this problem in makara, and allocates less as well.
   Thanks Mike Nelson for the help in resolving this!
 
+* Allow audit logging to STDOUT
+
+  Previously audit logs of the agent's communication with New Relic could only
+  write to a file. This prevented using the feature on cloud providers like
+  Heroku. Now STDOUT is an allowed destination for `audit_log.path`.  Logging
+  can also be restricted to certain endpoints via `audit_log.endpoints`
+
 * Fix for crash during startup when Rails required but not used
 
   If an application requires Rails but wasn't actually running it, the Ruby
