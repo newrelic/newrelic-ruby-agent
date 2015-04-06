@@ -44,6 +44,10 @@ module NewRelic
         Hash[self] == Hash[other]
       end
 
+      def to_h
+        Hash[self]
+      end
+
       class StatsHashLookupError < NewRelic::Agent::InternalAgentError
         def initialize(original_error, hash, metric_spec)
           super("Lookup error in StatsHash: #{original_error.class}: #{original_error.message}. Falling back adding #{metric_spec.inspect}")
