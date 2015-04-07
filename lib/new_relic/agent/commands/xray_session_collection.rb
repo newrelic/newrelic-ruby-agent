@@ -43,8 +43,11 @@ module NewRelic
 
         def session_id_for_transaction_name(name)
           @sessions_lock.synchronize do
-            @sessions.keys.find { |id| @sessions[id].key_transaction_name == name }
+            @sessions.each do |id, session|
+              return id if session.key_transaction_name == name
+            end
           end
+          nil
         end
 
         NO_PROFILES = [].freeze
