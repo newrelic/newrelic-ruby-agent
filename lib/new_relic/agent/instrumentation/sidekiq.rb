@@ -28,8 +28,9 @@ DependencyDetection.defer do
 
         perform_action_with_newrelic_trace(trace_args) do
           if NewRelic::Agent.config[:'sidekiq.capture_params']
-            NewRelic::Agent::Transaction.add_agent_attribute(:'job.sidekiq.arguments', msg['args'].inspect,
-                                                             NewRelic::Agent::AttributeFilter::DST_ALL)
+            NewRelic::Agent::Transaction.add_agent_attribute(:'job.sidekiq.arguments',
+                                                             msg['args'].inspect,
+                                                             NewRelic::Agent::AttributeFilter::DST_NONE)
             NewRelic::Agent.add_custom_parameters(:job_arguments => msg['args'])
           end
           yield

@@ -376,12 +376,7 @@ module NewRelic
             NewRelic::Agent.logger.debug("Request parameter request.parameters.#{normalized_key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
           else
             key = :"request.parameters.#{normalized_key}"
-
-            # Agent attributes calls for default destination of DST_NONE, so
-            # why pass DST_ALL? AttributeFilter handles the exclusions by
-            # specific generated rules, so DST_NONE here actually interferes
-            # instead of helping.
-            add_agent_attribute(key, v, NewRelic::Agent::AttributeFilter::DST_ALL)
+            add_agent_attribute(key, v, NewRelic::Agent::AttributeFilter::DST_NONE)
           end
         end
       end

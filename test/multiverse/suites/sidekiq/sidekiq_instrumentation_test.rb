@@ -93,14 +93,16 @@ class SidekiqTest < Minitest::Test
 
   def test_doesnt_capture_args_by_default
     run_jobs
-    assert_no_params_on_jobs
+    refute_attributes_on_transaction_trace
+    refute_attributes_on_events
   end
 
   def test_isnt_influenced_by_global_capture_params
     with_config(:capture_params => true) do
       run_jobs
     end
-    assert_no_params_on_jobs
+    refute_attributes_on_transaction_trace
+    refute_attributes_on_events
   end
 
   def test_agent_posts_captured_args_to_job
@@ -108,18 +110,8 @@ class SidekiqTest < Minitest::Test
       run_jobs
     end
 
-    transaction_samples = $collector.calls_for('transaction_sample_data')
-    refute transaction_samples.empty?, "Expected a transaction trace"
-
-    transaction_samples.each do |post|
-      post.samples.each do |sample|
-        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-
-        args = sample.tree.custom_params["job_arguments"]
-        assert_equal args.length, 2
-        assert_equal args[0], "jobs_completed"
-      end
-    end
+    assert_attributes_on_transaction_trace
+    refute_attributes_on_events
   end
 
   def assert_metric_and_call_count(name, expected_call_count)
@@ -134,7 +126,22 @@ class SidekiqTest < Minitest::Test
     assert_equal(expected_call_count, call_count)
   end
 
-  def assert_no_params_on_jobs
+  def assert_attributes_on_transaction_trace
+    transaction_samples = $collector.calls_for('transaction_sample_data')
+    refute transaction_samples.empty?, "Expected a transaction trace"
+
+    transaction_samples.each do |post|
+      post.samples.each do |sample|
+        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
+
+        args = sample.tree.custom_params["job_arguments"]
+        assert_equal args.length, 2
+        assert_equal args[0], "jobs_completed"
+      end
+    end
+  end
+
+  def refute_attributes_on_transaction_trace
     transaction_samples = $collector.calls_for('transaction_sample_data')
     refute transaction_samples.empty?, "Didn't find any transaction samples!"
 
@@ -142,6 +149,15 @@ class SidekiqTest < Minitest::Test
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
         assert_nil sample.tree.custom_params["job_arguments"]
+      end
+    end
+  end
+
+  def refute_attributes_on_events
+    event_posts = $collector.calls_for('analytic_event_data')
+    event_posts.each do |post|
+      post.events.each do |event|
+        refute_includes event[2], "job.sidekiq.arguments"
       end
     end
   end

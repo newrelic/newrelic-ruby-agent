@@ -70,14 +70,17 @@ class ResqueTest < Minitest::Test
 
   def test_doesnt_capture_args_by_default
     run_jobs
-    assert_no_params_on_jobs
+    refute_attributes_on_transaction_traces
+    refute_attributes_on_events
   end
 
   def test_isnt_influenced_by_global_capture_params
     with_config(:capture_params => true) do
       run_jobs
     end
-    assert_no_params_on_jobs
+
+    refute_attributes_on_transaction_traces
+    refute_attributes_on_events
   end
 
   def test_agent_posts_captured_args_to_job
@@ -85,15 +88,8 @@ class ResqueTest < Minitest::Test
       run_jobs
     end
 
-    transaction_samples = $collector.calls_for('transaction_sample_data')
-    assert_false transaction_samples.empty?
-
-    transaction_samples.each do |post|
-      post.samples.each do |sample|
-        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_equal sample.tree.custom_params["job_arguments"], ["testing"]
-      end
-    end
+    assert_attributes_on_transaction_traces
+    refute_attributes_on_events
   end
 
   def assert_metric_and_call_count(name, expected_call_count)
@@ -107,7 +103,19 @@ class ResqueTest < Minitest::Test
     assert_equal(expected_call_count, call_count)
   end
 
-  def assert_no_params_on_jobs
+  def assert_attributes_on_transaction_traces
+    transaction_samples = $collector.calls_for('transaction_sample_data')
+    assert_false transaction_samples.empty?
+
+    transaction_samples.each do |post|
+      post.samples.each do |sample|
+        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
+        assert_equal sample.tree.custom_params["job_arguments"], ["testing"]
+      end
+    end
+  end
+
+  def refute_attributes_on_transaction_traces
     transaction_samples = $collector.calls_for('transaction_sample_data')
     assert_false transaction_samples.empty?
 
@@ -115,6 +123,15 @@ class ResqueTest < Minitest::Test
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
         assert_nil sample.tree.custom_params["job_arguments"]
+      end
+    end
+  end
+
+  def refute_attributes_on_events
+    event_posts = $collector.calls_for('analytic_event_data')
+    event_posts.each do |post|
+      post.events.each do |event|
+        refute_includes event[2], "job.resque.arguments"
       end
     end
   end
