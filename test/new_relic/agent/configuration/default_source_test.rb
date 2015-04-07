@@ -149,6 +149,29 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_agent_attribute_settings_convert_comma_delimited_strings_into_an_arrays
+      types = %w(transaction_tracer. transaction_events. error_collector. browser_monitoring.)
+      types << ''
+
+      types.each do |type|
+        key = "#{type}attributes.exclude".to_sym
+
+        with_config(key => 'foo,bar,baz') do
+          expected = ["foo", "bar", "baz"]
+          result = NewRelic::Agent.config[key]
+
+          message = "Expected #{key} to convert comma delimited string into array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
+          assert expected == result, message
+        end
+
+        key = "#{type}attributes.include".to_sym
+
+        with_config(key => 'foo,bar,baz') do
+          assert_equal ["foo", "bar", "baz"], NewRelic::Agent.config[key]
+        end
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 
