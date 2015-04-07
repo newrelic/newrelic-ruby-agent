@@ -265,16 +265,16 @@ module NewRelic
         end
       end
 
-      def self.add_agent_attribute(key, value, default_destination)
+      def self.add_agent_attribute(key, value, default_destinations)
         if txn = tl_current
-          txn.add_agent_attribute(key, value, default_destination)
+          txn.add_agent_attribute(key, value, default_destinations)
         else
           NewRelic::Agent.logger.debug "Attempted to add agent attribute: #{key} without transaction"
         end
       end
 
-      def add_agent_attribute(key, value, default_destination)
-        @agent_attributes.add(key, value, default_destination)
+      def add_agent_attribute(key, value, default_destinations)
+        @agent_attributes.add(key, value, default_destinations)
       end
 
       @@java_classes_loaded = false
