@@ -190,12 +190,7 @@ module NewRelic
         txn.abort_transaction!(state) if txn
       end
 
-      # If we have an active transaction, notice the error and increment the error metric.
-      # Options:
-      # * <tt>:metric</tt> => The metric name associated with the transaction
-      # * <tt>:custom_params</tt> => Custom parameters
-      # Anything left over is treated as custom params
-
+      # See NewRelic::Agent.notice_error for options and commentary
       def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction

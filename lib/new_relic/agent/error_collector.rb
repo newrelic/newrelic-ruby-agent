@@ -199,17 +199,8 @@ module NewRelic
         end
       end
 
-      # Notice the error with the given available options:
-      #
-      # * <tt>:uri</tt> => Request path, minus request params or query string
-      # * <tt>:metric</tt> => The metric name associated with the transaction
-      # * <tt>:custom_params</tt> => Custom parameters
-      #
-      # Previous versions of the agent allowed passing :request_params but
-      # those are now ignored. Associate the request with the enclosing
-      # transaction, or record additional information as custom attributes.
-      #
-      # If anything is left over, it's added to custom params.
+      # See NewRelic::Agent.notice_error for options and commentary
+
       def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
         state = ::NewRelic::Agent::TransactionState.tl_get
 
