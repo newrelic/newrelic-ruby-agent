@@ -216,27 +216,6 @@ module NewRelic
         txn && txn.recording_web_transaction?
       end
 
-      # Make a safe attempt to get the referer from a request object, generally successful when
-      # it's a Rack request.
-      def self.referer_from_request(req)
-        if req && req.respond_to?(:referer)
-          req.referer.to_s.split('?').first
-        end
-      end
-
-      # Make a safe attempt to get the URI, without the host and query string.
-      def self.uri_from_request(req)
-        approximate_uri = case
-                          when req.respond_to?(:fullpath   ) then req.fullpath
-                          when req.respond_to?(:path       ) then req.path
-                          when req.respond_to?(:request_uri) then req.request_uri
-                          when req.respond_to?(:uri        ) then req.uri
-                          when req.respond_to?(:url        ) then req.url
-                          end
-        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
-      end
-
-
       def self.apdex_bucket(duration, failed, apdex_t)
         case
         when failed
@@ -307,8 +286,8 @@ module NewRelic
         merge_request_parameters(@filtered_params)
 
         if @request
-          @uri = self.class.uri_from_request(@request)
-          @referer = self.class.referer_from_request(@request)
+          @uri = uri_from_request(@request)
+          @referer = referer_from_request(@request)
         end
       end
 
@@ -981,6 +960,25 @@ module NewRelic
         guid
       end
 
+      # Make a safe attempt to get the referer from a request object, generally successful when
+      # it's a Rack request.
+      def referer_from_request(req)
+        if req && req.respond_to?(:referer)
+          req.referer.to_s.split('?').first
+        end
+      end
+
+      # Make a safe attempt to get the URI, without the host and query string.
+      def uri_from_request(req)
+        approximate_uri = case
+                          when req.respond_to?(:fullpath   ) then req.fullpath
+                          when req.respond_to?(:path       ) then req.path
+                          when req.respond_to?(:request_uri) then req.request_uri
+                          when req.respond_to?(:uri        ) then req.uri
+                          when req.respond_to?(:url        ) then req.url
+                          end
+        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
+      end
     end
   end
 end
