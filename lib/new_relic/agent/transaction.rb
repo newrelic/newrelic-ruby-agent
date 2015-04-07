@@ -51,7 +51,8 @@ module NewRelic
       attr_accessor :exceptions,
                     :filtered_params,
                     :jruby_cpu_start,
-                    :process_cpu_start
+                    :process_cpu_start,
+                    :http_response_code
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -582,7 +583,15 @@ module NewRelic
 
       def assign_agent_attributes
         if refer = referer
-          add_agent_attribute(:'request.headers.referer', refer, NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+          add_agent_attribute(:'request.headers.referer', refer,
+                              NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+        end
+
+        if http_response_code
+          add_agent_attribute(:httpResponseCode, http_response_code,
+                              NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER|
+                              NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS|
+                              NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
         end
       end
 
@@ -638,17 +647,6 @@ module NewRelic
 
       def append_http_response_code(payload)
         payload[:http_response_code] = http_response_code if http_response_code
-      end
-
-      def http_response_code
-        @agent_attributes[:httpResponseCode]
-      end
-
-      def http_response_code=(code)
-        add_agent_attribute(:httpResponseCode, code,
-                            NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER|
-                            NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS|
-                            NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
       end
 
       def include_guid?(state, duration)
