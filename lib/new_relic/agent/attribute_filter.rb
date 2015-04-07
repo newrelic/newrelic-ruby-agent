@@ -91,9 +91,9 @@ module NewRelic
         build_rule(config[:'error_collector.attributes.exclude'],    DST_ERROR_COLLECTOR,    false)
         build_rule(config[:'browser_monitoring.attributes.exclude'], DST_BROWSER_MONITORING, false)
 
-        build_rule(['request.parameters.*'], exclude_destinations_for_capture_params(:capture_params, config), false)
-        build_rule(['jobs.resque.arguments'], exclude_destinations_for_capture_params(:'resque.capture_params', config), false)
-        build_rule(['jobs.sidekiq.arguments'], exclude_destinations_for_capture_params(:'sidekiq.capture_params', config), false)
+        build_rule(['request.parameters.*'],   include_destinations_for_capture_params(:capture_params, config), true)
+        build_rule(['jobs.resque.arguments'],  include_destinations_for_capture_params(:'resque.capture_params', config), true)
+        build_rule(['jobs.sidekiq.arguments'], include_destinations_for_capture_params(:'sidekiq.capture_params', config), true)
 
         build_rule(config[:'attributes.include'], DST_ALL, true)
         build_rule(config[:'transaction_tracer.attributes.include'], DST_TRANSACTION_TRACER, true)
@@ -104,11 +104,11 @@ module NewRelic
         @rules.sort!
       end
 
-      def exclude_destinations_for_capture_params(key, config)
+      def include_destinations_for_capture_params(key, config)
         if config[key]
-          DST_TRANSACTION_EVENTS | DST_BROWSER_MONITORING
+          DST_TRANSACTION_TRACER | DST_ERROR_COLLECTOR
         else
-          DST_ALL
+          DST_NONE
         end
       end
 
@@ -136,8 +136,8 @@ module NewRelic
         destinations
       end
 
-      def applies?(attribute_name, destination)
-        apply(attribute_name, destination) == destination
+      def allows?(allowed_destinations, requested_destination)
+        allowed_destinations & requested_destination == requested_destination
       end
     end
 

@@ -15,17 +15,19 @@ module NewRelic
         def initialize(filter)
           @filter = filter
           @attributes = {}
+          @destinations = {}
         end
 
         def [](key)
           @attributes[key]
         end
 
-        def add(key, value)
+        def add(key, value, default_destinations = NewRelic::Agent::AttributeFilter::DST_ALL)
           if exceeds_bytesize_limit?(value, VALUE_LIMIT)
             value = slice(value)
           end
 
+          @destinations[key] = @filter.apply(key, default_destinations)
           @attributes[key] = value
         end
 
@@ -41,7 +43,9 @@ module NewRelic
 
         def for_destination(destination)
           @attributes.inject({}) do |memo, (key, value)|
-            memo[key] = value if @filter.applies?(key, destination)
+            if @filter.allows?(@destinations[key], destination)
+              memo[key] = value
+            end
             memo
           end
         end

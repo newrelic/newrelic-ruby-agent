@@ -51,7 +51,8 @@ module NewRelic
       attr_accessor :exceptions,
                     :filtered_params,
                     :jruby_cpu_start,
-                    :process_cpu_start
+                    :process_cpu_start,
+                    :http_response_code
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -265,12 +266,16 @@ module NewRelic
         end
       end
 
-      def self.add_agent_attribute(key, value)
+      def self.add_agent_attribute(key, value, default_destinations)
         if txn = tl_current
-          txn.agent_attributes.add(key, value)
+          txn.add_agent_attribute(key, value, default_destinations)
         else
           NewRelic::Agent.logger.debug "Attempted to add agent attribute: #{key} without transaction"
         end
+      end
+
+      def add_agent_attribute(key, value, default_destinations)
+        @agent_attributes.add(key, value, default_destinations)
       end
 
       @@java_classes_loaded = false
@@ -371,7 +376,8 @@ module NewRelic
           if normalized_key.bytesize > REQUEST_KEY_LIMIT
             NewRelic::Agent.logger.debug("Request parameter request.parameters.#{normalized_key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
           else
-            @agent_attributes.add(:"request.parameters.#{normalized_key}", v)
+            key = :"request.parameters.#{normalized_key}"
+            add_agent_attribute(key, v, NewRelic::Agent::AttributeFilter::DST_NONE)
           end
         end
       end
@@ -577,7 +583,15 @@ module NewRelic
 
       def assign_agent_attributes
         if refer = referer
-          agent_attributes.add(:'request.headers.referer', refer)
+          add_agent_attribute(:'request.headers.referer', refer,
+                              NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+        end
+
+        if http_response_code
+          add_agent_attribute(:httpResponseCode, http_response_code,
+                              NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER|
+                              NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS|
+                              NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
         end
       end
 
@@ -633,14 +647,6 @@ module NewRelic
 
       def append_http_response_code(payload)
         payload[:http_response_code] = http_response_code if http_response_code
-      end
-
-      def http_response_code
-        @agent_attributes[:httpResponseCode]
-      end
-
-      def http_response_code=(code)
-        @agent_attributes.add(:httpResponseCode, code)
       end
 
       def include_guid?(state, duration)

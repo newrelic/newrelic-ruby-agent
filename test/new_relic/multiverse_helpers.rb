@@ -127,5 +127,26 @@ module MultiverseHelpers
     ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] == "true"
   end
 
+  def run_harvest
+    NewRelic::Agent.instance.send(:transmit_data)
+    NewRelic::Agent.instance.send(:transmit_event_data)
+  end
+
+  def single_error_posted
+    # If we don't just have a single post with a single error, ordering might
+    # foul the test so just throw your hands up
+    assert_equal 1, $collector.calls_for("error_data").length
+    assert_equal 1, $collector.calls_for("error_data").first.errors.length
+
+    $collector.calls_for("error_data").first.errors.first
+  end
+
+  def single_event_posted
+    assert_equal 1, $collector.calls_for("analytic_event_data").length
+    assert_equal 1, $collector.calls_for("analytic_event_data").first.events.length
+
+    $collector.calls_for("analytic_event_data").first.events.first
+  end
+
   extend self
 end
