@@ -1,1 +1,0 @@
-INSERT INTO `X` values("test",0, 1 , 2, 'test')

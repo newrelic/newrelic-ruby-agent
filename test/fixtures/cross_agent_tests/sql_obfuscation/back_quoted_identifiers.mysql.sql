@@ -1,1 +1,0 @@
-SELECT `t001`.`c2` FROM `t001` WHERE `t001`.`c2` = 'value' AND c3="othervalue" LIMIT ?

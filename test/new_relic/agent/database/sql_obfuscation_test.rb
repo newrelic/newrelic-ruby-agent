@@ -6,79 +6,53 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'te
 
 module NewRelic::Agent::Database
   class SqlObfuscationTest < Minitest::Test
-    attr_reader :obfuscator
+    DIALECT_MAP = {
+      'postgres' => :postgresql,
+      'mysql'    => :mysql
+    }
 
-    def self.input_files(subdir=nil)
-      fixture_dir = File.join(cross_agent_tests_dir, "sql_obfuscation")
-      fixture_dir = File.join(fixture_dir, subdir) if subdir
-      Dir["#{fixture_dir}/*.sql"]
-    end
-
-    def self.adapter_from_input_file(input_file)
-      case input_file
-      when /\.postgres\.sql$/ then :postgresql
-      when /\.mysql\.sql$/    then :mysql
-      else nil
+    def self.create_input_statements(raw_query, dialects)
+      dialects.map do |dialect|
+        NewRelic::Agent::Database::Statement.new(raw_query).tap do |s|
+          s.adapter = DIALECT_MAP[dialect]
+        end
       end
     end
 
-    def self.name_for_input_file(input_file)
-      adapter = adapter_from_input_file(input_file)
-      basename = File.basename(input_file)
-      name = basename.gsub(/\.(postgres|mysql)?\.sql$/, '')
-      name += "_#{adapter}" if adapter
-      name
+    def build_failure_message(statement, acceptable_outputs, actual_output)
+      msg = "Failed to obfuscate #{statement.adapter} query correctly.\n"
+      msg << "Input:    #{statement.to_s}\n"
+      if acceptable_outputs.size == 1
+        msg << "Expected: #{acceptable_outputs.first}\n"
+      else
+        msg << "Acceptable outputs:\n"
+        acceptable_outputs.each do |output|
+          msg << "          #{output}\n"
+        end
+      end
+      msg << "Actual:   #{actual_output}\n"
     end
 
-    def obfuscated_filename(query_file)
-      query_file.gsub(".sql", ".obfuscated")
-    end
+    test_cases = load_cross_agent_test('sql_obfuscation/sql_obfuscation')
+    test_cases.each do |test_case|
+      name = test_case['name']
+      query              = test_case['sql']
+      acceptable_outputs = test_case['obfuscated']
+      dialects           = test_case['dialects']
 
-    def strip_comments(text)
-      text.gsub(/^\s*#.*/, '').strip
-    end
-
-    def read_query(input_file)
-      adapter = self.class.adapter_from_input_file(input_file)
-      query = strip_comments(File.read(input_file))
-
-      if adapter
-        query = NewRelic::Agent::Database::Statement.new(query)
-        query.adapter = adapter.to_sym
+      # If the entire query is obfuscated because it's malformed, we use a
+      # placeholder message instead of just '?', so add that to the acceptable
+      # outputs.
+      if test_case['malformed']
+        acceptable_outputs << NewRelic::Agent::Database::Obfuscator::FAILED_TO_OBFUSCATE_MESSAGE
       end
 
-      query
-    end
-    
-    def self.create_regular_obfuscation_test(filename, type = "normal")
-      name = name_for_input_file(filename)
-
-      define_method("test_sql_obfuscation_#{type}_#{name}") do
-        query               = read_query(filename)
-        expected_obfuscated = File.read(obfuscated_filename(filename))
-        actual_obfuscated   = NewRelic::Agent::Database.obfuscate_sql(query)
-        assert_equal(expected_obfuscated, actual_obfuscated, "Failed to obfuscate #{type} query from #{filename}\nQuery: #{query}")
-      end
-    end
-
-    # Normal queries
-    input_files.each do |input_file|
-      create_regular_obfuscation_test(input_file)
-    end
-    
-    # Pathological queries
-    input_files('pathological').each do |input_file|
-      create_regular_obfuscation_test(input_file, "pathological")
-    end
-
-    # Malformed queries
-    input_files('malformed').each do |input_file|
-      name = name_for_input_file(input_file)
-
-      define_method("test_sql_obfuscation_malformed_#{name}") do
-        query = read_query(input_file)
-        actual_obfuscated = NewRelic::Agent::Database.obfuscate_sql(query)
-        assert_equal(NewRelic::Agent::Database::Obfuscator::FAILED_TO_OBFUSCATE_MESSAGE, actual_obfuscated, "Failed to obfuscate malformed query from #{input_file}\nQuery: #{query}")
+      create_input_statements(query, dialects).each do |statement|
+        define_method("test_sql_obfuscation_#{name}_#{statement.adapter}") do
+          actual_obfuscated = NewRelic::Agent::Database.obfuscate_sql(statement)
+          message = build_failure_message(statement, acceptable_outputs, actual_obfuscated)
+          assert_includes(acceptable_outputs, actual_obfuscated, message)
+        end
       end
     end
   end
