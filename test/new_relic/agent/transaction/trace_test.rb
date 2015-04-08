@@ -24,6 +24,10 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal @start_time, @trace.start_time
   end
 
+  def test_segment_count
+    assert_equal 0, @trace.segment_count
+  end
+
   def test_collector_array_contains_start_time
     expected = NewRelic::Helper.time_to_millis(@start_time)
     assert_collector_array_contains(:start_time, expected)

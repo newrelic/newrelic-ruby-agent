@@ -6,14 +6,19 @@ module NewRelic
   module Agent
     class Transaction
       class Trace
-        attr_reader :start_time, :root_segment
+        attr_reader :start_time, :root_segment, :segment_count
         attr_accessor :transaction_name, :uri, :guid, :xray_session_id,
                       :synthetics_resource_id, :agent_attributes,
                       :custom_attributes, :intrinsic_attributes
 
         def initialize(start_time)
           @start_time = start_time
+          @segment_count = 0
           @root_segment = NewRelic::TransactionSample::Segment.new(0.0, "ROOT")
+        end
+
+        def count_segments
+          self.segment_count
         end
 
         def trace_tree
