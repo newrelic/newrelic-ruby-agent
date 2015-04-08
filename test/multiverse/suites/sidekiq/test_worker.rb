@@ -5,8 +5,7 @@
 class TestWorker
   include Sidekiq::Worker
 
-  sidekiq_options :queue => SidekiqServer.instance.queue_name
-
+  sidekiq_options :queue => SidekiqServer.instance.queue_name, :retry => false
   @jobs = {}
   @jobs_mutex = Mutex.new
 

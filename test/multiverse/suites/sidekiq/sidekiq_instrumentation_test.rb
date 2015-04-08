@@ -51,7 +51,7 @@ class SidekiqTest < Minitest::Test
 
   def run_delayed
     run_and_transmit do |i|
-      TestWorker.delay(:queue => SidekiqServer.instance.queue_name).record('jobs_completed', i + 1)
+      TestWorker.delay(:queue => SidekiqServer.instance.queue_name, :retry => false).record('jobs_completed', i + 1)
     end
   end
 
