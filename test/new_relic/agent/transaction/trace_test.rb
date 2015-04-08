@@ -39,6 +39,12 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal 'goo', result.metric_name
   end
 
+  def test_each_segment_delegates_to_root_segment
+    block = Proc.new {}
+    @trace.root_segment.expects(:each_segment)
+    @trace.each_segment(&block)
+  end
+
   def test_collector_array_contains_start_time
     expected = NewRelic::Helper.time_to_millis(@start_time)
     assert_collector_array_contains(:start_time, expected)

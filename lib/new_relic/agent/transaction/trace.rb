@@ -9,7 +9,8 @@ module NewRelic
         attr_reader :start_time, :root_segment
         attr_accessor :transaction_name, :uri, :guid, :xray_session_id,
                       :synthetics_resource_id, :agent_attributes,
-                      :custom_attributes, :intrinsic_attributes, :segment_count
+                      :custom_attributes, :intrinsic_attributes, :segment_count,
+                      :finished
 
         def initialize(start_time)
           @start_time = start_time
@@ -24,6 +25,10 @@ module NewRelic
         def create_segment(time_since_start, metric_name = nil)
           self.segment_count += 1
           NewRelic::TransactionSample::Segment.new(time_since_start, metric_name)
+        end
+
+        def each_segment(&block)
+          self.root_segment.each_segment(&block)
         end
 
         def trace_tree
