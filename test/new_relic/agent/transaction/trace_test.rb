@@ -137,6 +137,12 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_trace_tree_contains(:attributes, expected)
   end
 
+  def test_to_collector_array_encodes_trace_tree_with_given_encoder
+    fake_encoder = mock
+    fake_encoder.expects(:encode).with(@trace.trace_tree)
+    @trace.to_collector_array(fake_encoder)
+  end
+
   def assert_trace_tree_contains(key, expected)
     indices = [
       :start_time,
@@ -162,6 +168,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
       :synthetics_resource_id
     ]
 
-    assert_equal expected, @trace.to_collector_array[indices.index(key)]
+    encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
+    assert_equal expected, @trace.to_collector_array(encoder)[indices.index(key)]
   end
 end

@@ -30,13 +30,13 @@ module NewRelic
           ]
         end
 
-        def to_collector_array
+        def to_collector_array(encoder)
           [
             NewRelic::Helper.time_to_millis(self.start_time),
             NewRelic::Helper.time_to_millis(self.root_segment.duration),
             NewRelic::Coerce.string(self.transaction_name),
             NewRelic::Coerce.string(self.uri),
-            trace_tree,
+            encoder.encode(trace_tree),
             NewRelic::Coerce.string(self.guid),
             forced?,
             NewRelic::Coerce.int_or_nil(xray_session_id),
