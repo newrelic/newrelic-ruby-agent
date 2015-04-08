@@ -28,6 +28,17 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal 0, @trace.segment_count
   end
 
+  def test_create_segment_increases_segment_count
+    @trace.create_segment(0.0, 'foo')
+    assert_equal 1, @trace.segment_count
+  end
+
+  def test_create_segment
+    result = @trace.create_segment(0.0, 'goo')
+    assert_equal 0.0, result.entry_timestamp
+    assert_equal 'goo', result.metric_name
+  end
+
   def test_collector_array_contains_start_time
     expected = NewRelic::Helper.time_to_millis(@start_time)
     assert_collector_array_contains(:start_time, expected)
