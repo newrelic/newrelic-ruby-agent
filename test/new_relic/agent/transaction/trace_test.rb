@@ -52,6 +52,10 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:uri, '95')
   end
 
+  def test_collector_array_contains_trace_tree
+    assert_collector_array_contains(:trace_tree, @trace.trace_tree)
+  end
+
   def test_collector_array_contains_guid
     @trace.guid = 'DEADBEEF8BADF00D'
     assert_collector_array_contains(:guid, 'DEADBEEF8BADF00D')
@@ -95,6 +99,54 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   def test_synthetics_resource_id_gets_coerced_to_a_string
     @trace.synthetics_resource_id = 31415926
     assert_collector_array_contains(:synthetics_resource_id, '31415926')
+  end
+
+  def test_trace_tree_coerces_start_time_to_a_float
+    trace = NewRelic::Agent::Transaction::Trace.new(7)
+    assert_kind_of Float, trace.trace_tree.first
+  end
+
+  def test_trace_tree_includes_start_time
+    assert_trace_tree_contains(:start_time, @start_time.to_f)
+  end
+
+  def test_trace_tree_includes_unused_legacy_request_params
+    assert_trace_tree_contains(:unused_legacy_request_params, {})
+  end
+
+  def test_trace_tree_includes_unused_legacy_custom_params
+    assert_trace_tree_contains(:unused_legacy_custom_params, {})
+  end
+
+  def test_trace_tree_contains_serialized_root_segment
+    assert_trace_tree_contains(:root_segment, @trace.root_segment.to_array)
+  end
+
+  def test_trace_tree_contains_attributes
+    fake_attributes = { 'foo' => 'bar' }
+    @trace.agent_attributes = fake_attributes
+    @trace.custom_attributes = fake_attributes
+    @trace.intrinsic_attributes = fake_attributes
+
+    expected = {
+      'agentAttributes' => fake_attributes,
+      'customAttributes' => fake_attributes,
+      'intrinsics' => fake_attributes
+    }
+
+    assert_trace_tree_contains(:attributes, expected)
+  end
+
+  def assert_trace_tree_contains(key, expected)
+    indices = [
+      :start_time,
+      :unused_legacy_request_params,
+      :unused_legacy_custom_params,
+      :root_segment,
+      :attributes
+    ]
+
+    assert_equal expected, @trace.trace_tree[indices.index(key)]
   end
 
   def assert_collector_array_contains(key, expected)
