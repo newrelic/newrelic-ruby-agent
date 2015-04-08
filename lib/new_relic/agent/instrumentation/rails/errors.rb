@@ -26,12 +26,12 @@ DependencyDetection.defer do
       # but we replaced that global method with NewRelic::Agent#notice_error.
       # Use that one outside of controller actions.
       def newrelic_notice_error(exception, custom_params = {})
-        NewRelic::Agent::Transaction.notice_error exception, :custom_params => custom_params, :request => request
+        NewRelic::Agent::Transaction.notice_error exception, :custom_params => custom_params
       end
 
       def rescue_action_with_newrelic_trace(exception)
         rescue_action_without_newrelic_trace exception
-        NewRelic::Agent::Transaction.notice_error exception, :request => request
+        NewRelic::Agent::Transaction.notice_error exception
       end
 
       # Compare with #alias_method_chain, which is not available in
