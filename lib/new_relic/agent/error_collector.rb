@@ -223,10 +223,7 @@ module NewRelic
 
         noticed_error = NewRelic::NoticedError.new(error_metric, exception)
         noticed_error.request_uri = options.delete(:uri) || EMPTY_STRING
-
-        noticed_error.custom_attributes    = options.delete(:custom_attributes)
-        noticed_error.agent_attributes     = options.delete(:agent_attributes)
-        noticed_error.intrinsic_attributes = options.delete(:intrinsic_attributes)
+        noticed_error.attributes  = options.delete(:attributes)
 
         noticed_error.file_name   = sense_method(exception, :file_name)
         noticed_error.line_number = sense_method(exception, :line_number)

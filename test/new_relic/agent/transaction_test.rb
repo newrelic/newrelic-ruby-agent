@@ -390,22 +390,16 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_end_fires_a_transaction_finished_event_with_attributes_attached
-    custom_attributes = nil
-    agent_attributes = nil
-    intrinsic_attributes = nil
+    attributes = nil
 
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-      custom_attributes    = payload[:custom_attributes]
-      agent_attributes     = payload[:agent_attributes]
-      intrinsic_attributes = payload[:intrinsic_attributes]
+      attributes = payload[:attributes]
     end
 
     txn = in_web_transaction('Controller/foo/1/bar/22') do
     end
 
-    assert_equal txn.custom_attributes, custom_attributes
-    assert_equal txn.agent_attributes, agent_attributes
-    assert_equal txn.intrinsic_attributes, intrinsic_attributes
+    assert_equal txn.attributes, attributes
   end
 
   def test_end_fires_a_transaction_finished_event_with_transaction_guid
@@ -697,9 +691,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     error = NewRelic::Agent.instance.error_collector.errors.first
-    assert_equal txn.custom_attributes, error.custom_attributes
-    assert_equal txn.agent_attributes, error.agent_attributes
-    assert_equal txn.intrinsic_attributes, error.intrinsic_attributes
+    assert_equal txn.attributes, error.attributes
   end
 
   def test_notice_error_after_current_transaction_notifies_error_collector
@@ -1312,7 +1304,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     with_config(:'transaction_tracer.attributes.enabled' => true) do
       in_transaction do |txn|
         NewRelic::Agent.add_custom_parameters(:foo => "bar")
-        actual = txn.custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+        actual = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
         assert_equal({:foo => "bar"}, actual)
       end
     end
@@ -1322,7 +1314,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     with_config(:'transaction_tracer.attributes.enabled' => true) do
       in_transaction do |txn|
         txn.add_agent_attribute(:foo, "bar", NewRelic::Agent::AttributeFilter::DST_ALL)
-        actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+        actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
         assert_equal({:foo => "bar"}, actual)
       end
     end
@@ -1332,7 +1324,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     with_config(:'transaction_tracer.attributes.enabled' => true) do
       in_transaction do |txn|
         NewRelic::Agent::Transaction.add_agent_attribute(:foo, "bar", NewRelic::Agent::AttributeFilter::DST_ALL)
-        actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+        actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
         assert_equal({:foo => "bar"}, actual)
       end
     end
@@ -1345,8 +1337,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_adding_intrinsic_attributes
     in_transaction do |txn|
-      txn.intrinsic_attributes.add(:foo, "bar")
-      actual = txn.intrinsic_attributes.all
+      txn.attributes.add_intrinsic_attribute(:foo, "bar")
+
+      actual = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
       assert_equal({:foo => "bar"}, actual)
     end
   end
@@ -1358,9 +1351,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       txn
     end
 
-    assert_equal 100, txn.intrinsic_attributes.all[:synthetics_resource_id]
-    assert_equal 200, txn.intrinsic_attributes.all[:synthetics_job_id]
-    assert_equal 300, txn.intrinsic_attributes.all[:synthetics_monitor_id]
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal 100, result[:synthetics_resource_id]
+    assert_equal 200, result[:synthetics_job_id]
+    assert_equal 300, result[:synthetics_monitor_id]
   end
 
 
@@ -1369,7 +1363,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       NewRelic::Agent::StatsEngine::GCProfiler.stubs(:record_delta).returns(10.0)
     end
 
-    assert_equal 10.0, txn.intrinsic_attributes.all[:gc_time]
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal 10.0, result[:gc_time]
   end
 
   def test_intrinsic_attributes_include_tripid
@@ -1382,7 +1377,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       guid = txn.guid
     end
 
-    assert_equal 'PDX-NRT', txn.intrinsic_attributes.all[:trip_id]
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal 'PDX-NRT', result[:trip_id]
   end
 
   def test_intrinsic_attributes_dont_include_tripid_if_not_cross_app_transaction
@@ -1392,7 +1388,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = false
     end
 
-    assert_nil txn.intrinsic_attributes.all[:trip_id]
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_nil result[:trip_id]
   end
 
   def test_intrinsic_attributes_include_path_hash
@@ -1404,7 +1401,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       path_hash = txn.cat_path_hash(state)
     end
 
-    assert_equal path_hash, txn.intrinsic_attributes.all[:path_hash]
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal path_hash, result[:path_hash]
   end
 
   def test_synthetics_attributes_not_included_if_not_valid_synthetics_request
@@ -1413,9 +1411,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       txn.synthetics_payload = nil
     end
 
-    assert_nil txn.intrinsic_attributes.all[:synthetics_resource_id]
-    assert_nil txn.intrinsic_attributes.all[:synthetics_job_id]
-    assert_nil txn.intrinsic_attributes.all[:synthetics_monitor_id]
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_nil result[:synthetics_resource_id]
+    assert_nil result[:synthetics_job_id]
+    assert_nil result[:synthetics_monitor_id]
   end
 
   def test_intrinsic_attributes_include_cpu_time
@@ -1423,7 +1422,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       txn.stubs(:cpu_burn).returns(22.0)
     end
 
-    assert_equal 22.0, txn.intrinsic_attributes.all[:cpu_time]
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal 22.0, result[:cpu_time]
   end
 
   def test_request_params_included_in_agent_attributes
@@ -1431,7 +1431,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_transaction(:filtered_params => {:foo => "bar"}) do
       end
     end
-    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_equal "bar", actual['request.parameters.foo']
   end
 
@@ -1443,7 +1444,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       end
     end
 
-    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_equal "bar", actual['request.parameters.foo']
     assert_equal "qux", actual['request.parameters.bar']
   end
@@ -1457,7 +1458,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       end
     end
 
-    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_empty actual
   end
 
@@ -1466,7 +1467,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       txn.http_response_code = 418
     end
 
-    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_equal 418, actual[:'httpResponseCode']
   end
 
@@ -1475,7 +1476,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     txn = in_transaction(:request => request) do |txn|
     end
 
-    assert_equal "/referered", txn.agent_attributes[:'request.headers.referer']
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+    assert_equal "/referered", actual[:'request.headers.referer']
   end
 
   def test_referer_omitted_if_not_on_request
@@ -1483,7 +1485,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     txn = in_transaction(:request => request) do |txn|
     end
 
-    actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     refute_includes actual, :'request.headers.referer'
   end
 end

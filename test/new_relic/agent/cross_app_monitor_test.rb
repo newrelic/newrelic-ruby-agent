@@ -149,8 +149,9 @@ module NewRelic::Agent
 
       txn = when_request_runs
 
-      assert_equal REQUEST_CROSS_APP_ID, txn.intrinsic_attributes.all[:client_cross_process_id]
-      assert_equal REF_TRANSACTION_GUID, txn.intrinsic_attributes.all[:referring_transaction_guid]
+      result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+      assert_equal REQUEST_CROSS_APP_ID, result[:client_cross_process_id]
+      assert_equal REF_TRANSACTION_GUID, result[:referring_transaction_guid]
     end
 
     def test_error_writes_custom_parameters

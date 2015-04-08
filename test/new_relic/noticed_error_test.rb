@@ -14,10 +14,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     freeze_time
     @time = Time.now
 
-    @custom_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-    @agent_attributes  = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-    @intrinsic_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-
+    @attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @custom_params = { :user => 'params' }
   end
 
@@ -45,7 +42,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_to_collector_array_merges_custom_attributes_and_params
     e = TestError.new('test exception')
-    @custom_attributes.add(:custom, "attribute")
+    @attributes.add_custom_attribute(:custom, "attribute")
 
     error = create_error(e)
     error.custom_params = @custom_params
@@ -65,7 +62,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_to_collector_array_includes_agent_attributes
     e = TestError.new('test exception')
-    @agent_attributes.add(:agent, "attribute")
+    @attributes.add_agent_attribute(:agent, "attribute", NewRelic::Agent::AttributeFilter::DST_ALL)
     error = create_error(e)
 
     actual = extract_attributes(error)
@@ -74,7 +71,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_to_collector_array_includes_intrinsic_attributes
     e = TestError.new('test exception')
-    @intrinsic_attributes.add(:intrinsic, "attribute")
+    @attributes.add_intrinsic_attribute(:intrinsic, "attribute")
     error = create_error(e)
 
     actual = extract_attributes(error)
@@ -175,25 +172,23 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     assert_equal(error.message.to_s, 'Buffy FOREVER')
   end
 
-  def create_error(exception = StandardError.new)
-    noticed_error = NewRelic::NoticedError.new(@path, exception, @time)
-    noticed_error.custom_attributes = @custom_attributes
-    noticed_error.agent_attributes = @agent_attributes
-    noticed_error.intrinsic_attributes = @intrinsic_attributes
-    noticed_error
-  end
-
   def test_intrinsics_always_get_sent
     with_config(:'error_collector.attributes.enabled' => false) do
-      intrinsic_attributes = NewRelic::Agent::Transaction::IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
-      intrinsic_attributes.add(:intrinsic, "attribute")
+      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes.add_intrinsic_attribute(:intrinsic, "attribute")
 
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
-      error.intrinsic_attributes = intrinsic_attributes
+      error.attributes = attributes
 
       serialized_attributes = extract_attributes(error)
       assert_equal({ "intrinsic" => "attribute" }, serialized_attributes["intrinsics"])
     end
+  end
+
+  def create_error(exception = StandardError.new)
+    noticed_error = NewRelic::NoticedError.new(@path, exception, @time)
+    noticed_error.attributes = @attributes
+    noticed_error
   end
 
   def extract_attributes(error)

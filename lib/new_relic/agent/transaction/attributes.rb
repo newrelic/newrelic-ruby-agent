@@ -9,41 +9,92 @@ module NewRelic
 
         KEY_LIMIT   = 255
         VALUE_LIMIT = 255
+        COUNT_LIMIT = 64
+
+        EMPTY_HASH = {}.freeze
 
         CAN_BYTESLICE = String.instance_methods.include?(:byteslice)
 
         def initialize(filter)
           @filter = filter
-          @attributes = {}
-          @destinations = {}
+
+          @custom_attributes = {}
+          @agent_attributes = {}
+          @intrinsic_attributes = {}
+
+          @custom_destinations = {}
+          @agent_destinations = {}
         end
 
         def [](key)
           @attributes[key]
         end
 
-        def add(key, value, default_destinations = NewRelic::Agent::AttributeFilter::DST_ALL)
+        def add_custom_attribute(key, value)
+          if @custom_attributes.size >= COUNT_LIMIT
+            unless @already_warned_count_limit
+              NewRelic::Agent.logger.warn("Custom attributes count exceeded limit of #{COUNT_LIMIT}. Any additional custom attributes during this transaction will be dropped.")
+              @already_warned_count_limit = true
+            end
+            return
+          end
+
+          if exceeds_bytesize_limit?(key, KEY_LIMIT)
+            NewRelic::Agent.logger.warn("Custom attribute key '#{key}' was longer than limit of #{KEY_LIMIT} bytes. This attribute will be dropped.")
+            return
+          end
+
+          @custom_destinations[key] = @filter.apply(key, NewRelic::Agent::AttributeFilter::DST_ALL)
+
+          add(@custom_attributes, key, value)
+        end
+
+        def add_agent_attribute(key, value, default_destinations)
+          @agent_destinations[key] = @filter.apply(key, default_destinations)
+
+          add(@agent_attributes, key, value)
+        end
+
+        def add_intrinsic_attribute(key, value)
+          add(@intrinsic_attributes, key, value)
+        end
+
+        def merge_custom_attributes!(other)
+          other.each do |key, value|
+            self.add_custom_attribute(key, value)
+          end
+        end
+
+        def custom_attributes_for(destination)
+          for_destination(@custom_attributes, @custom_destinations, destination)
+        end
+
+        def agent_attributes_for(destination)
+          for_destination(@agent_attributes, @agent_destinations, destination)
+        end
+
+        def intrinsic_attributes_for(destination)
+          if destination == NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER ||
+             destination == NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+            @intrinsic_attributes
+          else
+            EMPTY_HASH
+          end
+        end
+
+        private
+
+        def add(attributes, key, value)
           if exceeds_bytesize_limit?(value, VALUE_LIMIT)
             value = slice(value)
           end
 
-          @destinations[key] = @filter.apply(key, default_destinations)
-          @attributes[key] = value
+          attributes[key] = value
         end
 
-        def length
-          @attributes.length
-        end
-
-        def merge!(other)
-          other.each do |key, value|
-            self.add(key, value)
-          end
-        end
-
-        def for_destination(destination)
-          @attributes.inject({}) do |memo, (key, value)|
-            if @filter.allows?(@destinations[key], destination)
+        def for_destination(attributes, calculated_destinations, destination)
+          attributes.inject({}) do |memo, (key, value)|
+            if @filter.allows?(calculated_destinations[key], destination)
               memo[key] = value
             end
             memo

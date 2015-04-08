@@ -7,8 +7,6 @@ require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
-require 'new_relic/agent/transaction/custom_attributes'
-require 'new_relic/agent/transaction/intrinsic_attributes'
 
 module NewRelic
   module Agent
@@ -60,9 +58,7 @@ module NewRelic
                   :category,
                   :frame_stack,
                   :cat_path_hashes,
-                  :custom_attributes,
-                  :agent_attributes,
-                  :intrinsic_attributes,
+                  :attributes,
                   :request,
                   :uri,
                   :referer
@@ -233,7 +229,7 @@ module NewRelic
       end
 
       def add_agent_attribute(key, value, default_destinations)
-        @agent_attributes.add(key, value, default_destinations)
+        @attributes.add_agent_attribute(key, value, default_destinations)
       end
 
       @@java_classes_loaded = false
@@ -274,9 +270,7 @@ module NewRelic
         @ignore_apdex = false
         @ignore_enduser = false
 
-        @custom_attributes = CustomAttributes.new(NewRelic::Agent.instance.attribute_filter)
-        @agent_attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
-        @intrinsic_attributes = IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
+        @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
 
@@ -545,21 +539,21 @@ module NewRelic
       end
 
       def assign_intrinsics(state, gc_time)
-        intrinsic_attributes.add(:gc_time, gc_time) if gc_time
+        attributes.add_intrinsic_attribute(:gc_time, gc_time) if gc_time
 
         if burn = cpu_burn
-          intrinsic_attributes.add(:cpu_time, burn)
+          attributes.add_intrinsic_attribute(:cpu_time, burn)
         end
 
         if is_synthetics_request?
-          intrinsic_attributes.add(:synthetics_resource_id, synthetics_resource_id)
-          intrinsic_attributes.add(:synthetics_job_id, synthetics_job_id)
-          intrinsic_attributes.add(:synthetics_monitor_id, synthetics_monitor_id)
+          attributes.add_intrinsic_attribute(:synthetics_resource_id, synthetics_resource_id)
+          attributes.add_intrinsic_attribute(:synthetics_job_id, synthetics_job_id)
+          attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
         end
 
         if state.is_cross_app?
-          intrinsic_attributes.add(:trip_id, cat_trip_id(state))
-          intrinsic_attributes.add(:path_hash, cat_path_hash(state))
+          attributes.add_intrinsic_attribute(:trip_id, cat_trip_id(state))
+          attributes.add_intrinsic_attribute(:path_hash, cat_path_hash(state))
         end
       end
 
@@ -581,9 +575,7 @@ module NewRelic
           :start_timestamp      => start_time.to_f,
           :duration             => duration,
           :metrics              => @metrics,
-          :custom_attributes    => @custom_attributes,
-          :agent_attributes     => @agent_attributes,
-          :intrinsic_attributes => @intrinsic_attributes
+          :attributes           => @attributes,
         }
         append_cat_info(state, duration, payload)
         append_apdex_perf_zone(duration, payload)
@@ -719,12 +711,9 @@ module NewRelic
 
       def record_exceptions
         @exceptions.each do |exception, options|
-          options[:metric]  = best_name
-          options[:uri]     ||= uri     if uri
-
-          options[:custom_attributes] = @custom_attributes
-          options[:agent_attributes] = @agent_attributes
-          options[:intrinsic_attributes] = @intrinsic_attributes
+          options[:uri]      ||= uri if uri
+          options[:metric]     = best_name
+          options[:attributes] = @attributes
 
           agent.error_collector.notice_error(exception, options)
         end
@@ -839,7 +828,7 @@ module NewRelic
           return
         end
 
-        custom_attributes.merge!(p)
+        attributes.merge_custom_attributes!(p)
         custom_parameters.merge!(p)
       end
 

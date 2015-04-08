@@ -164,19 +164,26 @@ module NewRelic
         return unless txn
 
         atts = {}
-        append_attributes!(txn.custom_attributes, atts, ATTS_USER_SUBKEY)
-        append_attributes!(txn.agent_attributes, atts, ATTS_AGENT_SUBKEY)
+        append_custom_attributes!(txn, atts)
+        append_agent_attributes!(txn, atts)
 
-        if atts && atts.any?
+        if atts.any?
           json = NewRelic::JSONWrapper.dump(atts)
           data[ATTS_KEY] = obfuscator.obfuscate(json)
         end
       end
 
-      def append_attributes!(source_attributes, atts, subkey)
-        selected_attributes = source_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
-        if selected_attributes.any?
-          atts[subkey] = event_params(selected_attributes)
+      def append_custom_attributes!(txn, atts)
+        custom_attributes = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
+        if custom_attributes.any?
+          atts[ATTS_USER_SUBKEY] = event_params(custom_attributes)
+        end
+      end
+
+      def append_agent_attributes!(txn, atts)
+        agent_attributes = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
+        if agent_attributes.any?
+          atts[ATTS_AGENT_SUBKEY] = event_params(agent_attributes)
         end
       end
 
