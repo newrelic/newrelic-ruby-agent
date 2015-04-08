@@ -11,6 +11,13 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @start_time = Time.now
     @trace = NewRelic::Agent::Transaction::Trace.new(@start_time)
     @trace.root_segment.end_trace(@start_time)
+
+    filter = NewRelic::Agent.instance.attribute_filter
+    @fake_attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
+
+    @trace.agent_attributes = @fake_attributes
+    @trace.custom_attributes = @fake_attributes
+    @trace.intrinsic_attributes = @fake_attributes
   end
 
   def test_start_time
@@ -102,8 +109,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_trace_tree_coerces_start_time_to_a_float
-    trace = NewRelic::Agent::Transaction::Trace.new(7)
-    assert_kind_of Float, trace.trace_tree.first
+    assert_kind_of Float, @trace.trace_tree.first
   end
 
   def test_trace_tree_includes_start_time
@@ -123,15 +129,12 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_trace_tree_contains_attributes
-    fake_attributes = { 'foo' => 'bar' }
-    @trace.agent_attributes = fake_attributes
-    @trace.custom_attributes = fake_attributes
-    @trace.intrinsic_attributes = fake_attributes
+    @fake_attributes.add(:foo, 'bar')
 
     expected = {
-      'agentAttributes' => fake_attributes,
-      'customAttributes' => fake_attributes,
-      'intrinsics' => fake_attributes
+      'agentAttributes' => { :foo => 'bar' },
+      'customAttributes' => { :foo => 'bar' },
+      'intrinsics' => { :foo => 'bar' }
     }
 
     assert_trace_tree_contains(:attributes, expected)

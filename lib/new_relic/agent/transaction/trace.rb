@@ -17,15 +17,16 @@ module NewRelic
         end
 
         def trace_tree
+          destination = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER
           [
             NewRelic::Coerce.float(self.start_time),
             {},
             {},
             self.root_segment.to_array,
             {
-              'agentAttributes' => self.agent_attributes,
-              'customAttributes' => self.custom_attributes,
-              'intrinsics' => self.intrinsic_attributes
+              'agentAttributes'  => self.agent_attributes.for_destination(destination),
+              'customAttributes' => self.custom_attributes.for_destination(destination),
+              'intrinsics'       => self.intrinsic_attributes.for_destination(destination)
             }
           ]
         end
