@@ -18,6 +18,10 @@ module NewRelic
           @root_segment = NewRelic::TransactionSample::Segment.new(0.0, "ROOT")
         end
 
+        def sample_id
+          self.object_id
+        end
+
         def count_segments
           self.segment_count
         end

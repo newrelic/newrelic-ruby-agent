@@ -28,6 +28,10 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal 0, @trace.segment_count
   end
 
+  def test_sample_id_is_the_object_id
+    assert_equal @trace.object_id, @trace.sample_id
+  end
+
   def test_create_segment_increases_segment_count
     @trace.create_segment(0.0, 'foo')
     assert_equal 1, @trace.segment_count
