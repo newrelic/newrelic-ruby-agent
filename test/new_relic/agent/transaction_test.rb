@@ -47,7 +47,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_request_parsing_uri
+  def test_strips_query_string_from_path_and_referer
     request = stub(:path => '/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
     in_transaction(:request => request) do |txn|
       assert_equal "/path", txn.request_path
