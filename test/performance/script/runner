@@ -39,9 +39,9 @@ parser = OptionParser.new do |opts|
     options[:list] = true
   end
 
-  opts.on("-s", "--suite=NAME", "Filter to just run a single test suite") do |name|
+  opts.on("-s", "--suite=NAME", "Filter test suites to run (allows comma separated list)") do |name|
     options[:suite] ||= []
-    options[:suite]  << name
+    options[:suite].concat(name.split(","))
   end
 
   opts.on("-n", "--name=NAME", "Filter tests to those matching NAME") do |name|
