@@ -236,11 +236,11 @@ module NewRelic
           options.delete(:request_params)
         end
 
-        noticed_error.custom_params = options.delete(:custom_params) || {}
+        noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
 
         # Any options that are passed to notice_error which aren't known keys
         # get treated as custom attributes, so merge them into that hash.
-        noticed_error.custom_params.merge!(options)
+        noticed_error.attributes_from_notice_error.merge!(options)
 
         noticed_error
       end

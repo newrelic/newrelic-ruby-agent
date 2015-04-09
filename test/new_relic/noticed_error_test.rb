@@ -15,7 +15,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     @time = Time.now
 
     @attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-    @custom_params = { :user => 'params' }
+    @attributes_from_notice_error = { :user => 'params' }
   end
 
   def test_to_collector_array
@@ -23,7 +23,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
     error = create_error(e)
     error.request_uri = "http://com.google"
-    error.custom_params = @custom_params
+    error.attributes_from_notice_error = @attributes_from_notice_error
 
     expected = [
       (@time.to_f * 1000).round,
@@ -45,7 +45,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     @attributes.add_custom_attribute(:custom, "attribute")
 
     error = create_error(e)
-    error.custom_params = @custom_params
+    error.attributes_from_notice_error = @attributes_from_notice_error
 
     actual = extract_attributes(error)
     expected = {

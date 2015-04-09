@@ -89,7 +89,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     errors = @error_collector.harvest!
 
-    assert_empty errors.first.custom_params
+    assert_empty errors.first.attributes_from_notice_error
   end
 
   def test_long_message
