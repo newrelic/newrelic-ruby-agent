@@ -529,18 +529,15 @@ module NewRelic
       end
     end
 
-    # Record the given error.  It will be passed through the
-    # #ignore_error_filter if there is one.
+    # Notice the error with the given available options:
     #
-    # * <tt>exception</tt> is the exception which will be recorded.  May also be
-    #   an error message.
-    # Options:
-    # * <tt>:uri</tt> => The request path, minus any request params or query string.
-    # * <tt>:referer</tt> => The URI of the referer
+    # * <tt>:uri</tt> => Request path, minus request params or query string
     # * <tt>:metric</tt> => The metric name associated with the transaction
-    # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
     # * <tt>:custom_params</tt> => Custom parameters
     #
+    # Previous versions of the agent allowed passing :request_params but
+    # those are now ignored. Associate the request with the enclosing
+    # transaction, or record additional information as custom attributes.
     # Anything left over is treated as custom params.
     #
     # @api public

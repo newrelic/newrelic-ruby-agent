@@ -54,11 +54,6 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code
 
-      # Give the current transaction a request context.  Use this to
-      # get the URI and referer.  The request is interpreted loosely
-      # as a Rack::Request or an ActionController::AbstractRequest.
-      attr_accessor :request
-
       attr_reader :guid,
                   :metrics,
                   :gc_start_snapshot,
@@ -67,7 +62,10 @@ module NewRelic
                   :cat_path_hashes,
                   :custom_attributes,
                   :agent_attributes,
-                  :intrinsic_attributes
+                  :intrinsic_attributes,
+                  :request,
+                  :uri,
+                  :referer
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -192,18 +190,8 @@ module NewRelic
         txn.abort_transaction!(state) if txn
       end
 
-      # If we have an active transaction, notice the error and increment the error metric.
-      # Options:
-      # * <tt>:request</tt> => Request object to get the uri and referer
-      # * <tt>:uri</tt> => The request path, minus any request params or query string.
-      # * <tt>:referer</tt> => The URI of the referer
-      # * <tt>:metric</tt> => The metric name associated with the transaction
-      # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
-      # * <tt>:custom_params</tt> => Custom parameters
-      # Anything left over is treated as custom params
-
+      # See NewRelic::Agent.notice_error for options and commentary
       def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
-        options = extract_request_options(options)
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
         if txn
@@ -211,15 +199,6 @@ module NewRelic
         else
           NewRelic::Agent.instance.error_collector.notice_error(e, options)
         end
-      end
-
-      def self.extract_request_options(options)
-        req = options.delete(:request)
-        if req
-          options[:uri]     = uri_from_request(req)
-          options[:referer] = referer_from_request(req)
-        end
-        options
       end
 
       # Returns truthy if the current in-progress transaction is considered a
@@ -231,27 +210,6 @@ module NewRelic
         txn = tl_current
         txn && txn.recording_web_transaction?
       end
-
-      # Make a safe attempt to get the referer from a request object, generally successful when
-      # it's a Rack request.
-      def self.referer_from_request(req)
-        if req && req.respond_to?(:referer)
-          req.referer.to_s.split('?').first
-        end
-      end
-
-      # Make a safe attempt to get the URI, without the host and query string.
-      def self.uri_from_request(req)
-        approximate_uri = case
-                          when req.respond_to?(:fullpath   ) then req.fullpath
-                          when req.respond_to?(:path       ) then req.path
-                          when req.respond_to?(:request_uri) then req.request_uri
-                          when req.respond_to?(:uri        ) then req.uri
-                          when req.respond_to?(:url        ) then req.url
-                          end
-        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
-      end
-
 
       def self.apdex_bucket(duration, failed, apdex_t)
         case
@@ -321,6 +279,11 @@ module NewRelic
         @intrinsic_attributes = IntrinsicAttributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
+
+        if @request
+          @uri = uri_from_request(@request)
+          @referer = referer_from_request(@request)
+        end
       end
 
       # This transaction-local hash may be used as temprory storage by
@@ -466,16 +429,6 @@ module NewRelic
 
         frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
         name_last_frame @default_name
-      end
-
-      # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
-      def uri
-        @uri ||= self.class.uri_from_request(@request) unless @request.nil?
-      end
-
-      # For the current web transaction, return the full referer, minus the host string, or nil.
-      def referer
-        @referer ||= self.class.referer_from_request(@request)
       end
 
       # Call this to ensure that the current transaction is not saved
@@ -1002,6 +955,25 @@ module NewRelic
         guid
       end
 
+      # Make a safe attempt to get the referer from a request object, generally successful when
+      # it's a Rack request.
+      def referer_from_request(req)
+        if req && req.respond_to?(:referer)
+          req.referer.to_s.split('?').first
+        end
+      end
+
+      # Make a safe attempt to get the URI, without the host and query string.
+      def uri_from_request(req)
+        approximate_uri = case
+                          when req.respond_to?(:fullpath   ) then req.fullpath
+                          when req.respond_to?(:path       ) then req.path
+                          when req.respond_to?(:request_uri) then req.request_uri
+                          when req.respond_to?(:uri        ) then req.uri
+                          when req.respond_to?(:url        ) then req.url
+                          end
+        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
+      end
     end
   end
 end

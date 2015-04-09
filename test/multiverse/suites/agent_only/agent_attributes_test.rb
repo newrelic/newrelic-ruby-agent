@@ -21,8 +21,8 @@ class AgentAttributesTest < Minitest::Test
   end
 
   def test_request_headers_referer_default_destinations
-    run_transaction do |txn|
-      txn.request = stub(:referer => "referrer")
+    txn_options = {:request => stub(:referer => "referrer")}
+    run_transaction({}, txn_options) do |txn|
     end
 
     assert_error_has_agent_attribute("request.headers.referer", "referrer")
@@ -55,7 +55,7 @@ class AgentAttributesTest < Minitest::Test
     refute_browser_monitoring_has_agent_attribute("request.parameters.duly")
   end
 
-  def run_transaction(config = {})
+  def run_transaction(config = {}, txn_options = {})
     default_config = {
       :'transaction_tracer.attributes.enabled' => true,
       :'transaction_events.attributes.enabled' => true,
@@ -65,7 +65,7 @@ class AgentAttributesTest < Minitest::Test
 
     assert_raises(RuntimeError) do
       with_config(default_config.merge(config)) do
-        in_transaction do |txn|
+        in_transaction(txn_options) do |txn|
           yield(txn)
 
           # JS instrumentation happens within transaction, so capture it now
