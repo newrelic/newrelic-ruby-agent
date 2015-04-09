@@ -329,17 +329,13 @@ module NewRelic
         set_default_transaction_name(options[:transaction_name], category)
       end
 
-      # Can't check length (on 1.8.7) or bytesize (on any version) against
-      # Symbol, so check bytesize on string portion used to build the key
-      REQUEST_KEY_LIMIT = NewRelic::Agent::Transaction::Attributes::KEY_LIMIT - "request.parameters.".bytesize
-
       def merge_request_parameters(params)
         params.each_pair do |k, v|
           normalized_key = EncodingNormalizer.normalize_string(k.to_s)
-          if normalized_key.bytesize > REQUEST_KEY_LIMIT
-            NewRelic::Agent.logger.debug("Request parameter request.parameters.#{normalized_key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
+          key = "request.parameters.#{normalized_key}"
+          if key.bytesize > NewRelic::Agent::Transaction::Attributes::KEY_LIMIT
+            NewRelic::Agent.logger.debug("Request parameter #{key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
           else
-            key = :"request.parameters.#{normalized_key}"
             add_agent_attribute(key, v, NewRelic::Agent::AttributeFilter::DST_NONE)
           end
         end

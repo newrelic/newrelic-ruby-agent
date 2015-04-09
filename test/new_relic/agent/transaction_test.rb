@@ -1432,7 +1432,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       end
     end
     actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
-    assert_equal "bar", actual[:'request.parameters.foo']
+    assert_equal "bar", actual['request.parameters.foo']
   end
 
   def test_request_params_included_in_agent_attributes_in_nested_txn
@@ -1444,8 +1444,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     actual = txn.agent_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
-    assert_equal "bar", actual[:'request.parameters.foo']
-    assert_equal "qux", actual[:'request.parameters.bar']
+    assert_equal "bar", actual['request.parameters.foo']
+    assert_equal "qux", actual['request.parameters.bar']
   end
 
   def test_request_params_get_key_length_limits
