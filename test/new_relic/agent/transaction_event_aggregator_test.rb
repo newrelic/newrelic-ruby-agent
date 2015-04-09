@@ -15,8 +15,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     @event_listener = NewRelic::Agent::EventListener.new
     @event_aggregator = NewRelic::Agent::TransactionEventAggregator.new(@event_listener)
 
-    @custom_attributes = nil
-    @agent_attributes = nil
+    @attributes = nil
   end
 
   # Helpers for DataContainerTests
@@ -48,7 +47,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_custom_attributes_in_event_are_normalized_to_string_keys
     with_sampler_config do
-      custom_attributes.merge!(:bing => 2, 1 => 3)
+      attributes.merge_custom_attributes!(:bing => 2, 1 => 3)
       generate_request('whatever')
 
       result = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
@@ -59,7 +58,8 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_agent_attributes_in_event_are_normalized_to_string_keys
     with_sampler_config do
-      agent_attributes.merge!(:yahoo => 7, 4 => 2)
+      attributes.add_agent_attribute(:yahoo, 7, NewRelic::Agent::AttributeFilter::DST_ALL)
+      attributes.add_agent_attribute(4, 2, NewRelic::Agent::AttributeFilter::DST_ALL)
       generate_request('puce')
 
       result = captured_transaction_event[AGENT_ATTRIBUTES_INDEX]
@@ -70,7 +70,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_includes_custom_attributes_in_event
     with_sampler_config do
-      custom_attributes.merge!('bing' => 2)
+      attributes.merge_custom_attributes!('bing' => 2)
       generate_request('whatever')
 
       custom_attrs = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
@@ -80,7 +80,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_includes_agent_attributes_in_event
     with_sampler_config do
-      agent_attributes.merge!('bing' => 2)
+      attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
       generate_request('whatever')
 
       agent_attrs = captured_transaction_event[AGENT_ATTRIBUTES_INDEX]
@@ -90,7 +90,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_doesnt_include_custom_attributes_in_event_when_configured_not_to
     with_sampler_config('analytics_events.capture_attributes' => false) do
-      custom_attributes.merge!('bing' => 2)
+      attributes.merge_custom_attributes!('bing' => 2)
       generate_request('whatever')
 
       custom_attrs = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
@@ -100,7 +100,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_doesnt_include_agent_attributes_in_event_when_configured_not_to
     with_sampler_config('analytics_events.capture_attributes' => false) do
-      agent_attributes.merge!('bing' => 2)
+      attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
       generate_request('whatever')
 
       agent_attrs = captured_transaction_event[AGENT_ATTRIBUTES_INDEX]
@@ -113,7 +113,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       metrics = NewRelic::Agent::TransactionMetrics.new()
       metrics.record_unscoped('HttpDispatcher', 0.01)
 
-      custom_attributes.merge!('type' => 'giraffe', 'duration' => 'hippo')
+      attributes.merge_custom_attributes!('type' => 'giraffe', 'duration' => 'hippo')
       generate_request('whatever', :metrics => metrics)
 
       txn_event = captured_transaction_event[EVENT_DATA_INDEX]
@@ -382,8 +382,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       :type => :controller,
       :start_timestamp => options[:timestamp] || Time.now.to_f,
       :duration => 0.1,
-      :custom_attributes => custom_attributes,
-      :agent_attributes => agent_attributes
+      :attributes => attributes
     }.merge(options)
     @event_listener.notify(:transaction_finished, payload)
   end
@@ -402,22 +401,12 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     @event_aggregator.samples.first
   end
 
-  def custom_attributes
-    if @custom_attributes.nil?
+  def attributes
+    if @attributes.nil?
       filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
-      @custom_attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
+      @attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
     end
 
-    @custom_attributes
+    @attributes
   end
-
-  def agent_attributes
-    if @agent_attributes.nil?
-      filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
-      @agent_attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
-    end
-
-    @agent_attributes
-  end
-
 end

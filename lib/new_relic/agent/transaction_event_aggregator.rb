@@ -32,6 +32,9 @@ class NewRelic::Agent::TransactionEventAggregator
   SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
   SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
 
+  # To avoid allocations when we have empty custom or agent attributes
+  EMPTY_HASH = {}.freeze
+
   def initialize( event_listener )
     super()
 
@@ -143,9 +146,10 @@ class NewRelic::Agent::TransactionEventAggregator
   def on_transaction_finished(payload)
     return unless @enabled
 
+    attributes = payload[:attributes]
     main_event = create_main_event(payload)
-    custom_attributes = create_attributes(:custom_attributes, payload)
-    agent_attributes = create_attributes(:agent_attributes, payload)
+    custom_attributes = create_custom_attributes(attributes)
+    agent_attributes  = create_agent_attributes(attributes)
 
     self.synchronize { append_event([main_event, custom_attributes, agent_attributes]) }
     notify_full if !@notified_full && @samples.full?
@@ -247,18 +251,23 @@ class NewRelic::Agent::TransactionEventAggregator
     end
   end
 
-  EMPTY_HASH = {}.freeze
-
-  def create_attributes(key, payload)
-    result = nil
-
-    if attributes = payload[key]
-      result = attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
-      result = event_params(result)
+  def create_custom_attributes(attributes)
+    if attributes
+      custom_attributes = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+      custom_attributes = event_params(custom_attributes)
+      custom_attributes.freeze
+    else
+      EMPTY_HASH
     end
-
-    # Since these aren't modified downstream, make sure to freeze consistently.
-    result.freeze || EMPTY_HASH
   end
 
+  def create_agent_attributes(attributes)
+    if attributes
+      agent_attributes = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+      agent_attributes = event_params(agent_attributes)
+      agent_attributes.freeze
+    else
+      EMPTY_HASH
+    end
+  end
 end

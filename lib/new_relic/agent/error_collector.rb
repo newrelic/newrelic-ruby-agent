@@ -223,10 +223,7 @@ module NewRelic
 
         noticed_error = NewRelic::NoticedError.new(error_metric, exception)
         noticed_error.request_uri = options.delete(:uri) || EMPTY_STRING
-
-        noticed_error.custom_attributes    = options.delete(:custom_attributes)
-        noticed_error.agent_attributes     = options.delete(:agent_attributes)
-        noticed_error.intrinsic_attributes = options.delete(:intrinsic_attributes)
+        noticed_error.attributes  = options.delete(:attributes)
 
         noticed_error.file_name   = sense_method(exception, :file_name)
         noticed_error.line_number = sense_method(exception, :line_number)
@@ -239,11 +236,11 @@ module NewRelic
           options.delete(:request_params)
         end
 
-        noticed_error.custom_params = options.delete(:custom_params) || {}
+        noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
 
         # Any options that are passed to notice_error which aren't known keys
         # get treated as custom attributes, so merge them into that hash.
-        noticed_error.custom_params.merge!(options)
+        noticed_error.attributes_from_notice_error.merge!(options)
 
         noticed_error
       end
