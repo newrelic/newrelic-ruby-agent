@@ -121,18 +121,25 @@ class NewRelic::NoticedError
   def merged_custom_attributes
     merged_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
-    if @attributes
-      custom_attributes_from_transaction = @attributes.custom_attributes_for(DESTINATION)
-      merged_attributes.merge_custom_attributes!(custom_attributes_from_transaction)
-    end
-
-    custom_attributes_from_notice_error = custom_params
-    if custom_attributes_from_notice_error
-      custom_attributes_from_notice_error = NewRelic::NoticedError.normalize_params(custom_attributes_from_notice_error)
-      merged_attributes.merge_custom_attributes!(custom_attributes_from_notice_error)
-    end
+    merge_custom_attributes_from_transaction(merged_attributes)
+    merge_custom_attributes_from_notice_error(merged_attributes)
 
     merged_attributes.custom_attributes_for(DESTINATION)
+  end
+
+  def merge_custom_attributes_from_transaction(merged_attributes)
+    if @attributes
+      from_transaction = @attributes.custom_attributes_for(DESTINATION)
+      merged_attributes.merge_custom_attributes!(from_transaction)
+    end
+  end
+
+  # Attributes passed directly to notice_error end up in custom_params
+  def merge_custom_attributes_from_notice_error(merged_attributes)
+    if @custom_params
+      from_notice_error = NewRelic::NoticedError.normalize_params(@custom_params)
+      merged_attributes.merge_custom_attributes!(from_notice_error)
+    end
   end
 
   def build_agent_attributes
