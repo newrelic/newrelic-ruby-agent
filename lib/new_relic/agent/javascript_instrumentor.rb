@@ -167,7 +167,7 @@ module NewRelic
         append_custom_attributes!(txn, atts)
         append_agent_attributes!(txn, atts)
 
-        if atts.any?
+        unless atts.empty?
           json = NewRelic::JSONWrapper.dump(atts)
           data[ATTS_KEY] = obfuscator.obfuscate(json)
         end
@@ -175,14 +175,14 @@ module NewRelic
 
       def append_custom_attributes!(txn, atts)
         custom_attributes = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
-        if custom_attributes.any?
+        unless custom_attributes.empty?
           atts[ATTS_USER_SUBKEY] = event_params(custom_attributes)
         end
       end
 
       def append_agent_attributes!(txn, atts)
         agent_attributes = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
-        if agent_attributes.any?
+        unless agent_attributes.empty?
           atts[ATTS_AGENT_SUBKEY] = event_params(agent_attributes)
         end
       end
