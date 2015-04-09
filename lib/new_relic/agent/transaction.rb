@@ -59,7 +59,6 @@ module NewRelic
                   :frame_stack,
                   :cat_path_hashes,
                   :attributes,
-                  :request,
                   :request_path,
                   :referer
 
@@ -260,7 +259,6 @@ module NewRelic
         @gc_start_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         @filtered_params = options[:filtered_params] || {}
 
-        @request = options[:request]
         @exceptions = {}
         @metrics = TransactionMetrics.new
         @guid = generate_guid
@@ -274,9 +272,9 @@ module NewRelic
 
         merge_request_parameters(@filtered_params)
 
-        if @request
-          @request_path = path_from_request(@request)
-          @referer = referer_from_request(@request)
+        if request = options[:request]
+          @request_path = path_from_request(request)
+          @referer = referer_from_request(request)
         end
       end
 

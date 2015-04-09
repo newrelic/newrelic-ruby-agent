@@ -307,19 +307,19 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
-    def test_should_not_set_request
+    def test_should_not_set_request_path
       clazz = Class.new do
         include ControllerInstrumentation
 
         def doit
           perform_action_with_newrelic_trace do
-            NewRelic::Agent::TransactionState.tl_get.current_transaction.request
+            NewRelic::Agent::TransactionState.tl_get.current_transaction.request_path
           end
         end
       end
 
-      request = clazz.new.doit
-      assert_nil request
+      request_path = clazz.new.doit
+      assert_nil request_path
     end
   end
 end
