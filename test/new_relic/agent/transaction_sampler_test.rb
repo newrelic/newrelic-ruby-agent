@@ -749,35 +749,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal([samples[1]], prepared)
   end
 
-  def test_custom_params_omitted_if_config_says_so
-    config = {
-      :'transaction_tracer.transaction_threshold' => 0.0,
-      :'transaction_tracer.capture_attributes' => false
-    }
-    with_config(config) do
-      in_transaction do
-        NewRelic::Agent.add_custom_parameters(:foo => 'bar')
-      end
-    end
-    sample = NewRelic::Agent.agent.transaction_sampler.harvest![0]
-    custom_params = sample.params[:custom_params]
-    assert_false(custom_params.keys.include?(:foo))
-  end
-
-  def test_custom_params_included_if_config_says_so
-    config = {
-      :'transaction_tracer.transaction_threshold' => 0.0,
-      :'transaction_tracer.capture_attributes' => true
-    }
-    with_config(config) do
-      in_transaction do
-        NewRelic::Agent.add_custom_parameters(:foo => 'bar')
-      end
-    end
-    custom_params = custom_params_from_last_sample
-    assert_includes custom_params.keys, :foo
-  end
-
   def test_custom_params_include_gc_time
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do

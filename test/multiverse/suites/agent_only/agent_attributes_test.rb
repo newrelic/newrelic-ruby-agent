@@ -55,6 +55,46 @@ class AgentAttributesTest < Minitest::Test
     refute_browser_monitoring_has_agent_attribute("request.parameters.duly")
   end
 
+  def test_custom_attributes_included
+    run_transaction do
+      NewRelic::Agent.add_custom_attributes(:foo => 'bar')
+    end
+
+    assert_transaction_tracer_has_custom_attributes('foo', 'bar')
+    assert_transaction_event_has_custom_attributes('foo', 'bar')
+    assert_error_collector_has_custom_attributes('foo', 'bar')
+    assert_browser_monitoring_has_custom_attributes('foo', 'bar')
+  end
+
+  def test_custom_attributes_excluded
+    config = {
+      :'transaction_tracer.attributes.enabled' => false,
+      :'transaction_events.attributes.enabled' => false,
+      :'error_collector.attributes.enabled'    => false,
+      :'browser_monitoring.attributes.enabled' => false
+    }
+
+    run_transaction(config) do
+      NewRelic::Agent.add_custom_attributes(:foo => 'bar')
+    end
+
+    refute_transaction_tracer_has_custom_attributes('foo')
+    refute_transaction_event_has_custom_attributes('foo')
+    refute_error_collector_has_custom_attributes('foo')
+    refute_browser_monitoring_has_custom_attributes('foo')
+  end
+
+  def test_custom_attributes_excluded_with_global_config
+    run_transaction(:'attributes.enabled' => false) do
+      NewRelic::Agent.add_custom_attributes(:foo => 'bar')
+    end
+
+    refute_transaction_tracer_has_custom_attributes('foo')
+    refute_transaction_event_has_custom_attributes('foo')
+    refute_error_collector_has_custom_attributes('foo')
+    refute_browser_monitoring_has_custom_attributes('foo')
+  end
+
   def run_transaction(config = {})
     default_config = {
       :'transaction_tracer.attributes.enabled' => true,
@@ -85,6 +125,14 @@ class AgentAttributesTest < Minitest::Test
     events = stub(:subscribe => nil)
     @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(events)
     @js_data = @instrumentor.data_for_js_agent(state)
+
+    raw_attributes = @js_data["atts"]
+
+    if raw_attributes
+      attributes = JSON.load @instrumentor.obfuscator.deobfuscate(raw_attributes)
+      @js_custom_attributes = attributes['u']
+      @js_agent_attributes = attributes['a']
+    end
   end
 
   def assert_transaction_trace_has_agent_attribute(attribute, expected)
@@ -97,6 +145,38 @@ class AgentAttributesTest < Minitest::Test
 
   def assert_error_has_agent_attribute(attribute, expected)
     assert_equal expected, single_error_posted.params["agentAttributes"][attribute]
+  end
+
+  def assert_transaction_tracer_has_custom_attributes(attribute, expected)
+    # assert_equal expected, nil
+  end
+
+  def assert_transaction_event_has_custom_attributes(attribute, expected)
+    assert_equal expected, single_event_posted[1][attribute]
+  end
+
+  def assert_error_collector_has_custom_attributes(attribute, expected)
+    assert_equal expected, single_error_posted.params["userAttributes"][attribute]
+  end
+
+  def assert_browser_monitoring_has_custom_attributes(attribute, expected)
+    assert_equal expected, @js_custom_attributes[attribute]
+  end
+
+  def refute_transaction_tracer_has_custom_attributes(attribute)
+    # refute_includes something, attribute
+  end
+
+  def refute_transaction_event_has_custom_attributes(attribute)
+    refute_includes single_event_posted[1], attribute
+  end
+
+  def refute_error_collector_has_custom_attributes(attribute)
+    refute_includes single_error_posted.params["userAttributes"], attribute
+  end
+
+  def refute_browser_monitoring_has_custom_attributes(_)
+    refute_includes @js_data, "atts"
   end
 
   def refute_transaction_trace_has_agent_attribute(attribute)
