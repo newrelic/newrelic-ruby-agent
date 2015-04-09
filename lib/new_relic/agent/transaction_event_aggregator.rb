@@ -146,20 +146,10 @@ class NewRelic::Agent::TransactionEventAggregator
   def on_transaction_finished(payload)
     return unless @enabled
 
-    main_event = create_main_event(payload)
     attributes = payload[:attributes]
-    if attributes
-      custom_attributes = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
-      custom_attributes = event_params(custom_attributes)
-      custom_attributes.freeze
-
-      agent_attributes = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
-      agent_attributes = event_params(agent_attributes)
-      agent_attributes.freeze
-    else
-      custom_attributes = EMPTY_HASH
-      agent_attributes  = EMPTY_HASH
-    end
+    main_event = create_main_event(payload)
+    custom_attributes = create_custom_attributes(attributes)
+    agent_attributes  = create_agent_attributes(attributes)
 
     self.synchronize { append_event([main_event, custom_attributes, agent_attributes]) }
     notify_full if !@notified_full && @samples.full?
@@ -258,6 +248,26 @@ class NewRelic::Agent::TransactionEventAggregator
   def optionally_append(sample_key, payload_key, sample, payload)
     if payload.include?(payload_key)
       sample[sample_key] = string(payload[payload_key])
+    end
+  end
+
+  def create_custom_attributes(attributes)
+    if attributes
+      custom_attributes = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+      custom_attributes = event_params(custom_attributes)
+      custom_attributes.freeze
+    else
+      EMPTY_HASH
+    end
+  end
+
+  def create_agent_attributes(attributes)
+    if attributes
+      agent_attributes = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+      agent_attributes = event_params(agent_attributes)
+      agent_attributes.freeze
+    else
+      EMPTY_HASH
     end
   end
 end
