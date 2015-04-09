@@ -21,7 +21,7 @@ class AgentAttributesTest < Minitest::Test
   end
 
   def test_request_headers_referer_default_destinations
-    txn_options = {:request => stub(:referer => "referrer")}
+    txn_options = {:request => stub(:referer => "referrer", :path => "/")}
     run_transaction({}, txn_options) do |txn|
     end
 

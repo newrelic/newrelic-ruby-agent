@@ -304,7 +304,7 @@ end
 # Convenience wrapper around in_transaction that sets the category so that it
 # looks like we are in a web transaction
 def in_web_transaction(name='dummy')
-  in_transaction(name, :category => :controller, :request => stub()) do
+  in_transaction(name, :category => :controller, :request => stub(:path => '/')) do
     yield
   end
 end

@@ -30,46 +30,57 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_request_parsing_path
+  # note: technically this shouldn't happen if the request we are dealing with is
+  # a Rack::Request (or subclass such as ActionDispatch::Request or the old
+  # ActionController::AbstractRequest)
+  def test_request_with_path_with_query_string
     request = stub(:path => '/path?hello=bob#none')
     in_transaction(:request => request) do |txn|
       assert_equal "/path", txn.uri
     end
   end
 
-  def test_request_parsing_fullpath
-    request = stub(:fullpath => '/path?hello=bob#none')
-    in_transaction(:request => request) do |txn|
-      assert_equal "/path", txn.uri
-    end
-  end
-
   def test_request_parsing_referer
-    request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar')
+    request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar', :path => "/")
     in_transaction(:request => request) do |txn|
-      assert_nil txn.uri
       assert_equal "https://www.yahoo.com:8080/path/hello", txn.referer
     end
   end
 
   def test_request_parsing_uri
-    request = stub(:uri => 'http://creature.com/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
+    request = stub(:path => '/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
     in_transaction(:request => request) do |txn|
       assert_equal "/path", txn.uri
       assert_equal "/path/hello", txn.referer
     end
   end
 
-  def test_request_parsing_hostname_only
-    request = stub(:uri => 'http://creature.com')
+  def test_request_with_normal_path
+    request = stub(:path => '/blogs')
+    in_transaction(:request => request) do |txn|
+      assert_equal "/blogs", txn.uri
+      assert_nil txn.referer
+    end
+  end
+
+  def test_request_with_empty_path
+    request = stub(:path => '')
     in_transaction(:request => request) do |txn|
       assert_equal "/", txn.uri
       assert_nil txn.referer
     end
   end
 
-  def test_request_parsing_slash
-    request = stub(:uri => 'http://creature.com/')
+  def test_request_to_root_path
+    request = stub(:path => '/')
+    in_transaction(:request => request) do |txn|
+      assert_equal "/", txn.uri
+      assert_nil txn.referer
+    end
+  end
+
+  def test_request_with_empty_path_with_query_string
+    request = stub(:path => '?k=v')
     in_transaction(:request => request) do |txn|
       assert_equal "/", txn.uri
       assert_nil txn.referer
@@ -709,7 +720,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_notice_error_sends_uri_and_referer_from_request
-    request = stub(:uri => "/here")
+    request = stub(:path => "/here")
     in_transaction(:request => request) do |txn|
       NewRelic::Agent::Transaction.notice_error("wat")
     end
@@ -1472,7 +1483,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_referer_in_agent_attributes
-    request = stub('request', :referer => "/referered")
+    request = stub('request', :referer => "/referered", :path => "/")
     txn = in_transaction(:request => request) do |txn|
     end
 
@@ -1481,7 +1492,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_referer_omitted_if_not_on_request
-    request = stub('request')
+    request = stub('request', :path => "/")
     txn = in_transaction(:request => request) do |txn|
     end
 

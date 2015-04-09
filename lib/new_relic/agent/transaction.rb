@@ -948,16 +948,19 @@ module NewRelic
         end
       end
 
-      # Make a safe attempt to get the URI, without the host and query string.
+      QUESTION_MARK = "?".freeze
+
+      # In practice we expect req to be a Rack::Request or ActionController::AbstractRequest
+      # (for older Rails versions).  But anything that responds to path can be passed to
+      # perform_action_with_newrelic_trace.
+      #
+      # We don't expect the path to include a query string, however older test helpers for
+      # rails construct the PATH_INFO enviroment variable improperly and we're generally
+      # being defensive.
       def uri_from_request(req)
-        approximate_uri = case
-                          when req.respond_to?(:fullpath   ) then req.fullpath
-                          when req.respond_to?(:path       ) then req.path
-                          when req.respond_to?(:request_uri) then req.request_uri
-                          when req.respond_to?(:uri        ) then req.uri
-                          when req.respond_to?(:url        ) then req.url
-                          end
-        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
+        path = req.path
+        path = path.split(QUESTION_MARK).first if path.include?(QUESTION_MARK)
+        path.empty? ? "/" : path
       end
     end
   end
