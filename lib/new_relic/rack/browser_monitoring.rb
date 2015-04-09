@@ -19,7 +19,6 @@ module NewRelic::Rack
     # examine in order to look for a RUM insertion point.
     SCAN_LIMIT = 50_000
 
-    CONTENT_LENGTH      = 'Conent-Length'.freeze
     CONTENT_TYPE        = 'Content-Type'.freeze
     CONTENT_DISPOSITION = 'Content-Disposition'.freeze
     ATTACHMENT          = 'attachment'.freeze
@@ -109,10 +108,6 @@ module NewRelic::Rack
         NewRelic::Agent.logger.debug(msg)
       end
 
-      if headers[CONTENT_LENGTH]
-        headers[CONTENT_LENGTH] = calculate_content_length(source).to_s
-      end
-
       source
     rescue => e
       NewRelic::Agent.logger.debug "Skipping RUM instrumentation on exception.", e
@@ -150,16 +145,6 @@ module NewRelic::Rack
     def find_end_of_head_open(beginning_of_source)
       head_open = beginning_of_source.index(HEAD_START)
       beginning_of_source.index(GT, head_open) + 1 if head_open
-    end
-
-    # String does not respond to 'bytesize' in 1.8.6. Fortunately String#length
-    # returns bytes rather than characters in 1.8.6 so we can use that instead.
-    def calculate_content_length(source)
-      if source.respond_to?(:bytesize)
-        source.bytesize
-      else
-        source.length
-      end
     end
   end
 end

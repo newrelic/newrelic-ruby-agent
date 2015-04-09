@@ -179,14 +179,19 @@ EOL
     assert last_response.ok?
   end
 
-  def test_calculate_content_length_accounts_for_multibyte_characters_for_186
-    String.stubs(:respond_to?).with(:bytesize).returns(false)
-    browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(mock('app'))
-    assert_equal 24, browser_monitoring.calculate_content_length("猿も木から落ちる")
+  def test_content_length_set_when_we_modify_source
+    original_headers = {
+      "Content-Length" => 0,
+      "Content-Type"   => "text/html"
+    }
+    headers = headers_from_request(original_headers, "<html><body></body></html>")
+    assert_equal "390", headers["Content-Length"]
   end
 
-  def test_calculate_content_length_accounts_for_multibyte_characters_for_modern_ruby
-    browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(mock('app'))
-    assert_equal 18, browser_monitoring.calculate_content_length("七転び八起き")
+  def headers_from_request(headers, content)
+    app = mock('app', :call => [200, headers, [content]])
+    browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(app)
+    _, headers, _ = browser_monitoring.call({})
+    headers
   end
 end
