@@ -936,11 +936,9 @@ module NewRelic
       # it's a Rack request.
       def referer_from_request(req)
         if req && req.respond_to?(:referer)
-          req.referer.to_s.split('?').first
+          HTTPClients::URIUtil.strip_query_string(req.referer.to_s)
         end
       end
-
-      QUESTION_MARK = "?".freeze
 
       # In practice we expect req to be a Rack::Request or ActionController::AbstractRequest
       # (for older Rails versions).  But anything that responds to path can be passed to
@@ -951,7 +949,7 @@ module NewRelic
       # being defensive.
       def path_from_request(req)
         path = req.path
-        path = path.split(QUESTION_MARK).first if path.include?(QUESTION_MARK)
+        path = HTTPClients::URIUtil.strip_query_string(path)
         path.empty? ? "/" : path
       end
     end
