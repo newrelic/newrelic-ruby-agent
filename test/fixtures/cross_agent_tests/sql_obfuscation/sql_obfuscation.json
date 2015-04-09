@@ -1,0 +1,365 @@
+[
+  {
+    "name": "back_quoted_identifiers.mysql",
+    "obfuscated": [
+      "SELECT `t001`.`c2` FROM `t001` WHERE `t001`.`c2` = ? AND c3=? LIMIT ?"
+    ],
+    "dialects": [
+      "mysql"
+    ],
+    "sql": "SELECT `t001`.`c2` FROM `t001` WHERE `t001`.`c2` = 'value' AND c3=\"othervalue\" LIMIT ?"
+  },
+  {
+    "name": "comment_delimiters_in_double_quoted_strings",
+    "obfuscated": [
+      "SELECT * FROM t WHERE foo=? AND baz=?"
+    ],
+    "dialects": [
+      "mysql"
+    ],
+    "sql": "SELECT * FROM t WHERE foo=\"bar/*\" AND baz=\"whatever */qux\""
+  },
+  {
+    "name": "comment_delimiters_in_single_quoted_strings",
+    "obfuscated": [
+      "SELECT * FROM t WHERE foo=? AND baz=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM t WHERE foo='bar/*' AND baz='whatever */qux'"
+  },
+  {
+    "name": "double_quoted_identifiers.postgres",
+    "obfuscated": [
+      "SELECT \"t001\".\"c2\" FROM \"t001\" WHERE \"t001\".\"c2\" = ? AND c3=? LIMIT ?"
+    ],
+    "dialects": [
+      "postgres"
+    ],
+    "sql": "SELECT \"t001\".\"c2\" FROM \"t001\" WHERE \"t001\".\"c2\" = 'value' AND c3=1234 LIMIT 1"
+  },
+  {
+    "name": "end_of_line_comment_in_double_quoted_string",
+    "obfuscated": [
+      "SELECT * FROM t WHERE foo=? AND\n  baz=?"
+    ],
+    "dialects": [
+      "mysql"
+    ],
+    "sql": "SELECT * FROM t WHERE foo=\"bar--\" AND\n  baz=\"qux--\""
+  },
+  {
+    "name": "end_of_line_comment_in_single_quoted_string",
+    "obfuscated": [
+      "SELECT * FROM t WHERE foo=? AND\n  baz=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM t WHERE foo='bar--' AND\n  baz='qux--'"
+  },
+  {
+    "name": "end_of_query_comment_cstyle",
+    "obfuscated": [
+      "SELECT * FROM foo WHERE bar=? ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM foo WHERE bar='baz' /* Hide Me */"
+  },
+  {
+    "name": "end_of_query_comment_doubledash",
+    "obfuscated": [
+      "SELECT * FROM foobar WHERE password=?\n?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM foobar WHERE password='hunter2'\n-- No peeking!"
+  },
+  {
+    "name": "end_of_query_comment_hash",
+    "obfuscated": [
+      "SELECT foo, bar FROM baz WHERE password=? ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT foo, bar FROM baz WHERE password='hunter2' # Secret"
+  },
+  {
+    "name": "escape_string_constants.postgres",
+    "obfuscated": [
+      "SELECT \"col1\", \"col2\" from \"table\" WHERE \"col3\"=E? AND country=e?"
+    ],
+    "dialects": [
+      "postgres"
+    ],
+    "sql": "SELECT \"col1\", \"col2\" from \"table\" WHERE \"col3\"=E'foo\\'bar\\\\baz' AND country=e'foo\\'bar\\\\baz'",
+    "comments": [
+      "PostgreSQL supports an alternate string quoting mode where backslash escape",
+      "sequences are interpreted.",
+      "See: http://www.postgresql.org/docs/9.3/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS-ESCAPE"
+    ]
+  },
+  {
+    "name": "multiple_literal_types.mysql",
+    "obfuscated": [
+      "INSERT INTO `X` values(?,?, ? , ?, ?)"
+    ],
+    "dialects": [
+      "mysql"
+    ],
+    "sql": "INSERT INTO `X` values(\"test\",0, 1 , 2, 'test')"
+  },
+  {
+    "name": "numbers_in_identifiers",
+    "obfuscated": [
+      "SELECT c11.col1, c22.col2 FROM table c11, table c22 WHERE value=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT c11.col1, c22.col2 FROM table c11, table c22 WHERE value='nothing'"
+  },
+  {
+    "name": "numeric_literals",
+    "obfuscated": [
+      "INSERT INTO X VALUES(?, ?, ?.?, ?+?)"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "INSERT INTO X VALUES(1, 23456, 123.456, 99+100)"
+  },
+  {
+    "name": "string_double_quoted.mysql",
+    "obfuscated": [
+      "SELECT * FROM table WHERE name=? AND value=?"
+    ],
+    "dialects": [
+      "mysql"
+    ],
+    "sql": "SELECT * FROM table WHERE name=\"foo\" AND value=\"don't\""
+  },
+  {
+    "name": "string_single_quoted",
+    "obfuscated": [
+      "SELECT * FROM table WHERE name=? AND value = ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM table WHERE name='foo' AND value = 'bar'"
+  },
+  {
+    "name": "string_with_backslash_and_twin_single_quotes",
+    "obfuscated": [
+      "SELECT * FROM table WHERE col=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM table WHERE col='foo\\''bar'",
+    "comments": [
+      "If backslashes are being ignored in single-quoted strings",
+      "(standard_conforming_strings=on in PostgreSQL, or NO_BACKSLASH_ESCAPES is on",
+      "in MySQL), then this is valid SQL."
+    ]
+  },
+  {
+    "name": "string_with_embedded_double_quote",
+    "obfuscated": [
+      "SELECT * FROM table WHERE col1=? AND col2=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM table WHERE col1='foo\"bar' AND col2='what\"ever'"
+  },
+  {
+    "name": "string_with_embedded_newline",
+    "obfuscated": [
+      "select * from accounts where accounts.name != ? order by accounts.name"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "select * from accounts where accounts.name != 'dude \n newline' order by accounts.name"
+  },
+  {
+    "name": "string_with_embedded_single_quote.mysql",
+    "obfuscated": [
+      "SELECT * FROM table WHERE col1=? AND col2=?"
+    ],
+    "dialects": [
+      "mysql"
+    ],
+    "sql": "SELECT * FROM table WHERE col1=\"don't\" AND col2=\"won't\""
+  },
+  {
+    "name": "string_with_escaped_quotes.mysql",
+    "obfuscated": [
+      "INSERT INTO X values(?, ?,?, ? , ?, ?, ?)"
+    ],
+    "dialects": [
+      "mysql"
+    ],
+    "sql": "INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son', \"\"\"jim''s\"\" hat\", \"\\\"jim''s secret\\\"\")"
+  },
+  {
+    "name": "string_with_trailing_backslash",
+    "obfuscated": [
+      "SELECT * FROM table WHERE name=? AND color=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM table WHERE name='foo\\' AND color='blue'",
+    "comments": [
+      "If backslashes are being ignored in single-quoted strings",
+      "(standard_conforming_strings=on in PostgreSQL, or NO_BACKSLASH_ESCAPES is on",
+      "in MySQL), then this is valid SQL."
+    ]
+  },
+  {
+    "name": "string_with_trailing_escaped_backslash.mysql",
+    "obfuscated": [
+      "SELECT * FROM table WHERE foo=?"
+    ],
+    "dialects": [
+      "mysql"
+    ],
+    "sql": "SELECT * FROM table WHERE foo=\"this string ends with a backslash\\\\\""
+  },
+  {
+    "name": "string_with_trailing_escaped_backslash_single_quoted",
+    "obfuscated": [
+      "SELECT * FROM table WHERE foo=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM table WHERE foo='this string ends with a backslash\\\\'"
+  },
+  {
+    "name": "string_with_trailing_escaped_quote",
+    "obfuscated": [
+      "SELECT * FROM table WHERE name=? AND color=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM table WHERE name='foo\\'' AND color='blue'"
+  },
+  {
+    "name": "string_with_twin_single_quotes",
+    "obfuscated": [
+      "INSERT INTO X values(?, ?,?, ? , ?)"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "INSERT INTO X values('', 'a''b c',0, 1 , 'd''e f''s h')"
+  },
+  {
+    "name": "pathological/end_of_line_comments_with_quotes",
+    "obfuscated": [
+      "SELECT * FROM t WHERE ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM t WHERE -- '\n  bar='baz' -- '",
+    "pathological": true
+  },
+  {
+    "name": "pathological/mixed_comments_and_quotes",
+    "obfuscated": [
+      "SELECT * FROM t WHERE ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM t WHERE /* ' */ \n  bar='baz' -- '",
+    "pathological": true
+  },
+  {
+    "name": "pathological/mixed_quotes_comments_and_newlines",
+    "obfuscated": [
+      "SELECT * FROM t WHERE ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM t WHERE -- '\n  /* ' */ c2='xxx' /* ' */\n  c='x\n  xx' -- '",
+    "pathological": true
+  },
+  {
+    "name": "pathological/mixed_quotes_end_of_line_comments",
+    "obfuscated": [
+      "SELECT * FROM t WHERE ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM t WHERE -- '\n  c='x\n  xx' -- '",
+    "pathological": true
+  },
+  {
+    "name": "pathological/quote_delimiters_in_comments",
+    "obfuscated": [
+      "SELECT * FROM foo WHERE col=? AND ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT * FROM foo WHERE col='value1' AND /* don't */ col2='value1' /* won't */",
+    "pathological": true
+  },
+  {
+    "name": "malformed/unterminated_double_quoted_string.mysql",
+    "sql": "SELECT * FROM table WHERE foo='bar' AND baz=\"nothing to see here'",
+    "dialects": [
+      "mysql"
+    ],
+    "obfuscated": [
+      "?"
+    ],
+    "malformed": true
+  },
+  {
+    "name": "malformed/unterminated_single_quoted_string",
+    "sql": "SELECT * FROM table WHERE foo='bar' AND baz='nothing to see here",
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "obfuscated": [
+      "?"
+    ],
+    "malformed": true
+  }
+]

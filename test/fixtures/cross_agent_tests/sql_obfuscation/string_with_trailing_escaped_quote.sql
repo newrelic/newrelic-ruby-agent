@@ -1,1 +1,0 @@
-SELECT * FROM table WHERE name='foo\'' AND color='blue'

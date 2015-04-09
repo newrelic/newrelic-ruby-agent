@@ -1,1 +1,0 @@
-INSERT INTO X values('', 'a''b c',0, 1 , 'd''e f''s h')
