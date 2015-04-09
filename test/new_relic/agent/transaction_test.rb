@@ -25,7 +25,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_request_parsing_none
     in_transaction do |txn|
-      assert_nil txn.uri
+      assert_nil txn.request_path
       assert_nil txn.referer
     end
   end
@@ -36,7 +36,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_request_with_path_with_query_string
     request = stub(:path => '/path?hello=bob#none')
     in_transaction(:request => request) do |txn|
-      assert_equal "/path", txn.uri
+      assert_equal "/path", txn.request_path
     end
   end
 
@@ -50,7 +50,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_request_parsing_uri
     request = stub(:path => '/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
     in_transaction(:request => request) do |txn|
-      assert_equal "/path", txn.uri
+      assert_equal "/path", txn.request_path
       assert_equal "/path/hello", txn.referer
     end
   end
@@ -58,7 +58,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_request_with_normal_path
     request = stub(:path => '/blogs')
     in_transaction(:request => request) do |txn|
-      assert_equal "/blogs", txn.uri
+      assert_equal "/blogs", txn.request_path
       assert_nil txn.referer
     end
   end
@@ -66,7 +66,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_request_with_empty_path
     request = stub(:path => '')
     in_transaction(:request => request) do |txn|
-      assert_equal "/", txn.uri
+      assert_equal "/", txn.request_path
       assert_nil txn.referer
     end
   end
@@ -74,7 +74,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_request_to_root_path
     request = stub(:path => '/')
     in_transaction(:request => request) do |txn|
-      assert_equal "/", txn.uri
+      assert_equal "/", txn.request_path
       assert_nil txn.referer
     end
   end
@@ -82,7 +82,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_request_with_empty_path_with_query_string
     request = stub(:path => '?k=v')
     in_transaction(:request => request) do |txn|
-      assert_equal "/", txn.uri
+      assert_equal "/", txn.request_path
       assert_nil txn.referer
     end
   end
@@ -1097,67 +1097,21 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::Transaction.stop(state)
   end
 
-  def test_user_defined_rules_ignore_returns_true_for_matched_uri
+  def test_user_defined_rules_ignore_returns_true_for_matched_path
     rule = 'ignored'
     with_config(:rules => { :ignore_url_regexes => [rule] }) do
       in_transaction do |txn|
-        txn.stubs(:uri).returns(rule + '/uri')
-        assert txn.user_defined_rules_ignore?, "URIs should be ignored based on user defined rules. Rule: '#{rule}', URI: '#{txn.uri}'."
+        txn.stubs(:request_path).returns(rule + '/path')
+        assert txn.user_defined_rules_ignore?, "Paths should be ignored based on user defined rules. Rule: '#{rule}', Path: '#{txn.request_path}'."
       end
     end
   end
 
-  def test_stop_ignores_transactions_from_ignored_uris
-    with_config(:rules => { :ignore_url_regexes => ['ignored/uri'] }) do
+  def test_stop_ignores_transactions_from_ignored_paths
+    with_config(:rules => { :ignore_url_regexes => ['ignored/path'] }) do
       in_transaction do |txn|
-        txn.stubs(:uri).returns('ignored/uri')
+        txn.stubs(:request_path).returns('ignored/path')
         txn.expects(:ignore!)
-      end
-    end
-  end
-
-  def test_transactions_are_not_ignored_if_rules_match_http_auth
-    with_config(:rules => { :ignore_url_regexes => ['ignored'] }) do
-      in_transaction do |txn|
-        txn.stubs(:uri).returns('http://ignored_user:ignored_pass@foo.com/bar/baz')
-        txn.expects(:ignore!).never
-      end
-    end
-  end
-
-  def test_transactions_are_not_ignored_if_rules_match_query_string
-    with_config(:rules => { :ignore_url_regexes => ['ignored'] }) do
-      in_transaction do |txn|
-        txn.stubs(:uri).returns('http://foo.com/bar/baz/?ignored=1')
-        txn.expects(:ignore!).never
-      end
-    end
-  end
-
-  def test_user_defined_rules_ignore_does_not_parse_the_uri_if_rules_are_empty
-    with_config(:rules => { :ignore_url_regexes => [] }) do
-      in_transaction do |txn|
-        txn.stubs(:uri).returns('http://foo.com/bar/baz')
-        NewRelic::Agent::HTTPClients::URIUtil.expects(:parse_url).never
-      end
-    end
-  end
-
-  def test_user_defined_rules_ignore_does_not_filter_the_uri_if_rules_are_empty
-    with_config(:rules => { :ignore_url_regexes => [] }) do
-      in_transaction do |txn|
-        txn.stubs(:uri).returns('http://foo.com/bar/baz')
-        NewRelic::Agent::HTTPClients::URIUtil.expects(:filter_uri).never
-      end
-    end
-  end
-
-  def test_user_defined_rules_ignore_logs_uri_parsing_failures
-    with_config(:rules => { :ignore_url_regexes => ['notempty'] }) do
-      in_transaction do |txn|
-        txn.stubs(:uri).returns('http://foo bar.com')
-        NewRelic::Agent.logger.expects(:debug)
-        NewRelic::Agent.logger.expects(:debug).with(regexp_matches(/foo bar.com/), anything).at_least_once
       end
     end
   end

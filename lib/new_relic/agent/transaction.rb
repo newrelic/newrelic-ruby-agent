@@ -60,7 +60,7 @@ module NewRelic
                   :cat_path_hashes,
                   :attributes,
                   :request,
-                  :uri,
+                  :request_path,
                   :referer
 
       # Populated with the trace sample once this transaction is completed.
@@ -275,7 +275,7 @@ module NewRelic
         merge_request_parameters(@filtered_params)
 
         if @request
-          @uri = uri_from_request(@request)
+          @request_path = path_from_request(@request)
           @referer = referer_from_request(@request)
         end
       end
@@ -412,8 +412,8 @@ module NewRelic
       def start(state)
         return if !state.is_execution_traced?
 
-        transaction_sampler.on_start_transaction(state, start_time, uri)
-        sql_sampler.on_start_transaction(state, start_time, uri)
+        transaction_sampler.on_start_transaction(state, start_time, request_path)
+        sql_sampler.on_start_transaction(state, start_time, request_path)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
@@ -487,18 +487,12 @@ module NewRelic
       end
 
       def user_defined_rules_ignore?
-        return unless uri
+        return unless request_path
         return if (rules = NewRelic::Agent.config[:"rules.ignore_url_regexes"]).empty?
 
-        parsed = NewRelic::Agent::HTTPClients::URIUtil.parse_url(uri)
-        filtered_uri = NewRelic::Agent::HTTPClients::URIUtil.filter_uri(parsed)
-
         rules.any? do |rule|
-          filtered_uri.match(rule)
+          request_path.match(rule)
         end
-      rescue URI::InvalidURIError => e
-        NewRelic::Agent.logger.debug("Error parsing URI: #{uri}", e)
-        false
       end
 
       def commit!(state, end_time, outermost_segment_name)
@@ -711,7 +705,7 @@ module NewRelic
 
       def record_exceptions
         @exceptions.each do |exception, options|
-          options[:uri]      ||= uri if uri
+          options[:uri]      ||= request_path if request_path
           options[:metric]     = best_name
           options[:attributes] = @attributes
 
@@ -957,7 +951,7 @@ module NewRelic
       # We don't expect the path to include a query string, however older test helpers for
       # rails construct the PATH_INFO enviroment variable improperly and we're generally
       # being defensive.
-      def uri_from_request(req)
+      def path_from_request(req)
         path = req.path
         path = path.split(QUESTION_MARK).first if path.include?(QUESTION_MARK)
         path.empty? ? "/" : path
