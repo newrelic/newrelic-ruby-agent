@@ -14,23 +14,40 @@ module NewRelic
         tl_state_for(Thread.current)
       end
 
+      def self.set_thread_object(thread, key, object = nil)
+        if RUBY_VERSION >= "2.0"
+          thread.thread_variable_set(key, object)
+        else
+          thread[key] = object
+        end
+      end
+
+      def self.get_thread_object(thread, key)
+        # Thread from ruby 2.0,
+        # .thread["foo"] => to get fiber local object
+        # .thread_variable_get("foo") =>  to get thread local object
+        #
+        # http://ruby-doc.org/core-2.0.0/Thread.html#method-i-thread_variable_get
+        RUBY_VERSION >= "2.0" ? thread.thread_variable_get(key) : thread[key]
+      end
+
       # This method should only be used by TransactionState for access to the
       # current thread's state or to provide read-only accessors for other threads
       #
       # If ever exposed, this requires additional synchronization
       def self.tl_state_for(thread)
-        state = thread[:newrelic_transaction_state]
+        state = get_thread_object(thread, :newrelic_transaction_state)
 
         if state.nil?
           state = TransactionState.new
-          thread[:newrelic_transaction_state] = state
+          set_thread_object(thread, :newrelic_transaction_state, state)
         end
 
         state
       end
 
       def self.tl_clear_for_testing
-        Thread.current[:newrelic_transaction_state] = nil
+        set_thread_object(Thread.current, :newrelic_transaction_state)
       end
 
       def initialize

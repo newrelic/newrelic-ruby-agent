@@ -1173,6 +1173,13 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :description  => 'Disables installation of Grape instrumentation.'
+        },
+        :disable_em_http => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :description  => 'Defines whether the agent will install instrumentation for the em-http-request gem.'
         }
       }.freeze
     end
