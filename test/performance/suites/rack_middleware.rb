@@ -75,7 +75,11 @@ class RackMiddleware < Performance::TestCase
       use NewRelic::Rack::ErrorCollector
       run TestApp.new
     end.to_app
-    @env = {}
+    @env = {
+      'SCRIPT_NAME'  => '',
+      'PATH_INFO'    => '/users/12/blogs',
+      'QUERY_STRING' => 'q=foobar'
+    }
   end
 
   def test_basic_middleware_stack()
