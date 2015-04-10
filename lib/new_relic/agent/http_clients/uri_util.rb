@@ -36,6 +36,15 @@ module NewRelic
           end
         end
 
+        QUESTION_MARK = "?".freeze
+
+        def self.strip_query_string(fragment)
+          if(fragment.include?(QUESTION_MARK))
+            fragment.split(QUESTION_MARK).first
+          else
+            fragment
+          end
+        end
       end
     end
   end

@@ -240,7 +240,7 @@ module TransactionSampleTestHelper
     sampler = nil
     state = NewRelic::Agent::TransactionState.tl_get
 
-    request = stub(:uri => path)
+    request = stub(:path => path)
 
     in_transaction("Controller/sandwiches/index", :request => request) do
       sampler = NewRelic::Agent.instance.transaction_sampler
