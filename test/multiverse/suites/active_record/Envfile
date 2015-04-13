@@ -27,20 +27,26 @@ if RUBY_VERSION >= '1.9.3'
   RB
 end
 
-gemfile <<-RB
-  gem 'activerecord', '~> 3.2.19'
-  #{boilerplate_gems}
-RB
+# AR 3.x does not have official support for Ruby 2.2, and there are several
+# known issues, including https://github.com/rails/rails/issues/18991, so
+# skip 3.x versions on 2.2.
+#
+if RUBY_VERSION < '2.2.0'
+  gemfile <<-RB
+    gem 'activerecord', '~> 3.2.19'
+    #{boilerplate_gems}
+  RB
 
-gemfile <<-RB
-  gem 'activerecord', '~> 3.1.12'
-  #{boilerplate_gems}
-RB
+  gemfile <<-RB
+    gem 'activerecord', '~> 3.1.12'
+    #{boilerplate_gems}
+  RB
 
-gemfile <<-RB
-  gem 'activerecord', '~> 3.0.20'
-  #{boilerplate_gems}
-RB
+  gemfile <<-RB
+    gem 'activerecord', '~> 3.0.20'
+    #{boilerplate_gems}
+  RB
+end
 
 # We pull in Rails on the older verions because ActiveRecord didn't have all
 # the tasks we need for setup, and there are some TestUnit vs Minitest oddities

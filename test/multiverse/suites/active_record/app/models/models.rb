@@ -3,19 +3,16 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 class User < ActiveRecord::Base
-  include NewRelic::Agent::MethodTracer
-  has_many :aliases
-
-  add_method_tracer :save!
-  add_method_tracer :persisted?
+  has_many :aliases, :dependent => :destroy
+  has_and_belongs_to_many :groups
 end
 
 class Alias < ActiveRecord::Base
-  include NewRelic::Agent::MethodTracer
+  belongs_to :user
+end
 
-  add_method_tracer :save!
-  add_method_tracer :persisted?
-  add_method_tracer :destroyed?
+class Group < ActiveRecord::Base
+  has_and_belongs_to_many :users
 end
 
 class Order < ActiveRecord::Base
