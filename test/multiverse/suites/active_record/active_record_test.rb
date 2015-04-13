@@ -20,7 +20,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     if active_record_major_version >= 3
-      assert_generic_rollup_metrics('insert')
+      assert_activerecord_metrics(Order, 'insert')
     else
       assert_activerecord_metrics(Order, 'create')
     end
@@ -33,7 +33,11 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       order.shipments.to_a
     end
 
-    assert_generic_rollup_metrics('insert')
+    if active_record_major_version >= 3
+      assert_activerecord_metrics(Order, 'insert')
+    else
+      assert_activerecord_metrics(Order, 'create')
+    end
   end
 
   def test_metrics_for_find
@@ -110,14 +114,199 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  def test_metrics_for_update
+  def test_metrics_for_update_all
+    order1, order2 = nil
+
+    in_web_transaction do
+      order1 = Order.create(:name => 'foo')
+      order2 = Order.create(:name => 'foo')
+      Order.update_all(:name => 'zing')
+    end
+
+    assert_activerecord_metrics(Order, 'update')
+
+    assert_equal('zing', order1.reload.name)
+    assert_equal('zing', order2.reload.name)
+  end
+
+  def test_metrics_for_delete_all
+    in_web_transaction do
+      Order.create(:name => 'foo')
+      Order.create(:name => 'foo')
+      Order.delete_all
+    end
+
+    if active_record_major_version >= 3
+      assert_activerecord_metrics(Order, 'delete')
+    else
+      assert_generic_rollup_metrics('delete')
+    end
+  end
+
+  def test_metrics_for_delete
+    in_web_transaction do
+      order = Order.create("name" => "burt")
+      order.delete
+    end
+
+    if active_record_major_version >= 3
+      assert_activerecord_metrics(Order, 'delete')
+    else
+      assert_generic_rollup_metrics('delete')
+    end
+  end
+
+  def test_metrics_for_relation_delete
+    in_web_transaction do
+      order = Order.create(:name => "lava")
+      Order.delete(order.id)
+    end
+
+    if active_record_major_version >= 3
+      assert_activerecord_metrics(Order, 'delete')
+    else
+      assert_generic_rollup_metrics('delete')
+    end
+  end
+
+  # Touch did not exist in AR 2.2
+  if defined?(::ActiveRecord::VERSION) && ::ActiveRecord::VERSION::MAJOR >= 3
+    def test_metrics_for_touch
+      in_web_transaction do
+        order = Order.create("name" => "wendy")
+        order.touch
+      end
+
+      assert_activerecord_metrics(Order, 'update')
+    end
+  end
+
+  def test_metrics_for_relation_update
+    in_web_transaction do
+      order = Order.create(:name => 'foo')
+      Order.update(order.id, :name => 'qux')
+    end
+
+    assert_activerecord_metrics(Order, 'update')
+  end
+
+  def test_create_via_association_equal
+    in_web_transaction do
+      u = User.create(:name => 'thom yorke')
+      groups = [
+        Group.new(:name => 'radiohead'),
+        Group.new(:name => 'atoms for peace')
+      ]
+      u.groups = groups
+    end
+
+    if active_record_major_version >= 3
+      assert_activerecord_metrics(Group, 'insert')
+    else
+      assert_generic_rollup_metrics('insert')
+    end
+  end
+
+  def test_create_via_association_shovel
+    in_web_transaction do
+      u = User.create(:name => 'thom yorke')
+      u.groups << Group.new(:name => 'radiohead')
+    end
+
+    if active_record_major_version >= 3
+      assert_activerecord_metrics(Group, 'insert')
+    else
+      assert_generic_rollup_metrics('insert')
+    end
+  end
+
+  def test_create_via_association_create
+    in_web_transaction do
+      u = User.create(:name => 'thom yorke')
+      u.groups.create(:name => 'radiohead')
+    end
+
+    if active_record_major_version >= 3
+      assert_activerecord_metrics(Group, 'insert')
+    else
+      assert_generic_rollup_metrics('insert')
+    end
+  end
+
+  def test_create_via_association_create_bang
+    in_web_transaction do
+      u = User.create(:name => 'thom yorke')
+      u.groups.create!(:name => 'radiohead')
+    end
+
+    if active_record_major_version >= 3
+      assert_activerecord_metrics(Group, 'insert')
+    else
+      assert_generic_rollup_metrics('insert')
+    end
+  end
+
+  def test_destroy_via_dependent_destroy
+    in_web_transaction do
+      u = User.create(:name => 'robert')
+      u.aliases << Alias.new
+      u.destroy
+    end
+
+    op = active_record_major_version >= 3 ? 'delete' : 'destroy'
+
+    assert_activerecord_metrics(User,  op)
+    assert_activerecord_metrics(Alias, op)
+  end
+
+  # update & update! didn't become public until 4.0
+  if defined?(::ActiveRecord::VERSION) && ::ActiveRecord::VERSION::MAJOR >= 4
+    def test_metrics_for_update
+      in_web_transaction do
+        order = Order.create(:name => "wendy")
+        order.update(:name => 'walter')
+      end
+
+      assert_activerecord_metrics(Order, 'update')
+    end
+
+    def test_metrics_for_update_bang
+      in_web_transaction do
+        order = Order.create(:name => "wendy")
+        order.update!(:name => 'walter')
+      end
+
+      assert_activerecord_metrics(Order, 'update')
+    end
+  end
+
+  def test_metrics_for_update_attribute
+    in_web_transaction do
+      order = Order.create(:name => "wendy")
+      order.update_attribute(:name, 'walter')
+    end
+
+    assert_activerecord_metrics(Order, 'update')
+  end
+
+  def test_metrics_for_save
     in_web_transaction do
       order = Order.create(:name => "wendy")
       order.name = 'walter'
       order.save
     end
 
-    assert_generic_rollup_metrics('update')
+    assert_activerecord_metrics(Order, 'update')
+  end
+
+  def test_metrics_for_save_bang
+    in_web_transaction do
+      order = Order.create(:name => "wendy")
+      order.name = 'walter'
+      order.save!
+    end
+
+    assert_activerecord_metrics(Order, 'update')
   end
 
   def test_metrics_for_destroy
@@ -126,11 +315,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       order.destroy
     end
 
-    if active_record_major_version >= 3
-      assert_generic_rollup_metrics('delete')
-    else
-      assert_activerecord_metrics(Order, 'destroy')
-    end
+    operation = active_record_major_version >= 3 ? 'delete' : 'destroy'
+    assert_activerecord_metrics(Order, operation)
   end
 
   def test_metrics_for_direct_sql_select
