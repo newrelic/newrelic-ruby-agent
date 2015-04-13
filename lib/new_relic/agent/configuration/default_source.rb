@@ -689,7 +689,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :deprecated => true,
-          :description => 'Use is transaction_tracer.attributes.enabled.'
+          :description => 'Use transaction_tracer.attributes.enabled instead.'
         },
         :'transaction_tracer.explain_threshold' => {
           :default => 0.5,
@@ -782,7 +782,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :deprecated => true,
-          :description => 'Use is error_collector.attributes.enabled.'
+          :description => 'Use error_collector.attributes.enabled instead.'
         },
         :'error_collector.ignore_errors' => {
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
@@ -837,7 +837,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :deprecated => true,
-          :description => 'Use is browser_monitoring.attributes.enabled.'
+          :description => 'Use browser_monitoring.attributes.enabled instead.'
         },
         :'browser_monitoring.loader' => {
           :default => DefaultSource.browser_monitoring_loader,
@@ -966,7 +966,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :deprecated => true,
-          :description => 'Use is transaction_events.attributes.enabled.'
+          :description => 'Use transaction_events.attributes.enabled instead.'
         },
         :restart_thread_in_children => {
           :default => true,
