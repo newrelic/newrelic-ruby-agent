@@ -17,6 +17,10 @@ module NewRelic
         end
 
         def self.insert_instrumentation
+          if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR.to_i >= 3
+            ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_writer_methods
+          end
+
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
             include ::NewRelic::Agent::Instrumentation::ActiveRecord
           end
@@ -88,6 +92,8 @@ DependencyDetection.defer do
   end
 
   executes do
+    require 'new_relic/agent/instrumentation/active_record_helper'
+
     if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
       ActiveSupport.on_load(:active_record) do
         ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
