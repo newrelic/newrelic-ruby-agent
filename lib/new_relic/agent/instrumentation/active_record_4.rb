@@ -24,5 +24,6 @@ DependencyDetection.defer do
   executes do
     ActiveSupport::Notifications.subscribe('sql.active_record',
       NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new)
+    ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_writer_methods
   end
 end
