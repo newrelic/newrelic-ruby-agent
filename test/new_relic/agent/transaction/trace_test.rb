@@ -63,6 +63,68 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal "ROOT", @trace.root_segment.metric_name
   end
 
+  def test_collect_explain_plans!
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment.stubs(:duration).returns(2)
+    segment.stubs(:explain_sql).returns('')
+    segment[:sql] = ''
+
+    @trace.root_segment.add_called_segment(segment)
+
+    with_config(:'transaction_tracer.explain_threshold' => 1) do
+      @trace.collect_explain_plans!
+    end
+
+    assert segment[:explain_plan]
+  end
+
+  def test_collect_explain_plans_does_not_attach_explain_plans_if_duration_is_too_short
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment.stubs(:duration).returns(1)
+    segment.stubs(:explain_sql).returns('')
+    segment[:sql] = ''
+
+    @trace.root_segment.add_called_segment(segment)
+
+    with_config(:'transaction_tracer.explain_threshold' => 2) do
+      @trace.collect_explain_plans!
+    end
+
+    refute segment[:explain_plan]
+  end
+
+  def test_collect_explain_plans_does_not_attach_explain_plans_without_sql
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment.stubs(:duration).returns(2)
+    segment.stubs(:explain_sql).returns('')
+    segment[:sql] = nil
+
+    @trace.root_segment.add_called_segment(segment)
+
+    with_config(:'transaction_tracer.explain_threshold' => 1) do
+      @trace.collect_explain_plans!
+    end
+
+    refute segment[:explain_plan]
+  end
+
+  def test_collect_explain_plans_does_not_attach_explain_plans_if_db_says_not_to
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment.stubs(:duration).returns(2)
+    segment.stubs(:explain_sql).returns('')
+    segment[:sql] = ''
+
+    NewRelic::Agent::Database.stubs(:should_collect_explain_plans?).returns(false)
+
+    @trace.root_segment.add_called_segment(segment)
+
+    with_config(:'transaction_tracer.explain_threshold' => 1) do
+      @trace.collect_explain_plans!
+    end
+
+    refute segment[:explain_plan]
+  end
+
   def test_collector_array_contains_root_segment_duration
     @trace.root_segment.end_trace(1)
     assert_collector_array_contains(:duration, 1000)
@@ -132,6 +194,12 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:synthetics_resource_id, '31415926')
   end
 
+  def test_to_collector_array_encodes_trace_tree_with_given_encoder
+    fake_encoder = mock
+    fake_encoder.expects(:encode).with(@trace.trace_tree)
+    @trace.to_collector_array(fake_encoder)
+  end
+
   def test_synthetics_resource_id_gets_coerced_to_a_string
     @trace.synthetics_resource_id = 31415926
     assert_collector_array_contains(:synthetics_resource_id, '31415926')
@@ -167,12 +235,6 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     }
 
     assert_trace_tree_contains(:attributes, expected)
-  end
-
-  def test_to_collector_array_encodes_trace_tree_with_given_encoder
-    fake_encoder = mock
-    fake_encoder.expects(:encode).with(@trace.trace_tree)
-    @trace.to_collector_array(fake_encoder)
   end
 
   def assert_trace_tree_contains(key, expected)

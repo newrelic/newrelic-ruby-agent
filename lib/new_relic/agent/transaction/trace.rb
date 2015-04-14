@@ -75,6 +75,17 @@ module NewRelic
           self
         end
 
+        def collect_explain_plans!
+          return unless NewRelic::Agent::Database.should_collect_explain_plans?
+          threshold = NewRelic::Agent.config[:'transaction_tracer.explain_threshold']
+
+          each_segment do |segment|
+            if segment[:sql] && segment.duration > threshold
+              segment[:explain_plan] = segment.explain_sql
+            end
+          end
+        end
+
         # Iterates recursively over each segment in the entire transaction
         # sample tree while keeping track of nested segments
         def each_segment_with_nest_tracking(&block)
