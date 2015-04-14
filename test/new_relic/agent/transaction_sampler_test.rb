@@ -61,7 +61,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def populate_container(sampler, n)
     n.times do |i|
-      sample = sample_with(:duration => 1, :transaction_name => "t#{i}", :force_persist => true)
+      sample = sample_with(:duration => 1, :transaction_name => "t#{i}", :synthetics_resource_id => 1)
       @sampler.store_sample(sample)
     end
   end
@@ -258,21 +258,15 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def test_harvest_avoids_dups_from_harvested_samples
-    sample = sample_with(:duration => 2.5, :force_persist => false)
+    sample = sample_with(:duration => 2.5)
     @sampler.store_sample(sample)
     @sampler.store_sample(sample)
 
-    assert_equal([sample], @sampler.harvest!)
-  end
-
-  def test_merge_avoids_dups_from_forced
-    sample = sample_with(:duration => 1, :force_persist => true)
-    @sampler.merge!([sample, sample])
     assert_equal([sample], @sampler.harvest!)
   end
 
   def test_harvest_adding_slowest
-    sample = sample_with(:duration => 2.5, :force_persist => false)
+    sample = sample_with(:duration => 2.5)
     @sampler.store_sample(sample)
 
     assert_equal([sample], @sampler.harvest!)
@@ -298,53 +292,12 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal([slower_sample], @sampler.harvest!)
   end
 
-  def test_harvest_keep_force_persist_in_previous_results
-    unforced_sample = sample_with(:duration => 10, :force_persist => false)
-    forced_sample = sample_with(:duration => 1, :force_persist => true)
-
-    @sampler.merge!([unforced_sample, forced_sample])
-    result = @sampler.harvest!
-
-    assert_includes(result, unforced_sample)
-    assert_includes(result, forced_sample)
-  end
-
-  def test_harvest_keeps_force_persist_in_new_results
-    forced_sample = sample_with(:duration => 1, :force_persist => true)
-    @sampler.store_sample(forced_sample)
-
-    unforced_sample = sample_with(:duration => 10, :force_persist => false)
-    @sampler.store_sample(unforced_sample)
-
-    result = @sampler.harvest!
-
-    assert_includes(result, unforced_sample)
-    assert_includes(result, forced_sample)
-  end
-
-  def test_harvest_keeps_forced_from_new_and_previous_results
-    new_forced = sample_with(:duration => 1, :force_persist => true)
-    @sampler.store_sample(new_forced)
-
-    old_forced = sample_with(:duration => 1, :force_persist => true)
-
-    @sampler.merge!([old_forced])
-    result = @sampler.harvest!
-
-    assert_includes(result, new_forced)
-    assert_includes(result, old_forced)
-  end
-
-  FORCE_PERSIST_MAX = NewRelic::Agent::Transaction::ForcePersistSampleBuffer::CAPACITY
   SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::CAPACITY
   XRAY_SAMPLE_MAX = NewRelic::Agent.config[:'xray_session.max_samples']
 
   def test_harvest_respects_limits_from_previous
     slowest = sample_with(:duration => 10.0)
     previous = [slowest]
-
-    forced_samples = generate_samples(100, :force_persist => true)
-    previous.concat(forced_samples)
 
     xray_samples = generate_samples(100, :transaction_name => "Active/xray")
     previous.concat(xray_samples)
@@ -356,7 +309,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
 
     expected = [slowest]
-    expected = expected.concat(forced_samples.last(FORCE_PERSIST_MAX))
     expected = expected.concat(xray_samples.first(XRAY_SAMPLE_MAX))
 
     assert_equal_unordered(expected, result)
@@ -365,11 +317,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_harvest_respects_limits_from_current_traces
     slowest = sample_with(:duration => 10.0)
     @sampler.store_sample(slowest)
-
-    forced_samples = generate_samples(100, :force_persist => true)
-    forced_samples.each do |forced|
-      @sampler.store_sample(forced)
-    end
 
     xray_samples = generate_samples(100, :transaction_name => "Active/xray")
     with_active_xray_session("Active/xray") do
@@ -381,7 +328,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     result = @sampler.harvest!
 
     expected = [slowest]
-    expected = expected.concat(forced_samples.last(FORCE_PERSIST_MAX))
     expected = expected.concat(xray_samples.first(XRAY_SAMPLE_MAX))
     assert_equal_unordered(expected, result)
   end
@@ -858,7 +804,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   SAMPLE_DEFAULTS = {
     :threshold => 1.0,
-    :force_persist => false,
     :transaction_name => nil
   }
 
@@ -868,8 +813,8 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     sample = NewRelic::TransactionSample.new
     sample.threshold = opts[:threshold]
-    sample.force_persist = opts[:force_persist]
     sample.transaction_name = opts[:transaction_name]
+    sample.synthetics_resource_id = opts[:synthetics_resource_id]
     sample.stubs(:duration).returns(opts[:duration])
     sample
   end

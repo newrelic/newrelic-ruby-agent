@@ -6,7 +6,6 @@ require 'new_relic/agent'
 require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/developer_mode_sample_buffer'
-require 'new_relic/agent/transaction/force_persist_sample_buffer'
 require 'new_relic/agent/transaction/slowest_sample_buffer'
 require 'new_relic/agent/transaction/synthetics_sample_buffer'
 require 'new_relic/agent/transaction/xray_sample_buffer'
@@ -43,7 +42,6 @@ module NewRelic
         @sample_buffers << @xray_sample_buffer
         @sample_buffers << NewRelic::Agent::Transaction::SlowestSampleBuffer.new
         @sample_buffers << NewRelic::Agent::Transaction::SyntheticsSampleBuffer.new
-        @sample_buffers << NewRelic::Agent::Transaction::ForcePersistSampleBuffer.new
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
