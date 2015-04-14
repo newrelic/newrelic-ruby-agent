@@ -44,14 +44,18 @@ module NewRelic
             return
           end
 
-          @custom_destinations[key] = @filter.apply(key, NewRelic::Agent::AttributeFilter::DST_ALL)
+          destinations = @filter.apply(key, AttributeFilter::DST_ALL)
+          return if destinations == AttributeFilter::DST_NONE
 
+          @custom_destinations[key] = destinations
           add(@custom_attributes, key, value)
         end
 
         def add_agent_attribute(key, value, default_destinations)
-          @agent_destinations[key] = @filter.apply(key, default_destinations)
+          destinations = @filter.apply(key, default_destinations)
+          return if destinations == AttributeFilter::DST_NONE
 
+          @agent_destinations[key] = destinations
           add(@agent_attributes, key, value)
         end
 
