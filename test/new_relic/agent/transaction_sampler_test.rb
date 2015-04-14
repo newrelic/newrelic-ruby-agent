@@ -46,7 +46,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
                 :filtered_params => {},
                 :agent_attributes => {},
                 :custom_attributes => {},
-                :intrinsic_attributes => {},
+                :intrinsic_attributes => {}
                )
   end
 

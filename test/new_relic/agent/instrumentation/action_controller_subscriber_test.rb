@@ -199,7 +199,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
     assert_equal('Controller/test/index',
                  NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:path])
+                   .last_sample.transaction_name)
     assert_equal('Controller/test/index',
                  NewRelic::Agent.instance.transaction_sampler \
                    .last_sample.root_segment.called_segments[0].metric_name)
@@ -271,7 +271,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
     assert_equal('666',
                  NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:request_params]['number'])
+                   .last_sample.agent_attributes[:'request.parameters.number'])
   end
 
   def test_records_filtered_request_params_in_txn
@@ -282,7 +282,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
     assert_equal('[FILTERED]',
                  NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:request_params]['password'])
+                   .last_sample.agent_attributes[:'request.parameters.password'])
   end
 
   def test_records_custom_parameters_in_txn
@@ -293,7 +293,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
     assert_equal('666',
                  NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:custom_params]['number'])
+                   .last_sample.custom_attributes['number'])
   end
 end if ::Rails::VERSION::MAJOR.to_i >= 4
 
