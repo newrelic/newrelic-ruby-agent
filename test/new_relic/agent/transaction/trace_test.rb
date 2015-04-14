@@ -37,6 +37,10 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal 1, @trace.segment_count
   end
 
+  def test_duration_is_the_root_segment_duration
+    assert_equal @trace.duration, @trace.root_segment.duration
+  end
+
   def test_create_segment
     result = @trace.create_segment(0.0, 'goo')
     assert_equal 0.0, result.entry_timestamp

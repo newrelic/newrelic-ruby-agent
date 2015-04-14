@@ -27,6 +27,10 @@ module NewRelic
 
           super
         end
+
+        def empty?
+          @attributes.empty?
+        end
       end
     end
   end

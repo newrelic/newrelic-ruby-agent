@@ -46,12 +46,12 @@ module NewRelic
     end
 
     def test_calling_harvest_after_re_populating_works
-      c = create_container
-      populate_container(c, num_data_items)
-      assert_equal(num_data_items, c.harvest!.size)
+      container = create_container
+      populate_container(container, num_data_items)
+      assert_equal(num_data_items, container.harvest!.size)
 
-      populate_container(c, num_data_items)
-      assert_equal(num_data_items, c.harvest!.size)
+      populate_container(container, num_data_items)
+      assert_equal(num_data_items, container.harvest!.size)
     end
   end
 

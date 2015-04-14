@@ -744,7 +744,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     trace = txn.transaction_trace
-    assert_equal(42, trace.params[:custom_params][:gc_time])
+    assert_equal(42, trace.intrinsic_attributes[:gc_time])
   end
 
   def test_freeze_name_and_execute_if_not_ignored_executes_given_block_if_not_ignored

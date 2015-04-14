@@ -126,7 +126,7 @@ class NewRelic::Agent::StatsEngine
         assert_metrics_not_recorded(GCProfiler::GC_WEB)
 
         tracer = NewRelic::Agent.instance.transaction_sampler
-        assert_equal(3.0, tracer.last_sample.params[:custom_params][:gc_time])
+        assert_equal(3.0, tracer.last_sample.intrinsic_attributes[:gc_time])
       end
 
       def test_collect_gc_data_web

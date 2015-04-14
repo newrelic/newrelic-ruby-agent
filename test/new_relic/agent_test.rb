@@ -332,7 +332,7 @@ module NewRelic
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('new_name')
       end
-      assert_equal 'Controller/new_name', sampler.last_sample.params[:path]
+      assert_equal 'Controller/new_name', sampler.last_sample.transaction_name
     end
 
     def test_set_transaction_name_gracefully_fails_when_frozen

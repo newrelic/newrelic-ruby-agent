@@ -43,7 +43,11 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
                 :cat_trip_id => '',
                 :cat_path_hash => '',
                 :is_synthetics_request? => false,
-                :filtered_params => {} )
+                :filtered_params => {},
+                :agent_attributes => {},
+                :custom_attributes => {},
+                :intrinsic_attributes => {},
+               )
   end
 
   def teardown
@@ -148,7 +152,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       txn.stubs(:cpu_burn).returns(42)
     end
 
-    assert_equal(42, @sampler.last_sample.params[:custom_params][:cpu_time])
+    assert_equal(42, @sampler.last_sample.intrinsic_attributes[:cpu_time])
   end
 
   def test_notice_extra_data_no_builder
@@ -605,21 +609,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @sampler.notice_pop_frame(@state, "foo")
   end
 
-  def test_param_capture
-    [true, false].each do |capture|
-      with_config(:capture_params => capture) do
-        tt = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-          @sampler.on_start_transaction(@state, Time.now, nil)
-          @txn.filtered_params[:param] = 'hi'
-          @sampler.on_finishing_transaction(@state, @txn)
-          @sampler.harvest![0]
-        end
-
-        assert_equal (capture ? 1 : 0), tt.params[:request_params].length
-      end
-    end
-  end
-
   def test_should_not_collect_segments_beyond_limit
     with_config(:'transaction_tracer.limit_segments' => 3) do
       run_sample_trace do
@@ -702,7 +691,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       end
     end
 
-    assert_equal 10.0, custom_params_from_last_sample[:gc_time]
+    assert_equal 10.0, intrinsic_attributes_from_last_sample[:gc_time]
   end
 
   def test_custom_params_include_tripid
@@ -717,7 +706,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       end
     end
 
-    assert_equal 'PDX-NRT', custom_params_from_last_sample[:'nr.trip_id']
+    assert_equal 'PDX-NRT', intrinsic_attributes_from_last_sample[:trip_id]
   end
 
   def test_custom_params_dont_include_tripid_if_not_cross_app_transaction
@@ -729,7 +718,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       end
     end
 
-    assert_nil custom_params_from_last_sample[:'nr.trip_id']
+    assert_nil intrinsic_attributes_from_last_sample[:trip_id]
   end
 
   def test_custom_params_include_path_hash
@@ -743,7 +732,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       end
     end
 
-    assert_equal path_hash, custom_params_from_last_sample[:'nr.path_hash']
+    assert_equal path_hash, intrinsic_attributes_from_last_sample[:path_hash]
   end
 
   def test_synthetics_parameters_not_included_if_not_valid_synthetics_request
@@ -756,11 +745,11 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
 
-    custom_params = sample.params[:custom_params]
+    custom_params = sample.intrinsic_attributes
     assert_nil sample.synthetics_resource_id
-    assert_nil custom_params[:'nr.synthetics_resource_id']
-    assert_nil custom_params[:'nr.synthetics_job_id']
-    assert_nil custom_params[:'nr.synthetics_monitor_id']
+    assert_nil custom_params[:synthetics_resource_id]
+    assert_nil custom_params[:synthetics_job_id]
+    assert_nil custom_params[:synthetics_monitor_id]
   end
 
   def test_synthetics_parameters_included
@@ -771,11 +760,11 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
 
-    custom_params = sample.params[:custom_params]
+    custom_params = sample.intrinsic_attributes
     assert_equal 100, sample.synthetics_resource_id
-    assert_equal 100, custom_params[:'nr.synthetics_resource_id']
-    assert_equal 200, custom_params[:'nr.synthetics_job_id']
-    assert_equal 300, custom_params[:'nr.synthetics_monitor_id']
+    assert_equal 100, custom_params[:synthetics_resource_id]
+    assert_equal 200, custom_params[:synthetics_job_id]
+    assert_equal 300, custom_params[:synthetics_monitor_id]
   end
 
   class Dummy
@@ -867,8 +856,8 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @sampler.on_finishing_transaction(state, @txn, (stop || Time.now.to_f))
   end
 
-  def custom_params_from_last_sample
+  def intrinsic_attributes_from_last_sample
     sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
-    sample.params[:custom_params]
+    sample.intrinsic_attributes.all
   end
 end

@@ -130,9 +130,9 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
     sample = @agent.transaction_sampler.last_sample
     refute_nil(sample)
-    refute_nil(sample.params[:custom_params][:cpu_time], "cpu time nil: \n#{sample}")
-    assert((sample.params[:custom_params][:cpu_time] >= 0), "cpu time: #{sample.params[:cpu_time]},\n#{sample}")
-    assert_equal('10', sample.params[:request_params][:level])
+    refute_nil(sample.intrinsic_attributes[:cpu_time], "cpu time nil: \n#{sample}")
+    assert((sample.intrinsic_attributes[:cpu_time] >= 0), "cpu time: #{sample.intrinsic_attributes[:cpu_time]},\n#{sample}")
+    assert_equal(10, sample.agent_attributes[:'request.parameters.level'])
   end
 
   def test_abort_transaction
@@ -155,7 +155,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     assert_metrics_recorded(['Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/hello'])
     sample = @agent.transaction_sampler.last_sample
     refute_nil(sample)
-    assert_equal(account, sample.params[:request_params][:account])
+    assert_equal(account, sample.agent_attributes[:'request.parameters.account'])
   end
 
   def test_errors_are_noticed_and_not_swallowed

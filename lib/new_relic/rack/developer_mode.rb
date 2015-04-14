@@ -21,6 +21,10 @@ module NewRelic
     include TransactionAnalysis
   end
 
+  class Agent::Transaction::Trace
+    include TransactionAnalysis
+  end
+
   module Rack
     # This middleware provides the 'developer mode' feature of newrelic_rpm,
     # which allows you to see data about local web transactions in development
@@ -213,8 +217,8 @@ module NewRelic
 
         return render(:sample_not_found) unless @sample
 
-        @request_params = @sample.params['request_params'] || {}
-        @custom_params = @sample.params['custom_params'] || {}
+        @request_params = @sample.request_attributes || {}
+        @custom_params = @sample.custom_attributes || {}
 
         controller_metric = @sample.transaction_name
 
@@ -235,7 +239,7 @@ module NewRelic
 
       def get_samples
         @samples = NewRelic::Agent.instance.transaction_sampler.dev_mode_sample_buffer.samples.select do |sample|
-          sample.params[:path] != nil
+          sample.transaction_name != nil
         end
 
         return @samples = @samples.sort_by(&:duration).reverse                   if params['h']
