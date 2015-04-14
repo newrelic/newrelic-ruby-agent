@@ -72,6 +72,16 @@ module NewRelic
         end
 
         def prepare_to_send!
+          return if @prepared
+
+          if NewRelic::Agent::Database.should_record_sql?
+            collect_explain_plans!
+            prepare_sql_for_transmission!
+          else
+            strip_sql!
+          end
+
+          @prepared = true
           self
         end
 
@@ -83,6 +93,28 @@ module NewRelic
             if segment[:sql] && segment.duration > threshold
               segment[:explain_plan] = segment.explain_sql
             end
+          end
+        end
+
+        def prepare_sql_for_transmission!
+          strategy = NewRelic::Agent::Database.record_sql_method
+          each_segment do |segment|
+            next unless segment[:sql]
+
+            case strategy
+            when :obfuscated
+              segment[:sql] = NewRelic::Agent::Database.obfuscate_sql(segment[:sql])
+            when :raw
+              segment[:sql] = segment[:sql].to_s
+            else
+              segment[:sql] = nil
+            end
+          end
+        end
+
+        def strip_sql!
+          each_segment do |segment|
+            segment.params.delete(:sql)
           end
         end
 

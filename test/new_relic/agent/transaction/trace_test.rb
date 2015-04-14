@@ -63,6 +63,70 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal "ROOT", @trace.root_segment.metric_name
   end
 
+  def test_prepare_to_send_is_idempotent
+    NewRelic::Agent::Database.stubs(:should_record_sql?).returns true
+    @trace.expects(:collect_explain_plans!).once
+    @trace.expects(:prepare_sql_for_transmission!).once
+    @trace.prepare_to_send!
+    @trace.prepare_to_send!
+  end
+
+  def test_prepare_to_send_handles_sql_and_does_not_strip_if_should_record_sql_is_true
+    NewRelic::Agent::Database.stubs(:should_record_sql?).returns true
+    @trace.expects(:collect_explain_plans!).once
+    @trace.expects(:prepare_sql_for_transmission!).once
+    @trace.expects(:strip_sql!).never
+    @trace.prepare_to_send!
+  end
+
+  def test_prepare_to_send_strips_and_does_not_handle_sql_if_should_record_sql_is_false
+    NewRelic::Agent::Database.stubs(:should_record_sql?).returns false
+    @trace.expects(:collect_explain_plans!).never
+    @trace.expects(:prepare_sql_for_transmission!).never
+    @trace.expects(:strip_sql!).once
+    @trace.prepare_to_send!
+  end
+
+  def test_prepare_to_send_collects_explain_plans
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment.stubs(:duration).returns(2)
+    segment.stubs(:explain_sql).returns('')
+    segment[:sql] = ''
+
+    @trace.root_segment.add_called_segment(segment)
+
+    with_config(:'transaction_tracer.explain_threshold' => 1) do
+      @trace.prepare_to_send!
+    end
+
+    assert segment[:explain_plan]
+  end
+
+  def test_prepare_to_send_prepares_sql_for_transmission
+    NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
+
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment.stubs(:duration).returns(2)
+    segment[:sql] = "select * from pelicans where name = '1337807';"
+    @trace.root_segment.add_called_segment(segment)
+
+    @trace.prepare_to_send!
+    assert_equal "select * from pelicans where name = ?;", segment[:sql]
+  end
+
+  def test_prepare_to_send_strips_sql
+    NewRelic::Agent::Database.stubs(:should_record_sql?).returns false
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment.stubs(:duration).returns(2)
+    segment.stubs(:explain_sql).returns('')
+    segment[:sql] = 'select * from pelicans;'
+
+    @trace.root_segment.add_called_segment(segment)
+    @trace.prepare_to_send!
+
+    refute segment[:sql]
+  end
+
   def test_collect_explain_plans!
     segment = @trace.create_segment(0.0, 'has_sql')
     segment.stubs(:duration).returns(2)
@@ -123,6 +187,51 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     end
 
     refute segment[:explain_plan]
+  end
+
+  def test_prepare_sql_for_transmission_obfuscates_sql_if_record_sql_method_is_obfuscated
+    NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
+
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment[:sql] = "select * from pelicans where name = '1337807';"
+    @trace.root_segment.add_called_segment(segment)
+
+    @trace.prepare_sql_for_transmission!
+    assert_equal "select * from pelicans where name = ?;", segment[:sql]
+  end
+
+  def test_prepare_sql_for_transmission_does_not_modify_sql_if_record_sql_method_is_raw
+    NewRelic::Agent::Database.stubs(:record_sql_method).returns :raw
+
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment[:sql] = "select * from pelicans where name = '1337807';"
+    @trace.root_segment.add_called_segment(segment)
+
+    @trace.prepare_sql_for_transmission!
+    assert_equal "select * from pelicans where name = '1337807';", segment[:sql]
+  end
+
+  def test_prepare_sql_for_transmission_removes_sql_if_record_sql_method_is_off
+    NewRelic::Agent::Database.stubs(:record_sql_method).returns :off
+
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment[:sql] = "select * from pelicans where name = '1337807';"
+    @trace.root_segment.add_called_segment(segment)
+
+    @trace.prepare_sql_for_transmission!
+    refute segment[:sql]
+  end
+
+  def test_strip_sql!
+    segment = @trace.create_segment(0.0, 'has_sql')
+    segment.stubs(:duration).returns(2)
+    segment.stubs(:explain_sql).returns('')
+    segment[:sql] = 'select * from pelicans;'
+
+    @trace.root_segment.add_called_segment(segment)
+    @trace.strip_sql!
+
+    refute segment[:sql]
   end
 
   def test_collector_array_contains_root_segment_duration
