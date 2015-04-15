@@ -119,7 +119,7 @@ class EncodingHandlingTest < Minitest::Test
   end
 
   def bad_string
-    (0..250).to_a.pack("C*").force_encoding('UTF-8')
+    [128].to_a.pack("C*").force_encoding('UTF-8')
   end
 
   def normalized_bad_string

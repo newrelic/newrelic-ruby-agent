@@ -330,7 +330,11 @@ def last_transaction_trace
 end
 
 def last_transaction_trace_request_params
-  last_transaction_trace.params[:request_params]
+  agent_attributes = attributes_for(last_transaction_trace, :agent)
+  agent_attributes.inject({}) do |memo, (key, value)|
+    memo[key] = value if key.to_s.start_with?("request.parameters.")
+    memo
+  end
 end
 
 def find_sql_trace(metric_name)

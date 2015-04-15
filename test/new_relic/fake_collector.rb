@@ -304,12 +304,16 @@ module NewRelic
           @body = body
         end
 
-        def request_params
-          @body[1]
+        def agent_attributes
+          @body[4]['agentAttributes']
         end
 
-        def custom_params
-          @body[2]
+        def custom_attributes
+          @body[4]['customAttributes']
+        end
+
+        def intrinsic_attributes
+          @body[4]['intrinsics']
         end
       end
 

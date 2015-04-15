@@ -72,9 +72,8 @@ class SetTransactionNameTest < Minitest::Test
 
   def test_apply_to_traced_transactions
     TestTransactor.new.parent_txn
-    assert_equal('Controller/TestTransactor/child',
-                 NewRelic::Agent.instance.transaction_sampler.last_sample \
-                   .params[:path])
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal('Controller/TestTransactor/child', sample.transaction_name)
   end
 
   def test_apply_to_traced_errors
