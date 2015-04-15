@@ -283,6 +283,10 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:guid, '42')
   end
 
+  def test_collector_array_contains_nil_for_reserved
+    assert_collector_array_contains(:reserved, nil)
+  end
+
   def test_collector_array_contains_forced_true_if_in_an_xray_session
     @trace.xray_session_id = 7
     assert_collector_array_contains(:forced?, true)
@@ -378,6 +382,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
       :uri,
       :trace_tree,
       :guid,
+      :reserved,
       :forced?,
       :xray_session_id,
       :synthetics_resource_id

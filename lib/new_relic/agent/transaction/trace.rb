@@ -146,6 +146,7 @@ module NewRelic
             NewRelic::Coerce.string(self.uri),
             encoder.encode(trace_tree),
             NewRelic::Coerce.string(self.guid),
+            nil,
             forced?,
             NewRelic::Coerce.int_or_nil(xray_session_id),
             NewRelic::Coerce.string(self.synthetics_resource_id)
