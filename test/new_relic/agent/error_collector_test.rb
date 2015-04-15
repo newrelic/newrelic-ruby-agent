@@ -89,7 +89,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     errors = @error_collector.harvest!
 
-    assert_empty errors.first.custom_params
+    assert_empty errors.first.attributes_from_notice_error
   end
 
   def test_long_message
@@ -435,18 +435,11 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def test_captures_attributes_on_notice_error
     error = StandardError.new('wat')
-    custom_attributes = Object.new
-    agent_attributes = Object.new
-    intrinsic_attributes = Object.new
-    @error_collector.notice_error(error,
-                                  :custom_attributes    => custom_attributes,
-                                  :agent_attributes     => agent_attributes,
-                                  :intrinsic_attributes => intrinsic_attributes)
+    attributes = Object.new
+    @error_collector.notice_error(error, :attributes => attributes)
 
     noticed = @error_collector.errors.first
-    assert_equal custom_attributes, noticed.custom_attributes
-    assert_equal agent_attributes, noticed.agent_attributes
-    assert_equal intrinsic_attributes, noticed.intrinsic_attributes
+    assert_equal attributes, noticed.attributes
   end
 
   module Winner

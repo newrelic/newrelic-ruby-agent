@@ -143,13 +143,13 @@ module NewRelic
         return unless txn = state.current_transaction
 
         if state.client_cross_app_id
-          txn.intrinsic_attributes.add(:client_cross_process_id, state.client_cross_app_id)
+          txn.attributes.add_intrinsic_attribute(:client_cross_process_id, state.client_cross_app_id)
           NewRelic::Agent.add_custom_parameters(:client_cross_process_id => state.client_cross_app_id)
         end
 
         referring_guid = client_referring_transaction_guid(state)
         if referring_guid
-          txn.intrinsic_attributes.add(:referring_transaction_guid, referring_guid)
+          txn.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
           NewRelic::Agent.add_custom_parameters(:referring_transaction_guid => referring_guid)
         end
       end

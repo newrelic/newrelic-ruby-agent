@@ -12,7 +12,6 @@ module NewRelic
             filtered_params.merge!(custom_params)
             NewRelic::Agent::Transaction.notice_error( \
                 exception, \
-                :request => request, \
                 :custom_params => filtered_params)
           end
         end

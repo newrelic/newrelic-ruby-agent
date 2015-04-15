@@ -3,15 +3,15 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/helper'
+require 'new_relic/agent/attribute_filter'
 
 # This class encapsulates an error that was noticed by New Relic in a managed app.
 class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
 
   attr_accessor :path, :timestamp, :message, :exception_class_name,
-                :request_uri, :custom_params,
-                :custom_attributes, :agent_attributes, :intrinsic_attributes,
-                :file_name, :line_number, :stack_trace
+                :request_uri, :file_name, :line_number, :stack_trace,
+                :attributes_from_notice_error, :attributes
 
   attr_reader   :exception_id, :is_internal
 
@@ -93,11 +93,15 @@ class NewRelic::NoticedError
   AGENT_ATTRIBUTES = "agentAttributes".freeze
   INTRINSIC_ATTRIBUTES = "intrinsics".freeze
 
+  EMPTY_HASH = {}.freeze
+
+  DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+
   def build_params
     params = base_parameters
     append_attributes(params, USER_ATTRIBUTES, merged_custom_attributes)
-    append_attributes(params, AGENT_ATTRIBUTES, @agent_attributes)
-    append_attributes(params, INTRINSIC_ATTRIBUTES, @intrinsic_attributes)
+    append_attributes(params, AGENT_ATTRIBUTES, build_agent_attributes)
+    append_attributes(params, INTRINSIC_ATTRIBUTES, build_intrinsic_attributes)
     params
   end
 
@@ -111,34 +115,50 @@ class NewRelic::NoticedError
   end
 
   # We can get custom attributes from two sources--the transaction, which we
-  # hold in @custom_attributes, or passed options to notice_error which show up
-  # in params[:custom_params]. Both need filtering, so merge them together in
-  # our Attributes class for consistent handling
+  # hold in @attributes, or passed options to notice_error which show up in
+  # @attributes_from_notice_error. Both need filtering, so merge them together
+  # in our Attributes class for consistent handling
   def merged_custom_attributes
-    merged_attributes = NewRelic::Agent::Transaction::CustomAttributes.new(NewRelic::Agent.instance.attribute_filter)
+    merged_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
-    if @custom_attributes
-      custom_attributes_from_transaction = @custom_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
-      merged_attributes.merge!(custom_attributes_from_transaction)
+    merge_custom_attributes_from_transaction(merged_attributes)
+    merge_custom_attributes_from_notice_error(merged_attributes)
+
+    merged_attributes.custom_attributes_for(DESTINATION)
+  end
+
+  def merge_custom_attributes_from_transaction(merged_attributes)
+    if @attributes
+      from_transaction = @attributes.custom_attributes_for(DESTINATION)
+      merged_attributes.merge_custom_attributes!(from_transaction)
     end
+  end
 
-    custom_attributes_from_notice_error = custom_params
-    if custom_attributes_from_notice_error
-      custom_attributes_from_notice_error = NewRelic::NoticedError.normalize_params(custom_attributes_from_notice_error)
-      merged_attributes.merge!(custom_attributes_from_notice_error)
+  def merge_custom_attributes_from_notice_error(merged_attributes)
+    if @attributes_from_notice_error
+      from_notice_error = NewRelic::NoticedError.normalize_params(@attributes_from_notice_error)
+      merged_attributes.merge_custom_attributes!(from_notice_error)
     end
+  end
 
-    merged_attributes
+  def build_agent_attributes
+    if @attributes
+      @attributes.agent_attributes_for(DESTINATION)
+    else
+      EMPTY_HASH
+    end
+  end
+
+  def build_intrinsic_attributes
+    if @attributes
+      @attributes.intrinsic_attributes_for(DESTINATION)
+    else
+      EMPTY_HASH
+    end
   end
 
   def append_attributes(outgoing_params, outgoing_key, source_attributes)
-    if source_attributes
-      attributes = source_attributes.for_destination(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
-    else
-      attributes = {}
-    end
-
-    outgoing_params[outgoing_key] = event_params(attributes)
+    outgoing_params[outgoing_key] = event_params(source_attributes || {})
   end
 
 end

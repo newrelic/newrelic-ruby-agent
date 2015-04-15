@@ -1,1 +1,0 @@
-SELECT * FROM table WHERE name="foo" AND value="don't"

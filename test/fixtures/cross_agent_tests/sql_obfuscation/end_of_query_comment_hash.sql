@@ -1,1 +1,0 @@
-SELECT foo, bar FROM baz WHERE password='hunter2' # Secret

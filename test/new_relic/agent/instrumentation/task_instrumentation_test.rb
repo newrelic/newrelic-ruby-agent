@@ -169,10 +169,13 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     errors = @agent.error_collector.harvest!
 
     assert_equal(1, errors.size)
+
     error = errors.first
     assert_equal("Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/run_task_exception", error.path)
     refute_nil(error.stack_trace)
-    refute_nil(error.custom_attributes[:custom_one])
+
+    result = error.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    refute_nil(result[:custom_one])
   end
 
   def test_instrument_background_job

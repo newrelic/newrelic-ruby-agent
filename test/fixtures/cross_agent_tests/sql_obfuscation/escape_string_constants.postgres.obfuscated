@@ -1,1 +1,0 @@
-SELECT "col1", "col2" from "table" WHERE "col3"=E? AND country=e?

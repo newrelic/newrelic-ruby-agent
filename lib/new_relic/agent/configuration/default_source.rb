@@ -1201,60 +1201,70 @@ module NewRelic
           :default     => [],
           :public      => false,
           :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from all destinations. Allows * as wildcard at end.'
         },
         :'transaction_tracer.attributes.exclude' => {
           :default     => [],
           :public      => false,
           :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from transaction traces. Allows * as wildcard at end.'
         },
         :'transaction_events.attributes.exclude' => {
           :default     => [],
           :public      => false,
           :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from transaction events. Allows * as wildcard at end.'
         },
         :'error_collector.attributes.exclude' => {
           :default     => [],
           :public      => false,
           :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from error collection. Allows * as wildcard at end.'
         },
         :'browser_monitoring.attributes.exclude' => {
           :default     => [],
           :public      => false,
           :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from browser monitoring. Allows * as wildcard at end.'
         },
         :'attributes.include' => {
           :default     => [],
           :public      => false,
           :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in all destinations. Allows * as wildcard at end.'
         },
         :'transaction_tracer.attributes.include' => {
           :default     => [],
           :public      => false,
           :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in transaction traces. Allows * as wildcard at end.'
         },
         :'transaction_events.attributes.include' => {
           :default     => [],
           :public      => false,
           :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in transaction events. Allows * as wildcard at end.'
         },
         :'error_collector.attributes.include' => {
           :default     => [],
           :public      => false,
           :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in error collection. Allows * as wildcard at end.'
         },
         :'browser_monitoring.attributes.include' => {
           :default     => [],
           :public      => false,
           :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows * as wildcard at end.'
         }
       }.freeze

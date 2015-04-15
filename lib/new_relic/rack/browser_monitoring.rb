@@ -19,6 +19,15 @@ module NewRelic::Rack
     # examine in order to look for a RUM insertion point.
     SCAN_LIMIT = 50_000
 
+    CONTENT_TYPE        = 'Content-Type'.freeze
+    CONTENT_DISPOSITION = 'Content-Disposition'.freeze
+    ATTACHMENT          = 'attachment'.freeze
+    TEXT_HTML           = 'text/html'.freeze
+
+    BODY_START          = "<body".freeze
+    HEAD_START          = "<head".freeze
+    GT                  = ">".freeze
+
     def traced_call(env)
       result = @app.call(env)   # [status, headers, response]
 
@@ -50,11 +59,11 @@ module NewRelic::Rack
     end
 
     def is_html?(headers)
-      headers["Content-Type"] && headers["Content-Type"].include?("text/html")
+      headers[CONTENT_TYPE] && headers[CONTENT_TYPE].include?(TEXT_HTML)
     end
 
     def is_attachment?(headers)
-      headers['Content-Disposition'].to_s.include?('attachment')
+      headers[CONTENT_DISPOSITION] && headers[CONTENT_DISPOSITION].include?(ATTACHMENT)
     end
 
     def is_streaming?(env)
@@ -99,10 +108,6 @@ module NewRelic::Rack
         NewRelic::Agent.logger.debug(msg)
       end
 
-      if headers['Content-Length']
-        headers['Content-Length'] = calculate_content_length(source).to_s
-      end
-
       source
     rescue => e
       NewRelic::Agent.logger.debug "Skipping RUM instrumentation on exception.", e
@@ -124,7 +129,7 @@ module NewRelic::Rack
     end
 
     def find_body_start(beginning_of_source)
-      beginning_of_source.index("<body")
+      beginning_of_source.index(BODY_START)
     end
 
     def find_x_ua_compatible_position(beginning_of_source)
@@ -138,18 +143,8 @@ module NewRelic::Rack
     end
 
     def find_end_of_head_open(beginning_of_source)
-      head_open = beginning_of_source.index("<head")
-      beginning_of_source.index(">", head_open) + 1 if head_open
-    end
-
-    # String does not respond to 'bytesize' in 1.8.6. Fortunately String#length
-    # returns bytes rather than characters in 1.8.6 so we can use that instead.
-    def calculate_content_length(source)
-      if source.respond_to?(:bytesize)
-        source.bytesize
-      else
-        source.length
-      end
+      head_open = beginning_of_source.index(HEAD_START)
+      beginning_of_source.index(GT, head_open) + 1 if head_open
     end
   end
 end
