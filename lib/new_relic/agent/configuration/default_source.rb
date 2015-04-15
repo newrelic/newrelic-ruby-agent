@@ -1173,6 +1173,13 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :description  => 'Disables installation of Grape instrumentation.'
+        },
+        :hostname => {
+          :default      => nil,
+          :allow_nil    => true,
+          :public       => true,
+          :type         => String,
+          :description  => 'Override automatic hostname detection.'
         }
       }.freeze
     end

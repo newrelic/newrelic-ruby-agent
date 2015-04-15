@@ -80,6 +80,18 @@ module NewRelic
         end
       end
 
+      def test_config_hostname_overrides_socket_hostname
+        with_config(:hostname => 'Karningul') do
+          assert_equal 'Karningul', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_config_hostname_overrides_dyno_name
+        with_dyno_name('Imladris', :hostname => 'Karningul', :'heroku.use_dyno_names' => true) do
+          assert_equal 'Karningul', NewRelic::Agent::Hostname.get
+        end
+      end
+
       def with_dyno_name(dyno_name, config_options)
         with_config(config_options) do
           ENV['DYNO'] = dyno_name
