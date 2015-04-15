@@ -201,6 +201,15 @@ class AttributesTest < Minitest::Test
     assert_equal Attributes::COUNT_LIMIT, custom_attributes(attributes).length
   end
 
+  def test_merge_request_parameters
+    with_config(:'attributes.include' => "request.parameters.*") do
+      attributes = create_attributes
+      params = {:foo => {:bar => "baz"}}
+      attributes.merge_request_parameters(params)
+      assert_equal({"request.parameters.foo.bar" => "baz"}, agent_attributes(attributes))
+    end
+  end
+
   def create_attributes
     filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
     NewRelic::Agent::Transaction::Attributes.new(filter)
@@ -212,5 +221,9 @@ class AttributesTest < Minitest::Test
 
   def assert_custom_attributes_empty(attributes)
     assert_empty custom_attributes(attributes)
+  end
+
+  def agent_attributes(attributes)
+    attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
   end
 end
