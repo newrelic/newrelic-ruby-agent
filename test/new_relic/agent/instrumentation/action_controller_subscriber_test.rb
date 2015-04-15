@@ -264,20 +264,24 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_records_request_params_in_txn
-    NewRelic::Agent.instance.transaction_sampler.reset!
-    @entry_payload[:params]['number'] = '666'
-    @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    with_config(:capture_params => true) do
+      NewRelic::Agent.instance.transaction_sampler.reset!
+      @entry_payload[:params]['number'] = '666'
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    end
 
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     assert_equal('666', attributes_for(sample, :agent)['request.parameters.number'])
   end
 
   def test_records_filtered_request_params_in_txn
-    NewRelic::Agent.instance.transaction_sampler.reset!
-    @entry_payload[:params]['password'] = 'secret'
-    @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    with_config(:capture_params => true) do
+      NewRelic::Agent.instance.transaction_sampler.reset!
+      @entry_payload[:params]['password'] = 'secret'
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    end
 
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     assert_equal('[FILTERED]', attributes_for(sample, :agent)['request.parameters.password'])
