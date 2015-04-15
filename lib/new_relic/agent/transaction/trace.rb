@@ -125,15 +125,20 @@ module NewRelic
 
         def trace_tree
           destination = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER
+
+          agent_attributes     = self.attributes.agent_attributes_for(destination)
+          custom_attributes    = self.attributes.custom_attributes_for(destination)
+          intrinsic_attributes = self.attributes.intrinsic_attributes_for(destination)
+
           [
             NewRelic::Coerce.float(self.start_time),
             {},
             {},
             self.root_segment.to_array,
             {
-              'agentAttributes'  => self.attributes.agent_attributes_for(destination),
-              'customAttributes' => self.attributes.custom_attributes_for(destination),
-              'intrinsics'       => self.attributes.intrinsic_attributes_for(destination)
+              'agentAttributes'  => NewRelic::Coerce.event_params(agent_attributes),
+              'customAttributes' => NewRelic::Coerce.event_params(custom_attributes),
+              'intrinsics'       => NewRelic::Coerce.event_params(intrinsic_attributes)
             }
           ]
         end
