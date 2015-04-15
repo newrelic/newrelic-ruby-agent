@@ -66,10 +66,6 @@ module NewRelic
           self.root_segment.find_segment(segment_id)
         end
 
-        def request_attributes
-          {}
-        end
-
         def prepare_to_send!
           return self if @prepared
 

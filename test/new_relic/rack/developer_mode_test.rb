@@ -72,6 +72,19 @@ class DeveloperModeTest < Minitest::Test
 
     assert_empty NewRelic::Agent.instance.transaction_sampler.dev_mode_sample_buffer.samples
   end
+
+  def test_request_attributes
+    attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    attributes.add_agent_attribute("request.parameters.foo", "bar", NewRelic::Agent::AttributeFilter::DST_ALL)
+    sample = stub(:attributes => attributes)
+
+    expected = {
+      "request.parameters.foo" => "bar"
+    }
+
+    result = app.send(:request_attributes_for, sample)
+    assert_equal expected, result
+  end
 end
 
 else
