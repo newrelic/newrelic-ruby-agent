@@ -63,6 +63,18 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal "ROOT", @trace.root_segment.metric_name
   end
 
+  def test_prepare_to_send_returns_self
+    result = @trace.prepare_to_send!
+    assert_equal @trace, result
+  end
+
+  def test_prepare_to_send_returns_self_if_already_prepared
+    @trace.prepare_to_send!
+
+    result = @trace.prepare_to_send!
+    assert_equal @trace, result
+  end
+
   def test_prepare_to_send_is_idempotent
     NewRelic::Agent::Database.stubs(:should_record_sql?).returns true
     @trace.expects(:collect_explain_plans!).once

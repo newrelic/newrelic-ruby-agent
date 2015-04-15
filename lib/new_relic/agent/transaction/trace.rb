@@ -72,7 +72,7 @@ module NewRelic
         end
 
         def prepare_to_send!
-          return if @prepared
+          return self if @prepared
 
           if NewRelic::Agent::Database.should_record_sql?
             collect_explain_plans!
