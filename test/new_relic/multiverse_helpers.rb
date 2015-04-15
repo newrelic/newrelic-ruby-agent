@@ -132,9 +132,17 @@ module MultiverseHelpers
     NewRelic::Agent.instance.send(:transmit_event_data)
   end
 
+  def single_transaction_trace_posted
+    posts = $collector.calls_for("transaction_sample_data")
+    assert_equal 1, posts.length
+
+    transactions = posts.first.samples
+    assert_equal 1, transactions.length
+
+    transactions.first
+  end
+
   def single_error_posted
-    # If we don't just have a single post with a single error, ordering might
-    # foul the test so just throw your hands up
     assert_equal 1, $collector.calls_for("error_data").length
     assert_equal 1, $collector.calls_for("error_data").first.errors.length
 

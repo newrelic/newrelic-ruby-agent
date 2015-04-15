@@ -110,7 +110,7 @@ class ResqueTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_equal sample.tree.agent_attributes["job_arguments"], ["testing"]
+        assert_equal sample.tree.agent_attributes["job.resque.arguments"], '["testing"]'
       end
     end
   end
@@ -122,7 +122,7 @@ class ResqueTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_nil sample.tree.custom_params["job_arguments"]
+        refute_includes sample.tree.agent_attributes, "job.resque.arguments"
       end
     end
   end

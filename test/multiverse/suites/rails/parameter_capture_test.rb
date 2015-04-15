@@ -251,11 +251,13 @@ class ParameterCaptureTest < RailsMultiverseTest
     end
 
     def test_file_upload_params_are_replaced_with_placeholder
-      with_config(:capture_params => true) do
+      with_config(:capture_params => true, :'transaction_tracer.transaction_threshold' => -10) do
         post '/parameter_capture', :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
 
-        result = last_transaction_trace_request_params
-        assert_equal("#<ActionDispatch::Http::UploadedFile>", result["request.parameters.file"])
+        run_harvest
+
+        result = single_transaction_trace_posted
+        refute_includes result.tree.agent_attributes, "request.parameters.file"
       end
     end
   end
