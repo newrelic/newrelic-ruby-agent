@@ -218,7 +218,7 @@ module NewRelic
         return render(:sample_not_found) unless @sample
 
         @request_params = @sample.request_attributes || {}
-        @custom_params = @sample.custom_attributes || {}
+        @custom_params = @sample.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_DEVELOPER_MODE)
 
         controller_metric = @sample.transaction_name
 

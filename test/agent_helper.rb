@@ -647,3 +647,7 @@ def assert_event_attributes(event, test_name, expected_attributes, non_expected_
     assert_nil(event_attrs[name], "Found value '#{event_attrs[name]}' for attribute '#{name}', but expected nothing in #{test_name}")
   end
 end
+
+def attributes_for(sample, type)
+  sample.attributes.instance_variable_get("@#{type}_attributes")
+end

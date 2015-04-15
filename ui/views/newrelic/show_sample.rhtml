@@ -23,7 +23,8 @@
   </tr>
   <tr>
     <th>CPU Burn:</th>
-    <td><%= to_ms(@sample.intrinsic_attributes[:cpu_time]) if @sample.intrinsic_attributes[:cpu_time] %> ms</td>
+    <% cpu_time = @sample.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)[:cpu_time] %>
+    <td><%= "#{to_ms(cpu_time)} ms" if cpu_time %></td>
   </tr>
   
   <% unless @custom_params.empty? %>

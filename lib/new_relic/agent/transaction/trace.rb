@@ -15,8 +15,7 @@ module NewRelic
 
         attr_reader :start_time, :root_segment
         attr_accessor :transaction_name, :uri, :guid, :xray_session_id,
-                      :synthetics_resource_id, :agent_attributes,
-                      :custom_attributes, :intrinsic_attributes, :segment_count,
+                      :synthetics_resource_id, :attributes, :segment_count,
                       :finished, :threshold, :profile
 
         def initialize(start_time)
@@ -132,9 +131,9 @@ module NewRelic
             {},
             self.root_segment.to_array,
             {
-              'agentAttributes'  => self.agent_attributes.for_destination(destination),
-              'customAttributes' => self.custom_attributes.for_destination(destination),
-              'intrinsics'       => self.intrinsic_attributes.for_destination(destination)
+              'agentAttributes'  => self.attributes.agent_attributes_for(destination),
+              'customAttributes' => self.attributes.custom_attributes_for(destination),
+              'intrinsics'       => self.attributes.intrinsic_attributes_for(destination)
             }
           ]
         end

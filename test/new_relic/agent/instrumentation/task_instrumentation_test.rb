@@ -129,10 +129,13 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     assert_metrics_not_recorded(['Controller'])
 
     sample = @agent.transaction_sampler.last_sample
+
     refute_nil(sample)
-    refute_nil(sample.intrinsic_attributes[:cpu_time], "cpu time nil: \n#{sample}")
-    assert((sample.intrinsic_attributes[:cpu_time] >= 0), "cpu time: #{sample.intrinsic_attributes[:cpu_time]},\n#{sample}")
-    assert_equal(10, sample.agent_attributes[:'request.parameters.level'])
+    cpu_time = attributes_for(sample, :intrinsic)[:cpu_time]
+
+    refute_nil(cpu_time, "cpu time nil: \n#{sample}")
+    assert(cpu_time >= 0, "cpu time: #{cpu_time},\n#{sample}")
+    assert_equal(10, attributes_for(sample, :agent)['request.parameters.level'])
   end
 
   def test_abort_transaction
@@ -155,7 +158,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     assert_metrics_recorded(['Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/hello'])
     sample = @agent.transaction_sampler.last_sample
     refute_nil(sample)
-    assert_equal(account, sample.agent_attributes[:'request.parameters.account'])
+    assert_equal(account, attributes_for(sample, :agent)['request.parameters.account'])
   end
 
   def test_errors_are_noticed_and_not_swallowed

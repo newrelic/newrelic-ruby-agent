@@ -68,6 +68,7 @@ module NewRelic
       DST_TRANSACTION_TRACER = 1 << 1
       DST_ERROR_COLLECTOR    = 1 << 2
       DST_BROWSER_MONITORING = 1 << 3
+      DST_DEVELOPER_MODE     = 1 << 4
 
       DST_ALL = 0xF
 

@@ -130,9 +130,7 @@ module NewRelic
         last_sample.guid = txn.guid
         last_sample.set_custom_param(:gc_time, gc_time) if gc_time
 
-        last_sample.agent_attributes = txn.agent_attributes
-        last_sample.custom_attributes = txn.custom_attributes
-        last_sample.intrinsic_attributes = txn.intrinsic_attributes
+        last_sample.attributes = txn.attributes
 
         if state.is_cross_app?
           last_sample.set_custom_param(:'nr.trip_id', txn.cat_trip_id(state))

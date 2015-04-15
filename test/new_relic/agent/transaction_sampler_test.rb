@@ -44,9 +44,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
                 :cat_path_hash => '',
                 :is_synthetics_request? => false,
                 :filtered_params => {},
-                :agent_attributes => {},
-                :custom_attributes => {},
-                :intrinsic_attributes => {}
+                :attributes => {}
                )
   end
 
@@ -152,7 +150,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       txn.stubs(:cpu_burn).returns(42)
     end
 
-    assert_equal(42, @sampler.last_sample.intrinsic_attributes[:cpu_time])
+    assert_equal(42, attributes_for(@sampler.last_sample, :intrinsic)[:cpu_time])
   end
 
   def test_notice_extra_data_no_builder
@@ -745,11 +743,11 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
 
-    custom_params = sample.intrinsic_attributes
+    intrinsic_attributes = attributes_for(sample, :intrinsic)
     assert_nil sample.synthetics_resource_id
-    assert_nil custom_params[:synthetics_resource_id]
-    assert_nil custom_params[:synthetics_job_id]
-    assert_nil custom_params[:synthetics_monitor_id]
+    assert_nil intrinsic_attributes[:synthetics_resource_id]
+    assert_nil intrinsic_attributes[:synthetics_job_id]
+    assert_nil intrinsic_attributes[:synthetics_monitor_id]
   end
 
   def test_synthetics_parameters_included
@@ -760,11 +758,11 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
 
-    custom_params = sample.intrinsic_attributes
+    intrinsic_attributes = attributes_for(sample, :intrinsic)
     assert_equal 100, sample.synthetics_resource_id
-    assert_equal 100, custom_params[:synthetics_resource_id]
-    assert_equal 200, custom_params[:synthetics_job_id]
-    assert_equal 300, custom_params[:synthetics_monitor_id]
+    assert_equal 100, intrinsic_attributes[:synthetics_resource_id]
+    assert_equal 200, intrinsic_attributes[:synthetics_job_id]
+    assert_equal 300, intrinsic_attributes[:synthetics_monitor_id]
   end
 
   class Dummy
@@ -858,6 +856,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def intrinsic_attributes_from_last_sample
     sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
-    sample.intrinsic_attributes.all
+    attributes_for(sample, :intrinsic)
   end
 end

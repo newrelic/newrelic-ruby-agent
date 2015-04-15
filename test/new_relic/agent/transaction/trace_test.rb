@@ -15,9 +15,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     filter = NewRelic::Agent.instance.attribute_filter
     @fake_attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
 
-    @trace.agent_attributes = @fake_attributes
-    @trace.custom_attributes = @fake_attributes
-    @trace.intrinsic_attributes = @fake_attributes
+    @trace.attributes = @fake_attributes
   end
 
   def test_start_time
@@ -347,7 +345,9 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_trace_tree_contains_attributes
-    @fake_attributes.add(:foo, 'bar')
+    @fake_attributes.add_agent_attribute(:foo, 'bar', NewRelic::Agent::AttributeFilter::DST_ALL)
+    @fake_attributes.add_custom_attribute(:foo, 'bar')
+    @fake_attributes.add_intrinsic_attribute(:foo, 'bar')
 
     expected = {
       'agentAttributes' => { :foo => 'bar' },

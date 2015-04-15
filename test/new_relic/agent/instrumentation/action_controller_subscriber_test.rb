@@ -269,9 +269,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert_equal('666',
-                 NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.agent_attributes[:'request.parameters.number'])
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal('666', attributes_for(sample, :agent)['request.parameters.number'])
   end
 
   def test_records_filtered_request_params_in_txn
@@ -280,9 +279,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert_equal('[FILTERED]',
-                 NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.agent_attributes[:'request.parameters.password'])
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal('[FILTERED]', attributes_for(sample, :agent)['request.parameters.password'])
   end
 
   def test_records_custom_parameters_in_txn
@@ -291,9 +289,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     NewRelic::Agent.add_custom_parameters('number' => '666')
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert_equal('666',
-                 NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.custom_attributes['number'])
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal('666', attributes_for(sample, :custom)['number'])
   end
 end if ::Rails::VERSION::MAJOR.to_i >= 4
 
