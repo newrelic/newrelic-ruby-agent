@@ -823,7 +823,7 @@ module NewRelic
           return
         end
 
-        attributes.merge_custom_attributes!(p)
+        attributes.merge_custom_attributes(p)
       end
 
       alias_method :set_user_attributes, :add_custom_attributes

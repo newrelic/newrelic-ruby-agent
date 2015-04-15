@@ -153,7 +153,7 @@ class AttributesTest < Minitest::Test
     expects_logging(:warn, includes(key.to_s))
 
     attributes = create_attributes
-    attributes.merge_custom_attributes!(key => "")
+    attributes.merge_custom_attributes(key => "")
 
     assert_custom_attributes_empty(attributes)
   end

@@ -59,7 +59,7 @@ module NewRelic
           add(@intrinsic_attributes, key, value)
         end
 
-        def merge_custom_attributes!(other)
+        def merge_custom_attributes(other)
           other.each do |key, value|
             self.add_custom_attribute(key, value)
           end

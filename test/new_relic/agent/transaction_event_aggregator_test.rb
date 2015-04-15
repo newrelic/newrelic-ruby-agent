@@ -47,7 +47,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_custom_attributes_in_event_are_normalized_to_string_keys
     with_sampler_config do
-      attributes.merge_custom_attributes!(:bing => 2, 1 => 3)
+      attributes.merge_custom_attributes(:bing => 2, 1 => 3)
       generate_request('whatever')
 
       result = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
@@ -70,7 +70,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_includes_custom_attributes_in_event
     with_sampler_config do
-      attributes.merge_custom_attributes!('bing' => 2)
+      attributes.merge_custom_attributes('bing' => 2)
       generate_request('whatever')
 
       custom_attrs = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
@@ -90,7 +90,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_doesnt_include_custom_attributes_in_event_when_configured_not_to
     with_sampler_config('transaction_events.attributes.enabled' => false) do
-      attributes.merge_custom_attributes!('bing' => 2)
+      attributes.merge_custom_attributes('bing' => 2)
       generate_request('whatever')
 
       custom_attrs = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
@@ -134,7 +134,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       metrics = NewRelic::Agent::TransactionMetrics.new()
       metrics.record_unscoped('HttpDispatcher', 0.01)
 
-      attributes.merge_custom_attributes!('type' => 'giraffe', 'duration' => 'hippo')
+      attributes.merge_custom_attributes('type' => 'giraffe', 'duration' => 'hippo')
       generate_request('whatever', :metrics => metrics)
 
       txn_event = captured_transaction_event[EVENT_DATA_INDEX]
