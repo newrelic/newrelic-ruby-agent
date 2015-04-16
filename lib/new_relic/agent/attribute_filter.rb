@@ -122,7 +122,8 @@ module NewRelic
       def apply(attribute_name, default_destinations)
         return DST_NONE if @enabled_destinations == DST_NONE
 
-        destinations = default_destinations
+        destinations   = default_destinations
+        attribute_name = attribute_name.to_s
 
         @rules.each do |rule|
           if rule.match?(attribute_name)
@@ -134,9 +135,7 @@ module NewRelic
           end
         end
 
-        destinations &= @enabled_destinations
-
-        destinations
+        destinations & @enabled_destinations
       end
 
       def allows?(allowed_destinations, requested_destination)
@@ -174,8 +173,6 @@ module NewRelic
       end
 
       def match?(name)
-        name = name.to_s
-
         if wildcard
           name.start_with?(@attribute_name)
         else
