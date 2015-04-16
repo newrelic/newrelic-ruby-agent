@@ -120,11 +120,6 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
         'httpResponseCode' => 500
       }
 
-      if Rails::VERSION::MAJOR == 3
-        expected_params['request.parameters.action']     = 'controller_error'
-        expected_params['request.parameters.controller'] = 'error'
-      end
-
       attributes = agent_attributes_for_single_error_posted
       expected_params.each do |key, value|
         assert_equal value, attributes[key]
