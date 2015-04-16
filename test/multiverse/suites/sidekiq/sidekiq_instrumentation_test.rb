@@ -135,7 +135,7 @@ class SidekiqTest < Minitest::Test
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
 
         args = sample.tree.agent_attributes["job.sidekiq.arguments"]
-        assert_equal '["jobs_completed", 1]', args
+        assert_match /\["jobs_completed", \d\]/, args
       end
     end
   end
