@@ -76,6 +76,7 @@ class DeveloperModeTest < Minitest::Test
   def test_request_attributes
     attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     attributes.add_agent_attribute("request.parameters.foo", "bar", NewRelic::Agent::AttributeFilter::DST_ALL)
+    attributes.add_agent_attribute(:"request.headers.referer", "/somewhere", NewRelic::Agent::AttributeFilter::DST_ALL)
     sample = stub(:attributes => attributes)
 
     expected = {

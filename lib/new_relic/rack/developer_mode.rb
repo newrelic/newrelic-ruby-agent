@@ -271,7 +271,7 @@ module NewRelic
       def request_attributes_for(sample)
         agent_attributes = sample.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_DEVELOPER_MODE)
         agent_attributes.inject({}) do |memo, (key, value)|
-          memo[key] = value if key.start_with?(REQUEST_PARAMETERS_PREFIX)
+          memo[key] = value if key.to_s.start_with?(REQUEST_PARAMETERS_PREFIX)
           memo
         end
       end
