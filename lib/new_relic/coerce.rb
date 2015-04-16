@@ -57,7 +57,7 @@ module NewRelic
         raise ArgumentError, "Expected Hash but got #{value.class}"
       end
       value.inject({}) do |memo, (key, val)|
-        memo[key] = scalar(val)
+        memo[key.to_s] = scalar(val)
         memo
       end
     rescue => error
