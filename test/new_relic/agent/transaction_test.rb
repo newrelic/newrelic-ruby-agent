@@ -1399,6 +1399,24 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_empty actual
   end
 
+  def test_request_params_disallows_controller
+    txn = with_config(:capture_params => true) do
+      in_transaction(:filtered_params => {:controller => Object.new}) do
+      end
+    end
+
+    assert_empty attributes_for(txn, :agent)
+  end
+
+  def test_request_params_disallows_action
+    txn = with_config(:capture_params => true) do
+      in_transaction(:filtered_params => {:action => Object.new}) do
+      end
+    end
+
+    assert_empty attributes_for(txn, :agent)
+  end
+
   def test_http_response_code_included_in_agent_attributes
     txn = in_transaction do |txn|
       txn.http_response_code = 418

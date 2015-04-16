@@ -321,9 +321,15 @@ module NewRelic
         set_default_transaction_name(options[:transaction_name], category)
       end
 
+      # The agent has long had a ban on these to prevent large objects in the
+      # captured parameters, so keep checking for them.
+      DISALLOWED_REQUEST_PARAMETERS = ["controller", "action"]
+
       def merge_request_parameters(params)
         params.each_pair do |k, v|
           normalized_key = EncodingNormalizer.normalize_string(k.to_s)
+          next if DISALLOWED_REQUEST_PARAMETERS.include?(normalized_key)
+
           key = "request.parameters.#{normalized_key}"
           if key.bytesize > NewRelic::Agent::Transaction::Attributes::KEY_LIMIT
             NewRelic::Agent.logger.debug("Request parameter #{key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
