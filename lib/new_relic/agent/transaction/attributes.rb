@@ -6,6 +6,7 @@ module NewRelic
   module Agent
     class Transaction
       class Attributes
+        include Coerce
 
         KEY_LIMIT   = 255
         VALUE_LIMIT = 255
@@ -66,7 +67,9 @@ module NewRelic
         end
 
         def merge_request_parameters(params)
-          merge_flattened(params, "request.parameters")
+          flatten_and_coerce(params, "request.parameters").each do |k, v|
+            add_agent_attribute(k, v, AttributeFilter::DST_NONE)
+          end
         end
 
         def custom_attributes_for(destination)
@@ -132,21 +135,21 @@ module NewRelic
           result
         end
 
-        # currently this only flattens, coercion will be coming soon
-        def merge_flattened(params, prefix, result = {})
+        def flatten_and_coerce(params, prefix, result = {})
           case params
           when Hash
             params.each do |key, val|
               normalized_key = EncodingNormalizer.normalize_string(key.to_s)
-              merge_flattened(val, "#{prefix}.#{normalized_key}", result)
+              flatten_and_coerce(val, "#{prefix}.#{normalized_key}", result)
             end
           when Array
             params.each_with_index do |val, idx|
-              merge_flattened(val, "#{prefix}.#{idx}", result)
+              flatten_and_coerce(val, "#{prefix}.#{idx}", result)
             end
           else
-            add_agent_attribute(prefix, params, AttributeFilter::DST_NONE)
+            result[prefix] = scalar(params)
           end
+          result
         end
       end
     end
