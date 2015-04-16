@@ -134,10 +134,10 @@ module MultiverseHelpers
 
   def single_transaction_trace_posted
     posts = $collector.calls_for("transaction_sample_data")
-    assert_equal 1, posts.length
+    assert_equal 1, posts.length, "Unexpected post count"
 
     transactions = posts.first.samples
-    assert_equal 1, transactions.length
+    assert_equal 1, transactions.length, "Unexpected trace count"
 
     transactions.first
   end

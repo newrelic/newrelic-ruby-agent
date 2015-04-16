@@ -97,6 +97,7 @@ class AgentAttributesTest < Minitest::Test
 
   def run_transaction(config = {}, txn_options = {})
     default_config = {
+      :'transaction_tracer.transaction_threshold' => -10,
       :'transaction_tracer.attributes.enabled' => true,
       :'transaction_events.attributes.enabled' => true,
       :'error_collector.attributes.enabled'    => true,
@@ -136,7 +137,8 @@ class AgentAttributesTest < Minitest::Test
   end
 
   def assert_transaction_trace_has_agent_attribute(attribute, expected)
-    # TODO: Implement once we've updated TT's with attributes!
+    actual = single_transaction_trace_posted.tree.agent_attributes[attribute]
+    assert_equal expected, actual
   end
 
   def assert_event_has_agent_attribute(attribute, expected)
@@ -148,7 +150,8 @@ class AgentAttributesTest < Minitest::Test
   end
 
   def assert_transaction_tracer_has_custom_attributes(attribute, expected)
-    # assert_equal expected, nil
+    actual = single_transaction_trace_posted.tree.custom_attributes[attribute]
+    assert_equal expected, actual
   end
 
   def assert_transaction_event_has_custom_attributes(attribute, expected)
@@ -164,7 +167,7 @@ class AgentAttributesTest < Minitest::Test
   end
 
   def refute_transaction_tracer_has_custom_attributes(attribute)
-    # refute_includes something, attribute
+    refute_includes single_transaction_trace_posted.tree.custom_attributes, attribute
   end
 
   def refute_transaction_event_has_custom_attributes(attribute)
@@ -180,7 +183,7 @@ class AgentAttributesTest < Minitest::Test
   end
 
   def refute_transaction_trace_has_agent_attribute(attribute)
-    # TODO: Implement once we've updated TT's with attributes!
+    refute_includes single_transaction_trace_posted.tree.agent_attributes, attribute
   end
 
   def refute_event_has_agent_attribute(attribute)
