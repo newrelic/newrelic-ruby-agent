@@ -154,9 +154,9 @@ module NewRelic
       # and exposing some flags that clients can use in order to predicate their
       # work processing the parameters/arguments.
       def cache_parameter_capture_flags
-        @might_allow_request_parameters = might_allow_attribute_with_prefix?('request.parameters')
-        @might_allow_sidekiq_args       = might_allow_attribute_with_prefix?('job.sidekiq.arguments')
-        @might_allow_resque_args        = might_allow_attribute_with_prefix?('job.resque.arguments')
+        @might_allow_request_parameters = might_allow_attribute_with_prefix?('request.parameters.')
+        @might_allow_sidekiq_args       = might_allow_attribute_with_prefix?('job.sidekiq.arguments.')
+        @might_allow_resque_args        = might_allow_attribute_with_prefix?('job.resque.arguments.')
       end
 
       def might_allow_request_parameters?
