@@ -128,22 +128,9 @@ module NewRelic
 
         last_sample = last_builder.sample
         last_sample.guid = txn.guid
-        last_sample.set_custom_param(:gc_time, gc_time) if gc_time
-
         last_sample.attributes = txn.attributes
 
-        if state.is_cross_app?
-          last_sample.set_custom_param(:'nr.trip_id', txn.cat_trip_id(state))
-          last_sample.set_custom_param(:'nr.path_hash', txn.cat_path_hash(state))
-        end
-
-        if txn.is_synthetics_request?
-          last_sample.set_custom_param(:'nr.synthetics_resource_id', txn.synthetics_resource_id)
-          last_sample.set_custom_param(:'nr.synthetics_job_id', txn.synthetics_job_id)
-          last_sample.set_custom_param(:'nr.synthetics_monitor_id', txn.synthetics_monitor_id)
-
-          last_sample.synthetics_resource_id = txn.synthetics_resource_id
-        end
+        last_sample.synthetics_resource_id = txn.synthetics_resource_id if txn.is_synthetics_request?
 
         @samples_lock.synchronize do
           @last_sample = last_sample

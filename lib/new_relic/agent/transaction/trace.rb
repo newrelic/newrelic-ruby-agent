@@ -42,9 +42,6 @@ module NewRelic
           self.root_segment.duration
         end
 
-        def set_custom_param(*args)
-        end
-
         def set_request_param(*args)
         end
 
