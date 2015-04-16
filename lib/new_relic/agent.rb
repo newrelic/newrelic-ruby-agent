@@ -550,9 +550,10 @@ module NewRelic
     # any traced errors recorded for the current transaction.
     #
     # If Browser Monitoring is enabled, and the
-    # browser_monitoring.capture_attributes configuration setting is enabled,
+    # browser_monitoring.attributes.enabled configuration setting is true,
     # these custom parameters will also be present in the RUM script injected
-    # into the response body, making them available on Insights PageView events.
+    # into the response body, making them available on Insights PageView
+    # events.
     #
     # @api public
     #

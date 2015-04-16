@@ -233,6 +233,16 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
   end
 
   def test_captured_errors_should_include_custom_params
+    with_config(:'error_collector.attributes.enabled' => true) do
+      get '/error/error_with_custom_params'
+      assert_error_reported_once('bad things')
+
+      attributes = user_attributes_for_single_error_posted
+      assert_equal({'texture' => 'chunky'}, attributes)
+    end
+  end
+
+  def test_captured_errors_should_include_custom_params_with_legacy_setting
     with_config(:'error_collector.capture_attributes' => true) do
       get '/error/error_with_custom_params'
       assert_error_reported_once('bad things')
@@ -243,6 +253,16 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
   end
 
   def test_captured_errors_should_not_include_custom_params_if_config_says_no
+    with_config(:'error_collector.attributes.enabled' => false) do
+      get '/error/error_with_custom_params'
+      assert_error_reported_once('bad things')
+
+      attributes = user_attributes_for_single_error_posted
+      assert_empty attributes
+    end
+  end
+
+  def test_captured_errors_should_not_include_custom_params_if_legacy_setting_says_no
     with_config(:'error_collector.capture_attributes' => false) do
       get '/error/error_with_custom_params'
       assert_error_reported_once('bad things')
