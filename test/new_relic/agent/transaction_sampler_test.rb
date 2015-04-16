@@ -792,7 +792,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     opts = SAMPLE_DEFAULTS.dup
     opts.merge!(incoming_opts)
 
-    sample = NewRelic::TransactionSample.new
+    sample = NewRelic::Agent::Transaction::Trace.new(Time.now)
     sample.threshold = opts[:threshold]
     sample.transaction_name = opts[:transaction_name]
     sample.synthetics_resource_id = opts[:synthetics_resource_id]

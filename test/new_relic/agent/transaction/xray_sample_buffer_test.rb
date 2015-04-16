@@ -62,7 +62,7 @@ class NewRelic::Agent::Transaction
     end
 
     def sample_with(opts={})
-      sample = NewRelic::TransactionSample.new
+      sample = NewRelic::Agent::Transaction::Trace.new(Time.now)
       sample.transaction_name = opts[:transaction_name]
       sample
     end

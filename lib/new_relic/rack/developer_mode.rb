@@ -13,14 +13,9 @@ require 'new_relic/metric_parser/metric_parser'
 require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/instrumentation/middleware_proxy'
 
-require 'new_relic/transaction_sample'
 require 'new_relic/transaction_analysis'
 
 module NewRelic
-  class TransactionSample
-    include TransactionAnalysis
-  end
-
   class Agent::Transaction::Trace
     include TransactionAnalysis
   end
