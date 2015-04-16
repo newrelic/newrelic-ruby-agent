@@ -102,6 +102,8 @@ module NewRelic
         build_rule(config[:'browser_monitoring.attributes.include'], DST_BROWSER_MONITORING, true)
 
         @rules.sort!
+
+        cache_parameter_capture_flags
       end
 
       def include_destinations_for_capture_params(key, config)
@@ -140,6 +142,33 @@ module NewRelic
 
       def allows?(allowed_destinations, requested_destination)
         allowed_destinations & requested_destination == requested_destination
+      end
+
+      # In the default case, we don't capture HTTP request parameters, or job
+      # arguments for Sidekiq or Resque.
+      #
+      # Just traversing the parameters hash or argument list in order to
+      # generate flattened key names and apply filtering to each parameter/arg
+      # can be expensive, so we fast-path the default case here by statically
+      # determining that there's no way these attributes will be allowed through
+      # and exposing some flags that clients can use in order to predicate their
+      # work processing the parameters/arguments.
+      def cache_parameter_capture_flags
+        @might_allow_request_parameters = might_allow_attribute_with_prefix?('request.parameters')
+        @might_allow_sidekiq_args       = might_allow_attribute_with_prefix?('job.sidekiq.arguments')
+        @might_allow_resque_args        = might_allow_attribute_with_prefix?('job.resque.arguments')
+      end
+
+      def might_allow_request_parameters?
+        @might_allow_request_parameters
+      end
+
+      def might_allow_sidekiq_args?
+        @might_allow_sidekiq_args
+      end
+
+      def might_allow_resque_args?
+        @might_allow_resque_args
       end
 
       def might_allow_attribute_with_prefix?(prefix)
