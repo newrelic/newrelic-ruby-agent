@@ -11,14 +11,6 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
     @builder = NewRelic::Agent::TransactionSampleBuilder.new
   end
 
-  # if it doesn't the core app tests will break.  Not strictly necessary but
-  # we'll enforce it with this test for now.
-  def test_trace_entry_returns_segment
-    segment = @builder.trace_entry(Time.now)
-    assert segment, "Segment should not be nil"
-    assert segment.is_a?(NewRelic::TransactionSample::Segment), "Segment should not be a #{segment.class.name}"
-  end
-
   def test_build_sample
     build_segment("a") do
       build_segment("aa") do

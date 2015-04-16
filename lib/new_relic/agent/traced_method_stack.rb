@@ -24,7 +24,7 @@ module NewRelic
       end
 
       # Pushes a frame onto the transaction stack - this generates a
-      # TransactionSample::Segment at the end of transaction execution.
+      # Agent::Transaction::TraceNode at the end of transaction execution.
       #
       # The generated segment won't be named until pop_frame is called.
       #

@@ -154,9 +154,7 @@ module NewRelic::DeveloperModeHelper
     classes = []
 
     classes << "segment#{segment.parent_segment.segment_id}" if depth > 1
-
     classes << "view_segment" if segment.metric_name.index('View') == 0
-    classes << "summary_segment" if segment.is_a?(NewRelic::TransactionSample::CompositeSegment)
 
     classes.join(' ')
   end
@@ -211,13 +209,8 @@ module NewRelic::DeveloperModeHelper
 
     @indentation_depth = depth if depth > @indentation_depth
     repeat = nil
-    if segment.is_a?(NewRelic::TransactionSample::CompositeSegment)
-      html = ''
-    else
-      repeat = segment.parent_segment.detail_segments.length if segment.parent_segment.is_a?(NewRelic::TransactionSample::CompositeSegment)
-      html = render(:partial => 'segment', :object => [segment, depth, repeat])
-      depth += 1
-    end
+    html = render(:partial => 'segment', :object => [segment, depth, repeat])
+    depth += 1
 
     segment.called_segments.each do |child|
       html << render_segment_details(child, depth)

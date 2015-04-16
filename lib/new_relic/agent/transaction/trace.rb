@@ -2,10 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/transaction_sample/segment'
-require 'new_relic/transaction_sample/summary_segment'
-require 'new_relic/transaction_sample/fake_segment'
-require 'new_relic/transaction_sample/composite_segment'
+require 'new_relic/agent/transaction/trace_node'
 
 module NewRelic
   module Agent
@@ -21,7 +18,7 @@ module NewRelic
         def initialize(start_time)
           @start_time = start_time
           @segment_count = 0
-          @root_segment = NewRelic::TransactionSample::Segment.new(0.0, "ROOT")
+          @root_segment = NewRelic::Agent::Transaction::TraceNode.new(0.0, "ROOT")
         end
 
         def sample_id
@@ -53,7 +50,7 @@ module NewRelic
         def create_segment(time_since_start, metric_name = nil)
           raise FinishedTraceError.new "Can't create additional segment for finished trace." if self.finished
           self.segment_count += 1
-          NewRelic::TransactionSample::Segment.new(time_since_start, metric_name)
+          NewRelic::Agent::Transaction::TraceNode.new(time_since_start, metric_name)
         end
 
         def each_segment(&block)

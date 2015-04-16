@@ -56,7 +56,7 @@ class DeveloperModeTest < Minitest::Test
     sql_segment = app.send(:sql_segments, sample)[0]
     explain_results = NewRelic::Agent::Database.process_resultset(dummy_mysql_explain_result, 'mysql')
 
-    NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns(explain_results)
+    NewRelic::Agent::Transaction::TraceNode.any_instance.expects(:explain_sql).returns(explain_results)
     get "/newrelic/explain_sql?id=#{sample.sample_id}&segment=#{sql_segment.segment_id}"
 
     assert last_response.ok?
