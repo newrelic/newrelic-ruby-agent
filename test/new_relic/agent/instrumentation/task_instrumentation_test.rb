@@ -120,7 +120,9 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
   end
 
   def test_transaction
-    run_task_outer(10)
+    with_config(:capture_params => true) do
+      run_task_outer(10)
+    end
 
     assert_metrics_recorded({
       'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task'   => { :call_count => 1 },
@@ -147,9 +149,11 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
   def test_perform_action_with_newrelic_trace_saves_params
     account = 'Redrocks'
-    perform_action_with_newrelic_trace(:name => 'hello', :force => true,
-      :params => { :account => account }) do
-      self.class.inspect
+    with_config(:capture_params => true) do
+      perform_action_with_newrelic_trace(:name => 'hello', :force => true,
+        :params => { :account => account }) do
+        self.class.inspect
+      end
     end
 
     assert_metrics_recorded(['Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/hello'])
