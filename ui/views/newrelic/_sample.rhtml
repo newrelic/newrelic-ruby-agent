@@ -14,7 +14,7 @@
     <%= link_to "[Profile]", "show_sample_summary?id=#{sample.sample_id}" %>
   <% else %>
     <%= link_to "[Detail]", "show_sample_detail?id=#{sample.sample_id}" %><br/>
-    <%= link_to "[SQL (#{sample.sql_segments.size})]", "show_sample_sql?id=#{sample.sample_id}" %>
+    <%= link_to "[SQL (#{sql_segments(sample).size})]", "show_sample_sql?id=#{sample.sample_id}" %>
   <% end %>
 </td>
 </tr>

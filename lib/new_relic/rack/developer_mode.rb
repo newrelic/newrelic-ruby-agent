@@ -13,13 +13,7 @@ require 'new_relic/metric_parser/metric_parser'
 require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/instrumentation/middleware_proxy'
 
-require 'new_relic/transaction_analysis'
-
 module NewRelic
-  class Agent::Transaction::Trace
-    include TransactionAnalysis
-  end
-
   module Rack
     # This middleware provides the 'developer mode' feature of newrelic_rpm,
     # which allows you to see data about local web transactions in development
@@ -40,6 +34,7 @@ module NewRelic
       VIEW_PATH   = File.expand_path('../../../../ui/views/'  , __FILE__)
       HELPER_PATH = File.expand_path('../../../../ui/helpers/', __FILE__)
       require File.join(HELPER_PATH, 'developer_mode_helper.rb')
+      require 'new_relic/rack/developer_mode/segment_summary'
 
       include NewRelic::DeveloperModeHelper
 
@@ -221,7 +216,7 @@ module NewRelic
         @sample_controller_name = metric_parser.controller_name
         @sample_action_name = metric_parser.action_name
 
-        @sql_segments = @sample.sql_segments
+        @sql_segments = sql_segments(@sample)
         if params['d']
           @sql_segments.sort!{|a,b| b.duration <=> a.duration }
         end
@@ -275,6 +270,54 @@ module NewRelic
           memo
         end
       end
+
+      def breakdown_data(sample, limit = nil)
+        metric_hash = {}
+        sample.each_segment_with_nest_tracking do |segment|
+          unless segment == sample.root_segment
+            metric_name = segment.metric_name
+            metric_hash[metric_name] ||= SegmentSummary.new(metric_name, sample)
+            metric_hash[metric_name] << segment
+            metric_hash[metric_name]
+          end
+        end
+
+        data = metric_hash.values
+
+        data.sort! do |x,y|
+          y.exclusive_time <=> x.exclusive_time
+        end
+
+        if limit && data.length > limit
+          data = data[0..limit - 1]
+        end
+
+        # add one last segment for the remaining time if any
+        remainder = sample.duration
+        data.each do |segment|
+          remainder -= segment.exclusive_time
+        end
+
+        if (remainder*1000).round > 0
+          remainder_summary = SegmentSummary.new('Remainder', sample)
+          remainder_summary.total_time = remainder_summary.exclusive_time = remainder
+          remainder_summary.call_count = 1
+          data << remainder_summary
+        end
+
+        data
+      end
+
+      # return an array of sql statements executed by this transaction
+      # each element in the array contains [sql, parent_segment_metric_name, duration]
+      def sql_segments(sample, show_non_sql_segments = true)
+        segments = []
+        sample.each_segment do |segment|
+          segments << segment if segment[:sql] || segment[:sql_obfuscated] || (show_non_sql_segments && segment[:key])
+        end
+        segments
+      end
+
     end
   end
 end
