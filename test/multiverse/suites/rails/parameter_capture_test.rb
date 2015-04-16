@@ -189,9 +189,7 @@ class ParameterCaptureTest < RailsMultiverseTest
       get '/parameter_capture/transaction?param1=value1&param2=value2'
     end
 
-    actual = agent_attributes_for_single_event_posted
-    ignored = ["httpResponseCode", "request.parameters.controller", "request.parameters.action"]
-    ignored.each {|k| actual.delete(k)}
+    actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
     expected = {"request.parameters.param1" => "value1",
       "request.parameters.param2" => "value2"

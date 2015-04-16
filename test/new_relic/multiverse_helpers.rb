@@ -174,5 +174,13 @@ module MultiverseHelpers
     single_event_posted[2]
   end
 
+  def agent_attributes_for_single_event_posted_without_ignored_attributes
+    ignored_keys = ["httpResponseCode", "request.headers.referer",
+      "request.parameters.controller", "request.parameters.action"]
+    attrs = agent_attributes_for_single_event_posted
+    ignored_keys.each { |k| attrs.delete(k) }
+    attrs
+  end
+
   extend self
 end

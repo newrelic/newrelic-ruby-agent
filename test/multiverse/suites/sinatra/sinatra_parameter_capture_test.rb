@@ -41,9 +41,7 @@ class SinatraParameterCaptureTest < Minitest::Test
       "request.parameters.bar" => "baz"
     }
 
-    actual = agent_attributes_for_single_event_posted
-    ignored = ["httpResponseCode", "request.headers.referer"]
-    ignored.each {|k| actual.delete(k)}
+    actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
     assert_equal(expected, actual)
   end
