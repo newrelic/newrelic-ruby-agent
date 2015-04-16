@@ -416,7 +416,7 @@ module NewRelic
       def start(state)
         return if !state.is_execution_traced?
 
-        transaction_sampler.on_start_transaction(state, start_time, request_path)
+        transaction_sampler.on_start_transaction(state, start_time)
         sql_sampler.on_start_transaction(state, start_time, request_path)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)

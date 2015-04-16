@@ -40,6 +40,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @txn = stub('txn',
                 :best_name => '/path',
+                :request_path => '/request_path',
                 :guid => 'a guid',
                 :cat_trip_id => '',
                 :cat_path_hash => '',
@@ -391,7 +392,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_sample_tree
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil)
+      @sampler.on_start_transaction(@state, Time.now)
       @sampler.notice_push_frame(@state)
 
       @sampler.notice_push_frame(@state)
@@ -416,7 +417,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil)
+      @sampler.on_start_transaction(@state, Time.now)
       @sampler.notice_push_frame(@state)
 
       @sampler.notice_push_frame(@state)
@@ -500,7 +501,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_sample_with_parallel_paths
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil)
+      @sampler.on_start_transaction(@state, Time.now)
       @sampler.notice_push_frame(@state)
 
       assert_equal 1, @sampler.tl_builder.scope_depth
@@ -510,7 +511,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
       assert_nil @sampler.tl_builder
 
-      @sampler.on_start_transaction(@state, Time.now, nil)
+      @sampler.on_start_transaction(@state, Time.now)
       @sampler.notice_push_frame(@state)
       @sampler.notice_pop_frame(@state, "a")
       @sampler.on_finishing_transaction(@state, @txn)
@@ -523,7 +524,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_double_traced_method_stack_empty
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil)
+      @sampler.on_start_transaction(@state, Time.now)
       @sampler.notice_push_frame(@state)
       @sampler.notice_pop_frame(@state, "a")
       @sampler.on_finishing_transaction(@state, @txn)
@@ -829,7 +830,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def run_long_sample_trace(n)
-    @sampler.on_start_transaction(@state, Time.now, nil)
+    @sampler.on_start_transaction(@state, Time.now)
     n.times do |i|
       @sampler.notice_push_frame(@state)
       yield if block_given?
@@ -839,7 +840,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def run_sample_trace(start = Time.now.to_f, stop = nil, state = @state)
-    @sampler.on_start_transaction(state, start, nil)
+    @sampler.on_start_transaction(state, start)
     @sampler.notice_push_frame(state)
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0, state)
     @sampler.notice_push_frame(state)

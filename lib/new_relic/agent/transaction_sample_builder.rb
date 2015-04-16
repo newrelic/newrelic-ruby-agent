@@ -138,10 +138,6 @@ module NewRelic
         depth
       end
 
-      def set_transaction_uri(uri)
-        @sample.uri ||= uri
-      end
-
       def sample
         @sample
       end
