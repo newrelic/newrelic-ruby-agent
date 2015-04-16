@@ -333,12 +333,13 @@ module NewRelic
         set_default_transaction_name(options[:transaction_name], category)
       end
 
-      # The agent has long had a ban on these to prevent large objects in the
-      # captured parameters, so keep checking for them.
       DISALLOWED_REQUEST_PARAMETERS = ["controller", "action"]
 
+      REQUEST_PARAMETERS_PREFIX = 'request.parameters'.freeze
+
       def merge_request_parameters(params)
-        merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
+        DISALLOWED_REQUEST_PARAMETERS.each { |key| params.delete(key) }
+        merge_untrusted_agent_attributes(REQUEST_PARAMETERS_PREFIX, params, AttributeFilter::DST_NONE)
       end
 
       def make_transaction_name(name, category=nil)
