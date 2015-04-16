@@ -153,12 +153,6 @@ module NewRelic
         builder.ignore_transaction if builder
       end
 
-      # Sets the CPU time used by a transaction, delegates to the builder
-      def notice_transaction_cpu_time(state, cpu_time)
-        builder = state.transaction_sample_builder
-        builder.set_transaction_cpu_time(cpu_time) if builder
-      end
-
       MAX_DATA_LENGTH = 16384
       # This method is used to record metadata into the currently
       # active segment like a sql query, memcache key, or Net::HTTP uri

@@ -494,8 +494,6 @@ module NewRelic
       end
 
       def commit!(state, end_time, outermost_segment_name)
-        record_transaction_cpu(state)
-
         gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
             gc_start_snapshot, gc_stop_snapshot)
@@ -852,13 +850,6 @@ module NewRelic
       def jruby_cpu_burn
         return unless @jruby_cpu_start
         jruby_cpu_time - @jruby_cpu_start
-      end
-
-      def record_transaction_cpu(state)
-        burn = cpu_burn
-        if burn
-          transaction_sampler.notice_transaction_cpu_time(state, burn)
-        end
       end
 
       def ignore!

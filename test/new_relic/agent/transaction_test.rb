@@ -770,25 +770,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_record_transaction_cpu_positive
-    in_transaction do |txn|
-      state = NewRelic::Agent::TransactionState.tl_get
-      txn.stubs(:cpu_burn).returns(1.0)
-      NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).twice.with(state, 1.0)
-      txn.record_transaction_cpu(state)
-    end
-  end
-
-  def test_record_transaction_cpu_negative
-    in_transaction do |txn|
-      state = NewRelic::Agent::TransactionState.tl_get
-      txn.stubs(:cpu_burn).returns(nil)
-      # should not be called for the nil case
-      NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).never
-      txn.record_transaction_cpu(state)
-    end
-  end
-
   def test_normal_cpu_burn_positive
     in_transaction do |txn|
       txn.instance_variable_set(:@process_cpu_start, 3)
