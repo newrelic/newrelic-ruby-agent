@@ -61,7 +61,7 @@ class ErrorController < ApplicationController
   end
 
   def error_with_custom_params
-    NewRelic::Agent.add_custom_parameters(:texture => 'chunky')
+    NewRelic::Agent.add_custom_attributes(:texture => 'chunky')
     raise 'bad things'
   end
 

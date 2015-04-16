@@ -20,7 +20,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
   end
 
   def run_task_exception
-    NewRelic::Agent.add_custom_parameters(:custom_one => 'one custom val')
+    NewRelic::Agent.add_custom_attributes(:custom_one => 'one custom val')
     assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
     raise "This is an error"
   end

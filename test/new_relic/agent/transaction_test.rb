@@ -660,14 +660,14 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_attributes
     expects_logging(:warn, includes("add_custom_attributes"))
     in_transaction do
-      NewRelic::Agent.add_custom_parameters('fooz')
+      NewRelic::Agent.add_custom_attributes('fooz')
     end
   end
 
-  def test_ignores_custom_parameters_when_in_high_security
+  def test_ignores_custom_attributes_when_in_high_security
     with_config(:high_security => true) do
       in_transaction do |txn|
-        NewRelic::Agent.add_custom_parameters(:failure => "is an option")
+        NewRelic::Agent.add_custom_attributes(:failure => "is an option")
         assert_empty attributes_for(txn, :custom)
       end
     end
@@ -1240,7 +1240,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_adding_custom_attributes
     with_config(:'transaction_tracer.attributes.enabled' => true) do
       in_transaction do |txn|
-        NewRelic::Agent.add_custom_parameters(:foo => "bar")
+        NewRelic::Agent.add_custom_attributes(:foo => "bar")
         actual = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
         assert_equal({:foo => "bar"}, actual)
       end

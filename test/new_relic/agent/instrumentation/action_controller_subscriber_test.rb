@@ -290,7 +290,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   def test_records_custom_parameters_in_txn
     NewRelic::Agent.instance.transaction_sampler.reset!
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    NewRelic::Agent.add_custom_parameters('number' => '666')
+    NewRelic::Agent.add_custom_attributes('number' => '666')
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample

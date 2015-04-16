@@ -35,23 +35,23 @@ class EncodingHandlingTest < Minitest::Test
     assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
   end
 
-  def test_handles_mis_encoded_custom_params
+  def test_handles_mis_encoded_custom_attributes
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do
-        NewRelic::Agent.add_custom_parameters(:foo => bad_string)
+        NewRelic::Agent.add_custom_attributes(:foo => bad_string)
       end
     end
     assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
   end
 
-  def test_handles_mis_encoded_custom_params_on_analytics_events
+  def test_handles_mis_encoded_custom_attributes_on_analytics_events
     in_transaction(:category => :controller) do
-      NewRelic::Agent.add_custom_parameters(:foo => bad_string)
+      NewRelic::Agent.add_custom_attributes(:foo => bad_string)
     end
     assert_endpoint_received_string('analytic_event_data', normalized_bad_string)
   end
 
-  def test_handles_mis_encoded_custom_params_on_errors
+  def test_handles_mis_encoded_custom_attributes_on_errors
     NewRelic::Agent.notice_error('bad news', :custom_params => {'foo' => bad_string})
     assert_endpoint_received_string('error_data', normalized_bad_string)
   end

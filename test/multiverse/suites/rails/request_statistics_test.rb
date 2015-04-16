@@ -18,7 +18,7 @@ class RequestStatsController < ApplicationController
   end
 
   def stats_action_with_custom_params
-    ::NewRelic::Agent.add_custom_parameters('color' => 'blue', 1 => :bar, 'bad' => {})
+    ::NewRelic::Agent.add_custom_attributes('color' => 'blue', 1 => :bar, 'bad' => {})
     render :text => 'some stuff'
   end
 end
