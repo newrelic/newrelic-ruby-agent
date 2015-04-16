@@ -141,6 +141,22 @@ module NewRelic
       def allows?(allowed_destinations, requested_destination)
         allowed_destinations & requested_destination == requested_destination
       end
+
+      def might_allow_attribute_with_prefix?(prefix)
+        @rules.any? do |rule|
+          if rule.is_include
+            if rule.wildcard
+              if rule.attribute_name.size > prefix.size
+                rule.attribute_name.start_with?(prefix)
+              else
+                prefix.start_with?(rule.attribute_name)
+              end
+            else
+              rule.attribute_name.start_with?(prefix)
+            end
+          end
+        end
+      end
     end
 
     class AttributeFilterRule
