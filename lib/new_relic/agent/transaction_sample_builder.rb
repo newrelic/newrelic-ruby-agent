@@ -142,10 +142,6 @@ module NewRelic
         @sample.uri ||= uri
       end
 
-      def set_transaction_name(name)
-        @sample.transaction_name = name
-      end
-
       def set_transaction_cpu_time(cpu_time)
       end
 

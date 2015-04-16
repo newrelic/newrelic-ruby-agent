@@ -122,10 +122,10 @@ module NewRelic
         state.transaction_sample_builder = nil
         return if last_builder.ignored?
 
-        last_builder.set_transaction_name(txn.best_name)
         last_builder.finish_trace(time.to_f, custom_parameters_from_transaction(txn))
 
         last_sample = last_builder.sample
+        last_sample.transaction_name = txn.best_name
         last_sample.guid = txn.guid
         last_sample.attributes = txn.attributes
 
