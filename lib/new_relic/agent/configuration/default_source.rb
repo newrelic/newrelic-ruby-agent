@@ -660,6 +660,8 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
+          :dynamic_name => true,
+          :deprecated => true,
           :description => 'Enable or disable the capture of job arguments for transaction traces and traced errors in Resque.'
         },
         :capture_memcache_keys => {
