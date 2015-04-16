@@ -313,7 +313,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_collector_array_contains_synthetics_resource_id
-    @trace.synthetics_resource_id = '31415926'
+    @fake_attributes.add_intrinsic_attribute(:synthetics_resource_id, '31415926')
     assert_collector_array_contains(:synthetics_resource_id, '31415926')
   end
 
@@ -324,7 +324,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_synthetics_resource_id_gets_coerced_to_a_string
-    @trace.synthetics_resource_id = 31415926
+    @fake_attributes.add_intrinsic_attribute(:synthetics_resource_id, 31415926)
     assert_collector_array_contains(:synthetics_resource_id, '31415926')
   end
 

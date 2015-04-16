@@ -15,8 +15,8 @@ module NewRelic
 
         attr_reader :start_time, :root_segment
         attr_accessor :transaction_name, :uri, :guid, :xray_session_id,
-                      :synthetics_resource_id, :attributes, :segment_count,
-                      :finished, :threshold, :profile
+                      :attributes, :segment_count, :finished, :threshold,
+                      :profile
 
         def initialize(start_time)
           @start_time = start_time
@@ -45,6 +45,11 @@ module NewRelic
         def forced?
           return true if NewRelic::Coerce.int_or_nil(xray_session_id)
           false
+        end
+
+        def synthetics_resource_id
+          intrinsic_attributes = attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+          intrinsic_attributes[:synthetics_resource_id]
         end
 
         def to_s_compact

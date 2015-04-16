@@ -36,6 +36,8 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
+
+    attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @txn = stub('txn',
                 :best_name => '/path',
                 :guid => 'a guid',
@@ -43,7 +45,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
                 :cat_path_hash => '',
                 :is_synthetics_request? => false,
                 :filtered_params => {},
-                :attributes => {}
+                :attributes => attributes
                )
   end
 
@@ -792,10 +794,13 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     opts = SAMPLE_DEFAULTS.dup
     opts.merge!(incoming_opts)
 
+    attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    attributes.add_intrinsic_attribute(:synthetics_resource_id, opts[:synthetics_resource_id])
+
     sample = NewRelic::Agent::Transaction::Trace.new(Time.now)
+    sample.attributes = attributes
     sample.threshold = opts[:threshold]
     sample.transaction_name = opts[:transaction_name]
-    sample.synthetics_resource_id = opts[:synthetics_resource_id]
     sample.stubs(:duration).returns(opts[:duration])
     sample
   end

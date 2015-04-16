@@ -121,8 +121,6 @@ module NewRelic
         last_sample.guid = txn.guid
         last_sample.attributes = txn.attributes
 
-        last_sample.synthetics_resource_id = txn.synthetics_resource_id if txn.is_synthetics_request?
-
         @samples_lock.synchronize do
           @last_sample = last_sample
           store_sample(@last_sample)
