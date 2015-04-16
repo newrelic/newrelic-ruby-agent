@@ -39,7 +39,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @txn = stub('txn',
                 :best_name => '/path',
                 :guid => 'a guid',
-                :custom_parameters => {},
                 :cat_trip_id => '',
                 :cat_path_hash => '',
                 :is_synthetics_request? => false,

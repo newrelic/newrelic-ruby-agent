@@ -668,7 +668,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     with_config(:high_security => true) do
       in_transaction do |txn|
         NewRelic::Agent.add_custom_parameters(:failure => "is an option")
-        assert_empty txn.custom_parameters
+        assert_empty attributes_for(txn, :custom)
       end
     end
   end
@@ -676,16 +676,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_user_attributes_alias_to_custom_parameters
     in_transaction('user_attributes') do |txn|
       txn.set_user_attributes(:set_instance => :set_instance)
-      txn.user_attributes[:indexer_instance] = :indexer_instance
-
-      txn.set_user_attributes(:set_class => :set_class)
-      txn.user_attributes[:indexer_class] = :indexer_class
-
-      assert_has_custom_parameter(txn, :set_instance)
-      assert_has_custom_parameter(txn, :indexer_instance)
-
-      assert_has_custom_parameter(txn, :set_class)
-      assert_has_custom_parameter(txn, :indexer_class)
+      assert_has_custom_attribute(txn, :set_instance)
     end
   end
 
@@ -1194,8 +1185,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def assert_has_custom_parameter(txn, key, value = key)
-    assert_equal(value, txn.custom_parameters[key])
+  def assert_has_custom_attribute(txn, key, value = key)
+    assert_equal(value, attributes_for(txn, :custom)[key])
   end
 
   def test_wrap_transaction

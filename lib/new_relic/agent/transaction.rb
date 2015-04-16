@@ -808,10 +808,6 @@ module NewRelic
         self.instrumentation_state[:datastore_override] = previous
       end
 
-      def custom_parameters
-        @custom_parameters ||= {}
-      end
-
       def add_custom_attributes(p)
         if NewRelic::Agent.config[:high_security]
           NewRelic::Agent.logger.debug("Unable to add custom attributes #{p.keys.inspect} while in high security mode.")
@@ -819,10 +815,8 @@ module NewRelic
         end
 
         attributes.merge_custom_attributes!(p)
-        custom_parameters.merge!(p)
       end
 
-      alias_method :user_attributes, :custom_parameters
       alias_method :set_user_attributes, :add_custom_attributes
       alias_method :add_custom_parameters, :add_custom_attributes
 
