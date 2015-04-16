@@ -297,12 +297,6 @@ module NewRelic
         def synthetics_resource_id
           @body[9]
         end
-      end
-
-      class SubmittedTransactionTraceTree
-        def initialize(body, format)
-          @body = body
-        end
 
         def agent_attributes
           @body[4]['agentAttributes']
@@ -314,6 +308,15 @@ module NewRelic
 
         def intrinsic_attributes
           @body[4]['intrinsics']
+        end
+      end
+
+      class SubmittedTransactionTraceTree
+        attr_reader :attributes
+
+        def initialize(body, format)
+          @body = body
+          @attributes = body[4]
         end
       end
 
@@ -378,6 +381,17 @@ module NewRelic
         @params               = error_info[4]
       end
 
+      def agent_attributes
+        @params["agentAttributes"]
+      end
+
+      def custom_attributes
+        @params["userAttributes"]
+      end
+
+      def intrinsic_attributes
+        @params["intrinsics"]
+      end
     end
   end
 

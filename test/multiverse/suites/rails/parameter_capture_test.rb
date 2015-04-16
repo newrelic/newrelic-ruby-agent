@@ -257,7 +257,7 @@ class ParameterCaptureTest < RailsMultiverseTest
         run_harvest
 
         result = single_transaction_trace_posted
-        refute_includes result.tree.agent_attributes, "request.parameters.file"
+        refute_includes result.agent_attributes, "request.parameters.file"
       end
     end
   end

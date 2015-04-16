@@ -84,7 +84,7 @@ class SyntheticsTest < Minitest::Test
     expected_attrs       = trace_spec['expectedIntrinsics']
     non_expected_attrs   = trace_spec['nonExpectedIntrinsics']
 
-    trace_attrs          = trace.tree.intrinsic_attributes
+    trace_attrs          = trace.intrinsic_attributes
 
     assert_equal(expected_resource_id, trace.synthetics_resource_id)
 

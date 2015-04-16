@@ -172,7 +172,7 @@ module MultiverseHelpers
   end
 
   def assert_transaction_trace_has_agent_attribute(attribute, expected)
-    actual = single_transaction_trace_posted.tree.agent_attributes[attribute]
+    actual = single_transaction_trace_posted.agent_attributes[attribute]
     assert_equal expected, actual
   end
 
@@ -185,7 +185,7 @@ module MultiverseHelpers
   end
 
   def assert_transaction_tracer_has_custom_attributes(attribute, expected)
-    actual = single_transaction_trace_posted.tree.custom_attributes[attribute]
+    actual = single_transaction_trace_posted.custom_attributes[attribute]
     assert_equal expected, actual
   end
 
@@ -202,7 +202,7 @@ module MultiverseHelpers
   end
 
   def refute_transaction_tracer_has_custom_attributes(attribute)
-    refute_includes single_transaction_trace_posted.tree.custom_attributes, attribute
+    refute_includes single_transaction_trace_posted.custom_attributes, attribute
   end
 
   def refute_transaction_event_has_custom_attributes(attribute)
@@ -218,7 +218,7 @@ module MultiverseHelpers
   end
 
   def refute_transaction_trace_has_agent_attribute(attribute)
-    refute_includes single_transaction_trace_posted.tree.agent_attributes, attribute
+    refute_includes single_transaction_trace_posted.agent_attributes, attribute
   end
 
   def refute_event_has_agent_attribute(attribute)
