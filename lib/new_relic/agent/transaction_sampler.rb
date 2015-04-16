@@ -100,14 +100,6 @@ module NewRelic
         builder.trace_exit(frame, time.to_f)
       end
 
-      def custom_parameters_from_transaction(txn)
-        if Agent.config[:'transaction_tracer.capture_attributes']
-          txn.custom_parameters
-        else
-          {}
-        end
-      end
-
       # This is called when we are done with the transaction.  We've
       # unwound the stack to the top level. It also clears the
       # transaction sample builder so that it won't continue to have
@@ -122,7 +114,7 @@ module NewRelic
         state.transaction_sample_builder = nil
         return if last_builder.ignored?
 
-        last_builder.finish_trace(time.to_f, custom_parameters_from_transaction(txn))
+        last_builder.finish_trace(time.to_f)
 
         last_sample = last_builder.sample
         last_sample.transaction_name = txn.best_name

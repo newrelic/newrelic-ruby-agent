@@ -100,7 +100,7 @@ module NewRelic
         end
       end
 
-      def finish_trace(time=Time.now.to_f, custom_params={})
+      def finish_trace(time=Time.now.to_f)
         # Should never get called twice, but in a rare case that we can't
         # reproduce in house it does.  log forensics and return gracefully
         if @sample.finished
