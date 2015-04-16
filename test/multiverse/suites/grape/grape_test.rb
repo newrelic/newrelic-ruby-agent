@@ -151,6 +151,25 @@ class GrapeTest < Minitest::Test
       end
     end
 
+    def test_params_are_captured_on_transaction_events
+      with_config(:'attributes.include' => 'request.parameters.*') do
+        json = {
+          :foo => "bar",
+          :bar => "baz"
+        }.to_json
+
+        post '/grape_ape', json, {"CONTENT_TYPE" => "application/json"}
+
+        expected = {"request.parameters.foo" => "bar", "request.parameters.bar" => "baz"}
+        actual = agent_attributes_for_single_event_posted
+
+        ignored = ["httpResponseCode", "request.headers.referer"]
+        ignored.each {|k| actual.delete(k)}
+
+        assert_equal(expected, actual)
+      end
+    end
+
     def assert_grape_metrics(expected_txn_name)
       expected_segment_name = 'Middleware/Grape/GrapeTestApi/call'
       assert_metrics_recorded([
