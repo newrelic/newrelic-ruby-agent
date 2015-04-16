@@ -231,6 +231,18 @@ module NewRelic
         @attributes.add_agent_attribute(key, value, default_destinations)
       end
 
+      def self.merge_untrusted_agent_attributes(attributes, prefix)
+        if txn = tl_current
+          txn.merge_untrusted_agent_attributes(attributes, prefix)
+        else
+          NewRelic::Agent.logger.debug "Attempted to merge untrusted attributes without transaction"
+        end
+      end
+
+      def merge_untrusted_agent_attributes(attributes, prefix)
+        @attributes.merge_untrusted_agent_attributes(attributes, prefix)
+      end
+
       @@java_classes_loaded = false
 
       if defined? JRuby
@@ -326,7 +338,7 @@ module NewRelic
       DISALLOWED_REQUEST_PARAMETERS = ["controller", "action"]
 
       def merge_request_parameters(params)
-        attributes.merge_request_parameters(params)
+        merge_untrusted_agent_attributes(params, 'request.parameters')
       end
 
       def make_transaction_name(name, category=nil)

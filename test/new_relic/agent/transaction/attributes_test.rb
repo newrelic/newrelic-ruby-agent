@@ -201,11 +201,11 @@ class AttributesTest < Minitest::Test
     assert_equal Attributes::COUNT_LIMIT, custom_attributes(attributes).length
   end
 
-  def test_merge_request_parameters
+  def test_merge_untrusted_agent_attributes
     with_config(:'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
       params = {:foo => {:bar => "baz"}}
-      attributes.merge_request_parameters(params)
+      attributes.merge_untrusted_agent_attributes(params, "request.parameters")
       assert_equal({"request.parameters.foo.bar" => "baz"}, agent_attributes(attributes))
     end
   end
@@ -258,14 +258,14 @@ class AttributesTest < Minitest::Test
     assert_equal(expected, actual)
   end
 
-  def test_merge_request_parameters_drops_long_keys
+  def test_merge_untrusted_agent_attributes_drops_long_keys
     with_config(:'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
       params = {
         "a"*256 => "too long",
         "foo" => "bar"
       }
-      attributes.merge_request_parameters(params)
+      attributes.merge_untrusted_agent_attributes(params, 'request.parameters')
       assert_equal({"request.parameters.foo" => "bar"}, agent_attributes(attributes))
     end
   end
