@@ -114,26 +114,28 @@ module NewRelic
 
       def build_rule(attribute_names, destinations, is_include)
         attribute_names.each do |attribute_name|
-          @rules << AttributeFilterRule.new(attribute_name, destinations, is_include)
+          rule = AttributeFilterRule.new(attribute_name, destinations, is_include)
+          @rules << rule unless rule.empty?
         end
       end
 
       def apply(attribute_name, default_destinations)
         return DST_NONE if @enabled_destinations == DST_NONE
 
-        destinations = @enabled_destinations & default_destinations
+        destinations   = default_destinations
+        attribute_name = attribute_name.to_s
 
         @rules.each do |rule|
           if rule.match?(attribute_name)
             if rule.is_include
-              destinations |= (rule.destinations & @enabled_destinations)
+              destinations |= rule.destinations
             else
-              destinations &= ~rule.destinations
+              destinations &= rule.destinations
             end
           end
         end
 
-        destinations
+        destinations & @enabled_destinations
       end
 
       def allows?(allowed_destinations, requested_destination)
@@ -147,8 +149,8 @@ module NewRelic
       def initialize(attribute_name, destinations, is_include)
         @attribute_name = attribute_name.sub(/\*$/, "")
         @wildcard       = attribute_name.end_with?("*")
-        @destinations   = destinations
         @is_include     = is_include
+        @destinations   = is_include ? destinations : ~destinations
       end
 
       # Rules are sorted from least specific to most specific
@@ -171,12 +173,18 @@ module NewRelic
       end
 
       def match?(name)
-        name = name.to_s
-
         if wildcard
           name.start_with?(@attribute_name)
         else
           @attribute_name == name
+        end
+      end
+
+      def empty?
+        if is_include
+          @destinations == AttributeFilter::DST_NONE
+        else
+          @destinations == AttributeFilter::DST_ALL
         end
       end
     end
