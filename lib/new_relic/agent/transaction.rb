@@ -326,17 +326,7 @@ module NewRelic
       DISALLOWED_REQUEST_PARAMETERS = ["controller", "action"]
 
       def merge_request_parameters(params)
-        params.each_pair do |k, v|
-          normalized_key = EncodingNormalizer.normalize_string(k.to_s)
-          next if DISALLOWED_REQUEST_PARAMETERS.include?(normalized_key)
-
-          key = "request.parameters.#{normalized_key}"
-          if key.bytesize > NewRelic::Agent::Transaction::Attributes::KEY_LIMIT
-            NewRelic::Agent.logger.debug("Request parameter #{key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
-          else
-            add_agent_attribute(key, v, NewRelic::Agent::AttributeFilter::DST_NONE)
-          end
-        end
+        attributes.merge_request_parameters(params)
       end
 
       def make_transaction_name(name, category=nil)

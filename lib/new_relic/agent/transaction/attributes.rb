@@ -56,6 +56,15 @@ module NewRelic
           add(@agent_attributes, key, value)
         end
 
+        def add_agent_attribute_with_key_check(key, value, default_destinations)
+          if exceeds_bytesize_limit? key, KEY_LIMIT
+            NewRelic::Agent.logger.debug("Request parameter #{key} was dropped for exceeding key length limit #{KEY_LIMIT}")
+            return
+          end
+
+          add_agent_attribute(key, value, default_destinations)
+        end
+
         def add_intrinsic_attribute(key, value)
           add(@intrinsic_attributes, key, value)
         end
@@ -68,7 +77,7 @@ module NewRelic
 
         def merge_request_parameters(params)
           flatten_and_coerce(params, "request.parameters").each do |k, v|
-            add_agent_attribute(k, v, AttributeFilter::DST_NONE)
+            add_agent_attribute_with_key_check(k, v, AttributeFilter::DST_NONE)
           end
         end
 

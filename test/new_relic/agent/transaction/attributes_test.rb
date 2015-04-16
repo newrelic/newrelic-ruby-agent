@@ -258,6 +258,18 @@ class AttributesTest < Minitest::Test
     assert_equal(expected, actual)
   end
 
+  def test_merge_request_parameters_drops_long_keys
+    with_config(:'attributes.include' => "request.parameters.*") do
+      attributes = create_attributes
+      params = {
+        "a"*256 => "too long",
+        "foo" => "bar"
+      }
+      attributes.merge_request_parameters(params)
+      assert_equal({"request.parameters.foo" => "bar"}, agent_attributes(attributes))
+    end
+  end
+
   def create_attributes
     filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
     NewRelic::Agent::Transaction::Attributes.new(filter)
