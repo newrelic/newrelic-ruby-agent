@@ -107,7 +107,7 @@ module NewRelic
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def on_finishing_transaction(state, txn, time=Time.now, gc_time=nil)
+      def on_finishing_transaction(state, txn, time=Time.now)
         last_builder = state.transaction_sample_builder
         return unless last_builder && enabled?
 

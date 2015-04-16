@@ -500,14 +500,10 @@ module NewRelic
       end
 
       def commit!(state, end_time, outermost_segment_name)
-        gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
-        gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
-            gc_start_snapshot, gc_stop_snapshot)
-
         assign_agent_attributes
-        assign_intrinsics(state, gc_delta)
+        assign_intrinsics(state)
 
-        @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time, gc_delta)
+        @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
         record_summary_metrics(outermost_segment_name, end_time)
@@ -534,8 +530,10 @@ module NewRelic
         end
       end
 
-      def assign_intrinsics(state, gc_time)
-        attributes.add_intrinsic_attribute(:gc_time, gc_time) if gc_time
+      def assign_intrinsics(state)
+        if gc_time = calculate_gc_time
+          attributes.add_intrinsic_attribute(:gc_time, gc_time)
+        end
 
         if burn = cpu_burn
           attributes.add_intrinsic_attribute(:cpu_time, burn)
@@ -551,6 +549,11 @@ module NewRelic
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id(state))
           attributes.add_intrinsic_attribute(:path_hash, cat_path_hash(state))
         end
+      end
+
+      def calculate_gc_time
+        gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
+        NewRelic::Agent::StatsEngine::GCProfiler.record_delta(gc_start_snapshot, gc_stop_snapshot)
       end
 
       # The summary metrics recorded by this method all end up with a duration
