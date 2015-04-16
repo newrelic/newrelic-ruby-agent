@@ -566,14 +566,28 @@ module NewRelic
       end
     end
 
-    # @deprecated
-    alias add_custom_parameters add_custom_attributes
+    ADD_CUSTOM_ATTRIBUTES  = "NewRelic::Agent.add_custom_attributes".freeze
+    ADD_CUSTOM_PARAMETERS  = "NewRelic::Agent.add_custom_parameters".freeze
+    ADD_REQUEST_PARAMETERS = "NewRelic::Agent.add_request_parameters".freeze
+    SET_USER_ATTRIBUTES    = "NewRelic::Agent.set_user_attributes".freeze
 
     # @deprecated
-    alias add_request_parameters add_custom_attributes
+    def add_custom_parameters(*args)
+      NewRelic::Agent::Deprecator.deprecate(ADD_CUSTOM_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
+      add_custom_attributes(*args)
+    end
 
     # @deprecated
-    alias set_user_attributes add_custom_attributes
+    def add_request_parameters(*args)
+      NewRelic::Agent::Deprecator.deprecate(ADD_REQUEST_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
+      add_custom_attributes(*args)
+    end
+
+    # @deprecated
+    def set_user_attributes(*args)
+      NewRelic::Agent::Deprecator.deprecate(SET_USER_ATTRIBUTES, ADD_CUSTOM_ATTRIBUTES)
+      add_custom_attributes(*args)
+    end
 
     # Set the name of the current running transaction.  The agent will
     # apply a reasonable default based on framework routing, but in

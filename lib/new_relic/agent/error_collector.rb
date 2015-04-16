@@ -165,8 +165,6 @@ module NewRelic
           seen?(state.current_transaction, exception)
       end
 
-      DEPRECATED_REQUEST_PARAMS_MSG = "Passing :request_params to notice_error is no longer supported. Associate a request with the enclosing transaction, or record them as custom attributes instead."
-
       # calls a method on an object, if it responds to it - used for
       # detection and soft fail-safe. Returns nil if the method does
       # not exist
@@ -229,12 +227,7 @@ module NewRelic
         noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = extract_stack_trace(exception)
 
-        # Old agents passed request_params in. With new attributes we don't
-        # want that, so make sure it's stricken from custom parameters.
-        if options.include?(:request_params)
-          NewRelic::Agent.logger.warn(DEPRECATED_REQUEST_PARAMS_MSG)
-          options.delete(:request_params)
-        end
+        handle_deprecated_options(options)
 
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
 
@@ -243,6 +236,21 @@ module NewRelic
         noticed_error.attributes_from_notice_error.merge!(options)
 
         noticed_error
+      end
+
+      DEPRECATED_OPTIONS_MSG = "Passing %s to notice_error is no longer supported. Set values on the enclosing transaction or record them as custom attributes instead.".freeze
+      DEPRECATED_OPTIONS = [:request_params, :request, :referer].freeze
+
+      # Old options no longer used by notice_error can still be passed. If they
+      # are, they shouldn't get merged into custom attributes. Delete and
+      # warn callers so they can fix their calls to notice_error.
+      def handle_deprecated_options(options)
+        DEPRECATED_OPTIONS.each do |deprecated|
+          if options.include?(deprecated)
+            NewRelic::Agent.logger.warn(DEPRECATED_OPTIONS_MSG % deprecated)
+            options.delete(deprecated)
+          end
+        end
       end
 
       # *Use sparingly for difficult to track bugs.*

@@ -82,9 +82,11 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_empty errors
   end
 
-  def test_drops_request_params
+  def test_drops_deprecated_options
     expects_logging(:warn, any_parameters)
     @error_collector.notice_error(StandardError.new("message"),
+                                  :referer => "lalalalala",
+                                  :request => stub('request'),
                                   :request_params => {:x => 'y'})
 
     errors = @error_collector.harvest!
