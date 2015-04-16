@@ -135,39 +135,13 @@ module NewRelic::Agent
       assert_equal(42, @monitor.content_length_from_request(request))
     end
 
-    def test_writes_custom_parameters
-      with_default_timings
-
-      NewRelic::Agent.expects(:add_custom_parameters).with(:client_cross_process_id => REQUEST_CROSS_APP_ID)
-      NewRelic::Agent.expects(:add_custom_parameters).with(:referring_transaction_guid => REF_TRANSACTION_GUID)
-
-      when_request_runs
-    end
-
-    def test_writes_intrinsic_attributes
+    def test_writes_attributes
       with_default_timings
 
       txn = when_request_runs
 
-      result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
-      assert_equal REQUEST_CROSS_APP_ID, result[:client_cross_process_id]
-      assert_equal REF_TRANSACTION_GUID, result[:referring_transaction_guid]
-    end
-
-    def test_error_writes_custom_parameters
-      with_default_timings
-
-      options = when_request_has_error
-
-      assert_equal REQUEST_CROSS_APP_ID, options[:client_cross_process_id]
-    end
-
-    def test_error_doesnt_write_custom_parameters_if_no_id
-      with_default_timings
-
-      options = when_request_has_error(for_id(''))
-
-      assert_equal false, options.key?(:client_cross_process_id)
+      assert_equal REQUEST_CROSS_APP_ID, attributes_for(txn, :intrinsic)[:client_cross_process_id]
+      assert_equal REF_TRANSACTION_GUID, attributes_for(txn, :intrinsic)[:referring_transaction_guid]
     end
 
     def test_writes_metric
@@ -242,15 +216,6 @@ module NewRelic::Agent
         @events.notify(:after_call, request, [200, @response, ''])
         txn
       end
-    end
-
-    def when_request_has_error(request=for_id(REQUEST_CROSS_APP_ID))
-      options = {}
-      @events.notify(:before_call, request)
-      @events.notify(:notice_error, nil, options)
-      @events.notify(:after_call, request, [500, @response, ''])
-
-      options
     end
 
     def with_default_timings
