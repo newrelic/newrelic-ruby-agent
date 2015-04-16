@@ -233,7 +233,7 @@ class AttributesTest < Minitest::Test
 
     attributes = create_attributes
 
-    actual = attributes.send(:flatten_and_coerce, params, 'request.parameters')
+    actual = attributes.send(:flatten_and_coerce, 'request.parameters', params)
 
     assert_equal(expected, actual)
   end
@@ -253,7 +253,7 @@ class AttributesTest < Minitest::Test
 
     attributes = create_attributes
 
-    actual = attributes.send(:flatten_and_coerce, params, 'request.parameters')
+    actual = attributes.send(:flatten_and_coerce, 'request.parameters', params)
 
     assert_equal(expected, actual)
   end

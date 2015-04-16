@@ -58,7 +58,7 @@ module NewRelic
 
         def add_agent_attribute_with_key_check(key, value, default_destinations)
           if exceeds_bytesize_limit? key, KEY_LIMIT
-            NewRelic::Agent.logger.debug("Request parameter #{key} was dropped for exceeding key length limit #{KEY_LIMIT}")
+            NewRelic::Agent.logger.debug("Agent attribute #{key} was dropped for exceeding key length limit #{KEY_LIMIT}")
             return
           end
 
@@ -76,7 +76,7 @@ module NewRelic
         end
 
         def merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
-          flatten_and_coerce(attributes, prefix).each do |k, v|
+          flatten_and_coerce(prefix, attributes).each do |k, v|
             add_agent_attribute_with_key_check(k, v, AttributeFilter::DST_NONE)
           end
         end
@@ -144,16 +144,16 @@ module NewRelic
           result
         end
 
-        def flatten_and_coerce(params, prefix, result = {})
+        def flatten_and_coerce(prefix, params, result = {})
           case params
           when Hash
             params.each do |key, val|
               normalized_key = EncodingNormalizer.normalize_string(key.to_s)
-              flatten_and_coerce(val, "#{prefix}.#{normalized_key}", result)
+              flatten_and_coerce("#{prefix}.#{normalized_key}", val, result)
             end
           when Array
             params.each_with_index do |val, idx|
-              flatten_and_coerce(val, "#{prefix}.#{idx}", result)
+              flatten_and_coerce("#{prefix}.#{idx}", val, result)
             end
           else
             result[prefix] = scalar(params)
