@@ -24,12 +24,6 @@ module NewRelic
           @root_segment = NewRelic::TransactionSample::Segment.new(0.0, "ROOT")
         end
 
-        # offset from start of app
-        @@start_time = Time.now
-        def timestamp
-          @start_time - @@start_time.to_f
-        end
-
         def sample_id
           self.object_id
         end
