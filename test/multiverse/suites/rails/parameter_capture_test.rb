@@ -10,6 +10,7 @@ class ParameterCaptureController < ApplicationController
   end
 
   def create
+    raise 'problem' if params[:raise]
     render :text => 'created'
   end
 
@@ -183,6 +184,22 @@ class ParameterCaptureTest < RailsMultiverseTest
     assert_equal('/parameter_capture/sql', last_sql_trace.url)
   end
 
+  def test_parameters_attached_to_transaction_events_if_enabled
+    with_config(:'attributes.include' => 'request.parameters.*') do
+      get '/parameter_capture/transaction?param1=value1&param2=value2'
+    end
+
+    actual = agent_attributes_for_single_event_posted
+    ignored = ["httpResponseCode", "request.parameters.controller", "request.parameters.action"]
+    ignored.each {|k| actual.delete(k)}
+
+    expected = {"request.parameters.param1" => "value1",
+      "request.parameters.param2" => "value2"
+    }
+
+    assert_equal expected, actual
+  end
+
   if Rails::VERSION::MAJOR > 2
     def test_params_tts_should_be_filtered_when_serviced_by_rack_app
       params = {"secret" => "shhhhhhh", "name" => "name"}
@@ -242,7 +259,6 @@ class ParameterCaptureTest < RailsMultiverseTest
       with_config(:capture_params => true) do
         get '/sinatra_app?raise=1', "secret" => "shhhhhhh", "name" => "name"
 
-        expected = {"secret" => "[FILTERED]", "name" => "name", "raise" => "1"}
         attributes = agent_attributes_for_single_error_posted
         assert_equal "[FILTERED]", attributes["request.parameters.secret"]
         assert_equal "name", attributes["request.parameters.name"]
