@@ -75,8 +75,8 @@ module NewRelic
           end
         end
 
-        def merge_untrusted_agent_attributes(attributes, prefix)
-         flatten_and_coerce(attributes, prefix).each do |k, v|
+        def merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
+          flatten_and_coerce(attributes, prefix).each do |k, v|
             add_agent_attribute_with_key_check(k, v, AttributeFilter::DST_NONE)
           end
         end

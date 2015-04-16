@@ -205,7 +205,7 @@ class AttributesTest < Minitest::Test
     with_config(:'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
       params = {:foo => {:bar => "baz"}}
-      attributes.merge_untrusted_agent_attributes(params, "request.parameters")
+      attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
       assert_equal({"request.parameters.foo.bar" => "baz"}, agent_attributes(attributes))
     end
   end
@@ -265,7 +265,7 @@ class AttributesTest < Minitest::Test
         "a"*256 => "too long",
         "foo" => "bar"
       }
-      attributes.merge_untrusted_agent_attributes(params, 'request.parameters')
+      attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
       assert_equal({"request.parameters.foo" => "bar"}, agent_attributes(attributes))
     end
   end
