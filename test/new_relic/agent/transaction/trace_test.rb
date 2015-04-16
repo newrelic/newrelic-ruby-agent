@@ -168,7 +168,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_collect_explain_plans_does_not_attach_explain_plans_without_sql
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_segment(0.0, 'nope_sql')
     segment.stubs(:duration).returns(2)
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = nil
