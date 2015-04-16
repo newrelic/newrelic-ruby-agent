@@ -42,6 +42,11 @@ module NewRelic
           self.root_segment.duration
         end
 
+        def forced?
+          return true if NewRelic::Coerce.int_or_nil(xray_session_id)
+          false
+        end
+
         def to_s_compact
           @root_segment.to_s_compact
         end
@@ -146,11 +151,6 @@ module NewRelic
             NewRelic::Coerce.int_or_nil(xray_session_id),
             NewRelic::Coerce.string(self.synthetics_resource_id)
           ]
-        end
-
-        def forced?
-          return true if NewRelic::Coerce.int_or_nil(xray_session_id)
-          false
         end
       end
     end
