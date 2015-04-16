@@ -142,9 +142,6 @@ module NewRelic
         @sample.uri ||= uri
       end
 
-      def set_request_params(params)
-      end
-
       def set_transaction_name(name)
         @sample.transaction_name = name
       end
