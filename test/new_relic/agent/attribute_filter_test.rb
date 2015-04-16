@@ -88,7 +88,7 @@ module NewRelic::Agent
     def test_resque_capture_params_false_adds_exclude_rule_for_request_parameters
       with_config(:'resque.capture_params' => false) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'jobs.resque.arguments.*', AttributeFilter::DST_NONE
+        result = filter.apply 'job.resque.arguments.*', AttributeFilter::DST_NONE
 
         assert_destinations [], result
       end
@@ -97,7 +97,7 @@ module NewRelic::Agent
     def test_resque_capture_params_true_allows_request_params_for_traces_and_errors
       with_config(:'resque.capture_params' => true) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'jobs.resque.arguments.*', AttributeFilter::DST_NONE
+        result = filter.apply 'job.resque.arguments.*', AttributeFilter::DST_NONE
 
         assert_destinations ['transaction_tracer', 'error_collector'], result
       end
@@ -106,7 +106,7 @@ module NewRelic::Agent
     def test_sidekiq_capture_params_false_adds_exclude_rule_for_request_parameters
       with_config(:'sidekiq.capture_params' => false) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'jobs.sidekiq.arguments.*', AttributeFilter::DST_NONE
+        result = filter.apply 'job.sidekiq.arguments.*', AttributeFilter::DST_NONE
 
         assert_destinations [], result
       end
@@ -115,7 +115,7 @@ module NewRelic::Agent
     def test_sidekiq_capture_params_true_allows_request_params_for_traces_and_errors
       with_config(:'sidekiq.capture_params' => true) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'jobs.sidekiq.arguments.*', AttributeFilter::DST_NONE
+        result = filter.apply 'job.sidekiq.arguments.*', AttributeFilter::DST_NONE
 
         assert_destinations ['transaction_tracer', 'error_collector'], result
       end
