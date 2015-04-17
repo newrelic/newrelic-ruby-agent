@@ -53,7 +53,13 @@ class SinatraParameterCaptureTest < Minitest::Test
         :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
       }
       post '/files', params
-      assert_equal({"title" => "blah", "file" => "[FILE]"}, last_transaction_trace_request_params)
+
+      expected = {
+        "request.parameters.title" => "blah",
+        "request.parameters.file" => "[FILE]"
+      }
+
+      assert_equal(expected, last_transaction_trace_request_params)
     end
   end
 end

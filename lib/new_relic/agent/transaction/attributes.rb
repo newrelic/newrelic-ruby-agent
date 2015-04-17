@@ -6,8 +6,6 @@ module NewRelic
   module Agent
     class Transaction
       class Attributes
-        include Coerce
-
         KEY_LIMIT   = 255
         VALUE_LIMIT = 255
         COUNT_LIMIT = 64
@@ -156,7 +154,7 @@ module NewRelic
               flatten_and_coerce("#{prefix}.#{idx}", val, result)
             end
           else
-            result[prefix] = scalar(params)
+            result[prefix] = Coerce::scalar(params)
           end
           result
         end

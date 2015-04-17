@@ -111,7 +111,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def test_doesnt_include_custom_attributes_in_event_when_configured_not_to_with_legacy_setting
     with_sampler_config('analytics_events.capture_attributes' => false) do
-      attributes.merge_custom_attributes!('bing' => 2)
+      attributes.merge_custom_attributes('bing' => 2)
       generate_request('whatever')
 
       custom_attrs = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]

@@ -93,6 +93,7 @@ class AgentAttributesTest < Minitest::Test
     refute_transaction_event_has_custom_attributes('foo')
     refute_error_collector_has_custom_attributes('foo')
     refute_browser_monitoring_has_custom_attributes('foo')
+  end
 
   def test_request_parameters_captured_on_transaction_events_when_enabled
     config = {:'transaction_events.attributes.include' => 'request.parameters.*'}
@@ -170,7 +171,13 @@ class AgentAttributesTest < Minitest::Test
     assert_equal expected, single_error_posted.params["agentAttributes"][attribute]
   end
 
-<<<<<<< HEAD
+  def assert_browser_monitoring_has_agent_attribute(attribute, expected)
+    obfuscator = NewRelic::Agent.agent.javascript_instrumentor.obfuscator
+    deobfuscated = obfuscator.deobfuscate(@js_data["atts"])
+    atts = NewRelic::JSONWrapper.load(deobfuscated)
+    assert_equal expected, atts["a"][attribute]
+  end
+
   def assert_transaction_tracer_has_custom_attributes(attribute, expected)
     actual = single_transaction_trace_posted.tree.custom_attributes[attribute]
     assert_equal expected, actual
@@ -202,13 +209,6 @@ class AgentAttributesTest < Minitest::Test
 
   def refute_browser_monitoring_has_custom_attributes(_)
     refute_includes @js_data, "atts"
-=======
-  def assert_browser_monitoring_has_agent_attribute(attribute, expected)
-    obfuscator = NewRelic::Agent.agent.javascript_instrumentor.obfuscator
-    deobfuscated = obfuscator.deobfuscate(@js_data["atts"])
-    atts = NewRelic::JSONWrapper.load(deobfuscated)
-    assert_equal expected, atts["a"][attribute]
->>>>>>> RUBY-1415 Test ensuring attributes are captured on txn events and BAM when enabled
   end
 
   def refute_transaction_trace_has_agent_attribute(attribute)

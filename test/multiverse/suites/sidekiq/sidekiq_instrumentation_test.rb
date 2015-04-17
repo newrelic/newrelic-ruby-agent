@@ -134,7 +134,6 @@ class SidekiqTest < Minitest::Test
     assert_equal(expected_call_count, call_count)
   end
 
-  # This method needs to be updated after the TT refactor
   def assert_attributes_on_transaction_trace
     transaction_samples = $collector.calls_for('transaction_sample_data')
     refute transaction_samples.empty?, "Expected a transaction trace"
@@ -142,8 +141,9 @@ class SidekiqTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        args = sample.tree.agent_attributes["job.sidekiq.arguments"]
-        assert_match /\["jobs_completed", \d\]/, args
+        actual = sample.tree.agent_attributes.keys.to_set
+        expected = Set.new ["job.sidekiq.arguments.0", "job.sidekiq.arguments.1"]
+        assert_equal expected, actual
       end
     end
   end
@@ -155,7 +155,7 @@ class SidekiqTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        refute_includes sample.tree.agent_attributes, "job.sidekiq.arguments"
+        assert sample.tree.agent_attributes.keys.none? { |k| k =~ /^job.sidekiq.arguments.*/ }
       end
     end
   end

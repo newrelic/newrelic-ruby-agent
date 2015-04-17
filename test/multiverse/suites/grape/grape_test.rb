@@ -121,7 +121,8 @@ class GrapeTest < Minitest::Test
         post '/grape_ape', params.to_json, "CONTENT_TYPE" => "application/json"
 
         expected = {
-          "request.parameters.ape" => {"first_name" => "koko", "last_name" => "gorilla"}
+          "request.parameters.ape.first_name" => "koko",
+          "request.parameters.ape.last_name" => "gorilla"
         }
         assert_equal expected, last_transaction_trace_request_params
       end

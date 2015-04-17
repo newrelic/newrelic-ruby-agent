@@ -118,7 +118,7 @@ class ResqueTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_equal sample.tree.agent_attributes["job.resque.arguments"], '["testing"]'
+        assert_equal 'testing', sample.tree.agent_attributes["job.resque.arguments.0"]
       end
     end
   end
@@ -130,7 +130,7 @@ class ResqueTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        refute_includes sample.tree.agent_attributes, "job.resque.arguments"
+        assert sample.tree.agent_attributes.keys.none? { |k| k =~ /^job.resque.arguments.*/ }
       end
     end
   end
@@ -148,7 +148,7 @@ class ResqueTest < Minitest::Test
     event_posts = $collector.calls_for('analytic_event_data')
     event_posts.each do |post|
       post.events.each do |event|
-        refute_includes event[2], "job.resque.arguments"
+        assert event[2].keys.none? { |k| k.start_with?("job.sidekiq.arguments") }, "Found unexpected resque arguments"
       end
     end
   end
