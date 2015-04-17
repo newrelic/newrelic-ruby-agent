@@ -309,7 +309,7 @@ module NewRelic
         end
 
         def custom_attributes
-          @body[4]['customAttributes']
+          @body[4]['userAttributes']
         end
 
         def intrinsic_attributes

@@ -130,9 +130,9 @@ module NewRelic
             {},
             self.root_segment.to_array,
             {
-              'agentAttributes'  => NewRelic::Coerce.event_params(agent_attributes),
-              'customAttributes' => NewRelic::Coerce.event_params(custom_attributes),
-              'intrinsics'       => NewRelic::Coerce.event_params(intrinsic_attributes)
+              'agentAttributes' => NewRelic::Coerce.event_params(agent_attributes),
+              'userAttributes'  => NewRelic::Coerce.event_params(custom_attributes),
+              'intrinsics'      => NewRelic::Coerce.event_params(intrinsic_attributes)
             }
           ]
         end
