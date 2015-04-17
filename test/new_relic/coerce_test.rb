@@ -104,13 +104,16 @@ class CoerceTest < Minitest::Test
     )
   end
 
-  def test_event_params_coerce_only_allow_values_that_are_strings_symbols_floats_or_ints_or_bools
+  def test_event_params_coerce_handles_values_mixed_and_complex_types_properly
     assert_equal(
       {
         'foo'    => 1.0,
         'bar'    => 2,
         'bang'   => 'woot',
         'ok'     => 'dokey',
+        'yes'    => '#<Array>',
+        'yup'    => '#<Hash>',
+        'yayuh'  => '#<Rational>',
         'truthy' => true,
         'falsy'  => false
       },
@@ -120,9 +123,9 @@ class CoerceTest < Minitest::Test
           'bar'    => 2,
           'bang'   => 'woot',
           'ok'     => :dokey,
-          'bad'    => [],
-          'worse'  => {},
-          'nope'   => Rational(1),
+          'yes'    => [],
+          'yup'  => {},
+          'yayuh'   => Rational(1),
           'truthy' => true,
           'falsy'  => false
         }

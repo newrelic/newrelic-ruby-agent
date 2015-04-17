@@ -156,5 +156,31 @@ module MultiverseHelpers
     $collector.calls_for("analytic_event_data").first.events.first
   end
 
+  def attributes_for_single_error_posted(key)
+    run_harvest
+    single_error_posted.params[key]
+  end
+
+  def user_attributes_for_single_error_posted
+    attributes_for_single_error_posted("userAttributes")
+  end
+
+  def agent_attributes_for_single_error_posted
+    attributes_for_single_error_posted("agentAttributes")
+  end
+
+  def agent_attributes_for_single_event_posted
+    run_harvest
+    single_event_posted[2]
+  end
+
+  def agent_attributes_for_single_event_posted_without_ignored_attributes
+    ignored_keys = ["httpResponseCode", "request.headers.referer",
+      "request.parameters.controller", "request.parameters.action"]
+    attrs = agent_attributes_for_single_event_posted
+    ignored_keys.each { |k| attrs.delete(k) }
+    attrs
+  end
+
   extend self
 end

@@ -114,6 +114,14 @@ class SidekiqTest < Minitest::Test
     refute_attributes_on_events
   end
 
+  def test_arguments_are_captured_on_transaction_events_when_enabled
+    with_config(:'attributes.include' => 'job.sidekiq.arguments.*') do
+      run_jobs
+    end
+
+    assert_attributes_on_events
+  end
+
   def assert_metric_and_call_count(name, expected_call_count)
     metric_data = $collector.calls_for('metric_data')
     assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
@@ -133,9 +141,9 @@ class SidekiqTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-
-        args = sample.tree.agent_attributes["job.sidekiq.arguments"]
-        assert_match /\["jobs_completed", \d\]/, args
+        actual = sample.tree.agent_attributes.keys.to_set
+        expected = Set.new ["job.sidekiq.arguments.0", "job.sidekiq.arguments.1"]
+        assert_equal expected, actual
       end
     end
   end
@@ -147,7 +155,16 @@ class SidekiqTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        refute_includes sample.tree.agent_attributes, "job.sidekiq.arguments"
+        assert sample.tree.agent_attributes.keys.none? { |k| k =~ /^job.sidekiq.arguments.*/ }
+      end
+    end
+  end
+
+  def assert_attributes_on_events
+    event_posts = $collector.calls_for('analytic_event_data')
+    event_posts.each do |post|
+      post.events.each do |event|
+        assert_equal Set.new(["job.sidekiq.arguments.0", "job.sidekiq.arguments.1"]), event[2].keys.to_set
       end
     end
   end
@@ -156,7 +173,7 @@ class SidekiqTest < Minitest::Test
     event_posts = $collector.calls_for('analytic_event_data')
     event_posts.each do |post|
       post.events.each do |event|
-        refute_includes event[2], "job.sidekiq.arguments"
+        assert event[2].keys.none? { |k| k.start_with?("job.sidekiq.arguments") }, "Found unexpected sidekiq arguments"
       end
     end
   end

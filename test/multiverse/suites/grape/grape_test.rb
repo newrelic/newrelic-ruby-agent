@@ -121,7 +121,8 @@ class GrapeTest < Minitest::Test
         post '/grape_ape', params.to_json, "CONTENT_TYPE" => "application/json"
 
         expected = {
-          "request.parameters.ape" => {"first_name" => "koko", "last_name" => "gorilla"}
+          "request.parameters.ape.first_name" => "koko",
+          "request.parameters.ape.last_name" => "gorilla"
         }
         assert_equal expected, last_transaction_trace_request_params
       end
@@ -148,6 +149,22 @@ class GrapeTest < Minitest::Test
         post '/grape_catfish', {"foo" => "bar"}
         expected = {}
         assert_equal expected, last_transaction_trace_request_params
+      end
+    end
+
+    def test_params_are_captured_on_transaction_events
+      with_config(:'attributes.include' => 'request.parameters.*') do
+        json = {
+          :foo => "bar",
+          :bar => "baz"
+        }.to_json
+
+        post '/grape_ape', json, {"CONTENT_TYPE" => "application/json"}
+
+        expected = {"request.parameters.foo" => "bar", "request.parameters.bar" => "baz"}
+        actual = agent_attributes_for_single_event_posted_without_ignored_attributes
+
+        assert_equal(expected, actual)
       end
     end
 

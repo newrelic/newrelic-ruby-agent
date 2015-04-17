@@ -15,21 +15,6 @@ elsif !defined?(RAILS_ROOT)
   class RailsMultiverseTest < ActionController::IntegrationTest; end
 end
 
-class RailsMultiverseTest
-  def attributes_for_single_error_posted(key)
-    run_harvest
-    single_error_posted.params[key]
-  end
-
-  def user_attributes_for_single_error_posted
-    attributes_for_single_error_posted("userAttributes")
-  end
-
-  def agent_attributes_for_single_error_posted
-    attributes_for_single_error_posted("agentAttributes")
-  end
-end
-
 # a basic active model compliant model we can render
 class Foo
   extend ActiveModel::Naming if defined?(ActiveModel::Naming)

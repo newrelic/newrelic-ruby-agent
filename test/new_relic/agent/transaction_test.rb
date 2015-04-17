@@ -1401,7 +1401,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_request_params_disallows_controller
     txn = with_config(:capture_params => true) do
-      in_transaction(:filtered_params => {:controller => Object.new}) do
+      in_transaction(:filtered_params => {'controller' => Object.new}) do
       end
     end
 
@@ -1410,7 +1410,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_request_params_disallows_action
     txn = with_config(:capture_params => true) do
-      in_transaction(:filtered_params => {:action => Object.new}) do
+      in_transaction(:filtered_params => {'action' => Object.new}) do
       end
     end
 

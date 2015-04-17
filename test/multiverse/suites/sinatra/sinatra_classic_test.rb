@@ -83,10 +83,6 @@ get(/\/regex.*/) do
   "Yeah, regex's!"
 end
 
-post '/files' do
-  "file uploaded"
-end
-
 module Sinatra
   class Application < Base
     # Override to not accidentally start the app in at_exit handler

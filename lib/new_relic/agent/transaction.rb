@@ -231,6 +231,18 @@ module NewRelic
         @attributes.add_agent_attribute(key, value, default_destinations)
       end
 
+      def self.merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
+        if txn = tl_current
+          txn.merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
+        else
+          NewRelic::Agent.logger.debug "Attempted to merge untrusted attributes without transaction"
+        end
+      end
+
+      def merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
+        @attributes.merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
+      end
+
       @@java_classes_loaded = false
 
       if defined? JRuby
@@ -321,22 +333,13 @@ module NewRelic
         set_default_transaction_name(options[:transaction_name], category)
       end
 
-      # The agent has long had a ban on these to prevent large objects in the
-      # captured parameters, so keep checking for them.
       DISALLOWED_REQUEST_PARAMETERS = ["controller", "action"]
 
-      def merge_request_parameters(params)
-        params.each_pair do |k, v|
-          normalized_key = EncodingNormalizer.normalize_string(k.to_s)
-          next if DISALLOWED_REQUEST_PARAMETERS.include?(normalized_key)
+      REQUEST_PARAMETERS_PREFIX = 'request.parameters'.freeze
 
-          key = "request.parameters.#{normalized_key}"
-          if key.bytesize > NewRelic::Agent::Transaction::Attributes::KEY_LIMIT
-            NewRelic::Agent.logger.debug("Request parameter #{key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
-          else
-            add_agent_attribute(key, v, NewRelic::Agent::AttributeFilter::DST_NONE)
-          end
-        end
+      def merge_request_parameters(params)
+        DISALLOWED_REQUEST_PARAMETERS.each { |key| params.delete(key) }
+        merge_untrusted_agent_attributes(REQUEST_PARAMETERS_PREFIX, params, AttributeFilter::DST_NONE)
       end
 
       def make_transaction_name(name, category=nil)
@@ -823,7 +826,7 @@ module NewRelic
           return
         end
 
-        attributes.merge_custom_attributes!(p)
+        attributes.merge_custom_attributes(p)
       end
 
       alias_method :set_user_attributes, :add_custom_attributes
