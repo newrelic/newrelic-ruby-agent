@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     class Transaction
       class Attributes
-
         KEY_LIMIT   = 255
         VALUE_LIMIT = 255
         COUNT_LIMIT = 64
@@ -55,13 +54,28 @@ module NewRelic
           add(@agent_attributes, key, value)
         end
 
+        def add_agent_attribute_with_key_check(key, value, default_destinations)
+          if exceeds_bytesize_limit? key, KEY_LIMIT
+            NewRelic::Agent.logger.debug("Agent attribute #{key} was dropped for exceeding key length limit #{KEY_LIMIT}")
+            return
+          end
+
+          add_agent_attribute(key, value, default_destinations)
+        end
+
         def add_intrinsic_attribute(key, value)
           add(@intrinsic_attributes, key, value)
         end
 
-        def merge_custom_attributes!(other)
+        def merge_custom_attributes(other)
           other.each do |key, value|
             self.add_custom_attribute(key, value)
+          end
+        end
+
+        def merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
+          flatten_and_coerce(prefix, attributes).each do |k, v|
+            add_agent_attribute_with_key_check(k, v, AttributeFilter::DST_NONE)
           end
         end
 
@@ -125,6 +139,23 @@ module NewRelic
           end
 
           result.chop!
+          result
+        end
+
+        def flatten_and_coerce(prefix, params, result = {})
+          case params
+          when Hash
+            params.each do |key, val|
+              normalized_key = EncodingNormalizer.normalize_string(key.to_s)
+              flatten_and_coerce("#{prefix}.#{normalized_key}", val, result)
+            end
+          when Array
+            params.each_with_index do |val, idx|
+              flatten_and_coerce("#{prefix}.#{idx}", val, result)
+            end
+          else
+            result[prefix] = Coerce::scalar(params)
+          end
           result
         end
       end

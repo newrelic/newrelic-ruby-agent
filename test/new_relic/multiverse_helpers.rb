@@ -201,6 +201,10 @@ module MultiverseHelpers
     assert_equal expected, @js_custom_attributes[attribute]
   end
 
+  def assert_browser_monitoring_has_agent_attribute(attribute, expected)
+    assert_equal expected, @js_agent_attributes[attribute]
+  end
+
   def refute_transaction_tracer_has_custom_attributes(attribute)
     refute_includes single_transaction_trace_posted.custom_attributes, attribute
   end
@@ -235,6 +239,32 @@ module MultiverseHelpers
 
   def refute_browser_monitoring_has_agent_attribute(_)
     assert_nil @js_agent_attributes
+  end
+
+  def attributes_for_single_error_posted(key)
+    run_harvest
+    single_error_posted.params[key]
+  end
+
+  def user_attributes_for_single_error_posted
+    attributes_for_single_error_posted("userAttributes")
+  end
+
+  def agent_attributes_for_single_error_posted
+    attributes_for_single_error_posted("agentAttributes")
+  end
+
+  def agent_attributes_for_single_event_posted
+    run_harvest
+    single_event_posted[2]
+  end
+
+  def agent_attributes_for_single_event_posted_without_ignored_attributes
+    ignored_keys = ["httpResponseCode", "request.headers.referer",
+      "request.parameters.controller", "request.parameters.action"]
+    attrs = agent_attributes_for_single_event_posted
+    ignored_keys.each { |k| attrs.delete(k) }
+    attrs
   end
 
   extend self

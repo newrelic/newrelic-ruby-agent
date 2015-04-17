@@ -57,23 +57,29 @@ module NewRelic
         raise ArgumentError, "Expected Hash but got #{value.class}"
       end
       value.inject({}) do |memo, (key, val)|
-        case val
-        when String, Integer, TrueClass, FalseClass
-          memo[key.to_s] = val
-        when Float
-          if val.finite?
-            memo[key.to_s] = val
-          else
-            memo[key.to_s] = nil
-          end
-        when Symbol
-          memo[key.to_s] = val.to_s
-        end
+        memo[key.to_s] = scalar(val)
         memo
       end
     rescue => error
       log_failure(value.class, 'valid event params', context, error)
       {}
+    end
+
+    def scalar(val)
+      case val
+      when String, Integer, TrueClass, FalseClass
+        val
+      when Float
+        if val.finite?
+          val
+        else
+          nil
+        end
+      when Symbol
+        val.to_s
+      else
+        "#<#{val.class.to_s}>"
+      end
     end
 
     def log_failure(value, type, context, error)

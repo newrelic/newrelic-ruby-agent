@@ -130,14 +130,14 @@ class NewRelic::NoticedError
   def merge_custom_attributes_from_transaction(merged_attributes)
     if @attributes
       from_transaction = @attributes.custom_attributes_for(DESTINATION)
-      merged_attributes.merge_custom_attributes!(from_transaction)
+      merged_attributes.merge_custom_attributes(from_transaction)
     end
   end
 
   def merge_custom_attributes_from_notice_error(merged_attributes)
     if @attributes_from_notice_error
       from_notice_error = NewRelic::NoticedError.normalize_params(@attributes_from_notice_error)
-      merged_attributes.merge_custom_attributes!(from_notice_error)
+      merged_attributes.merge_custom_attributes(from_notice_error)
     end
   end
 

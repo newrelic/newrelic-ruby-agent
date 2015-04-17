@@ -137,6 +137,7 @@ class RequestStatsTest < RailsMultiverseTest
       assert_equal 'Controller/request_stats/stats_action_with_custom_params', sample['name']
       assert_encoding 'utf-8', sample['name']
       assert_equal 'Transaction', sample['type']
+
       ['blue', 'bar', 'bad'].each do |key|
         assert_not_includes(sample, key)
       end
@@ -144,7 +145,7 @@ class RequestStatsTest < RailsMultiverseTest
       custom_params = post.events.first[1]
       assert_equal 'blue', custom_params['color']
       assert_equal 'bar', custom_params['1']
-      assert_false custom_params.has_key?('bad')
+      assert_equal '#<Hash>', custom_params['bad']
     end
   end
 

@@ -95,6 +95,28 @@ class AgentAttributesTest < Minitest::Test
     refute_browser_monitoring_has_custom_attributes('foo')
   end
 
+  def test_request_parameters_captured_on_transaction_events_when_enabled
+    config = {:'transaction_events.attributes.include' => 'request.parameters.*'}
+    txn_options = {
+      :filtered_params => {:foo => "bar", :bar => "baz"}
+    }
+    run_transaction(config, txn_options)
+
+    assert_event_has_agent_attribute("request.parameters.foo", "bar")
+    assert_event_has_agent_attribute("request.parameters.bar", "baz")
+  end
+
+  def test_request_parameters_captured_in_bam_when_enabled
+    config = {:'browser_monitoring.attributes.include' => 'request.parameters.*'}
+    txn_options = {
+      :filtered_params => {:foo => "bar", :bar => "baz"}
+    }
+    run_transaction(config, txn_options)
+
+    assert_browser_monitoring_has_agent_attribute("request.parameters.foo", "bar")
+    assert_browser_monitoring_has_agent_attribute("request.parameters.bar", "baz")
+  end
+
   def run_transaction(config = {}, txn_options = {})
     default_config = {
       :'transaction_tracer.transaction_threshold' => -10,
@@ -107,7 +129,7 @@ class AgentAttributesTest < Minitest::Test
     assert_raises(RuntimeError) do
       with_config(default_config.merge(config)) do
         in_transaction(txn_options) do |txn|
-          yield(txn)
+          yield(txn) if block_given?
 
           # JS instrumentation happens within transaction, so capture it now
           capture_js_data

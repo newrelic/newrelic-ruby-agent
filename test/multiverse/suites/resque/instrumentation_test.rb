@@ -92,6 +92,14 @@ class ResqueTest < Minitest::Test
     refute_attributes_on_events
   end
 
+  def test_arguments_are_captured_on_transaction_events_when_enabled
+    with_config(:'attributes.include' => 'job.resque.arguments.*') do
+      run_jobs
+    end
+
+    assert_attributes_on_events
+  end
+
   def assert_metric_and_call_count(name, expected_call_count)
     metric_data = $collector.calls_for('metric_data')
     assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
@@ -110,7 +118,7 @@ class ResqueTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_equal sample.agent_attributes["job.resque.arguments"], '["testing"]'
+        assert_equal 'testing', sample.agent_attributes["job.resque.arguments.0"]
       end
     end
   end
@@ -122,7 +130,16 @@ class ResqueTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        refute_includes sample.agent_attributes, "job.resque.arguments"
+        assert sample.agent_attributes.keys.none? { |k| k =~ /^job.resque.arguments.*/ }
+      end
+    end
+  end
+
+  def assert_attributes_on_events
+    event_posts = $collector.calls_for('analytic_event_data')
+    event_posts.each do |post|
+      post.events.each do |event|
+        assert_equal ["job.resque.arguments.0"], event[2].keys
       end
     end
   end
@@ -131,7 +148,7 @@ class ResqueTest < Minitest::Test
     event_posts = $collector.calls_for('analytic_event_data')
     event_posts.each do |post|
       post.events.each do |event|
-        refute_includes event[2], "job.resque.arguments"
+        assert event[2].keys.none? { |k| k.start_with?("job.resque.arguments") }, "Found unexpected resque arguments"
       end
     end
   end
