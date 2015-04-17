@@ -148,7 +148,7 @@ class ResqueTest < Minitest::Test
     event_posts = $collector.calls_for('analytic_event_data')
     event_posts.each do |post|
       post.events.each do |event|
-        assert event[2].keys.none? { |k| k.start_with?("job.sidekiq.arguments") }, "Found unexpected resque arguments"
+        assert event[2].keys.none? { |k| k.start_with?("job.resque.arguments") }, "Found unexpected resque arguments"
       end
     end
   end
