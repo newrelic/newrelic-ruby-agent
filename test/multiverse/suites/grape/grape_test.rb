@@ -161,7 +161,7 @@ class GrapeTest < Minitest::Test
         post '/grape_ape', json, {"CONTENT_TYPE" => "application/json"}
 
         expected = {"request.parameters.foo" => "bar", "request.parameters.bar" => "baz"}
-        actual = agent_attributes_for_single_event_posted_without_ignored_attributess
+        actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
         assert_equal(expected, actual)
       end
