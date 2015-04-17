@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class NewRelic::Agent::TransationSampleBuilderTest < Minitest::Test
+class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
 
   def setup
     freeze_time
@@ -56,7 +56,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Minitest::Test
 
     validate_builder
 
-    assert_raises(TypeError) do
+    assert_raises(NewRelic::Agent::Transaction::Trace::FinishedTraceError) do
       build_segment "b"
     end
   end

@@ -134,9 +134,8 @@ class SidekiqTest < Minitest::Test
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
 
-        args = sample.tree.custom_params["job_arguments"]
-        assert_equal args.length, 2
-        assert_equal args[0], "jobs_completed"
+        args = sample.tree.agent_attributes["job.sidekiq.arguments"]
+        assert_match /\["jobs_completed", \d\]/, args
       end
     end
   end
@@ -148,7 +147,7 @@ class SidekiqTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_nil sample.tree.custom_params["job_arguments"]
+        refute_includes sample.tree.agent_attributes, "job.sidekiq.arguments"
       end
     end
   end

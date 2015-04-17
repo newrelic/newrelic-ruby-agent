@@ -203,12 +203,11 @@ module NewRelic
         state = ::NewRelic::Agent::TransactionState.tl_get
 
         return if skip_notice_error?(state, exception)
+
         tag_as_seen(state, exception)
-
         increment_error_count!(state, exception, options)
-        NewRelic::Agent.instance.events.notify(:notice_error, exception, options)
-
         add_to_error_queue(create_noticed_error(exception, options))
+
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)

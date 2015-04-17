@@ -198,7 +198,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
     assert_equal('Controller/test/index',
                  NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:path])
+                   .last_sample.transaction_name)
     assert_equal('Controller/test/index',
                  NewRelic::Agent.instance.transaction_sampler \
                    .last_sample.root_segment.called_segments[0].metric_name)
@@ -267,11 +267,10 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
       @entry_payload[:params]['number'] = '666'
       @subscriber.start('process_action.action_controller', :id, @entry_payload)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
-
-      assert_equal('666',
-                   NewRelic::Agent.instance.transaction_sampler \
-                     .last_sample.params[:request_params]['number'])
     end
+
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal('666', attributes_for(sample, :agent)['request.parameters.number'])
   end
 
   def test_records_filtered_request_params_in_txn
@@ -279,21 +278,19 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
       @entry_payload[:params]['password'] = 'secret'
       @subscriber.start('process_action.action_controller', :id, @entry_payload)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
-
-      assert_equal('[FILTERED]',
-                   NewRelic::Agent.instance.transaction_sampler \
-                     .last_sample.params[:request_params]['password'])
     end
+
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal('[FILTERED]', attributes_for(sample, :agent)['request.parameters.password'])
   end
 
   def test_records_custom_parameters_in_txn
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    NewRelic::Agent.add_custom_parameters('number' => '666')
+    NewRelic::Agent.add_custom_attributes('number' => '666')
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert_equal('666',
-                 NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:custom_params]['number'])
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal('666', attributes_for(sample, :custom)['number'])
   end
 end if ::Rails::VERSION::MAJOR.to_i >= 4
 

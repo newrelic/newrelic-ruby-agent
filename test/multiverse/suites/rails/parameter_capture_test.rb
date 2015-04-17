@@ -84,12 +84,12 @@ class ParameterCaptureTest < RailsMultiverseTest
     with_config(:capture_params => false) do
       get '/parameter_capture/transaction?other=1234&secret=4567'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
 
     with_config(:capture_params => true) do
       get '/parameter_capture/transaction?other=1234&secret=4567'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
   end
 
   def test_filters_parameters_on_traced_errors
@@ -108,8 +108,8 @@ class ParameterCaptureTest < RailsMultiverseTest
     end
 
     captured_params = last_transaction_trace_request_params
-    assert_equal('[FILTERED]', captured_params['secret'])
-    assert_equal('1234',       captured_params['other'])
+    assert_equal('[FILTERED]', captured_params['request.parameters.secret'])
+    assert_equal('1234',       captured_params['request.parameters.other'])
   end
 
   def test_no_traced_error_params_captured_when_bails_before_rails
@@ -145,14 +145,14 @@ class ParameterCaptureTest < RailsMultiverseTest
     with_config(:capture_params => false) do
       get '/parameter_capture/transaction?param1=value1&param2=value2'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
   end
 
   def test_uri_on_tt_should_not_contain_query_string_with_capture_params_on
     with_config(:capture_params => true) do
       get '/parameter_capture/transaction?param1=value1&param2=value2'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
   end
 
   def test_uri_on_traced_error_should_not_contain_query_string_with_capture_params_off
@@ -190,7 +190,10 @@ class ParameterCaptureTest < RailsMultiverseTest
         post '/filtering_test/', params
       end
 
-      expected = {"secret" => "[FILTERED]", "name" => "name"}
+      expected = {
+        "request.parameters.secret" => "[FILTERED]",
+        "request.parameters.name" => "name"
+      }
       assert_equal expected, last_transaction_trace_request_params
     end
 
@@ -228,7 +231,10 @@ class ParameterCaptureTest < RailsMultiverseTest
         get '/sinatra_app/', "secret" => "shhhhhhh", "name" => "name"
       end
 
-      expected = {"secret" => "[FILTERED]", "name" => "name"}
+      expected = {
+        "request.parameters.secret" => "[FILTERED]",
+        "request.parameters.name" => "name"
+      }
       assert_equal expected, last_transaction_trace_request_params
     end
 
@@ -245,11 +251,13 @@ class ParameterCaptureTest < RailsMultiverseTest
     end
 
     def test_file_upload_params_are_replaced_with_placeholder
-      with_config(:capture_params => true) do
+      with_config(:capture_params => true, :'transaction_tracer.transaction_threshold' => -10) do
         post '/parameter_capture', :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
 
-        result = last_transaction_trace_request_params
-        assert_equal("#<ActionDispatch::Http::UploadedFile>", result["file"])
+        run_harvest
+
+        result = single_transaction_trace_posted
+        refute_includes result.tree.agent_attributes, "request.parameters.file"
       end
     end
   end

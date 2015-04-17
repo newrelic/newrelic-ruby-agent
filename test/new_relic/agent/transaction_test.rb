@@ -660,15 +660,15 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_attributes
     expects_logging(:warn, includes("add_custom_attributes"))
     in_transaction do
-      NewRelic::Agent.add_custom_parameters('fooz')
+      NewRelic::Agent.add_custom_attributes('fooz')
     end
   end
 
-  def test_ignores_custom_parameters_when_in_high_security
+  def test_ignores_custom_attributes_when_in_high_security
     with_config(:high_security => true) do
       in_transaction do |txn|
-        NewRelic::Agent.add_custom_parameters(:failure => "is an option")
-        assert_empty txn.custom_parameters
+        NewRelic::Agent.add_custom_attributes(:failure => "is an option")
+        assert_empty attributes_for(txn, :custom)
       end
     end
   end
@@ -676,16 +676,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_user_attributes_alias_to_custom_parameters
     in_transaction('user_attributes') do |txn|
       txn.set_user_attributes(:set_instance => :set_instance)
-      txn.user_attributes[:indexer_instance] = :indexer_instance
-
-      txn.set_user_attributes(:set_class => :set_class)
-      txn.user_attributes[:indexer_class] = :indexer_class
-
-      assert_has_custom_parameter(txn, :set_instance)
-      assert_has_custom_parameter(txn, :indexer_instance)
-
-      assert_has_custom_parameter(txn, :set_class)
-      assert_has_custom_parameter(txn, :indexer_class)
+      assert_has_custom_attribute(txn, :set_instance)
     end
   end
 
@@ -741,7 +732,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     trace = txn.transaction_trace
-    assert_equal(42, trace.params[:custom_params][:gc_time])
+    assert_equal(42, attributes_for(trace, :intrinsic)[:gc_time])
   end
 
   def test_freeze_name_and_execute_if_not_ignored_executes_given_block_if_not_ignored
@@ -767,25 +758,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       end
 
       refute block_was_called
-    end
-  end
-
-  def test_record_transaction_cpu_positive
-    in_transaction do |txn|
-      state = NewRelic::Agent::TransactionState.tl_get
-      txn.stubs(:cpu_burn).returns(1.0)
-      NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).twice.with(state, 1.0)
-      txn.record_transaction_cpu(state)
-    end
-  end
-
-  def test_record_transaction_cpu_negative
-    in_transaction do |txn|
-      state = NewRelic::Agent::TransactionState.tl_get
-      txn.stubs(:cpu_burn).returns(nil)
-      # should not be called for the nil case
-      NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).never
-      txn.record_transaction_cpu(state)
     end
   end
 
@@ -1213,8 +1185,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def assert_has_custom_parameter(txn, key, value = key)
-    assert_equal(value, txn.custom_parameters[key])
+  def assert_has_custom_attribute(txn, key, value = key)
+    assert_equal(value, attributes_for(txn, :custom)[key])
   end
 
   def test_wrap_transaction
@@ -1268,7 +1240,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_adding_custom_attributes
     with_config(:'transaction_tracer.attributes.enabled' => true) do
       in_transaction do |txn|
-        NewRelic::Agent.add_custom_parameters(:foo => "bar")
+        NewRelic::Agent.add_custom_attributes(:foo => "bar")
         actual = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
         assert_equal({:foo => "bar"}, actual)
       end
@@ -1425,6 +1397,24 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_empty actual
+  end
+
+  def test_request_params_disallows_controller
+    txn = with_config(:capture_params => true) do
+      in_transaction(:filtered_params => {:controller => Object.new}) do
+      end
+    end
+
+    assert_empty attributes_for(txn, :agent)
+  end
+
+  def test_request_params_disallows_action
+    txn = with_config(:capture_params => true) do
+      in_transaction(:filtered_params => {:action => Object.new}) do
+      end
+    end
+
+    assert_empty attributes_for(txn, :agent)
   end
 
   def test_http_response_code_included_in_agent_attributes

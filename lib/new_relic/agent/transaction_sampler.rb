@@ -6,7 +6,6 @@ require 'new_relic/agent'
 require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/developer_mode_sample_buffer'
-require 'new_relic/agent/transaction/force_persist_sample_buffer'
 require 'new_relic/agent/transaction/slowest_sample_buffer'
 require 'new_relic/agent/transaction/synthetics_sample_buffer'
 require 'new_relic/agent/transaction/xray_sample_buffer'
@@ -43,7 +42,6 @@ module NewRelic
         @sample_buffers << @xray_sample_buffer
         @sample_buffers << NewRelic::Agent::Transaction::SlowestSampleBuffer.new
         @sample_buffers << NewRelic::Agent::Transaction::SyntheticsSampleBuffer.new
-        @sample_buffers << NewRelic::Agent::Transaction::ForcePersistSampleBuffer.new
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
@@ -102,14 +100,6 @@ module NewRelic
         builder.trace_exit(frame, time.to_f)
       end
 
-      def custom_parameters_from_transaction(txn)
-        if Agent.config[:'transaction_tracer.capture_attributes']
-          txn.custom_parameters
-        else
-          {}
-        end
-      end
-
       # This is called when we are done with the transaction.  We've
       # unwound the stack to the top level. It also clears the
       # transaction sample builder so that it won't continue to have
@@ -117,33 +107,19 @@ module NewRelic
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def on_finishing_transaction(state, txn, time=Time.now, gc_time=nil)
+      def on_finishing_transaction(state, txn, time=Time.now)
         last_builder = state.transaction_sample_builder
         return unless last_builder && enabled?
 
         state.transaction_sample_builder = nil
         return if last_builder.ignored?
 
-        last_builder.set_request_params(txn.filtered_params)
-        last_builder.set_transaction_name(txn.best_name)
-        last_builder.finish_trace(time.to_f, custom_parameters_from_transaction(txn))
+        last_builder.finish_trace(time.to_f)
 
         last_sample = last_builder.sample
+        last_sample.transaction_name = txn.best_name
         last_sample.guid = txn.guid
-        last_sample.set_custom_param(:gc_time, gc_time) if gc_time
-
-        if state.is_cross_app?
-          last_sample.set_custom_param(:'nr.trip_id', txn.cat_trip_id(state))
-          last_sample.set_custom_param(:'nr.path_hash', txn.cat_path_hash(state))
-        end
-
-        if txn.is_synthetics_request?
-          last_sample.set_custom_param(:'nr.synthetics_resource_id', txn.synthetics_resource_id)
-          last_sample.set_custom_param(:'nr.synthetics_job_id', txn.synthetics_job_id)
-          last_sample.set_custom_param(:'nr.synthetics_monitor_id', txn.synthetics_monitor_id)
-
-          last_sample.synthetics_resource_id = txn.synthetics_resource_id
-        end
+        last_sample.attributes = txn.attributes
 
         @samples_lock.synchronize do
           @last_sample = last_sample
@@ -165,12 +141,6 @@ module NewRelic
       def ignore_transaction(state)
         builder = state.transaction_sample_builder
         builder.ignore_transaction if builder
-      end
-
-      # Sets the CPU time used by a transaction, delegates to the builder
-      def notice_transaction_cpu_time(state, cpu_time)
-        builder = state.transaction_sample_builder
-        builder.set_transaction_cpu_time(cpu_time) if builder
       end
 
       MAX_DATA_LENGTH = 16384

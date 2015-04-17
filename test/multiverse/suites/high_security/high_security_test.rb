@@ -47,12 +47,15 @@ class HighSecurityTest < Minitest::Test
   def test_doesnt_record_custom_parameters
     in_transaction do
       NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
-      NewRelic::Agent.add_custom_parameters(:not => "allowed")
+      NewRelic::Agent.add_custom_attributes(:not => "allowed")
     end
 
-    assert_nil last_transaction_trace.params[:custom_params][:not]
-    refute_nil last_transaction_trace.params[:custom_params][:cpu_time]
-    refute_nil last_transaction_trace.params[:custom_params][:'nr.trip_id']
-    refute_nil last_transaction_trace.params[:custom_params][:'nr.path_hash']
+    custom_attributes = attributes_for(last_transaction_trace, :custom)
+    assert_nil custom_attributes[:not]
+
+    intrinsic_attributes = attributes_for(last_transaction_trace, :intrinsic)
+    refute_nil intrinsic_attributes[:cpu_time]
+    refute_nil intrinsic_attributes[:trip_id]
+    refute_nil intrinsic_attributes[:path_hash]
   end
 end

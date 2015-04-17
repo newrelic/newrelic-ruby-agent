@@ -26,10 +26,6 @@ module NewRelic
           @agent_destinations = {}
         end
 
-        def [](key)
-          @attributes[key]
-        end
-
         def add_custom_attribute(key, value)
           if @custom_attributes.size >= COUNT_LIMIT
             unless @already_warned_count_limit
@@ -97,6 +93,8 @@ module NewRelic
         end
 
         def for_destination(attributes, calculated_destinations, destination)
+          return attributes.dup if destination == NewRelic::Agent::AttributeFilter::DST_DEVELOPER_MODE
+
           attributes.inject({}) do |memo, (key, value)|
             if @filter.allows?(calculated_destinations[key], destination)
               memo[key] = value

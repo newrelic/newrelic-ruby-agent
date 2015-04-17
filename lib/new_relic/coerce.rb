@@ -10,6 +10,8 @@ module NewRelic
   # to provide documentation of expected types on to_collector_array methods,
   # and to log failures if totally invalid data gets into outgoing data
   module Coerce
+    module_function
+
     def int(value, context=nil)
       Integer(value)
     rescue => error

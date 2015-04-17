@@ -3,9 +3,10 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/collection_helper'
-require 'new_relic/transaction_sample'
 require 'new_relic/control'
 require 'new_relic/agent/transaction'
+require 'new_relic/agent/transaction/trace'
+
 module NewRelic
   module Agent
     # a builder is created with every sampled transaction, to dynamically
@@ -47,7 +48,7 @@ module NewRelic
       include NewRelic::CollectionHelper
 
       def initialize(time=Time.now)
-        @sample = NewRelic::TransactionSample.new(time.to_f)
+        @sample = NewRelic::Agent::Transaction::Trace.new(time.to_f)
         @sample_start = time.to_f
         @current_segment = @sample.root_segment
       end
@@ -99,7 +100,7 @@ module NewRelic
         end
       end
 
-      def finish_trace(time=Time.now.to_f, custom_params={})
+      def finish_trace(time=Time.now.to_f)
         # Should never get called twice, but in a rare case that we can't
         # reproduce in house it does.  log forensics and return gracefully
         if @sample.finished
@@ -107,12 +108,7 @@ module NewRelic
           return
         end
         @sample.root_segment.end_trace(time.to_f - @sample_start)
-        @sample.params[:custom_params] ||= {}
-        @sample.params[:custom_params].merge!(normalize_params(custom_params))
 
-        # If we ever implement saving of TTs based on the record_tt flag on the
-        # calling and called applications, we should change this flag's value.
-        @sample.force_persist = false
         @sample.threshold = transaction_trace_threshold
         @sample.finished = true
         @current_segment = nil
@@ -143,24 +139,7 @@ module NewRelic
       end
 
       def set_transaction_uri(uri)
-        @sample.params[:uri] ||= uri
-      end
-
-      def set_request_params(params)
-        if Agent.config[:capture_params]
-          params = normalize_params(params)
-          @sample.params[:request_params].merge!(params)
-          @sample.params[:request_params].delete :controller
-          @sample.params[:request_params].delete :action
-        end
-      end
-
-      def set_transaction_name(name)
-        @sample.transaction_name = name
-      end
-
-      def set_transaction_cpu_time(cpu_time)
-        @sample.set_custom_param(:cpu_time, cpu_time)
+        @sample.uri ||= uri
       end
 
       def sample

@@ -321,9 +321,15 @@ module NewRelic
         set_default_transaction_name(options[:transaction_name], category)
       end
 
+      # The agent has long had a ban on these to prevent large objects in the
+      # captured parameters, so keep checking for them.
+      DISALLOWED_REQUEST_PARAMETERS = ["controller", "action"]
+
       def merge_request_parameters(params)
         params.each_pair do |k, v|
           normalized_key = EncodingNormalizer.normalize_string(k.to_s)
+          next if DISALLOWED_REQUEST_PARAMETERS.include?(normalized_key)
+
           key = "request.parameters.#{normalized_key}"
           if key.bytesize > NewRelic::Agent::Transaction::Attributes::KEY_LIMIT
             NewRelic::Agent.logger.debug("Request parameter #{key} was dropped for exceeding key length limit #{NewRelic::Agent::Transaction::Attributes::KEY_LIMIT}")
@@ -494,16 +500,10 @@ module NewRelic
       end
 
       def commit!(state, end_time, outermost_segment_name)
-        record_transaction_cpu(state)
-
-        gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
-        gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
-            gc_start_snapshot, gc_stop_snapshot)
-
         assign_agent_attributes
-        assign_intrinsics(state, gc_delta)
+        assign_intrinsics(state)
 
-        @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time, gc_delta)
+        @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
         record_summary_metrics(outermost_segment_name, end_time)
@@ -530,8 +530,10 @@ module NewRelic
         end
       end
 
-      def assign_intrinsics(state, gc_time)
-        attributes.add_intrinsic_attribute(:gc_time, gc_time) if gc_time
+      def assign_intrinsics(state)
+        if gc_time = calculate_gc_time
+          attributes.add_intrinsic_attribute(:gc_time, gc_time)
+        end
 
         if burn = cpu_burn
           attributes.add_intrinsic_attribute(:cpu_time, burn)
@@ -547,6 +549,11 @@ module NewRelic
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id(state))
           attributes.add_intrinsic_attribute(:path_hash, cat_path_hash(state))
         end
+      end
+
+      def calculate_gc_time
+        gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
+        NewRelic::Agent::StatsEngine::GCProfiler.record_delta(gc_start_snapshot, gc_stop_snapshot)
       end
 
       # The summary metrics recorded by this method all end up with a duration
@@ -810,10 +817,6 @@ module NewRelic
         self.instrumentation_state[:datastore_override] = previous
       end
 
-      def custom_parameters
-        @custom_parameters ||= {}
-      end
-
       def add_custom_attributes(p)
         if NewRelic::Agent.config[:high_security]
           NewRelic::Agent.logger.debug("Unable to add custom attributes #{p.keys.inspect} while in high security mode.")
@@ -821,10 +824,8 @@ module NewRelic
         end
 
         attributes.merge_custom_attributes!(p)
-        custom_parameters.merge!(p)
       end
 
-      alias_method :user_attributes, :custom_parameters
       alias_method :set_user_attributes, :add_custom_attributes
       alias_method :add_custom_parameters, :add_custom_attributes
 
@@ -852,13 +853,6 @@ module NewRelic
       def jruby_cpu_burn
         return unless @jruby_cpu_start
         jruby_cpu_time - @jruby_cpu_start
-      end
-
-      def record_transaction_cpu(state)
-        burn = cpu_burn
-        if burn
-          transaction_sampler.notice_transaction_cpu_time(state, burn)
-        end
       end
 
       def ignore!

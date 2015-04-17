@@ -13,11 +13,10 @@ require 'new_relic/metric_parser/metric_parser'
 require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/instrumentation/middleware_proxy'
 
-require 'new_relic/transaction_sample'
 require 'new_relic/transaction_analysis'
 
 module NewRelic
-  class TransactionSample
+  class Agent::Transaction::Trace
     include TransactionAnalysis
   end
 
@@ -213,8 +212,8 @@ module NewRelic
 
         return render(:sample_not_found) unless @sample
 
-        @request_params = @sample.params['request_params'] || {}
-        @custom_params = @sample.params['custom_params'] || {}
+        @request_params = request_attributes_for(@sample)
+        @custom_params = custom_attributes_for(@sample)
 
         controller_metric = @sample.transaction_name
 
@@ -235,7 +234,7 @@ module NewRelic
 
       def get_samples
         @samples = NewRelic::Agent.instance.transaction_sampler.dev_mode_sample_buffer.samples.select do |sample|
-          sample.params[:path] != nil
+          sample.transaction_name != nil
         end
 
         return @samples = @samples.sort_by(&:duration).reverse                   if params['h']
@@ -261,6 +260,20 @@ module NewRelic
 
         segment_id = params['segment'].to_i
         @segment = @sample.find_segment(segment_id)
+      end
+
+      def custom_attributes_for(sample)
+        sample.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_DEVELOPER_MODE)
+      end
+
+      REQUEST_PARAMETERS_PREFIX = "request.parameters".freeze
+
+      def request_attributes_for(sample)
+        agent_attributes = sample.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_DEVELOPER_MODE)
+        agent_attributes.inject({}) do |memo, (key, value)|
+          memo[key] = value if key.to_s.start_with?(REQUEST_PARAMETERS_PREFIX)
+          memo
+        end
       end
     end
   end

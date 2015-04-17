@@ -182,6 +182,8 @@ module Multiverse
         if debug
           # Pry 0.10.0 breaks compatibility with Ruby 1.8.7 :(
           f.puts "  gem 'pry', '~> 0.9.12'"
+          f.puts "  gem 'pry-byebug'" if RUBY_VERSION >= "2.0.0"
+          f.puts "  gem 'pry-stack_explorer'"
         end
       end
       puts yellow("Gemfile.#{env_index} set to:") if verbose?
