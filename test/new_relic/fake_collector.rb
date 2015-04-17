@@ -299,15 +299,15 @@ module NewRelic
         end
 
         def agent_attributes
-          @body[4]['agentAttributes']
+          tree.attributes['agentAttributes']
         end
 
         def custom_attributes
-          @body[4]['userAttributes']
+          tree.attributes['userAttributes']
         end
 
         def intrinsic_attributes
-          @body[4]['intrinsics']
+          tree.attributes['intrinsics']
         end
       end
 
