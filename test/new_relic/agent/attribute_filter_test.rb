@@ -121,6 +121,60 @@ module NewRelic::Agent
       end
     end
 
+    def test_might_allow_attribute_with_prefix_default_case
+      filter = AttributeFilter.new(NewRelic::Agent.config)
+      refute filter.might_allow_attribute_with_prefix?('request.parameters')
+    end
+
+    def test_might_allow_attribute_with_prefix_blanket_include
+      with_config(:'attributes.include' => '*') do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        assert filter.might_allow_attribute_with_prefix?('request.parameters')
+      end
+    end
+
+    def test_might_allow_attribute_with_prefix_general_include
+      with_config(:'attributes.include' => 'request.*') do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        assert filter.might_allow_attribute_with_prefix?('request.parameters')
+      end
+    end
+
+    def test_might_allow_attribute_with_prefix_prefix_include
+      with_config(:'attributes.include' => 'request.parameters.*') do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        assert filter.might_allow_attribute_with_prefix?('request.parameters')
+      end
+    end
+
+    def test_might_allow_attribute_with_prefix_prefix_include_tt_only
+      with_config(:'transaction_tracer.attributes.include' => 'request.parameters.*') do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        assert filter.might_allow_attribute_with_prefix?('request.parameters')
+      end
+    end
+
+    def test_might_allow_attribute_with_prefix_non_matching_include
+      with_config(:'transaction_tracer.attributes.include' => 'otherthing') do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        refute filter.might_allow_attribute_with_prefix?('request.parameters')
+      end
+    end
+
+    def test_might_allow_attribute_with_prefix_more_specific_rule
+      with_config(:'attributes.include' => 'request.parameters.lolz') do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        assert filter.might_allow_attribute_with_prefix?('request.parameters')
+      end
+    end
+
+    def test_might_allow_attribute_with_prefix_more_specific_rule_with_wildcard
+      with_config(:'attributes.include' => 'request.parameters.lolz.*') do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        assert filter.might_allow_attribute_with_prefix?('request.parameters')
+      end
+    end
+
     def assert_destinations(expected, result)
       assert_equal to_bitfield(expected), result, "Expected #{expected}, got #{to_names(result)}"
     end

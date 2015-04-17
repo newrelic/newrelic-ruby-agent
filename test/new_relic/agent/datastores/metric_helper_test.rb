@@ -56,6 +56,42 @@ module NewRelic
         assert_equal expected, result
       end
 
+      def test_metrics_for_obeys_collection_and_operation_overrides
+        in_transaction do
+          NewRelic::Agent.with_database_metric_name("Model", "new_method") do
+            expected = [
+              "Datastore/statement/JonanDB/Model/new_method",
+              "Datastore/operation/JonanDB/new_method",
+              "Datastore/JonanDB/allOther",
+              "Datastore/JonanDB/all",
+              "Datastore/allOther",
+              "Datastore/all"
+            ]
+
+            result = Datastores::MetricHelper.metrics_for(@product, "original_method")
+            assert_equal expected, result
+          end
+        end
+      end
+
+      def test_metrics_for_obeys_collection_override
+        in_transaction do
+          NewRelic::Agent.with_database_metric_name("Model", nil) do
+            expected = [
+              "Datastore/statement/JonanDB/Model/original_method",
+              "Datastore/operation/JonanDB/original_method",
+              "Datastore/JonanDB/allOther",
+              "Datastore/JonanDB/all",
+              "Datastore/allOther",
+              "Datastore/all"
+            ]
+
+            result = Datastores::MetricHelper.metrics_for(@product, "original_method")
+            assert_equal expected, result
+          end
+        end
+      end
+
     end
   end
 end

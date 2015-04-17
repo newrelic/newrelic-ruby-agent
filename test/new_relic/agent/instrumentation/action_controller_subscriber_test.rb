@@ -27,7 +27,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   def setup
     freeze_time
     @subscriber = NewRelic::Agent::Instrumentation::ActionControllerSubscriber.new
-    NewRelic::Agent.instance.stats_engine.clear_stats
+    NewRelic::Agent.drop_buffered_data
     @entry_payload = {
       :controller => TestController.to_s,
       :action => 'index',
@@ -193,7 +193,6 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_creates_transaction
-    NewRelic::Agent.instance.transaction_sampler.reset!
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
@@ -265,7 +264,6 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_records_request_params_in_txn
     with_config(:capture_params => true) do
-      NewRelic::Agent.instance.transaction_sampler.reset!
       @entry_payload[:params]['number'] = '666'
       @subscriber.start('process_action.action_controller', :id, @entry_payload)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
@@ -277,7 +275,6 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_records_filtered_request_params_in_txn
     with_config(:capture_params => true) do
-      NewRelic::Agent.instance.transaction_sampler.reset!
       @entry_payload[:params]['password'] = 'secret'
       @subscriber.start('process_action.action_controller', :id, @entry_payload)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
@@ -288,7 +285,6 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_records_custom_parameters_in_txn
-    NewRelic::Agent.instance.transaction_sampler.reset!
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     NewRelic::Agent.add_custom_attributes('number' => '666')
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)

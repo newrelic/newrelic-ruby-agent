@@ -688,7 +688,8 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable collection of <a href="/docs/apm/other-features/attributes/collecting-custom-attributes">custom attributes</a> on transaction traces.'
+          :deprecated => true,
+          :description => 'Use transaction_tracer.attributes.enabled instead.'
         },
         :'transaction_tracer.explain_threshold' => {
           :default => 0.5,
@@ -780,7 +781,8 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable collection of custom attributes on errors.'
+          :deprecated => true,
+          :description => 'Use error_collector.attributes.enabled instead.'
         },
         :'error_collector.ignore_errors' => {
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
@@ -834,7 +836,8 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Forward custom attributes to Browser for <a href="/docs/insights/new-relic-insights/decorating-events/insights-custom-attributes#forwarding-attributes">collection by New Relic Insights</a>.'
+          :deprecated => true,
+          :description => 'Use browser_monitoring.attributes.enabled instead.'
         },
         :'browser_monitoring.loader' => {
           :default => DefaultSource.browser_monitoring_loader,
@@ -962,7 +965,8 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Include <a href="/docs/insights/new-relic-insights/decorating-events/insights-custom-attributes">custom attributes</a> in analytics event data.'
+          :deprecated => true,
+          :description => 'Use transaction_events.attributes.enabled instead.'
         },
         :restart_thread_in_children => {
           :default => true,
