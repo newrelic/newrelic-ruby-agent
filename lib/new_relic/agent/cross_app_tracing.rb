@@ -44,10 +44,10 @@ module NewRelic
         # a race condition if we raise after begin but before t0's set.
         t0 = Time.now
         begin
-          segment = start_trace(state, t0, request)
+          node = start_trace(state, t0, request)
           response = yield
         ensure
-          finish_trace(state, t0, segment, request, response)
+          finish_trace(state, t0, node, request, response)
         end
 
         return response
@@ -67,13 +67,13 @@ module NewRelic
       # * []=(key, val) - Set an HTTP request header by name
       # * uri  - Full URI of the request
       #
-      # This method returns the transaction segment if it was sucessfully pushed.
+      # This method returns the transaction node if it was sucessfully pushed.
       def start_trace(state, t0, request)
         inject_request_headers(state, request) if cross_app_enabled?
         stack = state.traced_method_stack
-        segment = stack.push_frame(state, :http_request, t0)
+        node = stack.push_frame(state, :http_request, t0)
 
-        return segment
+        return node
       rescue => err
         NewRelic::Agent.logger.error "Uncaught exception while tracing HTTP request", err
         return nil
@@ -95,7 +95,7 @@ module NewRelic
       # * [](key) - Reads response headers.
       # * to_hash - Converts response headers to a Hash
       #
-      def finish_trace(state, t0, segment, request, response)
+      def finish_trace(state, t0, node, request, response)
         unless t0
           NewRelic::Agent.logger.error("HTTP request trace finished without start time. This is probably an agent bug.")
           return
@@ -114,19 +114,19 @@ module NewRelic
             stats_engine.record_scoped_and_unscoped_metrics(
               state, scoped_metric, metrics, duration)
 
-            # If we don't have segment, something failed during start_trace so
-            # the current segment isn't the HTTP call it should have been.
-            if segment
-              segment.name = scoped_metric
+            # If we don't have node, something failed during start_trace so
+            # the current node isn't the HTTP call it should have been.
+            if node
+              node.name = scoped_metric
               add_transaction_trace_parameters(request, response)
             end
           end
         ensure
-          # If we have a segment, always pop the traced method stack to avoid
+          # If we have a node, always pop the traced method stack to avoid
           # an inconsistent state, which prevents tracing of whole transaction.
-          if segment
+          if node
             stack = state.traced_method_stack
-            stack.pop_frame(state, segment, scoped_metric, t1)
+            stack.pop_frame(state, node, scoped_metric, t1)
           end
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err

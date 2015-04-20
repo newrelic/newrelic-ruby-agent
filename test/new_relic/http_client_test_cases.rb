@@ -179,8 +179,8 @@ module HttpClientTestCases
     perform_action_with_newrelic_trace(:name => "task") do
       get_response
 
-      last_segment = find_last_transaction_node()
-      assert_equal "External/localhost/#{client_name}/GET", last_segment.metric_name
+      last_node = find_last_transaction_node()
+      assert_equal "External/localhost/#{client_name}/GET", last_node.metric_name
     end
   end
 
@@ -316,9 +316,9 @@ module HttpClientTestCases
       in_transaction("test") do
         get_response
 
-        last_segment = find_last_transaction_node()
-        assert_includes last_segment.params.keys, :transaction_guid
-        assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
+        last_node = find_last_transaction_node()
+        assert_includes last_node.params.keys, :transaction_guid
+        assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
       end
     end
 
@@ -340,9 +340,9 @@ module HttpClientTestCases
       in_transaction("test") do
         get_response
 
-        last_segment = find_last_transaction_node()
-        assert_includes last_segment.params.keys, :transaction_guid
-        assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
+        last_node = find_last_transaction_node()
+        assert_includes last_node.params.keys, :transaction_guid
+        assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
       end
     end
 
@@ -404,7 +404,7 @@ module HttpClientTestCases
       get_response
     end
 
-    refute_match( /undefined method `rename_scope_segment" for nil:NilClass/i,
+    refute_match( /undefined method `.*" for nil:NilClass/i,
                      logger.messages.flatten.map {|log| log.to_s }.join(" ") )
   end
 
@@ -412,9 +412,9 @@ module HttpClientTestCases
     full_url = "#{default_url}?foo=bar#fragment"
     in_transaction do
       get_response(full_url)
-      last_segment = find_last_transaction_node()
+      last_node = find_last_transaction_node()
       filtered_uri = default_url
-      assert_equal filtered_uri, last_segment.params[:uri]
+      assert_equal filtered_uri, last_node.params[:uri]
     end
   end
 
@@ -431,7 +431,7 @@ module HttpClientTestCases
   end
 
   # https://newrelic.atlassian.net/browse/RUBY-1244
-  def test_failure_to_add_tt_node_doesnt_append_params_to_wrong_segment
+  def test_failure_to_add_tt_node_doesnt_append_params_to_wrong_node
     # Fake a failure in our start-up code...
     NewRelic::JSONWrapper.stubs(:dump).raises("Boom!")
 
@@ -439,8 +439,8 @@ module HttpClientTestCases
       with_config(:"cross_application_tracer.enabled" => true) do
         get_response
 
-        last_segment = find_last_transaction_node()
-        refute last_segment.params.key?(:uri)
+        last_node = find_last_transaction_node()
+        refute last_node.params.key?(:uri)
       end
     end
   end
@@ -466,8 +466,8 @@ module HttpClientTestCases
           # across all libraries
         end
 
-        last_segment = find_last_transaction_node()
-        assert_equal("External/localhost/#{client_name}/GET", last_segment.metric_name)
+        last_node = find_last_transaction_node()
+        assert_equal("External/localhost/#{client_name}/GET", last_node.metric_name)
       end
 
       evil_server.stop
