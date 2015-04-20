@@ -37,12 +37,10 @@ module NewRelic
           to_debug_str(0)
         end
 
-        include NewRelic::Coerce
-
         def to_array
           [ NewRelic::Helper.time_to_millis(@entry_timestamp),
             NewRelic::Helper.time_to_millis(@exit_timestamp),
-            string(@metric_name),
+            NewRelic::Coerce.string(@metric_name),
             (@params || {}) ] +
             [ (@called_nodes ? @called_nodes.map{|s| s.to_array} : []) ]
         end
