@@ -57,14 +57,6 @@ module NewRelic
         @sample.sample_id
       end
 
-      def ignored?
-        @ignore
-      end
-
-      def ignore_transaction
-        @ignore = true
-      end
-
       def segment_limit
         Agent.config[:'transaction_tracer.limit_segments']
       end
@@ -136,10 +128,6 @@ module NewRelic
         end
 
         depth
-      end
-
-      def set_transaction_uri(uri)
-        @sample.uri ||= uri
       end
 
       def sample

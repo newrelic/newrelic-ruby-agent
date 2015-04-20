@@ -335,11 +335,9 @@ module NewRelic
 
       DISALLOWED_REQUEST_PARAMETERS = ["controller", "action"]
 
-      REQUEST_PARAMETERS_PREFIX = 'request.parameters'.freeze
-
       def merge_request_parameters(params)
         DISALLOWED_REQUEST_PARAMETERS.each { |key| params.delete(key) }
-        merge_untrusted_agent_attributes(REQUEST_PARAMETERS_PREFIX, params, AttributeFilter::DST_NONE)
+        merge_untrusted_agent_attributes(:'request.parameters', params, AttributeFilter::DST_NONE)
       end
 
       def make_transaction_name(name, category=nil)
@@ -419,7 +417,7 @@ module NewRelic
       def start(state)
         return if !state.is_execution_traced?
 
-        transaction_sampler.on_start_transaction(state, start_time, request_path)
+        transaction_sampler.on_start_transaction(state, start_time)
         sql_sampler.on_start_transaction(state, start_time, request_path)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
@@ -428,9 +426,10 @@ module NewRelic
         name_last_frame @default_name
       end
 
-      # Call this to ensure that the current transaction is not saved
+      # Call this to ensure that the current transaction trace is not saved
+      # To fully ignore all metrics and errors, use ignore! instead.
       def abort_transaction!(state)
-        transaction_sampler.ignore_transaction(state)
+        @ignore_trace = true
       end
 
       WEB_SUMMARY_METRIC   = 'HttpDispatcher'.freeze
@@ -875,6 +874,10 @@ module NewRelic
 
       def ignore_enduser?
         @ignore_enduser
+      end
+
+      def ignore_trace?
+        @ignore_trace
       end
 
       private

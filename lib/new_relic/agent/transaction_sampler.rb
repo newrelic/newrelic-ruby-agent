@@ -68,11 +68,10 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
 
-      def on_start_transaction(state, start_time, uri=nil)
+      def on_start_transaction(state, start_time)
         if enabled?
           start_builder(state, start_time.to_f)
           builder = state.transaction_sample_builder
-          builder.set_transaction_uri(uri) if builder
         end
       end
 
@@ -112,12 +111,13 @@ module NewRelic
         return unless last_builder && enabled?
 
         state.transaction_sample_builder = nil
-        return if last_builder.ignored?
+        return if txn.ignore_trace?
 
         last_builder.finish_trace(time.to_f)
 
         last_sample = last_builder.sample
         last_sample.transaction_name = txn.best_name
+        last_sample.uri = txn.request_path
         last_sample.guid = txn.guid
         last_sample.attributes = txn.attributes
 
@@ -132,15 +132,6 @@ module NewRelic
         @sample_buffers.each do |sample_buffer|
           sample_buffer.store(sample)
         end
-      end
-
-      # Tells the builder to ignore a transaction, if we are currently
-      # creating one. Only causes the sample to be ignored upon end of
-      # the transaction, and does not change the metrics gathered
-      # outside of the sampler
-      def ignore_transaction(state)
-        builder = state.transaction_sample_builder
-        builder.ignore_transaction if builder
       end
 
       MAX_DATA_LENGTH = 16384
