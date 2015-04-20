@@ -68,11 +68,10 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
 
-      def on_start_transaction(state, start_time, uri=nil)
+      def on_start_transaction(state, start_time)
         if enabled?
           start_builder(state, start_time.to_f)
           builder = state.transaction_sample_builder
-          builder.set_transaction_uri(uri) if builder
         end
       end
 
@@ -118,6 +117,7 @@ module NewRelic
 
         last_sample = last_builder.sample
         last_sample.transaction_name = txn.best_name
+        last_sample.uri = txn.request_path
         last_sample.guid = txn.guid
         last_sample.attributes = txn.attributes
 
