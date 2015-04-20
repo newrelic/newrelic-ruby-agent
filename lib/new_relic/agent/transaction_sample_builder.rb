@@ -57,17 +57,25 @@ module NewRelic
         @sample.sample_id
       end
 
-      def segment_limit
+      def ignored?
+        @ignore
+      end
+
+      def ignore_transaction
+        @ignore = true
+      end
+
+      def node_limit
         Agent.config[:'transaction_tracer.limit_segments']
       end
 
       def trace_entry(time)
-        if @sample.count_nodes < segment_limit
+        if @sample.count_nodes < node_limit
           segment = @sample.create_node(time.to_f - @sample_start)
           @current_node.add_called_node(segment)
           @current_node = segment
-          if @sample.count_nodes == segment_limit()
-            ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
+          if @sample.count_nodes == node_limit()
+            ::NewRelic::Agent.logger.debug("Segment limit of #{node_limit} reached, ceasing collection.")
           end
         else
           if @current_node.is_a?(PlaceholderNode)
