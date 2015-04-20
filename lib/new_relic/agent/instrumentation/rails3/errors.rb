@@ -7,13 +7,16 @@ module NewRelic
     module Instrumentation
       module Rails3
         module Errors
+
+          # @api public
+          # @deprecated
           def newrelic_notice_error(exception, custom_params = {})
-            filtered_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
-            filtered_params.merge!(custom_params)
-            NewRelic::Agent::Transaction.notice_error( \
-                exception, \
-                :metric => newrelic_metric_path, \
-                :custom_params => filtered_params)
+            NewRelic::Agent::Deprecator.deprecate("ActionController#newrelic_notice_error",
+                                                  "NewRelic::Agent#notice_error")
+
+            NewRelic::Agent::Transaction.notice_error(exception,
+                                                      :metric => newrelic_metric_path,
+                                                      :custom_params => custom_params)
           end
         end
       end
