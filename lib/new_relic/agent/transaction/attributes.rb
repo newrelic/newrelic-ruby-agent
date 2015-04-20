@@ -74,6 +74,7 @@ module NewRelic
         end
 
         def merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
+          return unless @filter.might_allow_prefix?(prefix)
           flatten_and_coerce(prefix, attributes).each do |k, v|
             add_agent_attribute_with_key_check(k, v, AttributeFilter::DST_NONE)
           end

@@ -104,7 +104,7 @@ module NewRelic
 
         @rules.sort!
 
-        cache_parameter_capture_flags
+        cache_prefix_blacklist
       end
 
       def include_destinations_for_capture_params(capturing)
@@ -145,34 +145,30 @@ module NewRelic
         allowed_destinations & requested_destination == requested_destination
       end
 
-      # In the default case, we don't capture HTTP request parameters, or job
-      # arguments for Sidekiq or Resque.
+      # For attribute prefixes where we know the default destinations will
+      # always be DST_NONE, we can statically determine that any attribute
+      # starting with the prefix will not be allowed unless there's an include
+      # rule that might match attributes starting with it.
       #
-      # Just traversing the parameters hash or argument list in order to
-      # generate flattened key names and apply filtering to each parameter/arg
-      # can be expensive, so we fast-path the default case here by statically
-      # determining that there's no way these attributes will be allowed through
-      # and exposing some flags that clients can use in order to predicate their
-      # work processing the parameters/arguments.
-      def cache_parameter_capture_flags
-        @might_allow_request_parameters = might_allow_attribute_with_prefix?('request.parameters.')
-        @might_allow_sidekiq_args       = might_allow_attribute_with_prefix?('job.sidekiq.arguments.')
-        @might_allow_resque_args        = might_allow_attribute_with_prefix?('job.resque.arguments.')
+      # This allows us to skip significant preprocessing work (hash/array
+      # flattening and type coercion) for HTTP request parameters and job
+      # arguments for Sidekiq and Resque in the common case, since none of
+      # these attributes are captured by default.
+      #
+      def cache_prefix_blacklist
+        @prefix_blacklist = {}
+        @prefix_blacklist[:'request.parameters']    = true unless might_allow_prefix_uncached?(:'request.parameters')
+        @prefix_blacklist[:'job.sidekiq.arguments'] = true unless might_allow_prefix_uncached?(:'job.sidekiq.arguments')
+        @prefix_blacklist[:'job.resque.arguments']  = true unless might_allow_prefix_uncached?(:'job.resque.arguments')
       end
 
-      def might_allow_request_parameters?
-        @might_allow_request_parameters
+      # Note that the given prefix *must* be a Symbol
+      def might_allow_prefix?(prefix)
+        !@prefix_blacklist.include?(prefix)
       end
 
-      def might_allow_sidekiq_args?
-        @might_allow_sidekiq_args
-      end
-
-      def might_allow_resque_args?
-        @might_allow_resque_args
-      end
-
-      def might_allow_attribute_with_prefix?(prefix)
+      def might_allow_prefix_uncached?(prefix)
+        prefix = prefix.to_s
         @rules.any? do |rule|
           if rule.is_include
             if rule.wildcard
