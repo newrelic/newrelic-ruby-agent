@@ -12,12 +12,12 @@ module NewRelic
 
         attr_reader :start_time, :root_node
         attr_accessor :transaction_name, :uri, :guid, :xray_session_id,
-                      :attributes, :segment_count, :finished, :threshold,
+                      :attributes, :node_count, :finished, :threshold,
                       :profile
 
         def initialize(start_time)
           @start_time = start_time
-          @segment_count = 0
+          @node_count = 0
           @root_node = NewRelic::Agent::Transaction::TraceNode.new(0.0, "ROOT")
         end
 
@@ -26,7 +26,7 @@ module NewRelic
         end
 
         def count_nodes
-          self.segment_count
+          self.node_count
         end
 
         def duration
@@ -49,7 +49,7 @@ module NewRelic
 
         def create_segment(time_since_start, metric_name = nil)
           raise FinishedTraceError.new "Can't create additional segment for finished trace." if self.finished
-          self.segment_count += 1
+          self.node_count += 1
           NewRelic::Agent::Transaction::TraceNode.new(time_since_start, metric_name)
         end
 

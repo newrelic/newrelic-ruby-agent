@@ -17,7 +17,7 @@ module NewRelic::DeveloperModeHelper
   end
 
   def trace_row_display_limit_reached
-   (!@detail_segment_count.nil? && @detail_segment_count > trace_row_display_limit) || sql_segments(@sample).length > trace_row_display_limit
+   (!@detail_node_count.nil? && @detail_node_count > trace_row_display_limit) || sql_segments(@sample).length > trace_row_display_limit
   end
 
   # return the highest level in the call stack for the trace that is not rails or
@@ -202,10 +202,10 @@ module NewRelic::DeveloperModeHelper
   end
 
   def render_segment_details(segment, depth=0)
-    @detail_segment_count ||= 0
-    @detail_segment_count += 1
+    @detail_node_count ||= 0
+    @detail_node_count += 1
 
-    return '' if @detail_segment_count > trace_row_display_limit
+    return '' if @detail_node_count > trace_row_display_limit
 
     @indentation_depth = depth if depth > @indentation_depth
     repeat = nil
