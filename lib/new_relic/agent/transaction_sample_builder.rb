@@ -24,7 +24,7 @@ module NewRelic
       # There should only ever be zero or one placeholder segment at a time.
       #
       # @api private
-      class PlaceholderSegment
+      class PlaceholderNode
         attr_reader :parent_node
         attr_accessor :depth
 
@@ -70,17 +70,17 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
           end
         else
-          if @current_segment.is_a?(PlaceholderSegment)
+          if @current_segment.is_a?(PlaceholderNode)
             @current_segment.depth += 1
           else
-            @current_segment = PlaceholderSegment.new(@current_segment)
+            @current_segment = PlaceholderNode.new(@current_segment)
           end
         end
         @current_segment
       end
 
       def trace_exit(metric_name, time)
-        if @current_segment.is_a?(PlaceholderSegment)
+        if @current_segment.is_a?(PlaceholderNode)
           @current_segment.depth -= 1
           if @current_segment.depth == 0
             @current_segment = @current_segment.parent_node
