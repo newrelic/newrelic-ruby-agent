@@ -47,8 +47,8 @@ module NewRelic
           @root_node.to_s_compact
         end
 
-        def create_segment(time_since_start, metric_name = nil)
-          raise FinishedTraceError.new "Can't create additional segment for finished trace." if self.finished
+        def create_node(time_since_start, metric_name = nil)
+          raise FinishedTraceError.new "Can't create additional node for finished trace." if self.finished
           self.node_count += 1
           NewRelic::Agent::Transaction::TraceNode.new(time_since_start, metric_name)
         end

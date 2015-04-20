@@ -30,8 +30,8 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal @trace.object_id, @trace.sample_id
   end
 
-  def test_create_segment_increases_node_count
-    @trace.create_segment(0.0, 'foo')
+  def test_create_node_increases_node_count
+    @trace.create_node(0.0, 'foo')
     assert_equal 1, @trace.node_count
   end
 
@@ -39,8 +39,8 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal @trace.duration, @trace.root_node.duration
   end
 
-  def test_create_segment
-    result = @trace.create_segment(0.0, 'goo')
+  def test_create_node
+    result = @trace.create_node(0.0, 'goo')
     assert_equal 0.0, result.entry_timestamp
     assert_equal 'goo', result.metric_name
   end
@@ -98,7 +98,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_prepare_to_send_collects_explain_plans
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_node(0.0, 'has_sql')
     segment.stubs(:duration).returns(2)
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = ''
@@ -115,7 +115,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   def test_prepare_to_send_prepares_sql_for_transmission
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
 
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_node(0.0, 'has_sql')
     segment.stubs(:duration).returns(2)
     segment[:sql] = "select * from pelicans where name = '1337807';"
     @trace.root_node.add_called_node(segment)
@@ -126,7 +126,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_prepare_to_send_strips_sql
     NewRelic::Agent::Database.stubs(:should_record_sql?).returns false
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_node(0.0, 'has_sql')
     segment.stubs(:duration).returns(2)
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = 'select * from pelicans;'
@@ -138,7 +138,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_collect_explain_plans!
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_node(0.0, 'has_sql')
     segment.stubs(:duration).returns(2)
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = ''
@@ -153,7 +153,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_collect_explain_plans_does_not_attach_explain_plans_if_duration_is_too_short
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_node(0.0, 'has_sql')
     segment.stubs(:duration).returns(1)
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = ''
@@ -168,7 +168,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_collect_explain_plans_does_not_attach_explain_plans_without_sql
-    segment = @trace.create_segment(0.0, 'nope_sql')
+    segment = @trace.create_node(0.0, 'nope_sql')
     segment.stubs(:duration).returns(2)
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = nil
@@ -183,7 +183,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_collect_explain_plans_does_not_attach_explain_plans_if_db_says_not_to
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_node(0.0, 'has_sql')
     segment.stubs(:duration).returns(2)
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = ''
@@ -202,7 +202,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   def test_prepare_sql_for_transmission_obfuscates_sql_if_record_sql_method_is_obfuscated
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
 
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_node(0.0, 'has_sql')
     segment[:sql] = "select * from pelicans where name = '1337807';"
     @trace.root_node.add_called_node(segment)
 
@@ -213,7 +213,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   def test_prepare_sql_for_transmission_does_not_modify_sql_if_record_sql_method_is_raw
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :raw
 
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_node(0.0, 'has_sql')
     segment[:sql] = "select * from pelicans where name = '1337807';"
     @trace.root_node.add_called_node(segment)
 
@@ -224,7 +224,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   def test_prepare_sql_for_transmission_removes_sql_if_record_sql_method_is_off
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :off
 
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_node(0.0, 'has_sql')
     segment[:sql] = "select * from pelicans where name = '1337807';"
     @trace.root_node.add_called_node(segment)
 
@@ -233,7 +233,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_strip_sql!
-    segment = @trace.create_segment(0.0, 'has_sql')
+    segment = @trace.create_node(0.0, 'has_sql')
     segment.stubs(:duration).returns(2)
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = 'select * from pelicans;'
