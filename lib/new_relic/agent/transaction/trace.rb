@@ -75,37 +75,37 @@ module NewRelic
           return unless NewRelic::Agent::Database.should_collect_explain_plans?
           threshold = NewRelic::Agent.config[:'transaction_tracer.explain_threshold']
 
-          each_node do |segment|
-            if segment[:sql] && segment.duration > threshold
-              segment[:explain_plan] = segment.explain_sql
+          each_node do |node|
+            if node[:sql] && node.duration > threshold
+              node[:explain_plan] = node.explain_sql
             end
           end
         end
 
         def prepare_sql_for_transmission!
           strategy = NewRelic::Agent::Database.record_sql_method
-          each_node do |segment|
-            next unless segment[:sql]
+          each_node do |node|
+            next unless node[:sql]
 
             case strategy
             when :obfuscated
-              segment[:sql] = NewRelic::Agent::Database.obfuscate_sql(segment[:sql])
+              node[:sql] = NewRelic::Agent::Database.obfuscate_sql(node[:sql])
             when :raw
-              segment[:sql] = segment[:sql].to_s
+              node[:sql] = node[:sql].to_s
             else
-              segment[:sql] = nil
+              node[:sql] = nil
             end
           end
         end
 
         def strip_sql!
-          each_node do |segment|
-            segment.params.delete(:sql)
+          each_node do |node|
+            node.params.delete(:sql)
           end
         end
 
-        # Iterates recursively over each segment in the entire transaction
-        # sample tree while keeping track of nested segments
+        # Iterates recursively over each node in the entire transaction
+        # sample tree while keeping track of nested nodes
         def each_node_with_nest_tracking(&block)
           @root_node.each_node_with_nest_tracking(&block)
         end
