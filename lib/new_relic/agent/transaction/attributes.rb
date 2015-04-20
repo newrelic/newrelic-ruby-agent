@@ -26,11 +26,6 @@ module NewRelic
         end
 
         def merge_custom_attributes(other)
-          if @filter.high_security?
-            NewRelic::Agent.logger.debug("Unable to add custom attributes #{other.keys.inspect} while in high security mode.")
-            return
-          end
-
           other.each do |key, value|
             add_custom_attribute(key, value)
           end
