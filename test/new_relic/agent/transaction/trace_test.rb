@@ -103,7 +103,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = ''
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.prepare_to_send!
@@ -118,7 +118,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment = @trace.create_segment(0.0, 'has_sql')
     segment.stubs(:duration).returns(2)
     segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
 
     @trace.prepare_to_send!
     assert_equal "select * from pelicans where name = ?;", segment[:sql]
@@ -131,7 +131,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = 'select * from pelicans;'
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
     @trace.prepare_to_send!
 
     refute segment[:sql]
@@ -143,7 +143,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = ''
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
@@ -158,7 +158,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = ''
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
 
     with_config(:'transaction_tracer.explain_threshold' => 2) do
       @trace.collect_explain_plans!
@@ -173,7 +173,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = nil
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
@@ -190,7 +190,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     NewRelic::Agent::Database.stubs(:should_collect_explain_plans?).returns(false)
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
@@ -204,7 +204,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     segment = @trace.create_segment(0.0, 'has_sql')
     segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
 
     @trace.prepare_sql_for_transmission!
     assert_equal "select * from pelicans where name = ?;", segment[:sql]
@@ -215,7 +215,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     segment = @trace.create_segment(0.0, 'has_sql')
     segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
 
     @trace.prepare_sql_for_transmission!
     assert_equal "select * from pelicans where name = '1337807';", segment[:sql]
@@ -226,7 +226,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     segment = @trace.create_segment(0.0, 'has_sql')
     segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
 
     @trace.prepare_sql_for_transmission!
     refute segment[:sql]
@@ -238,7 +238,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = 'select * from pelicans;'
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_segment.add_called_node(segment)
     @trace.strip_sql!
 
     refute segment[:sql]

@@ -64,7 +64,7 @@ module NewRelic
       def trace_entry(time)
         if @sample.count_segments < segment_limit
           segment = @sample.create_segment(time.to_f - @sample_start)
-          @current_segment.add_called_segment(segment)
+          @current_segment.add_called_node(segment)
           @current_segment = segment
           if @sample.count_segments == segment_limit()
             ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")

@@ -27,7 +27,7 @@ module NewRelic
           @exit_timestamp = timestamp
         end
 
-        def add_called_segment(s)
+        def add_called_node(s)
           @called_nodes ||= []
           @called_nodes << s
           s.parent_node = self
@@ -48,7 +48,7 @@ module NewRelic
         end
 
         def path_string
-          "#{metric_name}[#{called_nodes.collect {|segment| segment.path_string }.join('')}]"
+          "#{metric_name}[#{called_nodes.collect {|node| node.path_string }.join('')}]"
         end
 
         def to_s_compact
