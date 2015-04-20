@@ -41,7 +41,7 @@ module NewRelic
 
         # Captures the stack trace for a segment
         # This is expensive and not for production mode
-        def visit_segment(segment)
+        def visit_node(segment)
           return unless enabled? && segment
 
           trace = strip_newrelic_frames(caller)

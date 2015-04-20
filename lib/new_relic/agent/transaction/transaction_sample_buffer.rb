@@ -87,7 +87,7 @@ module NewRelic
 
         # When pushing a scope different sample buffers potentially want to
         # know about what's happening to annotate the incoming segments
-        def visit_segment(*)
+        def visit_node(*)
           # no-op
         end
 

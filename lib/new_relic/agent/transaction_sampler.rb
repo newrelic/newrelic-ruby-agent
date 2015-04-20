@@ -86,7 +86,7 @@ module NewRelic
 
         segment = builder.trace_entry(time.to_f)
         if @dev_mode_sample_buffer
-          @dev_mode_sample_buffer.visit_segment(segment)
+          @dev_mode_sample_buffer.visit_node(segment)
         end
         segment
       end
