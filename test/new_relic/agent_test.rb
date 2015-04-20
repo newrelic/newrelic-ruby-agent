@@ -13,6 +13,7 @@ module NewRelic
     include NewRelic::Agent::MethodTracer
 
     def setup
+      NewRelic::Agent.drop_buffered_data
       NewRelic::Agent.manual_start
       NewRelic::Agent.reset_config
       NewRelic::Agent.instance.stubs(:start_worker_thread)
@@ -395,12 +396,13 @@ module NewRelic
       assert called
     end
 
-    # The assumption is that txn.ignore! works as expected, and is tested elsewhere.
     def test_ignore_transaction_works
       in_transaction do |txn|
         NewRelic::Agent.ignore_transaction
         assert txn.ignore?
       end
+
+      assert_empty NewRelic::Agent.instance.transaction_sampler.harvest!
     end
 
     # The assumption is that txn.ignore_apdex! works as expected, and is tested elsewhere.

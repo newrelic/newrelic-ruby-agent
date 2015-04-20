@@ -41,6 +41,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @txn = stub('txn',
                 :best_name => '/path',
                 :guid => 'a guid',
+                :ignore_trace? => false,
                 :cat_trip_id => '',
                 :cat_path_hash => '',
                 :is_synthetics_request? => false,
@@ -126,19 +127,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
 
     assert_equal('a guid', @sampler.last_sample.guid)
-  end
-
-  def test_ignore_transaction_no_builder
-    ret = @sampler.ignore_transaction(@state)
-    assert_nil ret
-  end
-
-  def test_ignore_transaction_with_builder
-    in_transaction do
-      @sampler.ignore_transaction(@state)
-    end
-
-    assert_nil(@sampler.last_sample)
   end
 
   def test_records_cpu_time_on_transaction_samples
