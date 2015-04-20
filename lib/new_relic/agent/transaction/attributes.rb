@@ -56,8 +56,8 @@ module NewRelic
         end
 
         def merge_custom_attributes(other)
-          other.each do |key, value|
-            self.add_custom_attribute(key, value)
+          flatten_and_coerce(other).each do |k, v|
+            self.add_custom_attribute(k, v)
           end
         end
 
