@@ -686,7 +686,7 @@ module NewRelic
           :default => 'obfuscated',
           :public => true,
           :type => String,
-          :description => 'Obfuscation level for SQL queries reported in transaction trace segments. Valid options are <code>obfuscated</code>, <code>raw</code>, <code>none</code>.'
+          :description => 'Obfuscation level for SQL queries reported in transaction trace nodes. Valid options are <code>obfuscated</code>, <code>raw</code>, <code>none</code>.'
         },
         :'transaction_tracer.capture_attributes' => {
           :default => true,
@@ -711,13 +711,13 @@ module NewRelic
           :default => 0.5,
           :public => true,
           :type => Float,
-          :description => 'Stack traces will be included in transaction trace segments when their duration exceeds this threshold.'
+          :description => 'Stack traces will be included in transaction trace nodes when their duration exceeds this threshold.'
         },
         :'transaction_tracer.limit_segments' => {
           :default => 4000,
           :public => true,
           :type => Fixnum,
-          :description => 'Maximum number of transaction trace segments to record in a single transaction trace.'
+          :description => 'Maximum number of transaction trace nodes to record in a single transaction trace.'
         },
         :disable_sequel_instrumentation => {
           :default => false,

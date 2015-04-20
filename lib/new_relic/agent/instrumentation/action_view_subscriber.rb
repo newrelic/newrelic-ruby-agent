@@ -4,7 +4,7 @@
 require 'new_relic/agent/instrumentation/evented_subscriber'
 
 # Listen for ActiveSupport::Notifications events for ActionView render
-# events.  Write metric data and transaction trace segments for each event.
+# events.  Write metric data and transaction trace nodes for each event.
 module NewRelic
   module Agent
     module Instrumentation

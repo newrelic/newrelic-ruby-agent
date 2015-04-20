@@ -109,7 +109,7 @@ module NewRelic
 
       # Perform this in the runtime environment of a managed
       # application, to explain the sql statement executed within a
-      # segment of a transaction sample. Returns an array of
+      # node of a transaction sample. Returns an array of
       # explanations (which is an array rows consisting of an array of
       # strings for each column returned by the the explain query)
       # Note this happens only for statements whose execution time
