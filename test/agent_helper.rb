@@ -347,7 +347,7 @@ def last_sql_trace
   NewRelic::Agent.agent.sql_sampler.sql_traces.values.last
 end
 
-def find_last_transaction_segment(transaction_sample=nil)
+def find_last_transaction_node(transaction_sample=nil)
   if transaction_sample
     root_node = transaction_sample.root_node
   else
@@ -355,26 +355,16 @@ def find_last_transaction_segment(transaction_sample=nil)
     root_node = builder.current_node
   end
 
-  last_segment = nil
-  root_node.each_node {|s| last_segment = s }
+  last_node = nil
+  root_node.each_node {|s| last_node = s }
 
-  return last_segment
-end
-
-def collect_segment_names(transaction_sample)
-  names = []
-
-  transaction_sample.root_node.each_node do |segment|
-    names << segment.metric_name
-  end
-
-  names
+  return last_node
 end
 
 def find_node_with_name(transaction_sample, name)
-  transaction_sample.root_node.each_node do |segment|
-    if segment.metric_name == name
-      return segment
+  transaction_sample.root_node.each_node do |node|
+    if node.metric_name == name
+      return node
     end
   end
 
@@ -382,28 +372,28 @@ def find_node_with_name(transaction_sample, name)
 end
 
 def find_node_with_name_matching(transaction_sample, regex)
-  transaction_sample.root_node.each_node do |segment|
-    if segment.metric_name.match regex
-      return segment
+  transaction_sample.root_node.each_node do |node|
+    if node.metric_name.match regex
+      return node
     end
   end
 
   nil
 end
 
-def find_all_segments_with_name_matching(transaction_sample, regexes)
+def find_all_nodes_with_name_matching(transaction_sample, regexes)
   regexes = [regexes].flatten
-  matching_segments = []
+  matching_nodes = []
 
-  transaction_sample.root_node.each_node do |segment|
+  transaction_sample.root_node.each_node do |node|
     regexes.each do |regex|
-      if segment.metric_name.match regex
-        matching_segments << segment
+      if node.metric_name.match regex
+        matching_nodes << node
       end
     end
   end
 
-  matching_segments
+  matching_nodes
 end
 
 def with_config(config_hash, at_start=true)

@@ -310,7 +310,7 @@ module MongoOperationTests
     in_transaction do
       @collection.insert(@tribble)
 
-      segment = find_last_transaction_segment
+      segment = find_last_transaction_node
     end
 
     expected = {
@@ -328,7 +328,7 @@ module MongoOperationTests
 
     in_transaction do
       @collection.insert(@tribble)
-      segment = find_last_transaction_segment
+      segment = find_last_transaction_node
     end
 
     query = segment.params[:statement]
@@ -344,7 +344,7 @@ module MongoOperationTests
       updated['name'] = 't-rex'
       @collection.update(@tribble, updated)
 
-      segment = find_last_transaction_segment
+      segment = find_last_transaction_node
     end
 
     query = segment.params[:statement]
@@ -357,7 +357,7 @@ module MongoOperationTests
 
     in_transaction do
       @collection.save(@tribble)
-      segment = find_last_transaction_segment
+      segment = find_last_transaction_node
     end
 
     query = segment.params[:statement]
@@ -369,7 +369,7 @@ module MongoOperationTests
 
     in_transaction do
       @collection.ensure_index([[unique_field_name, Mongo::ASCENDING]])
-      segment = find_last_transaction_segment
+      segment = find_last_transaction_node
     end
 
     assert_ensure_index_in_transaction_segment(segment)
@@ -380,7 +380,7 @@ module MongoOperationTests
 
     in_transaction do
       @collection.ensure_index(unique_field_name.to_sym)
-      segment = find_last_transaction_segment
+      segment = find_last_transaction_node
     end
 
     assert_ensure_index_in_transaction_segment(segment)
@@ -391,7 +391,7 @@ module MongoOperationTests
 
     in_transaction do
       @collection.ensure_index(unique_field_name)
-      segment = find_last_transaction_segment
+      segment = find_last_transaction_node
     end
 
     assert_ensure_index_in_transaction_segment(segment)
@@ -409,7 +409,7 @@ module MongoOperationTests
 
     in_transaction do
       @collection.insert({'name' => 'soterios johnson'})
-      segment = find_last_transaction_segment
+      segment = find_last_transaction_node
     end
 
     statement = segment.params[:statement]
@@ -423,7 +423,7 @@ module MongoOperationTests
 
     in_transaction do
       @collection.remove({'password' => '$ecret'})
-      segment = find_last_transaction_segment
+      segment = find_last_transaction_node
     end
 
     statement = segment.params[:statement]

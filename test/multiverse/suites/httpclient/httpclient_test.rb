@@ -68,7 +68,7 @@ class HTTPClientTest < Minitest::Test
         raise e unless e == test_exception
       end
 
-      last_segment = find_last_transaction_segment()
+      last_segment = find_last_transaction_node()
       assert_equal("External/localhost/HTTPClient/GET", last_segment.metric_name)
     end
   end

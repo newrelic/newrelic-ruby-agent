@@ -179,7 +179,7 @@ module HttpClientTestCases
     perform_action_with_newrelic_trace(:name => "task") do
       get_response
 
-      last_segment = find_last_transaction_segment()
+      last_segment = find_last_transaction_node()
       assert_equal "External/localhost/#{client_name}/GET", last_segment.metric_name
     end
   end
@@ -316,7 +316,7 @@ module HttpClientTestCases
       in_transaction("test") do
         get_response
 
-        last_segment = find_last_transaction_segment()
+        last_segment = find_last_transaction_node()
         assert_includes last_segment.params.keys, :transaction_guid
         assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
       end
@@ -340,7 +340,7 @@ module HttpClientTestCases
       in_transaction("test") do
         get_response
 
-        last_segment = find_last_transaction_segment()
+        last_segment = find_last_transaction_node()
         assert_includes last_segment.params.keys, :transaction_guid
         assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
       end
@@ -412,7 +412,7 @@ module HttpClientTestCases
     full_url = "#{default_url}?foo=bar#fragment"
     in_transaction do
       get_response(full_url)
-      last_segment = find_last_transaction_segment()
+      last_segment = find_last_transaction_node()
       filtered_uri = default_url
       assert_equal filtered_uri, last_segment.params[:uri]
     end
@@ -439,7 +439,7 @@ module HttpClientTestCases
       with_config(:"cross_application_tracer.enabled" => true) do
         get_response
 
-        last_segment = find_last_transaction_segment()
+        last_segment = find_last_transaction_node()
         refute last_segment.params.key?(:uri)
       end
     end
@@ -466,7 +466,7 @@ module HttpClientTestCases
           # across all libraries
         end
 
-        last_segment = find_last_transaction_segment()
+        last_segment = find_last_transaction_node()
         assert_equal("External/localhost/#{client_name}/GET", last_segment.metric_name)
       end
 

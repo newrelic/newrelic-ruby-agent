@@ -247,7 +247,7 @@ class DataMapperTest < Minitest::Test
       Post.get(42)
     end
 
-    sql_segment = find_last_transaction_segment(last_transaction_trace)
+    sql_segment = find_last_transaction_node(last_transaction_trace)
     refute_nil sql_segment.obfuscated_sql
   end
 

@@ -74,7 +74,7 @@ class ExconTest < Minitest::Test
         # meh
       end
 
-      last_segment = find_last_transaction_segment()
+      last_segment = find_last_transaction_node()
       assert_equal("External/localhost/Excon/GET", last_segment.metric_name)
     end
   end

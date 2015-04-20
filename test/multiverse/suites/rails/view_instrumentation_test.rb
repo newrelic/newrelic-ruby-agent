@@ -115,7 +115,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
     def test_should_count_all_the_template_and_partial_segments
       get '/views/template_render_with_3_partial_renders'
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-      segments = find_all_segments_with_name_matching(sample, ['^Nested/Controller/views', '^View'])
+      segments = find_all_nodes_with_name_matching(sample, ['^Nested/Controller/views', '^View'])
       segments_list = "Found these nodes:\n  #{segments.map(&:metric_name).join("\n  ")}"
 
       if Rails::VERSION::MAJOR <= 2
@@ -129,7 +129,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
       get '/views/template_render_with_3_partial_renders'
 
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-      partial_segments = find_all_segments_with_name_matching(sample, 'View/views/_a_partial.html.erb/Partial')
+      partial_segments = find_all_nodes_with_name_matching(sample, 'View/views/_a_partial.html.erb/Partial')
 
       assert_equal 3, partial_segments.size, "sanity check"
       assert_equal ['View/views/_a_partial.html.erb/Partial'], partial_segments.map(&:metric_name).uniq
