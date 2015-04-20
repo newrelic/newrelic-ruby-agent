@@ -62,7 +62,7 @@ class IgnoredActionsTest < RailsMultiverseTest
     get '/request_stats/stats_action'
 
     trace = NewRelic::Agent.instance.transaction_sampler.last_sample
-    assert_equal 1, trace.root_segment.called_nodes.count
+    assert_equal 1, trace.root_node.called_nodes.count
   end
 
   def test_should_not_write_cat_response_headers_for_ignored_transactions

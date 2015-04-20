@@ -349,14 +349,14 @@ end
 
 def find_last_transaction_segment(transaction_sample=nil)
   if transaction_sample
-    root_segment = transaction_sample.root_segment
+    root_node = transaction_sample.root_node
   else
     builder = NewRelic::Agent.agent.transaction_sampler.tl_builder
-    root_segment = builder.current_segment
+    root_node = builder.current_segment
   end
 
   last_segment = nil
-  root_segment.each_node {|s| last_segment = s }
+  root_node.each_node {|s| last_segment = s }
 
   return last_segment
 end
@@ -364,7 +364,7 @@ end
 def collect_segment_names(transaction_sample)
   names = []
 
-  transaction_sample.root_segment.each_node do |segment|
+  transaction_sample.root_node.each_node do |segment|
     names << segment.metric_name
   end
 
@@ -372,7 +372,7 @@ def collect_segment_names(transaction_sample)
 end
 
 def find_node_with_name(transaction_sample, name)
-  transaction_sample.root_segment.each_node do |segment|
+  transaction_sample.root_node.each_node do |segment|
     if segment.metric_name == name
       return segment
     end
@@ -382,7 +382,7 @@ def find_node_with_name(transaction_sample, name)
 end
 
 def find_node_with_name_matching(transaction_sample, regex)
-  transaction_sample.root_segment.each_node do |segment|
+  transaction_sample.root_node.each_node do |segment|
     if segment.metric_name.match regex
       return segment
     end
@@ -395,7 +395,7 @@ def find_all_segments_with_name_matching(transaction_sample, regexes)
   regexes = [regexes].flatten
   matching_segments = []
 
-  transaction_sample.root_segment.each_node do |segment|
+  transaction_sample.root_node.each_node do |segment|
     regexes.each do |regex|
       if segment.metric_name.match regex
         matching_segments << segment

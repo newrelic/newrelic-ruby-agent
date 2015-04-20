@@ -10,7 +10,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     freeze_time
     @start_time = Time.now
     @trace = NewRelic::Agent::Transaction::Trace.new(@start_time)
-    @trace.root_segment.end_trace(@start_time)
+    @trace.root_node.end_trace(@start_time)
 
     filter = NewRelic::Agent.instance.attribute_filter
     @fake_attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
@@ -35,8 +35,8 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal 1, @trace.segment_count
   end
 
-  def test_duration_is_the_root_segment_duration
-    assert_equal @trace.duration, @trace.root_segment.duration
+  def test_duration_is_the_root_node_duration
+    assert_equal @trace.duration, @trace.root_node.duration
   end
 
   def test_create_segment
@@ -45,9 +45,9 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal 'goo', result.metric_name
   end
 
-  def test_each_node_delegates_to_root_segment
+  def test_each_node_delegates_to_root_node
     block = Proc.new {}
-    @trace.root_segment.expects(:each_node)
+    @trace.root_node.expects(:each_node)
     @trace.each_node(&block)
   end
 
@@ -56,9 +56,9 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:start_time, expected)
   end
 
-  def test_root_segment
-    assert_equal 0.0, @trace.root_segment.entry_timestamp
-    assert_equal "ROOT", @trace.root_segment.metric_name
+  def test_root_node
+    assert_equal 0.0, @trace.root_node.entry_timestamp
+    assert_equal "ROOT", @trace.root_node.metric_name
   end
 
   def test_prepare_to_send_returns_self
@@ -103,7 +103,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = ''
 
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.prepare_to_send!
@@ -118,7 +118,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment = @trace.create_segment(0.0, 'has_sql')
     segment.stubs(:duration).returns(2)
     segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
 
     @trace.prepare_to_send!
     assert_equal "select * from pelicans where name = ?;", segment[:sql]
@@ -131,7 +131,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = 'select * from pelicans;'
 
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
     @trace.prepare_to_send!
 
     refute segment[:sql]
@@ -143,7 +143,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = ''
 
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
@@ -158,7 +158,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = ''
 
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
 
     with_config(:'transaction_tracer.explain_threshold' => 2) do
       @trace.collect_explain_plans!
@@ -173,7 +173,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = nil
 
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
@@ -190,7 +190,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     NewRelic::Agent::Database.stubs(:should_collect_explain_plans?).returns(false)
 
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
@@ -204,7 +204,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     segment = @trace.create_segment(0.0, 'has_sql')
     segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
 
     @trace.prepare_sql_for_transmission!
     assert_equal "select * from pelicans where name = ?;", segment[:sql]
@@ -215,7 +215,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     segment = @trace.create_segment(0.0, 'has_sql')
     segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
 
     @trace.prepare_sql_for_transmission!
     assert_equal "select * from pelicans where name = '1337807';", segment[:sql]
@@ -226,7 +226,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     segment = @trace.create_segment(0.0, 'has_sql')
     segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
 
     @trace.prepare_sql_for_transmission!
     refute segment[:sql]
@@ -238,14 +238,14 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     segment.stubs(:explain_sql).returns('')
     segment[:sql] = 'select * from pelicans;'
 
-    @trace.root_segment.add_called_node(segment)
+    @trace.root_node.add_called_node(segment)
     @trace.strip_sql!
 
     refute segment[:sql]
   end
 
-  def test_collector_array_contains_root_segment_duration
-    @trace.root_segment.end_trace(1)
+  def test_collector_array_contains_root_node_duration
+    @trace.root_node.end_trace(1)
     assert_collector_array_contains(:duration, 1000)
   end
 
@@ -344,8 +344,8 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_trace_tree_contains(:unused_legacy_custom_params, {})
   end
 
-  def test_trace_tree_contains_serialized_root_segment
-    assert_trace_tree_contains(:root_segment, @trace.root_segment.to_array)
+  def test_trace_tree_contains_serialized_root_node
+    assert_trace_tree_contains(:root_node, @trace.root_node.to_array)
   end
 
   def test_trace_tree_contains_attributes
@@ -367,7 +367,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
       :start_time,
       :unused_legacy_request_params,
       :unused_legacy_custom_params,
-      :root_segment,
+      :root_node,
       :attributes
     ]
 

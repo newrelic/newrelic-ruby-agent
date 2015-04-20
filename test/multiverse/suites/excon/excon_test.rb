@@ -60,7 +60,7 @@ class ExconTest < Minitest::Test
     end
 
     tt = NewRelic::Agent.agent.transaction_sampler.last_sample
-    segment = tt.root_segment.called_nodes.first.called_nodes.first
+    segment = tt.root_node.called_nodes.first.called_nodes.first
     assert_equal("External/localhost/Excon/GET", segment.metric_name)
     assert_equal(target_url, segment.params[:uri])
   end

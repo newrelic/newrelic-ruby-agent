@@ -71,7 +71,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
 
     dump = Marshal.dump @builder.sample
     sample = Marshal.restore(dump)
-    validate_segment(sample.root_segment)
+    validate_segment(sample.root_node)
   end
 
   def test_parallel_first_level_segments
@@ -117,7 +117,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
       segment_names = []
       segment_durations = []
       sample.each_node do |s|
-        if s != sample.root_segment
+        if s != sample.root_node
           segment_names << s.metric_name
           segment_durations << s.duration
         end
@@ -178,7 +178,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
   end
 
   def validate_builder(check_names = true)
-    validate_segment @builder.sample.root_segment, check_names
+    validate_segment @builder.sample.root_node, check_names
   end
 
   def validate_segment(s, check_names = true)

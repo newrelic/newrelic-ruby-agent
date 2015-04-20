@@ -115,7 +115,7 @@ module NewRelic::DeveloperModeHelper
   def render_sample_details(sample)
     @indentation_depth=0
     # skip past the root segments to the first child, which is always the controller
-    first_segment = sample.root_segment.called_nodes.first
+    first_segment = sample.root_node.called_nodes.first
 
     # render the segments, then the css classes to indent them
     render_segment_details(first_segment).to_s + render_indentation_classes(@indentation_depth).to_s

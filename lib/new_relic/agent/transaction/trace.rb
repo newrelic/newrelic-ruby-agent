@@ -10,7 +10,7 @@ module NewRelic
       class Trace
         class FinishedTraceError < StandardError; end
 
-        attr_reader :start_time, :root_segment
+        attr_reader :start_time, :root_node
         attr_accessor :transaction_name, :uri, :guid, :xray_session_id,
                       :attributes, :segment_count, :finished, :threshold,
                       :profile
@@ -18,7 +18,7 @@ module NewRelic
         def initialize(start_time)
           @start_time = start_time
           @segment_count = 0
-          @root_segment = NewRelic::Agent::Transaction::TraceNode.new(0.0, "ROOT")
+          @root_node = NewRelic::Agent::Transaction::TraceNode.new(0.0, "ROOT")
         end
 
         def sample_id
@@ -30,7 +30,7 @@ module NewRelic
         end
 
         def duration
-          self.root_segment.duration
+          self.root_node.duration
         end
 
         def forced?
@@ -44,7 +44,7 @@ module NewRelic
         end
 
         def to_s_compact
-          @root_segment.to_s_compact
+          @root_node.to_s_compact
         end
 
         def create_segment(time_since_start, metric_name = nil)
@@ -54,7 +54,7 @@ module NewRelic
         end
 
         def each_node(&block)
-          self.root_segment.each_node(&block)
+          self.root_node.each_node(&block)
         end
 
         def prepare_to_send!
@@ -107,7 +107,7 @@ module NewRelic
         # Iterates recursively over each segment in the entire transaction
         # sample tree while keeping track of nested segments
         def each_node_with_nest_tracking(&block)
-          @root_segment.each_node_with_nest_tracking(&block)
+          @root_node.each_node_with_nest_tracking(&block)
         end
 
         def trace_tree
@@ -121,7 +121,7 @@ module NewRelic
             NewRelic::Coerce.float(self.start_time),
             {},
             {},
-            self.root_segment.to_array,
+            self.root_node.to_array,
             {
               'agentAttributes' => NewRelic::Coerce.event_params(agent_attributes),
               'userAttributes'  => NewRelic::Coerce.event_params(custom_attributes),
@@ -133,7 +133,7 @@ module NewRelic
         def to_collector_array(encoder)
           [
             NewRelic::Helper.time_to_millis(self.start_time),
-            NewRelic::Helper.time_to_millis(self.root_segment.duration),
+            NewRelic::Helper.time_to_millis(self.root_node.duration),
             NewRelic::Coerce.string(self.transaction_name),
             NewRelic::Coerce.string(self.uri),
             encoder.encode(trace_tree),

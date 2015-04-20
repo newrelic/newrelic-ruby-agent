@@ -201,7 +201,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
                    .last_sample.transaction_name)
     assert_equal('Controller/test/index',
                  NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.root_segment.called_nodes[0].metric_name)
+                   .last_sample.root_node.called_nodes[0].metric_name)
   end
 
   def test_applies_txn_name_rules

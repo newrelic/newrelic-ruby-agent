@@ -166,7 +166,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
 
     last_segment = nil
     sampler = NewRelic::Agent.instance.transaction_sampler
-    sampler.last_sample.root_segment.each_node{|s| last_segment = s }
+    sampler.last_sample.root_node.each_node{|s| last_segment = s }
     NewRelic::Agent.shutdown
 
     assert_equal('View/model/index.html.erb/Rendering',
@@ -194,7 +194,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     end
 
     sampler = NewRelic::Agent.instance.transaction_sampler
-    template_segment = sampler.last_sample.root_segment.called_nodes[0].called_nodes[0]
+    template_segment = sampler.last_sample.root_node.called_nodes[0].called_nodes[0]
     partial_segment = template_segment.called_nodes[0]
 
     assert_equal('View/model/index.html.erb/Rendering',
@@ -226,7 +226,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     end
 
     sampler = NewRelic::Agent.instance.transaction_sampler
-    partial_segments = sampler.last_sample.root_segment.called_nodes[0].called_nodes
+    partial_segments = sampler.last_sample.root_node.called_nodes[0].called_nodes
 
     assert_equal 3, partial_segments.size
     assert_equal('View/model/_list.html.erb/Partial',

@@ -50,7 +50,7 @@ module NewRelic
       def initialize(time=Time.now)
         @sample = NewRelic::Agent::Transaction::Trace.new(time.to_f)
         @sample_start = time.to_f
-        @current_segment = @sample.root_segment
+        @current_segment = @sample.root_node
       end
 
       def sample_id
@@ -99,7 +99,7 @@ module NewRelic
           ::NewRelic::Agent.logger.error "Unexpected double-finish_trace of Transaction Trace Object: \n#{@sample.to_s}"
           return
         end
-        @sample.root_segment.end_trace(time.to_f - @sample_start)
+        @sample.root_node.end_trace(time.to_f - @sample_start)
 
         @sample.threshold = transaction_trace_threshold
         @sample.finished = true

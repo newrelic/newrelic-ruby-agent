@@ -82,7 +82,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
 
     last_segment = nil
     sampler = NewRelic::Agent.instance.transaction_sampler
-    sampler.last_sample.root_segment.each_node{|s| last_segment = s }
+    sampler.last_sample.root_node.each_node{|s| last_segment = s }
 
     assert_equal('Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
                  last_segment.metric_name)
