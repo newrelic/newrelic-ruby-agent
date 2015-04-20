@@ -426,9 +426,10 @@ module NewRelic
         name_last_frame @default_name
       end
 
-      # Call this to ensure that the current transaction is not saved
+      # Call this to ensure that the current transaction trace is not saved
+      # To fully ignore all metrics and errors, use ignore! instead.
       def abort_transaction!(state)
-        transaction_sampler.ignore_transaction(state)
+        @ignore_trace = true
       end
 
       WEB_SUMMARY_METRIC   = 'HttpDispatcher'.freeze
@@ -878,6 +879,10 @@ module NewRelic
 
       def ignore_enduser?
         @ignore_enduser
+      end
+
+      def ignore_trace?
+        @ignore_trace
       end
 
       private

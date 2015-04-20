@@ -111,7 +111,7 @@ module NewRelic
         return unless last_builder && enabled?
 
         state.transaction_sample_builder = nil
-        return if last_builder.ignored?
+        return if txn.ignore_trace?
 
         last_builder.finish_trace(time.to_f)
 
@@ -132,15 +132,6 @@ module NewRelic
         @sample_buffers.each do |sample_buffer|
           sample_buffer.store(sample)
         end
-      end
-
-      # Tells the builder to ignore a transaction, if we are currently
-      # creating one. Only causes the sample to be ignored upon end of
-      # the transaction, and does not change the metrics gathered
-      # outside of the sampler
-      def ignore_transaction(state)
-        builder = state.transaction_sample_builder
-        builder.ignore_transaction if builder
       end
 
       MAX_DATA_LENGTH = 16384
