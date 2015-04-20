@@ -335,11 +335,9 @@ module NewRelic
 
       DISALLOWED_REQUEST_PARAMETERS = ["controller", "action"]
 
-      REQUEST_PARAMETERS_PREFIX = 'request.parameters'.freeze
-
       def merge_request_parameters(params)
         DISALLOWED_REQUEST_PARAMETERS.each { |key| params.delete(key) }
-        merge_untrusted_agent_attributes(REQUEST_PARAMETERS_PREFIX, params, AttributeFilter::DST_NONE)
+        merge_untrusted_agent_attributes(:'request.parameters', params, AttributeFilter::DST_NONE)
       end
 
       def make_transaction_name(name, category=nil)
