@@ -16,12 +16,6 @@ module NewRelic
             :'resque.capture_params'  => false,
             :'sidekiq.capture_params' => false,
 
-            :'attributes.enabled'                    => false,
-            :'transaction_tracer.attributes.enabled' => false,
-            :'error_collector.attributes.enabled'    => false,
-            :'browser_monitoring.attributes.enabled' => false,
-            :'transaction_events.attributes.enabled' => false,
-
             :'transaction_tracer.record_sql' => record_sql_setting(local_settings, :'transaction_tracer.record_sql'),
             :'slow_sql.record_sql'           => record_sql_setting(local_settings, :'slow_sql.record_sql'),
             :'mongo.obfuscate_queries'       => true,

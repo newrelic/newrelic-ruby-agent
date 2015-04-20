@@ -158,6 +158,31 @@ class HighSecurityTest < Minitest::Test
     refute_browser_monitoring_has_any_attributes
   end
 
+  def test_doesnt_block_agent_attributes_to_transaction_traces
+    in_transaction do |txn|
+      txn.http_response_code = 200
+    end
+
+    run_harvest
+
+    expected = { "httpResponseCode" => 200 }
+    assert_equal expected, single_transaction_trace_posted.agent_attributes
+  end
+
+  def test_doesnt_block_agent_attributes_to_errors
+    assert_raises(RuntimeError) do
+      in_transaction do |txn|
+        txn.http_response_code = 500
+        raise "O_o"
+      end
+    end
+
+    run_harvest
+
+    expected = { "httpResponseCode" => 500 }
+    assert_equal expected, single_error_posted.agent_attributes
+  end
+
   def test_doesnt_block_intrinsic_attributes_on_transaction_traces
     in_transaction do
       NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true

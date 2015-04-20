@@ -104,6 +104,10 @@ module NewRelic
 
         @rules.sort!
 
+        # We're ok to cache high security for fast lookup because the attribute
+        # filter is re-generated on any significant config change.
+        @high_security = config[:high_security]
+
         cache_parameter_capture_flags
       end
 
@@ -143,6 +147,10 @@ module NewRelic
 
       def allows?(allowed_destinations, requested_destination)
         allowed_destinations & requested_destination == requested_destination
+      end
+
+      def high_security?
+        @high_security
       end
 
       # In the default case, we don't capture HTTP request parameters, or job

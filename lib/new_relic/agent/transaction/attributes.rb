@@ -26,6 +26,11 @@ module NewRelic
         end
 
         def add_custom_attribute(key, value)
+          if @filter.high_security?
+            NewRelic::Agent.logger.debug("Unable to add custom attribute #{key} while in high security mode.")
+            return
+          end
+
           if @custom_attributes.size >= COUNT_LIMIT
             unless @already_warned_count_limit
               NewRelic::Agent.logger.warn("Custom attributes count exceeded limit of #{COUNT_LIMIT}. Any additional custom attributes during this transaction will be dropped.")
@@ -68,12 +73,19 @@ module NewRelic
         end
 
         def merge_custom_attributes(other)
+          if @filter.high_security?
+            NewRelic::Agent.logger.debug("Unable to add custom attributes #{other.keys.inspect} while in high security mode.")
+            return
+          end
+
           other.each do |key, value|
             self.add_custom_attribute(key, value)
           end
         end
 
         def merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
+          return if @filter.high_security?
+
           flatten_and_coerce(prefix, attributes).each do |k, v|
             add_agent_attribute_with_key_check(k, v, AttributeFilter::DST_NONE)
           end

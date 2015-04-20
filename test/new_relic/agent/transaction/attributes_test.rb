@@ -33,6 +33,24 @@ class AttributesTest < Minitest::Test
     end
   end
 
+  def test_disable_custom_attributes_in_high_security_mode
+    with_config(:high_security => true) do
+      attributes = create_attributes
+      attributes.add_custom_attribute(:foo, "bar")
+
+      assert_empty attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+    end
+  end
+
+  def test_disable_merging_custom_attributes_in_high_security_mode
+    with_config(:high_security => true) do
+      attributes = create_attributes
+      attributes.merge_custom_attributes(:foo => "bar")
+
+      assert_empty attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+    end
+  end
+
   def test_adds_agent_attribute
     attributes = create_attributes
     attributes.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
@@ -267,6 +285,16 @@ class AttributesTest < Minitest::Test
       }
       attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
       assert_equal({"request.parameters.foo" => "bar"}, agent_attributes(attributes))
+    end
+  end
+
+  def test_merge_untrusted_agent_attributes_disallowed_in_high_security
+    with_config(:high_security => true, :'attributes.include' => "request.parameters.*") do
+      attributes = create_attributes
+      params = { "sneaky" => "code" }
+
+      attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
+      assert_empty agent_attributes(attributes)
     end
   end
 
