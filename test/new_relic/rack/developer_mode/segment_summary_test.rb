@@ -2,13 +2,14 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
-require 'new_relic/transaction_analysis/segment_summary'
-class NewRelic::TransactionAnalysis::SegmentSummaryTest < Minitest::Test
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..','test_helper'))
+require 'new_relic/rack/developer_mode'
+require 'new_relic/rack/developer_mode/segment_summary'
 
+class SegmentSummaryTest < Minitest::Test
   def setup
     @sample = mock('sample')
-    @ss = NewRelic::TransactionAnalysis::SegmentSummary.new('Controller/foo', @sample)
+    @ss = NewRelic::Rack::DeveloperMode::SegmentSummary.new('Controller/foo', @sample)
   end
 
   # these are mostly stub tests just making sure that the API doesn't

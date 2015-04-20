@@ -17,7 +17,7 @@ module NewRelic::DeveloperModeHelper
   end
 
   def trace_row_display_limit_reached
-   (!@detail_segment_count.nil? && @detail_segment_count > trace_row_display_limit) || @sample.sql_segments.length > trace_row_display_limit
+   (!@detail_segment_count.nil? && @detail_segment_count > trace_row_display_limit) || sql_segments(@sample).length > trace_row_display_limit
   end
 
   # return the highest level in the call stack for the trace that is not rails or
@@ -144,7 +144,7 @@ module NewRelic::DeveloperModeHelper
     pie_chart = GooglePieChart.new
     pie_chart.color, pie_chart.width, pie_chart.height = '6688AA', width, height
 
-    chart_data = sample.breakdown_data(6)
+    chart_data = breakdown_data(sample, 6)
     chart_data.each { |s| pie_chart.add_data_point dev_name(s.metric_name), to_ms(s.exclusive_time) }
 
     pie_chart.render

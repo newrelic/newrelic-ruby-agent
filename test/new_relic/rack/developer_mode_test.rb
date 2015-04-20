@@ -53,7 +53,7 @@ class DeveloperModeTest < Minitest::Test
 
   def test_explain_sql_displays_query_plan
     sample = @sampler.dev_mode_sample_buffer.samples[0]
-    sql_segment = sample.sql_segments[0]
+    sql_segment = app.send(:sql_segments, sample)[0]
     explain_results = NewRelic::Agent::Database.process_resultset(dummy_mysql_explain_result, 'mysql')
 
     NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns(explain_results)
