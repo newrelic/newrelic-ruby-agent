@@ -21,8 +21,8 @@ module ::Excon
             wrapped_request = ::NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(datum)
             state   = ::NewRelic::Agent::TransactionState.tl_get
             t0      = Time.now
-            segment = ::NewRelic::Agent::CrossAppTracing.start_trace(state, t0, wrapped_request)
-            datum[:connection].instance_variable_set(TRACE_DATA_IVAR, [t0, segment, wrapped_request])
+            node = ::NewRelic::Agent::CrossAppTracing.start_trace(state, t0, wrapped_request)
+            datum[:connection].instance_variable_set(TRACE_DATA_IVAR, [t0, node, wrapped_request])
           end
         rescue => e
           NewRelic::Agent.logger.debug(e)
@@ -44,12 +44,12 @@ module ::Excon
         trace_data = datum[:connection] && datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
         if trace_data
           datum[:connection].instance_variable_set(TRACE_DATA_IVAR, nil)
-          t0, segment, wrapped_request = trace_data
+          t0, node, wrapped_request = trace_data
           if datum[:response]
             wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(datum[:response])
           end
           state = ::NewRelic::Agent::TransactionState.tl_get
-          ::NewRelic::Agent::CrossAppTracing.finish_trace(state, t0, segment, wrapped_request, wrapped_response)
+          ::NewRelic::Agent::CrossAppTracing.finish_trace(state, t0, node, wrapped_request, wrapped_response)
         end
       end
     end

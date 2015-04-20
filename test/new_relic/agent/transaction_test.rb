@@ -336,7 +336,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_set_default_transaction_name_with_category_and_segment_name
+  def test_set_default_transaction_name_with_category_and_node_name
     in_transaction('foo', :category => :controller) do |txn|
       NewRelic::Agent::Transaction.set_default_transaction_name('bar', :grape, 'baz')
       assert_equal("Controller/Grape/bar", txn.best_name)

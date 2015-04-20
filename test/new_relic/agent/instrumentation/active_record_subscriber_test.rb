@@ -73,21 +73,21 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     )
   end
 
-  def test_creates_txn_segment
+  def test_creates_txn_node
     freeze_time
 
     in_transaction do
       simulate_query(2)
     end
 
-    last_segment = nil
+    last_node = nil
     sampler = NewRelic::Agent.instance.transaction_sampler
-    sampler.last_sample.root_node.each_node{|s| last_segment = s }
+    sampler.last_sample.root_node.each_node{|s| last_node = s }
 
     assert_equal('Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
-                 last_segment.metric_name)
+                 last_node.metric_name)
     assert_equal('SELECT * FROM sandwiches',
-                 last_segment.params[:sql])
+                 last_node.params[:sql])
   end
 
   def test_creates_slow_sql_node

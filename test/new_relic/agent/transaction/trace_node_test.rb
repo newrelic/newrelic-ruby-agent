@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'te
 require 'new_relic/agent/transaction/trace_node'
 
 class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
-  def test_segment_creation
+  def test_node_creation
     # basic smoke test
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     assert_equal NewRelic::Agent::Transaction::TraceNode, s.class
@@ -31,10 +31,10 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_add_called_node
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     assert_equal [], s.called_nodes
-    fake_segment = mock('segment')
-    fake_segment.expects(:parent_node=).with(s)
-    s.add_called_node(fake_segment)
-    assert_equal([fake_segment], s.called_nodes)
+    fake_node = mock('node')
+    fake_node.expects(:parent_node=).with(s)
+    s.add_called_node(fake_node)
+    assert_equal([fake_node], s.called_nodes)
   end
 
   def test_to_s
@@ -56,22 +56,22 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   end
 
   def test_to_array_with_bad_values
-    segment = NewRelic::Agent::Transaction::TraceNode.new(nil, nil)
-    segment.end_trace(Rational(10, 1))
+    node = NewRelic::Agent::Transaction::TraceNode.new(nil, nil)
+    node.end_trace(Rational(10, 1))
     expected = [0, 10_000.0, "<unknown>", {}, []]
-    assert_equal(expected, segment.to_array)
+    assert_equal(expected, node.to_array)
   end
 
   def test_path_string
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     assert_equal("Custom/test/metric[]", s.path_string)
 
-    fake_segment = mock('segment')
-    fake_segment.expects(:parent_node=).with(s)
-    fake_segment.expects(:path_string).returns('Custom/other/metric[]')
+    fake_node = mock('node')
+    fake_node.expects(:parent_node=).with(s)
+    fake_node.expects(:path_string).returns('Custom/other/metric[]')
 
 
-    s.add_called_node(fake_segment)
+    s.add_called_node(fake_node)
     assert_equal("Custom/test/metric[Custom/other/metric[]]", s.path_string)
   end
 
@@ -79,10 +79,10 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     assert_equal("Custom/test/metric", s.to_s_compact)
 
-    fake_segment = mock('segment')
-    fake_segment.expects(:parent_node=).with(s)
-    fake_segment.expects(:to_s_compact).returns('Custom/other/metric')
-    s.add_called_node(fake_segment)
+    fake_node = mock('node')
+    fake_node.expects(:parent_node=).with(s)
+    fake_node.expects(:to_s_compact).returns('Custom/other/metric')
+    s.add_called_node(fake_node)
 
     assert_equal("Custom/test/metric{Custom/other/metric}", s.to_s_compact)
   end
@@ -151,13 +151,13 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal([], s.called_nodes)
   end
 
-  def test_called_nodes_with_segments
+  def test_called_nodes_with_nodes
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    fake_segment = mock('segment')
-    fake_segment.expects(:parent_node=).with(s)
-    s.add_called_node(fake_segment)
+    fake_node = mock('node')
+    fake_node.expects(:parent_node=).with(s)
+    s.add_called_node(fake_node)
 
-    assert_equal([fake_segment], s.called_nodes)
+    assert_equal([fake_node], s.called_nodes)
   end
 
   def test_duration
@@ -183,11 +183,11 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
     s.expects(:duration).returns(0.5)
 
-    fake_segment = mock('segment')
-    fake_segment.expects(:parent_node=).with(s)
-    fake_segment.expects(:duration).returns(0.1)
+    fake_node = mock('node')
+    fake_node.expects(:parent_node=).with(s)
+    fake_node.expects(:duration).returns(0.1)
 
-    s.add_called_node(fake_segment)
+    s.add_called_node(fake_node)
 
     assert_equal(0.4, s.exclusive_duration)
   end
@@ -200,11 +200,11 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_count_nodes_with_children
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
 
-    fake_segment = mock('segment')
-    fake_segment.expects(:parent_node=).with(s)
-    fake_segment.expects(:count_nodes).returns(1)
+    fake_node = mock('node')
+    fake_node.expects(:parent_node=).with(s)
+    fake_node.expects(:count_nodes).returns(1)
 
-    s.add_called_node(fake_segment)
+    s.add_called_node(fake_node)
 
     assert_equal(2, s.count_nodes)
   end
@@ -255,11 +255,11 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_each_node_with_children
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
 
-    fake_segment = mock('segment')
-    fake_segment.expects(:parent_node=).with(s)
-    fake_segment.expects(:each_node).yields(fake_segment)
+    fake_node = mock('node')
+    fake_node.expects(:parent_node=).with(s)
+    fake_node.expects(:each_node).yields(fake_node)
 
-    s.add_called_node(fake_segment)
+    s.add_called_node(fake_node)
 
     count = 0
     s.each_node do |x|
@@ -311,7 +311,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   end
 
   def test_explain_sql_can_handle_missing_config
-    # If TT segment came over from Resque child, might not be a Statement
+    # If TT node came over from Resque child, might not be a Statement
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     s.params = { :sql => "SELECT * FROM galaxy" }
     s.explain_sql
@@ -354,8 +354,8 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_parent_node_equals
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     assert_equal(nil, s.instance_eval { @parent_node })
-    fake_segment = mock('segment')
-    s.send(:parent_node=, fake_segment)
-    assert_equal(fake_segment, s.parent_node)
+    fake_node = mock('node')
+    s.send(:parent_node=, fake_node)
+    assert_equal(fake_node, s.parent_node)
   end
 end

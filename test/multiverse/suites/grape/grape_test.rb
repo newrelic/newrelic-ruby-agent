@@ -59,7 +59,7 @@ class GrapeTest < Minitest::Test
 
     def test_transaction_renaming
       get '/grape_ape/renamed'
-      # The second segment here is 'Rack' because of an idiosyncrasy of
+      # The second node here is 'Rack' because of an idiosyncrasy of
       # the set_transaction_name API: when you call set_transaction_name and
       # don't provide an explicit category, you lock in the category prefix
       # that was in use at the time you made the call.
@@ -169,10 +169,10 @@ class GrapeTest < Minitest::Test
     end
 
     def assert_grape_metrics(expected_txn_name)
-      expected_segment_name = 'Middleware/Grape/GrapeTestApi/call'
+      expected_node_name = 'Middleware/Grape/GrapeTestApi/call'
       assert_metrics_recorded([
-        expected_segment_name,
-        [expected_segment_name, expected_txn_name],
+        expected_node_name,
+        [expected_node_name, expected_txn_name],
         expected_txn_name
       ])
     end

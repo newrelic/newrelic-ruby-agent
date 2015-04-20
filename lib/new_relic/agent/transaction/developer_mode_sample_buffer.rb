@@ -39,14 +39,14 @@ module NewRelic
         def store_previous(*)
         end
 
-        # Captures the stack trace for a segment
+        # Captures the stack trace for a node
         # This is expensive and not for production mode
-        def visit_node(segment)
-          return unless enabled? && segment
+        def visit_node(node)
+          return unless enabled? && node
 
           trace = strip_newrelic_frames(caller)
           trace = trace.first(40) if trace.length > 40
-          segment[:backtrace] = trace
+          node[:backtrace] = trace
         end
 
         def strip_newrelic_frames(trace)

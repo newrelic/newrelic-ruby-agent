@@ -152,7 +152,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     assert_metrics_not_recorded('View/model/_user.html.erb/Partial')
   end
 
-  def test_creates_txn_segment_for_simple_render
+  def test_creates_txn_node_for_simple_render
     params = { :identifier => '/root/app/views/model/index.html.erb' }
 
     in_transaction do
@@ -164,16 +164,16 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_template.action_view', :id, params)
     end
 
-    last_segment = nil
+    last_node = nil
     sampler = NewRelic::Agent.instance.transaction_sampler
-    sampler.last_sample.root_node.each_node{|s| last_segment = s }
+    sampler.last_sample.root_node.each_node{|s| last_node = s }
     NewRelic::Agent.shutdown
 
     assert_equal('View/model/index.html.erb/Rendering',
-                 last_segment.metric_name)
+                 last_node.metric_name)
   end
 
-  def test_creates_nested_partial_segment_within_render_segment
+  def test_creates_nested_partial_node_within_render_node
     in_transaction do
       @subscriber.start('render_template.action_view', :id,
                         :identifier => 'model/index.html.erb')
@@ -194,13 +194,13 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     end
 
     sampler = NewRelic::Agent.instance.transaction_sampler
-    template_segment = sampler.last_sample.root_node.called_nodes[0].called_nodes[0]
-    partial_segment = template_segment.called_nodes[0]
+    template_node = sampler.last_sample.root_node.called_nodes[0].called_nodes[0]
+    partial_node = template_node.called_nodes[0]
 
     assert_equal('View/model/index.html.erb/Rendering',
-                 template_segment.metric_name)
+                 template_node.metric_name)
     assert_equal('View/model/_list.html.erb/Partial',
-                 partial_segment.metric_name)
+                 partial_node.metric_name)
   end
 
   def test_creates_nodes_for_each_in_a_collection_event
@@ -226,11 +226,11 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     end
 
     sampler = NewRelic::Agent.instance.transaction_sampler
-    partial_segments = sampler.last_sample.root_node.called_nodes[0].called_nodes
+    partial_nodes = sampler.last_sample.root_node.called_nodes[0].called_nodes
 
-    assert_equal 3, partial_segments.size
+    assert_equal 3, partial_nodes.size
     assert_equal('View/model/_list.html.erb/Partial',
-                 partial_segments[0].metric_name)
+                 partial_nodes[0].metric_name)
   end
 end if ::Rails::VERSION::MAJOR.to_i >= 4
 

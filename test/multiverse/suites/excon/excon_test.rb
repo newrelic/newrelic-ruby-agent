@@ -60,9 +60,9 @@ class ExconTest < Minitest::Test
     end
 
     tt = NewRelic::Agent.agent.transaction_sampler.last_sample
-    segment = tt.root_node.called_nodes.first.called_nodes.first
-    assert_equal("External/localhost/Excon/GET", segment.metric_name)
-    assert_equal(target_url, segment.params[:uri])
+    node = tt.root_node.called_nodes.first.called_nodes.first
+    assert_equal("External/localhost/Excon/GET", node.metric_name)
+    assert_equal(target_url, node.params[:uri])
   end
 
   def test_still_records_tt_node_when_request_expects_different_response_code
@@ -74,8 +74,8 @@ class ExconTest < Minitest::Test
         # meh
       end
 
-      last_segment = find_last_transaction_node()
-      assert_equal("External/localhost/Excon/GET", last_segment.metric_name)
+      last_node = find_last_transaction_node()
+      assert_equal("External/localhost/Excon/GET", last_node.metric_name)
     end
   end
 end

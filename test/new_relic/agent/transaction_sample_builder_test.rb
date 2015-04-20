@@ -12,26 +12,26 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
   end
 
   def test_build_sample
-    build_segment("a") do
-      build_segment("aa") do
-        build_segment("aaa")
+    build_node("a") do
+      build_node("aa") do
+        build_node("aaa")
       end
-      build_segment("ab") do
-        build_segment("aba") do
-          build_segment("abaa")
+      build_node("ab") do
+        build_node("aba") do
+          build_node("abaa")
         end
-        build_segment("aba")
-        build_segment("abc") do
-          build_segment("abca")
-          build_segment("abcd")
+        build_node("aba")
+        build_node("abc") do
+          build_node("abca")
+          build_node("abcd")
         end
       end
     end
-    build_segment "b"
-    build_segment "c" do
-      build_segment "ca"
-      build_segment "cb" do
-        build_segment "cba"
+    build_node "b"
+    build_node "c" do
+      build_node "ca"
+      build_node "cb" do
+        build_node "cba"
       end
     end
 
@@ -40,8 +40,8 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
   end
 
   def test_freeze
-    build_segment "a" do
-      build_segment "aa"
+    build_node "a" do
+      build_node "aa"
     end
 
     @builder.finish_trace(Time.now.to_f)
@@ -49,63 +49,63 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
     validate_builder
 
     assert_raises(NewRelic::Agent::Transaction::Trace::FinishedTraceError) do
-      build_segment "b"
+      build_node "b"
     end
   end
 
   def test_marshal
-    build_segment "a" do
-      build_segment "ab"
+    build_node "a" do
+      build_node "ab"
     end
-    build_segment "b" do
-      build_segment "ba"
-      build_segment "bb"
-      build_segment "bc" do
-        build_segment "bca"
+    build_node "b" do
+      build_node "ba"
+      build_node "bb"
+      build_node "bc" do
+        build_node "bca"
       end
     end
-    build_segment "c"
+    build_node "c"
 
     @builder.finish_trace(Time.now.to_f)
     validate_builder
 
     dump = Marshal.dump @builder.sample
     sample = Marshal.restore(dump)
-    validate_segment(sample.root_node)
+    validate_node(sample.root_node)
   end
 
-  def test_parallel_first_level_segments
-    build_segment "a" do
-      build_segment "ab"
+  def test_parallel_first_level_nodes
+    build_node "a" do
+      build_node "ab"
     end
-    build_segment "b"
-    build_segment "c"
+    build_node "b"
+    build_node "c"
 
     @builder.finish_trace(Time.now.to_f)
     validate_builder
   end
 
   def test_trace_should_not_record_more_than_node_limit
-    with_config(:'transaction_tracer.limit_segments' => 3) do
-      8.times {|i| build_segment i.to_s }
+    with_config(:'transaction_tracer.limit_nodes' => 3) do
+      8.times {|i| build_node i.to_s }
       assert_equal 3, @builder.sample.count_nodes
     end
   end
 
-  def test_trace_has_valid_durations_when_segments_limited
-    with_config(:'transaction_tracer.limit_segments' => 3) do
-      build_segment "parent" do
+  def test_trace_has_valid_durations_when_nodes_limited
+    with_config(:'transaction_tracer.limit_nodes' => 3) do
+      build_node "parent" do
         advance_time 1
-        build_segment "child-0.0" do
+        build_node "child-0.0" do
           advance_time 1
-          build_segment "child-0.1" do
+          build_node "child-0.1" do
             advance_time 1
           end
         end
         advance_time 1
-        build_segment "child-1.0" do
+        build_node "child-1.0" do
           advance_time 1
-          build_segment "child-1.1" do
+          build_node "child-1.1" do
             advance_time 1
           end
         end
@@ -114,25 +114,25 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
       sample = @builder.sample
       assert_equal(3, sample.count_nodes)
 
-      segment_names = []
-      segment_durations = []
+      node_names = []
+      node_durations = []
       sample.each_node do |s|
         if s != sample.root_node
-          segment_names << s.metric_name
-          segment_durations << s.duration
+          node_names << s.metric_name
+          node_durations << s.duration
         end
       end
 
-      assert_equal(["parent", "child-0.0", "child-0.1"], segment_names)
-      assert_equal([6.0, 2.0, 1.0], segment_durations)
+      assert_equal(["parent", "child-0.0", "child-0.1"], node_names)
+      assert_equal([6.0, 2.0, 1.0], node_durations)
     end
   end
 
-  def test_attaching_params_doesnt_raise_when_segments_are_limited
-    with_config(:'transaction_tracer.limit_segments' => 5) do
-      6.times { |i| build_segment "s#{i}" }
-      # now we should have a placeholder segment
-      build_segment "this-should-be-truncated" do
+  def test_attaching_params_doesnt_raise_when_nodes_are_limited
+    with_config(:'transaction_tracer.limit_nodes' => 5) do
+      6.times { |i| build_node "s#{i}" }
+      # now we should have a placeholder node
+      build_node "this-should-be-truncated" do
         @builder.current_node['eggs'] = 'ham'
         @builder.current_node.params.merge!('foo' => 'bar')
       end
@@ -147,10 +147,10 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
   end
 
   # regression
-  def test_trace_should_log_segment_reached_once
-    with_config(:'transaction_tracer.limit_segments' => 3) do
+  def test_trace_should_log_node_reached_once
+    with_config(:'transaction_tracer.limit_nodes' => 3) do
       expects_logging(:debug, includes("Node limit"))
-      8.times {|i| build_segment i.to_s }
+      8.times {|i| build_node i.to_s }
     end
   end
 
@@ -178,10 +178,10 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
   end
 
   def validate_builder(check_names = true)
-    validate_segment @builder.sample.root_node, check_names
+    validate_node @builder.sample.root_node, check_names
   end
 
-  def validate_segment(s, check_names = true)
+  def validate_node(s, check_names = true)
     p = s.parent_node
 
     unless p.nil? || p.metric_name == 'ROOT'
@@ -203,11 +203,11 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
       assert(child.entry_timestamp >= parent.entry_timestamp,
              "#{child.entry_timestamp} !>= #{parent.entry_timestamp}")
 
-      validate_segment(child, check_names)
+      validate_node(child, check_names)
     end
   end
 
-  def build_segment(metric, time = 0, &proc)
+  def build_node(metric, time = 0, &proc)
     @builder.trace_entry(Time.now.to_f)
     proc.call if proc
     @builder.trace_exit(metric, Time.now.to_f)

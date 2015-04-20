@@ -129,8 +129,8 @@ class CurbTest < Minitest::Test
         assert_match %r/<head>/i, res
       end
 
-      last_segment = find_last_transaction_node()
-      assert_equal "External/Multiple/Curb::Multi/perform", last_segment.metric_name
+      last_node = find_last_transaction_node()
+      assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
     end
   end
 
@@ -153,8 +153,8 @@ class CurbTest < Minitest::Test
 
       assert_equal(num_requests, successes)
       assert(perform_block_called, "Block passed to Curl::Multi.perform should have been called")
-      last_segment = find_last_transaction_node()
-      assert_equal "External/Multiple/Curb::Multi/perform", last_segment.metric_name
+      last_node = find_last_transaction_node()
+      assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
     end
   end
 
@@ -211,4 +211,3 @@ class CurbTest < Minitest::Test
   end
 
 end
-

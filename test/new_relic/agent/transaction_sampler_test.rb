@@ -143,7 +143,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_nil ret
   end
 
-  def test_notice_extra_data_no_segment
+  def test_notice_extra_data_no_node
     mock_builder = mock('builder')
     @sampler.expects(:tl_builder).returns(mock_builder).once
     mock_builder.expects(:current_node).returns(nil)
@@ -151,35 +151,35 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @sampler.send(:notice_extra_data, builder, nil, nil, nil)
   end
 
-  def test_notice_extra_data_with_segment_no_old_message_no_config_key
+  def test_notice_extra_data_with_node_no_old_message_no_config_key
     key = :a_key
     mock_builder = mock('builder')
-    segment = mock('segment')
+    node = mock('node')
     @sampler.expects(:tl_builder).returns(mock_builder).once
-    mock_builder.expects(:current_node).returns(segment)
+    mock_builder.expects(:current_node).returns(node)
     NewRelic::Agent::TransactionSampler.expects(:truncate_message) \
       .with('a message').returns('truncated_message')
-    segment.expects(:[]=).with(key, 'truncated_message')
-    @sampler.expects(:append_backtrace).with(segment, 1.0)
+    node.expects(:[]=).with(key, 'truncated_message')
+    @sampler.expects(:append_backtrace).with(node, 1.0)
     builder = @sampler.tl_builder
     @sampler.send(:notice_extra_data, builder, 'a message', 1.0, key)
   end
 
   def test_append_backtrace_under_duration
     with_config(:'transaction_tracer.stack_trace_threshold' => 2.0) do
-      segment = mock('segment')
-      segment.expects(:[]=).with(:backtrace, any_parameters).never
-      @sampler.append_backtrace(mock('segment'), 1.0)
+      node = mock('node')
+      node.expects(:[]=).with(:backtrace, any_parameters).never
+      @sampler.append_backtrace(mock('node'), 1.0)
     end
   end
 
   def test_append_backtrace_over_duration
     with_config(:'transaction_tracer.stack_trace_threshold' => 2.0) do
-      segment = mock('segment')
+      node = mock('node')
       # note the mocha expectation matcher - you can't hardcode a
       # backtrace so we match on any string, which should be okay.
-      segment.expects(:[]=).with(:backtrace, instance_of(String))
-      @sampler.append_backtrace(segment, 2.5)
+      node.expects(:[]=).with(:backtrace, instance_of(String))
+      @sampler.append_backtrace(node, 2.5)
     end
   end
 
@@ -532,19 +532,19 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     @sampler.notice_sql("test", {}, 0, @state)
 
-    segment = @sampler.send(:tl_builder).current_node
+    node = @sampler.send(:tl_builder).current_node
 
-    assert_nil segment[:sql]
+    assert_nil node[:sql]
   end
 
   def test_stack_trace_sql
     with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
       @sampler.on_start_transaction(@state, Time.now.to_f)
       @sampler.notice_sql("test", {}, 1, @state)
-      segment = @sampler.send(:tl_builder).current_node
+      node = @sampler.send(:tl_builder).current_node
 
-      assert segment[:sql]
-      assert segment[:backtrace]
+      assert node[:sql]
+      assert node[:backtrace]
     end
   end
 
@@ -552,10 +552,10 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     with_config(:'transaction_tracer.stack_trace_threshold' => 2) do
       @sampler.on_start_transaction(@state, Time.now.to_f)
       @sampler.notice_sql("test", {}, 1, @state)
-      segment = @sampler.send(:tl_builder).current_node
+      node = @sampler.send(:tl_builder).current_node
 
-      assert segment[:sql]
-      assert_nil segment[:backtrace]
+      assert node[:sql]
+      assert_nil node[:backtrace]
     end
   end
 
@@ -570,14 +570,14 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       len += sql.length
     end
 
-    segment = @sampler.send(:tl_builder).current_node
+    node = @sampler.send(:tl_builder).current_node
 
-    sql = segment[:sql]
+    sql = node[:sql]
 
     assert sql.length <= 16384
   end
 
-  def test_segment_obfuscated
+  def test_node_obfuscated
     @sampler.on_start_transaction(@state, Time.now.to_f)
     @sampler.notice_push_frame(@state)
 
@@ -585,15 +585,15 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     @sampler.notice_sql(orig_sql, {}, 0, @state)
 
-    segment = @sampler.send(:tl_builder).current_node
+    node = @sampler.send(:tl_builder).current_node
 
-    assert_equal orig_sql, segment[:sql]
-    assert_equal "SELECT * from Jim where id=?", segment.obfuscated_sql
+    assert_equal orig_sql, node[:sql]
+    assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
     @sampler.notice_pop_frame(@state, "foo")
   end
 
-  def test_should_not_collect_segments_beyond_limit
-    with_config(:'transaction_tracer.limit_segments' => 3) do
+  def test_should_not_collect_nodes_beyond_limit
+    with_config(:'transaction_tracer.limit_nodes' => 3) do
       run_sample_trace do
         @sampler.notice_push_frame(@state)
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'challah'", {}, 0, @state)
@@ -605,20 +605,20 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       assert_equal 3, @sampler.last_sample.count_nodes
 
       expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
-      deepest_segment = find_last_transaction_node(@sampler.last_sample)
-      assert_equal([], deepest_segment.called_nodes)
-      assert_equal(expected_sql, deepest_segment[:sql])
+      deepest_node = find_last_transaction_node(@sampler.last_sample)
+      assert_equal([], deepest_node.called_nodes)
+      assert_equal(expected_sql, deepest_node[:sql])
     end
   end
 
   def test_renaming_current_node_midflight
     @sampler.start_builder(@state)
-    segment = @sampler.notice_push_frame(@state)
-    segment.metric_name = 'External/www.google.com/Net::HTTP/GET'
+    node = @sampler.notice_push_frame(@state)
+    node.metric_name = 'External/www.google.com/Net::HTTP/GET'
     @sampler.notice_pop_frame(@state, 'External/www.google.com/Net::HTTP/GET')
   end
 
-  def test_adding_segment_parameters
+  def test_adding_node_parameters
     @sampler.start_builder(@state)
     @sampler.notice_push_frame(@state)
     @sampler.add_node_parameters(:transaction_guid => '97612F92E6194080')
@@ -629,7 +629,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     config = {
       :'transaction_tracer.enabled' => true,
       :'transaction_tracer.transaction_threshold' => 0,
-      :'transaction_tracer.limit_segments' => 100
+      :'transaction_tracer.limit_nodes' => 100
     }
     with_config(config) do
       run_long_sample_trace(110)

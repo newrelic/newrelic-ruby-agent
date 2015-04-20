@@ -112,27 +112,27 @@ class ViewInstrumentationTest < RailsMultiverseTest
       assert_equal 500, status
     end
 
-    def test_should_count_all_the_template_and_partial_segments
+    def test_should_count_all_the_template_and_partial_nodes
       get '/views/template_render_with_3_partial_renders'
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-      segments = find_all_nodes_with_name_matching(sample, ['^Nested/Controller/views', '^View'])
-      segments_list = "Found these nodes:\n  #{segments.map(&:metric_name).join("\n  ")}"
+      nodes = find_all_nodes_with_name_matching(sample, ['^Nested/Controller/views', '^View'])
+      nodes_list = "Found these nodes:\n  #{nodes.map(&:metric_name).join("\n  ")}"
 
       if Rails::VERSION::MAJOR <= 2
-        assert_equal 8, segments.length, "Should be a node for the controller action, the template, and 3 partials with two nodes each (8). #{segments_list}"
+        assert_equal 8, nodes.length, "Should be a node for the controller action, the template, and 3 partials with two nodes each (8). #{nodes_list}"
       else
-        assert_equal 5, segments.length, "Should be a node for the controller action, the template, and 3 partials (5). #{segments_list}"
+        assert_equal 5, nodes.length, "Should be a node for the controller action, the template, and 3 partials (5). #{nodes_list}"
       end
     end
 
-    def test_should_have_3_segments_with_the_correct_metric_name
+    def test_should_have_3_nodes_with_the_correct_metric_name
       get '/views/template_render_with_3_partial_renders'
 
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-      partial_segments = find_all_nodes_with_name_matching(sample, 'View/views/_a_partial.html.erb/Partial')
+      partial_nodes = find_all_nodes_with_name_matching(sample, 'View/views/_a_partial.html.erb/Partial')
 
-      assert_equal 3, partial_segments.size, "sanity check"
-      assert_equal ['View/views/_a_partial.html.erb/Partial'], partial_segments.map(&:metric_name).uniq
+      assert_equal 3, partial_nodes.size, "sanity check"
+      assert_equal ['View/views/_a_partial.html.erb/Partial'], partial_nodes.map(&:metric_name).uniq
     end
 
     # We don't capture text or inline template rendering on Rails 2
@@ -141,9 +141,9 @@ class ViewInstrumentationTest < RailsMultiverseTest
         get '/views/inline_render'
 
         sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-        text_segment = find_node_with_name(sample, 'View/inline template/Rendering')
+        text_node = find_node_with_name(sample, 'View/inline template/Rendering')
 
-        assert text_segment, "Failed to find a node named View/inline template/Rendering"
+        assert text_node, "Failed to find a node named View/inline template/Rendering"
         assert_metrics_recorded('View/inline template/Rendering')
       end
 
@@ -159,9 +159,9 @@ class ViewInstrumentationTest < RailsMultiverseTest
           get '/views/text_render'
 
           sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-          text_segment = find_node_with_name(sample, 'View/text template/Rendering')
+          text_node = find_node_with_name(sample, 'View/text template/Rendering')
 
-          assert text_segment, "Failed to find a node named View/text template/Rendering"
+          assert text_node, "Failed to find a node named View/text template/Rendering"
           assert_metrics_recorded('View/text template/Rendering')
         end
       end
@@ -171,9 +171,9 @@ class ViewInstrumentationTest < RailsMultiverseTest
       get '/views/haml_render'
 
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-      text_segment = find_node_with_name(sample, 'View/views/haml_view.html.haml/Rendering')
+      text_node = find_node_with_name(sample, 'View/views/haml_view.html.haml/Rendering')
 
-      assert text_segment, "Failed to find a node named View/views/haml_view.html.haml/Rendering"
+      assert text_node, "Failed to find a node named View/views/haml_view.html.haml/Rendering"
       assert_metrics_recorded('View/views/haml_view.html.haml/Rendering')
     end
 
@@ -203,8 +203,8 @@ class ViewInstrumentationTest < RailsMultiverseTest
       define_method("test_should_not_instrument_rendering_of_#{action}") do
         get "/views/#{action}"
         sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-        view_segment = find_node_with_name_matching(sample, /^View\//)
-        refute view_segment, "Should not instrument rendering of #{action}, found #{view_segment}."
+        view_node = find_node_with_name_matching(sample, /^View\//)
+        refute view_node, "Should not instrument rendering of #{action}, found #{view_node}."
       end
     end
 

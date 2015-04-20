@@ -45,17 +45,17 @@ class NewRelic::Agent::Transaction
 
     def test_visit_node_takes_backtraces_in_dev_mode
       with_config(:developer_mode => true) do
-        segment = {}
-        @buffer.visit_node(segment)
-        assert segment[:backtrace].any? {|trace_line| trace_line.include?(__FILE__)}
+        node = {}
+        @buffer.visit_node(node)
+        assert node[:backtrace].any? {|trace_line| trace_line.include?(__FILE__)}
       end
     end
 
     def test_visit_node_takes_backtraces_not_in_dev_mode
       with_config(:developer_mode => false) do
-        segment = {}
-        @buffer.visit_node(segment)
-        assert_nil segment[:backtrace]
+        node = {}
+        @buffer.visit_node(node)
+        assert_nil node[:backtrace]
       end
     end
 
