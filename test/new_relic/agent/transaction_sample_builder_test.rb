@@ -86,14 +86,14 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
   end
 
   def test_trace_should_not_record_more_than_node_limit
-    with_config(:'transaction_tracer.limit_nodes' => 3) do
+    with_config(:'transaction_tracer.limit_segments' => 3) do
       8.times {|i| build_node i.to_s }
       assert_equal 3, @builder.sample.count_nodes
     end
   end
 
   def test_trace_has_valid_durations_when_nodes_limited
-    with_config(:'transaction_tracer.limit_nodes' => 3) do
+    with_config(:'transaction_tracer.limit_segments' => 3) do
       build_node "parent" do
         advance_time 1
         build_node "child-0.0" do
@@ -129,7 +129,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
   end
 
   def test_attaching_params_doesnt_raise_when_nodes_are_limited
-    with_config(:'transaction_tracer.limit_nodes' => 5) do
+    with_config(:'transaction_tracer.limit_segments' => 5) do
       6.times { |i| build_node "s#{i}" }
       # now we should have a placeholder node
       build_node "this-should-be-truncated" do
@@ -148,7 +148,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
 
   # regression
   def test_trace_should_log_node_reached_once
-    with_config(:'transaction_tracer.limit_nodes' => 3) do
+    with_config(:'transaction_tracer.limit_segments' => 3) do
       expects_logging(:debug, includes("Node limit"))
       8.times {|i| build_node i.to_s }
     end

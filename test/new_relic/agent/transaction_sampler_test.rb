@@ -593,7 +593,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def test_should_not_collect_nodes_beyond_limit
-    with_config(:'transaction_tracer.limit_nodes' => 3) do
+    with_config(:'transaction_tracer.limit_segments' => 3) do
       run_sample_trace do
         @sampler.notice_push_frame(@state)
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'challah'", {}, 0, @state)
@@ -629,7 +629,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     config = {
       :'transaction_tracer.enabled' => true,
       :'transaction_tracer.transaction_threshold' => 0,
-      :'transaction_tracer.limit_nodes' => 100
+      :'transaction_tracer.limit_segments' => 100
     }
     with_config(config) do
       run_long_sample_trace(110)
