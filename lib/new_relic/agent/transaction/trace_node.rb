@@ -28,8 +28,8 @@ module NewRelic
         end
 
         def add_called_segment(s)
-          @called_segments ||= []
-          @called_segments << s
+          @called_nodes ||= []
+          @called_nodes << s
           s.parent_node = self
         end
 
@@ -44,18 +44,18 @@ module NewRelic
             NewRelic::Helper.time_to_millis(@exit_timestamp),
             string(@metric_name),
             (@params || {}) ] +
-            [ (@called_segments ? @called_segments.map{|s| s.to_array} : []) ]
+            [ (@called_nodes ? @called_nodes.map{|s| s.to_array} : []) ]
         end
 
         def path_string
-          "#{metric_name}[#{called_segments.collect {|segment| segment.path_string }.join('')}]"
+          "#{metric_name}[#{called_nodes.collect {|segment| segment.path_string }.join('')}]"
         end
 
         def to_s_compact
           str = ""
           str << metric_name
-          if called_segments.any?
-            str << "{#{called_segments.map { | cs | cs.to_s_compact }.join(",")}}"
+          if called_nodes.any?
+            str << "{#{called_nodes.map { | cs | cs.to_s_compact }.join(",")}}"
           end
           str
         end
@@ -69,7 +69,7 @@ module NewRelic
               s << "#{tab}    -#{'%-16s' % k}: #{v.to_s[0..80]}\n"
             end
           end
-          called_segments.each do |cs|
+          called_nodes.each do |cs|
             s << cs.to_debug_str(depth + 1)
           end
           s << tab + "<< "
@@ -81,8 +81,8 @@ module NewRelic
           s << " #{metric_name}\n"
         end
 
-        def called_segments
-          @called_segments || []
+        def called_nodes
+          @called_nodes || []
         end
 
         # return the total duration of this segment
@@ -95,7 +95,7 @@ module NewRelic
         def exclusive_duration
           d = duration
 
-          called_segments.each do |segment|
+          called_nodes.each do |segment|
             d -= segment.duration
           end
           d
@@ -103,7 +103,7 @@ module NewRelic
 
         def count_segments
           count = 1
-          called_segments.each { | seg | count  += seg.count_segments }
+          called_nodes.each { | seg | count  += seg.count_segments }
           count
         end
 
@@ -130,8 +130,8 @@ module NewRelic
         def each_segment(&block)
           block.call self
 
-          if @called_segments
-            @called_segments.each do |segment|
+          if @called_nodes
+            @called_nodes.each do |segment|
               segment.each_segment(&block)
             end
           end
@@ -143,8 +143,8 @@ module NewRelic
           summary = block.call self
           summary.current_nest_count += 1 if summary
 
-          if @called_segments
-            @called_segments.each do |segment|
+          if @called_nodes
+            @called_nodes.each do |segment|
               segment.each_segment_with_nest_tracking(&block)
             end
           end
@@ -155,7 +155,7 @@ module NewRelic
         # This is only for use by developer mode
         def find_segment(id)
           return self if object_id == id
-          called_segments.each do |segment|
+          called_nodes.each do |segment|
             found = segment.find_segment(id)
             return found if found
           end
@@ -178,8 +178,8 @@ module NewRelic
           NewRelic::Agent::Database.obfuscate_sql(params[:sql])
         end
 
-        def called_segments=(segments)
-          @called_segments = segments
+        def called_nodes=(segments)
+          @called_nodes = segments
         end
 
         protected

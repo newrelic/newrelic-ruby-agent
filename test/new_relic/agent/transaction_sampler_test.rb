@@ -606,7 +606,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
       expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
       deepest_segment = find_last_transaction_segment(@sampler.last_sample)
-      assert_equal([], deepest_segment.called_segments)
+      assert_equal([], deepest_segment.called_nodes)
       assert_equal(expected_sql, deepest_segment[:sql])
     end
   end

@@ -185,7 +185,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
     p = s.parent_node
 
     unless p.nil? || p.metric_name == 'ROOT'
-      assert p.called_segments.include?(s)
+      assert p.called_nodes.include?(s)
       assert_equal p.metric_name.length, s.metric_name.length - 1, "p: #{p.metric_name}, s: #{s.metric_name}" if check_names
       assert p.metric_name < s.metric_name if check_names
       assert p.entry_timestamp <= s.entry_timestamp
@@ -193,7 +193,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
 
     assert s.exit_timestamp >= s.entry_timestamp
 
-    children = s.called_segments
+    children = s.called_nodes
     parent = s
     children.each do |child|
       if check_names

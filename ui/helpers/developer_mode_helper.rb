@@ -115,7 +115,7 @@ module NewRelic::DeveloperModeHelper
   def render_sample_details(sample)
     @indentation_depth=0
     # skip past the root segments to the first child, which is always the controller
-    first_segment = sample.root_segment.called_segments.first
+    first_segment = sample.root_segment.called_nodes.first
 
     # render the segments, then the css classes to indent them
     render_segment_details(first_segment).to_s + render_indentation_classes(@indentation_depth).to_s
@@ -129,9 +129,9 @@ module NewRelic::DeveloperModeHelper
 
   def expand_segment_image(segment, depth)
     if depth > 0
-      if !segment.called_segments.empty?
+      if !segment.called_nodes.empty?
         row_class =segment_child_row_class(segment)
-        link_to_function("<img src=\"#{collapsed_image_path}\" id=\"image_#{row_class}\" class_for_children=\"#{row_class}\" class=\"#{(!segment.called_segments.empty?) ? 'parent_segment_image' : 'child_segment_image'}\" />", "toggle_row_class(this)")
+        link_to_function("<img src=\"#{collapsed_image_path}\" id=\"image_#{row_class}\" class_for_children=\"#{row_class}\" class=\"#{(!segment.called_nodes.empty?) ? 'parent_segment_image' : 'child_segment_image'}\" />", "toggle_row_class(this)")
       end
     end
   end
@@ -181,7 +181,7 @@ module NewRelic::DeveloperModeHelper
       explain_sql_link segment
     else
       links = []
-      segment.called_segments.each do |child|
+      segment.called_nodes.each do |child|
         if child[:sql]
           links << explain_sql_link(child, true)
         end
@@ -212,7 +212,7 @@ module NewRelic::DeveloperModeHelper
     html = render(:partial => 'segment', :object => [segment, depth, repeat])
     depth += 1
 
-    segment.called_segments.each do |child|
+    segment.called_nodes.each do |child|
       html << render_segment_details(child, depth)
     end
 

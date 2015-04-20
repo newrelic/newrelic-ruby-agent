@@ -30,11 +30,11 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_add_called_segment
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    assert_equal [], s.called_segments
+    assert_equal [], s.called_nodes
     fake_segment = mock('segment')
     fake_segment.expects(:parent_node=).with(s)
     s.add_called_segment(fake_segment)
-    assert_equal([fake_segment], s.called_segments)
+    assert_equal([fake_segment], s.called_nodes)
   end
 
   def test_to_s
@@ -115,7 +115,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s.add_called_segment(NewRelic::Agent::Transaction::TraceNode.new(0.1, 'Custom/test/other'))
     assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  <<  n/a Custom/test/other\n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
     # try closing it
-    s.called_segments.first.end_trace(0.15)
+    s.called_nodes.first.end_trace(0.15)
     s.end_trace(0.2)
     assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  << 150 ms Custom/test/other\n<< 200 ms Custom/test/metric\n", s.to_debug_str(0))
   end
@@ -126,7 +126,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s.add_called_segment(NewRelic::Agent::Transaction::TraceNode.new(0.11, 'Custom/test/extra'))
     assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  <<  n/a Custom/test/other\n  >> 110 ms [TraceNode] Custom/test/extra \n  <<  n/a Custom/test/extra\n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
     ending = 0.12
-    s.called_segments.each { |x| x.end_trace(ending += 0.01) }
+    s.called_nodes.each { |x| x.end_trace(ending += 0.01) }
     s.end_trace(0.2)
     assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  << 130 ms Custom/test/other\n  >> 110 ms [TraceNode] Custom/test/extra \n  << 140 ms Custom/test/extra\n<< 200 ms Custom/test/metric\n", s.to_debug_str(0))
   end
@@ -146,18 +146,18 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/middle \n    >> 200 ms [TraceNode] Custom/test/inner \n    << 210 ms Custom/test/inner\n  << 220 ms Custom/test/middle\n<< 230 ms Custom/test/metric\n", s.to_debug_str(0))
   end
 
-  def test_called_segments_default
+  def test_called_nodes_default
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    assert_equal([], s.called_segments)
+    assert_equal([], s.called_nodes)
   end
 
-  def test_called_segments_with_segments
+  def test_called_nodes_with_segments
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     fake_segment = mock('segment')
     fake_segment.expects(:parent_node=).with(s)
     s.add_called_segment(fake_segment)
 
-    assert_equal([fake_segment], s.called_segments)
+    assert_equal([fake_segment], s.called_nodes)
   end
 
   def test_duration
@@ -344,11 +344,11 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal('select * from table where id = ?', s.obfuscated_sql)
   end
 
-  def test_called_segments_equals
+  def test_called_nodes_equals
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    assert_equal(nil, s.instance_eval { @called_segments })
-    s.called_segments = [1, 2, 3]
-    assert_equal([1, 2, 3], s.instance_eval { @called_segments })
+    assert_equal(nil, s.instance_eval { @called_nodes })
+    s.called_nodes = [1, 2, 3]
+    assert_equal([1, 2, 3], s.instance_eval { @called_nodes })
   end
 
   def test_parent_node_equals
