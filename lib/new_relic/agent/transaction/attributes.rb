@@ -158,11 +158,13 @@ module NewRelic
           when Hash
             params.each do |key, val|
               normalized_key = EncodingNormalizer.normalize_string(key.to_s)
-              flatten_and_coerce("#{prefix}.#{normalized_key}", val, result)
+              next_prefix = prefix ? "#{prefix}.#{normalized_key}" : normalized_key
+              flatten_and_coerce(next_prefix, val, result)
             end
           when Array
             params.each_with_index do |val, idx|
-              flatten_and_coerce("#{prefix}.#{idx}", val, result)
+              next_prefix = prefix ? "#{prefix}.#{idx}" : idx.to_s
+              flatten_and_coerce(next_prefix, val, result)
             end
           else
             result[prefix] = Coerce::scalar(params)

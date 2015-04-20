@@ -276,6 +276,36 @@ class AttributesTest < Minitest::Test
     assert_equal(expected, actual)
   end
 
+  def test_prefix_optional_for_flatten_and_coerce
+    params = {:foo => {:bar => ["v1", "v2"]}}
+
+    attributes = create_attributes
+
+    expected = {
+      "foo.bar.0" => "v1",
+      "foo.bar.1" => "v2"
+    }
+
+    actual = attributes.send(:flatten_and_coerce, nil, params)
+
+    assert_equal(expected, actual)
+  end
+
+  def test_prefix_optional_for_flatten_and_coerce_with_initial_array_argument
+    params = [:foo => {:bar => ["v1", "v2"]}]
+
+    attributes = create_attributes
+
+    expected = {
+      "0.foo.bar.0" => "v1",
+      "0.foo.bar.1" => "v2"
+    }
+
+    actual = attributes.send(:flatten_and_coerce, nil, params)
+
+    assert_equal(expected, actual)
+  end
+
   def test_merge_untrusted_agent_attributes_drops_long_keys
     with_config(:'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
