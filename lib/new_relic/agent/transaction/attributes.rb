@@ -25,30 +25,15 @@ module NewRelic
           @agent_destinations = {}
         end
 
-        def add_custom_attribute(key, value)
+        def merge_custom_attributes(other)
           if @filter.high_security?
-            NewRelic::Agent.logger.debug("Unable to add custom attribute #{key} while in high security mode.")
+            NewRelic::Agent.logger.debug("Unable to add custom attributes #{other.keys.inspect} while in high security mode.")
             return
           end
 
-          if @custom_attributes.size >= COUNT_LIMIT
-            unless @already_warned_count_limit
-              NewRelic::Agent.logger.warn("Custom attributes count exceeded limit of #{COUNT_LIMIT}. Any additional custom attributes during this transaction will be dropped.")
-              @already_warned_count_limit = true
-            end
-            return
+          other.each do |key, value|
+            add_custom_attribute(key, value)
           end
-
-          if exceeds_bytesize_limit?(key, KEY_LIMIT)
-            NewRelic::Agent.logger.warn("Custom attribute key '#{key}' was longer than limit of #{KEY_LIMIT} bytes. This attribute will be dropped.")
-            return
-          end
-
-          destinations = @filter.apply(key, AttributeFilter::DST_ALL)
-          return if destinations == AttributeFilter::DST_NONE
-
-          @custom_destinations[key] = destinations
-          add(@custom_attributes, key, value)
         end
 
         def add_agent_attribute(key, value, default_destinations)
@@ -70,17 +55,6 @@ module NewRelic
 
         def add_intrinsic_attribute(key, value)
           add(@intrinsic_attributes, key, value)
-        end
-
-        def merge_custom_attributes(other)
-          if @filter.high_security?
-            NewRelic::Agent.logger.debug("Unable to add custom attributes #{other.keys.inspect} while in high security mode.")
-            return
-          end
-
-          other.each do |key, value|
-            self.add_custom_attribute(key, value)
-          end
         end
 
         def merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
@@ -110,6 +84,32 @@ module NewRelic
         end
 
         private
+
+        def add_custom_attribute(key, value)
+          if @custom_attributes.size >= COUNT_LIMIT
+            unless @already_warned_count_limit
+              NewRelic::Agent.logger.warn("Custom attributes count exceeded limit of #{COUNT_LIMIT}. Any additional custom attributes during this transaction will be dropped.")
+              @already_warned_count_limit = true
+            end
+            return
+          end
+
+          if @filter.high_security?
+            NewRelic::Agent.logger.debug("Unable to add custom attribute #{key} while in high security mode.")
+            return
+          end
+
+          if exceeds_bytesize_limit?(key, KEY_LIMIT)
+            NewRelic::Agent.logger.warn("Custom attribute key '#{key}' was longer than limit of #{KEY_LIMIT} bytes. This attribute will be dropped.")
+            return
+          end
+
+          destinations = @filter.apply(key, AttributeFilter::DST_ALL)
+          return if destinations == AttributeFilter::DST_NONE
+
+          @custom_destinations[key] = destinations
+          add(@custom_attributes, key, value)
+        end
 
         def add(attributes, key, value)
           if exceeds_bytesize_limit?(value, VALUE_LIMIT)
