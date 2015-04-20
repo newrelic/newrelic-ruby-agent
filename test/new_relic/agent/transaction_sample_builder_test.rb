@@ -149,7 +149,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
   # regression
   def test_trace_should_log_segment_reached_once
     with_config(:'transaction_tracer.limit_segments' => 3) do
-      expects_logging(:debug, includes("Segment limit"))
+      expects_logging(:debug, includes("Node limit"))
       8.times {|i| build_segment i.to_s }
     end
   end

@@ -16,12 +16,12 @@ module NewRelic
     # @api private
     class TransactionSampleBuilder
 
-      # Once we hit the TT segment limit, we use this class to hold our place in
+      # Once we hit the TT node limit, we use this class to hold our place in
       # the tree so that we can still get accurate names and times on the
-      # segments we've already created. The placeholder segment keeps a
-      # depth counter that's incremented on each segment entry, and decremented
+      # nodes we've already created. The placeholder node keeps a
+      # depth counter that's incremented on each node entry, and decremented
       # on exit, until it reaches zero, when we throw the placeholder away.
-      # There should only ever be zero or one placeholder segment at a time.
+      # There should only ever be zero or one placeholder node at a time.
       #
       # @api private
       class PlaceholderNode
@@ -34,7 +34,7 @@ module NewRelic
         end
 
         # No-op - some clients expect to be able to use these to read/write
-        # params on TT segments.
+        # params on TT nodes.
         def [](key); end
         def []=(key, value); end
 
@@ -71,11 +71,11 @@ module NewRelic
 
       def trace_entry(time)
         if @sample.count_nodes < node_limit
-          segment = @sample.create_node(time.to_f - @sample_start)
-          @current_node.add_called_node(segment)
-          @current_node = segment
+          node = @sample.create_node(time.to_f - @sample_start)
+          @current_node.add_called_node(node)
+          @current_node = node
           if @sample.count_nodes == node_limit()
-            ::NewRelic::Agent.logger.debug("Segment limit of #{node_limit} reached, ceasing collection.")
+            ::NewRelic::Agent.logger.debug("Node limit of #{node_limit} reached, ceasing collection.")
           end
         else
           if @current_node.is_a?(PlaceholderNode)
