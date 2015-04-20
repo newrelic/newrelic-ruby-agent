@@ -57,10 +57,6 @@ module NewRelic
           self.root_segment.each_segment(&block)
         end
 
-        def find_segment(segment_id)
-          self.root_segment.find_segment(segment_id)
-        end
-
         def prepare_to_send!
           return self if @prepared
 

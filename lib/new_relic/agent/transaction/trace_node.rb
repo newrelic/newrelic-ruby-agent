@@ -12,18 +12,13 @@ module NewRelic
         attr_reader :exit_timestamp
         attr_reader :parent_node
 
-        # This is only used from developer mode and rpm_site.
-        # No new clients should be added.
-        attr_reader :segment_id
-
         attr_accessor :metric_name
 
         UNKNOWN_SEGMENT_NAME = '<unknown>'.freeze
 
-        def initialize(timestamp, metric_name, segment_id=nil)
+        def initialize(timestamp, metric_name)
           @entry_timestamp = timestamp
           @metric_name     = metric_name || UNKNOWN_SEGMENT_NAME
-          @segment_id      = segment_id  || object_id
         end
 
         # sets the final timestamp on a segment to indicate the exit
@@ -159,7 +154,7 @@ module NewRelic
 
         # This is only for use by developer mode
         def find_segment(id)
-          return self if segment_id == id
+          return self if object_id == id
           called_segments.each do |segment|
             found = segment.find_segment(id)
             return found if found

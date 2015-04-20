@@ -19,7 +19,6 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal(nil, s.exit_timestamp)
     assert_equal(nil, s.parent_node)
     assert_equal('Custom/test/metric', s.metric_name)
-    assert_equal(s.object_id, s.segment_id)
   end
 
   def test_end_trace
@@ -283,7 +282,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_find_segment_default
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    id_to_find = s.segment_id
+    id_to_find = s.object_id
     # should return itself in the base case
     assert_equal(s, s.find_segment(id_to_find))
   end
@@ -295,7 +294,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_find_segment_with_children
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    id_to_find = s.segment_id
+    id_to_find = s.object_id
     # should return itself in the base case
     assert_equal(s, s.find_segment(id_to_find))
   end

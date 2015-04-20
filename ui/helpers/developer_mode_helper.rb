@@ -101,7 +101,7 @@ module NewRelic::DeveloperModeHelper
   end
 
   def explain_sql_url(segment)
-    "explain_sql?id=#{@sample.sample_id}&amp;segment=#{segment.segment_id}"
+    "explain_sql?id=#{@sample.sample_id}&amp;segment=#{segment.object_id}"
   end
 
   def segment_duration_value(segment)
@@ -137,7 +137,7 @@ module NewRelic::DeveloperModeHelper
   end
 
   def segment_child_row_class(segment)
-    "segment#{segment.segment_id}"
+    "segment#{segment.object_id}"
   end
 
   def summary_pie_chart(sample, width, height)
@@ -169,7 +169,7 @@ module NewRelic::DeveloperModeHelper
   end
 
   def sql_link_mouseover_options(segment)
-    { :onmouseover => "sql_mouse_over(#{segment.segment_id})", :onmouseout => "sql_mouse_out(#{segment.segment_id})"}
+    { :onmouseover => "sql_mouse_over(#{segment.object_id})", :onmouseout => "sql_mouse_out(#{segment.object_id})"}
   end
 
   def explain_sql_link(segment, child_sql = false)

@@ -254,7 +254,7 @@ module NewRelic
         return unless @sample
 
         segment_id = params['segment'].to_i
-        @segment = @sample.find_segment(segment_id)
+        @segment = @sample.root_segment.find_segment(segment_id)
       end
 
       def custom_attributes_for(sample)
