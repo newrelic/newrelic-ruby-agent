@@ -223,7 +223,7 @@ class AttributesTest < Minitest::Test
     with_config(:'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
       params = {:foo => {:bar => "baz"}}
-      attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
+      attributes.merge_untrusted_agent_attributes(params, 'request.parameters', AttributeFilter::DST_NONE)
       assert_equal({"request.parameters.foo.bar" => "baz"}, agent_attributes(attributes))
     end
   end
@@ -251,7 +251,7 @@ class AttributesTest < Minitest::Test
 
     attributes = create_attributes
 
-    actual = attributes.send(:flatten_and_coerce, 'request.parameters', params)
+    actual = attributes.send(:flatten_and_coerce, params, 'request.parameters')
 
     assert_equal(expected, actual)
   end
@@ -271,7 +271,7 @@ class AttributesTest < Minitest::Test
 
     attributes = create_attributes
 
-    actual = attributes.send(:flatten_and_coerce, 'request.parameters', params)
+    actual = attributes.send(:flatten_and_coerce, params, 'request.parameters')
 
     assert_equal(expected, actual)
   end
@@ -286,7 +286,7 @@ class AttributesTest < Minitest::Test
       "foo.bar.1" => "v2"
     }
 
-    actual = attributes.send(:flatten_and_coerce, nil, params)
+    actual = attributes.send(:flatten_and_coerce, params)
 
     assert_equal(expected, actual)
   end
@@ -301,7 +301,7 @@ class AttributesTest < Minitest::Test
       "0.foo.bar.1" => "v2"
     }
 
-    actual = attributes.send(:flatten_and_coerce, nil, params)
+    actual = attributes.send(:flatten_and_coerce, params)
 
     assert_equal(expected, actual)
   end
@@ -313,7 +313,7 @@ class AttributesTest < Minitest::Test
         "a"*256 => "too long",
         "foo" => "bar"
       }
-      attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
+      attributes.merge_untrusted_agent_attributes(params, 'request.parameters', AttributeFilter::DST_NONE)
       assert_equal({"request.parameters.foo" => "bar"}, agent_attributes(attributes))
     end
   end

@@ -27,8 +27,8 @@ DependencyDetection.defer do
         end
 
         perform_action_with_newrelic_trace(trace_args) do
-          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(:'job.sidekiq.arguments',
-            msg['args'], NewRelic::Agent::AttributeFilter::DST_NONE)
+          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(msg['args'], :'job.sidekiq.arguments',
+            NewRelic::Agent::AttributeFilter::DST_NONE)
 
           yield
         end

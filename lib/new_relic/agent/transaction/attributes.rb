@@ -25,12 +25,6 @@ module NewRelic
           @agent_destinations = {}
         end
 
-        def merge_custom_attributes(other)
-          other.each do |key, value|
-            add_custom_attribute(key, value)
-          end
-        end
-
         def add_agent_attribute(key, value, default_destinations)
           destinations = @filter.apply(key, default_destinations)
           return if destinations == AttributeFilter::DST_NONE
@@ -52,12 +46,18 @@ module NewRelic
           add(@intrinsic_attributes, key, value)
         end
 
-        def merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
+        def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
           return if @filter.high_security?
           return if !@filter.might_allow_prefix?(prefix)
 
-          flatten_and_coerce(prefix, attributes).each do |k, v|
+          flatten_and_coerce(attributes, prefix).each do |k, v|
             add_agent_attribute_with_key_check(k, v, AttributeFilter::DST_NONE)
+          end
+        end
+
+        def merge_custom_attributes(other)
+          other.each do |key, value|
+            self.add_custom_attribute(key, value)
           end
         end
 
@@ -153,18 +153,18 @@ module NewRelic
           result
         end
 
-        def flatten_and_coerce(prefix, params, result = {})
+        def flatten_and_coerce(params, prefix = nil, result = {})
           case params
           when Hash
             params.each do |key, val|
               normalized_key = EncodingNormalizer.normalize_string(key.to_s)
               next_prefix = prefix ? "#{prefix}.#{normalized_key}" : normalized_key
-              flatten_and_coerce(next_prefix, val, result)
+              flatten_and_coerce(val, next_prefix, result)
             end
           when Array
             params.each_with_index do |val, idx|
               next_prefix = prefix ? "#{prefix}.#{idx}" : idx.to_s
-              flatten_and_coerce(next_prefix, val, result)
+              flatten_and_coerce(val, next_prefix, result)
             end
           else
             result[prefix] = Coerce::scalar(params)
