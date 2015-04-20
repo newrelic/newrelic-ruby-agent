@@ -25,11 +25,11 @@ module NewRelic
       #
       # @api private
       class PlaceholderSegment
-        attr_reader :parent_segment
+        attr_reader :parent_node
         attr_accessor :depth
 
-        def initialize(parent_segment)
-          @parent_segment = parent_segment
+        def initialize(parent_node)
+          @parent_node = parent_node
           @depth = 1
         end
 
@@ -83,12 +83,12 @@ module NewRelic
         if @current_segment.is_a?(PlaceholderSegment)
           @current_segment.depth -= 1
           if @current_segment.depth == 0
-            @current_segment = @current_segment.parent_segment
+            @current_segment = @current_segment.parent_node
           end
         else
           @current_segment.metric_name = metric_name
           @current_segment.end_trace(time.to_f - @sample_start)
-          @current_segment = @current_segment.parent_segment
+          @current_segment = @current_segment.parent_node
         end
       end
 
@@ -124,7 +124,7 @@ module NewRelic
 
         while(current)
           depth += 1
-          current = current.parent_segment
+          current = current.parent_node
         end
 
         depth

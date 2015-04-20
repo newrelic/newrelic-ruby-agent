@@ -153,7 +153,7 @@ module NewRelic::DeveloperModeHelper
   def segment_row_classes(segment, depth)
     classes = []
 
-    classes << "segment#{segment.parent_segment.segment_id}" if depth > 1
+    classes << "segment#{segment.parent_node.object_id}" if depth > 1
     classes << "view_segment" if segment.metric_name.index('View') == 0
 
     classes.join(' ')

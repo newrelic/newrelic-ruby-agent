@@ -17,7 +17,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s = NewRelic::Agent::Transaction::TraceNode.new(t, 'Custom/test/metric')
     assert_equal(t, s.entry_timestamp)
     assert_equal(nil, s.exit_timestamp)
-    assert_equal(nil, s.parent_segment)
+    assert_equal(nil, s.parent_node)
     assert_equal('Custom/test/metric', s.metric_name)
     assert_equal(s.object_id, s.segment_id)
   end
@@ -33,7 +33,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     assert_equal [], s.called_segments
     fake_segment = mock('segment')
-    fake_segment.expects(:parent_segment=).with(s)
+    fake_segment.expects(:parent_node=).with(s)
     s.add_called_segment(fake_segment)
     assert_equal([fake_segment], s.called_segments)
   end
@@ -68,7 +68,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal("Custom/test/metric[]", s.path_string)
 
     fake_segment = mock('segment')
-    fake_segment.expects(:parent_segment=).with(s)
+    fake_segment.expects(:parent_node=).with(s)
     fake_segment.expects(:path_string).returns('Custom/other/metric[]')
 
 
@@ -81,7 +81,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal("Custom/test/metric", s.to_s_compact)
 
     fake_segment = mock('segment')
-    fake_segment.expects(:parent_segment=).with(s)
+    fake_segment.expects(:parent_node=).with(s)
     fake_segment.expects(:to_s_compact).returns('Custom/other/metric')
     s.add_called_segment(fake_segment)
 
@@ -155,7 +155,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_called_segments_with_segments
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     fake_segment = mock('segment')
-    fake_segment.expects(:parent_segment=).with(s)
+    fake_segment.expects(:parent_node=).with(s)
     s.add_called_segment(fake_segment)
 
     assert_equal([fake_segment], s.called_segments)
@@ -185,7 +185,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s.expects(:duration).returns(0.5)
 
     fake_segment = mock('segment')
-    fake_segment.expects(:parent_segment=).with(s)
+    fake_segment.expects(:parent_node=).with(s)
     fake_segment.expects(:duration).returns(0.1)
 
     s.add_called_segment(fake_segment)
@@ -202,7 +202,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
 
     fake_segment = mock('segment')
-    fake_segment.expects(:parent_segment=).with(s)
+    fake_segment.expects(:parent_node=).with(s)
     fake_segment.expects(:count_segments).returns(1)
 
     s.add_called_segment(fake_segment)
@@ -257,7 +257,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
 
     fake_segment = mock('segment')
-    fake_segment.expects(:parent_segment=).with(s)
+    fake_segment.expects(:parent_node=).with(s)
     fake_segment.expects(:each_segment).yields(fake_segment)
 
     s.add_called_segment(fake_segment)
@@ -352,11 +352,11 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal([1, 2, 3], s.instance_eval { @called_segments })
   end
 
-  def test_parent_segment_equals
+  def test_parent_node_equals
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    assert_equal(nil, s.instance_eval { @parent_segment })
+    assert_equal(nil, s.instance_eval { @parent_node })
     fake_segment = mock('segment')
-    s.send(:parent_segment=, fake_segment)
-    assert_equal(fake_segment, s.parent_segment)
+    s.send(:parent_node=, fake_segment)
+    assert_equal(fake_segment, s.parent_node)
   end
 end

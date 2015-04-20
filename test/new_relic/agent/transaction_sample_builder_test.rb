@@ -182,7 +182,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
   end
 
   def validate_segment(s, check_names = true)
-    p = s.parent_segment
+    p = s.parent_node
 
     unless p.nil? || p.metric_name == 'ROOT'
       assert p.called_segments.include?(s)

@@ -10,7 +10,7 @@ module NewRelic
         # The exit timestamp will be relative except for the outermost sample which will
         # have a timestamp.
         attr_reader :exit_timestamp
-        attr_reader :parent_segment
+        attr_reader :parent_node
 
         # This is only used from developer mode and rpm_site.
         # No new clients should be added.
@@ -35,7 +35,7 @@ module NewRelic
         def add_called_segment(s)
           @called_segments ||= []
           @called_segments << s
-          s.parent_segment = self
+          s.parent_node = self
         end
 
         def to_s
@@ -188,8 +188,8 @@ module NewRelic
         end
 
         protected
-        def parent_segment=(s)
-          @parent_segment = s
+        def parent_node=(s)
+          @parent_node = s
         end
       end
     end
