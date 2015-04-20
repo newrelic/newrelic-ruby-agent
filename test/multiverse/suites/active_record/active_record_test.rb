@@ -208,7 +208,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     metric = "Datastore/statement/#{current_product}/Order/find"
-    segment = find_segment_with_name(sample, metric)
+    segment = find_node_with_name(sample, metric)
     assert_equal(metric, segment.metric_name)
 
     sql = segment.params[:sql]
@@ -227,7 +227,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
       sample = NewRelic::Agent.instance.transaction_sampler.last_sample
       metric = "Datastore/statement/#{current_product}/Order/find"
-      sql_segment = find_segment_with_name(sample, metric)
+      sql_segment = find_node_with_name(sample, metric)
 
       assert_match(/^SELECT /, sql_segment.params[:sql])
 

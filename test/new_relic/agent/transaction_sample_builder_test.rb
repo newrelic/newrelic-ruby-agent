@@ -116,7 +116,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
 
       segment_names = []
       segment_durations = []
-      sample.each_segment do |s|
+      sample.each_node do |s|
         if s != sample.root_segment
           segment_names << s.metric_name
           segment_durations << s.duration

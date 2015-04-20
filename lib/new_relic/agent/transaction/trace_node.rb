@@ -14,11 +14,11 @@ module NewRelic
 
         attr_accessor :metric_name
 
-        UNKNOWN_SEGMENT_NAME = '<unknown>'.freeze
+        UNKNOWN_NODE_NAME = '<unknown>'.freeze
 
         def initialize(timestamp, metric_name)
           @entry_timestamp = timestamp
-          @metric_name     = metric_name || UNKNOWN_SEGMENT_NAME
+          @metric_name     = metric_name || UNKNOWN_NODE_NAME
         end
 
         # sets the final timestamp on a node to indicate the exit
@@ -109,7 +109,7 @@ module NewRelic
 
         def []=(key, value)
           # only create a parameters field if a parameter is set; this will save
-          # bandwidth etc as most segments have no parameters
+          # bandwidth etc as most nodes have no parameters
           params[key] = value
         end
 
@@ -125,27 +125,27 @@ module NewRelic
           @params = p
         end
 
-        # call the provided block for this segment and each
-        # of the called segments
-        def each_segment(&block)
+        # call the provided block for this node and each
+        # of the called nodes
+        def each_node(&block)
           block.call self
 
           if @called_nodes
-            @called_nodes.each do |segment|
-              segment.each_segment(&block)
+            @called_nodes.each do |node|
+              node.each_node(&block)
             end
           end
         end
 
-        # call the provided block for this segment and each
-        # of the called segments while keeping track of nested segments
-        def each_segment_with_nest_tracking(&block)
+        # call the provided block for this node and each
+        # of the called nodes while keeping track of nested nodes
+        def each_node_with_nest_tracking(&block)
           summary = block.call self
           summary.current_nest_count += 1 if summary
 
           if @called_nodes
-            @called_nodes.each do |segment|
-              segment.each_segment_with_nest_tracking(&block)
+            @called_nodes.each do |node|
+              node.each_node_with_nest_tracking(&block)
             end
           end
 
@@ -153,10 +153,10 @@ module NewRelic
         end
 
         # This is only for use by developer mode
-        def find_segment(id)
+        def find_node(id)
           return self if object_id == id
-          called_nodes.each do |segment|
-            found = segment.find_segment(id)
+          called_nodes.each do |node|
+            found = node.find_node(id)
             return found if found
           end
           nil
@@ -178,8 +178,8 @@ module NewRelic
           NewRelic::Agent::Database.obfuscate_sql(params[:sql])
         end
 
-        def called_nodes=(segments)
-          @called_nodes = segments
+        def called_nodes=(nodes)
+          @called_nodes = nodes
         end
 
         protected

@@ -166,7 +166,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
 
     last_segment = nil
     sampler = NewRelic::Agent.instance.transaction_sampler
-    sampler.last_sample.root_segment.each_segment{|s| last_segment = s }
+    sampler.last_sample.root_segment.each_node{|s| last_segment = s }
     NewRelic::Agent.shutdown
 
     assert_equal('View/model/index.html.erb/Rendering',

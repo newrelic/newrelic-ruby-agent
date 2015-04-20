@@ -45,10 +45,10 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal 'goo', result.metric_name
   end
 
-  def test_each_segment_delegates_to_root_segment
+  def test_each_node_delegates_to_root_segment
     block = Proc.new {}
-    @trace.root_segment.expects(:each_segment)
-    @trace.each_segment(&block)
+    @trace.root_segment.expects(:each_node)
+    @trace.each_node(&block)
   end
 
   def test_collector_array_contains_start_time

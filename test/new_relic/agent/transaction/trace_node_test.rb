@@ -240,11 +240,11 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal({:foo => 'correct'}, s.params)
   end
 
-  def test_each_segment_default
+  def test_each_node_default
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     # in the base case it just yields the block to itself
     count = 0
-    s.each_segment do |x|
+    s.each_node do |x|
       count += 1
       assert_equal(s, x)
     end
@@ -252,51 +252,51 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal(1, count)
   end
 
-  def test_each_segment_with_children
+  def test_each_node_with_children
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
 
     fake_segment = mock('segment')
     fake_segment.expects(:parent_node=).with(s)
-    fake_segment.expects(:each_segment).yields(fake_segment)
+    fake_segment.expects(:each_node).yields(fake_segment)
 
     s.add_called_node(fake_segment)
 
     count = 0
-    s.each_segment do |x|
+    s.each_node do |x|
       count += 1
     end
 
     assert_equal(2, count)
   end
 
-  def test_each_segment_with_nest_tracking
+  def test_each_node_with_nest_tracking
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
 
     summary = mock('summary')
     summary.expects(:current_nest_count).twice.returns(0).then.returns(1)
     summary.expects(:current_nest_count=).twice
-    s.each_segment_with_nest_tracking do |x|
+    s.each_node_with_nest_tracking do |x|
       summary
     end
   end
 
-  def test_find_segment_default
+  def test_find_node_default
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     id_to_find = s.object_id
     # should return itself in the base case
-    assert_equal(s, s.find_segment(id_to_find))
+    assert_equal(s, s.find_node(id_to_find))
   end
 
-  def test_find_segment_not_found
+  def test_find_node_not_found
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    assert_equal(nil, s.find_segment(-1))
+    assert_equal(nil, s.find_node(-1))
   end
 
-  def test_find_segment_with_children
+  def test_find_node_with_children
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     id_to_find = s.object_id
     # should return itself in the base case
-    assert_equal(s, s.find_segment(id_to_find))
+    assert_equal(s, s.find_node(id_to_find))
   end
 
   def test_explain_sql_raising_an_error

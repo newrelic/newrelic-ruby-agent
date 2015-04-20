@@ -42,7 +42,7 @@ module SequelHelpers
 
   def last_segment(txn_sample)
     l_segment = nil
-    txn_sample.root_segment.each_segment do |segment|
+    txn_sample.root_segment.each_node do |segment|
       l_segment = segment
     end
     l_segment

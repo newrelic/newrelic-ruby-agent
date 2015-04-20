@@ -53,8 +53,8 @@ module NewRelic
           NewRelic::Agent::Transaction::TraceNode.new(time_since_start, metric_name)
         end
 
-        def each_segment(&block)
-          self.root_segment.each_segment(&block)
+        def each_node(&block)
+          self.root_segment.each_node(&block)
         end
 
         def prepare_to_send!
@@ -75,7 +75,7 @@ module NewRelic
           return unless NewRelic::Agent::Database.should_collect_explain_plans?
           threshold = NewRelic::Agent.config[:'transaction_tracer.explain_threshold']
 
-          each_segment do |segment|
+          each_node do |segment|
             if segment[:sql] && segment.duration > threshold
               segment[:explain_plan] = segment.explain_sql
             end
@@ -84,7 +84,7 @@ module NewRelic
 
         def prepare_sql_for_transmission!
           strategy = NewRelic::Agent::Database.record_sql_method
-          each_segment do |segment|
+          each_node do |segment|
             next unless segment[:sql]
 
             case strategy
@@ -99,15 +99,15 @@ module NewRelic
         end
 
         def strip_sql!
-          each_segment do |segment|
+          each_node do |segment|
             segment.params.delete(:sql)
           end
         end
 
         # Iterates recursively over each segment in the entire transaction
         # sample tree while keeping track of nested segments
-        def each_segment_with_nest_tracking(&block)
-          @root_segment.each_segment_with_nest_tracking(&block)
+        def each_node_with_nest_tracking(&block)
+          @root_segment.each_node_with_nest_tracking(&block)
         end
 
         def trace_tree
