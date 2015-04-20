@@ -58,9 +58,7 @@ module NewRelic
         end
 
         def filter(params)
-          munged_params = params.dup
-          munged_params.delete('controller')
-          munged_params.delete('action')
+          munged_params = NewRelic::Agent::ParameterFiltering.filter_rails_request_parameters(params)
           filters = Rails.application.config.filter_parameters
           ActionDispatch::Http::ParameterFilter.new(filters).filter(munged_params)
         end

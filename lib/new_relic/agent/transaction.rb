@@ -333,10 +333,7 @@ module NewRelic
         set_default_transaction_name(options[:transaction_name], category)
       end
 
-      DISALLOWED_REQUEST_PARAMETERS = ["controller", "action"]
-
       def merge_request_parameters(params)
-        DISALLOWED_REQUEST_PARAMETERS.each { |key| params.delete(key) }
         merge_untrusted_agent_attributes(:'request.parameters', params, AttributeFilter::DST_NONE)
       end
 

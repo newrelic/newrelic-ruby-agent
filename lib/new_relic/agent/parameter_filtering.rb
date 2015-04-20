@@ -32,6 +32,13 @@ module NewRelic
           memo
         end
       end
+
+      def filter_rails_request_parameters(params)
+        result = params.dup
+        result.delete("controller")
+        result.delete("action")
+        result
+      end
     end
   end
 end

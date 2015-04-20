@@ -81,6 +81,26 @@ class ParameterCaptureTest < RailsMultiverseTest
     end
   end
 
+  def test_controller_and_action_excluded_from_error_parameters
+    with_config(:capture_params => true) do
+      get '/parameter_capture/error'
+      run_harvest
+
+      refute_error_has_agent_attribute('request.parameters.controller')
+      refute_error_has_agent_attribute('request.parameters.action')
+    end
+  end
+
+  def test_controller_and_action_excluded_from_transaction_trace_parameters
+    with_config(:capture_params => true, :'transaction_tracer.transaction_threshold' => -10) do
+      get '/parameter_capture/transaction'
+      run_harvest
+
+      refute_transaction_trace_has_agent_attribute('request.parameters.controller')
+      refute_transaction_trace_has_agent_attribute('request.parameters.action')
+    end
+  end
+
   def test_uri_on_tts_never_contains_query_string
     with_config(:capture_params => false) do
       get '/parameter_capture/transaction?other=1234&secret=4567'
