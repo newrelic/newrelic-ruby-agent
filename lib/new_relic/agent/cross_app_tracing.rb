@@ -192,7 +192,7 @@ module NewRelic
 
       def add_transaction_trace_parameters(request, response)
         filtered_uri = ::NewRelic::Agent::HTTPClients::URIUtil.filter_uri(request.uri)
-        transaction_sampler.add_segment_parameters(:uri => filtered_uri)
+        transaction_sampler.add_node_parameters(:uri => filtered_uri)
         if response && response_is_crossapp?(response)
           add_cat_transaction_trace_parameters(response)
         end
@@ -203,7 +203,7 @@ module NewRelic
       # add them to the current TT node.
       def add_cat_transaction_trace_parameters( response )
         appdata = extract_appdata( response )
-        transaction_sampler.add_segment_parameters( \
+        transaction_sampler.add_node_parameters( \
           :transaction_guid => appdata[APPDATA_TXN_GUID_INDEX] )
       end
 

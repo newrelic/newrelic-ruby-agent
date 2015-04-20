@@ -621,7 +621,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_adding_segment_parameters
     @sampler.start_builder(@state)
     @sampler.notice_push_frame(@state)
-    @sampler.add_segment_parameters(:transaction_guid => '97612F92E6194080')
+    @sampler.add_node_parameters(:transaction_guid => '97612F92E6194080')
     assert_equal '97612F92E6194080', @sampler.tl_builder.current_node[:transaction_guid]
   end
 

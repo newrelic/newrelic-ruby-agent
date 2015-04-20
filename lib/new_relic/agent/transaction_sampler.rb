@@ -242,7 +242,7 @@ module NewRelic
       end
 
       # Set parameters on the current segment.
-      def add_segment_parameters(params) #THREAD_LOCAL_ACCESS
+      def add_node_parameters(params) #THREAD_LOCAL_ACCESS
         builder = tl_builder
         return unless builder
         params.each { |k,v| builder.current_node[k] = v }
