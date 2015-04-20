@@ -602,7 +602,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
         @sampler.notice_pop_frame(@state, "a11")
         @sampler.notice_pop_frame(@state, "a1")
       end
-      assert_equal 3, @sampler.last_sample.count_segments
+      assert_equal 3, @sampler.last_sample.count_nodes
 
       expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
       deepest_segment = find_last_transaction_segment(@sampler.last_sample)
@@ -638,7 +638,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       assert_equal(1, samples.size)
 
       # Verify that the TT stopped recording after 100 nodes
-      assert_equal(100, samples.first.count_segments)
+      assert_equal(100, samples.first.count_nodes)
     end
   end
 

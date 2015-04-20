@@ -21,8 +21,8 @@ module NewRelic
           @metric_name     = metric_name || UNKNOWN_SEGMENT_NAME
         end
 
-        # sets the final timestamp on a segment to indicate the exit
-        # point of the segment
+        # sets the final timestamp on a node to indicate the exit
+        # point of the node
         def end_trace(timestamp)
           @exit_timestamp = timestamp
         end
@@ -85,25 +85,25 @@ module NewRelic
           @called_nodes || []
         end
 
-        # return the total duration of this segment
+        # return the total duration of this node
         def duration
           (@exit_timestamp - @entry_timestamp).to_f
         end
 
-        # return the duration of this segment without
-        # including the time in the called segments
+        # return the duration of this node without
+        # including the time in the called nodes
         def exclusive_duration
           d = duration
 
-          called_nodes.each do |segment|
-            d -= segment.duration
+          called_nodes.each do |node|
+            d -= node.duration
           end
           d
         end
 
-        def count_segments
+        def count_nodes
           count = 1
-          called_nodes.each { | seg | count  += seg.count_segments }
+          called_nodes.each { | node | count  += node.count_nodes }
           count
         end
 

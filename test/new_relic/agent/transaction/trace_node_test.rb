@@ -192,21 +192,21 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal(0.4, s.exclusive_duration)
   end
 
-  def test_count_segments_default
+  def test_count_nodes_default
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    assert_equal(1, s.count_segments)
+    assert_equal(1, s.count_nodes)
   end
 
-  def test_count_segments_with_children
+  def test_count_nodes_with_children
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
 
     fake_segment = mock('segment')
     fake_segment.expects(:parent_node=).with(s)
-    fake_segment.expects(:count_segments).returns(1)
+    fake_segment.expects(:count_nodes).returns(1)
 
     s.add_called_node(fake_segment)
 
-    assert_equal(2, s.count_segments)
+    assert_equal(2, s.count_nodes)
   end
 
   def test_key_equals

@@ -88,7 +88,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
   def test_trace_should_not_record_more_than_segment_limit
     with_config(:'transaction_tracer.limit_segments' => 3) do
       8.times {|i| build_segment i.to_s }
-      assert_equal 3, @builder.sample.count_segments
+      assert_equal 3, @builder.sample.count_nodes
     end
   end
 
@@ -112,7 +112,7 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
       end
 
       sample = @builder.sample
-      assert_equal(3, sample.count_segments)
+      assert_equal(3, sample.count_nodes)
 
       segment_names = []
       segment_durations = []

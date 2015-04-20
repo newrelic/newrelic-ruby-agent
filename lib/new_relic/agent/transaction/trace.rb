@@ -25,7 +25,7 @@ module NewRelic
           self.object_id
         end
 
-        def count_segments
+        def count_nodes
           self.segment_count
         end
 
