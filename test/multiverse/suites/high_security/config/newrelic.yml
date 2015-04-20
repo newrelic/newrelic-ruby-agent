@@ -5,16 +5,56 @@ development:
   # Settings known to be overridden by high security, purposefully set wrong
   # in local configuration for testing purposes!
   ssl: false
+  capture_params: true
+
+  attributes:
+    enabled: true
+    include:
+      - "*"
+      - "request.parameters.*"
+
   transaction_tracer:
     record_sql: raw
     enabled: true
     stack_trace_threshold: 0.5
-  slow_sql:
-    record_sql: obfuscated
-  capture_params: true
+
+    capture_attributes: true,
+    attributes:
+      enabled: true,
+      include:
+        - "*"
+        - "request.parameters.*"
 
   error_collector:
     enabled: true
+    capture_attributes: true,
+    attributes:
+      enabled: true,
+      include:
+        - "*"
+        - "request.parameters.*"
+
+  analytics_events:
+    capture_attributes: true
+
+  transaction_events:
+    attributes:
+      enabled: true
+      include:
+        - "*"
+        - "request.parameters.*"
+
+  browser_monitoring:
+    capture_attributes: true
+    attributes:
+      enabled: true
+      include:
+        - "*"
+        - "request.parameters.*"
+
+  slow_sql:
+    record_sql: obfuscated
+
   apdex_t: 0.24
   monitor_mode: true
   license_key: bootstrap_newrelic_admin_license_key_000
