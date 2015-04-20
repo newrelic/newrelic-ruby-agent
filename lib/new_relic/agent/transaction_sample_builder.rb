@@ -43,14 +43,14 @@ module NewRelic
         def params=; end
       end
 
-      attr_reader :current_segment, :sample
+      attr_reader :current_node, :sample
 
       include NewRelic::CollectionHelper
 
       def initialize(time=Time.now)
         @sample = NewRelic::Agent::Transaction::Trace.new(time.to_f)
         @sample_start = time.to_f
-        @current_segment = @sample.root_node
+        @current_node = @sample.root_node
       end
 
       def sample_id
@@ -64,31 +64,31 @@ module NewRelic
       def trace_entry(time)
         if @sample.count_nodes < segment_limit
           segment = @sample.create_node(time.to_f - @sample_start)
-          @current_segment.add_called_node(segment)
-          @current_segment = segment
+          @current_node.add_called_node(segment)
+          @current_node = segment
           if @sample.count_nodes == segment_limit()
             ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
           end
         else
-          if @current_segment.is_a?(PlaceholderNode)
-            @current_segment.depth += 1
+          if @current_node.is_a?(PlaceholderNode)
+            @current_node.depth += 1
           else
-            @current_segment = PlaceholderNode.new(@current_segment)
+            @current_node = PlaceholderNode.new(@current_node)
           end
         end
-        @current_segment
+        @current_node
       end
 
       def trace_exit(metric_name, time)
-        if @current_segment.is_a?(PlaceholderNode)
-          @current_segment.depth -= 1
-          if @current_segment.depth == 0
-            @current_segment = @current_segment.parent_node
+        if @current_node.is_a?(PlaceholderNode)
+          @current_node.depth -= 1
+          if @current_node.depth == 0
+            @current_node = @current_node.parent_node
           end
         else
-          @current_segment.metric_name = metric_name
-          @current_segment.end_trace(time.to_f - @sample_start)
-          @current_segment = @current_segment.parent_node
+          @current_node.metric_name = metric_name
+          @current_node.end_trace(time.to_f - @sample_start)
+          @current_node = @current_node.parent_node
         end
       end
 
@@ -103,7 +103,7 @@ module NewRelic
 
         @sample.threshold = transaction_trace_threshold
         @sample.finished = true
-        @current_segment = nil
+        @current_node = nil
       end
 
       TT_THRESHOLD_KEY = :'transaction_tracer.transaction_threshold'
@@ -120,7 +120,7 @@ module NewRelic
 
       def scope_depth
         depth = -1        # have to account for the root
-        current = @current_segment
+        current = @current_node
 
         while(current)
           depth += 1

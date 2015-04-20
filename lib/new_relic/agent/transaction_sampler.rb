@@ -141,7 +141,7 @@ module NewRelic
       # duration is seconds, float value.
       def notice_extra_data(builder, message, duration, key)
         return unless builder
-        segment = builder.current_segment
+        segment = builder.current_node
         if segment
           if key == :sql
             sql = segment[:sql]
@@ -245,7 +245,7 @@ module NewRelic
       def add_segment_parameters(params) #THREAD_LOCAL_ACCESS
         builder = tl_builder
         return unless builder
-        params.each { |k,v| builder.current_segment[k] = v }
+        params.each { |k,v| builder.current_node[k] = v }
       end
 
       # Gather transaction traces that we'd like to transmit to the server.

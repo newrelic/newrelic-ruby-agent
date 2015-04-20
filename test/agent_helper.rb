@@ -352,7 +352,7 @@ def find_last_transaction_segment(transaction_sample=nil)
     root_node = transaction_sample.root_node
   else
     builder = NewRelic::Agent.agent.transaction_sampler.tl_builder
-    root_node = builder.current_segment
+    root_node = builder.current_node
   end
 
   last_segment = nil

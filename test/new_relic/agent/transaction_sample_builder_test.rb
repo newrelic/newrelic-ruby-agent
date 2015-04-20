@@ -133,8 +133,8 @@ class NewRelic::Agent::TransactionSampleBuilderTest < Minitest::Test
       6.times { |i| build_segment "s#{i}" }
       # now we should have a placeholder segment
       build_segment "this-should-be-truncated" do
-        @builder.current_segment['eggs'] = 'ham'
-        @builder.current_segment.params.merge!('foo' => 'bar')
+        @builder.current_node['eggs'] = 'ham'
+        @builder.current_node.params.merge!('foo' => 'bar')
       end
     end
   end
