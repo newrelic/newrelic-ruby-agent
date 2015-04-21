@@ -108,6 +108,9 @@ module NewRelic
         end
 
         def for_destination(attributes, calculated_destinations, destination)
+          # Avoid allocating anything if there are no attrs at all
+          return EMPTY_HASH if attributes.empty?
+
           return attributes.dup if destination == NewRelic::Agent::AttributeFilter::DST_DEVELOPER_MODE
 
           attributes.inject({}) do |memo, (key, value)|
