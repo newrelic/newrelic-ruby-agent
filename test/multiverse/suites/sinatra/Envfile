@@ -1,5 +1,5 @@
 gemfile <<-RB
-  gem 'sinatra', '~> 1.4.5'
+  gem 'sinatra', '~> 1.4.6'
   gem 'rack',    '~> 1.5.0'
   gem 'rack-test', :require => 'rack/test'
 RB
