@@ -56,6 +56,7 @@ module NewRelic
         end
 
         def merge_custom_attributes(other)
+          return if other.empty?
           flatten_and_coerce(other).each do |k, v|
             self.add_custom_attribute(k, v)
           end
@@ -153,23 +154,39 @@ module NewRelic
           result
         end
 
-        def flatten_and_coerce(params, prefix = nil, result = {})
-          case params
+        def flatten_and_coerce(object, prefix = nil, result = {})
+          case object
           when Hash
-            params.each do |key, val|
+            flatten_and_coerce_hash(object, prefix, result)
+          when Array
+            flatten_and_coerce_array(object, prefix, result)
+          else
+            result[prefix] = Coerce::scalar(object)
+          end
+          result
+        end
+
+        def flatten_and_coerce_hash(hash, prefix, result)
+          if hash.empty?
+              result[prefix] = "{}"
+          else
+            hash.each do |key, val|
               normalized_key = EncodingNormalizer.normalize_string(key.to_s)
               next_prefix = prefix ? "#{prefix}.#{normalized_key}" : normalized_key
               flatten_and_coerce(val, next_prefix, result)
             end
-          when Array
-            params.each_with_index do |val, idx|
+          end
+        end
+
+        def flatten_and_coerce_array(array, prefix, result)
+          if array.empty?
+            result[prefix] = "[]"
+          else
+            array.each_with_index do |val, idx|
               next_prefix = prefix ? "#{prefix}.#{idx}" : idx.to_s
               flatten_and_coerce(val, next_prefix, result)
             end
-          else
-            result[prefix] = Coerce::scalar(params)
           end
-          result
         end
       end
     end

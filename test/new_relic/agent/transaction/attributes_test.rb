@@ -313,6 +313,30 @@ class AttributesTest < Minitest::Test
     assert_equal(expected, actual)
   end
 
+  def test_flatten_and_coerce_replaces_empty_hash_with_string_representation
+    params = {:foo => {:bar => {}}}
+
+    attributes = create_attributes
+
+    expected = { "foo.bar" => "{}" }
+
+    actual = attributes.send(:flatten_and_coerce, params)
+
+    assert_equal(expected, actual)
+  end
+
+  def test_flatten_and_coerce_replaces_empty_array_with_string_representation
+    params = {:foo => {:bar => []}}
+
+    attributes = create_attributes
+
+    expected = { "foo.bar" => "[]" }
+
+    actual = attributes.send(:flatten_and_coerce, params)
+
+    assert_equal(expected, actual)
+  end
+
   def test_merge_untrusted_agent_attributes_drops_long_keys
     with_config(:'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
