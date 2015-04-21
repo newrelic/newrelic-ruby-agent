@@ -19,7 +19,7 @@ class AttributesTest < Minitest::Test
 
   def test_adds_custom_attribute
     attributes = create_attributes
-    attributes.add_custom_attribute(:foo, "bar")
+    attributes.merge_custom_attributes(:foo => "bar")
 
     assert_equal({:foo => "bar"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
   end
@@ -27,7 +27,25 @@ class AttributesTest < Minitest::Test
   def test_disable_custom_attributes
     with_config({:'transaction_tracer.attributes.enabled' => false}) do
       attributes = create_attributes
-      attributes.add_custom_attribute(:foo, "bar")
+      attributes.merge_custom_attributes(:foo => "bar")
+
+      assert_empty attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+    end
+  end
+
+  def test_disable_custom_attributes_in_high_security_mode
+    with_config(:high_security => true) do
+      attributes = create_attributes
+      attributes.merge_custom_attributes(:foo => "bar")
+
+      assert_empty attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+    end
+  end
+
+  def test_disable_merging_custom_attributes_in_high_security_mode
+    with_config(:high_security => true) do
+      attributes = create_attributes
+      attributes.merge_custom_attributes(:foo => "bar")
 
       assert_empty attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     end
@@ -89,7 +107,7 @@ class AttributesTest < Minitest::Test
     value = "j" + MULTIBYTE_CHARACTER * 1000
 
     attributes = create_attributes
-    attributes.add_custom_attribute(:key, value)
+    attributes.merge_custom_attributes(:key => value)
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     result = custom_attributes[:key]
@@ -106,7 +124,7 @@ class AttributesTest < Minitest::Test
     value = ("j" + MULTIBYTE_CHARACTER * 1000).to_sym
 
     attributes = create_attributes
-    attributes.add_custom_attribute(:key, value)
+    attributes.merge_custom_attributes(:key => value)
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     result = custom_attributes[:key]
@@ -123,7 +141,7 @@ class AttributesTest < Minitest::Test
     expects_logging(:warn, includes(key))
 
     attributes = create_attributes
-    attributes.add_custom_attribute(key, "")
+    attributes.merge_custom_attributes(key => "")
 
     assert_custom_attributes_empty(attributes)
   end
@@ -133,7 +151,7 @@ class AttributesTest < Minitest::Test
     expects_logging(:warn, includes(key))
 
     attributes = create_attributes
-    attributes.add_custom_attribute(key, "")
+    attributes.merge_custom_attributes(key => "")
 
     assert_custom_attributes_empty(attributes)
   end
@@ -143,7 +161,7 @@ class AttributesTest < Minitest::Test
     expects_logging(:warn, includes(key.to_s))
 
     attributes = create_attributes
-    attributes.add_custom_attribute(key, "")
+    attributes.merge_custom_attributes(key => "")
 
     assert_custom_attributes_empty(attributes)
   end
@@ -160,7 +178,7 @@ class AttributesTest < Minitest::Test
 
   def test_allows_non_string_key_type
     attributes = create_attributes
-    attributes.add_custom_attribute(1, "value")
+    attributes.merge_custom_attributes(1 => "value")
 
     assert_equal "value", custom_attributes(attributes)[1]
   end
@@ -169,7 +187,7 @@ class AttributesTest < Minitest::Test
     value = "x" * 1000
 
     attributes = create_attributes
-    attributes.add_custom_attribute(:key, value)
+    attributes.merge_custom_attributes(:key => value)
 
     assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)[:key].length
   end
@@ -178,14 +196,14 @@ class AttributesTest < Minitest::Test
     value = ("x" * 1000).to_sym
 
     attributes = create_attributes
-    attributes.add_custom_attribute(:key, value)
+    attributes.merge_custom_attributes(:key => value)
 
     assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)[:key].length
   end
 
   def test_leaves_numbers_alone
     attributes = create_attributes
-    attributes.add_custom_attribute(:key, 42)
+    attributes.merge_custom_attributes(:key => 42)
 
     assert_equal 42, custom_attributes(attributes)[:key]
   end
@@ -195,7 +213,7 @@ class AttributesTest < Minitest::Test
 
     attributes = create_attributes
     100.times do |i|
-      attributes.add_custom_attribute(i.to_s, i)
+      attributes.merge_custom_attributes(i.to_s => i)
     end
 
     assert_equal Attributes::COUNT_LIMIT, custom_attributes(attributes).length
@@ -267,6 +285,16 @@ class AttributesTest < Minitest::Test
       }
       attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
       assert_equal({"request.parameters.foo" => "bar"}, agent_attributes(attributes))
+    end
+  end
+
+  def test_merge_untrusted_agent_attributes_disallowed_in_high_security
+    with_config(:high_security => true, :'attributes.include' => "request.parameters.*") do
+      attributes = create_attributes
+      params = { "sneaky" => "code" }
+
+      attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
+      assert_empty agent_attributes(attributes)
     end
   end
 

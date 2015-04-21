@@ -350,8 +350,8 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_trace_tree_contains_attributes
     @fake_attributes.add_agent_attribute(:foo, 'bar', NewRelic::Agent::AttributeFilter::DST_ALL)
-    @fake_attributes.add_custom_attribute(:foo, 'bar')
     @fake_attributes.add_intrinsic_attribute(:foo, 'bar')
+    @fake_attributes.merge_custom_attributes(:foo => 'bar')
 
     expected = {
       'agentAttributes' => { 'foo' => 'bar' },

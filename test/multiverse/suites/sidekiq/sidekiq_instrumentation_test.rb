@@ -141,7 +141,8 @@ class SidekiqTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        actual = sample.tree.agent_attributes.keys.to_set
+
+        actual = sample.agent_attributes.keys.to_set
         expected = Set.new ["job.sidekiq.arguments.0", "job.sidekiq.arguments.1"]
         assert_equal expected, actual
       end
@@ -155,7 +156,7 @@ class SidekiqTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert sample.tree.agent_attributes.keys.none? { |k| k =~ /^job.sidekiq.arguments.*/ }
+        assert sample.agent_attributes.keys.none? { |k| k =~ /^job.sidekiq.arguments.*/ }
       end
     end
   end

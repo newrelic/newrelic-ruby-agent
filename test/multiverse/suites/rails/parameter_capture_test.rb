@@ -271,7 +271,7 @@ class ParameterCaptureTest < RailsMultiverseTest
         run_harvest
 
         result = single_transaction_trace_posted
-        assert_equal "#<ActionDispatch::Http::UploadedFile>", result.tree.agent_attributes["request.parameters.file"]
+        assert_equal "#<ActionDispatch::Http::UploadedFile>", result.agent_attributes["request.parameters.file"]
       end
     end
   end

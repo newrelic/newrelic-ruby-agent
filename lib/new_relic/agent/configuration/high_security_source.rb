@@ -16,14 +16,6 @@ module NewRelic
             :'resque.capture_params'  => false,
             :'sidekiq.capture_params' => false,
 
-            # These aren't strictly necessary as add_custom_parameters is
-            # directly responsible for ignoring incoming param, but we disallow
-            # attributes by these settings just to be safe
-            :'transaction_tracer.capture_attributes' => false,
-            :'error_collector.capture_attributes'    => false,
-            :'browser_monitoring.capture_attributes' => false,
-            :'analytics_events.capture_attributes'   => false,
-
             :'transaction_tracer.record_sql' => record_sql_setting(local_settings, :'transaction_tracer.record_sql'),
             :'slow_sql.record_sql'           => record_sql_setting(local_settings, :'slow_sql.record_sql'),
             :'mongo.obfuscate_queries'       => true,

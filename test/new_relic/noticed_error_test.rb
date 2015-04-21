@@ -42,7 +42,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_to_collector_array_merges_custom_attributes_and_params
     e = TestError.new('test exception')
-    @attributes.add_custom_attribute(:custom, "attribute")
+    @attributes.merge_custom_attributes(:custom => "attribute")
 
     error = create_error(e)
     error.attributes_from_notice_error = @attributes_from_notice_error
