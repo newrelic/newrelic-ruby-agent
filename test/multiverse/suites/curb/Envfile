@@ -2,10 +2,10 @@ suite_condition("Curb is not useful on JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
-# There appears to be a bug in curb 0.8.6 that manifests in hangs of this suite
-# when run on Ruby 1.8.7 or REE, so don't run against that version on those
-# Rubies.
-curb_version_spec = RUBY_VERSION == "1.8.7" ? '0.8.5' : '~>0.8.6'
+# There appears to be a bug in later curbs (> 0.8.6) that manifests in hangs of
+# this suite when run on Ruby 1.8.7 or REE, so don't run against that version
+# on those Rubies.
+curb_version_spec = RUBY_VERSION == "1.8.7" ? '0.8.5' : '~>0.8.8'
 gemfile <<-RB
   gem 'curb', '#{curb_version_spec}'
   gem 'rack'
@@ -21,8 +21,7 @@ gemfile <<-RB
   gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
-# Older curb's than 0.8.6 don't build against Ruby 2.2.0-preview1
-# Recheck on later RC's, but for now, just skip this env for Ruby 2.2.0
+# Older curb's than 0.8.6 don't build against Ruby 2.2.0
 if RUBY_VERSION < "2.2.0"
 gemfile <<-RB
   gem 'curb', '0.8.1'

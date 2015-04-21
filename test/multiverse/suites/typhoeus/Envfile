@@ -7,7 +7,7 @@ suite_condition("Typhoeus excluded on 1.8.7") do
 end
 
 gemfile <<-RB
-  gem 'typhoeus', '~> 0.6.5'
+  gem 'typhoeus', '~> 0.7.1'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 
@@ -16,7 +16,13 @@ gemfile <<-RB
 RB
 
 gemfile <<-RB
-  gem 'typhoeus', '~> 0.6.5'
+  gem 'typhoeus', '~> 0.7.1'
+  gem 'rack'
+  gem 'json', :platforms => [:rbx, :mri_18]
+RB
+
+gemfile <<-RB
+  gem 'typhoeus', '~> 0.6.9'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 RB
