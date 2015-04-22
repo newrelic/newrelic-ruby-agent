@@ -158,7 +158,7 @@ class NewRelic::NoticedError
   end
 
   def append_attributes(outgoing_params, outgoing_key, source_attributes)
-    outgoing_params[outgoing_key] = event_params(source_attributes || {})
+    outgoing_params[outgoing_key] = source_attributes || {}
   end
 
 end

@@ -143,9 +143,10 @@ class RequestStatsTest < RailsMultiverseTest
       end
 
       custom_params = post.events.first[1]
+
       assert_equal 'blue', custom_params['color']
       assert_equal 'bar', custom_params['1']
-      assert_equal '#<Hash>', custom_params['bad']
+      assert_equal '{}', custom_params['bad']
     end
   end
 
