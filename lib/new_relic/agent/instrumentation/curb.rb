@@ -124,13 +124,13 @@ DependencyDetection.defer do
       # tracing if it's enabled.
       def hook_pending_request(request) #THREAD_LOCAL_ACCESS
         wrapped_request, wrapped_response = wrap_request(request)
-        state   = NewRelic::Agent::TransactionState.tl_get
-        t0      = Time.now
-        segment = NewRelic::Agent::CrossAppTracing.start_trace(state, t0, wrapped_request)
+        state = NewRelic::Agent::TransactionState.tl_get
+        t0    = Time.now
+        node  = NewRelic::Agent::CrossAppTracing.start_trace(state, t0, wrapped_request)
 
         unless request._nr_instrumented
           install_header_callback(request, wrapped_response)
-          install_completion_callback(request, t0, segment, wrapped_request, wrapped_response)
+          install_completion_callback(request, t0, node, wrapped_request, wrapped_response)
           request._nr_instrumented = true
         end
       rescue => err
@@ -163,13 +163,13 @@ DependencyDetection.defer do
       end
 
       # Install a callback that will finish the trace.
-      def install_completion_callback(request, t0, segment, wrapped_request, wrapped_response) #THREAD_LOCAL_ACCESS
+      def install_completion_callback(request, t0, node, wrapped_request, wrapped_response) #THREAD_LOCAL_ACCESS
         original_callback = request.on_complete
         request._nr_original_on_complete = original_callback
         request.on_complete do |finished_request|
           begin
             state = NewRelic::Agent::TransactionState.tl_get
-            NewRelic::Agent::CrossAppTracing.finish_trace(state, t0, segment, wrapped_request, wrapped_response)
+            NewRelic::Agent::CrossAppTracing.finish_trace(state, t0, node, wrapped_request, wrapped_response)
           ensure
             # Make sure the existing completion callback is run, and restore the
             # on_complete callback to how it was before.

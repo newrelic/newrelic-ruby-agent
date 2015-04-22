@@ -5,7 +5,7 @@ require 'new_relic/agent/instrumentation/active_record_helper'
 require 'new_relic/agent/instrumentation/evented_subscriber'
 
 # Listen for ActiveSupport::Notifications events for ActiveRecord query
-# events.  Write metric data, transaction trace segments and slow sql
+# events.  Write metric data, transaction trace nodes and slow sql
 # nodes for each event.
 module NewRelic
   module Agent
@@ -53,7 +53,7 @@ module NewRelic
         def notice_sql(state, event, config, metric)
           stack  = state.traced_method_stack
 
-          # enter transaction trace segment
+          # enter transaction trace node
           frame = stack.push_frame(state, :active_record, event.time)
 
           NewRelic::Agent.instance.transaction_sampler \
@@ -66,7 +66,7 @@ module NewRelic
                         Helper.milliseconds_to_seconds(event.duration),
                         state, &@explainer)
 
-          # exit transaction trace segment
+          # exit transaction trace node
           stack.pop_frame(state, frame, metric, event.end)
         end
 

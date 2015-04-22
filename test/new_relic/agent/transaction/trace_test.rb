@@ -10,7 +10,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     freeze_time
     @start_time = Time.now
     @trace = NewRelic::Agent::Transaction::Trace.new(@start_time)
-    @trace.root_segment.end_trace(@start_time)
+    @trace.root_node.end_trace(@start_time)
 
     filter = NewRelic::Agent.instance.attribute_filter
     @fake_attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
@@ -22,33 +22,33 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_equal @start_time, @trace.start_time
   end
 
-  def test_segment_count
-    assert_equal 0, @trace.segment_count
+  def test_node_count
+    assert_equal 0, @trace.node_count
   end
 
   def test_sample_id_is_the_object_id
     assert_equal @trace.object_id, @trace.sample_id
   end
 
-  def test_create_segment_increases_segment_count
-    @trace.create_segment(0.0, 'foo')
-    assert_equal 1, @trace.segment_count
+  def test_create_node_increases_node_count
+    @trace.create_node(0.0, 'foo')
+    assert_equal 1, @trace.node_count
   end
 
-  def test_duration_is_the_root_segment_duration
-    assert_equal @trace.duration, @trace.root_segment.duration
+  def test_duration_is_the_root_node_duration
+    assert_equal @trace.duration, @trace.root_node.duration
   end
 
-  def test_create_segment
-    result = @trace.create_segment(0.0, 'goo')
+  def test_create_node
+    result = @trace.create_node(0.0, 'goo')
     assert_equal 0.0, result.entry_timestamp
     assert_equal 'goo', result.metric_name
   end
 
-  def test_each_segment_delegates_to_root_segment
+  def test_each_node_delegates_to_root_node
     block = Proc.new {}
-    @trace.root_segment.expects(:each_segment)
-    @trace.each_segment(&block)
+    @trace.root_node.expects(:each_node)
+    @trace.each_node(&block)
   end
 
   def test_collector_array_contains_start_time
@@ -56,9 +56,9 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:start_time, expected)
   end
 
-  def test_root_segment
-    assert_equal 0.0, @trace.root_segment.entry_timestamp
-    assert_equal "ROOT", @trace.root_segment.metric_name
+  def test_root_node
+    assert_equal 0.0, @trace.root_node.entry_timestamp
+    assert_equal "ROOT", @trace.root_node.metric_name
   end
 
   def test_prepare_to_send_returns_self
@@ -98,154 +98,154 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_prepare_to_send_collects_explain_plans
-    segment = @trace.create_segment(0.0, 'has_sql')
-    segment.stubs(:duration).returns(2)
-    segment.stubs(:explain_sql).returns('')
-    segment[:sql] = ''
+    node = @trace.create_node(0.0, 'has_sql')
+    node.stubs(:duration).returns(2)
+    node.stubs(:explain_sql).returns('')
+    node[:sql] = ''
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_node.add_called_node(node)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.prepare_to_send!
     end
 
-    assert segment[:explain_plan]
+    assert node[:explain_plan]
   end
 
   def test_prepare_to_send_prepares_sql_for_transmission
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
 
-    segment = @trace.create_segment(0.0, 'has_sql')
-    segment.stubs(:duration).returns(2)
-    segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_segment(segment)
+    node = @trace.create_node(0.0, 'has_sql')
+    node.stubs(:duration).returns(2)
+    node[:sql] = "select * from pelicans where name = '1337807';"
+    @trace.root_node.add_called_node(node)
 
     @trace.prepare_to_send!
-    assert_equal "select * from pelicans where name = ?;", segment[:sql]
+    assert_equal "select * from pelicans where name = ?;", node[:sql]
   end
 
   def test_prepare_to_send_strips_sql
     NewRelic::Agent::Database.stubs(:should_record_sql?).returns false
-    segment = @trace.create_segment(0.0, 'has_sql')
-    segment.stubs(:duration).returns(2)
-    segment.stubs(:explain_sql).returns('')
-    segment[:sql] = 'select * from pelicans;'
+    node = @trace.create_node(0.0, 'has_sql')
+    node.stubs(:duration).returns(2)
+    node.stubs(:explain_sql).returns('')
+    node[:sql] = 'select * from pelicans;'
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_node.add_called_node(node)
     @trace.prepare_to_send!
 
-    refute segment[:sql]
+    refute node[:sql]
   end
 
   def test_collect_explain_plans!
-    segment = @trace.create_segment(0.0, 'has_sql')
-    segment.stubs(:duration).returns(2)
-    segment.stubs(:explain_sql).returns('')
-    segment[:sql] = ''
+    node = @trace.create_node(0.0, 'has_sql')
+    node.stubs(:duration).returns(2)
+    node.stubs(:explain_sql).returns('')
+    node[:sql] = ''
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_node.add_called_node(node)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
     end
 
-    assert segment[:explain_plan]
+    assert node[:explain_plan]
   end
 
   def test_collect_explain_plans_does_not_attach_explain_plans_if_duration_is_too_short
-    segment = @trace.create_segment(0.0, 'has_sql')
-    segment.stubs(:duration).returns(1)
-    segment.stubs(:explain_sql).returns('')
-    segment[:sql] = ''
+    node = @trace.create_node(0.0, 'has_sql')
+    node.stubs(:duration).returns(1)
+    node.stubs(:explain_sql).returns('')
+    node[:sql] = ''
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_node.add_called_node(node)
 
     with_config(:'transaction_tracer.explain_threshold' => 2) do
       @trace.collect_explain_plans!
     end
 
-    refute segment[:explain_plan]
+    refute node[:explain_plan]
   end
 
   def test_collect_explain_plans_does_not_attach_explain_plans_without_sql
-    segment = @trace.create_segment(0.0, 'nope_sql')
-    segment.stubs(:duration).returns(2)
-    segment.stubs(:explain_sql).returns('')
-    segment[:sql] = nil
+    node = @trace.create_node(0.0, 'nope_sql')
+    node.stubs(:duration).returns(2)
+    node.stubs(:explain_sql).returns('')
+    node[:sql] = nil
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_node.add_called_node(node)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
     end
 
-    refute segment[:explain_plan]
+    refute node[:explain_plan]
   end
 
   def test_collect_explain_plans_does_not_attach_explain_plans_if_db_says_not_to
-    segment = @trace.create_segment(0.0, 'has_sql')
-    segment.stubs(:duration).returns(2)
-    segment.stubs(:explain_sql).returns('')
-    segment[:sql] = ''
+    node = @trace.create_node(0.0, 'has_sql')
+    node.stubs(:duration).returns(2)
+    node.stubs(:explain_sql).returns('')
+    node[:sql] = ''
 
     NewRelic::Agent::Database.stubs(:should_collect_explain_plans?).returns(false)
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_node.add_called_node(node)
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
     end
 
-    refute segment[:explain_plan]
+    refute node[:explain_plan]
   end
 
   def test_prepare_sql_for_transmission_obfuscates_sql_if_record_sql_method_is_obfuscated
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
 
-    segment = @trace.create_segment(0.0, 'has_sql')
-    segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_segment(segment)
+    node = @trace.create_node(0.0, 'has_sql')
+    node[:sql] = "select * from pelicans where name = '1337807';"
+    @trace.root_node.add_called_node(node)
 
     @trace.prepare_sql_for_transmission!
-    assert_equal "select * from pelicans where name = ?;", segment[:sql]
+    assert_equal "select * from pelicans where name = ?;", node[:sql]
   end
 
   def test_prepare_sql_for_transmission_does_not_modify_sql_if_record_sql_method_is_raw
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :raw
 
-    segment = @trace.create_segment(0.0, 'has_sql')
-    segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_segment(segment)
+    node = @trace.create_node(0.0, 'has_sql')
+    node[:sql] = "select * from pelicans where name = '1337807';"
+    @trace.root_node.add_called_node(node)
 
     @trace.prepare_sql_for_transmission!
-    assert_equal "select * from pelicans where name = '1337807';", segment[:sql]
+    assert_equal "select * from pelicans where name = '1337807';", node[:sql]
   end
 
   def test_prepare_sql_for_transmission_removes_sql_if_record_sql_method_is_off
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :off
 
-    segment = @trace.create_segment(0.0, 'has_sql')
-    segment[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_segment.add_called_segment(segment)
+    node = @trace.create_node(0.0, 'has_sql')
+    node[:sql] = "select * from pelicans where name = '1337807';"
+    @trace.root_node.add_called_node(node)
 
     @trace.prepare_sql_for_transmission!
-    refute segment[:sql]
+    refute node[:sql]
   end
 
   def test_strip_sql!
-    segment = @trace.create_segment(0.0, 'has_sql')
-    segment.stubs(:duration).returns(2)
-    segment.stubs(:explain_sql).returns('')
-    segment[:sql] = 'select * from pelicans;'
+    node = @trace.create_node(0.0, 'has_sql')
+    node.stubs(:duration).returns(2)
+    node.stubs(:explain_sql).returns('')
+    node[:sql] = 'select * from pelicans;'
 
-    @trace.root_segment.add_called_segment(segment)
+    @trace.root_node.add_called_node(node)
     @trace.strip_sql!
 
-    refute segment[:sql]
+    refute node[:sql]
   end
 
-  def test_collector_array_contains_root_segment_duration
-    @trace.root_segment.end_trace(1)
+  def test_collector_array_contains_root_node_duration
+    @trace.root_node.end_trace(1)
     assert_collector_array_contains(:duration, 1000)
   end
 
@@ -344,8 +344,8 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_trace_tree_contains(:unused_legacy_custom_params, {})
   end
 
-  def test_trace_tree_contains_serialized_root_segment
-    assert_trace_tree_contains(:root_segment, @trace.root_segment.to_array)
+  def test_trace_tree_contains_serialized_root_node
+    assert_trace_tree_contains(:root_node, @trace.root_node.to_array)
   end
 
   def test_trace_tree_contains_attributes
@@ -367,7 +367,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
       :start_time,
       :unused_legacy_request_params,
       :unused_legacy_custom_params,
-      :root_segment,
+      :root_node,
       :attributes
     ]
 

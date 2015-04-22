@@ -75,20 +75,20 @@ module NewRelic
         end
       end
 
-      # This delegates to the builder to create a new open transaction segment
+      # This delegates to the builder to create a new open transaction node
       # for the frame, beginning at the optionally specified time.
       #
       # Note that in developer mode, this captures a stacktrace for
-      # the beginning of each segment, which can be fairly slow
+      # the beginning of each node, which can be fairly slow
       def notice_push_frame(state, time=Time.now)
         builder = state.transaction_sample_builder
         return unless builder
 
-        segment = builder.trace_entry(time.to_f)
+        node = builder.trace_entry(time.to_f)
         if @dev_mode_sample_buffer
-          @dev_mode_sample_buffer.visit_segment(segment)
+          @dev_mode_sample_buffer.visit_node(node)
         end
-        segment
+        node
       end
 
       # Informs the transaction sample builder about the end of a traced frame
@@ -136,25 +136,25 @@ module NewRelic
 
       MAX_DATA_LENGTH = 16384
       # This method is used to record metadata into the currently
-      # active segment like a sql query, memcache key, or Net::HTTP uri
+      # active node like a sql query, memcache key, or Net::HTTP uri
       #
       # duration is seconds, float value.
       def notice_extra_data(builder, message, duration, key)
         return unless builder
-        segment = builder.current_segment
-        if segment
+        node = builder.current_node
+        if node
           if key == :sql
-            sql = segment[:sql]
+            sql = node[:sql]
             if(sql && !sql.empty?)
               sql = self.class.truncate_message(sql << "\n#{message}") if sql.length <= MAX_DATA_LENGTH
             else
               # message is expected to have been pre-truncated by notice_sql
-              segment[:sql] = message
+              node[:sql] = message
             end
           else
-            segment[key] = self.class.truncate_message(message)
+            node[key] = self.class.truncate_message(message)
           end
-          append_backtrace(segment, duration)
+          append_backtrace(node, duration)
         end
       end
 
@@ -172,15 +172,15 @@ module NewRelic
         end
       end
 
-      # Appends a backtrace to a segment if that segment took longer
+      # Appends a backtrace to a node if that node took longer
       # than the specified duration
-      def append_backtrace(segment, duration)
+      def append_backtrace(node, duration)
         if duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
-          segment[:backtrace] = caller.join("\n")
+          node[:backtrace] = caller.join("\n")
         end
       end
 
-      # Attaches an SQL query on the current transaction trace segment.
+      # Attaches an SQL query on the current transaction trace node.
       #
       # This method should be used only by gem authors wishing to extend
       # the Ruby agent to instrument new database interfaces - it should
@@ -217,7 +217,7 @@ module NewRelic
       end
 
       # Attaches an additional non-SQL query parameter to the current
-      # transaction trace segment.
+      # transaction trace node.
       #
       # This may be used for recording a query against a key-value store like
       # memcached or redis.
@@ -241,11 +241,11 @@ module NewRelic
         notice_extra_data(builder, statement, duration, :statement)
       end
 
-      # Set parameters on the current segment.
-      def add_segment_parameters(params) #THREAD_LOCAL_ACCESS
+      # Set parameters on the current node.
+      def add_node_parameters(params) #THREAD_LOCAL_ACCESS
         builder = tl_builder
         return unless builder
-        params.each { |k,v| builder.current_segment[k] = v }
+        params.each { |k,v| builder.current_node[k] = v }
       end
 
       # Gather transaction traces that we'd like to transmit to the server.

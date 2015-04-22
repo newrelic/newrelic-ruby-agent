@@ -16,25 +16,25 @@ module NewRelic
     # @api private
     class TransactionSampleBuilder
 
-      # Once we hit the TT segment limit, we use this class to hold our place in
+      # Once we hit the TT node limit, we use this class to hold our place in
       # the tree so that we can still get accurate names and times on the
-      # segments we've already created. The placeholder segment keeps a
-      # depth counter that's incremented on each segment entry, and decremented
+      # nodes we've already created. The placeholder node keeps a
+      # depth counter that's incremented on each node entry, and decremented
       # on exit, until it reaches zero, when we throw the placeholder away.
-      # There should only ever be zero or one placeholder segment at a time.
+      # There should only ever be zero or one placeholder node at a time.
       #
       # @api private
-      class PlaceholderSegment
-        attr_reader :parent_segment
+      class PlaceholderNode
+        attr_reader :parent_node
         attr_accessor :depth
 
-        def initialize(parent_segment)
-          @parent_segment = parent_segment
+        def initialize(parent_node)
+          @parent_node = parent_node
           @depth = 1
         end
 
         # No-op - some clients expect to be able to use these to read/write
-        # params on TT segments.
+        # params on TT nodes.
         def [](key); end
         def []=(key, value); end
 
@@ -43,52 +43,60 @@ module NewRelic
         def params=; end
       end
 
-      attr_reader :current_segment, :sample
+      attr_reader :current_node, :sample
 
       include NewRelic::CollectionHelper
 
       def initialize(time=Time.now)
         @sample = NewRelic::Agent::Transaction::Trace.new(time.to_f)
         @sample_start = time.to_f
-        @current_segment = @sample.root_segment
+        @current_node = @sample.root_node
       end
 
       def sample_id
         @sample.sample_id
       end
 
-      def segment_limit
+      def ignored?
+        @ignore
+      end
+
+      def ignore_transaction
+        @ignore = true
+      end
+
+      def node_limit
         Agent.config[:'transaction_tracer.limit_segments']
       end
 
       def trace_entry(time)
-        if @sample.count_segments < segment_limit
-          segment = @sample.create_segment(time.to_f - @sample_start)
-          @current_segment.add_called_segment(segment)
-          @current_segment = segment
-          if @sample.count_segments == segment_limit()
-            ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
+        if @sample.count_nodes < node_limit
+          node = @sample.create_node(time.to_f - @sample_start)
+          @current_node.add_called_node(node)
+          @current_node = node
+          if @sample.count_nodes == node_limit()
+            ::NewRelic::Agent.logger.debug("Node limit of #{node_limit} reached, ceasing collection.")
           end
         else
-          if @current_segment.is_a?(PlaceholderSegment)
-            @current_segment.depth += 1
+          if @current_node.is_a?(PlaceholderNode)
+            @current_node.depth += 1
           else
-            @current_segment = PlaceholderSegment.new(@current_segment)
+            @current_node = PlaceholderNode.new(@current_node)
           end
         end
-        @current_segment
+        @current_node
       end
 
       def trace_exit(metric_name, time)
-        if @current_segment.is_a?(PlaceholderSegment)
-          @current_segment.depth -= 1
-          if @current_segment.depth == 0
-            @current_segment = @current_segment.parent_segment
+        if @current_node.is_a?(PlaceholderNode)
+          @current_node.depth -= 1
+          if @current_node.depth == 0
+            @current_node = @current_node.parent_node
           end
         else
-          @current_segment.metric_name = metric_name
-          @current_segment.end_trace(time.to_f - @sample_start)
-          @current_segment = @current_segment.parent_segment
+          @current_node.metric_name = metric_name
+          @current_node.end_trace(time.to_f - @sample_start)
+          @current_node = @current_node.parent_node
         end
       end
 
@@ -99,11 +107,11 @@ module NewRelic
           ::NewRelic::Agent.logger.error "Unexpected double-finish_trace of Transaction Trace Object: \n#{@sample.to_s}"
           return
         end
-        @sample.root_segment.end_trace(time.to_f - @sample_start)
+        @sample.root_node.end_trace(time.to_f - @sample_start)
 
         @sample.threshold = transaction_trace_threshold
         @sample.finished = true
-        @current_segment = nil
+        @current_node = nil
       end
 
       TT_THRESHOLD_KEY = :'transaction_tracer.transaction_threshold'
@@ -120,11 +128,11 @@ module NewRelic
 
       def scope_depth
         depth = -1        # have to account for the root
-        current = @current_segment
+        current = @current_node
 
         while(current)
           depth += 1
-          current = current.parent_segment
+          current = current.parent_node
         end
 
         depth

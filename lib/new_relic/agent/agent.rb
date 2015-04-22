@@ -1073,7 +1073,7 @@ module NewRelic
         # them across the wire.  This includes gathering SQL
         # explanations, stripping out stack traces, and normalizing
         # SQL.  note that we explain only the sql statements whose
-        # segments' execution times exceed our threshold (to avoid
+        # nodes' execution times exceed our threshold (to avoid
         # unnecessary overhead of running explains on fast queries.)
         def harvest_and_send_transaction_traces
           harvest_and_send_from_container(@transaction_sampler, :transaction_sample_data)

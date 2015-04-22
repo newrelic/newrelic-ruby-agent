@@ -73,10 +73,10 @@ module NewRelic
         TransactionState.tl_get.current_transaction
       end
 
-      def self.set_default_transaction_name(name, category = nil, segment_name = nil) #THREAD_LOCAL_ACCESS
+      def self.set_default_transaction_name(name, category = nil, node_name = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
         name = txn.make_transaction_name(name, category)
-        txn.name_last_frame(segment_name || name)
+        txn.name_last_frame(node_name || name)
         txn.set_default_transaction_name(name, category)
       end
 
@@ -498,14 +498,14 @@ module NewRelic
         end
       end
 
-      def commit!(state, end_time, outermost_segment_name)
+      def commit!(state, end_time, outermost_node_name)
         assign_agent_attributes
         assign_intrinsics(state)
 
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
-        record_summary_metrics(outermost_segment_name, end_time)
+        record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
 
@@ -557,9 +557,9 @@ module NewRelic
 
       # The summary metrics recorded by this method all end up with a duration
       # equal to the transaction itself, and an exclusive time of zero.
-      def record_summary_metrics(outermost_segment_name, end_time)
+      def record_summary_metrics(outermost_node_name, end_time)
         metrics = summary_metrics
-        metrics << @frozen_name unless @frozen_name == outermost_segment_name
+        metrics << @frozen_name unless @frozen_name == outermost_node_name
         @metrics.record_unscoped(metrics, end_time.to_f - start_time.to_f, 0)
       end
 

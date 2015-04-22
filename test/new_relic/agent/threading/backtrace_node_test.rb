@@ -74,12 +74,12 @@ module NewRelic::Agent::Threading
     end
 
     def test_nodes_without_line_numbers
-      line = "transaction_sample_buffer.rb:in `visit_segment'"
+      line = "transaction_sample_buffer.rb:in `visit_node'"
       node = create_node(line)
       convert_nodes_to_array([node])
 
       assert_equal([
-                   ["transaction_sample_buffer.rb", "visit_segment", -1],
+                   ["transaction_sample_buffer.rb", "visit_node", -1],
                    0, 0,
                    []],
                    node.as_array)

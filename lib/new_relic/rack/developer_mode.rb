@@ -1,8 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-
-require 'rack'
 require 'rack/request'
 require 'rack/response'
 require 'rack/file'
@@ -254,7 +252,7 @@ module NewRelic
         return unless @sample
 
         segment_id = params['segment'].to_i
-        @segment = @sample.find_segment(segment_id)
+        @segment = @sample.root_node.find_node(segment_id)
       end
 
       def custom_attributes_for(sample)
@@ -273,11 +271,11 @@ module NewRelic
 
       def breakdown_data(sample, limit = nil)
         metric_hash = {}
-        sample.each_segment_with_nest_tracking do |segment|
-          unless segment == sample.root_segment
-            metric_name = segment.metric_name
+        sample.each_node_with_nest_tracking do |node|
+          unless node == sample.root_node
+            metric_name = node.metric_name
             metric_hash[metric_name] ||= SegmentSummary.new(metric_name, sample)
-            metric_hash[metric_name] << segment
+            metric_hash[metric_name] << node
             metric_hash[metric_name]
           end
         end
@@ -292,10 +290,10 @@ module NewRelic
           data = data[0..limit - 1]
         end
 
-        # add one last segment for the remaining time if any
+        # add one last node for the remaining time if any
         remainder = sample.duration
-        data.each do |segment|
-          remainder -= segment.exclusive_time
+        data.each do |node|
+          remainder -= node.exclusive_time
         end
 
         if (remainder*1000).round > 0
@@ -312,7 +310,7 @@ module NewRelic
       # each element in the array contains [sql, parent_segment_metric_name, duration]
       def sql_segments(sample, show_non_sql_segments = true)
         segments = []
-        sample.each_segment do |segment|
+        sample.each_node do |segment|
           segments << segment if segment[:sql] || segment[:sql_obfuscated] || (show_non_sql_segments && segment[:key])
         end
         segments

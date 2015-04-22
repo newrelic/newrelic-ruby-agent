@@ -305,12 +305,12 @@ module MongoOperationTests
   end
 
   def test_notices_nosql
-    segment = nil
+    node = nil
 
     in_transaction do
       @collection.insert(@tribble)
 
-      segment = find_last_transaction_segment
+      node = find_last_transaction_node
     end
 
     expected = {
@@ -319,114 +319,114 @@ module MongoOperationTests
       :operation  => :insert
     }
 
-    result = segment.params[:statement]
+    result = node.params[:statement]
     assert_equal expected, result
   end
 
   def test_noticed_nosql_includes_operation
-    segment = nil
+    node = nil
 
     in_transaction do
       @collection.insert(@tribble)
-      segment = find_last_transaction_segment
+      node = find_last_transaction_node
     end
 
-    query = segment.params[:statement]
+    query = node.params[:statement]
 
     assert_equal :insert, query[:operation]
   end
 
   def test_noticed_nosql_includes_update_operation
-    segment = nil
+    node = nil
 
     in_transaction do
       updated = @tribble.dup
       updated['name'] = 't-rex'
       @collection.update(@tribble, updated)
 
-      segment = find_last_transaction_segment
+      node = find_last_transaction_node
     end
 
-    query = segment.params[:statement]
+    query = node.params[:statement]
 
     assert_equal :update, query[:operation]
   end
 
   def test_noticed_nosql_includes_save_operation
-    segment = nil
+    node = nil
 
     in_transaction do
       @collection.save(@tribble)
-      segment = find_last_transaction_segment
+      node = find_last_transaction_node
     end
 
-    query = segment.params[:statement]
+    query = node.params[:statement]
     assert_equal :save, query[:operation]
   end
 
   def test_noticed_nosql_includes_ensure_index_operation
-    segment = nil
+    node = nil
 
     in_transaction do
       @collection.ensure_index([[unique_field_name, Mongo::ASCENDING]])
-      segment = find_last_transaction_segment
+      node = find_last_transaction_node
     end
 
-    assert_ensure_index_in_transaction_segment(segment)
+    assert_ensure_index_in_transaction_node(node)
   end
 
   def test_noticed_nosql_includes_ensure_index_operation_with_symbol
-    segment = nil
+    node = nil
 
     in_transaction do
       @collection.ensure_index(unique_field_name.to_sym)
-      segment = find_last_transaction_segment
+      node = find_last_transaction_node
     end
 
-    assert_ensure_index_in_transaction_segment(segment)
+    assert_ensure_index_in_transaction_node(node)
   end
 
   def test_noticed_nosql_includes_ensure_index_operation_with_string
-    segment = nil
+    node = nil
 
     in_transaction do
       @collection.ensure_index(unique_field_name)
-      segment = find_last_transaction_segment
+      node = find_last_transaction_node
     end
 
-    assert_ensure_index_in_transaction_segment(segment)
+    assert_ensure_index_in_transaction_node(node)
   end
 
-  def assert_ensure_index_in_transaction_segment(segment)
-    query = segment.params[:statement]
+  def assert_ensure_index_in_transaction_node(node)
+    query = node.params[:statement]
     result = query[:operation]
 
     assert_equal :ensureIndex, result
   end
 
   def test_noticed_nosql_does_not_contain_documents
-    segment = nil
+    node = nil
 
     in_transaction do
       @collection.insert({'name' => 'soterios johnson'})
-      segment = find_last_transaction_segment
+      node = find_last_transaction_node
     end
 
-    statement = segment.params[:statement]
+    statement = node.params[:statement]
 
     refute statement.keys.include?(:documents), "Noticed NoSQL should not include documents: #{statement}"
   end
 
   def test_noticed_nosql_does_not_contain_selector_values
     @collection.insert({'password' => '$ecret'})
-    segment = nil
+    node = nil
 
     in_transaction do
       @collection.remove({'password' => '$ecret'})
-      segment = find_last_transaction_segment
+      node = find_last_transaction_node
     end
 
-    statement = segment.params[:statement]
+    statement = node.params[:statement]
 
     refute statement.inspect.include?('$secret')
 
