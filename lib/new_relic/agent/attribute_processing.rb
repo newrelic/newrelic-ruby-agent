@@ -10,38 +10,51 @@ module NewRelic
       EMPTY_HASH_STRING_LITERAL = "{}".freeze
       EMPTY_ARRAY_STRING_LITERAL = "[]".freeze
 
-      def flatten_and_coerce(object, prefix = nil, result = {})
+      def flatten_and_coerce(object, prefix = nil, result = {}, &blk)
         if object.is_a? Hash
-          flatten_and_coerce_hash(object, prefix, result)
+          flatten_and_coerce_hash(object, prefix, result, &blk)
         elsif object.is_a? Array
-          flatten_and_coerce_array(object, prefix, result)
+          flatten_and_coerce_array(object, prefix, result, &blk)
         elsif prefix
-          result[prefix] = Coerce::scalar(object)
+          val = Coerce::scalar(object)
+          if blk
+            blk.call(prefix, val)
+          else
+            result[prefix] = val
+          end
         else
           NewRelic::Agent.logger.warn "Unexpected object: #{object.inspect} with nil prefix passed to NewRelic::Agent::AttributeProcessing.flatten_and_coerce"
         end
         result
       end
 
-      def flatten_and_coerce_hash(hash, prefix, result)
+      def flatten_and_coerce_hash(hash, prefix, result, &blk)
         if hash.empty?
-          result[prefix] = EMPTY_HASH_STRING_LITERAL
+          if blk
+            blk.call(prefix, EMPTY_HASH_STRING_LITERAL)
+          else
+            result[prefix] = EMPTY_HASH_STRING_LITERAL
+          end
         else
           hash.each do |key, val|
             normalized_key = EncodingNormalizer.normalize_string(key.to_s)
             next_prefix = prefix ? "#{prefix}.#{normalized_key}" : normalized_key
-            flatten_and_coerce(val, next_prefix, result)
+            flatten_and_coerce(val, next_prefix, result, &blk)
           end
         end
       end
 
-      def flatten_and_coerce_array(array, prefix, result)
+      def flatten_and_coerce_array(array, prefix, result, &blk)
         if array.empty?
-          result[prefix] = EMPTY_ARRAY_STRING_LITERAL
+          if blk
+            blk.call(prefix, EMPTY_ARRAY_STRING_LITERAL)
+          else
+            result[prefix] = EMPTY_ARRAY_STRING_LITERAL
+          end
         else
           array.each_with_index do |val, idx|
             next_prefix = prefix ? "#{prefix}.#{idx}" : idx.to_s
-            flatten_and_coerce(val, next_prefix, result)
+            flatten_and_coerce(val, next_prefix, result, &blk)
           end
         end
       end

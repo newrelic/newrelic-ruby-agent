@@ -147,4 +147,14 @@ class AttributeProcessingTest < Minitest::Test
     expects_logging(:warn, all_of(includes("Unexpected object"), includes("flatten_and_coerce")))
     NewRelic::Agent::AttributeProcessing.flatten_and_coerce(Object.new)
   end
+
+  def test_flatten_and_coerce_calls_a_block_key_and_value_when_provided
+    params = {:foo => {:bar => ["qux", "quux"]}}
+    yielded = {}
+
+    NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params) { |k, v| yielded[k] = v}
+
+    expected = {"foo.bar.0" => "qux", "foo.bar.1" => "quux"}
+    assert_equal expected, yielded
+  end
 end

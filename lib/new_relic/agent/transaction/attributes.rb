@@ -52,14 +52,14 @@ module NewRelic
           return if @filter.high_security?
           return if !@filter.might_allow_prefix?(prefix)
 
-          flatten_and_coerce(attributes, prefix).each do |k, v|
+          AttributeProcessing.flatten_and_coerce(attributes, prefix) do |k, v|
             add_agent_attribute_with_key_check(k, v, AttributeFilter::DST_NONE)
           end
         end
 
         def merge_custom_attributes(other)
           return if other.empty?
-          AttributeProcessing.flatten_and_coerce(other).each do |k, v|
+          AttributeProcessing.flatten_and_coerce(other) do |k, v|
             self.add_custom_attribute(k, v)
           end
         end
