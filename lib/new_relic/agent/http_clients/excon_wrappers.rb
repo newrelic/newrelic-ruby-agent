@@ -29,22 +29,24 @@ module NewRelic
       class ExconHTTPRequest
         def initialize(datum)
           @datum = datum
-        end
 
-        def type
-          "Excon"
-        end
+          @method = @datum[:method].to_s.upcase
+          @scheme = @datum[:scheme]
+          @port   = @datum[:port]
+          @path   = @datum[:path]
 
-        def host
-          if hostname = (self['host'] || self['Host'])
-            hostname.split(':').first
+          headers = @datum[:headers]
+          if hostname = (headers['host'] || headers['Host'])
+            @host = hostname.split(':').first
           else
-            @datum[:host]
+            @host = @datum[:host]
           end
         end
 
-        def method
-          @datum[:method].to_s.upcase
+        attr_reader :host, :method
+
+        def type
+          "Excon"
         end
 
         def [](key)
@@ -57,7 +59,7 @@ module NewRelic
         end
 
         def uri
-          URI.parse("#{@datum[:scheme]}://#{@datum[:host]}:#{@datum[:port]}#{@datum[:path]}")
+          URI.parse("#{@scheme}://#{@host}:#{@port}#{@path}")
         end
       end
     end
