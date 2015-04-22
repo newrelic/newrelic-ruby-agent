@@ -487,10 +487,6 @@ module NewRelic
     #
     def record_custom_event(event_type, event_attrs)
       if agent && NewRelic::Agent.config[:'custom_insights_events.enabled']
-        unless event_attrs.is_a? Hash
-          raise ArgumentError, "Expected Hash but got #{value.class}"
-        end
-
         agent.custom_event_aggregator.record(event_type, event_attrs)
       end
       nil

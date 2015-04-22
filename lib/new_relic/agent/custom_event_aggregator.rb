@@ -33,6 +33,10 @@ module NewRelic
       end
 
       def record(type, attributes)
+        unless attributes.is_a? Hash
+          raise ArgumentError, "Expected Hash but got #{attributes.class}"
+        end
+
         type = @type_strings[type]
         unless type =~ EVENT_TYPE_REGEX
           note_dropped_event(type)
