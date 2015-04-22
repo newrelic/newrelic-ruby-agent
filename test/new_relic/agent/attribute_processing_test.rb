@@ -142,4 +142,9 @@ class AttributeProcessingTest < Minitest::Test
       )
     )
   end
+
+  def test_flatten_and_coerce_logs_warning_with_unexpected_arguments
+    expects_logging(:warn, all_of(includes("Unexpected object"), includes("flatten_and_coerce")))
+    NewRelic::Agent::AttributeProcessing.flatten_and_coerce(Object.new)
+  end
 end

@@ -8,13 +8,14 @@ module NewRelic
       module_function
 
       def flatten_and_coerce(object, prefix = nil, result = {})
-        case object
-        when Hash
+        if object.is_a? Hash
           flatten_and_coerce_hash(object, prefix, result)
-        when Array
+        elsif object.is_a? Array
           flatten_and_coerce_array(object, prefix, result)
-        else
+        elsif prefix
           result[prefix] = Coerce::scalar(object)
+        else
+          NewRelic::Agent.logger.warn "Unexpected object: #{object.inspect} with nil prefix passed to NewRelic::Agent::AttributeProcessing.flatten_and_coerce"
         end
         result
       end
