@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.12.0 ##
+
+  * Fixed missing URIs in traces for retried Excon requests
+
+  If Excon's idempotent option retried a request, the transaction trace node
+  for the call would missing having the URI assigned. This has been fixed.
+
 ## v3.11.2 ##
 
   * Better naming for Rack::URLMap
