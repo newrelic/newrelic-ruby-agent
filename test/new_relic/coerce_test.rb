@@ -89,68 +89,6 @@ class CoerceTest < Minitest::Test
     string(Unstringable.new, "HERE")
   end
 
-  def test_event_params_coerce_returns_empty_hash_when_non_hash_is_passed
-    assert_equal({}, event_params([]))
-    assert_equal({}, event_params(''))
-    assert_equal({}, event_params(1))
-    assert_equal({}, event_params(nil))
-    assert_equal({}, event_params(self.class))
-  end
-
-  def test_event_params_coerce_converts_hash_keys_to_strings
-    assert_equal(
-      {'foo' => 1, 'bar' => 2, '3' => 3},
-      event_params({:foo => 1, 'bar' => 2, 3 => 3})
-    )
-  end
-
-  def test_event_params_coerce_handles_values_mixed_and_complex_types_properly
-    assert_equal(
-      {
-        'foo'    => 1.0,
-        'bar'    => 2,
-        'bang'   => 'woot',
-        'ok'     => 'dokey',
-        'yes'    => '#<Array>',
-        'yup'    => '#<Hash>',
-        'yayuh'  => '#<Rational>',
-        'truthy' => true,
-        'falsy'  => false
-      },
-      event_params(
-        {
-          'foo'    => 1.0,
-          'bar'    => 2,
-          'bang'   => 'woot',
-          'ok'     => :dokey,
-          'yes'    => [],
-          'yup'  => {},
-          'yayuh'   => Rational(1),
-          'truthy' => true,
-          'falsy'  => false
-        }
-      )
-    )
-  end
-
-  def test_event_params_turns_nan_or_infinity_into_null
-    assert_equal(
-      {
-        'nan'  => nil,
-        'inf'  => nil,
-        'ninf' => nil
-      },
-      event_params(
-        {
-          # Ruby 1.8.7 doesn't have Float::NAN, INFINITY so we have to hack it
-          'nan'  => 0.0  / 0.0,
-          'inf'  => 1.0  / 0.0,
-          'ninf' => -1.0 / 0.0
-        }
-      )
-    )
-  end
-
   class Unstringable
     undef :to_s
   end

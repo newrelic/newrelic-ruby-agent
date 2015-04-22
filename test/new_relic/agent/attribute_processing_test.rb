@@ -95,4 +95,51 @@ class AttributeProcessingTest < Minitest::Test
 
     assert_equal(expected, actual)
   end
+
+  def test_flatten_and_coerce_coerce_handles_values_mixed_and_complex_types_properly
+    assert_equal(
+      {
+        'foo'    => 1.0,
+        'bar'    => 2,
+        'bang'   => 'woot',
+        'ok'     => 'dokey',
+        'yes'    => '[]',
+        'yup'    => '{}',
+        'yayuh'  => '#<Rational>',
+        'truthy' => true,
+        'falsy'  => false
+      },
+      NewRelic::Agent::AttributeProcessing.flatten_and_coerce(
+        {
+          'foo'    => 1.0,
+          'bar'    => 2,
+          'bang'   => 'woot',
+          'ok'     => :dokey,
+          'yes'    => [],
+          'yup'  => {},
+          'yayuh'   => Rational(1),
+          'truthy' => true,
+          'falsy'  => false
+        }
+      )
+    )
+  end
+
+  def test_flatten_and_coerce_turns_nan_or_infinity_into_null
+    assert_equal(
+      {
+        'nan'  => nil,
+        'inf'  => nil,
+        'ninf' => nil
+      },
+      NewRelic::Agent::AttributeProcessing.flatten_and_coerce(
+        {
+          # Ruby 1.8.7 doesn't have Float::NAN, INFINITY so we have to hack it
+          'nan'  => 0.0  / 0.0,
+          'inf'  => 1.0  / 0.0,
+          'ninf' => -1.0 / 0.0
+        }
+      )
+    )
+  end
 end
