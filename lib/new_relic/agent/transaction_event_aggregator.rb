@@ -254,7 +254,7 @@ class NewRelic::Agent::TransactionEventAggregator
   def create_custom_attributes(attributes)
     if attributes
       custom_attributes = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
-      custom_attributes = event_params(custom_attributes)
+      custom_attributes = custom_attributes
       custom_attributes.freeze
     else
       EMPTY_HASH
@@ -264,7 +264,7 @@ class NewRelic::Agent::TransactionEventAggregator
   def create_agent_attributes(attributes)
     if attributes
       agent_attributes = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
-      agent_attributes = event_params(agent_attributes)
+      agent_attributes = agent_attributes
       agent_attributes.freeze
     else
       EMPTY_HASH
