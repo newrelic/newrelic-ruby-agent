@@ -123,9 +123,9 @@ module NewRelic
             {},
             self.root_node.to_array,
             {
-              'agentAttributes' => NewRelic::Coerce.event_params(agent_attributes),
-              'userAttributes'  => NewRelic::Coerce.event_params(custom_attributes),
-              'intrinsics'      => NewRelic::Coerce.event_params(intrinsic_attributes)
+              'agentAttributes' => agent_attributes,
+              'userAttributes'  => custom_attributes,
+              'intrinsics'      => intrinsic_attributes
             }
           ]
         end
