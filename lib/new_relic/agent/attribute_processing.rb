@@ -7,6 +7,9 @@ module NewRelic
     module AttributeProcessing
       module_function
 
+      EMPTY_HASH_STRING_LITERAL = "{}".freeze
+      EMPTY_ARRAY_STRING_LITERAL = "[]".freeze
+
       def flatten_and_coerce(object, prefix = nil, result = {})
         if object.is_a? Hash
           flatten_and_coerce_hash(object, prefix, result)
@@ -22,7 +25,7 @@ module NewRelic
 
       def flatten_and_coerce_hash(hash, prefix, result)
         if hash.empty?
-            result[prefix] = "{}"
+          result[prefix] = EMPTY_HASH_STRING_LITERAL
         else
           hash.each do |key, val|
             normalized_key = EncodingNormalizer.normalize_string(key.to_s)
@@ -34,7 +37,7 @@ module NewRelic
 
       def flatten_and_coerce_array(array, prefix, result)
         if array.empty?
-          result[prefix] = "[]"
+          result[prefix] = EMPTY_ARRAY_STRING_LITERAL
         else
           array.each_with_index do |val, idx|
             next_prefix = prefix ? "#{prefix}.#{idx}" : idx.to_s
