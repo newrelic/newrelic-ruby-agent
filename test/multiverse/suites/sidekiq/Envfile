@@ -6,11 +6,8 @@ end
 if RUBY_VERSION >= '2.0.0' || (RUBY_PLATFORM == 'java')
   gemfile <<-RB
     gem 'json'
-    gem 'sidekiq', '~> 3.2.0'
+    gem 'sidekiq', '~> 3.3.4'
     gem 'rack'
-
-    # Work around for https://github.com/celluloid/celluloid/issues/457
-    gem 'celluloid', '0.15.2'
 
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
