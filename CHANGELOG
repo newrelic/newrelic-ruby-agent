@@ -13,7 +13,7 @@
   * Fixed missing URIs in traces for retried Excon requests
 
   If Excon's idempotent option retried a request, the transaction trace node
-  for the call would missing having the URI assigned. This has been fixed.
+  for the call would miss having the URI assigned. This has been fixed.
 
 ## v3.11.2 ##
 
