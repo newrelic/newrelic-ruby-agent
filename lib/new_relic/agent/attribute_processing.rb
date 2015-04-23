@@ -16,7 +16,7 @@ module NewRelic
         elsif object.is_a? Array
           flatten_and_coerce_array(object, prefix, result, &blk)
         elsif prefix
-          val = Coerce::scalar(object)
+          val = Coerce.scalar(object)
           if blk
             blk.call(prefix, val)
           else
