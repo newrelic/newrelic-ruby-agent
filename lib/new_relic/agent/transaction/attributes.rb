@@ -60,7 +60,7 @@ module NewRelic
         def merge_custom_attributes(other)
           return if other.empty?
           AttributeProcessing.flatten_and_coerce(other) do |k, v|
-            self.add_custom_attribute(k, v)
+            add_custom_attribute(k, v)
           end
         end
 

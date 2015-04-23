@@ -21,7 +21,7 @@ class AttributesTest < Minitest::Test
     attributes = create_attributes
     attributes.merge_custom_attributes(:foo => "bar")
 
-    assert_equal({:foo => "bar"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
+    assert_equal({"foo" => "bar"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
   end
 
   def test_disable_custom_attributes
@@ -117,7 +117,7 @@ class AttributesTest < Minitest::Test
     attributes.merge_custom_attributes(:key => value)
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-    result = custom_attributes[:key]
+    result = custom_attributes["key"]
     if RUBY_VERSION >= "1.9.3"
       assert result.valid_encoding?
       assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
@@ -134,7 +134,7 @@ class AttributesTest < Minitest::Test
     attributes.merge_custom_attributes(:key => value)
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-    result = custom_attributes[:key]
+    result = custom_attributes["key"]
     if RUBY_VERSION >= "1.9.3"
       assert result.valid_encoding?
       assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
@@ -187,7 +187,7 @@ class AttributesTest < Minitest::Test
     attributes = create_attributes
     attributes.merge_custom_attributes(1 => "value")
 
-    assert_equal "value", custom_attributes(attributes)[1]
+    assert_equal "value", custom_attributes(attributes)["1"]
   end
 
   def test_truncates_string_values
@@ -196,7 +196,7 @@ class AttributesTest < Minitest::Test
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => value)
 
-    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)[:key].length
+    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)["key"].length
   end
 
   def test_truncates_symbol_values
@@ -205,14 +205,14 @@ class AttributesTest < Minitest::Test
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => value)
 
-    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)[:key].length
+    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)["key"].length
   end
 
   def test_leaves_numbers_alone
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => 42)
 
-    assert_equal 42, custom_attributes(attributes)[:key]
+    assert_equal 42, custom_attributes(attributes)["key"]
   end
 
   def test_limits_attribute_count
