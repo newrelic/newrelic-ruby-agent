@@ -37,8 +37,7 @@ module NewRelic
           end
         else
           hash.each do |key, val|
-            normalized_key = EncodingNormalizer.normalize_string(key.to_s)
-            next_prefix = prefix ? "#{prefix}.#{normalized_key}" : normalized_key
+            next_prefix = prefix ? "#{prefix}.#{key}" : key.to_s
             flatten_and_coerce(val, next_prefix, result, &blk)
           end
         end
