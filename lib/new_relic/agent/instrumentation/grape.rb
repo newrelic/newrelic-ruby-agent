@@ -19,13 +19,13 @@ module NewRelic
         def handle_transaction(endpoint, class_name)
           return unless endpoint && route = endpoint.route
           name_transaction(route, class_name)
-          capture_params(endpoint) if Agent.config[:capture_params]
+          capture_params(endpoint)
         end
 
         def name_transaction(route, class_name)
           txn_name = name_for_transaction(route, class_name)
-          segment_name = "Middleware/Grape/#{class_name}/call"
-          Transaction.set_default_transaction_name(txn_name, :grape, segment_name)
+          node_name = "Middleware/Grape/#{class_name}/call"
+          Transaction.set_default_transaction_name(txn_name, :grape, node_name)
         end
 
         def name_for_transaction(route, class_name)
@@ -46,6 +46,7 @@ module NewRelic
           params = ParameterFiltering::apply_filters(env, endpoint.params)
           params.delete("route_info")
           txn.filtered_params = params
+          txn.merge_request_parameters(params)
         end
       end
     end

@@ -27,9 +27,8 @@ DependencyDetection.defer do
                 :class_name => self.name,
                 :category => 'OtherTransaction/ResqueJob') do
 
-                if NewRelic::Agent.config[:'resque.capture_params']
-                  NewRelic::Agent.add_custom_parameters(:job_arguments => args)
-                end
+                NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(args, :'job.resque.arguments',
+                  NewRelic::Agent::AttributeFilter::DST_NONE)
 
                 yield(*args)
               end

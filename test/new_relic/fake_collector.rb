@@ -136,7 +136,7 @@ module NewRelic
 
             # Symbols remain in Ruby-marshalled data, so tidy up so tests can
             # rely on strings to compare against in fake collector results.
-            body = NewRelic::JSONWrapper.normalize(body)
+            body = NewRelic::Agent::EncodingNormalizer.normalize_object(body)
           end
         rescue
           body = "UNABLE TO DECODE BODY: #{raw_body}"
@@ -297,19 +297,26 @@ module NewRelic
         def synthetics_resource_id
           @body[9]
         end
+
+        def agent_attributes
+          tree.attributes['agentAttributes']
+        end
+
+        def custom_attributes
+          tree.attributes['userAttributes']
+        end
+
+        def intrinsic_attributes
+          tree.attributes['intrinsics']
+        end
       end
 
       class SubmittedTransactionTraceTree
+        attr_reader :attributes
+
         def initialize(body, format)
           @body = body
-        end
-
-        def request_params
-          @body[1]
-        end
-
-        def custom_params
-          @body[2]
+          @attributes = body[4]
         end
       end
 
@@ -374,6 +381,17 @@ module NewRelic
         @params               = error_info[4]
       end
 
+      def agent_attributes
+        @params["agentAttributes"]
+      end
+
+      def custom_attributes
+        @params["userAttributes"]
+      end
+
+      def intrinsic_attributes
+        @params["intrinsics"]
+      end
     end
   end
 

@@ -59,7 +59,7 @@ class GrapeTest < Minitest::Test
 
     def test_transaction_renaming
       get '/grape_ape/renamed'
-      # The second segment here is 'Rack' because of an idiosyncrasy of
+      # The second node here is 'Rack' because of an idiosyncrasy of
       # the set_transaction_name API: when you call set_transaction_name and
       # don't provide an explicit category, you lock in the category prefix
       # that was in use at the time you made the call.
@@ -69,34 +69,49 @@ class GrapeTest < Minitest::Test
       # truly separate entities.
       #
       assert_grape_metrics('Controller/Rack/RenamedTxn')
-      #assert_metrics_recorded(['Controller/Rack/RenamedTxn'])
     end
 
     def test_params_are_not_captured_with_capture_params_disabled
       with_config(:capture_params => false) do
         get '/grape_ape/10'
-        assert_equal({}, last_transaction_trace_request_params)
+
+        expected = {}
+        assert_equal expected, last_transaction_trace_request_params
       end
     end
 
     def test_route_params_are_captured
       with_config(:capture_params => true) do
         get '/grape_ape/10'
-        assert_equal({"id" => "10"}, last_transaction_trace_request_params)
+
+        expected = {
+          "request.parameters.id" => "10"
+        }
+        assert_equal expected, last_transaction_trace_request_params
       end
     end
 
     def test_query_params_are_captured
       with_config(:capture_params => true) do
         get '/grape_ape?q=1234&foo=bar'
-        assert_equal({'q' => '1234', 'foo' => 'bar'}, last_transaction_trace_request_params)
+
+        expected = {
+          'request.parameters.q' => '1234',
+          'request.parameters.foo' => 'bar'
+        }
+        assert_equal expected, last_transaction_trace_request_params
       end
     end
 
     def test_post_body_params_are_captured
       with_config(:capture_params => true) do
         post '/grape_ape', {'q' => '1234', 'foo' => 'bar'}.to_json, "CONTENT_TYPE" => "application/json"
-        assert_equal({'q' => '1234', 'foo' => 'bar'}, last_transaction_trace_request_params)
+
+        expected = {
+          'request.parameters.q' => '1234',
+          'request.parameters.foo' => 'bar'
+        }
+        assert_equal expected, last_transaction_trace_request_params
       end
     end
 
@@ -104,7 +119,12 @@ class GrapeTest < Minitest::Test
       with_config(:capture_params => true) do
         params = {"ape" => {"first_name" => "koko", "last_name" => "gorilla"}}
         post '/grape_ape', params.to_json, "CONTENT_TYPE" => "application/json"
-        assert_equal(params, last_transaction_trace_request_params)
+
+        expected = {
+          "request.parameters.ape.first_name" => "koko",
+          "request.parameters.ape.last_name" => "gorilla"
+        }
+        assert_equal expected, last_transaction_trace_request_params
       end
     end
 
@@ -115,22 +135,44 @@ class GrapeTest < Minitest::Test
           :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
         }
         post '/grape_ape', params
-        assert_equal({"title" => "blah", "file" => "[FILE]"}, last_transaction_trace_request_params)
+
+        expected = {
+          "request.parameters.title" => "blah",
+          "request.parameters.file" => "[FILE]"
+        }
+        assert_equal expected, last_transaction_trace_request_params
       end
     end
 
     def test_404_with_params_does_not_capture_them
       with_config(:capture_params => true) do
         post '/grape_catfish', {"foo" => "bar"}
-        assert_equal({}, last_transaction_trace_request_params)
+        expected = {}
+        assert_equal expected, last_transaction_trace_request_params
+      end
+    end
+
+    def test_params_are_captured_on_transaction_events
+      with_config(:'attributes.include' => 'request.parameters.*') do
+        json = {
+          :foo => "bar",
+          :bar => "baz"
+        }.to_json
+
+        post '/grape_ape', json, {"CONTENT_TYPE" => "application/json"}
+
+        expected = {"request.parameters.foo" => "bar", "request.parameters.bar" => "baz"}
+        actual = agent_attributes_for_single_event_posted_without_ignored_attributes
+
+        assert_equal(expected, actual)
       end
     end
 
     def assert_grape_metrics(expected_txn_name)
-      expected_segment_name = 'Middleware/Grape/GrapeTestApi/call'
+      expected_node_name = 'Middleware/Grape/GrapeTestApi/call'
       assert_metrics_recorded([
-        expected_segment_name,
-        [expected_segment_name, expected_txn_name],
+        expected_node_name,
+        [expected_node_name, expected_txn_name],
         expected_txn_name
       ])
     end

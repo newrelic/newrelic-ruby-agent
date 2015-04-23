@@ -125,6 +125,76 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_transaction_tracer_attributes_enabled_default
+      with_config(:'transaction_tracer.capture_attributes' => :foo) do
+        assert_equal :foo, NewRelic::Agent.config['transaction_tracer.attributes.enabled']
+      end
+    end
+
+    def test_transaction_events_attributes_enabled_default
+      with_config(:'analytics_events.capture_attributes' => :foo) do
+        assert_equal :foo, NewRelic::Agent.config['transaction_events.attributes.enabled']
+      end
+    end
+
+    def test_error_collector_attributes_enabled_default
+      with_config(:'error_collector.capture_attributes' => :foo) do
+        assert_equal :foo, NewRelic::Agent.config['error_collector.attributes.enabled']
+      end
+    end
+
+    def test_browser_monitoring_attributes_enabled_default
+      with_config(:'browser_monitoring.capture_attributes' => :foo) do
+        assert_equal :foo, NewRelic::Agent.config['browser_monitoring.attributes.enabled']
+      end
+    end
+
+    def test_agent_attribute_settings_convert_comma_delimited_strings_into_an_arrays
+      types = %w(transaction_tracer. transaction_events. error_collector. browser_monitoring.)
+      types << ''
+
+      types.each do |type|
+        key = "#{type}attributes.exclude".to_sym
+
+        with_config(key => 'foo,bar,baz') do
+          expected = ["foo", "bar", "baz"]
+          result = NewRelic::Agent.config[key]
+
+          message = "Expected #{key} to convert comma delimited string into array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
+          assert expected == result, message
+        end
+
+        key = "#{type}attributes.include".to_sym
+
+        with_config(key => 'foo,bar,baz') do
+          assert_equal ["foo", "bar", "baz"], NewRelic::Agent.config[key]
+        end
+      end
+    end
+
+    def test_agent_attributes_settings_with_yaml_array
+      types = %w(transaction_tracer. transaction_events. error_collector. browser_monitoring.)
+      types << ''
+
+      types.each do |type|
+        key = "#{type}attributes.exclude".to_sym
+
+        with_config(key => ['foo','bar','baz']) do
+          expected = ["foo", "bar", "baz"]
+          result = NewRelic::Agent.config[key]
+
+          message = "Expected #{key} not to modify settings from YAML array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
+          assert expected == result, message
+        end
+
+        key = "#{type}attributes.include".to_sym
+
+        with_config(key => 'foo,bar,baz') do
+          assert_equal ["foo", "bar", "baz"], NewRelic::Agent.config[key]
+        end
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 

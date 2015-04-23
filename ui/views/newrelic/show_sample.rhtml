@@ -3,15 +3,15 @@
 <table class="light_background">
   <tr>
     <th>URL:</th>
-    <td><%= @sample.params[:uri]%></td>
+    <td><%= @sample.uri %></td>
   </tr>
   <tr>
     <th>Controller:</th>
-    <td><%= @sample_controller_name%></td>
+    <td><%= @sample_controller_name %></td>
   </tr>
   <tr>
     <th>Action:</th>
-    <td><%= @sample_action_name%></td>
+    <td><%= @sample_action_name %></td>
   </tr>
   <tr>
     <th>Start Time:</th>
@@ -23,7 +23,8 @@
   </tr>
   <tr>
     <th>CPU Burn:</th>
-    <td><%= to_ms(@sample.params[:cpu_time]) if @sample.params[:cpu_time] %> ms</td>
+    <% cpu_time = @sample.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)[:cpu_time] %>
+    <td><%= "#{to_ms(cpu_time)} ms" if cpu_time %></td>
   </tr>
   
   <% unless @custom_params.empty? %>

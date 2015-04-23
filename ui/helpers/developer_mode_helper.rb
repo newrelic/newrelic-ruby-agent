@@ -17,7 +17,7 @@ module NewRelic::DeveloperModeHelper
   end
 
   def trace_row_display_limit_reached
-   (!@detail_segment_count.nil? && @detail_segment_count > trace_row_display_limit) || @sample.sql_segments.length > trace_row_display_limit
+   (!@detail_node_count.nil? && @detail_node_count > trace_row_display_limit) || sql_segments(@sample).length > trace_row_display_limit
   end
 
   # return the highest level in the call stack for the trace that is not rails or
@@ -101,7 +101,7 @@ module NewRelic::DeveloperModeHelper
   end
 
   def explain_sql_url(segment)
-    "explain_sql?id=#{@sample.sample_id}&amp;segment=#{segment.segment_id}"
+    "explain_sql?id=#{@sample.sample_id}&amp;segment=#{segment.object_id}"
   end
 
   def segment_duration_value(segment)
@@ -115,7 +115,7 @@ module NewRelic::DeveloperModeHelper
   def render_sample_details(sample)
     @indentation_depth=0
     # skip past the root segments to the first child, which is always the controller
-    first_segment = sample.root_segment.called_segments.first
+    first_segment = sample.root_node.called_nodes.first
 
     # render the segments, then the css classes to indent them
     render_segment_details(first_segment).to_s + render_indentation_classes(@indentation_depth).to_s
@@ -129,22 +129,22 @@ module NewRelic::DeveloperModeHelper
 
   def expand_segment_image(segment, depth)
     if depth > 0
-      if !segment.called_segments.empty?
+      if !segment.called_nodes.empty?
         row_class =segment_child_row_class(segment)
-        link_to_function("<img src=\"#{collapsed_image_path}\" id=\"image_#{row_class}\" class_for_children=\"#{row_class}\" class=\"#{(!segment.called_segments.empty?) ? 'parent_segment_image' : 'child_segment_image'}\" />", "toggle_row_class(this)")
+        link_to_function("<img src=\"#{collapsed_image_path}\" id=\"image_#{row_class}\" class_for_children=\"#{row_class}\" class=\"#{(!segment.called_nodes.empty?) ? 'parent_segment_image' : 'child_segment_image'}\" />", "toggle_row_class(this)")
       end
     end
   end
 
   def segment_child_row_class(segment)
-    "segment#{segment.segment_id}"
+    "segment#{segment.object_id}"
   end
 
   def summary_pie_chart(sample, width, height)
     pie_chart = GooglePieChart.new
     pie_chart.color, pie_chart.width, pie_chart.height = '6688AA', width, height
 
-    chart_data = sample.breakdown_data(6)
+    chart_data = breakdown_data(sample, 6)
     chart_data.each { |s| pie_chart.add_data_point dev_name(s.metric_name), to_ms(s.exclusive_time) }
 
     pie_chart.render
@@ -153,10 +153,8 @@ module NewRelic::DeveloperModeHelper
   def segment_row_classes(segment, depth)
     classes = []
 
-    classes << "segment#{segment.parent_segment.segment_id}" if depth > 1
-
+    classes << "segment#{segment.parent_node.object_id}" if depth > 1
     classes << "view_segment" if segment.metric_name.index('View') == 0
-    classes << "summary_segment" if segment.is_a?(NewRelic::TransactionSample::CompositeSegment)
 
     classes.join(' ')
   end
@@ -171,7 +169,7 @@ module NewRelic::DeveloperModeHelper
   end
 
   def sql_link_mouseover_options(segment)
-    { :onmouseover => "sql_mouse_over(#{segment.segment_id})", :onmouseout => "sql_mouse_out(#{segment.segment_id})"}
+    { :onmouseover => "sql_mouse_over(#{segment.object_id})", :onmouseout => "sql_mouse_out(#{segment.object_id})"}
   end
 
   def explain_sql_link(segment, child_sql = false)
@@ -183,7 +181,7 @@ module NewRelic::DeveloperModeHelper
       explain_sql_link segment
     else
       links = []
-      segment.called_segments.each do |child|
+      segment.called_nodes.each do |child|
         if child[:sql]
           links << explain_sql_link(child, true)
         end
@@ -204,22 +202,17 @@ module NewRelic::DeveloperModeHelper
   end
 
   def render_segment_details(segment, depth=0)
-    @detail_segment_count ||= 0
-    @detail_segment_count += 1
+    @detail_node_count ||= 0
+    @detail_node_count += 1
 
-    return '' if @detail_segment_count > trace_row_display_limit
+    return '' if @detail_node_count > trace_row_display_limit
 
     @indentation_depth = depth if depth > @indentation_depth
     repeat = nil
-    if segment.is_a?(NewRelic::TransactionSample::CompositeSegment)
-      html = ''
-    else
-      repeat = segment.parent_segment.detail_segments.length if segment.parent_segment.is_a?(NewRelic::TransactionSample::CompositeSegment)
-      html = render(:partial => 'segment', :object => [segment, depth, repeat])
-      depth += 1
-    end
+    html = render(:partial => 'segment', :object => [segment, depth, repeat])
+    depth += 1
 
-    segment.called_segments.each do |child|
+    segment.called_nodes.each do |child|
       html << render_segment_details(child, depth)
     end
 

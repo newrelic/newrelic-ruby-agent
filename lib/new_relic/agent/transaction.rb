@@ -6,6 +6,7 @@ require 'new_relic/agent/transaction_timings'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
+require 'new_relic/agent/transaction/attributes'
 
 module NewRelic
   module Agent
@@ -51,17 +52,15 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code
 
-      # Give the current transaction a request context.  Use this to
-      # get the URI and referer.  The request is interpreted loosely
-      # as a Rack::Request or an ActionController::AbstractRequest.
-      attr_accessor :request
-
       attr_reader :guid,
                   :metrics,
                   :gc_start_snapshot,
                   :category,
                   :frame_stack,
-                  :cat_path_hashes
+                  :cat_path_hashes,
+                  :attributes,
+                  :request_path,
+                  :referer
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -74,10 +73,10 @@ module NewRelic
         TransactionState.tl_get.current_transaction
       end
 
-      def self.set_default_transaction_name(name, category = nil, segment_name = nil) #THREAD_LOCAL_ACCESS
+      def self.set_default_transaction_name(name, category = nil, node_name = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
         name = txn.make_transaction_name(name, category)
-        txn.name_last_frame(segment_name || name)
+        txn.name_last_frame(node_name || name)
         txn.set_default_transaction_name(name, category)
       end
 
@@ -186,18 +185,8 @@ module NewRelic
         txn.abort_transaction!(state) if txn
       end
 
-      # If we have an active transaction, notice the error and increment the error metric.
-      # Options:
-      # * <tt>:request</tt> => Request object to get the uri and referer
-      # * <tt>:uri</tt> => The request path, minus any request params or query string.
-      # * <tt>:referer</tt> => The URI of the referer
-      # * <tt>:metric</tt> => The metric name associated with the transaction
-      # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
-      # * <tt>:custom_params</tt> => Custom parameters
-      # Anything left over is treated as custom params
-
+      # See NewRelic::Agent.notice_error for options and commentary
       def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
-        options = extract_request_options(options)
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
         if txn
@@ -205,15 +194,6 @@ module NewRelic
         else
           NewRelic::Agent.instance.error_collector.notice_error(e, options)
         end
-      end
-
-      def self.extract_request_options(options)
-        req = options.delete(:request)
-        if req
-          options[:uri]     = uri_from_request(req)
-          options[:referer] = referer_from_request(req)
-        end
-        options
       end
 
       # Returns truthy if the current in-progress transaction is considered a
@@ -226,27 +206,6 @@ module NewRelic
         txn && txn.recording_web_transaction?
       end
 
-      # Make a safe attempt to get the referer from a request object, generally successful when
-      # it's a Rack request.
-      def self.referer_from_request(req)
-        if req && req.respond_to?(:referer)
-          req.referer.to_s.split('?').first
-        end
-      end
-
-      # Make a safe attempt to get the URI, without the host and query string.
-      def self.uri_from_request(req)
-        approximate_uri = case
-                          when req.respond_to?(:fullpath   ) then req.fullpath
-                          when req.respond_to?(:path       ) then req.path
-                          when req.respond_to?(:request_uri) then req.request_uri
-                          when req.respond_to?(:uri        ) then req.uri
-                          when req.respond_to?(:url        ) then req.url
-                          end
-        return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
-      end
-
-
       def self.apdex_bucket(duration, failed, apdex_t)
         case
         when failed
@@ -258,6 +217,30 @@ module NewRelic
         else
           :apdex_f
         end
+      end
+
+      def self.add_agent_attribute(key, value, default_destinations)
+        if txn = tl_current
+          txn.add_agent_attribute(key, value, default_destinations)
+        else
+          NewRelic::Agent.logger.debug "Attempted to add agent attribute: #{key} without transaction"
+        end
+      end
+
+      def add_agent_attribute(key, value, default_destinations)
+        @attributes.add_agent_attribute(key, value, default_destinations)
+      end
+
+      def self.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+        if txn = tl_current
+          txn.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+        else
+          NewRelic::Agent.logger.debug "Attempted to merge untrusted attributes without transaction"
+        end
+      end
+
+      def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+        @attributes.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
       end
 
       @@java_classes_loaded = false
@@ -287,7 +270,7 @@ module NewRelic
         @process_cpu_start = process_cpu
         @gc_start_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         @filtered_params = options[:filtered_params] || {}
-        @request = options[:request]
+
         @exceptions = {}
         @metrics = TransactionMetrics.new
         @guid = generate_guid
@@ -296,6 +279,15 @@ module NewRelic
         @ignore_this_transaction = false
         @ignore_apdex = false
         @ignore_enduser = false
+
+        @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
+
+        merge_request_parameters(@filtered_params)
+
+        if request = options[:request]
+          @request_path = path_from_request(request)
+          @referer = referer_from_request(request)
+        end
       end
 
       # This transaction-local hash may be used as temprory storage by
@@ -332,12 +324,17 @@ module NewRelic
         @has_children = true
         if options[:filtered_params] && !options[:filtered_params].empty?
           @filtered_params = options[:filtered_params]
+          merge_request_parameters(options[:filtered_params])
         end
 
         frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
         name_last_frame(options[:transaction_name])
 
         set_default_transaction_name(options[:transaction_name], category)
+      end
+
+      def merge_request_parameters(params)
+        merge_untrusted_agent_attributes(params, :'request.parameters', AttributeFilter::DST_NONE)
       end
 
       def make_transaction_name(name, category=nil)
@@ -417,8 +414,8 @@ module NewRelic
       def start(state)
         return if !state.is_execution_traced?
 
-        transaction_sampler.on_start_transaction(state, start_time, uri)
-        sql_sampler.on_start_transaction(state, start_time, uri)
+        transaction_sampler.on_start_transaction(state, start_time)
+        sql_sampler.on_start_transaction(state, start_time, request_path)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
@@ -426,19 +423,10 @@ module NewRelic
         name_last_frame @default_name
       end
 
-      # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
-      def uri
-        @uri ||= self.class.uri_from_request(@request) unless @request.nil?
-      end
-
-      # For the current web transaction, return the full referer, minus the host string, or nil.
-      def referer
-        @referer ||= self.class.referer_from_request(@request)
-      end
-
-      # Call this to ensure that the current transaction is not saved
+      # Call this to ensure that the current transaction trace is not saved
+      # To fully ignore all metrics and errors, use ignore! instead.
       def abort_transaction!(state)
-        transaction_sampler.ignore_transaction(state)
+        @ignore_trace = true
       end
 
       WEB_SUMMARY_METRIC   = 'HttpDispatcher'.freeze
@@ -502,29 +490,22 @@ module NewRelic
       end
 
       def user_defined_rules_ignore?
-        return unless uri
+        return unless request_path
         return if (rules = NewRelic::Agent.config[:"rules.ignore_url_regexes"]).empty?
 
-        parsed = NewRelic::Agent::HTTPClients::URIUtil.parse_url(uri)
-        filtered_uri = NewRelic::Agent::HTTPClients::URIUtil.filter_uri(parsed)
-
         rules.any? do |rule|
-          filtered_uri.match(rule)
+          request_path.match(rule)
         end
-      rescue URI::InvalidURIError => e
-        NewRelic::Agent.logger.debug("Error parsing URI: #{uri}", e)
-        false
       end
 
-      def commit!(state, end_time, outermost_segment_name)
-        record_transaction_cpu(state)
-        gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
-        gc_delta = NewRelic::Agent::StatsEngine::GCProfiler.record_delta(
-            gc_start_snapshot, gc_stop_snapshot)
-        @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time, gc_delta)
+      def commit!(state, end_time, outermost_node_name)
+        assign_agent_attributes
+        assign_intrinsics(state)
+
+        @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
-        record_summary_metrics(outermost_segment_name, end_time)
+        record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
 
@@ -534,11 +515,51 @@ module NewRelic
         send_transaction_finished_event(state, start_time, end_time)
       end
 
+      def assign_agent_attributes
+        if refer = referer
+          add_agent_attribute(:'request.headers.referer', refer,
+                              NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+        end
+
+        if http_response_code
+          add_agent_attribute(:httpResponseCode, http_response_code,
+                              NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER|
+                              NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS|
+                              NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+        end
+      end
+
+      def assign_intrinsics(state)
+        if gc_time = calculate_gc_time
+          attributes.add_intrinsic_attribute(:gc_time, gc_time)
+        end
+
+        if burn = cpu_burn
+          attributes.add_intrinsic_attribute(:cpu_time, burn)
+        end
+
+        if is_synthetics_request?
+          attributes.add_intrinsic_attribute(:synthetics_resource_id, synthetics_resource_id)
+          attributes.add_intrinsic_attribute(:synthetics_job_id, synthetics_job_id)
+          attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
+        end
+
+        if state.is_cross_app?
+          attributes.add_intrinsic_attribute(:trip_id, cat_trip_id(state))
+          attributes.add_intrinsic_attribute(:path_hash, cat_path_hash(state))
+        end
+      end
+
+      def calculate_gc_time
+        gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
+        NewRelic::Agent::StatsEngine::GCProfiler.record_delta(gc_start_snapshot, gc_stop_snapshot)
+      end
+
       # The summary metrics recorded by this method all end up with a duration
       # equal to the transaction itself, and an exclusive time of zero.
-      def record_summary_metrics(outermost_segment_name, end_time)
+      def record_summary_metrics(outermost_node_name, end_time)
         metrics = summary_metrics
-        metrics << @frozen_name unless @frozen_name == outermost_segment_name
+        metrics << @frozen_name unless @frozen_name == outermost_node_name
         @metrics.record_unscoped(metrics, end_time.to_f - start_time.to_f, 0)
       end
 
@@ -547,12 +568,12 @@ module NewRelic
       def send_transaction_finished_event(state, start_time, end_time)
         duration = end_time.to_f - start_time.to_f
         payload = {
-          :name             => @frozen_name,
-          :bucket           => recording_web_transaction? ? :request : :background,
-          :start_timestamp  => start_time.to_f,
-          :duration         => duration,
-          :metrics          => @metrics,
-          :custom_params    => custom_parameters
+          :name                 => @frozen_name,
+          :bucket               => recording_web_transaction? ? :request : :background,
+          :start_timestamp      => start_time.to_f,
+          :duration             => duration,
+          :metrics              => @metrics,
+          :attributes           => @attributes,
         }
         append_cat_info(state, duration, payload)
         append_apdex_perf_zone(duration, payload)
@@ -688,22 +709,16 @@ module NewRelic
 
       def record_exceptions
         @exceptions.each do |exception, options|
-          options[:metric] = best_name
+          options[:uri]      ||= request_path if request_path
+          options[:metric]     = best_name
+          options[:attributes] = @attributes
+
           agent.error_collector.notice_error(exception, options)
         end
       end
 
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options={}) # :nodoc:
-        options[:uri]     ||= uri     if uri
-        options[:referer] ||= referer if referer
-
-        if filtered_params && !filtered_params.empty?
-          options[:request_params] = filtered_params
-        end
-
-        options.merge!(custom_parameters)
-
         if @exceptions[error]
           @exceptions[error].merge! options
         else
@@ -772,7 +787,7 @@ module NewRelic
 
         @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
         @metrics.record_unscoped(APDEX_ALL_METRIC, apdex_bucket_global, current_apdex_t)
-        txn_apdex_metric = @frozen_name.gsub(/^[^\/]+\//, transaction_prefix)
+        txn_apdex_metric = @frozen_name.sub(/^[^\/]+\//, transaction_prefix)
         @metrics.record_unscoped(txn_apdex_metric, apdex_bucket_txn, current_apdex_t)
       end
 
@@ -801,21 +816,12 @@ module NewRelic
         self.instrumentation_state[:datastore_override] = previous
       end
 
-      def custom_parameters
-        @custom_parameters ||= {}
+      def add_custom_attributes(p)
+        attributes.merge_custom_attributes(p)
       end
 
-      def add_custom_parameters(p)
-        if NewRelic::Agent.config[:high_security]
-          NewRelic::Agent.logger.debug("Unable to add custom attributes #{p.keys.inspect} while in high security mode.")
-          return
-        end
-
-        custom_parameters.merge!(p)
-      end
-
-      alias_method :user_attributes, :custom_parameters
-      alias_method :set_user_attributes, :add_custom_parameters
+      alias_method :set_user_attributes, :add_custom_attributes
+      alias_method :add_custom_parameters, :add_custom_attributes
 
       def recording_web_transaction?
         web_category?(@category)
@@ -843,13 +849,6 @@ module NewRelic
         jruby_cpu_time - @jruby_cpu_start
       end
 
-      def record_transaction_cpu(state)
-        burn = cpu_burn
-        if burn
-          transaction_sampler.notice_transaction_cpu_time(state, burn)
-        end
-      end
-
       def ignore!
         @ignore_this_transaction = true
       end
@@ -872,6 +871,10 @@ module NewRelic
 
       def ignore_enduser?
         @ignore_enduser
+      end
+
+      def ignore_trace?
+        @ignore_trace
       end
 
       private
@@ -921,6 +924,26 @@ module NewRelic
         guid
       end
 
+      # Make a safe attempt to get the referer from a request object, generally successful when
+      # it's a Rack request.
+      def referer_from_request(req)
+        if req && req.respond_to?(:referer)
+          HTTPClients::URIUtil.strip_query_string(req.referer.to_s)
+        end
+      end
+
+      # In practice we expect req to be a Rack::Request or ActionController::AbstractRequest
+      # (for older Rails versions).  But anything that responds to path can be passed to
+      # perform_action_with_newrelic_trace.
+      #
+      # We don't expect the path to include a query string, however older test helpers for
+      # rails construct the PATH_INFO enviroment variable improperly and we're generally
+      # being defensive.
+      def path_from_request(req)
+        path = req.path
+        path = HTTPClients::URIUtil.strip_query_string(path)
+        path.empty? ? "/" : path
+      end
     end
   end
 end

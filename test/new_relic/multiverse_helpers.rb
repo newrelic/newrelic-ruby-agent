@@ -50,6 +50,10 @@ module MultiverseHelpers
     # test cases have the chance to change settings on the fake collector first
     start_fake_collector unless omit_collector?
 
+    # If a test not using the multiverse helper runs before us, we might need
+    # to clean up before a test too.
+    NewRelic::Agent.drop_buffered_data
+
     trigger_agent_reconnect(opts)
   end
 
@@ -121,6 +125,146 @@ module MultiverseHelpers
 
   def omit_collector?
     ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] == "true"
+  end
+
+  def run_harvest
+    NewRelic::Agent.instance.send(:transmit_data)
+    NewRelic::Agent.instance.send(:transmit_event_data)
+  end
+
+  def single_transaction_trace_posted
+    posts = $collector.calls_for("transaction_sample_data")
+    assert_equal 1, posts.length, "Unexpected post count"
+
+    transactions = posts.first.samples
+    assert_equal 1, transactions.length, "Unexpected trace count"
+
+    transactions.first
+  end
+
+  def single_error_posted
+    assert_equal 1, $collector.calls_for("error_data").length
+    assert_equal 1, $collector.calls_for("error_data").first.errors.length
+
+    $collector.calls_for("error_data").first.errors.first
+  end
+
+  def single_event_posted
+    assert_equal 1, $collector.calls_for("analytic_event_data").length
+    assert_equal 1, $collector.calls_for("analytic_event_data").first.events.length
+
+    $collector.calls_for("analytic_event_data").first.events.first
+  end
+
+  def capture_js_data
+    state = NewRelic::Agent::TransactionState.tl_get
+    events = stub(:subscribe => nil)
+    @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(events)
+    @js_data = @instrumentor.data_for_js_agent(state)
+
+    raw_attributes = @js_data["atts"]
+
+    if raw_attributes
+      attributes = NewRelic::JSONWrapper.load @instrumentor.obfuscator.deobfuscate(raw_attributes)
+      @js_custom_attributes = attributes['u']
+      @js_agent_attributes = attributes['a']
+    end
+  end
+
+  def assert_transaction_trace_has_agent_attribute(attribute, expected)
+    actual = single_transaction_trace_posted.agent_attributes[attribute]
+    assert_equal expected, actual
+  end
+
+  def assert_event_has_agent_attribute(attribute, expected)
+    assert_equal expected, single_event_posted.last[attribute]
+  end
+
+  def assert_error_has_agent_attribute(attribute, expected)
+    assert_equal expected, single_error_posted.params["agentAttributes"][attribute]
+  end
+
+  def assert_transaction_tracer_has_custom_attributes(attribute, expected)
+    actual = single_transaction_trace_posted.custom_attributes[attribute]
+    assert_equal expected, actual
+  end
+
+  def assert_transaction_event_has_custom_attributes(attribute, expected)
+    assert_equal expected, single_event_posted[1][attribute]
+  end
+
+  def assert_error_collector_has_custom_attributes(attribute, expected)
+    assert_equal expected, single_error_posted.params["userAttributes"][attribute]
+  end
+
+  def assert_browser_monitoring_has_custom_attributes(attribute, expected)
+    assert_equal expected, @js_custom_attributes[attribute]
+  end
+
+  def assert_browser_monitoring_has_agent_attribute(attribute, expected)
+    assert_equal expected, @js_agent_attributes[attribute]
+  end
+
+  def refute_transaction_tracer_has_custom_attributes(attribute)
+    refute_includes single_transaction_trace_posted.custom_attributes, attribute
+  end
+
+  def refute_transaction_event_has_custom_attributes(attribute)
+    refute_includes single_event_posted[1], attribute
+  end
+
+  def refute_error_collector_has_custom_attributes(attribute)
+    refute_includes single_error_posted.params["userAttributes"], attribute
+  end
+
+  def refute_browser_monitoring_has_custom_attributes(_)
+    assert_nil @js_custom_attributes
+  end
+
+  def refute_transaction_trace_has_agent_attribute(attribute)
+    refute_includes single_transaction_trace_posted.agent_attributes, attribute
+  end
+
+  def refute_event_has_agent_attribute(attribute)
+    refute_includes single_event_posted.last, attribute
+  end
+
+  def refute_error_has_agent_attribute(attribute)
+    refute_includes single_error_posted.params["agentAttributes"], attribute
+  end
+
+  def refute_browser_monitoring_has_any_attributes
+    refute_includes @js_data, "atts"
+  end
+
+  def refute_browser_monitoring_has_agent_attribute(_)
+    assert_nil @js_agent_attributes
+  end
+
+  def attributes_for_single_error_posted(key)
+    run_harvest
+    single_error_posted.params[key]
+  end
+
+  def user_attributes_for_single_error_posted
+    attributes_for_single_error_posted("userAttributes")
+  end
+
+  def agent_attributes_for_single_error_posted
+    attributes_for_single_error_posted("agentAttributes")
+  end
+
+  def agent_attributes_for_single_event_posted
+    run_harvest
+    single_event_posted[2]
+  end
+
+  def agent_attributes_for_single_event_posted_without_ignored_attributes
+    ignored_keys = ["httpResponseCode", "request.headers.referer",
+      "request.parameters.controller", "request.parameters.action"]
+    attrs = agent_attributes_for_single_event_posted
+    ignored_keys.each { |k| attrs.delete(k) }
+    attrs
   end
 
   extend self

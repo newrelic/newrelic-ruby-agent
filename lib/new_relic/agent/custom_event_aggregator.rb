@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/sized_buffer'
+require 'new_relic/agent/attribute_processing'
 
 module NewRelic
   module Agent
@@ -11,7 +12,6 @@ module NewRelic
 
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
-      EVENT_PARAMS_CTX = 'recording custom event'.freeze
       EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
 
       DEFAULT_CAPACITY_KEY = :'custom_insights_events.max_samples_stored'
@@ -33,6 +33,10 @@ module NewRelic
       end
 
       def record(type, attributes)
+        unless attributes.is_a? Hash
+          raise ArgumentError, "Expected Hash but got #{attributes.class}"
+        end
+
         type = @type_strings[type]
         unless type =~ EVENT_TYPE_REGEX
           note_dropped_event(type)
@@ -41,7 +45,7 @@ module NewRelic
 
         event = [
           { TYPE => type, TIMESTAMP => Time.now.to_i },
-          event_params(attributes, EVENT_PARAMS_CTX)
+          AttributeProcessing.flatten_and_coerce(attributes)
         ]
 
         stored = @lock.synchronize do

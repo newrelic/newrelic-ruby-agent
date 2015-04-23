@@ -10,6 +10,8 @@ module NewRelic
   # to provide documentation of expected types on to_collector_array methods,
   # and to log failures if totally invalid data gets into outgoing data
   module Coerce
+    module_function
+
     def int(value, context=nil)
       Integer(value)
     rescue => error
@@ -42,36 +44,21 @@ module NewRelic
       ""
     end
 
-    # Convert a hash into a format acceptable to be included with Transaction
-    # event data.
-    #
-    # We accept a hash and will return a new hash where all of the keys
-    # have been converted to strings.  As values we only allow Strings,
-    # Floats, Integers. Symbols are also allowed but are converted to strings.
-    # Any values of other type (e.g. Hash, Array, any other class) are
-    # discarded. Their keys are also removed from the results hash.
-    def event_params(value, context=nil)
-      unless value.is_a? Hash
-        raise ArgumentError, "Expected Hash but got #{value.class}"
-      end
-      value.inject({}) do |memo, (key, val)|
-        case val
-        when String, Integer, TrueClass, FalseClass
-          memo[key.to_s] = val
-        when Float
-          if val.finite?
-            memo[key.to_s] = val
-          else
-            memo[key.to_s] = nil
-          end
-        when Symbol
-          memo[key.to_s] = val.to_s
+    def scalar(val)
+      case val
+      when String, Integer, TrueClass, FalseClass
+        val
+      when Float
+        if val.finite?
+          val
+        else
+          nil
         end
-        memo
+      when Symbol
+        val.to_s
+      else
+        "#<#{val.class.to_s}>"
       end
-    rescue => error
-      log_failure(value.class, 'valid event params', context, error)
-      {}
     end
 
     def log_failure(value, type, context, error)

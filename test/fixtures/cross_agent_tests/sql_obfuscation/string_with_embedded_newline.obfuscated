@@ -1,1 +1,0 @@
-select * from accounts where accounts.name != ? order by accounts.name

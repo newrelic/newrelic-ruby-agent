@@ -80,12 +80,12 @@ module NewRelic
 
         QUEUE_QUERY_CONDITION = 'run_at <= ? and failed_at is NULL'.freeze
 
-        def record_counts_by(column_name, metric_segment = column_name)
+        def record_counts_by(column_name, metric_node = column_name)
           all_count = 0
           queue_counts(column_name).each do |column_val, count|
             all_count += count
             column_val = "default" if column_val.nil? || column_val == ""
-            metric = "Workers/DelayedJob/queue_length/#{metric_segment}/#{column_val}"
+            metric = "Workers/DelayedJob/queue_length/#{metric_node}/#{column_val}"
             NewRelic::Agent.record_metric(metric, count)
           end
           all_count

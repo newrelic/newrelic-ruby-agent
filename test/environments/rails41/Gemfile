@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gem 'rake'
 
-gem 'rails', '~>4.1.7'
+gem 'rails', '~>4.1.10'
 
 gem 'minitest', '5.2.3'
 gem 'mocha', :require => false

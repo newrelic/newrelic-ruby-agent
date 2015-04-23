@@ -96,8 +96,8 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
         refute_nil(caught_exception)
         assert_equal('noodle', caught_exception.message)
 
-        last_segment = find_last_transaction_segment
-        assert_equal "External/localhost/Typhoeus/GET", last_segment.metric_name
+        last_node = find_last_transaction_node
+        assert_equal "External/localhost/Typhoeus/GET", last_node.metric_name
       end
     end
 
@@ -117,8 +117,8 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
         5.times { hydra.queue(Typhoeus::Request.new(default_url, ssl_option)) }
         hydra.run
 
-        last_segment = find_last_transaction_segment()
-        assert_equal "External/Multiple/Typhoeus::Hydra/run", last_segment.metric_name
+        last_node = find_last_transaction_node()
+        assert_equal "External/Multiple/Typhoeus::Hydra/run", last_node.metric_name
       end
     end
 

@@ -15,6 +15,10 @@ class TestingApp
   def call(env)
     request = Rack::Request.new(env)
     params = request.params
+    if params['fail']
+      raise "O_o"
+    end
+
     if params['transaction_name']
       opts = {}
       if params['transaction_category']

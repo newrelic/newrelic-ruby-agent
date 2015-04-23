@@ -9,10 +9,10 @@ module NewRelic
   module Agent
     class CrossAppTracingTest < Minitest::Test
 
-      attr_reader :segment, :request, :response
+      attr_reader :node, :request, :response
 
       def setup
-        @segment = stub_everything
+        @node = stub_everything
         @request = stub_everything(:uri => URI.parse("http://newrelic.com"),
                                    :type => "Fake",
                                    :method => "GET")
@@ -21,28 +21,28 @@ module NewRelic
       end
 
       def test_start_trace
-        t0      = Time.now
-        segment = CrossAppTracing.start_trace(@state, t0, request)
-        refute_nil segment
+        t0   = Time.now
+        node = CrossAppTracing.start_trace(@state, t0, request)
+        refute_nil node
       end
 
-      def test_start_trace_has_nil_segment_on_agent_failure
+      def test_start_trace_has_nil_node_on_agent_failure
         @state.traced_method_stack.stubs(:push_frame).raises("Boom!")
         t0      = Time.now
-        segment = CrossAppTracing.start_trace(@state, t0, request)
-        assert_nil segment
+        node = CrossAppTracing.start_trace(@state, t0, request)
+        assert_nil node
       end
 
       def test_finish_trace_treats_nil_start_time_as_agent_error
         expects_logging(:error, any_parameters)
         expects_no_pop_frame
-        CrossAppTracing.finish_trace(@state, nil, segment, request, response)
+        CrossAppTracing.finish_trace(@state, nil, node, request, response)
       end
 
       # Since we log and swallow errors, assert on the logging to ensure these
       # paths are cleanly accepting nils, not just smothering the exceptions.
 
-      def test_finish_trace_allows_nil_segment
+      def test_finish_trace_allows_nil_node
         expects_no_logging(:error)
         CrossAppTracing.finish_trace(@state, Time.now, nil, request, response)
       end
@@ -50,13 +50,13 @@ module NewRelic
       def test_finish_trace_allows_nil_request
         expects_no_logging(:error)
         expects_pop_frame
-        CrossAppTracing.finish_trace(@state, Time.now, segment, nil, response)
+        CrossAppTracing.finish_trace(@state, Time.now, node, nil, response)
       end
 
       def test_finish_trace_allows_nil_response
         expects_no_logging(:error)
         expects_pop_frame
-        CrossAppTracing.finish_trace(@state, Time.now, segment, request, nil)
+        CrossAppTracing.finish_trace(@state, Time.now, node, request, nil)
       end
 
       def expects_pop_frame

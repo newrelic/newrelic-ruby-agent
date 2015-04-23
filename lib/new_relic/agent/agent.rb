@@ -28,6 +28,7 @@ require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
 require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
+require 'new_relic/agent/attribute_filter'
 
 module NewRelic
   module Agent
@@ -72,6 +73,20 @@ module NewRelic
 
         @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
+
+        setup_attribute_filter
+      end
+
+      def setup_attribute_filter
+        refresh_attribute_filter
+
+        @events.subscribe(:finished_configuring) do
+          refresh_attribute_filter
+        end
+      end
+
+      def refresh_attribute_filter
+        @attribute_filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -123,6 +138,8 @@ module NewRelic
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
         attr_reader :custom_event_aggregator
+
+        attr_reader :attribute_filter
 
         # This method should be called in a forked process after a fork.
         # It assumes the parent process initialized the agent, but does
@@ -1056,7 +1073,7 @@ module NewRelic
         # them across the wire.  This includes gathering SQL
         # explanations, stripping out stack traces, and normalizing
         # SQL.  note that we explain only the sql statements whose
-        # segments' execution times exceed our threshold (to avoid
+        # nodes' execution times exceed our threshold (to avoid
         # unnecessary overhead of running explains on fast queries.)
         def harvest_and_send_transaction_traces
           harvest_and_send_from_container(@transaction_sampler, :transaction_sample_data)

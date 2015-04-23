@@ -30,6 +30,14 @@ Hometown.watch(::Thread)
 # us to rely on, so instead we'll just watch for it.
 class Minitest::Test
   def before_setup
+    if self.respond_to?(:name)
+      test_method_name = self.name
+    else
+      test_method_name = self.__name__
+    end
+
+    NewRelic::Agent.logger.info("*** #{self.class}##{test_method_name} **")
+
     @__thread_count = ruby_threads.count
     super
   end
@@ -240,7 +248,7 @@ module TransactionSampleTestHelper
     sampler = nil
     state = NewRelic::Agent::TransactionState.tl_get
 
-    request = stub(:uri => path)
+    request = stub(:path => path)
 
     in_transaction("Controller/sandwiches/index", :request => request) do
       sampler = NewRelic::Agent.instance.transaction_sampler

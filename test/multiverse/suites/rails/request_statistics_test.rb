@@ -18,7 +18,7 @@ class RequestStatsController < ApplicationController
   end
 
   def stats_action_with_custom_params
-    ::NewRelic::Agent.add_custom_parameters('color' => 'blue', 1 => :bar, 'bad' => {})
+    ::NewRelic::Agent.add_custom_attributes('color' => 'blue', 1 => :bar, 'bad' => {})
     render :text => 'some stuff'
   end
 end
@@ -55,9 +55,13 @@ class RequestStatsTest < RailsMultiverseTest
       assert_kind_of Array, post.events
       assert_kind_of Array, post.events.first
 
-      sample = post.events.first.first
-      assert_kind_of Hash, sample
+      assert_equal 3, post.events.first.length
 
+      post.events.first.each do |event_chunk|
+        assert_kind_of Hash, event_chunk
+      end
+
+      sample = post.events.first.first
       assert_equal 'Controller/request_stats/stats_action', sample['name']
       assert_encoding 'utf-8', sample['name']
       assert_equal 'Transaction', sample['type']
@@ -133,14 +137,16 @@ class RequestStatsTest < RailsMultiverseTest
       assert_equal 'Controller/request_stats/stats_action_with_custom_params', sample['name']
       assert_encoding 'utf-8', sample['name']
       assert_equal 'Transaction', sample['type']
+
       ['blue', 'bar', 'bad'].each do |key|
         assert_not_includes(sample, key)
       end
 
       custom_params = post.events.first[1]
+
       assert_equal 'blue', custom_params['color']
       assert_equal 'bar', custom_params['1']
-      assert_false custom_params.has_key?('bad')
+      assert_equal '{}', custom_params['bad']
     end
   end
 

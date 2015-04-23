@@ -95,10 +95,6 @@ module NewRelic
         @call_count += value
       end
 
-      def inspect
-        "#<NewRelic::Agent::Stats #{to_s} >"
-      end
-
       # Concerned about implicit usage of inspect relying on stats format, so
       # putting back a version to get full inspection as separate method
       def inspect_full

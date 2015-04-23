@@ -208,10 +208,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     metric = "Datastore/statement/#{current_product}/Order/find"
-    segment = find_segment_with_name(sample, metric)
-    assert_equal(metric, segment.metric_name)
+    node = find_node_with_name(sample, metric)
+    assert_equal(metric, node.metric_name)
 
-    sql = segment.params[:sql]
+    sql = node.params[:sql]
     assert_match(/^SELECT /, sql)
 
     assert_equal(adapter.to_s, sql.adapter)
@@ -227,16 +227,16 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
       sample = NewRelic::Agent.instance.transaction_sampler.last_sample
       metric = "Datastore/statement/#{current_product}/Order/find"
-      sql_segment = find_segment_with_name(sample, metric)
+      sql_node = find_node_with_name(sample, metric)
 
-      assert_match(/^SELECT /, sql_segment.params[:sql])
+      assert_match(/^SELECT /, sql_node.params[:sql])
 
       sample.prepare_to_send!
-      explanations = sql_segment.params[:explain_plan]
+      explanations = sql_node.params[:explain_plan]
       if supports_explain_plans?
-        refute_nil explanations, "No explains in segment: #{sql_segment}"
+        refute_nil explanations, "No explains in node: #{sql_node}"
         assert_equal(2, explanations.size,
-                     "No explains in segment: #{sql_segment}")
+                     "No explains in node: #{sql_node}")
       end
     end
   end

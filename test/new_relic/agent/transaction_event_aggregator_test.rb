@@ -6,19 +6,22 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/transaction_event_aggregator'
+require 'new_relic/agent/transaction/attributes'
 
 class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def setup
     freeze_time
     @event_listener = NewRelic::Agent::EventListener.new
-    @sampler = NewRelic::Agent::TransactionEventAggregator.new(@event_listener)
+    @event_aggregator = NewRelic::Agent::TransactionEventAggregator.new(@event_listener)
+
+    @attributes = nil
   end
 
   # Helpers for DataContainerTests
 
   def create_container
-    @sampler
+    @event_aggregator
   end
 
   def populate_container(sampler, n)
@@ -34,52 +37,111 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
   def test_samples_on_transaction_finished_event
     with_sampler_config do
       generate_request
-      assert_equal 1, @sampler.samples.length
+      assert_equal 1, @event_aggregator.samples.length
     end
   end
 
   EVENT_DATA_INDEX = 0
   CUSTOM_ATTRIBUTES_INDEX = 1
+  AGENT_ATTRIBUTES_INDEX = 2
 
-  def test_custom_parameters_in_event_are_normalized_to_string_keys
+  def test_custom_attributes_in_event_are_normalized_to_string_keys
     with_sampler_config do
-      generate_request('whatever', :custom_params => {:bing => 2, 1 => 3})
-      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
-      assert_equal 2, custom_attrs['bing']
-      assert_equal 3, custom_attrs['1']
+      attributes.merge_custom_attributes(:bing => 2, 1 => 3)
+      generate_request('whatever')
+
+      result = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
+      assert_equal 2, result['bing']
+      assert_equal 3, result['1']
     end
   end
 
-  def test_includes_custom_parameters_in_event
+  def test_agent_attributes_in_event_are_normalized_to_string_keys
     with_sampler_config do
-      generate_request('whatever', :custom_params => {'bing' => 2})
-      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
+      attributes.add_agent_attribute(:yahoo, 7, NewRelic::Agent::AttributeFilter::DST_ALL)
+      attributes.add_agent_attribute(4, 2, NewRelic::Agent::AttributeFilter::DST_ALL)
+      generate_request('puce')
+
+      result = captured_transaction_event[AGENT_ATTRIBUTES_INDEX]
+      assert_equal 7, result[:yahoo]
+      assert_equal 2, result[4]
+    end
+  end
+
+  def test_includes_custom_attributes_in_event
+    with_sampler_config do
+      attributes.merge_custom_attributes('bing' => 2)
+      generate_request('whatever')
+
+      custom_attrs = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
       assert_equal 2, custom_attrs['bing']
     end
   end
 
-  def test_doesnt_include_custom_parameters_in_event_when_configured_not_to
+  def test_includes_agent_attributes_in_event
+    with_sampler_config do
+      attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
+      generate_request('whatever')
+
+      agent_attrs = captured_transaction_event[AGENT_ATTRIBUTES_INDEX]
+      assert_equal 2, agent_attrs['bing']
+    end
+  end
+
+  def test_doesnt_include_custom_attributes_in_event_when_configured_not_to
+    with_sampler_config('transaction_events.attributes.enabled' => false) do
+      attributes.merge_custom_attributes('bing' => 2)
+      generate_request('whatever')
+
+      custom_attrs = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
+      assert_empty custom_attrs
+    end
+  end
+
+  def test_doesnt_include_agent_attributes_in_event_when_configured_not_to
+    with_sampler_config('transaction_events.attributes.enabled' => false) do
+      attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
+      generate_request('whatever')
+
+      agent_attrs = captured_transaction_event[AGENT_ATTRIBUTES_INDEX]
+      assert_empty agent_attrs
+    end
+  end
+
+
+  def test_doesnt_include_custom_attributes_in_event_when_configured_not_to_with_legacy_setting
     with_sampler_config('analytics_events.capture_attributes' => false) do
-      generate_request('whatever', :custom_params => {'bing' => 2})
-      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
-      assert_equal nil, custom_attrs['bing']
+      attributes.merge_custom_attributes('bing' => 2)
+      generate_request('whatever')
+
+      custom_attrs = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
+      assert_empty custom_attrs
     end
   end
 
-  def test_custom_parameters_in_event_cant_override_reserved_attributes
+  def test_doesnt_include_agent_attributes_in_event_when_configured_not_to_with_legacy_setting
+    with_sampler_config('analytics_events.capture_attributes' => false) do
+      attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
+      generate_request('whatever')
+
+      agent_attrs = captured_transaction_event[AGENT_ATTRIBUTES_INDEX]
+      assert_empty agent_attrs
+    end
+  end
+
+  def test_custom_attributes_in_event_cant_override_reserved_attributes
     with_sampler_config do
       metrics = NewRelic::Agent::TransactionMetrics.new()
       metrics.record_unscoped('HttpDispatcher', 0.01)
 
-      generate_request('whatever',
-        :metrics       => metrics,
-        :custom_params => {'type' => 'giraffe', 'duration' => 'hippo'}
-      )
-      txn_event = single_sample[EVENT_DATA_INDEX]
+      attributes.merge_custom_attributes('type' => 'giraffe', 'duration' => 'hippo')
+      generate_request('whatever', :metrics => metrics)
+
+      txn_event = captured_transaction_event[EVENT_DATA_INDEX]
       assert_equal 'Transaction', txn_event['type']
       assert_equal 0.1, txn_event['duration']
 
-      custom_attrs = single_sample[CUSTOM_ATTRIBUTES_INDEX]
+      custom_attrs = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
       assert_equal 'giraffe', custom_attrs['type']
       assert_equal 'hippo', custom_attrs['duration']
     end
@@ -94,7 +156,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
     with_sampler_config do
       generate_request('name', :metrics => txn_metrics)
-      event_data = single_sample[EVENT_DATA_INDEX]
+      event_data = captured_transaction_event[EVENT_DATA_INDEX]
       assert_equal 13, event_data["queueDuration"]
       assert_equal 14, event_data["externalDuration"]
       assert_equal 15, event_data["databaseDuration"]
@@ -114,7 +176,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     with_sampler_config do
       generate_request('name', :metrics => txn_metrics)
 
-      event_data = single_sample[EVENT_DATA_INDEX]
+      event_data = captured_transaction_event[EVENT_DATA_INDEX]
       assert_equal 12, event_data["externalDuration"]
       assert_equal 13, event_data["databaseDuration"]
       assert_equal 14, event_data["gcCumulative"]
@@ -128,7 +190,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     with_sampler_config do
       generate_request('name', :apdex_perf_zone => 'S')
 
-      event_data = single_sample[EVENT_DATA_INDEX]
+      event_data = captured_transaction_event[EVENT_DATA_INDEX]
       assert_equal 'S', event_data['nr.apdexPerfZone']
     end
   end
@@ -136,14 +198,14 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
   def test_samples_on_transaction_finished_event_includes_guid
     with_sampler_config do
       generate_request('name', :guid => "GUID")
-      assert_equal "GUID", single_sample[EVENT_DATA_INDEX]["nr.guid"]
+      assert_equal "GUID", captured_transaction_event[EVENT_DATA_INDEX]["nr.guid"]
     end
   end
 
   def test_samples_on_transaction_finished_event_includes_referring_transaction_guid
     with_sampler_config do
       generate_request('name', :referring_transaction_guid=> "REFER")
-      assert_equal "REFER", single_sample[EVENT_DATA_INDEX]["nr.referringTransactionGuid"]
+      assert_equal "REFER", captured_transaction_event[EVENT_DATA_INDEX]["nr.referringTransactionGuid"]
     end
   end
 
@@ -151,14 +213,14 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     with_sampler_config do
       generate_request('a', :type => :controller)
       generate_request('b', :type => :background)
-      assert_equal 2, @sampler.samples.size
+      assert_equal 2, @event_aggregator.samples.size
     end
   end
 
   def test_can_disable_sampling_for_analytics
     with_sampler_config( :'analytics_events.enabled' => false ) do
       generate_request
-      assert @sampler.samples.empty?
+      assert @event_aggregator.samples.empty?
     end
   end
 
@@ -166,52 +228,52 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     with_sampler_config do
       5.times { generate_request }
 
-      old_samples = @sampler.harvest!
+      old_samples = @event_aggregator.harvest!
 
       assert_equal 5, old_samples.size
-      assert_equal 0, @sampler.samples.size
+      assert_equal 0, @event_aggregator.samples.size
     end
   end
 
   def test_merge_merges_samples_back_into_buffer
     with_sampler_config do
       5.times { generate_request }
-      old_samples = @sampler.harvest!
+      old_samples = @event_aggregator.harvest!
       5.times { generate_request }
 
-      @sampler.merge!(old_samples)
-      assert_equal(10, @sampler.samples.size)
+      @event_aggregator.merge!(old_samples)
+      assert_equal(10, @event_aggregator.samples.size)
     end
   end
 
   def test_merge_abides_by_max_samples_limit
     with_sampler_config(:'analytics_events.max_samples_stored' => 5) do
       4.times { generate_request }
-      old_samples = @sampler.harvest!
+      old_samples = @event_aggregator.harvest!
       4.times { generate_request }
 
-      @sampler.merge!(old_samples)
-      assert_equal(5, @sampler.samples.size)
+      @event_aggregator.merge!(old_samples)
+      assert_equal(5, @event_aggregator.samples.size)
     end
   end
 
   def test_limits_total_number_of_samples_to_max_samples_stored
     with_sampler_config( :'analytics_events.max_samples_stored' => 100 ) do
       150.times { generate_request }
-      assert_equal 100, @sampler.samples.size
+      assert_equal 100, @event_aggregator.samples.size
     end
   end
 
   def test_resets_limits_on_harvest
     with_sampler_config( :'analytics_events.max_samples_stored' => 100 ) do
       50.times { generate_request('before') }
-      samples_before = @sampler.samples
+      samples_before = @event_aggregator.samples
       assert_equal 50, samples_before.size
 
-      @sampler.harvest!
+      @event_aggregator.harvest!
 
       150.times { generate_request('after') }
-      samples_after = @sampler.samples
+      samples_after = @event_aggregator.samples
       assert_equal 100, samples_after.size
 
       assert_equal 0, (samples_before & samples_after).size
@@ -228,13 +290,13 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       end
       threads.each { |t| t.join }
 
-      assert_equal(25 * 100, @sampler.samples.size)
+      assert_equal(25 * 100, @event_aggregator.samples.size)
     end
   end
 
   def test_includes_http_response_code_in_events
     generate_request('whatever', :http_response_code => 404)
-    sample = single_sample
+    sample = captured_transaction_event
     code = sample[EVENT_DATA_INDEX]['httpResponseCode']
     assert_equal('404', code)
   end
@@ -246,7 +308,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
         generate_request('synthetic', :synthetics_resource_id => 100)
       end
 
-      assert_equal 10, @sampler.samples.size
+      assert_equal 10, @event_aggregator.samples.size
     end
   end
 
@@ -256,7 +318,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
         generate_request('synthetic', :synthetics_resource_id => 100)
       end
 
-      assert_equal 20, @sampler.samples.size
+      assert_equal 20, @event_aggregator.samples.size
     end
   end
 
@@ -269,8 +331,8 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
       generate_request('synthetic', :timestamp => 1, :synthetics_resource_id => 100)
 
-      assert_equal 10, @sampler.samples.size
-      timestamps = @sampler.samples.map do |(main, _)|
+      assert_equal 10, @event_aggregator.samples.size
+      timestamps = @event_aggregator.samples.map do |(main, _)|
         main["timestamp"]
       end.sort
 
@@ -286,7 +348,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
       generate_request('synthetic', :timestamp => 1, :synthetics_resource_id => 100)
 
-      assert_equal 11, @sampler.samples.size
+      assert_equal 11, @event_aggregator.samples.size
     end
   end
 
@@ -295,13 +357,13 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       20.times do
         generate_request('synthetic', :synthetics_resource_id => 100)
       end
-      @sampler.harvest!
+      @event_aggregator.harvest!
     end
 
     with_sampler_config(:'synthetics.events_limit' => 10,
                         :'analytics_events.max_samples_stored' => 0) do
-      @sampler.merge!(samples)
-      assert_equal 10, @sampler.samples.size
+      @event_aggregator.merge!(samples)
+      assert_equal 10, @event_aggregator.samples.size
     end
   end
 
@@ -311,7 +373,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
         generate_request('synthetic', :synthetics_resource_id => 100)
       end
 
-      @sampler.harvest!
+      @event_aggregator.harvest!
 
       metric = 'Supportability/TransactionEventAggregator/synthetics_events_dropped'
       assert_metrics_not_recorded(metric)
@@ -324,7 +386,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
         generate_request('synthetic', :synthetics_resource_id => 100)
       end
 
-      @sampler.harvest!
+      @event_aggregator.harvest!
 
       metric = 'Supportability/TransactionEventAggregator/synthetics_events_dropped'
       assert_metrics_recorded(metric => { :call_count => 10 })
@@ -341,7 +403,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       :type => :controller,
       :start_timestamp => options[:timestamp] || Time.now.to_f,
       :duration => 0.1,
-      :custom_params => {}
+      :attributes => attributes
     }.merge(options)
     @event_listener.notify(:transaction_finished, payload)
   end
@@ -355,9 +417,17 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     end
   end
 
-  def single_sample
-    assert_equal 1, @sampler.samples.size
-    @sampler.samples.first
+  def captured_transaction_event
+    assert_equal 1, @event_aggregator.samples.size
+    @event_aggregator.samples.first
   end
 
+  def attributes
+    if @attributes.nil?
+      filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
+      @attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
+    end
+
+    @attributes
+  end
 end

@@ -53,11 +53,11 @@ class DeveloperModeTest < Minitest::Test
 
   def test_explain_sql_displays_query_plan
     sample = @sampler.dev_mode_sample_buffer.samples[0]
-    sql_segment = sample.sql_segments[0]
+    sql_segment = app.send(:sql_segments, sample)[0]
     explain_results = NewRelic::Agent::Database.process_resultset(dummy_mysql_explain_result, 'mysql')
 
-    NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns(explain_results)
-    get "/newrelic/explain_sql?id=#{sample.sample_id}&segment=#{sql_segment.segment_id}"
+    NewRelic::Agent::Transaction::TraceNode.any_instance.expects(:explain_sql).returns(explain_results)
+    get "/newrelic/explain_sql?id=#{sample.sample_id}&segment=#{sql_segment.object_id}"
 
     assert last_response.ok?
     assert last_response.body.include?('PRIMARY')
@@ -71,6 +71,20 @@ class DeveloperModeTest < Minitest::Test
     get "/newrelic"
 
     assert_empty NewRelic::Agent.instance.transaction_sampler.dev_mode_sample_buffer.samples
+  end
+
+  def test_request_attributes
+    attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    attributes.add_agent_attribute("request.parameters.foo", "bar", NewRelic::Agent::AttributeFilter::DST_ALL)
+    attributes.add_agent_attribute(:"request.headers.referer", "/somewhere", NewRelic::Agent::AttributeFilter::DST_ALL)
+    sample = stub(:attributes => attributes)
+
+    expected = {
+      "request.parameters.foo" => "bar"
+    }
+
+    result = app.send(:request_attributes_for, sample)
+    assert_equal expected, result
   end
 end
 

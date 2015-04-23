@@ -129,17 +129,6 @@ module SinatraTestCases
     get '/pass'
   end
 
-  def test_file_upload_params_are_filtered
-    with_config(:capture_params => true) do
-      params = {
-        :title => "blah",
-        :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
-      }
-      post '/files', params
-      assert_equal({"title" => "blah", "file" => "[FILE]"}, last_transaction_trace_request_params)
-    end
-  end
-
   def fail_on_second_params_call
     Sinatra::Request.any_instance.
       stubs(:params).returns({}).

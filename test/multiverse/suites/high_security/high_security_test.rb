@@ -17,7 +17,32 @@ class HighSecurityTest < Minitest::Test
     collector.stub('connect', {
       "agent_run_id" => 1,
       "agent_config" => {
+        # Make sure that we take TT's all the time for testing purposes
+        "transaction_tracer.transaction_threshold" => -10,
+
+        # Really, really try to get us to allow things that we shouldn't when
+        # in high security mode
         "capture_params" => true,
+
+        "transaction_tracer.capture_attributes" => true,
+        "error_collector.capture_attributes"    => true,
+        "browser_monitoring.capture_attributes" => true,
+        "analytics_events.capture_attributes"   => true,
+
+        "attributes.enabled" => true,
+        "attributes.include" => ["*", "request.parameters.*"],
+
+        "transaction_tracer.attributes.enabled" => true,
+        "transaction_tracer.attributes.include" => ["*", "request.parameters.*"],
+
+        "transaction_events.attributes.enabled" => true,
+        "transaction_events.attributes.include" => ["*", "request.parameters.*"],
+
+        "error_collector.attributes.enabled" => true,
+        "error_collector.attributes.include" => ["*", "request.parameters.*"],
+
+        "browser_monitoring.attributes.enabled" => true,
+        "browser_monitoring.attributes.include" => ["*", "request.parameters.*"],
       }
     }, 200)
   end
@@ -37,22 +62,153 @@ class HighSecurityTest < Minitest::Test
     refute NewRelic::Agent.config[:capture_params]
   end
 
-  def test_doesnt_capture_params
+  def test_doesnt_capture_params_to_transaction_traces
     in_transaction(:filtered_params => { "loose" => "params" }) do
-      # no-op
     end
-    assert_empty last_transaction_trace_request_params
+
+    run_harvest
+
+    trace = single_transaction_trace_posted
+    assert_empty trace.custom_attributes
+    assert_empty trace.agent_attributes
   end
 
-  def test_doesnt_record_custom_parameters
-    in_transaction do
-      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
-      NewRelic::Agent.add_custom_parameters(:not => "allowed")
+  def test_doesnt_capture_params_to_errors
+    assert_raises(RuntimeError) do
+      in_transaction(:filtered_params => { "loose" => "params" }) do
+        raise "O_o"
+      end
     end
 
-    assert_nil last_transaction_trace.params[:custom_params][:not]
-    refute_nil last_transaction_trace.params[:custom_params][:cpu_time]
-    refute_nil last_transaction_trace.params[:custom_params][:'nr.trip_id']
-    refute_nil last_transaction_trace.params[:custom_params][:'nr.path_hash']
+    run_harvest
+
+    error = single_error_posted
+    assert_empty error.agent_attributes
+    assert_empty error.custom_attributes
+  end
+
+  def test_doesnt_capture_params_to_events
+    in_transaction(:filtered_params => { "loose" => "params" }) do
+    end
+
+    run_harvest
+
+    event = single_event_posted
+    assert_empty event[1]
+    assert_empty event[2]
+  end
+
+  def test_doesnt_capture_params_to_browser
+    in_transaction(:filtered_params => { "loose" => "params" }) do
+      capture_js_data
+    end
+
+    run_harvest
+
+    refute_browser_monitoring_has_any_attributes
+  end
+
+  def test_disallows_custom_attributes_to_transaction_traces
+    in_transaction do
+      NewRelic::Agent.add_custom_attributes(:not => "allowed")
+    end
+
+    run_harvest
+
+    trace = single_transaction_trace_posted
+    assert_empty trace.custom_attributes
+    assert_empty trace.agent_attributes
+  end
+
+  def test_disallows_custom_attributes_on_errors
+    assert_raises(RuntimeError) do
+      in_transaction do
+        NewRelic::Agent.add_custom_attributes(:not => "allowed")
+        raise "O_o"
+      end
+    end
+
+    run_harvest
+
+    error = single_error_posted
+    assert_empty error.agent_attributes
+    assert_empty error.custom_attributes
+  end
+
+  def test_disallows_custom_attributes_on_events
+    in_transaction do
+      NewRelic::Agent.add_custom_attributes(:not => "allowed")
+    end
+
+    run_harvest
+
+    event = single_event_posted
+    assert_empty event[1]
+    assert_empty event[2]
+  end
+
+  def test_disallows_custom_attributes_on_browser
+    in_transaction do
+      NewRelic::Agent.add_custom_attributes(:not => "allowed")
+      capture_js_data
+    end
+
+    run_harvest
+
+    refute_browser_monitoring_has_any_attributes
+  end
+
+  def test_doesnt_block_agent_attributes_to_transaction_traces
+    in_transaction do |txn|
+      txn.http_response_code = 200
+    end
+
+    run_harvest
+
+    expected = { "httpResponseCode" => 200 }
+    assert_equal expected, single_transaction_trace_posted.agent_attributes
+  end
+
+  def test_doesnt_block_agent_attributes_to_errors
+    assert_raises(RuntimeError) do
+      in_transaction do |txn|
+        txn.http_response_code = 500
+        raise "O_o"
+      end
+    end
+
+    run_harvest
+
+    expected = { "httpResponseCode" => 500 }
+    assert_equal expected, single_error_posted.agent_attributes
+  end
+
+  def test_doesnt_block_intrinsic_attributes_on_transaction_traces
+    in_transaction do
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+    end
+
+    run_harvest
+
+    intrinsic_attributes = single_transaction_trace_posted.intrinsic_attributes
+    refute_nil intrinsic_attributes['cpu_time']
+    refute_nil intrinsic_attributes['trip_id']
+    refute_nil intrinsic_attributes['path_hash']
+  end
+
+  def test_doesnt_block_intrinsic_attributes_on_errors
+    assert_raises(RuntimeError) do
+      in_transaction do
+        NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+        raise "O_o"
+      end
+    end
+
+    run_harvest
+
+    intrinsic_attributes = single_error_posted.intrinsic_attributes
+    refute_nil intrinsic_attributes['cpu_time']
+    refute_nil intrinsic_attributes['trip_id']
+    refute_nil intrinsic_attributes['path_hash']
   end
 end

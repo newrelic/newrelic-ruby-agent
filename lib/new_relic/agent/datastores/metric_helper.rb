@@ -46,7 +46,8 @@ module NewRelic
 
         def self.metrics_for(product, operation, collection = nil)
           if overrides = overridden_operation_and_collection
-            operation, collection = overrides
+            operation  = overrides[0] || operation
+            collection = overrides[1] || collection
           end
 
           suffix = all_suffix

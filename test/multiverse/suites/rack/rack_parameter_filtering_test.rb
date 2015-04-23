@@ -24,7 +24,12 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
           :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
         }
         post '/', params
-        assert_equal({"title" => "blah", "file" => "[FILE]"}, last_transaction_trace_request_params)
+
+        expected = {
+          "request.parameters.title" => "blah",
+          "request.parameters.file" => "[FILE]"
+        }
+        assert_equal expected, last_transaction_trace_request_params
       end
     end
 
@@ -32,7 +37,12 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
       with_config(:capture_params => true) do
         params = {"name" => "name", "password" => "mypass"}
         post '/', params
-        assert_equal params, last_transaction_trace_request_params
+
+        expected = {
+          "request.parameters.name" => "name",
+          "request.parameters.password" => "mypass"
+        }
+        assert_equal expected, last_transaction_trace_request_params
       end
     end
   end

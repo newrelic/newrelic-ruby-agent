@@ -96,9 +96,12 @@ DependencyDetection.defer do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
       def perform_action_with_newrelic_trace_wrapper
-        options = {}
-        options[:params] = (respond_to?(:filter_parameters)) ? filter_parameters(params) : params
-        perform_action_with_newrelic_trace(options) { perform_action_without_newrelic_trace }
+        munged_params = (respond_to?(:filter_parameters)) ? filter_parameters(params) : params
+        munged_params = NewRelic::Agent::ParameterFiltering.filter_rails_request_parameters(munged_params)
+
+        perform_action_with_newrelic_trace(:params => munged_params) do
+          perform_action_without_newrelic_trace
+        end
       end
 
       alias_method :perform_action_without_newrelic_trace, :perform_action

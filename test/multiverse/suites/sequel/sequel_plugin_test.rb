@@ -164,20 +164,20 @@ class SequelPluginTest < Minitest::Test
   def test_slow_queries_get_an_explain_plan
     with_config( :'transaction_tracer.explain_threshold' => -0.01,
                  :'transaction_tracer.record_sql' => 'raw' ) do
-      segment = last_segment_for do
+      node = last_node_for do
         Post[11]
       end
-      assert_match %r{select \* from `posts` where `id` = 11}i, segment.params[:sql]
-      assert_segment_has_explain_plan( segment )
+      assert_match %r{select \* from `posts` where `id` = 11}i, node.params[:sql]
+      assert_node_has_explain_plan( node )
     end
   end
 
   def test_sql_is_recorded_in_tt_for_non_select
     with_config(:'transaction_tracer.record_sql' => 'raw') do
-      segment = last_segment_for do
+      node = last_node_for do
         Post.create(:title => 'title', :content => 'content')
       end
-      assert_match %r{insert into `posts` \([^\)]*\) values \([^\)]*\)}i, segment.params[:sql]
+      assert_match %r{insert into `posts` \([^\)]*\) values \([^\)]*\)}i, node.params[:sql]
     end
   end
 
@@ -189,11 +189,11 @@ class SequelPluginTest < Minitest::Test
 
     with_config(:'transaction_tracer.explain_threshold' => -0.01,
                 :'transaction_tracer.record_sql' => 'raw') do
-      segment = last_segment_for do
+      node = last_node_for do
         model_class[11]
       end
-      assert_match %r{select \* from `posts` where `id` = 11}i, segment.params[:sql]
-      assert_equal([], segment.params[:explain_plan], "Should not capture explain plan with single-threaded connection pool")
+      assert_match %r{select \* from `posts` where `id` = 11}i, node.params[:sql]
+      assert_equal([], node.params[:explain_plan], "Should not capture explain plan with single-threaded connection pool")
     end
   end
 
@@ -203,11 +203,11 @@ class SequelPluginTest < Minitest::Test
       :'transaction_tracer.record_sql' => 'obfuscated'
     }
     with_config(config) do
-      segment = last_segment_for(:record_sql => :obfuscated) do
+      node = last_node_for(:record_sql => :obfuscated) do
         Post[11]
       end
-      assert_match %r{select \* from `posts` where `id` = \?}i, segment.params[:sql]
-      assert_segment_has_explain_plan( segment )
+      assert_match %r{select \* from `posts` where `id` = \?}i, node.params[:sql]
+      assert_node_has_explain_plan( node )
     end
   end
 

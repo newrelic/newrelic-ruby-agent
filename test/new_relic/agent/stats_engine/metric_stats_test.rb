@@ -231,7 +231,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     assert_equal 2, @engine.get_stats("c").call_count
     assert_equal 4, @engine.get_stats("c").total_call_time
 
-    harvested = @engine.harvest!
+    harvested = @engine.harvest!.to_h
 
     # after harvest, all the metrics should be reset
     assert_equal 0, @engine.get_stats("a").call_count
@@ -240,6 +240,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     assert_equal 0, @engine.get_stats("c").total_call_time
 
     spec_a = NewRelic::MetricSpec.new('a')
+
     assert(harvested.has_key?(spec_a))
     assert_equal(1, harvested[spec_a].call_count)
     assert_equal(10, harvested[spec_a].total_call_time)
@@ -258,11 +259,11 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     @engine.get_stats_no_scope('Custom/foo/3/bar/44').record_data_point(1)
     @engine.get_stats_no_scope('Custom/foo/5/bar/66').record_data_point(1)
 
-    harvested = @engine.harvest!
+    harvested = @engine.harvest!.to_h
 
-    assert !harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/1/bar/22'))
-    assert !harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/3/bar/44'))
-    assert !harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/5/bar/66'))
+    refute harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/1/bar/22'))
+    refute harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/3/bar/44'))
+    refute harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/5/bar/66'))
     merged = harvested[NewRelic::MetricSpec.new('Custom/foo/*/bar/*')]
     assert_equal(3, merged.call_count)
   end
@@ -282,7 +283,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     renamed = @engine.apply_rules_to_metric_data(rules_engine, stats_hash)
 
     assert_equal(1    , renamed.size)
-    assert_equal('foo', renamed.keys.first.name)
+    assert_equal('foo', renamed.to_h.keys.first.name)
   end
 
   def test_harvest_with_merge
@@ -301,7 +302,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     # so the stats for metric "a" should have 2 data points
     @engine.merge!(harvest)
     harvest = @engine.harvest!
-    stats = harvest.fetch(NewRelic::MetricSpec.new("a"))
+    stats = harvest[NewRelic::MetricSpec.new("a")]
     assert_equal 2, stats.call_count
     assert_equal 3, stats.total_call_time
   end

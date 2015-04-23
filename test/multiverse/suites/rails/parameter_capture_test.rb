@@ -10,6 +10,7 @@ class ParameterCaptureController < ApplicationController
   end
 
   def create
+    raise 'problem' if params[:raise]
     render :text => 'created'
   end
 
@@ -33,15 +34,14 @@ class ParameterCaptureController < ApplicationController
 end
 
 class ParameterCaptureTest < RailsMultiverseTest
-  def setup
-    NewRelic::Agent.drop_buffered_data
-  end
+  include MultiverseHelpers
+  setup_and_teardown_agent
 
   def test_no_params_captured_on_errors_when_disabled
     with_config(:capture_params => false) do
       get '/parameter_capture/error?other=1234&secret=4567'
+      refute_contains_request_params(agent_attributes_for_single_error_posted)
     end
-    assert_nil last_traced_error_request_params
   end
 
   def test_no_params_captured_on_tts_when_disabled
@@ -51,49 +51,76 @@ class ParameterCaptureTest < RailsMultiverseTest
     assert_equal({}, last_transaction_trace_request_params)
   end
 
-  def test_uri_on_traced_errors_never_contains_query_string
+  def test_uri_on_traced_errors_never_contains_query_string_without_capture_params
     with_config(:capture_params => false) do
       get '/parameter_capture/error?other=1234&secret=4567'
+      assert_equal('/parameter_capture/error', attributes_for_single_error_posted("request_uri"))
     end
-    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
-
-    with_config(:capture_params => true) do
-      get '/parameter_capture/error?other=1234&secret=4567'
-    end
-    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
   end
 
-  def test_referrer_on_traced_errors_never_contains_query_string
+  def test_uri_on_traced_errors_never_contains_query_string_with_capture_params
+    with_config(:capture_params => true) do
+      get '/parameter_capture/error?other=1234&secret=4567'
+      assert_equal('/parameter_capture/error', attributes_for_single_error_posted("request_uri"))
+    end
+  end
+
+  def test_referrer_on_traced_errors_never_contains_query_string_without_capture_params
     with_config(:capture_params => false) do
       get '/parameter_capture/error?other=1234&secret=4567', {}, { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+      attributes = agent_attributes_for_single_error_posted
+      assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
-    assert_equal('/foo/bar', last_traced_error.params[:request_referer])
+  end
+
+  def test_referrer_on_traced_errors_never_contains_query_string_even_with_capture_params
     with_config(:capture_params => true) do
       get '/parameter_capture/error?other=1234&secret=4567', {}, { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+      attributes = agent_attributes_for_single_error_posted
+      assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
-    assert_equal('/foo/bar', last_traced_error.params[:request_referer])
+  end
+
+  def test_controller_and_action_excluded_from_error_parameters
+    with_config(:capture_params => true) do
+      get '/parameter_capture/error'
+      run_harvest
+
+      refute_error_has_agent_attribute('request.parameters.controller')
+      refute_error_has_agent_attribute('request.parameters.action')
+    end
+  end
+
+  def test_controller_and_action_excluded_from_transaction_trace_parameters
+    with_config(:capture_params => true, :'transaction_tracer.transaction_threshold' => -10) do
+      get '/parameter_capture/transaction'
+      run_harvest
+
+      refute_transaction_trace_has_agent_attribute('request.parameters.controller')
+      refute_transaction_trace_has_agent_attribute('request.parameters.action')
+    end
   end
 
   def test_uri_on_tts_never_contains_query_string
     with_config(:capture_params => false) do
       get '/parameter_capture/transaction?other=1234&secret=4567'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
 
     with_config(:capture_params => true) do
       get '/parameter_capture/transaction?other=1234&secret=4567'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
   end
 
   def test_filters_parameters_on_traced_errors
     with_config(:capture_params => true) do
       get '/parameter_capture/error?other=1234&secret=4567'
-    end
 
-    captured_params = last_traced_error_request_params
-    assert_equal('[FILTERED]', captured_params['secret'])
-    assert_equal('1234',       captured_params['other'])
+      captured_params = agent_attributes_for_single_error_posted
+      assert_equal('[FILTERED]', captured_params['request.parameters.secret'])
+      assert_equal('1234',       captured_params['request.parameters.other'])
+    end
   end
 
   def test_filters_parameters_on_transaction_traces
@@ -102,24 +129,30 @@ class ParameterCaptureTest < RailsMultiverseTest
     end
 
     captured_params = last_transaction_trace_request_params
-    assert_equal('[FILTERED]', captured_params['secret'])
-    assert_equal('1234',       captured_params['other'])
+    assert_equal('[FILTERED]', captured_params['request.parameters.secret'])
+    assert_equal('1234',       captured_params['request.parameters.other'])
   end
 
+  def test_no_traced_error_params_captured_when_bails_before_rails
+    with_config(:capture_params => false) do
+      get '/middleware_error/before?other=1234&secret=4567'
+      refute_contains_request_params(agent_attributes_for_single_error_posted)
+    end
+  end
 
-  def test_no_params_captured_when_bails_before_rails
+  def test_no_transaction_trace_params_captured_when_bails_before_rails
     with_config(:capture_params => false) do
       get '/middleware_error/before?other=1234&secret=4567'
     end
-    assert_nil last_traced_error_request_params
+
     assert_equal({}, last_transaction_trace_request_params)
   end
 
   def test_no_params_captured_on_error_when_bails_before_rails_even_when_enabled
     with_config(:capture_params => true) do
       get '/middleware_error/before?other=1234&secret=4567'
+      refute_contains_request_params(agent_attributes_for_single_error_posted)
     end
-    assert_nil last_traced_error_request_params
   end
 
   def test_no_params_captured_on_tt_when_bails_before_rails_even_when_enabled
@@ -133,28 +166,28 @@ class ParameterCaptureTest < RailsMultiverseTest
     with_config(:capture_params => false) do
       get '/parameter_capture/transaction?param1=value1&param2=value2'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
   end
 
   def test_uri_on_tt_should_not_contain_query_string_with_capture_params_on
     with_config(:capture_params => true) do
       get '/parameter_capture/transaction?param1=value1&param2=value2'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.params[:uri])
+    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
   end
 
   def test_uri_on_traced_error_should_not_contain_query_string_with_capture_params_off
     with_config(:capture_params => false) do
       get '/parameter_capture/error?param1=value1&param2=value2'
+      assert_equal('/parameter_capture/error', attributes_for_single_error_posted("request_uri"))
     end
-    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
   end
 
   def test_uri_on_traced_error_should_not_contain_query_string_with_capture_params_on
     with_config(:capture_params => true) do
       get '/parameter_capture/error?param1=value1&param2=value2'
+      assert_equal('/parameter_capture/error', attributes_for_single_error_posted("request_uri"))
     end
-    assert_equal('/parameter_capture/error', last_traced_error.params[:request_uri])
   end
 
   def test_uri_on_sql_trace_should_not_contain_query_string_with_capture_params_off
@@ -171,13 +204,31 @@ class ParameterCaptureTest < RailsMultiverseTest
     assert_equal('/parameter_capture/sql', last_sql_trace.url)
   end
 
+  def test_parameters_attached_to_transaction_events_if_enabled
+    with_config(:'attributes.include' => 'request.parameters.*') do
+      get '/parameter_capture/transaction?param1=value1&param2=value2'
+    end
+
+    actual = agent_attributes_for_single_event_posted_without_ignored_attributes
+
+    expected = {"request.parameters.param1" => "value1",
+      "request.parameters.param2" => "value2"
+    }
+
+    assert_equal expected, actual
+  end
+
   if Rails::VERSION::MAJOR > 2
     def test_params_tts_should_be_filtered_when_serviced_by_rack_app
       params = {"secret" => "shhhhhhh", "name" => "name"}
       with_config(:capture_params => true) do
         post '/filtering_test/', params
       end
-      expected = {"secret" => "[FILTERED]", "name" => "name"}
+
+      expected = {
+        "request.parameters.secret" => "[FILTERED]",
+        "request.parameters.name" => "name"
+      }
       assert_equal expected, last_transaction_trace_request_params
     end
 
@@ -185,9 +236,18 @@ class ParameterCaptureTest < RailsMultiverseTest
       params = {"secret" => "shhhhhhh", "name" => "name"}
       with_config(:capture_params => true) do
         post '/filtering_test?raise=1', params
+
+        expected = {
+          "request.parameters.secret" => "[FILTERED]",
+          "request.parameters.name" => "name",
+          "request.parameters.raise" => "1"
+        }
+
+        attributes = agent_attributes_for_single_error_posted
+        expected.each do |key, value|
+          assert_equal value, attributes[key]
+        end
       end
-      expected = {"secret" => "[FILTERED]", "name" => "name", "raise" => "1"}
-      assert_equal expected, last_traced_error_request_params
     end
 
     def test_parameter_filtering_should_not_mutate_argument
@@ -202,30 +262,38 @@ class ParameterCaptureTest < RailsMultiverseTest
 
   if Rails::VERSION::MAJOR > 2 && defined?(Sinatra)
     def test_params_tts_should_be_filtered_when_serviced_by_sinatra_app
-      params = {"secret" => "shhhhhhh", "name" => "name"}
       with_config(:capture_params => true) do
-        get '/sinatra_app/', params
+        get '/sinatra_app/', "secret" => "shhhhhhh", "name" => "name"
       end
-      expected = {"secret" => "[FILTERED]", "name" => "name"}
+
+      expected = {
+        "request.parameters.secret" => "[FILTERED]",
+        "request.parameters.name" => "name"
+      }
       assert_equal expected, last_transaction_trace_request_params
     end
 
     def test_params_on_errors_should_be_filtered_when_serviced_by_sinatra_app
-      params = {"secret" => "shhhhhhh", "name" => "name"}
       with_config(:capture_params => true) do
-        get '/sinatra_app?raise=1', params
+        get '/sinatra_app?raise=1', "secret" => "shhhhhhh", "name" => "name"
+
+        attributes = agent_attributes_for_single_error_posted
+        assert_equal "[FILTERED]", attributes["request.parameters.secret"]
+        assert_equal "name", attributes["request.parameters.name"]
+        assert_equal "1", attributes["request.parameters.raise"]
       end
-      expected = {"secret" => "[FILTERED]", "name" => "name", "raise" => "1"}
-      assert_equal expected, last_traced_error_request_params
     end
 
     def test_file_upload_params_are_replaced_with_placeholder
-      with_config(:capture_params => true) do
-        params = { :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain') }
-        post '/parameter_capture', params
-        result = last_transaction_trace_request_params
-        assert_equal("#<ActionDispatch::Http::UploadedFile>", result["file"])
+      with_config(:capture_params => true, :'transaction_tracer.transaction_threshold' => -10) do
+        post '/parameter_capture', :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
+
+        run_harvest
+
+        result = single_transaction_trace_posted
+        assert_equal "#<ActionDispatch::Http::UploadedFile>", result.agent_attributes["request.parameters.file"]
       end
     end
   end
+
 end

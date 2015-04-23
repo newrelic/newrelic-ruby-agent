@@ -49,7 +49,7 @@ class ResqueTest < Minitest::Test
       end
     end
 
-    NewRelic::Agent.instance.send(:transmit_data)
+    run_harvest
   end
 
   def test_all_jobs_ran
@@ -70,14 +70,17 @@ class ResqueTest < Minitest::Test
 
   def test_doesnt_capture_args_by_default
     run_jobs
-    assert_no_params_on_jobs
+    refute_attributes_on_transaction_traces
+    refute_attributes_on_events
   end
 
   def test_isnt_influenced_by_global_capture_params
     with_config(:capture_params => true) do
       run_jobs
     end
-    assert_no_params_on_jobs
+
+    refute_attributes_on_transaction_traces
+    refute_attributes_on_events
   end
 
   def test_agent_posts_captured_args_to_job
@@ -85,15 +88,16 @@ class ResqueTest < Minitest::Test
       run_jobs
     end
 
-    transaction_samples = $collector.calls_for('transaction_sample_data')
-    assert_false transaction_samples.empty?
+    assert_attributes_on_transaction_traces
+    refute_attributes_on_events
+  end
 
-    transaction_samples.each do |post|
-      post.samples.each do |sample|
-        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_equal sample.tree.custom_params["job_arguments"], ["testing"]
-      end
+  def test_arguments_are_captured_on_transaction_events_when_enabled
+    with_config(:'attributes.include' => 'job.resque.arguments.*') do
+      run_jobs
     end
+
+    assert_attributes_on_events
   end
 
   def assert_metric_and_call_count(name, expected_call_count)
@@ -107,14 +111,44 @@ class ResqueTest < Minitest::Test
     assert_equal(expected_call_count, call_count)
   end
 
-  def assert_no_params_on_jobs
+  def assert_attributes_on_transaction_traces
     transaction_samples = $collector.calls_for('transaction_sample_data')
     assert_false transaction_samples.empty?
 
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_nil sample.tree.custom_params["job_arguments"]
+        assert_equal 'testing', sample.agent_attributes["job.resque.arguments.0"]
+      end
+    end
+  end
+
+  def refute_attributes_on_transaction_traces
+    transaction_samples = $collector.calls_for('transaction_sample_data')
+    assert_false transaction_samples.empty?
+
+    transaction_samples.each do |post|
+      post.samples.each do |sample|
+        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
+        assert sample.agent_attributes.keys.none? { |k| k =~ /^job.resque.arguments.*/ }
+      end
+    end
+  end
+
+  def assert_attributes_on_events
+    event_posts = $collector.calls_for('analytic_event_data')
+    event_posts.each do |post|
+      post.events.each do |event|
+        assert_equal ["job.resque.arguments.0"], event[2].keys
+      end
+    end
+  end
+
+  def refute_attributes_on_events
+    event_posts = $collector.calls_for('analytic_event_data')
+    event_posts.each do |post|
+      post.events.each do |event|
+        assert event[2].keys.none? { |k| k.start_with?("job.resque.arguments") }, "Found unexpected resque arguments"
       end
     end
   end

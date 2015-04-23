@@ -51,7 +51,7 @@ class SidekiqTest < Minitest::Test
 
   def run_delayed
     run_and_transmit do |i|
-      TestWorker.delay(:queue => SidekiqServer.instance.queue_name).record('jobs_completed', i + 1)
+      TestWorker.delay(:queue => SidekiqServer.instance.queue_name, :retry => false).record('jobs_completed', i + 1)
     end
   end
 
@@ -62,7 +62,7 @@ class SidekiqTest < Minitest::Test
       end
     end
 
-    NewRelic::Agent.instance.send(:transmit_data)
+    run_harvest
   end
 
   def test_delayed
@@ -93,14 +93,16 @@ class SidekiqTest < Minitest::Test
 
   def test_doesnt_capture_args_by_default
     run_jobs
-    assert_no_params_on_jobs
+    refute_attributes_on_transaction_trace
+    refute_attributes_on_events
   end
 
   def test_isnt_influenced_by_global_capture_params
     with_config(:capture_params => true) do
       run_jobs
     end
-    assert_no_params_on_jobs
+    refute_attributes_on_transaction_trace
+    refute_attributes_on_events
   end
 
   def test_agent_posts_captured_args_to_job
@@ -108,18 +110,16 @@ class SidekiqTest < Minitest::Test
       run_jobs
     end
 
-    transaction_samples = $collector.calls_for('transaction_sample_data')
-    refute transaction_samples.empty?, "Expected a transaction trace"
+    assert_attributes_on_transaction_trace
+    refute_attributes_on_events
+  end
 
-    transaction_samples.each do |post|
-      post.samples.each do |sample|
-        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-
-        args = sample.tree.custom_params["job_arguments"]
-        assert_equal args.length, 2
-        assert_equal args[0], "jobs_completed"
-      end
+  def test_arguments_are_captured_on_transaction_events_when_enabled
+    with_config(:'attributes.include' => 'job.sidekiq.arguments.*') do
+      run_jobs
     end
+
+    assert_attributes_on_events
   end
 
   def assert_metric_and_call_count(name, expected_call_count)
@@ -134,14 +134,47 @@ class SidekiqTest < Minitest::Test
     assert_equal(expected_call_count, call_count)
   end
 
-  def assert_no_params_on_jobs
+  def assert_attributes_on_transaction_trace
+    transaction_samples = $collector.calls_for('transaction_sample_data')
+    refute transaction_samples.empty?, "Expected a transaction trace"
+
+    transaction_samples.each do |post|
+      post.samples.each do |sample|
+        assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
+
+        actual = sample.agent_attributes.keys.to_set
+        expected = Set.new ["job.sidekiq.arguments.0", "job.sidekiq.arguments.1"]
+        assert_equal expected, actual
+      end
+    end
+  end
+
+  def refute_attributes_on_transaction_trace
     transaction_samples = $collector.calls_for('transaction_sample_data')
     refute transaction_samples.empty?, "Didn't find any transaction samples!"
 
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_nil sample.tree.custom_params["job_arguments"]
+        assert sample.agent_attributes.keys.none? { |k| k =~ /^job.sidekiq.arguments.*/ }
+      end
+    end
+  end
+
+  def assert_attributes_on_events
+    event_posts = $collector.calls_for('analytic_event_data')
+    event_posts.each do |post|
+      post.events.each do |event|
+        assert_equal Set.new(["job.sidekiq.arguments.0", "job.sidekiq.arguments.1"]), event[2].keys.to_set
+      end
+    end
+  end
+
+  def refute_attributes_on_events
+    event_posts = $collector.calls_for('analytic_event_data')
+    event_posts.each do |post|
+      post.events.each do |event|
+        assert event[2].keys.none? { |k| k.start_with?("job.sidekiq.arguments") }, "Found unexpected sidekiq arguments"
       end
     end
   end

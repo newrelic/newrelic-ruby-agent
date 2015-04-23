@@ -9,7 +9,11 @@ class CustomQueueTimeTest < Minitest::Test
 
   setup_and_teardown_agent
 
-  DummyRequest = Struct.new(:headers, :cookies)
+  DummyRequest = Struct.new(:headers, :cookies) do
+    def path
+      "/"
+    end
+  end
 
   class DummyApp
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation

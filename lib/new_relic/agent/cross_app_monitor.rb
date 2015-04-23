@@ -37,7 +37,7 @@ module NewRelic
 
             save_client_cross_app_id(state, env)
             save_referring_transaction_info(state, env)
-            set_transaction_custom_parameters(state)
+            set_transaction_attributes(state)
           end
         end
 
@@ -47,11 +47,6 @@ module NewRelic
           insert_response_header(state, env, headers)
         end
 
-        events.subscribe(:notice_error) do |_, options| #THREAD_LOCAL_ACCESS
-          state = NewRelic::Agent::TransactionState.tl_get
-
-          set_error_custom_parameters(state, options)
-        end
       end
 
       def save_client_cross_app_id(state, request_headers)
@@ -137,19 +132,19 @@ module NewRelic
         payload = obfuscator.obfuscate(NewRelic::JSONWrapper.dump(payload))
       end
 
-      def set_transaction_custom_parameters(state)
+      def set_transaction_attributes(state)
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
-        NewRelic::Agent.add_custom_parameters(:client_cross_process_id => state.client_cross_app_id) if state.client_cross_app_id
+        return unless txn = state.current_transaction
+
+        if state.client_cross_app_id
+          txn.attributes.add_intrinsic_attribute(:client_cross_process_id, state.client_cross_app_id)
+        end
 
         referring_guid = client_referring_transaction_guid(state)
         if referring_guid
-          NewRelic::Agent.add_custom_parameters(:referring_transaction_guid => referring_guid)
+          txn.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
         end
-      end
-
-      def set_error_custom_parameters(state, options)
-        options[:client_cross_process_id] = state.client_cross_app_id if state.client_cross_app_id
       end
 
       def set_metrics(id, timings)

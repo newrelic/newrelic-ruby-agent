@@ -287,10 +287,14 @@ def in_transaction(*args, &blk)
                                         args.first || 'dummy'
 
   state = NewRelic::Agent::TransactionState.tl_get
+  txn = nil
 
   NewRelic::Agent::Transaction.wrap(state, name, category, opts) do
+    txn = state.current_transaction
     yield state.current_transaction
   end
+
+  txn
 end
 
 def stub_transaction_guid(guid)
@@ -300,7 +304,7 @@ end
 # Convenience wrapper around in_transaction that sets the category so that it
 # looks like we are in a web transaction
 def in_web_transaction(name='dummy')
-  in_transaction(name, :category => :controller, :request => stub()) do
+  in_transaction(name, :category => :controller, :request => stub(:path => '/')) do
     yield
   end
 end
@@ -311,12 +315,14 @@ def in_background_transaction(name='silly')
   end
 end
 
-def last_traced_error
-  NewRelic::Agent.agent.error_collector.errors.last
+def refute_contains_request_params(attributes)
+  attributes.keys.each do |key|
+    refute_match /^request\.parameters\./, key.to_s
+  end
 end
 
-def last_traced_error_request_params
-  last_traced_error.params[:request_params]
+def last_traced_error
+  NewRelic::Agent.agent.error_collector.errors.last
 end
 
 def last_transaction_trace
@@ -324,7 +330,11 @@ def last_transaction_trace
 end
 
 def last_transaction_trace_request_params
-  last_transaction_trace.params[:request_params]
+  agent_attributes = attributes_for(last_transaction_trace, :agent)
+  agent_attributes.inject({}) do |memo, (key, value)|
+    memo[key] = value if key.to_s.start_with?("request.parameters.")
+    memo
+  end
 end
 
 def find_sql_trace(metric_name)
@@ -337,72 +347,64 @@ def last_sql_trace
   NewRelic::Agent.agent.sql_sampler.sql_traces.values.last
 end
 
-def find_last_transaction_segment(transaction_sample=nil)
+def find_last_transaction_node(transaction_sample=nil)
   if transaction_sample
-    root_segment = transaction_sample.root_segment
+    root_node = transaction_sample.root_node
   else
     builder = NewRelic::Agent.agent.transaction_sampler.tl_builder
-    root_segment = builder.current_segment
+    root_node = builder.current_node
   end
 
-  last_segment = nil
-  root_segment.each_segment {|s| last_segment = s }
+  last_node = nil
+  root_node.each_node {|s| last_node = s }
 
-  return last_segment
+  return last_node
 end
 
-def collect_segment_names(transaction_sample)
-  names = []
-
-  transaction_sample.root_segment.each_segment do |segment|
-    names << segment.metric_name
-  end
-
-  names
-end
-
-def find_segment_with_name(transaction_sample, name)
-  transaction_sample.root_segment.each_segment do |segment|
-    if segment.metric_name == name
-      return segment
+def find_node_with_name(transaction_sample, name)
+  transaction_sample.root_node.each_node do |node|
+    if node.metric_name == name
+      return node
     end
   end
 
   nil
 end
 
-def find_segment_with_name_matching(transaction_sample, regex)
-  transaction_sample.root_segment.each_segment do |segment|
-    if segment.metric_name.match regex
-      return segment
+def find_node_with_name_matching(transaction_sample, regex)
+  transaction_sample.root_node.each_node do |node|
+    if node.metric_name.match regex
+      return node
     end
   end
 
   nil
 end
 
-def find_all_segments_with_name_matching(transaction_sample, regexes)
+def find_all_nodes_with_name_matching(transaction_sample, regexes)
   regexes = [regexes].flatten
-  matching_segments = []
+  matching_nodes = []
 
-  transaction_sample.root_segment.each_segment do |segment|
+  transaction_sample.root_node.each_node do |node|
     regexes.each do |regex|
-      if segment.metric_name.match regex
-        matching_segments << segment
+      if node.metric_name.match regex
+        matching_nodes << node
       end
     end
   end
 
-  matching_segments
+  matching_nodes
 end
 
 def with_config(config_hash, at_start=true)
   config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
   NewRelic::Agent.config.add_config_for_testing(config, at_start)
+  NewRelic::Agent.instance.refresh_attribute_filter
   begin
     yield
   ensure
     NewRelic::Agent.config.remove_config(config)
+    NewRelic::Agent.instance.refresh_attribute_filter
   end
 end
 
@@ -638,4 +640,8 @@ def assert_event_attributes(event, test_name, expected_attributes, non_expected_
   non_expected_attributes.each do |name|
     assert_nil(event_attrs[name], "Found value '#{event_attrs[name]}' for attribute '#{name}', but expected nothing in #{test_name}")
   end
+end
+
+def attributes_for(sample, type)
+  sample.attributes.instance_variable_get("@#{type}_attributes")
 end

@@ -23,61 +23,66 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::TransactionState.tl_clear_for_testing
   end
 
-  def test_request_parsing__none
+  def test_request_parsing_none
     in_transaction do |txn|
-      assert_nil txn.uri
+      assert_nil txn.request_path
       assert_nil txn.referer
     end
   end
 
-  def test_request_parsing__path
-    in_transaction do |txn|
-      request = stub(:path => '/path?hello=bob#none')
-      txn.request = request
-      assert_equal "/path", txn.uri
+  # note: technically this shouldn't happen if the request we are dealing with is
+  # a Rack::Request (or subclass such as ActionDispatch::Request or the old
+  # ActionController::AbstractRequest)
+  def test_request_with_path_with_query_string
+    request = stub(:path => '/path?hello=bob#none')
+    in_transaction(:request => request) do |txn|
+      assert_equal "/path", txn.request_path
     end
   end
 
-  def test_request_parsing__fullpath
-    in_transaction do |txn|
-      request = stub(:fullpath => '/path?hello=bob#none')
-      txn.request = request
-      assert_equal "/path", txn.uri
-    end
-  end
-
-  def test_request_parsing__referer
-    in_transaction do |txn|
-      request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar')
-      txn.request = request
-      assert_nil txn.uri
+  def test_request_parsing_referer
+    request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar', :path => "/")
+    in_transaction(:request => request) do |txn|
       assert_equal "https://www.yahoo.com:8080/path/hello", txn.referer
     end
   end
 
-  def test_request_parsing__uri
-    in_transaction do |txn|
-      request = stub(:uri => 'http://creature.com/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
-      txn.request = request
-      assert_equal "/path", txn.uri
+  def test_strips_query_string_from_path_and_referer
+    request = stub(:path => '/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
+    in_transaction(:request => request) do |txn|
+      assert_equal "/path", txn.request_path
       assert_equal "/path/hello", txn.referer
     end
   end
 
-  def test_request_parsing__hostname_only
-    in_transaction do |txn|
-      request = stub(:uri => 'http://creature.com')
-      txn.request = request
-      assert_equal "/", txn.uri
+  def test_request_with_normal_path
+    request = stub(:path => '/blogs')
+    in_transaction(:request => request) do |txn|
+      assert_equal "/blogs", txn.request_path
       assert_nil txn.referer
     end
   end
 
-  def test_request_parsing__slash
-    in_transaction do |txn|
-      request = stub(:uri => 'http://creature.com/')
-      txn.request = request
-      assert_equal "/", txn.uri
+  def test_request_with_empty_path
+    request = stub(:path => '')
+    in_transaction(:request => request) do |txn|
+      assert_equal "/", txn.request_path
+      assert_nil txn.referer
+    end
+  end
+
+  def test_request_to_root_path
+    request = stub(:path => '/')
+    in_transaction(:request => request) do |txn|
+      assert_equal "/", txn.request_path
+      assert_nil txn.referer
+    end
+  end
+
+  def test_request_with_empty_path_with_query_string
+    request = stub(:path => '?k=v')
+    in_transaction(:request => request) do |txn|
+      assert_equal "/", txn.request_path
       assert_nil txn.referer
     end
   end
@@ -331,7 +336,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_set_default_transaction_name_with_category_and_segment_name
+  def test_set_default_transaction_name_with_category_and_node_name
     in_transaction('foo', :category => :controller) do |txn|
       NewRelic::Agent::Transaction.set_default_transaction_name('bar', :grape, 'baz')
       assert_equal("Controller/Grape/bar", txn.best_name)
@@ -395,17 +400,17 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal 2.1, options['HttpDispatcher'].total_call_time
   end
 
-  def test_end_fires_a_transaction_finished_event_with_custom_params
-    options = nil
+  def test_end_fires_a_transaction_finished_event_with_attributes_attached
+    attributes = nil
+
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-      options = payload[:custom_params]
+      attributes = payload[:attributes]
     end
 
-    in_web_transaction('Controller/foo/1/bar/22') do
-      NewRelic::Agent.add_custom_parameters('fooz' => 'barz')
+    txn = in_web_transaction('Controller/foo/1/bar/22') do
     end
 
-    assert_equal 'barz', options['fooz']
+    assert_equal txn.attributes, attributes
   end
 
   def test_end_fires_a_transaction_finished_event_with_transaction_guid
@@ -651,18 +656,19 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     refute_includes keys, :synthetics_job_id
     refute_includes keys, :synthetics_monitor_id
   end
-  def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_params
-    expects_logging(:warn, includes("add_custom_parameters"))
+
+  def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_attributes
+    expects_logging(:warn, includes("add_custom_attributes"))
     in_transaction do
-      NewRelic::Agent.add_custom_parameters('fooz')
+      NewRelic::Agent.add_custom_attributes('fooz')
     end
   end
 
-  def test_ignores_custom_parameters_when_in_high_security
+  def test_ignores_custom_attributes_when_in_high_security
     with_config(:high_security => true) do
       in_transaction do |txn|
-        NewRelic::Agent.add_custom_parameters(:failure => "is an option")
-        assert_empty txn.custom_parameters
+        NewRelic::Agent.add_custom_attributes(:failure => "is an option")
+        assert_empty attributes_for(txn, :custom)
       end
     end
   end
@@ -670,16 +676,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_user_attributes_alias_to_custom_parameters
     in_transaction('user_attributes') do |txn|
       txn.set_user_attributes(:set_instance => :set_instance)
-      txn.user_attributes[:indexer_instance] = :indexer_instance
-
-      txn.set_user_attributes(:set_class => :set_class)
-      txn.user_attributes[:indexer_class] = :indexer_class
-
-      assert_has_custom_parameter(txn, :set_instance)
-      assert_has_custom_parameter(txn, :indexer_instance)
-
-      assert_has_custom_parameter(txn, :set_class)
-      assert_has_custom_parameter(txn, :indexer_class)
+      assert_has_custom_attribute(txn, "set_instance")
     end
   end
 
@@ -688,6 +685,15 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       NewRelic::Agent::Transaction.notice_error("")
       assert_equal 1, txn.exceptions.count
     end
+  end
+
+  def test_notice_error_in_transaction_sends_attributes_along
+    txn = in_transaction('oops') do
+      NewRelic::Agent::Transaction.notice_error("wat?")
+    end
+
+    error = NewRelic::Agent.instance.error_collector.errors.first
+    assert_equal txn.attributes, error.attributes
   end
 
   def test_notice_error_after_current_transaction_notifies_error_collector
@@ -704,6 +710,17 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
   end
 
+  def test_notice_error_sends_uri_and_referer_from_request
+    request = stub(:path => "/here")
+    in_transaction(:request => request) do |txn|
+      NewRelic::Agent::Transaction.notice_error("wat")
+    end
+
+    assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
+    error = NewRelic::Agent.instance.error_collector.errors.first
+    assert_equal "/here",  error.request_uri
+  end
+
   def test_records_gc_time
     gc_start = mock('gc start')
     gc_end   = mock('gc end')
@@ -715,7 +732,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     trace = txn.transaction_trace
-    assert_equal(42, trace.params[:custom_params][:gc_time])
+    assert_equal(42, attributes_for(trace, :intrinsic)[:gc_time])
   end
 
   def test_freeze_name_and_execute_if_not_ignored_executes_given_block_if_not_ignored
@@ -744,29 +761,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_record_transaction_cpu_positive
-    in_transaction do |txn|
-      state = NewRelic::Agent::TransactionState.tl_get
-      txn.expects(:cpu_burn).twice.returns(1.0)
-      NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).twice.with(state, 1.0)
-      txn.record_transaction_cpu(state)
-    end
-  end
-
-  def test_record_transaction_cpu_negative
-    in_transaction do |txn|
-      state = NewRelic::Agent::TransactionState.tl_get
-      txn.expects(:cpu_burn).twice.returns(nil)
-      # should not be called for the nil case
-      NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction_cpu_time).never
-      txn.record_transaction_cpu(state)
-    end
-  end
-
   def test_normal_cpu_burn_positive
     in_transaction do |txn|
       txn.instance_variable_set(:@process_cpu_start, 3)
-      txn.expects(:process_cpu).twice.returns(4)
+      txn.stubs(:process_cpu).returns(4)
       assert_equal 1, txn.normal_cpu_burn
     end
   end
@@ -885,7 +883,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_cpu_burn_normal
     in_transaction do |txn|
-      txn.expects(:normal_cpu_burn).twice.returns(1)
+      txn.stubs(:normal_cpu_burn).returns(1)
       txn.expects(:jruby_cpu_burn).never
       assert_equal 1, txn.cpu_burn
     end
@@ -893,8 +891,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_cpu_burn_jruby
     in_transaction do |txn|
-      txn.expects(:normal_cpu_burn).twice.returns(nil)
-      txn.expects(:jruby_cpu_burn).twice.returns(2)
+      txn.stubs(:normal_cpu_burn).returns(nil)
+      txn.stubs(:jruby_cpu_burn).returns(2)
       assert_equal 2, txn.cpu_burn
     end
   end
@@ -1071,67 +1069,21 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent::Transaction.stop(state)
   end
 
-  def test_user_defined_rules_ignore_returns_true_for_matched_uri
+  def test_user_defined_rules_ignore_returns_true_for_matched_path
     rule = 'ignored'
     with_config(:rules => { :ignore_url_regexes => [rule] }) do
       in_transaction do |txn|
-        txn.stubs(:uri).returns(rule + '/uri')
-        assert txn.user_defined_rules_ignore?, "URIs should be ignored based on user defined rules. Rule: '#{rule}', URI: '#{txn.uri}'."
+        txn.stubs(:request_path).returns(rule + '/path')
+        assert txn.user_defined_rules_ignore?, "Paths should be ignored based on user defined rules. Rule: '#{rule}', Path: '#{txn.request_path}'."
       end
     end
   end
 
-  def test_stop_ignores_transactions_from_ignored_uris
-    with_config(:rules => { :ignore_url_regexes => ['ignored/uri'] }) do
+  def test_stop_ignores_transactions_from_ignored_paths
+    with_config(:rules => { :ignore_url_regexes => ['ignored/path'] }) do
       in_transaction do |txn|
-        txn.stubs(:uri).returns('ignored/uri')
+        txn.stubs(:request_path).returns('ignored/path')
         txn.expects(:ignore!)
-      end
-    end
-  end
-
-  def test_transactions_are_not_ignored_if_rules_match_http_auth
-    with_config(:rules => { :ignore_url_regexes => ['ignored'] }) do
-      in_transaction do |txn|
-        txn.stubs(:uri).returns('http://ignored_user:ignored_pass@foo.com/bar/baz')
-        txn.expects(:ignore!).never
-      end
-    end
-  end
-
-  def test_transactions_are_not_ignored_if_rules_match_query_string
-    with_config(:rules => { :ignore_url_regexes => ['ignored'] }) do
-      in_transaction do |txn|
-        txn.stubs(:uri).returns('http://foo.com/bar/baz/?ignored=1')
-        txn.expects(:ignore!).never
-      end
-    end
-  end
-
-  def test_user_defined_rules_ignore_does_not_parse_the_uri_if_rules_are_empty
-    with_config(:rules => { :ignore_url_regexes => [] }) do
-      in_transaction do |txn|
-        txn.stubs(:uri).returns('http://foo.com/bar/baz')
-        NewRelic::Agent::HTTPClients::URIUtil.expects(:parse_url).never
-      end
-    end
-  end
-
-  def test_user_defined_rules_ignore_does_not_filter_the_uri_if_rules_are_empty
-    with_config(:rules => { :ignore_url_regexes => [] }) do
-      in_transaction do |txn|
-        txn.stubs(:uri).returns('http://foo.com/bar/baz')
-        NewRelic::Agent::HTTPClients::URIUtil.expects(:filter_uri).never
-      end
-    end
-  end
-
-  def test_user_defined_rules_ignore_logs_uri_parsing_failures
-    with_config(:rules => { :ignore_url_regexes => ['notempty'] }) do
-      in_transaction do |txn|
-        txn.stubs(:uri).returns('http://foo bar.com')
-        NewRelic::Agent.logger.expects(:debug)
-        NewRelic::Agent.logger.expects(:debug).with(regexp_matches(/foo bar.com/), anything).at_least_once
       end
     end
   end
@@ -1233,8 +1185,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def assert_has_custom_parameter(txn, key, value = key)
-    assert_equal(value, txn.custom_parameters[key])
+  def assert_has_custom_attribute(txn, key, value = key)
+    assert_equal(value, attributes_for(txn, :custom)[key])
   end
 
   def test_wrap_transaction
@@ -1283,5 +1235,194 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       txn.instrumentation_state[:a] = 42
       assert_equal(42, txn.instrumentation_state[:a])
     end
+  end
+
+  def test_adding_custom_attributes
+    with_config(:'transaction_tracer.attributes.enabled' => true) do
+      in_transaction do |txn|
+        NewRelic::Agent.add_custom_attributes(:foo => "bar")
+        actual = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+        assert_equal({"foo" => "bar"}, actual)
+      end
+    end
+  end
+
+  def test_adding_agent_attributes
+    with_config(:'transaction_tracer.attributes.enabled' => true) do
+      in_transaction do |txn|
+        txn.add_agent_attribute(:foo, "bar", NewRelic::Agent::AttributeFilter::DST_ALL)
+        actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+        assert_equal({:foo => "bar"}, actual)
+      end
+    end
+  end
+
+  def test_adding_agent_attributes_via_class
+    with_config(:'transaction_tracer.attributes.enabled' => true) do
+      in_transaction do |txn|
+        NewRelic::Agent::Transaction.add_agent_attribute(:foo, "bar", NewRelic::Agent::AttributeFilter::DST_ALL)
+        actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+        assert_equal({:foo => "bar"}, actual)
+      end
+    end
+  end
+
+  def test_adding_agent_attributes_via_class_outside_of_txn_is_safe
+    expects_logging(:debug, includes("foo"))
+    NewRelic::Agent::Transaction.add_agent_attribute(:foo, "bar", NewRelic::Agent::AttributeFilter::DST_ALL)
+  end
+
+  def test_adding_intrinsic_attributes
+    in_transaction do |txn|
+      txn.attributes.add_intrinsic_attribute(:foo, "bar")
+
+      actual = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+      assert_equal({:foo => "bar"}, actual)
+    end
+  end
+
+  def test_assigns_synthetics_to_intrinsic_attributes
+    txn = in_transaction do |txn|
+      txn.raw_synthetics_header = ""
+      txn.synthetics_payload = [1, 1, 100, 200, 300]
+      txn
+    end
+
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal 100, result[:synthetics_resource_id]
+    assert_equal 200, result[:synthetics_job_id]
+    assert_equal 300, result[:synthetics_monitor_id]
+  end
+
+
+  def test_intrinsic_attributes_include_gc_time
+    txn = in_transaction do |txn|
+      NewRelic::Agent::StatsEngine::GCProfiler.stubs(:record_delta).returns(10.0)
+    end
+
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal 10.0, result[:gc_time]
+  end
+
+  def test_intrinsic_attributes_include_tripid
+    guid = nil
+
+    NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
+
+    txn = in_transaction do |txn|
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+      guid = txn.guid
+    end
+
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal 'PDX-NRT', result[:trip_id]
+  end
+
+  def test_intrinsic_attributes_dont_include_tripid_if_not_cross_app_transaction
+    NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
+
+    txn = in_transaction do
+      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = false
+    end
+
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_nil result[:trip_id]
+  end
+
+  def test_intrinsic_attributes_include_path_hash
+    path_hash = nil
+
+    txn = in_transaction do |txn|
+      state = NewRelic::Agent::TransactionState.tl_get
+      state.is_cross_app_caller = true
+      path_hash = txn.cat_path_hash(state)
+    end
+
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal path_hash, result[:path_hash]
+  end
+
+  def test_synthetics_attributes_not_included_if_not_valid_synthetics_request
+    txn = in_transaction do |txn|
+      txn.raw_synthetics_header = nil
+      txn.synthetics_payload = nil
+    end
+
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_nil result[:synthetics_resource_id]
+    assert_nil result[:synthetics_job_id]
+    assert_nil result[:synthetics_monitor_id]
+  end
+
+  def test_intrinsic_attributes_include_cpu_time
+    txn = in_transaction do |txn|
+      txn.stubs(:cpu_burn).returns(22.0)
+    end
+
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal 22.0, result[:cpu_time]
+  end
+
+  def test_request_params_included_in_agent_attributes
+    txn = with_config(:capture_params => true) do
+      in_transaction(:filtered_params => {:foo => "bar"}) do
+      end
+    end
+
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal "bar", actual['request.parameters.foo']
+  end
+
+  def test_request_params_included_in_agent_attributes_in_nested_txn
+    txn = with_config(:capture_params => true) do
+      in_transaction(:filtered_params => {:foo => "bar", :bar => "baz"}) do
+        in_transaction(:filtered_params => {:bar => "qux"}) do
+        end
+      end
+    end
+
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal "bar", actual['request.parameters.foo']
+    assert_equal "qux", actual['request.parameters.bar']
+  end
+
+  def test_request_params_get_key_length_limits
+    key = "x" * 1000
+    expects_logging(:debug, includes(key))
+
+    txn = with_config(:capture_params => true) do
+      in_transaction(:filtered_params => {key => "bar"}) do
+      end
+    end
+
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_empty actual
+  end
+
+  def test_http_response_code_included_in_agent_attributes
+    txn = in_transaction do |txn|
+      txn.http_response_code = 418
+    end
+
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal 418, actual[:'httpResponseCode']
+  end
+
+  def test_referer_in_agent_attributes
+    request = stub('request', :referer => "/referered", :path => "/")
+    txn = in_transaction(:request => request) do |txn|
+    end
+
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+    assert_equal "/referered", actual[:'request.headers.referer']
+  end
+
+  def test_referer_omitted_if_not_on_request
+    request = stub('request', :path => "/")
+    txn = in_transaction(:request => request) do |txn|
+    end
+
+    actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    refute_includes actual, :'request.headers.referer'
   end
 end

@@ -323,7 +323,7 @@ module NewRelic
         #   allows you to set the entire metric after the category part.  Overrides
         #   all the other options.
         # * <tt>:request => Rack::Request#new(env)</tt> is used to pass in a
-        #   request object that may respond to uri and referer.
+        #   request object that may respond to path and referer.
         #
         # @api public
         #

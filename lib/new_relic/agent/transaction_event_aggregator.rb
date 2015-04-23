@@ -32,6 +32,9 @@ class NewRelic::Agent::TransactionEventAggregator
   SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
   SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
 
+  # To avoid allocations when we have empty custom or agent attributes
+  EMPTY_HASH = {}.freeze
+
   def initialize( event_listener )
     super()
 
@@ -143,10 +146,12 @@ class NewRelic::Agent::TransactionEventAggregator
   def on_transaction_finished(payload)
     return unless @enabled
 
+    attributes = payload[:attributes]
     main_event = create_main_event(payload)
-    custom_params = create_custom_parameters(payload)
+    custom_attributes = create_custom_attributes(attributes)
+    agent_attributes  = create_agent_attributes(attributes)
 
-    self.synchronize { append_event([main_event, custom_params]) }
+    self.synchronize { append_event([main_event, custom_attributes, agent_attributes]) }
     notify_full if !@notified_full && @samples.full?
   end
 
@@ -246,12 +251,23 @@ class NewRelic::Agent::TransactionEventAggregator
     end
   end
 
-  def create_custom_parameters(payload)
-    custom_params = {}
-    if ::NewRelic::Agent.config[:'analytics_events.capture_attributes']
-      custom_params.merge!(event_params(payload[:custom_params] || {}))
+  def create_custom_attributes(attributes)
+    if attributes
+      custom_attributes = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+      custom_attributes = custom_attributes
+      custom_attributes.freeze
+    else
+      EMPTY_HASH
     end
-    custom_params
   end
 
+  def create_agent_attributes(attributes)
+    if attributes
+      agent_attributes = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+      agent_attributes = agent_attributes
+      agent_attributes.freeze
+    else
+      EMPTY_HASH
+    end
+  end
 end

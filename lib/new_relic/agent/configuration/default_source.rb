@@ -652,12 +652,16 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
+          :dynamic_name => true,
+          :deprecated => true,
           :description => 'Enable or disable the capture of job arguments for transaction traces and traced errors in Sidekiq.'
         },
         :'resque.capture_params' => {
           :default => false,
           :public => true,
           :type => Boolean,
+          :dynamic_name => true,
+          :deprecated => true,
           :description => 'Enable or disable the capture of job arguments for transaction traces and traced errors in Resque.'
         },
         :capture_memcache_keys => {
@@ -682,13 +686,14 @@ module NewRelic
           :default => 'obfuscated',
           :public => true,
           :type => String,
-          :description => 'Obfuscation level for SQL queries reported in transaction trace segments. Valid options are <code>obfuscated</code>, <code>raw</code>, <code>none</code>.'
+          :description => 'Obfuscation level for SQL queries reported in transaction trace nodes. Valid options are <code>obfuscated</code>, <code>raw</code>, <code>none</code>.'
         },
         :'transaction_tracer.capture_attributes' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable collection of <a href="/docs/apm/other-features/attributes/collecting-custom-attributes">custom attributes</a> on transaction traces.'
+          :deprecated => true,
+          :description => 'Use transaction_tracer.attributes.enabled instead.'
         },
         :'transaction_tracer.explain_threshold' => {
           :default => 0.5,
@@ -706,13 +711,13 @@ module NewRelic
           :default => 0.5,
           :public => true,
           :type => Float,
-          :description => 'Stack traces will be included in transaction trace segments when their duration exceeds this threshold.'
+          :description => 'Stack traces will be included in transaction trace nodes when their duration exceeds this threshold.'
         },
         :'transaction_tracer.limit_segments' => {
           :default => 4000,
           :public => true,
           :type => Fixnum,
-          :description => 'Maximum number of transaction trace segments to record in a single transaction trace.'
+          :description => 'Maximum number of transaction trace nodes to record in a single transaction trace.'
         },
         :disable_sequel_instrumentation => {
           :default => false,
@@ -780,7 +785,8 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable or disable collection of custom attributes on errors.'
+          :deprecated => true,
+          :description => 'Use error_collector.attributes.enabled instead.'
         },
         :'error_collector.ignore_errors' => {
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
@@ -834,7 +840,8 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Forward custom attributes to Browser for <a href="/docs/insights/new-relic-insights/decorating-events/insights-custom-attributes#forwarding-attributes">collection by New Relic Insights</a>.'
+          :deprecated => true,
+          :description => 'Use browser_monitoring.attributes.enabled instead.'
         },
         :'browser_monitoring.loader' => {
           :default => DefaultSource.browser_monitoring_loader,
@@ -860,13 +867,6 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :description => 'Enable or disable HTTPS instrumentation by JavaScript agent on HTTP pages.'
-        },
-        :'capture_attributes.page_view_events' => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :deprecated => true,
-          :description => 'Correct setting is browser_monitoring.capture_attributes.'
         },
         :js_agent_loader => {
           :default => '',
@@ -969,7 +969,8 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Include <a href="/docs/insights/new-relic-insights/decorating-events/insights-custom-attributes">custom attributes</a> in analytics event data.'
+          :deprecated => true,
+          :description => 'Use transaction_events.attributes.enabled instead.'
         },
         :restart_thread_in_children => {
           :default => true,
@@ -1173,6 +1174,106 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :description  => 'Disables installation of Grape instrumentation.'
+        },
+        :'attributes.enabled' => {
+          :default     => true,
+          :public      => false,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for all destinations.'
+        },
+        :'transaction_tracer.attributes.enabled' => {
+          :default     => value_of(:'transaction_tracer.capture_attributes'),
+          :public      => false,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for transaction traces.'
+        },
+        :'transaction_events.attributes.enabled' => {
+          :default     => value_of(:'analytics_events.capture_attributes'),
+          :public      => false,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for transaction events.'
+        },
+        :'error_collector.attributes.enabled' => {
+          :default     => value_of(:'error_collector.capture_attributes'),
+          :public      => false,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for error collection.'
+        },
+        :'browser_monitoring.attributes.enabled' => {
+          :default     => value_of(:'browser_monitoring.capture_attributes'),
+          :public      => false,
+          :type        => Boolean,
+          :description => 'Enable or disable capture of attributes for browser monitoring.'
+        },
+        :'attributes.exclude' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to exclude from all destinations. Allows * as wildcard at end.'
+        },
+        :'transaction_tracer.attributes.exclude' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to exclude from transaction traces. Allows * as wildcard at end.'
+        },
+        :'transaction_events.attributes.exclude' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to exclude from transaction events. Allows * as wildcard at end.'
+        },
+        :'error_collector.attributes.exclude' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to exclude from error collection. Allows * as wildcard at end.'
+        },
+        :'browser_monitoring.attributes.exclude' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to exclude from browser monitoring. Allows * as wildcard at end.'
+        },
+        :'attributes.include' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to include in all destinations. Allows * as wildcard at end.'
+        },
+        :'transaction_tracer.attributes.include' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to include in transaction traces. Allows * as wildcard at end.'
+        },
+        :'transaction_events.attributes.include' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to include in transaction events. Allows * as wildcard at end.'
+        },
+        :'error_collector.attributes.include' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to include in error collection. Allows * as wildcard at end.'
+        },
+        :'browser_monitoring.attributes.include' => {
+          :default     => [],
+          :public      => false,
+          :type        => Array,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to include in browser monitoring. Allows * as wildcard at end.'
         }
       }.freeze
     end

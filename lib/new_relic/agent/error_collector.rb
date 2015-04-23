@@ -93,206 +93,163 @@ module NewRelic
         end
       end
 
-      # This module was extracted from the notice_error method - it is
-      # internally tested and can be refactored without major issues.
-      module NoticeError
-        # Checks the provided error against the error filter, if there
-        # is an error filter
-        def filtered_by_error_filter?(error)
-          respond_to?(:ignore_filter_proc) && !ignore_filter_proc(error)
+      # Checks the provided error against the error filter, if there
+      # is an error filter
+      def filtered_by_error_filter?(error)
+        respond_to?(:ignore_filter_proc) && !ignore_filter_proc(error)
+      end
+
+      # Checks the array of error names and the error filter against
+      # the provided error
+      def filtered_error?(error)
+        @ignore[error.class.name] || filtered_by_error_filter?(error)
+      end
+
+      # an error is ignored if it is nil or if it is filtered
+      def error_is_ignored?(error)
+        error && filtered_error?(error)
+      rescue => e
+        NewRelic::Agent.logger.error("Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e)
+        false
+      end
+
+      def seen?(txn, exception)
+        error_ids = txn.nil? ? [] : txn.noticed_error_ids
+        error_ids.include?(exception.object_id)
+      end
+
+      def tag_as_seen(state, exception)
+        txn = state.current_transaction
+        txn.noticed_error_ids << exception.object_id if txn
+      end
+
+      def blamed_metric_name(txn, options)
+        if options[:metric] && options[:metric] != ::NewRelic::Agent::UNKNOWN_METRIC
+          "Errors/#{options[:metric]}"
+        else
+          "Errors/#{txn.best_name}" if txn
+        end
+      end
+
+      def aggregated_metric_names(txn)
+        metric_names = ["Errors/all"]
+        return metric_names unless txn
+
+        if txn.recording_web_transaction?
+          metric_names << "Errors/allWeb"
+        else
+          metric_names << "Errors/allOther"
         end
 
-        # Checks the array of error names and the error filter against
-        # the provided error
-        def filtered_error?(error)
-          @ignore[error.class.name] || filtered_by_error_filter?(error)
+        metric_names
+      end
+
+      # Increments a statistic that tracks total error rate
+      def increment_error_count!(state, exception, options={})
+        txn = state.current_transaction
+
+        metric_names  = aggregated_metric_names(txn)
+        blamed_metric = blamed_metric_name(txn, options)
+        metric_names << blamed_metric if blamed_metric
+
+        stats_engine = NewRelic::Agent.agent.stats_engine
+        stats_engine.record_unscoped_metrics(state, metric_names) do |stats|
+          stats.increment_count
         end
+      end
 
-        # an error is ignored if it is nil or if it is filtered
-        def error_is_ignored?(error)
-          error && filtered_error?(error)
-        rescue => e
-          NewRelic::Agent.logger.error("Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e)
-          false
-        end
+      def skip_notice_error?(state, exception)
+        disabled? ||
+          error_is_ignored?(exception) ||
+          exception.nil? ||
+          seen?(state.current_transaction, exception)
+      end
 
-        def seen?(txn, exception)
-          error_ids = txn.nil? ? [] : txn.noticed_error_ids
-          error_ids.include?(exception.object_id)
-        end
+      # calls a method on an object, if it responds to it - used for
+      # detection and soft fail-safe. Returns nil if the method does
+      # not exist
+      def sense_method(object, method)
+        object.send(method) if object.respond_to?(method)
+      end
 
-        def tag_as_seen(state, exception)
-          txn = state.current_transaction
-          txn.noticed_error_ids << exception.object_id if txn
-        end
+      # extracts a stack trace from the exception for debugging purposes
+      def extract_stack_trace(exception)
+        actual_exception = sense_method(exception, 'original_exception') || exception
+        sense_method(actual_exception, 'backtrace') || '<no stack trace>'
+      end
 
-        def blamed_metric_name(txn, options)
-          if options[:metric] && options[:metric] != ::NewRelic::Agent::UNKNOWN_METRIC
-            "Errors/#{options[:metric]}"
-          else
-            "Errors/#{txn.best_name}" if txn
-          end
-        end
+      # checks the size of the error queue to make sure we are under
+      # the maximum limit, and logs a warning if we are over the limit.
+      def over_queue_limit?(message)
+        over_limit = (@errors.reject{|err| err.is_internal}.length >= MAX_ERROR_QUEUE_LENGTH)
+        ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}") if over_limit
+        over_limit
+      end
 
-        def aggregated_metric_names(txn)
-          metric_names = ["Errors/all"]
-          return metric_names unless txn
-
-          if txn.recording_web_transaction?
-            metric_names << "Errors/allWeb"
-          else
-            metric_names << "Errors/allOther"
-          end
-
-          metric_names
-        end
-
-        # Increments a statistic that tracks total error rate
-        def increment_error_count!(state, exception, options={})
-          txn = state.current_transaction
-
-          metric_names  = aggregated_metric_names(txn)
-          blamed_metric = blamed_metric_name(txn, options)
-          metric_names << blamed_metric if blamed_metric
-
-          stats_engine = NewRelic::Agent.agent.stats_engine
-          stats_engine.record_unscoped_metrics(state, metric_names) do |stats|
-            stats.increment_count
-          end
-        end
-
-        def skip_notice_error?(state, exception)
-          disabled? ||
-            error_is_ignored?(exception) ||
-            exception.nil? ||
-            seen?(state.current_transaction, exception)
-        end
-
-        # acts just like Hash#fetch, but deletes the key from the hash
-        def fetch_from_options(options, key, default=nil)
-          options.delete(key) || default
-        end
-
-        # returns some basic option defaults pulled from the provided
-        # options hash
-        def uri_ref_and_root(options)
-          {
-            :request_uri => fetch_from_options(options, :uri, ''),
-            :request_referer => fetch_from_options(options, :referer, ''),
-            :rails_root => NewRelic::Control.instance.root
-          }
-        end
-
-        # If anything else is left over, we treat it like a custom param
-        def custom_params_from_opts(options)
-          # If anything else is left over, treat it like a custom param:
-          if Agent.config[:'error_collector.capture_attributes']
-            fetch_from_options(options, :custom_params, {}).merge(options)
-          else
-            {}
-          end
-        end
-
-        # takes the request parameters out of the options hash, and
-        # returns them if we are capturing parameters, otherwise
-        # returns nil
-        def request_params_from_opts(options)
-          value = options.delete(:request_params)
-          if Agent.config[:capture_params]
-            value
-          else
-            nil
-          end
-        end
-
-        # normalizes the request and custom parameters before attaching
-        # them to the error. See NewRelic::CollectionHelper#normalize_params
-        def normalized_request_and_custom_params(options)
-          {
-            :request_params => normalize_params(request_params_from_opts(options)),
-            :custom_params  => normalize_params(custom_params_from_opts(options))
-          }
-        end
-
-        # Merges together many of the options into something that can
-        # actually be attached to the error
-        def error_params_from_options(options)
-          uri_ref_and_root(options).merge(normalized_request_and_custom_params(options))
-        end
-
-        # calls a method on an object, if it responds to it - used for
-        # detection and soft fail-safe. Returns nil if the method does
-        # not exist
-        def sense_method(object, method)
-          object.send(method) if object.respond_to?(method)
-        end
-
-        # extracts a stack trace from the exception for debugging purposes
-        def extract_stack_trace(exception)
-          actual_exception = sense_method(exception, 'original_exception') || exception
-          sense_method(actual_exception, 'backtrace') || '<no stack trace>'
-        end
-
-        # extracts a bunch of information from the exception to include
-        # in the noticed error - some may or may not be available, but
-        # we try to include all of it
-        def exception_info(exception)
-          {
-            :file_name => sense_method(exception, 'file_name'),
-            :line_number => sense_method(exception, 'line_number'),
-            :stack_trace => extract_stack_trace(exception)
-          }
-        end
-
-        # checks the size of the error queue to make sure we are under
-        # the maximum limit, and logs a warning if we are over the limit.
-        def over_queue_limit?(message)
-          over_limit = (@errors.reject{|err| err.is_internal}.length >= MAX_ERROR_QUEUE_LENGTH)
-          ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}") if over_limit
-          over_limit
-        end
-
-        # Synchronizes adding an error to the error queue, and checks if
-        # the error queue is too long - if so, we drop the error on the
-        # floor after logging a warning.
-        def add_to_error_queue(noticed_error)
-          @lock.synchronize do
-            if !over_queue_limit?(noticed_error.message) && !@errors.include?(noticed_error)
-              @errors << noticed_error
-            end
+      # Synchronizes adding an error to the error queue, and checks if
+      # the error queue is too long - if so, we drop the error on the
+      # floor after logging a warning.
+      def add_to_error_queue(noticed_error)
+        @lock.synchronize do
+          if !over_queue_limit?(noticed_error.message) && !@errors.include?(noticed_error)
+            @errors << noticed_error
           end
         end
       end
 
-      include NoticeError
+      # See NewRelic::Agent.notice_error for options and commentary
 
-
-      # Notice the error with the given available options:
-      #
-      # * <tt>:uri</tt> => The request path, minus any request params or query string.
-      # * <tt>:referer</tt> => The URI of the referer
-      # * <tt>:metric</tt> => The metric name associated with the transaction
-      # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
-      # * <tt>:custom_params</tt> => Custom parameters
-      #
-      # If anything is left over, it's added to custom params
-      # If exception is nil, the error count is bumped and no traced error is recorded
       def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
         state = ::NewRelic::Agent::TransactionState.tl_get
 
         return if skip_notice_error?(state, exception)
+
         tag_as_seen(state, exception)
-
         increment_error_count!(state, exception, options)
-        NewRelic::Agent.instance.events.notify(:notice_error, exception, options)
-
-        action_path       = fetch_from_options(options, :metric, "")
-        exception_options = error_params_from_options(options).merge(exception_info(exception))
-        add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))
+        add_to_error_queue(create_noticed_error(exception, options))
 
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)
+      end
+
+      EMPTY_STRING = ''.freeze
+
+      def create_noticed_error(exception, options)
+        error_metric = options.delete(:metric) || EMPTY_STRING
+
+        noticed_error = NewRelic::NoticedError.new(error_metric, exception)
+        noticed_error.request_uri = options.delete(:uri) || EMPTY_STRING
+        noticed_error.attributes  = options.delete(:attributes)
+
+        noticed_error.file_name   = sense_method(exception, :file_name)
+        noticed_error.line_number = sense_method(exception, :line_number)
+        noticed_error.stack_trace = extract_stack_trace(exception)
+
+        handle_deprecated_options(options)
+
+        noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
+
+        # Any options that are passed to notice_error which aren't known keys
+        # get treated as custom attributes, so merge them into that hash.
+        noticed_error.attributes_from_notice_error.merge!(options)
+
+        noticed_error
+      end
+
+      DEPRECATED_OPTIONS_MSG = "Passing %s to notice_error is no longer supported. Set values on the enclosing transaction or record them as custom attributes instead.".freeze
+      DEPRECATED_OPTIONS = [:request_params, :request, :referer].freeze
+
+      # Old options no longer used by notice_error can still be passed. If they
+      # are, they shouldn't get merged into custom attributes. Delete and
+      # warn callers so they can fix their calls to notice_error.
+      def handle_deprecated_options(options)
+        DEPRECATED_OPTIONS.each do |deprecated|
+          if options.include?(deprecated)
+            NewRelic::Agent.logger.warn(DEPRECATED_OPTIONS_MSG % deprecated)
+            options.delete(deprecated)
+          end
+        end
       end
 
       # *Use sparingly for difficult to track bugs.*
@@ -315,9 +272,8 @@ module NewRelic
           return if @errors.any? { |err| err.exception_class_name == exception.class.name }
 
           trace = exception.backtrace || caller.dup
-          noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError",
-                                                     {:stack_trace => trace},
-                                                     exception)
+          noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError", exception)
+          noticed_error.stack_trace = trace
           @errors << noticed_error
         end
       rescue => e

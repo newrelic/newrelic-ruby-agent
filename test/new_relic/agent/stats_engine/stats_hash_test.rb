@@ -102,7 +102,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
 
     hash1.merge!(hash2)
 
-    assert_equal(4, hash1.keys.size)
+    assert_equal(4, hash1.to_h.keys.size)
     assert_equal(2, hash1[specs[0]].call_count)
     assert_equal(2, hash1[specs[1]].call_count)
     assert_equal(1, hash1[specs[2]].call_count)
@@ -140,7 +140,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
 
     hash.merge_transaction_metrics!(txn_metrics, 'a_scope')
 
-    assert_equal(4, hash.keys.size)
+    assert_equal(4, hash.to_h.keys.size)
     assert_equal(2, hash[specs[0]].call_count)
     assert_equal(2, hash[specs[1]].call_count)
     assert_equal(1, hash[specs[2]].call_count)

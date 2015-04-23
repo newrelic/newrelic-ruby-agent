@@ -27,7 +27,7 @@ module NewRelic
 
         # @deprecated
         def rollup_metrics_for(*_)
-          NewRelic::Agent::Deprecator.deprecate("#{self.class}.rollup_metrics_for",
+          NewRelic::Agent::Deprecator.deprecate("ActiveRecordHelper.rollup_metrics_for",
                                                 "NewRelic::Agent::Datastores::MetricHelper.metrics_for")
 
           rollup_metric = if NewRelic::Agent::Transaction.recording_web_transaction?

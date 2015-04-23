@@ -66,6 +66,7 @@ module MarshallingTestCases
         "name"      => "TestTransaction/do_it",
         "duration"  => 0.0,
       },
+      {},
       {}
     ]
 

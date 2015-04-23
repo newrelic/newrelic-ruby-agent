@@ -1,1 +1,0 @@
-SELECT * FROM foo WHERE col='value1' AND /* don't */ col2='value1' /* won't */

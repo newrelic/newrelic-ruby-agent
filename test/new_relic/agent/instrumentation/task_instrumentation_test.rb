@@ -20,7 +20,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
   end
 
   def run_task_exception
-    NewRelic::Agent.add_custom_parameters(:custom_one => 'one custom val')
+    NewRelic::Agent.add_custom_attributes(:custom_one => 'one custom val')
     assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
     raise "This is an error"
   end
@@ -120,7 +120,9 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
   end
 
   def test_transaction
-    run_task_outer(10)
+    with_config(:capture_params => true) do
+      run_task_outer(10)
+    end
 
     assert_metrics_recorded({
       'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task'   => { :call_count => 1 },
@@ -129,10 +131,13 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     assert_metrics_not_recorded(['Controller'])
 
     sample = @agent.transaction_sampler.last_sample
+
     refute_nil(sample)
-    refute_nil(sample.params[:custom_params][:cpu_time], "cpu time nil: \n#{sample}")
-    assert((sample.params[:custom_params][:cpu_time] >= 0), "cpu time: #{sample.params[:cpu_time]},\n#{sample}")
-    assert_equal('10', sample.params[:request_params][:level])
+    cpu_time = attributes_for(sample, :intrinsic)[:cpu_time]
+
+    refute_nil(cpu_time, "cpu time nil: \n#{sample}")
+    assert(cpu_time >= 0, "cpu time: #{cpu_time},\n#{sample}")
+    assert_equal(10, attributes_for(sample, :agent)['request.parameters.level'])
   end
 
   def test_abort_transaction
@@ -147,15 +152,17 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
   def test_perform_action_with_newrelic_trace_saves_params
     account = 'Redrocks'
-    perform_action_with_newrelic_trace(:name => 'hello', :force => true,
-      :params => { :account => account }) do
-      self.class.inspect
+    with_config(:capture_params => true) do
+      perform_action_with_newrelic_trace(:name => 'hello', :force => true,
+        :params => { :account => account }) do
+        self.class.inspect
+      end
     end
 
     assert_metrics_recorded(['Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/hello'])
     sample = @agent.transaction_sampler.last_sample
     refute_nil(sample)
-    assert_equal(account, sample.params[:request_params][:account])
+    assert_equal(account, attributes_for(sample, :agent)['request.parameters.account'])
   end
 
   def test_errors_are_noticed_and_not_swallowed
@@ -169,10 +176,13 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     errors = @agent.error_collector.harvest!
 
     assert_equal(1, errors.size)
+
     error = errors.first
     assert_equal("Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/run_task_exception", error.path)
-    refute_nil(error.params[:stack_trace])
-    refute_nil(error.params[:custom_params])
+    refute_nil(error.stack_trace)
+
+    result = error.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    refute_nil(result["custom_one"])
   end
 
   def test_instrument_background_job

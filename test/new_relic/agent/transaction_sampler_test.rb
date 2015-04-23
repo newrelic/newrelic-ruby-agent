@@ -36,14 +36,19 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
+
+    attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @txn = stub('txn',
                 :best_name => '/path',
+                :request_path => '/request_path',
                 :guid => 'a guid',
-                :custom_parameters => {},
+                :ignore_trace? => false,
                 :cat_trip_id => '',
                 :cat_path_hash => '',
                 :is_synthetics_request? => false,
-                :filtered_params => {} )
+                :filtered_params => {},
+                :attributes => attributes
+               )
   end
 
   def teardown
@@ -61,7 +66,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def populate_container(sampler, n)
     n.times do |i|
-      sample = sample_with(:duration => 1, :transaction_name => "t#{i}", :force_persist => true)
+      sample = sample_with(:duration => 1, :transaction_name => "t#{i}", :synthetics_resource_id => 1)
       @sampler.store_sample(sample)
     end
   end
@@ -125,30 +130,12 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal('a guid', @sampler.last_sample.guid)
   end
 
-  def test_ignore_transaction_no_builder
-    ret = @sampler.ignore_transaction(@state)
-    assert_nil ret
-  end
-
-  def test_ignore_transaction_with_builder
-    in_transaction do
-      @sampler.ignore_transaction(@state)
-    end
-
-    assert_nil(@sampler.last_sample)
-  end
-
-  def test_notice_transaction_cpu_time_no_builder_does_not_crash
-    @state.transaction_sample_builder = nil
-    @sampler.notice_transaction_cpu_time(@state, 0.0)
-  end
-
   def test_records_cpu_time_on_transaction_samples
     in_transaction do |txn|
       txn.stubs(:cpu_burn).returns(42)
     end
 
-    assert_equal(42, @sampler.last_sample.params[:custom_params][:cpu_time])
+    assert_equal(42, attributes_for(@sampler.last_sample, :intrinsic)[:cpu_time])
   end
 
   def test_notice_extra_data_no_builder
@@ -156,43 +143,43 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_nil ret
   end
 
-  def test_notice_extra_data_no_segment
+  def test_notice_extra_data_no_node
     mock_builder = mock('builder')
     @sampler.expects(:tl_builder).returns(mock_builder).once
-    mock_builder.expects(:current_segment).returns(nil)
+    mock_builder.expects(:current_node).returns(nil)
     builder = @sampler.tl_builder
     @sampler.send(:notice_extra_data, builder, nil, nil, nil)
   end
 
-  def test_notice_extra_data_with_segment_no_old_message_no_config_key
+  def test_notice_extra_data_with_node_no_old_message_no_config_key
     key = :a_key
     mock_builder = mock('builder')
-    segment = mock('segment')
+    node = mock('node')
     @sampler.expects(:tl_builder).returns(mock_builder).once
-    mock_builder.expects(:current_segment).returns(segment)
+    mock_builder.expects(:current_node).returns(node)
     NewRelic::Agent::TransactionSampler.expects(:truncate_message) \
       .with('a message').returns('truncated_message')
-    segment.expects(:[]=).with(key, 'truncated_message')
-    @sampler.expects(:append_backtrace).with(segment, 1.0)
+    node.expects(:[]=).with(key, 'truncated_message')
+    @sampler.expects(:append_backtrace).with(node, 1.0)
     builder = @sampler.tl_builder
     @sampler.send(:notice_extra_data, builder, 'a message', 1.0, key)
   end
 
   def test_append_backtrace_under_duration
     with_config(:'transaction_tracer.stack_trace_threshold' => 2.0) do
-      segment = mock('segment')
-      segment.expects(:[]=).with(:backtrace, any_parameters).never
-      @sampler.append_backtrace(mock('segment'), 1.0)
+      node = mock('node')
+      node.expects(:[]=).with(:backtrace, any_parameters).never
+      @sampler.append_backtrace(mock('node'), 1.0)
     end
   end
 
   def test_append_backtrace_over_duration
     with_config(:'transaction_tracer.stack_trace_threshold' => 2.0) do
-      segment = mock('segment')
+      node = mock('node')
       # note the mocha expectation matcher - you can't hardcode a
       # backtrace so we match on any string, which should be okay.
-      segment.expects(:[]=).with(:backtrace, instance_of(String))
-      @sampler.append_backtrace(segment, 2.5)
+      node.expects(:[]=).with(:backtrace, instance_of(String))
+      @sampler.append_backtrace(node, 2.5)
     end
   end
 
@@ -258,21 +245,15 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def test_harvest_avoids_dups_from_harvested_samples
-    sample = sample_with(:duration => 2.5, :force_persist => false)
+    sample = sample_with(:duration => 2.5)
     @sampler.store_sample(sample)
     @sampler.store_sample(sample)
 
-    assert_equal([sample], @sampler.harvest!)
-  end
-
-  def test_merge_avoids_dups_from_forced
-    sample = sample_with(:duration => 1, :force_persist => true)
-    @sampler.merge!([sample, sample])
     assert_equal([sample], @sampler.harvest!)
   end
 
   def test_harvest_adding_slowest
-    sample = sample_with(:duration => 2.5, :force_persist => false)
+    sample = sample_with(:duration => 2.5)
     @sampler.store_sample(sample)
 
     assert_equal([sample], @sampler.harvest!)
@@ -298,53 +279,12 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal([slower_sample], @sampler.harvest!)
   end
 
-  def test_harvest_keep_force_persist_in_previous_results
-    unforced_sample = sample_with(:duration => 10, :force_persist => false)
-    forced_sample = sample_with(:duration => 1, :force_persist => true)
-
-    @sampler.merge!([unforced_sample, forced_sample])
-    result = @sampler.harvest!
-
-    assert_includes(result, unforced_sample)
-    assert_includes(result, forced_sample)
-  end
-
-  def test_harvest_keeps_force_persist_in_new_results
-    forced_sample = sample_with(:duration => 1, :force_persist => true)
-    @sampler.store_sample(forced_sample)
-
-    unforced_sample = sample_with(:duration => 10, :force_persist => false)
-    @sampler.store_sample(unforced_sample)
-
-    result = @sampler.harvest!
-
-    assert_includes(result, unforced_sample)
-    assert_includes(result, forced_sample)
-  end
-
-  def test_harvest_keeps_forced_from_new_and_previous_results
-    new_forced = sample_with(:duration => 1, :force_persist => true)
-    @sampler.store_sample(new_forced)
-
-    old_forced = sample_with(:duration => 1, :force_persist => true)
-
-    @sampler.merge!([old_forced])
-    result = @sampler.harvest!
-
-    assert_includes(result, new_forced)
-    assert_includes(result, old_forced)
-  end
-
-  FORCE_PERSIST_MAX = NewRelic::Agent::Transaction::ForcePersistSampleBuffer::CAPACITY
   SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::CAPACITY
   XRAY_SAMPLE_MAX = NewRelic::Agent.config[:'xray_session.max_samples']
 
   def test_harvest_respects_limits_from_previous
     slowest = sample_with(:duration => 10.0)
     previous = [slowest]
-
-    forced_samples = generate_samples(100, :force_persist => true)
-    previous.concat(forced_samples)
 
     xray_samples = generate_samples(100, :transaction_name => "Active/xray")
     previous.concat(xray_samples)
@@ -356,7 +296,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
 
     expected = [slowest]
-    expected = expected.concat(forced_samples.last(FORCE_PERSIST_MAX))
     expected = expected.concat(xray_samples.first(XRAY_SAMPLE_MAX))
 
     assert_equal_unordered(expected, result)
@@ -365,11 +304,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_harvest_respects_limits_from_current_traces
     slowest = sample_with(:duration => 10.0)
     @sampler.store_sample(slowest)
-
-    forced_samples = generate_samples(100, :force_persist => true)
-    forced_samples.each do |forced|
-      @sampler.store_sample(forced)
-    end
 
     xray_samples = generate_samples(100, :transaction_name => "Active/xray")
     with_active_xray_session("Active/xray") do
@@ -381,7 +315,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     result = @sampler.harvest!
 
     expected = [slowest]
-    expected = expected.concat(forced_samples.last(FORCE_PERSIST_MAX))
     expected = expected.concat(xray_samples.first(XRAY_SAMPLE_MAX))
     assert_equal_unordered(expected, result)
   end
@@ -447,7 +380,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_sample_tree
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil)
+      @sampler.on_start_transaction(@state, Time.now)
       @sampler.notice_push_frame(@state)
 
       @sampler.notice_push_frame(@state)
@@ -472,7 +405,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil)
+      @sampler.on_start_transaction(@state, Time.now)
       @sampler.notice_push_frame(@state)
 
       @sampler.notice_push_frame(@state)
@@ -556,7 +489,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_sample_with_parallel_paths
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil)
+      @sampler.on_start_transaction(@state, Time.now)
       @sampler.notice_push_frame(@state)
 
       assert_equal 1, @sampler.tl_builder.scope_depth
@@ -566,7 +499,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
       assert_nil @sampler.tl_builder
 
-      @sampler.on_start_transaction(@state, Time.now, nil)
+      @sampler.on_start_transaction(@state, Time.now)
       @sampler.notice_push_frame(@state)
       @sampler.notice_pop_frame(@state, "a")
       @sampler.on_finishing_transaction(@state, @txn)
@@ -579,7 +512,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_double_traced_method_stack_empty
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now, nil)
+      @sampler.on_start_transaction(@state, Time.now)
       @sampler.notice_push_frame(@state)
       @sampler.notice_pop_frame(@state, "a")
       @sampler.on_finishing_transaction(@state, @txn)
@@ -599,19 +532,19 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     @sampler.notice_sql("test", {}, 0, @state)
 
-    segment = @sampler.send(:tl_builder).current_segment
+    node = @sampler.send(:tl_builder).current_node
 
-    assert_nil segment[:sql]
+    assert_nil node[:sql]
   end
 
   def test_stack_trace_sql
     with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
       @sampler.on_start_transaction(@state, Time.now.to_f)
       @sampler.notice_sql("test", {}, 1, @state)
-      segment = @sampler.send(:tl_builder).current_segment
+      node = @sampler.send(:tl_builder).current_node
 
-      assert segment[:sql]
-      assert segment[:backtrace]
+      assert node[:sql]
+      assert node[:backtrace]
     end
   end
 
@@ -619,10 +552,10 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     with_config(:'transaction_tracer.stack_trace_threshold' => 2) do
       @sampler.on_start_transaction(@state, Time.now.to_f)
       @sampler.notice_sql("test", {}, 1, @state)
-      segment = @sampler.send(:tl_builder).current_segment
+      node = @sampler.send(:tl_builder).current_node
 
-      assert segment[:sql]
-      assert_nil segment[:backtrace]
+      assert node[:sql]
+      assert_nil node[:backtrace]
     end
   end
 
@@ -637,14 +570,14 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       len += sql.length
     end
 
-    segment = @sampler.send(:tl_builder).current_segment
+    node = @sampler.send(:tl_builder).current_node
 
-    sql = segment[:sql]
+    sql = node[:sql]
 
     assert sql.length <= 16384
   end
 
-  def test_segment_obfuscated
+  def test_node_obfuscated
     @sampler.on_start_transaction(@state, Time.now.to_f)
     @sampler.notice_push_frame(@state)
 
@@ -652,29 +585,14 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     @sampler.notice_sql(orig_sql, {}, 0, @state)
 
-    segment = @sampler.send(:tl_builder).current_segment
+    node = @sampler.send(:tl_builder).current_node
 
-    assert_equal orig_sql, segment[:sql]
-    assert_equal "SELECT * from Jim where id=?", segment.obfuscated_sql
+    assert_equal orig_sql, node[:sql]
+    assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
     @sampler.notice_pop_frame(@state, "foo")
   end
 
-  def test_param_capture
-    [true, false].each do |capture|
-      with_config(:capture_params => capture) do
-        tt = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-          @sampler.on_start_transaction(@state, Time.now, nil)
-          @txn.filtered_params[:param] = 'hi'
-          @sampler.on_finishing_transaction(@state, @txn)
-          @sampler.harvest![0]
-        end
-
-        assert_equal (capture ? 1 : 0), tt.params[:request_params].length
-      end
-    end
-  end
-
-  def test_should_not_collect_segments_beyond_limit
+  def test_should_not_collect_nodes_beyond_limit
     with_config(:'transaction_tracer.limit_segments' => 3) do
       run_sample_trace do
         @sampler.notice_push_frame(@state)
@@ -684,27 +602,27 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
         @sampler.notice_pop_frame(@state, "a11")
         @sampler.notice_pop_frame(@state, "a1")
       end
-      assert_equal 3, @sampler.last_sample.count_segments
+      assert_equal 3, @sampler.last_sample.count_nodes
 
       expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
-      deepest_segment = find_last_transaction_segment(@sampler.last_sample)
-      assert_equal([], deepest_segment.called_segments)
-      assert_equal(expected_sql, deepest_segment[:sql])
+      deepest_node = find_last_transaction_node(@sampler.last_sample)
+      assert_equal([], deepest_node.called_nodes)
+      assert_equal(expected_sql, deepest_node[:sql])
     end
   end
 
-  def test_renaming_current_segment_midflight
+  def test_renaming_current_node_midflight
     @sampler.start_builder(@state)
-    segment = @sampler.notice_push_frame(@state)
-    segment.metric_name = 'External/www.google.com/Net::HTTP/GET'
+    node = @sampler.notice_push_frame(@state)
+    node.metric_name = 'External/www.google.com/Net::HTTP/GET'
     @sampler.notice_pop_frame(@state, 'External/www.google.com/Net::HTTP/GET')
   end
 
-  def test_adding_segment_parameters
+  def test_adding_node_parameters
     @sampler.start_builder(@state)
     @sampler.notice_push_frame(@state)
-    @sampler.add_segment_parameters(:transaction_guid => '97612F92E6194080')
-    assert_equal '97612F92E6194080', @sampler.tl_builder.current_segment[:transaction_guid]
+    @sampler.add_node_parameters(:transaction_guid => '97612F92E6194080')
+    assert_equal '97612F92E6194080', @sampler.tl_builder.current_node[:transaction_guid]
   end
 
   def test_large_transaction_trace_harvest
@@ -720,7 +638,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       assert_equal(1, samples.size)
 
       # Verify that the TT stopped recording after 100 nodes
-      assert_equal(100, samples.first.count_segments)
+      assert_equal(100, samples.first.count_nodes)
     end
   end
 
@@ -749,35 +667,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal([samples[1]], prepared)
   end
 
-  def test_custom_params_omitted_if_config_says_so
-    config = {
-      :'transaction_tracer.transaction_threshold' => 0.0,
-      :'transaction_tracer.capture_attributes' => false
-    }
-    with_config(config) do
-      in_transaction do
-        NewRelic::Agent.add_custom_parameters(:foo => 'bar')
-      end
-    end
-    sample = NewRelic::Agent.agent.transaction_sampler.harvest![0]
-    custom_params = sample.params[:custom_params]
-    assert_false(custom_params.keys.include?(:foo))
-  end
-
-  def test_custom_params_included_if_config_says_so
-    config = {
-      :'transaction_tracer.transaction_threshold' => 0.0,
-      :'transaction_tracer.capture_attributes' => true
-    }
-    with_config(config) do
-      in_transaction do
-        NewRelic::Agent.add_custom_parameters(:foo => 'bar')
-      end
-    end
-    custom_params = custom_params_from_last_sample
-    assert_includes custom_params.keys, :foo
-  end
-
   def test_custom_params_include_gc_time
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do
@@ -785,7 +674,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       end
     end
 
-    assert_equal 10.0, custom_params_from_last_sample[:gc_time]
+    assert_equal 10.0, intrinsic_attributes_from_last_sample[:gc_time]
   end
 
   def test_custom_params_include_tripid
@@ -800,7 +689,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       end
     end
 
-    assert_equal 'PDX-NRT', custom_params_from_last_sample[:'nr.trip_id']
+    assert_equal 'PDX-NRT', intrinsic_attributes_from_last_sample[:trip_id]
   end
 
   def test_custom_params_dont_include_tripid_if_not_cross_app_transaction
@@ -812,7 +701,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       end
     end
 
-    assert_nil custom_params_from_last_sample[:'nr.trip_id']
+    assert_nil intrinsic_attributes_from_last_sample[:trip_id]
   end
 
   def test_custom_params_include_path_hash
@@ -826,7 +715,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       end
     end
 
-    assert_equal path_hash, custom_params_from_last_sample[:'nr.path_hash']
+    assert_equal path_hash, intrinsic_attributes_from_last_sample[:path_hash]
   end
 
   def test_synthetics_parameters_not_included_if_not_valid_synthetics_request
@@ -839,11 +728,11 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
 
-    custom_params = sample.params[:custom_params]
+    intrinsic_attributes = attributes_for(sample, :intrinsic)
     assert_nil sample.synthetics_resource_id
-    assert_nil custom_params[:'nr.synthetics_resource_id']
-    assert_nil custom_params[:'nr.synthetics_job_id']
-    assert_nil custom_params[:'nr.synthetics_monitor_id']
+    assert_nil intrinsic_attributes[:synthetics_resource_id]
+    assert_nil intrinsic_attributes[:synthetics_job_id]
+    assert_nil intrinsic_attributes[:synthetics_monitor_id]
   end
 
   def test_synthetics_parameters_included
@@ -854,11 +743,11 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
 
-    custom_params = sample.params[:custom_params]
+    intrinsic_attributes = attributes_for(sample, :intrinsic)
     assert_equal 100, sample.synthetics_resource_id
-    assert_equal 100, custom_params[:'nr.synthetics_resource_id']
-    assert_equal 200, custom_params[:'nr.synthetics_job_id']
-    assert_equal 300, custom_params[:'nr.synthetics_monitor_id']
+    assert_equal 100, intrinsic_attributes[:synthetics_resource_id]
+    assert_equal 200, intrinsic_attributes[:synthetics_job_id]
+    assert_equal 300, intrinsic_attributes[:synthetics_monitor_id]
   end
 
   class Dummy
@@ -887,7 +776,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   SAMPLE_DEFAULTS = {
     :threshold => 1.0,
-    :force_persist => false,
     :transaction_name => nil
   }
 
@@ -895,9 +783,12 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     opts = SAMPLE_DEFAULTS.dup
     opts.merge!(incoming_opts)
 
-    sample = NewRelic::TransactionSample.new
+    attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    attributes.add_intrinsic_attribute(:synthetics_resource_id, opts[:synthetics_resource_id])
+
+    sample = NewRelic::Agent::Transaction::Trace.new(Time.now)
+    sample.attributes = attributes
     sample.threshold = opts[:threshold]
-    sample.force_persist = opts[:force_persist]
     sample.transaction_name = opts[:transaction_name]
     sample.stubs(:duration).returns(opts[:duration])
     sample
@@ -927,7 +818,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def run_long_sample_trace(n)
-    @sampler.on_start_transaction(@state, Time.now, nil)
+    @sampler.on_start_transaction(@state, Time.now)
     n.times do |i|
       @sampler.notice_push_frame(@state)
       yield if block_given?
@@ -937,7 +828,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def run_sample_trace(start = Time.now.to_f, stop = nil, state = @state)
-    @sampler.on_start_transaction(state, start, nil)
+    @sampler.on_start_transaction(state, start)
     @sampler.notice_push_frame(state)
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0, state)
     @sampler.notice_push_frame(state)
@@ -951,8 +842,8 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @sampler.on_finishing_transaction(state, @txn, (stop || Time.now.to_f))
   end
 
-  def custom_params_from_last_sample
+  def intrinsic_attributes_from_last_sample
     sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
-    sample.params[:custom_params]
+    attributes_for(sample, :intrinsic)
   end
 end

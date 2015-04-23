@@ -8,7 +8,10 @@ require 'new_relic/agent/internal_agent_error'
 
 class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def setup
-    @test_config = { :capture_params => true }
+    @test_config = {
+      :capture_params => true,
+      :disable_harvest_thread => true
+    }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
 
     @error_collector = NewRelic::Agent::ErrorCollector.new
@@ -43,25 +46,25 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def test_empty
     @error_collector.harvest!
-    @error_collector.notice_error(nil, :metric=> 'path', :request_params => {:x => 'y'})
+    @error_collector.notice_error(nil, :metric=> 'path')
     errors = @error_collector.harvest!
 
     assert_equal 0, errors.length
 
-    @error_collector.notice_error('Some error message', :metric=> 'path', :request_params => {:x => 'y'})
+    @error_collector.notice_error('Some error message', :metric=> 'path')
     errors = @error_collector.harvest!
 
     err = errors.first
     assert_equal 'Some error message', err.message
-    assert_equal 'y', err.params[:request_params][:x]
-    assert_equal '', err.params[:request_uri]
-    assert_equal '', err.params[:request_referer]
+    assert_equal '', err.request_uri
     assert_equal 'path', err.path
     assert_equal 'Error', err.exception_class_name
   end
 
   def test_simple
-    @error_collector.notice_error(StandardError.new("message"), :uri => '/myurl/', :metric => 'path', :referer => 'test_referer', :request_params => {:x => 'y'})
+    @error_collector.notice_error(StandardError.new("message"),
+                                  :uri => '/myurl/',
+                                  :metric => 'path')
 
     errors = @error_collector.harvest!
 
@@ -69,22 +72,32 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     err = errors.first
     assert_equal 'message', err.message
-    assert_equal 'y', err.params[:request_params][:x]
-    assert_equal '/myurl/', err.params[:request_uri]
-    assert_equal 'test_referer', err.params[:request_referer]
+    assert_equal '/myurl/', err.request_uri
     assert_equal 'path', err.path
     assert_equal 'StandardError', err.exception_class_name
 
     # the collector should now return an empty array since nothing
     # has been added since its last harvest
     errors = @error_collector.harvest!
-    assert errors.length == 0
+    assert_empty errors
+  end
+
+  def test_drops_deprecated_options
+    expects_logging(:warn, any_parameters)
+    @error_collector.notice_error(StandardError.new("message"),
+                                  :referer => "lalalalala",
+                                  :request => stub('request'),
+                                  :request_params => {:x => 'y'})
+
+    errors = @error_collector.harvest!
+
+    assert_empty errors.first.attributes_from_notice_error
   end
 
   def test_long_message
     #yes, times 500. it's a 5000 byte string. Assuming strings are
     #still 1 byte / char.
-    @error_collector.notice_error(StandardError.new("1234567890" * 500), :uri => '/myurl/', :metric => 'path', :request_params => {:x => 'y'})
+    @error_collector.notice_error(StandardError.new("1234567890" * 500), :uri => '/myurl/', :metric => 'path')
 
     errors = @error_collector.harvest!
 
@@ -96,13 +109,13 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_collect_failover
-    @error_collector.notice_error(StandardError.new("message"), :metric => 'first', :request_params => {:x => 'y'})
+    @error_collector.notice_error(StandardError.new("message"), :metric => 'first')
 
     errors = @error_collector.harvest!
 
-    @error_collector.notice_error(StandardError.new("message"), :metric => 'second', :request_params => {:x => 'y'})
-    @error_collector.notice_error(StandardError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
-    @error_collector.notice_error(StandardError.new("message"), :metric => 'last', :request_params => {:x => 'y'})
+    @error_collector.notice_error(StandardError.new("message"), :metric => 'second')
+    @error_collector.notice_error(StandardError.new("message"), :metric => 'path')
+    @error_collector.notice_error(StandardError.new("message"), :metric => 'last')
 
     @error_collector.merge!(errors)
     errors = @error_collector.harvest!
@@ -110,8 +123,8 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal 4, errors.length
     assert_equal_unordered(%w(first second path last), errors.map { |e| e.path })
 
-    @error_collector.notice_error(StandardError.new("message"), :metric => 'first', :request_params => {:x => 'y'})
-    @error_collector.notice_error(StandardError.new("message"), :metric => 'last', :request_params => {:x => 'y'})
+    @error_collector.notice_error(StandardError.new("message"), :metric => 'first')
+    @error_collector.notice_error(StandardError.new("message"), :metric => 'last')
 
     errors = @error_collector.harvest!
     assert_equal 2, errors.length
@@ -120,20 +133,22 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_queue_overflow
-
-    max_q_length = 20     # for some reason I can't read the constant in ErrorCollector
+    max_q_length = NewRelic::Agent::ErrorCollector::MAX_ERROR_QUEUE_LENGTH
 
     silence_stream(::STDOUT) do
      (max_q_length + 5).times do |n|
-        @error_collector.notice_error(StandardError.new("exception #{n}"), :metric => "path", :request_params => {:x => n})
+        @error_collector.notice_error(StandardError.new("exception #{n}"),
+                                      :metric => "path",
+                                      :custom_params => {:x => n})
       end
     end
 
     errors = @error_collector.harvest!
     assert errors.length == max_q_length
     errors.each_index do |i|
-      err = errors.shift
-      assert_equal i.to_s, err.params[:request_params][:x], err.params.inspect
+      error  = errors.shift
+      actual = error.to_collector_array.last["userAttributes"]["x"]
+      assert_equal i.to_s, actual
     end
   end
 
@@ -148,15 +163,18 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     types = [[1, '1'],
     [1.1, '1.1'],
     ['hi', 'hi'],
-    [:hi, :hi],
+    [:hi, 'hi'],
     [StandardError.new("test"), "#<StandardError>"],
     [TestClass.new, "#<NewRelic::Agent::ErrorCollectorTest::TestClass>"]
     ]
 
     types.each do |test|
-      @error_collector.notice_error(StandardError.new("message"), :metric => 'path',
-                                    :request_params => {:x => test[0]})
-      assert_equal test[1], @error_collector.harvest![0].params[:request_params][:x]
+      @error_collector.notice_error(StandardError.new("message"),
+                                    :metric => 'path',
+                                    :custom_params => {:x => test[0]})
+      error = @error_collector.harvest![0].to_collector_array
+      actual = error.last["userAttributes"]["x"]
+      assert_equal test[1], actual
     end
   end
 
@@ -164,7 +182,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def test_exclude
     @error_collector.ignore(["IOError"])
 
-    @error_collector.notice_error(IOError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
+    @error_collector.notice_error(IOError.new("message"), :metric => 'path')
 
     errors = @error_collector.harvest!
 
@@ -186,8 +204,8 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def test_exclude_block
     @error_collector.class.ignore_error_filter = wrapped_filter_proc
 
-    @error_collector.notice_error(IOError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
-    @error_collector.notice_error(StandardError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
+    @error_collector.notice_error(IOError.new("message"), :metric => 'path')
+    @error_collector.notice_error(StandardError.new("message"), :metric => 'path')
 
     errors = @error_collector.harvest!
 
@@ -311,8 +329,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     err = @error_collector.errors.first
     assert_equal "NewRelic/AgentError", err.path
-    assert_kind_of Hash, err.params
-    refute_nil err.params[:stack_trace]
+    refute_nil err.stack_trace
   end
 
   def test_notice_agent_error_uses_exception_backtrace_if_present
@@ -321,7 +338,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     exception.set_backtrace(trace)
     @error_collector.notice_agent_error(exception)
 
-    assert_equal trace, @error_collector.errors.first.params[:stack_trace]
+    assert_equal trace, @error_collector.errors.first.stack_trace
   end
 
   def test_notice_agent_error_uses_caller_if_no_exception_backtrace
@@ -329,7 +346,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     exception.set_backtrace(nil)
     @error_collector.notice_agent_error(exception)
 
-    trace = @error_collector.errors.first.params[:stack_trace]
+    trace = @error_collector.errors.first.stack_trace
     assert trace.any? {|line| line.include?(__FILE__)}
   end
 
@@ -416,6 +433,136 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     assert_metrics_not_recorded(['Errors/all'])
     assert_empty @error_collector.errors
+  end
+
+  def test_captures_attributes_on_notice_error
+    error = StandardError.new('wat')
+    attributes = Object.new
+    @error_collector.notice_error(error, :attributes => attributes)
+
+    noticed = @error_collector.errors.first
+    assert_equal attributes, noticed.attributes
+  end
+
+  module Winner
+    def winner
+      'yay'
+    end
+  end
+
+  def test_sense_method
+    object = Object.new
+    object.extend(Winner)
+    assert_equal nil,   @error_collector.sense_method(object, 'blab')
+    assert_equal 'yay', @error_collector.sense_method(object, 'winner')
+  end
+
+  def test_extract_stack_trace
+    exception = mock('exception', :original_exception => nil,
+                                  :backtrace => nil)
+
+    assert_equal('<no stack trace>', @error_collector.extract_stack_trace(exception))
+  end
+
+  def test_extract_stack_trace_positive
+    orig = mock('original', :backtrace => "STACK STACK STACK")
+    exception = mock('exception', :original_exception => orig)
+
+    assert_equal('STACK STACK STACK', @error_collector.extract_stack_trace(exception))
+  end
+
+  def test_over_queue_limit_negative
+    refute @error_collector.over_queue_limit?(nil)
+  end
+
+  def test_over_queue_limit_positive
+    expects_logging(:warn, includes('The error reporting queue has reached 20'))
+    21.times do
+      @error_collector.notice_error("", {})
+    end
+
+    assert @error_collector.over_queue_limit?('hooray')
+  end
+
+  def test_skip_notice_error_is_true_if_the_error_collector_is_disabled
+    error = StandardError.new
+    with_config(:'error_collector.enabled' => false) do
+      assert @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+    end
+  end
+
+  def test_skip_notice_error_is_true_if_the_error_is_nil
+    error = nil
+    with_config(:'error_collector.enabled' => true) do
+      @error_collector.expects(:error_is_ignored?).with(error).returns(false)
+      assert @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+    end
+  end
+
+  def test_skip_notice_error_is_true_if_the_error_is_ignored
+    error = StandardError.new
+    with_config(:'error_collector.enabled' => true) do
+      @error_collector.expects(:error_is_ignored?).with(error).returns(true)
+      assert @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+    end
+  end
+
+  def test_skip_notice_error_returns_false_for_non_nil_unignored_errors_with_an_enabled_error_collector
+    error = StandardError.new
+    with_config(:'error_collector.enabled' => true) do
+      @error_collector.expects(:error_is_ignored?).with(error).returns(false)
+      refute @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+    end
+  end
+
+  class ::AnError
+  end
+
+  def test_filtered_error_positive
+    with_config(:'error_collector.ignore_errors' => 'AnError') do
+      error = AnError.new
+      assert @error_collector.filtered_error?(error)
+    end
+  end
+
+  def test_filtered_error_negative
+    error = AnError.new
+    refute @error_collector.filtered_error?(error)
+  end
+
+  def test_filtered_by_error_filter_empty
+    # should return right away when there's no filter
+    refute @error_collector.filtered_by_error_filter?(nil)
+  end
+
+  def test_filtered_by_error_filter_positive
+    saw_error = nil
+    NewRelic::Agent::ErrorCollector.ignore_error_filter = Proc.new do |e|
+      saw_error = e
+      false
+    end
+
+    error = StandardError.new
+    assert @error_collector.filtered_by_error_filter?(error)
+
+    assert_equal error, saw_error
+  end
+
+  def test_filtered_by_error_filter_negative
+    saw_error = nil
+    NewRelic::Agent::ErrorCollector.ignore_error_filter = Proc.new do |e|
+      saw_error = e
+      true
+    end
+
+    error = StandardError.new
+    refute @error_collector.filtered_by_error_filter?(error)
+
+    assert_equal error, saw_error
+  end
+
+  def test_error_is_ignored_no_error
+    refute @error_collector.error_is_ignored?(nil)
   end
 
   private

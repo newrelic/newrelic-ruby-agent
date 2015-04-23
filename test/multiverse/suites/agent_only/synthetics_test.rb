@@ -84,18 +84,18 @@ class SyntheticsTest < Minitest::Test
     expected_attrs       = trace_spec['expectedIntrinsics']
     non_expected_attrs   = trace_spec['nonExpectedIntrinsics']
 
-    trace_attrs          = trace.tree.custom_params
+    trace_attrs          = trace.intrinsic_attributes
 
     assert_equal(expected_resource_id, trace.synthetics_resource_id)
 
     expected_attrs.each do |key, value|
-      key = "nr.#{key}"
+      key = "#{key}"
       msg = "Incorrect value for transaction trace intrinsic '#{key}'. All intrinsics = #{trace_attrs.inspect}"
       assert_equal(value, trace_attrs[key], msg)
     end
 
     non_expected_attrs.each do |key|
-      key = "nr.#{key}"
+      key = "#{key}"
       msg = "Did not expect key '#{key}' on transaction trace. Actual value was #{trace_attrs[key]}"
       refute_includes(trace_attrs.keys, key, msg)
     end

@@ -27,7 +27,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   def setup
     freeze_time
     @subscriber = NewRelic::Agent::Instrumentation::ActionControllerSubscriber.new
-    NewRelic::Agent.instance.stats_engine.clear_stats
+    NewRelic::Agent.drop_buffered_data
     @entry_payload = {
       :controller => TestController.to_s,
       :action => 'index',
@@ -193,16 +193,15 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_creates_transaction
-    NewRelic::Agent.instance.transaction_sampler.reset!
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     assert_equal('Controller/test/index',
                  NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:path])
+                   .last_sample.transaction_name)
     assert_equal('Controller/test/index',
                  NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.root_segment.called_segments[0].metric_name)
+                   .last_sample.root_node.called_nodes[0].metric_name)
   end
 
   def test_applies_txn_name_rules
@@ -264,36 +263,34 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_records_request_params_in_txn
-    NewRelic::Agent.instance.transaction_sampler.reset!
-    @entry_payload[:params]['number'] = '666'
-    @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    with_config(:capture_params => true) do
+      @entry_payload[:params]['number'] = '666'
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    end
 
-    assert_equal('666',
-                 NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:request_params]['number'])
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal('666', attributes_for(sample, :agent)['request.parameters.number'])
   end
 
   def test_records_filtered_request_params_in_txn
-    NewRelic::Agent.instance.transaction_sampler.reset!
-    @entry_payload[:params]['password'] = 'secret'
-    @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    with_config(:capture_params => true) do
+      @entry_payload[:params]['password'] = 'secret'
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+    end
 
-    assert_equal('[FILTERED]',
-                 NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:request_params]['password'])
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal('[FILTERED]', attributes_for(sample, :agent)['request.parameters.password'])
   end
 
   def test_records_custom_parameters_in_txn
-    NewRelic::Agent.instance.transaction_sampler.reset!
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    NewRelic::Agent.add_custom_parameters('number' => '666')
+    NewRelic::Agent.add_custom_attributes('number' => '666')
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert_equal('666',
-                 NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:custom_params]['number'])
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_equal('666', attributes_for(sample, :custom)['number'])
   end
 end if ::Rails::VERSION::MAJOR.to_i >= 4
 

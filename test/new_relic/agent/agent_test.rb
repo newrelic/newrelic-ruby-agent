@@ -11,7 +11,10 @@ module NewRelic
 
       def setup
         super
+        @original_agent = NewRelic::Agent.agent
         @agent = NewRelic::Agent::Agent.new
+        NewRelic::Agent.agent = @agent
+
         @agent.service = default_service
         @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
@@ -21,6 +24,7 @@ module NewRelic
       end
 
       def teardown
+        NewRelic::Agent.agent = @original_agent
         NewRelic::Agent.config.reset_to_defaults
       end
 
@@ -336,6 +340,36 @@ module NewRelic
         assert_raises(bad) do
           @agent.send(:connect)
         end
+      end
+
+      def test_connect_replaces_attribute_filter
+        old_filter = @agent.attribute_filter
+
+        @agent.stubs(:connected?).returns(true)
+        @agent.service.expects(:connect).returns({})
+        @agent.send(:connect, :force_reconnect => true)
+
+        refute old_filter == @agent.attribute_filter, "#{@agent.attribute_filter} should not be equal to\n#{old_filter}"
+      end
+
+      def test_connect_replaces_transaction_rules
+        old_rules = @agent.transaction_rules
+
+        @agent.stubs(:connected?).returns(true)
+        @agent.service.expects(:connect).returns({})
+        @agent.send(:connect, :force_reconnect => true)
+
+        refute old_rules == @agent.transaction_rules, "#{@agent.transaction_rules} should not be equal to\n#{old_rules}"
+      end
+
+      def test_connect_replaces_stats_engine_metric_rules
+        old_rules = @agent.stats_engine.metric_rules
+
+        @agent.stubs(:connected?).returns(true)
+        @agent.service.expects(:connect).returns({})
+        @agent.send(:connect, :force_reconnect => true)
+
+        refute old_rules == @agent.stats_engine.metric_rules, "#{@agent.stats_engine.metric_rules} should not be equal to\n#{old_rules}"
       end
 
       def test_connect_settings

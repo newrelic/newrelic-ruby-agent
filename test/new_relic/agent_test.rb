@@ -13,6 +13,7 @@ module NewRelic
     include NewRelic::Agent::MethodTracer
 
     def setup
+      NewRelic::Agent.drop_buffered_data
       NewRelic::Agent.manual_start
       NewRelic::Agent.reset_config
       NewRelic::Agent.instance.stubs(:start_worker_thread)
@@ -332,7 +333,7 @@ module NewRelic
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('new_name')
       end
-      assert_equal 'Controller/new_name', sampler.last_sample.params[:path]
+      assert_equal 'Controller/new_name', sampler.last_sample.transaction_name
     end
 
     def test_set_transaction_name_gracefully_fails_when_frozen
@@ -395,12 +396,13 @@ module NewRelic
       assert called
     end
 
-    # The assumption is that txn.ignore! works as expected, and is tested elsewhere.
     def test_ignore_transaction_works
       in_transaction do |txn|
         NewRelic::Agent.ignore_transaction
         assert txn.ignore?
       end
+
+      assert_empty NewRelic::Agent.instance.transaction_sampler.harvest!
     end
 
     # The assumption is that txn.ignore_apdex! works as expected, and is tested elsewhere.
@@ -417,6 +419,21 @@ module NewRelic
         NewRelic::Agent.ignore_enduser
         assert txn.ignore_enduser?
       end
+    end
+
+    def test_add_custom_parameters_deprecated
+      NewRelic::Agent::Deprecator.expects(:deprecate)
+      NewRelic::Agent.add_custom_parameters(:is => "bunk")
+    end
+
+    def test_add_request_parameters_deprecated
+      NewRelic::Agent::Deprecator.expects(:deprecate)
+      NewRelic::Agent.add_request_parameters(:is => "bunk")
+    end
+
+    def test_set_user_attributes_deprecated
+      NewRelic::Agent::Deprecator.expects(:deprecate)
+      NewRelic::Agent.set_user_attributes(:is => "bunk")
     end
 
     private

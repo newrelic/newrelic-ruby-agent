@@ -46,6 +46,14 @@ class CrossApplicationTracingTest < Minitest::Test
     assert_nil last_response.headers["X-NewRelic-App-Data"]
   end
 
+  def test_cross_app_error_attaches_process_id_to_intrinsics
+    assert_raises(RuntimeError) do
+      get '/', {'fail' => 'true'}, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')}
+    end
+
+    assert_includes attributes_for(last_traced_error, :intrinsic), :client_cross_process_id
+  end
+
   load_cross_agent_test("cat_map").each do |test_case|
     # We only can do test cases here that don't involve outgoing calls
     if !test_case["outboundRequests"]

@@ -1,8 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-
-require 'rack'
 require 'rack/request'
 require 'rack/response'
 require 'rack/file'
@@ -13,14 +11,7 @@ require 'new_relic/metric_parser/metric_parser'
 require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/instrumentation/middleware_proxy'
 
-require 'new_relic/transaction_sample'
-require 'new_relic/transaction_analysis'
-
 module NewRelic
-  class TransactionSample
-    include TransactionAnalysis
-  end
-
   module Rack
     # This middleware provides the 'developer mode' feature of newrelic_rpm,
     # which allows you to see data about local web transactions in development
@@ -41,6 +32,7 @@ module NewRelic
       VIEW_PATH   = File.expand_path('../../../../ui/views/'  , __FILE__)
       HELPER_PATH = File.expand_path('../../../../ui/helpers/', __FILE__)
       require File.join(HELPER_PATH, 'developer_mode_helper.rb')
+      require 'new_relic/rack/developer_mode/segment_summary'
 
       include NewRelic::DeveloperModeHelper
 
@@ -213,8 +205,8 @@ module NewRelic
 
         return render(:sample_not_found) unless @sample
 
-        @request_params = @sample.params['request_params'] || {}
-        @custom_params = @sample.params['custom_params'] || {}
+        @request_params = request_attributes_for(@sample)
+        @custom_params = custom_attributes_for(@sample)
 
         controller_metric = @sample.transaction_name
 
@@ -222,7 +214,7 @@ module NewRelic
         @sample_controller_name = metric_parser.controller_name
         @sample_action_name = metric_parser.action_name
 
-        @sql_segments = @sample.sql_segments
+        @sql_segments = sql_segments(@sample)
         if params['d']
           @sql_segments.sort!{|a,b| b.duration <=> a.duration }
         end
@@ -235,7 +227,7 @@ module NewRelic
 
       def get_samples
         @samples = NewRelic::Agent.instance.transaction_sampler.dev_mode_sample_buffer.samples.select do |sample|
-          sample.params[:path] != nil
+          sample.transaction_name != nil
         end
 
         return @samples = @samples.sort_by(&:duration).reverse                   if params['h']
@@ -260,8 +252,70 @@ module NewRelic
         return unless @sample
 
         segment_id = params['segment'].to_i
-        @segment = @sample.find_segment(segment_id)
+        @segment = @sample.root_node.find_node(segment_id)
       end
+
+      def custom_attributes_for(sample)
+        sample.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_DEVELOPER_MODE)
+      end
+
+      REQUEST_PARAMETERS_PREFIX = "request.parameters".freeze
+
+      def request_attributes_for(sample)
+        agent_attributes = sample.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_DEVELOPER_MODE)
+        agent_attributes.inject({}) do |memo, (key, value)|
+          memo[key] = value if key.to_s.start_with?(REQUEST_PARAMETERS_PREFIX)
+          memo
+        end
+      end
+
+      def breakdown_data(sample, limit = nil)
+        metric_hash = {}
+        sample.each_node_with_nest_tracking do |node|
+          unless node == sample.root_node
+            metric_name = node.metric_name
+            metric_hash[metric_name] ||= SegmentSummary.new(metric_name, sample)
+            metric_hash[metric_name] << node
+            metric_hash[metric_name]
+          end
+        end
+
+        data = metric_hash.values
+
+        data.sort! do |x,y|
+          y.exclusive_time <=> x.exclusive_time
+        end
+
+        if limit && data.length > limit
+          data = data[0..limit - 1]
+        end
+
+        # add one last node for the remaining time if any
+        remainder = sample.duration
+        data.each do |node|
+          remainder -= node.exclusive_time
+        end
+
+        if (remainder*1000).round > 0
+          remainder_summary = SegmentSummary.new('Remainder', sample)
+          remainder_summary.total_time = remainder_summary.exclusive_time = remainder
+          remainder_summary.call_count = 1
+          data << remainder_summary
+        end
+
+        data
+      end
+
+      # return an array of sql statements executed by this transaction
+      # each element in the array contains [sql, parent_segment_metric_name, duration]
+      def sql_segments(sample, show_non_sql_segments = true)
+        segments = []
+        sample.each_node do |segment|
+          segments << segment if segment[:sql] || segment[:sql_obfuscated] || (show_non_sql_segments && segment[:key])
+        end
+        segments
+      end
+
     end
   end
 end

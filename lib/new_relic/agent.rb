@@ -76,8 +76,6 @@ module NewRelic
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
     require 'new_relic/collection_helper'
-    require 'new_relic/transaction_sample'
-    require 'new_relic/url_rule'
     require 'new_relic/noticed_error'
     require 'new_relic/timer_lib'
 
@@ -469,7 +467,7 @@ module NewRelic
     #
     # If you want to be able to tie the information recorded via this call back
     # to the web request or background job that it happened in, you may want to
-    # instead use the add_custom_parameters API call to attach attributes to
+    # instead use the add_custom_attributes API call to attach attributes to
     # the Transaction event that will automatically be generated for the
     # request.
     #
@@ -530,18 +528,15 @@ module NewRelic
       end
     end
 
-    # Record the given error.  It will be passed through the
-    # #ignore_error_filter if there is one.
+    # Notice the error with the given available options:
     #
-    # * <tt>exception</tt> is the exception which will be recorded.  May also be
-    #   an error message.
-    # Options:
-    # * <tt>:uri</tt> => The request path, minus any request params or query string.
-    # * <tt>:referer</tt> => The URI of the referer
+    # * <tt>:uri</tt> => Request path, minus request params or query string
     # * <tt>:metric</tt> => The metric name associated with the transaction
-    # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
     # * <tt>:custom_params</tt> => Custom parameters
     #
+    # Previous versions of the agent allowed passing :request_params but
+    # those are now ignored. Associate the request with the enclosing
+    # transaction, or record additional information as custom attributes.
     # Anything left over is treated as custom params.
     #
     # @api public
@@ -555,26 +550,44 @@ module NewRelic
     # any traced errors recorded for the current transaction.
     #
     # If Browser Monitoring is enabled, and the
-    # browser_monitoring.capture_attributes configuration setting is enabled,
+    # browser_monitoring.attributes.enabled configuration setting is true,
     # these custom parameters will also be present in the RUM script injected
-    # into the response body, making them available on Insights PageView events.
+    # into the response body, making them available on Insights PageView
+    # events.
     #
     # @api public
     #
-    def add_custom_parameters(params) #THREAD_LOCAL_ACCESS
+    def add_custom_attributes(params) #THREAD_LOCAL_ACCESS
       if params.is_a? Hash
         txn = Transaction.tl_current
-        txn.add_custom_parameters(params) if txn
+        txn.add_custom_attributes(params) if txn
       else
-        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_parameters. Expected Hash but got #{params.class}")
+        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
       end
     end
 
-    # @deprecated
-    alias add_request_parameters add_custom_parameters
+    ADD_CUSTOM_ATTRIBUTES  = "NewRelic::Agent.add_custom_attributes".freeze
+    ADD_CUSTOM_PARAMETERS  = "NewRelic::Agent.add_custom_parameters".freeze
+    ADD_REQUEST_PARAMETERS = "NewRelic::Agent.add_request_parameters".freeze
+    SET_USER_ATTRIBUTES    = "NewRelic::Agent.set_user_attributes".freeze
 
     # @deprecated
-    alias set_user_attributes add_custom_parameters
+    def add_custom_parameters(*args)
+      NewRelic::Agent::Deprecator.deprecate(ADD_CUSTOM_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
+      add_custom_attributes(*args)
+    end
+
+    # @deprecated
+    def add_request_parameters(*args)
+      NewRelic::Agent::Deprecator.deprecate(ADD_REQUEST_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
+      add_custom_attributes(*args)
+    end
+
+    # @deprecated
+    def set_user_attributes(*args)
+      NewRelic::Agent::Deprecator.deprecate(SET_USER_ATTRIBUTES, ADD_CUSTOM_ATTRIBUTES)
+      add_custom_attributes(*args)
+    end
 
     # Set the name of the current running transaction.  The agent will
     # apply a reasonable default based on framework routing, but in
@@ -625,7 +638,7 @@ module NewRelic
     # @param [String] method the name of the finder method or other method to
     # identify the operation with.
     #
-    def with_database_metric_name(model, method, &block) #THREAD_LOCAL_ACCESS
+    def with_database_metric_name(model, method = nil, &block) #THREAD_LOCAL_ACCESS
       if txn = Transaction.tl_current
         txn.with_database_metric_name(model, method, &block)
       else

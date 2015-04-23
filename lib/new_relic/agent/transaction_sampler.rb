@@ -6,7 +6,6 @@ require 'new_relic/agent'
 require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/developer_mode_sample_buffer'
-require 'new_relic/agent/transaction/force_persist_sample_buffer'
 require 'new_relic/agent/transaction/slowest_sample_buffer'
 require 'new_relic/agent/transaction/synthetics_sample_buffer'
 require 'new_relic/agent/transaction/xray_sample_buffer'
@@ -43,7 +42,6 @@ module NewRelic
         @sample_buffers << @xray_sample_buffer
         @sample_buffers << NewRelic::Agent::Transaction::SlowestSampleBuffer.new
         @sample_buffers << NewRelic::Agent::Transaction::SyntheticsSampleBuffer.new
-        @sample_buffers << NewRelic::Agent::Transaction::ForcePersistSampleBuffer.new
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
@@ -70,28 +68,27 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
 
-      def on_start_transaction(state, start_time, uri=nil)
+      def on_start_transaction(state, start_time)
         if enabled?
           start_builder(state, start_time.to_f)
           builder = state.transaction_sample_builder
-          builder.set_transaction_uri(uri) if builder
         end
       end
 
-      # This delegates to the builder to create a new open transaction segment
+      # This delegates to the builder to create a new open transaction node
       # for the frame, beginning at the optionally specified time.
       #
       # Note that in developer mode, this captures a stacktrace for
-      # the beginning of each segment, which can be fairly slow
+      # the beginning of each node, which can be fairly slow
       def notice_push_frame(state, time=Time.now)
         builder = state.transaction_sample_builder
         return unless builder
 
-        segment = builder.trace_entry(time.to_f)
+        node = builder.trace_entry(time.to_f)
         if @dev_mode_sample_buffer
-          @dev_mode_sample_buffer.visit_segment(segment)
+          @dev_mode_sample_buffer.visit_node(node)
         end
-        segment
+        node
       end
 
       # Informs the transaction sample builder about the end of a traced frame
@@ -102,14 +99,6 @@ module NewRelic
         builder.trace_exit(frame, time.to_f)
       end
 
-      def custom_parameters_from_transaction(txn)
-        if Agent.config[:'transaction_tracer.capture_attributes']
-          txn.custom_parameters
-        else
-          {}
-        end
-      end
-
       # This is called when we are done with the transaction.  We've
       # unwound the stack to the top level. It also clears the
       # transaction sample builder so that it won't continue to have
@@ -117,33 +106,20 @@ module NewRelic
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def on_finishing_transaction(state, txn, time=Time.now, gc_time=nil)
+      def on_finishing_transaction(state, txn, time=Time.now)
         last_builder = state.transaction_sample_builder
         return unless last_builder && enabled?
 
         state.transaction_sample_builder = nil
-        return if last_builder.ignored?
+        return if txn.ignore_trace?
 
-        last_builder.set_request_params(txn.filtered_params)
-        last_builder.set_transaction_name(txn.best_name)
-        last_builder.finish_trace(time.to_f, custom_parameters_from_transaction(txn))
+        last_builder.finish_trace(time.to_f)
 
         last_sample = last_builder.sample
+        last_sample.transaction_name = txn.best_name
+        last_sample.uri = txn.request_path
         last_sample.guid = txn.guid
-        last_sample.set_custom_param(:gc_time, gc_time) if gc_time
-
-        if state.is_cross_app?
-          last_sample.set_custom_param(:'nr.trip_id', txn.cat_trip_id(state))
-          last_sample.set_custom_param(:'nr.path_hash', txn.cat_path_hash(state))
-        end
-
-        if txn.is_synthetics_request?
-          last_sample.set_custom_param(:'nr.synthetics_resource_id', txn.synthetics_resource_id)
-          last_sample.set_custom_param(:'nr.synthetics_job_id', txn.synthetics_job_id)
-          last_sample.set_custom_param(:'nr.synthetics_monitor_id', txn.synthetics_monitor_id)
-
-          last_sample.synthetics_resource_id = txn.synthetics_resource_id
-        end
+        last_sample.attributes = txn.attributes
 
         @samples_lock.synchronize do
           @last_sample = last_sample
@@ -158,42 +134,27 @@ module NewRelic
         end
       end
 
-      # Tells the builder to ignore a transaction, if we are currently
-      # creating one. Only causes the sample to be ignored upon end of
-      # the transaction, and does not change the metrics gathered
-      # outside of the sampler
-      def ignore_transaction(state)
-        builder = state.transaction_sample_builder
-        builder.ignore_transaction if builder
-      end
-
-      # Sets the CPU time used by a transaction, delegates to the builder
-      def notice_transaction_cpu_time(state, cpu_time)
-        builder = state.transaction_sample_builder
-        builder.set_transaction_cpu_time(cpu_time) if builder
-      end
-
       MAX_DATA_LENGTH = 16384
       # This method is used to record metadata into the currently
-      # active segment like a sql query, memcache key, or Net::HTTP uri
+      # active node like a sql query, memcache key, or Net::HTTP uri
       #
       # duration is seconds, float value.
       def notice_extra_data(builder, message, duration, key)
         return unless builder
-        segment = builder.current_segment
-        if segment
+        node = builder.current_node
+        if node
           if key == :sql
-            sql = segment[:sql]
+            sql = node[:sql]
             if(sql && !sql.empty?)
               sql = self.class.truncate_message(sql << "\n#{message}") if sql.length <= MAX_DATA_LENGTH
             else
               # message is expected to have been pre-truncated by notice_sql
-              segment[:sql] = message
+              node[:sql] = message
             end
           else
-            segment[key] = self.class.truncate_message(message)
+            node[key] = self.class.truncate_message(message)
           end
-          append_backtrace(segment, duration)
+          append_backtrace(node, duration)
         end
       end
 
@@ -211,15 +172,15 @@ module NewRelic
         end
       end
 
-      # Appends a backtrace to a segment if that segment took longer
+      # Appends a backtrace to a node if that node took longer
       # than the specified duration
-      def append_backtrace(segment, duration)
+      def append_backtrace(node, duration)
         if duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
-          segment[:backtrace] = caller.join("\n")
+          node[:backtrace] = caller.join("\n")
         end
       end
 
-      # Attaches an SQL query on the current transaction trace segment.
+      # Attaches an SQL query on the current transaction trace node.
       #
       # This method should be used only by gem authors wishing to extend
       # the Ruby agent to instrument new database interfaces - it should
@@ -256,7 +217,7 @@ module NewRelic
       end
 
       # Attaches an additional non-SQL query parameter to the current
-      # transaction trace segment.
+      # transaction trace node.
       #
       # This may be used for recording a query against a key-value store like
       # memcached or redis.
@@ -280,11 +241,11 @@ module NewRelic
         notice_extra_data(builder, statement, duration, :statement)
       end
 
-      # Set parameters on the current segment.
-      def add_segment_parameters(params) #THREAD_LOCAL_ACCESS
+      # Set parameters on the current node.
+      def add_node_parameters(params) #THREAD_LOCAL_ACCESS
         builder = tl_builder
         return unless builder
-        params.each { |k,v| builder.current_segment[k] = v }
+        params.each { |k,v| builder.current_node[k] = v }
       end
 
       # Gather transaction traces that we'd like to transmit to the server.

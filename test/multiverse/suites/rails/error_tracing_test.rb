@@ -61,7 +61,7 @@ class ErrorController < ApplicationController
   end
 
   def error_with_custom_params
-    NewRelic::Agent.add_custom_parameters(:texture => 'chunky')
+    NewRelic::Agent.add_custom_attributes(:texture => 'chunky')
     raise 'bad things'
   end
 
@@ -113,16 +113,17 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
 
     def test_should_capture_request_uri_and_params
       get '/error/controller_error?eat=static'
-      assert_equal('/error/controller_error', last_error.params[:request_uri])
+      assert_equal('/error/controller_error', attributes_for_single_error_posted("request_uri"))
 
-      expected_params = { 'eat' => 'static' }
+      expected_params = {
+        'request.parameters.eat' => 'static',
+        'httpResponseCode' => 500
+      }
 
-      if Rails::VERSION::MAJOR == 3
-        expected_params['action']     = 'controller_error'
-        expected_params['controller'] = 'error'
+      attributes = agent_attributes_for_single_error_posted
+      expected_params.each do |key, value|
+        assert_equal value, attributes[key]
       end
-
-      assert_equal(expected_params, last_error.params[:request_params])
     end
   end
 
@@ -181,16 +182,16 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
 
   def test_should_apply_parameter_filtering
     get '/error/controller_error?secret=shouldnotbecaptured&other=whatever'
-    params = last_error.params[:request_params]
-    assert_equal('[FILTERED]', params['secret'])
-    assert_equal('whatever', params['other'])
+    attributes = agent_attributes_for_single_error_posted
+    assert_equal('[FILTERED]', attributes['request.parameters.secret'])
+    assert_equal('whatever', attributes['request.parameters.other'])
   end
 
   def test_should_apply_parameter_filtering_for_non_standard_errors
     get '/error/exception_error?secret=shouldnotbecaptured&other=whatever'
-    params = last_error.params[:request_params]
-    assert_equal('[FILTERED]', params['secret'])
-    assert_equal('whatever', params['other'])
+    attributes = agent_attributes_for_single_error_posted
+    assert_equal('[FILTERED]', attributes['request.parameters.secret'])
+    assert_equal('whatever', attributes['request.parameters.other'])
   end
 
   def test_should_not_notice_errors_from_ignored_action
@@ -231,28 +232,47 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
     assert_error_reported_once('this is a server ignored error')
   end
 
-  # These really shouldn't be skipped for Rails 4, see RUBY-1242
-  if ::Rails::VERSION::MAJOR.to_i < 4
-    def test_captured_errors_should_include_custom_params
+  def test_captured_errors_should_include_custom_params
+    with_config(:'error_collector.attributes.enabled' => true) do
       get '/error/error_with_custom_params'
       assert_error_reported_once('bad things')
-      error = errors_with_message('bad things').first
-      custom_params = error.params[:custom_params]
-      assert_equal({:texture => 'chunky'}, custom_params)
-    end
 
-    def test_captured_errors_should_not_include_custom_params_if_config_says_no
-      with_config(:'error_collector.capture_attributes' => false) do
-        get '/error/error_with_custom_params'
-      end
-      assert_error_reported_once('bad things')
-      error = errors_with_message('bad things').first
-      custom_params = error.params[:custom_params]
-      assert_equal({}, custom_params)
+      attributes = user_attributes_for_single_error_posted
+      assert_equal({'texture' => 'chunky'}, attributes)
     end
   end
 
- protected
+  def test_captured_errors_should_include_custom_params_with_legacy_setting
+    with_config(:'error_collector.capture_attributes' => true) do
+      get '/error/error_with_custom_params'
+      assert_error_reported_once('bad things')
+
+      attributes = user_attributes_for_single_error_posted
+      assert_equal({'texture' => 'chunky'}, attributes)
+    end
+  end
+
+  def test_captured_errors_should_not_include_custom_params_if_config_says_no
+    with_config(:'error_collector.attributes.enabled' => false) do
+      get '/error/error_with_custom_params'
+      assert_error_reported_once('bad things')
+
+      attributes = user_attributes_for_single_error_posted
+      assert_empty attributes
+    end
+  end
+
+  def test_captured_errors_should_not_include_custom_params_if_legacy_setting_says_no
+    with_config(:'error_collector.capture_attributes' => false) do
+      get '/error/error_with_custom_params'
+      assert_error_reported_once('bad things')
+
+      attributes = user_attributes_for_single_error_posted
+      assert_empty attributes
+    end
+  end
+
+  protected
 
   def errors_with_message(message)
     @error_collector.errors.select{|error| error.message == message}
