@@ -676,7 +676,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_user_attributes_alias_to_custom_parameters
     in_transaction('user_attributes') do |txn|
       txn.set_user_attributes(:set_instance => :set_instance)
-      assert_has_custom_attribute(txn, :set_instance)
+      assert_has_custom_attribute(txn, "set_instance")
     end
   end
 
@@ -1242,7 +1242,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_transaction do |txn|
         NewRelic::Agent.add_custom_attributes(:foo => "bar")
         actual = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
-        assert_equal({:foo => "bar"}, actual)
+        assert_equal({"foo" => "bar"}, actual)
       end
     end
   end

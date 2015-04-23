@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/attribute_processing'
+
 module NewRelic
   module Agent
     class Transaction
@@ -25,12 +27,6 @@ module NewRelic
           @agent_destinations = {}
         end
 
-        def merge_custom_attributes(other)
-          other.each do |key, value|
-            add_custom_attribute(key, value)
-          end
-        end
-
         def add_agent_attribute(key, value, default_destinations)
           destinations = @filter.apply(key, default_destinations)
           return if destinations == AttributeFilter::DST_NONE
@@ -52,12 +48,19 @@ module NewRelic
           add(@intrinsic_attributes, key, value)
         end
 
-        def merge_untrusted_agent_attributes(prefix, attributes, default_destinations)
+        def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
           return if @filter.high_security?
           return if !@filter.might_allow_prefix?(prefix)
 
-          flatten_and_coerce(prefix, attributes).each do |k, v|
+          AttributeProcessing.flatten_and_coerce(attributes, prefix) do |k, v|
             add_agent_attribute_with_key_check(k, v, AttributeFilter::DST_NONE)
+          end
+        end
+
+        def merge_custom_attributes(other)
+          return if other.empty?
+          AttributeProcessing.flatten_and_coerce(other) do |k, v|
+            add_custom_attribute(k, v)
           end
         end
 
@@ -150,23 +153,6 @@ module NewRelic
           end
 
           result.chop!
-          result
-        end
-
-        def flatten_and_coerce(prefix, params, result = {})
-          case params
-          when Hash
-            params.each do |key, val|
-              normalized_key = EncodingNormalizer.normalize_string(key.to_s)
-              flatten_and_coerce("#{prefix}.#{normalized_key}", val, result)
-            end
-          when Array
-            params.each_with_index do |val, idx|
-              flatten_and_coerce("#{prefix}.#{idx}", val, result)
-            end
-          else
-            result[prefix] = Coerce::scalar(params)
-          end
           result
         end
       end

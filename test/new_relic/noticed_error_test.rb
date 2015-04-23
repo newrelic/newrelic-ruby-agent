@@ -66,7 +66,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     error = create_error(e)
 
     actual = extract_attributes(error)
-    assert_equal({"agent" => "attribute"}, actual["agentAttributes"])
+    assert_equal({:agent => "attribute"}, actual["agentAttributes"])
   end
 
   def test_to_collector_array_includes_intrinsic_attributes
@@ -75,7 +75,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     error = create_error(e)
 
     actual = extract_attributes(error)
-    assert_equal({"intrinsic" => "attribute"}, actual["intrinsics"])
+    assert_equal({:intrinsic => "attribute"}, actual["intrinsics"])
   end
 
   def test_to_collector_array_happy_without_attribute_collections
@@ -181,7 +181,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       error.attributes = attributes
 
       serialized_attributes = extract_attributes(error)
-      assert_equal({ "intrinsic" => "attribute" }, serialized_attributes["intrinsics"])
+      assert_equal({ :intrinsic => "attribute" }, serialized_attributes["intrinsics"])
     end
   end
 

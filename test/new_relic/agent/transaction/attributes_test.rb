@@ -21,7 +21,7 @@ class AttributesTest < Minitest::Test
     attributes = create_attributes
     attributes.merge_custom_attributes(:foo => "bar")
 
-    assert_equal({:foo => "bar"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
+    assert_equal({"foo" => "bar"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
   end
 
   def test_disable_custom_attributes
@@ -49,6 +49,13 @@ class AttributesTest < Minitest::Test
 
       assert_empty attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     end
+  end
+
+  def test_merge_custom_attributes
+      attributes = create_attributes
+      params = {:foo => {:bar => "baz"}}
+      attributes.merge_custom_attributes(params)
+      assert_equal({"foo.bar" => "baz"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
   end
 
   def test_adds_agent_attribute
@@ -110,7 +117,7 @@ class AttributesTest < Minitest::Test
     attributes.merge_custom_attributes(:key => value)
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-    result = custom_attributes[:key]
+    result = custom_attributes["key"]
     if RUBY_VERSION >= "1.9.3"
       assert result.valid_encoding?
       assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
@@ -127,7 +134,7 @@ class AttributesTest < Minitest::Test
     attributes.merge_custom_attributes(:key => value)
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-    result = custom_attributes[:key]
+    result = custom_attributes["key"]
     if RUBY_VERSION >= "1.9.3"
       assert result.valid_encoding?
       assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
@@ -180,7 +187,7 @@ class AttributesTest < Minitest::Test
     attributes = create_attributes
     attributes.merge_custom_attributes(1 => "value")
 
-    assert_equal "value", custom_attributes(attributes)[1]
+    assert_equal "value", custom_attributes(attributes)["1"]
   end
 
   def test_truncates_string_values
@@ -189,7 +196,7 @@ class AttributesTest < Minitest::Test
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => value)
 
-    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)[:key].length
+    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)["key"].length
   end
 
   def test_truncates_symbol_values
@@ -198,14 +205,14 @@ class AttributesTest < Minitest::Test
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => value)
 
-    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)[:key].length
+    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)["key"].length
   end
 
   def test_leaves_numbers_alone
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => 42)
 
-    assert_equal 42, custom_attributes(attributes)[:key]
+    assert_equal 42, custom_attributes(attributes)["key"]
   end
 
   def test_limits_attribute_count
@@ -223,57 +230,9 @@ class AttributesTest < Minitest::Test
     with_config(:'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
       params = {:foo => {:bar => "baz"}}
-      attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
+      attributes.merge_untrusted_agent_attributes(params, 'request.parameters', AttributeFilter::DST_NONE)
       assert_equal({"request.parameters.foo.bar" => "baz"}, agent_attributes(attributes))
     end
-  end
-
-  def test_flatten_and_coerce_handles_nested_hashes
-    params = {"user" =>
-      {"addresses" =>
-        [
-          {"street" => "123 Street", "city" => "City", "state" => "ST", "zip" => "12345"},
-          {"street" => "123 Blvd", "city" => "City2", "state" => "ST2", "zip" => "54321"}
-        ]
-      }
-    }
-
-    expected = {
-      "request.parameters.user.addresses.0.street" => "123 Street",
-      "request.parameters.user.addresses.0.city"   => "City",
-      "request.parameters.user.addresses.0.state"  => "ST",
-      "request.parameters.user.addresses.0.zip"    => "12345",
-      "request.parameters.user.addresses.1.street" => "123 Blvd",
-      "request.parameters.user.addresses.1.city"   => "City2",
-      "request.parameters.user.addresses.1.state"  => "ST2",
-      "request.parameters.user.addresses.1.zip"    => "54321"
-    }
-
-    attributes = create_attributes
-
-    actual = attributes.send(:flatten_and_coerce, 'request.parameters', params)
-
-    assert_equal(expected, actual)
-  end
-
-  def test_flatten_and_coerce_coerces_values
-    params = {
-      "v1" => Class.new,
-      "v2" => :symbol,
-      "v3" => 1.01
-    }
-
-    expected = {
-      "request.parameters.v1" => "#<Class>",
-      "request.parameters.v2" => "symbol",
-      "request.parameters.v3" => 1.01
-    }
-
-    attributes = create_attributes
-
-    actual = attributes.send(:flatten_and_coerce, 'request.parameters', params)
-
-    assert_equal(expected, actual)
   end
 
   def test_merge_untrusted_agent_attributes_drops_long_keys
@@ -283,7 +242,7 @@ class AttributesTest < Minitest::Test
         "a"*256 => "too long",
         "foo" => "bar"
       }
-      attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
+      attributes.merge_untrusted_agent_attributes(params, 'request.parameters', AttributeFilter::DST_NONE)
       assert_equal({"request.parameters.foo" => "bar"}, agent_attributes(attributes))
     end
   end

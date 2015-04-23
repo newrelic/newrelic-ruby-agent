@@ -182,7 +182,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     refute_nil(error.stack_trace)
 
     result = error.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
-    refute_nil(result[:custom_one])
+    refute_nil(result["custom_one"])
   end
 
   def test_instrument_background_job

@@ -44,27 +44,6 @@ module NewRelic
       ""
     end
 
-    # Convert a hash into a format acceptable to be included with Transaction
-    # event data.
-    #
-    # We accept a hash and will return a new hash where all of the keys
-    # have been converted to strings.  As values we only allow Strings,
-    # Floats, Integers. Symbols are also allowed but are converted to strings.
-    # Any values of other type (e.g. Hash, Array, any other class) are
-    # discarded. Their keys are also removed from the results hash.
-    def event_params(value, context=nil)
-      unless value.is_a? Hash
-        raise ArgumentError, "Expected Hash but got #{value.class}"
-      end
-      value.inject({}) do |memo, (key, val)|
-        memo[key.to_s] = scalar(val)
-        memo
-      end
-    rescue => error
-      log_failure(value.class, 'valid event params', context, error)
-      {}
-    end
-
     def scalar(val)
       case val
       when String, Integer, TrueClass, FalseClass

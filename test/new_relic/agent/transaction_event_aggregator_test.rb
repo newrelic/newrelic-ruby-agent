@@ -63,8 +63,8 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       generate_request('puce')
 
       result = captured_transaction_event[AGENT_ATTRIBUTES_INDEX]
-      assert_equal 7, result['yahoo']
-      assert_equal 2, result['4']
+      assert_equal 7, result[:yahoo]
+      assert_equal 2, result[4]
     end
   end
 

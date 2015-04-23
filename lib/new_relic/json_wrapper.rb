@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/encoding_normalizer'
+require 'new_relic/agent/hash_extensions'
 
 module NewRelic
   class JSONWrapper
@@ -57,6 +58,8 @@ module NewRelic
 
     def self.dump(object, options={})
       object = normalize(object) if options[:normalize]
+      # okjson doesn't handle symbol keys, so we must stringify them before encoding
+      object = Agent::HashExtensions.stringify_keys_in_object(object) if backend_name == :okjson
       @dump_method.call(object)
     end
 

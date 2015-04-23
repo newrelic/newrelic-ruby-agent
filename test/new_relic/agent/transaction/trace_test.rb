@@ -354,9 +354,9 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @fake_attributes.merge_custom_attributes(:foo => 'bar')
 
     expected = {
-      'agentAttributes' => { 'foo' => 'bar' },
-      'userAttributes'  => { 'foo' => 'bar' },
-      'intrinsics'      => { 'foo' => 'bar' }
+      'agentAttributes' => { :foo => 'bar' },
+      'userAttributes'  => { "foo" => 'bar' },
+      'intrinsics'      => { :foo => 'bar' }
     }
 
     assert_trace_tree_contains(:attributes, expected)

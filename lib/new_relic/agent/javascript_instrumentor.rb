@@ -176,14 +176,14 @@ module NewRelic
       def append_custom_attributes!(txn, atts)
         custom_attributes = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
         unless custom_attributes.empty?
-          atts[ATTS_USER_SUBKEY] = event_params(custom_attributes)
+          atts[ATTS_USER_SUBKEY] = custom_attributes
         end
       end
 
       def append_agent_attributes!(txn, atts)
         agent_attributes = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
         unless agent_attributes.empty?
-          atts[ATTS_AGENT_SUBKEY] = event_params(agent_attributes)
+          atts[ATTS_AGENT_SUBKEY] = agent_attributes
         end
       end
 
