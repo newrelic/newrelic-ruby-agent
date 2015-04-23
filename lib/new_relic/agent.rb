@@ -5,64 +5,19 @@
 require 'forwardable'
 require 'new_relic/control'
 
-# = New Relic Ruby Agent
-#
-# New Relic is a performance monitoring application for applications
-# running in production.  For more information on New Relic please visit
-# http://www.newrelic.com.
-#
-# The New Relic Ruby Agent can be installed in Rails applications to
-# gather runtime performance metrics, traces, and errors for display
-# in a Developer Mode middleware (mapped to /newrelic in your application
-# server) or for monitoring and analysis at http://rpm.newrelic.com
-# with just about any Ruby application.
-#
-# == Getting Started
-# For instructions on installation and setup, see
-# the README[link:./files/README_rdoc.html] file.
-#
-# == Using with Rack/Metal
-#
-# To instrument Rack middlewares or Metal apps, refer to the docs in
-# NewRelic::Agent::Instrumentation::Rack.
-#
-# == Ruby Agent API
-#
-# For details on the Ruby Agent API, refer to NewRelic::Agent.
-#
-# == Customizing the Ruby Agent
-#
-# For detailed information on customizing the Ruby Agent
-# please visit our {support and documentation site}[http://support.newrelic.com].
-#
 # @api public
-#
 module NewRelic
-  # == Ruby Agent APIs
-  # This module contains the public API methods for the Ruby Agent.
+  # This module contains most of the public API methods for the Ruby Agent.
   #
-  # For adding custom instrumentation to method invocations, refer to
-  # the docs in the class NewRelic::Agent::MethodTracer.
+  # For adding custom instrumentation to method invocations, see
+  # the docs for {NewRelic::Agent::MethodTracer} and
+  # {NewRelic::Agent::MethodTracer::ClassMethods}.
   #
-  # For information on how to customize the controller
-  # instrumentation, or to instrument something other than Rails so
-  # that high level dispatcher actions or background tasks show up as
-  # first class operations in New Relic, refer to
-  # NewRelic::Agent::Instrumentation::ControllerInstrumentation and
-  # NewRelic::Agent::Instrumentation::ControllerInstrumentation::ClassMethods.
+  # For information on how to trace transactions in non-Rack contexts,
+  # see {NewRelic::Agent::Instrumentation::ControllerInstrumentation}.
   #
-  # Methods in this module as well as documented methods in
-  # NewRelic::Agent::MethodTracer and
-  # NewRelic::Agent::Instrumentation::ControllerInstrumentation are
-  # available to applications.  When the agent is not enabled the
-  # method implementations are stubbed into no-ops to reduce overhead.
-  #
-  # Methods and classes in other parts of the agent are not guaranteed
-  # to be available between releases.
-  #
-  # Refer to the online docs at support.newrelic.com to see how to
-  # access the data collected by custom instrumentation, or e-mail
-  # support at New Relic for help.
+  # For general documentation about the Ruby agent, see:
+  # https://docs.newrelic.com/docs/agents/ruby-agent
   #
   # @api public
   #
@@ -183,6 +138,8 @@ module NewRelic
       @config.reset_to_defaults
     end
 
+    # @!group Recording custom metrics
+
     # Record a value for the given metric name.
     #
     # This method should be used to record event-based metrics such as method
@@ -228,26 +185,85 @@ module NewRelic
       end
     end
 
-    # Get or create a statistics gatherer that will aggregate numerical data
-    # under a metric name.
+    # @!endgroup
+
+    # @!group Recording custom errors
+
+    # Set a filter to be applied to errors that the Ruby Agent will
+    # track.  The block should evalute to the exception to track
+    # (which could be different from the original exception) or nil to
+    # ignore this exception.
     #
-    # +metric_name+ should follow a slash separated path convention. Application
-    # specific metrics should begin with "Custom/".
+    # The block is yielded to with the exception to filter.
     #
-    # Return a NewRelic::Agent::Stats that accepts data
-    # via calls to add_data_point(value).
-    #
-    # This method is deprecated in favor of record_metric and increment_metric,
-    # and is not thread-safe.
+    # Return the new block or the existing filter Proc if no block is passed.
     #
     # @api public
-    # @deprecated
     #
-    def get_stats(metric_name, use_scope=false)
-      agent.stats_engine.get_stats(metric_name, use_scope)
+    def ignore_error_filter(&block)
+      if block
+        NewRelic::Agent::ErrorCollector.ignore_error_filter = block
+      else
+        NewRelic::Agent::ErrorCollector.ignore_error_filter
+      end
     end
 
-    alias get_stats_no_scope get_stats
+    # Notice the error with the given available options:
+    #
+    # * <tt>:uri</tt> => Request path, minus request params or query string
+    # * <tt>:metric</tt> => The metric name associated with the transaction
+    # * <tt>:custom_params</tt> => Custom parameters
+    #
+    # Previous versions of the agent allowed passing :request_params but
+    # those are now ignored. Associate the request with the enclosing
+    # transaction, or record additional information as custom attributes.
+    # Anything left over is treated as custom params.
+    #
+    # @api public
+    #
+    def notice_error(exception, options={})
+      Transaction.notice_error(exception, options)
+      nil # don't return a noticed error datastructure. it can only hurt.
+    end
+
+    # @!endgroup
+
+    # @!group Recording custom Insights events
+
+    # Record a custom event to be sent to New Relic Insights.
+    # The recorded event will be buffered in memory until the next time the
+    # agent sends data to New Relic's servers.
+    #
+    # If you want to be able to tie the information recorded via this call back
+    # to the web request or background job that it happened in, you may want to
+    # instead use the add_custom_attributes API call to attach attributes to
+    # the Transaction event that will automatically be generated for the
+    # request.
+    #
+    # A timestamp will be automatically added to the recorded event when this
+    # method is called.
+    #
+    # @param [Symbol or String] event_type The name of the event type to record. Event
+    #                           types must consist of only alphanumeric
+    #                           characters, '_', ':', or ' '.
+    #
+    # @param [Hash] event_attrs A Hash of attributes to be attached to the event.
+    #                           Keys should be strings or symbols, and values
+    #                           may be strings, symbols, numeric values or
+    #                           booleans.
+    #
+    # @api public
+    #
+    def record_custom_event(event_type, event_attrs)
+      if agent && NewRelic::Agent.config[:'custom_insights_events.enabled']
+        agent.custom_event_aggregator.record(event_type, event_attrs)
+      end
+      nil
+    end
+
+    # @!endgroup
+
+    # @!group Manual agent configuration and startup/shutdown
 
     # Call this to manually start the Agent in situations where the Agent does
     # not auto-start.
@@ -303,28 +319,6 @@ module NewRelic
       agent.after_fork(options)
     end
 
-    # Clear out any data the agent has buffered but has not yet transmitted
-    # to the collector.
-    #
-    # @api public
-    def drop_buffered_data
-      agent.drop_buffered_data
-    end
-
-    # Require agent testing helper methods
-    #
-    # @api public
-    def require_test_helper
-      path = File.join(__FILE__, '..', '..', '..', 'test', 'agent_helper')
-      require File.expand_path(path)
-    end
-
-    # Deprecated in favor of drop_buffered_data
-    #
-    # @api public
-    # @deprecated
-    def reset_stats; drop_buffered_data; end
-
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
     # and kills the background thread.
     #
@@ -332,6 +326,14 @@ module NewRelic
     #
     def shutdown(options={})
       agent.shutdown(options) if agent
+    end
+
+    # Clear out any data the agent has buffered but has not yet transmitted
+    # to the collector.
+    #
+    # @api public
+    def drop_buffered_data
+      agent.drop_buffered_data
     end
 
     # Add instrumentation files to the agent.  The argument should be
@@ -345,6 +347,14 @@ module NewRelic
     #
     def add_instrumentation(file_pattern)
       NewRelic::Control.instance.add_instrumentation file_pattern
+    end
+
+    # Require agent testing helper methods
+    #
+    # @api public
+    def require_test_helper
+      path = File.join(__FILE__, '..', '..', '..', 'test', 'agent_helper')
+      require File.expand_path(path)
     end
 
     # This method sets the block sent to this method as a sql
@@ -367,40 +377,9 @@ module NewRelic
       NewRelic::Agent::Database.set_sql_obfuscator(type, &block)
     end
 
+    # @!endgroup
 
-    # This method sets the state of sql recording in the transaction
-    # sampler feature. Within the given block, no sql will be recorded
-    #
-    # usage:
-    #
-    #   NewRelic::Agent.disable_sql_recording do
-    #     ...
-    #   end
-    #
-    # @api public
-    #
-    def disable_sql_recording
-      state = agent.set_record_sql(false)
-      begin
-        yield
-      ensure
-        agent.set_record_sql(state)
-      end
-    end
-
-    # This method disables the recording of transaction traces in the given
-    # block.  See also #disable_all_tracing
-    #
-    # @api public
-    #
-    def disable_transaction_tracing
-      state = agent.set_record_tt(false)
-      begin
-        yield
-      ensure
-        agent.set_record_tt(state)
-      end
-    end
+    # @!group Ignoring or excluding data
 
     # This method disables the recording of the current transaction. No metrics,
     # traced errors, transaction traces, Insights events, slow SQL traces,
@@ -433,20 +412,6 @@ module NewRelic
       txn.ignore_enduser! if txn
     end
 
-    # Cancel the collection of the current transaction in progress, if
-    # any.  Only affects the transaction started on this thread once
-    # it has started and before it has completed.
-    #
-    # This method has been deprecated in favor of ignore_transaction,
-    # which does what people expect this method to do.
-    #
-    # @api public
-    # @deprecated
-    #
-    def abort_transaction!
-      Transaction.abort_transaction!
-    end
-
     # Yield to the block without collecting any metrics or traces in
     # any of the subsequent calls.  If executed recursively, will keep
     # track of the first entry point and turn on tracing again after
@@ -461,36 +426,41 @@ module NewRelic
       agent.pop_trace_execution_flag
     end
 
-    # Record a custom event to be sent to New Relic Insights.
-    # The recorded event will be buffered in memory until the next time the
-    # agent sends data to New Relic's servers.
-    #
-    # If you want to be able to tie the information recorded via this call back
-    # to the web request or background job that it happened in, you may want to
-    # instead use the add_custom_attributes API call to attach attributes to
-    # the Transaction event that will automatically be generated for the
-    # request.
-    #
-    # A timestamp will be automatically added to the recorded event when this
-    # method is called.
-    #
-    # @param [Symbol or String] event_type The name of the event type to record. Event
-    #                           types must consist of only alphanumeric
-    #                           characters, '_', ':', or ' '.
-    #
-    # @param [Hash] event_attrs A Hash of attributes to be attached to the event.
-    #                           Keys should be strings or symbols, and values
-    #                           may be strings, symbols, numeric values or
-    #                           booleans.
+    # This method disables the recording of transaction traces in the given
+    # block.  See also #disable_all_tracing
     #
     # @api public
     #
-    def record_custom_event(event_type, event_attrs)
-      if agent && NewRelic::Agent.config[:'custom_insights_events.enabled']
-        agent.custom_event_aggregator.record(event_type, event_attrs)
+    def disable_transaction_tracing
+      state = agent.set_record_tt(false)
+      begin
+        yield
+      ensure
+        agent.set_record_tt(state)
       end
-      nil
     end
+
+    # This method sets the state of sql recording in the transaction
+    # sampler feature. Within the given block, no sql will be recorded
+    #
+    # usage:
+    #
+    #   NewRelic::Agent.disable_sql_recording do
+    #     ...
+    #   end
+    #
+    # @api public
+    #
+    def disable_sql_recording
+      state = agent.set_record_sql(false)
+      begin
+        yield
+      ensure
+        agent.set_record_sql(state)
+      end
+    end
+
+    # @!endgroup
 
     # Check to see if we are capturing metrics currently on this thread.
     def tl_is_execution_traced?
@@ -509,51 +479,15 @@ module NewRelic
       NewRelic::Agent::TransactionState.tl_get.is_sql_recorded?
     end
 
-    # Set a filter to be applied to errors that the Ruby Agent will
-    # track.  The block should evalute to the exception to track
-    # (which could be different from the original exception) or nil to
-    # ignore this exception.
-    #
-    # The block is yielded to with the exception to filter.
-    #
-    # Return the new block or the existing filter Proc if no block is passed.
-    #
-    # @api public
-    #
-    def ignore_error_filter(&block)
-      if block
-        NewRelic::Agent::ErrorCollector.ignore_error_filter = block
-      else
-        NewRelic::Agent::ErrorCollector.ignore_error_filter
-      end
-    end
+    # @!group Adding custom attributes to traces
 
-    # Notice the error with the given available options:
-    #
-    # * <tt>:uri</tt> => Request path, minus request params or query string
-    # * <tt>:metric</tt> => The metric name associated with the transaction
-    # * <tt>:custom_params</tt> => Custom parameters
-    #
-    # Previous versions of the agent allowed passing :request_params but
-    # those are now ignored. Associate the request with the enclosing
-    # transaction, or record additional information as custom attributes.
-    # Anything left over is treated as custom params.
-    #
-    # @api public
-    #
-    def notice_error(exception, options={})
-      Transaction.notice_error(exception, options)
-      nil # don't return a noticed error datastructure. it can only hurt.
-    end
-
-    # Add parameters to the transaction trace, Insights Transaction event, and
+    # Add attributes to the transaction trace, Insights Transaction event, and
     # any traced errors recorded for the current transaction.
     #
     # If Browser Monitoring is enabled, and the
     # browser_monitoring.attributes.enabled configuration setting is true,
-    # these custom parameters will also be present in the RUM script injected
-    # into the response body, making them available on Insights PageView
-    # events.
+    # these custom attributes will also be present in the script injected into
+    # the response body, making them available on Insights PageView events.
     #
     # @api public
     #
@@ -566,28 +500,9 @@ module NewRelic
       end
     end
 
-    ADD_CUSTOM_ATTRIBUTES  = "NewRelic::Agent.add_custom_attributes".freeze
-    ADD_CUSTOM_PARAMETERS  = "NewRelic::Agent.add_custom_parameters".freeze
-    ADD_REQUEST_PARAMETERS = "NewRelic::Agent.add_request_parameters".freeze
-    SET_USER_ATTRIBUTES    = "NewRelic::Agent.set_user_attributes".freeze
+    # @!endgroup
 
-    # @deprecated
-    def add_custom_parameters(*args)
-      NewRelic::Agent::Deprecator.deprecate(ADD_CUSTOM_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
-      add_custom_attributes(*args)
-    end
-
-    # @deprecated
-    def add_request_parameters(*args)
-      NewRelic::Agent::Deprecator.deprecate(ADD_REQUEST_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
-      add_custom_attributes(*args)
-    end
-
-    # @deprecated
-    def set_user_attributes(*args)
-      NewRelic::Agent::Deprecator.deprecate(SET_USER_ATTRIBUTES, ADD_CUSTOM_ATTRIBUTES)
-      add_custom_attributes(*args)
-    end
+    # @!group Transaction naming
 
     # Set the name of the current running transaction.  The agent will
     # apply a reasonable default based on framework routing, but in
@@ -629,6 +544,8 @@ module NewRelic
       end
     end
 
+    # @!endgroup
+
     # Yield to a block that is run with a database metric name context.  This means
     # the Database instrumentation will use this for the metric name if it does not
     # otherwise know about a model.  This is re-entrant.
@@ -646,17 +563,11 @@ module NewRelic
       end
     end
 
-    # Remove after 5/9/15
-    def record_transaction(*args)
-      NewRelic::Agent.logger.warn('This method has been deprecated, please see https://docs.newrelic.com/docs/ruby/ruby-agent-api for current API documentation.')
-    end
-
     # Subscribe to events of +event_type+, calling the given +handler+
     # when one is sent.
     def subscribe(event_type, &handler)
       agent.events.subscribe( event_type, &handler )
     end
-
 
     # Fire an event of the specified +event_type+, passing it an the given +args+
     # to any registered handlers.
@@ -665,6 +576,8 @@ module NewRelic
     rescue
       NewRelic::Agent.logger.debug "Ignoring exception during %p event notification" % [event_type]
     end
+
+    # @!group Manual browser monitoring configuration
 
     # This method returns a string suitable for inclusion in a page - known as
     # 'manual instrumentation' for Real User Monitoring. Can return either a
@@ -684,6 +597,10 @@ module NewRelic
       agent.javascript_instrumentor.browser_timing_header
     end
 
+    # @!endgroup
+
+    # @!group Deprecated methods
+
     # In previous agent releases, this method was required for manual RUM
     # instrumentation. That work is now all done by the browser_timing_header
     # method, but this is left for compatibility.
@@ -694,6 +611,89 @@ module NewRelic
     def browser_timing_footer
       ""
     end
+
+    ADD_CUSTOM_ATTRIBUTES  = "NewRelic::Agent.add_custom_attributes".freeze
+    ADD_CUSTOM_PARAMETERS  = "NewRelic::Agent.add_custom_parameters".freeze
+    ADD_REQUEST_PARAMETERS = "NewRelic::Agent.add_request_parameters".freeze
+    SET_USER_ATTRIBUTES    = "NewRelic::Agent.set_user_attributes".freeze
+
+    # Deprecated. Use add_custom_attributes instead.
+    #
+    # @deprecated
+    # @api public
+    #
+    def add_custom_parameters(*args)
+      NewRelic::Agent::Deprecator.deprecate(ADD_CUSTOM_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
+      add_custom_attributes(*args)
+    end
+
+    # Deprecated. Use add_custom_attributes instead.
+    #
+    # @deprecated
+    # @api public
+    #
+    def add_request_parameters(*args)
+      NewRelic::Agent::Deprecator.deprecate(ADD_REQUEST_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
+      add_custom_attributes(*args)
+    end
+
+    # Deprecated. Use add_custom_attributes instead.
+    #
+    # @deprecated
+    # @api public
+    #
+    def set_user_attributes(*args)
+      NewRelic::Agent::Deprecator.deprecate(SET_USER_ATTRIBUTES, ADD_CUSTOM_ATTRIBUTES)
+      add_custom_attributes(*args)
+    end
+
+    # Get or create a statistics gatherer that will aggregate numerical data
+    # under a metric name.
+    #
+    # +metric_name+ should follow a slash separated path convention. Application
+    # specific metrics should begin with "Custom/".
+    #
+    # Return a NewRelic::Agent::Stats that accepts data
+    # via calls to add_data_point(value).
+    #
+    # This method is deprecated in favor of record_metric and increment_metric,
+    # and is not thread-safe.
+    #
+    # @api public
+    # @deprecated
+    #
+    def get_stats(metric_name, use_scope=false)
+      agent.stats_engine.get_stats(metric_name, use_scope)
+    end
+
+    alias get_stats_no_scope get_stats
+
+    # Deprecated in favor of drop_buffered_data
+    #
+    # @api public
+    # @deprecated
+    def reset_stats; drop_buffered_data; end
+
+    # Cancel the collection of the current transaction in progress, if
+    # any.  Only affects the transaction started on this thread once
+    # it has started and before it has completed.
+    #
+    # This method has been deprecated in favor of ignore_transaction,
+    # which does what people expect this method to do.
+    #
+    # @api public
+    # @deprecated
+    #
+    def abort_transaction!
+      Transaction.abort_transaction!
+    end
+
+    # Remove after 5/9/15
+    def record_transaction(*args)
+      NewRelic::Agent.logger.warn('This method has been deprecated, please see https://docs.newrelic.com/docs/ruby/ruby-agent-api for current API documentation.')
+    end
+
+    # @!endgroup
 
     def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end
