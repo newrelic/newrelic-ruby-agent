@@ -193,6 +193,7 @@ module NewRelic
       #                         not pass this parameter.
       #
       # @api public
+      # @deprecated Use {Datastores.notice_sql} instead.
       #
       def notice_sql(sql, config, duration, state=nil, &explainer) #THREAD_LOCAL_ACCESS sometimes
         # some statements (particularly INSERTS with large BLOBS
@@ -230,6 +231,7 @@ module NewRelic
       # @param duration [Float] number of seconds the query took to execute
       #
       # @api public
+      # @deprecated Use {Datastores.notice_statement} instead.
       #
       def notice_nosql(key, duration) #THREAD_LOCAL_ACCESS
         builder = tl_builder

@@ -148,6 +148,7 @@ module NewRelic
       #                         not pass this parameter.
       #
       # @api public
+      # @deprecated Use {Datastores.notice_sql} instead.
       #
       def notice_sql(sql, metric_name, config, duration, state=nil, &explainer) #THREAD_LOCAL_ACCESS sometimes
         state ||= TransactionState.tl_get
