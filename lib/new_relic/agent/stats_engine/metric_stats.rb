@@ -6,8 +6,10 @@ require 'new_relic/language_support'
 
 module NewRelic
   module Agent
+    # @api public
     class StatsEngine
       # Handles methods related to actual Metric collection
+      # @api public
       module MetricStats
         SCOPE_PLACEHOLDER = '__SCOPE__'.freeze
 
@@ -108,13 +110,13 @@ module NewRelic
         end
 
         # This method is deprecated and not thread safe, and should not be used
-        # by any new client code. Use NewRelic::Agent.record_metric instead.
+        # by any new client code.
         #
         # Lookup the Stats object for a given unscoped metric, returning a new
         # Stats object if one did not exist previously.
         #
         # @api public
-        # @deprecated
+        # @deprecated Use {::NewRelic::Agent.record_metric} instead.
         #
         def get_stats_no_scope(metric_name)
           get_stats(metric_name, false)
@@ -128,7 +130,7 @@ module NewRelic
         # Leaving second, unused parameter for compatibility
         #
         # @api public
-        # @deprecated
+        # @deprecated Use {::NewRelic::Agent.record_metric} instead.
         #
         def get_stats(metric_name, _ = true, scoped_metric_only = false, scope = nil)
           stats = nil
