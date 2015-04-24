@@ -11,16 +11,13 @@ module NewRelic
     module Instrumentation
       # == NewRelic instrumentation for controller actions and tasks
       #
-      # This instrumentation is applied to the action controller to collect
-      # metrics for every web request.
-      #
-      # It can also be used to capture performance information for
+      # This module can also be used to capture performance information for
       # background tasks and other non-web transactions, including
       # detailed transaction traces and traced errors.
       #
       # For details on how to instrument background tasks see
-      # ClassMethods#add_transaction_tracer and
-      # #perform_action_with_newrelic_trace
+      # {ClassMethods#add_transaction_tracer} and
+      # {#perform_action_with_newrelic_trace}
       #
       # @api public
       #
@@ -211,6 +208,8 @@ module NewRelic
             end
           end
         end
+
+        # @!parse extend ClassMethods
 
         class TransactionNamer
           def self.name_for(txn, traced_obj, category, options={})
