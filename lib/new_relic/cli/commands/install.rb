@@ -32,7 +32,7 @@ class NewRelic::Cli::Install < NewRelic::Cli::Command
       end
     end
     @license_key ||= NO_LICENSE_KEY
-    @app_name ||= @leftover
+    @app_name ||= @leftover.join(" ")
     @agent_version = NewRelic::VERSION::STRING
     raise CommandFailure.new("Application name required.", @options) unless @app_name && @app_name.size > 0
   end
