@@ -314,7 +314,7 @@ module NewRelic
           :allow_nil => true,
           :public => true,
           :type => String,
-          :local_only => true,
+          :exclude_from_reported_settings => true,
           :description => 'Defines a user for communicating with New Relic via a proxy server.'
         },
         :proxy_pass => {
@@ -322,7 +322,7 @@ module NewRelic
           :allow_nil => true,
           :public => true,
           :type => String,
-          :local_only => true,
+          :exclude_from_reported_settings => true,
           :description => 'Defines a password for communicating with New Relic via a proxy server.'
         },
         :capture_params => {
