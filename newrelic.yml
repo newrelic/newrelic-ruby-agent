@@ -16,7 +16,7 @@ common: &default_settings
   # Relic.  For more details, see https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/renaming-applications
   app_name: <%= app_name %>
 
-  # To disable the agent, regardless of other settings, uncomment the following
+  # To disable the agent regardless of other settings, uncomment the following:
   # agent_enabled: false
 
 
