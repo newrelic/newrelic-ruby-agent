@@ -21,7 +21,7 @@ common: &default_settings
 
 
 # Environment-specific settings are in this section.
-# For Rails applications, RAILS_ENV is used to determine the environment.
+# RAILS_ENV or RACK_ENV (as appropriate) is used to determine the environment.
 # If your application has other named environments, configure them here.
 development:
   <<: *default_settings
