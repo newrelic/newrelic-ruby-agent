@@ -33,8 +33,8 @@ class NewRelic::Cli::Install < NewRelic::Cli::Command
     end
     @license_key ||= NO_LICENSE_KEY
     @app_name ||= @leftover
+    @agent_version = NewRelic::VERSION::STRING
     raise CommandFailure.new("Application name required.", @options) unless @app_name && @app_name.size > 0
-    @generated_for_user ||= @user_string || ""
   end
 
   def run
