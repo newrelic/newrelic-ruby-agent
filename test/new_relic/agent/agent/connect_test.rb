@@ -134,10 +134,11 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_configure_transaction_tracer_server_disabled
-    config = NewRelic::Agent::Configuration::ServerSource.new('collect_traces' => false,
-                                                              'developer_mode' => false)
-    with_config(config) do
-      assert !@transaction_sampler.enabled?
+    config = NewRelic::Agent::Configuration::ServerSource.new('collect_traces' => false)
+    with_config(:developer_mode => false) do
+      with_config(config) do
+        refute @transaction_sampler.enabled?
+      end
     end
   end
 
@@ -260,11 +261,14 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_finish_setup_replaces_server_config
-    finish_setup(:boo => "boo")
-    finish_setup(:hoo => true)
+    finish_setup('apdex_t' => 42)
+    assert_equal 42, NewRelic::Agent.config[:apdex_t]
+    assert_kind_of NewRelic::Agent::Configuration::ServerSource, NewRelic::Agent.config.source(:apdex_t)
 
-    assert NewRelic::Agent.config[:hoo]
-    assert_nil NewRelic::Agent.config[:boo]
+    # this should create a new server source that replaces the existing one that
+    # had apdex_t specified, rather than layering on top of the existing one.
+    finish_setup('data_report_period' => 12)
+    assert_kind_of NewRelic::Agent::Configuration::DefaultSource, NewRelic::Agent.config.source(:apdex_t)
   end
 
   def test_logging_collector_messages

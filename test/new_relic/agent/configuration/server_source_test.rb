@@ -159,5 +159,37 @@ module NewRelic::Agent::Configuration
       assert @source[:'analytics_events.enabled']
       assert @source[:'custom_insights_events.enabled']
     end
+
+    def test_should_strip_non_ssc_keys
+      rsp = {
+        'agent_config' => {
+          'attributes.include' => 'foo,bar',
+          'slow_sql.explain_threshold' => 42
+        }
+      }
+
+      source = ServerSource.new(rsp, {})
+      refute_includes source.keys, :'attributes.include'
+      assert_includes source.keys, :'slow_sql.explain_threshold'
+    end
+
+    def test_should_strip_unrecognized_keys_in_agent_config_hash
+      rsp = {
+        'agent_config' => {
+          'platypus' => 'mammal'
+        }
+      }
+
+      source = ServerSource.new(rsp, {})
+      refute_includes source.keys, :platypus
+    end
+
+    def test_should_not_merge_in_keys_that_are_not_allowed_at_top_level
+      rsp = {
+        'slow_sql.explain_threshold' => 42
+      }
+      source = ServerSource.new(rsp, {})
+      refute_includes source.keys, :'slow_sql.explain_threshold'
+    end
   end
 end
