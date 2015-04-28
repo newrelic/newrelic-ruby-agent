@@ -25,7 +25,7 @@ module NewRelic
 
     def test_shutdown
       mock_agent = mocked_agent
-      mock_agent.expects(:shutdown).with({})
+      mock_agent.expects(:shutdown)
       NewRelic::Agent.shutdown
     end
 

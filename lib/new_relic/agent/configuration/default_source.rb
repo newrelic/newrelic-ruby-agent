@@ -452,12 +452,6 @@ module NewRelic
           :type => Fixnum,
           :description => 'Maximum number of seconds to attempt to contact the New Relic <a href="/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>).'
         },
-        :force_send => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enable or disable the forced sending of data to the New Relic data collection service when shutting down.'
-        },
         :send_environment_info => {
           :default => true,
           :public => false,
