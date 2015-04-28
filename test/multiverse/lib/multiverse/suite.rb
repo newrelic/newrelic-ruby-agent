@@ -180,8 +180,10 @@ module Multiverse
         f.puts "  gem 'mocha', '0.14.0', :require => false"
 
         if debug
+          pry_version = RUBY_VERSION >= '1.8.7' ? '0.10.0' : '0.9.12'
+
           # Pry 0.10.0 breaks compatibility with Ruby 1.8.7 :(
-          f.puts "  gem 'pry', '~> 0.9.12'"
+          f.puts "  gem 'pry', '~> #{pry_version}'"
           f.puts "  gem 'pry-byebug'" if RUBY_VERSION >= "2.0.0"
           f.puts "  gem 'pry-stack_explorer'"
         end
