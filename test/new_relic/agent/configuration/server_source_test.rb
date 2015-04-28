@@ -191,5 +191,12 @@ module NewRelic::Agent::Configuration
       source = ServerSource.new(rsp, {})
       refute_includes source.keys, :'slow_sql.explain_threshold'
     end
+
+    def test_all_top_level_keys_should_be_allowed_from_server
+      ServerSource::TOP_LEVEL_KEYS.each do |key|
+        assert DEFAULTS[key.to_sym], "Did not find entry in config DEFAULTS hash for to-level server config key #{key}"
+        assert DEFAULTS[key.to_sym][:allowed_from_server], "Expected top-level server config key #{key} to be allowed from server"
+      end
+    end
   end
 end
