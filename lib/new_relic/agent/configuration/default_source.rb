@@ -102,7 +102,7 @@ module NewRelic
         def self.agent_enabled
           Proc.new {
             NewRelic::Agent.config[:enabled] &&
-            (NewRelic::Agent.config[:developer_mode] || NewRelic::Agent.config[:monitor_mode] || NewRelic::Agent.config[:monitor_daemons]) &&
+            (NewRelic::Agent.config[:developer_mode] || NewRelic::Agent.config[:monitor_mode]) &&
             NewRelic::Agent::Autostart.agent_should_start?
           }
         end
@@ -385,12 +385,6 @@ module NewRelic
           :type => Float,
           :deprecated => true,
           :description => 'In versions 3.5.0 and higher, <a href="/docs/apm/new-relic-apm/apdex/changing-your-apdex-settings">set your Apdex T via the New Relic UI</a>. In addition to determining your <a href="/docs/apm/new-relic-apm/apdex/apdex-measuring-user-satisfaction">Apdex score</a>, Apdex T is the threshold at which New Relic will begin alerting. By default the agent will send alerts when the Apdex score drops below 0.5, or when more than half of users are experiencing degraded application performance.'
-        },
-        :monitor_daemons => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enables or disables the agent for background processes. No longer necessary as the agent now automatically instruments background processes.'
         },
         :'strip_exception_messages.enabled' => {
           :default => value_of(:high_security),
