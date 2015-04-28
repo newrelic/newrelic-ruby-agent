@@ -195,6 +195,24 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_all_settings_specify_whether_they_are_allowed_from_server
+      unspecified_keys = []
+      bad_value_keys = []
+
+      @defaults.each do |key, spec|
+        if !spec.has_key?(:allowed_from_server)
+          unspecified_keys << key
+        end
+
+        if ![true, false].include?(spec[:allowed_from_server])
+          bad_value_keys << key
+        end
+      end
+
+      assert unspecified_keys.empty?, "The following keys did not specify a value for :allowed_from_server: #{unspecified_keys.join(', ')}"
+      assert bad_value_keys.empty?, "The following keys had incorrect :allowed_from_server values (only true or false are allowed): #{bad_value_keys.join(', ')}"
+    end
+
     def get_config_value_class(value)
       type = value.class
 
