@@ -80,7 +80,7 @@ module NewRelic
                 true # delete it
               end
             else
-              NewRelic::Agent.logger.warn("Ignoring unrecognized config key from server: '#{key}'")
+              NewRelic::Agent.logger.debug("Ignoring unrecognized config key from server: '#{key}'")
               true
             end
           end
