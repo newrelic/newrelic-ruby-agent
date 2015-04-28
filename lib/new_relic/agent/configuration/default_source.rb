@@ -1259,7 +1259,7 @@ module NewRelic
           :default      => false,
           :public       => false,
           :type         => Boolean,
-          :allowed_from_server => false,
+          :allowed_from_server => true,
           :description  => "Controls whether to collect processor and instance sizing data and send it to New Relic"
         },
         :'rules.ignore_url_regexes' => {

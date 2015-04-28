@@ -9,12 +9,12 @@ class UtilizationDataCollectionTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent do
-    @config = NewRelic::Agent::Configuration::DottedHash.new({:collect_utilization => true }, true)
-    NewRelic::Agent.config.add_config_for_testing(@config, true)
-  end
-
-  def after_teardown
-    NewRelic::Agent.config.remove_config(@config)
+    $collector.stub('connect',
+      {
+        "agent_run_id" => 42,
+        "collect_utilization" => true
+      }
+    )
   end
 
   def test_hostname
@@ -124,7 +124,9 @@ class UtilizationDataCollectionTest < Minitest::Test
   end
 
   def trigger_usage_data_collection_and_submission
-    agent.send(:transmit_utilization_data)
+    if NewRelic::Agent.config[:collect_utilization]
+      agent.send(:transmit_utilization_data)
+    end
   end
 
   def with_fake_metadata_service
