@@ -45,4 +45,20 @@ class GrapeTestApi < Grape::API
       'Destroy grape ape!'
     end
   end
+
+  resource :grape_ape_fail do
+    post do
+      raise GrapeTestApiError.new("I'm sorry Dave, I'm afraid I can't do that.")
+    end
+  end
+
+  resource :grape_ape_fail_rescue do
+    rescue_from :all do |e|
+      error_response({ message: "rescued from #{e.class.name}" })
+    end
+
+    post do
+      raise GrapeTestApiError.new("I'm sorry Dave, I'm afraid I can't do that.")
+    end
+  end
 end
