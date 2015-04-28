@@ -516,8 +516,8 @@ module NewRelic
       end
 
       def assign_agent_attributes
-        if refer = referer
-          add_agent_attribute(:'request.headers.referer', refer,
+        if referer
+          add_agent_attribute(:'request.headers.referer', referer,
                               NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
         end
 
@@ -927,7 +927,7 @@ module NewRelic
       # Make a safe attempt to get the referer from a request object, generally successful when
       # it's a Rack request.
       def referer_from_request(req)
-        if req && req.respond_to?(:referer)
+        if req && req.respond_to?(:referer) && req.referer
           HTTPClients::URIUtil.strip_query_string(req.referer.to_s)
         end
       end

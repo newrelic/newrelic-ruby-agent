@@ -55,6 +55,13 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
+  def test_transaction_referer_nil_if_request_referer_nil
+    request = stub(:path => '/path?hello=bob#none', :referer => nil)
+    in_transaction(:request => request) do |txn|
+      assert_nil txn.referer
+    end
+  end
+
   def test_request_with_normal_path
     request = stub(:path => '/blogs')
     in_transaction(:request => request) do |txn|
