@@ -102,12 +102,35 @@ module NewRelic
       def record(metric_specs, value=nil, aux=nil, &blk)
         Array(metric_specs).each do |metric_spec|
           if metric_spec.scope.empty?
-            stats = @unscoped[metric_spec.name]
+            key = metric_spec.name
+            hash = @unscoped
           else
-            stats = @scoped[metric_spec]
+            key = metric_spec
+            hash = @scoped
           end
+
+          begin
+            stats = hash[key]
+          rescue NoMethodError => e
+            stats = handle_stats_lookup_error(key, hash, e)
+          end
+
           stats.record(value, aux, &blk)
         end
+      end
+
+      def handle_stats_lookup_error(key, hash, error)
+        # This only happen in the case of a corrupted default_proc
+        # Side-step it manually, notice the issue, and carry on....
+        NewRelic::Agent.instance.error_collector. \
+          notice_agent_error(StatsHashLookupError.new(error, hash, key))
+        stats = NewRelic::Agent::Stats.new
+        hash[key] = stats
+        # Try to restore the default_proc so we won't continually trip the error
+        if hash.respond_to?(:default_proc=)
+          hash.default_proc = Proc.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        end
+        stats
       end
 
       def merge!(other)
