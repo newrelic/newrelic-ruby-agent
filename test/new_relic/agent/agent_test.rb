@@ -598,30 +598,6 @@ module NewRelic
         end
       end
 
-      def test_stop_event_loop_runs_loop_before_exit_with_force_send_config
-        fake_loop = mock
-        fake_loop.expects(:run_once)
-        fake_loop.stubs(:stop)
-
-        @agent.instance_variable_set(:@event_loop, fake_loop)
-
-        with_config(:force_send => true) do
-          @agent.stop_event_loop
-        end
-      end
-
-      def test_stop_event_loop_doesnt_run_loop_if_force_send_is_false
-        fake_loop = mock
-        fake_loop.expects(:run_once).never
-        fake_loop.stubs(:stop)
-
-        @agent.instance_variable_set(:@event_loop, fake_loop)
-
-        with_config(:force_send => false) do
-          @agent.stop_event_loop
-        end
-      end
-
       def test_stop_event_loop_stops_the_loop
         fake_loop = mock
         fake_loop.expects(:stop)

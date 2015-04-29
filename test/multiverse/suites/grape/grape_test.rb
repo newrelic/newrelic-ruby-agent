@@ -115,6 +115,28 @@ class GrapeTest < Minitest::Test
       end
     end
 
+    def test_post_body_params_are_captured_with_error
+      with_config(:capture_params => true) do
+        assert_raises(GrapeTestApiError) do
+          post '/grape_ape_fail', {'q' => '1234', 'foo' => 'fail'}.to_json, "CONTENT_TYPE" => "application/json"
+        end
+
+        agent_attributes = attributes_for(last_traced_error, :agent)
+        assert_equal('1234', agent_attributes['request.parameters.q'])
+        assert_equal('fail', agent_attributes['request.parameters.foo'])
+      end
+    end
+
+    def test_post_body_params_are_captured_with_rescue_from
+      with_config(:capture_params => true) do
+        post '/grape_ape_fail_rescue', {'q' => '1234', 'foo' => 'fail'}.to_json, "CONTENT_TYPE" => "application/json"
+
+        agent_attributes = attributes_for(last_traced_error, :agent)
+        assert_equal('1234', agent_attributes['request.parameters.q'])
+        assert_equal('fail', agent_attributes['request.parameters.foo'])
+      end
+    end
+
     def test_post_body_with_nested_params_are_captured
       with_config(:capture_params => true) do
         params = {"ape" => {"first_name" => "koko", "last_name" => "gorilla"}}

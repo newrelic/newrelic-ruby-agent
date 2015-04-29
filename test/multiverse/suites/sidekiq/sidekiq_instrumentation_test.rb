@@ -115,7 +115,7 @@ class SidekiqTest < Minitest::Test
   end
 
   def test_arguments_are_captured_on_transaction_events_when_enabled
-    with_config(:'attributes.include' => 'job.sidekiq.arguments.*') do
+    with_config(:'attributes.include' => 'job.sidekiq.args.*') do
       run_jobs
     end
 
@@ -143,7 +143,7 @@ class SidekiqTest < Minitest::Test
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
 
         actual = sample.agent_attributes.keys.to_set
-        expected = Set.new ["job.sidekiq.arguments.0", "job.sidekiq.arguments.1"]
+        expected = Set.new ["job.sidekiq.args.0", "job.sidekiq.args.1"]
         assert_equal expected, actual
       end
     end
@@ -156,7 +156,7 @@ class SidekiqTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert sample.agent_attributes.keys.none? { |k| k =~ /^job.sidekiq.arguments.*/ }
+        assert sample.agent_attributes.keys.none? { |k| k =~ /^job.sidekiq.args.*/ }
       end
     end
   end
@@ -165,7 +165,7 @@ class SidekiqTest < Minitest::Test
     event_posts = $collector.calls_for('analytic_event_data')
     event_posts.each do |post|
       post.events.each do |event|
-        assert_equal Set.new(["job.sidekiq.arguments.0", "job.sidekiq.arguments.1"]), event[2].keys.to_set
+        assert_equal Set.new(["job.sidekiq.args.0", "job.sidekiq.args.1"]), event[2].keys.to_set
       end
     end
   end
@@ -174,7 +174,7 @@ class SidekiqTest < Minitest::Test
     event_posts = $collector.calls_for('analytic_event_data')
     event_posts.each do |post|
       post.events.each do |event|
-        assert event[2].keys.none? { |k| k.start_with?("job.sidekiq.arguments") }, "Found unexpected sidekiq arguments"
+        assert event[2].keys.none? { |k| k.start_with?("job.sidekiq.args") }, "Found unexpected sidekiq arguments"
       end
     end
   end

@@ -6,7 +6,15 @@ require 'new_relic/agent/datastores/metric_helper'
 
 module NewRelic
   module Agent
+    #
+    # This module contains helper methods to facilitate instrumentation of
+    # datastores not directly supported by the Ruby agent. It is intended to be
+    # primarily used by authors of 3rd-party datastore instrumentation.
+    #
+    # @api public
     module Datastores
+
+      # @!group Tracing query methods
 
       # Add Datastore tracing to a method. This properly generates the metrics
       # for New Relic's Datastore features. It does not capture the actual
@@ -16,12 +24,12 @@ module NewRelic
       # @param [Class] clazz the class to instrument
       #
       # @param [String, Symbol] method_name the name of instance method to
-      # instrument
+      #   instrument
       #
       # @param [String] product name of your datastore for use in metric naming, e.g. "Redis"
       #
       # @param [optional,String] operation the name of operation if different
-      # than the instrumented method name
+      #   than the instrumented method name
       #
       # @api public
       #
@@ -62,33 +70,33 @@ module NewRelic
       #   end
       #
       # @param [String] product the datastore name for use in metric naming,
-      # e.g. "FauxDB"
+      #   e.g. "FauxDB"
       #
       # @param [String,Symbol] operation the name of operation (e.g. "select"),
-      # often named after the method that's being instrumented.
+      #   often named after the method that's being instrumented.
       #
       # @param [optional, String] collection the collection name for use in
-      # statement-level metrics (i.e. table or model name)
+      #   statement-level metrics (i.e. table or model name)
       #
       # @param [Proc,#call] callback proc or other callable to invoke after
-      # running the datastore block. Receives three arguments: result of the
-      # yield, the most specific (scoped) metric name, and elapsed time of the
-      # call. An example use is attaching SQL to Transaction Traces at the end
-      # of a wrapped datastore call.
+      #   running the datastore block. Receives three arguments: result of the
+      #   yield, the most specific (scoped) metric name, and elapsed time of the
+      #   call. An example use is attaching SQL to Transaction Traces at the end
+      #   of a wrapped datastore call.
       #
-      #   callback = Proc.new do |result, metrics, elapsed|
-      #     NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
-      #   end
+      #     callback = Proc.new do |result, metrics, elapsed|
+      #       NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
+      #     end
       #
-      #   NewRelic::Agent::Datastores.wrap("FauxDB", "find", "items", callback) do
-      #     FauxDB.find(query)
-      #   end
+      #     NewRelic::Agent::Datastores.wrap("FauxDB", "find", "items", callback) do
+      #       FauxDB.find(query)
+      #     end
       #
-      # **NOTE: THERE ARE SECURITY CONCERNS WHEN CAPTURING SQL!**
-      # New Relic's Transaction Tracing and Slow SQL features will
-      # attempt to apply obfuscation to the passed queries, but it is possible
-      # for a query format to be unsupported and result in exposing user
-      # information embedded within captured queries.
+      # @note THERE ARE SECURITY CONCERNS WHEN CAPTURING QUERY TEXT!
+      #   New Relic's Transaction Tracing and Slow SQL features will
+      #   attempt to apply obfuscation to the passed queries, but it is possible
+      #   for a query format to be unsupported and result in exposing user
+      #   information embedded within captured queries.
       #
       # @api public
       #
@@ -110,29 +118,33 @@ module NewRelic
         end
       end
 
+      # @!group Capturing query / statement text
+
       # Wrapper for simplifying attaching SQL queries during a transaction.
       #
-      # If you are recording non-SQL data, please use the notice_statement
-      # method instead.
+      # If you are recording non-SQL data, please use {notice_statement}
+      # instead.
       #
       #   NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
       #
       # @param [String] query the SQL text to be captured. Note that depending
-      # on user settings, this string will be run through obfuscation, but
-      # some dialects of SQL (or non-SQL queries) are not guaranteed to be
-      # properly obfuscated by these routines!
+      #   on user settings, this string will be run through obfuscation, but
+      #   some dialects of SQL (or non-SQL queries) are not guaranteed to be
+      #   properly obfuscated by these routines!
       #
       # @param [String] scoped_metric The most specific metric relating to this
-      # query. Typically the result of
-      # NewRelic::Agent::Datastores::MetricHelper#metrics_for
+      #   query. Typically the result of
+      #   NewRelic::Agent::Datastores::MetricHelper#metrics_for
       #
       # @param [Float] elapsed the elapsed time during query execution
       #
-      # **NOTE: THERE ARE SECURITY CONCERNS WHEN CAPTURING SQL!**
-      # New Relic's Transaction Tracing and Slow SQL features will
-      # attempt to apply obfuscation to the passed queries, but it is possible
-      # for a query format to be unsupported and result in exposing user
-      # information embedded within captured queries.
+      # @note THERE ARE SECURITY CONCERNS WHEN CAPTURING QUERY TEXT!
+      #   New Relic's Transaction Tracing and Slow SQL features will
+      #   attempt to apply obfuscation to the passed queries, but it is possible
+      #   for a query format to be unsupported and result in exposing user
+      #   information embedded within captured queries.
+      #
+      # @api public
       #
       def self.notice_sql(query, scoped_metric, elapsed)
         agent = NewRelic::Agent.instance
@@ -155,12 +167,14 @@ module NewRelic
       #
       # @param [Float] elapsed the elapsed time during query execution
       #
-      # **NOTE: THERE ARE SECURITY CONCERNS WHEN CAPTURING STATEMENTS!**
-      # This method will properly ignore statements when the user has turned
-      # off capturing queries, but it is not able to obfuscate arbitrary data!
-      # To prevent exposing user information embedded in captured queries,
-      # please ensure all data passed to this method is safe to transmit to
-      # New Relic.
+      # @note THERE ARE SECURITY CONCERNS WHEN CAPTURING STATEMENTS!
+      #   This method will properly ignore statements when the user has turned
+      #   off capturing queries, but it is not able to obfuscate arbitrary data!
+      #   To prevent exposing user information embedded in captured queries,
+      #   please ensure all data passed to this method is safe to transmit to
+      #   New Relic.
+      #
+      # @api public
       #
       def self.notice_statement(statement, elapsed)
         # Settings may change eventually, but for now we follow the same

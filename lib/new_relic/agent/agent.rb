@@ -200,13 +200,10 @@ module NewRelic
           @started
         end
 
-        # Attempt a graceful shutdown of the agent, running the worker
-        # loop if it exists and is running.
-        #
-        # Options:
-        # :force_send  => (true/false) # force the agent to send data
-        def shutdown(options={})
-          return if not started?
+        # Attempt a graceful shutdown of the agent, flushing any remaining
+        # data.
+        def shutdown
+          return unless started?
           ::NewRelic::Agent.logger.info "Starting Agent shutdown"
 
           stop_event_loop
@@ -224,10 +221,7 @@ module NewRelic
         end
 
         def stop_event_loop
-          if @event_loop
-            @event_loop.run_once(true) if Agent.config[:force_send]
-            @event_loop.stop
-          end
+          @event_loop.stop if @event_loop
         end
 
         def trap_signals_for_litespeed
