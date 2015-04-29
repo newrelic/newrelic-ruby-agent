@@ -2,10 +2,17 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-# A Hash-descended class for storing metric data in the NewRelic Agent.
+# A Hash-like class for storing metric data.
 #
-# Keys are NewRelic::MetricSpec objects.
-# Values are NewRelic::Agent::Stats objects.
+# Internally, metrics are split into unscoped and scoped collections.
+#
+# Unscoped metrics are stored in a Hash, keyed by Strings representing the name
+# of the metrics.
+#
+# Scoped metrics are stored in a Hash where the keys are NewRelic::MetricSpec
+# objects (effectively <name, scope> tuples).
+#
+# Values in both hashes are NewRelic::Agent::Stats objects.
 #
 # Missing keys will be automatically created as empty NewRelic::Agent::Stats
 # instances, so use has_key? explicitly to check for key existence.
@@ -84,10 +91,6 @@ module NewRelic
 
       def size
         @unscoped.size + @scoped.size
-      end
-
-      def to_h
-        Hash[self]
       end
 
       class StatsHashLookupError < NewRelic::Agent::InternalAgentError
