@@ -521,7 +521,12 @@ def wait_for_backtrace_service_poll(opts={})
   }
   opts = defaults.merge(opts)
   deadline = Time.now + opts[:timeout]
-  until opts[:service].worker_loop.iterations > opts[:iterations]
+
+  service = opts[:service]
+  worker_loop = service.worker_loop
+  worker_loop.setup(0, service.method(:poll))
+
+  until worker_loop.iterations > opts[:iterations]
     sleep(0.01)
     if Time.now > deadline
       raise "Timed out waiting #{opts[:timeout]} s for backtrace service poll\n" +
