@@ -27,7 +27,7 @@ DependencyDetection.defer do
                 :class_name => self.name,
                 :category => 'OtherTransaction/ResqueJob') do
 
-                NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(args, :'job.resque.arguments',
+                NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(args, :'job.resque.args',
                   NewRelic::Agent::AttributeFilter::DST_NONE)
 
                 yield(*args)
