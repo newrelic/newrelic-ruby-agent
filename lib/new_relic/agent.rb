@@ -322,10 +322,12 @@ module NewRelic
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
     # and kills the background thread.
     #
+    # @param options [Hash] Unused options Hash, for back compatibility only
+    #
     # @api public
     #
     def shutdown(options={})
-      agent.shutdown(options) if agent
+      agent.shutdown if agent
     end
 
     # Clear out any data the agent has buffered but has not yet transmitted

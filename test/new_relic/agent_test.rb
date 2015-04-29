@@ -25,7 +25,7 @@ module NewRelic
 
     def test_shutdown
       mock_agent = mocked_agent
-      mock_agent.expects(:shutdown).with({})
+      mock_agent.expects(:shutdown)
       NewRelic::Agent.shutdown
     end
 
@@ -40,23 +40,21 @@ module NewRelic
       NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40)
       NewRelic::Agent.instance.service = default_service
       NewRelic::Agent.instance.finish_setup('agent_config' =>
-                                            { :some_absurd_setting => true })
-      assert NewRelic::Agent.config[:some_absurd_setting]
+                                            { 'data_report_period' => 10 })
+      assert_equal 10, NewRelic::Agent.config[:data_report_period]
       NewRelic::Agent.shutdown
-      assert !NewRelic::Agent.config[:some_absurd_setting]
+      assert_equal 60, NewRelic::Agent.config[:data_report_period]
     end
 
     def test_finish_setup_applied_server_side_config
       with_config_low_priority({
                     :'transction_tracer.enabled' => true,
-                    :'error_collector.enabled' => true,
-                    :log_level => 'info' }) do
-        NewRelic::Agent.instance.finish_setup('log_level' => 'debug',
+                    :'error_collector.enabled' => true }) do
+        NewRelic::Agent.instance.finish_setup(
          'agent_config' => { 'transaction_tracer.enabled' => false },
                                          'collect_errors' => false)
-        assert !NewRelic::Agent.config[:'transaction_tracer.enabled']
-        assert !NewRelic::Agent.config[:'error_collector.enabled']
-        assert_equal 'debug', NewRelic::Agent.config[:log_level]
+        refute NewRelic::Agent.config[:'transaction_tracer.enabled']
+        refute NewRelic::Agent.config[:'error_collector.enabled']
       end
     end
 

@@ -300,10 +300,11 @@ end
 class ErrorsWithSSCTest < ErrorsWithoutSSCTest
   def setup_collector_mocks
     $collector.stub('connect', {
-      "listen_to_server_config" => true,
       "agent_run_id" => 1,
-      "error_collector.ignore_errors" => 'NewRelic::TestHelpers::Exceptions::IgnoredError,NewRelic::TestHelpers::Exceptions::ServerIgnoredError',
-      "error_collector.enabled" => true,
+      "agent_config" => {
+        "error_collector.ignore_errors" => 'NewRelic::TestHelpers::Exceptions::IgnoredError,NewRelic::TestHelpers::Exceptions::ServerIgnoredError',
+        "error_collector.enabled" => true,
+      },
       "collect_errors" => true
     }, 200)
   end

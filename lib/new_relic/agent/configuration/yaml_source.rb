@@ -26,7 +26,7 @@ module NewRelic
           end
 
           substitute_transaction_threshold(config)
-          booleanify_values(config, 'agent_enabled', 'enabled', 'monitor_daemons')
+          booleanify_values(config, 'agent_enabled', 'enabled')
 
           super(config, true)
         end
