@@ -58,10 +58,10 @@ module NewRelic
 
               NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
                                                     @config, elapsed_time,
-                                                    state, &EXPLAINER)
+                                                    state, EXPLAINER)
               NewRelic::Agent.instance.sql_sampler.notice_sql(sql, scoped_metric,
                                                     @config, elapsed_time,
-                                                    state, &EXPLAINER)
+                                                    state, EXPLAINER)
             end
           end
         end

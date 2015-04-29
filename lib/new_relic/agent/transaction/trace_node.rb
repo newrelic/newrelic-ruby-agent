@@ -169,7 +169,7 @@ module NewRelic
 
           NewRelic::Agent::Database.explain_sql(statement,
                                                 statement.config,
-                                                &statement.explainer)
+                                                statement.explainer)
         end
 
         def obfuscated_sql
