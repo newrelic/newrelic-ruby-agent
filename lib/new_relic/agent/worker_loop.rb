@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'thread'
+
 module NewRelic
   module Agent
 
@@ -76,9 +77,7 @@ module NewRelic
         @should_run = false
       end
 
-      # Executes the block given to the worker loop, and handles many
-      # possible errors. Also updates the execution time so that the
-      # next run occurs on schedule, even if we execute at some odd time
+      # Executes the block given to the worker loop, and handles errors.
       def run_task
         if @propagate_errors
           @task.call
