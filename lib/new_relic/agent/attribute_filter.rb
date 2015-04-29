@@ -92,9 +92,9 @@ module NewRelic
         build_rule(config[:'error_collector.attributes.exclude'],    DST_ERROR_COLLECTOR,    false)
         build_rule(config[:'browser_monitoring.attributes.exclude'], DST_BROWSER_MONITORING, false)
 
-        build_rule(['request.parameters.*'],   include_destinations_for_capture_params(config[:capture_params]), true)
-        build_rule(['job.resque.arguments.*'],  include_destinations_for_capture_params(config[:'resque.capture_params']), true)
-        build_rule(['job.sidekiq.arguments.*'], include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
+        build_rule(['request.parameters.*'], include_destinations_for_capture_params(config[:capture_params]), true)
+        build_rule(['job.resque.args.*'],    include_destinations_for_capture_params(config[:'resque.capture_params']), true)
+        build_rule(['job.sidekiq.args.*'],   include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
 
         build_rule(config[:'attributes.include'], DST_ALL, true)
         build_rule(config[:'transaction_tracer.attributes.include'], DST_TRANSACTION_TRACER, true)
@@ -165,9 +165,9 @@ module NewRelic
       #
       def cache_prefix_blacklist
         @prefix_blacklist = {}
-        @prefix_blacklist[:'request.parameters']    = true unless might_allow_prefix_uncached?(:'request.parameters')
-        @prefix_blacklist[:'job.sidekiq.arguments'] = true unless might_allow_prefix_uncached?(:'job.sidekiq.arguments')
-        @prefix_blacklist[:'job.resque.arguments']  = true unless might_allow_prefix_uncached?(:'job.resque.arguments')
+        @prefix_blacklist[:'request.parameters'] = true unless might_allow_prefix_uncached?(:'request.parameters')
+        @prefix_blacklist[:'job.sidekiq.args']   = true unless might_allow_prefix_uncached?(:'job.sidekiq.args')
+        @prefix_blacklist[:'job.resque.args']    = true unless might_allow_prefix_uncached?(:'job.resque.args')
       end
 
       # Note that the given prefix *must* be a Symbol
