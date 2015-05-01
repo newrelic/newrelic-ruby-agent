@@ -143,19 +143,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  def test_metrics_for_delete
-    in_web_transaction do
-      order = Order.create("name" => "burt")
-      order.delete
-    end
-
-    if active_record_major_version >= 3
-      assert_activerecord_metrics(Order, 'delete')
-    else
-      assert_generic_rollup_metrics('delete')
-    end
-  end
-
   def test_metrics_for_relation_delete
     in_web_transaction do
       order = Order.create(:name => "lava")
@@ -169,8 +156,17 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  # Touch did not exist in AR 2.2
+  # delete and touch did not exist in AR 2.2
   if defined?(::ActiveRecord::VERSION) && ::ActiveRecord::VERSION::MAJOR >= 3
+    def test_metrics_for_delete
+      in_web_transaction do
+        order = Order.create("name" => "burt")
+        order.delete
+      end
+
+      assert_activerecord_metrics(Order, 'delete')
+    end
+
     def test_metrics_for_touch
       in_web_transaction do
         order = Order.create("name" => "wendy")
