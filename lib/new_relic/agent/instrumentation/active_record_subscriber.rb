@@ -59,12 +59,12 @@ module NewRelic
           NewRelic::Agent.instance.transaction_sampler \
             .notice_sql(event.payload[:sql], config,
                         Helper.milliseconds_to_seconds(event.duration),
-                        state, &@explainer)
+                        state, @explainer)
 
           NewRelic::Agent.instance.sql_sampler \
             .notice_sql(event.payload[:sql], metric, config,
                         Helper.milliseconds_to_seconds(event.duration),
-                        state, &@explainer)
+                        state, @explainer)
 
           # exit transaction trace node
           stack.pop_frame(state, frame, metric, event.end)

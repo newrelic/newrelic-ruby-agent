@@ -116,17 +116,17 @@ module NewRelic
       # exceeds a threshold (e.g. 500ms) and only within the slowest
       # transaction in a report period, selected for shipment to New
       # Relic
-      def explain_sql(sql, connection_config, &explainer)
-        return nil unless sql && connection_config
+      def explain_sql(sql, connection_config, explainer=nil)
+        return nil unless sql && explainer && connection_config
         statement = sql.split(";\n")[0] # only explain the first
-        explain_plan = explain_statement(statement, connection_config, &explainer)
+        explain_plan = explain_statement(statement, connection_config, explainer)
         return explain_plan || []
       end
 
       SUPPORTED_ADAPTERS_FOR_EXPLAIN = %w[postgres postgresql mysql2 mysql sqlite].freeze
 
-      def explain_statement(statement, config, &explainer)
-        return unless is_select?(statement)
+      def explain_statement(statement, config, explainer)
+        return unless explainer && is_select?(statement)
 
         if statement[-3,3] == '...'
           NewRelic::Agent.logger.debug('Unable to collect explain plan for truncated query.')

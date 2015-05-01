@@ -11,6 +11,53 @@ module NewRelic
       module ActiveRecordHelper
         module_function
 
+        # Used by both the AR 3.x and 4.x instrumentation
+        def instrument_writer_methods
+          ::ActiveRecord::Base.class_eval do
+            alias_method :save_without_newrelic, :save
+
+            def save(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.class.name) do
+                save_without_newrelic(*args, &blk)
+              end
+            end
+
+            alias_method :save_without_newrelic!, :save!
+
+            def save!(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.class.name) do
+                save_without_newrelic!(*args, &blk)
+              end
+            end
+          end
+
+          ::ActiveRecord::Relation.class_eval do
+            alias_method :update_all_without_newrelic, :update_all
+
+            def update_all(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name) do
+                update_all_without_newrelic(*args, &blk)
+              end
+            end
+
+            alias_method :delete_all_without_newrelic, :delete_all
+
+            def delete_all(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name) do
+                delete_all_without_newrelic(*args, &blk)
+              end
+            end
+
+            alias_method :destroy_all_without_newrelic, :destroy_all
+
+            def destroy_all(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name) do
+                destroy_all_without_newrelic(*args, &blk)
+              end
+            end
+          end
+        end
+
         ACTIVE_RECORD = "ActiveRecord".freeze unless defined?(ACTIVE_RECORD)
         OTHER         = "other".freeze unless defined?(OTHER)
 
