@@ -9,6 +9,15 @@
   being executed against, allowing you to view these queries broken down by
   model on the Datastores page. Thanks to Bill Kayser for reporting this issue!
 
+  * Support for Multiverse testing third party gems
+
+  The Ruby agent has rich support for testing multiple gem versions, but
+  previously that wasn't accessible to third party gems.  Now you can now
+  simply `require 'task/multiverse'` in your Rakefile to access the same
+  test:multiverse task that New Relic uses itself. For more details, see:
+
+  https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/third-party-instrumentation#testing-your-extension
+
 ## v3.12.0 ##
 
   * Flexible capturing of attributes
