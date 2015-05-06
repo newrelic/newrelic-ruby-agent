@@ -135,6 +135,29 @@ module NewRelic::Agent::Instrumentation
       assert IgnoreActions.is_filtered?(key, child, :foo2)
     end
 
+    def test_ignore_allows_strings
+      controller = Class.new do
+        include ControllerInstrumentation
+
+        newrelic_ignore(:only => "foo")
+      end
+
+      key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
+      assert IgnoreActions.is_filtered?(key, controller, :foo)
+    end
+
+    def test_ignore_allows_mixed_strings_and_symbols
+      controller = Class.new do
+        include ControllerInstrumentation
+
+        newrelic_ignore(:only => ["foo", :bar])
+      end
+
+      key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
+      assert IgnoreActions.is_filtered?(key, controller, :foo)
+      assert IgnoreActions.is_filtered?(key, controller, :bar)
+    end
+
     def test_transaction_name_calls_newrelic_metric_path
       @object.stubs(:newrelic_metric_path).returns('some/wacky/path')
       assert_equal('Controller/some/wacky/path', @txn_namer.name_for(nil, @object, :controller))
