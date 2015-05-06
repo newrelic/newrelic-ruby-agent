@@ -53,7 +53,19 @@ class TestWorker
     end
   end
 
+  def self.fail=(val)
+    @fail = val
+  end
+
+  def self.am_i_a_failure?
+    @fail
+  end
+
   def perform(key, val)
-    TestWorker.record(key, val)
+    if self.class.am_i_a_failure?
+      raise "Uh oh"
+    else
+      TestWorker.record(key, val)
+    end
   end
 end
