@@ -736,10 +736,10 @@ module NewRelic
         },
         :'resque.use_ruby_dns' => {
           :default => false,
-          :public => true,
+          :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Replace the libc DNS resolver with the all Ruby resolver Resolv (may prevent deadlocks for very large numbers of jobs)'
+          :description => 'Replace the libc DNS resolver with the all Ruby resolver Resolv'
         },
         :capture_memcache_keys => {
           :default => false,

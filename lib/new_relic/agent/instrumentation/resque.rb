@@ -12,7 +12,14 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing Resque instrumentation'
-    ::NewRelic::Agent.logger.info 'Using Resolv for Resque DNS' if NewRelic::Agent.config[:'resque.use_ruby_dns']
+  end
+
+  executes do
+    if NewRelic::Agent.config[:'resque.use_ruby_dns']
+      ::NewRelic::Agent.logger.info 'Requiring resolv-replace'
+      require 'resolv'
+      require 'resolv-replace'
+    end
   end
 
   executes do
@@ -45,11 +52,6 @@ DependencyDetection.defer do
       module Agent
         module Instrumentation
           module ResqueInstrumentationInstaller
-            if NewRelic::Agent.config[:'resque.use_ruby_dns']
-              require 'resolv'
-              require 'resolv-replace'
-            end
-
             def payload_class
               klass = super
               klass.instance_eval do
