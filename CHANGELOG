@@ -18,6 +18,12 @@
 
   https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/third-party-instrumentation#testing-your-extension
 
+  * Use Sidekiq 3.x's error handler
+
+  Sidekiq 3.x+ provides an error handler for internal and middleware related
+  failures. Failures at these points were previously unseen by the Ruby agent,
+  but now they are properly traced.
+
   * newrelic_ignore methods allow strings
 
   The newrelic_ignore methods previously only supported passing symbols, and
