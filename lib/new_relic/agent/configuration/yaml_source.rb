@@ -91,6 +91,10 @@ module NewRelic
           rescue ScriptError, StandardError => e
             log_failure("Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.", e)
             nil
+          ensure
+            # Avoid warnings by using these again
+            generated_for_user = nil
+            license_key = nil
           end
         end
 
