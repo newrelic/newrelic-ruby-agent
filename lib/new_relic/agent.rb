@@ -98,6 +98,7 @@ module NewRelic
     UNKNOWN_METRIC = '(unknown)'.freeze
 
     @agent = nil
+    @logger = nil
 
     # The singleton Agent instance.  Used internally.
     def agent #:nodoc:
