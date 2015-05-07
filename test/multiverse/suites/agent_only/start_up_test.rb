@@ -46,6 +46,13 @@ class StartUpTest < Minitest::Test
     assert_equal('my great app', NewRelic::Agent.config[:app_name])
   end
 
+  def test_no_warnings
+    output = `bundle exec ruby -w -r bundler/setup -r newrelic_rpm -e 'puts NewRelic::VERSION::STRING' 2>&1`
+    output.chomp!
+
+    assert_equal NewRelic::VERSION::STRING, output
+  end
+
   def assert_runs_without_errors(command)
     output = `#{command}`
 
