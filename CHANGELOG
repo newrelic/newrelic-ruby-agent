@@ -24,6 +24,12 @@
   failures. Failures at these points were previously unseen by the Ruby agent,
   but now they are properly traced.
 
+  * Better error messages for common configuration problems with Capistrano
+
+  Templating errors in newrelic.yml would result in obscure error messages
+  during Capistrano deployments. These messages now more properly reflect the
+  root cause of the errors.
+
   * newrelic_ignore methods allow strings
 
   The newrelic_ignore methods previously only supported passing symbols, and
