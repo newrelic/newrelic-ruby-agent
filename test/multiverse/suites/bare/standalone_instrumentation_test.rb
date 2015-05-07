@@ -4,11 +4,11 @@
 
 # This test is based on the example code at:
 # https://docs.newrelic.com/docs/ruby/ruby-custom-metric-collection#example_class
-# 
+#
 # See https://newrelic.atlassian.net/browse/RUBY-1116 for details on how this
 # was broken previously.
 
-require 'new_relic/agent/method_tracer' 
+require 'new_relic/agent/method_tracer'
 
 class StandaloneInstrumentationTest < Minitest::Test
   class InstrumentedClass

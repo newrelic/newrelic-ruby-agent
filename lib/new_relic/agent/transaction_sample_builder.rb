@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/collection_helper'
-require 'new_relic/control'
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/trace'
 

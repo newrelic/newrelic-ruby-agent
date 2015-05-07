@@ -2,7 +2,11 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/control'
+# This file may be independently required to set up method tracing prior to
+# the full agent loading. In those cases, we do need at least this require to
+# bootstrap things.
+require 'new_relic/control' unless defined?(NewRelic::Control)
+
 require 'new_relic/agent/method_tracer_helpers'
 
 module NewRelic
