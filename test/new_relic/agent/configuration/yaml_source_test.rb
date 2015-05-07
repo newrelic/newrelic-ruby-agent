@@ -108,5 +108,10 @@ module NewRelic::Agent::Configuration
       source = YamlSource.new(@test_yml_path, 'yolo')
       assert source.failed?
     end
+
+    def test_failure_should_include_message
+      source = YamlSource.new(@test_yml_path, 'yolo')
+      assert_includes source.failures.flatten.join(' '), 'yolo'
+    end
   end
 end
