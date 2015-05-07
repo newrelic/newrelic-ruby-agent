@@ -44,6 +44,10 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
 
   def load_yaml_from_env(env)
     yaml = NewRelic::Agent::Configuration::YamlSource.new(NewRelic::Agent.config[:config_path], env)
+    if yaml.failed?
+      raise NewRelic::Cli::Command::CommandFailure.new("Error in loading newrelic.yml. Consult log/newrelic_agent.log for more details on what went wrong.")
+    end
+
     NewRelic::Agent.config.replace_or_add_config(yaml)
   end
 
