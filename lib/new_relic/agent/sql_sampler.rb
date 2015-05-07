@@ -6,9 +6,6 @@ require 'zlib'
 require 'base64'
 require 'digest/md5'
 
-require 'new_relic/agent'
-require 'new_relic/control'
-
 module NewRelic
   module Agent
     # This class contains the logic of recording slow SQL traces, which may
