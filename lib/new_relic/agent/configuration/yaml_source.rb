@@ -8,10 +8,11 @@ module NewRelic
   module Agent
     module Configuration
       class YamlSource < DottedHash
-        attr_accessor :file_path
+        attr_accessor :file_path, :failures
 
         def initialize(path, env)
-          config = {}
+          config    = {}
+          @failures = []
 
           begin
             @file_path = validate_config_file_path(path)
@@ -32,7 +33,7 @@ module NewRelic
         end
 
         def failed?
-          @failed
+          !@failures.empty?
         end
 
         protected
@@ -142,7 +143,7 @@ module NewRelic
 
         def log_failure(*messages)
           ::NewRelic::Agent.logger.error(*messages)
-          @failed = true
+          @failures << messages
         end
       end
     end
