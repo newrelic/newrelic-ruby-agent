@@ -136,11 +136,6 @@ module NewRelic
 
         depth
       end
-
-      def sample
-        @sample
-      end
-
     end
   end
 end
