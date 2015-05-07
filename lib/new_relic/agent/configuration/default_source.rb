@@ -70,7 +70,7 @@ module NewRelic
         def self.config_path
           Proc.new {
             found_path = NewRelic::Agent.config[:config_search_paths].detect do |file|
-              File.expand_path(file) if File.exists? file
+              File.expand_path(file) if File.exist? file
             end
             found_path || ""
           }

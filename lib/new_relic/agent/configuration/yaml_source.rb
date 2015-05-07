@@ -41,7 +41,7 @@ module NewRelic
         def validate_config_file_path(path)
           expanded_path = File.expand_path(path)
 
-          if path.empty? || !File.exists?(expanded_path)
+          if path.empty? || !File.exist?(expanded_path)
             warn_missing_config_file(expanded_path)
             return
           end

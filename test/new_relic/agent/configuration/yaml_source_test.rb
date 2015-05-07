@@ -82,7 +82,7 @@ module NewRelic::Agent::Configuration
       without_logger do
         ::NewRelic::Agent::StartupLogger.any_instance.expects(:error)
 
-        File.stubs(:exists?).returns(true)
+        File.stubs(:exist?).returns(true)
         File.stubs(:read).raises(StandardError.new("boo"))
 
         YamlSource.new('fake.yml', 'test')
