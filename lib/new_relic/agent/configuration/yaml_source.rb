@@ -22,13 +22,17 @@ module NewRelic
             erb_file = process_erb(raw_file)
             config   = process_yaml(erb_file, env, config, @file_path)
           rescue ScriptError, StandardError => e
-            ::NewRelic::Agent.logger.error("Failed to read or parse configuration file at #{path}", e)
+            log_failure("Failed to read or parse configuration file at #{path}", e)
           end
 
           substitute_transaction_threshold(config)
           booleanify_values(config, 'agent_enabled', 'enabled')
 
           super(config, true)
+        end
+
+        def failed?
+          @failed
         end
 
         protected
@@ -61,6 +65,9 @@ module NewRelic
             based_on = 'API call'
           end
 
+          # This is not a failure, since we do support running without a
+          # newrelic.yml (configured with just ENV). It is, however, uncommon,
+          # so warn about it since it's very likely to be unintended.
           NewRelic::Agent.logger.warn(
             "No configuration file found. Working directory = #{Dir.pwd}",
             "Looked in these locations (based on #{based_on}): #{candidate_paths.join(", ")}"
@@ -81,7 +88,7 @@ module NewRelic
 
             ERB.new(file).result(binding)
           rescue ScriptError, StandardError => e
-            ::NewRelic::Agent.logger.error("Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.", e)
+            log_failure("Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.", e)
             nil
           end
         end
@@ -89,7 +96,9 @@ module NewRelic
         def process_yaml(file, env, config, path)
           if file
             confighash = with_yaml_engine { YAML.load(file) }
-            ::NewRelic::Agent.logger.error("Config file at #{path} doesn't include a '#{env}' section!") unless confighash.key?(env)
+            unless confighash.key?(env)
+              log_failure("Config file at #{path} doesn't include a '#{env}' section!")
+            end
 
             config = confighash[env] || {}
           end
@@ -129,6 +138,11 @@ module NewRelic
 
         def is_boolean?(value)
           value == !!value
+        end
+
+        def log_failure(*messages)
+          ::NewRelic::Agent.logger.error(*messages)
+          @failed = true
         end
       end
     end
