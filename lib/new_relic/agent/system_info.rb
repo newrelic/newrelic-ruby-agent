@@ -16,6 +16,8 @@ module NewRelic
         RbConfig::CONFIG['target_os']
       end
 
+      @processor_info = nil
+
       def self.clear_processor_info
         @processor_info = nil
       end

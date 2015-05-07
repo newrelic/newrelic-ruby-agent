@@ -43,6 +43,11 @@ module NewRelic
       end
 
       def initialize
+        @started = false
+
+        @service    = nil
+        @event_loop = nil
+
         # FIXME: temporary work around for RUBY-839
         # This should be handled with a configuration callback
         start_service_if_needed

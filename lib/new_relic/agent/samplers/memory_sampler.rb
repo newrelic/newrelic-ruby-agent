@@ -62,6 +62,10 @@ module NewRelic
         end
 
         class Base
+          def initialize
+            @broken = false
+          end
+
           def can_run?
             return false if @broken
             m = get_memory rescue nil
@@ -86,11 +90,11 @@ module NewRelic
         end
 
         class JavaHeapSampler < Base
-
           def get_memory
             raise "Can't sample Java heap unless running in JRuby" unless defined? JRuby
             java.lang.Runtime.getRuntime.totalMemory / (1024 * 1024).to_f rescue nil
           end
+
           def to_s
             "JRuby Java heap sampler"
           end
@@ -101,6 +105,7 @@ module NewRelic
             super()
             @command = command
           end
+
           # Returns the amount of resident memory this process is using in MB
           #
           def get_memory
@@ -121,9 +126,7 @@ module NewRelic
         # A class that samples memory by reading the file /proc/$$/status, which is specific to linux
         #
         class ProcStatus < Base
-
           # Returns the amount of resident memory this process is using in MB
-          #
           def get_memory
             proc_status = File.open(proc_status_file, "r") {|f| f.read_nonblock(4096).strip }
             if proc_status =~ /RSS:\s*(\d+) kB/i

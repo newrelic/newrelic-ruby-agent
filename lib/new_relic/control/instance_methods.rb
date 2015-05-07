@@ -144,7 +144,11 @@ module NewRelic
 
       def initialize(local_env, config_file_override=nil)
         @local_env = local_env
+        @started_in_env = nil
+
+        @instrumented = nil
         @instrumentation_files = []
+
         @config_file_override = config_file_override
       end
 
