@@ -46,11 +46,15 @@ class StartUpTest < Minitest::Test
     assert_equal('my great app', NewRelic::Agent.config[:app_name])
   end
 
-  def test_no_warnings
-    output = `bundle exec ruby -w -r bundler/setup -r newrelic_rpm -e 'puts NewRelic::VERSION::STRING' 2>&1`
-    output.chomp!
+  # Older rubies have a lot of warnings that we don't care much about. Track it
+  # going forward from Ruby 2.1.
+  if RUBY_VERSION >= "2.1"
+    def test_no_warnings
+      output = `bundle exec ruby -w -r bundler/setup -r newrelic_rpm -e 'puts NewRelic::VERSION::STRING' 2>&1`
+      output.chomp!
 
-    assert_equal NewRelic::VERSION::STRING, output
+      assert_equal NewRelic::VERSION::STRING, output
+    end
   end
 
   def assert_runs_without_errors(command)
