@@ -24,7 +24,7 @@ automatically in Rails applications.
 * Ruby 1.8.7, REE, 1.9.x, 2.0.x, 2.1.x, 2.2.x
 * JRuby 1.6 and 1.7
 * Rubinius 2.x (Experimental support only)
-* Lotus 0.2 or later
+* Lotus 0.3.0 or later (Production Mode only)
 * Rails 2.1 or later for Production Mode
 * Rails 2.3 or later for Developer Mode
 * Sinatra
@@ -36,6 +36,9 @@ can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-fra
 Any Rack based framework should work but may not be tested.  Install
 the Ruby Agent as a gem and add the Developer Mode middleware if
 desired.  Report any problems by visiting support.newrelic.com.
+
+Frameworks that use Shotgun such as Lotus do not work in Developer or
+Monitor Mode.
 
 You can also monitor non-web applications. Refer to the "Other
 Environments" section under "Getting Started".
@@ -85,25 +88,20 @@ Then make sure you set `LOTUS_ENV` to the environment corresponding to the
 configuration definitions in the newrelic.yml file; e.g., development,
 staging, production, etc.
 
-To use Developer Mode in Lotus, add `NewRelic::Rack::DeveloperMode` to
-the middleware stack by modifying your config.ru file:
+Please be noted that NewRelic does not support Lotus in development mode
+because it does not support Shotgun which is a dependency of Lotus.
+
+To use in Lotus, start the NewRelic agent manually by
+by modifying your config.ru file:
 
 ```ruby
 require './config/environment'
-
-if ENV['LOTUS_ENV'] == 'development'
-  puts "Loading NewRelic in developer mode ..."
-  require 'new_relic/rack/developer_mode'
-  use NewRelic::Rack::DeveloperMode
-end
 
 NewRelic::Agent.manual_start
 
 run Lotus::Container.new
 ```
  
-See the Developer Mode in Rack Applications section below for more details.
-
 #### Rails Installation
 
 You can install the agent as a Gem:
