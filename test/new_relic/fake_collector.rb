@@ -71,7 +71,6 @@ module NewRelic
         'shutdown'                => Response.new(200, {'return_value' => nil}),
         'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
         'custom_event_data'       => Response.new(200, {'return_value' => nil}),
-        'utilization_data'        => Response.new(200, {'return_value' => nil}),
       }
       reset
     end
@@ -207,8 +206,6 @@ module NewRelic
           AnalyticEventDataPost.new(opts)
         when 'error_data'
           ErrorDataPost.new(opts)
-        when 'utilization_data'
-          UtilizationDataPost.new(opts)
         else
           new(opts)
         end
@@ -352,20 +349,6 @@ module NewRelic
       def initialize(opts={})
         super
         @errors = @body[1].map { |e| SubmittedError.new(e) }
-      end
-    end
-
-    class UtilizationDataPost < AgentPost
-
-      attr_reader :hostname, :container_id, :cpu_count, :instance_type
-
-      def initialize(opts={})
-        super
-        @hostname, @container_id, @cpu_count, @instance_type = body
-      end
-
-      def ==(other)
-        @body == other.body
       end
     end
 

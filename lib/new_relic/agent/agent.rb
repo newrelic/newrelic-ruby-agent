@@ -55,7 +55,6 @@ module NewRelic
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @synthetics_monitor    = NewRelic::Agent::SyntheticsMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
-        @utilization_data      = NewRelic::Agent::UtilizationData.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
         @monotonic_gc_profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
@@ -645,14 +644,6 @@ module NewRelic
             @event_loop.fire_every(report_period_for(:analytic_event_data), :report_event_data)
             @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD,              :reset_log_once_keys)
 
-            if Agent.config[:collect_utilization] && !in_resque_child_process?
-              @event_loop.on(:report_utilization_data) do
-                transmit_utilization_data
-              end
-              @event_loop.fire(:report_utilization_data)
-              @event_loop.fire_every(UTILIZATION_REPORT_PERIOD, :report_utilization_data)
-            end
-
             @event_loop.run
           end
 
@@ -1086,10 +1077,6 @@ module NewRelic
           harvest_and_send_from_container(@custom_event_aggregator,      :custom_event_data)
         end
 
-        def harvest_and_send_utilization_data
-          harvest_and_send_from_container(@utilization_data, :utilization_data)
-        end
-
         def check_for_and_handle_agent_commands
           begin
             @agent_command_router.check_for_and_handle_agent_commands
@@ -1116,10 +1103,6 @@ module NewRelic
 
         def transmit_event_data
           transmit_single_data_type(:harvest_and_send_analytic_event_data, "TransactionEvent")
-        end
-
-        def transmit_utilization_data
-          transmit_single_data_type(:harvest_and_send_utilization_data, "UtilizationData")
         end
 
         def transmit_single_data_type(harvest_method, supportability_name)
@@ -1177,7 +1160,6 @@ module NewRelic
               @events.notify(:before_shutdown)
               transmit_data
               transmit_event_data
-              transmit_utilization_data if NewRelic::Agent.config[:collect_utilization]
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"

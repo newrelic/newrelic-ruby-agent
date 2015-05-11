@@ -181,10 +181,6 @@ module NewRelic
           :item_count => data.size)
       end
 
-      def utilization_data(data)
-        invoke_remote(:utilization_data, data)
-      end
-
       # We do not compress if content is smaller than 64kb.  There are
       # problems with bugs in Ruby in some versions that expose us
       # to a risk of segfaults if we compress aggressively.

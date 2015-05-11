@@ -1255,13 +1255,6 @@ module NewRelic
           :allowed_from_server => false,
           :description  => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic's data collection service."
         },
-        :collect_utilization => {
-          :default      => false,
-          :public       => false,
-          :type         => Boolean,
-          :allowed_from_server => true,
-          :description  => "Controls whether to collect processor and instance sizing data and send it to New Relic"
-        },
         :'rules.ignore_url_regexes' => {
           :default      => [],
           :public       => true,

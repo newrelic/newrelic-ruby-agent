@@ -607,43 +607,6 @@ module NewRelic
         @agent.stop_event_loop
       end
 
-      def test_doesnt_wire_up_utilization_in_resque_child
-        fake_loop = create_utilization_loop
-        fake_loop.expects(:on).with(:report_utilization_data).never
-
-        @agent.stubs(:in_resque_child_process?).returns(true)
-
-        with_config(:collect_utilization => true) do
-          @agent.create_and_run_event_loop
-        end
-      end
-
-      def test_wires_up_utilization_when_not_in_resque
-        fake_loop = create_utilization_loop
-        fake_loop.expects(:on).with(:report_utilization_data).once
-
-        @agent.stubs(:in_resque_child_process?).returns(false)
-
-        with_config(:collect_utilization => true) do
-          @agent.create_and_run_event_loop
-        end
-      end
-
-      def create_utilization_loop
-        fake_loop = stub
-        fake_loop.stubs(:on).with(:report_utilization_data)
-        fake_loop.stubs(:on).with(:report_data)
-        fake_loop.stubs(:on).with(:report_event_data)
-        fake_loop.stubs(:on).with(:reset_log_once_keys)
-
-        fake_loop.stubs(:fire)
-        fake_loop.stubs(:fire_every)
-        fake_loop.stubs(:run)
-
-        @agent.stubs(:create_event_loop).returns(fake_loop)
-        fake_loop
-      end
-
       def test_untraced_graceful_disconnect_logs_errors
         NewRelic::Agent.stubs(:disable_all_tracing).raises(TestError, 'test')
         ::NewRelic::Agent.logger.expects(:error).with(is_a(TestError))
