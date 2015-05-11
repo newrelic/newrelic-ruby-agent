@@ -93,7 +93,7 @@ module NewRelic
                 ::NewRelic::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
               end
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
-            when defined?(::NewRelic::IA) then :external
+            when defined?(::Lotus) then :lotus
             else :ruby
             end
           }
@@ -864,7 +864,7 @@ module NewRelic
           :description => 'Use error_collector.attributes.enabled instead.'
         },
         :'error_collector.ignore_errors' => {
-          :default => 'ActionController::RoutingError,Sinatra::NotFound',
+          :default => 'ActionController::RoutingError,Sinatra::NotFound,Lotus::Routing::EndpointNotFound',
           :public => true,
           :type => String,
           :allowed_from_server => true,

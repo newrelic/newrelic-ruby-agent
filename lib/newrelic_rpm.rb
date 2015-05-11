@@ -18,6 +18,10 @@
 #    require 'newrelic_rpm'
 # after requiring 'sinatra'.
 #
+# For Lotus, do
+#    require 'newrelic_rpm'
+# in the Lotus config/environment.rb
+
 # For other frameworks, or to manage the agent manually, invoke NewRelic::Agent#manual_start
 # directly.
 #
