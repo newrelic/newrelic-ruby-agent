@@ -17,7 +17,6 @@ module NewRelic
           "browser_monitoring.debug",
           "browser_monitoring.loader",
           "browser_monitoring.loader_version",
-          "collect_utilization",
           "cross_process_id",
           "data_report_period",
           "data_report_periods.analytic_event_data",

@@ -122,7 +122,6 @@ def default_service(stubbed_method_overrides = {})
     :get_agent_commands => [],
     :agent_command_results => nil,
     :analytic_event_data => nil,
-    :utilization_data => nil,
     :valid_to_marshal? => true
   }
 
