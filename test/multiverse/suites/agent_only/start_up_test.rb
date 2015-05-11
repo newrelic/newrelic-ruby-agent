@@ -6,6 +6,8 @@
 require 'open3'
 
 class StartUpTest < Minitest::Test
+  GIT_NOISE = "fatal: Not a git repository (or any of the parent directories): .git\n"
+
   def test_should_not_print_to_stdout_when_logging_available
     ruby = 'require "newrelic_rpm"; NewRelic::Agent.manual_start; NewRelic::Agent.shutdown'
     cmd = "bundle exec ruby -e '#{ruby}'"
@@ -16,7 +18,7 @@ class StartUpTest < Minitest::Test
     expected_noise = [
       "JRuby limited openssl loaded. http://jruby.org/openssl\n",
       "gem install jruby-openssl for full support.\n",
-      "fatal: Not a git repository (or any of the parent directories): .git\n",
+      GIT_NOISE,
       /Exception\: java\.lang.*\n/]
 
     expected_noise.each {|noise| output.gsub!(noise, "")}
@@ -51,6 +53,7 @@ class StartUpTest < Minitest::Test
   if RUBY_VERSION >= "2.1"
     def test_no_warnings
       output = `bundle exec ruby -w -r bundler/setup -r newrelic_rpm -e 'puts NewRelic::VERSION::STRING' 2>&1`
+      output.gsub!(GIT_NOISE, "")
       output.chomp!
 
       assert_equal NewRelic::VERSION::STRING, output
