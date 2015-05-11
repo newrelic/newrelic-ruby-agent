@@ -51,6 +51,7 @@ module NewRelic
         data = validate_remote_data(request)
 
         if request && data.nil?
+          NewRelic::Agent.increment_metric('Supportability/utilization/aws/error')
           NewRelic::Agent.logger.warn("Fetching instance metadata for #{remote_key.inspect} returned invalid data: #{request.inspect}")
         end
 
