@@ -13,14 +13,16 @@ module NewRelic::Agent
 
     test_cases = load_cross_agent_test("aws")
     test_cases.each do |test_case|
-      define_method("test_#{test_case['testname'].gsub(/\W/, "_")}") do
+      testname, uri, response, metric, expected = test_case.values_at 'testname', 'uri', 'response', 'metric', 'expected'
 
-        Net::HTTP.stubs(:get).with(URI(test_case['uri'])).returns(test_case['response'])
+      define_method("test_#{testname.gsub(/\W/, "_")}") do
+
+        Net::HTTP.stubs(:get).with(URI(uri)).returns(response)
         utilization_data = NewRelic::Agent::UtilizationData.new
-        assert_equal test_case['expected'], utilization_data.instance_type
+        assert_equal expected, utilization_data.send(method_from_uri(uri))
 
-        if test_case['metric']
-          test_case['metric'].each_pair do |metric_name, incoming_attributes|
+        if metric
+          metric.each_pair do |metric_name, incoming_attributes|
             expected_attributes = incoming_attributes.inject({}) do |memo, (k,v)|
               memo[translate_method_name(k)] = v
               memo
@@ -38,6 +40,10 @@ module NewRelic::Agent
 
     def translate_method_name(method_name)
       METHOD_LOOKUP[method_name]
+    end
+
+    def method_from_uri(uri)
+      uri.split("/").last.tr("-", "_")
     end
   end
 end
