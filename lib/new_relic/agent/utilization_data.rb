@@ -30,16 +30,23 @@ module NewRelic
       end
 
       def instance_type
-        Timeout::timeout(1) do
+        handle_remote_call do
           remote_fetch('instance-type')
         end
-      rescue Timeout::Error
-        NewRelic::Agent.logger.debug("UtilizationData timed out fetching remote keys.")
-        nil
-      rescue StandardError, LoadError => e
-        NewRelic::Agent.logger.debug("UtilizationData encountered error fetching remote keys:\n#{e}")
-        nil
       end
+
+      def instance_id
+        handle_remote_call do
+          remote_fetch('instance-id')
+        end
+      end
+
+      def availability_zone
+        handle_remote_call do
+          remote_fetch('placement/availability-zone')
+        end
+      end
+
 
       INSTANCE_HOST = '169.254.169.254'
       API_VERSION   = '2008-02-01'
@@ -56,6 +63,20 @@ module NewRelic
         end
 
         data
+      end
+
+      def handle_remote_call
+        begin
+          Timeout::timeout(1) do
+            yield
+          end
+        rescue Timeout::Error
+          NewRelic::Agent.logger.debug("UtilizationData timed out fetching remote keys.")
+          nil
+        rescue StandardError, LoadError => e
+          NewRelic::Agent.logger.debug("UtilizationData encountered error fetching remote keys:\n#{e}")
+          nil
+        end
       end
 
       def validate_remote_data(data_str)
