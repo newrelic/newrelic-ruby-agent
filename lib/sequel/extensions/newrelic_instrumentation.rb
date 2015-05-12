@@ -67,8 +67,8 @@ module Sequel
           nil
         end
       end
-      NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, self.opts, duration, state, &explainer)
-      NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric_name, self.opts, duration, state, &explainer)
+      NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, self.opts, duration, state, explainer)
+      NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric_name, self.opts, duration, state, explainer)
     end
 
   end # module NewRelicInstrumentation

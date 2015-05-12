@@ -150,7 +150,7 @@ module NewRelic
       # @api public
       # @deprecated Use {Datastores.notice_sql} instead.
       #
-      def notice_sql(sql, metric_name, config, duration, state=nil, &explainer) #THREAD_LOCAL_ACCESS sometimes
+      def notice_sql(sql, metric_name, config, duration, state=nil, explainer=nil) #THREAD_LOCAL_ACCESS sometimes
         state ||= TransactionState.tl_get
         data = state.sql_sampler_transaction_data
         return unless data
@@ -160,7 +160,7 @@ module NewRelic
             backtrace = caller.join("\n")
             data.sql_data << SlowSql.new(Database.capture_query(sql),
                                          metric_name, config,
-                                         duration, backtrace, &explainer)
+                                         duration, backtrace, explainer)
           end
         end
       end
@@ -223,8 +223,7 @@ module NewRelic
       attr_reader :duration
       attr_reader :backtrace
 
-      def initialize(sql, metric_name, config, duration, backtrace=nil,
-                     &explainer)
+      def initialize(sql, metric_name, config, duration, backtrace=nil, explainer=nil)
         @sql = sql
         @metric_name = metric_name
         @config = config
@@ -244,7 +243,7 @@ module NewRelic
 
       def explain
         if @config && @explainer
-          NewRelic::Agent::Database.explain_sql(@sql, @config, &@explainer)
+          NewRelic::Agent::Database.explain_sql(@sql, @config, @explainer)
         end
       end
 

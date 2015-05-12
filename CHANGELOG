@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.12.1 ##
+
+  * More granular Database metrics for ActiveRecord 3 and 4
+
+  Database metrics recorded for non-SELECT operations (UPDATE, INSERT, DELETE,
+  etc.) on ActiveRecord 3 and 4 now include the model name that the query was
+  being executed against, allowing you to view these queries broken down by
+  model on the Datastores page. Thanks to Bill Kayser for reporting this issue!
+
 ## v3.12.0 ##
 
   * Flexible capturing of attributes

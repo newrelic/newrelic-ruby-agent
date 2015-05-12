@@ -159,13 +159,13 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     queries = [
                NewRelic::Agent::SlowSql.new("select * from test",
                                             "Database/test/select", config,
-                                            1.5, nil, &explainer),
+                                            1.5, nil, explainer),
                NewRelic::Agent::SlowSql.new("select * from test",
                                             "Database/test/select", config,
-                                            1.2, nil, &explainer),
+                                            1.2, nil, explainer),
                NewRelic::Agent::SlowSql.new("select * from test2",
                                             "Database/test2/select", config,
-                                            1.1, nil, &explainer)
+                                            1.1, nil, explainer)
               ]
     data.sql_data.concat(queries)
     @sampler.save_slow_sql data
@@ -300,7 +300,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
       data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test",
                                                          "Database/test/select",
-                                                         {}, 1.5, &explainer)])
+                                                         {}, 1.5, nil, explainer)])
       @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
 
