@@ -611,7 +611,6 @@ module NewRelic
           # Never allow any data type to be reported more frequently than once
           # per second.
           MIN_ALLOWED_REPORT_PERIOD = 1.0
-          UTILIZATION_REPORT_PERIOD = 30 * 60 # every half hour
 
           def report_period_for(method)
             config_key = "data_report_periods.#{method}".to_sym
