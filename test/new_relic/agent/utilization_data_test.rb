@@ -32,8 +32,9 @@ module NewRelic::Agent
     end
 
     def test_docker_information_is_included_when_available
+      NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
       utilization_data = UtilizationData.new
-      utilization_data.stubs(:container_id).returns("47cbd16b77c50cbf71401")
+
 
       expected = {
         :docker => {
