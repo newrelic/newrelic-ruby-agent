@@ -14,22 +14,13 @@ module NewRelic::Agent
 
     test_cases = load_cross_agent_test("aws")
     test_cases.each do |test_case|
-      testname, uris, metric = test_case.values_at 'testname', 'uris', 'metric'
+      testname, uris, expected_vendors_hash, expected_metrics = test_case.values_at 'testname', 'uris', 'expected_vendors_hash', 'expected_metrics'
 
       define_method("test_#{testname.gsub(/\W/, "_")}") do
-
         stub_responses(uris)
-        assert_valid_responses(uris)
-        assert_valid_metrics(metric) if metric
+        assert_valid_vendors_hash(expected_vendors_hash)
+        assert_valid_metrics(expected_metrics) if expected_metrics
       end
-    end
-
-    METHOD_LOOKUP = {
-      "callCount" => :call_count
-    }
-
-    def translate_method_name(method_name)
-      METHOD_LOOKUP[method_name]
     end
 
     def method_from_uri(uri)
@@ -46,22 +37,19 @@ module NewRelic::Agent
       end
     end
 
-    def assert_valid_responses(uris)
+    def assert_valid_vendors_hash(expected_vendors_hash)
       aws_info = AWSInfo.new
 
-      uris.each_pair.each do |uri, attrs|
-        result = aws_info.send(method_from_uri(uri))
-        assert_equal attrs['expected'], result
+      if expected_vendors_hash.nil?
+        refute aws_info.loaded?
+      else
+        actual = HashExtensions.stringify_keys_in_object(aws_info.to_collector_hash)
+        assert_equal expected_vendors_hash["aws"], actual
       end
     end
 
-    def assert_valid_metrics(metric)
-      metric.each_pair do |metric_name, incoming_attributes|
-        expected_attributes = incoming_attributes.inject({}) do |memo, (k,v)|
-          memo[translate_method_name(k)] = v
-          memo
-        end
-
+    def assert_valid_metrics(metrics)
+      metrics.each_pair do |metric_name, expected_attributes|
         assert_metrics_recorded(metric_name => expected_attributes)
       end
     end

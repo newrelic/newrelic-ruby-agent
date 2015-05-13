@@ -4,18 +4,22 @@
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
         "response":"test.type",
-        "expected":"test.type",
         "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
       "response":"test.id",
-      "expected":"test.id",
       "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
       "response":"us-west-2b",
-      "expected":"us-west-2b",
       "timeout":false
+      }
+    },
+    "expected_vendors_hash": {
+      "aws": {
+        "id": "test.id",
+        "type": "test.type",
+        "zone": "us-west-2b"
       }
     }
   },
@@ -24,23 +28,21 @@
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
         "response":"<script>lol</script>",
-        "expected":null,
         "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
       "response":"test.id",
-      "expected":"test.id",
       "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
       "response":"us-west-2b",
-      "expected":"us-west-2b",
       "timeout":false
       }
     },
-    "metric": {
+    "expected_vendors_hash": null,
+    "expected_metrics": {
       "Supportability/utilization/aws/error": {
-        "callCount":1
+        "call_count":1
       }
     }
   },
@@ -49,23 +51,21 @@
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
         "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
-        "expected":null,
         "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
       "response":"test.id",
-      "expected":"test.id",
       "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
       "response":"us-west-2b",
-      "expected":"us-west-2b",
       "timeout":false
       }
     },
-    "metric": {
+    "expected_vendors_hash": null,
+    "expected_metrics": {
       "Supportability/utilization/aws/error": {
-        "callCount":1
+        "call_count":1
       }
     }
   },
@@ -74,43 +74,39 @@
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
         "response":null,
-        "expected":null,
         "timeout":true
       },
     "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
       "response":"test.id",
-      "expected":null,
       "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
       "response":"us-west-2b",
-      "expected":null,
       "timeout":false
       }
-    }
+    },
+    "expected_vendors_hash": null
   },
   {
     "testname":"instance id with invalid characters",
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
         "response":"test.type",
-        "expected":"test.type",
         "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
       "response":"<script>lol</script>",
-      "expected":null,
       "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
       "response":"us-west-2b",
-      "expected":"us-west-2b",
       "timeout":false
       }
     },
-    "metric": {
+    "expected_vendors_hash": null,
+    "expected_metrics": {
       "Supportability/utilization/aws/error": {
-        "callCount":1
+        "call_count":1
       }
     }
   },
@@ -119,23 +115,21 @@
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
         "response":"test.type",
-        "expected":"test.type",
         "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
       "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
-      "expected":null,
       "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
       "response":"us-west-2b",
-      "expected":"us-west-2b",
       "timeout":false
       }
     },
-    "metric": {
+    "expected_vendors_hash": null,
+    "expected_metrics": {
       "Supportability/utilization/aws/error": {
-        "callCount":1
+        "call_count":1
       }
     }
   },
@@ -144,43 +138,39 @@
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
         "response":"test.type",
-        "expected":null,
         "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
       "response":null,
-      "expected":null,
       "timeout":true
       },
     "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
       "response":"us-west-2b",
-      "expected":null,
       "timeout":false
       }
-    }
+    },
+    "expected_vendors_hash": null
   },
   {
     "testname":"availability zone with invalid characters",
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
         "response":"test.type",
-        "expected":"test.type",
         "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
       "response":"test.id",
-      "expected":"test.id",
       "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
       "response":"<script>lol</script>",
-      "expected":null,
       "timeout":false
       }
     },
-    "metric": {
+    "expected_vendors_hash": null,
+    "expected_metrics": {
       "Supportability/utilization/aws/error": {
-        "callCount":1
+        "call_count":1
       }
     }
   },
@@ -189,23 +179,21 @@
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
         "response":"test.type",
-        "expected":"test.type",
         "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
       "response":"test.id",
-      "expected":"test.id",
       "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
       "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
-      "expected":null,
       "timeout":false
       }
     },
-    "metric": {
+    "expected_vendors_hash": null,
+    "expected_metrics": {
       "Supportability/utilization/aws/error": {
-        "callCount":1
+        "call_count":1
       }
     }
   },
@@ -214,19 +202,17 @@
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
         "response":"test.type",
-        "expected":null,
         "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
       "response":"test.id",
-      "expected":null,
       "timeout":false
       },
     "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
       "response":null,
-      "expected":null,
       "timeout":true
       }
-    }
+    },
+    "expected_vendors_hash": null
   }
 ]
