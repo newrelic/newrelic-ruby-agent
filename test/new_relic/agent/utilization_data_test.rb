@@ -7,10 +7,16 @@ require 'new_relic/agent/utilization_data'
 
 module NewRelic::Agent
   class UtilizationDataTest < Minitest::Test
+    def setup
+      stub_aws_info
+    end
+
     def test_aws_information_is_included_when_available
-      AWSInfo.any_instance.stubs(:instance_id).returns("i-e7e85ce1")
-      AWSInfo.any_instance.stubs(:instance_type).returns("m3.medium")
-      AWSInfo.any_instance.stubs(:availability_zone).returns("us-west-2b")
+      stub_aws_info(
+        :instance_id => "i-e7e85ce1",
+        :instance_type => "m3.medium",
+        :availability_zone => "us-west-2b"
+      )
 
       utilization_data = UtilizationData.new
 
@@ -39,12 +45,37 @@ module NewRelic::Agent
     end
 
     def test_vendor_information_is_omitted_if_unavailable
-      AWSInfo.any_instance.stubs(:instance_id).returns(nil)
-      AWSInfo.any_instance.stubs(:instance_type).returns(nil)
-      AWSInfo.any_instance.stubs(:availability_zone).returns(nil)
       utilization_data = UtilizationData.new
 
       assert_nil utilization_data.to_collector_hash[:vendors]
+    end
+
+    def test_hostname_is_present_in_collector_hash
+      NewRelic::Agent::Hostname.stubs(:get).returns("host")
+
+      utilization_data = UtilizationData.new
+
+      assert_equal "host", utilization_data.to_collector_hash[:hostname]
+    end
+
+    def test_cpu_count_is_present_in_collector_hash
+      NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
+
+      utilization_data = UtilizationData.new
+
+      assert_equal 5, utilization_data.to_collector_hash[:logical_processors]
+    end
+
+    def test_metadata_version_is_present_in_collector_hash
+      utilization_data = UtilizationData.new
+
+      assert_equal UtilizationData::METADATA_VERSION, utilization_data.to_collector_hash[:metadata_version]
+    end
+
+    def stub_aws_info(responses = {})
+      AWSInfo.any_instance.stubs(:remote_fetch).with("instance-id").returns(responses[:instance_id])
+      AWSInfo.any_instance.stubs(:remote_fetch).with("instance-type").returns(responses[:instance_type])
+      AWSInfo.any_instance.stubs(:remote_fetch).with("placement/availability-zone").returns(responses[:availability_zone])
     end
   end
 end
