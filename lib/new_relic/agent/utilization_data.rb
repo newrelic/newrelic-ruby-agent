@@ -18,7 +18,7 @@ module NewRelic
       end
 
       def container_id
-        ::NewRelic::Agent::SystemInfo.docker_container_id
+        @container_id ||= ::NewRelic::Agent::SystemInfo.docker_container_id
       end
 
       def cpu_count
@@ -36,7 +36,7 @@ module NewRelic
 
         vendors = {}
         vendors[:aws] = @aws_info.to_collector_hash if @aws_info.loaded?
-
+        vendors[:docker] = {:id => container_id} if container_id
         result[:vendors] = vendors unless vendors.empty?
         result
       end
