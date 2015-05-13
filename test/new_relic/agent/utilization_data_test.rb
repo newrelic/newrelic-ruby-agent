@@ -24,5 +24,27 @@ module NewRelic::Agent
 
       assert_equal expected, utilization_data.to_collector_hash[:vendors]
     end
+
+    def test_docker_information_is_included_when_available
+      utilization_data = UtilizationData.new
+      utilization_data.stubs(:container_id).returns("47cbd16b77c50cbf71401")
+
+      expected = {
+        :docker => {
+          :id => "47cbd16b77c50cbf71401"
+        }
+      }
+
+      assert_equal expected, utilization_data.to_collector_hash[:vendors]
+    end
+
+    def test_vendor_information_is_omitted_if_unavailable
+      AWSInfo.any_instance.stubs(:instance_id).returns(nil)
+      AWSInfo.any_instance.stubs(:instance_type).returns(nil)
+      AWSInfo.any_instance.stubs(:availability_zone).returns(nil)
+      utilization_data = UtilizationData.new
+
+      assert_nil utilization_data.to_collector_hash[:vendors]
+    end
   end
 end
