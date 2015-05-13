@@ -833,7 +833,8 @@ module NewRelic
               :agent_version => NewRelic::VERSION::STRING,
               :environment => @environment_report,
               :settings => Agent.config.to_collector_hash,
-              :high_security => Agent.config[:high_security]
+              :high_security => Agent.config[:high_security],
+              :utilization => UtilizationData.new.to_collector_hash
             }
           end
 
