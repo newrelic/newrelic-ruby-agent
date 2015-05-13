@@ -36,6 +36,12 @@
   would quietly ignore any strings passed. Now strings can be passed as well
   to get the intuitive ignoring behavior you'd expect.
 
+  * Replace DNS resolver for Resque jobs with Resolv
+
+  In some circumstances customers with a very high number of short-lived Resque
+  jobs were experiencing deadlocks during DNS resolution. Resolv is an all Ruby
+  DNS resolver that replaces the libc implementation to prevent these deadlocks.
+
 ## v3.12.0 ##
 
   * Flexible capturing of attributes
