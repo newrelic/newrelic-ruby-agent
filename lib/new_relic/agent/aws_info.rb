@@ -5,28 +5,21 @@
 module NewRelic
   module Agent
     class AWSInfo
-
-      class InvalidResponseError < StandardError; end
-
       attr_reader :instance_type, :instance_id, :availability_zone
 
       def initialize
-        @loaded = false
+        load_remote_data
       end
 
+      protected
+
       def load_remote_data
-        @loaded = handle_remote_calls do
+        handle_remote_calls do
           @instance_type = remote_fetch('instance-type')
           @instance_id = remote_fetch('instance-id')
           @availability_zone = remote_fetch('placement/availability-zone')
         end
       end
-
-      def loaded?
-        @loaded
-      end
-
-      protected
 
       def reset
         @instance_type = @instance_id = @availability_zone = nil
@@ -58,16 +51,14 @@ module NewRelic
         rescue Timeout::Error
           handle_error "UtilizationData timed out fetching remote keys."
         rescue StandardError, LoadError => e
-         handle_error "UtilizationData encountered error fetching remote keys:\n#{e}"
-        else
-          true
+          handle_error "UtilizationData encountered error fetching remote keys:\n#{e}"
         end
+        nil
       end
 
       def handle_error(message)
         NewRelic::Agent.logger.debug message
         reset
-        false
       end
 
       def validate_remote_data(data_str)
