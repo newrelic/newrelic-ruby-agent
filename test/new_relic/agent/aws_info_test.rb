@@ -38,7 +38,11 @@ module NewRelic::Agent
 
     def stub_responses(uris)
       uris.each_pair do |uri, attrs|
-        Net::HTTP.stubs(:get).with(URI(uri)).returns(attrs['response'])
+        if attrs['timeout']
+          Net::HTTP.stubs(:get).with(URI(uri)).raises(Timeout::Error)
+        else
+          Net::HTTP.stubs(:get).with(URI(uri)).returns(attrs['response'])
+        end
       end
     end
 

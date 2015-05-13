@@ -70,6 +70,26 @@
     }
   },
   {
+    "testname":"instance type times out",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":null,
+        "expected":null,
+        "timeout":true
+      },
+    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+      "response":"test.id",
+      "expected":null,
+      "timeout":false
+      },
+    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+      "response":"us-west-2b",
+      "expected":null,
+      "timeout":false
+      }
+    }
+  },
+  {
     "testname":"instance id with invalid characters",
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
@@ -120,6 +140,26 @@
     }
   },
   {
+    "testname":"instance id times out",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"test.type",
+        "expected":null,
+        "timeout":false
+      },
+    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+      "response":null,
+      "expected":null,
+      "timeout":true
+      },
+    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+      "response":"us-west-2b",
+      "expected":null,
+      "timeout":false
+      }
+    }
+  },
+  {
     "testname":"availability zone with invalid characters",
     "uris":{
       "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
@@ -166,6 +206,26 @@
     "metric": {
       "Supportability/utilization/aws/error": {
         "callCount":1
+      }
+    }
+  },
+  {
+    "testname":"availability-zone times out",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"test.type",
+        "expected":null,
+        "timeout":false
+      },
+    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+      "response":"test.id",
+      "expected":null,
+      "timeout":false
+      },
+    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+      "response":null,
+      "expected":null,
+      "timeout":true
       }
     }
   }
