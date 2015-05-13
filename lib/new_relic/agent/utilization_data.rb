@@ -7,17 +7,11 @@ require 'new_relic/agent/aws_info'
 module NewRelic
   module Agent
     class UtilizationData
+      METADATA_VERSION = 1
+
       def initialize
         @aws_info = AWSInfo.new
       end
-
-      def harvest!
-        [hostname, container_id, cpu_count, instance_type]
-      end
-
-      # No persistent data, so no need for merging or resetting
-      def merge!(*_); end
-      def reset!(*_); end
 
       def hostname
         NewRelic::Agent::Hostname.get
@@ -32,16 +26,19 @@ module NewRelic
         ::NewRelic::Agent::SystemInfo.num_logical_processors
       end
 
-      def instance_type
-        @aws_info.instance_type
-      end
+      def to_collector_hash
+        result = {
+          :metadata_version => METADATA_VERSION,
+          :logical_processors => cpu_count,
+          :total_ram_mb => "TODO: integrate memory data",
+          :hostname => hostname
+        }
 
-      def instance_id
-        @aws_info.instance_id
-      end
+        vendors = {}
+        vendors[:aws] = @aws_info.to_collector_hash if @aws_info.loaded?
 
-      def availability_zone
-        @aws_info.availability_zone
+        result[:vendors] = vendors unless vendors.empty?
+        result
       end
     end
   end

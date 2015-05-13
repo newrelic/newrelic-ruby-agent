@@ -5,21 +5,32 @@
 module NewRelic
   module Agent
     class AWSInfo
+
+      class ResponseError < StandardError; end
+
       attr_reader :instance_type, :instance_id, :availability_zone
 
       def initialize
-        load_remote_data
-      end
-
-      protected
-
-      def load_remote_data
         handle_remote_calls do
           @instance_type = remote_fetch('instance-type')
           @instance_id = remote_fetch('instance-id')
           @availability_zone = remote_fetch('placement/availability-zone')
         end
       end
+
+      def loaded?
+        instance_type && instance_id && availability_zone
+      end
+
+      def to_collector_hash
+        {
+          :id => instance_id,
+          :type => instance_type,
+          :zone => availability_zone
+        }
+      end
+
+      protected
 
       def reset
         @instance_type = @instance_id = @availability_zone = nil
@@ -31,13 +42,13 @@ module NewRelic
 
       def remote_fetch(remote_key)
         uri = URI("http://#{INSTANCE_HOST}/#{API_VERSION}/meta-data/#{remote_key}")
-        request = Net::HTTP::get(uri)
+        response = Net::HTTP::get(uri)
 
-        data = validate_remote_data(request)
+        data = validate_remote_data(response)
 
-        if request && data.nil?
+        if data.nil?
           NewRelic::Agent.increment_metric('Supportability/utilization/aws/error')
-          NewRelic::Agent.logger.warn("Fetching instance metadata for #{remote_key.inspect} returned invalid data: #{request.inspect}")
+          raise ResponseError, "Fetching instance metadata for #{remote_key.inspect} returned invalid data: #{request.inspect}"
         end
 
         data
@@ -53,7 +64,6 @@ module NewRelic
         rescue StandardError, LoadError => e
           handle_error "UtilizationData encountered error fetching remote keys:\n#{e}"
         end
-        nil
       end
 
       def handle_error(message)
