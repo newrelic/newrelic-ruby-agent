@@ -30,7 +30,6 @@ module NewRelic
         result = {
           :metadata_version => METADATA_VERSION,
           :logical_processors => cpu_count,
-          :total_ram_mb => "TODO: integrate memory data",
           :hostname => hostname
         }
 
