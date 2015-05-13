@@ -48,7 +48,6 @@ module NewRelic::Agent
 
     def assert_valid_responses(uris)
       aws_info = AWSInfo.new
-      aws_info.load_remote_data
 
       uris.each_pair.each do |uri, attrs|
         result = aws_info.send(method_from_uri(uri))
@@ -66,41 +65,5 @@ module NewRelic::Agent
         assert_metrics_recorded(metric_name => expected_attributes)
       end
     end
-
-    # def test_nothing_is_loaded_when_initialized
-    #   aws_info = AWSInfo.new
-    #   refute aws_info.loaded?, "Expected loaded? to be false"
-    #   assert_nil aws_info.instance_type
-    #   assert_nil aws_info.instance_id
-    #   assert_nil aws_info.availability_zone
-    # end
-
-    # def test_attributes_are_populated_when_all_requests_succeed
-    #   Net::HTTP.stubs(:get).with(URI('http://169.254.169.254/2008-02-01/meta-data/instance-type')).returns('test.type')
-    #   Net::HTTP.stubs(:get).with(URI('http://169.254.169.254/2008-02-01/meta-data/instance-id')).returns('test.id')
-    #   Net::HTTP.stubs(:get).with(URI('http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone')).returns('us-west-2b')
-
-    #   aws_info = AWSInfo.new
-    #   aws_info.load_remote_data
-
-    #   assert aws_info.loaded?, "Expected loaded? to be true"
-    #   assert_equal "test.type", aws_info.instance_type
-    #   assert_equal "test.id", aws_info.instance_id
-    #   assert_equal "us-west-2b", aws_info.availability_zone
-    # end
-
-    # def test_no_attributes_are_populated_if_a_request_times_out
-    #   Net::HTTP.stubs(:get).with(URI('http://169.254.169.254/2008-02-01/meta-data/instance-type')).returns('test.type')
-    #   Net::HTTP.stubs(:get).with(URI('http://169.254.169.254/2008-02-01/meta-data/instance-id')).returns('test.id')
-    #   Net::HTTP.stubs(:get).with(URI('http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone')).raises(Timeout::Error)
-
-    #   aws_info = AWSInfo.new
-    #   aws_info.load_remote_data
-
-    #   refute aws_info.loaded?, "Expected loaded? to be false"
-    #   assert_nil aws_info.instance_type
-    #   assert_nil aws_info.instance_id
-    #   assert_nil aws_info.availability_zone
-    # end
   end
 end

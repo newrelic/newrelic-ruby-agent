@@ -7,6 +7,10 @@ require 'new_relic/agent/aws_info'
 module NewRelic
   module Agent
     class UtilizationData
+      def initialize
+        @aws_info = AWSInfo.new
+      end
+
       def harvest!
         [hostname, container_id, cpu_count, instance_type]
       end
@@ -28,18 +32,16 @@ module NewRelic
         ::NewRelic::Agent::SystemInfo.num_logical_processors
       end
 
-      [:instance_type, :instance_id, :availability_zone].each do |method_name|
-        define_method(method_name) do
-          load_aws_info unless @aws_info
-          @aws_info.send(method_name)
-        end
+      def instance_type
+        @aws_info.instance_type
       end
 
-      protected
+      def instance_id
+        @aws_info.instance_id
+      end
 
-      def load_aws_info
-        @aws_info = AWSInfo.new
-        @aws_info.load_remote_data
+      def availability_zone
+        @aws_info.availability_zone
       end
     end
   end
