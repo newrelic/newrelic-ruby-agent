@@ -1435,6 +1435,20 @@ module NewRelic
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows * as wildcard at end.'
+        },
+        :'utilization.detect_aws' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enable or disable automatic AWS detection'
+        },
+        :'utilization.detect_docker' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enable or disable automatic Docker detection.'
         }
       }.freeze
     end
