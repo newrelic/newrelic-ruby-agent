@@ -1,0 +1,218 @@
+[
+  {
+    "testname":"instance type, instance-id, availability-zone are all happy",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"test.type",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
+      }
+    },
+    "expected_vendors_hash": {
+      "aws": {
+        "id": "test.id",
+        "type": "test.type",
+        "zone": "us-west-2b"
+      }
+    }
+  },
+  {
+    "testname":"instance type with invalid characters",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"<script>lol</script>",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count":1
+      }
+    }
+  },
+  {
+    "testname":"instance type too long",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count":1
+      }
+    }
+  },
+  {
+    "testname":"instance type times out",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":null,
+        "timeout":true
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
+      }
+    },
+    "expected_vendors_hash": null
+  },
+  {
+    "testname":"instance id with invalid characters",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"test.type",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"<script>lol</script>",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count":1
+      }
+    }
+  },
+  {
+    "testname":"instance id too long",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"test.type",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count":1
+      }
+    }
+  },
+  {
+    "testname":"instance id times out",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"test.type",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":null,
+        "timeout":true
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
+      }
+    },
+    "expected_vendors_hash": null
+  },
+  {
+    "testname":"availability zone with invalid characters",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"test.type",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"<script>lol</script>",
+        "timeout":false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count":1
+      }
+    }
+  },
+  {
+    "testname":"availability zone too long",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"test.type",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        "timeout":false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count":1
+      }
+    }
+  },
+  {
+    "testname":"availability-zone times out",
+    "uris":{
+      "http://169.254.169.254/2008-02-01/meta-data/instance-type":{
+        "response":"test.type",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
+      },
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":null,
+        "timeout":true
+      }
+    },
+    "expected_vendors_hash": null
+  }
+]
