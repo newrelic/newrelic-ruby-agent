@@ -229,7 +229,7 @@ module NewRelic
 
         # For use by test code only.
         def to_h
-          with_stats_lock { Hash[@stats_hash] }
+          with_stats_lock { @stats_hash.to_h }
         end
       end
     end
