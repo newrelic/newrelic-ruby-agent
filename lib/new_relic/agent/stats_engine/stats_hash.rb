@@ -134,9 +134,8 @@ module NewRelic
       end
 
       def merge!(other)
-        if other.is_a?(StatsHash) && other.started_at < @started_at
-          @started_at = other.started_at
-        end
+        @started_at = other.started_at if other.started_at < @started_at
+
         other.each do |spec, val|
           if spec.scope.empty?
             merge_or_insert(@unscoped, spec.name, val)
