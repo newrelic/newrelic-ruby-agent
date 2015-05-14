@@ -75,8 +75,8 @@ DependencyDetection.defer do
       else
         true
       end
-    rescue
-      ::NewRelic::Agent.logger.info("Could not determine if third party newrelic-grape gem is installed")
+    rescue => e
+      ::NewRelic::Agent.logger.info("Could not determine if third party newrelic-grape gem is installed", e)
       true
     end
   end
