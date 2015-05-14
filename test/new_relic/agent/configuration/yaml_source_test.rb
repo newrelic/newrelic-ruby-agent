@@ -90,7 +90,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_mark_error_on_read_as_failure
-      File.stubs(:exists?).returns(true)
+      File.stubs(:exist?).returns(true)
       File.stubs(:read).raises(StandardError.new("boo"))
 
       source = YamlSource.new('fake.yml', 'test')
