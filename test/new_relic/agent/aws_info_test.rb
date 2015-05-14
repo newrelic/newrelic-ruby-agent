@@ -19,7 +19,7 @@ module NewRelic::Agent
       define_method("test_#{testname.gsub(/\W/, "_")}") do
         stub_responses(uris)
         assert_valid_vendors_hash(expected_vendors_hash)
-        assert_valid_metrics(expected_metrics) if expected_metrics
+        assert_metrics_recorded(expected_metrics) if expected_metrics
       end
     end
 
@@ -45,12 +45,6 @@ module NewRelic::Agent
       else
         actual = HashExtensions.stringify_keys_in_object(aws_info.to_collector_hash)
         assert_equal expected_vendors_hash["aws"], actual
-      end
-    end
-
-    def assert_valid_metrics(metrics)
-      metrics.each_pair do |metric_name, expected_attributes|
-        assert_metrics_recorded(metric_name => expected_attributes)
       end
     end
   end
