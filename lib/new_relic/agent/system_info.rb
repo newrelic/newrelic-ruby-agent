@@ -206,9 +206,16 @@ module NewRelic
         if ruby_os_identifier.downcase.include?('darwin')
           sysctl_value('hw.memsize').to_f / (1024 ** 2)
         elsif ruby_os_identifier.downcase.include?('linux')
-          `dmesg | grep Memory`.split("Memory: ").last.split.first.split('/').last.chomp('k').to_f / 1024
+          meminfo = proc_try_read('/proc/meminfo')
+          parse_linux_meminfo_in_mb(meminfo)
         elsif ruby_os_identifier.downcase.include?('bsd')
           sysctl_value('hw.realmem').to_f / (1024 ** 2)
+        end
+      end
+
+      def self.parse_linux_meminfo_in_mb(meminfo)
+        if mem_total = meminfo[/MemTotal:\s*(\d*)\skB/,1]
+          mem_total.to_f / 1024
         end
       end
     end
