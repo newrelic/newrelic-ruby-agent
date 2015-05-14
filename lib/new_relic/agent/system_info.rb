@@ -201,6 +201,16 @@ module NewRelic
         end
         content
       end
+
+      def self.ram_in_mb
+        if ruby_os_identifier.downcase.include?('darwin')
+          sysctl_value('hw.memsize').to_f / (1024 ** 2)
+        elsif ruby_os_identifier.downcase.include?('linux')
+          `dmesg | grep Memory`.split("Memory: ").last.split.first.split('/').last.chomp('k').to_f / 1024
+        elsif ruby_os_identifier.downcase.include?('bsd')
+          sysctl_value('hw.realmem').to_f / (1024 ** 2)
+        end
+      end
     end
   end
 end
