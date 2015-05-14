@@ -61,6 +61,12 @@ DependencyDetection.defer do
       config.server_middleware do |chain|
         chain.add NewRelic::SidekiqInstrumentation
       end
+
+      if config.respond_to?(:error_handlers)
+        config.error_handlers << Proc.new do |error, *_|
+          NewRelic::Agent.notice_error(error)
+        end
+      end
     end
   end
 end
