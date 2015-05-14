@@ -57,5 +57,32 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       assert_equal(test_case['containerId'], container_id, message)
     end
   end
+
+  meminfo_test_dir = File.join(cross_agent_tests_dir, 'proc_meminfo')
+
+  Dir.chdir(meminfo_test_dir) do
+    Dir.glob("*.txt") do |file|
+      if file =~ /^meminfo_(\d+)MB.txt$/
+        test_name = "test_#{file}"
+        test_path = File.join(meminfo_test_dir, file)
+
+        mem_total_expected = $1.to_f
+
+        define_method(test_name) do
+          meminfo = File.read(test_path)
+
+          mem_total_actual = @sysinfo.parse_linux_meminfo_in_mb(meminfo)
+
+          assert_equal(mem_total_expected, mem_total_actual)
+        end
+      else
+        fail "Bad filename: cross_agent_tests/proc_meminfo/#{file}"
+      end
+    end
+  end
+
+  def test_proc_meminfo_unparsable
+    assert_nil @sysinfo.parse_linux_meminfo_in_mb("")
+  end
 end
 
