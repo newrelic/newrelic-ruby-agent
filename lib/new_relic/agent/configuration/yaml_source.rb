@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/configuration'
+require 'new_relic/agent/configuration/dotted_hash'
 
 module NewRelic
   module Agent
@@ -41,7 +41,7 @@ module NewRelic
         def validate_config_file_path(path)
           expanded_path = File.expand_path(path)
 
-          if path.empty? || !File.exists?(expanded_path)
+          if path.empty? || !File.exist?(expanded_path)
             warn_missing_config_file(expanded_path)
             return
           end
@@ -91,6 +91,10 @@ module NewRelic
           rescue ScriptError, StandardError => e
             log_failure("Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.", e)
             nil
+          ensure
+            # Avoid warnings by using these again
+            generated_for_user = nil
+            license_key = nil
           end
         end
 

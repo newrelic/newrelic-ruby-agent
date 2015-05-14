@@ -7,7 +7,7 @@ require 'new_relic/coerce'
 module NewRelic
   class MetricData
     # nil, or a NewRelic::MetricSpec object if we have no cached ID
-    attr_accessor :metric_spec
+    attr_reader :metric_spec
     # nil or a cached integer ID for the metric from the collector.
     attr_accessor :metric_id
     # the actual statistics object

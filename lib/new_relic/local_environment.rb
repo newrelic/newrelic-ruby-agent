@@ -41,6 +41,7 @@ module NewRelic
         self.extend mod if mod.instance_of? Module
       end
 
+      @discovered_dispatcher = nil
       discover_dispatcher
     end
 

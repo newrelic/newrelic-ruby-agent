@@ -161,7 +161,7 @@ class NewRelic::Agent::TransactionEventAggregator
     if main_event.include?(SYNTHETICS_RESOURCE_ID_KEY)
       # Try adding to synthetics buffer. If anything is rejected, give it a
       # shot in the main transaction events (where it may get sampled)
-      result, rejected = @synthetics_samples.append_with_reject(event)
+      _, rejected = @synthetics_samples.append_with_reject(event)
 
       if rejected
         @samples.append(rejected)
