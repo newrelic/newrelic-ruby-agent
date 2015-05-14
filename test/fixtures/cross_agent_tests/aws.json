@@ -6,13 +6,13 @@
         "response":"test.type",
         "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-      "response":"test.id",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
-      "response":"us-west-2b",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
       }
     },
     "expected_vendors_hash": {
@@ -30,13 +30,13 @@
         "response":"<script>lol</script>",
         "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-      "response":"test.id",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
-      "response":"us-west-2b",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
       }
     },
     "expected_vendors_hash": null,
@@ -53,13 +53,13 @@
         "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
         "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-      "response":"test.id",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
-      "response":"us-west-2b",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
       }
     },
     "expected_vendors_hash": null,
@@ -76,13 +76,13 @@
         "response":null,
         "timeout":true
       },
-    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-      "response":"test.id",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
-      "response":"us-west-2b",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
       }
     },
     "expected_vendors_hash": null
@@ -94,13 +94,13 @@
         "response":"test.type",
         "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-      "response":"<script>lol</script>",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"<script>lol</script>",
+        "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
-      "response":"us-west-2b",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
       }
     },
     "expected_vendors_hash": null,
@@ -117,13 +117,13 @@
         "response":"test.type",
         "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-      "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
-      "response":"us-west-2b",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
       }
     },
     "expected_vendors_hash": null,
@@ -140,13 +140,13 @@
         "response":"test.type",
         "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-      "response":null,
-      "timeout":true
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":null,
+        "timeout":true
       },
-    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
-      "response":"us-west-2b",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"us-west-2b",
+        "timeout":false
       }
     },
     "expected_vendors_hash": null
@@ -158,13 +158,13 @@
         "response":"test.type",
         "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-      "response":"test.id",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
-      "response":"<script>lol</script>",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"<script>lol</script>",
+        "timeout":false
       }
     },
     "expected_vendors_hash": null,
@@ -181,13 +181,13 @@
         "response":"test.type",
         "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-      "response":"test.id",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
-      "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        "timeout":false
       }
     },
     "expected_vendors_hash": null,
@@ -204,13 +204,13 @@
         "response":"test.type",
         "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-      "response":"test.id",
-      "timeout":false
+      "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
+        "response":"test.id",
+        "timeout":false
       },
-    "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
-      "response":null,
-      "timeout":true
+      "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
+        "response":null,
+        "timeout":true
       }
     },
     "expected_vendors_hash": null
