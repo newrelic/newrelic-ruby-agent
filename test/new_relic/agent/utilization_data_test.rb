@@ -31,6 +31,19 @@ module NewRelic::Agent
       assert_equal expected, utilization_data.to_collector_hash[:vendors]
     end
 
+    def test_aws_information_is_omitted_when_available_but_disabled_by_config
+      stub_aws_info(
+        :instance_id => "i-e7e85ce1",
+        :instance_type => "m3.medium",
+        :availability_zone => "us-west-2b"
+      )
+
+      with_config(:'utilization.detect_aws' => false) do
+        utilization_data = UtilizationData.new
+        assert_nil utilization_data.to_collector_hash[:vendors]
+      end
+    end
+
     def test_docker_information_is_included_when_available
       NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
 
@@ -43,6 +56,14 @@ module NewRelic::Agent
       }
 
       assert_equal expected, utilization_data.to_collector_hash[:vendors]
+    end
+
+    def test_docker_information_is_omitted_when_available_but_disabled_by_config
+      NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
+      with_config(:'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+        assert_nil utilization_data.to_collector_hash[:vendors]
+      end
     end
 
     def test_aws_and_docker_information_is_included_when_both_available
