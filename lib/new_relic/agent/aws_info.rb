@@ -30,7 +30,7 @@ module NewRelic
         }
       end
 
-      protected
+      private
 
       def reset
         @instance_type = @instance_id = @availability_zone = nil
@@ -44,9 +44,9 @@ module NewRelic
         uri = URI("http://#{INSTANCE_HOST}/#{API_VERSION}/meta-data/#{remote_key}")
         response = Net::HTTP::get(uri)
 
-        data = validate_remote_data(response)
+        data = filter_remote_data(response)
 
-        if data.nil?
+        unless data
           NewRelic::Agent.increment_metric('Supportability/utilization/aws/error')
           raise ResponseError, "Fetching instance metadata for #{remote_key.inspect} returned invalid data: #{request.inspect}"
         end
@@ -62,16 +62,16 @@ module NewRelic
         rescue Timeout::Error
           handle_error "UtilizationData timed out fetching remote keys."
         rescue StandardError, LoadError => e
-          handle_error "UtilizationData encountered error fetching remote keys:\n#{e}"
+          handle_error "UtilizationData encountered error fetching remote keys", e
         end
       end
 
-      def handle_error(message)
-        NewRelic::Agent.logger.debug message
+      def handle_error(*messages)
+        NewRelic::Agent.logger.debug(*messages)
         reset
       end
 
-      def validate_remote_data(data_str)
+      def filter_remote_data(data_str)
         return nil unless data_str.kind_of?(String)
         return nil unless data_str.size <= 255
 
