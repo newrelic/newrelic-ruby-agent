@@ -8,7 +8,8 @@ class SSLTest < Minitest::Test
 
   def setup
     # Similar to how jruby 1.6.8 behaves when jruby-openssl isn't installed
-    Net::HTTPSession.any_instance.stubs('use_ssl=').raises(LoadError)
+    Net::HTTPSession.any_instance.stubs('use_ssl=').with(true).raises(LoadError)
+    Net::HTTPSession.any_instance.stubs('use_ssl=').with(false).returns(nil)
   end
 
   def test_agent_shuts_down_when_ssl_is_on_but_unavailable
