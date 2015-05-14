@@ -69,7 +69,6 @@ module NewRelic
       def on_start_transaction(state, start_time)
         if enabled?
           start_builder(state, start_time.to_f)
-          state.transaction_sample_builder
         end
       end
 
