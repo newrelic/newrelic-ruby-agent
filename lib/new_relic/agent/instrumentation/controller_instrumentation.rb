@@ -79,6 +79,15 @@ module NewRelic
             elsif ! (Hash === specifiers)
               ::NewRelic::Agent.logger.error "newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
             else
+              # symbolize the incoming values
+              specifiers = specifiers.inject({}) do |memo, (key, values)|
+                if values.is_a?(Array)
+                  memo[key] = values.map(&:to_sym)
+                else
+                  memo[key] = values.to_sym
+                end
+                memo
+              end
               self.newrelic_write_attr property, specifiers
             end
           end
