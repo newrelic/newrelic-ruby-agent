@@ -5,22 +5,23 @@
 class StatsHashPerfTest < Performance::TestCase
   def setup
     @hash = NewRelic::Agent::StatsHash.new
+    @specs = (1..100).map { |i| NewRelic::MetricSpec.new("foo#{i}") }
   end
 
   def test_record
     measure do
       hash = NewRelic::Agent::StatsHash.new
-      100.times do |i|
-        hash.record("foo#{i}", 1)
+      @specs.each do |spec|
+        hash.record(spec, 1)
       end
     end
   end
 
   def test_merge
     measure do
-      incoming = {}
-      100.times do |i|
-        incoming["foo#{i}"] = NewRelic::Agent::Stats.new
+      incoming = NewRelic::Agent::StatsHash.new
+      @specs.each do |i|
+        incoming.record(NewRelic::MetricSpec.new("foo#{i}"), 1)
       end
 
       hash = NewRelic::Agent::StatsHash.new
