@@ -66,6 +66,17 @@ module NewRelic::Agent
       end
     end
 
+    def test_metric_is_recorded_when_docker_container_id_is_unrecognized
+      NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
+      NewRelic::Agent::SystemInfo.stubs(:ram_in_mb).returns(128)
+      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns('whatever')
+      NewRelic::Agent::SystemInfo.stubs(:parse_cgroup_ids).returns('cpu' => "*****YOLO*******")
+
+      utilization_data = UtilizationData.new
+      assert_nil utilization_data.to_collector_hash[:vendors]
+      assert_metrics_recorded ["Supportability/utilization/docker/error"]
+    end
+
     def test_aws_and_docker_information_is_included_when_both_available
       stub_aws_info(
         :instance_id => "i-e7e85ce1",
