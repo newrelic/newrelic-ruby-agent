@@ -191,7 +191,7 @@ module NewRelic
         txn = state.current_transaction
         if txn
           txn.notice_error(e, options)
-        else
+        elsif NewRelic::Agent.instance
           NewRelic::Agent.instance.error_collector.notice_error(e, options)
         end
       end

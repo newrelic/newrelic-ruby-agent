@@ -34,6 +34,10 @@ class StartUpTest < Minitest::Test
     assert_runs_without_errors("bundle exec ruby script/symbol_env.rb")
   end
 
+  def test_can_call_public_api_methods_when_agent_disabled
+    assert_runs_without_errors("bundle exec ruby script/public_api_when_disabled.rb")
+  end
+
   def test_manual_start_logs_about_mismatched_environment
     output = `bundle exec ruby script/env_change.rb`
 
@@ -62,6 +66,7 @@ class StartUpTest < Minitest::Test
 
   def assert_runs_without_errors(command)
     output = `#{command}`
+    assert_equal 0, $?.exitstatus
 
     problems = output.scan(/ERROR : .*/)
     assert_empty problems

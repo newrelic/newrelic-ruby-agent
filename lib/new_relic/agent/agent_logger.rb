@@ -64,6 +64,12 @@ module NewRelic
         self.send(level, *msgs)
       end
 
+      def clear_already_logged
+        @already_logged_lock.synchronize do
+          @already_logged = {}
+        end
+      end
+
       def is_startup_logger?
         @log.is_a?(NullLogger)
       end
@@ -83,6 +89,12 @@ module NewRelic
           end
         end
       end
+
+      def log_formatter=(formatter)
+        @log.formatter = formatter
+      end
+
+      private
 
       def backtrace_from_exception(e)
         # We've seen that often the backtrace on a SystemStackError is bunk
@@ -146,12 +158,6 @@ module NewRelic
         @log = ::NewRelic::Agent::NullLogger.new
       end
 
-      def clear_already_logged
-        @already_logged_lock.synchronize do
-          @already_logged = {}
-        end
-      end
-
       def wants_stdout?
         ::NewRelic::Agent.config[:log_file_path].upcase == "STDOUT"
       end
@@ -194,9 +200,6 @@ module NewRelic
         StartupLogger.instance.dump(self)
       end
 
-      def log_formatter=(formatter)
-        @log.formatter = formatter
-      end
     end
 
     # In an effort to not lose messages during startup, we trap them in memory
