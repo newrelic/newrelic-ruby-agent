@@ -156,6 +156,8 @@ module NewRelic
     #
     # @api public
     def record_metric(metric_name, value) #THREAD_LOCAL_ACCESS
+      return unless agent
+
       if value.is_a?(Hash)
         stats = NewRelic::Agent::Stats.new
 
@@ -179,6 +181,8 @@ module NewRelic
     #
     # @api public
     def increment_metric(metric_name, amount=1) #THREAD_LOCAL_ACCESS
+      return unless agent
+
       agent.stats_engine.tl_record_unscoped_metrics(metric_name) do |stats|
         stats.increment_count(amount)
       end
@@ -315,7 +319,7 @@ module NewRelic
     # @api public
     #
     def after_fork(options={})
-      agent.after_fork(options)
+      agent.after_fork(options) if agent
     end
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
@@ -334,7 +338,7 @@ module NewRelic
     #
     # @api public
     def drop_buffered_data
-      agent.drop_buffered_data
+      agent.drop_buffered_data if agent
     end
 
     # Add instrumentation files to the agent.  The argument should be
@@ -421,10 +425,14 @@ module NewRelic
     # @api public
     #
     def disable_all_tracing
-      agent.push_trace_execution_flag(false)
-      yield
-    ensure
-      agent.pop_trace_execution_flag
+      return yield unless agent
+
+      begin
+        agent.push_trace_execution_flag(false)
+        yield
+      ensure
+        agent.pop_trace_execution_flag
+      end
     end
 
     # This method disables the recording of transaction traces in the given
@@ -433,6 +441,8 @@ module NewRelic
     # @api public
     #
     def disable_transaction_tracing
+      return yield unless agent
+
       state = agent.set_record_tt(false)
       begin
         yield
@@ -453,6 +463,8 @@ module NewRelic
     # @api public
     #
     def disable_sql_recording
+      return yield unless agent
+
       state = agent.set_record_sql(false)
       begin
         yield
@@ -595,6 +607,7 @@ module NewRelic
     # @api public
     #
     def browser_timing_header
+      return "" unless agent
       agent.javascript_instrumentor.browser_timing_header
     end
 
@@ -664,6 +677,7 @@ module NewRelic
     # @deprecated
     #
     def get_stats(metric_name, use_scope=false)
+      return unless agent
       agent.stats_engine.get_stats(metric_name, use_scope)
     end
 

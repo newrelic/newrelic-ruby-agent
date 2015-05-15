@@ -15,7 +15,7 @@ module NewRelic
         true
       end
 
-      attr_accessor :messages, :level
+      attr_accessor :messages, :level, :log_formatter
 
       def fatal(*msgs, &blk)
         messages << [:fatal, msgs, blk]
@@ -39,6 +39,12 @@ module NewRelic
 
       def log_exception(level, e, backtrace_level=level)
         messages << [:log_exception, [level, e, backtrace_level]]
+      end
+
+      def log_once(level, key, *msgs)
+      end
+
+      def clear_already_logged
       end
 
       def dump(logger)
