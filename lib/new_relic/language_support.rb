@@ -111,6 +111,27 @@ module NewRelic::LanguageSupport
     RUBY_VERSION >= '1.9.0'
   end
 
+  def constantize(const_name)
+    const_name.to_s.sub(/\A::/,'').split('::').inject(Object) do |namespace, name|
+      begin
+        result = namespace.const_get(name)
+
+        # const_get looks up the inheritence chain, so if it's a class
+        # in the constant make sure we found the one in our namespace.
+        #
+        # Can't help if the constant isn't a class...
+        if result.is_a?(Module)
+          expected_name = "#{namespace}::#{name}".gsub(/^Object::/, "")
+          return unless expected_name == result.to_s
+        end
+
+        result
+      rescue NameError
+        nil
+      end
+    end
+  end
+
   def test_forkability
     child = Process.fork { exit! }
     # calling wait here doesn't seem like it should necessary, but it seems to
