@@ -35,36 +35,6 @@ class NewRelic::ControlTest < Minitest::Test
     end
   end
 
-  def test_resolve_ip_for_localhost
-    with_config(:ssl => false) do
-      assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
-    end
-  end
-
-  def test_resolve_ip_for_non_existent_domain
-    with_config(:ssl => false) do
-      Resolv.stubs(:getaddress).raises(Resolv::ResolvError)
-      IPSocket.stubs(:getaddress).raises(SocketError)
-      assert_equal nil, control.send(:convert_to_ip_address, 'q1239988737.us')
-    end
-  end
-
-  def test_resolves_valid_ip
-    with_config(:ssl => false) do
-      Resolv.stubs(:getaddress).with('collector.newrelic.com').returns('204.93.223.153')
-      assert_equal '204.93.223.153', control.send(:convert_to_ip_address, 'collector.newrelic.com')
-    end
-  end
-
-  def test_do_not_resolve_if_we_need_to_verify_a_cert
-    with_config(:ssl => false) do
-      assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
-    end
-    with_config(:ssl => true) do
-      assert_equal 'localhost', control.send(:convert_to_ip_address, 'localhost')
-    end
-  end
-
   def test_api_server_uses_configured_values
     control.instance_variable_set(:@api_server, nil)
     with_config(:api_host => 'somewhere', :api_port => 8080) do
@@ -73,44 +43,11 @@ class NewRelic::ControlTest < Minitest::Test
     end
   end
 
-  def test_proxy_server_uses_configured_values
-    control.instance_variable_set(:@proxy_server, nil)
-    with_config(:proxy_host => 'proxytown', :proxy_port => 81) do
-      assert_equal 'proxytown', control.proxy_server.name
-      assert_equal 81, control.proxy_server.port
-    end
-  end
-
   def test_server_from_host_uses_configured_values
     with_config(:host => 'donkeytown', :port => 8080) do
       assert_equal 'donkeytown', control.server_from_host.name
       assert_equal 8080, control.server_from_host.port
     end
-  end
-
-  class FakeResolv
-    def self.getaddress(host)
-      raise 'deliberately broken'
-    end
-  end
-
-  def test_resolve_ip_with_broken_dns
-    # Here be dragons: disable the ruby DNS lookup methods we use so
-    # that it will actually fail to resolve.
-    old_resolv = Resolv
-    old_ipsocket = IPSocket
-    Object.instance_eval { remove_const :Resolv}
-    Object.instance_eval {remove_const:'IPSocket' }
-
-    with_config(:ssl => false) do
-      assert_equal(nil, control.send(:convert_to_ip_address, 'collector.newrelic.com'), "DNS is down, should be no IP for server")
-    end
-
-    Object.instance_eval {const_set('Resolv', old_resolv); const_set('IPSocket', old_ipsocket)}
-    # these are here to make sure that the constant tomfoolery above
-    # has not broket the system unduly
-    assert_equal old_resolv, Resolv
-    assert_equal old_ipsocket, IPSocket
   end
 
   def test_transaction_threshold__override

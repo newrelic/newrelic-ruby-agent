@@ -44,13 +44,9 @@ module NewRelic
 
       def initialize
         @started = false
-
-        @service    = nil
         @event_loop = nil
 
-        # FIXME: temporary work around for RUBY-839
-        # This should be handled with a configuration callback
-        start_service_if_needed
+        @service = NewRelicService.new
 
         @events                = NewRelic::Agent::EventListener.new
         @stats_engine          = NewRelic::Agent::StatsEngine.new
@@ -399,12 +395,6 @@ module NewRelic
               else
                 shutdown
               end
-            end
-          end
-
-          def start_service_if_needed
-            if Agent.config[:monitor_mode] && !@service
-              @service = NewRelic::Agent::NewRelicService.new
             end
           end
 
@@ -873,7 +863,7 @@ module NewRelic
           def finish_setup(config_data)
             return if config_data == nil
 
-            @service.agent_id = config_data['agent_run_id'] if @service
+            @service.agent_id = config_data['agent_run_id']
 
             if config_data['agent_config']
               ::NewRelic::Agent.logger.debug "Using config from server"
@@ -882,7 +872,7 @@ module NewRelic
             ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
             server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, Agent.config)
             Agent.config.replace_or_add_config(server_config)
-            log_connection!(config_data) if @service
+            log_connection!(config_data)
 
             @transaction_rules = RulesEngine.create_transaction_rules(config_data)
             @stats_engine.metric_rules = RulesEngine.create_metric_rules(config_data)
