@@ -14,7 +14,6 @@ module NewRelic
   module Agent
     module Configuration
       class Manager
-        attr_reader :stripped_exceptions_whitelist
 
         # Defining these explicitly saves object allocations that we incur
         # if we use Forwardable and def_delegators.
@@ -33,14 +32,6 @@ module NewRelic
         def initialize
           reset_to_defaults
           @callbacks = Hash.new {|hash,key| hash[key] = [] }
-
-          register_callback(:'strip_exception_messages.whitelist') do |whitelist|
-            if whitelist
-              @stripped_exceptions_whitelist = parse_constant_list(whitelist).compact
-            else
-              @stripped_exceptions_whitelist = []
-            end
-          end
         end
 
         def add_config_for_testing(source, level=0)
@@ -143,7 +134,7 @@ module NewRelic
             begin
               transform.call(value)
             rescue => e
-              ::NewRelic::Agent.logger.error("Error applying transformation for #{key}, falling back to #{value}.", e)
+              ::NewRelic::Agent.logger.error("Error applying transformation for #{key}, pre-transform value was: #{value}.", e)
               raise e
             end
           else
@@ -397,27 +388,6 @@ module NewRelic
           end
 
           stack
-        end
-
-        def parse_constant_list(list)
-          list.split(/\s*,\s*/).map do |class_name|
-            const = constantize(class_name)
-
-            unless const
-              NewRelic::Agent.logger.warn "Configuration referenced undefined constant: #{class_name}"
-            end
-
-            const
-          end
-        end
-
-        def constantize(class_name)
-          namespaces = class_name.split('::')
-
-          namespaces.inject(Object) do |namespace, name|
-            return unless namespace
-            namespace.const_get(name) if namespace.const_defined?(name)
-          end
         end
       end
     end

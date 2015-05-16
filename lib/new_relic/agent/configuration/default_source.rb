@@ -172,12 +172,26 @@ module NewRelic
         def self.convert_to_list(value)
           case value
           when String
-            value.split(',')
+            value.split(/\s*,\s*/)
           when Array
             value
           else
             raise ArgumentError.new("Config value '#{value}' couldn't be turned into a list.")
           end
+        end
+
+        def self.convert_to_constant_list(raw_value)
+          const_names = convert_to_list(raw_value)
+          const_names.map! do |class_name|
+            const = ::NewRelic::LanguageSupport.constantize(class_name)
+
+            unless const
+              NewRelic::Agent.logger.warn("Ignoring unrecognized constant '#{class_name}' in #{raw_value}")
+            end
+
+            const
+          end
+          const_names.compact
         end
       end
 
@@ -422,6 +436,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :transform => DefaultSource.method(:convert_to_constant_list),
           :description => 'Defines a comma-delimited list of exceptions from which the agent will not strip messages when <a href="#strip_exception_messages.enabled">strip_exception_messages</a> is enabled (such as \'ImportantException, PreserveMessageException\').'
         },
         :host => {
