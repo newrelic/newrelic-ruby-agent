@@ -68,7 +68,6 @@ module NewRelic
         Module.send :include, NewRelic::Agent::MethodTracer
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
-        NewRelic::Agent.agent.start_service_if_needed
         if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
           start_agent
           install_instrumentation
