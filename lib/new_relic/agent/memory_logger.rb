@@ -4,10 +4,17 @@
 
 # Base class for startup logging and testing in multiverse
 
+require 'new_relic/agent/log_once'
+
 module NewRelic
   module Agent
     class MemoryLogger
+      include LogOnce
+
       def initialize
+        @already_logged_lock = Mutex.new
+        clear_already_logged
+
         @messages = []
       end
 
@@ -15,7 +22,7 @@ module NewRelic
         true
       end
 
-      attr_accessor :messages, :level
+      attr_accessor :messages, :level, :log_formatter
 
       def fatal(*msgs, &blk)
         messages << [:fatal, msgs, blk]

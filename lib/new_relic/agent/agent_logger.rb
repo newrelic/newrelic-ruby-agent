@@ -5,10 +5,12 @@
 require 'thread'
 require 'logger'
 require 'new_relic/agent/hostname'
+require 'new_relic/agent/log_once'
 
 module NewRelic
   module Agent
     class AgentLogger
+      include LogOnce
 
       def initialize(root = "", override_logger=nil)
         @already_logged_lock = Mutex.new
@@ -40,30 +42,6 @@ module NewRelic
         format_and_send(:debug, msgs, &blk)
       end
 
-      NUM_LOG_ONCE_KEYS = 1000
-
-      def log_once(level, key, *msgs)
-        @already_logged_lock.synchronize do
-          return if @already_logged.include?(key)
-
-          if @already_logged.size >= NUM_LOG_ONCE_KEYS && key.kind_of?(String)
-            # The reason for preventing too many keys in `logged` is for
-            # memory concerns.
-            # The reason for checking the type of the key is that we always want
-            # to allow symbols to log, since there are very few of them.
-            # The assumption here is that you would NEVER pass dynamically-created
-            # symbols, because you would never create symbols dynamically in the
-            # first place, as that would already be a memory leak in most Rubies,
-            # even if we didn't hang on to them all here.
-            return
-          end
-
-          @already_logged[key] = true
-        end
-
-        self.send(level, *msgs)
-      end
-
       def is_startup_logger?
         @log.is_a?(NullLogger)
       end
@@ -83,6 +61,12 @@ module NewRelic
           end
         end
       end
+
+      def log_formatter=(formatter)
+        @log.formatter = formatter
+      end
+
+      private
 
       def backtrace_from_exception(e)
         # We've seen that often the backtrace on a SystemStackError is bunk
@@ -146,12 +130,6 @@ module NewRelic
         @log = ::NewRelic::Agent::NullLogger.new
       end
 
-      def clear_already_logged
-        @already_logged_lock.synchronize do
-          @already_logged = {}
-        end
-      end
-
       def wants_stdout?
         ::NewRelic::Agent.config[:log_file_path].upcase == "STDOUT"
       end
@@ -194,9 +172,6 @@ module NewRelic
         StartupLogger.instance.dump(self)
       end
 
-      def log_formatter=(formatter)
-        @log.formatter = formatter
-      end
     end
 
     # In an effort to not lose messages during startup, we trap them in memory

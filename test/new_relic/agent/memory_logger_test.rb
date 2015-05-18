@@ -64,4 +64,22 @@ class MemoryLoggerTest < Minitest::Test
 
     @logger.dump(real_logger)
   end
+
+  def test_log_once
+    @logger.log_once(:debug, :once, "Once")
+    @logger.log_once(:debug, :once, "Twice?")
+
+    real_logger = stub
+    real_logger.expects(:debug).once
+
+    @logger.dump(real_logger)
+  end
+
+  def test_implemented_agent_logger_interface
+    agent_logger_methods =  NewRelic::Agent::AgentLogger.instance_methods(false)
+    memory_logger_methods = NewRelic::Agent::MemoryLogger.instance_methods(false)
+
+    unimplemented = agent_logger_methods - memory_logger_methods
+    assert_empty unimplemented
+  end
 end
