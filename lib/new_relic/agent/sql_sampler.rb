@@ -24,13 +24,6 @@ module NewRelic
     #
     # @api public
     class SqlSampler
-
-      # Module defining methods stubbed out when the agent is disabled
-      module Shim
-        def on_start_transaction(*args); end
-        def on_finishing_transaction(*args); end
-      end
-
       attr_reader :disabled
 
       # this is for unit tests only

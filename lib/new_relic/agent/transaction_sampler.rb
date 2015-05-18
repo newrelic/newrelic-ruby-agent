@@ -20,15 +20,6 @@ module NewRelic
     #
     # @api public
     class TransactionSampler
-
-      # Module defining methods stubbed out when the agent is disabled
-      module Shim #:nodoc:
-        def on_start_transaction(*args); end
-        def notice_push_frame(*args); end
-        def notice_pop_frame(*args); end
-        def on_finishing_transaction(*args); end
-      end
-
       attr_reader :last_sample, :dev_mode_sample_buffer, :xray_sample_buffer
 
       def initialize
