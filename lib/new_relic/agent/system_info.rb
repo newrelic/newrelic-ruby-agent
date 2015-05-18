@@ -220,6 +220,9 @@ module NewRelic
           parse_linux_meminfo_in_mb(meminfo)
         elsif bsd?
           sysctl_value('hw.realmem').to_f / (1024 ** 2)
+        else
+          ::NewRelic::Agent.logger.debug("Unable to determine ram_in_mb for host os: #{ruby_os_identifier}")
+          nil
         end
       end
 
