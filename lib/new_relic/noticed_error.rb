@@ -74,7 +74,7 @@ class NewRelic::NoticedError
   end
 
   def self.passes_message_whitelist(exception_class)
-    NewRelic::Agent.config.stripped_exceptions_whitelist.any? do |klass|
+    NewRelic::Agent.config[:'strip_exception_messages.whitelist'].any? do |klass|
       exception_class <= klass
     end
   end
