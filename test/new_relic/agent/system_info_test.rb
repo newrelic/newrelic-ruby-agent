@@ -84,5 +84,29 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_proc_meminfo_unparsable
     assert_nil @sysinfo.parse_linux_meminfo_in_mb("")
   end
+
+  def test_system_info_darwin_predicate
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
+    assert NewRelic::Agent::SystemInfo.darwin?, "Expected OS to match darwin"
+
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    refute NewRelic::Agent::SystemInfo.darwin?, "Did not expect OS to match darwin"
+  end
+
+  def test_system_info_linux_predicate
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    assert NewRelic::Agent::SystemInfo.linux?, "Expected OS to match linux"
+
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
+    refute NewRelic::Agent::SystemInfo.linux?, "Did not expect OS to match linux"
+  end
+
+  def test_system_info_bsd_predicate
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("freebsd")
+    assert NewRelic::Agent::SystemInfo.bsd?, "Expected OS to match bsd"
+
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
+    refute NewRelic::Agent::SystemInfo.bsd?, "Did not expect OS to match bsd"
+  end
 end
 
