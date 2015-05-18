@@ -16,6 +16,18 @@ module NewRelic
         RbConfig::CONFIG['target_os']
       end
 
+      def self.darwin?
+        !!(ruby_os_identifier =~ /darwin/i)
+      end
+
+      def self.linux?
+        !!(ruby_os_identifier =~ /linux/i)
+      end
+
+      def self.bsd?
+        !!(ruby_os_identifier =~ /bsd/i)
+      end
+
       @processor_info = nil
 
       def self.clear_processor_info
@@ -24,9 +36,7 @@ module NewRelic
 
       def self.get_processor_info
         if @processor_info.nil?
-          case ruby_os_identifier
-
-          when /darwin/
+          if darwin?
             @processor_info = {
               :num_physical_packages  => sysctl_value('hw.packages').to_i,
               :num_physical_cores     => sysctl_value('hw.physicalcpu_max').to_i,
@@ -43,11 +53,11 @@ module NewRelic
               @processor_info[:num_logical_processors] = sysctl_value('hw.ncpu').to_i
             end
 
-          when /linux/
+          elsif linux?
             cpuinfo = proc_try_read('/proc/cpuinfo')
             @processor_info = cpuinfo ? parse_cpuinfo(cpuinfo) : {}
 
-          when /freebsd/
+          elsif bsd?
             @processor_info = {
               :num_physical_packages  => nil,
               :num_physical_cores     => nil,
@@ -203,12 +213,12 @@ module NewRelic
       end
 
       def self.ram_in_mb
-        if ruby_os_identifier.downcase.include?('darwin')
+        if darwin?
           sysctl_value('hw.memsize').to_f / (1024 ** 2)
-        elsif ruby_os_identifier.downcase.include?('linux')
+        elsif linux?
           meminfo = proc_try_read('/proc/meminfo')
           parse_linux_meminfo_in_mb(meminfo)
-        elsif ruby_os_identifier.downcase.include?('bsd')
+        elsif bsd?
           sysctl_value('hw.realmem').to_f / (1024 ** 2)
         end
       end
