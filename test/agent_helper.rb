@@ -623,14 +623,6 @@ def each_cross_agent_test(options)
   options = {:dir => nil, :pattern => "*"}.update(options)
   path = File.join [cross_agent_tests_dir, options[:dir], options[:pattern]].compact
   Dir.glob(path).each { |file| yield file}
-
-  # if extensions
-  #   formatted_extensions = Array(extensions).compact.map(&:to_s).join ","
-  #   formatted_extensions = "*.{#{formatted_extensions}}"
-  #   path = File.join(path, formatted_extensions)
-  # else
-  #   path = File.join(path, "*")
-  # end
 end
 
 def assert_event_attributes(event, test_name, expected_attributes, non_expected_attributes)
