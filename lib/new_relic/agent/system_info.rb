@@ -229,6 +229,9 @@ module NewRelic
       def self.parse_linux_meminfo_in_mb(meminfo)
         if mem_total = meminfo[/MemTotal:\s*(\d*)\skB/,1]
           mem_total.to_f / 1024
+        else
+          ::NewRelic::Agent.logger.debug("Failed to parse MemTotal from /proc/meminfo: #{meminfo}")
+          nil
         end
       end
     end
