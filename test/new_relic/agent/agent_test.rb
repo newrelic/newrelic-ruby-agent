@@ -641,13 +641,6 @@ module NewRelic
     end
 
     class AgentStartingTest < Minitest::Test
-      def test_no_service_if_not_monitoring
-        with_config(:monitor_mode => false) do
-          agent = NewRelic::Agent::Agent.new
-          assert_nil agent.service
-        end
-      end
-
       def test_abides_by_disabling_harvest_thread
         with_config(:disable_harvest_thread => true) do
           threads_before = Thread.list.length
