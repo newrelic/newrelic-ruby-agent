@@ -245,6 +245,10 @@ module NewRelic
         super
         @body = @body[0]
       end
+
+      def utilization
+        @body["utilization"]
+      end
     end
 
     class ProfileDataPost < AgentPost
