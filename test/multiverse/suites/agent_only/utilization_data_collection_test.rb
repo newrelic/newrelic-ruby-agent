@@ -39,8 +39,7 @@ class UtilizationDataCollectionTest < Minitest::Test
       # this will trigger the agent to connect and send utilization data
       setup_agent
 
-      assert_equal 1, $collector.calls_for(:connect).size
-      assert_equal expected, $collector.calls_for(:connect).first.body["utilization"]
+      assert_equal expected, single_connect_posted.utilization
     end
   end
 
@@ -59,8 +58,7 @@ class UtilizationDataCollectionTest < Minitest::Test
     # this will trigger the agent to connect and send utilization data
     setup_agent
 
-    assert_equal 1, $collector.calls_for(:connect).size
-    assert_equal expected, $collector.calls_for(:connect).first.body["utilization"]
+    assert_equal expected, single_connect_posted.utilization
   end
 
 
