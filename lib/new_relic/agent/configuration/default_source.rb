@@ -735,7 +735,7 @@ module NewRelic
           :description => 'Enable or disable the capture of job arguments for transaction traces and traced errors in Resque.'
         },
         :'resque.use_ruby_dns' => {
-          :default => false,
+          :default => true,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
