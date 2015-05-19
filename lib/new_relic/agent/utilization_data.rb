@@ -9,10 +9,6 @@ module NewRelic
     class UtilizationData
       METADATA_VERSION = 1
 
-      def initialize
-        @aws_info = AWSInfo.new
-      end
-
       def hostname
         NewRelic::Agent::Hostname.get
       end
@@ -38,15 +34,30 @@ module NewRelic
           :hostname => hostname
         }
 
-        vendors = {}
-        vendors[:aws] = @aws_info.to_collector_hash if @aws_info.loaded?
+        append_aws_info(result)
+        append_docker_info(result)
+
+        result
+      end
+
+      def append_aws_info(collector_hash)
+        return unless Agent.config[:'utilization.detect_aws']
+
+        aws_info = AWSInfo.new
+
+        if aws_info.loaded?
+          collector_hash[:vendors] ||= {}
+          collector_hash[:vendors][:aws] = aws_info.to_collector_hash
+        end
+      end
+
+      def append_docker_info(collector_hash)
+        return unless Agent.config[:'utilization.detect_docker']
 
         if docker_container_id = container_id
-          vendors[:docker] = {:id => docker_container_id}
+          collector_hash[:vendors] ||= {}
+          collector_hash[:vendors][:docker] = {:id => docker_container_id}
         end
-
-        result[:vendors] = vendors unless vendors.empty?
-        result
       end
     end
   end

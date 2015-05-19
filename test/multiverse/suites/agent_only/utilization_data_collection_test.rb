@@ -8,13 +8,59 @@ require 'fake_instance_metadata_service'
 class UtilizationDataCollectionTest < Minitest::Test
   include MultiverseHelpers
 
-  setup_and_teardown_agent do
-    $collector.stub('connect',
-      {
-        "agent_run_id" => 42
+  def test_sends_all_utilization_data_on_connect
+    expected = {
+      "hostname" => "host",
+      "metadata_version" => 1,
+      "logical_processors" => 5,
+      "total_ram_mb" => 128,
+      "vendors" => {
+        "aws" => {
+          "id" => "i-e7e85ce1",
+          "type" => "m3.medium",
+          "zone" => "us-west-2b"
+        },
+        "docker" => {
+          "id"=>"47cbd16b77c50cbf71401"
+        }
       }
-    )
+    }
+
+    NewRelic::Agent::Hostname.stubs(:get).returns("host")
+    NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
+    NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
+    NewRelic::Agent::SystemInfo.stubs(:ram_in_mb).returns(128)
+
+    with_fake_metadata_service do |service|
+      service.set_response_for_path('/2008-02-01/meta-data/instance-id', expected["vendors"]["aws"]["id"])
+      service.set_response_for_path('/2008-02-01/meta-data/instance-type', expected["vendors"]["aws"]["type"])
+      service.set_response_for_path('/2008-02-01/meta-data/placement/availability-zone', expected["vendors"]["aws"]["zone"])
+
+      # this will trigger the agent to connect and send utilization data
+      setup_agent
+
+      assert_equal expected, single_connect_posted.utilization
+    end
   end
+
+  def test_omits_sending_vendor_data_on_connect_when_not_available
+     expected = {
+      "hostname" => "host",
+      "metadata_version" => 1,
+      "logical_processors" => 5,
+      "total_ram_mb" => 128
+    }
+
+    NewRelic::Agent::Hostname.stubs(:get).returns("host")
+    NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
+    NewRelic::Agent::SystemInfo.stubs(:ram_in_mb).returns(128)
+
+    # this will trigger the agent to connect and send utilization data
+    setup_agent
+
+    assert_equal expected, single_connect_posted.utilization
+  end
+
 
   def with_fake_metadata_service
     metadata_service = NewRelic::FakeInstanceMetadataService.new

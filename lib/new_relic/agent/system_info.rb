@@ -169,6 +169,7 @@ module NewRelic
         when '/'                                            then nil
         # in a cgroup, but we don't recognize its format
         else
+          ::NewRelic::Agent.increment_metric("Supportability/utilization/docker/error")
           ::NewRelic::Agent.logger.debug("Ignoring unrecognized cgroup ID format: '#{cpu_cgroup}'")
           nil
         end

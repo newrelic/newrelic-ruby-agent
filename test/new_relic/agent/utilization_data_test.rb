@@ -31,6 +31,19 @@ module NewRelic::Agent
       assert_equal expected, utilization_data.to_collector_hash[:vendors]
     end
 
+    def test_aws_information_is_omitted_when_available_but_disabled_by_config
+      stub_aws_info(
+        :instance_id => "i-e7e85ce1",
+        :instance_type => "m3.medium",
+        :availability_zone => "us-west-2b"
+      )
+
+      with_config(:'utilization.detect_aws' => false) do
+        utilization_data = UtilizationData.new
+        assert_nil utilization_data.to_collector_hash[:vendors]
+      end
+    end
+
     def test_docker_information_is_included_when_available
       NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
 
@@ -43,6 +56,25 @@ module NewRelic::Agent
       }
 
       assert_equal expected, utilization_data.to_collector_hash[:vendors]
+    end
+
+    def test_docker_information_is_omitted_when_available_but_disabled_by_config
+      NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
+      with_config(:'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+        assert_nil utilization_data.to_collector_hash[:vendors]
+      end
+    end
+
+    def test_metric_is_recorded_when_docker_container_id_is_unrecognized
+      NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
+      NewRelic::Agent::SystemInfo.stubs(:ram_in_mb).returns(128)
+      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns('whatever')
+      NewRelic::Agent::SystemInfo.stubs(:parse_cgroup_ids).returns('cpu' => "*****YOLO*******")
+
+      utilization_data = UtilizationData.new
+      assert_nil utilization_data.to_collector_hash[:vendors]
+      assert_metrics_recorded ["Supportability/utilization/docker/error"]
     end
 
     def test_aws_and_docker_information_is_included_when_both_available
