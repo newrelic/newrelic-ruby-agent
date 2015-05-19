@@ -32,16 +32,6 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
     assert(ignore_called)
   end
 
-  def test_startup_shutdown_shim
-    with_config(:agent_enabled => true) do
-      shim_agent = NewRelic::Agent::ShimAgent.instance
-      shim_agent.shutdown
-      refute shim_agent.started?
-      shim_agent.start
-      refute shim_agent.started?
-    end
-  end
-
   def test_startup_shutdown_real
     with_config(:agent_enabled => true, :monitor_mode => true) do
       NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)

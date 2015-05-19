@@ -8,12 +8,6 @@ module Agent
   # Sampler functionality is now controlled by the SamplerManager class.
   # @deprecated
   class StatsEngine
-    module Shim # :nodoc:
-      def add_sampler(*args); end
-      def add_harvest_sampler(*args); end
-      def start_sampler_thread(*args); end
-    end
-
     module Samplers
       def add_sampler(*args)
         NewRelic::Agent.logger.warn("Ignoring request to add periodic sampler - add_sampler is deprecated")

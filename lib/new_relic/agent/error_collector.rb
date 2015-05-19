@@ -9,12 +9,6 @@ module NewRelic
     class ErrorCollector
       include NewRelic::CollectionHelper
 
-      # Defined the methods that need to be stubbed out when the
-      # agent is disabled
-      module Shim #:nodoc:
-        def notice_error(*args); end
-      end
-
       # Maximum possible length of the queue - defaults to 20, may be
       # made configurable in the future. This is a tradeoff between
       # memory and data retention
@@ -198,7 +192,6 @@ module NewRelic
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-
       def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
         state = ::NewRelic::Agent::TransactionState.tl_get
 
