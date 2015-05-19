@@ -92,6 +92,14 @@ module NewRelic::Agent
       assert_equal 5, utilization_data.to_collector_hash[:logical_processors]
     end
 
+    def test_memory_is_present_in_collector_hash
+      NewRelic::Agent::SystemInfo.stubs(:ram_in_mb).returns(128)
+
+      utilization_data = UtilizationData.new
+
+      assert_equal 128, utilization_data.to_collector_hash[:total_ram_mb]
+    end
+
     def test_metadata_version_is_present_in_collector_hash
       utilization_data = UtilizationData.new
 

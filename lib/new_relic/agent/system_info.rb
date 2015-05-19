@@ -16,6 +16,18 @@ module NewRelic
         RbConfig::CONFIG['target_os']
       end
 
+      def self.darwin?
+        !!(ruby_os_identifier =~ /darwin/i)
+      end
+
+      def self.linux?
+        !!(ruby_os_identifier =~ /linux/i)
+      end
+
+      def self.bsd?
+        !!(ruby_os_identifier =~ /bsd/i)
+      end
+
       @processor_info = nil
 
       def self.clear_processor_info
@@ -24,9 +36,7 @@ module NewRelic
 
       def self.get_processor_info
         if @processor_info.nil?
-          case ruby_os_identifier
-
-          when /darwin/
+          if darwin?
             @processor_info = {
               :num_physical_packages  => sysctl_value('hw.packages').to_i,
               :num_physical_cores     => sysctl_value('hw.physicalcpu_max').to_i,
@@ -43,11 +53,11 @@ module NewRelic
               @processor_info[:num_logical_processors] = sysctl_value('hw.ncpu').to_i
             end
 
-          when /linux/
+          elsif linux?
             cpuinfo = proc_try_read('/proc/cpuinfo')
             @processor_info = cpuinfo ? parse_cpuinfo(cpuinfo) : {}
 
-          when /freebsd/
+          elsif bsd?
             @processor_info = {
               :num_physical_packages  => nil,
               :num_physical_cores     => nil,
@@ -200,6 +210,29 @@ module NewRelic
           end
         end
         content
+      end
+
+      def self.ram_in_mb
+        if darwin?
+          sysctl_value('hw.memsize').to_i / (1024 ** 2)
+        elsif linux?
+          meminfo = proc_try_read('/proc/meminfo')
+          parse_linux_meminfo_in_mb(meminfo)
+        elsif bsd?
+          sysctl_value('hw.realmem').to_i / (1024 ** 2)
+        else
+          ::NewRelic::Agent.logger.debug("Unable to determine ram_in_mb for host os: #{ruby_os_identifier}")
+          nil
+        end
+      end
+
+      def self.parse_linux_meminfo_in_mb(meminfo)
+        if mem_total = meminfo[/MemTotal:\s*(\d*)\skB/,1]
+          mem_total.to_i / 1024
+        else
+          ::NewRelic::Agent.logger.debug("Failed to parse MemTotal from /proc/meminfo: #{meminfo}")
+          nil
+        end
       end
     end
   end

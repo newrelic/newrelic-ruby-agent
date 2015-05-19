@@ -11,33 +11,28 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     @sysinfo.clear_processor_info
   end
 
-  cpuinfo_test_dir = File.join(cross_agent_tests_dir, 'proc_cpuinfo')
+  each_cross_agent_test :dir => 'proc_cpuinfo', :pattern => "*.txt" do |file|
+    if File.basename(file) =~ /^((\d+|X)pack_(\d+|X)core_(\d+|X)logical).txt$/
+      test_name = "test_#{$1}"
 
-  Dir.chdir(cpuinfo_test_dir) do
-    Dir.glob("*.txt") do |file|
-      if file =~ /^((\d+|X)pack_(\d+|X)core_(\d+|X)logical).txt$/
-        test_name = "test_#{$1}"
-        test_path = File.join(cpuinfo_test_dir, file)
+      num_physical_packages  = $2.to_i
+      num_physical_cores     = $3.to_i
+      num_logical_processors = $4.to_i
+      num_physical_packages  = nil if num_physical_packages  < 1
+      num_physical_cores     = nil if num_physical_cores     < 1
+      num_logical_processors = nil if num_logical_processors < 1
 
-        num_physical_packages  = $2.to_i
-        num_physical_cores     = $3.to_i
-        num_logical_processors = $4.to_i
-        num_physical_packages  = nil if num_physical_packages  < 1
-        num_physical_cores     = nil if num_physical_cores     < 1
-        num_logical_processors = nil if num_logical_processors < 1
+      define_method(test_name) do
+        cpuinfo = File.read(file)
 
-        define_method(test_name) do
-          cpuinfo = File.read(test_path)
+        info = @sysinfo.parse_cpuinfo(cpuinfo)
 
-          info = @sysinfo.parse_cpuinfo(cpuinfo)
-
-          assert_equal(num_physical_packages , info[:num_physical_packages ])
-          assert_equal(num_physical_cores    , info[:num_physical_cores    ])
-          assert_equal(num_logical_processors, info[:num_logical_processors])
-        end
-      else
-        fail "Bad filename: cross_agent_tests/proc_cpuinfo/#{file}"
+        assert_equal(num_physical_packages , info[:num_physical_packages ])
+        assert_equal(num_physical_cores    , info[:num_physical_cores    ])
+        assert_equal(num_logical_processors, info[:num_logical_processors])
       end
+    else
+      fail "Bad filename: cross_agent_tests/proc_cpuinfo/#{file}"
     end
   end
 
@@ -56,6 +51,53 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       message = "Parsed incorrect Docker container ID from #{filename}"
       assert_equal(test_case['containerId'], container_id, message)
     end
+  end
+
+
+  each_cross_agent_test :dir => 'proc_meminfo', :pattern => '*.txt' do |file|
+    if File.basename(file) =~ /^meminfo_(\d+)MB.txt$/
+      test_name = "test_#{file}"
+
+      mem_total_expected = $1.to_f
+
+      define_method(test_name) do
+        meminfo = File.read(file)
+
+        mem_total_actual = @sysinfo.parse_linux_meminfo_in_mb(meminfo)
+
+        assert_equal(mem_total_expected, mem_total_actual)
+      end
+    else
+      fail "Bad filename: cross_agent_tests/proc_meminfo/#{file}"
+    end
+  end
+
+  def test_proc_meminfo_unparsable
+    assert_nil @sysinfo.parse_linux_meminfo_in_mb("")
+  end
+
+  def test_system_info_darwin_predicate
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
+    assert NewRelic::Agent::SystemInfo.darwin?, "Expected OS to match darwin"
+
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    refute NewRelic::Agent::SystemInfo.darwin?, "Did not expect OS to match darwin"
+  end
+
+  def test_system_info_linux_predicate
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    assert NewRelic::Agent::SystemInfo.linux?, "Expected OS to match linux"
+
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
+    refute NewRelic::Agent::SystemInfo.linux?, "Did not expect OS to match linux"
+  end
+
+  def test_system_info_bsd_predicate
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("freebsd")
+    assert NewRelic::Agent::SystemInfo.bsd?, "Expected OS to match bsd"
+
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
+    refute NewRelic::Agent::SystemInfo.bsd?, "Did not expect OS to match bsd"
   end
 end
 
