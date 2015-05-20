@@ -23,6 +23,16 @@ module NewRelic::Agent
       end
     end
 
+    def test_assert_logging_with_invalid_data
+      Net::HTTP.stubs(:get).returns("j" * 1000)
+
+      NewRelic::Agent.logger.stubs(:debug)
+      NewRelic::Agent.logger.expects(:debug).with(anything,
+                                                  instance_of(NewRelic::Agent::AWSInfo::ResponseError))
+
+      AWSInfo.new
+    end
+
     def method_from_uri(uri)
       uri.split("/").last.tr("-", "_")
     end

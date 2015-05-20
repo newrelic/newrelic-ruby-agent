@@ -48,7 +48,7 @@ module NewRelic
 
         unless data
           NewRelic::Agent.increment_metric('Supportability/utilization/aws/error')
-          raise ResponseError, "Fetching instance metadata for #{remote_key.inspect} returned invalid data: #{request.inspect}"
+          raise ResponseError, "Fetching instance metadata for #{remote_key.inspect} returned invalid data: #{response.inspect}"
         end
 
         data
