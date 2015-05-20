@@ -19,7 +19,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
   end
 
   def test_records_metrics_for_set
-    @redis.set 'shivan', 'dragon'
+    @redis.set 'time', 'walk'
 
     expected = {
       "Datastore/operation/Redis/set" => { :call_count => 1 },
@@ -31,14 +31,44 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_metrics_recorded(expected)
   end
 
+  def test_records_metrics_for_get_in_web_transaction
+    in_web_transaction do
+      @redis.set 'prodigal', 'sorcerer'
+    end
+
+    expected = {
+      "Datastore/operation/Redis/set" => { :call_count => 1 },
+      "Datastore/Redis/allWeb" => { :call_count => 1 },
+      "Datastore/Redis/all"=> { :call_count => 1 },
+      "Datastore/allWeb"=> { :call_count => 1 },
+      "Datastore/all"=> { :call_count => 1 }
+    }
+    assert_metrics_recorded(expected)
+  end
+
   def test_records_metrics_for_get
-    @redis.get 'mox'
+    @redis.get 'mox sapphire'
 
     expected = {
       "Datastore/operation/Redis/get" => { :call_count => 1 },
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all"=> { :call_count => 1 },
       "Datastore/allOther"=> { :call_count => 1 },
+      "Datastore/all"=> { :call_count => 1 }
+    }
+    assert_metrics_recorded(expected)
+  end
+
+  def test_records_metrics_for_set_in_web_transaction
+    in_web_transaction do
+      @redis.get 'timetwister'
+    end
+
+    expected = {
+      "Datastore/operation/Redis/get" => { :call_count => 1 },
+      "Datastore/Redis/allWeb" => { :call_count => 1 },
+      "Datastore/Redis/all"=> { :call_count => 1 },
+      "Datastore/allWeb"=> { :call_count => 1 },
       "Datastore/all"=> { :call_count => 1 }
     }
     assert_metrics_recorded(expected)
