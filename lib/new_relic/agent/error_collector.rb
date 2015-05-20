@@ -213,11 +213,11 @@ module NewRelic
       # See NewRelic::Agent.notice_error for options and commentary
 
       def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
-        state = ::NewRelic::Agent::TransactionState.tl_get
-
         return if skip_notice_error?(exception)
 
         tag_exception(exception)
+
+        state = ::NewRelic::Agent::TransactionState.tl_get
         increment_error_count!(state, exception, options)
         add_to_error_queue(create_noticed_error(exception, options))
 
