@@ -127,7 +127,11 @@ module NewRelic
       def tag_exception(exception)
         return if exception_is_java_object?(exception)
         return if exception.frozen?
-        exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
+        begin
+          exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
+        rescue => e
+          NewRelic::Agent.logger.warn("Failed to tag exception: #{exception}: ", e)
+        end
       end
 
       def blamed_metric_name(txn, options)

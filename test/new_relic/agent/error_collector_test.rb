@@ -572,6 +572,14 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     refute @error_collector.exception_tagged?(e)
   end
 
+  def test_handles_failures_during_error_tagging
+    e = StandardError.new
+    e.stubs(:instance_variable_set).raises(RuntimeError)
+    expects_logging(:warn, any_parameters)
+
+    @error_collector.notice_error(e)
+  end
+
   if NewRelic::LanguageSupport.jruby?
     def test_does_not_tag_java_objects
       e = java.lang.String.new
