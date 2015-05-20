@@ -734,6 +734,13 @@ module NewRelic
           :deprecated => true,
           :description => 'Enable or disable the capture of job arguments for transaction traces and traced errors in Resque.'
         },
+        :'resque.use_ruby_dns' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Replace the libc DNS resolver with the all Ruby resolver Resolv'
+        },
         :capture_memcache_keys => {
           :default => false,
           :public => true,

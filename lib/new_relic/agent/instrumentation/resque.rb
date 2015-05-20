@@ -15,6 +15,14 @@ DependencyDetection.defer do
   end
 
   executes do
+    if NewRelic::Agent.config[:'resque.use_ruby_dns'] && NewRelic::Agent.config[:dispatcher] == :resque
+      ::NewRelic::Agent.logger.info 'Requiring resolv-replace'
+      require 'resolv'
+      require 'resolv-replace'
+    end
+  end
+
+  executes do
     module Resque
       module Plugins
         module NewRelicInstrumentation
