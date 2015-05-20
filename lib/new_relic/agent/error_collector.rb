@@ -13,6 +13,7 @@ module NewRelic
       # made configurable in the future. This is a tradeoff between
       # memory and data retention
       MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
+      EXCEPTION_TAG_IVAR = :'@__nr_seen_exception' unless defined? EXCEPTION_TAG_IVAR
 
       attr_accessor :errors
 
@@ -107,14 +108,26 @@ module NewRelic
         false
       end
 
-      def seen?(txn, exception)
-        error_ids = txn.nil? ? [] : txn.noticed_error_ids
-        error_ids.include?(exception.object_id)
+      # Calling instance_variable_set on a wrapped Java object in JRuby will
+      # generate a warning unless that object's class has already been marked
+      # as persistent, so we skip tagging of exception objects that are actually
+      # wrapped Java objects on JRuby.
+      #
+      # See https://github.com/jruby/jruby/wiki/Persistence
+      #
+      def exception_is_java_object?(exception)
+        NewRelic::LanguageSupport.jruby? && exception.respond_to?(:java_class)
       end
 
-      def tag_as_seen(state, exception)
-        txn = state.current_transaction
-        txn.noticed_error_ids << exception.object_id if txn
+      def exception_tagged?(exception)
+        return false if exception_is_java_object?(exception)
+        exception.instance_variable_get(EXCEPTION_TAG_IVAR)
+      end
+
+      def tag_exception(exception)
+        return if exception_is_java_object?(exception)
+        return if exception.frozen?
+        exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
       end
 
       def blamed_metric_name(txn, options)
@@ -152,11 +165,11 @@ module NewRelic
         end
       end
 
-      def skip_notice_error?(state, exception)
+      def skip_notice_error?(exception)
         disabled? ||
           error_is_ignored?(exception) ||
           exception.nil? ||
-          seen?(state.current_transaction, exception)
+          exception_tagged?(exception)
       end
 
       # calls a method on an object, if it responds to it - used for
@@ -195,9 +208,9 @@ module NewRelic
       def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
         state = ::NewRelic::Agent::TransactionState.tl_get
 
-        return if skip_notice_error?(state, exception)
+        return if skip_notice_error?(exception)
 
-        tag_as_seen(state, exception)
+        tag_exception(exception)
         increment_error_count!(state, exception, options)
         add_to_error_queue(create_noticed_error(exception, options))
 
