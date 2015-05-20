@@ -29,5 +29,15 @@ DependencyDetection.defer do
         end
       end
     end
+
+    Redis.class_eval do
+      alias_method :pipelined_without_new_relic, :pipelined
+
+      def pipelined(*args, &block)
+        NewRelic::Agent::Datastores.wrap('Redis', 'pipeline') do
+          pipelined_without_new_relic(*args, &block)
+        end
+      end
+    end
   end
 end

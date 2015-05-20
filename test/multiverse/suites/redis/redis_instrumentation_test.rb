@@ -73,4 +73,20 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     }
     assert_metrics_recorded(expected)
   end
+
+  def test_records_metrics_for_pipelined_commands
+    @redis.pipelined do
+      @redis.get 'great log'
+      @redis.get 'late log'
+    end
+
+    expected = {
+      "Datastore/operation/Redis/pipeline" => { :call_count => 1 },
+      "Datastore/Redis/allOther" => { :call_count => 1 },
+      "Datastore/Redis/all" => { :call_count => 1 },
+      "Datastore/allOther" => { :call_count => 1 },
+      "Datastore/all" => { :call_count => 1 }
+    }
+    assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
+  end
 end
