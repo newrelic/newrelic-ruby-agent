@@ -5,6 +5,7 @@
 require 'redis'
 require 'newrelic_rpm'
 
+if NewRelic::Agent::Datastores::Redis.is_supported_version?
 class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Test
   include MultiverseHelpers
   setup_and_teardown_agent
@@ -154,4 +155,5 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_equal("multi\nset\nget\nexec", pipeline_node[:statement])
   end
 
+end
 end

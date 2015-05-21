@@ -7,7 +7,7 @@ module NewRelic
     module Datastores
       module Redis
         def self.is_supported_version?
-          true
+          ::NewRelic::VersionNumber.new(::Redis::VERSION) >= ::NewRelic::VersionNumber.new("3.0.0")
         end
       end
     end
