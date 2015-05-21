@@ -142,7 +142,7 @@ class SidekiqTest < Minitest::Test
       Redis.any_instance.stubs(:hmset).raises("Uh oh")
       run_jobs
 
-      assert_error_for_each_job
+      assert_error_for_each_job(nil)
     end
   end
 
@@ -203,11 +203,17 @@ class SidekiqTest < Minitest::Test
     end
   end
 
-  def assert_error_for_each_job
+  def assert_error_for_each_job(txn_name=TRANSACTION_NAME)
     error_posts = $collector.calls_for("error_data")
     assert_equal 1, error_posts.length, "Wrong number of error posts!"
 
     errors = error_posts.first
     assert_equal JOB_COUNT, errors.errors.length, "Wrong number of errors noticed!"
+
+    assert_metric_and_call_count('Errors/all', JOB_COUNT)
+    if txn_name
+      assert_metric_and_call_count('Errors/allOther', JOB_COUNT)
+      assert_metric_and_call_count("Errors/#{TRANSACTION_NAME}", JOB_COUNT)
+    end
   end
 end

@@ -427,7 +427,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def test_doesnt_count_seen_exceptions
     in_transaction do
       error = StandardError.new('wat')
-      @error_collector.tag_as_seen(NewRelic::Agent::TransactionState.tl_get, error)
+      @error_collector.tag_exception(error)
       @error_collector.notice_error(error)
     end
 
@@ -487,7 +487,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def test_skip_notice_error_is_true_if_the_error_collector_is_disabled
     error = StandardError.new
     with_config(:'error_collector.enabled' => false) do
-      assert @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+      assert @error_collector.skip_notice_error?(error)
     end
   end
 
@@ -495,7 +495,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     error = nil
     with_config(:'error_collector.enabled' => true) do
       @error_collector.expects(:error_is_ignored?).with(error).returns(false)
-      assert @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+      assert @error_collector.skip_notice_error?(error)
     end
   end
 
@@ -503,7 +503,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     error = StandardError.new
     with_config(:'error_collector.enabled' => true) do
       @error_collector.expects(:error_is_ignored?).with(error).returns(true)
-      assert @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+      assert @error_collector.skip_notice_error?(error)
     end
   end
 
@@ -511,7 +511,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     error = StandardError.new
     with_config(:'error_collector.enabled' => true) do
       @error_collector.expects(:error_is_ignored?).with(error).returns(false)
-      refute @error_collector.skip_notice_error?(NewRelic::Agent::TransactionState.tl_get, error)
+      refute @error_collector.skip_notice_error?(error)
     end
   end
 
@@ -563,6 +563,29 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def test_error_is_ignored_no_error
     refute @error_collector.error_is_ignored?(nil)
+  end
+
+  def test_does_not_tag_frozen_errors
+    e = StandardError.new
+    e.freeze
+    @error_collector.notice_error(e)
+    refute @error_collector.exception_tagged?(e)
+  end
+
+  def test_handles_failures_during_error_tagging
+    e = StandardError.new
+    e.stubs(:instance_variable_set).raises(RuntimeError)
+    expects_logging(:warn, any_parameters)
+
+    @error_collector.notice_error(e)
+  end
+
+  if NewRelic::LanguageSupport.jruby?
+    def test_does_not_tag_java_objects
+      e = java.lang.String.new
+      @error_collector.notice_error(e)
+      refute @error_collector.exception_tagged?(e)
+    end
   end
 
   private

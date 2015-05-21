@@ -308,10 +308,6 @@ module NewRelic
         @instrumentation_state ||= {}
       end
 
-      def noticed_error_ids
-        @noticed_error_ids ||= []
-      end
-
       def overridden_name=(name)
         @overridden_name = Helper.correctly_encoded(name)
       end
