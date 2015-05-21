@@ -23,8 +23,13 @@ DependencyDetection.defer do
       alias_method :call_without_new_relic, :call
       def call(*args, &block)
         operation = args[0][0]
+        statement = operation.to_s
 
-        NewRelic::Agent::Datastores.wrap('Redis', operation) do
+        callback = Proc.new do |result, _, elapsed|
+          NewRelic::Agent::Datastores.notice_statement(statement, elapsed)
+        end
+
+        NewRelic::Agent::Datastores.wrap('Redis', operation, nil, callback) do
           call_without_new_relic(*args, &block)
         end
       end

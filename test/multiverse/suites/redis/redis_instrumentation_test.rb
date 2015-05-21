@@ -69,6 +69,16 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
   end
 
+  def test_records_statement_on_tt_node_for_get
+    in_transaction do
+      @redis.get 'mox sapphire'
+    end
+
+    tt = last_transaction_trace
+    get_node = tt.root_node.called_nodes[0].called_nodes[0]
+    assert_equal('get', get_node[:statement])
+  end
+
   def test_records_metrics_for_set_in_web_transaction
     in_web_transaction do
       @redis.get 'timetwister'
