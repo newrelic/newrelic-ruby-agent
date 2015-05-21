@@ -28,14 +28,21 @@ DependencyDetection.defer do
           call_without_new_relic(*args, &block)
         end
       end
-    end
 
-    Redis.class_eval do
-      alias_method :pipelined_without_new_relic, :pipelined
+      alias_method :call_pipeline_without_new_relic, :call_pipeline
 
-      def pipelined(*args, &block)
-        NewRelic::Agent::Datastores.wrap('Redis', 'pipeline') do
-          pipelined_without_new_relic(*args, &block)
+      def call_pipeline(*args, &block)
+        pipeline = args[0]
+        operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? 'multi-pipeline' : 'pipeline'
+        commands = pipeline.commands.map(&:first)
+        statement = commands.join("\n")
+
+        callback = Proc.new do |result, _, elapsed|
+          NewRelic::Agent::Datastores.notice_statement(statement, elapsed)
+        end
+
+        NewRelic::Agent::Datastores.wrap('Redis', operation, nil, callback) do
+          call_pipeline_without_new_relic(*args, &block)
         end
       end
     end

@@ -59,6 +59,16 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_metrics_recorded(expected)
   end
 
+  def test_records_tt_node_for_get
+    in_transaction do
+      @redis.get 'mox sapphire'
+    end
+
+    tt = last_transaction_trace
+    get_node = tt.root_node.called_nodes[0].called_nodes[0]
+    assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
+  end
+
   def test_records_metrics_for_set_in_web_transaction
     in_web_transaction do
       @redis.get 'timetwister'
@@ -89,4 +99,49 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     }
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
   end
+
+  def test_records_commands_in_tt_node_for_pipelined_commands
+    in_transaction do
+      @redis.pipelined do
+        @redis.set 'late log', 'goof'
+        @redis.get 'great log'
+      end
+    end
+
+    tt = last_transaction_trace
+    pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
+
+    assert_equal("set\nget", pipeline_node[:statement])
+  end
+
+  def test_records_metrics_for_multi_blocks
+    @redis.multi do
+      @redis.get 'great log'
+      @redis.get 'late log'
+    end
+
+    expected = {
+      "Datastore/operation/Redis/multi-pipeline" => { :call_count => 1 },
+      "Datastore/Redis/allOther" => { :call_count => 1 },
+      "Datastore/Redis/all" => { :call_count => 1 },
+      "Datastore/allOther" => { :call_count => 1 },
+      "Datastore/all" => { :call_count => 1 }
+    }
+    assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
+  end
+
+  def test_records_commands_in_tt_node_for_multi_blocks
+    in_transaction do
+      @redis.multi do
+        @redis.set 'late log', 'goof'
+        @redis.get 'great log'
+      end
+    end
+
+    tt = last_transaction_trace
+    pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
+
+    assert_equal("multi\nset\nget\nexec", pipeline_node[:statement])
+  end
+
 end
