@@ -777,6 +777,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Obfuscation level for SQL queries reported in transaction trace nodes. Valid options are <code>obfuscated</code>, <code>raw</code>, <code>none</code>.'
         },
+        :'transaction_tracer.record_redis_arguments' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Determines whether Redis command arguments should be recorded within Transaction Traces'
+        },
         :'transaction_tracer.capture_attributes' => {
           :default => true,
           :public => true,

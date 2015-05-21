@@ -23,7 +23,7 @@ DependencyDetection.defer do
       alias_method :call_without_new_relic, :call
       def call(*args, &block)
         operation = args[0][0]
-        statement = operation.to_s
+        statement = ::NewRelic::Agent::Datastores::Redis.format_command(args[0])
 
         callback = Proc.new do |result, _, elapsed|
           NewRelic::Agent::Datastores.notice_statement(statement, elapsed)
@@ -39,8 +39,7 @@ DependencyDetection.defer do
       def call_pipeline(*args, &block)
         pipeline = args[0]
         operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? 'multi-pipeline' : 'pipeline'
-        commands = pipeline.commands.map(&:first)
-        statement = commands.join("\n")
+        statement = ::NewRelic::Agent::Datastores::Redis.format_commands(pipeline.commands)
 
         callback = Proc.new do |result, _, elapsed|
           NewRelic::Agent::Datastores.notice_statement(statement, elapsed)

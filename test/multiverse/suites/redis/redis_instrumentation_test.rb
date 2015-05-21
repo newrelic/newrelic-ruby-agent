@@ -77,7 +77,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
     tt = last_transaction_trace
     get_node = tt.root_node.called_nodes[0].called_nodes[0]
-    assert_equal('get', get_node[:statement])
+    assert_equal('get ?', get_node[:statement])
   end
 
   def test_records_metrics_for_set_in_web_transaction
@@ -122,7 +122,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     tt = last_transaction_trace
     pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
 
-    assert_equal("set\nget", pipeline_node[:statement])
+    assert_equal("set ?\nget ?", pipeline_node[:statement])
   end
 
   def test_records_metrics_for_multi_blocks
@@ -141,7 +141,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
   end
 
-  def test_records_commands_in_tt_node_for_multi_blocks
+  def test_records_commands_without_args_in_tt_node_for_multi_blocks
     in_transaction do
       @redis.multi do
         @redis.set 'late log', 'goof'
@@ -152,8 +152,23 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     tt = last_transaction_trace
     pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
 
-    assert_equal("multi\nset\nget\nexec", pipeline_node[:statement])
+    assert_equal("multi\nset ?\nget ?\nexec", pipeline_node[:statement])
   end
 
+  def test_records_commands_with_args_in_tt_node_for_multi_blocks
+    with_config(:'transaction_tracer.record_redis_arguments' => true) do
+      in_transaction do
+        @redis.multi do
+          @redis.set 'late log', 'goof'
+          @redis.get 'great log'
+        end
+      end
+    end
+
+    tt = last_transaction_trace
+    pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
+
+    assert_equal("multi\nset \"late log\" \"goof\"\nget \"great log\"\nexec", pipeline_node[:statement])
+  end
 end
 end
