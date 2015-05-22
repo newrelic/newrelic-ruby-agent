@@ -38,7 +38,7 @@ DependencyDetection.defer do
 
       def call_pipeline(*args, &block)
         pipeline = args[0]
-        operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? 'multi-pipeline' : 'pipeline'
+        operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? 'multi' : 'pipeline'
         statement = ::NewRelic::Agent::Datastores::Redis.format_commands(pipeline.commands)
 
         callback = Proc.new do |result, _, elapsed|

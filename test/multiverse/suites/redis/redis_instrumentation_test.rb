@@ -132,7 +132,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     expected = {
-      "Datastore/operation/Redis/multi-pipeline" => { :call_count => 1 },
+      "Datastore/operation/Redis/multi" => { :call_count => 1 },
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all" => { :call_count => 1 },
       "Datastore/allOther" => { :call_count => 1 },
