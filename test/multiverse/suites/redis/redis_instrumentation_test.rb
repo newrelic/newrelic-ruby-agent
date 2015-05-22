@@ -127,8 +127,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
   def test_records_metrics_for_multi_blocks
     @redis.multi do
-      @redis.get 'great log'
-      @redis.get 'late log'
+      @redis.get 'darkpact'
+      @redis.get 'chaos orb'
     end
 
     expected = {
@@ -144,8 +144,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
   def test_records_commands_without_args_in_tt_node_for_multi_blocks
     in_transaction do
       @redis.multi do
-        @redis.set 'late log', 'goof'
-        @redis.get 'great log'
+        @redis.set 'darkpact', 'sorcery'
+        @redis.get 'chaos orb'
       end
     end
 
@@ -159,8 +159,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       in_transaction do
         @redis.multi do
-          @redis.set 'late log', 'goof'
-          @redis.get 'great log'
+          @redis.set 'darkpact', 'sorcery'
+          @redis.get 'chaos orb'
         end
       end
     end
@@ -168,7 +168,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     tt = last_transaction_trace
     pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
 
-    assert_equal("multi\nset \"late log\" \"goof\"\nget \"great log\"\nexec", pipeline_node[:statement])
+    assert_equal("multi\nset \"darkpact\" \"sorcery\"\nget \"chaos orb\"\nexec", pipeline_node[:statement])
   end
 end
 end
