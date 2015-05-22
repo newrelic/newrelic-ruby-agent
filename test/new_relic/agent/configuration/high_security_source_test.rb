@@ -79,5 +79,14 @@ module NewRelic::Agent::Configuration
       HighSecuritySource.new(local_settings)
     end
 
+    def test_forces_redis_argument_recording_off
+      local_settings = {
+        :'transaction_tracer.record_redis_arguments' => true
+      }
+
+      source = HighSecuritySource.new(local_settings)
+
+      assert_equal(false, source[:'transaction_tracer.record_redis_arguments'])
+    end
   end
 end
