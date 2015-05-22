@@ -107,14 +107,16 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
   end
 
-  def test_records_statement_on_tt_node_for_get
+  def test_does_not_record_statement_on_individual_command_node_by_default
     in_transaction do
       @redis.get 'mox sapphire'
     end
 
     tt = last_transaction_trace
     get_node = tt.root_node.called_nodes[0].called_nodes[0]
-    assert_equal('get ?', get_node[:statement])
+
+    assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
+    refute get_node[:statement]
   end
 
   def test_records_metrics_for_set_in_web_transaction
@@ -148,7 +150,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
   end
 
-  def test_records_commands_in_tt_node_for_pipelined_commands
+  def test_records_commands_without_args_in_pipelined_block_by_default
     in_transaction do
       @redis.pipelined do
         @redis.set 'late log', 'goof'
@@ -159,7 +161,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     tt = last_transaction_trace
     pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
 
-    assert_equal("set ?\nget ?", pipeline_node[:statement])
+    assert_equal "set ?\nget ?", pipeline_node[:statement]
   end
 
   def test_records_metrics_for_multi_blocks

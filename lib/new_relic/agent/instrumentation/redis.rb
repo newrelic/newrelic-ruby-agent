@@ -26,8 +26,10 @@ DependencyDetection.defer do
         operation = args[0][0]
         statement = ::NewRelic::Agent::Datastores::Redis.format_command(args[0])
 
-        callback = Proc.new do |result, _, elapsed|
-          NewRelic::Agent::Datastores.notice_statement(statement, elapsed)
+        if statement
+          callback = Proc.new do |result, _, elapsed|
+            NewRelic::Agent::Datastores.notice_statement(statement, elapsed)
+          end
         end
 
         NewRelic::Agent::Datastores.wrap('Redis', operation, nil, callback) do
