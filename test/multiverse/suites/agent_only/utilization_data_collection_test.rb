@@ -13,7 +13,7 @@ class UtilizationDataCollectionTest < Minitest::Test
       "hostname" => "host",
       "metadata_version" => 1,
       "logical_processors" => 5,
-      "total_ram_mb" => 128,
+      "total_ram_mib" => 128,
       "vendors" => {
         "aws" => {
           "id" => "i-e7e85ce1",
@@ -29,7 +29,7 @@ class UtilizationDataCollectionTest < Minitest::Test
     NewRelic::Agent::Hostname.stubs(:get).returns("host")
     NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
     NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
-    NewRelic::Agent::SystemInfo.stubs(:ram_in_mb).returns(128)
+    NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
 
     with_fake_metadata_service do |service|
       service.set_response_for_path('/2008-02-01/meta-data/instance-id', expected["vendors"]["aws"]["id"])
@@ -48,12 +48,12 @@ class UtilizationDataCollectionTest < Minitest::Test
       "hostname" => "host",
       "metadata_version" => 1,
       "logical_processors" => 5,
-      "total_ram_mb" => 128
+      "total_ram_mib" => 128
     }
 
     NewRelic::Agent::Hostname.stubs(:get).returns("host")
     NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
-    NewRelic::Agent::SystemInfo.stubs(:ram_in_mb).returns(128)
+    NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
 
     # this will trigger the agent to connect and send utilization data
     setup_agent
