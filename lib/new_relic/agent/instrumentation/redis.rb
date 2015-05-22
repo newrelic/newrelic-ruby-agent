@@ -21,6 +21,7 @@ DependencyDetection.defer do
 
     Redis::Client.class_eval do
       alias_method :call_without_new_relic, :call
+
       def call(*args, &block)
         operation = args[0][0]
         statement = ::NewRelic::Agent::Datastores::Redis.format_command(args[0])
@@ -47,6 +48,14 @@ DependencyDetection.defer do
 
         NewRelic::Agent::Datastores.wrap('Redis', operation, nil, callback) do
           call_pipeline_without_new_relic(*args, &block)
+        end
+      end
+
+      alias_method :connect_without_new_relic, :connect
+
+      def connect(*args, &block)
+        NewRelic::Agent::Datastores.wrap('Redis', 'connect') do
+          connect_without_new_relic(*args, &block)
         end
       end
     end
