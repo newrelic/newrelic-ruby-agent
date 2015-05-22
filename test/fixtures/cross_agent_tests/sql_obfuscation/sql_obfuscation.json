@@ -292,6 +292,18 @@
     "pathological": true
   },
   {
+    "name": "pathological/inline_comments",
+    "obfuscated": [
+      "SELECT ? ? + ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres"
+    ],
+    "sql": "SELECT 1 /* this is an in-line comment */ + 1",
+    "pathological": true
+  },
+  {
     "name": "pathological/mixed_comments_and_quotes",
     "obfuscated": [
       "SELECT * FROM t WHERE ?"
