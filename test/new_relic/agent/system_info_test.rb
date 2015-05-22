@@ -63,7 +63,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       define_method(test_name) do
         meminfo = File.read(file)
 
-        mem_total_actual = @sysinfo.parse_linux_meminfo_in_mb(meminfo)
+        mem_total_actual = @sysinfo.parse_linux_meminfo_in_mib(meminfo)
 
         assert_equal(mem_total_expected, mem_total_actual)
       end
@@ -73,7 +73,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   end
 
   def test_proc_meminfo_unparsable
-    assert_nil @sysinfo.parse_linux_meminfo_in_mb("")
+    assert_nil @sysinfo.parse_linux_meminfo_in_mib("")
   end
 
   def test_system_info_darwin_predicate

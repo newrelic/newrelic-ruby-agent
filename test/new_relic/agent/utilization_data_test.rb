@@ -68,7 +68,7 @@ module NewRelic::Agent
 
     def test_logged_when_docker_container_id_is_unrecognized
       NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
-      NewRelic::Agent::SystemInfo.stubs(:ram_in_mb).returns(128)
+      NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
       NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns('whatever')
       NewRelic::Agent::SystemInfo.stubs(:parse_cgroup_ids).returns('cpu' => "*****YOLO*******")
 
@@ -125,11 +125,11 @@ module NewRelic::Agent
     end
 
     def test_memory_is_present_in_collector_hash
-      NewRelic::Agent::SystemInfo.stubs(:ram_in_mb).returns(128)
+      NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
 
       utilization_data = UtilizationData.new
 
-      assert_equal 128, utilization_data.to_collector_hash[:total_ram_mb]
+      assert_equal 128, utilization_data.to_collector_hash[:total_ram_mib]
     end
 
     def test_metadata_version_is_present_in_collector_hash
