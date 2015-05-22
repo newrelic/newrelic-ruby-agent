@@ -843,6 +843,13 @@ module NewRelic
           :dynamic_name => true,
           :description  => 'Defines whether the agent will install <a href="/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.'
         },
+        :disable_redis => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :allowed_from_server => false,
+          :description  => 'Defines whether the agent will install <a href="/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.'
+        },
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
           :public => true,
