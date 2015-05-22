@@ -24,7 +24,7 @@ module NewRelic
         end
 
         def self.format_commands(commands_with_args)
-          commands_with_args.map { |c| format_command(c, true) }.join("\n")
+          commands_with_args.map { |cmd| format_command(cmd, true) }.join("\n")
         end
 
         def self.is_supported_version?
