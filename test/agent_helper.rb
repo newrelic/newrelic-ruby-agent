@@ -304,14 +304,14 @@ end
 # Convenience wrapper around in_transaction that sets the category so that it
 # looks like we are in a web transaction
 def in_web_transaction(name='dummy')
-  in_transaction(name, :category => :controller, :request => stub(:path => '/')) do
-    yield
+  in_transaction(name, :category => :controller, :request => stub(:path => '/')) do |txn|
+    yield txn
   end
 end
 
 def in_background_transaction(name='silly')
-  in_transaction(name, :category => :task) do
-    yield
+  in_transaction(name, :category => :task) do |txn|
+    yield txn
   end
 end
 
