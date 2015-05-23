@@ -246,6 +246,13 @@ module MultiverseHelpers
     assert_nil @js_agent_attributes
   end
 
+  def refute_event_has_attribute(key)
+    evt = single_event_posted
+    refute_includes evt[0], key, "Found unexpected attribute #{key} in txn event intrinsics"
+    refute_includes evt[1], key, "Found unexpected attribute #{key} in txn event custom attributes"
+    refute_includes evt[2], key, "Found unexpected attribute #{key} in txn event agent attributes"
+  end
+
   def attributes_for_single_error_posted(key)
     run_harvest
     single_error_posted.params[key]
