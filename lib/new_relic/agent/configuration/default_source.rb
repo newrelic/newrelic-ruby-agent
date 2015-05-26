@@ -1441,7 +1441,7 @@ module NewRelic
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'Enable or disable automatic AWS detection'
+          :description => 'Enable or disable automatic AWS detection.'
         },
         :'utilization.detect_docker' => {
           :default     => true,
@@ -1449,6 +1449,13 @@ module NewRelic
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'Enable or disable automatic Docker detection.'
+        },
+        :'disable_utilization' => {
+          :default     => false,
+          :public      => false,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'Disable sending utilization data as part of connect settings hash.'
         }
       }.freeze
     end

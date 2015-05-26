@@ -803,7 +803,8 @@ module NewRelic
           # server. Returns a literal hash containing the options
           def connect_settings
             sanitize_environment_report
-            {
+
+            settings = {
               :pid => $$,
               :host => local_host,
               :app_name => Agent.config.app_names,
@@ -812,9 +813,14 @@ module NewRelic
               :agent_version => NewRelic::VERSION::STRING,
               :environment => @environment_report,
               :settings => Agent.config.to_collector_hash,
-              :high_security => Agent.config[:high_security],
-              :utilization => UtilizationData.new.to_collector_hash
+              :high_security => Agent.config[:high_security]
             }
+
+            unless Agent.config[:disable_utilization]
+              settings[:utilization] = UtilizationData.new.to_collector_hash
+            end
+
+            settings
           end
 
           # Returns connect data passed back from the server
