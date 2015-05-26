@@ -457,32 +457,6 @@ module NewRelic
         assert_match( /No application name configured/i, logmsg )
       end
 
-      def test_synchronize_with_harvest
-        lock = Mutex.new
-        @agent.stubs(:harvest_lock).returns(lock)
-        @agent.harvest_lock.lock
-
-        started = false
-        done = false
-
-        thread = Thread.new do
-          started = true
-          @agent.synchronize_with_harvest do
-            done = true
-          end
-        end
-
-        until started do
-          sleep(0.001)
-        end
-        assert !done
-
-        @agent.harvest_lock.unlock
-        thread.join
-
-        assert done
-      end
-
       def test_harvest_from_container
         container = mock
         harvested_items = ['foo', 'bar', 'baz']
