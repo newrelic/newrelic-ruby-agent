@@ -517,7 +517,7 @@ module NewRelic
                               NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
         end
 
-        if http_response_code && !Agent.config[:disable_middleware_instrumentation]
+        if http_response_code
           add_agent_attribute(:httpResponseCode, http_response_code,
                               NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER|
                               NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS|
