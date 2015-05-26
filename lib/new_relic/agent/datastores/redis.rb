@@ -57,14 +57,30 @@ module NewRelic
         end
 
         def self.ellipsize(string, max_length)
-          value = string.inspect
+          if string.length > max_length
+            chunk_size = (max_length - 5) / 2
+            prefix_range = (0...chunk_size)
+            suffix_range = (-chunk_size..-1)
 
-          if value.length > max_length
-            stop_length = (max_length - 5) / 2
+            prefix = string[prefix_range].dump
+            suffix = string[suffix_range].dump
 
-            "#{value[0..stop_length - 1]}...#{value[-stop_length..-1]}"
+            # The dump above adds double-quotes around the string, and expands
+            # non-printable characters, into escape sequences, so this second
+            # slice chops off the trailing double-quote on the prefix and
+            # leading double-quote on the suffix, and keeps us a reasonable
+            # length when escape characters are present.
+            #
+            # We do this in two phases to avoid calling #dump against the entire
+            # input string if it is very large, which would result in a giant
+            # temporary string being created, of which we only want the prefix
+            # and suffix.
+            prefix = prefix[prefix_range]
+            suffix = suffix[suffix_range]
+
+            "#{prefix}...#{suffix}"
           else
-            value
+            string.dump
           end
         end
       end
