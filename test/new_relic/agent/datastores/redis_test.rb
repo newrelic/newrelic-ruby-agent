@@ -69,4 +69,24 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
       assert_equal expected, result
     end
   end
+
+  def test_format_command_handles_binary_strings
+    binary_string = (0..255).to_a.pack("c*")
+    expected = 'set "key" "\x00\x01\x02\x03\x04\x05\x06...\xF9\xFA\xFB\xFC\xFD\xFE\xFF"'
+
+    with_config(:'transaction_tracer.record_redis_arguments' => true) do
+      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', binary_string])
+      assert_equal expected, result
+    end
+  end
+
+  def test_format_command_in_pipeline_handles_binary_strings
+    binary_string = (0..255).to_a.pack("c*")
+    expected = 'set "key" "\x00\x01\x02\x03\x04\x05\x06...\xF9\xFA\xFB\xFC\xFD\xFE\xFF"'
+
+    with_config(:'transaction_tracer.record_redis_arguments' => true) do
+      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', binary_string])
+      assert_equal expected, result
+    end
+  end
 end
