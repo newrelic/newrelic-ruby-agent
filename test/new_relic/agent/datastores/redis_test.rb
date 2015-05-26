@@ -6,4 +6,55 @@ require 'new_relic/agent/datastores/redis'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
 class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
+  def test_format_command
+    expected = "set \"foo\" \"bar\""
+
+    with_config(:'transaction_tracer.record_redis_arguments' => true) do
+      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])
+      assert_equal expected, result
+    end
+  end
+
+  def test_format_command_with_record_arguments_false
+    with_config(:'transaction_tracer.record_redis_arguments' => false) do
+      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])
+      assert_equal nil, result
+    end
+  end
+
+  def test_format_command_in_pipeline
+    expected = "set \"foo\" \"bar\""
+
+    with_config(:'transaction_tracer.record_redis_arguments' => true) do
+      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'], true)
+      assert_equal expected, result
+    end
+  end
+
+  def test_format_command_in_pipeline_with_record_arguments_false
+    expected = "set ?"
+
+    with_config(:'transaction_tracer.record_redis_arguments' => false) do
+      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'], true)
+      assert_equal expected, result
+    end
+  end
+
+  def test_format_command_in_pipeline_with_record_arguments_and_no_args
+    expected = "multi"
+
+    with_config(:'transaction_tracer.record_redis_arguments' => true) do
+      result = NewRelic::Agent::Datastores::Redis.format_command([:multi], true)
+      assert_equal expected, result
+    end
+  end
+
+  def test_format_command_in_pipeline_with_record_arguments_false_and_no_args
+    expected = "multi"
+
+    with_config(:'transaction_tracer.record_redis_arguments' => false) do
+      result = NewRelic::Agent::Datastores::Redis.format_command([:multi], true)
+      assert_equal expected, result
+    end
+  end
 end

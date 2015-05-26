@@ -17,7 +17,11 @@ module NewRelic
               command.to_s
             end
           elsif in_pipeline_block
-            command_with_args.size > 1 ? "#{command} ?" : command.to_s
+            if command_with_args.size > 1
+              "#{command} ?"
+            else
+              command.to_s
+            end
           else
             nil
           end
