@@ -22,15 +22,15 @@ module NewRelic
         ::NewRelic::Agent::SystemInfo.num_logical_processors
       end
 
-      def ram_in_mb
-        ::NewRelic::Agent::SystemInfo.ram_in_mb
+      def ram_in_mib
+        ::NewRelic::Agent::SystemInfo.ram_in_mib
       end
 
       def to_collector_hash
         result = {
           :metadata_version => METADATA_VERSION,
           :logical_processors => cpu_count,
-          :total_ram_mb => ram_in_mb,
+          :total_ram_mib => ram_in_mib,
           :hostname => hostname
         }
 
