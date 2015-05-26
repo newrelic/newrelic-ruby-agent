@@ -15,6 +15,18 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     end
   end
 
+  def test_format_command_truncates_long_arguments
+    key = "namespace.other_namespace.different_namespace.why.would.you.do.this.key"
+    expected_key = "namespace.other_namespace.di...ce.why.would.you.do.this.key"
+
+    expected = "set \"#{expected_key}\" \"redoctober\""
+
+    with_config(:'transaction_tracer.record_redis_arguments' => true) do
+      result = NewRelic::Agent::Datastores::Redis.format_command([:set, key, 'redoctober'])
+      assert_equal expected, result
+    end
+  end
+
   def test_format_command_with_record_arguments_false
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])

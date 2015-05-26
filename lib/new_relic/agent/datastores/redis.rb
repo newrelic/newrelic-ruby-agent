@@ -6,6 +6,8 @@ module NewRelic
   module Agent
     module Datastores
       module Redis
+        MAXIMUM_ARGUMENT_LENGTH = 64
+
         def self.format_command(command_with_args)
           command = command_with_args.first
 
@@ -28,7 +30,10 @@ module NewRelic
 
         def self.format_command_with_args(command, command_with_args)
           if command_with_args.size > 1
-            args = command_with_args[1..-1].map(&:inspect)
+            args = command_with_args[1..-1].map do |arg|
+              ellipsize(arg, MAXIMUM_ARGUMENT_LENGTH)
+            end
+
             "#{command} #{args.join(' ')}"
           else
             command.to_s
@@ -49,6 +54,18 @@ module NewRelic
 
         def self.is_supported_version?
           ::NewRelic::VersionNumber.new(::Redis::VERSION) >= ::NewRelic::VersionNumber.new("3.0.0")
+        end
+
+        def self.ellipsize(string, max_length)
+          value = string.inspect
+
+          if value.length > max_length
+            stop_length = (max_length - 5) / 2
+
+            "#{value[0..stop_length - 1]}...#{value[-stop_length..-1]}"
+          else
+            value
+          end
         end
       end
     end
