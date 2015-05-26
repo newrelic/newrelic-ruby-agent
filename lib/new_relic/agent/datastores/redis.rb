@@ -57,7 +57,11 @@ module NewRelic
         end
 
         def self.ellipsize(string, max_length)
-          if string.length > max_length
+          return string unless string.is_a?(String)
+
+          if string.encoding == Encoding::ASCII_8BIT
+            "<binary data>"
+          elsif string.length > max_length
             chunk_size = (max_length - 5) / 2
             prefix_range = (0...chunk_size)
             suffix_range = (-chunk_size..-1)
