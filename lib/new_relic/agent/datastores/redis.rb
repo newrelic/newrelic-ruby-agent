@@ -6,29 +6,45 @@ module NewRelic
   module Agent
     module Datastores
       module Redis
-        def self.format_command(command_with_args, in_pipeline_block=false)
+        def self.format_command(command_with_args)
           command = command_with_args.first
 
           if Agent.config[:'transaction_tracer.record_redis_arguments']
-            if command_with_args.size > 1
-              args = command_with_args[1..-1].map(&:inspect)
-              "#{command} #{args.join(' ')}"
-            else
-              command.to_s
-            end
-          elsif in_pipeline_block
-            if command_with_args.size > 1
-              "#{command} ?"
-            else
-              command.to_s
-            end
+            format_command_with_args(command, command_with_args)
           else
             nil
           end
         end
 
+        def self.format_pipeline_command(command_with_args)
+          command = command_with_args.first
+
+          if Agent.config[:'transaction_tracer.record_redis_arguments']
+            format_command_with_args(command, command_with_args)
+          else
+            format_command_with_no_args(command, command_with_args)
+          end
+        end
+
+        def self.format_command_with_args(command, command_with_args)
+          if command_with_args.size > 1
+            args = command_with_args[1..-1].map(&:inspect)
+            "#{command} #{args.join(' ')}"
+          else
+            command.to_s
+          end
+        end
+
+        def self.format_command_with_no_args(command, command_with_args)
+          if command_with_args.size > 1
+            "#{command} ?"
+          else
+            command.to_s
+          end
+        end
+
         def self.format_commands(commands_with_args)
-          commands_with_args.map { |cmd| format_command(cmd, true) }.join("\n")
+          commands_with_args.map { |cmd| format_pipeline_command(cmd) }.join("\n")
         end
 
         def self.is_supported_version?

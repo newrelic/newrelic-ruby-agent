@@ -26,7 +26,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     expected = "set \"foo\" \"bar\""
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
-      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'], true)
+      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])
       assert_equal expected, result
     end
   end
@@ -35,7 +35,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     expected = "set ?"
 
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
-      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'], true)
+      result = NewRelic::Agent::Datastores::Redis.format_pipeline_command([:set, 'foo', 'bar'])
       assert_equal expected, result
     end
   end
@@ -44,7 +44,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     expected = "multi"
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
-      result = NewRelic::Agent::Datastores::Redis.format_command([:multi], true)
+      result = NewRelic::Agent::Datastores::Redis.format_pipeline_command([:multi])
       assert_equal expected, result
     end
   end
@@ -53,7 +53,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     expected = "multi"
 
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
-      result = NewRelic::Agent::Datastores::Redis.format_command([:multi], true)
+      result = NewRelic::Agent::Datastores::Redis.format_pipeline_command([:multi])
       assert_equal expected, result
     end
   end
