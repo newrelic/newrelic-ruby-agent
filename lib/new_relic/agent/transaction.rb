@@ -575,13 +575,8 @@ module NewRelic
         append_apdex_perf_zone(duration, payload)
         append_synthetics_to(state, payload)
         append_referring_transaction_guid_to(state, payload)
-        append_http_response_code(payload)
 
         agent.events.notify(:transaction_finished, payload)
-      end
-
-      def append_http_response_code(payload)
-        payload[:http_response_code] = http_response_code if http_response_code
       end
 
       def include_guid?(state, duration)

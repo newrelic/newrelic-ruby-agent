@@ -294,13 +294,6 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     end
   end
 
-  def test_includes_http_response_code_in_events
-    generate_request('whatever', :http_response_code => 404)
-    sample = captured_transaction_event
-    code = sample[EVENT_DATA_INDEX]['httpResponseCode']
-    assert_equal('404', code)
-  end
-
   def test_synthetics_aggregation_limits
     with_sampler_config(:'synthetics.events_limit' => 10,
                         :'analytics_events.max_samples_stored' => 0) do

@@ -20,7 +20,6 @@ class NewRelic::Agent::TransactionEventAggregator
   TIMESTAMP_KEY                  = 'timestamp'.freeze
   NAME_KEY                       = 'name'.freeze
   DURATION_KEY                   = 'duration'.freeze
-  HTTP_RESPONSE_CODE_KEY         = 'httpResponseCode'.freeze
   GUID_KEY                       = 'nr.guid'.freeze
   REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
   CAT_TRIP_ID_KEY                = 'nr.tripId'.freeze
@@ -228,15 +227,8 @@ class NewRelic::Agent::TransactionEventAggregator
     optionally_append(SYNTHETICS_RESOURCE_ID_KEY,     :synthetics_resource_id, sample, payload)
     optionally_append(SYNTHETICS_JOB_ID_KEY,          :synthetics_job_id, sample, payload)
     optionally_append(SYNTHETICS_MONITOR_ID_KEY,      :synthetics_monitor_id, sample, payload)
-    append_http_response_code(sample, payload)
     append_cat_alternate_path_hashes(sample, payload)
     sample
-  end
-
-  def append_http_response_code(sample, payload)
-    unless NewRelic::Agent.config[:disable_middleware_instrumentation]
-      optionally_append(HTTP_RESPONSE_CODE_KEY, :http_response_code, sample, payload)
-    end
   end
 
   def append_cat_alternate_path_hashes(sample, payload)
