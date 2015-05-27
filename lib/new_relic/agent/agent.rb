@@ -1069,10 +1069,6 @@ module NewRelic
           NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
         end
 
-        def transmit_data
-          transmit_data_already_locked
-        end
-
         def transmit_event_data
           transmit_single_data_type(:harvest_and_send_analytic_event_data, "TransactionEvent")
         end
@@ -1091,7 +1087,7 @@ module NewRelic
           NewRelic::Agent.record_metric("Supportability/#{supportability_name}Harvest", duration)
         end
 
-        def transmit_data_already_locked
+        def transmit_data
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
 
@@ -1110,8 +1106,6 @@ module NewRelic
           duration = (Time.now - now).to_f
           NewRelic::Agent.record_metric('Supportability/Harvest', duration)
         end
-
-        private :transmit_data_already_locked
 
         # This method contacts the server to send remaining data and
         # let the server know that the agent is shutting down - this
