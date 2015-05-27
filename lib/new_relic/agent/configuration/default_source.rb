@@ -502,13 +502,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Enable or disable transmission of application environment information to the New Relic data collection service.'
         },
-        :'resque.use_harvest_lock' => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'Enable or disable synchronizing Resque job forking with New Relic\'s harvest thread. The default is <code>false</code>. This helps prevent Resque jobs from deadlocking, but prevents New Relic from starting new jobs during harvest.'
-        },
         :data_report_period => {
           :default => 60,
           :public => false,
