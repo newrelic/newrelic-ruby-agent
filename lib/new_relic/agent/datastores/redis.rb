@@ -7,6 +7,7 @@ module NewRelic
     module Datastores
       module Redis
         MAXIMUM_ARGUMENT_LENGTH = 64
+        PRODUCT_NAME = 'Redis'.freeze
 
         def self.format_command(command_with_args)
           command = command_with_args.first

@@ -32,7 +32,7 @@ DependencyDetection.defer do
           end
         end
 
-        NewRelic::Agent::Datastores.wrap('Redis', operation, nil, callback) do
+        NewRelic::Agent::Datastores.wrap(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME, operation, nil, callback) do
           call_without_new_relic(*args, &block)
         end
       end
@@ -48,7 +48,7 @@ DependencyDetection.defer do
           NewRelic::Agent::Datastores.notice_statement(statement, elapsed)
         end
 
-        NewRelic::Agent::Datastores.wrap('Redis', operation, nil, callback) do
+        NewRelic::Agent::Datastores.wrap(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME, operation, nil, callback) do
           call_pipeline_without_new_relic(*args, &block)
         end
       end
@@ -56,7 +56,7 @@ DependencyDetection.defer do
       alias_method :connect_without_new_relic, :connect
 
       def connect(*args, &block)
-        NewRelic::Agent::Datastores.wrap('Redis', 'connect') do
+        NewRelic::Agent::Datastores.wrap(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME, 'connect') do
           connect_without_new_relic(*args, &block)
         end
       end
