@@ -106,7 +106,7 @@ module NewRelic
         metrics = MetricHelper.metrics_for(product, operation, collection)
         scoped_metric = metrics.first
         NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-          t0 = Time.now
+          t0 = Time.now if callback
           begin
             result = yield
           ensure
