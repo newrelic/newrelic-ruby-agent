@@ -17,7 +17,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
   def test_format_command_truncates_long_arguments
     key = "namespace.other_namespace.different_namespace.why.would.you.do.this.key"
-    expected_key = "namespace.other_namespace.di...ce.why.would.you.do.this.key"
+    expected_key = "namespace.other_namespace.dif...ace.why.would.you.do.this.key"
 
     expected = "set \"#{expected_key}\" \"redoctober\""
 

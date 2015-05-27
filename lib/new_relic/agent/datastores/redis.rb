@@ -62,27 +62,14 @@ module NewRelic
           if string.encoding == Encoding::ASCII_8BIT
             "<binary data>"
           elsif string.length > max_length
-            chunk_size = (max_length - 5) / 2
+            chunk_size   = (max_length - 5) / 2
             prefix_range = (0...chunk_size)
             suffix_range = (-chunk_size..-1)
 
-            prefix = string[prefix_range].dump
-            suffix = string[suffix_range].dump
+            prefix = string[prefix_range]
+            suffix = string[suffix_range]
 
-            # The dump above adds double-quotes around the string, and expands
-            # non-printable characters, into escape sequences, so this second
-            # slice chops off the trailing double-quote on the prefix and
-            # leading double-quote on the suffix, and keeps us a reasonable
-            # length when escape characters are present.
-            #
-            # We do this in two phases to avoid calling #dump against the entire
-            # input string if it is very large, which would result in a giant
-            # temporary string being created, of which we only want the prefix
-            # and suffix.
-            prefix = prefix[prefix_range]
-            suffix = suffix[suffix_range]
-
-            "#{prefix}...#{suffix}"
+            "\"#{prefix}...#{suffix}\""
           else
             string.dump
           end
