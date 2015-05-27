@@ -10,7 +10,7 @@ DependencyDetection.detect!
 
 db_dir = File.expand_path('../../db', __FILE__)
 config_dir = File.expand_path(File.dirname(__FILE__))
-ruby_engine = defined?(RUBY_VERSION) ? RUBY_VERSION : 'ruby' # MRI 1.8.7 doesn't define RUBY_ENGINE
+ruby_engine = defined?(RUBY_ENGINE) ? RUBY_ENGINE : 'ruby' # MRI 1.8.7 doesn't define RUBY_ENGINE
 
 if defined?(ActiveRecord::VERSION)
   ENV['DATABASE_NAME'] = "multiverse_activerecord_#{ActiveRecord::VERSION::STRING}_#{RUBY_VERSION}_#{ruby_engine}".gsub(".", "_")
