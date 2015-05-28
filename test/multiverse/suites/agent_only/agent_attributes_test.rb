@@ -13,9 +13,9 @@ class AgentAttributesTest < Minitest::Test
       txn.http_response_code = 418
     end
 
-    assert_transaction_trace_has_agent_attribute("httpResponseCode", 418)
-    assert_event_has_agent_attribute("httpResponseCode", 418)
-    assert_error_has_agent_attribute("httpResponseCode", 418)
+    assert_transaction_trace_has_agent_attribute("httpResponseCode", "418")
+    assert_event_has_agent_attribute("httpResponseCode", "418")
+    assert_error_has_agent_attribute("httpResponseCode", "418")
 
     refute_browser_monitoring_has_agent_attribute("httpResponseCode")
   end

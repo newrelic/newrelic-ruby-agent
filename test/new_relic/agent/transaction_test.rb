@@ -1412,7 +1412,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
-    assert_equal 418, actual[:'httpResponseCode']
+    assert_equal "418", actual[:"httpResponseCode"]
   end
 
   def test_referer_in_agent_attributes
