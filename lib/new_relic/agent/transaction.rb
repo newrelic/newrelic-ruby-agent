@@ -518,7 +518,7 @@ module NewRelic
         end
 
         if http_response_code
-          add_agent_attribute(:httpResponseCode, http_response_code,
+          add_agent_attribute(:httpResponseCode, http_response_code.to_s,
                               NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER|
                               NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS|
                               NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
