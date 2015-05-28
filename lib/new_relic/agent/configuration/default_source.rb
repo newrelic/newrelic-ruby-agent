@@ -409,6 +409,21 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Defines a comma-delimited list of rake tasks that should not be instrumented by the agent (e.g. \'assets:precompile,db:migrate\').'
         },
+        :disable_rake => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enable or disable rake instrumentation.'
+        },
+        :'rake.tasks' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :transform => DefaultSource.method(:convert_to_regexp_list),
+          :description => 'List of Rake tasks to automatically instrument'
+        },
         :'profiling.available' => {
           :default => DefaultSource.profiling_available,
           :public => false,
