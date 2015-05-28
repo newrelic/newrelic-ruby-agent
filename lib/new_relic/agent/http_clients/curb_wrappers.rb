@@ -16,7 +16,7 @@ module NewRelic
         end
 
         def host
-          self["host"] || self["Host"] || self.uri.host
+          self["host"] || self["Host"] || "#{self.uri.host}#{':' << self.uri.port.to_s if self.uri.port != self.uri.default_port}"
         end
 
         def method
