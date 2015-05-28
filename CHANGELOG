@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.13.0 ##
+
+  * Rake instrumentation
+
+  The Ruby agent now provides opt-in tracing for rake tasks. If you run
+  long jobs via rake, you can get all the visibility and goodness of New Relic
+  that your other background jobs have. To enable this, see
+  https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/rake
+
 ## v3.12.1 ##
 
   * More granular Database metrics for ActiveRecord 3 and 4
