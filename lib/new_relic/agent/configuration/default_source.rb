@@ -70,7 +70,7 @@ module NewRelic
         def self.config_path
           Proc.new {
             found_path = NewRelic::Agent.config[:config_search_paths].detect do |file|
-              File.expand_path(file) if File.exists? file
+              File.expand_path(file) if File.exist? file
             end
             found_path || ""
           }
@@ -172,12 +172,26 @@ module NewRelic
         def self.convert_to_list(value)
           case value
           when String
-            value.split(',')
+            value.split(/\s*,\s*/)
           when Array
             value
           else
             raise ArgumentError.new("Config value '#{value}' couldn't be turned into a list.")
           end
+        end
+
+        def self.convert_to_constant_list(raw_value)
+          const_names = convert_to_list(raw_value)
+          const_names.map! do |class_name|
+            const = ::NewRelic::LanguageSupport.constantize(class_name)
+
+            unless const
+              NewRelic::Agent.logger.warn("Ignoring unrecognized constant '#{class_name}' in #{raw_value}")
+            end
+
+            const
+          end
+          const_names.compact
         end
       end
 
@@ -422,6 +436,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :transform => DefaultSource.method(:convert_to_constant_list),
           :description => 'Defines a comma-delimited list of exceptions from which the agent will not strip messages when <a href="#strip_exception_messages.enabled">strip_exception_messages</a> is enabled (such as \'ImportantException, PreserveMessageException\').'
         },
         :host => {
@@ -486,13 +501,6 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'Enable or disable transmission of application environment information to the New Relic data collection service.'
-        },
-        :'resque.use_harvest_lock' => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'Enable or disable synchronizing Resque job forking with New Relic\'s harvest thread. The default is <code>false</code>. This helps prevent Resque jobs from deadlocking, but prevents New Relic from starting new jobs during harvest.'
         },
         :data_report_period => {
           :default => 60,
@@ -718,6 +726,13 @@ module NewRelic
           :dynamic_name => true,
           :deprecated => true,
           :description => 'Enable or disable the capture of job arguments for transaction traces and traced errors in Resque.'
+        },
+        :'resque.use_ruby_dns' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Replace the libc DNS resolver with the all Ruby resolver Resolv'
         },
         :capture_memcache_keys => {
           :default => false,
@@ -1255,13 +1270,6 @@ module NewRelic
           :allowed_from_server => false,
           :description  => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic's data collection service."
         },
-        :collect_utilization => {
-          :default      => false,
-          :public       => false,
-          :type         => Boolean,
-          :allowed_from_server => true,
-          :description  => "Controls whether to collect processor and instance sizing data and send it to New Relic"
-        },
         :'rules.ignore_url_regexes' => {
           :default      => [],
           :public       => true,
@@ -1427,6 +1435,27 @@ module NewRelic
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows * as wildcard at end.'
+        },
+        :'utilization.detect_aws' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enable or disable automatic AWS detection.'
+        },
+        :'utilization.detect_docker' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enable or disable automatic Docker detection.'
+        },
+        :'disable_utilization' => {
+          :default     => false,
+          :public      => false,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'Disable sending utilization data as part of connect settings hash.'
         }
       }.freeze
     end

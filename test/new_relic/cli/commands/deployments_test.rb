@@ -15,7 +15,8 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
       def info(message); @messages = @messages ? @messages + message : message; end
       def just_exit(status=0); @exit_status ||= status; end
     end
-    @config = { :license_key => 'a' * 40 }
+    @config = { :license_key => 'a' * 40,
+                :config_path => 'test/config/newrelic.yml' }
     NewRelic::Agent.config.add_config_for_testing(@config)
   end
 
@@ -76,9 +77,18 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
   def test_error_if_no_license_key
     with_config(:license_key => '') do
       assert_raises NewRelic::Cli::Command::CommandFailure do
-      deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
+        deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
         deployment.run
       end
+    end
+  end
+
+  def test_error_if_failed_yaml
+    NewRelic::Agent::Configuration::YamlSource.any_instance.stubs(:failed?).returns(true)
+
+    assert_raises NewRelic::Cli::Command::CommandFailure do
+      deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
+      deployment.run
     end
   end
 

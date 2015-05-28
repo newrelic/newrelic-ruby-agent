@@ -457,32 +457,6 @@ module NewRelic
         assert_match( /No application name configured/i, logmsg )
       end
 
-      def test_synchronize_with_harvest
-        lock = Mutex.new
-        @agent.stubs(:harvest_lock).returns(lock)
-        @agent.harvest_lock.lock
-
-        started = false
-        done = false
-
-        thread = Thread.new do
-          started = true
-          @agent.synchronize_with_harvest do
-            done = true
-          end
-        end
-
-        until started do
-          sleep(0.001)
-        end
-        assert !done
-
-        @agent.harvest_lock.unlock
-        thread.join
-
-        assert done
-      end
-
       def test_harvest_from_container
         container = mock
         harvested_items = ['foo', 'bar', 'baz']
@@ -607,43 +581,6 @@ module NewRelic
         @agent.stop_event_loop
       end
 
-      def test_doesnt_wire_up_utilization_in_resque_child
-        fake_loop = create_utilization_loop
-        fake_loop.expects(:on).with(:report_utilization_data).never
-
-        @agent.stubs(:in_resque_child_process?).returns(true)
-
-        with_config(:collect_utilization => true) do
-          @agent.create_and_run_event_loop
-        end
-      end
-
-      def test_wires_up_utilization_when_not_in_resque
-        fake_loop = create_utilization_loop
-        fake_loop.expects(:on).with(:report_utilization_data).once
-
-        @agent.stubs(:in_resque_child_process?).returns(false)
-
-        with_config(:collect_utilization => true) do
-          @agent.create_and_run_event_loop
-        end
-      end
-
-      def create_utilization_loop
-        fake_loop = stub
-        fake_loop.stubs(:on).with(:report_utilization_data)
-        fake_loop.stubs(:on).with(:report_data)
-        fake_loop.stubs(:on).with(:report_event_data)
-        fake_loop.stubs(:on).with(:reset_log_once_keys)
-
-        fake_loop.stubs(:fire)
-        fake_loop.stubs(:fire_every)
-        fake_loop.stubs(:run)
-
-        @agent.stubs(:create_event_loop).returns(fake_loop)
-        fake_loop
-      end
-
       def test_untraced_graceful_disconnect_logs_errors
         NewRelic::Agent.stubs(:disable_all_tracing).raises(TestError, 'test')
         ::NewRelic::Agent.logger.expects(:error).with(is_a(TestError))
@@ -678,13 +615,6 @@ module NewRelic
     end
 
     class AgentStartingTest < Minitest::Test
-      def test_no_service_if_not_monitoring
-        with_config(:monitor_mode => false) do
-          agent = NewRelic::Agent::Agent.new
-          assert_nil agent.service
-        end
-      end
-
       def test_abides_by_disabling_harvest_thread
         with_config(:disable_harvest_thread => true) do
           threads_before = Thread.list.length

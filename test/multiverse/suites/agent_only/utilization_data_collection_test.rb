@@ -8,124 +8,63 @@ require 'fake_instance_metadata_service'
 class UtilizationDataCollectionTest < Minitest::Test
   include MultiverseHelpers
 
-  setup_and_teardown_agent do
-    $collector.stub('connect',
-      {
-        "agent_run_id" => 42,
-        "collect_utilization" => true
+  def test_sends_all_utilization_data_on_connect
+    expected = {
+      "hostname" => "host",
+      "metadata_version" => 1,
+      "logical_processors" => 5,
+      "total_ram_mib" => 128,
+      "vendors" => {
+        "aws" => {
+          "id" => "i-e7e85ce1",
+          "type" => "m3.medium",
+          "zone" => "us-west-2b"
+        },
+        "docker" => {
+          "id"=>"47cbd16b77c50cbf71401"
+        }
       }
-    )
-  end
+    }
 
-  def test_hostname
-    NewRelic::Agent::Hostname.stubs(:get).returns("hostile")
-    trigger_usage_data_collection_and_submission
-
-    data = last_submitted_utilization_data
-    assert_equal("hostile", data.hostname)
-  end
-
-  def test_gathers_instance_metadata
-    instance_type = 'test.type'
+    NewRelic::Agent::Hostname.stubs(:get).returns("host")
+    NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
+    NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
+    NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
 
     with_fake_metadata_service do |service|
-      service.set_response_for_path('/2008-02-01/meta-data/instance-type', instance_type)
-      trigger_usage_data_collection_and_submission
+      service.set_response_for_path('/2008-02-01/meta-data/instance-id', expected["vendors"]["aws"]["id"])
+      service.set_response_for_path('/2008-02-01/meta-data/instance-type', expected["vendors"]["aws"]["type"])
+      service.set_response_for_path('/2008-02-01/meta-data/placement/availability-zone', expected["vendors"]["aws"]["zone"])
+
+      # this will trigger the agent to connect and send utilization data
+      setup_agent
+
+      assert_equal expected, single_connect_posted.utilization
     end
-
-    data = last_submitted_utilization_data
-    assert_equal(instance_type, data.instance_type)
   end
 
-  def test_omits_instance_metadata_if_contains_invalid_characters
-    instance_type = '<script>lol</script>'
+  def test_omits_sending_vendor_data_on_connect_when_not_available
+     expected = {
+      "hostname" => "host",
+      "metadata_version" => 1,
+      "logical_processors" => 5,
+      "total_ram_mib" => 128
+    }
 
-    with_fake_metadata_service do |service|
-      service.set_response_for_path('/2008-02-01/meta-data/instance-type', instance_type)
-      trigger_usage_data_collection_and_submission
-    end
+    NewRelic::Agent::Hostname.stubs(:get).returns("host")
+    NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
+    NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
 
-    data = last_submitted_utilization_data
-    assert_nil(data.instance_type)
+    # this will trigger the agent to connect and send utilization data
+    setup_agent
+
+    assert_equal expected, single_connect_posted.utilization
   end
 
-  def test_omits_instance_metadata_if_too_long
-    instance_type = 'a' * 1024
-
-    with_fake_metadata_service do |service|
-      service.set_response_for_path('/2008-02-01/meta-data/instance-type', instance_type)
-      trigger_usage_data_collection_and_submission
-    end
-
-    data = last_submitted_utilization_data
-    assert_nil(data.instance_type)
-  end
-
-  def test_gathers_cpu_metadata
-    fake_processor_info = { :num_logical_processors => 8 }
-    NewRelic::Agent::SystemInfo.stubs(:get_processor_info).returns(fake_processor_info)
-
-    trigger_usage_data_collection_and_submission
-
-    data = last_submitted_utilization_data
-    assert_equal(fake_processor_info[:num_logical_processors], data.cpu_count)
-  end
-
-  def test_nil_cpu_values_reported
-    fake_processor_info = { :num_logical_processors => nil }
-    NewRelic::Agent::SystemInfo.stubs(:get_processor_info).returns(fake_processor_info)
-
-    trigger_usage_data_collection_and_submission
-
-    data = last_submitted_utilization_data
-    assert_nil(data.cpu_count)
-  end
-
-  def test_gathers_docker_container_id
-    NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("whale")
-
-    trigger_usage_data_collection_and_submission
-
-    data = last_submitted_utilization_data
-    assert_equal "whale", data.container_id
-  end
-
-  def test_nil_docker_container_id
-    NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns(nil)
-
-    trigger_usage_data_collection_and_submission
-
-    data = last_submitted_utilization_data
-    assert_nil data.container_id
-  end
-
-  def test_retries_upon_failure_to_submit_usage_data
-    $collector.stub_exception('utilization_data', nil, 503).once
-
-    trigger_usage_data_collection_and_submission
-    first_attempt = last_submitted_utilization_data
-
-    $collector.reset
-
-    trigger_usage_data_collection_and_submission
-    next_attempt = last_submitted_utilization_data
-
-    assert_equal(first_attempt, next_attempt)
-  end
-
-  def last_submitted_utilization_data
-    submissions = $collector.calls_for(:utilization_data)
-    assert_equal(1, submissions.size)
-
-    data = submissions.last
-    assert_equal(4, data.body.size)
-
-    data
-  end
-
-  def trigger_usage_data_collection_and_submission
-    if NewRelic::Agent.config[:collect_utilization]
-      agent.send(:transmit_utilization_data)
+  def test_utilization_data_not_sent_when_disabled
+    with_config :disable_utilization => true do
+      setup_agent
+      assert_nil single_connect_posted.utilization, "Expected utilization data to be nil"
     end
   end
 

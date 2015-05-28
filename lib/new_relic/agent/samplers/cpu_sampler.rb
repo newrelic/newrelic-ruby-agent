@@ -13,6 +13,7 @@ module NewRelic
         named :cpu
 
         def initialize
+          @last_time = nil
           @processor_count = NewRelic::Agent::SystemInfo.num_logical_processors
           if @processor_count.nil?
             NewRelic::Agent.logger.warn("Failed to determine processor count, assuming 1")

@@ -76,35 +76,4 @@ class AutostartTest < Minitest::Test
       assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't during blacklisted rake task"
     end
   end
-
-  module ::Outer
-    class Included
-    end
-  end
-
-  class ::Excluded
-  end
-
-  module ::ContainsAnObject
-    class ContainedObject
-    end
-  end
-
-  def test_should_look_within_module
-    assert_equal ::Outer::Included, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Included")
-  end
-
-  def test_shouldnt_look_outside_module_for_class
-    assert_equal false, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Excluded")
-  end
-
-  def test_shouldnt_look_outside_module_for_module
-    assert_equal false, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Outer")
-  end
-
-  def test_should_allow_object_in_module_names
-    assert_equal ::ContainsAnObject::ContainedObject,
-                  NewRelic::Agent::Autostart.constant_is_defined?("ContainsAnObject::ContainedObject")
-  end
-
 end

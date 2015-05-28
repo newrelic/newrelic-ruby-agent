@@ -82,12 +82,36 @@ module NewRelic::Agent::Configuration
       without_logger do
         ::NewRelic::Agent::StartupLogger.any_instance.expects(:error)
 
-        File.stubs(:exists?).returns(true)
+        File.stubs(:exist?).returns(true)
         File.stubs(:read).raises(StandardError.new("boo"))
 
         YamlSource.new('fake.yml', 'test')
       end
     end
 
+    def test_should_mark_error_on_read_as_failure
+      File.stubs(:exist?).returns(true)
+      File.stubs(:read).raises(StandardError.new("boo"))
+
+      source = YamlSource.new('fake.yml', 'test')
+      assert source.failed?
+    end
+
+    def test_should_mark_erb_error_as_failure
+      ERB.stubs(:new).raises(StandardError.new("boo"))
+
+      source = YamlSource.new(@test_yml_path, 'test')
+      assert source.failed?
+    end
+
+    def test_should_mark_missing_section_as_failure
+      source = YamlSource.new(@test_yml_path, 'yolo')
+      assert source.failed?
+    end
+
+    def test_failure_should_include_message
+      source = YamlSource.new(@test_yml_path, 'yolo')
+      assert_includes source.failures.flatten.join(' '), 'yolo'
+    end
   end
 end

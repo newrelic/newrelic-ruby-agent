@@ -8,8 +8,7 @@ require 'new_relic/agent/commands/thread_profiler_session'
 
 class NewRelicServiceTest < Minitest::Test
   def setup
-    @server = NewRelic::Control::Server.new('somewhere.example.com',
-                                            30303, '10.10.10.10')
+    @server = NewRelic::Control::Server.new('somewhere.example.com', 30303)
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
 
     @http_handle = create_http_handle
@@ -226,12 +225,6 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal 'somewhere.example.com', @service.collector.name
     @service.connect
     assert_equal 'localhost', @service.collector.name
-  end
-
-  def test_connect_resets_cached_ip_address
-    assert_equal '10.10.10.10', @service.collector.ip
-    @service.connect
-    assert_equal 'localhost', @service.collector.ip # 'localhost' resolves to nil
   end
 
   def test_connect_uses_proxy_collector_if_no_redirect_host
@@ -726,7 +719,7 @@ class NewRelicServiceTest < Minitest::Test
     spec1 = NewRelic::MetricSpec.new('foo')
     spec2 = NewRelic::MetricSpec.new('bar')
     hash.record(spec1, 1)
-    hash[spec2] = NewRelic::Agent::Stats.new()
+    hash.record(spec2) { |s| s.call_count = 0 }
 
     metric_data_array = @service.build_metric_data_array(hash)
     assert_equal(1, metric_data_array.size)

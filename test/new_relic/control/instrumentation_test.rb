@@ -38,19 +38,4 @@ class NewRelic::Control::InstrumentationTest < Minitest::Test
     result = @test_class.instance_variable_get(:@instrumentation_files)
     assert_equal [expected_pattern], result
   end
-
-  def test_install_shim_logs_if_instrumentation_has_already_been_installed
-    @test_class.instance_eval { @instrumented = true }
-    expects_logging(:error, includes('Cannot install'))
-    @test_class.install_shim
-  end
-
-  def test_install_shim_does_not_set_agent_if_already_instrumented
-    fake_shim = "Instrumentation Test Shim Agent"
-    @test_class.instance_eval { @instrumented = true }
-    NewRelic::Agent::ShimAgent.class_eval { @instance = fake_shim }
-
-    @test_class.install_shim
-    refute_equal NewRelic::Agent.agent, fake_shim
-  end
 end

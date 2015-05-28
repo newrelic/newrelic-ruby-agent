@@ -157,4 +157,12 @@ class AttributeProcessingTest < Minitest::Test
     expected = {"foo.bar.0" => "qux", "foo.bar.1" => "quux"}
     assert_equal expected, yielded
   end
+
+  def test_flatten_and_coerce_leaves_nils_alone
+    params   = { :referer => nil }
+    expected = { "referer" => nil }
+
+    result = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
+    assert_equal expected, result
+  end
 end

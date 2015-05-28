@@ -156,6 +156,11 @@ module MultiverseHelpers
     $collector.calls_for("analytic_event_data").first.events.first
   end
 
+  def single_connect_posted
+    assert_equal 1, $collector.calls_for(:connect).size
+    $collector.calls_for(:connect).first
+  end
+
   def capture_js_data
     state = NewRelic::Agent::TransactionState.tl_get
     events = stub(:subscribe => nil)
@@ -239,6 +244,13 @@ module MultiverseHelpers
 
   def refute_browser_monitoring_has_agent_attribute(_)
     assert_nil @js_agent_attributes
+  end
+
+  def refute_event_has_attribute(key)
+    evt = single_event_posted
+    refute_includes evt[0], key, "Found unexpected attribute #{key} in txn event intrinsics"
+    refute_includes evt[1], key, "Found unexpected attribute #{key} in txn event custom attributes"
+    refute_includes evt[2], key, "Found unexpected attribute #{key} in txn event agent attributes"
   end
 
   def attributes_for_single_error_posted(key)

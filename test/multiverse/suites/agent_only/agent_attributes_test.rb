@@ -13,9 +13,9 @@ class AgentAttributesTest < Minitest::Test
       txn.http_response_code = 418
     end
 
-    assert_transaction_trace_has_agent_attribute("httpResponseCode", 418)
-    assert_event_has_agent_attribute("httpResponseCode", 418)
-    assert_error_has_agent_attribute("httpResponseCode", 418)
+    assert_transaction_trace_has_agent_attribute("httpResponseCode", "418")
+    assert_event_has_agent_attribute("httpResponseCode", "418")
+    assert_error_has_agent_attribute("httpResponseCode", "418")
 
     refute_browser_monitoring_has_agent_attribute("httpResponseCode")
   end
@@ -115,6 +115,18 @@ class AgentAttributesTest < Minitest::Test
 
     assert_browser_monitoring_has_agent_attribute("request.parameters.foo", "bar")
     assert_browser_monitoring_has_agent_attribute("request.parameters.bar", "baz")
+  end
+
+  def test_http_response_code_excluded_in_txn_events_when_disabled
+    with_config(:'transaction_events.attributes.exclude' => 'httpResponseCode') do
+      in_web_transaction do |txn|
+        txn.http_response_code = 200
+      end
+    end
+
+    run_harvest
+
+    refute_event_has_attribute('httpResponseCode')
   end
 
   def run_transaction(config = {}, txn_options = {})

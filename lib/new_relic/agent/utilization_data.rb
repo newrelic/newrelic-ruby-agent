@@ -2,19 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/aws_info'
+
 module NewRelic
   module Agent
     class UtilizationData
-
-      REMOTE_DATA_VALID_CHARS = /^[0-9a-zA-Z_ .\/-]$/.freeze
-
-      def harvest!
-        [hostname, container_id, cpu_count, instance_type]
-      end
-
-      # No persistent data, so no need for merging or resetting
-      def merge!(*_); end
-      def reset!(*_); end
+      METADATA_VERSION = 1
 
       def hostname
         NewRelic::Agent::Hostname.get
@@ -29,49 +22,43 @@ module NewRelic
         ::NewRelic::Agent::SystemInfo.num_logical_processors
       end
 
-      def instance_type
-        Timeout::timeout(1) do
-          remote_fetch('instance-type')
-        end
-      rescue Timeout::Error
-        NewRelic::Agent.logger.debug("UtilizationData timed out fetching remote keys.")
-        nil
-      rescue StandardError, LoadError => e
-        NewRelic::Agent.logger.debug("UtilizationData encountered error fetching remote keys:\n#{e}")
-        nil
+      def ram_in_mib
+        ::NewRelic::Agent::SystemInfo.ram_in_mib
       end
 
-      INSTANCE_HOST = '169.254.169.254'
-      API_VERSION   = '2008-02-01'
+      def to_collector_hash
+        result = {
+          :metadata_version => METADATA_VERSION,
+          :logical_processors => cpu_count,
+          :total_ram_mib => ram_in_mib,
+          :hostname => hostname
+        }
 
-      def remote_fetch(remote_key)
-        uri = URI("http://#{INSTANCE_HOST}/#{API_VERSION}/meta-data/#{remote_key}")
-        request = Net::HTTP::get(uri)
+        append_aws_info(result)
+        append_docker_info(result)
 
-        data = validate_remote_data(request)
-
-        if request && data.nil?
-          NewRelic::Agent.logger.warn("Fetching instance metadata for #{remote_key.inspect} returned invalid data: #{request.inspect}")
-        end
-
-        data
+        result
       end
 
-      def validate_remote_data(data_str)
-        return nil unless data_str.kind_of?(String)
-        return nil unless data_str.size <= 255
+      def append_aws_info(collector_hash)
+        return unless Agent.config[:'utilization.detect_aws']
 
-        data_str.each_char do |ch|
-          next if ch =~ REMOTE_DATA_VALID_CHARS
-          code_point = ch[0].ord # this works in Ruby 1.8.7 - 2.1.2
-          next if code_point >= 0x80
+        aws_info = AWSInfo.new
 
-          return nil # it's in neither set of valid characters
+        if aws_info.loaded?
+          collector_hash[:vendors] ||= {}
+          collector_hash[:vendors][:aws] = aws_info.to_collector_hash
         end
-
-        data_str
       end
 
+      def append_docker_info(collector_hash)
+        return unless Agent.config[:'utilization.detect_docker']
+
+        if docker_container_id = container_id
+          collector_hash[:vendors] ||= {}
+          collector_hash[:vendors][:docker] = {:id => docker_container_id}
+        end
+      end
     end
   end
 end

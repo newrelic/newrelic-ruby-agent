@@ -15,6 +15,14 @@ DependencyDetection.defer do
   end
 
   executes do
+    if NewRelic::Agent.config[:'resque.use_ruby_dns'] && NewRelic::Agent.config[:dispatcher] == :resque
+      ::NewRelic::Agent.logger.info 'Requiring resolv-replace'
+      require 'resolv'
+      require 'resolv-replace'
+    end
+  end
+
+  executes do
     module Resque
       module Plugins
         module NewRelicInstrumentation
@@ -62,26 +70,6 @@ DependencyDetection.defer do
     end
 
     if NewRelic::LanguageSupport.can_fork?
-      # Resque::Worker#fork isn't around in Resque 2.x
-      if NewRelic::VersionNumber.new(::Resque::VERSION) < NewRelic::VersionNumber.new("2.0.0")
-        ::Resque::Worker.class_eval do
-          if NewRelic::Agent.config[:'resque.use_harvest_lock']
-            ::NewRelic::Agent.logger.info 'Installing Resque harvest/fork synchronization'
-            def fork_with_newrelic(*args, &block)
-              NewRelic::Agent.instance.synchronize_with_harvest do
-                fork_without_newrelic(*args, &block)
-
-                # Reached in parent, not expected in the child since Resque
-                # uses the block form of fork
-              end
-            end
-
-            alias_method :fork_without_newrelic, :fork
-            alias_method :fork, :fork_with_newrelic
-          end
-        end
-      end
-
       ::Resque.before_first_fork do
         NewRelic::Agent.manual_start(:dispatcher   => :resque,
                                      :sync_startup => true,

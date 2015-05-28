@@ -43,9 +43,10 @@ module NewRelic
       end
 
       def initialize
-        # FIXME: temporary work around for RUBY-839
-        # This should be handled with a configuration callback
-        start_service_if_needed
+        @started = false
+        @event_loop = nil
+
+        @service = NewRelicService.new
 
         @events                = NewRelic::Agent::EventListener.new
         @stats_engine          = NewRelic::Agent::StatsEngine.new
@@ -55,7 +56,6 @@ module NewRelic
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @synthetics_monitor    = NewRelic::Agent::SyntheticsMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
-        @utilization_data      = NewRelic::Agent::UtilizationData.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
         @monotonic_gc_profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
@@ -71,7 +71,6 @@ module NewRelic
         @connect_attempts   = 0
         @environment_report = nil
 
-        @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
 
         setup_attribute_filter
@@ -134,7 +133,6 @@ module NewRelic
         attr_reader :transaction_rules
         # Responsbile for restarting the harvest thread
         attr_reader :harvester
-        attr_reader :harvest_lock
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
         attr_reader :custom_event_aggregator
@@ -398,12 +396,6 @@ module NewRelic
             end
           end
 
-          def start_service_if_needed
-            if Agent.config[:monitor_mode] && !@service
-              @service = NewRelic::Agent::NewRelicService.new
-            end
-          end
-
           # Classy logging of the agent version and the current pid,
           # so we can disambiguate processes in the log file and make
           # sure they're running a reasonable version
@@ -571,7 +563,6 @@ module NewRelic
         # might be holding locks for background thread that aren't there anymore.
         def reset_objects_with_locks
           @stats_engine = NewRelic::Agent::StatsEngine.new
-          reset_harvest_locks
         end
 
         def flush_pipe_data
@@ -587,24 +578,6 @@ module NewRelic
         # start_worker_thread method - this is an artifact of
         # refactoring and can be moved, renamed, etc at will
         module StartWorkerThread
-          # Synchronize with the harvest loop. If the harvest thread has taken
-          # a lock (DNS lookups, backticks, agent-owned locks, etc), and we
-          # fork while locked, this can deadlock child processes. For more
-          # details, see https://github.com/resque/resque/issues/1101
-          def synchronize_with_harvest
-            harvest_lock.synchronize do
-              yield
-            end
-          end
-
-          # Some forking cases (like Resque) end up with harvest lock from the
-          # parent process orphaned in the child. Let it go before we proceed.
-          def reset_harvest_locks
-            return if harvest_lock.nil?
-
-            harvest_lock.unlock if harvest_lock.locked?
-          end
-
           def create_event_loop
             EventLoop.new
           end
@@ -612,7 +585,6 @@ module NewRelic
           # Never allow any data type to be reported more frequently than once
           # per second.
           MIN_ALLOWED_REPORT_PERIOD = 1.0
-          UTILIZATION_REPORT_PERIOD = 30 * 60 # every half hour
 
           def report_period_for(method)
             config_key = "data_report_periods.#{method}".to_sym
@@ -644,14 +616,6 @@ module NewRelic
             @event_loop.fire_every(Agent.config[:data_report_period],       :report_data)
             @event_loop.fire_every(report_period_for(:analytic_event_data), :report_event_data)
             @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD,              :reset_log_once_keys)
-
-            if Agent.config[:collect_utilization] && !in_resque_child_process?
-              @event_loop.on(:report_utilization_data) do
-                transmit_utilization_data
-              end
-              @event_loop.fire(:report_utilization_data)
-              @event_loop.fire_every(UTILIZATION_REPORT_PERIOD, :report_utilization_data)
-            end
 
             @event_loop.run
           end
@@ -839,7 +803,8 @@ module NewRelic
           # server. Returns a literal hash containing the options
           def connect_settings
             sanitize_environment_report
-            {
+
+            settings = {
               :pid => $$,
               :host => local_host,
               :app_name => Agent.config.app_names,
@@ -850,6 +815,12 @@ module NewRelic
               :settings => Agent.config.to_collector_hash,
               :high_security => Agent.config[:high_security]
             }
+
+            unless Agent.config[:disable_utilization]
+              settings[:utilization] = UtilizationData.new.to_collector_hash
+            end
+
+            settings
           end
 
           # Returns connect data passed back from the server
@@ -878,7 +849,7 @@ module NewRelic
           def finish_setup(config_data)
             return if config_data == nil
 
-            @service.agent_id = config_data['agent_run_id'] if @service
+            @service.agent_id = config_data['agent_run_id']
 
             if config_data['agent_config']
               ::NewRelic::Agent.logger.debug "Using config from server"
@@ -887,7 +858,7 @@ module NewRelic
             ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
             server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, Agent.config)
             Agent.config.replace_or_add_config(server_config)
-            log_connection!(config_data) if @service
+            log_connection!(config_data)
 
             @transaction_rules = RulesEngine.create_transaction_rules(config_data)
             @stats_engine.metric_rules = RulesEngine.create_metric_rules(config_data)
@@ -1086,10 +1057,6 @@ module NewRelic
           harvest_and_send_from_container(@custom_event_aggregator,      :custom_event_data)
         end
 
-        def harvest_and_send_utilization_data
-          harvest_and_send_from_container(@utilization_data, :utilization_data)
-        end
-
         def check_for_and_handle_agent_commands
           begin
             @agent_command_router.check_for_and_handle_agent_commands
@@ -1108,18 +1075,8 @@ module NewRelic
           NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
         end
 
-        def transmit_data
-          harvest_lock.synchronize do
-            transmit_data_already_locked
-          end
-        end
-
         def transmit_event_data
           transmit_single_data_type(:harvest_and_send_analytic_event_data, "TransactionEvent")
-        end
-
-        def transmit_utilization_data
-          transmit_single_data_type(:harvest_and_send_utilization_data, "UtilizationData")
         end
 
         def transmit_single_data_type(harvest_method, supportability_name)
@@ -1128,19 +1085,15 @@ module NewRelic
           msg = "Sending #{harvest_method.to_s.gsub("harvest_and_send_", "")} to New Relic Service"
           ::NewRelic::Agent.logger.debug msg
 
-          harvest_lock.synchronize do
-            @service.session do # use http keep-alive
-              self.send(harvest_method)
-            end
+          @service.session do # use http keep-alive
+            self.send(harvest_method)
           end
         ensure
           duration = (Time.now - now).to_f
           NewRelic::Agent.record_metric("Supportability/#{supportability_name}Harvest", duration)
         end
 
-        # This method is expected to only be called with the harvest_lock
-        # already held
-        def transmit_data_already_locked
+        def transmit_data
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
 
@@ -1160,8 +1113,6 @@ module NewRelic
           NewRelic::Agent.record_metric('Supportability/Harvest', duration)
         end
 
-        private :transmit_data_already_locked
-
         # This method contacts the server to send remaining data and
         # let the server know that the agent is shutting down - this
         # allows us to do things like accurately set the end of the
@@ -1177,7 +1128,6 @@ module NewRelic
               @events.notify(:before_shutdown)
               transmit_data
               transmit_event_data
-              transmit_utilization_data if NewRelic::Agent.config[:collect_utilization]
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"

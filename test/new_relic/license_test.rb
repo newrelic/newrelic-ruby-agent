@@ -44,6 +44,8 @@ class LicenseTest < Minitest::Test
     ['/test/new_relic/agent/agent_test_controller_test.rb', 'Apache'] => 1, # apache header tests
     ['/vendor/gems/metric_parser-0.1.0.pre1/lib/new_relic/metric_parser/solr.rb', 'Apache'] => 2, # parse apache solr metrics
     ['/vendor/gems/metric_parser-0.1.0.pre1/lib/new_relic/metric_parser/solr_request_handler.rb', 'Apache'] => 1, # parse apache solr metrics
+    ['/lib/new_relic/agent/system_info.rb', 'BSD'] => 4,
+    ['/test/new_relic/agent/system_info_test.rb', 'BSD'] => 2
   }
 
   def shebang

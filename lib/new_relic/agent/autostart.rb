@@ -44,24 +44,7 @@ module NewRelic
       # Lookup whether namespaced constants (e.g. ::Foo::Bar::Baz) are in the
       # environment.
       def constant_is_defined?(const_name)
-        const_name.to_s.sub(/\A::/,'').split('::').inject(Object) do |namespace, name|
-          begin
-            result = namespace.const_get(name)
-
-            # const_get looks up the inheritence chain, so if it's a class
-            # in the constant make sure we found the one in our namespace.
-            #
-            # Can't help if the constant isn't a class...
-            if result.is_a?(Module)
-              expected_name = "#{namespace}::#{name}".gsub(/^Object::/, "")
-              return false unless expected_name == result.to_s
-            end
-
-            result
-          rescue NameError
-            false
-          end
-        end
+        !!::NewRelic::LanguageSupport.constantize(const_name)
       end
 
       def blacklisted?(value, &block)

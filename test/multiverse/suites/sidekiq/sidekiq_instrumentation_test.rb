@@ -122,6 +122,30 @@ class SidekiqTest < Minitest::Test
     assert_attributes_on_events
   end
 
+  def test_captures_errors_from_job
+    TestWorker.fail = true
+    run_jobs
+    assert_error_for_each_job
+  ensure
+    TestWorker.fail = false
+  end
+
+  # In <= 2.x of Sidekiq, internal errors (or potentially errors further out
+  # the middleware stack) wouldn't get noticed, but there was no propery hook
+  # to catch it. 3.x+ gives us a error_handler, so only add our misbehaving
+  # middleware for those cases.
+  if Sidekiq::VERSION >= '3'
+    def test_captures_sidekiq_internal_errors
+      # Ugly, but need to coerce an internal error in Sidekiq that doesn't bail
+      # from processing entirely. This fouls up Sidekiq::Processor#stats in a
+      # spot that calls handle exception but doesn't die.
+      Redis.any_instance.stubs(:hmset).raises("Uh oh")
+      run_jobs
+
+      assert_error_for_each_job(nil)
+    end
+  end
+
   def assert_metric_and_call_count(name, expected_call_count)
     metric_data = $collector.calls_for('metric_data')
     assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
@@ -176,6 +200,20 @@ class SidekiqTest < Minitest::Test
       post.events.each do |event|
         assert event[2].keys.none? { |k| k.start_with?("job.sidekiq.args") }, "Found unexpected sidekiq arguments"
       end
+    end
+  end
+
+  def assert_error_for_each_job(txn_name=TRANSACTION_NAME)
+    error_posts = $collector.calls_for("error_data")
+    assert_equal 1, error_posts.length, "Wrong number of error posts!"
+
+    errors = error_posts.first
+    assert_equal JOB_COUNT, errors.errors.length, "Wrong number of errors noticed!"
+
+    assert_metric_and_call_count('Errors/all', JOB_COUNT)
+    if txn_name
+      assert_metric_and_call_count('Errors/allOther', JOB_COUNT)
+      assert_metric_and_call_count("Errors/#{TRANSACTION_NAME}", JOB_COUNT)
     end
   end
 end

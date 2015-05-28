@@ -22,12 +22,12 @@ namespace :test do
 
   agent_home = File.expand_path(File.dirname(__FILE__))
 
-  desc "Run functional test suite for newrelic"
-  task :multiverse, [:suite, :param1, :param2, :param3, :param4] => [] do |t, args|
-    require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'multiverse', 'lib', 'multiverse', 'environment'))
-    opts = Multiverse::Runner.parse_args(args)
-    Multiverse::Runner.run(args.suite, opts)
+  # Agent-specific setup to enforce getting our proper suites directory
+  task :multiverse_setup do
+    ENV["SUITES_DIRECTORY"] = File.expand_path(File.join(File.dirname(__FILE__), 'test', 'multiverse', 'suites'))
   end
+
+  task :multiverse => :multiverse_setup
 
   desc "Test the multiverse testing framework by executing tests in test/multiverse/test. Get meta with it."
   task 'multiverse:self', [:suite, :mode] => [] do |t, args|

@@ -117,7 +117,7 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
 
       expected_params = {
         'request.parameters.eat' => 'static',
-        'httpResponseCode' => 500
+        'httpResponseCode' => '500'
       }
 
       attributes = agent_attributes_for_single_error_posted

@@ -181,10 +181,6 @@ module NewRelic
           :item_count => data.size)
       end
 
-      def utilization_data(data)
-        invoke_remote(:utilization_data, data)
-      end
-
       # We do not compress if content is smaller than 64kb.  There are
       # problems with bugs in Ruby in some versions that expose us
       # to a risk of segfaults if we compress aggressively.
@@ -303,18 +299,21 @@ module NewRelic
         end
       end
 
-      # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
       def create_http_connection
-        proxy_server = control.proxy_server
-        # Proxy returns regular HTTP if @proxy_host is nil (the default)
-        http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
-                                      proxy_server.user, proxy_server.password)
+        if Agent.config[:proxy_host]
+          ::NewRelic::Agent.logger.debug("Using proxy server #{Agent.config[:proxy_host]}:#{Agent.config[:proxy_port]}")
 
-        if proxy_server.name
-          ::NewRelic::Agent.logger.debug("Using proxy server #{proxy_server.name}:#{proxy_server.port}")
+          proxy = Net::HTTP::Proxy(
+            Agent.config[:proxy_host],
+            Agent.config[:proxy_port],
+            Agent.config[:proxy_user],
+            Agent.config[:proxy_pass]
+          )
+          conn = proxy.new(@collector.name, @collector.port)
+        else
+          conn = Net::HTTP.new(@collector.name, @collector.port)
         end
 
-        conn = http_class.new((@collector.ip || @collector.name), @collector.port)
         setup_connection_for_ssl(conn) if Agent.config[:ssl]
         setup_connection_timeouts(conn)
 
@@ -332,7 +331,7 @@ module NewRelic
       # connection if verify_peer is enabled
       def cert_file_path
         if path_override = NewRelic::Agent.config[:ca_bundle_path]
-          NewRelic::Agent.logger.warn("Couldn't find CA bundle from configured ca_bundle_path: #{path_override}") unless File.exists? path_override
+          NewRelic::Agent.logger.warn("Couldn't find CA bundle from configured ca_bundle_path: #{path_override}") unless File.exist? path_override
           path_override
         else
           File.expand_path(File.join(control.newrelic_root, 'cert', 'cacert.pem'))

@@ -304,14 +304,14 @@ end
 # Convenience wrapper around in_transaction that sets the category so that it
 # looks like we are in a web transaction
 def in_web_transaction(name='dummy')
-  in_transaction(name, :category => :controller, :request => stub(:path => '/')) do
-    yield
+  in_transaction(name, :category => :controller, :request => stub(:path => '/')) do |txn|
+    yield txn
   end
 end
 
 def in_background_transaction(name='silly')
-  in_transaction(name, :category => :task) do
-    yield
+  in_transaction(name, :category => :task) do |txn|
+    yield txn
   end
 end
 
@@ -617,6 +617,12 @@ def load_cross_agent_test(name)
   test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
   data = File.read(test_file_path)
   NewRelic::JSONWrapper.load(data)
+end
+
+def each_cross_agent_test(options)
+  options = {:dir => nil, :pattern => "*"}.update(options)
+  path = File.join [cross_agent_tests_dir, options[:dir], options[:pattern]].compact
+  Dir.glob(path).each { |file| yield file}
 end
 
 def assert_event_attributes(event, test_name, expected_attributes, non_expected_attributes)

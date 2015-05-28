@@ -85,18 +85,11 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_only
       parent = Class.new do
         include ControllerInstrumentation
-
         newrelic_ignore(:only => :foo)
-
-        def foo(*args); end
-        def foo2(*args); end
       end
 
       child = Class.new(parent) do
         newrelic_ignore(:only => :bar)
-
-        def bar(*args); end
-        def bar2(*args); end
       end
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
@@ -110,18 +103,11 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_except
       parent = Class.new do
         include ControllerInstrumentation
-
         newrelic_ignore(:except => :foo)
-
-        def foo(*args); end
-        def foo2(*args); end
       end
 
       child = Class.new(parent) do
         newrelic_ignore(:except => :bar)
-
-        def bar(*args); end
-        def bar2(*args); end
       end
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
@@ -135,17 +121,11 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_except_and_only
       parent = Class.new do
         include ControllerInstrumentation
-
         newrelic_ignore(:only => :foo)
-
-        def foo(*args); end
-        def foo2(*args); end
       end
 
       child = Class.new(parent) do
         newrelic_ignore(:except => :foo)
-
-        def bar(*args); end
       end
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
@@ -153,6 +133,29 @@ module NewRelic::Agent::Instrumentation
       assert IgnoreActions.is_filtered?(key, child, :foo )
       assert IgnoreActions.is_filtered?(key, child, :bar )
       assert IgnoreActions.is_filtered?(key, child, :foo2)
+    end
+
+    def test_ignore_allows_strings
+      controller = Class.new do
+        include ControllerInstrumentation
+
+        newrelic_ignore(:only => "foo")
+      end
+
+      key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
+      assert IgnoreActions.is_filtered?(key, controller, :foo)
+    end
+
+    def test_ignore_allows_mixed_strings_and_symbols
+      controller = Class.new do
+        include ControllerInstrumentation
+
+        newrelic_ignore(:only => ["foo", :bar])
+      end
+
+      key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
+      assert IgnoreActions.is_filtered?(key, controller, :foo)
+      assert IgnoreActions.is_filtered?(key, controller, :bar)
     end
 
     def test_transaction_name_calls_newrelic_metric_path

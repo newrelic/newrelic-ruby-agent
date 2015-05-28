@@ -68,7 +68,6 @@ module NewRelic
         Module.send :include, NewRelic::Agent::MethodTracer
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
-        NewRelic::Agent.agent.start_service_if_needed
         if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
           start_agent
           install_instrumentation
@@ -144,7 +143,11 @@ module NewRelic
 
       def initialize(local_env, config_file_override=nil)
         @local_env = local_env
+        @started_in_env = nil
+
+        @instrumented = nil
         @instrumentation_files = []
+
         @config_file_override = config_file_override
       end
 

@@ -2,8 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent'
-require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/developer_mode_sample_buffer'
 require 'new_relic/agent/transaction/slowest_sample_buffer'
@@ -22,15 +20,6 @@ module NewRelic
     #
     # @api public
     class TransactionSampler
-
-      # Module defining methods stubbed out when the agent is disabled
-      module Shim #:nodoc:
-        def on_start_transaction(*args); end
-        def notice_push_frame(*args); end
-        def notice_pop_frame(*args); end
-        def on_finishing_transaction(*args); end
-      end
-
       attr_reader :last_sample, :dev_mode_sample_buffer, :xray_sample_buffer
 
       def initialize
@@ -71,7 +60,6 @@ module NewRelic
       def on_start_transaction(state, start_time)
         if enabled?
           start_builder(state, start_time.to_f)
-          builder = state.transaction_sample_builder
         end
       end
 

@@ -24,7 +24,7 @@ class ServiceTimeoutTest < Minitest::Test
   end
 
   def test_service_timeout
-    server = NewRelic::Control::Server.new('localhost',@port,'127.0.0.1')
+    server = NewRelic::Control::Server.new('localhost', @port)
     NewRelic::Agent.config.add_config_for_testing(:timeout => 0.1)
 
     service = NewRelic::Agent::NewRelicService.new('deadbeef', server)

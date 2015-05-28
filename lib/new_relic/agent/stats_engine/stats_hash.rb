@@ -2,10 +2,17 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-# A Hash-descended class for storing metric data in the NewRelic Agent.
+# A Hash-like class for storing metric data.
 #
-# Keys are NewRelic::MetricSpec objects.
-# Values are NewRelic::Agent::Stats objects.
+# Internally, metrics are split into unscoped and scoped collections.
+#
+# Unscoped metrics are stored in a Hash, keyed by Strings representing the name
+# of the metrics.
+#
+# Scoped metrics are stored in a Hash where the keys are NewRelic::MetricSpec
+# objects (effectively <name, scope> tuples).
+#
+# Values in both hashes are NewRelic::Agent::Stats objects.
 #
 # Missing keys will be automatically created as empty NewRelic::Agent::Stats
 # instances, so use has_key? explicitly to check for key existence.
@@ -22,30 +29,68 @@ require 'new_relic/agent/internal_agent_error'
 
 module NewRelic
   module Agent
-    class StatsHash < ::Hash
+    class StatsHash
 
       attr_accessor :started_at, :harvested_at
 
       def initialize(started_at=Time.now)
         @started_at = started_at.to_f
-        super() { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
+        @scoped     = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @unscoped   = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
       end
 
       def marshal_dump
-        [@started_at, Hash[self]]
+        [@started_at, Hash[@scoped], Hash[@unscoped]]
       end
 
       def marshal_load(data)
         @started_at = data.shift
-        self.merge!(data.shift)
+        @scoped   = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @unscoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @scoped.merge!(data.shift)
+        @unscoped.merge!(data.shift)
       end
 
       def ==(other)
-        Hash[self] == Hash[other]
+        self.to_h == other.to_h
       end
 
       def to_h
-        Hash[self]
+        hash = {}
+        @scoped.each   { |k, v| hash[k] = v }
+        @unscoped.each { |k, v| hash[NewRelic::MetricSpec.new(k)] = v }
+        hash
+      end
+
+      def [](key)
+        case key
+        when String
+          @unscoped[key]
+        when NewRelic::MetricSpec
+          if key.scope.empty?
+            @unscoped[key.name]
+          else
+            @scoped[key]
+          end
+        end
+      end
+
+      def each
+        @scoped.each do |k, v|
+          yield k, v
+        end
+        @unscoped.each do |k, v|
+          spec = NewRelic::MetricSpec.new(k)
+          yield spec, v
+        end
+      end
+
+      def empty?
+        @unscoped.empty? && @scoped.empty?
+      end
+
+      def size
+        @unscoped.size + @scoped.size
       end
 
       class StatsHashLookupError < NewRelic::Agent::InternalAgentError
@@ -56,54 +101,66 @@ module NewRelic
 
       def record(metric_specs, value=nil, aux=nil, &blk)
         Array(metric_specs).each do |metric_spec|
-          stats = nil
+          if metric_spec.scope.empty?
+            key = metric_spec.name
+            hash = @unscoped
+          else
+            key = metric_spec
+            hash = @scoped
+          end
+
           begin
-            stats = self[metric_spec]
+            stats = hash[key]
           rescue NoMethodError => e
-            # This only happen in the case of a corrupted default_proc
-            # Side-step it manually, notice the issue, and carry on....
-            NewRelic::Agent.instance.error_collector. \
-              notice_agent_error(StatsHashLookupError.new(e, self, metric_spec))
-
-            stats = NewRelic::Agent::Stats.new
-            self[metric_spec] = stats
-
-            # Try to restore the default_proc so we won't continually trip the error
-            if respond_to?(:default_proc=)
-              self.default_proc = Proc.new { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
-            end
+            stats = handle_stats_lookup_error(key, hash, e)
           end
 
           stats.record(value, aux, &blk)
         end
       end
 
-      def merge!(other)
-        if other.is_a?(StatsHash) && other.started_at < @started_at
-          @started_at = other.started_at
+      def handle_stats_lookup_error(key, hash, error)
+        # This only happen in the case of a corrupted default_proc
+        # Side-step it manually, notice the issue, and carry on....
+        NewRelic::Agent.instance.error_collector. \
+          notice_agent_error(StatsHashLookupError.new(error, hash, key))
+        stats = NewRelic::Agent::Stats.new
+        hash[key] = stats
+        # Try to restore the default_proc so we won't continually trip the error
+        if hash.respond_to?(:default_proc=)
+          hash.default_proc = Proc.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         end
-        other.each do |key, val|
-          merge_or_insert(key, val)
+        stats
+      end
+
+      def merge!(other)
+        @started_at = other.started_at if other.started_at < @started_at
+
+        other.each do |spec, val|
+          if spec.scope.empty?
+            merge_or_insert(@unscoped, spec.name, val)
+          else
+            merge_or_insert(@scoped, spec, val)
+          end
         end
         self
       end
 
       def merge_transaction_metrics!(txn_metrics, scope)
         txn_metrics.each_unscoped do |name, stats|
-          spec = NewRelic::MetricSpec.new(name)
-          merge_or_insert(spec, stats)
+          merge_or_insert(@unscoped, name, stats)
         end
         txn_metrics.each_scoped do |name, stats|
           spec = NewRelic::MetricSpec.new(name, scope)
-          merge_or_insert(spec, stats)
+          merge_or_insert(@scoped, spec, stats)
         end
       end
 
-      def merge_or_insert(metric_spec, stats)
-        if self.has_key?(metric_spec)
-          self[metric_spec].merge!(stats)
+      def merge_or_insert(target, name, stats)
+        if target.has_key?(name)
+          target[name].merge!(stats)
         else
-          self[metric_spec] = stats
+          target[name] = stats
         end
       end
     end
