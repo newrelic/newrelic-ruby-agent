@@ -313,11 +313,22 @@ module NewRelic
       end
 
       class SubmittedTransactionTraceTree
-        attr_reader :attributes
+        attr_reader :attributes, :nodes
 
         def initialize(body, format)
           @body = body
           @attributes = body[4]
+          @nodes = extract_nodes(body[3])
+        end
+
+        def extract_nodes(current)
+          result = [current[2]]
+          if current[4].any?
+            current[4].each do |child|
+              result << extract_nodes(child)
+            end
+          end
+          result
         end
       end
 
