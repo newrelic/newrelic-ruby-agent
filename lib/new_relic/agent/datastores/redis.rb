@@ -6,8 +6,13 @@ module NewRelic
   module Agent
     module Datastores
       module Redis
+        MULTI_OPERATION = 'multi'
+        PIPELINE_OPERATION = 'pipeline'
+        BINARY_DATA_PLACEHOLDER = "<binary data>".freeze
+        ARGS_SEPARATOR = ' '.freeze
         MAXIMUM_ARGUMENT_LENGTH = 64
         PRODUCT_NAME = 'Redis'.freeze
+        CONNECT = 'connect'.freeze
 
         def self.format_command(command_with_args)
           command = command_with_args.first
@@ -35,7 +40,7 @@ module NewRelic
               ellipsize(arg, MAXIMUM_ARGUMENT_LENGTH)
             end
 
-            "#{command} #{args.join(' ')}"
+            "#{command} #{args.join(ARGS_SEPARATOR)}"
           else
             command.to_s
           end
@@ -61,7 +66,7 @@ module NewRelic
           return string unless string.is_a?(String)
 
           if string.encoding == Encoding::ASCII_8BIT
-            "<binary data>"
+            BINARY_DATA_PLACEHOLDER
           elsif string.length > max_length
             chunk_size   = (max_length - 5) / 2
             prefix_range = (0...chunk_size)
