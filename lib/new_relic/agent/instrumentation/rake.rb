@@ -44,6 +44,7 @@ module NewRelic
 
           task.instance_eval do
             def invoke(*args, &block)
+              NewRelic::Agent::Instrumentation::RakeInstrumentation.ensure_at_exit
               NewRelic::Agent::Instrumentation::RakeInstrumentation.instrument_execute_on_prereqs(self)
 
               state = NewRelic::Agent::TransactionState.tl_get
@@ -75,6 +76,18 @@ module NewRelic
           end
 
           instrument_execute_on_prereqs(task)
+        end
+
+        def self.ensure_at_exit
+          return if @installed_at_exit
+
+          at_exit do
+            # The agent's default at_exit might not default to installing, but
+            # if we are running an instrumented rake task, we always want it.
+            NewRelic::Agent.shutdown
+          end
+
+          @installed_at_exit = true
         end
       end
     end
