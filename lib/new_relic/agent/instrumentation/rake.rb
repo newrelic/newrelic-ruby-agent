@@ -68,7 +68,6 @@ module NewRelic
           task.instance_variable_set(:@__newrelic_instrumented_execute, true)
           task.instance_eval do
             def execute(*args, &block)
-              state = NewRelic::Agent::TransactionState.tl_get
               NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
                 super
               end
