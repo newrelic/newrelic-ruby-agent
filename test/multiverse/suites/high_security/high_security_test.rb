@@ -165,7 +165,7 @@ class HighSecurityTest < Minitest::Test
 
     run_harvest
 
-    expected = { "httpResponseCode" => 200 }
+    expected = { "httpResponseCode" => "200" }
     assert_equal expected, single_transaction_trace_posted.agent_attributes
   end
 
@@ -179,7 +179,7 @@ class HighSecurityTest < Minitest::Test
 
     run_harvest
 
-    expected = { "httpResponseCode" => 500 }
+    expected = { "httpResponseCode" => "500" }
     assert_equal expected, single_error_posted.agent_attributes
   end
 
