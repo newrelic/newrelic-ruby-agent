@@ -170,9 +170,11 @@ class RakeTest < Minitest::Test
   end
 
   def refute_any_rake_metrics
-    single_metrics_post.metric_names.each do |metric_name|
-      refute_match /^OtherTransaction.*/, metric_name
-      refute_match /^Rake.*/, metric_name
+    $collector.calls_for("metric_data").each do |metric_post|
+      metric_post.metric_names.each do |metric_name|
+        refute_match /^OtherTransaction.*/, metric_name
+        refute_match /^Rake.*/, metric_name
+      end
     end
   end
 end
