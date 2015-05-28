@@ -8,11 +8,11 @@ module NewRelic
       module Redis
         MULTI_OPERATION = 'multi'
         PIPELINE_OPERATION = 'pipeline'
-        BINARY_DATA_PLACEHOLDER = "<binary data>".freeze
-        ARGS_SEPARATOR = ' '.freeze
+        BINARY_DATA_PLACEHOLDER = "<binary data>"
+        ARGS_SEPARATOR = ' '
         MAXIMUM_ARGUMENT_LENGTH = 64
-        PRODUCT_NAME = 'Redis'.freeze
-        CONNECT = 'connect'.freeze
+        PRODUCT_NAME = 'Redis'
+        CONNECT = 'connect'
 
         def self.format_command(command_with_args)
           command = command_with_args.first
