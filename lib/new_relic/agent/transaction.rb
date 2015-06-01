@@ -21,6 +21,7 @@ module NewRelic
       CONTROLLER_PREFIX            = 'Controller/'.freeze
       MIDDLEWARE_PREFIX            = 'Middleware/Rack/'.freeze
       TASK_PREFIX                  = 'OtherTransaction/Background/'.freeze
+      RAKE_PREFIX                  = 'OtherTransaction/Rake/'.freeze
       RACK_PREFIX                  = 'Controller/Rack/'.freeze
       SINATRA_PREFIX               = 'Controller/Sinatra/'.freeze
       GRAPE_PREFIX                 = 'Controller/Grape/'.freeze

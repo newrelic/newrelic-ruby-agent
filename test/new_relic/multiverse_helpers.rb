@@ -156,6 +156,12 @@ module MultiverseHelpers
     $collector.calls_for("analytic_event_data").first.events.first
   end
 
+  def single_metrics_post
+    assert_equal 1, $collector.calls_for("metric_data").length
+
+    $collector.calls_for("metric_data").first
+  end
+
   def single_connect_posted
     assert_equal 1, $collector.calls_for(:connect).size
     $collector.calls_for(:connect).first
