@@ -49,6 +49,7 @@ module NewRelic
 
               state = NewRelic::Agent::TransactionState.tl_get
               NewRelic::Agent::Transaction.wrap(state, "OtherTransaction/Rake/invoke/#{self.name}", :rake)  do
+                NewRelic::Agent::Instrumentation::RakeInstrumentation.record_command_line(self)
                 NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
                 super
               end
@@ -77,6 +78,14 @@ module NewRelic
           end
 
           instrument_execute_on_prereqs(task)
+        end
+
+        def self.record_command_line(task)
+          command_line = task.application.top_level_tasks.join(" ")
+          args = { :commandLine => command_line }
+          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(args,
+                                                                        :'job.rake',
+                                                                        NewRelic::Agent::AttributeFilter::DST_NONE)
         end
 
         def self.record_attributes(args, task)

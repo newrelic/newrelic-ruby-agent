@@ -175,6 +175,27 @@ class RakeTest < Minitest::Test
     end
   end
 
+  def test_captures_command_line
+    with_tasks_traced("default", "argument") do
+      run_rake("argument[someone] default")
+
+      attributes = single_transaction_trace_posted.agent_attributes
+      assert_includes attributes["job.rake.commandLine"], "argument[someone]"
+      assert_includes attributes["job.rake.commandLine"], "default"
+    end
+  end
+
+  def test_doesnt_capture_command_line_if_disabled_by_agent_attributes
+    with_tasks_traced("default", "argument") do
+      without_attributes do
+        run_rake("argument[someone] default")
+
+        attributes = single_transaction_trace_posted.agent_attributes
+        refute_includes attributes, "job.rake.commandLine"
+      end
+    end
+  end
+
   def run_rake(commands = "", allow_failure = false)
     full_command = "bundle exec rake #{commands} 2>&1"
     @output = `#{full_command}`
