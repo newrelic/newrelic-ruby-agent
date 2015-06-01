@@ -139,6 +139,29 @@ class RakeTest < Minitest::Test
     end
   end
 
+  def test_captures_task_arguments
+    with_tasks_traced("argument") do
+      run_rake("argument[someone,somewhere,vigorously]")
+
+      attributes = single_transaction_trace_posted.agent_attributes
+      assert_equal "someone",    attributes["job.rake.args.who"]
+      assert_equal "somewhere",  attributes["job.rake.args.where"]
+      assert_equal "vigorously", attributes["job.rake.args.2"]
+    end
+  end
+
+  def test_captures_task_arguments_with_too_few
+    with_tasks_traced("argument") do
+      run_rake("argument[someone]")
+
+      attributes = single_transaction_trace_posted.agent_attributes
+      assert_equal "someone", attributes["job.rake.args.who"]
+
+      refute_includes attributes, "job.rake.args.where"
+      refute_includes attributes, "job.rake.args.2"
+    end
+  end
+
   def run_rake(commands = "", allow_failure = false)
     full_command = "bundle exec rake #{commands} 2>&1"
     @output = `#{full_command}`
