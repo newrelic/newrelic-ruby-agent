@@ -44,12 +44,10 @@ module NewRelic
 
           task.instance_eval do
             def invoke(*args, &block)
-              NewRelic::Agent::Instrumentation::RakeInstrumentation.ensure_at_exit
-              NewRelic::Agent::Instrumentation::RakeInstrumentation.instrument_execute_on_prereqs(self)
+              NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
 
               state = NewRelic::Agent::TransactionState.tl_get
               NewRelic::Agent::Transaction.wrap(state, "OtherTransaction/Rake/invoke/#{self.name}", :rake)  do
-                NewRelic::Agent::Instrumentation::RakeInstrumentation.record_command_line(self)
                 NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
                 super
               end
@@ -80,19 +78,24 @@ module NewRelic
           instrument_execute_on_prereqs(task)
         end
 
-        def self.record_command_line(task)
-          command_line = task.application.top_level_tasks.join(" ")
-          args = { :commandLine => command_line }
-          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(args,
-                                                                        :'job.rake',
-                                                                        NewRelic::Agent::AttributeFilter::DST_NONE)
+        def self.before_invoke_transaction(task)
+          ensure_at_exit
+          instrument_execute_on_prereqs(task)
+        rescue => e
+          NewRelic::Agent.logger.error("Error during Rake task invoke", e)
         end
 
         def self.record_attributes(args, task)
+          command_line = task.application.top_level_tasks.join(" ")
+          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes({ :commandLine => command_line },
+                                                                        :'job.rake',
+                                                                        NewRelic::Agent::AttributeFilter::DST_NONE)
           named_args = name_the_args(args, task.arg_names)
           NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(named_args,
                                                                         :'job.rake.args',
                                                                         NewRelic::Agent::AttributeFilter::DST_NONE)
+        rescue => e
+          NewRelic::Agent.logger.error("Error during Rake task attribute recording.", e)
         end
 
         # Expects literal args passed to the task and array of task names
