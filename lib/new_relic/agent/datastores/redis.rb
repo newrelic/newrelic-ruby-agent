@@ -15,9 +15,8 @@ module NewRelic
         CONNECT = 'connect'
 
         def self.format_command(command_with_args)
-          command = command_with_args.first
-
           if Agent.config[:'transaction_tracer.record_redis_arguments']
+            command = command_with_args.first
             format_command_with_args(command, command_with_args)
           else
             nil
@@ -54,7 +53,7 @@ module NewRelic
           end
         end
 
-        def self.format_commands(commands_with_args)
+        def self.format_pipeline_commands(commands_with_args)
           commands_with_args.map { |cmd| format_pipeline_command(cmd) }.join("\n")
         end
 

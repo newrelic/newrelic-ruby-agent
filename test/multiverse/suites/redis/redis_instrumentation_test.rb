@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'redis'
-require 'newrelic_rpm'
 
 if NewRelic::Agent::Datastores::Redis.is_supported_version?
 class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Test
