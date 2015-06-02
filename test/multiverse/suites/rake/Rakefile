@@ -20,6 +20,10 @@ task :untraced do
   puts "untraced"
 end
 
+task :argument, [:who, :where] => [] do
+  puts "argument"
+end
+
 task :boom do
   raise "a legitimate issue with the proposal."
 end

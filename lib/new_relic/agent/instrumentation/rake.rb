@@ -49,6 +49,7 @@ module NewRelic
 
               state = NewRelic::Agent::TransactionState.tl_get
               NewRelic::Agent::Transaction.wrap(state, "OtherTransaction/Rake/invoke/#{self.name}", :rake)  do
+                NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
                 super
               end
             end
@@ -76,6 +77,22 @@ module NewRelic
           end
 
           instrument_execute_on_prereqs(task)
+        end
+
+        def self.record_attributes(args, task)
+          named_args = name_the_args(args, task.arg_names)
+          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(named_args,
+                                                                        :'job.rake.args',
+                                                                        NewRelic::Agent::AttributeFilter::DST_NONE)
+        end
+
+        # Expects literal args passed to the task and array of task names
+        def self.name_the_args(args, names)
+          result = {}
+          args.zip(names).each_with_index do |(value, key), index|
+            result[key || index.to_s] = value
+          end
+          result
         end
 
         def self.ensure_at_exit

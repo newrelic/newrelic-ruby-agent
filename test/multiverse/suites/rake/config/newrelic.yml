@@ -1,5 +1,8 @@
 ---
 development:
+  attributes:
+    include:
+      - "*"
   rake:
     tasks:
       - "default"
