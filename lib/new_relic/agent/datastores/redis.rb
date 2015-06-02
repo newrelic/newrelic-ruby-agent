@@ -9,7 +9,6 @@ module NewRelic
         MULTI_OPERATION = 'multi'
         PIPELINE_OPERATION = 'pipeline'
         BINARY_DATA_PLACEHOLDER = "<binary data>"
-        ARGS_SEPARATOR = ' '
         MAXIMUM_ARGUMENT_LENGTH = 64
         PRODUCT_NAME = 'Redis'
         CONNECT = 'connect'
@@ -35,11 +34,13 @@ module NewRelic
 
         def self.format_command_with_args(command, command_with_args)
           if command_with_args.size > 1
-            args = command_with_args[1..-1].map do |arg|
-              ellipsize(arg, MAXIMUM_ARGUMENT_LENGTH)
+            result = "#{command} "
+
+            command_with_args[1..-1].each do |arg|
+              result << "#{ellipsize(arg, MAXIMUM_ARGUMENT_LENGTH)} "
             end
 
-            "#{command} #{args.join(ARGS_SEPARATOR)}"
+            result.strip
           else
             command.to_s
           end
