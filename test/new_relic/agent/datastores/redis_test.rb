@@ -70,32 +70,34 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     end
   end
 
-  def test_format_command_handles_binary_strings
-    binary_string = (0..255).to_a.pack("c*")
-    expected = 'set "key" <binary data>'
-
-    with_config(:'transaction_tracer.record_redis_arguments' => true) do
-      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', binary_string])
-      assert_equal expected, result
-    end
-  end
-
-  def test_format_command_in_pipeline_handles_binary_strings
-    binary_string = (0..255).to_a.pack("c*")
-    expected = 'set "key" <binary data>'
-
-    with_config(:'transaction_tracer.record_redis_arguments' => true) do
-      result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', binary_string])
-      assert_equal expected, result
-    end
-  end
-
   def test_format_command_with_non_string_argument
     expected = "set \"key\" true"
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', true])
       assert_equal expected, result
+    end
+  end
+
+  if !NewRelic::LanguageSupport.rubinius? && RUBY_VERSION != "1.8.7"
+    def test_format_command_handles_binary_strings
+      binary_string = (0..255).to_a.pack("c*")
+      expected = 'set "key" <binary data>'
+
+      with_config(:'transaction_tracer.record_redis_arguments' => true) do
+        result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', binary_string])
+        assert_equal expected, result
+      end
+    end
+
+    def test_format_command_in_pipeline_handles_binary_strings
+      binary_string = (0..255).to_a.pack("c*")
+      expected = 'set "key" <binary data>'
+
+      with_config(:'transaction_tracer.record_redis_arguments' => true) do
+        result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', binary_string])
+        assert_equal expected, result
+      end
     end
   end
 end

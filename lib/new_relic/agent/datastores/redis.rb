@@ -65,7 +65,7 @@ module NewRelic
         def self.ellipsize(string, max_length)
           return string unless string.is_a?(String)
 
-          if string.encoding == Encoding::ASCII_8BIT
+          if string.respond_to?(:encoding) && string.encoding == Encoding::ASCII_8BIT
             BINARY_DATA_PLACEHOLDER
           elsif string.length > max_length
             chunk_size   = (max_length - 5) / 2
