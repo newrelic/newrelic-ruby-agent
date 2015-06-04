@@ -177,6 +177,15 @@ class RakeTest < Minitest::Test
     end
   end
 
+  def test_doesnt_capture_completely_empty_args
+    with_tasks_traced("default") do
+      run_rake("default")
+
+      attributes = single_transaction_trace_posted.agent_attributes
+      refute attributes.keys.any? { |key| key.start_with?("job.rake.args") }
+    end
+  end
+
   def test_captures_command_line
     with_tasks_traced("default", "argument") do
       run_rake("argument[someone] default")

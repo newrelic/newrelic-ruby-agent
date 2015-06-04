@@ -91,9 +91,11 @@ module NewRelic
                                                                         :'job.rake',
                                                                         NewRelic::Agent::AttributeFilter::DST_NONE)
           named_args = name_the_args(args, task.arg_names)
-          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(named_args,
-                                                                        :'job.rake.args',
-                                                                        NewRelic::Agent::AttributeFilter::DST_NONE)
+          unless named_args.empty?
+            NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(named_args,
+                                                                          :'job.rake.args',
+                                                                          NewRelic::Agent::AttributeFilter::DST_NONE)
+          end
         rescue => e
           NewRelic::Agent.logger.error("Error during Rake task attribute recording.", e)
         end
