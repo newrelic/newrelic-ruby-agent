@@ -69,6 +69,10 @@ module NewRelic
 
         @connect_state      = :pending
         @connect_attempts   = 0
+
+        @wait_on_connect_mutex = Mutex.new
+        @wait_on_connect_condition = ConditionVariable.new
+
         @environment_report = nil
 
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
@@ -865,6 +869,30 @@ module NewRelic
 
             # If you're adding something else here to respond to the server-side config,
             # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
+          end
+
+          class WaitOnConnectTimeout < StandardError
+          end
+
+          # Used for testing to let us know we've actually started to wait
+          def waited_on_connect?
+            @waited_on_connect
+          end
+
+          def signal_connected
+            @wait_on_connect_mutex.synchronize do
+              @wait_on_connect_condition.signal
+            end
+          end
+
+          def wait_on_connect(timeout)
+            return if connected?
+
+            @wait_on_connect_mutex.synchronize do
+              @waited_on_connect = true
+              @wait_on_connect_condition.wait(@wait_on_connect_mutex, timeout)
+              raise WaitOnConnectTimeout.new unless connected?
+            end
           end
 
           # Logs when we connect to the server, for debugging purposes
