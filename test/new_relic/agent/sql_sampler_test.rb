@@ -274,6 +274,19 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     end
   end
 
+  def test_does_not_over_obfuscate_queries_for_postgres
+    with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
+      sampler = NewRelic::Agent.agent.sql_sampler
+
+      in_transaction do
+        sql = %Q[INSERT INTO "items" ("name", "price") VALUES ('continuum transfunctioner', 100000) RETURNING "id"]
+        sampler.notice_sql sql, "Database/test/insert", {:adapter => "postgres"}, 1.23
+      end
+      sql_traces = sampler.harvest!
+      assert_equal(%Q[INSERT INTO "items" ("name", "price") VALUES (?, ?) RETURNING "id"], sql_traces[0].sql)
+    end
+  end
+
   def test_takes_slowest_samples
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info("/c/a", 'guid')

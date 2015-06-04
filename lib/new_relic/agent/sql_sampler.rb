@@ -148,11 +148,23 @@ module NewRelic
         if state.is_sql_recorded?
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
-            data.sql_data << SlowSql.new(Database.capture_query(sql),
+            statement = build_database_statement(sql, config, explainer)
+            data.sql_data << SlowSql.new(statement,
                                          metric_name, config,
                                          duration, backtrace, explainer)
           end
         end
+      end
+
+      def build_database_statement(sql, config, explainer)
+        statement = Database::Statement.new(Database.capture_query(sql))
+        if config
+          statement.adapter = config[:adapter]
+          statement.config = config
+        end
+        statement.explainer = explainer
+
+        statement
       end
 
       def merge!(sql_traces)
