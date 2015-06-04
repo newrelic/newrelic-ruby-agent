@@ -157,7 +157,9 @@ class RakeTest < Minitest::Test
       attributes = single_transaction_trace_posted.agent_attributes
       assert_equal "someone", attributes["job.rake.args.who"]
 
-      refute_includes attributes, "job.rake.args.where"
+      assert_includes attributes, "job.rake.args.where"
+      assert_nil attributes["job.rake.args.where"]
+
       refute_includes attributes, "job.rake.args.2"
     end
   end

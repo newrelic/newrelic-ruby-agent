@@ -99,7 +99,13 @@ module NewRelic
         end
 
         # Expects literal args passed to the task and array of task names
+        # If names are present without matching args, still sets them with nils
         def self.name_the_args(args, names)
+          unfulfilled_names_length = names.length - args.length
+          if unfulfilled_names_length > 0
+            args.concat(Array.new(unfulfilled_names_length))
+          end
+
           result = {}
           args.zip(names).each_with_index do |(value, key), index|
             result[key || index.to_s] = value
