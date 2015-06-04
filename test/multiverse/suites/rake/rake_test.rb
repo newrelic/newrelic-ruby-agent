@@ -180,8 +180,8 @@ class RakeTest < Minitest::Test
       run_rake("argument[someone] default")
 
       attributes = single_transaction_trace_posted.agent_attributes
-      assert_includes attributes["job.rake.commandLine"], "argument[someone]"
-      assert_includes attributes["job.rake.commandLine"], "default"
+      assert_includes attributes["job.rake.command"], "argument[someone]"
+      assert_includes attributes["job.rake.command"], "default"
     end
   end
 
@@ -191,7 +191,7 @@ class RakeTest < Minitest::Test
         run_rake("argument[someone] default")
 
         attributes = single_transaction_trace_posted.agent_attributes
-        refute_includes attributes, "job.rake.commandLine"
+        refute_includes attributes, "job.rake.command"
       end
     end
   end
