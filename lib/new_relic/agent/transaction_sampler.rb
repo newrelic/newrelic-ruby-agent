@@ -132,9 +132,9 @@ module NewRelic
         node = builder.current_node
         if node
           if key == :sql
-            sql = node[:sql]
-            if(sql && !sql.empty?)
-              sql = self.class.truncate_message(sql << "\n#{message}") if sql.length <= MAX_DATA_LENGTH
+            statement = node[:sql]
+            if(statement && !statement.sql.empty?)
+              statement.sql = self.class.truncate_message(statement.sql + "\n#{message.sql}") if statement.sql.length <= MAX_DATA_LENGTH
             else
               # message is expected to have been pre-truncated by notice_sql
               node[:sql] = message
@@ -189,20 +189,9 @@ module NewRelic
         state ||= TransactionState.tl_get
         builder = state.transaction_sample_builder
         if state.is_sql_recorded?
-          statement = build_database_statement(sql, config, explainer)
+          statement = Database::Statement.new(sql, config, explainer)
           notice_extra_data(builder, statement, duration, :sql)
         end
-      end
-
-      def build_database_statement(sql, config, explainer)
-        statement = Database::Statement.new(Database.capture_query(sql))
-        if config
-          statement.adapter = config[:adapter]
-          statement.config = config
-        end
-        statement.explainer = explainer
-
-        statement
       end
 
       # Attaches an additional non-SQL query parameter to the current

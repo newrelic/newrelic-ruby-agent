@@ -148,23 +148,10 @@ module NewRelic
         if state.is_sql_recorded?
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
-            statement = build_database_statement(sql, config, explainer)
-            data.sql_data << SlowSql.new(statement,
-                                         metric_name, config,
-                                         duration, backtrace, explainer)
+            statement = Database::Statement.new(sql, config, explainer)
+            data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace)
           end
         end
-      end
-
-      def build_database_statement(sql, config, explainer)
-        statement = Database::Statement.new(Database.capture_query(sql))
-        if config
-          statement.adapter = config[:adapter]
-          statement.config = config
-        end
-        statement.explainer = explainer
-
-        statement
       end
 
       def merge!(sql_traces)
@@ -220,38 +207,40 @@ module NewRelic
     end
 
     class SlowSql
-      attr_reader :sql
+      attr_reader :statement
       attr_reader :metric_name
       attr_reader :duration
       attr_reader :backtrace
 
-      def initialize(sql, metric_name, config, duration, backtrace=nil, explainer=nil)
-        @sql = sql
+      def initialize(statement, metric_name, duration, backtrace=nil)
+        @statement = statement
         @metric_name = metric_name
-        @config = config
         @duration = duration
         @backtrace = backtrace
-        @explainer = explainer
+      end
+
+      def sql
+        statement.sql
       end
 
       def obfuscate
-        NewRelic::Agent::Database.obfuscate_sql(@sql)
+        NewRelic::Agent::Database.obfuscate_sql(statement)
       end
 
       def normalize
         NewRelic::Agent::Database::Obfuscator.instance \
-          .default_sql_obfuscator(@sql).gsub(/\?\s*\,\s*/, '').gsub(/\s/, '')
+          .default_sql_obfuscator(statement).gsub(/\?\s*\,\s*/, '').gsub(/\s/, '')
       end
 
       def explain
-        if @config && @explainer
-          NewRelic::Agent::Database.explain_sql(@sql, @config, @explainer)
+        if statement.config && statement.explainer
+          NewRelic::Agent::Database.explain_sql(statement.sql, statement.config, statement.explainer)
         end
       end
 
       # We can't serialize the explainer, so clear it before we transmit
       def prepare_to_send
-        @explainer = nil
+        statement.explainer = nil
       end
     end
 

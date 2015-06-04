@@ -87,7 +87,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     assert_equal('Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
                  last_node.metric_name)
     assert_equal('SELECT * FROM sandwiches',
-                 last_node.params[:sql])
+                 last_node.params[:sql].sql)
   end
 
   def test_creates_slow_sql_node

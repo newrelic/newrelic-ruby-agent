@@ -91,7 +91,7 @@ module NewRelic
             when :obfuscated
               node[:sql] = NewRelic::Agent::Database.obfuscate_sql(node[:sql])
             when :raw
-              node[:sql] = node[:sql].to_s
+              node[:sql] = node[:sql].sql.to_s
             else
               node[:sql] = nil
             end

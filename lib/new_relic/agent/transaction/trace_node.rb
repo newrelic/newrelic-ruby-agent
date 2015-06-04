@@ -167,13 +167,13 @@ module NewRelic
           return nil unless statement.respond_to?(:config) &&
             statement.respond_to?(:explainer)
 
-          NewRelic::Agent::Database.explain_sql(statement,
+          NewRelic::Agent::Database.explain_sql(statement.sql,
                                                 statement.config,
                                                 statement.explainer)
         end
 
         def obfuscated_sql
-          NewRelic::Agent::Database.obfuscate_sql(params[:sql])
+          NewRelic::Agent::Database.obfuscate_sql(params[:sql].sql)
         end
 
         def called_nodes=(nodes)

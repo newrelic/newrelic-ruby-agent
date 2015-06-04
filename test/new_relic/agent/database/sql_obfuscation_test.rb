@@ -13,9 +13,7 @@ module NewRelic::Agent::Database
 
     def self.create_input_statements(raw_query, dialects)
       dialects.map do |dialect|
-        NewRelic::Agent::Database::Statement.new(raw_query).tap do |s|
-          s.adapter = DIALECT_MAP[dialect]
-        end
+        NewRelic::Agent::Database::Statement.new(raw_query, {:adapter => DIALECT_MAP[dialect]})
       end
     end
 

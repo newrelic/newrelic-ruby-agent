@@ -393,12 +393,12 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     node = find_node_with_name(sample, metric)
     assert_equal(metric, node.metric_name)
 
-    sql = node.params[:sql]
-    assert_match(/^SELECT /, sql)
+    statement = node.params[:sql]
+    assert_match(/^SELECT /, statement.sql)
 
-    assert_equal(adapter.to_s, sql.adapter)
-    refute_nil(sql.config)
-    refute_nil(sql.explainer)
+    assert_equal(adapter.to_s, statement.adapter)
+    refute_nil(statement.config)
+    refute_nil(statement.explainer)
   end
 
   def test_gathers_explain_plans
@@ -411,7 +411,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       metric = "Datastore/statement/#{current_product}/Order/find"
       sql_node = find_node_with_name(sample, metric)
 
-      assert_match(/^SELECT /, sql_node.params[:sql])
+      assert_match(/^SELECT /, sql_node.params[:sql].sql)
 
       sample.prepare_to_send!
       explanations = sql_node.params[:explain_plan]
