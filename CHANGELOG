@@ -9,6 +9,13 @@
   that your other background jobs have. To enable this, see
   https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/rake
 
+  * Redis instrumentation
+
+  Redis operations will now show up on the datastores tab and in transaction
+  traces. By default only command names will be captured, to capture command
+  arguments as well set transaction_tracer.record_redis_arguments to true in
+  your configuration file.
+
 ## v3.12.1 ##
 
   * More granular Database metrics for ActiveRecord 3 and 4

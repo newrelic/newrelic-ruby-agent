@@ -777,6 +777,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Obfuscation level for SQL queries reported in transaction trace nodes. Valid options are <code>obfuscated</code>, <code>raw</code>, <code>none</code>.'
         },
+        :'transaction_tracer.record_redis_arguments' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Determines whether Redis command arguments should be recorded within Transaction Traces'
+        },
         :'transaction_tracer.capture_attributes' => {
           :default => true,
           :public => true,
@@ -835,6 +842,13 @@ module NewRelic
           :allowed_from_server => false,
           :dynamic_name => true,
           :description  => 'Defines whether the agent will install <a href="/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.'
+        },
+        :disable_redis => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :allowed_from_server => false,
+          :description  => 'Defines whether the agent will install <a href="/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.'
         },
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),

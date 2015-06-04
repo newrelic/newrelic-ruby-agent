@@ -1,0 +1,86 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
+module NewRelic
+  module Agent
+    module Datastores
+      module Redis
+        MULTI_OPERATION = 'multi'
+        PIPELINE_OPERATION = 'pipeline'
+        BINARY_DATA_PLACEHOLDER = "<binary data>"
+        MAXIMUM_ARGUMENT_LENGTH = 64
+        PRODUCT_NAME = 'Redis'
+        CONNECT = 'connect'
+
+        def self.format_command(command_with_args)
+          if Agent.config[:'transaction_tracer.record_redis_arguments']
+            command = command_with_args.first
+            format_command_with_args(command, command_with_args)
+          else
+            nil
+          end
+        end
+
+        def self.format_pipeline_command(command_with_args)
+          command = command_with_args.first
+
+          if Agent.config[:'transaction_tracer.record_redis_arguments']
+            format_command_with_args(command, command_with_args)
+          else
+            format_command_with_no_args(command, command_with_args)
+          end
+        end
+
+        def self.format_command_with_args(command, command_with_args)
+          if command_with_args.size > 1
+            result = "#{command} "
+
+            command_with_args[1..-1].each do |arg|
+              result << "#{ellipsize(arg, MAXIMUM_ARGUMENT_LENGTH)} "
+            end
+
+            result.strip
+          else
+            command.to_s
+          end
+        end
+
+        def self.format_command_with_no_args(command, command_with_args)
+          if command_with_args.size > 1
+            "#{command} ?"
+          else
+            command.to_s
+          end
+        end
+
+        def self.format_pipeline_commands(commands_with_args)
+          commands_with_args.map { |cmd| format_pipeline_command(cmd) }.join("\n")
+        end
+
+        def self.is_supported_version?
+          ::NewRelic::VersionNumber.new(::Redis::VERSION) >= ::NewRelic::VersionNumber.new("3.0.0")
+        end
+
+        def self.ellipsize(string, max_length)
+          return string unless string.is_a?(String)
+
+          if string.respond_to?(:encoding) && string.encoding == Encoding::ASCII_8BIT
+            BINARY_DATA_PLACEHOLDER
+          elsif string.length > max_length
+            chunk_size   = (max_length - 5) / 2
+            prefix_range = (0...chunk_size)
+            suffix_range = (-chunk_size..-1)
+
+            prefix = string[prefix_range]
+            suffix = string[suffix_range]
+
+            "\"#{prefix}...#{suffix}\""
+          else
+            string.dump
+          end
+        end
+      end
+    end
+  end
+end
