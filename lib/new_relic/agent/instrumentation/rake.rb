@@ -7,7 +7,9 @@ DependencyDetection.defer do
   named :rake
 
   depends_on do
-    defined?(::Rake) && ::NewRelic::Agent.config[:'rake.tasks'].any?
+    defined?(::Rake) &&
+      ::NewRelic::Agent.config[:'rake.tasks'].any? &&
+      ::NewRelic::Agent::Instrumentation::RakeInstrumentation.is_supported_version?
   end
 
   executes do
@@ -33,6 +35,10 @@ module NewRelic
   module Agent
     module Instrumentation
       module RakeInstrumentation
+        def self.is_supported_version?
+          ::NewRelic::VersionNumber.new(::Rake::VERSION) >= ::NewRelic::VersionNumber.new("10.0.0")
+        end
+
         def self.should_trace?(task)
           NewRelic::Agent.config[:'rake.tasks'].any? do |regex|
             regex.match(task.name)
