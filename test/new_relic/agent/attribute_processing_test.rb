@@ -125,12 +125,9 @@ class AttributeProcessingTest < Minitest::Test
     )
   end
 
-  def test_flatten_and_coerce_turns_nan_or_infinity_into_null
+  def test_flatten_and_coerce_turns_nan_or_infinity_into_null_and_then_dropped
     assert_equal(
       {
-        'nan'  => nil,
-        'inf'  => nil,
-        'ninf' => nil
       },
       NewRelic::Agent::AttributeProcessing.flatten_and_coerce(
         {
@@ -160,7 +157,7 @@ class AttributeProcessingTest < Minitest::Test
 
   def test_flatten_and_coerce_leaves_nils_alone
     params   = { :referer => nil }
-    expected = { "referer" => nil }
+    expected = { }
 
     result = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
     assert_equal expected, result
