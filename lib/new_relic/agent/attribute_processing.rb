@@ -19,7 +19,7 @@ module NewRelic
           val = Coerce.scalar(object)
           if blk
             blk.call(prefix, val)
-          else
+          elsif !val.nil?
             result[prefix] = val
           end
         else
