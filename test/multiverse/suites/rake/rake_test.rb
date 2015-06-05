@@ -157,7 +157,9 @@ class RakeTest < Minitest::Test
       attributes = single_transaction_trace_posted.agent_attributes
       assert_equal "someone", attributes["job.rake.args.who"]
 
-      refute_includes attributes, "job.rake.args.where"
+      assert_includes attributes, "job.rake.args.where"
+      assert_nil attributes["job.rake.args.where"]
+
       refute_includes attributes, "job.rake.args.2"
     end
   end
@@ -172,6 +174,15 @@ class RakeTest < Minitest::Test
         refute_includes attributes, "job.rake.args.where"
         refute_includes attributes, "job.rake.args.2"
       end
+    end
+  end
+
+  def test_doesnt_capture_completely_empty_args
+    with_tasks_traced("default") do
+      run_rake("default")
+
+      attributes = single_transaction_trace_posted.agent_attributes
+      refute attributes.keys.any? { |key| key.start_with?("job.rake.args") }
     end
   end
 

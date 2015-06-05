@@ -91,15 +91,23 @@ module NewRelic
                                                                         :'job.rake',
                                                                         NewRelic::Agent::AttributeFilter::DST_NONE)
           named_args = name_the_args(args, task.arg_names)
-          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(named_args,
-                                                                        :'job.rake.args',
-                                                                        NewRelic::Agent::AttributeFilter::DST_NONE)
+          unless named_args.empty?
+            NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(named_args,
+                                                                          :'job.rake.args',
+                                                                          NewRelic::Agent::AttributeFilter::DST_NONE)
+          end
         rescue => e
           NewRelic::Agent.logger.error("Error during Rake task attribute recording.", e)
         end
 
         # Expects literal args passed to the task and array of task names
+        # If names are present without matching args, still sets them with nils
         def self.name_the_args(args, names)
+          unfulfilled_names_length = names.length - args.length
+          if unfulfilled_names_length > 0
+            args.concat(Array.new(unfulfilled_names_length))
+          end
+
           result = {}
           args.zip(names).each_with_index do |(value, key), index|
             result[key || index.to_s] = value
