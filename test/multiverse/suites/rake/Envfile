@@ -1,4 +1,14 @@
 gemfile <<-RB
   gem 'rack'
-  gem 'rake'
+  gem 'rake', '~> 10.4'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake', '10.0.0' # Oldest supported version
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake', '0.9.6' # Newest unsupported version
 RB
