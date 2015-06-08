@@ -3,6 +3,17 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 module RakeTestHelper
+  def after_setup
+    ENV['NEWRELIC_DISABLE_HARVEST_THREAD'] = 'false'
+    ENV['NEW_RELIC_PORT'] = $collector.port.to_s
+  end
+
+  def after_teardown
+    unless passed?
+      puts @output
+    end
+  end
+
   def run_rake(commands = "", allow_failure = false)
     full_command = "bundle exec rake #{commands} 2>&1"
     @output = `#{full_command}`
