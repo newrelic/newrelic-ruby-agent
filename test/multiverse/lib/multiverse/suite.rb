@@ -470,6 +470,9 @@ module Multiverse
     end
 
     def require_helpers
+      # If used from a 3rd-party, these paths likely need to be added
+      $LOAD_PATH << File.expand_path(File.join(__FILE__, "..", "..", "..", ".."))
+      $LOAD_PATH << File.expand_path(File.join(__FILE__, "..", "..", "..", "..", "new_relic"))
       require 'multiverse_helpers'
     end
 
