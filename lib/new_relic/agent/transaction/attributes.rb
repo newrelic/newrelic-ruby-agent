@@ -110,6 +110,8 @@ module NewRelic
         end
 
         def add(attributes, key, value)
+          return unless value
+
           if exceeds_bytesize_limit?(value, VALUE_LIMIT)
             value = slice(value)
           end
