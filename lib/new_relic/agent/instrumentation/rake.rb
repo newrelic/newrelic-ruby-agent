@@ -96,12 +96,26 @@ module NewRelic
           instrument_execute_on_prereqs(task)
         end
 
+        def self.instrument_invoke_prerequisites_concurrently(task)
+          task.instance_eval do
+            def invoke_prerequisites_concurrently(*_)
+              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/multitask") do
+                prereqs = self.prerequisite_tasks.map(&:name).join(", ")
+                NewRelic::Agent::Datastores.notice_statement("Couldn't trace concurrent prereq tasks: #{prereqs}", 0)
+                super
+              end
+            end
+          end
+        end
+
         def self.before_invoke_transaction(task)
           ensure_at_exit
 
-          # We can't properly represent overlapping operations, so don't
-          # instrument prereqs if we're multitask
-          unless task.application.options.always_multitask
+          # We can't represent overlapping operations yet, so if multitask just
+          # make one node and annotate with prereq task names
+          if task.application.options.always_multitask
+            instrument_invoke_prerequisites_concurrently(task)
+          else
             instrument_execute_on_prereqs(task)
           end
         rescue => e

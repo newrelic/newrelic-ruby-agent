@@ -17,11 +17,23 @@ class MultiTaskTest < Minitest::Test
 
       assert_metric_names_posted "OtherTransaction/Rake/invoke/named:all",
                                  "OtherTransaction/Rake/all",
-                                 "OtherTransaction/all"
+                                 "OtherTransaction/all",
+                                 "Rake/execute/multitask"
 
       refute_metric_names_posted "Rake/execute/named:before",
                                  "Rake/execute/named:during",
                                  "Rake/execute/named:after"
+    end
+  end
+
+  def test_generate_transaction_trace_with_placeholder_node
+    with_tasks_traced("named:all") do
+      run_rake("named:all --multitask")
+
+      expected = [{},
+                   [{},
+                     [{"statement"=>"Couldn't trace concurrent prereq tasks: named:before, named:during, named:after"}]]]
+      assert_equal expected, single_transaction_trace_posted.tree.node_params
     end
   end
 end
