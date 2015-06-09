@@ -13,17 +13,30 @@ module RakeTestHelper
   end
 
   def with_tasks_traced(*tasks)
-    ENV["NEW_RELIC_RAKE_TASKS"] = tasks.join(",")
-    yield
-  ensure
-    ENV["NEW_RELIC_RAKE_TASKS"] = nil
+    with_env("rake.tasks" => tasks.join(",")) do
+      yield
+    end
   end
 
   def without_attributes(*tasks)
-    ENV["NEW_RELIC_ATTRIBUTES_EXCLUDE"] = "*"
+    with_env("attributes.exclude" => "*") do
+      yield
+    end
+  end
+
+  def with_env(values)
+    keys = []
+    values.each do |key, value|
+      key = "NEW_RELIC_#{key.gsub(".", "_").upcase}"
+      keys << key
+      ENV[key] = value
+    end
+
     yield
   ensure
-    ENV["NEW_RELIC_ATTRIBUTES_EXCLUDE"] = nil
+    keys.each do |key|
+      ENV[key] = nil
+    end
   end
 
   def assert_metric_names_posted(*expected_names)

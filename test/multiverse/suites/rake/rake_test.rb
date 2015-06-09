@@ -23,12 +23,11 @@ class RakeTest < Minitest::Test
   end
 
   def test_disabling_rake_instrumentation
-    ENV["NEW_RELIC_DISABLE_RAKE"] = "true"
+    with_env("disable_rake" => "true") do
+      run_rake
+    end
 
-    run_rake
     refute_any_rake_metrics
-  ensure
-    ENV["NEW_RELIC_DISABLE_RAKE"] = nil
   end
 
   def test_doesnt_trace_by_default
@@ -41,6 +40,16 @@ class RakeTest < Minitest::Test
       run_rake
       refute_any_rake_metrics
     end
+  end
+
+  def test_timeout_on_connect
+    with_env("rake.connect_timeout" => "0",
+             "log" => "stdout") do
+      run_rake
+    end
+
+    refute_any_rake_metrics
+    assert_includes @output, "ERROR : Agent was unable to connect"
   end
 
   def test_records_transaction_metrics
