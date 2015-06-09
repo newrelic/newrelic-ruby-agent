@@ -16,6 +16,11 @@
   arguments as well set transaction_tracer.record_redis_arguments to true in
   your configuration file.
 
+  * Fix for over-obfuscated SQL Traces and Postgresql
+
+  An issue with the agent obfuscating column and table names from Slow SQL
+  Traces when using Postgresql has been resolved.
+
 ## v3.12.1 ##
 
   * More granular Database metrics for ActiveRecord 3 and 4

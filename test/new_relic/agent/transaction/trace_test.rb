@@ -214,7 +214,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :raw
 
     node = @trace.create_node(0.0, 'has_sql')
-    node[:sql] = "select * from pelicans where name = '1337807';"
+    node[:sql] = NewRelic::Agent::Database::Statement.new "select * from pelicans where name = '1337807';"
     @trace.root_node.add_called_node(node)
 
     @trace.prepare_sql_for_transmission!

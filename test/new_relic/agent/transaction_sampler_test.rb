@@ -186,7 +186,12 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   def test_notice_sql_recording_sql
     @state.record_sql = true
     builder = @sampler.tl_builder
-    @sampler.expects(:notice_extra_data).with(builder, 'some sql', 1.0, :sql)
+    @sampler.expects(:notice_extra_data).with do |sample_builder, message, duration, key|
+      sample_builder == builder &&
+      message.sql == 'some sql' &&
+      duration == 1.0 &&
+      key == :sql
+    end
     @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0, @state)
   end
 
@@ -574,7 +579,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     sql = node[:sql]
 
-    assert sql.length <= 16384
+    assert sql.sql.length <= 16384
   end
 
   def test_node_obfuscated
@@ -587,7 +592,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     node = @sampler.send(:tl_builder).current_node
 
-    assert_equal orig_sql, node[:sql]
+    assert_equal orig_sql, node[:sql].sql
     assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
     @sampler.notice_pop_frame(@state, "foo")
   end
@@ -607,7 +612,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
       deepest_node = find_last_transaction_node(@sampler.last_sample)
       assert_equal([], deepest_node.called_nodes)
-      assert_equal(expected_sql, deepest_node[:sql])
+      assert_equal(expected_sql, deepest_node[:sql].sql)
     end
   end
 
@@ -640,13 +645,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       # Verify that the TT stopped recording after 100 nodes
       assert_equal(100, samples.first.count_nodes)
     end
-  end
-
-  def test_build_database_statement_uses_adapter_from_connection_config
-    config = { :adapter => 'GumbyDB' }
-    sql = "SELECT * FROM \"horses\" WHERE \"name\" = 'pokey'"
-    statement = @sampler.build_database_statement(sql, config, Proc.new {})
-    assert_equal 'GumbyDB', statement.adapter
   end
 
   def test_harvest_prepare_samples

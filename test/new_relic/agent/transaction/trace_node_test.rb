@@ -340,7 +340,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_obfuscated_sql
     sql = 'select * from table where id = 1'
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    s[:sql] = sql
+    s[:sql] = NewRelic::Agent::Database::Statement.new(sql)
     assert_equal('select * from table where id = ?', s.obfuscated_sql)
   end
 

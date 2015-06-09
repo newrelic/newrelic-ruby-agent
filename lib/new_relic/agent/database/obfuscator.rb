@@ -48,14 +48,15 @@ module NewRelic
         end
 
         def default_sql_obfuscator(sql)
-          if sql[-3,3] == '...'
+          stmt = sql.kind_of?(Statement) ? sql : Statement.new(sql)
+
+          if stmt.sql[-3,3] == '...'
             return QUERY_TOO_LARGE_MESSAGE
           end
 
-          stmt = sql.kind_of?(Statement) ? sql : Statement.new(sql)
           obfuscate_double_quotes = stmt.adapter.to_s !~ /postgres|sqlite/
 
-          obfuscated = obfuscate_numeric_literals(stmt)
+          obfuscated = obfuscate_numeric_literals(stmt.sql)
 
           if obfuscate_double_quotes
             obfuscated = obfuscate_quoted_literals(obfuscated)
