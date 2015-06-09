@@ -12,10 +12,7 @@ class RakeTest < Minitest::Test
   setup_and_teardown_agent
 
   def after_setup
-    # Currently necessary since we don't force agent startup/wait on connect
-    # in our rake instrumentation yet.
-    ENV['NEW_RELIC_SYNC_STARTUP'] = 'true'
-
+    ENV['NEWRELIC_DISABLE_HARVEST_THREAD'] = 'false'
     ENV['NEW_RELIC_PORT'] = $collector.port.to_s
   end
 

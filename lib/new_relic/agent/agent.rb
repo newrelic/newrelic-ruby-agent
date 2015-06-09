@@ -964,6 +964,7 @@ module NewRelic
           query_server_for_configuration
           @connected_pid = $$
           @connect_state = :connected
+          signal_connected
         rescue NewRelic::Agent::ForceDisconnectException => e
           handle_force_disconnect(e)
         rescue NewRelic::Agent::LicenseException => e

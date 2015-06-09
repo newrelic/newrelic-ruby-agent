@@ -50,6 +50,7 @@ module NewRelic
 
           task.instance_eval do
             def invoke(*args, &block)
+              NewRelic::Agent.instance.wait_on_connect(10)
               NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
 
               state = NewRelic::Agent::TransactionState.tl_get
