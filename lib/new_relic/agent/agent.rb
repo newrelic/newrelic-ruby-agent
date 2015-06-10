@@ -879,7 +879,6 @@ module NewRelic
 
           def signal_connected
             @wait_on_connect_writer << "."
-            @wait_on_connect_writer.close
           end
 
           def wait_on_connect(timeout)
@@ -887,7 +886,6 @@ module NewRelic
 
             @waited_on_connect = true
             IO.select([@wait_on_connect_reader], nil, nil, timeout)
-            @wait_on_connect_reader.close
 
             raise WaitOnConnectTimeout.new unless connected?
           end
