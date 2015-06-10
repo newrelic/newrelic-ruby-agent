@@ -50,6 +50,10 @@ module NewRelic
 
           task.instance_eval do
             def invoke(*args, &block)
+              # Wait for completed connect. With server-side config, we don't
+              # know until that's done whether/what we can trace.
+              #
+              # If we time out, abandon tracing and let the task proceed.
               timeout = NewRelic::Agent.config[:'rake.connect_timeout']
               begin
                 NewRelic::Agent.instance.wait_on_connect(timeout)
