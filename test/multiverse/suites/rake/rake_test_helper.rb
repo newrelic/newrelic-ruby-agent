@@ -13,29 +13,14 @@ module RakeTestHelper
   end
 
   def with_tasks_traced(*tasks)
-    with_env("rake.tasks" => tasks.join(",")) do
+    with_environment("NEW_RELIC_RAKE_TASKS" => tasks.join(",")) do
       yield
     end
   end
 
   def without_attributes(*tasks)
-    with_env("attributes.exclude" => "*") do
+    with_environment("NEW_RELIC_ATTRIBUTES_EXCLUDE" => "*") do
       yield
-    end
-  end
-
-  def with_env(values)
-    keys = []
-    values.each do |key, value|
-      key = "NEW_RELIC_#{key.gsub(".", "_").upcase}"
-      keys << key
-      ENV[key] = value
-    end
-
-    yield
-  ensure
-    keys.each do |key|
-      ENV[key] = nil
     end
   end
 

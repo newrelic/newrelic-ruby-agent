@@ -23,7 +23,7 @@ class RakeTest < Minitest::Test
   end
 
   def test_disabling_rake_instrumentation
-    with_env("disable_rake" => "true") do
+    with_environment("NEW_RELIC_DISABLE_RAKE" => "true") do
       run_rake
     end
 
@@ -43,8 +43,8 @@ class RakeTest < Minitest::Test
   end
 
   def test_timeout_on_connect
-    with_env("rake.connect_timeout" => "0",
-             "log" => "stdout") do
+    with_environment("NEW_RELIC_RAKE_CONNECT_TIMEOUT" => "0",
+             "NEW_RELIC_LOG" => "stdout") do
       run_rake
     end
 
