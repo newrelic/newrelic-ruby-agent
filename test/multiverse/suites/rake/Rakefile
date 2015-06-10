@@ -1,4 +1,5 @@
-require 'newrelic_rpm'
+Bundler.require
+require "tasks/newrelic"
 
 task :default => [:before, :during, :after] do
   puts "default"

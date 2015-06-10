@@ -5,6 +5,13 @@ RB
 
 gemfile <<-RB
   gem 'rack'
+  gem 'rake', '~> 10.4'
+  gem 'rails', '~> 4.2.1'
+  gem 'minitest', '5.2.3'
+RB
+
+gemfile <<-RB
+  gem 'rack'
   gem 'rake', '10.0.0' # Oldest supported version
 RB
 
