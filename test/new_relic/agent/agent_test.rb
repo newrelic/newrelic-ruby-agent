@@ -411,6 +411,79 @@ module NewRelic
         end
       end
 
+      def test_wait_on_connect
+        error = nil
+        connected = false
+        thread = Thread.new do
+          begin
+            @agent.wait_on_connect(2)
+            connected = true
+          rescue => e
+            error = e
+          end
+        end
+
+        until @agent.waited_on_connect? do
+          # hold on there....
+        end
+
+        @agent.stubs(:connected?).returns(true)
+        @agent.signal_connected
+        thread.join
+
+        refute error, error
+        assert connected
+      end
+
+      def test_wait_raises_if_not_connected_once_signaled
+        error = nil
+        thread = Thread.new do
+          begin
+            @agent.wait_on_connect(2)
+          rescue => e
+            error = e
+          end
+        end
+
+        until @agent.waited_on_connect? do
+          # hold on there....
+        end
+
+        @agent.stubs(:connected?).returns(false)
+        @agent.signal_connected
+        thread.join
+
+        assert error, error
+        assert_kind_of NewRelic::Agent::Agent::Connect::WaitOnConnectTimeout, error
+      end
+
+      def test_wait_raises_if_not_signaled
+        error = nil
+        thread = Thread.new do
+          begin
+            @agent.wait_on_connect(0.01)
+          rescue => e
+            error = e
+          end
+        end
+
+        until @agent.waited_on_connect? do
+          # hold on there....
+        end
+
+        @agent.stubs(:connected?).returns(false)
+        thread.join
+
+        assert error, error
+        assert_kind_of NewRelic::Agent::Agent::Connect::WaitOnConnectTimeout, error
+      end
+
+      def test_wait_when_already_connected
+        @agent.stubs(:connected?).returns(true)
+        @agent.wait_on_connect(2)
+        refute @agent.waited_on_connect?
+      end
+
       def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started_and_forkable
         NewRelic::LanguageSupport.stubs(:can_fork?).returns(true)
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)

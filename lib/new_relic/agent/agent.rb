@@ -71,6 +71,8 @@ module NewRelic
         @connect_attempts   = 0
         @environment_report = nil
 
+        @wait_on_connect_reader, @wait_on_connect_writer = IO.pipe
+
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
 
         setup_attribute_filter
@@ -867,6 +869,28 @@ module NewRelic
             # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
           end
 
+          class WaitOnConnectTimeout < StandardError
+          end
+
+          # Used for testing to let us know we've actually started to wait
+          def waited_on_connect?
+            @waited_on_connect
+          end
+
+          def signal_connected
+            @wait_on_connect_writer << "."
+          end
+
+          def wait_on_connect(timeout)
+            return if connected?
+
+            @waited_on_connect = true
+            NewRelic::Agent.logger.debug("Waiting on connect to complete.")
+            IO.select([@wait_on_connect_reader], nil, nil, timeout)
+
+            raise WaitOnConnectTimeout.new unless connected?
+          end
+
           # Logs when we connect to the server, for debugging purposes
           # - makes sure we know if an agent has not connected
           def log_connection!(config_data)
@@ -936,6 +960,7 @@ module NewRelic
           query_server_for_configuration
           @connected_pid = $$
           @connect_state = :connected
+          signal_connected
         rescue NewRelic::Agent::ForceDisconnectException => e
           handle_force_disconnect(e)
         rescue NewRelic::Agent::LicenseException => e

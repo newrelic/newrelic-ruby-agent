@@ -13,17 +13,15 @@ module RakeTestHelper
   end
 
   def with_tasks_traced(*tasks)
-    ENV["NEW_RELIC_RAKE_TASKS"] = tasks.join(",")
-    yield
-  ensure
-    ENV["NEW_RELIC_RAKE_TASKS"] = nil
+    with_environment("NEW_RELIC_RAKE_TASKS" => tasks.join(",")) do
+      yield
+    end
   end
 
   def without_attributes(*tasks)
-    ENV["NEW_RELIC_ATTRIBUTES_EXCLUDE"] = "*"
-    yield
-  ensure
-    ENV["NEW_RELIC_ATTRIBUTES_EXCLUDE"] = nil
+    with_environment("NEW_RELIC_ATTRIBUTES_EXCLUDE" => "*") do
+      yield
+    end
   end
 
   def assert_metric_names_posted(*expected_names)

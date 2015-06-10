@@ -424,6 +424,13 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'List of Rake tasks to automatically instrument'
         },
+        :'rake.connect_timeout' => {
+          :default => 10,
+          :public => true,
+          :type => Fixnum,
+          :allowed_from_server => false,
+          :description => 'Timeout for waiting on connect to complete before a rake task'
+        },
         :'profiling.available' => {
           :default => DefaultSource.profiling_available,
           :public => false,

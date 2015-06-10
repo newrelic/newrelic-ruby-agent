@@ -12,10 +12,7 @@ class RakeTest < Minitest::Test
   setup_and_teardown_agent
 
   def after_setup
-    # Currently necessary since we don't force agent startup/wait on connect
-    # in our rake instrumentation yet.
-    ENV['NEW_RELIC_SYNC_STARTUP'] = 'true'
-
+    ENV['NEWRELIC_DISABLE_HARVEST_THREAD'] = 'false'
     ENV['NEW_RELIC_PORT'] = $collector.port.to_s
   end
 
@@ -26,12 +23,11 @@ class RakeTest < Minitest::Test
   end
 
   def test_disabling_rake_instrumentation
-    ENV["NEW_RELIC_DISABLE_RAKE"] = "true"
+    with_environment("NEW_RELIC_DISABLE_RAKE" => "true") do
+      run_rake
+    end
 
-    run_rake
     refute_any_rake_metrics
-  ensure
-    ENV["NEW_RELIC_DISABLE_RAKE"] = nil
   end
 
   def test_doesnt_trace_by_default
@@ -44,6 +40,16 @@ class RakeTest < Minitest::Test
       run_rake
       refute_any_rake_metrics
     end
+  end
+
+  def test_timeout_on_connect
+    with_environment("NEW_RELIC_RAKE_CONNECT_TIMEOUT" => "0",
+             "NEW_RELIC_LOG" => "stdout") do
+      run_rake
+    end
+
+    refute_any_rake_metrics
+    assert_includes @output, "ERROR : Agent was unable to connect"
   end
 
   def test_records_transaction_metrics
