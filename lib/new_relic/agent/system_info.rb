@@ -158,7 +158,7 @@ module NewRelic
         cpu_cgroup = parse_cgroup_ids(cgroup_info)['cpu']
         return unless cpu_cgroup
 
-        case cpu_cgroup
+        container_id = case cpu_cgroup
         # docker native driver w/out systemd (fs)
         when %r{^/docker/([0-9a-f]+)$}                      then $1
         # docker native driver with systemd
@@ -170,6 +170,13 @@ module NewRelic
         # in a cgroup, but we don't recognize its format
         else
           ::NewRelic::Agent.logger.debug("Ignoring unrecognized cgroup ID format: '#{cpu_cgroup}'")
+          nil
+        end
+
+        if container_id && container_id.size == 64
+          container_id
+        else
+          ::NewRelic::Agent.logger.debug("Found docker container_id with invalid length: #{container_id}")
           nil
         end
       end

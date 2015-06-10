@@ -42,5 +42,13 @@
   {
     "filename": "empty.txt",
     "containerId": null
+  },
+  {
+    "filename": "invalid-characters.txt",
+    "containerId": null
+  },
+  {
+    "filename": "invalid-length.txt",
+    "containerId": null
   }
 ]
