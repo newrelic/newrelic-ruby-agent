@@ -885,6 +885,7 @@ module NewRelic
             return if connected?
 
             @waited_on_connect = true
+            NewRelic::Agent.logger.debug("Waiting on connect to complete.")
             IO.select([@wait_on_connect_reader], nil, nil, timeout)
 
             raise WaitOnConnectTimeout.new unless connected?
