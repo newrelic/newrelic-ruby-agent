@@ -47,6 +47,8 @@ class ResqueMarshallingTest < Minitest::Test
       DummyJob.around_perform_with_monitoring do
         yield
       end
+
+      run_harvest
       exit
     end
   end
