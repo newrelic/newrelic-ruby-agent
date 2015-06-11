@@ -32,6 +32,8 @@ class RakeTest < Minitest::Test
   end
 
   def test_timeout_on_connect
+    $collector.stub_wait('connect', 5)
+
     with_environment("NEW_RELIC_RAKE_CONNECT_TIMEOUT" => "0",
              "NEW_RELIC_LOG" => "stdout") do
       run_rake

@@ -99,6 +99,11 @@ module NewRelic
       self.mock[method].override(status, {'exception' => exception})
     end
 
+    def stub_wait(method, wait_time, status=200)
+      self.mock[method] ||= default_response
+      self.mock[method].override(status, Proc.new { sleep(wait_time); {'return_value' => ""}})
+    end
+
     def call(env)
       @last_socket = Thread.current[:WEBrickSocket]
 
