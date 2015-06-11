@@ -86,7 +86,7 @@ module Multiverse
                           "deferred_instrumentation", "high_security"],
       "api"           => ["grape"],
       "background"    => ["delayed_job", "rake", "resque", "sidekiq"],
-      "database"      => ["datamapper", "mongo", "sequel"],
+      "database"      => ["datamapper", "mongo", "redis", "sequel"],
       "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http"],
       "rails"         => ["active_record", "rails"],
       "serialization" => ["json", "marshalling", "yajl"],
