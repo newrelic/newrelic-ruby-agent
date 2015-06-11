@@ -27,12 +27,11 @@ DependencyDetection.defer do
             return invoke_without_newrelic(*args)
           end
 
-          timeout = NewRelic::Agent.config[:'rake.connect_timeout']
-
           begin
+            timeout = NewRelic::Agent.config[:'rake.connect_timeout']
             NewRelic::Agent.instance.wait_on_connect(timeout)
-          rescue NewRelic::Agent::Agent::Connect::WaitOnConnectTimeout
-            NewRelic::Agent.logger.error("Agent was unable to connect in #{timeout} seconds. Not tracing rake task #{name}.")
+          rescue => e
+            NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
             return invoke_without_newrelic(*args)
           end
 
@@ -43,10 +42,6 @@ DependencyDetection.defer do
             NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
             invoke_without_newrelic(*args)
           end
-
-        rescue => e
-          NewRelic::Agent.logger.error("Failure while instrumenting Rake task #{name}", e)
-          invoke_without_newrelic(*args)
         end
       end
     end
