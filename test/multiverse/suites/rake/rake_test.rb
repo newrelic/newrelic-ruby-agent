@@ -40,7 +40,7 @@ class RakeTest < Minitest::Test
     end
 
     refute_any_rake_metrics
-    assert_includes @output, "ERROR : Agent was unable to connect"
+    assert_includes @output, "ERROR : NewRelic::Agent::Agent::InstanceMethods::Connect::WaitOnConnectTimeout: Agent was unable to connect"
   end
 
   def test_records_transaction_metrics

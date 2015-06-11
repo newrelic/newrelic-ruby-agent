@@ -19,12 +19,29 @@ DependencyDetection.defer do
 
   executes do
     module Rake
-      class Application
-        alias_method :define_task_without_newrelic, :define_task
-        def define_task(task_class, *args, &block)
-          task = define_task_without_newrelic(task_class, *args, &block)
-          NewRelic::Agent::Instrumentation::RakeInstrumentation.instrument_task(task)
-          task
+      class Task
+        alias_method :invoke_without_newrelic, :invoke
+
+        def invoke(*args)
+          unless NewRelic::Agent::Instrumentation::RakeInstrumentation.should_trace? name
+            return invoke_without_newrelic(*args)
+          end
+
+          begin
+            timeout = NewRelic::Agent.config[:'rake.connect_timeout']
+            NewRelic::Agent.instance.wait_on_connect(timeout)
+          rescue => e
+            NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
+            return invoke_without_newrelic(*args)
+          end
+
+          NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
+
+          state = NewRelic::Agent::TransactionState.tl_get
+          NewRelic::Agent::Transaction.wrap(state, "OtherTransaction/Rake/invoke/#{name}", :rake)  do
+            NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
+            invoke_without_newrelic(*args)
+          end
         end
       end
     end
@@ -39,40 +56,10 @@ module NewRelic
           ::NewRelic::VersionNumber.new(::Rake::VERSION) >= ::NewRelic::VersionNumber.new("10.0.0")
         end
 
-        def self.should_trace?(task)
+        def self.should_trace?(name)
           NewRelic::Agent.config[:'rake.tasks'].any? do |regex|
-            regex.match(task.name)
+            regex.match(name)
           end
-        end
-
-        def self.instrument_task(task)
-          return unless should_trace?(task)
-
-          task.instance_eval do
-            def invoke(*args, &block)
-              # Wait for completed connect. With server-side config, we don't
-              # know until that's done whether/what we can trace.
-              #
-              # If we time out, abandon tracing and let the task proceed.
-              timeout = NewRelic::Agent.config[:'rake.connect_timeout']
-              begin
-                NewRelic::Agent.instance.wait_on_connect(timeout)
-              rescue NewRelic::Agent::Agent::Connect::WaitOnConnectTimeout
-                NewRelic::Agent.logger.error("Agent was unable to connect in #{timeout} seconds. Not tracing rake task #{self.name}.")
-                return super
-              end
-
-              NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
-
-              state = NewRelic::Agent::TransactionState.tl_get
-              NewRelic::Agent::Transaction.wrap(state, "OtherTransaction/Rake/invoke/#{self.name}", :rake)  do
-                NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
-                super
-              end
-            end
-          end
-        rescue => e
-          NewRelic::Agent.logger.error("Failure while instrumenting Rake task #{task}", e)
         end
 
         def self.instrument_execute_on_prereqs(task)

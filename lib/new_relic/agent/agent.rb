@@ -888,7 +888,9 @@ module NewRelic
             NewRelic::Agent.logger.debug("Waiting on connect to complete.")
             IO.select([@wait_on_connect_reader], nil, nil, timeout)
 
-            raise WaitOnConnectTimeout.new unless connected?
+            unless connected?
+              raise WaitOnConnectTimeout, "Agent was unable to connect in #{timeout} seconds."
+            end
           end
 
           # Logs when we connect to the server, for debugging purposes
