@@ -99,5 +99,15 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
     refute NewRelic::Agent::SystemInfo.bsd?, "Did not expect OS to match bsd"
   end
+
+  def test_supportability_metric_recorded_when_docker_id_unavailable
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    cgroup_info = File.read File.join(cross_agent_tests_dir, 'docker_container_id', 'invalid-length.txt')
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/self/cgroup').returns(cgroup_info)
+    in_transaction('txn') do
+      assert_nil NewRelic::Agent::SystemInfo.docker_container_id
+    end
+    assert_metrics_recorded "Supportability/utilization/docker/error"
+  end
 end
 
