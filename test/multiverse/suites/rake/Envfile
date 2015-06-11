@@ -3,12 +3,22 @@ gemfile <<-RB
   gem 'rake', '~> 10.4'
 RB
 
+# No single Rails version works everywhere, so split it up
+if RUBY_VERSION >= "1.9.3"
 gemfile <<-RB
   gem 'rack'
   gem 'rake', '~> 10.4'
   gem 'rails', '~> 4.2.1'
   gem 'minitest', '5.2.3'
 RB
+else
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake', '~> 10.4'
+  gem 'rails', '~> 3.2.21'
+  gem 'i18n', '~>0.6.11'
+RB
+end
 
 gemfile <<-RB
   gem 'rack'
