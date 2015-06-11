@@ -151,7 +151,12 @@ module NewRelic
         cgroup_info = proc_try_read('/proc/self/cgroup')
         return unless cgroup_info
 
-        parse_docker_container_id(cgroup_info)
+        if container_id = parse_docker_container_id(cgroup_info)
+          container_id
+        else
+
+          nil
+        end
       end
 
       def self.parse_docker_container_id(cgroup_info)
@@ -170,13 +175,14 @@ module NewRelic
         # in a cgroup, but we don't recognize its format
         else
           ::NewRelic::Agent.logger.debug("Ignoring unrecognized cgroup ID format: '#{cpu_cgroup}'")
-          nil
+          return
         end
 
         if container_id && container_id.size == 64
           container_id
         else
           ::NewRelic::Agent.logger.debug("Found docker container_id with invalid length: #{container_id}")
+          ::NewRelic::Agent.increment_metric "Supportability/utilization/docker/error"
           nil
         end
       end
