@@ -11,17 +11,6 @@ class RakeTest < Minitest::Test
 
   setup_and_teardown_agent
 
-  def after_setup
-    ENV['NEWRELIC_DISABLE_HARVEST_THREAD'] = 'false'
-    ENV['NEW_RELIC_PORT'] = $collector.port.to_s
-  end
-
-  def after_teardown
-    unless passed?
-      puts @output
-    end
-  end
-
   def test_disabling_rake_instrumentation
     with_environment("NEW_RELIC_DISABLE_RAKE" => "true") do
       run_rake

@@ -313,19 +313,20 @@ module NewRelic
       end
 
       class SubmittedTransactionTraceTree
-        attr_reader :attributes, :nodes
+        attr_reader :attributes, :nodes, :node_params
 
         def initialize(body, format)
           @body = body
           @attributes = body[4]
-          @nodes = extract_nodes(body[3])
+          @nodes = extract_by_index(body[3], 2)
+          @node_params = extract_by_index(body[3], 3)
         end
 
-        def extract_nodes(current)
-          result = [current[2]]
+        def extract_by_index(current, index)
+          result = [current[index]]
           if current[4].any?
             current[4].each do |child|
-              result << extract_nodes(child)
+              result << extract_by_index(child, index)
             end
           end
           result
