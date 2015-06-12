@@ -2,6 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+# Because some envs have Rails, we might not have loaded in the absence of
+# initializers running, so kick-start agent to get instrumentation loaded.
+NewRelic::Agent.manual_start(:sync_startup => false)
+
 module RakeTestHelper
   def after_setup
     ENV['NEWRELIC_DISABLE_HARVEST_THREAD'] = 'false'
