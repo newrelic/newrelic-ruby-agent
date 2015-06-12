@@ -613,9 +613,17 @@ def cross_agent_tests_dir
   File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'cross_agent_tests'))
 end
 
+def replace_camelcase(contents)
+  { "callCount" => "call_count" }.each_pair do |original, replacement|
+    contents.gsub!(original, replacement)
+  end
+  contents
+end
+
 def load_cross_agent_test(name)
   test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
   data = File.read(test_file_path)
+  data = replace_camelcase(data)
   NewRelic::JSONWrapper.load(data)
 end
 
