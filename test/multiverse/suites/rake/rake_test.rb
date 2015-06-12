@@ -4,6 +4,10 @@
 
 require File.expand_path(File.join(__FILE__, '..', 'rake_test_helper'))
 
+# Because some envs have Rails, we might not have loaded in the absence of
+# initializers running, so kick-start agent to get instrumentation loaded.
+NewRelic::Agent.manual_start(:sync_startup => false)
+
 if ::NewRelic::Agent::Instrumentation::RakeInstrumentation.is_supported_version?
 class RakeTest < Minitest::Test
   include MultiverseHelpers
@@ -35,7 +39,7 @@ class RakeTest < Minitest::Test
     $collector.stub_wait('connect', 5)
 
     with_environment("NEW_RELIC_RAKE_CONNECT_TIMEOUT" => "0",
-             "NEW_RELIC_LOG" => "stdout") do
+                     "NEW_RELIC_LOG" => "stdout") do
       run_rake
     end
 
