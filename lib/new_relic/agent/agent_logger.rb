@@ -94,6 +94,7 @@ module NewRelic
           else @log.send(level, item)
           end
         end
+        nil
       end
 
       def create_log(root, override_logger)
