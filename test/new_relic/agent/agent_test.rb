@@ -30,7 +30,11 @@ module NewRelic
 
       def test_after_fork_reporting_to_channel
         @agent.stubs(:connected?).returns(true)
-        @agent.after_fork(:report_to_channel => 123)
+
+        with_config(:monitor_mode => true) do
+          @agent.after_fork(:report_to_channel => 123)
+        end
+
         assert(@agent.service.kind_of?(NewRelic::Agent::PipeService),
                'Agent should use PipeService when directed to report to pipe channel')
         NewRelic::Agent::PipeService.any_instance.expects(:shutdown).never

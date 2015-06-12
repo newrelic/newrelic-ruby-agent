@@ -2,6 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+# Because some envs have Rails, we might not have loaded in the absence of
+# initializers running, so kick-start agent to get instrumentation loaded.
+NewRelic::Agent.manual_start(:sync_startup => false)
+
 module RakeTestHelper
   def after_setup
     ENV['NEWRELIC_DISABLE_HARVEST_THREAD'] = 'false'
@@ -36,25 +40,27 @@ module RakeTestHelper
   end
 
   def assert_metric_names_posted(*expected_names)
-    actual_names = single_metrics_post.metric_names
     expected_names.each do |expected_name|
-      assert_includes actual_names, expected_name
+      assert_includes all_metric_names_posted, expected_name
     end
   end
 
   def refute_metric_names_posted(*expected_names)
-    actual_names = single_metrics_post.metric_names
     expected_names.each do |expected_name|
-      refute_includes actual_names, expected_name
+      refute_includes all_metric_names_posted, expected_name
     end
   end
 
   def refute_any_rake_metrics
-    $collector.calls_for("metric_data").each do |metric_post|
-      metric_post.metric_names.each do |metric_name|
-        refute_match /^OtherTransaction.*/, metric_name
-        refute_match /^Rake.*/, metric_name
-      end
+    all_metric_names_posted.each do |metric_name|
+      refute_match /^OtherTransaction.*/, metric_name
+      refute_match /^Rake.*/, metric_name
     end
+  end
+
+  def all_metric_names_posted
+    $collector.calls_for("metric_data").map do |metric_post|
+      metric_post.metric_names
+    end.flatten
   end
 end
