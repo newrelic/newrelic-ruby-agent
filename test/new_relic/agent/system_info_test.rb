@@ -50,7 +50,12 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
       message = "Parsed incorrect Docker container ID from #{filename}"
       assert_equal(test_case['containerId'], container_id, message)
-      assert_metrics_recorded test_case['expectedMetrics'] if test_case['expectedMetrics']
+
+      if test_case['expectedMetrics']
+        assert_metrics_recorded test_case['expectedMetrics']
+      else
+        refute_metrics_recorded "Supportability/utilization/docker/error"
+      end
     end
   end
 
