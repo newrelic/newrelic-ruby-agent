@@ -5,8 +5,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
 
 class NewRelic::Agent::SystemInfoTest < Minitest::Test
-
   def setup
+    NewRelic::Agent.instance.stats_engine.clear_stats
     @sysinfo = ::NewRelic::Agent::SystemInfo
     @sysinfo.clear_processor_info
   end
@@ -50,6 +50,12 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
       message = "Parsed incorrect Docker container ID from #{filename}"
       assert_equal(test_case['containerId'], container_id, message)
+
+      if test_case['expectedMetrics']
+        assert_metrics_recorded test_case['expectedMetrics']
+      else
+        refute_metrics_recorded "Supportability/utilization/docker/error"
+      end
     end
   end
 
