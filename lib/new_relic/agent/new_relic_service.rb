@@ -38,6 +38,10 @@ module NewRelic
         @collector = collector
         @request_timeout = Agent.config[:timeout]
         @metric_id_cache = {}
+        @ssl_cert_store = nil
+        @in_session = nil
+        @agent_id = nil
+        @shared_tcp_connection = nil
 
         @audit_logger = ::NewRelic::Agent::AuditLogger.new
         Agent.config.register_callback(:'audit_log.enabled') do |enabled|

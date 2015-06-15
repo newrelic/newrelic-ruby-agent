@@ -10,6 +10,7 @@ module NewRelic
         GCSnapshot = Struct.new(:gc_time_s, :gc_call_count)
 
         def self.init
+          @initialized ||= nil
           return @profiler if @initialized
           @profiler = if RailsBenchProfiler.enabled?
             RailsBenchProfiler.new
