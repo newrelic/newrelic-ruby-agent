@@ -73,7 +73,7 @@ module NewRelic
 
       def filter_remote_data(data_str)
         return nil unless data_str.kind_of?(String)
-        return nil unless data_str.size <= 255
+        return nil unless data_str.bytesize <= 255
 
         data_str.each_char do |ch|
           next if ch =~ REMOTE_DATA_VALID_CHARS
