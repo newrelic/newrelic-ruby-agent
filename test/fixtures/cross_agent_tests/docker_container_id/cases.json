@@ -1,46 +1,75 @@
 [
   {
     "filename": "docker-0.9.1.txt",
-    "containerId": "f37a7e4d17017e7bf774656b19ca4360c6cdc4951c86700a464101d0d9ce97ee"
+    "containerId": "f37a7e4d17017e7bf774656b19ca4360c6cdc4951c86700a464101d0d9ce97ee",
+    "expectedMetrics": null
   },
   {
     "filename": "docker-1.0.0.txt",
-    "containerId": "3ccfa00432798ff38f85839de1e396f771b4acbe9f4ddea0a761c39b9790a782"
+    "containerId": "3ccfa00432798ff38f85839de1e396f771b4acbe9f4ddea0a761c39b9790a782",
+    "expectedMetrics": null
   },
   {
     "filename": "docker-1.1.2-lxc-driver.txt",
-    "containerId": "cb8c113e5f3cf8332f5231f8154adc429ea910f7c29995372de4f571c55d3159"
+    "containerId": "cb8c113e5f3cf8332f5231f8154adc429ea910f7c29995372de4f571c55d3159",
+    "expectedMetrics": null
   },
   {
     "filename": "docker-1.1.2-native-driver-fs.txt",
-    "containerId": "2a4f870e24a3b52eb9fe7f3e02858c31855e213e568cfa6c76cb046ffa5b8a28"
+    "containerId": "2a4f870e24a3b52eb9fe7f3e02858c31855e213e568cfa6c76cb046ffa5b8a28",
+    "expectedMetrics": null
   },
   {
     "filename": "docker-1.1.2-native-driver-systemd.txt",
-    "containerId": "67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f"
+    "containerId": "67f98c9e6188f9c1818672a15dbe46237b6ee7e77f834d40d41c5fb3c2f84a2f",
+    "expectedMetrics": null
   },
   {
     "filename": "docker-1.3.txt",
-    "containerId": "47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870b2"
+    "containerId": "47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870b2",
+    "expectedMetrics": null
   },
   {
     "filename": "heroku.txt",
-    "containerId": null
+    "containerId": null,
+    "expectedMetrics": null
   },
   {
     "filename": "ubuntu-14.04-no-container.txt",
-    "containerId": null
+    "containerId": null,
+    "expectedMetrics": null
   },
   {
     "filename": "ubuntu-14.04-lxc-container.txt",
-    "containerId": null
+    "containerId": null,
+    "expectedMetrics": null
   },
   {
     "filename": "ubuntu-14.10-no-container.txt",
-    "containerId": null
+    "containerId": null,
+    "expectedMetrics": null
   },
   {
     "filename": "empty.txt",
-    "containerId": null
+    "containerId": null,
+    "expectedMetrics": null
+  },
+  {
+    "filename": "invalid-characters.txt",
+    "containerId": null,
+    "expectedMetrics": {
+      "Supportability/utilization/docker/error": {
+        "callCount": 1
+      }
+    }
+  },
+  {
+    "filename": "invalid-length.txt",
+    "containerId": null,
+    "expectedMetrics": {
+      "Supportability/utilization/docker/error": {
+        "callCount": 1
+      }
+    }
   }
 ]

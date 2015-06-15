@@ -5,8 +5,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
 
 class NewRelic::Agent::SystemInfoTest < Minitest::Test
-
   def setup
+    NewRelic::Agent.instance.stats_engine.clear_stats
     @sysinfo = ::NewRelic::Agent::SystemInfo
     @sysinfo.clear_processor_info
   end
@@ -50,6 +50,12 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
       message = "Parsed incorrect Docker container ID from #{filename}"
       assert_equal(test_case['containerId'], container_id, message)
+
+      if test_case['expectedMetrics']
+        assert_metrics_recorded test_case['expectedMetrics']
+      else
+        refute_metrics_recorded "Supportability/utilization/docker/error"
+      end
     end
   end
 
@@ -98,6 +104,16 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
     refute NewRelic::Agent::SystemInfo.bsd?, "Did not expect OS to match bsd"
+  end
+
+  def test_supportability_metric_recorded_when_docker_id_unavailable
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    cgroup_info = File.read File.join(cross_agent_tests_dir, 'docker_container_id', 'invalid-length.txt')
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/self/cgroup').returns(cgroup_info)
+    in_transaction('txn') do
+      assert_nil NewRelic::Agent::SystemInfo.docker_container_id
+    end
+    assert_metrics_recorded "Supportability/utilization/docker/error"
   end
 end
 
