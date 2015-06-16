@@ -19,6 +19,7 @@ module NewRelic
         def initialize(timestamp, metric_name)
           @entry_timestamp = timestamp
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
+          @called_nodes    = nil
         end
 
         # sets the final timestamp on a node to indicate the exit

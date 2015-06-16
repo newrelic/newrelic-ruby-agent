@@ -121,7 +121,7 @@ module NewRelic
 
       def exception_tagged?(exception)
         return false if exception_is_java_object?(exception)
-        exception.instance_variable_get(EXCEPTION_TAG_IVAR)
+        exception.instance_variable_defined?(EXCEPTION_TAG_IVAR)
       end
 
       def tag_exception(exception)

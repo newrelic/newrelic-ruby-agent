@@ -19,6 +19,7 @@ module NewRelic
           @start_time = start_time
           @node_count = 0
           @root_node = NewRelic::Agent::Transaction::TraceNode.new(0.0, "ROOT")
+          @prepared = false
         end
 
         def sample_id

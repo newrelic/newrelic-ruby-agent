@@ -280,6 +280,7 @@ module NewRelic
         @ignore_this_transaction = false
         @ignore_apdex = false
         @ignore_enduser = false
+        @ignore_trace = false
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
