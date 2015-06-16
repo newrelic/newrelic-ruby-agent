@@ -59,8 +59,8 @@ To monitor your applications in production, create an account at
 http://newrelic.com/ .  There you can
 sign up for a free Lite account or one of our paid subscriptions.
 
-Once you receive the welcome e-mail with a license key and
-`newrelic.yml` file. You can copy the `newrelic.yml` file into your app config
+Once you receive the welcome email with a license key and
+`newrelic.yml` file, you can copy the `newrelic.yml` file into your app config
 directory OR can generate the file manually with command:
 
     newrelic install --license_key="YOUR_KEY" "My application"
@@ -193,7 +193,7 @@ Also available is community support on IRC: we generally use #newrelic
 on irc.freenode.net
 
 Find a bug? Contact us via [support.newrelic.com](http://support.newrelic.com/),
-or e-mail support @ newrelic.com.
+or email support@newrelic.com.
 
 Thank you, and may your application scale to infinity plus one.
 
