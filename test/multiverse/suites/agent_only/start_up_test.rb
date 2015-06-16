@@ -8,6 +8,10 @@ require 'open3'
 class StartUpTest < Minitest::Test
   GIT_NOISE = "fatal: Not a git repository (or any of the parent directories): .git\n"
 
+  include MultiverseHelpers
+
+  setup_and_teardown_agent
+
   def test_should_not_print_to_stdout_when_logging_available
     ruby = 'require "newrelic_rpm"; NewRelic::Agent.manual_start; NewRelic::Agent.shutdown'
     cmd = "bundle exec ruby -e '#{ruby}'"
@@ -56,11 +60,15 @@ class StartUpTest < Minitest::Test
   # going forward from Ruby 2.1.
   if RUBY_VERSION >= "2.1"
     def test_no_warnings
-      output = `bundle exec ruby -w -r bundler/setup -r newrelic_rpm -e 'puts NewRelic::VERSION::STRING' 2>&1`
-      output.gsub!(GIT_NOISE, "")
-      output.chomp!
+      with_environment('NEW_RELIC_TRANSACTION_TRACER_TRANSACTION_THRESHOLD' => '-10',
+                       'NEW_RELIC_PORT' => $collector.port.to_s) do
 
-      assert_equal NewRelic::VERSION::STRING, output
+        output = `bundle exec ruby -w script/warnings.rb 2>&1`
+        output.gsub!(GIT_NOISE, "")
+        output.chomp!
+
+        assert_equal NewRelic::VERSION::STRING, output
+      end
     end
   end
 
