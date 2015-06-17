@@ -1,8 +1,8 @@
-This product includes jquery written by John Resig
+This product includes jquery 1.4.2, written by John Resig
 and distributed under an MIT license.
-See https://github.com/jquery/jquery/blob/master/MIT-LICENSE.txt
+See https://github.com/jquery/jquery/blob/1.4.2/MIT-LICENSE.txt
 
-    Copyright (c) 2011 John Resig, http://jquery.com/
+    Copyright (c) 2010 John Resig, http://jquery.com/
 
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the
@@ -112,7 +112,7 @@ the software.
 
 
 All other components of this product are
-Copyright (c) 2008-2014 New Relic, Inc.  All rights reserved.
+Copyright (c) 2008-2015 New Relic, Inc.  All rights reserved.
 
 Certain inventions disclosed in this file may be claimed within
 patents owned or patent applications filed by New Relic, Inc. or third
