@@ -16,7 +16,44 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent.logger.info 'Installing Mongo instrumentation'
-    install_mongo_instrumentation
+    if NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?
+      install_mongo_command_subscriber
+    else
+      install_mongo_instrumentation
+    end
+  end
+
+  class CommandSubscriber
+
+    def started(event)
+      operations[event.operation_id] = event
+    end
+
+    def succeeded(event)
+      started_event = operations.delete(event.operation_id)
+      NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(
+        format_statement(started_event.command), event.duration
+      )
+    end
+
+    def failed(event)
+      started_event = operations.delete(event.operation_id)
+      # How does new relic want to handle failures?
+    end
+
+    private
+
+    def operations
+      @operations ||= {}
+    end
+
+    def format_statement(event)
+      "#{event.database_name}.#{event.command_name} #{event.command.inspect}"
+    end
+  end
+
+  def install_mongo_command_subscriber
+    Mongo::Monitoring::Global.subscribe(Mongo::Monitoring::COMMAND, CommandSubscriber.new)
   end
 
   def install_mongo_instrumentation
