@@ -44,10 +44,12 @@ module NewRelic
           end
         end
 
-        def self.metrics_for(product, operation, collection = nil)
+        def self.metrics_for(product, operation, collection = nil, generic_product = nil)
           if overrides = overridden_operation_and_collection
-            operation  = overrides[0] || operation
-            collection = overrides[1] || collection
+            if should_override?(overrides, product, generic_product)
+              operation  = overrides[0] || operation
+              collection = overrides[1] || collection
+            end
           end
 
           suffix = all_suffix
@@ -80,6 +82,16 @@ module NewRelic
           txn ? txn.instrumentation_state[:datastore_override] : nil
         end
 
+        # If the override declared a product affiliation, abide by that
+        # ActiveRecord has database-specific product names, so we recognize
+        # it by the generic_product it passes.
+        def self.should_override?(overrides, product, generic_product)
+          override_product = overrides[2]
+
+          override_product.nil? ||
+            override_product == product ||
+            override_product == generic_product
+        end
       end
     end
   end
