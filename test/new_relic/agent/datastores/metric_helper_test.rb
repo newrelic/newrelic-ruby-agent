@@ -92,6 +92,41 @@ module NewRelic
         end
       end
 
+      def test_metrics_ignore_overrides_for_other_products
+        in_transaction do
+          NewRelic::Agent.with_database_metric_name("Model", "new_method", "FauxDB") do
+            expected = [
+              "Datastore/operation/JonanDB/original_method",
+              "Datastore/JonanDB/allOther",
+              "Datastore/JonanDB/all",
+              "Datastore/allOther",
+              "Datastore/all"
+            ]
+
+            result = Datastores::MetricHelper.metrics_for(@product, "original_method")
+            assert_equal expected, result
+          end
+        end
+      end
+
+      def test_metrics_applies_overrides_by_generic_product_name
+        in_transaction do
+          NewRelic::Agent.with_database_metric_name("Model", "new_method") do
+            expected = [
+              "Datastore/statement/MoreSpecificDB/Model/new_method",
+              "Datastore/operation/MoreSpecificDB/new_method",
+              "Datastore/MoreSpecificDB/allOther",
+              "Datastore/MoreSpecificDB/all",
+              "Datastore/allOther",
+              "Datastore/all"
+            ]
+
+            result = Datastores::MetricHelper.metrics_for("MoreSpecificDB", "original_method", nil, @product)
+            assert_equal expected, result
+          end
+        end
+      end
+
     end
   end
 end

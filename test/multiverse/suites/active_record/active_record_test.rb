@@ -305,6 +305,18 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_activerecord_metrics(Order, 'update')
   end
 
+  def test_nested_metrics_dont_get_model_name
+    in_web_transaction do
+      order = Order.create(:name => "wendy")
+      order.name = 'walter'
+      order.save!
+    end
+
+    assert_metrics_recorded(["Datastore/operation/Memcached/get"])
+    refute_metrics_match(/Memcached.*Order/)
+  end
+
+
   def test_metrics_for_destroy
     in_web_transaction do
       order = Order.create("name" => "burt")
