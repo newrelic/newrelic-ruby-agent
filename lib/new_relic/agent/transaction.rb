@@ -793,7 +793,7 @@ module NewRelic
         Agent.config[key] && Agent.config[key][best_name]
       end
 
-      def with_database_metric_name(model, method)
+      def with_database_metric_name(model, method, product=nil)
         previous = self.instrumentation_state[:datastore_override]
         model_name = case model
                      when Class
@@ -803,7 +803,7 @@ module NewRelic
                      else
                        model.to_s
                      end
-        self.instrumentation_state[:datastore_override] = [method, model_name]
+        self.instrumentation_state[:datastore_override] = [method, model_name, product]
         yield
       ensure
         self.instrumentation_state[:datastore_override] = previous

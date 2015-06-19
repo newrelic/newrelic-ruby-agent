@@ -17,7 +17,7 @@ module NewRelic
             alias_method :save_without_newrelic, :save
 
             def save(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name) do
+              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 save_without_newrelic(*args, &blk)
               end
             end
@@ -25,7 +25,7 @@ module NewRelic
             alias_method :save_without_newrelic!, :save!
 
             def save!(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name) do
+              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 save_without_newrelic!(*args, &blk)
               end
             end
@@ -35,7 +35,7 @@ module NewRelic
             alias_method :update_all_without_newrelic, :update_all
 
             def update_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name) do
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
                 update_all_without_newrelic(*args, &blk)
               end
             end
@@ -43,7 +43,7 @@ module NewRelic
             alias_method :delete_all_without_newrelic, :delete_all
 
             def delete_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name) do
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
                 delete_all_without_newrelic(*args, &blk)
               end
             end
@@ -51,7 +51,7 @@ module NewRelic
             alias_method :destroy_all_without_newrelic, :destroy_all
 
             def destroy_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name) do
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
                 destroy_all_without_newrelic(*args, &blk)
               end
             end
@@ -69,7 +69,8 @@ module NewRelic
 
           NewRelic::Agent::Datastores::MetricHelper.metrics_for(product,
                                                                 operation,
-                                                                model)
+                                                                model,
+                                                                ACTIVE_RECORD)
         end
 
         # @deprecated
