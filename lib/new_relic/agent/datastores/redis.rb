@@ -9,14 +9,23 @@ module NewRelic
         MULTI_OPERATION = 'multi'
         PIPELINE_OPERATION = 'pipeline'
         BINARY_DATA_PLACEHOLDER = "<binary data>"
-        MAXIMUM_ARGUMENT_LENGTH = 64
-        MAXIMUM_COMMAND_LENGTH = 1000
         PRODUCT_NAME = 'Redis'
         CONNECT = 'connect'
+
+        MAXIMUM_COMMAND_LENGTH = 1000
+        MAXIMUM_ARGUMENT_LENGTH = 64
+        CHUNK_SIZE   = (MAXIMUM_ARGUMENT_LENGTH - 5) / 2
+        PREFIX_RANGE = (0...CHUNK_SIZE)
+        SUFFIX_RANGE = (-CHUNK_SIZE..-1)
 
         OBFUSCATE_ARGS = ' ?'
         ELLIPSES = '...'
         NEWLINE = "\n"
+        SPACE = ' '
+        QUOTE = '"'
+        ALL_BUT_FIRST = (1..-1)
+
+        STRINGS_SUPPORT_ENCODING = SPACE.respond_to?(:encoding)
 
         def self.format_command(command_with_args)
           if Agent.config[:'transaction_tracer.record_redis_arguments']
@@ -63,13 +72,13 @@ module NewRelic
           result << command_with_args.first.to_s
 
           if command_with_args.size > 1
-            command_with_args[1..-1].each do |arg|
+            command_with_args[ALL_BUT_FIRST].each do |arg|
               if (result.length + MAXIMUM_ARGUMENT_LENGTH) > MAXIMUM_COMMAND_LENGTH
                 # Next argument puts us over the limit...
                 break
               end
 
-              result << " #{ellipsize(arg, MAXIMUM_ARGUMENT_LENGTH)}"
+              ellipsize(result, arg)
             end
           end
 
@@ -86,22 +95,22 @@ module NewRelic
           ::NewRelic::VersionNumber.new(::Redis::VERSION) >= ::NewRelic::VersionNumber.new("3.0.0")
         end
 
-        def self.ellipsize(string, max_length)
-          return string unless string.is_a?(String)
-
-          if string.respond_to?(:encoding) && string.encoding == Encoding::ASCII_8BIT
-            BINARY_DATA_PLACEHOLDER
-          elsif string.length > max_length
-            chunk_size   = (max_length - 5) / 2
-            prefix_range = (0...chunk_size)
-            suffix_range = (-chunk_size..-1)
-
-            prefix = string[prefix_range]
-            suffix = string[suffix_range]
-
-            "\"#{prefix}...#{suffix}\""
+        def self.ellipsize(result, string)
+          result << SPACE
+          if !string.is_a?(String)
+            result << string.to_s
+          elsif STRINGS_SUPPORT_ENCODING && string.encoding == Encoding::ASCII_8BIT
+            result << BINARY_DATA_PLACEHOLDER
+          elsif string.length > MAXIMUM_ARGUMENT_LENGTH
+            result << QUOTE
+            result << string[PREFIX_RANGE]
+            result << ELLIPSES
+            result << string[SUFFIX_RANGE]
+            result << QUOTE
           else
-            string.dump
+            result << QUOTE
+            result << string
+            result << QUOTE
           end
         end
       end
