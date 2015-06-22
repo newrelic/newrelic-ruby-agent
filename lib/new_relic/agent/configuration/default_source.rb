@@ -857,6 +857,13 @@ module NewRelic
           :allowed_from_server => false,
           :description  => 'Defines whether the agent will install <a href="/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.'
         },
+        :disable_redis_instrumentation => {
+          :default      => false,
+          :public       => false,
+          :type         => Boolean,
+          :allowed_from_server => false,
+          :description  => 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.'
+        },
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
           :public => true,
