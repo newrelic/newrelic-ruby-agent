@@ -10,52 +10,76 @@ module NewRelic
         PIPELINE_OPERATION = 'pipeline'
         BINARY_DATA_PLACEHOLDER = "<binary data>"
         MAXIMUM_ARGUMENT_LENGTH = 64
+        MAXIMUM_COMMAND_LENGTH = 1000
         PRODUCT_NAME = 'Redis'
         CONNECT = 'connect'
 
+        OBFUSCATE_ARGS = ' ?'
+        ELLIPSES = '...'
+        NEWLINE = "\n"
+
         def self.format_command(command_with_args)
           if Agent.config[:'transaction_tracer.record_redis_arguments']
-            command = command_with_args.first
-            format_command_with_args(command, command_with_args)
+            result = ""
+
+            append_command_with_args(result, command_with_args)
+
+            result.strip!
+            result
           else
             nil
           end
         end
 
-        def self.format_pipeline_command(command_with_args)
-          command = command_with_args.first
+        def self.format_pipeline_commands(commands_with_args)
+          result = ""
 
-          if Agent.config[:'transaction_tracer.record_redis_arguments']
-            format_command_with_args(command, command_with_args)
-          else
-            format_command_with_no_args(command, command_with_args)
-          end
-        end
-
-        def self.format_command_with_args(command, command_with_args)
-          if command_with_args.size > 1
-            result = "#{command} "
-
-            command_with_args[1..-1].each do |arg|
-              result << "#{ellipsize(arg, MAXIMUM_ARGUMENT_LENGTH)} "
+          commands_with_args.each do |command|
+            if result.length >= MAXIMUM_COMMAND_LENGTH
+              result.slice!(MAXIMUM_COMMAND_LENGTH..-4)
+              result << ELLIPSES
+              break
             end
 
-            result.strip
-          else
-            command.to_s
+            append_pipeline_command(result, command)
+            result << NEWLINE
           end
+
+          result.strip!
+          result
         end
 
-        def self.format_command_with_no_args(command, command_with_args)
+        def self.append_pipeline_command(result, command_with_args)
+          if Agent.config[:'transaction_tracer.record_redis_arguments']
+            append_command_with_args(result, command_with_args)
+          else
+            append_command_with_no_args(result, command_with_args)
+          end
+
+          result
+        end
+
+        def self.append_command_with_args(result, command_with_args)
+          result << command_with_args.first.to_s
+
           if command_with_args.size > 1
-            "#{command} ?"
-          else
-            command.to_s
+            command_with_args[1..-1].each do |arg|
+              if (result.length + MAXIMUM_ARGUMENT_LENGTH) > MAXIMUM_COMMAND_LENGTH
+                # Next argument puts us over the limit...
+                break
+              end
+
+              result << " #{ellipsize(arg, MAXIMUM_ARGUMENT_LENGTH)}"
+            end
           end
+
+          result
         end
 
-        def self.format_pipeline_commands(commands_with_args)
-          commands_with_args.map { |cmd| format_pipeline_command(cmd) }.join("\n")
+        def self.append_command_with_no_args(result, command_with_args)
+          result << command_with_args.first.to_s
+          result << OBFUSCATE_ARGS if command_with_args.size > 1
+          result
         end
 
         def self.is_supported_version?
