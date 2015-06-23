@@ -27,6 +27,16 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     end
   end
 
+  def test_format_command_truncates_long_commands
+    key = "key"
+    command = [:set] + Array.new(NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH, key)
+
+    with_config(:'transaction_tracer.record_redis_arguments' => true) do
+      result = NewRelic::Agent::Datastores::Redis.format_command(command)
+      assert result.length < NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH
+    end
+  end
+
   def test_format_command_with_record_arguments_false
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])
@@ -43,32 +53,48 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     end
   end
 
-  def test_format_command_in_pipeline_with_record_arguments_false
+  def test_append_command_in_pipeline_with_record_arguments_false
     expected = "set ?"
 
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
-      result = NewRelic::Agent::Datastores::Redis.format_pipeline_command([:set, 'foo', 'bar'])
+      result = ""
+      NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:set, 'foo', 'bar'])
       assert_equal expected, result
     end
   end
 
-  def test_format_command_in_pipeline_with_record_arguments_and_no_args
+  def test_append_command_in_pipeline_with_record_arguments_and_no_args
     expected = "multi"
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
-      result = NewRelic::Agent::Datastores::Redis.format_pipeline_command([:multi])
+      result = ""
+      NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:multi])
       assert_equal expected, result
     end
   end
 
-  def test_format_command_in_pipeline_with_record_arguments_false_and_no_args
+  def test_append_command_in_pipeline_with_record_arguments_false_and_no_args
     expected = "multi"
 
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
-      result = NewRelic::Agent::Datastores::Redis.format_pipeline_command([:multi])
+      result = ""
+      NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:multi])
       assert_equal expected, result
     end
   end
+
+  def test_format_pipeline_commands_truncates_long_commands
+    pipeline = NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH.times.map do
+      [:set, "key"]
+    end
+
+    with_config(:'transaction_tracer.record_redis_arguments' => true) do
+      result = NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)
+      assert NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH, result.length
+      assert result.end_with?("...")
+    end
+  end
+
 
   def test_format_command_with_non_string_argument
     expected = "set \"key\" true"
