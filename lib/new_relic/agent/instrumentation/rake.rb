@@ -10,7 +10,7 @@ DependencyDetection.defer do
     defined?(::Rake) &&
       ::NewRelic::Agent.config[:'disable_rake'] == false &&
       ::NewRelic::Agent.config[:'rake.tasks'].any? &&
-      ::NewRelic::Agent::Instrumentation::RakeInstrumentation.is_supported_version?
+      ::NewRelic::Agent::Instrumentation::RakeInstrumentation.should_install?
   end
 
   executes do
@@ -53,8 +53,21 @@ module NewRelic
   module Agent
     module Instrumentation
       module RakeInstrumentation
+        def self.should_install?
+          is_supported_version? && safe_from_third_party_gem?
+        end
+
         def self.is_supported_version?
           ::NewRelic::VersionNumber.new(::Rake::VERSION) >= ::NewRelic::VersionNumber.new("10.0.0")
+        end
+
+        def self.safe_from_third_party_gem?
+          if NewRelic::LanguageSupport.bundled_gem?("newrelic-rake")
+            ::NewRelic::Agent.logger.info("Not installing New Relic supported Rake instrumentation because the third party newrelic-rake gem is present")
+            false
+          else
+            true
+          end
         end
 
         def self.should_trace?(name)

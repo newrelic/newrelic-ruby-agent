@@ -29,3 +29,9 @@ gemfile <<-RB
   gem 'rack'
   gem 'rake', '0.9.6' # Newest unsupported version
 RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake', '~> 10.4'
+  gem 'newrelic-rake' # Can't coexist with third-party instrumentation
+RB
