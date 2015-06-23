@@ -6,14 +6,20 @@ require 'new_relic/agent/datastores'
 require 'new_relic/agent/datastores/redis'
 
 DependencyDetection.defer do
-  named :redis
+  # Why not :redis? newrelic-redis used that name, so avoid conflicting
+  named :redis_instrumentation
 
   depends_on do
     defined? ::Redis
   end
 
   depends_on do
-    NewRelic::Agent::Datastores::Redis.is_supported_version?
+    NewRelic::Agent.config[:disable_redis] == false
+  end
+
+  depends_on do
+    NewRelic::Agent::Datastores::Redis.is_supported_version? &&
+      NewRelic::Agent::Datastores::Redis.safe_from_third_party_gem?
   end
 
   executes do

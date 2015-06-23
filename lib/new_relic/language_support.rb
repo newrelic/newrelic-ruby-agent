@@ -141,4 +141,11 @@ module NewRelic::LanguageSupport
   rescue NotImplementedError
     false
   end
+
+  def bundled_gem?(gem_name)
+    defined?(Bundler) && Bundler.rubygems.all_specs.map(&:name).include?(gem_name)
+  rescue => e
+    ::NewRelic::Agent.logger.info("Could not determine if third party #{gem_name} gem is installed", e)
+    false
+  end
 end

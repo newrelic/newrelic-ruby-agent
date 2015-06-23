@@ -113,6 +113,15 @@ module NewRelic
             result << QUOTE
           end
         end
+
+        def self.safe_from_third_party_gem?
+          if NewRelic::LanguageSupport.bundled_gem?("newrelic-redis")
+            ::NewRelic::Agent.logger.info("Not installing New Relic supported Redis instrumentation because the third party newrelic-redis gem is present")
+            false
+          else
+            true
+          end
+        end
       end
     end
   end
