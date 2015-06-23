@@ -2,12 +2,13 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-
 DependencyDetection.defer do
-  named :rake
+  # Why not :rake? newrelic-rake used that name, so avoid conflicting
+  named :rake_instrumentation
 
   depends_on do
     defined?(::Rake) &&
+      ::NewRelic::Agent.config[:'disable_rake'] == false &&
       ::NewRelic::Agent.config[:'rake.tasks'].any? &&
       ::NewRelic::Agent::Instrumentation::RakeInstrumentation.is_supported_version?
   end

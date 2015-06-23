@@ -416,6 +416,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Enable or disable rake instrumentation.'
         },
+        :disable_rake_instrumentation => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enable or disable rake instrumentation. Preferred key is `disable_rake`'
+        },
         :'rake.tasks' => {
           :default => [],
           :public => true,
@@ -1352,7 +1359,7 @@ module NewRelic
         },
         :disable_grape_instrumentation => {
           :default      => false,
-          :public       => true,
+          :public       => false,
           :type         => Boolean,
           :allowed_from_server => false,
           :description  => 'Disables installation of Grape instrumentation.'
