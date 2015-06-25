@@ -70,7 +70,7 @@ module NewRelic
         if block
           define_method(:ignore_filter_proc, &block)
         elsif method_defined?(:ignore_filter_proc)
-          undef :ignore_filter_proc
+          remove_method :ignore_filter_proc
         end
         @ignore_filter
       end
