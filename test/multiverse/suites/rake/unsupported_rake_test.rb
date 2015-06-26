@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(__FILE__, '..', 'rake_test_helper'))
 
-if !::NewRelic::Agent::Instrumentation::RakeInstrumentation.is_supported_version?
+if !::NewRelic::Agent::Instrumentation::RakeInstrumentation.should_install?
 class UnsupportedRakeTest < Minitest::Test
   include MultiverseHelpers
   include RakeTestHelper
