@@ -6,7 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/instrumentation/mongodb_command_subscriber'
 
 class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest::Test
-  class Order; end
 
   def setup
     @started_event = mock('started event')
