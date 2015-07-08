@@ -2,24 +2,24 @@
 
 ## v3.13.0 ##
 
-  * Rake instrumentation
+  * Rake task instrumentation
 
-  The Ruby agent now provides opt-in tracing for rake tasks. If you run
-  long jobs via rake, you can get all the visibility and goodness of New Relic
+  The Ruby agent now provides opt-in tracing for Rake tasks. If you run
+  long jobs via Rake, you can get all the visibility and goodness of New Relic
   that your other background jobs have. To enable this, see
   https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/rake
 
   * Redis instrumentation
 
-  Redis operations will now show up on the datastores tab and in transaction
-  traces. By default only command names will be captured, to capture command
-  arguments as well set transaction_tracer.record_redis_arguments to true in
-  your configuration file.
+  Redis operations will now show up on the Databases tab and in transaction
+  traces. By default, only command names will be captured; to capture command
+  arguments, set `transaction_tracer.record_redis_arguments` to `true` in
+  your configuration.
 
-  * Fix for over-obfuscated SQL Traces and Postgresql
+  * Fix for over-obfuscated SQL Traces and PostgreSQL
 
   An issue with the agent obfuscating column and table names from Slow SQL
-  Traces when using Postgresql has been resolved.
+  Traces when using PostgreSQL has been resolved.
 
 ## v3.12.1 ##
 
