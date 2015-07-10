@@ -85,16 +85,15 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
   def test_format_pipeline_commands_truncates_long_commands
     pipeline = NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH.times.map do
-      [:set, "key"]
+      [:set, "0123456789"]
     end
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)
       assert NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH, result.length
-      assert result.end_with?("...")
+      assert result.end_with?("012345...")
     end
   end
-
 
   def test_format_command_with_non_string_argument
     expected = "set \"key\" true"
