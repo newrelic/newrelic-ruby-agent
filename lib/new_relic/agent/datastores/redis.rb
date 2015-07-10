@@ -33,10 +33,7 @@ module NewRelic
 
             append_command_with_args(result, command_with_args)
 
-            if result.length >= MAXIMUM_COMMAND_LENGTH
-              trim_result(result)
-            end
-
+            trim_result(result) if result.length >= MAXIMUM_COMMAND_LENGTH
             result.strip!
             result
           else
@@ -78,9 +75,7 @@ module NewRelic
             command_with_args[ALL_BUT_FIRST].each do |arg|
               ellipsize(result, arg)
 
-              if result.length >= MAXIMUM_COMMAND_LENGTH
-                break
-              end
+              break if result.length >= MAXIMUM_COMMAND_LENGTH
             end
           end
 
