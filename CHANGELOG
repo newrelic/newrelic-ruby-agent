@@ -4,8 +4,8 @@
 
   * Bugfix for uninitialized constant NewRelic::Agent::ParameterFiltering
 
-  Users in some environments encoutered a NameError: uninitialized constant NewRelic::Agent::ParameterFiltering from the Rails instrumentation while
-  running v3.12.0 of the Ruby agent.  This issue has been fixed.
+  Users in some environments encountered a NameError: uninitialized constant NewRelic::Agent::ParameterFiltering from the Rails instrumentation while
+  running v3.12.x of the Ruby agent. This issue has been fixed.
 
   * Rake task instrumentation
 
