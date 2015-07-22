@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/evented_subscriber'
 require 'new_relic/agent/instrumentation/ignore_actions'
+require 'new_relic/agent/parameter_filtering'
 
 module NewRelic
   module Agent
