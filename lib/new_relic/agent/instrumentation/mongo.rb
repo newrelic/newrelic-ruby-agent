@@ -25,7 +25,10 @@ DependencyDetection.defer do
 
   def install_mongo_command_subscriber
     require 'new_relic/agent/instrumentation/mongodb_command_subscriber'
-    Mongo::Monitoring::Global.subscribe(Mongo::Monitoring::COMMAND, MongodbCommandSubscriber.new)
+    Mongo::Monitoring::Global.subscribe(
+      Mongo::Monitoring::COMMAND,
+      NewRelic::Agent::Instrumentation::MongodbCommandSubscriber.new
+    )
   end
 
   def install_mongo_instrumentation
