@@ -21,6 +21,11 @@
   An issue with the agent obfuscating column and table names from Slow SQL
   Traces when using PostgreSQL has been resolved.
 
+  * Rubinius 2.5.8 VM metric renaming support
+
+  Rubinius 2.5.8 changed some VM metric names and eliminated support for
+  total allocated object counters. The agent has been updated accordingly.
+
 ## v3.12.1 ##
 
   * More granular Database metrics for ActiveRecord 3 and 4

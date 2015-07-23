@@ -45,7 +45,7 @@ if NewRelic::LanguageSupport.rubinius?
     def test_gather_stats_from_metrics_sets_total_allocated_objects
       @vm.gather_stats_from_metrics(@snap)
 
-      refute_nil @snap.total_allocated_object
+      refute_nil @snap.total_allocated_object if @vm.supports?(:total_allocated_object)
     end
 
     def test_gather_stats_from_metrics_sets_method_cache_invalidations
