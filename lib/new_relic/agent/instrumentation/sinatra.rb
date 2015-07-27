@@ -5,6 +5,7 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 require 'new_relic/agent/instrumentation/sinatra/transaction_namer'
 require 'new_relic/agent/instrumentation/sinatra/ignorer'
+require 'new_relic/agent/parameter_filtering'
 
 DependencyDetection.defer do
   @name = :sinatra

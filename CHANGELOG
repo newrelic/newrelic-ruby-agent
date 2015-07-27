@@ -2,6 +2,11 @@
 
 ## v3.13.0 ##
 
+  * Bugfix for uninitialized constant NewRelic::Agent::ParameterFiltering
+
+  Users in some environments encountered a NameError: uninitialized constant NewRelic::Agent::ParameterFiltering from the Rails instrumentation while
+  running v3.12.x of the Ruby agent. This issue has been fixed.
+
   * Rake task instrumentation
 
   The Ruby agent now provides opt-in tracing for Rake tasks. If you run
