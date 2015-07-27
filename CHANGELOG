@@ -31,6 +31,12 @@
   Rubinius 2.5.8 changed some VM metric names and eliminated support for
   total allocated object counters. The agent has been updated accordingly.
 
+  * Fix agent attributes with a value of false not being stored
+
+  An issue introduced in v3.12.1 prevented attributes (like those added with
+  `add_custom_attributes`) from being stored if their value was false. This has
+  been fixed.
+
 ## v3.12.1 ##
 
   * More granular Database metrics for ActiveRecord 3 and 4

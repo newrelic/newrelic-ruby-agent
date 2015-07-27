@@ -77,6 +77,17 @@ class AgentAttributesTest < Minitest::Test
     refute_browser_monitoring_has_custom_attributes('foo')
   end
 
+  def test_falses_included
+    run_transaction do
+      NewRelic::Agent.add_custom_attributes(:foo => false)
+    end
+
+    assert_transaction_tracer_has_custom_attributes('foo', false)
+    assert_transaction_event_has_custom_attributes('foo', false)
+    assert_error_collector_has_custom_attributes('foo', false)
+    assert_browser_monitoring_has_custom_attributes('foo', false)
+  end
+
   def test_custom_attributes_excluded
     config = {
       :'transaction_tracer.attributes.enabled' => false,
