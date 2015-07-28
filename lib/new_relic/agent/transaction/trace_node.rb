@@ -19,6 +19,7 @@ module NewRelic
         def initialize(timestamp, metric_name)
           @entry_timestamp = timestamp
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
+          @called_nodes    = nil
         end
 
         # sets the final timestamp on a node to indicate the exit
@@ -167,13 +168,13 @@ module NewRelic
           return nil unless statement.respond_to?(:config) &&
             statement.respond_to?(:explainer)
 
-          NewRelic::Agent::Database.explain_sql(statement,
+          NewRelic::Agent::Database.explain_sql(statement.sql,
                                                 statement.config,
                                                 statement.explainer)
         end
 
         def obfuscated_sql
-          NewRelic::Agent::Database.obfuscate_sql(params[:sql])
+          NewRelic::Agent::Database.obfuscate_sql(params[:sql].sql)
         end
 
         def called_nodes=(nodes)

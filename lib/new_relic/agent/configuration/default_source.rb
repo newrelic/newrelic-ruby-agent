@@ -409,6 +409,35 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Defines a comma-delimited list of rake tasks that should not be instrumented by the agent (e.g. \'assets:precompile,db:migrate\').'
         },
+        :disable_rake => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enable or disable rake instrumentation.'
+        },
+        :disable_rake_instrumentation => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enable or disable rake instrumentation. Preferred key is `disable_rake`'
+        },
+        :'rake.tasks' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :transform => DefaultSource.method(:convert_to_regexp_list),
+          :description => 'List of Rake tasks to automatically instrument'
+        },
+        :'rake.connect_timeout' => {
+          :default => 10,
+          :public => true,
+          :type => Fixnum,
+          :allowed_from_server => false,
+          :description => 'Timeout for waiting on connect to complete before a rake task'
+        },
         :'profiling.available' => {
           :default => DefaultSource.profiling_available,
           :public => false,
@@ -762,6 +791,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Obfuscation level for SQL queries reported in transaction trace nodes. Valid options are <code>obfuscated</code>, <code>raw</code>, <code>none</code>.'
         },
+        :'transaction_tracer.record_redis_arguments' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Determines whether Redis command arguments should be recorded within Transaction Traces'
+        },
         :'transaction_tracer.capture_attributes' => {
           :default => true,
           :public => true,
@@ -820,6 +856,20 @@ module NewRelic
           :allowed_from_server => false,
           :dynamic_name => true,
           :description  => 'Defines whether the agent will install <a href="/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.'
+        },
+        :disable_redis => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :allowed_from_server => false,
+          :description  => 'Defines whether the agent will install <a href="/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.'
+        },
+        :disable_redis_instrumentation => {
+          :default      => false,
+          :public       => false,
+          :type         => Boolean,
+          :allowed_from_server => false,
+          :description  => 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.'
         },
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
@@ -1309,7 +1359,7 @@ module NewRelic
         },
         :disable_grape_instrumentation => {
           :default      => false,
-          :public       => true,
+          :public       => false,
           :type         => Boolean,
           :allowed_from_server => false,
           :description  => 'Disables installation of Grape instrumentation.'

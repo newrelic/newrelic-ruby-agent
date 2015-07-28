@@ -1,0 +1,54 @@
+Bundler.require
+require "tasks/newrelic"
+
+task :default => [:before, :during, :after] do
+  puts "default"
+end
+
+task :before do
+  puts "before"
+end
+
+task :during do
+  puts "during"
+end
+
+task :after do
+  puts "after"
+end
+
+task :untraced do
+  puts "untraced"
+end
+
+task :argument, [:who, :where] => [] do
+  puts "argument"
+end
+
+task :boom do
+  raise "a legitimate issue with the proposal."
+end
+
+task :tree => [:branch1, :branch2]
+task :branch1 => [:branch1a, :branch1b]
+task :branch2 => [:branch2a, :branch2b]
+task :branch1a
+task :branch1b
+task :branch2a
+task :branch2b
+
+namespace :named do
+  task :all => [:'named:before', :'named:during', :'named:after']
+
+  task :before do
+    puts "named:before"
+  end
+
+  task :during do
+    puts "named:during"
+  end
+
+  task :after do
+    puts "named:after"
+  end
+end

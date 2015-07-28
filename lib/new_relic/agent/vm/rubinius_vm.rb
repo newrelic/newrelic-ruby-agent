@@ -41,16 +41,26 @@ module NewRelic
           snap.major_gc_count = metric(:'gc.immix.count') + 0
           snap.minor_gc_count = metric(:'gc.young.count') + 0
 
-          snap.heap_live = metric(:'memory.large.objects.current') +
-            metric(:'memory.young.objects.current') +
-            metric(:'memory.immix.objects.current')
+          if has_metric_totals?
+            # Rubinius < 2.5.8 metric names
+            snap.heap_live = metric(:'memory.large.objects.current') +
+              metric(:'memory.young.objects.current') +
+              metric(:'memory.immix.objects.current')
 
-          snap.total_allocated_object =
-            metric(:'memory.large.objects.total') +
-            metric(:'memory.young.objects.total') +
-            metric(:'memory.immix.objects.total')
+            snap.total_allocated_object =
+              metric(:'memory.large.objects.total') +
+              metric(:'memory.young.objects.total') +
+              metric(:'memory.immix.objects.total')
 
-          snap.method_cache_invalidations = metric(:'vm.inline_cache.resets') + 0
+            snap.method_cache_invalidations = metric(:'vm.inline_cache.resets') + 0
+          else
+            # Rubinius >= 2.5.8 metric names and no total metrics
+            snap.heap_live = metric(:'memory.large.objects') +
+              metric(:'memory.young.objects') +
+              metric(:'memory.immix.objects')
+
+            snap.method_cache_invalidations = metric(:'machine.inline_cache.resets') + 0
+          end
         end
 
         def gather_stats_from_gc_stat(snap)
@@ -81,15 +91,13 @@ module NewRelic
           Rubinius::Metrics.data[key]
         end
 
-        SUPPORTED_KEYS_GC_RBX_METRICS = [
-          :gc_runs,
-          :heap_live,
-          :major_gc_count,
-          :minor_gc_count,
-          :method_cache_invalidations,
-          :thread_count,
-          :total_allocated_object
-        ].freeze
+        def has_metric?(key)
+          Rubinius::Metrics.data.keys.include? key
+        end
+
+        def has_metric_totals?
+          has_metric? :'memory.large.objects.total'
+        end
 
         def supports?(key)
           if has_metrics?
@@ -101,7 +109,7 @@ module NewRelic
             when :heap_live
               true
             when :total_allocated_object
-              true
+              has_metric_totals?
             when :method_cache_invalidations
               true
             when :gc_runs

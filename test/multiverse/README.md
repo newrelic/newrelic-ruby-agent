@@ -4,7 +4,7 @@
 
 Multiverse was created to solve a specific problem experienced by the Agent
 team.  Not only does the New Relic Agent run in a wide variety of environments,
-but its expected behavior *changes* based on the environment.  Instrumenation is
+but its expected behavior *changes* based on the environment.  Instrumentation is
 toggled on and off based on the presence of certain libraries, and some of these
 libraries are incompatible with each other.  Effective testing requires us to
 specify different environments for different tests; Multiverse aims to make this

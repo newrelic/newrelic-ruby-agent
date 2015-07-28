@@ -13,6 +13,12 @@ class ResqueMarshallingTest < Minitest::Test
 
   setup_and_teardown_agent
 
+  def before_teardown
+    puts
+    p $collector.agent_data.map { |post| [post.class, post.action] }
+    super
+  end
+
   class DummyJob
     extend Resque::Plugins::NewRelicInstrumentation
   end
@@ -41,6 +47,8 @@ class ResqueMarshallingTest < Minitest::Test
       DummyJob.around_perform_with_monitoring do
         yield
       end
+
+      run_harvest
       exit
     end
   end

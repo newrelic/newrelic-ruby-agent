@@ -21,6 +21,7 @@ module NewRelic
       CONTROLLER_PREFIX            = 'Controller/'.freeze
       MIDDLEWARE_PREFIX            = 'Middleware/Rack/'.freeze
       TASK_PREFIX                  = 'OtherTransaction/Background/'.freeze
+      RAKE_PREFIX                  = 'OtherTransaction/Rake/'.freeze
       RACK_PREFIX                  = 'Controller/Rack/'.freeze
       SINATRA_PREFIX               = 'Controller/Sinatra/'.freeze
       GRAPE_PREFIX                 = 'Controller/Grape/'.freeze
@@ -279,6 +280,7 @@ module NewRelic
         @ignore_this_transaction = false
         @ignore_apdex = false
         @ignore_enduser = false
+        @ignore_trace = false
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 

@@ -1,0 +1,14 @@
+gemfile <<-RB
+  gem 'rack'
+  gem 'redis', '~>3.2.1'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'redis', '3.0.0' # oldest supported version
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'redis', '2.2.2' # newest unsupported version
+RB

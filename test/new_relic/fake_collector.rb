@@ -99,6 +99,11 @@ module NewRelic
       self.mock[method].override(status, {'exception' => exception})
     end
 
+    def stub_wait(method, wait_time, status=200)
+      self.mock[method] ||= default_response
+      self.mock[method].override(status, Proc.new { sleep(wait_time); {'return_value' => ""}})
+    end
+
     def call(env)
       @last_socket = Thread.current[:WEBrickSocket]
 
@@ -313,11 +318,23 @@ module NewRelic
       end
 
       class SubmittedTransactionTraceTree
-        attr_reader :attributes
+        attr_reader :attributes, :nodes, :node_params
 
         def initialize(body, format)
           @body = body
           @attributes = body[4]
+          @nodes = extract_by_index(body[3], 2)
+          @node_params = extract_by_index(body[3], 3)
+        end
+
+        def extract_by_index(current, index)
+          result = [current[index]]
+          if current[4].any?
+            current[4].each do |child|
+              result << extract_by_index(child, index)
+            end
+          end
+          result
         end
       end
 
