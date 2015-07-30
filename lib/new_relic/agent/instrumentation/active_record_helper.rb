@@ -12,7 +12,12 @@ module NewRelic
         module_function
 
         # Used by both the AR 3.x and 4.x instrumentation
-        def instrument_writer_methods
+        def instrument_additional_methods
+          instrument_save_methods
+          instrument_relation_methods
+        end
+
+        def instrument_save_methods
           ::ActiveRecord::Base.class_eval do
             alias_method :save_without_newrelic, :save
 
@@ -30,7 +35,9 @@ module NewRelic
               end
             end
           end
+        end
 
+        def instrument_relation_methods
           ::ActiveRecord::Relation.class_eval do
             alias_method :update_all_without_newrelic, :update_all
 
@@ -53,6 +60,24 @@ module NewRelic
             def destroy_all(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
                 destroy_all_without_newrelic(*args, &blk)
+              end
+            end
+
+            alias_method :calculate_without_newrelic, :calculate
+
+            def calculate(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                calculate_without_newrelic(*args, &blk)
+              end
+            end
+
+            if method_defined?(:pluck)
+              alias_method :pluck_without_newrelic, :pluck
+
+              def pluck(*args, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                  pluck_without_newrelic(*args, &blk)
+                end
               end
             end
           end

@@ -18,7 +18,7 @@ module NewRelic
 
         def self.insert_instrumentation
           if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR.to_i >= 3
-            ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_writer_methods
+            ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
           end
 
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
