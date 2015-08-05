@@ -52,7 +52,11 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.sum(:id)
     end
 
-    assert_activerecord_metrics(Order, 'select', :call_count => 5)
+    if active_record_major_version >= 3
+      assert_activerecord_metrics(Order, 'select', :call_count => 5)
+    else
+      assert_generic_rollup_metrics('select')
+    end
   end
 
   if active_record_version >= NewRelic::VersionNumber.new('3.2.0')
