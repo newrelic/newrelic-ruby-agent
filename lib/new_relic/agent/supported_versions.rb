@@ -152,8 +152,22 @@ module NewRelic
         :url         => "https://rubygems.org/gems/mongo",
         :feed        => "https://rubygems.org/gems/mongo/versions.atom"
       },
+      :redis =>
+      {
+        :type        => :database,
+        :supported   => ["~> 3.0"],
+        :url         => "https://rubygems.org/gems/redis",
+        :feed        => "https://rubygems.org/gems/redis/versions.atom"
+      },
 
       # Background Jobs
+      :rake =>
+      {
+        :type        => :background,
+        :supported   => ["~> 10.0"],
+        :url         => "https://rubygems.org/gems/rake",
+        :feed        => "https://rubygems.org/gems/rake/versions.atom"
+      },
       :resque =>
       {
         :type        => :background,
