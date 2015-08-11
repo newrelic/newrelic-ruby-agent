@@ -113,6 +113,11 @@ module NewRelic
         if num_physical_cores == 0
           num_logical_processors = total_processors
 
+          if total_processors == 0
+            # Likely a malformed file.
+            num_logical_processors = nil
+          end
+
           if total_processors == 1
             # Some older, single-core processors might not list ids,
             # so we'll just mark them all 1.

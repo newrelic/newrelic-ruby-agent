@@ -22,3 +22,7 @@ should produce the following expected values:
 If any of `A`, `B`, or `C` are the character `X` instead of an integer, then
 processing code should not return a value (return `null`, return `nil`,
 raise an exception... whatever makes most sense for your agent).
+
+There is a malformed.txt file which is a random file that does not adhere to
+any /proc/cpuinfo format. The expected result is `null` for packages, cores and
+processors.
