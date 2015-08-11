@@ -7,6 +7,10 @@ require 'open3'
 
 class StartUpTest < Minitest::Test
   GIT_NOISE = "fatal: Not a git repository (or any of the parent directories): .git\n"
+  JRUBY_9000_NOISE = [
+    /uri\:classloader\:\/jruby\/kernel\/kernel\.rb\:\d*\: warning: unsupported exec option: close_others/, # https://github.com/jruby/jruby/issues/1913
+    /.*\/lib\/ruby\/stdlib\/jar_dependencies.rb:\d*: warning: shadowing outer local variable - (group_id|artifact_id)/, #https://github.com/mkristian/jar-dependencies/commit/65c71261b1522f7b10fcb95de42ea4799de3a83a
+  ]
 
   include MultiverseHelpers
 
@@ -25,7 +29,9 @@ class StartUpTest < Minitest::Test
       GIT_NOISE,
       /Exception\: java\.lang.*\n/]
 
-    expected_noise.each {|noise| output.gsub!(noise, "")}
+    expected_noise << JRUBY_9000_NOISE if jruby_9000
+
+    expected_noise.flatten.each {|noise| output.gsub!(noise, "")}
 
     assert_equal '', output.chomp
   end
@@ -64,8 +70,12 @@ class StartUpTest < Minitest::Test
                        'NEW_RELIC_PORT' => $collector.port.to_s) do
 
         output = `bundle exec ruby -w script/warnings.rb 2>&1`
-        output.gsub!(GIT_NOISE, "")
-        output.chomp!
+        expected_noise = [GIT_NOISE]
+
+        expected_noise << JRUBY_9000_NOISE if jruby_9000
+
+        expected_noise.flatten.each {|noise| output.gsub!(noise, "")}
+        output.strip!
 
         assert_equal NewRelic::VERSION::STRING, output
       end
@@ -78,5 +88,9 @@ class StartUpTest < Minitest::Test
 
     problems = output.scan(/ERROR : .*/)
     assert_empty problems
+  end
+
+  def jruby_9000
+    defined?(JRUBY_VERSION) && JRUBY_VERSION == "9.0.0.0"
   end
 end
