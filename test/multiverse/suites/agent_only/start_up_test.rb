@@ -91,6 +91,6 @@ class StartUpTest < Minitest::Test
   end
 
   def jruby_9000
-    defined?(JRUBY_VERSION) && JRUBY_VERSION == "9.0.0.0"
+    defined?(JRUBY_VERSION) && NewRelic::VersionNumber.new(JRUBY_VERSION) >= "9.0.0"
   end
 end
