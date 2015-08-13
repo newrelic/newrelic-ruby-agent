@@ -10,6 +10,13 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
   class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < Minitest::Test
     include Mongo
 
+    def self.mongo_2x_unsupported?
+      if defined?(::Mongo::VERSION)
+        version = NewRelic::VersionNumber.new(::Mongo::VERSION)
+        version.major_version == 2 && version.minor_version == 0
+      end
+    end
+
     def setup
       @database_name = "multiverse"
       @collection_name = "tribbles-#{SecureRandom.hex(16)}"
@@ -63,7 +70,7 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
       end
     end
 
-    if NewRelic::Agent::Datastores::Mongo.is_version2?
+    if mongo_2x_unsupported?
       include Mongo2xUnsupported
     else
       include Mongo1xUnsupported
