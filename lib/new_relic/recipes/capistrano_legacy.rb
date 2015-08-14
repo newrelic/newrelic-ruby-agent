@@ -58,7 +58,7 @@ make_notify_task = Proc.new do
         from_revision = source.next_revision(current_revision)
 
         if scm == :git
-          log_command = "git log --no-color --pretty=format:'  * %an: %s' " +
+          log_command = "git --no-pager log --no-color --pretty=format:'  * %an: %s' " +
             "--abbrev-commit --no-merges #{previous_revision}..#{real_revision}"
         else
           log_command = "#{source.log(from_revision)}"
