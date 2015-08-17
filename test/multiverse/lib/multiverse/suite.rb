@@ -172,7 +172,7 @@ module Multiverse
         f.puts '  source "https://rubygems.org"' unless local
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
-        f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./
+        f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./ || (defined?(JRUBY_VERSION) && JRUBY_VERSION > '1.7')
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
 
         rbx_gemfile_lines(f, gemfile_text)
@@ -184,8 +184,8 @@ module Multiverse
 
           # Pry 0.10.0 breaks compatibility with Ruby 1.8.7 :(
           f.puts "  gem 'pry', '~> #{pry_version}'"
-          f.puts "  gem 'pry-byebug'" if RUBY_VERSION >= "2.0.0"
-          f.puts "  gem 'pry-stack_explorer'"
+          f.puts "  gem 'pry-byebug'" if RUBY_VERSION >= "2.0.0" && RUBY_ENGINE == "ruby"
+          f.puts "  gem 'pry-stack_explorer'" if RUBY_ENGINE == "ruby"
         end
       end
       puts yellow("Gemfile.#{env_index} set to:") if verbose?
