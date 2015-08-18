@@ -471,19 +471,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal('STACK STACK STACK', @error_collector.extract_stack_trace(exception))
   end
 
-  def test_over_queue_limit_negative
-    refute @error_collector.over_queue_limit?(nil)
-  end
-
-  def test_over_queue_limit_positive
-    expects_logging(:warn, includes('The error reporting queue has reached 20'))
-    21.times do
-      @error_collector.notice_error("", {})
-    end
-
-    assert @error_collector.over_queue_limit?('hooray')
-  end
-
   def test_skip_notice_error_is_true_if_the_error_collector_is_disabled
     error = StandardError.new
     with_config(:'error_collector.enabled' => false) do

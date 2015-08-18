@@ -24,8 +24,7 @@ module NewRelic::Rack
     def setup
       NewRelic::Agent.reset_config
       NewRelic::Agent.manual_start
-      NewRelic::Agent.instance.error_collector
-      NewRelic::Agent.instance.error_collector.errors = []
+      NewRelic::Agent.instance.error_collector.reset!
 
       # sanity checks
       assert NewRelic::Agent.instance.error_collector.enabled?
