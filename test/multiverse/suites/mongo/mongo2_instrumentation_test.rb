@@ -17,9 +17,8 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           include TestHelpers::MongoMetricBuilder
 
           def setup
-            @client = Mongo::Client.new(["#{$mongo.host}:#{$mongo.port}"])
             @database_name = "multiverse"
-            @client.use(@database_name)
+            @client = Mongo::Client.new(["#{$mongo.host}:#{$mongo.port}"], :database => @database_name)
             @database = @client.database
 
             @collection_name = "tribbles-#{SecureRandom.hex(16)}"
@@ -39,7 +38,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           def test_records_metrics_for_insert_one
             @collection.insert_one(@tribbles.first)
 
-            metrics = build_test_metrics(:insertOne)
+            metrics = build_test_metrics(:insert)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -48,7 +47,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           def test_records_metrics_for_insert_many
             @collection.insert_many(@tribbles)
 
-            metrics = build_test_metrics(:insertMany)
+            metrics = build_test_metrics(:insert)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -60,7 +59,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             @collection.delete_one(@tribbles.first)
 
-            metrics = build_test_metrics(:deleteOne)
+            metrics = build_test_metrics(:delete)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -72,7 +71,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             @collection.delete_many(@tribbles.first)
 
-            metrics = build_test_metrics(:deleteMany)
+            metrics = build_test_metrics(:delete)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -84,7 +83,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             @collection.replace_one(@tribbles[0], @tribbles[1])
 
-            metrics = build_test_metrics(:replaceOne)
+            metrics = build_test_metrics(:update)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -96,7 +95,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             @collection.update_one(@tribbles[0], "$set" => @tribbles[1])
 
-            metrics = build_test_metrics(:updateOne)
+            metrics = build_test_metrics(:update)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -108,7 +107,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             @collection.update_many(@tribbles[0], "$set" => @tribbles[1])
 
-            metrics = build_test_metrics(:updateMany)
+            metrics = build_test_metrics(:update)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -132,7 +131,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             @collection.find_one_and_delete(@tribbles.first)
 
-            metrics = build_test_metrics(:findOneAndDelete)
+            metrics = build_test_metrics(:findandmodify)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -144,7 +143,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             @collection.find_one_and_replace(@tribbles[0], @tribbles[1])
 
-            metrics = build_test_metrics(:findOneAndReplace)
+            metrics = build_test_metrics(:findandmodify)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -156,7 +155,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             @collection.find_one_and_update(@tribbles[0], "$set" => @tribbles[1])
 
-            metrics = build_test_metrics(:findOneAndUpdate)
+            metrics = build_test_metrics(:findandmodify)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -270,7 +269,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             query = node.params[:statement]
 
-            assert_equal :find, query[:operation]
+            assert_equal 'find', query[:operation]
           end
 
           def test_noticed_nosql_does_not_contain_documents
@@ -299,7 +298,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             refute statement.inspect.include?('$secret')
 
-            assert_equal '?', statement[:selector]['password']
+            assert_equal '?', statement[:filter]['password']
           end
 
           def test_web_requests_record_all_web_metric

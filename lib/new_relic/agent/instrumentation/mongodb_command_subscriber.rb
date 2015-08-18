@@ -1,6 +1,8 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+require 'new_relic/agent/datastores/mongo/statement_formatter'
+
 module NewRelic
   module Agent
     module Instrumentation
@@ -30,7 +32,7 @@ module NewRelic
             )
 
             NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(
-              format_statement(started_event), event.duration
+              generate_statement(started_event), event.duration
             )
           rescue Exception => e
             log_notification_error('completed', e)
@@ -59,8 +61,11 @@ module NewRelic
           @operations ||= {}
         end
 
-        def format_statement(event)
-          "#{event.database_name}.#{event.command_name} #{event.command}"
+        def generate_statement(event)
+          NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(
+            { :database => event.database_name }.merge(event.command),
+            event.command_name
+          )
         end
       end
     end

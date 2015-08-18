@@ -21,7 +21,8 @@ module NewRelic
           ]
 
           OBFUSCATE_KEYS = [
-            :selector
+            :selector,
+            :filter
           ]
 
           def self.format(statement, operation)
