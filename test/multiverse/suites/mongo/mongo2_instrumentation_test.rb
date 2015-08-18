@@ -298,7 +298,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             refute statement.inspect.include?('$secret')
 
-            assert_equal '?', statement[:filter]['password']
+            assert_equal '?', statement[:deletes].first['q']['password']
           end
 
           def test_web_requests_record_all_web_metric
