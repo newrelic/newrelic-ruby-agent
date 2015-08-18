@@ -1,11 +1,9 @@
 if RUBY_VERSION >= '1.9.3'
   gemfile <<-RB
-    gem 'mongo', '~>2.1.0.beta'
-    gem 'bson_ext', :platforms => :ruby
+    gem 'mongo', github: 'mongodb/mongo-ruby-driver'
   RB
   gemfile <<-RB
     gem 'mongo', '~>2.0.1'
-    gem 'bson_ext', :platforms => :ruby
   RB
 end
 
