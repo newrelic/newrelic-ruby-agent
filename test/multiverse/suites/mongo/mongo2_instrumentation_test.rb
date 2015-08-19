@@ -221,10 +221,10 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             end
 
             expected = {
-              'database'   => @database_name,
-              'collection' => @collection_name,
+              :database   => @database_name,
+              :collection => @collection_name,
               'insert' => @collection_name,
-              'operation'  => :insert,
+              :operation  => :insert,
               'writeConcern' => { 'w' => 1 },
               'ordered' => true
             }
@@ -244,7 +244,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             query = node.params[:statement]
 
-            assert_equal :insert, query['operation']
+            assert_equal :insert, query[:operation]
           end
 
           def test_noticed_nosql_includes_update_one_operation
@@ -258,7 +258,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             query = node.params[:statement]
 
-            assert_equal :update, query['operation']
+            assert_equal :update, query[:operation]
           end
 
           def test_noticed_nosql_includes_find_operation
@@ -272,7 +272,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             query = node.params[:statement]
 
-            assert_equal 'find', query['operation']
+            assert_equal 'find', query[:operation]
           end
 
           def test_noticed_nosql_does_not_contain_documents
