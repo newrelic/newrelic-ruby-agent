@@ -21,7 +21,7 @@ module NewRelic
             result = {
               :operation => command_name,
               :database => database_name,
-              :collection => command.values.first
+              :collection => command.values[0]
             }
 
             command.each do |key, value|
