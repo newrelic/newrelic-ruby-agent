@@ -70,9 +70,9 @@ module NewRelic
 
           def test_event_formatter_obfuscates_by_default
             expected = {
-              "operation" => "find",
-              "database" => DATABASE,
-              "collection" => "tribbles",
+              :operation => :find,
+              :database => DATABASE,
+              :collection => "tribbles",
               "find" => "tribbles",
               "filter" => { "_id" => { "$gt" => "?" }, "name" => "?" },
               "sort" => { "_id" => 1 },
@@ -90,17 +90,17 @@ module NewRelic
               "snapshot" => false
             }
 
-            formatted = EventFormatter.format('find', DATABASE, FIND_COMMAND)
+            formatted = EventFormatter.format(:find, DATABASE, FIND_COMMAND)
             assert_equal expected, formatted
           end
 
           def test_event_formatter_raw_selectors
             with_config(:'mongo.obfuscate_queries' => false) do
-              formatted = EventFormatter.format('find', DATABASE, FIND_COMMAND)
+              formatted = EventFormatter.format(:find, DATABASE, FIND_COMMAND)
               expected = FIND_COMMAND.merge(
-                'operation' => 'find',
-                'database' => DATABASE,
-                'collection' => 'tribbles'
+                :operation => :find,
+                :database => DATABASE,
+                :collection => 'tribbles'
               )
               assert_equal expected, formatted
             end
@@ -108,40 +108,40 @@ module NewRelic
 
           def test_event_formatter_blacklists_inserts
             expected = {
-              "operation" => "insert",
-              "database" => DATABASE,
-              "collection" => "tribbles",
+              :operation => :insert,
+              :database => DATABASE,
+              :collection => "tribbles",
               "insert" => "tribbles",
               "ordered" => true
             }
 
-            formatted = EventFormatter.format('insert', DATABASE, INSERT_COMMAND)
+            formatted = EventFormatter.format(:insert, DATABASE, INSERT_COMMAND)
             assert_equal expected, formatted
           end
 
           def test_event_formatter_blacklists_updates
             expected = {
-              "operation" => "update",
-              "database" => DATABASE,
-              "collection" => "tribbles",
+              :operation => :update,
+              :database => DATABASE,
+              :collection => "tribbles",
               "update" => "tribbles",
               "ordered" => true
             }
 
-            formatted = EventFormatter.format('update', DATABASE, UPDATE_COMMAND)
+            formatted = EventFormatter.format(:update, DATABASE, UPDATE_COMMAND)
             assert_equal expected, formatted
           end
 
           def test_event_formatter_blacklists_deletes
             expected = {
-              "operation" => "delete",
-              "database" => DATABASE,
-              "collection" => "tribbles",
+              :operation => :delete,
+              :database => DATABASE,
+              :collection => "tribbles",
               "delete" => "tribbles",
               "ordered" => true
             }
 
-            formatted = EventFormatter.format('delete', DATABASE, DELETE_COMMAND)
+            formatted = EventFormatter.format(:delete, DATABASE, DELETE_COMMAND)
             assert_equal expected, formatted
           end
         end

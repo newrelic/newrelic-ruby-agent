@@ -19,9 +19,9 @@ module NewRelic
             return nil unless NewRelic::Agent.config[:'mongo.capture_queries']
 
             result = {
-              'operation' => command_name,
-              'database' => database_name,
-              'collection' => command.values.first
+              :operation => command_name,
+              :database => database_name,
+              :collection => command.values.first
             }
 
             command.each do |key, value|
