@@ -221,9 +221,12 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             end
 
             expected = {
-              :database   => @database_name,
-              :collection => @collection_name,
-              :operation  => :insert
+              'database'   => @database_name,
+              'collection' => @collection_name,
+              'insert' => @collection_name,
+              'operation'  => :insert,
+              'writeConcern' => { 'w' => 1 },
+              'ordered' => true
             }
 
             result = node.params[:statement]
@@ -241,7 +244,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             query = node.params[:statement]
 
-            assert_equal :insert, query[:operation]
+            assert_equal :insert, query['operation']
           end
 
           def test_noticed_nosql_includes_update_one_operation
@@ -255,7 +258,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             query = node.params[:statement]
 
-            assert_equal :update, query[:operation]
+            assert_equal :update, query['operation']
           end
 
           def test_noticed_nosql_includes_find_operation
@@ -269,7 +272,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             query = node.params[:statement]
 
-            assert_equal 'find', query[:operation]
+            assert_equal 'find', query['operation']
           end
 
           def test_noticed_nosql_does_not_contain_documents
@@ -290,7 +293,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = nil
 
             in_transaction do
-              @collection.delete_one({'password' => '$ecret'})
+              @collection.find({'password' => '$ecret'}).to_a
               node = find_last_transaction_node
             end
 
@@ -298,7 +301,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             refute statement.inspect.include?('$secret')
 
-            assert_equal '?', statement[:deletes].first['q']['password']
+            assert_equal '?', statement['filter']['password']
           end
 
           def test_web_requests_record_all_web_metric

@@ -1,7 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-require 'new_relic/agent/datastores/mongo/statement_formatter'
+require 'new_relic/agent/datastores/mongo/event_formatter'
 
 module NewRelic
   module Agent
@@ -62,9 +62,10 @@ module NewRelic
         end
 
         def generate_statement(event)
-          NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(
-            { :database => event.database_name }.merge(event.command),
-            event.command_name
+          NewRelic::Agent::Datastores::Mongo::EventFormatter.format(
+            event.command_name,
+            event.database_name,
+            event.command
           )
         end
       end
