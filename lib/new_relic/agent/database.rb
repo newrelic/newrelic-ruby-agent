@@ -266,6 +266,7 @@ module NewRelic
       EMPTY_STRING      = ''.freeze
 
       def parse_operation_from_query(sql)
+        sql = sql.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '') # avoid ArgumentError "invalid byte sequence in UTF-8" if the SQL expression contains invalid UTF-8 characters
         sql = sql.gsub(SQL_COMMENT_REGEX, EMPTY_STRING)
         if sql =~ /(\w+)/
           op = $1.downcase
