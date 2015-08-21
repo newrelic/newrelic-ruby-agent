@@ -16,10 +16,10 @@ module NewRelic
         @error_event_buffer = SampledBuffer.new(100)
       end
 
-      def append_event noticed_error, transaction
+      def append_event noticed_error, transaction_payload
         @lock.synchronize do
           @error_event_buffer.append_event do
-            event_for_collector(noticed_error, transaction)
+            event_for_collector(noticed_error, transaction_payload)
           end
         end
       end
