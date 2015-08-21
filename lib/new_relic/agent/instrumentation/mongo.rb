@@ -11,6 +11,9 @@ DependencyDetection.defer do
 
   depends_on do
     require 'new_relic/agent/datastores/mongo'
+    if NewRelic::Agent::Datastores::Mongo.is_unsupported_2x?
+      NewRelic::Agent.logger.info 'Detected unsupported Mongo 2, upgrade your Mongo Driver to 2.1 or newer for instrumentation'
+    end
     NewRelic::Agent::Datastores::Mongo.is_supported_version?
   end
 
