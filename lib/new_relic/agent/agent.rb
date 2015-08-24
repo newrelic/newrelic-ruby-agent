@@ -370,7 +370,6 @@ module NewRelic
           def should_install_exit_handler?
             (
               Agent.config[:send_data_on_exit]                  &&
-              !NewRelic::LanguageSupport.using_engine?('rbx')   &&
               !NewRelic::LanguageSupport.using_engine?('jruby') &&
               !sinatra_classic_app?
             )
