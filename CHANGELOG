@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.13.1 ##
+
+  * Don't use a pager when running `git log` command
+
+  This would cause Capistrano deploys to hang when a large number of commits were being deployed.
+  Thanks to John Naegle for reporting and fixing this issue!
+
 ## v3.13.0 ##
 
   * Bugfix for uninitialized constant NewRelic::Agent::ParameterFiltering
