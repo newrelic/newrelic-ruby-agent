@@ -24,13 +24,15 @@ module NewRelic
         end
       end
 
-      def event_for_collector noticed_error, transaction
+      def event_for_collector noticed_error, transaction_payload
         [
           {
             :type => EVENT_TYPE,
             :errorClass => noticed_error.exception_class_name,
             :errorMessage => noticed_error.message,
-            :timestamp => noticed_error.timestamp.to_f
+            :timestamp => noticed_error.timestamp.to_f,
+            :transactionName => transaction_payload[:name],
+            :transactionDuration => transaction_payload[:duration]
           },
           {},
           {}

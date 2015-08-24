@@ -19,7 +19,7 @@ module NewRelic
       end
 
       def populate_container(sampler, n)
-        n.times do |i|
+        n.times do
           error = NewRelic::NoticedError.new "Controller/blogs/index", RuntimeError.new("Big Controller")
           payload = in_transaction{}.payload
           @error_event_aggregator.append_event error, payload
@@ -29,8 +29,11 @@ module NewRelic
       include NewRelic::DataContainerTests
 
       def test_generates_event_from_error
-        error = NewRelic::NoticedError.new "Controller/blogs/index", RuntimeError.new("Big Controller")
-        @error_event_aggregator.append_event error, nil
+        txn_name = "Controller/blogs/index"
+        error = NewRelic::NoticedError.new txn_name, RuntimeError.new("Big Controller")
+        payload = in_transaction(:transaction_name => txn_name){}.payload
+
+        @error_event_aggregator.append_event error, payload
         errors = @error_event_aggregator.harvest!
         intrinsics, *_ = errors.first
 
@@ -38,6 +41,8 @@ module NewRelic
         assert_equal Time.now.to_f, intrinsics[:timestamp]
         assert_equal "RuntimeError", intrinsics[:errorClass]
         assert_equal "Big Controller", intrinsics[:errorMessage]
+        assert_equal txn_name, intrinsics[:transactionName]
+        assert_equal payload[:duration], intrinsics[:transactionDuration]
       end
     end
   end
