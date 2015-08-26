@@ -86,7 +86,7 @@ class NewRelic::NoticedError
       string(path),
       string(message),
       string(exception_class_name),
-      build_params ]
+      processed_attributes ]
   end
 
   USER_ATTRIBUTES = "userAttributes".freeze
@@ -97,12 +97,17 @@ class NewRelic::NoticedError
 
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
-  def build_params
-    params = base_parameters
-    append_attributes(params, USER_ATTRIBUTES, merged_custom_attributes)
-    append_attributes(params, AGENT_ATTRIBUTES, build_agent_attributes)
-    append_attributes(params, INTRINSIC_ATTRIBUTES, build_intrinsic_attributes)
-    params
+  # Note that we process attributes lazily and store the result. This is because
+  # there is a possibility that a noticed error will be discarded and not sent back
+  # as a traced error or TransactionError.
+  def processed_attributes
+    unless @processed_attributes
+      @processed_attributes = base_parameters
+      append_attributes(@processed_attributes, USER_ATTRIBUTES, merged_custom_attributes)
+      append_attributes(@processed_attributes, AGENT_ATTRIBUTES, build_agent_attributes)
+      append_attributes(@processed_attributes, INTRINSIC_ATTRIBUTES, build_intrinsic_attributes)
+    end
+    @processed_attributes
   end
 
   def base_parameters
@@ -161,4 +166,15 @@ class NewRelic::NoticedError
     outgoing_params[outgoing_key] = source_attributes || {}
   end
 
+  def agent_attributes
+    processed_attributes[AGENT_ATTRIBUTES]
+  end
+
+  def custom_attributes
+    processed_attributes[USER_ATTRIBUTES]
+  end
+
+  def intrinsic_attributes
+    processed_attributes[INTRINSIC_ATTRIBUTES]
+  end
 end
