@@ -34,7 +34,9 @@ module NewRelic
         end
 
         def self.is_sinatra_app?(target)
-          defined?(::Sinatra::Base) && target.kind_of?(::Sinatra::Base)
+          Object.const_defined?(:Sinatra) &&
+            ::Sinatra.const_defined?(:Base) &&
+            target.kind_of?(::Sinatra::Base)
         end
 
         def self.for_class(target_class)
