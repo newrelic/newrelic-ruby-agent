@@ -26,17 +26,27 @@ module NewRelic
 
       def event_for_collector noticed_error, transaction_payload
         [
-          {
-            :type => EVENT_TYPE,
-            :errorClass => noticed_error.exception_class_name,
-            :errorMessage => noticed_error.message,
-            :timestamp => noticed_error.timestamp.to_f,
-            :transactionName => transaction_payload[:name],
-            :transactionDuration => transaction_payload[:duration]
-          },
+          intrinsic_attributes_for(noticed_error, transaction_payload),
           {},
           {}
         ]
+      end
+
+      def intrinsic_attributes_for noticed_error, transaction_payload
+        attrs = {
+          :type => EVENT_TYPE,
+          :errorClass => noticed_error.exception_class_name,
+          :errorMessage => noticed_error.message,
+          :timestamp => noticed_error.timestamp.to_f,
+          :transactionName => transaction_payload[:name],
+          :transactionDuration => transaction_payload[:duration]
+        }
+
+        attrs[:'nr.syntheticsResourceId'] = transaction_payload[:synthetics_resource_id] if transaction_payload[:synthetics_resource_id]
+        attrs[:'nr.syntheticsJobId'] = transaction_payload[:synthetics_job_id] if transaction_payload[:synthetics_job_id]
+        attrs[:'nr.syntheticsMonitorId'] = transaction_payload[:synthetics_monitor_id] if transaction_payload[:synthetics_monitor_id]
+
+        attrs
       end
 
       def harvest!

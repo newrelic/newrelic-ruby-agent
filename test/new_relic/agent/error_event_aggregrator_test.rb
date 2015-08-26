@@ -30,8 +30,15 @@ module NewRelic
 
       def test_generates_event_from_error
         txn_name = "Controller/blogs/index"
-        error = NewRelic::NoticedError.new txn_name, RuntimeError.new("Big Controller")
-        payload = in_transaction(:transaction_name => txn_name){}.payload
+
+        txn = in_transaction :transaction_name => txn_name do |t|
+          t.raw_synthetics_header = "fake"
+          t.synthetics_payload = [1,2,3,4,5]
+          t.notice_error RuntimeError.new "Big Controller"
+        end
+
+        error = last_traced_error
+        payload = txn.payload
 
         @error_event_aggregator.append_event error, payload
         errors = @error_event_aggregator.harvest!
@@ -43,6 +50,10 @@ module NewRelic
         assert_equal "Big Controller", intrinsics[:errorMessage]
         assert_equal txn_name, intrinsics[:transactionName]
         assert_equal payload[:duration], intrinsics[:transactionDuration]
+
+        assert_equal 3, intrinsics[:'nr.syntheticsResourceId']
+        assert_equal 4, intrinsics[:'nr.syntheticsJobId']
+        assert_equal 5, intrinsics[:'nr.syntheticsMonitorId']
       end
     end
   end
