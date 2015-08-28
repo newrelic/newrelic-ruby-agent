@@ -161,32 +161,34 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     ])
   end
 
-  def test_record_scoped_and_unscoped_metrics_is_thread_safe
-    threads = []
-    nthreads = 25
-    iterations = 100
+  unless NewRelic::LanguageSupport.rubinius? # Routine segfaults with rbx, see RUBY-1507
+    def test_record_scoped_and_unscoped_metrics_is_thread_safe
+      threads = []
+      nthreads = 25
+      iterations = 100
 
-    nthreads.times do |tid|
-      threads << Thread.new do
-        iterations.times do
-          in_transaction('txn') do
-            @engine.tl_record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
-            @engine.tl_record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
+      nthreads.times do |tid|
+        threads << Thread.new do
+          iterations.times do
+            in_transaction('txn') do
+              @engine.tl_record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
+              @engine.tl_record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
+            end
           end
         end
       end
-    end
-    threads.each { |t| t.join }
+      threads.each { |t| t.join }
 
-    expected = { :call_count => nthreads * iterations }
-    assert_metrics_recorded(
-      'm1'          => expected,
-      'm2'          => expected,
-      ['m1', 'txn'] => expected,
-      ['m2', 'txn'] => expected,
-      'm3'          => expected,
-      'm4'          => expected
-    )
+      expected = { :call_count => nthreads * iterations }
+      assert_metrics_recorded(
+        'm1'          => expected,
+        'm2'          => expected,
+        ['m1', 'txn'] => expected,
+        ['m2', 'txn'] => expected,
+        'm3'          => expected,
+        'm4'          => expected
+      )
+    end
   end
 
   def test_record_scoped_and_unscoped_metrics_records_unscoped_if_not_in_txn
