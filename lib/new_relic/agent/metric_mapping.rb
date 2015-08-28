@@ -7,26 +7,29 @@ module NewRelic
   module Agent
     module MetricMapping
 
-      SPEC_MAPPINGS = {}
-
       def self.included base
-        base.extend ClassMethods
+        base.class_eval do
+          extend ClassMethods
+          self.spec_mappings = {}
+        end
       end
 
       module ClassMethods
+        attr_accessor :spec_mappings
+
         def map_metric(metric_name, to_add={})
           to_add.values.each(&:freeze)
 
-          mappings = SPEC_MAPPINGS.fetch(metric_name, {})
+          mappings = spec_mappings.fetch(metric_name, {})
           mappings.merge!(to_add)
 
-          SPEC_MAPPINGS[metric_name] = mappings
+          spec_mappings[metric_name] = mappings
         end
       end
 
       def append_mapped_metrics(txn_metrics, sample)
         if txn_metrics
-          SPEC_MAPPINGS.each do |(name, extracted_values)|
+          self.class.spec_mappings.each do |(name, extracted_values)|
             if txn_metrics.has_key?(name)
               stat = txn_metrics[name]
               extracted_values.each do |value_name, key_name|
