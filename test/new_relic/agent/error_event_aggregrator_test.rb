@@ -117,6 +117,25 @@ module NewRelic
         assert_equal txn.guid, intrinsics[:"nr.transactionGuid"]
         assert_equal "REFERRING_GUID", intrinsics[:"nr.referringTransactionGuid"]
       end
+
+      def test_includes_custom_attributes
+        txn_name = "Controller/blogs/index"
+
+        attrs = {"user" => "Wes Mantooth", "channel" => 9}
+        txn = in_transaction :transaction_name => txn_name do |t|
+          NewRelic::Agent.add_custom_attributes attrs
+          t.notice_error RuntimeError.new "Big Controller"
+        end
+
+        error = last_traced_error
+        payload = txn.payload
+
+        @error_event_aggregator.append_event error, payload
+        errors = @error_event_aggregator.harvest!
+        _, custom_attrs, _ = errors.first
+
+        assert_equal attrs, custom_attrs
+      end
     end
   end
 end

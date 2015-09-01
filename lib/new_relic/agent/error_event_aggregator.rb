@@ -53,7 +53,7 @@ module NewRelic
       def event_for_collector noticed_error, transaction_payload
         [
           intrinsic_attributes_for(noticed_error, transaction_payload),
-          {},
+          noticed_error.custom_attributes,
           {}
         ]
       end

@@ -185,6 +185,32 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     end
   end
 
+  def test_custom_attributes_sent_when_enabled
+    with_config :'error_collector.attributes.enabled' => true do
+      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      custom_attrs = {"name" => "Ron Burgundy", "channel" => 4}
+      attributes.merge_custom_attributes(custom_attrs)
+
+      error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
+      error.attributes = attributes
+
+      assert_equal custom_attrs, error.custom_attributes
+    end
+  end
+
+  def test_custom_attributes_not_sent_when_disabled
+    with_config :'error_collector.attributes.enabled' => false do
+      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      custom_attrs = {"name" => "Ron Burgundy", "channel" => 4}
+      attributes.merge_custom_attributes(custom_attrs)
+
+      error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
+      error.attributes = attributes
+
+      assert_equal({}, error.custom_attributes)
+    end
+  end
+
   def create_error(exception = StandardError.new)
     noticed_error = NewRelic::NoticedError.new(@path, exception, @time)
     noticed_error.attributes = @attributes
