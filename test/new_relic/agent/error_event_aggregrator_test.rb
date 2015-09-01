@@ -44,10 +44,10 @@ module NewRelic
 
         assert_equal "TransactionError", intrinsics[:type]
         assert_equal Time.now.to_f, intrinsics[:timestamp]
-        assert_equal "RuntimeError", intrinsics[:errorClass]
-        assert_equal "Big Controller", intrinsics[:errorMessage]
+        assert_equal "RuntimeError", intrinsics[:'error.class']
+        assert_equal "Big Controller", intrinsics[:'error.message']
         assert_equal txn_name, intrinsics[:transactionName]
-        assert_equal payload[:duration], intrinsics[:transactionDuration]
+        assert_equal payload[:duration], intrinsics[:duration]
       end
 
       def test_event_includes_synthetics
@@ -66,13 +66,6 @@ module NewRelic
         errors = @error_event_aggregator.harvest!
         intrinsics, *_ = errors.first
 
-        assert_equal "TransactionError", intrinsics[:type]
-        assert_equal Time.now.to_f, intrinsics[:timestamp]
-        assert_equal "RuntimeError", intrinsics[:errorClass]
-        assert_equal "Big Controller", intrinsics[:errorMessage]
-        assert_equal txn_name, intrinsics[:transactionName]
-        assert_equal payload[:duration], intrinsics[:transactionDuration]
-
         assert_equal 3, intrinsics[:'nr.syntheticsResourceId']
         assert_equal 4, intrinsics[:'nr.syntheticsJobId']
         assert_equal 5, intrinsics[:'nr.syntheticsMonitorId']
@@ -86,7 +79,6 @@ module NewRelic
           NewRelic::Agent.record_metric 'GC/Transaction/all', 11
           NewRelic::Agent.record_metric 'WebFrontend/QueueTime', 12
           NewRelic::Agent.record_metric 'External/allWeb', 13
-          NewRelic::Agent.record_metric 'External/allOther', 14
           t.notice_error RuntimeError.new "Big Controller"
         end
 
@@ -96,14 +88,34 @@ module NewRelic
         @error_event_aggregator.append_event error, payload
         errors = @error_event_aggregator.harvest!
         intrinsics, *_ = errors.first
-        require 'pry'; binding.pry
+
         assert_equal 10.0, intrinsics["databaseDuration"]
         assert_equal 1, intrinsics["databaseCallCount"]
         assert_equal 11.0, intrinsics["gcCumulative"]
         assert_equal 12.0, intrinsics["queueDuration"]
-        assert_equal 14.0, intrinsics["externalDuration"]
+        assert_equal 13.0, intrinsics["externalDuration"]
         assert_equal 1, intrinsics["externalCallCount"]
-        assert_equal 1, intrinsics["externalCallCount"]
+      end
+
+      def test_includes_cat_attributes
+        txn_name = "Controller/blogs/index"
+
+        txn = in_transaction :transaction_name => txn_name do |t|
+          state = TransactionState.tl_get
+          state.is_cross_app_caller = true
+          state.referring_transaction_info = ["REFERRING_GUID"]
+          t.notice_error RuntimeError.new "Big Controller"
+        end
+
+        error = last_traced_error
+        payload = txn.payload
+
+        @error_event_aggregator.append_event error, payload
+        errors = @error_event_aggregator.harvest!
+        intrinsics, *_ = errors.first
+
+        assert_equal txn.guid, intrinsics[:"nr.transactionGuid"]
+        assert_equal "REFERRING_GUID", intrinsics[:"nr.referringTransactionGuid"]
       end
     end
   end

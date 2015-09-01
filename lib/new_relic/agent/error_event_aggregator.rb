@@ -61,14 +61,15 @@ module NewRelic
       def intrinsic_attributes_for noticed_error, transaction_payload
         attrs = {
           :type => EVENT_TYPE,
-          :errorClass => noticed_error.exception_class_name,
-          :errorMessage => noticed_error.message,
+          :'error.class' => noticed_error.exception_class_name,
+          :'error.message' => noticed_error.message,
           :timestamp => noticed_error.timestamp.to_f,
           :transactionName => transaction_payload[:name],
-          :transactionDuration => transaction_payload[:duration]
+          :duration => transaction_payload[:duration]
         }
 
         append_synthetics transaction_payload, attrs
+        append_cat transaction_payload, attrs
         PayloadMetricMapping.append_mapped_metrics transaction_payload[:metrics], attrs
 
         attrs
@@ -78,6 +79,11 @@ module NewRelic
         sample[:'nr.syntheticsResourceId'] = transaction_payload[:synthetics_resource_id] if transaction_payload[:synthetics_resource_id]
         sample[:'nr.syntheticsJobId'] = transaction_payload[:synthetics_job_id] if transaction_payload[:synthetics_job_id]
         sample[:'nr.syntheticsMonitorId'] = transaction_payload[:synthetics_monitor_id] if transaction_payload[:synthetics_monitor_id]
+      end
+
+      def append_cat transaction_payload, sample
+        sample[:'nr.transactionGuid'] = transaction_payload[:guid] if transaction_payload[:guid]
+        sample[:'nr.referringTransactionGuid'] = transaction_payload[:referring_transaction_guid] if transaction_payload[:referring_transaction_guid]
       end
     end
   end
