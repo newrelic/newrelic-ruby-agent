@@ -211,6 +211,31 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     end
   end
 
+  def test_agent_attributes_sent_when_enabled
+    with_config :'error_collector.attributes.enabled' => true do
+      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes.add_agent_attribute :"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL
+
+      error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
+      error.attributes = attributes
+
+      expected = {:"request.headers.referer" => "http://blog.site/home"}
+      assert_equal expected, error.agent_attributes
+    end
+  end
+
+  def test_agent_attributes_not_sent_when_disabled
+    with_config :'error_collector.attributes.enabled' => false do
+      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes.add_agent_attribute :"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL
+
+      error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
+      error.attributes = attributes
+
+      assert_equal({}, error.agent_attributes)
+    end
+  end
+
   def create_error(exception = StandardError.new)
     noticed_error = NewRelic::NoticedError.new(@path, exception, @time)
     noticed_error.attributes = @attributes

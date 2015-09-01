@@ -54,7 +54,7 @@ module NewRelic
         [
           intrinsic_attributes_for(noticed_error, transaction_payload),
           noticed_error.custom_attributes,
-          {}
+          noticed_error.agent_attributes
         ]
       end
 

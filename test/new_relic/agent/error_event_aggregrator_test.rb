@@ -136,6 +136,27 @@ module NewRelic
 
         assert_equal attrs, custom_attrs
       end
+
+      def test_includes_agent_attributes
+        txn_name = "Controller/blogs/index"
+
+        req = stub :path => "/blogs/index",:referer => "http://blog.site/home"
+
+        txn = in_transaction :transaction_name => txn_name, :request => req do |t|
+          t.http_response_code = 200
+          t.notice_error RuntimeError.new "Big Controller"
+        end
+
+        error = last_traced_error
+        payload = txn.payload
+
+        @error_event_aggregator.append_event error, payload
+        errors = @error_event_aggregator.harvest!
+        _, _, agent_attrs = errors.first
+
+        expected = {:"request.headers.referer" => "http://blog.site/home", :httpResponseCode => "200"}
+        assert_equal expected, agent_attrs
+      end
     end
   end
 end
