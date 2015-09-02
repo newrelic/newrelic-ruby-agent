@@ -101,13 +101,13 @@ class NewRelic::NoticedError
   # there is a possibility that a noticed error will be discarded and not sent back
   # as a traced error or TransactionError.
   def processed_attributes
-    unless @processed_attributes
-      @processed_attributes = base_parameters
-      append_attributes(@processed_attributes, USER_ATTRIBUTES, merged_custom_attributes)
-      append_attributes(@processed_attributes, AGENT_ATTRIBUTES, build_agent_attributes)
-      append_attributes(@processed_attributes, INTRINSIC_ATTRIBUTES, build_intrinsic_attributes)
+    @processed_attributes ||= begin
+      attributes = base_parameters
+      append_attributes(attributes, USER_ATTRIBUTES, merged_custom_attributes)
+      append_attributes(attributes, AGENT_ATTRIBUTES, build_agent_attributes)
+      append_attributes(attributes, INTRINSIC_ATTRIBUTES, build_intrinsic_attributes)
+      attributes
     end
-    @processed_attributes
   end
 
   def base_parameters
