@@ -127,8 +127,24 @@ module NewRelic
         assert_equal expected, agent_attrs
       end
 
+      def test_respects_max_samples_stored
+        txn_name = "Controller/blogs/index"
+
+        with_config :'error_collector.max_event_samples_stored' => 5 do
+          in_transaction :transaction_name => txn_name do |t|
+            10.times {t.notice_error RuntimeError.new "Big Controller"}
+          end
+        end
+
+        assert_equal 5, error_event_aggregator.harvest!.size
+      end
+
       def last_error_event
-        NewRelic::Agent.instance.error_collector.error_event_aggregator.harvest!.first
+        error_event_aggregator.harvest!.first
+      end
+
+      def error_event_aggregator
+        NewRelic::Agent.instance.error_collector.error_event_aggregator
       end
     end
   end

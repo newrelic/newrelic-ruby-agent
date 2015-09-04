@@ -14,8 +14,8 @@ module NewRelic
 
       def initialize
         @lock = Mutex.new
-        #capacity will come from config
-        @error_event_buffer = SampledBuffer.new(100)
+        @error_event_buffer = SampledBuffer.new Agent.config[:'error_collector.max_event_samples_stored']
+        register_config_callbacks
       end
 
       def append_event noticed_error, transaction_payload
@@ -41,7 +41,7 @@ module NewRelic
       end
 
       # old_samples will have already been transformed into
-      # collector primitives by generate_event
+      # collector primitives by event_for_collector
       def merge! old_samples
         @lock.synchronize do
           old_samples.each { |s| @error_event_buffer.append_event(s) }
@@ -49,6 +49,13 @@ module NewRelic
       end
 
       private
+
+      def register_config_callbacks
+        NewRelic::Agent.config.register_callback(:'error_collector.max_event_samples_stored') do |max_samples|
+          NewRelic::Agent.logger.debug "ErrorEventAggregator max_samples set to #{max_samples}"
+          @lock.synchronize { @error_event_buffer.capacity = max_samples }
+        end
+      end
 
       def event_for_collector noticed_error, transaction_payload
         [

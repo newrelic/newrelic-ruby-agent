@@ -935,6 +935,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Specifies a comma-delimited list of error classes that the agent should ignore.'
         },
+        :'error_collector.max_event_samples_stored' => {
+          :default => 100,
+          :public => true,
+          :type => Fixnum,
+          :allowed_from_server => true,
+          :description => 'THe number of TransactionError samples sent to Insights per harvest cycle.'
+        },
         :'rum.enabled' => {
           :default => true,
           :public => false,
