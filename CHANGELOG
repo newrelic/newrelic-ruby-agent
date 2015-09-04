@@ -11,6 +11,12 @@
 
   The Ruby agent is now officially fully tested and supported on JRuby 9.0.0.0.
 
+  * Instrumentation for MongoDB 2.1.x
+
+  Visibility in your MongoDB queries returns when using version 2.1.0 of
+  the Mongo driver or newer.  Thanks to Durran Jordan of MongoDB for contributing
+  the Mongo Monitoring instrumentation!
+
 ## v3.13.0 ##
 
   * Bugfix for uninitialized constant NewRelic::Agent::ParameterFiltering

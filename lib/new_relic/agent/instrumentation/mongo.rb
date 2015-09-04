@@ -11,12 +11,27 @@ DependencyDetection.defer do
 
   depends_on do
     require 'new_relic/agent/datastores/mongo'
+    if NewRelic::Agent::Datastores::Mongo.is_unsupported_2x?
+      NewRelic::Agent.logger.info 'Detected unsupported Mongo 2, upgrade your Mongo Driver to 2.1 or newer for instrumentation'
+    end
     NewRelic::Agent::Datastores::Mongo.is_supported_version?
   end
 
   executes do
     NewRelic::Agent.logger.info 'Installing Mongo instrumentation'
-    install_mongo_instrumentation
+    if NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?
+      install_mongo_command_subscriber
+    else
+      install_mongo_instrumentation
+    end
+  end
+
+  def install_mongo_command_subscriber
+    require 'new_relic/agent/instrumentation/mongodb_command_subscriber'
+    Mongo::Monitoring::Global.subscribe(
+      Mongo::Monitoring::COMMAND,
+      NewRelic::Agent::Instrumentation::MongodbCommandSubscriber.new
+    )
   end
 
   def install_mongo_instrumentation
