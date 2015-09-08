@@ -9,9 +9,74 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   include MultiverseHelpers
   setup_and_teardown_agent
 
+  module VersionHelpers
+    def active_record_major_version
+      if defined?(::ActiveRecord::VERSION::MAJOR)
+        ::ActiveRecord::VERSION::MAJOR.to_i
+      else
+        2
+      end
+    end
+
+    def active_record_minor_version
+      if defined?(::ActiveRecord::VERSION::MINOR)
+        ::ActiveRecord::VERSION::MINOR.to_i
+      else
+        1
+      end
+    end
+
+    def active_record_version
+      if defined?(::ActiveRecord::VERSION::MINOR)
+        NewRelic::VersionNumber.new(::ActiveRecord::VERSION::STRING)
+      else
+        NewRelic::VersionNumber.new("2.1.0")  # Can't tell between 2.1 and 2.2. Meh.
+      end
+    end
+  end
+
+  include VersionHelpers
+  extend VersionHelpers
+
   def after_setup
     super
     NewRelic::Agent.drop_buffered_data
+  end
+
+  def test_metrics_for_calculation_methods
+    in_web_transaction do
+      Order.count
+      Order.average(:id)
+      Order.minimum(:id)
+      Order.maximum(:id)
+      Order.sum(:id)
+    end
+
+    if active_record_major_version >= 3
+      assert_activerecord_metrics(Order, 'select', :call_count => 5)
+    else
+      assert_generic_rollup_metrics('select')
+    end
+  end
+
+  if active_record_version >= NewRelic::VersionNumber.new('3.2.0')
+    def test_metrics_for_pluck
+      in_web_transaction do
+        Order.pluck(:id)
+      end
+
+      assert_activerecord_metrics(Order, 'select')
+    end
+  end
+
+  if active_record_version >= NewRelic::VersionNumber.new('4.0.0')
+    def test_metrics_for_ids
+      in_web_transaction do
+        Order.ids
+      end
+
+      assert_activerecord_metrics(Order, 'select')
+    end
   end
 
   def test_metrics_for_create
@@ -157,7 +222,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   # delete and touch did not exist in AR 2.2
-  if defined?(::ActiveRecord::VERSION) && ::ActiveRecord::VERSION::MAJOR >= 3
+  if active_record_version >= NewRelic::VersionNumber.new('3.0.0')
     def test_metrics_for_delete
       in_web_transaction do
         order = Order.create("name" => "burt")
@@ -256,7 +321,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   # update & update! didn't become public until 4.0
-  if defined?(::ActiveRecord::VERSION) && ::ActiveRecord::VERSION::MAJOR >= 4
+  if active_record_version >= NewRelic::VersionNumber.new('4.0.0')
     def test_metrics_for_update
       in_web_transaction do
         order = Order.create(:name => "wendy")
@@ -523,30 +588,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def current_product
     NewRelic::Agent::Instrumentation::ActiveRecordHelper::PRODUCT_NAMES[adapter.to_s]
-  end
-
-  def active_record_major_version
-    if defined?(::ActiveRecord::VERSION::MAJOR)
-      ::ActiveRecord::VERSION::MAJOR.to_i
-    else
-      2
-    end
-  end
-
-  def active_record_minor_version
-    if defined?(::ActiveRecord::VERSION::MINOR)
-      ::ActiveRecord::VERSION::MINOR.to_i
-    else
-      1
-    end
-  end
-
-  def active_record_version
-    if defined?(::ActiveRecord::VERSION::MINOR)
-      NewRelic::VersionNumber.new(::ActiveRecord::VERSION::STRING)
-    else
-      NewRelic::VersionNumber.new("2.1.0")  # Can't tell between 2.1 and 2.2. Meh.
-    end
   end
 
   def assert_activerecord_metrics(model, operation, stats={})
