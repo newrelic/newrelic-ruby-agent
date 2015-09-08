@@ -10,7 +10,12 @@ module NewRelic
         if dyno_name && ::NewRelic::Agent.config[:'heroku.use_dyno_names']
           matching_prefix = heroku_dyno_name_prefix(dyno_name)
           dyno_name = "#{matching_prefix}.*" if matching_prefix
-          dyno_name
+          dyno_prefix = ENV['DYNO_PREFIX']
+          if dyno_prefix
+            dyno_prefix + dyno_name
+          else
+            dyno_name
+          end
         else
           Socket.gethostname
         end
