@@ -17,6 +17,12 @@
   the Mongo driver or newer.  Thanks to Durran Jordan of MongoDB for contributing
   the Mongo Monitoring instrumentation!
 
+  * Fix for ArgumentError "invalid byte sequence in UTF-8"
+
+  This would come up when trying to parse out the operation from a database query
+  containing characters that would trigger a invalid byte sequence in UTF-8 error.
+  Thanks to Mario Izquierdo for reporting this issue!
+
 ## v3.13.0 ##
 
   * Bugfix for uninitialized constant NewRelic::Agent::ParameterFiltering

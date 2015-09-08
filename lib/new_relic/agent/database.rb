@@ -266,7 +266,7 @@ module NewRelic
       EMPTY_STRING      = ''.freeze
 
       def parse_operation_from_query(sql)
-        sql = sql.gsub(SQL_COMMENT_REGEX, EMPTY_STRING)
+        sql = Helper.correctly_encoded(sql).gsub(SQL_COMMENT_REGEX, EMPTY_STRING)
         if sql =~ /(\w+)/
           op = $1.downcase
           return op if KNOWN_OPERATIONS.include?(op)
