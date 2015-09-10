@@ -3,7 +3,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/event_buffer'
+require 'new_relic/agent/sampled_buffer'
 require 'new_relic/agent/payload_metric_mapping'
 
 module NewRelic
@@ -20,7 +20,7 @@ module NewRelic
 
       def append_event noticed_error, transaction_payload
         @lock.synchronize do
-          @error_event_buffer.append_event do
+          @error_event_buffer.append do
             event_for_collector(noticed_error, transaction_payload)
           end
         end
@@ -29,8 +29,12 @@ module NewRelic
       def harvest!
         @lock.synchronize do
           samples = @error_event_buffer.to_a
+          # Eventually the logic for adding reservoir data will move to the sampled buffer
+          # so it can be shared with the other event aggregators. We'll first get it working
+          # here and then promote the functionality later.
+          stats = reservoir_stats
           @error_event_buffer.reset!
-          samples
+          [stats, samples]
         end
       end
 
@@ -44,11 +48,18 @@ module NewRelic
       # collector primitives by event_for_collector
       def merge! old_samples
         @lock.synchronize do
-          old_samples.each { |s| @error_event_buffer.append_event(s) }
+          old_samples.each { |s| @error_event_buffer.append s }
         end
       end
 
       private
+
+      def reservoir_stats
+        {
+          :reservoir_size => Agent.config[:'error_collector.max_event_samples_stored'],
+          :events_seen => @error_event_buffer.num_seen
+        }
+      end
 
       def register_config_callbacks
         NewRelic::Agent.config.register_callback(:'error_collector.max_event_samples_stored') do |max_samples|

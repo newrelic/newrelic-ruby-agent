@@ -30,7 +30,7 @@ module NewRelic
     end
 
     # containers containing data that is a mix of metadata and samples can override this
-    # method to return the samples harvested. Data containers that buffer
+    # method to return the samples harvested.
     def harvest_container! c
       c.harvest!
     end

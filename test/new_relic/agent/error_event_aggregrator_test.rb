@@ -13,6 +13,11 @@ module NewRelic
         freeze_time
       end
 
+      def teardown
+        error_event_aggregator.reset!
+        reset_error_event_buffer_state
+      end
+
       def create_container
         @error_event_aggregator = NewRelic::Agent::ErrorEventAggregator.new
       end
@@ -23,6 +28,10 @@ module NewRelic
           payload = in_transaction{}.payload
           @error_event_aggregator.append_event error, payload
         end
+      end
+
+      def harvest_container! c
+        c.harvest![1]
       end
 
       include NewRelic::DataContainerTests
@@ -128,23 +137,107 @@ module NewRelic
       end
 
       def test_respects_max_samples_stored
-        txn_name = "Controller/blogs/index"
-
         with_config :'error_collector.max_event_samples_stored' => 5 do
-          in_transaction :transaction_name => txn_name do |t|
-            10.times {t.notice_error RuntimeError.new "Big Controller"}
-          end
+          generate_errors 10
         end
 
-        assert_equal 5, error_event_aggregator.harvest!.size
+        assert_equal 5, last_error_events.size
       end
 
-      def last_error_event
-        error_event_aggregator.harvest!.first
+      def test_reservoir_stats_reset_after_harvest
+        generate_errors 5
+
+        reservoir_stats, samples = error_event_aggregator.harvest!
+        assert_equal 5, reservoir_stats[:events_seen]
+
+        reservoir_stats, samples = error_event_aggregator.harvest!
+        assert_equal 0, reservoir_stats[:events_seen]
+      end
+
+      def test_merge_merges_samples_back_into_buffer
+        generate_errors 5
+
+        old_events = last_error_events
+
+        generate_errors 5
+
+        error_event_aggregator.merge!(old_events)
+        events = last_error_events
+
+        assert_equal(10, events.size)
+      end
+
+      def test_merge_abides_by_max_samples_limit
+        with_config :'error_collector.max_event_samples_stored' => 5 do
+          generate_errors 4
+          old_events = last_error_events
+
+          generate_errors(4)
+          error_event_aggregator.merge!(old_events)
+
+          assert_equal(5, last_error_events.size)
+        end
+      end
+
+      def test_limits_total_number_of_samples_to_max_samples_stored
+        with_config :'error_collector.max_event_samples_stored' => 100 do
+          generate_errors 150
+          assert_equal 100, last_error_events.size
+        end
+      end
+
+      def test_resets_limits_on_harvest
+        with_config :'error_collector.max_event_samples_stored' => 100 do
+          generate_errors 50
+          events_before = last_error_events
+          assert_equal 50, events_before.size
+
+          generate_errors 150
+          events_after = last_error_events
+          assert_equal 100, events_after.size
+        end
+      end
+
+      def test_does_not_drop_samples_when_used_from_multiple_threads
+        with_config :'error_collector.max_event_samples_stored' => 100 * 100 do
+          threads = []
+          25.times do
+            threads << Thread.new do
+              generate_errors 100
+            end
+          end
+          threads.each { |t| t.join }
+
+          assert_equal(25 * 100, last_error_events.size)
+        end
       end
 
       def error_event_aggregator
         NewRelic::Agent.instance.error_collector.error_event_aggregator
+      end
+
+      def last_error_events
+        error_event_aggregator.harvest![1]
+      end
+
+      def last_error_event
+        last_error_events.first
+      end
+
+      def reset_error_event_buffer_state
+        # this is not ideal, but we need to reset these counts to clear out state
+        # between tests
+        buffer = error_event_aggregator.instance_variable_get :@error_event_buffer
+        buffer.instance_variable_set :@seen_lifetime, 0
+        buffer.instance_variable_set :@captured_lifetime, 0
+      end
+
+      def generate_errors num_errors
+        txn_name = "Controller/blogs/index"
+
+        in_transaction :transaction_name => txn_name do |t|
+          num_errors.times {t.notice_error RuntimeError.new}
+        end
       end
     end
   end
