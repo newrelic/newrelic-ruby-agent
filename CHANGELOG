@@ -29,6 +29,11 @@
   module (#count, #sum, #max, etc.) will now be associated with the correct
   model name, rather than being counted as generic 'select' operations.
 
+  * Allow at_exit handlers to be installed for Rubinius
+
+  Rubinius can support the at_exit block used by install_exit_handler.
+  Thanks to Aidan Coyle for reporting and fixing this issue!
+
 ## v3.13.0 ##
 
   * Bugfix for uninitialized constant NewRelic::Agent::ParameterFiltering
