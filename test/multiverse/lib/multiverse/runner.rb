@@ -83,7 +83,7 @@ module Multiverse
 
     GROUPS = {
       "agent"         => ["agent_only", "bare", "config_file_loading",
-                          "deferred_instrumentation", "high_security"],
+                          "deferred_instrumentation", "high_security", "no_json"],
       "api"           => ["grape"],
       "background"    => ["delayed_job", "rake", "resque", "sidekiq"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],

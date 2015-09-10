@@ -6,6 +6,7 @@ gem 'minitest', '~>4.7.5'
 gem 'mocha', :require => false
 gem 'rack'
 gem 'rack-test'
+gem 'json' if RUBY_VERSION == "1.8.7"
 
 platforms :rbx do
   gem "rubysl"

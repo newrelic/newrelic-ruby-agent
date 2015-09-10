@@ -56,16 +56,11 @@ module NewRelic
         end
 
         Agent.config.register_callback(:marshaller) do |marshaller|
-          begin
-            if marshaller == 'json'
-              @marshaller = JsonMarshaller.new
-            else
-              @marshaller = PrubyMarshaller.new
-            end
-          rescue LoadError
-            ::NewRelic::Agent.logger.warn("JSON marshaller requested, but the 'json' gem was not available, falling back to pruby. This will not be supported in future versions of the agent.")
-            @marshaller = PrubyMarshaller.new
+          if marshaller != 'json'
+            ::NewRelic::Agent.logger.warn("Non-JSON marshaller '#{marshaller}' requested but not supported, using JSON marshaller instead. pruby marshalling has been removed as of version 3.14.0.")
           end
+
+          @marshaller = JsonMarshaller.new
         end
       end
 

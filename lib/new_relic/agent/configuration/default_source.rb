@@ -121,10 +121,6 @@ module NewRelic
           Proc.new { NewRelic::Control.instance.local_env.discovered_dispatcher }
         end
 
-        def self.marshaller
-          Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? 'json' : 'pruby' }
-        end
-
         # On Rubies with string encodings support (1.9.x+), default to always
         # normalize encodings since it's safest and fast. Without that support
         # the conversions are too expensive, so only enable if overridden to.
@@ -1130,11 +1126,11 @@ module NewRelic
           :description => 'Maximum overhead percentage for thread profiling before agent reduces polling frequency'
         },
         :marshaller => {
-          :default => DefaultSource.marshaller,
+          :default => 'json',
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Specifies a marshaller for transmitting data to the New Relic <a href="/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>) (e.g json, pruby).'
+          :description => 'Specifies a marshaller for transmitting data to the New Relic <a href="/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>). Currently \'json\' is the only valid value for this setting. The pruby marshaller has been removed as of 3.14.0.'
         },
         :'analytics_events.enabled' => {
           :default => true,

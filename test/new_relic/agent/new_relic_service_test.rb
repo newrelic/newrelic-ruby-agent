@@ -830,6 +830,12 @@ class NewRelicServiceTest < Minitest::Test
     refute @service.has_shared_connection?
   end
 
+  def test_marshal_with_json_only
+    with_config(:marshaller => 'pruby') do
+      assert_equal 'json', @service.marshaller.format
+    end
+  end
+
   def build_stats_hash(items={})
     hash = NewRelic::Agent::StatsHash.new
     items.each do |key, value|
