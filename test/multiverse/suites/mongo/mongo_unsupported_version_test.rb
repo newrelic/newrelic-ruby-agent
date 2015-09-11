@@ -63,7 +63,7 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
       end
     end
 
-    if NewRelic::Agent::Datastores::Mongo.is_version2?
+    if NewRelic::Agent::Datastores::Mongo.is_unsupported_2x?
       include Mongo2xUnsupported
     else
       include Mongo1xUnsupported

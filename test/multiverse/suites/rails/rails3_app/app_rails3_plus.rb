@@ -47,6 +47,13 @@ if !defined?(MyApp)
   end
 
   if defined?(Sinatra)
+    module Sinatra
+      class Application < Base
+        # Override to not accidentally start the app in at_exit handler
+        set :run, Proc.new { false }
+      end
+    end
+
     class SinatraTestApp < Sinatra::Base
       get '/' do
         raise "Intentional error" if params["raise"]

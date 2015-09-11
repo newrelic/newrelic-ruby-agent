@@ -10,7 +10,7 @@ module NewRelic
 
           WHITELIST = [:operation].freeze
 
-          def self.obfuscate_statement(source, whitelist=WHITELIST)
+          def self.obfuscate_statement(source, whitelist = WHITELIST)
             obfuscated = {}
             source.each do |key, value|
               if whitelist.include?(key)
@@ -23,7 +23,7 @@ module NewRelic
             obfuscated
           end
 
-          def self.obfuscate_value(value, whitelist)
+          def self.obfuscate_value(value, whitelist = WHITELIST)
             if value.is_a?(Hash)
               obfuscate_statement(value, whitelist)
             elsif value.is_a?(Array)

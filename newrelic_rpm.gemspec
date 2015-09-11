@@ -61,7 +61,7 @@ EOS
 
   if RUBY_PLATFORM == 'java'
     s.add_development_dependency 'activerecord-jdbcsqlite3-adapter'
-    s.add_development_dependency 'jruby-openssl'
+    s.add_development_dependency 'jruby-openssl', '~> 0.9.10' unless JRUBY_VERSION > '1.7'
   else
     s.add_development_dependency 'sqlite3'
   end

@@ -8,15 +8,16 @@ module NewRelic
       module Mongo
         def self.is_supported_version?
           # No version constant in < 2.0 versions of Mongo :(
-          defined?(::Mongo) &&
-            defined?(::Mongo::MongoClient) &&
-            !is_version2?
+          defined?(::Mongo) && (defined?(::Mongo::MongoClient) || is_monitoring_enabled?)
         end
 
-        # At present we explicitly don't support version 2.x of the driver yet
-        def self.is_version2?
-          defined?(::Mongo::VERSION) &&
-            NewRelic::VersionNumber.new(::Mongo::VERSION) > NewRelic::VersionNumber.new("2.0.0")
+        def self.is_monitoring_enabled?
+          defined?(::Mongo::Monitoring)
+        end
+
+        def self.is_unsupported_2x?
+          defined?(::Mongo::VERSION) && VersionNumber.new(::Mongo::VERSION).major_version == 2 &&
+            !self.is_monitoring_enabled?
         end
 
         def self.is_version_1_10_or_later?

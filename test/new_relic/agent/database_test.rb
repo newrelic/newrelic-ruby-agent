@@ -370,7 +370,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal('a' * (NewRelic::Agent::Database::MAX_QUERY_LENGTH - 3) + '...', truncated_query)
   end
 
-  INVALID_UTF8_STRING = (''.respond_to?(:force_encoding) ? "\x80".force_encoding('UTF-8') : "\x80")
+  INVALID_UTF8_STRING = (''.respond_to?(:force_encoding) ? "select \x80".force_encoding('UTF-8') : "select \x80")
 
   def test_capture_query_mis_encoded
     query = INVALID_UTF8_STRING
@@ -380,6 +380,13 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     captured = NewRelic::Agent::Database.capture_query(query)
     assert_equal(original_encoding, encoding_from_string(query)) # input query encoding should remain untouched
     assert_equal(expected_query, captured)
+  end
+
+  def test_parse_operation_from_query_mis_encoded
+    query = INVALID_UTF8_STRING
+    expected = "select"
+    parsed = NewRelic::Agent::Database.parse_operation_from_query(query)
+    assert_equal(expected, parsed)
   end
 
   sql_parsing_tests = load_cross_agent_test('sql_parsing')

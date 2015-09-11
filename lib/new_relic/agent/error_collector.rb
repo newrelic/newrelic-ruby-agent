@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+require 'new_relic/agent/error_trace_aggregator'
 
 module NewRelic
   module Agent
@@ -15,17 +16,15 @@ module NewRelic
       MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
       EXCEPTION_TAG_IVAR = :'@__nr_seen_exception' unless defined? EXCEPTION_TAG_IVAR
 
-      attr_accessor :errors
-
       # Returns a new error collector
       def initialize
-        @errors = []
+        @error_trace_aggregator = ErrorTraceAggregator.new(MAX_ERROR_QUEUE_LENGTH)
+
 
         # lookup of exception class names to ignore.  Hash for fast access
         @ignore = {}
 
         initialize_ignored_errors(Agent.config[:'error_collector.ignore_errors'])
-        @lock = Mutex.new
 
         Agent.config.register_callback(:'error_collector.enabled') do |config_enabled|
           ::NewRelic::Agent.logger.debug "Errors will #{config_enabled ? '' : 'not '}be sent to the New Relic service."
@@ -33,6 +32,10 @@ module NewRelic
         Agent.config.register_callback(:'error_collector.ignore_errors') do |ignore_errors|
           initialize_ignored_errors(ignore_errors)
         end
+      end
+
+      def errors
+        @error_trace_aggregator.errors
       end
 
       def initialize_ignored_errors(ignore_errors)
@@ -189,25 +192,6 @@ module NewRelic
         sense_method(actual_exception, 'backtrace') || '<no stack trace>'
       end
 
-      # checks the size of the error queue to make sure we are under
-      # the maximum limit, and logs a warning if we are over the limit.
-      def over_queue_limit?(message)
-        over_limit = (@errors.reject{|err| err.is_internal}.length >= MAX_ERROR_QUEUE_LENGTH)
-        ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}") if over_limit
-        over_limit
-      end
-
-      # Synchronizes adding an error to the error queue, and checks if
-      # the error queue is too long - if so, we drop the error on the
-      # floor after logging a warning.
-      def add_to_error_queue(noticed_error)
-        @lock.synchronize do
-          if !over_queue_limit?(noticed_error.message) && !@errors.include?(noticed_error)
-            @errors << noticed_error
-          end
-        end
-      end
-
       # See NewRelic::Agent.notice_error for options and commentary
       def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
         return if skip_notice_error?(exception)
@@ -216,7 +200,7 @@ module NewRelic
 
         state = ::NewRelic::Agent::TransactionState.tl_get
         increment_error_count!(state, exception, options)
-        add_to_error_queue(create_noticed_error(exception, options))
+        @error_trace_aggregator.add_to_error_queue(create_noticed_error(exception, options))
 
         exception
       rescue => e
@@ -272,44 +256,21 @@ module NewRelic
       # class per harvest, disregarding (and not impacting) the app error queue
       # limit.
       def notice_agent_error(exception)
-        return unless exception.class < NewRelic::Agent::InternalAgentError
-
-        # Log 'em all!
-        NewRelic::Agent.logger.info(exception)
-
-        @lock.synchronize do
-          # Already seen this class once? Bail!
-          return if @errors.any? { |err| err.exception_class_name == exception.class.name }
-
-          trace = exception.backtrace || caller.dup
-          noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError", exception)
-          noticed_error.stack_trace = trace
-          @errors << noticed_error
-        end
-      rescue => e
-        NewRelic::Agent.logger.info("Unable to capture internal agent error due to an exception:", e)
+        @error_trace_aggregator.notice_agent_error(exception)
       end
 
       def merge!(errors)
-        errors.each do |error|
-          add_to_error_queue(error)
-        end
+        @error_trace_aggregator.merge!(errors)
       end
 
       # Get the errors currently queued up.  Unsent errors are left
       # over from a previous unsuccessful attempt to send them to the server.
       def harvest!
-        @lock.synchronize do
-          errors = @errors
-          @errors = []
-          errors
-        end
+        @error_trace_aggregator.harvest!
       end
 
       def reset!
-        @lock.synchronize do
-          @errors = []
-        end
+        @error_trace_aggregator.reset!
       end
     end
   end

@@ -7,7 +7,8 @@ require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
 require 'securerandom'
 
-if NewRelic::Agent::Datastores::Mongo.is_supported_version?
+if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
+    !NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?
   require File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'mongo_metric_builder')
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_server')
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_replica_set')

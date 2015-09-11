@@ -58,7 +58,7 @@ namespace :newrelic do
     current_revision = fetch(:current_revision)
 
     if scm == :git
-      log_command = "git log --no-color --pretty=format:'  * %an: %s' " +
+      log_command = "git --no-pager log --no-color --pretty=format:'  * %an: %s' " +
                     "--abbrev-commit --no-merges #{previous_revision}..#{current_revision}"
       `#{log_command}`
     end

@@ -31,8 +31,16 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
         assert_equal(num_physical_cores    , info[:num_physical_cores    ])
         assert_equal(num_logical_processors, info[:num_logical_processors])
       end
+    elsif File.basename(file) =~ /malformed/
+      define_method("test_#{File.basename(file)}") do
+        cpuinfo = File.read(file)
+        info = @sysinfo.parse_cpuinfo(cpuinfo)
+        assert_equal(nil, info[:num_physical_package])
+        assert_equal(nil, info[:num_physical_cores])
+        assert_equal(nil, info[:num_logical_processors])
+      end
     else
-      fail "Bad filename: cross_agent_tests/proc_cpuinfo/#{file}"
+      fail "Bad filename: #{file}"
     end
   end
 
