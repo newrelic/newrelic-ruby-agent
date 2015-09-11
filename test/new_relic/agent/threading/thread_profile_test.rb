@@ -123,8 +123,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
           0
         ]
 
-        identity_encoder = NewRelic::Agent::NewRelicService::PrubyMarshaller.new.default_encoder
-        assert_equal expected, @profile.to_collector_array(identity_encoder)
+        assert_equal expected, @profile.to_collector_array(NewRelic::Agent::NewRelicService::Encoders::Identity)
       end
 
       def test_to_collector_array_with_xray_session_id

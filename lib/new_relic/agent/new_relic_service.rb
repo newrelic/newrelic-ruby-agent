@@ -7,7 +7,6 @@ require 'new_relic/agent/audit_logger'
 require 'new_relic/agent/new_relic_service/encoders'
 require 'new_relic/agent/new_relic_service/marshaller'
 require 'new_relic/agent/new_relic_service/json_marshaller'
-require 'new_relic/agent/new_relic_service/pruby_marshaller'
 
 module NewRelic
   module Agent

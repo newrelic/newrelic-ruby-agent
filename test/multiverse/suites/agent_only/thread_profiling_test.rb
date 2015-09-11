@@ -77,26 +77,6 @@ class ThreadProfilingTest < Minitest::Test
     assert_saw_traces(profile_data, "BACKGROUND")
   end
 
-  def test_thread_profiling_with_pruby_marshaller
-    with_config(:marshaller => 'pruby') do
-      run_transaction_in_thread(:controller)
-      run_transaction_in_thread(:task)
-
-      issue_command(START_COMMAND)
-
-      let_it_finish
-    end
-
-    profile_data = $collector.calls_for('profile_data')[0]
-    assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
-    assert(profile_data.sample_count >= 2, "Expected sample_count >= 2, but was #{profile_data.sample_count}")
-
-    assert_saw_traces(profile_data, "OTHER")
-    assert_saw_traces(profile_data, "AGENT")
-    assert_saw_traces(profile_data, "REQUEST")
-    assert_saw_traces(profile_data, "BACKGROUND")
-  end
-
   def test_thread_profiling_can_stop
     issue_command(START_COMMAND)
     issue_command(STOP_COMMAND)

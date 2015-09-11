@@ -114,15 +114,10 @@ module NewRelic
 
       if uri.path =~ /agent_listener\/\d+\/.+\/(\w+)/
         method = $1
-        format = json_format?(uri) ? :json : :pruby
         if @mock.keys.include? method
           status, body = @mock[method].evaluate
           res.status = status
-          if format == :json
-            res.write ::NewRelic::JSONWrapper.dump(body)
-          else
-            res.write Marshal.dump(body)
-          end
+          res.write ::NewRelic::JSONWrapper.dump(body)
         else
           res.status = 500
           res.write "Method not found"
@@ -134,15 +129,7 @@ module NewRelic
           raw_body = req.body.read
           raw_body = Zlib::Inflate.inflate(raw_body) if req.env["HTTP_CONTENT_ENCODING"] == "deflate"
 
-          body = if format == :json
-            body = ::NewRelic::JSONWrapper.load(raw_body)
-          else
-            body = Marshal.load(raw_body)
-
-            # Symbols remain in Ruby-marshalled data, so tidy up so tests can
-            # rely on strings to compare against in fake collector results.
-            body = NewRelic::Agent::EncodingNormalizer.normalize_object(body)
-          end
+          body = ::NewRelic::JSONWrapper.load(raw_body)
         rescue
           body = "UNABLE TO DECODE BODY: #{raw_body}"
 
@@ -157,14 +144,10 @@ module NewRelic
         @agent_data << AgentPost.create(:action       => method,
                                         :body         => body,
                                         :run_id       => run_id,
-                                        :format       => format,
+                                        :format       => :json,
                                         :query_params => query_params)
       end
       res.finish
-    end
-
-    def json_format?(uri)
-      uri.query && uri.query.include?('marshal_format=json')
     end
 
     def app
