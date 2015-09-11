@@ -225,7 +225,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               :collection => @collection_name,
               'insert' => @collection_name,
               :operation  => :insert,
-              'writeConcern' => { 'w' => 1 },
+              'writeConcern' => { :w => 1 },
               'ordered' => true
             }
 
