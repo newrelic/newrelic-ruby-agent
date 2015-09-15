@@ -548,6 +548,7 @@ module NewRelic
         def drop_buffered_data
           @stats_engine.reset!
           @error_collector.reset!
+          @error_collector.error_event_aggregator.reset!
           @transaction_sampler.reset!
           @transaction_event_aggregator.reset!
           @custom_event_aggregator.reset!
