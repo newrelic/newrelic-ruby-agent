@@ -55,13 +55,13 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_browser_timing_header_outside_transaction
-    assert_equal "", instrumentor.browser_timing_header(nil)
+    assert_equal "", instrumentor.browser_timing_header
   end
 
   def test_browser_timing_scripts_with_rum_enabled_false
     with_config(:'rum.enabled' => false) do
       in_transaction do
-        assert_equal "", instrumentor.browser_timing_header(nil)
+        assert_equal "", instrumentor.browser_timing_header
       end
     end
   end
@@ -69,7 +69,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_disable_transaction_tracing
     in_transaction do
       NewRelic::Agent.disable_transaction_tracing do
-        assert_equal "", instrumentor.browser_timing_header(nil)
+        assert_equal "", instrumentor.browser_timing_header
       end
     end
   end
@@ -77,7 +77,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_disable_all_tracing
     in_transaction do
       NewRelic::Agent.disable_all_tracing do
-        assert_equal "", instrumentor.browser_timing_header(nil)
+        assert_equal "", instrumentor.browser_timing_header
       end
     end
   end
@@ -85,7 +85,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_without_loader
     with_config(:js_agent_loader => '') do
       in_transaction do
-        assert_equal "", instrumentor.browser_timing_header(nil)
+        assert_equal "", instrumentor.browser_timing_header
       end
     end
   end
@@ -93,7 +93,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_without_beacon
     with_config(:beacon => '') do
       in_transaction do
-        assert_equal "", instrumentor.browser_timing_header(nil)
+        assert_equal "", instrumentor.browser_timing_header
       end
     end
   end
@@ -101,7 +101,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_without_browser_key
     with_config(:browser_key => '') do
       in_transaction do
-        assert_equal "", instrumentor.browser_timing_header(nil)
+        assert_equal "", instrumentor.browser_timing_header
       end
     end
   end
@@ -109,13 +109,13 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_with_ignored_enduser
     in_transaction do |txn|
       txn.ignore_enduser!
-      assert_equal "", instrumentor.browser_timing_header(nil)
+      assert_equal "", instrumentor.browser_timing_header
     end
   end
 
   def test_browser_timing_header_with_default_settings
     in_transaction do
-      header = instrumentor.browser_timing_header(nil)
+      header = instrumentor.browser_timing_header
       assert_has_js_agent_loader(header)
       assert_has_text(BEGINNING_OF_FOOTER, header)
       assert_has_text(END_OF_FOOTER, header)
@@ -126,7 +126,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     in_transaction do
       begin
         NewRelic::Agent.stubs(:config).raises("Hahahaha")
-        assert_equal "", instrumentor.browser_timing_header(nil)
+        assert_equal "", instrumentor.browser_timing_header
       ensure
         # stopping the transaction touches config, so we need to ensure we
         # clean up after ourselves here.
@@ -138,14 +138,14 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_safe_when_loader_generation_fails
     in_transaction do
       instrumentor.stubs(:html_safe_if_needed).raises("Hahahaha")
-      assert_equal "", instrumentor.browser_timing_header(nil)
+      assert_equal "", instrumentor.browser_timing_header
     end
   end
 
   def test_browser_timing_header_safe_when_json_dump_fails
     in_transaction do
       NewRelic::JSONWrapper.stubs(:dump).raises("Serialize? Hahahaha")
-      assert_equal "", instrumentor.browser_timing_header(nil)
+      assert_equal "", instrumentor.browser_timing_header
     end
   end
 
@@ -172,7 +172,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
           "agent"           => ""
         }
 
-        js = instrumentor.browser_timing_config(state, nil)
+        js = instrumentor.browser_timing_config(state)
         expected.each do |key, value|
           assert_equal(value, data[key])
           assert_match(/"#{key.to_s}":#{formatted_for_matching(value)}/, js)

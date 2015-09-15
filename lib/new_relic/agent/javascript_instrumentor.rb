@@ -86,7 +86,7 @@ module NewRelic
         value.nil? || value.empty?
       end
 
-      def browser_timing_header(nonce) #THREAD_LOCAL_ACCESS
+      def browser_timing_header(nonce = nil) #THREAD_LOCAL_ACCESS
         return '' unless js_enabled_and_ready? # fast exit
 
         state = NewRelic::Agent::TransactionState.tl_get
@@ -107,13 +107,13 @@ module NewRelic
         " nonce=\"#{nonce}\" "
       end
 
-      def browser_timing_loader(nonce)
+      def browser_timing_loader(nonce = nil)
         html_safe_if_needed(
           "\n<script type=\"text/javascript\"#{nonce_argument(nonce)}>#{Agent.config[:js_agent_loader]}</script>"
         )
       end
 
-      def browser_timing_config(state, nonce)
+      def browser_timing_config(state, nonce = nil)
         txn = state.current_transaction
         return '' if txn.nil?
 

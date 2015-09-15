@@ -80,7 +80,7 @@ EOL
 
   def test_make_sure_header_is_set
     in_transaction do
-      assert NewRelic::Agent.browser_timing_header(nil).size > 0
+      assert NewRelic::Agent.browser_timing_header.size > 0
     end
   end
 
