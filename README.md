@@ -128,9 +128,9 @@ frameworks.  You can find a list of community created intrumentation plugins
 
 If you imposed the
 [CSP (Content Security Policy) Level 2](http://www.w3.org/TR/CSP/#script-src-the-nonce-attribute)
-, you would see the CSP warnings. In oredr to avoid this you should assign your nonce to
-`@content_security_policy_nonce` of your csp enabled controller. It will be passed to
-the newrelic's script tags.
+, you would see the CSP warnings. In oredr to avoid this you should assign
+your nonce to `@content_security_policy_nonce` of your csp enabled controller.
+It will be passed to the newrelic's script tags.
 
 ## Developer Mode
 
