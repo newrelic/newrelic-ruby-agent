@@ -605,7 +605,7 @@ module NewRelic
     #
     # @api public
     #
-    def browser_timing_header(nonce = nil)
+    def browser_timing_header(nonce)
       return "" unless agent
       agent.javascript_instrumentor.browser_timing_header(nonce)
     end
