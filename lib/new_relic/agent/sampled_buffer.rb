@@ -49,6 +49,11 @@ module NewRelic
         end
       end
 
+      def decrement_lifetime_counts_by n
+        @captured_lifetime -= n
+        @seen_lifetime -= n
+      end
+
       def sample_rate_lifetime
         @captured_lifetime > 0 ? (@captured_lifetime.to_f / @seen_lifetime) : 0.0
       end

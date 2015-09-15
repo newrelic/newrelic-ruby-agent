@@ -43,11 +43,13 @@ module NewRelic
         end
       end
 
-      # old_samples will have already been transformed into
+      # samples will have already been transformed into
       # collector primitives by event_for_collector
-      def merge! old_samples
+      def merge! payload
         @lock.synchronize do
-          old_samples.each { |s| @error_event_buffer.append s }
+          _, samples = payload
+          @error_event_buffer.decrement_lifetime_counts_by samples.count
+          samples.each { |s| @error_event_buffer.append s }
         end
       end
 

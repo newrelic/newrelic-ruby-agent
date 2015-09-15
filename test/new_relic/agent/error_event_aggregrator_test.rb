@@ -30,10 +30,6 @@ module NewRelic
         end
       end
 
-      def harvest_container! c
-        c.harvest![1]
-      end
-
       include NewRelic::DataContainerTests
 
       def test_generates_event_from_error
@@ -157,11 +153,11 @@ module NewRelic
       def test_merge_merges_samples_back_into_buffer
         generate_errors 5
 
-        old_events = last_error_events
+        last_harvest = error_event_aggregator.harvest!
 
         generate_errors 5
 
-        error_event_aggregator.merge!(old_events)
+        error_event_aggregator.merge!(last_harvest)
         events = last_error_events
 
         assert_equal(10, events.size)
@@ -170,12 +166,35 @@ module NewRelic
       def test_merge_abides_by_max_samples_limit
         with_config :'error_collector.max_event_samples_stored' => 5 do
           generate_errors 4
-          old_events = last_error_events
+          last_harvest = error_event_aggregator.harvest!
 
           generate_errors(4)
-          error_event_aggregator.merge!(old_events)
+          error_event_aggregator.merge!(last_harvest)
 
           assert_equal(5, last_error_events.size)
+        end
+      end
+
+      def test_sample_counts_are_correct_after_merge
+        with_config :'error_collector.max_event_samples_stored' => 5 do
+          buffer = error_event_aggregator.instance_variable_get :@error_event_buffer
+
+          generate_errors 4
+          last_harvest = error_event_aggregator.harvest!
+
+          assert_equal 4, buffer.seen_lifetime
+          assert_equal 4, buffer.captured_lifetime
+          assert_equal 4, last_harvest[0][:events_seen]
+
+          generate_errors 4
+          error_event_aggregator.merge! last_harvest
+
+          reservoir_stats, samples = error_event_aggregator.harvest!
+
+          assert_equal 5, samples.size
+          assert_equal 8, reservoir_stats[:events_seen]
+          assert_equal 8, buffer.seen_lifetime
+          assert_equal 5, buffer.captured_lifetime
         end
       end
 

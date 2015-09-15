@@ -1025,7 +1025,6 @@ module NewRelic
           end
         end
 
-
         def harvest_size container, items
           if container.respond_to?(:has_metadata?) && container.has_metadata? && !items.empty?
             items.last.size

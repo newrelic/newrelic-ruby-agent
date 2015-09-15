@@ -186,7 +186,7 @@ module NewRelic
       end
 
       def error_event_data(data)
-        invoke_remote(:error_event_data, data.unshift(@agent_id),
+        invoke_remote(:error_event_data, [@agent_id, *data],
           :item_count => data[2].size)
       end
 
