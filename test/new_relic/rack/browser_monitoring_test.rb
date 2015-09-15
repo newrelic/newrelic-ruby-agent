@@ -188,6 +188,19 @@ EOL
     assert_equal "390", headers["Content-Length"]
   end
 
+  def test_nonce_turns_up_when_controller_has_it
+    headers = { "Content-Type" => "text/html" }
+    app = mock('app', :call => [200, headers, ["<html><body></body></html>"]])
+    browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(app)
+    controller = mock('controller', :instance_variable_get => 'test_nonce')
+
+    _, _, content = browser_monitoring.call(
+      {'action_controller.instance'=>controller}
+    )
+
+    assert_match /<script.*nonce=\"test_nonce\"/, content.body.first
+  end
+
   def headers_from_request(headers, content)
     app = mock('app', :call => [200, headers, [content]])
     browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(app)
