@@ -9,7 +9,6 @@ require 'new_relic/agent/payload_metric_mapping'
 module NewRelic
   module Agent
     class ErrorEventAggregator
-
       EVENT_TYPE = "TransactionError".freeze
 
       def initialize
@@ -50,6 +49,10 @@ module NewRelic
         @lock.synchronize do
           old_samples.each { |s| @error_event_buffer.append s }
         end
+      end
+
+      def has_metadata?
+        true
       end
 
       private
