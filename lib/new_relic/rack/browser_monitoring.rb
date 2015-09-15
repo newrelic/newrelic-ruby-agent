@@ -30,8 +30,10 @@ module NewRelic::Rack
 
     def traced_call(env)
       result = @app.call(env)   # [status, headers, response]
+      nonce =  env['action_controller.instance']
+        .instance_variable_get(:@content_security_policy_nonce) rescue nil
 
-      js_to_inject = NewRelic::Agent.browser_timing_header
+      js_to_inject = NewRelic::Agent.browser_timing_header(nonce)
       if (js_to_inject != "") && should_instrument?(env, result[0], result[1])
         response_string = autoinstrument_source(result[2], result[1], js_to_inject)
 
