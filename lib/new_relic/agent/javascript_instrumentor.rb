@@ -104,12 +104,13 @@ module NewRelic
 
       def nonce_argument(nonce)
         return '' unless nonce.present?
-        "nonce=\"#{ nonce }\""
+        " nonce=\"#{ nonce }\" "
       end
 
       def browser_timing_loader(nonce = nil)
-        html_safe_if_needed("\n<script type=\"text/javascript\" #{ nonce_argument(nonce) }>\
-          #{Agent.config[:js_agent_loader]}</script>")
+        html_safe_if_needed(
+          "\n<script type=\"text/javascript\"#{ nonce_argument(nonce) }>#{Agent.config[:js_agent_loader]}</script>"
+        )
       end
 
       def browser_timing_config(state, nonce = nil)
@@ -119,8 +120,9 @@ module NewRelic
         txn.freeze_name_and_execute_if_not_ignored do
           data = data_for_js_agent(state)
           json = NewRelic::JSONWrapper.dump(data)
-          return html_safe_if_needed("\n<script type=\"text/javascript\" #{ nonce_argument(nonce) }>\
-            window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
+          return html_safe_if_needed(
+            "\n<script type=\"text/javascript\"#{ nonce_argument(nonce) }>window.NREUM||(NREUM={});NREUM.info=#{json}</script>"
+          )
         end
 
         ''
