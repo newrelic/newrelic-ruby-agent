@@ -195,7 +195,7 @@ EOL
     controller = mock('controller', :instance_variable_get => 'test_nonce')
 
     _, _, content = browser_monitoring.call(
-      {'action_controller.instance'=>controller}
+      { 'action_controller.instance' => controller }
     )
 
     assert_match /<script.*nonce=\"test_nonce\"/, content.body.first
