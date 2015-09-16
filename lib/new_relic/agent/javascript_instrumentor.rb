@@ -103,7 +103,7 @@ module NewRelic
       end
 
       def nonce_argument(nonce)
-        return '' unless nonce.present?
+        return '' unless nonce
         " nonce=\"#{nonce}\" "
       end
 
