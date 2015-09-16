@@ -86,11 +86,11 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    defined?(Rails) && Rails::VERSION::MAJOR.to_i == 2
+    defined?(Rails) && (1..2) === Rails::VERSION::MAJOR.to_i
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 2 Controller instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 1.* - 2 Controller instrumentation'
   end
 
   executes do
