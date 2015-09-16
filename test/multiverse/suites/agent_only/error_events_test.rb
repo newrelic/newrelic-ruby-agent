@@ -43,6 +43,21 @@ class ErrorEventsTest < Minitest::Test
     end
   end
 
+  def test_does_not_record_error_events_when_disabled_by_feature_gate
+    connect_response = {
+      'agent_run_id'          => 1,
+      'collect_error_events' => false
+    }
+
+    $collector.stub('connect', connect_response)
+    trigger_agent_reconnect
+
+    generate_errors 5
+
+    NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
+    assert_equal(0, $collector.calls_for(:error_event_data).size)
+  end
+
   def generate_errors num_errors = 1
     in_transaction :transaction_name => "Controller/blogs/index" do |t|
       num_errors.times { t.notice_error RuntimeError.new "Big Controller" }
