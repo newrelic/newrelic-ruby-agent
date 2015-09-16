@@ -89,7 +89,6 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   private :at_exit
 
   def test_install_exit_handler_positive
-    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
     NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
     self.expects(:sinatra_classic_app?).returns(false)
     # we are overriding at_exit above, to immediately return, so we can
@@ -110,14 +109,10 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_install_exit_handler_weird_ruby
     with_config(:send_data_one_exit => true) do
-      NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
       NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
       self.expects(:sinatra_classic_app?).returns(true)
       install_exit_handler
-      NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
       NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(true)
-      install_exit_handler
-      NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(true)
       install_exit_handler
     end
   end
