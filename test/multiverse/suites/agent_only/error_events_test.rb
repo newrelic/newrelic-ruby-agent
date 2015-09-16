@@ -8,17 +8,13 @@ class ErrorEventsTest < Minitest::Test
   setup_and_teardown_agent
 
   def test_error_events_are_submitted
-    txn_name = "Controller/blogs/index"
-
-    txn = in_transaction :transaction_name => txn_name do |t|
-      t.notice_error RuntimeError.new "Big Controller"
-    end
+    txn = generate_errors
 
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
 
     intrinsics, _, _ = last_error_event
 
-    assert_equal txn_name, intrinsics["transactionName"]
+    assert_equal txn.best_name, intrinsics["transactionName"]
     assert_equal "RuntimeError", intrinsics["error.class"]
     assert_equal "Big Controller", intrinsics["error.message"]
     assert_equal "TransactionError", intrinsics["type"]
@@ -27,13 +23,7 @@ class ErrorEventsTest < Minitest::Test
 
   def test_records_supportability_metrics
     with_config :'error_collector.max_event_samples_stored' => 10 do
-      txn_name = "Controller/blogs/index"
-
-      in_transaction :transaction_name => txn_name do |t|
-        15.times do
-          t.notice_error RuntimeError.new "Big Controller"
-        end
-      end
+      generate_errors 15
 
       NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
 
@@ -44,6 +34,21 @@ class ErrorEventsTest < Minitest::Test
     end
   end
 
+  def test_does_not_record_error_events_when_disabled
+    with_config :'error_collector.capture_events' => false do
+      generate_errors 5
+
+      NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
+      assert_equal(0, $collector.calls_for(:error_event_data).size)
+    end
+  end
+
+  def generate_errors num_errors = 1
+    in_transaction :transaction_name => "Controller/blogs/index" do |t|
+      num_errors.times { t.notice_error RuntimeError.new "Big Controller" }
+    end
+  end
+
   def last_error_event
     post = last_error_event_post
     assert_equal(1, post.error_events.size)
@@ -51,6 +56,6 @@ class ErrorEventsTest < Minitest::Test
   end
 
   def last_error_event_post
-    $collector.calls_for('error_event_data').first
+    $collector.calls_for(:error_event_data).first
   end
 end
