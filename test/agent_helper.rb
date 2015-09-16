@@ -94,7 +94,7 @@ end
 # orderings of the key/value pairs in Hashes that were embedded in the request
 # body). So, this method traverses an object graph and only makes assertions
 # about the terminal (non-Array-or-Hash) nodes therein.
-def assert_audit_log_contains_object(audit_log_contents, o, format)
+def assert_audit_log_contains_object(audit_log_contents, o, format = :json)
   case o
   when Hash
     o.each do |k,v|

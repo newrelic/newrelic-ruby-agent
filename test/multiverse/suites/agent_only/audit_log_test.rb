@@ -40,7 +40,7 @@ class AuditLogTest < Minitest::Test
     run_agent(:'audit_log.enabled' => true) do
       perform_actions
       $collector.agent_data.each do |req|
-        assert_audit_log_contains_object(audit_log_contents, req.body, :json)
+        assert_audit_log_contains_object(audit_log_contents, req.body)
       end
     end
   end
