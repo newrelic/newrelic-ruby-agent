@@ -1142,10 +1142,10 @@ module NewRelic
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive
             harvest_and_send_errors
+            harvest_and_send_error_event_data
             harvest_and_send_transaction_traces
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
-            harvest_and_send_error_event_data
 
             check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands

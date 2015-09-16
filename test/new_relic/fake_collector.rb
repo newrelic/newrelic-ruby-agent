@@ -71,6 +71,7 @@ module NewRelic
         'shutdown'                => Response.new(200, {'return_value' => nil}),
         'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
         'custom_event_data'       => Response.new(200, {'return_value' => nil}),
+        'error_event_data'        => Response.new(200, {'return_value' => nil})
       }
       reset
     end
@@ -211,6 +212,8 @@ module NewRelic
           AnalyticEventDataPost.new(opts)
         when 'error_data'
           ErrorDataPost.new(opts)
+        when 'error_event_data'
+          ErrorEventDataPost.new(opts)
         else
           new(opts)
         end
@@ -397,6 +400,15 @@ module NewRelic
         @params["intrinsics"]
       end
     end
-  end
 
+    class ErrorEventDataPost < AgentPost
+      attr_reader :reservoir_metadata, :error_events
+
+      def initialize opts={}
+        super
+        @reservoir_metadata = body[1]
+        @error_events = body[2]
+      end
+    end
+  end
 end
