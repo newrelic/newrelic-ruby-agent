@@ -144,6 +144,104 @@ module NewRelic
         end
       end
 
+      class DifficultToDebugAgentError < NewRelic::Agent::InternalAgentError
+      end
+
+      class AnotherToughAgentError < NewRelic::Agent::InternalAgentError
+      end
+
+      def test_notices_agent_error
+        error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
+        errors = error_trace_aggregator.harvest!
+        assert_equal 1, errors.size
+      end
+
+      def test_only_notices_agent_error_per_type
+        error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
+        error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
+        errors = error_trace_aggregator.harvest!
+        assert_equal 1, errors.size
+      end
+
+      def test_only_notices_agent_error_per_type_allows_other_types
+        error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
+        error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
+        error_trace_aggregator.notice_agent_error(AnotherToughAgentError.new)
+        errors = error_trace_aggregator.harvest!
+        assert_equal 2, errors.size
+      end
+
+      def test_does_not_touch_error_metrics
+        error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
+        error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
+        error_trace_aggregator.notice_agent_error(AnotherToughAgentError.new)
+
+        assert_metrics_recorded_exclusive([])
+      end
+
+      def test_notice_agent_error_set_noticed_error_attributes
+        error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
+
+        errors = error_trace_aggregator.harvest!
+        err = errors.first
+
+        assert_equal "NewRelic/AgentError", err.path
+        refute_nil err.stack_trace
+      end
+
+      def test_notice_agent_error_uses_exception_backtrace_if_present
+        trace = ["boo", "yeah", "error"]
+        exception = DifficultToDebugAgentError.new
+        exception.set_backtrace(trace)
+        error_trace_aggregator.notice_agent_error(exception)
+        errors = error_trace_aggregator.harvest!
+
+        assert_equal trace, errors.first.stack_trace
+      end
+
+      def test_notice_agent_error_uses_caller_if_no_exception_backtrace
+        exception = DifficultToDebugAgentError.new
+        exception.set_backtrace(nil)
+        error_trace_aggregator.notice_agent_error(exception)
+
+        errors = error_trace_aggregator.harvest!
+        trace = errors.first.stack_trace
+
+        assert trace.any? {|line| line.include?(__FILE__)}
+      end
+
+      def test_notice_agent_error_allows_an_error_past_queue_limit
+        100.times { notice_error(StandardError.new("Ouch")) }
+
+        exception = DifficultToDebugAgentError.new
+        error_trace_aggregator.notice_agent_error(exception)
+        errors = error_trace_aggregator.harvest!
+
+        assert_equal 21, errors.size
+        assert_equal DifficultToDebugAgentError.name, errors.last.exception_class_name
+      end
+
+      def test_notice_agent_error_doesnt_clog_up_the_queue_limit
+        exception = DifficultToDebugAgentError.new
+        error_trace_aggregator.notice_agent_error(exception)
+
+        100.times { notice_error(StandardError.new("Ouch")) }
+        errors = error_trace_aggregator.harvest!
+
+        assert_equal 21, errors.size
+      end
+
+      def test_notice_agent_error_adds_support_message
+        exception = DifficultToDebugAgentError.new("BOO")
+        error_trace_aggregator.notice_agent_error(exception)
+
+        errors = error_trace_aggregator.harvest!
+        err = errors.first
+
+        assert err.message.include?(exception.message)
+        assert err.message.include?("Ruby agent internal error")
+      end
+
       def create_noticed_error(exception, options = {})
         path = options.delete(:metric)
         noticed_error = NewRelic::NoticedError.new(path, exception)
