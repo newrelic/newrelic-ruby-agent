@@ -95,7 +95,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
                                  :metric => 'path', :referer => 'test_referer',
                                  :request_params => {:x => 'y'})
         service = NewRelic::Agent::PipeService.new(668)
-        service.error_data(new_sampler.harvest!)
+        service.error_data(new_sampler.error_trace_aggregator.harvest!)
       end
 
       assert_equal(2, NewRelic::Agent.agent.error_collector.errors.size)

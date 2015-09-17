@@ -24,7 +24,7 @@ module NewRelic::Rack
     def setup
       NewRelic::Agent.reset_config
       NewRelic::Agent.manual_start
-      NewRelic::Agent.instance.error_collector.reset!
+      NewRelic::Agent.instance.error_collector.drop_buffered_data
 
       # sanity checks
       assert NewRelic::Agent.instance.error_collector.enabled?

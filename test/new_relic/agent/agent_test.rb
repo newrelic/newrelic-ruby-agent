@@ -184,9 +184,9 @@ module NewRelic
       def test_harvest_and_send_errors_merges_back_on_failure
         errors = [mock('e0'), mock('e1')]
 
-        @agent.error_collector.expects(:harvest!).returns(errors)
+        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(errors)
         @agent.service.stubs(:error_data).raises('wat')
-        @agent.error_collector.expects(:merge!).with(errors)
+        @agent.error_collector.error_trace_aggregator.expects(:merge!).with(errors)
 
         @agent.send :harvest_and_send_errors
       end
@@ -259,7 +259,8 @@ module NewRelic
 
         @agent.merge_data_for_endpoint(:error_data, errors)
 
-        assert_equal 20, @agent.error_collector.errors.length
+        error_traces = @agent.error_collector.error_trace_aggregator.harvest!
+        assert_equal 20, error_traces.length
 
         # This method should NOT increment error counts, since that has already
         # been counted in the child

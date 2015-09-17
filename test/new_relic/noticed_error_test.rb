@@ -126,6 +126,14 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     end
   end
 
+  def test_long_message
+    #yes, times 500. it's a 5000 byte string. Assuming strings are
+    #still 1 byte / char.
+    err = create_error(StandardError.new("1234567890" * 500))
+    assert_equal 4096, err.message.length
+    assert_equal ('1234567890' * 500)[0..4095], err.message
+  end
+
   def test_permits_messages_from_whitelisted_exceptions_in_high_security_mode
     with_config(:'strip_exception_messages.whitelist' => 'NewRelic::TestHelpers::Exceptions::TestError') do
       e = TestError.new('whitelisted test exception')

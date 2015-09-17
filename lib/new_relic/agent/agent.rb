@@ -547,8 +547,7 @@ module NewRelic
         # Clear out the metric data, errors, and transaction traces, etc.
         def drop_buffered_data
           @stats_engine.reset!
-          @error_collector.reset!
-          @error_collector.error_event_aggregator.reset!
+          @error_collector.drop_buffered_data
           @transaction_sampler.reset!
           @transaction_event_aggregator.reset!
           @custom_event_aggregator.reset!
@@ -916,7 +915,8 @@ module NewRelic
           case endpoint
           when :metric_data             then @stats_engine
           when :transaction_sample_data then @transaction_sampler
-          when :error_data              then @error_collector
+          when :error_data              then @error_collector.error_trace_aggregator
+          when :error_event_data        then @error_collector.error_event_aggregator
           when :analytic_event_data     then @transaction_event_aggregator
           when :custom_event_data       then @custom_event_aggregator
           when :sql_trace_data          then @sql_sampler
@@ -1087,7 +1087,7 @@ module NewRelic
         end
 
         def harvest_and_send_errors
-          harvest_and_send_from_container(@error_collector, :error_data)
+          harvest_and_send_from_container(@error_collector.error_trace_aggregator, :error_data)
         end
 
         def harvest_and_send_analytic_event_data

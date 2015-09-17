@@ -9,7 +9,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def setup
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.reset!
-    NewRelic::Agent.instance.error_collector.reset!
+    NewRelic::Agent.instance.error_collector.drop_buffered_data
   end
 
   def teardown

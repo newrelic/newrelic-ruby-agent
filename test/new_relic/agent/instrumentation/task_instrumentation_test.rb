@@ -171,9 +171,9 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
   end
 
   def test_error_collector_captures_custom_params
-    @agent.error_collector.harvest!
+    @agent.error_collector.error_trace_aggregator.harvest!
     run_task_exception rescue nil
-    errors = @agent.error_collector.harvest!
+    errors = @agent.error_collector.error_trace_aggregator.harvest!
 
     assert_equal(1, errors.size)
 
