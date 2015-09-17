@@ -9,7 +9,7 @@ module NewRelic
   module Agent
     class ErrorTraceAggregatorTest < Minitest::Test
       def setup
-        @error_collector = NewRelic::Agent::ErrorCollector.new
+        @error_trace_aggregator = NewRelic::Agent::ErrorTraceAggregator.new ErrorCollector::MAX_ERROR_QUEUE_LENGTH
       end
 
      # Helpers for DataContainerTests
@@ -144,12 +144,23 @@ module NewRelic
         end
       end
 
-      def notice_error(exception, args={})
-        @error_collector.notice_error(exception, args)
+      def create_noticed_error(exception, options = {})
+        path = options.delete(:metric)
+        noticed_error = NewRelic::NoticedError.new(path, exception)
+        noticed_error.request_uri = options.delete(:uri)
+        noticed_error.attributes  = options.delete(:attributes)
+        noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
+        noticed_error.attributes_from_notice_error.merge!(options)
+        noticed_error
+      end
+
+      def notice_error(exception, options = {})
+        error = create_noticed_error(exception, options)
+        @error_trace_aggregator.add_to_error_queue error
       end
 
       def error_trace_aggregator
-        @error_collector.error_trace_aggregator
+        @error_trace_aggregator
       end
     end
   end
