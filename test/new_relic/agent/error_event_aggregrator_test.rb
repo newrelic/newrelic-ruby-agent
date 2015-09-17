@@ -231,6 +231,26 @@ module NewRelic
         end
       end
 
+      def test_errors_not_noticed_when_disabled
+        with_config :'error_collector.capture_events' => false do
+          generate_errors 1
+          errors = last_error_events
+          assert_empty errors
+        end
+      end
+
+      def test_errors_noticed_when_error_traces_disabled
+        config = {
+          :'error_collector.enabled' => false,
+          :'error_collector.capture_events' => true
+        }
+        with_config config do
+          generate_errors 1
+          errors = last_error_events
+          assert_equal 1, errors.size
+        end
+      end
+
       def error_event_aggregator
         NewRelic::Agent.instance.error_collector.error_event_aggregator
       end

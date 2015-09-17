@@ -12,6 +12,11 @@ module NewRelic
         @error_trace_aggregator = NewRelic::Agent::ErrorTraceAggregator.new ErrorCollector::MAX_ERROR_QUEUE_LENGTH
       end
 
+      def teardown
+        NewRelic::Agent.instance.stats_engine.reset!
+        @error_trace_aggregator.reset!
+      end
+
      # Helpers for DataContainerTests
 
       def create_container
@@ -240,6 +245,26 @@ module NewRelic
 
         assert err.message.include?(exception.message)
         assert err.message.include?("Ruby agent internal error")
+      end
+
+      def test_errors_not_noticed_when_disabled
+        with_config :'error_collector.enabled' => false do
+          notice_error StandardError.new "Red hands"
+          errors = error_trace_aggregator.harvest!
+          assert_empty errors
+        end
+      end
+
+      def test_errors_noticed_when_error_events_disabled
+        config = {
+          :'error_collector.enabled' => true,
+          :'error_collector.capture_events' => false
+        }
+        with_config config do
+          notice_error StandardError.new "Red hands"
+          errors = error_trace_aggregator.harvest!
+          assert_equal 1, errors.size
+        end
       end
 
       def create_noticed_error(exception, options = {})

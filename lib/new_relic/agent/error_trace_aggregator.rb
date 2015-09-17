@@ -10,6 +10,11 @@ module NewRelic
         @capacity = capacity
         @lock = Mutex.new
         @errors = []
+        register_config_callbacks
+      end
+
+      def enabled?
+        Agent.config[:'error_collector.enabled']
       end
 
       def merge!(errors)
@@ -38,6 +43,7 @@ module NewRelic
       # the error queue is too long - if so, we drop the error on the
       # floor after logging a warning.
       def add_to_error_queue(noticed_error)
+        return unless enabled?
         @lock.synchronize do
           if !over_queue_limit?(noticed_error.message) && !@errors.include?(noticed_error)
             @errors << noticed_error
@@ -49,7 +55,9 @@ module NewRelic
       # the maximum limit, and logs a warning if we are over the limit.
       def over_queue_limit?(message)
         over_limit = (@errors.reject{|err| err.is_internal}.length >= @capacity)
-        ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{@capacity}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}") if over_limit
+        if over_limit
+          ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{@capacity}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}")
+        end
         over_limit
       end
 
@@ -83,6 +91,12 @@ module NewRelic
         end
       rescue => e
         NewRelic::Agent.logger.info("Unable to capture internal agent error due to an exception:", e)
+      end
+
+      def register_config_callbacks
+        Agent.config.register_callback(:'error_collector.enabled') do |enabled|
+          ::NewRelic::Agent.logger.debug "Error traces will #{enabled ? '' : 'not '}be sent to the New Relic service."
+        end
       end
     end
   end

@@ -29,9 +29,6 @@ module NewRelic
 
         initialize_ignored_errors(Agent.config[:'error_collector.ignore_errors'])
 
-        Agent.config.register_callback(:'error_collector.enabled') do |config_enabled|
-          ::NewRelic::Agent.logger.debug "Errors will #{config_enabled ? '' : 'not '}be sent to the New Relic service."
-        end
         Agent.config.register_callback(:'error_collector.ignore_errors') do |ignore_errors|
           initialize_ignored_errors(ignore_errors)
         end
@@ -49,7 +46,7 @@ module NewRelic
       end
 
       def enabled?
-        Agent.config[:'error_collector.enabled']
+        error_trace_aggregator.enabled? || error_event_aggregator.enabled?
       end
 
       def disabled?

@@ -13,13 +13,12 @@ module NewRelic
 
       def initialize
         @lock = Mutex.new
-        @enabled = Agent.config[:'error_collector.capture_events']
         @error_event_buffer = SampledBuffer.new Agent.config[:'error_collector.max_event_samples_stored']
         register_config_callbacks
       end
 
       def enabled?
-        @enabled
+        Agent.config[:'error_collector.capture_events']
       end
 
       def append_event noticed_error, transaction_payload
@@ -80,7 +79,7 @@ module NewRelic
         end
 
         NewRelic::Agent.config.register_callback(:'error_collector.capture_events') do |enabled|
-          @enabled = enabled
+          ::NewRelic::Agent.logger.debug "Error events will #{enabled ? '' : 'not '}be sent to the New Relic service."
         end
       end
 
