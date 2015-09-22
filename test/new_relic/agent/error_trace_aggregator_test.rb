@@ -285,6 +285,12 @@ module NewRelic
       def error_trace_aggregator
         @error_trace_aggregator
       end
+
+      def silence_stream(*args)
+        super
+      rescue NoMethodError
+        yield
+      end
     end
   end
 end
