@@ -61,9 +61,9 @@ module NewRelic
         over_limit
       end
 
-      def errors
-        @lock.synchronize{ @errors }
-      end
+      # def errors
+      #   @lock.synchronize{ @errors }
+      # end
 
       # *Use sparingly for difficult to track bugs.*
       #

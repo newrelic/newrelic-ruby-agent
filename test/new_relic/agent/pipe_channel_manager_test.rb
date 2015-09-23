@@ -82,9 +82,10 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
                            :metric => 'path', :referer => 'test_referer',
                            :request_params => {:x => 'y'})
-      NewRelic::Agent.agent.merge_data_for_endpoint(:error_data, sampler.errors)
+      NewRelic::Agent.agent.merge_data_for_endpoint(:error_data, sampler.error_trace_aggregator.harvest!)
 
-      assert_equal(1, NewRelic::Agent.agent.error_collector.errors.size)
+      errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get :@errors
+      assert_equal(1, errors.size)
 
       start_listener_with_pipe(668)
 
@@ -97,8 +98,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         service = NewRelic::Agent::PipeService.new(668)
         service.error_data(new_sampler.error_trace_aggregator.harvest!)
       end
-
-      assert_equal(2, NewRelic::Agent.agent.error_collector.errors.size)
+      errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get :@errors
+      assert_equal(2, errors.size)
     end
 
     def test_listener_merges_analytics_events

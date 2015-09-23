@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..','tes
 class NewRelic::Agent::StatsHashTest < Minitest::Test
   def setup
     @hash = NewRelic::Agent::StatsHash.new
-    NewRelic::Agent.instance.error_collector.errors.clear
+    reset_error_traces!
   end
 
   def test_creates_default_entries
@@ -170,17 +170,18 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
 
       @hash.record(DEFAULT_SPEC, 1)
 
-      assert_has_error NewRelic::Agent::StatsHash::StatsHashLookupError
+      assert_has_traced_error NewRelic::Agent::StatsHash::StatsHashLookupError
     end
 
     def test_borked_default_proc_heals_thyself
       fake_borked_default_proc(@hash)
 
       @hash.record(DEFAULT_SPEC, 1)
-      NewRelic::Agent.instance.error_collector.errors.clear
+      reset_error_traces!
 
       @hash.record(NewRelic::MetricSpec.new('something/else/entirely'), 1)
-      assert_equal 0, NewRelic::Agent.instance.error_collector.errors.size
+      errors = harvest_error_traces!
+      assert_equal 0, errors.size
     end
   end
 

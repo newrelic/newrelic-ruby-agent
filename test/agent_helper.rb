@@ -26,9 +26,18 @@ def assert_in_delta(expected, actual, delta)
   assert_between((expected - delta), (expected + delta), actual)
 end
 
-def assert_has_error(error_class)
+def harvest_error_traces!
+  NewRelic::Agent.instance.error_collector.error_trace_aggregator.harvest!
+end
+
+def reset_error_traces!
+  NewRelic::Agent.instance.error_collector.error_trace_aggregator.reset!
+end
+
+def assert_has_traced_error(error_class)
+  errors = harvest_error_traces!
   assert \
-    NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_name == error_class.name} != nil, \
+    errors.find {|e| e.exception_class_name == error_class.name} != nil, \
     "Didn't find error of class #{error_class}"
 end
 

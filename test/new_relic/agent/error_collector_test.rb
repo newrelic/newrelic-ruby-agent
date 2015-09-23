@@ -186,8 +186,10 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
       @error_collector.notice_error(error)
     end
 
+    errors = @error_collector.error_trace_aggregator.harvest!
+
     assert_metrics_recorded('Errors/all' => { :call_count => 1 })
-    assert_equal 1, @error_collector.errors.length
+    assert_equal 1, errors.length
   end
 
   def test_doesnt_count_seen_exceptions
@@ -197,8 +199,10 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
       @error_collector.notice_error(error)
     end
 
+    errors = @error_collector.error_trace_aggregator.harvest!
+
     assert_metrics_not_recorded(['Errors/all'])
-    assert_empty @error_collector.errors
+    assert_empty errors
   end
 
   def test_captures_attributes_on_notice_error
@@ -206,7 +210,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     attributes = Object.new
     @error_collector.notice_error(error, :attributes => attributes)
 
-    noticed = @error_collector.errors.first
+    errors = @error_collector.error_trace_aggregator.harvest!
+    noticed = errors.first
+
     assert_equal attributes, noticed.attributes
   end
 

@@ -177,6 +177,8 @@ module NewRelic
       end
 
       def test_does_not_touch_error_metrics
+        NewRelic::Agent.instance.stats_engine.reset!
+
         error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
         error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
         error_trace_aggregator.notice_agent_error(AnotherToughAgentError.new)

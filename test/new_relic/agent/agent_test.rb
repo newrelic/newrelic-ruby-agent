@@ -82,8 +82,9 @@ module NewRelic
           @agent.merge_data_for_endpoint(:error_data, errors)
 
           @agent.after_fork(:report_to_channel => 123)
+          errors = @agent.error_collector.error_trace_aggregator.harvest!
 
-          assert_equal 0, @agent.error_collector.errors.length, "Still got errors collected in parent"
+          assert_equal 0, errors.length, "Still got errors collected in parent"
         end
       end
 
