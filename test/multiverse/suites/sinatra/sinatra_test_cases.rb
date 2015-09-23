@@ -44,7 +44,8 @@ module SinatraTestCases
 
   def test_shown_errors_get_caught
      get '/raise'
-     assert_equal 1, ::NewRelic::Agent.agent.error_collector.errors.size
+     errors = harvest_error_traces!
+     assert_equal 1, errors.size
   end
 
   def test_does_not_break_pass
@@ -61,7 +62,8 @@ module SinatraTestCases
 
   def test_sees_handled_error
     get '/error'
-    assert_equal 1, ::NewRelic::Agent.agent.error_collector.errors.size
+    errors = harvest_error_traces!
+    assert_equal 1, errors.size
   end
 
   def test_correct_pattern

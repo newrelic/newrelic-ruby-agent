@@ -41,6 +41,10 @@ def assert_has_traced_error(error_class)
     "Didn't find error of class #{error_class}"
 end
 
+def last_traced_error
+  harvest_error_traces!.last
+end
+
 unless defined?( assert_block )
   def assert_block(*msgs)
     assert yield, *msgs
@@ -328,10 +332,6 @@ def refute_contains_request_params(attributes)
   attributes.keys.each do |key|
     refute_match /^request\.parameters\./, key.to_s
   end
-end
-
-def last_traced_error
-  NewRelic::Agent.agent.error_collector.errors.last
 end
 
 def last_transaction_trace
