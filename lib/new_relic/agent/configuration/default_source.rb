@@ -994,14 +994,14 @@ module NewRelic
         },
         :'browser_monitoring.loader' => {
           :default => DefaultSource.browser_monitoring_loader,
-          :public => private,
+          :public => false,
           :type => String,
           :allowed_from_server => true,
           :description => 'Type of JavaScript agent loader to use for browser monitoring instrumentation.'
         },
         :'browser_monitoring.loader_version' => {
           :default => '',
-          :public => private,
+          :public => false,
           :type => String,
           :allowed_from_server => true,
           :description => 'Version of JavaScript agent loader (returned from the New Relic <a href="/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>).)'

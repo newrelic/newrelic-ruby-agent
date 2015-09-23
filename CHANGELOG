@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.13.2 ##
+
+  * Don't fail to send data when using 'mathn' library
+
+  Version 3.12.1 introduced a bug with applications using the 'mathn' library
+  that would prevent the agent from sending data to New Relic. This has been
+  fixed.
+
 ## v3.13.1 ##
 
   * Don't use a pager when running `git log` command

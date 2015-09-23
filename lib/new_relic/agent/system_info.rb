@@ -231,12 +231,12 @@ module NewRelic
 
       def self.ram_in_mib
         if darwin?
-          sysctl_value('hw.memsize').to_i / (1024 ** 2)
+          (sysctl_value('hw.memsize').to_i / (1024 ** 2)).to_i
         elsif linux?
           meminfo = proc_try_read('/proc/meminfo')
           parse_linux_meminfo_in_mib(meminfo)
         elsif bsd?
-          sysctl_value('hw.realmem').to_i / (1024 ** 2)
+          (sysctl_value('hw.realmem').to_i / (1024 ** 2)).to_i
         else
           ::NewRelic::Agent.logger.debug("Unable to determine ram_in_mib for host os: #{ruby_os_identifier}")
           nil
@@ -245,7 +245,7 @@ module NewRelic
 
       def self.parse_linux_meminfo_in_mib(meminfo)
         if mem_total = meminfo[/MemTotal:\s*(\d*)\skB/,1]
-          mem_total.to_i / 1024
+          (mem_total.to_i / 1024).to_i
         else
           ::NewRelic::Agent.logger.debug("Failed to parse MemTotal from /proc/meminfo: #{meminfo}")
           nil

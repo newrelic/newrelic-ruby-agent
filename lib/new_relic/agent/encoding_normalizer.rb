@@ -30,6 +30,8 @@ module NewRelic
             hash[k] = normalize_object(v)
           end
           hash
+        when Rational
+          object.to_f
         else
           object
         end
