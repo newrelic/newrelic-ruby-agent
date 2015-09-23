@@ -18,6 +18,11 @@ class EncodingNormalizerTest < Minitest::Test
     assert_equal({'key' => 'value'}, result)
   end
 
+  def test_normalize_object_converts_rationals_to_floats
+    result = EncodingNormalizer.normalize_object({:key => Rational(3,2)})
+    assert_equal({'key' => 1.5}, result)
+  end
+
   if NewRelic::LanguageSupport.supports_string_encodings?
     def test_normalize_string_returns_input_if_correctly_encoded_utf8
       string = "i want a pony"
