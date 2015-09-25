@@ -103,24 +103,33 @@ module NewRelic::Agent
       assert_equal(0.5, buffer.sample_rate_lifetime)
     end
 
-    def test_append_event_with_block
+    def test_append_with_block
       buffer = buffer_class.new(5)
       5.times do |i|
-        buffer.append_event { i }
+        buffer.append { i }
       end
 
       assert_equal [0, 1, 2, 3, 4], buffer.to_a
     end
 
-    def test_append_event_with_block_while_sampling
+    def test_append_with_block_while_sampling
       buffer = buffer_class.new(5)
       buffer.stubs(:rand).returns(0)
 
       10.times do |i|
-        buffer.append_event { i }
+        buffer.append { i }
       end
 
       assert_equal [9, 1, 2, 3, 4], buffer.to_a
+    end
+
+    def test_append_with_block_increments_seen
+      buffer = buffer_class.new(5)
+      10.times do |i|
+        buffer.append { i }
+      end
+
+      assert_equal 10, buffer.num_seen
     end
   end
 end

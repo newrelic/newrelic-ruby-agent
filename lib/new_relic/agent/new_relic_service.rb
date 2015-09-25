@@ -185,6 +185,13 @@ module NewRelic
           :item_count => data.size)
       end
 
+      def error_event_data(data)
+        item_count = data[1].size
+        invoke_remote(:error_event_data, [@agent_id, *data], :item_count => item_count)
+        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Sent", item_count)
+        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Seen", data[0][:events_seen])
+      end
+
       # We do not compress if content is smaller than 64kb.  There are
       # problems with bugs in Ruby in some versions that expose us
       # to a risk of segfaults if we compress aggressively.
