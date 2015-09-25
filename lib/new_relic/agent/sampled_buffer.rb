@@ -26,13 +26,15 @@ module NewRelic
         super
       end
 
-      def append_event(x)
+      def append_event(x = nil)
         if @items.size < @capacity
+          x = yield if block_given?
           @items << x
           return x
         else
           m = rand(@seen) # [0, @seen)
           if m < @capacity
+            x = yield if block_given?
             @items[m] = x
             return x
           else

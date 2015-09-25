@@ -61,7 +61,8 @@ module NewRelic
                   :cat_path_hashes,
                   :attributes,
                   :request_path,
-                  :referer
+                  :referer,
+                  :payload
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -507,10 +508,11 @@ module NewRelic
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
 
+        generate_payload(state, start_time, end_time)
         record_exceptions
         merge_metrics
 
-        send_transaction_finished_event(state, start_time, end_time)
+        send_transaction_finished_event
       end
 
       def assign_agent_attributes
@@ -563,9 +565,13 @@ module NewRelic
 
       # This event is fired when the transaction is fully completed. The metric
       # values and sampler can't be successfully modified from this event.
-      def send_transaction_finished_event(state, start_time, end_time)
+      def send_transaction_finished_event
+        agent.events.notify(:transaction_finished, payload)
+      end
+
+      def generate_payload(state, start_time, end_time)
         duration = end_time.to_f - start_time.to_f
-        payload = {
+        @payload = {
           :name                 => @frozen_name,
           :bucket               => recording_web_transaction? ? :request : :background,
           :start_timestamp      => start_time.to_f,
@@ -573,12 +579,10 @@ module NewRelic
           :metrics              => @metrics,
           :attributes           => @attributes,
         }
-        append_cat_info(state, duration, payload)
-        append_apdex_perf_zone(duration, payload)
-        append_synthetics_to(state, payload)
-        append_referring_transaction_guid_to(state, payload)
-
-        agent.events.notify(:transaction_finished, payload)
+        append_cat_info(state, duration, @payload)
+        append_apdex_perf_zone(duration, @payload)
+        append_synthetics_to(state, @payload)
+        append_referring_transaction_guid_to(state, @payload)
       end
 
       def include_guid?(state, duration)

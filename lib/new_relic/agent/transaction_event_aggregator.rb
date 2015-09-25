@@ -7,6 +7,7 @@ require 'monitor'
 
 require 'newrelic_rpm' unless defined?( NewRelic )
 require 'new_relic/agent' unless defined?( NewRelic::Agent )
+require 'new_relic/agent/payload_metric_mapping'
 
 class NewRelic::Agent::TransactionEventAggregator
   include NewRelic::Coerce,
@@ -170,46 +171,6 @@ class NewRelic::Agent::TransactionEventAggregator
     end
   end
 
-  def self.map_metric(metric_name, to_add={})
-    to_add.values.each(&:freeze)
-
-    mappings = OVERVIEW_SPECS.fetch(metric_name, {})
-    mappings.merge!(to_add)
-
-    OVERVIEW_SPECS[metric_name] = mappings
-  end
-
-  OVERVIEW_SPECS = {}
-
-  # All Transactions
-  # Don't need to use the transaction-type specific metrics since this is
-  # scoped to just one transaction, so Datastore/all has what we want.
-  map_metric('Datastore/all',         :total_call_time => "databaseDuration")
-  map_metric('Datastore/all',         :call_count      => "databaseCallCount")
-  map_metric('GC/Transaction/all',    :total_call_time => "gcCumulative")
-
-  # Web Metrics
-  map_metric('WebFrontend/QueueTime', :total_call_time => "queueDuration")
-  map_metric('External/allWeb',       :total_call_time => "externalDuration")
-  map_metric('External/allWeb',       :call_count      => "externalCallCount")
-
-  # Background Metrics
-  map_metric('External/allOther',     :total_call_time => "externalDuration")
-  map_metric('External/allOther',     :call_count      => "externalCallCount")
-
-  def append_metrics(txn_metrics, sample)
-    if txn_metrics
-      OVERVIEW_SPECS.each do |(name, extracted_values)|
-        if txn_metrics.has_key?(name)
-          stat = txn_metrics[name]
-          extracted_values.each do |value_name, key_name|
-            sample[key_name] = stat.send(value_name)
-          end
-        end
-      end
-    end
-  end
-
   def create_main_event(payload)
     sample = {
       TIMESTAMP_KEY => float(payload[:start_timestamp]),
@@ -217,7 +178,7 @@ class NewRelic::Agent::TransactionEventAggregator
       DURATION_KEY  => float(payload[:duration]),
       TYPE_KEY      => SAMPLE_TYPE,
     }
-    append_metrics(payload[:metrics], sample)
+    NewRelic::Agent::PayloadMetricMapping.append_mapped_metrics(payload[:metrics], sample)
     optionally_append(GUID_KEY,                       :guid, sample, payload)
     optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
     optionally_append(CAT_TRIP_ID_KEY,                :cat_trip_id, sample, payload)
