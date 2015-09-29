@@ -131,5 +131,12 @@ module NewRelic::Agent
 
       assert_equal 10, buffer.num_seen
     end
+
+    def test_append_does_not_allow_an_argument_and_block
+      assert_raises ArgumentError do
+        buffer = buffer_class.new 5
+        buffer.append(4) { 5 }
+      end
+    end
   end
 end
