@@ -61,10 +61,6 @@ module NewRelic
         over_limit
       end
 
-      # def errors
-      #   @lock.synchronize{ @errors }
-      # end
-
       # *Use sparingly for difficult to track bugs.*
       #
       # Track internal agent errors for communication back to New Relic.

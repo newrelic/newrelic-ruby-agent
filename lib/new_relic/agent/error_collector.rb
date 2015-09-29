@@ -34,9 +34,6 @@ module NewRelic
         end
       end
 
-      # def errors
-      #   @error_trace_aggregator.errors
-      # end
 
       def initialize_ignored_errors(ignore_errors)
         @ignore.clear
