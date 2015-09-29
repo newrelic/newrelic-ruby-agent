@@ -9,7 +9,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def setup
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.reset!
-    NewRelic::Agent.instance.error_collector.reset!
+    NewRelic::Agent.instance.error_collector.drop_buffered_data
   end
 
   def teardown
@@ -698,8 +698,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     txn = in_transaction('oops') do
       NewRelic::Agent::Transaction.notice_error("wat?")
     end
-
-    error = NewRelic::Agent.instance.error_collector.errors.first
+    errors = harvest_error_traces!
+    error = errors.first
     assert_equal txn.attributes, error.attributes
   end
 
@@ -708,13 +708,15 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       # no-op
     end
     NewRelic::Agent::Transaction.notice_error("")
-    assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
+    errors = harvest_error_traces!
+    assert_equal 1, errors.count
   end
 
   def test_notice_error_without_transaction_notifies_error_collector
     cleanup_transaction
     NewRelic::Agent::Transaction.notice_error("")
-    assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
+    errors = harvest_error_traces!
+    assert_equal 1, errors.count
   end
 
   def test_notice_error_sends_uri_and_referer_from_request
@@ -723,8 +725,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       NewRelic::Agent::Transaction.notice_error("wat")
     end
 
-    assert_equal 1, NewRelic::Agent.instance.error_collector.errors.count
-    error = NewRelic::Agent.instance.error_collector.errors.first
+    errors = harvest_error_traces!
+    assert_equal 1, errors.count
+
+    error = errors.first
     assert_equal "/here",  error.request_uri
   end
 

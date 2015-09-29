@@ -11,6 +11,7 @@ module NewRelic
     class ErrorEventAggregatorTest < Minitest::Test
       def setup
         freeze_time
+        @error_event_aggregator = ErrorEventAggregator.new
       end
 
       def teardown
@@ -19,7 +20,7 @@ module NewRelic
       end
 
       def create_container
-        @error_event_aggregator = NewRelic::Agent::ErrorEventAggregator.new
+        @error_event_aggregator
       end
 
       def populate_container(sampler, n)
@@ -33,30 +34,24 @@ module NewRelic
       include NewRelic::DataContainerTests
 
       def test_generates_event_from_error
-        txn_name = "Controller/blogs/index"
-
-        txn = in_transaction :transaction_name => txn_name do |t|
-          t.notice_error RuntimeError.new "Big Controller"
-        end
+        generate_error
 
         intrinsics, *_ = last_error_event
 
         assert_equal "TransactionError", intrinsics[:type]
         assert_equal Time.now.to_f, intrinsics[:timestamp]
         assert_equal "RuntimeError", intrinsics[:'error.class']
-        assert_equal "Big Controller", intrinsics[:'error.message']
-        assert_equal txn_name, intrinsics[:transactionName]
-        assert_equal txn.payload[:duration], intrinsics[:duration]
+        assert_equal "Big Controller!", intrinsics[:'error.message']
+        assert_equal "Controller/blogs/index", intrinsics[:transactionName]
+        assert_equal 0.1, intrinsics[:duration]
       end
 
       def test_event_includes_synthetics
-        txn_name = "Controller/blogs/index"
-
-        in_transaction :transaction_name => txn_name do |t|
-          t.raw_synthetics_header = "fake"
-          t.synthetics_payload = [1,2,3,4,5]
-          t.notice_error RuntimeError.new "Big Controller"
-        end
+        generate_error :payload_options => {
+          :synthetics_resource_id=>3,
+          :synthetics_job_id=>4,
+          :synthetics_monitor_id=>5
+        }
 
         intrinsics, *_ = last_error_event
 
@@ -66,15 +61,13 @@ module NewRelic
       end
 
       def test_includes_mapped_metrics
-        txn_name = "Controller/blogs/index"
+        metrics = NewRelic::Agent::TransactionMetrics.new
+        metrics.record_unscoped 'Datastore/all', 10
+        metrics.record_unscoped 'GC/Transaction/all', 11
+        metrics.record_unscoped 'WebFrontend/QueueTime', 12
+        metrics.record_unscoped 'External/allWeb', 13
 
-        in_transaction :transaction_name => txn_name do |t|
-          NewRelic::Agent.record_metric 'Datastore/all', 10
-          NewRelic::Agent.record_metric 'GC/Transaction/all', 11
-          NewRelic::Agent.record_metric 'WebFrontend/QueueTime', 12
-          NewRelic::Agent.record_metric 'External/allWeb', 13
-          t.notice_error RuntimeError.new "Big Controller"
-        end
+        generate_error :payload_options => {:metrics => metrics}
 
         intrinsics, *_ = last_error_event
 
@@ -87,29 +80,21 @@ module NewRelic
       end
 
       def test_includes_cat_attributes
-        txn_name = "Controller/blogs/index"
-
-        txn = in_transaction :transaction_name => txn_name do |t|
-          state = TransactionState.tl_get
-          state.is_cross_app_caller = true
-          state.referring_transaction_info = ["REFERRING_GUID"]
-          t.notice_error RuntimeError.new "Big Controller"
-        end
+        generate_error :payload_options => {:guid => "GUID", :referring_transaction_guid=>"REFERRING_GUID"}
 
         intrinsics, *_ = last_error_event
 
-        assert_equal txn.guid, intrinsics[:"nr.transactionGuid"]
+        assert_equal "GUID", intrinsics[:"nr.transactionGuid"]
         assert_equal "REFERRING_GUID", intrinsics[:"nr.referringTransactionGuid"]
       end
 
       def test_includes_custom_attributes
-        txn_name = "Controller/blogs/index"
-
         attrs = {"user" => "Wes Mantooth", "channel" => 9}
-        in_transaction :transaction_name => txn_name do |t|
-          NewRelic::Agent.add_custom_attributes attrs
-          t.notice_error RuntimeError.new "Big Controller"
-        end
+
+        attributes = Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        attributes.merge_custom_attributes attrs
+
+        generate_error :error_options => {:attributes => attributes}
 
         _, custom_attrs, _ = last_error_event
 
@@ -117,14 +102,11 @@ module NewRelic
       end
 
       def test_includes_agent_attributes
-        txn_name = "Controller/blogs/index"
+        attributes = Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_ERROR_COLLECTOR
+        attributes.add_agent_attribute :httpResponseCode, "200", AttributeFilter::DST_ERROR_COLLECTOR
 
-        req = stub :path => "/blogs/index",:referer => "http://blog.site/home"
-
-        in_transaction :transaction_name => txn_name, :request => req do |t|
-          t.http_response_code = 200
-          t.notice_error RuntimeError.new "Big Controller"
-        end
+        generate_error :error_options => {:attributes => attributes}
 
         _, _, agent_attrs = last_error_event
 
@@ -134,14 +116,14 @@ module NewRelic
 
       def test_respects_max_samples_stored
         with_config :'error_collector.max_event_samples_stored' => 5 do
-          generate_errors 10
+          10.times { generate_error }
         end
 
         assert_equal 5, last_error_events.size
       end
 
       def test_reservoir_stats_reset_after_harvest
-        generate_errors 5
+        5.times { generate_error }
 
         reservoir_stats, samples = error_event_aggregator.harvest!
         assert_equal 5, reservoir_stats[:events_seen]
@@ -151,11 +133,11 @@ module NewRelic
       end
 
       def test_merge_merges_samples_back_into_buffer
-        generate_errors 5
+        5.times { generate_error }
 
         last_harvest = error_event_aggregator.harvest!
 
-        generate_errors 5
+        5.times { generate_error }
 
         error_event_aggregator.merge!(last_harvest)
         events = last_error_events
@@ -165,10 +147,10 @@ module NewRelic
 
       def test_merge_abides_by_max_samples_limit
         with_config :'error_collector.max_event_samples_stored' => 5 do
-          generate_errors 4
+          4.times { generate_error }
           last_harvest = error_event_aggregator.harvest!
 
-          generate_errors(4)
+          4.times { generate_error }
           error_event_aggregator.merge!(last_harvest)
 
           assert_equal(5, last_error_events.size)
@@ -179,14 +161,14 @@ module NewRelic
         with_config :'error_collector.max_event_samples_stored' => 5 do
           buffer = error_event_aggregator.instance_variable_get :@error_event_buffer
 
-          generate_errors 4
+          4.times { generate_error }
           last_harvest = error_event_aggregator.harvest!
 
           assert_equal 4, buffer.seen_lifetime
           assert_equal 4, buffer.captured_lifetime
           assert_equal 4, last_harvest[0][:events_seen]
 
-          generate_errors 4
+          4.times { generate_error }
           error_event_aggregator.merge! last_harvest
 
           reservoir_stats, samples = error_event_aggregator.harvest!
@@ -200,18 +182,18 @@ module NewRelic
 
       def test_limits_total_number_of_samples_to_max_samples_stored
         with_config :'error_collector.max_event_samples_stored' => 100 do
-          generate_errors 150
+          150.times { generate_error }
           assert_equal 100, last_error_events.size
         end
       end
 
       def test_resets_limits_on_harvest
         with_config :'error_collector.max_event_samples_stored' => 100 do
-          generate_errors 50
+          50.times { generate_error }
           events_before = last_error_events
           assert_equal 50, events_before.size
 
-          generate_errors 150
+          150.times { generate_error }
           events_after = last_error_events
           assert_equal 100, events_after.size
         end
@@ -222,7 +204,7 @@ module NewRelic
           threads = []
           25.times do
             threads << Thread.new do
-              generate_errors 100
+              100.times{ generate_error }
             end
           end
           threads.each { |t| t.join }
@@ -231,8 +213,28 @@ module NewRelic
         end
       end
 
+      def test_errors_not_noticed_when_disabled
+        with_config :'error_collector.capture_events' => false do
+          generate_error
+          errors = last_error_events
+          assert_empty errors
+        end
+      end
+
+      def test_errors_noticed_when_error_traces_disabled
+        config = {
+          :'error_collector.enabled' => false,
+          :'error_collector.capture_events' => true
+        }
+        with_config config do
+          generate_error
+          errors = last_error_events
+          assert_equal 1, errors.size
+        end
+      end
+
       def error_event_aggregator
-        NewRelic::Agent.instance.error_collector.error_event_aggregator
+        @error_event_aggregator
       end
 
       def last_error_events
@@ -249,6 +251,33 @@ module NewRelic
         buffer = error_event_aggregator.instance_variable_get :@error_event_buffer
         buffer.instance_variable_set :@seen_lifetime, 0
         buffer.instance_variable_set :@captured_lifetime, 0
+      end
+
+      def create_noticed_error options = {}
+        exception = options.delete(:exception) || RuntimeError.new("Big Controller!")
+        txn_name = "Controller/blogs/index"
+        noticed_error = NewRelic::NoticedError.new(txn_name, exception)
+        noticed_error.request_uri = "http://site.com/blogs"
+        noticed_error.attributes  = options.delete(:attributes)
+        noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
+        noticed_error.attributes_from_notice_error.merge!(options)
+
+        noticed_error
+      end
+
+      def create_transaction_payload options = {}
+        {
+          :name => "Controller/blogs/index",
+          :type => :controller,
+          :start_timestamp => Time.now.to_f,
+          :duration => 0.1
+        }.update(options)
+      end
+
+      def generate_error options = {}
+        error = create_noticed_error options[:error_options] || {}
+        payload = create_transaction_payload options[:payload_options] || {}
+        @error_event_aggregator.append_event error, payload
       end
 
       def generate_errors num_errors

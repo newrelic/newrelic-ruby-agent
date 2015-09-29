@@ -17,7 +17,7 @@ module NewRelic
       MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
       EXCEPTION_TAG_IVAR = :'@__nr_seen_exception' unless defined? EXCEPTION_TAG_IVAR
 
-      attr_reader :error_event_aggregator
+      attr_reader :error_trace_aggregator, :error_event_aggregator
 
       # Returns a new error collector
       def initialize
@@ -29,17 +29,11 @@ module NewRelic
 
         initialize_ignored_errors(Agent.config[:'error_collector.ignore_errors'])
 
-        Agent.config.register_callback(:'error_collector.enabled') do |config_enabled|
-          ::NewRelic::Agent.logger.debug "Errors will #{config_enabled ? '' : 'not '}be sent to the New Relic service."
-        end
         Agent.config.register_callback(:'error_collector.ignore_errors') do |ignore_errors|
           initialize_ignored_errors(ignore_errors)
         end
       end
 
-      def errors
-        @error_trace_aggregator.errors
-      end
 
       def initialize_ignored_errors(ignore_errors)
         @ignore.clear
@@ -49,7 +43,7 @@ module NewRelic
       end
 
       def enabled?
-        Agent.config[:'error_collector.enabled']
+        error_trace_aggregator.enabled? || error_event_aggregator.enabled?
       end
 
       def disabled?
@@ -204,8 +198,8 @@ module NewRelic
         state = ::NewRelic::Agent::TransactionState.tl_get
         increment_error_count!(state, exception, options)
         noticed_error = create_noticed_error(exception, options)
-        @error_trace_aggregator.add_to_error_queue(noticed_error)
-        @error_event_aggregator.append_event(noticed_error, state.current_transaction.payload)
+        error_trace_aggregator.add_to_error_queue(noticed_error)
+        error_event_aggregator.append_event(noticed_error, state.current_transaction.payload)
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)
@@ -263,18 +257,10 @@ module NewRelic
         @error_trace_aggregator.notice_agent_error(exception)
       end
 
-      def merge!(errors)
-        @error_trace_aggregator.merge!(errors)
-      end
-
-      # Get the errors currently queued up.  Unsent errors are left
-      # over from a previous unsuccessful attempt to send them to the server.
-      def harvest!
-        @error_trace_aggregator.harvest!
-      end
-
-      def reset!
+      def drop_buffered_data
         @error_trace_aggregator.reset!
+        @error_event_aggregator.reset!
+        nil
       end
     end
   end

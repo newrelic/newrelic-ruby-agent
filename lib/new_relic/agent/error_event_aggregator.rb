@@ -17,7 +17,13 @@ module NewRelic
         register_config_callbacks
       end
 
+      def enabled?
+        Agent.config[:'error_collector.capture_events']
+      end
+
       def append_event noticed_error, transaction_payload
+        return unless enabled?
+
         @lock.synchronize do
           @error_event_buffer.append do
             event_for_collector(noticed_error, transaction_payload)
@@ -70,6 +76,10 @@ module NewRelic
         NewRelic::Agent.config.register_callback(:'error_collector.max_event_samples_stored') do |max_samples|
           NewRelic::Agent.logger.debug "ErrorEventAggregator max_samples set to #{max_samples}"
           @lock.synchronize { @error_event_buffer.capacity = max_samples }
+        end
+
+        NewRelic::Agent.config.register_callback(:'error_collector.capture_events') do |enabled|
+          ::NewRelic::Agent.logger.debug "Error events will #{enabled ? '' : 'not '}be sent to the New Relic service."
         end
       end
 

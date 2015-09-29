@@ -70,7 +70,7 @@ class LoggingTest < Minitest::Test
   def test_logs_if_sending_errors_on_change
     running_agent_writes_to_log(
       {:'error_collector.enabled' => false},
-      "Errors will be sent") do
+      "Error traces will be sent") do
 
       NewRelic::Agent.config.add_config_for_testing(:'error_collector.enabled' => true)
     end
@@ -79,7 +79,7 @@ class LoggingTest < Minitest::Test
   def test_logs_if_not_sending_errors_on_change
     running_agent_writes_to_log(
       {:'error_collector.enabled' => true},
-      "Errors will not be sent") do
+      "Error traces will not be sent") do
 
       NewRelic::Agent.config.add_config_for_testing(:'error_collector.enabled' => false)
     end

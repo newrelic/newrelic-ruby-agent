@@ -26,10 +26,23 @@ def assert_in_delta(expected, actual, delta)
   assert_between((expected - delta), (expected + delta), actual)
 end
 
-def assert_has_error(error_class)
+def harvest_error_traces!
+  NewRelic::Agent.instance.error_collector.error_trace_aggregator.harvest!
+end
+
+def reset_error_traces!
+  NewRelic::Agent.instance.error_collector.error_trace_aggregator.reset!
+end
+
+def assert_has_traced_error(error_class)
+  errors = harvest_error_traces!
   assert \
-    NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_name == error_class.name} != nil, \
+    errors.find {|e| e.exception_class_name == error_class.name} != nil, \
     "Didn't find error of class #{error_class}"
+end
+
+def last_traced_error
+  harvest_error_traces!.last
 end
 
 unless defined?( assert_block )
@@ -319,10 +332,6 @@ def refute_contains_request_params(attributes)
   attributes.keys.each do |key|
     refute_match /^request\.parameters\./, key.to_s
   end
-end
-
-def last_traced_error
-  NewRelic::Agent.agent.error_collector.errors.last
 end
 
 def last_transaction_trace

@@ -32,6 +32,8 @@ module NewRelic
       end
 
       def append_event(x = nil, &blk)
+        raise ArgumentError, "Expected argument or block, but received both" if x && blk
+
         if @items.size < @capacity
           x = blk.call if block_given?
           @items << x

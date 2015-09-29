@@ -86,7 +86,7 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
   end
 
   def last_error
-    @error_collector.errors.last
+    errors.last
   end
 
   if Rails::VERSION::MAJOR >= 3
@@ -196,13 +196,13 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
 
   def test_should_not_notice_errors_from_ignored_action
     get '/error/ignored_action'
-    assert(@error_collector.errors.empty?,
+    assert(errors.empty?,
            'Noticed an error that should have been ignored')
   end
 
   def test_should_not_notice_ignored_error_classes
     get '/error/ignored_error'
-    assert(@error_collector.errors.empty?,
+    assert(errors.empty?,
            'Noticed an error that should have been ignored')
   end
 
@@ -223,7 +223,7 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
       get '/error/controller_error'
     end
 
-    assert(NewRelic::Agent.instance.error_collector.errors.empty?,
+    assert(errors.empty?,
            'Noticed an error that should have been ignored')
   end
 
@@ -274,8 +274,12 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
 
   protected
 
+  def errors
+    @error_collector.error_trace_aggregator.instance_variable_get :@errors
+  end
+
   def errors_with_message(message)
-    @error_collector.errors.select{|error| error.message == message}
+    errors.select{|error| error.message == message}
   end
 
   def assert_errors_reported(message, queued_count, total_count=queued_count, txn_name=nil, apdex_f=1)
@@ -315,8 +319,9 @@ class ErrorsWithSSCTest < ErrorsWithoutSSCTest
 
   def test_should_ignore_server_ignored_errors
     get '/error/server_ignored_error'
-    assert(@error_collector.errors.empty?,
-           'Noticed an error that should have been ignored' + @error_collector.errors.join(', '))
+
+    assert(errors.empty?,
+           'Noticed an error that should have been ignored' + errors.join(', '))
   end
 
 end
