@@ -7,6 +7,7 @@ require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/transaction/request_attributes'
 
 module NewRelic
   module Agent
@@ -60,8 +61,6 @@ module NewRelic
                   :frame_stack,
                   :cat_path_hashes,
                   :attributes,
-                  :request_path,
-                  :referer,
                   :payload
 
       # Populated with the trace sample once this transaction is completed.
@@ -288,24 +287,18 @@ module NewRelic
         merge_request_parameters(@filtered_params)
 
         if request = options[:request]
-          @request_path = path_from_request request
-          initialize_attributes_from_request request
+          @request_attributes = RequestAttributes.new request
         else
-          @referer, @accept, @content_length, @host, @user_agent, @request_method = nil, nil, nil, nil, nil, nil
+          @request_attributes = nil
         end
       end
 
-      HTTP_ACCEPT_HEADER_KEY = "HTTP_ACCEPT".freeze
+      def referer
+        @request_attributes && @request_attributes.referer
+      end
 
-      def initialize_attributes_from_request request
-        @referer = attribute_from_request request, :referer
-        if env = attribute_from_request(request, :env)
-          @accept = env[HTTP_ACCEPT_HEADER_KEY]
-        end
-        @content_length = attribute_from_request request, :content_length
-        @host = attribute_from_request request, :host
-        @user_agent = attribute_from_request request, :user_agent
-        @request_method = attribute_from_request request, :request_method
+      def request_path
+        @request_attributes && @request_attributes.request_path
       end
 
       # This transaction-local hash may be used as temprory storage by
@@ -531,36 +524,15 @@ module NewRelic
       end
 
       def assign_agent_attributes
-        default_destinations = AttributeFilter::DST_TRANSACTION_TRACER|
-                              AttributeFilter::DST_TRANSACTION_EVENTS|
-                              AttributeFilter::DST_ERROR_COLLECTOR
-
-        if @referer
-          add_agent_attribute :'request.headers.referer', @referer, AttributeFilter::DST_ERROR_COLLECTOR
-        end
-
-        if @accept
-          add_agent_attribute :'request.headers.accept', @accept, default_destinations
-        end
-
-        if @content_length
-          add_agent_attribute :'request.headers.contentLength', @content_length, default_destinations
-        end
-
-        if @host
-          add_agent_attribute :'request.headers.host', @host, default_destinations
-        end
-
-        if @user_agent
-          add_agent_attribute :'request.headers.userAgent', @user_agent, default_destinations
-        end
-
-        if @request_method
-          add_agent_attribute :'request.headers.method', @request_method, default_destinations
+        if @request_attributes
+          @request_attributes.assign_agent_attributes self
         end
 
         if http_response_code
-          add_agent_attribute(:httpResponseCode, http_response_code.to_s, default_destinations)
+          add_agent_attribute(:httpResponseCode, http_response_code.to_s,
+                              AttributeFilter::DST_TRANSACTION_TRACER|
+                              AttributeFilter::DST_TRANSACTION_EVENTS|
+                              AttributeFilter::DST_ERROR_COLLECTOR)
         end
       end
 
@@ -954,33 +926,6 @@ module NewRelic
           guid << HEX_DIGITS[rand(16)]
         end
         guid
-      end
-
-      # Make a safe attempt to get the referer from a request object, generally successful when
-      # it's a Rack request.
-      def referer_from_request(req)
-        if req && req.respond_to?(:referer) && req.referer
-          HTTPClients::URIUtil.strip_query_string(req.referer.to_s)
-        end
-      end
-
-      # In practice we expect req to be a Rack::Request or ActionController::AbstractRequest
-      # (for older Rails versions).  But anything that responds to path can be passed to
-      # perform_action_with_newrelic_trace.
-      #
-      # We don't expect the path to include a query string, however older test helpers for
-      # rails construct the PATH_INFO enviroment variable improperly and we're generally
-      # being defensive.
-      def path_from_request(req)
-        path = req.path
-        path = HTTPClients::URIUtil.strip_query_string(path)
-        path.empty? ? "/" : path
-      end
-
-      def attribute_from_request request, attribute
-        if request.respond_to? attribute
-          request.send(attribute)
-        end
       end
     end
   end
