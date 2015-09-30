@@ -288,9 +288,24 @@ module NewRelic
         merge_request_parameters(@filtered_params)
 
         if request = options[:request]
-          @request_path = path_from_request(request)
-          @referer = referer_from_request(request)
+          @request_path = path_from_request request
+          initialize_attributes_from_request request
+        else
+          @referer, @accept, @content_length, @host, @user_agent, @request_method = nil, nil, nil, nil, nil, nil
         end
+      end
+
+      HTTP_ACCEPT_HEADER_KEY = "HTTP_ACCEPT".freeze
+
+      def initialize_attributes_from_request request
+        @referer = attribute_from_request request, :referer
+        if env = attribute_from_request(request, :env)
+          @accept = env[HTTP_ACCEPT_HEADER_KEY]
+        end
+        @content_length = attribute_from_request request, :content_length
+        @host = attribute_from_request request, :host
+        @user_agent = attribute_from_request request, :user_agent
+        @request_method = attribute_from_request request, :request_method
       end
 
       # This transaction-local hash may be used as temprory storage by
@@ -516,16 +531,36 @@ module NewRelic
       end
 
       def assign_agent_attributes
-        if referer
-          add_agent_attribute(:'request.headers.referer', referer,
-                              NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+        default_destinations = AttributeFilter::DST_TRANSACTION_TRACER|
+                              AttributeFilter::DST_TRANSACTION_EVENTS|
+                              AttributeFilter::DST_ERROR_COLLECTOR
+
+        if @referer
+          add_agent_attribute :'request.headers.referer', @referer, AttributeFilter::DST_ERROR_COLLECTOR
+        end
+
+        if @accept
+          add_agent_attribute :'request.headers.accept', @accept, default_destinations
+        end
+
+        if @content_length
+          add_agent_attribute :'request.headers.contentLength', @content_length, default_destinations
+        end
+
+        if @host
+          add_agent_attribute :'request.headers.host', @host, default_destinations
+        end
+
+        if @user_agent
+          add_agent_attribute :'request.headers.userAgent', @user_agent, default_destinations
+        end
+
+        if @request_method
+          add_agent_attribute :'request.headers.method', @request_method, default_destinations
         end
 
         if http_response_code
-          add_agent_attribute(:httpResponseCode, http_response_code.to_s,
-                              NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER|
-                              NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS|
-                              NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+          add_agent_attribute(:httpResponseCode, http_response_code.to_s, default_destinations)
         end
       end
 
@@ -940,6 +975,12 @@ module NewRelic
         path = req.path
         path = HTTPClients::URIUtil.strip_query_string(path)
         path.empty? ? "/" : path
+      end
+
+      def attribute_from_request request, attribute
+        if request.respond_to? attribute
+          request.send(attribute)
+        end
       end
     end
   end

@@ -55,6 +55,51 @@ class AgentAttributesTest < Minitest::Test
     refute_browser_monitoring_has_agent_attribute("request.parameters.duly")
   end
 
+  def test_agent_attributes_assigned_from_request
+    request = stub(
+      :path => "/",
+      :referer => "http://docs.newrelic.com",
+      :env => {"HTTP_ACCEPT" => "application/json"},
+      :content_length => 103,
+      :host => 'chippy',
+      :user_agent => 'Use This!',
+      :request_method => "GET"
+    )
+
+    run_transaction({}, {:request => request}) do |txn|
+    end
+
+    assert_error_has_agent_attribute "request.headers.referer", "http://docs.newrelic.com"
+    refute_transaction_trace_has_agent_attribute "request.headers.referer"
+    refute_event_has_agent_attribute "request.headers.referer"
+    refute_browser_monitoring_has_agent_attribute "request.headers.referer"
+
+    assert_transaction_trace_has_agent_attribute "request.headers.accept", "application/json"
+    assert_event_has_agent_attribute "request.headers.accept", "application/json"
+    assert_error_has_agent_attribute "request.headers.accept", "application/json"
+    refute_browser_monitoring_has_agent_attribute "request.headers.accept"
+
+    assert_transaction_trace_has_agent_attribute "request.headers.contentLength", 103
+    assert_event_has_agent_attribute "request.headers.contentLength", 103
+    assert_error_has_agent_attribute "request.headers.contentLength", 103
+    refute_browser_monitoring_has_agent_attribute "request.headers.contentLength"
+
+    assert_transaction_trace_has_agent_attribute "request.headers.host", "chippy"
+    assert_event_has_agent_attribute "request.headers.host", "chippy"
+    assert_error_has_agent_attribute "request.headers.host", "chippy"
+    refute_browser_monitoring_has_agent_attribute "request.headers.host"
+
+    assert_transaction_trace_has_agent_attribute "request.headers.userAgent", "Use This!"
+    assert_event_has_agent_attribute "request.headers.userAgent", "Use This!"
+    assert_error_has_agent_attribute "request.headers.userAgent", "Use This!"
+    refute_browser_monitoring_has_agent_attribute "request.headers.userAgent"
+
+    assert_transaction_trace_has_agent_attribute "request.headers.method", "GET"
+    assert_event_has_agent_attribute "request.headers.method", "GET"
+    assert_error_has_agent_attribute "request.headers.method", "GET"
+    refute_browser_monitoring_has_agent_attribute "request.headers.method"
+  end
+
   def test_custom_attributes_included
     run_transaction do
       NewRelic::Agent.add_custom_attributes(:foo => 'bar')
