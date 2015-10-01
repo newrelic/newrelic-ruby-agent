@@ -38,8 +38,8 @@ class MarshalingTest < Minitest::Test
 
     if RUBY_VERSION == '1.8.7'
       # 1.8 + JSON is finicky about comparing floats.
-      # If the timestamps are within 0.00001 seconds, it's Good Enough.
-      assert_in_delta(expected[4][0], actual[4][0], 0.00001)
+      # If the timestamps are within 0.001 seconds, it's Good Enough.
+      assert_in_delta(expected[4][0], actual[4][0], 0.001)
       actual[4][0] = expected[4][0]
     end
     assert_equal(expected, actual)

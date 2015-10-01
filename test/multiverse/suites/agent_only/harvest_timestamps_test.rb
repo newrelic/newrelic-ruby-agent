@@ -25,9 +25,9 @@ class HarvestTimestampsTest < Minitest::Test
 
     if RUBY_VERSION == '1.8.7'
       # 1.8 + JSON is finicky about comparing floats.
-      # If the timestamps are within 0.00001 seconds, it's Good Enough.
-      assert_in_delta(t1.to_f, start_ts, 0.00001)
-      assert_in_delta(t2.to_f, end_ts, 0.00001)
+      # If the timestamps are within 0.001 seconds, it's Good Enough.
+      assert_in_delta(t1.to_f, start_ts, 0.001)
+      assert_in_delta(t2.to_f, end_ts, 0.001)
     else
       assert_equal(t1.to_f, start_ts)
       assert_equal(t2.to_f, end_ts)
@@ -52,11 +52,11 @@ class HarvestTimestampsTest < Minitest::Test
 
     if RUBY_VERSION == '1.8.7'
       # 1.8 + JSON is finicky about comparing floats.
-      # If the timestamps are within 0.00001 seconds, it's Good Enough.
-      assert_in_delta(t0, first_post[1], 0.00001)
-      assert_in_delta(t1, first_post[2], 0.00001)
-      assert_in_delta(t0, second_post[1], 0.00001)
-      assert_in_delta(t2, second_post[2], 0.00001)
+      # If the timestamps are within 0.001 seconds, it's Good Enough.
+      assert_in_delta(t0, first_post[1], 0.001)
+      assert_in_delta(t1, first_post[2], 0.001)
+      assert_in_delta(t0, second_post[1], 0.001)
+      assert_in_delta(t2, second_post[2], 0.001)
     else
       assert_equal([t0, t1], first_post[1..2])
       assert_equal([t0, t2], second_post[1..2])
@@ -83,11 +83,11 @@ class HarvestTimestampsTest < Minitest::Test
 
     if RUBY_VERSION == '1.8.7'
       # 1.8 + JSON is finicky about comparing floats.
-      # If the timestamps are within 0.00001 seconds, it's Good Enough.
-      assert_in_delta(t0, first_post[1], 0.00001)
-      assert_in_delta(t1, first_post[2], 0.00001)
-      assert_in_delta(t1, second_post[1], 0.00001)
-      assert_in_delta(t2, second_post[2], 0.00001)
+      # If the timestamps are within 0.001 seconds, it's Good Enough.
+      assert_in_delta(t0, first_post[1], 0.001)
+      assert_in_delta(t1, first_post[2], 0.001)
+      assert_in_delta(t1, second_post[1], 0.001)
+      assert_in_delta(t2, second_post[2], 0.001)
     else
       assert_equal([t0, t1], first_post[1..2])
       assert_equal([t1, t2], second_post[1..2])
