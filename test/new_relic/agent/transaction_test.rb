@@ -1411,8 +1411,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_http_response_code_included_in_agent_attributes
-    txn = in_transaction do |txn|
-      txn.http_response_code = 418
+    txn = in_transaction do |t|
+      t.http_response_code = 418
     end
 
     actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -1421,7 +1421,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_referer_in_agent_attributes
     request = stub('request', :referer => "/referered", :path => "/")
-    txn = in_transaction(:request => request) do |txn|
+    txn = in_transaction(:request => request) do
     end
 
     actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
@@ -1430,10 +1430,55 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_referer_omitted_if_not_on_request
     request = stub('request', :path => "/")
-    txn = in_transaction(:request => request) do |txn|
+    txn = in_transaction(:request => request) do
     end
 
     actual = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     refute_includes actual, :'request.headers.referer'
+  end
+
+  def test_error_recorded_predicate_false_by_default
+    txn = in_transaction do
+    end
+
+    refute txn.error_recorded?, "Did not expected error to be recorded"
+  end
+
+  def test_error_recorded_predicate_true_when_error_recorded
+    txn = in_transaction do |t|
+      t.notice_error StandardError.new "Sorry!"
+    end
+
+    assert txn.error_recorded?, "Expected error to be recorded"
+  end
+
+  def test_error_recorded_predicate_abides_by_ignore_filter
+    filter = Proc.new do |error|
+      error.message == "Sorry!" ? nil : error
+    end
+
+    with_ignore_error_filter filter do
+      txn = in_transaction do |t|
+        t.notice_error StandardError.new "Sorry!"
+      end
+
+      refute txn.error_recorded?, "Expected error to be apologetic"
+    end
+  end
+
+  def test_error_recorded_with_ignore_filter_and_multiple_errors
+    filter = Proc.new do |error|
+      error.message == "Sorry!" ? nil : error
+    end
+
+    with_ignore_error_filter filter do
+      txn = in_transaction do |t|
+        t.notice_error StandardError.new "Sorry!"
+        t.notice_error StandardError.new "Not Sorry!"
+        t.notice_error StandardError.new "Sorry!"
+      end
+
+      assert txn.error_recorded?, "Expected error to be recorded"
+    end
   end
 end

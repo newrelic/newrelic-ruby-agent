@@ -64,7 +64,6 @@ module NewRelic
           end
         end
 
-
         def call(env)
           first_middleware = note_transaction_started(env)
 

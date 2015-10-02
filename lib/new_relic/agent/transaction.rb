@@ -283,6 +283,8 @@ module NewRelic
         @ignore_enduser = false
         @ignore_trace = false
 
+        @error_recorded = false
+
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
@@ -723,7 +725,7 @@ module NewRelic
           options[:metric]     = best_name
           options[:attributes] = @attributes
 
-          agent.error_collector.notice_error(exception, options)
+          @error_recorded = !!agent.error_collector.notice_error(exception, options) || @error_recorded
         end
       end
 
@@ -734,6 +736,10 @@ module NewRelic
         else
           @exceptions[error] = options
         end
+      end
+
+      def error_recorded?
+        @error_recorded
       end
 
       QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'.freeze
