@@ -18,7 +18,13 @@ class ErrorEventsTest < Minitest::Test
     assert_equal "RuntimeError", intrinsics["error.class"]
     assert_equal "Big Controller", intrinsics["error.message"]
     assert_equal "TransactionError", intrinsics["type"]
-    assert_equal txn.payload[:duration], intrinsics["duration"]
+    if RUBY_VERSION == '1.8.7'
+      # 1.8 + JSON is finicky about comparing floats.
+      # If the timestamps are within 0.001 seconds, it's Good Enough.
+      assert_in_delta(txn.payload[:duration], intrinsics["duration"], 0.001)
+    else
+      assert_equal txn.payload[:duration], intrinsics["duration"]
+    end
   end
 
   def test_records_supportability_metrics
