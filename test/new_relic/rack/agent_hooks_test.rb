@@ -23,7 +23,7 @@ class AgentHooksTest < Minitest::Test
   end
 
   def test_after_call
-    result = [stub, stub, stub]
+    result = [stub, {}, stub]
     @app.stubs(:call).returns(result)
 
     NewRelic::Agent.instance.events.expects(:notify).with(:start_transaction)

@@ -20,6 +20,18 @@ class AgentAttributesTest < Minitest::Test
     refute_browser_monitoring_has_agent_attribute("httpResponseCode")
   end
 
+  def test_response_content_type_default_destinations
+    run_transaction do |txn|
+      txn.response_content_type = 'application/json'
+    end
+
+    assert_transaction_trace_has_agent_attribute("response.headers.contentType", "application/json")
+    assert_event_has_agent_attribute("response.headers.contentType", "application/json")
+    assert_error_has_agent_attribute("response.headers.contentType", "application/json")
+
+    refute_browser_monitoring_has_agent_attribute("response.headers.contentType")
+  end
+
   def test_request_headers_referer_default_destinations
     txn_options = {:request => stub(:referer => "referrer", :path => "/")}
     run_transaction({}, txn_options) do |txn|

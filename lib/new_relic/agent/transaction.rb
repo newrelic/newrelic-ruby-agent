@@ -52,7 +52,8 @@ module NewRelic
                     :filtered_params,
                     :jruby_cpu_start,
                     :process_cpu_start,
-                    :http_response_code
+                    :http_response_code,
+                    :response_content_type
 
       attr_reader :guid,
                   :metrics,
@@ -524,15 +525,20 @@ module NewRelic
       end
 
       def assign_agent_attributes
-        if @request_attributes
-          @request_attributes.assign_agent_attributes self
-        end
+        default_destinations = AttributeFilter::DST_TRANSACTION_TRACER |
+                               AttributeFilter::DST_TRANSACTION_EVENTS |
+                               AttributeFilter::DST_ERROR_COLLECTOR
 
         if http_response_code
-          add_agent_attribute(:httpResponseCode, http_response_code.to_s,
-                              AttributeFilter::DST_TRANSACTION_TRACER|
-                              AttributeFilter::DST_TRANSACTION_EVENTS|
-                              AttributeFilter::DST_ERROR_COLLECTOR)
+          add_agent_attribute(:httpResponseCode, http_response_code.to_s, default_destinations)
+        end
+
+        if response_content_type
+          add_agent_attribute(:'response.headers.contentType', response_content_type, default_destinations)
+        end
+
+        if @request_attributes
+          @request_attributes.assign_agent_attributes self
         end
       end
 
