@@ -28,8 +28,8 @@ class ErrorEventsTest < Minitest::Test
       NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
 
       assert_metrics_recorded({
-        "Supportability/Events/TransactionError/Sent" => {:call_count => 1, :total_call_time => 10},
-        "Supportability/Events/TransactionError/Seen" => {:call_count => 1, :total_call_time => 15}
+        "Supportability/Events/TransactionError/Sent" => {:call_count => 10},
+        "Supportability/Events/TransactionError/Seen" => {:call_count => 15}
       })
     end
   end

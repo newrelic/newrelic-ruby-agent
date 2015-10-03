@@ -188,8 +188,8 @@ module NewRelic
       def error_event_data(data)
         metadata, items = data
         invoke_remote(:error_event_data, [@agent_id, *data], :item_count => items.size)
-        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Sent", items.size)
-        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Seen", metadata[:events_seen])
+        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Sent", :count => items.size)
+        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Seen", :count => metadata[:events_seen])
       end
 
       # We do not compress if content is smaller than 64kb.  There are
