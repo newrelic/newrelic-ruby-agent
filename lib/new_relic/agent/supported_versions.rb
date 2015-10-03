@@ -12,18 +12,18 @@ module NewRelic
         :type        => :ruby,
         :name        => "MRI",
         :supported   => ["1.8.7", "1.9.2", "1.9.3", "2.0.0", "~> 2.1.0", "~> 2.2.0" ],
-        :deprecated  => ["1.8.6"],
         :url         => "https://www.ruby-lang.org",
         :feed        => "https://www.ruby-lang.org/en/feeds/news.rss",
         :notes       => [
-          "1.8.7 includes support for Ruby Enterprise Edition (REE)",
-          "Last supported agent on 1.8.6 was 3.6.8.168"]
+          "1.8.7 includes support for Ruby Enterprise Edition (REE).",
+          "1.8.7 & REE require the 'json' gem to be present in your Gemfile/operating environment.",
+          "Last supported agent on 1.8.6 was 3.6.8.168."]
       },
       :jruby =>
       {
         :type        => :ruby,
         :name        => "JRuby",
-        :supported   => ["~> 1.6.0", "~> 1.7.0"],
+        :supported   => ["~> 1.6.0", "~> 1.7.0", "~> 9.0"],
         :url         => "http://jruby.org",
         :feed        => "http://jruby.org/atom.xml"
       },

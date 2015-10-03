@@ -21,20 +21,8 @@ automatically in Rails applications.
 
 ## Supported Environments
 
-* Ruby 1.8.7, REE, 1.9.x, 2.0.x, 2.1.x, 2.2.x
-* JRuby 1.6 and 1.7
-* Rubinius 2.x (Experimental support only)
-* Rails 2.1 or later for Production Mode
-* Rails 2.3 or later for Developer Mode
-* Sinatra
-* Rack
-
-An up to date list of Ruby versions and frameworks for the latest agent
+An up-to-date list of Ruby versions and frameworks for the latest agent
 can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-frameworks).
-
-Any Rack based framework should work but may not be tested.  Install
-the Ruby Agent as a gem and add the Developer Mode middleware if
-desired.  Report any problems by visiting support.newrelic.com.
 
 You can also monitor non-web applications. Refer to the "Other
 Environments" section under "Getting Started".

@@ -174,18 +174,21 @@ module Multiverse
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./ || (defined?(JRUBY_VERSION) && JRUBY_VERSION > '1.7')
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
+        if RUBY_VERSION == "1.8.7"
+          f.puts "gem 'json'" unless gemfile_text =~ /^\s.*gem .json./
+        end
 
         rbx_gemfile_lines(f, gemfile_text)
 
         f.puts "  gem 'mocha', '0.14.0', :require => false"
 
         if debug
-          pry_version = RUBY_VERSION >= '1.8.7' ? '0.10.0' : '0.9.12'
+          pry_version = RUBY_VERSION > '1.8.7' ? '0.10.0' : '0.9.12'
 
           # Pry 0.10.0 breaks compatibility with Ruby 1.8.7 :(
           f.puts "  gem 'pry', '~> #{pry_version}'"
-          f.puts "  gem 'pry-byebug'" if RUBY_VERSION >= "2.0.0" && RUBY_ENGINE == "ruby"
-          f.puts "  gem 'pry-stack_explorer'" if RUBY_ENGINE == "ruby"
+          f.puts "  gem 'pry-byebug'" if defined?(RUBY_ENGINE) && RUBY_VERSION >= "2.0.0" && RUBY_ENGINE == "ruby"
+          f.puts "  gem 'pry-stack_explorer'" if defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby"
         end
       end
       puts yellow("Gemfile.#{env_index} set to:") if verbose?

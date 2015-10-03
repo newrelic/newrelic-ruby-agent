@@ -23,8 +23,15 @@ class HarvestTimestampsTest < Minitest::Test
     metric_data_post = $collector.calls_for('metric_data').first
     start_ts, end_ts = metric_data_post[1..2]
 
-    assert_equal(t1.to_f, start_ts)
-    assert_equal(t2.to_f, end_ts)
+    if RUBY_VERSION == '1.8.7'
+      # 1.8 + JSON is finicky about comparing floats.
+      # If the timestamps are within 0.001 seconds, it's Good Enough.
+      assert_in_delta(t1.to_f, start_ts, 0.001)
+      assert_in_delta(t2.to_f, end_ts, 0.001)
+    else
+      assert_equal(t1.to_f, start_ts)
+      assert_equal(t2.to_f, end_ts)
+    end
   end
 
   def test_start_timestamp_maintained_on_harvest_failure
@@ -43,8 +50,17 @@ class HarvestTimestampsTest < Minitest::Test
     trigger_metric_data_post
     second_post = last_metric_data_post
 
-    assert_equal([t0, t1], first_post[1..2])
-    assert_equal([t0, t2], second_post[1..2])
+    if RUBY_VERSION == '1.8.7'
+      # 1.8 + JSON is finicky about comparing floats.
+      # If the timestamps are within 0.001 seconds, it's Good Enough.
+      assert_in_delta(t0, first_post[1], 0.001)
+      assert_in_delta(t1, first_post[2], 0.001)
+      assert_in_delta(t0, second_post[1], 0.001)
+      assert_in_delta(t2, second_post[2], 0.001)
+    else
+      assert_equal([t0, t1], first_post[1..2])
+      assert_equal([t0, t2], second_post[1..2])
+    end
   end
 
   def test_timestamps_updated_even_if_filling_metric_id_cache_fails
@@ -65,8 +81,17 @@ class HarvestTimestampsTest < Minitest::Test
     trigger_metric_data_post
     second_post = last_metric_data_post
 
-    assert_equal([t0, t1], first_post[1..2])
-    assert_equal([t1, t2], second_post[1..2])
+    if RUBY_VERSION == '1.8.7'
+      # 1.8 + JSON is finicky about comparing floats.
+      # If the timestamps are within 0.001 seconds, it's Good Enough.
+      assert_in_delta(t0, first_post[1], 0.001)
+      assert_in_delta(t1, first_post[2], 0.001)
+      assert_in_delta(t1, second_post[1], 0.001)
+      assert_in_delta(t2, second_post[2], 0.001)
+    else
+      assert_equal([t0, t1], first_post[1..2])
+      assert_equal([t1, t2], second_post[1..2])
+    end
   end
 
   def trigger_metric_data_post
