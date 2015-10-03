@@ -68,6 +68,16 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     end
   end
 
+  def test_error_is_included_in_event_data
+    with_sampler_config do
+      generate_request('whatever', :error => true)
+
+      event_data, *_ = captured_transaction_event
+
+      assert event_data['error']
+    end
+  end
+
   def test_includes_custom_attributes_in_event
     with_sampler_config do
       attributes.merge_custom_attributes('bing' => 2)
@@ -396,7 +406,8 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       :type => :controller,
       :start_timestamp => options[:timestamp] || Time.now.to_f,
       :duration => 0.1,
-      :attributes => attributes
+      :attributes => attributes,
+      :error => false
     }.merge(options)
     @event_listener.notify(:transaction_finished, payload)
   end

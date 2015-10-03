@@ -593,6 +593,7 @@ module NewRelic
           :duration             => duration,
           :metrics              => @metrics,
           :attributes           => @attributes,
+          :error                => error_recorded?
         }
         append_cat_info(state, duration, @payload)
         append_apdex_perf_zone(duration, @payload)
