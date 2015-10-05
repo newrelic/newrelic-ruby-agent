@@ -226,10 +226,13 @@ class ParameterCaptureTest < RailsMultiverseTest
         "response.headers.contentType" => "#{response.content_type}; charset=#{response.charset}",
         "request.headers.contentLength" => request.content_length.to_i,
         "request.headers.host" => request.host,
-        "request.method" => request.request_method,
         "request.headers.accept" => request.accept
       }
       actual = agent_attributes_for_single_event_posted_without_ignored_attributes
+
+      # request method may be a symbol or string based on Rails versions
+      request_method = actual.delete("request.method")
+      assert_equal request_method, request.request_method.to_s.upcase
 
       assert_equal(expected, actual)
   end
