@@ -175,7 +175,8 @@ class GrapeTest < Minitest::Test
     end
 
     def test_params_are_captured_on_transaction_events
-      with_config(:'attributes.include' => 'request.parameters.*') do
+      with_config(:'attributes.include' => 'request.parameters.*',
+                  :'attributes.exclude' => ['request.*', 'response.*']) do
         json = {
           :foo => "bar",
           :bar => "baz"
@@ -188,6 +189,20 @@ class GrapeTest < Minitest::Test
 
         assert_equal(expected, actual)
       end
+    end
+
+    def test_request_and_response_attributes_recorded_as_agent_attributes
+        post '/grape_ape'
+
+        expected = {
+          "response.headers.contentType" => last_response.content_type,
+          "request.headers.contentLength" => last_request.content_length.to_i,
+          "request.headers.host" => last_request.host,
+          "request.method" => last_request.request_method
+        }
+        actual = agent_attributes_for_single_event_posted_without_ignored_attributes
+
+        assert_equal(expected, actual)
     end
 
     def assert_grape_metrics(expected_txn_name)
