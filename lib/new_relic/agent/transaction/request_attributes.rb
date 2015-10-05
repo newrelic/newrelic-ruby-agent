@@ -51,7 +51,7 @@ module NewRelic
           end
 
           if request_method
-            txn.add_agent_attribute :'request.headers.method', request_method, default_destinations
+            txn.add_agent_attribute :'request.method', request_method, default_destinations
           end
         end
 

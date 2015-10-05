@@ -106,10 +106,10 @@ class AgentAttributesTest < Minitest::Test
     assert_error_has_agent_attribute "request.headers.userAgent", "Use This!"
     refute_browser_monitoring_has_agent_attribute "request.headers.userAgent"
 
-    assert_transaction_trace_has_agent_attribute "request.headers.method", "GET"
-    assert_event_has_agent_attribute "request.headers.method", "GET"
-    assert_error_has_agent_attribute "request.headers.method", "GET"
-    refute_browser_monitoring_has_agent_attribute "request.headers.method"
+    assert_transaction_trace_has_agent_attribute "request.method", "GET"
+    assert_event_has_agent_attribute "request.method", "GET"
+    assert_error_has_agent_attribute "request.method", "GET"
+    refute_browser_monitoring_has_agent_attribute "request.method"
   end
 
   def test_custom_attributes_included
