@@ -55,7 +55,9 @@ module NewRelic
           end
         end
 
-        CONTENT_TYPE = 'Content-Type'.freeze
+        # the trailing unless is for the benefit for Ruby 1.8.7 and can be removed
+        # when it is deprecated.
+        CONTENT_TYPE = 'Content-Type'.freeze unless defined?(CONTENT_TYPE)
 
         def capture_response_content_type(state, result)
           if result.is_a?(Array) && state.current_transaction
