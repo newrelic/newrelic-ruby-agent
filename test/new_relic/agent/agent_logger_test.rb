@@ -209,6 +209,15 @@ class AgentLoggerTest < Minitest::Test
     end
   end
 
+  def test_default_format_contains_full_year
+    with_config(:log_level => :debug) do
+      logger = create_basic_logger
+
+      logger.info("The nice thing about standards is that you have so many to choose from. -- ast")
+      assert_logged(/#{Date.today.strftime("%Y-%m-%d")}/)
+    end
+  end
+
   def test_format_message_allows_nil_backtrace
     with_config(:log_level => :debug) do
       logger = create_basic_logger

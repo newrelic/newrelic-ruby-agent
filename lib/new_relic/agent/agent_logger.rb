@@ -165,7 +165,7 @@ module NewRelic
         @hostname = NewRelic::Agent::Hostname.get
         @prefix = wants_stdout? ? '** [NewRelic]' : ''
         @log.formatter = Proc.new do |severity, timestamp, progname, msg|
-          "#{@prefix}[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{@hostname} (#{$$})] #{severity} : #{msg}\n"
+          "#{@prefix}[#{timestamp.strftime("%F %H:%M:%S %z")} #{@hostname} (#{$$})] #{severity} : #{msg}\n"
         end
       end
 
