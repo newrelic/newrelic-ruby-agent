@@ -65,6 +65,7 @@ module MarshallingTestCases
         "timestamp" => t0.to_f,
         "name"      => "TestTransaction/do_it",
         "duration"  => 0.0,
+        "error"     => false
       },
       {},
       {}

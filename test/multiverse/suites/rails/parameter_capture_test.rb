@@ -205,7 +205,8 @@ class ParameterCaptureTest < RailsMultiverseTest
   end
 
   def test_parameters_attached_to_transaction_events_if_enabled
-    with_config(:'attributes.include' => 'request.parameters.*') do
+    with_config(:'attributes.include' => 'request.parameters.*',
+                :'attributes.exclude' => ['request.*', 'response.*']) do
       get '/parameter_capture/transaction?param1=value1&param2=value2'
     end
 
@@ -217,6 +218,25 @@ class ParameterCaptureTest < RailsMultiverseTest
 
     assert_equal expected, actual
   end
+
+  def test_request_and_response_attributes_recorded_as_agent_attributes
+      get '/parameter_capture/transaction'
+
+      expected = {
+        "response.headers.contentType" => "#{response.content_type}; charset=#{response.charset}",
+        "request.headers.contentLength" => request.content_length.to_i,
+        "request.headers.host" => request.host,
+        "request.headers.accept" => request.accept
+      }
+      actual = agent_attributes_for_single_event_posted_without_ignored_attributes
+
+      # request method may be a symbol or string based on Rails versions
+      request_method = actual.delete("request.method")
+      assert_equal request_method, request.request_method.to_s.upcase
+
+      assert_equal(expected, actual)
+  end
+
 
   if Rails::VERSION::MAJOR > 2
     def test_params_tts_should_be_filtered_when_serviced_by_rack_app

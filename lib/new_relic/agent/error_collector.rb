@@ -203,6 +203,7 @@ module NewRelic
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)
+        nil
       end
 
       EMPTY_STRING = ''.freeze

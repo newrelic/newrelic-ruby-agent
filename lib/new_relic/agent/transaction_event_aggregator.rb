@@ -21,6 +21,7 @@ class NewRelic::Agent::TransactionEventAggregator
   TIMESTAMP_KEY                  = 'timestamp'.freeze
   NAME_KEY                       = 'name'.freeze
   DURATION_KEY                   = 'duration'.freeze
+  ERROR_KEY                      = 'error'.freeze
   GUID_KEY                       = 'nr.guid'.freeze
   REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
   CAT_TRIP_ID_KEY                = 'nr.tripId'.freeze
@@ -177,6 +178,7 @@ class NewRelic::Agent::TransactionEventAggregator
       NAME_KEY      => string(payload[:name]),
       DURATION_KEY  => float(payload[:duration]),
       TYPE_KEY      => SAMPLE_TYPE,
+      ERROR_KEY     => payload[:error]
     }
     NewRelic::Agent::PayloadMetricMapping.append_mapped_metrics(payload[:metrics], sample)
     optionally_append(GUID_KEY,                       :guid, sample, payload)
