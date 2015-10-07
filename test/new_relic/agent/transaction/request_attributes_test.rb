@@ -50,6 +50,13 @@ module NewRelic
           assert_equal "localhost", attrs.host
         end
 
+        def test_sets_port_from_request
+          request = stub 'request', :port => "3000"
+          attrs = RequestAttributes.new request
+
+          assert_equal 3000, attrs.port
+        end
+
         def test_sets_user_agent_from_request
           request = stub 'request', :user_agent => "use this!"
           attrs = RequestAttributes.new request

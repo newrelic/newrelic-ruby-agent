@@ -101,6 +101,8 @@ module NewRelic
           :duration => transaction_payload[:duration]
         }
 
+        attrs[:port] = transaction_payload[:port] if transaction_payload[:port]
+
         append_synthetics transaction_payload, attrs
         append_cat transaction_payload, attrs
         PayloadMetricMapping.append_mapped_metrics transaction_payload[:metrics], attrs

@@ -44,6 +44,7 @@ module NewRelic
         assert_equal "Big Controller!", intrinsics[:'error.message']
         assert_equal "Controller/blogs/index", intrinsics[:transactionName]
         assert_equal 0.1, intrinsics[:duration]
+        assert_equal 80, intrinsics[:port]
       end
 
       def test_event_includes_synthetics
@@ -270,7 +271,8 @@ module NewRelic
           :name => "Controller/blogs/index",
           :type => :controller,
           :start_timestamp => Time.now.to_f,
-          :duration => 0.1
+          :duration => 0.1,
+          :port => 80
         }.update(options)
       end
 
