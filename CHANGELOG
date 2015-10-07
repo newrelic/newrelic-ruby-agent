@@ -9,6 +9,11 @@
   add the `json` gem to their Gemfile, or (preferably) upgrade to Ruby 1.9.3 or
   newer.
 
+  * Log dates in ISO 8601 format
+
+  The agent will now log dates in ISO 8601 (YYYY-mm-dd) format, instead of
+  mm/dd/yy.
+
 ## v3.13.2 ##
 
   * Don't fail to send data when using 'mathn' library
