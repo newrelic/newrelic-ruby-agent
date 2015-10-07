@@ -595,6 +595,7 @@ module NewRelic
           :attributes           => @attributes,
           :error                => error_recorded?
         }
+        append_port(@payload)
         append_cat_info(state, duration, @payload)
         append_apdex_perf_zone(duration, @payload)
         append_synthetics_to(state, @payload)
@@ -713,6 +714,12 @@ module NewRelic
         referring_guid = NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_guid(state)
         if referring_guid
           payload[:referring_transaction_guid] = referring_guid
+        end
+      end
+
+      def append_port(payload)
+        if port = @request_attributes && @request_attributes.port
+          payload[:port] = port
         end
       end
 
