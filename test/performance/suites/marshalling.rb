@@ -56,14 +56,6 @@ class Marshalling < Performance::TestCase
     end
   end
 
-  def test_basic_marshalling_pruby
-    marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    measure do
-      marshaller.dump(@payload)
-      marshaller.dump(@tt_payload)
-    end
-  end
-
   # Skips Strings used as Hash keys, since they are frozen
   def each_string(object, &blk)
     case object

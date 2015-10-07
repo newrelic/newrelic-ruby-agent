@@ -125,13 +125,6 @@ class AuditLoggerTest < Minitest::Test
     @logger.log_request(@uri, data, @marshaller)
   end
 
-  def test_logs_inspect_with_pruby_marshaller
-    setup_fake_logger
-    pruby_marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    @logger.log_request(@uri, @dummy_data, pruby_marshaller)
-    assert_log_contains_string(@dummy_data.inspect)
-  end
-
   def test_logs_json_with_json_marshaller
     marshaller_cls = NewRelic::Agent::NewRelicService::JsonMarshaller
     if marshaller_cls.is_supported?

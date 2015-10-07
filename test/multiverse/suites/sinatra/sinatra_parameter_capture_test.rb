@@ -28,7 +28,8 @@ class SinatraParameterCaptureTest < Minitest::Test
   end
 
   def test_request_params_are_captured_for_transaction_events
-    with_config(:'attributes.include' => 'request.parameters.*') do
+    with_config(:'attributes.include' => 'request.parameters.*',
+                :'attributes.exclude' => ['request.*', 'response.*']) do
       params = {
         :foo => "bar",
         :bar => "baz"
@@ -61,5 +62,19 @@ class SinatraParameterCaptureTest < Minitest::Test
 
       assert_equal(expected, last_transaction_trace_request_params)
     end
+  end
+
+  def test_request_and_response_attributes_recorded_as_agent_attributes
+    post '/capture_test'
+
+    expected = {
+      "response.headers.contentType" => last_response.content_type,
+      "request.headers.contentLength" => last_request.content_length.to_i,
+      "request.headers.host" => last_request.host,
+      "request.method" => last_request.request_method
+    }
+    actual = agent_attributes_for_single_event_posted_without_ignored_attributes
+
+    assert_equal(expected, actual)
   end
 end

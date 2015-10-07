@@ -328,13 +328,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
 
-      if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-        marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-        params = "eJyrrgUAAXUA+Q==\n"
-      else
-        marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-        params = {}
-      end
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      params = "eJyrrgUAAXUA+Q==\n"
 
       expected = [ 'WebTransaction/Controller/c/a', '/c/a', 526336943,
                    'select * from test', 'Database/test/select',
@@ -351,13 +346,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     trace.call_count = Rational(10, 1)
     trace.instance_variable_set(:@sql_id, "1234")
 
-    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      params = "eJyrrgUAAXUA+Q==\n"
-    else
-      marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-      params = {}
-    end
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    params = "eJyrrgUAAXUA+Q==\n"
 
     expected = [ "path", "uri", 1234, "query", "transaction",
                  10, 12000, 12000, 12000, params]

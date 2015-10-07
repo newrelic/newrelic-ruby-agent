@@ -7,6 +7,7 @@ require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/transaction/request_attributes'
 
 module NewRelic
   module Agent
@@ -51,7 +52,8 @@ module NewRelic
                     :filtered_params,
                     :jruby_cpu_start,
                     :process_cpu_start,
-                    :http_response_code
+                    :http_response_code,
+                    :response_content_type
 
       attr_reader :guid,
                   :metrics,
@@ -60,8 +62,7 @@ module NewRelic
                   :frame_stack,
                   :cat_path_hashes,
                   :attributes,
-                  :request_path,
-                  :referer
+                  :payload
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -282,14 +283,25 @@ module NewRelic
         @ignore_enduser = false
         @ignore_trace = false
 
+        @error_recorded = false
+
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
 
         if request = options[:request]
-          @request_path = path_from_request(request)
-          @referer = referer_from_request(request)
+          @request_attributes = RequestAttributes.new request
+        else
+          @request_attributes = nil
         end
+      end
+
+      def referer
+        @request_attributes && @request_attributes.referer
+      end
+
+      def request_path
+        @request_attributes && @request_attributes.request_path
       end
 
       # This transaction-local hash may be used as temprory storage by
@@ -507,23 +519,28 @@ module NewRelic
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
 
+        generate_payload(state, start_time, end_time)
         record_exceptions
         merge_metrics
 
-        send_transaction_finished_event(state, start_time, end_time)
+        send_transaction_finished_event
       end
 
       def assign_agent_attributes
-        if referer
-          add_agent_attribute(:'request.headers.referer', referer,
-                              NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
-        end
+        default_destinations = AttributeFilter::DST_TRANSACTION_TRACER |
+                               AttributeFilter::DST_TRANSACTION_EVENTS |
+                               AttributeFilter::DST_ERROR_COLLECTOR
 
         if http_response_code
-          add_agent_attribute(:httpResponseCode, http_response_code.to_s,
-                              NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER|
-                              NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS|
-                              NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+          add_agent_attribute(:httpResponseCode, http_response_code.to_s, default_destinations)
+        end
+
+        if response_content_type
+          add_agent_attribute(:'response.headers.contentType', response_content_type, default_destinations)
+        end
+
+        if @request_attributes
+          @request_attributes.assign_agent_attributes self
         end
       end
 
@@ -563,22 +580,25 @@ module NewRelic
 
       # This event is fired when the transaction is fully completed. The metric
       # values and sampler can't be successfully modified from this event.
-      def send_transaction_finished_event(state, start_time, end_time)
+      def send_transaction_finished_event
+        agent.events.notify(:transaction_finished, payload)
+      end
+
+      def generate_payload(state, start_time, end_time)
         duration = end_time.to_f - start_time.to_f
-        payload = {
+        @payload = {
           :name                 => @frozen_name,
           :bucket               => recording_web_transaction? ? :request : :background,
           :start_timestamp      => start_time.to_f,
           :duration             => duration,
           :metrics              => @metrics,
           :attributes           => @attributes,
+          :error                => error_recorded?
         }
-        append_cat_info(state, duration, payload)
-        append_apdex_perf_zone(duration, payload)
-        append_synthetics_to(state, payload)
-        append_referring_transaction_guid_to(state, payload)
-
-        agent.events.notify(:transaction_finished, payload)
+        append_cat_info(state, duration, @payload)
+        append_apdex_perf_zone(duration, @payload)
+        append_synthetics_to(state, @payload)
+        append_referring_transaction_guid_to(state, @payload)
       end
 
       def include_guid?(state, duration)
@@ -706,7 +726,7 @@ module NewRelic
           options[:metric]     = best_name
           options[:attributes] = @attributes
 
-          agent.error_collector.notice_error(exception, options)
+          @error_recorded = !!agent.error_collector.notice_error(exception, options) || @error_recorded
         end
       end
 
@@ -717,6 +737,10 @@ module NewRelic
         else
           @exceptions[error] = options
         end
+      end
+
+      def error_recorded?
+        @error_recorded
       end
 
       QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'.freeze
@@ -915,27 +939,6 @@ module NewRelic
           guid << HEX_DIGITS[rand(16)]
         end
         guid
-      end
-
-      # Make a safe attempt to get the referer from a request object, generally successful when
-      # it's a Rack request.
-      def referer_from_request(req)
-        if req && req.respond_to?(:referer) && req.referer
-          HTTPClients::URIUtil.strip_query_string(req.referer.to_s)
-        end
-      end
-
-      # In practice we expect req to be a Rack::Request or ActionController::AbstractRequest
-      # (for older Rails versions).  But anything that responds to path can be passed to
-      # perform_action_with_newrelic_trace.
-      #
-      # We don't expect the path to include a query string, however older test helpers for
-      # rails construct the PATH_INFO enviroment variable improperly and we're generally
-      # being defensive.
-      def path_from_request(req)
-        path = req.path
-        path = HTTPClients::URIUtil.strip_query_string(path)
-        path.empty? ? "/" : path
       end
     end
   end

@@ -26,13 +26,22 @@ module NewRelic
         super
       end
 
-      def append_event(x)
+      def append(x = nil, &blk)
+        @seen += 1
+        append_event(x, &blk)
+      end
+
+      def append_event(x = nil, &blk)
+        raise ArgumentError, "Expected argument or block, but received both" if x && blk
+
         if @items.size < @capacity
+          x = blk.call if block_given?
           @items << x
           return x
         else
           m = rand(@seen) # [0, @seen)
           if m < @capacity
+            x = blk.call if block_given?
             @items[m] = x
             return x
           else
@@ -40,6 +49,11 @@ module NewRelic
             return nil
           end
         end
+      end
+
+      def decrement_lifetime_counts_by n
+        @captured_lifetime -= n
+        @seen_lifetime -= n
       end
 
       def sample_rate_lifetime

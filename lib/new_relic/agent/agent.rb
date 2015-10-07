@@ -528,6 +528,14 @@ module NewRelic
             return false
           end
 
+          unless NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+            NewRelic::Agent.logger.error "JSON marshaller requested, but the 'json' gem was not available. ",
+              "You will need to: 1) upgrade to Ruby 1.9.3 or newer (strongly recommended), ",
+              "2) add the 'json' gem to your Gemfile or operating environment, ",
+              "or 3) use a version of newrelic_rpm prior to 3.14.0."
+            return false
+          end
+
           return true
         end
 
@@ -547,7 +555,7 @@ module NewRelic
         # Clear out the metric data, errors, and transaction traces, etc.
         def drop_buffered_data
           @stats_engine.reset!
-          @error_collector.reset!
+          @error_collector.drop_buffered_data
           @transaction_sampler.reset!
           @transaction_event_aggregator.reset!
           @custom_event_aggregator.reset!
@@ -915,7 +923,8 @@ module NewRelic
           case endpoint
           when :metric_data             then @stats_engine
           when :transaction_sample_data then @transaction_sampler
-          when :error_data              then @error_collector
+          when :error_data              then @error_collector.error_trace_aggregator
+          when :error_event_data        then @error_collector.error_event_aggregator
           when :analytic_event_data     then @transaction_event_aggregator
           when :custom_event_data       then @custom_event_aggregator
           when :sql_trace_data          then @sql_sampler
@@ -1006,19 +1015,31 @@ module NewRelic
         # The given container should respond to:
         #
         #  #harvest!
-        #    returns an enumerable collection of data items to be sent to the
-        #    collector.
+        #    returns a payload that contains enumerable collection of data items and
+        #    optional metadata to be sent to the collector.
         #
         #  #reset!
         #    drop any stored data and reset to a clean state.
         #
-        #  #merge!(items)
-        #    merge the given items back into the internal buffer of the
-        #    container, so that they may be harvested again later.
+        #  #merge!(payload)
+        #    merge the given pyalod back into the internal buffer of the
+        #    container, so that it may be harvested again later.
         #
         def harvest_and_send_from_container(container, endpoint)
-          items = harvest_from_container(container, endpoint)
-          send_data_to_endpoint(endpoint, items, container) unless items.empty?
+          payload = harvest_from_container(container, endpoint)
+          sample_count = harvest_size container, payload
+          if sample_count > 0
+            NewRelic::Agent.logger.debug("Sending #{sample_count} items to #{endpoint}")
+            send_data_to_endpoint(endpoint, payload, container)
+          end
+        end
+
+        def harvest_size container, items
+          if container.respond_to?(:has_metadata?) && container.has_metadata? && !items.empty?
+            items.last.size
+          else
+            items.size
+          end
         end
 
         def harvest_from_container(container, endpoint)
@@ -1032,10 +1053,9 @@ module NewRelic
           items
         end
 
-        def send_data_to_endpoint(endpoint, items, container)
-          NewRelic::Agent.logger.debug("Sending #{items.size} items to #{endpoint}")
+        def send_data_to_endpoint(endpoint, payload, container)
           begin
-            @service.send(endpoint, items)
+            @service.send(endpoint, payload)
           rescue ForceRestartException, ForceDisconnectException
             raise
           rescue SerializationError => e
@@ -1044,10 +1064,10 @@ module NewRelic
             NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
           rescue ServerConnectionException => e
             log_remote_unavailable(endpoint, e)
-            container.merge!(items)
+            container.merge!(payload)
           rescue => e
             NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
-            container.merge!(items)
+            container.merge!(payload)
           end
         end
 
@@ -1075,12 +1095,16 @@ module NewRelic
         end
 
         def harvest_and_send_errors
-          harvest_and_send_from_container(@error_collector, :error_data)
+          harvest_and_send_from_container(@error_collector.error_trace_aggregator, :error_data)
         end
 
         def harvest_and_send_analytic_event_data
           harvest_and_send_from_container(@transaction_event_aggregator, :analytic_event_data)
           harvest_and_send_from_container(@custom_event_aggregator,      :custom_event_data)
+        end
+
+        def harvest_and_send_error_event_data
+          harvest_and_send_from_container @error_collector.error_event_aggregator, :error_event_data
         end
 
         def check_for_and_handle_agent_commands
@@ -1126,6 +1150,7 @@ module NewRelic
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive
             harvest_and_send_errors
+            harvest_and_send_error_event_data
             harvest_and_send_transaction_traces
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data

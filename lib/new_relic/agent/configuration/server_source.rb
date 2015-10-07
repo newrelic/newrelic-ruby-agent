@@ -96,7 +96,8 @@ module NewRelic
             'slow_sql.enabled'               => 'collect_traces',
             'error_collector.enabled'        => 'collect_errors',
             'analytics_events.enabled'       => 'collect_analytics_events',
-            'custom_insights_events.enabled' => 'collect_custom_events'
+            'custom_insights_events.enabled' => 'collect_custom_events',
+            'error_collector.capture_events' => 'collect_error_events'
           }
           gated_features.each do |config_key, gate_key|
             if connect_reply.has_key?(gate_key)

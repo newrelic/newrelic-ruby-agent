@@ -102,5 +102,41 @@ module NewRelic::Agent
       buffer.reset!
       assert_equal(0.5, buffer.sample_rate_lifetime)
     end
+
+    def test_append_with_block
+      buffer = buffer_class.new(5)
+      5.times do |i|
+        buffer.append { i }
+      end
+
+      assert_equal [0, 1, 2, 3, 4], buffer.to_a
+    end
+
+    def test_append_with_block_while_sampling
+      buffer = buffer_class.new(5)
+      buffer.stubs(:rand).returns(0)
+
+      10.times do |i|
+        buffer.append { i }
+      end
+
+      assert_equal [9, 1, 2, 3, 4], buffer.to_a
+    end
+
+    def test_append_with_block_increments_seen
+      buffer = buffer_class.new(5)
+      10.times do |i|
+        buffer.append { i }
+      end
+
+      assert_equal 10, buffer.num_seen
+    end
+
+    def test_append_does_not_allow_an_argument_and_block
+      assert_raises ArgumentError do
+        buffer = buffer_class.new 5
+        buffer.append(4) { 5 }
+      end
+    end
   end
 end

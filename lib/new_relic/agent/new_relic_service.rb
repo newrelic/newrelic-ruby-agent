@@ -7,7 +7,6 @@ require 'new_relic/agent/audit_logger'
 require 'new_relic/agent/new_relic_service/encoders'
 require 'new_relic/agent/new_relic_service/marshaller'
 require 'new_relic/agent/new_relic_service/json_marshaller'
-require 'new_relic/agent/new_relic_service/pruby_marshaller'
 
 module NewRelic
   module Agent
@@ -56,16 +55,11 @@ module NewRelic
         end
 
         Agent.config.register_callback(:marshaller) do |marshaller|
-          begin
-            if marshaller == 'json'
-              @marshaller = JsonMarshaller.new
-            else
-              @marshaller = PrubyMarshaller.new
-            end
-          rescue LoadError
-            ::NewRelic::Agent.logger.warn("JSON marshaller requested, but the 'json' gem was not available, falling back to pruby. This will not be supported in future versions of the agent.")
-            @marshaller = PrubyMarshaller.new
+          if marshaller != 'json'
+            ::NewRelic::Agent.logger.warn("Non-JSON marshaller '#{marshaller}' requested but not supported, using JSON marshaller instead. pruby marshalling has been removed as of version 3.14.0.")
           end
+
+          @marshaller = JsonMarshaller.new
         end
       end
 
@@ -183,6 +177,13 @@ module NewRelic
       def custom_event_data(data)
         invoke_remote(:custom_event_data, [@agent_id, data],
           :item_count => data.size)
+      end
+
+      def error_event_data(data)
+        metadata, items = data
+        invoke_remote(:error_event_data, [@agent_id, *data], :item_count => items.size)
+        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Sent", :count => items.size)
+        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Seen", :count => metadata[:events_seen])
       end
 
       # We do not compress if content is smaller than 64kb.  There are

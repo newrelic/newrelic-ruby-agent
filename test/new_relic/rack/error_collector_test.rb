@@ -24,7 +24,7 @@ module NewRelic::Rack
     def setup
       NewRelic::Agent.reset_config
       NewRelic::Agent.manual_start
-      NewRelic::Agent.instance.error_collector.reset!
+      NewRelic::Agent.instance.error_collector.drop_buffered_data
 
       # sanity checks
       assert NewRelic::Agent.instance.error_collector.enabled?
@@ -49,7 +49,8 @@ module NewRelic::Rack
         end
       end
 
-      assert(NewRelic::Agent.instance.error_collector.errors.empty?,
+      errors = harvest_error_traces!
+      assert(errors.empty?,
              'noticed an error that should have been ignored')
     end
 
@@ -63,14 +64,15 @@ module NewRelic::Rack
         assert_raises RuntimeError do
           get '/foo/bar?q=12'
         end
+        error = last_error
 
-        assert_equal('unhandled error', last_error.message)
-        assert_equal('/foo/bar', last_error.request_uri)
+        assert_equal('unhandled error', error.message)
+        assert_equal('/foo/bar', error.request_uri)
       end
     end
 
     def last_error
-      NewRelic::Agent.instance.error_collector.errors[0]
+      harvest_error_traces!.last
     end
   end
 end

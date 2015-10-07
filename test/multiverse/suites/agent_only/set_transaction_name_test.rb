@@ -80,8 +80,8 @@ class SetTransactionNameTest < Minitest::Test
     TestTransactor.new.parent_txn do
       NewRelic::Agent.notice_error(RuntimeError.new('toot'))
     end
-    assert_equal('Controller/TestTransactor/child',
-                 NewRelic::Agent.instance.error_collector.errors.last.path)
+    errors = harvest_error_traces!
+    assert_equal('Controller/TestTransactor/child', errors.last.path)
   end
 
   def test_set_name_is_subject_to_txn_name_rules

@@ -98,3 +98,22 @@ class ResponseCodeMiddleware
     [response_code, result[1], result[2]]
   end
 end
+
+class ResponseContentTypeMiddleware
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    req = Rack::Request.new(env)
+
+    status, headers, body = @app.call(env)
+
+    if req.params['override-content-type']
+      content_type = req.params['override-content-type']
+      headers.update("Content-Type" => content_type)
+    end
+
+    [status, headers, body]
+  end
+end

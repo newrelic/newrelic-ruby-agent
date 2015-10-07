@@ -1,5 +1,19 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.14.0 ##
+
+  * pruby marshaller removed
+
+  The deprecated pruby marshaller has now been removed; the `marshaller` config
+  option now only accepts `json`. Customers still running Ruby 1.8.7/REE must
+  add the `json` gem to their Gemfile, or (preferably) upgrade to Ruby 1.9.3 or
+  newer.
+
+  * Log dates in ISO 8601 format
+
+  The agent will now log dates in ISO 8601 (YYYY-mm-dd) format, instead of
+  mm/dd/yy.
+
 ## v3.13.2 ##
 
   * Don't fail to send data when using 'mathn' library

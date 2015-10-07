@@ -578,26 +578,6 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
-  def test_pruby_marshaller_handles_errors_from_collector
-    marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    assert_raises(NewRelic::Agent::NewRelicService::CollectorError, 'error message') do
-      marshaller.load(Marshal.dump({"exception" => {"message" => "error message",
-                                       "error_type" => "JavaCrash"}}))
-    end
-  end
-
-  def test_pruby_marshaller_logs_on_empty_response_from_collector
-    marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    expects_logging(:error, any_parameters)
-    assert_nil marshaller.load('')
-  end
-
-  def test_pruby_marshaller_logs_on_nil_response_from_collector
-    marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    expects_logging(:error, any_parameters)
-    assert_nil marshaller.load(nil)
-  end
-
   def test_compress_request_if_needed_compresses_large_payloads
     large_payload = 'a' * 65 * 1024
     body, encoding = @service.compress_request_if_needed(large_payload)
@@ -830,6 +810,12 @@ class NewRelicServiceTest < Minitest::Test
     refute @service.has_shared_connection?
   end
 
+  def test_marshal_with_json_only
+    with_config(:marshaller => 'pruby') do
+      assert_equal 'json', @service.marshaller.format
+    end
+  end
+
   def build_stats_hash(items={})
     hash = NewRelic::Agent::StatsHash.new
     items.each do |key, value|
@@ -974,15 +960,9 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     def create_response_mock(payload, opts={})
-      if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-        format = :json
-      else
-        format = :pruby
-      end
-
       opts = {
         :code => 200,
-        :format => format
+        :format => :json
       }.merge(opts)
 
       if opts[:code] == 401
@@ -997,11 +977,7 @@ class NewRelicServiceTest < Minitest::Test
         klass = HTTPSuccess
       end
 
-      if opts[:format] == :json
-        klass.new(JSON.dump('return_value' => payload), opts[:code], {})
-      else
-        klass.new(Marshal.dump('return_value' => payload), opts[:code], {})
-      end
+      klass.new(JSON.dump('return_value' => payload), opts[:code], {})
     end
 
     def respond_to(method, payload, opts={})
