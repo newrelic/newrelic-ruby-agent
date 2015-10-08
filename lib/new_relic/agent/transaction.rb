@@ -304,6 +304,10 @@ module NewRelic
         @request_attributes && @request_attributes.request_path
       end
 
+      def request_port
+        @request_attributes && @request_attributes.port
+      end
+
       # This transaction-local hash may be used as temprory storage by
       # instrumentation that needs to pass data from one instrumentation point
       # to another.
@@ -723,6 +727,7 @@ module NewRelic
       def record_exceptions
         @exceptions.each do |exception, options|
           options[:uri]      ||= request_path if request_path
+          options[:port]       = request_port if request_port
           options[:metric]     = best_name
           options[:attributes] = @attributes
 

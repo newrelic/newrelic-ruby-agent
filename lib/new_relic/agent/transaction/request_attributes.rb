@@ -9,7 +9,7 @@ module NewRelic
     class Transaction
       class RequestAttributes
         attr_reader :request_path, :referer, :accept, :content_length, :host,
-                    :user_agent, :request_method
+                    :port, :user_agent, :request_method
 
         HTTP_ACCEPT_HEADER_KEY = "HTTP_ACCEPT".freeze
 
@@ -17,10 +17,9 @@ module NewRelic
           @request_path = path_from_request request
           @referer = referer_from_request request
           @accept = attribute_from_env request, HTTP_ACCEPT_HEADER_KEY
-          if content_length = attribute_from_request(request, :content_length)
-            @content_length = content_length.to_i
-          end
+          @content_length = content_length_from_request request
           @host = attribute_from_request request, :host
+          @port = port_from_request request
           @user_agent = attribute_from_request request, :user_agent
           @request_method = attribute_from_request request, :request_method
         end
@@ -80,6 +79,18 @@ module NewRelic
           path = attribute_from_request(request, :path) || ''
           path = HTTPClients::URIUtil.strip_query_string(path)
           path.empty? ? ROOT_PATH : path
+        end
+
+        def content_length_from_request request
+          if content_length = attribute_from_request(request, :content_length)
+            content_length.to_i
+          end
+        end
+
+        def port_from_request request
+          if port = attribute_from_request(request, :port)
+            port.to_i
+          end
         end
 
         def attribute_from_request request, attribute_method

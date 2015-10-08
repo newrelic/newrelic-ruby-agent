@@ -44,6 +44,7 @@ module NewRelic
         assert_equal "Big Controller!", intrinsics[:'error.message']
         assert_equal "Controller/blogs/index", intrinsics[:transactionName]
         assert_equal 0.1, intrinsics[:duration]
+        assert_equal 80, intrinsics[:port]
       end
 
       def test_event_includes_synthetics
@@ -258,6 +259,7 @@ module NewRelic
         txn_name = "Controller/blogs/index"
         noticed_error = NewRelic::NoticedError.new(txn_name, exception)
         noticed_error.request_uri = "http://site.com/blogs"
+        noticed_error.request_port = 80
         noticed_error.attributes  = options.delete(:attributes)
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
         noticed_error.attributes_from_notice_error.merge!(options)

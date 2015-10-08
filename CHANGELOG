@@ -14,6 +14,12 @@
   The agent will now log dates in ISO 8601 (YYYY-mm-dd) format, instead of
   mm/dd/yy.
 
+  * Additional attributes collected
+
+  The agent now collects the following information in web transactions (not
+  yet shown in the New Relic UI): Accept, Host, User-Agent, Content-Length HTTP
+  request headers, HTTP request method, and Content-Type HTTP response header.
+
 ## v3.13.2 ##
 
   * Don't fail to send data when using 'mathn' library
