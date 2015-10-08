@@ -100,8 +100,7 @@ module NewRelic
           :transactionName => transaction_payload[:name],
           :duration => transaction_payload[:duration]
         }
-
-        attrs[:port] = transaction_payload[:port] if transaction_payload[:port]
+        attrs[:port] = noticed_error.request_port if noticed_error.request_port
 
         append_synthetics transaction_payload, attrs
         append_cat transaction_payload, attrs

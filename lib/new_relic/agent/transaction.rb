@@ -304,6 +304,10 @@ module NewRelic
         @request_attributes && @request_attributes.request_path
       end
 
+      def request_port
+        @request_attributes && @request_attributes.port
+      end
+
       # This transaction-local hash may be used as temprory storage by
       # instrumentation that needs to pass data from one instrumentation point
       # to another.
@@ -595,7 +599,6 @@ module NewRelic
           :attributes           => @attributes,
           :error                => error_recorded?
         }
-        append_port(@payload)
         append_cat_info(state, duration, @payload)
         append_apdex_perf_zone(duration, @payload)
         append_synthetics_to(state, @payload)
@@ -717,12 +720,6 @@ module NewRelic
         end
       end
 
-      def append_port(payload)
-        if port = @request_attributes && @request_attributes.port
-          payload[:port] = port
-        end
-      end
-
       def merge_metrics
         NewRelic::Agent.instance.stats_engine.merge_transaction_metrics!(@metrics, best_name)
       end
@@ -730,6 +727,7 @@ module NewRelic
       def record_exceptions
         @exceptions.each do |exception, options|
           options[:uri]      ||= request_path if request_path
+          options[:port]       = request_port if request_port
           options[:metric]     = best_name
           options[:attributes] = @attributes
 

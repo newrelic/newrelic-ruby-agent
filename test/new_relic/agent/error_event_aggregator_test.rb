@@ -259,6 +259,7 @@ module NewRelic
         txn_name = "Controller/blogs/index"
         noticed_error = NewRelic::NoticedError.new(txn_name, exception)
         noticed_error.request_uri = "http://site.com/blogs"
+        noticed_error.request_port = 80
         noticed_error.attributes  = options.delete(:attributes)
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
         noticed_error.attributes_from_notice_error.merge!(options)
@@ -271,8 +272,7 @@ module NewRelic
           :name => "Controller/blogs/index",
           :type => :controller,
           :start_timestamp => Time.now.to_f,
-          :duration => 0.1,
-          :port => 80
+          :duration => 0.1
         }.update(options)
       end
 
