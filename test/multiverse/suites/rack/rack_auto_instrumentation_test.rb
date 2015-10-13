@@ -6,6 +6,7 @@ require File.join(File.dirname(__FILE__), 'example_app')
 require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/agent_hooks'
 require 'new_relic/rack/error_collector'
+require 'puma/rack/builder' if defined? Puma
 
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
@@ -16,8 +17,16 @@ class RackAutoInstrumentationTest < Minitest::Test
 
   include Rack::Test::Methods
 
+  def builder_class
+    if defined? Puma::Rack::Builder
+      Puma::Rack::Builder
+    else
+      Rack::Builder
+    end
+  end
+
   def app
-    Rack::Builder.app do
+    builder_class.app do
       use MiddlewareOne
       use MiddlewareTwo, 'the correct tag' do |headers|
         headers['MiddlewareTwoBlockTag'] = 'the block tag'
