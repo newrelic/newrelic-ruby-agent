@@ -74,6 +74,31 @@ module NewRelic
             end
           end
         end
+
+        def self.instrument_builder builder_class
+          ::NewRelic::Agent.logger.info "Installing deferred #{builder_class} instrumentation"
+
+          builder_class.class_eval do
+            class << self
+              attr_accessor :_nr_deferred_detection_ran
+            end
+            self._nr_deferred_detection_ran = false
+
+            include ::NewRelic::Agent::Instrumentation::RackBuilder
+
+            alias_method :to_app_without_newrelic, :to_app
+            alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
+
+            if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+              ::NewRelic::Agent.logger.info "Installing #{builder_class} middleware instrumentation"
+              alias_method :run_without_newrelic, :run
+              alias_method :run, :run_with_newrelic
+
+              alias_method :use_without_newrelic, :use
+              alias_method :use, :use_with_newrelic
+            end
+          end
+        end
       end
 
       module RackBuilder
@@ -135,29 +160,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing deferred Rack instrumentation'
-
-    class ::Rack::Builder
-      class << self
-        attr_accessor :_nr_deferred_detection_ran
-      end
-      self._nr_deferred_detection_ran = false
-
-      include ::NewRelic::Agent::Instrumentation::RackBuilder
-
-      alias_method :to_app_without_newrelic, :to_app
-      alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
-
-      if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
-        ::NewRelic::Agent.logger.info 'Installing Rack::Builder middleware instrumentation'
-        alias_method :run_without_newrelic, :run
-        alias_method :run, :run_with_newrelic
-
-        alias_method :use_without_newrelic, :use
-        alias_method :use, :use_with_newrelic
-      end
-    end
-
+    ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_builder ::Rack::Builder
   end
 end
 
@@ -170,29 +173,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing deferred Puma::Rack instrumentation'
-
-    class ::Puma::Rack::Builder
-      class << self
-        attr_accessor :_nr_deferred_detection_ran
-      end
-      self._nr_deferred_detection_ran = false
-
-      include ::NewRelic::Agent::Instrumentation::RackBuilder
-
-      alias_method :to_app_without_newrelic, :to_app
-      alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
-
-      if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
-        ::NewRelic::Agent.logger.info 'Installing Puma::Rack::Builder middleware instrumentation'
-        alias_method :run_without_newrelic, :run
-        alias_method :run, :run_with_newrelic
-
-        alias_method :use_without_newrelic, :use
-        alias_method :use, :use_with_newrelic
-      end
-    end
-
+    ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_builder ::Puma::Rack::Builder
   end
 end
 
