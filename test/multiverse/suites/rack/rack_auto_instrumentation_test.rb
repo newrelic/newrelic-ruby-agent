@@ -121,6 +121,7 @@ class RackAutoInstrumentationTest < Minitest::Test
 
   def test_middleware_that_returns_early_records_middleware_rollup_metric
     get '/?return-early=true'
+
     assert_metrics_recorded_exclusive([
       "Apdex",
       "ApdexAll",

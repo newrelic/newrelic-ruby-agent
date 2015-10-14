@@ -141,10 +141,10 @@ module NewRelic
         # DependencyDetection.detect!, since all libraries are likely loaded at
         # this point.
         def to_app_with_newrelic_deferred_dependency_detection
-          unless ::Rack::Builder._nr_deferred_detection_ran
+          unless self.class._nr_deferred_detection_ran
             NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
             DependencyDetection.detect!
-            ::Rack::Builder._nr_deferred_detection_ran = true
+            self.class._nr_deferred_detection_ran = true
           end
 
           result = to_app_without_newrelic
@@ -183,7 +183,7 @@ DependencyDetection.defer do
   named :puma_rack
 
   depends_on do
-    defined?(::Puma::Rack::Builder)
+    defined? ::Puma::Rack::Builder
   end
 
   executes do
