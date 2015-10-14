@@ -546,6 +546,10 @@ module NewRelic
         if @request_attributes
           @request_attributes.assign_agent_attributes self
         end
+
+        unless Agent.config[:'process_host.display_name'] == NewRelic::Agent::Hostname.get
+          add_agent_attribute(:'host.displayName', Agent.config['process_host.display_name'].to_s, default_destinations)
+        end
       end
 
       def assign_intrinsics(state)

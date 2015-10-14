@@ -208,6 +208,21 @@ class AgentAttributesTest < Minitest::Test
     refute_event_has_attribute('httpResponseCode')
   end
 
+  def test_host_display_name_included_when_enabled_and_set
+    config = {:'process_host.display_name' => 'Fancy Host Name',
+              :'transaction_events.attributes.include' => 'host.displayName',}
+    run_transaction(config)
+
+    assert_event_has_agent_attribute('host.displayName', 'Fancy Host Name')
+  end
+
+  def test_host_display_name_excluded_when_enabled_but_not_set
+    config = {:'transaction_events.attributes.include' => 'host.displayName',}
+    run_transaction(config)
+
+    refute_event_has_attribute('host.displayName')
+  end
+
   def run_transaction(config = {}, txn_options = {})
     default_config = {
       :'transaction_tracer.transaction_threshold' => -10,
