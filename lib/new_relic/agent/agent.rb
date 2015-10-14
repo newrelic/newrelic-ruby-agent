@@ -816,6 +816,7 @@ module NewRelic
             settings = {
               :pid => $$,
               :host => local_host,
+              :display_host => Agent.config[:'process_host.display_name'],
               :app_name => Agent.config.app_names,
               :language => 'ruby',
               :labels => Agent.config.parsed_labels,

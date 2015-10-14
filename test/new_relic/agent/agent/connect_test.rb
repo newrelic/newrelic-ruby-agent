@@ -112,7 +112,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     @local_host = "lo-calhost"
     @environment_report = {}
 
-    keys = %w(pid host app_name language agent_version environment settings).map(&:to_sym)
+    keys = %w(pid host display_host app_name language agent_version environment settings).map(&:to_sym)
 
     settings = connect_settings
     keys.each do |k|

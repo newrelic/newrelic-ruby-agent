@@ -1301,6 +1301,13 @@ module NewRelic
           :transform    => DefaultSource.method(:convert_to_list),
           :description  => 'List of prefixes for heroku dyno names (such as "scheduler") to report as hostname without trailing dot and process ID.'
         },
+        :'process_host.display_name' => {
+          :default      => NewRelic::Agent::Hostname.get,
+          :public       => true,
+          :type         => String,
+          :allowed_from_server => false,
+          :description  => 'Custom host name used for display purposes only.'
+        },
         :labels => {
           :default      => '',
           :public       => true,

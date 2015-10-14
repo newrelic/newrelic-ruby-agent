@@ -382,6 +382,7 @@ module NewRelic
         expected = [
          :pid,
          :host,
+         :display_host,
          :app_name,
          :language,
          :labels,
