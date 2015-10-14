@@ -56,6 +56,12 @@ EOS
     s.add_development_dependency 'rb-fsevent'
   end
 
+  # rack-cache ~> 1.2 is specified by actionpack 3.2, but rack-cache 1.3.1 only works on Ruby 1.9.3 & newer. :(
+  # https://github.com/rtomayko/rack-cache/issues/124
+  if RUBY_VERSION < "1.9.3"
+   s.add_development_dependency "rack-cache", "~> 1.2.0"
+  end
+
   # version lock down for i18n that is compatible with Ruby 1.8.7
   s.add_development_dependency 'i18n', '0.6.11'
 
