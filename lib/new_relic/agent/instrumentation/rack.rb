@@ -54,14 +54,28 @@ module NewRelic
       end
 
       module RackHelpers
+        def self.version_supported?
+          rack_version_supported? || puma_rack_version_supported?
+        end
+
         def self.rack_version_supported?
+          return false unless defined? ::Rack
+
           version = ::NewRelic::VersionNumber.new(::Rack.release)
           min_version = ::NewRelic::VersionNumber.new('1.1.0')
           version >= min_version
         end
 
+        def self.puma_rack_version_supported?
+          return false unless defined? ::Puma::Const::PUMA_VERSION
+
+          version = ::NewRelic::VersionNumber.new(::Puma::Const::PUMA_VERSION)
+          min_version = ::NewRelic::VersionNumber.new('2.12.0')
+          version >= min_version
+        end
+
         def self.middleware_instrumentation_enabled?
-          rack_version_supported? && !::NewRelic::Agent.config[:disable_middleware_instrumentation]
+          version_supported? && !::NewRelic::Agent.config[:disable_middleware_instrumentation]
         end
 
         def self.check_for_late_instrumentation(app)

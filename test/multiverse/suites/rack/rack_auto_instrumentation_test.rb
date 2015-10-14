@@ -2,13 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? ::Rack
+
 require File.join(File.dirname(__FILE__), 'example_app')
 require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/agent_hooks'
 require 'new_relic/rack/error_collector'
-require 'puma/rack/builder' if defined? Puma
-
-if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
 class RackAutoInstrumentationTest < Minitest::Test
   include MultiverseHelpers
