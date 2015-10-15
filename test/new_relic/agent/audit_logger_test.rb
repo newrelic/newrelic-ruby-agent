@@ -23,6 +23,7 @@ class AuditLoggerTest < Minitest::Test
 
   def teardown
     NewRelic::Agent.config.reset_to_defaults
+    NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
   end
 
   def setup_fake_logger
@@ -64,6 +65,7 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_log_formatter
+    NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
     Socket.stubs(:gethostname).returns('dummyhost')
     formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
     time = '2012-01-01 00:00:00'
@@ -75,6 +77,7 @@ class AuditLoggerTest < Minitest::Test
 
   def test_log_formatter_to_stdout
     with_config(:'audit_log.path' => "STDOUT") do
+      NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
       Socket.stubs(:gethostname).returns('dummyhost')
       formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
       time = '2012-01-01 00:00:00'
@@ -154,6 +157,7 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_should_cache_hostname
+    NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
     Socket.expects(:gethostname).once.returns('cachey-mccaherson')
     setup_fake_logger
     3.times do
