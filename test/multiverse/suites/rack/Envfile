@@ -1,9 +1,9 @@
 gemfile <<-RB
-  gem 'puma', '~>2.12.0'
+  gem 'puma', '~>2.12.3'
 RB
 
 gemfile <<-RB
-  gem 'puma', '~>2.12.0'
+  gem 'puma', '~>2.12.3'
   gem 'rack', '~>1.6.0'
   gem 'rack-test'
 RB

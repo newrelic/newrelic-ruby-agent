@@ -112,6 +112,17 @@ module NewRelic
               alias_method :use, :use_with_newrelic
             end
           end
+
+          def self.instrument_url_map url_map_class
+            url_map_class.class_eval do
+              alias_method :initialize_without_newrelic, :initialize
+
+              def initialize(map = {})
+                traced_map = ::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map)
+                initialize_without_newrelic(traced_map)
+              end
+            end
+          end
         end
       end
 
@@ -204,13 +215,23 @@ DependencyDetection.defer do
   end
 
   executes do
-    class ::Rack::URLMap
-      alias_method :initialize_without_newrelic, :initialize
+    ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_url_map ::Rack::URLMap
+  end
+end
 
-      def initialize(map = {})
-        traced_map = ::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map)
-        initialize_without_newrelic(traced_map)
-      end
-    end
+DependencyDetection.defer do
+  named :puma_rack_urlmap
+
+  depends_on do
+    defined? Puma::Rack::URLMap
+  end
+
+  depends_on do
+    ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled? &&
+      !::NewRelic::Agent.config[:disable_rack]
+  end
+
+  executes do
+    ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_url_map ::Puma::Rack::URLMap
   end
 end

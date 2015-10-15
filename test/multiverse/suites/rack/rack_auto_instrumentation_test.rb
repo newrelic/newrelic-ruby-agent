@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? ::Rack
+if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? Rack
 
 require File.join(File.dirname(__FILE__), 'example_app')
 require 'new_relic/rack/browser_monitoring'

@@ -6,7 +6,7 @@
 # properly. Tests against the builder interface more commonly used (i.e. map)
 # can be found elsewhere in this suite.
 
-if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
+if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? Rack
 
 class UrlMapTest < Minitest::Test
   include MultiverseHelpers
@@ -38,11 +38,26 @@ class UrlMapTest < Minitest::Test
   class PrefixAppTwo < ExampleApp; end
 
   def app
+    defined?(Puma) ? puma_rack_app : rack_app
+  end
+
+  def rack_app
     Rack::Builder.app do
       use MiddlewareOne
       use MiddlewareTwo
 
       run Rack::URLMap.new(
+        '/prefix1' => PrefixAppOne.new,
+        '/prefix2' => PrefixAppTwo.new)
+    end
+  end
+
+  def puma_rack_app
+    Puma::Rack::Builder.app do
+      use MiddlewareOne
+      use MiddlewareTwo
+
+      run Puma::Rack::URLMap.new(
         '/prefix1' => PrefixAppOne.new,
         '/prefix2' => PrefixAppTwo.new)
     end
@@ -61,12 +76,12 @@ class UrlMapTest < Minitest::Test
         'Apdex/Rack/UrlMapTest::ExampleApp/call',
         'Middleware/Rack/UrlMapTest::MiddlewareOne/call',
         'Middleware/Rack/UrlMapTest::MiddlewareTwo/call',
-        'Nested/Controller/Rack/Rack::URLMap/call',
+        nested_controller_metric,
         'Nested/Controller/Rack/UrlMapTest::ExampleApp/call',
         ['Middleware/Rack/UrlMapTest::MiddlewareOne/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
         ['Middleware/Rack/UrlMapTest::MiddlewareTwo/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
         ['Nested/Controller/Rack/UrlMapTest::ExampleApp/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
-        ['Nested/Controller/Rack/Rack::URLMap/call', 'Controller/Rack/UrlMapTest::ExampleApp/call']
+        [nested_controller_metric, 'Controller/Rack/UrlMapTest::ExampleApp/call']
       ])
     end
   end
@@ -83,11 +98,11 @@ class UrlMapTest < Minitest::Test
       'Apdex/Rack/UrlMapTest::PrefixAppOne/call',
       'Middleware/Rack/UrlMapTest::MiddlewareOne/call',
       'Middleware/Rack/UrlMapTest::MiddlewareTwo/call',
-      'Nested/Controller/Rack/Rack::URLMap/call',
+      nested_controller_metric,
       'Nested/Controller/Rack/UrlMapTest::PrefixAppOne/call',
       ['Middleware/Rack/UrlMapTest::MiddlewareOne/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
       ['Middleware/Rack/UrlMapTest::MiddlewareTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
-      ['Nested/Controller/Rack/Rack::URLMap/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
+      [nested_controller_metric, 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
       ['Nested/Controller/Rack/UrlMapTest::PrefixAppOne/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call']
     ])
   end
@@ -104,13 +119,18 @@ class UrlMapTest < Minitest::Test
       'Apdex/Rack/UrlMapTest::PrefixAppTwo/call',
       'Middleware/Rack/UrlMapTest::MiddlewareOne/call',
       'Middleware/Rack/UrlMapTest::MiddlewareTwo/call',
-      'Nested/Controller/Rack/Rack::URLMap/call',
+      nested_controller_metric,
       'Nested/Controller/Rack/UrlMapTest::PrefixAppTwo/call',
       ['Middleware/Rack/UrlMapTest::MiddlewareOne/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
       ['Middleware/Rack/UrlMapTest::MiddlewareTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
-      ['Nested/Controller/Rack/Rack::URLMap/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
+      [nested_controller_metric, 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
       ['Nested/Controller/Rack/UrlMapTest::PrefixAppTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call']
     ])
+  end
+
+  def nested_controller_metric
+    url_map_class = defined?(Puma) ? Puma::Rack::URLMap : Rack::URLMap
+    "Nested/Controller/Rack/#{url_map_class}/call"
   end
 end
 
