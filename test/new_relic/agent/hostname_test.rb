@@ -9,7 +9,12 @@ module NewRelic
   module Agent
     class HostnameTest < Minitest::Test
       def setup
+        NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
         Socket.stubs(:gethostname).returns('Rivendell')
+      end
+
+      def teardown
+        NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
       end
 
       def test_get_returns_socket_hostname

@@ -7,7 +7,7 @@ module NewRelic
     module Hostname
       def self.get
         dyno_name = ENV['DYNO']
-        if dyno_name && ::NewRelic::Agent.config[:'heroku.use_dyno_names']
+        @hostname ||= if dyno_name && ::NewRelic::Agent.config[:'heroku.use_dyno_names']
           matching_prefix = heroku_dyno_name_prefix(dyno_name)
           dyno_name = "#{matching_prefix}.*" if matching_prefix
           dyno_name

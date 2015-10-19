@@ -33,6 +33,7 @@ class AgentLoggerTest < Minitest::Test
 
   def teardown
     NewRelic::Agent.config.reset_to_defaults
+    NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
   end
 
 
@@ -305,6 +306,7 @@ class AgentLoggerTest < Minitest::Test
   end
 
   def test_should_cache_hostname
+    NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
     Socket.expects(:gethostname).once.returns('cachey-mccaherson')
     logger = create_basic_logger
     logger.warn("one")
