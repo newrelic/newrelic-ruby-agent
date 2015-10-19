@@ -6,14 +6,14 @@
 # properly. Tests against the builder interface more commonly used (i.e. map)
 # can be found elsewhere in this suite.
 
-if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? Rack
+if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
 
 class UrlMapTest < Minitest::Test
   include MultiverseHelpers
 
-  setup_and_teardown_agent
-
-  include Rack::Test::Methods
+  def teardown
+    NewRelic::Agent.drop_buffered_data
+  end
 
   class SimpleMiddleware
     def initialize(app)
@@ -63,7 +63,7 @@ class UrlMapTest < Minitest::Test
     end
   end
 
-  if Rack::VERSION[1] >= 4
+  if defined?(Rack) && Rack::VERSION[1] >= 4
     def test_metrics_for_default_prefix
       get '/'
 
@@ -131,6 +131,20 @@ class UrlMapTest < Minitest::Test
   def nested_controller_metric
     url_map_class = defined?(Puma) ? Puma::Rack::URLMap : Rack::URLMap
     "Nested/Controller/Rack/#{url_map_class}/call"
+  end
+
+  # We're not using Rack::Test so that we can test against an enviroment
+  # that requires puma only. Since we're only using the `get` method this is
+  # easy enough replicate. If this becomes a problem in the future perhaps we
+  # revisit how we verify that
+  def get path
+    env = {
+      "REQUEST_METHOD"=>"GET",
+      "PATH_INFO"=>path,
+      "SCRIPT_NAME"=>""
+    }
+
+    app.call env
   end
 end
 

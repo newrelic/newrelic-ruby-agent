@@ -7,8 +7,6 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
 class PumaRackBuilderTest < Minitest::Test
   include MultiverseHelpers
 
-  setup_and_teardown_agent
-
   class ExampleApp
     def call env
       [200, {'Content-Type' => 'text/html'}, ['Hello!']]
@@ -38,9 +36,12 @@ class PumaRackBuilderTest < Minitest::Test
   end
 
   def setup
-    super
     @app = build_app
     @env = {}
+  end
+
+  def teardown
+    NewRelic::Agent.drop_buffered_data
   end
 
   def build_app
