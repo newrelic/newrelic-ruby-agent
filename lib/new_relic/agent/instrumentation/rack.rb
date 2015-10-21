@@ -194,7 +194,7 @@ DependencyDetection.defer do
   named :puma_rack
 
   depends_on do
-    defined? ::Puma::Rack::Builder
+    defined?(::Puma::Rack::Builder) && !NewRelic::Agent.config[:disable_puma_rack]
   end
 
   executes do
@@ -228,7 +228,7 @@ DependencyDetection.defer do
 
   depends_on do
     ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled? &&
-      !::NewRelic::Agent.config[:disable_rack]
+      !::NewRelic::Agent.config[:disable_puma_rack_urlmap]
   end
 
   executes do
