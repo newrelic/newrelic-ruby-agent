@@ -228,7 +228,7 @@ DependencyDetection.defer do
 
   depends_on do
     ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled? &&
-      !::NewRelic::Agent.config[:disable_puma_rack_urlmap]
+      !::NewRelic::Agent.config[:disable_puma_rack]
   end
 
   executes do
