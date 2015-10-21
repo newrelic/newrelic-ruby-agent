@@ -181,7 +181,7 @@ DependencyDetection.defer do
   named :rack
 
   depends_on do
-    defined?(::Rack) && defined?(::Rack::Builder)
+    defined?(::Rack) && defined?(::Rack::Builder) && !NewRelic::Agent.config[:disable_rack]
   end
 
   executes do
@@ -211,7 +211,7 @@ DependencyDetection.defer do
 
   depends_on do
     ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled? &&
-      !::NewRelic::Agent.config[:disable_rack]
+      !::NewRelic::Agent.config[:disable_rack_urlmap]
   end
 
   executes do
