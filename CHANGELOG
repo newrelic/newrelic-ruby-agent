@@ -2,6 +2,12 @@
 
 ## v3.14.1 ##
 
+  * Add support for setting a display name on hosts
+
+  You can now configure a display name for your hosts using process_host.display_name,
+  to more easily distinguish dynamically assigned hosts. For more info, see
+  https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name
+
   * Fixes automatic middleware instrumentation for Puma 2.12.x
 
   Starting with version 2.12.x the Puma project inlines versions of Rack::Builder
@@ -9,12 +15,6 @@
   breaking automatic Rack middleware instrumentation. We now instrument Puma::Rack::Builder
   and Puma::Rack::URLMap and once again have automatic Rack middleware instrumentation for
   applications running on Puma.
-
-  * Add support for setting a display name on hosts
-
-  You can now configure a display name for your hosts using process_host.display_name,
-  to more easily distinguish dynamically assigned hosts. For more info, see
-  https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name
 
 ## v3.14.0 ##
 

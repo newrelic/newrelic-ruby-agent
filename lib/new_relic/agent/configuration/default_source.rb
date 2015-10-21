@@ -1246,7 +1246,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Defines whether the agent will hook into Rack::Builder\'s <code>to_app</code> method to find gems to instrument during application startup.'
+          :description  => 'If true, prevents the agent from hooking into Rack::Builder\'s <code>to_app</code> method to find gems to instrument during application startup.'
         },
         :disable_rack_urlmap => {
           :default      => false,
@@ -1254,7 +1254,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Defines whether the agent will hook into Rack::URLMap to install middleware tracing.'
+          :description  => 'If true, prevents the agent from hooking into Rack::URLMap to install middleware tracing.'
         },
         :disable_puma_rack => {
           :default      => value_of(:disable_rack),
@@ -1262,7 +1262,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Defines whether the agent will hook into Puma::Rack::Builder\'s <code>to_app</code> method to find gems to instrument during application startup.'
+          :description  => 'If true, prevents the agent from hooking into Puma::Rack::Builder\'s <code>to_app</code> method to find gems to instrument during application startup.'
         },
         :disable_puma_rack_urlmap => {
           :default      => value_of(:disable_rack_urlmap),
@@ -1270,7 +1270,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Defines whether the agent will hook into Puma::Rack::URLMap to install middleware tracing.'
+          :description  => 'If true, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.'
         },
         :disable_rubyprof => {
           :default      => false,
