@@ -179,6 +179,27 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             assert_metrics_recorded(expected)
           end
 
+          def test_batched_queries
+            30.times do |i|
+              @collection.insert_one :name => "test-#{i}", :active => true
+            end
+            NewRelic::Agent.drop_buffered_data
+
+            @collection.find(:active => true).batch_size(10).to_a
+
+            expected = {
+              "Datastore/statement/MongoDB/#{@collection_name}/find" => {:call_count=>1},
+              "Datastore/operation/MongoDB/getMore" => {:call_count=>3},
+              "Datastore/operation/MongoDB/find" => {:call_count=>1},
+              "Datastore/MongoDB/allWeb" => {:call_count=>4},
+              "Datastore/MongoDB/all" => {:call_count=>4},
+              "Datastore/allWeb" => { :call_count=>4},
+              "Datastore/all" => {:call_count=>4}
+            }
+
+            assert_metrics_recorded_exclusive expected
+          end
+
           def test_drop_collection
             @collection.drop
 

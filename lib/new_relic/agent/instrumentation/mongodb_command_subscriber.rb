@@ -9,6 +9,7 @@ module NewRelic
       class MongodbCommandSubscriber
 
         MONGODB = 'MongoDB'.freeze
+        GET_MORE = "getMore".freeze
 
         def started(event)
           begin
@@ -45,7 +46,9 @@ module NewRelic
         private
 
         def collection(event)
-          event.command.values.first
+          if event.command_name != GET_MORE
+            event.command.values.first
+          end
         end
 
         def metrics(event)
