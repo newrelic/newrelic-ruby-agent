@@ -8,11 +8,11 @@ DependencyDetection.defer do
   named :rails_middleware
 
   depends_on do
-    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= 3
+    !::NewRelic::Agent.config[:disable_middleware_instrumentation]
   end
 
   depends_on do
-    !::NewRelic::Agent.config[:disable_middleware_instrumentation]
+    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= 3
   end
 
   executes do
