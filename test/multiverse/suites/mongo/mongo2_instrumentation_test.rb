@@ -189,8 +189,9 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             expected = {
               "Datastore/statement/MongoDB/#{@collection_name}/find" => {:call_count=>1},
-              "Datastore/operation/MongoDB/getMore" => {:call_count=>3},
+              "Datastore/statement/MongoDB/#{@collection_name}/getMore" => {:call_count=>3},
               "Datastore/operation/MongoDB/find" => {:call_count=>1},
+              "Datastore/operation/MongoDB/getMore" => {:call_count=>3},
               "Datastore/MongoDB/allWeb" => {:call_count=>4},
               "Datastore/MongoDB/all" => {:call_count=>4},
               "Datastore/allWeb" => { :call_count=>4},

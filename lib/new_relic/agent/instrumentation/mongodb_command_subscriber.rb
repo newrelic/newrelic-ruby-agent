@@ -10,6 +10,7 @@ module NewRelic
 
         MONGODB = 'MongoDB'.freeze
         GET_MORE = "getMore".freeze
+        COLLECTION = "collection".freeze
 
         def started(event)
           begin
@@ -46,7 +47,9 @@ module NewRelic
         private
 
         def collection(event)
-          if event.command_name != GET_MORE
+          if event.command_name == GET_MORE
+            event.command[COLLECTION]
+          else
             event.command.values.first
           end
         end
