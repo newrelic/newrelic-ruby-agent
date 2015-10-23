@@ -180,7 +180,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           end
 
           def test_batched_queries
-            30.times do |i|
+            25.times do |i|
               @collection.insert_one :name => "test-#{i}", :active => true
             end
             NewRelic::Agent.drop_buffered_data
@@ -189,16 +189,39 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             expected = {
               "Datastore/statement/MongoDB/#{@collection_name}/find" => {:call_count=>1},
-              "Datastore/statement/MongoDB/#{@collection_name}/getMore" => {:call_count=>3},
+              "Datastore/statement/MongoDB/#{@collection_name}/getMore" => {:call_count=>2},
               "Datastore/operation/MongoDB/find" => {:call_count=>1},
-              "Datastore/operation/MongoDB/getMore" => {:call_count=>3},
-              "Datastore/MongoDB/allWeb" => {:call_count=>4},
-              "Datastore/MongoDB/all" => {:call_count=>4},
-              "Datastore/allWeb" => { :call_count=>4},
-              "Datastore/all" => {:call_count=>4}
+              "Datastore/operation/MongoDB/getMore" => {:call_count=>2},
+              "Datastore/MongoDB/allWeb" => {:call_count=>3},
+              "Datastore/MongoDB/all" => {:call_count=>3},
+              "Datastore/allWeb" => { :call_count=>3},
+              "Datastore/all" => {:call_count=>3}
             }
-
             assert_metrics_recorded_exclusive expected
+          end
+
+          def test_batched_queries_have_node_per_query
+            25.times do |i|
+              @collection.insert_one :name => "test-#{i}", :active => true
+            end
+            NewRelic::Agent.drop_buffered_data
+            in_transaction "webby" do
+              @collection.find(:active => true).batch_size(10).to_a
+            end
+
+            expected = [
+              "Datastore/statement/MongoDB/#{@collection_name}/find",
+              "Datastore/statement/MongoDB/#{@collection_name}/getMore",
+              "Datastore/statement/MongoDB/#{@collection_name}/getMore"
+            ]
+
+            trace = last_transaction_trace
+            actual = []
+            trace.each_node do |n|
+              actual << n.metric_name if n.metric_name.start_with? "Datastore/statement/MongoDB"
+            end
+
+            assert_equal expected, actual
           end
 
           def test_drop_collection
