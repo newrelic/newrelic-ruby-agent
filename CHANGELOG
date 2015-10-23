@@ -23,6 +23,13 @@
   identifiers. Instead, we use the DelayedJob's class name for naming
   the transaction.
 
+  * Improvements to Mongo 2.1.x instrumentation
+
+  Fixes issue where getMore operations in batched queries could create metric grouping issues.
+  Previously when multiple Mongo queries executed in the same scope only a single query was recorded
+  as part of a transaction trace. Now transaction trace nodes will be created for every query
+  executed during a transaction.
+
 ## v3.14.0 ##
 
   * pruby marshaller removed
