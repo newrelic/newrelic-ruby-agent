@@ -47,7 +47,7 @@ DependencyDetection.defer do
 
           alias_method :invoke_job_without_new_relic, :invoke_job
 
-          def invoke_job
+          def invoke_job(*args, &block)
             options = { :category => 'OtherTransaction/DelayedJob' }
 
             if payload_object.is_a? ::Delayed::PerformableMethod
@@ -59,7 +59,7 @@ DependencyDetection.defer do
             end
 
             perform_action_with_newrelic_trace(options) do
-              invoke_job_without_new_relic
+              invoke_job_without_new_relic(*args, &block)
             end
           end
         end
