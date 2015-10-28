@@ -44,8 +44,24 @@ DependencyDetection.defer do
       def install_newrelic_job_tracer
         Delayed::Job.class_eval do
           include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-          add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob',
-                                               :path => self.payload_object.class.name
+
+          alias_method :invoke_job_without_new_relic, :invoke_job
+
+          def invoke_job
+            options = { :category => 'OtherTransaction/DelayedJob' }
+
+            if payload_object.is_a? ::Delayed::PerformableMethod
+              options[:path] = payload_object.object.is_a?(Class) ?
+                  "#{payload_object.object}.#{payload_object.method_name}" :
+                  "#{payload_object.object.class}##{payload_object.method_name}"
+            else
+              options[:path] = payload_object.class.name
+            end
+
+            perform_action_with_newrelic_trace(options) do
+              invoke_job_without_new_relic
+            end
+          end
         end
       end
     end
