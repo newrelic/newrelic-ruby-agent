@@ -4,6 +4,56 @@
 
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
+module NewRelic
+  module Agent
+    module Instrumentation
+      module DelayedJob
+        module Naming
+          module_function
+          # NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload
+          def name_from_payload(payload_object)
+            if payload_object.is_a? ::Delayed::PerformableMethod
+              "#{object_name(payload_object)}#{delimiter(payload_object)}#{method_name(payload_object)}"
+            else
+              payload_object.class.name
+            end
+          end
+
+          def object_name(payload_object)
+            if payload_object.object.is_a?(Class)
+              payload_object.object.to_s
+            elsif payload_object.object.is_a?(String) && payload_object.object[0..4] == 'LOAD;'
+              # Older versions of Delayed Job use a semicolon-delimited string to stash the class name.
+              # The format of this string is "LOAD;<class name>;<ORM ID>
+              payload_object.object.split(';')[1] || '(unknown class)'
+            else
+              payload_object.object.class.name
+            end
+          end
+
+          def delimiter(payload_object)
+            if payload_object.object.is_a?(Class)
+              '.'
+            else
+              '#'
+            end
+          end
+
+          # DelayedJob's interface for the async method's name varies across the gem's versions
+          def method_name(payload_object)
+            if payload_object.respond_to?(:method_name)
+              payload_object.method_name
+            else
+              # early versions of Delayed Job override Object#method with the method name
+              payload_object.method
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
 DependencyDetection.defer do
   @name = :delayed_job
 
@@ -48,15 +98,10 @@ DependencyDetection.defer do
           alias_method :invoke_job_without_new_relic, :invoke_job
 
           def invoke_job(*args, &block)
-            options = { :category => 'OtherTransaction/DelayedJob' }
-
-            if payload_object.is_a? ::Delayed::PerformableMethod
-              options[:path] = payload_object.object.is_a?(Class) ?
-                  "#{payload_object.object}.#{payload_object.method_name}" :
-                  "#{payload_object.object.class}##{payload_object.method_name}"
-            else
-              options[:path] = payload_object.class.name
-            end
+            options = {
+              :category => 'OtherTransaction/DelayedJob',
+              :path => ::NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload(payload_object)
+            }
 
             perform_action_with_newrelic_trace(options) do
               invoke_job_without_new_relic(*args, &block)
