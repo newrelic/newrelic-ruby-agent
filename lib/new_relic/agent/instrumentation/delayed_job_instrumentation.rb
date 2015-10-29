@@ -10,22 +10,41 @@ module NewRelic
       module DelayedJob
         module Naming
           module_function
+
+          CLASS_METHOD_DELIMITER     = '.'.freeze
+          INSTANCE_METHOD_DELIMITER  = '#'.freeze
+          LEGACY_DJ_FORMAT_DELIMITER = ';'.freeze
+          LEGACY_DJ_FORMAT_PREFIX    = 'LOAD'.freeze
+          LEGACY_DJ_DEFAULT_CLASS    = '(unknown class)'.freeze
+
           # NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload
           def name_from_payload(payload_object)
             if payload_object.is_a? ::Delayed::PerformableMethod
+              # payload_object contains a reference to an object
+              # that received an asynchronous method call via .delay or .handle_asynchronously
               "#{object_name(payload_object)}#{delimiter(payload_object)}#{method_name(payload_object)}"
             else
+              # payload_object is a user-defined job enqueued via Delayed::Job.enqueue
               payload_object.class.name
             end
+          end
+
+          # Older versions of Delayed Job use a semicolon-delimited string to stash the class name.
+          # The format of this string is "LOAD;<class name>;<ORM ID>"
+          def legacy_performable_method?(payload_object)
+            payload_object.object.is_a?(String) && payload_object.object[0..3] == LEGACY_DJ_FORMAT_PREFIX
+          end
+
+          # If parsing for the class name fails, return a sensible default
+          def class_name_from_legacy_performable_method(payload_object)
+            payload_object.object.split(LEGACY_DJ_FORMAT_DELIMITER)[1] || LEGACY_DJ_DEFAULT_CLASS
           end
 
           def object_name(payload_object)
             if payload_object.object.is_a?(Class)
               payload_object.object.to_s
-            elsif payload_object.object.is_a?(String) && payload_object.object[0..4] == 'LOAD;'
-              # Older versions of Delayed Job use a semicolon-delimited string to stash the class name.
-              # The format of this string is "LOAD;<class name>;<ORM ID>
-              payload_object.object.split(';')[1] || '(unknown class)'
+            elsif legacy_performable_method?(payload_object)
+              class_name_from_legacy_performable_method(payload_object)
             else
               payload_object.object.class.name
             end
@@ -33,9 +52,9 @@ module NewRelic
 
           def delimiter(payload_object)
             if payload_object.object.is_a?(Class)
-              '.'
+              CLASS_METHOD_DELIMITER
             else
-              '#'
+              INSTANCE_METHOD_DELIMITER
             end
           end
 
@@ -91,6 +110,8 @@ DependencyDetection.defer do
       alias initialize_without_new_relic initialize
       alias initialize initialize_with_new_relic
 
+      NR_TRANSACTION_CATEGORY = 'OtherTransaction/DelayedJob'.freeze
+
       def install_newrelic_job_tracer
         Delayed::Job.class_eval do
           include NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -99,7 +120,7 @@ DependencyDetection.defer do
 
           def invoke_job(*args, &block)
             options = {
-              :category => 'OtherTransaction/DelayedJob',
+              :category => NR_TRANSACTION_CATEGORY,
               :path => ::NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload(payload_object)
             }
 
