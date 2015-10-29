@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-if defined? Delayed::Backend::ActiveRecord
+if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:delay_jobs)
   class DelayedJobInstrumentationTest < Minitest::Test
     include MultiverseHelpers
 
@@ -16,19 +16,72 @@ if defined? Delayed::Backend::ActiveRecord
       end
 
       def perform
-        puts "Performing Quack Job #{@index} .."
+        "Performing Quack Job #{@index} .."
       end
+    end
+
+    class Pelican < ActiveRecord::Base
+      self.table_name = :pelicans
+
+      def quack
+        "quack..."
+      end
+
+      def quack_later
+        "...quack"
+      end
+
+      handle_asynchronously :quack_later
     end
 
     setup_and_teardown_agent
 
     def after_setup
-      # We set Delayed::Worker.delay_jobs = false in the before_suite to run jobs inline
-      # for testing purposes, but we unfortunately hook the initialize method on Delayed::Worker
-      # to install our instrumentation.  Delayed::Workers are not initialized by when running
-      # tests inline so we have to manually instantiate one that we don't use to get our
-      # instrumentation installed.
-      Delayed::Worker.new
+      Delayed::Worker.delay_jobs = false
+      # We set Delayed::Worker.delay_jobs = false to run jobs inline for testing purposes, but
+      # we unfortunately hook the initialize method on Delayed::Worker
+      # to install our instrumentation.  Delayed::Workers are not initialized when running
+      # tests inline so we have to manually instantiate one to install our instrumentation.
+      # We also need to take care to only install the instrumentation once.
+      unless Delayed::Job.instance_methods.any? { |m|  m == :invoke_job_without_new_relic || m == "invoke_job_without_new_relic" }
+        Delayed::Worker.new
+      end
+    end
+
+    def after_teardown
+      Delayed::Worker.delay_jobs = true
+    end
+
+    # Delayed job doesn't expose a version number, so we have to resort to checking Gem.loaded_specs.
+    # Additionally, earlier versions of delayed job do not call invoke_job when running jobs inline.
+    # We can only test methods using delay and handle_asynchronously on versions that run jobs via
+    # the inovke_job method.
+    def self.dj_invokes_job_inline?
+      Gem.loaded_specs["delayed_job"].version >= Gem::Version.new("3.0.0")
+    end
+
+    if dj_invokes_job_inline?
+      def test_delay_method
+        p = Pelican.create(:name => "Charlie")
+        p.delay.quack
+
+        assert_metrics_recorded [
+          'OtherTransaction/all',
+          'OtherTransaction/DelayedJob/all',
+          'OtherTransaction/DelayedJob/DelayedJobInstrumentationTest::Pelican#quack'
+        ]
+      end
+
+      def test_handle_asynchronously
+        p = Pelican.create(:name => "Charlieee")
+        p.quack_later
+
+        assert_metrics_recorded [
+          'OtherTransaction/all',
+          'OtherTransaction/DelayedJob/all',
+          'OtherTransaction/DelayedJob/DelayedJobInstrumentationTest::Pelican#quack_later_without_delay'
+        ]
+      end
     end
 
     def test_enqueue_standalone_job
@@ -43,7 +96,8 @@ if defined? Delayed::Backend::ActiveRecord
     end
 
     # Note we use this method instead of Delayed::Job.enqueue because DJ 2.1.4 does not call
-    # invoke_job when running jobs inline it instead calls perform directly.
+    # invoke_job when running jobs inline it instead calls perform directly.  This allows to
+    # test the stand alone job case on all supported versions of DJ.
     def invoke_job(job)
       job = Delayed::Job.new(:payload_object => job)
       job.invoke_job

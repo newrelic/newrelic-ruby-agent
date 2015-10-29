@@ -29,5 +29,15 @@ if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
     @connection = $db_connection
   end
 
+  class CreatePelicans < ActiveRecord::Migration
+    @connection = $db_connection
+    def self.up
+      create_table :pelicans do |t|
+        t.string :name
+      end
+    end
+  end
+
   CreateDelayedJobs.up
+  CreatePelicans.up
 end
