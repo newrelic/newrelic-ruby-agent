@@ -17,7 +17,6 @@ module NewRelic
           LEGACY_DJ_FORMAT_PREFIX    = 'LOAD'.freeze
           LEGACY_DJ_DEFAULT_CLASS    = '(unknown class)'.freeze
 
-          # NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload
           def name_from_payload(payload_object)
             if payload_object.is_a? ::Delayed::PerformableMethod
               # payload_object contains a reference to an object
