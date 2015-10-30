@@ -52,8 +52,8 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
       Delayed::Worker.delay_jobs = true
     end
 
-    # Delayed job doesn't expose a version number, so we have to resort to checking Gem.loaded_specs.
-    # Additionally, earlier versions of delayed job do not call invoke_job when running jobs inline.
+    # Delayed Job doesn't expose a version number, so we have to resort to checking Gem.loaded_specs.
+    # Additionally, earlier versions of Delayed Job do not call invoke_job when running jobs inline.
     # We can only test methods using delay and handle_asynchronously on versions that run jobs via
     # the inovke_job method.
     def self.dj_invokes_job_inline?
@@ -95,9 +95,9 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
       ]
     end
 
-    # Note we use this method instead of Delayed::Job.enqueue because DJ 2.1.4 does not call
-    # invoke_job when running jobs inline it instead calls perform directly.  This allows to
-    # test the stand alone job case on all supported versions of DJ.
+    # Note we use this method instead of Delayed::Job.enqueue because Delayed Job 2.1.4 does
+    # not call invoke_job when running jobs inline it instead calls perform directly.  This
+    # allows us to test the stand alone job case on all supported versions of Delayed Job.
     def invoke_job(job)
       job = Delayed::Job.new(:payload_object => job)
       job.invoke_job
