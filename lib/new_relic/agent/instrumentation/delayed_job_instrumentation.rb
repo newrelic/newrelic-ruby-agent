@@ -32,7 +32,7 @@ module NewRelic
           # Older versions of Delayed Job use a semicolon-delimited string to stash the class name.
           # The format of this string is "LOAD;<class name>;<ORM ID>"
           def legacy_performable_method?(payload_object)
-            payload_object.object.is_a?(String) && payload_object.object[0..3] == LEGACY_DJ_FORMAT_PREFIX
+            payload_object.object.is_a?(String) && payload_object.start_with?(LEGACY_DJ_FORMAT_PREFIX)
           end
 
           # If parsing for the class name fails, return a sensible default
