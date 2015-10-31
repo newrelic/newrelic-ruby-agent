@@ -55,7 +55,7 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
     # Delayed Job doesn't expose a version number, so we have to resort to checking Gem.loaded_specs.
     # Additionally, earlier versions of Delayed Job do not call invoke_job when running jobs inline.
     # We can only test methods using delay and handle_asynchronously on versions that run jobs via
-    # the inovke_job method.
+    # the invoke_job method.
     def self.dj_invokes_job_inline?
       Gem.loaded_specs["delayed_job"].version >= Gem::Version.new("3.0.0")
     end
