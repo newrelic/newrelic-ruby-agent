@@ -16,12 +16,13 @@
   and Puma::Rack::URLMap and once again have automatic Rack middleware instrumentation for
   applications running on Puma.
 
-  * Use a DelayedJob's class name for naming the transaction
+  * Do not use a DelayedJob's display_name for naming the transaction
 
   A DelayedJob's name may be superceded by a display_name, which can
   lead to a metric grouping issue if the display_name contains unique
-  identifiers. Instead, we use the DelayedJob's class name for naming
-  the transaction.
+  identifiers. We no longer use job name methods that may lead to an
+  arbitrary display_name. Instead, we use the appropriate class and/or
+  method names, depending what makes sense for the job and how it's called.
 
   * Improvements to Mongo 2.1.x instrumentation
 
