@@ -195,6 +195,7 @@ class GrapeTest < Minitest::Test
         post '/grape_ape'
 
         expected = {
+          "response.headers.contentLength" => last_response.content_length.to_i,
           "response.headers.contentType" => last_response.content_type,
           "request.headers.contentLength" => last_request.content_length.to_i,
           "request.headers.contentType" => last_request.content_type,

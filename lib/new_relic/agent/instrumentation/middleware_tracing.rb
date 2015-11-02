@@ -67,6 +67,23 @@ module NewRelic
           end
         end
 
+        # the trailing unless is for the benefit for Ruby 1.8.7 and can be removed
+        # when it is deprecated.
+        CONTENT_LENGTH = 'Content-Length'.freeze unless defined?(CONTENT_LENGTH)
+
+        def capture_response_content_length(state, result)
+          if result.is_a?(Array) && state.current_transaction
+            _, headers, _ = result
+            state.current_transaction.response_content_length = headers[CONTENT_LENGTH]
+          end
+        end
+
+        def capture_response_attributes(state, result)
+          capture_http_response_code(state, result)
+          capture_response_content_type(state, result)
+          capture_response_content_length(state, result)
+        end
+
         def call(env)
           first_middleware = note_transaction_started(env)
 
@@ -79,8 +96,7 @@ module NewRelic
             result = (target == self) ? traced_call(env) : target.call(env)
 
             if first_middleware
-              capture_http_response_code(state, result)
-              capture_response_content_type(state, result)
+              capture_response_attributes(state, result)
               events.notify(:after_call, env, result)
             end
 

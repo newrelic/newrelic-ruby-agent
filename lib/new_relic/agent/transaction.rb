@@ -53,6 +53,7 @@ module NewRelic
                     :jruby_cpu_start,
                     :process_cpu_start,
                     :http_response_code,
+                    :response_content_length,
                     :response_content_type
 
       attr_reader :guid,
@@ -537,6 +538,10 @@ module NewRelic
 
         if http_response_code
           add_agent_attribute(:httpResponseCode, http_response_code.to_s, default_destinations)
+        end
+
+        if response_content_length
+          add_agent_attribute(:'response.headers.contentLength', response_content_length.to_i, default_destinations)
         end
 
         if response_content_type

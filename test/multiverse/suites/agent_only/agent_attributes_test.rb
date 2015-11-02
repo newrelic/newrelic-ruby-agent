@@ -32,6 +32,18 @@ class AgentAttributesTest < Minitest::Test
     refute_browser_monitoring_has_agent_attribute("response.headers.contentType")
   end
 
+  def test_response_content_length_default_destinations
+    run_transaction do |txn|
+      txn.response_content_length = 100
+    end
+
+    assert_transaction_trace_has_agent_attribute("response.headers.contentLength", 100)
+    assert_event_has_agent_attribute("response.headers.contentLength", 100)
+    assert_error_has_agent_attribute("response.headers.contentLength", 100)
+
+    refute_browser_monitoring_has_agent_attribute("response.headers.contentLength")
+  end
+
   def test_request_headers_referer_default_destinations
     txn_options = {:request => stub(:referer => "referrer", :path => "/")}
     run_transaction({}, txn_options) do |txn|
@@ -73,6 +85,7 @@ class AgentAttributesTest < Minitest::Test
       :referer => "http://docs.newrelic.com",
       :env => {"HTTP_ACCEPT" => "application/json"},
       :content_length => 103,
+      :content_type => "application/json",
       :host => 'chippy',
       :user_agent => 'Use This!',
       :request_method => "GET"
@@ -95,6 +108,11 @@ class AgentAttributesTest < Minitest::Test
     assert_event_has_agent_attribute "request.headers.contentLength", 103
     assert_error_has_agent_attribute "request.headers.contentLength", 103
     refute_browser_monitoring_has_agent_attribute "request.headers.contentLength"
+
+    assert_transaction_trace_has_agent_attribute "request.headers.contentType", "application/json"
+    assert_event_has_agent_attribute "request.headers.contentType", "application/json"
+    assert_error_has_agent_attribute "request.headers.contentType", "application/json"
+    refute_browser_monitoring_has_agent_attribute "request.headers.contentType"
 
     assert_transaction_trace_has_agent_attribute "request.headers.host", "chippy"
     assert_event_has_agent_attribute "request.headers.host", "chippy"
