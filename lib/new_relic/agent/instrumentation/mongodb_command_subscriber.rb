@@ -9,6 +9,8 @@ module NewRelic
       class MongodbCommandSubscriber
 
         MONGODB = 'MongoDB'.freeze
+        GET_MORE = "getMore".freeze
+        COLLECTION = "collection".freeze
 
         def started(event)
           begin
@@ -31,9 +33,7 @@ module NewRelic
               base, other_metrics, event.duration
             )
 
-            NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(
-              generate_statement(started_event), event.duration
-            )
+            notice_nosql_statement(state, started_event, base, event.duration)
           rescue Exception => e
             log_notification_error('completed', e)
           end
@@ -45,7 +45,11 @@ module NewRelic
         private
 
         def collection(event)
-          event.command.values.first
+          if event.command_name == GET_MORE
+            event.command[COLLECTION]
+          else
+            event.command.values.first
+          end
         end
 
         def metrics(event)
@@ -67,6 +71,22 @@ module NewRelic
             event.database_name,
             event.command
           )
+        end
+
+        def notice_nosql_statement(state, event, metric, duration)
+          end_time = Time.now.to_f
+
+          stack  = state.traced_method_stack
+
+          # enter transaction trace node
+          frame = stack.push_frame(state, :mongo_db, end_time - duration)
+
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(
+              generate_statement(event), duration
+            )
+
+          # exit transaction trace node
+          stack.pop_frame(state, frame, metric, end_time)
         end
       end
     end

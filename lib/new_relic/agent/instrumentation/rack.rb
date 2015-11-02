@@ -54,14 +54,28 @@ module NewRelic
       end
 
       module RackHelpers
+        def self.version_supported?
+          rack_version_supported? || puma_rack_version_supported?
+        end
+
         def self.rack_version_supported?
+          return false unless defined? ::Rack
+
           version = ::NewRelic::VersionNumber.new(::Rack.release)
           min_version = ::NewRelic::VersionNumber.new('1.1.0')
           version >= min_version
         end
 
+        def self.puma_rack_version_supported?
+          return false unless defined? ::Puma::Const::PUMA_VERSION
+
+          version = ::NewRelic::VersionNumber.new(::Puma::Const::PUMA_VERSION)
+          min_version = ::NewRelic::VersionNumber.new('2.12.0')
+          version >= min_version
+        end
+
         def self.middleware_instrumentation_enabled?
-          rack_version_supported? && !::NewRelic::Agent.config[:disable_middleware_instrumentation]
+          version_supported? && !::NewRelic::Agent.config[:disable_middleware_instrumentation]
         end
 
         def self.check_for_late_instrumentation(app)
@@ -71,6 +85,42 @@ module NewRelic
             if ::NewRelic::Agent::Instrumentation::MiddlewareProxy.needs_wrapping?(app)
               ::NewRelic::Agent.logger.info("We weren't able to instrument all of your Rack middlewares.",
                                             "To correct this, ensure you 'require \"newrelic_rpm\"' before setting up your middleware stack.")
+            end
+          end
+        end
+
+        def self.instrument_builder builder_class
+          ::NewRelic::Agent.logger.info "Installing deferred #{builder_class} instrumentation"
+
+          builder_class.class_eval do
+            class << self
+              attr_accessor :_nr_deferred_detection_ran
+            end
+            self._nr_deferred_detection_ran = false
+
+            include ::NewRelic::Agent::Instrumentation::RackBuilder
+
+            alias_method :to_app_without_newrelic, :to_app
+            alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
+
+            if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+              ::NewRelic::Agent.logger.info "Installing #{builder_class} middleware instrumentation"
+              alias_method :run_without_newrelic, :run
+              alias_method :run, :run_with_newrelic
+
+              alias_method :use_without_newrelic, :use
+              alias_method :use, :use_with_newrelic
+            end
+          end
+
+          def self.instrument_url_map url_map_class
+            url_map_class.class_eval do
+              alias_method :initialize_without_newrelic, :initialize
+
+              def initialize(map = {})
+                traced_map = ::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map)
+                initialize_without_newrelic(traced_map)
+              end
             end
           end
         end
@@ -102,10 +152,10 @@ module NewRelic
         # DependencyDetection.detect!, since all libraries are likely loaded at
         # this point.
         def to_app_with_newrelic_deferred_dependency_detection
-          unless ::Rack::Builder._nr_deferred_detection_ran
+          unless self.class._nr_deferred_detection_ran
             NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
             DependencyDetection.detect!
-            ::Rack::Builder._nr_deferred_detection_ran = true
+            self.class._nr_deferred_detection_ran = true
           end
 
           result = to_app_without_newrelic
@@ -135,29 +185,20 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing deferred Rack instrumentation'
+    ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_builder ::Rack::Builder
+  end
+end
 
-    class ::Rack::Builder
-      class << self
-        attr_accessor :_nr_deferred_detection_ran
-      end
-      self._nr_deferred_detection_ran = false
 
-      include ::NewRelic::Agent::Instrumentation::RackBuilder
+DependencyDetection.defer do
+  named :puma_rack
 
-      alias_method :to_app_without_newrelic, :to_app
-      alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
+  depends_on do
+    defined?(::Puma::Rack::Builder) && !NewRelic::Agent.config[:disable_puma_rack]
+  end
 
-      if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
-        ::NewRelic::Agent.logger.info 'Installing Rack::Builder middleware instrumentation'
-        alias_method :run_without_newrelic, :run
-        alias_method :run, :run_with_newrelic
-
-        alias_method :use_without_newrelic, :use
-        alias_method :use, :use_with_newrelic
-      end
-    end
-
+  executes do
+    ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_builder ::Puma::Rack::Builder
   end
 end
 
@@ -174,13 +215,23 @@ DependencyDetection.defer do
   end
 
   executes do
-    class ::Rack::URLMap
-      alias_method :initialize_without_newrelic, :initialize
+    ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_url_map ::Rack::URLMap
+  end
+end
 
-      def initialize(map = {})
-        traced_map = ::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map)
-        initialize_without_newrelic(traced_map)
-      end
-    end
+DependencyDetection.defer do
+  named :puma_rack_urlmap
+
+  depends_on do
+    defined? Puma::Rack::URLMap
+  end
+
+  depends_on do
+    ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled? &&
+      !::NewRelic::Agent.config[:disable_puma_rack]
+  end
+
+  executes do
+    ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_url_map ::Puma::Rack::URLMap
   end
 end

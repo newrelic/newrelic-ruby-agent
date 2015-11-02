@@ -1246,7 +1246,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Defines whether the agent will hook into Rack::Builder\'s <code>to_app</code> method to find gems to instrument during application startup.'
+          :description  => 'If true, prevents the agent from hooking into Rack::Builder\'s <code>to_app</code> method to find gems to instrument during application startup.'
         },
         :disable_rack_urlmap => {
           :default      => false,
@@ -1254,7 +1254,23 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Defines whether the agent will hook into Rack::URLMap to install middleware tracing.'
+          :description  => 'If true, prevents the agent from hooking into Rack::URLMap to install middleware tracing.'
+        },
+        :disable_puma_rack => {
+          :default      => value_of(:disable_rack),
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'If true, prevents the agent from hooking into Puma::Rack::Builder\'s <code>to_app</code> method to find gems to instrument during application startup.'
+        },
+        :disable_puma_rack_urlmap => {
+          :default      => value_of(:disable_rack_urlmap),
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'If true, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.'
         },
         :disable_rubyprof => {
           :default      => false,
@@ -1300,6 +1316,13 @@ module NewRelic
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
           :description  => 'List of prefixes for heroku dyno names (such as "scheduler") to report as hostname without trailing dot and process ID.'
+        },
+        :'process_host.display_name' => {
+          :default      => NewRelic::Agent::Hostname.get,
+          :public       => true,
+          :type         => String,
+          :allowed_from_server => false,
+          :description  => 'Custom host name used for display purposes only.'
         },
         :labels => {
           :default      => '',

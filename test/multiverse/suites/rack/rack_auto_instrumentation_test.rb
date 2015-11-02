@@ -2,12 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? Rack
+
 require File.join(File.dirname(__FILE__), 'example_app')
 require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/agent_hooks'
 require 'new_relic/rack/error_collector'
-
-if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
 class RackAutoInstrumentationTest < Minitest::Test
   include MultiverseHelpers
@@ -16,8 +16,16 @@ class RackAutoInstrumentationTest < Minitest::Test
 
   include Rack::Test::Methods
 
+  def builder_class
+    if defined? Puma::Rack::Builder
+      Puma::Rack::Builder
+    else
+      Rack::Builder
+    end
+  end
+
   def app
-    Rack::Builder.app do
+    builder_class.app do
       use MiddlewareOne
       use MiddlewareTwo, 'the correct tag' do |headers|
         headers['MiddlewareTwoBlockTag'] = 'the block tag'
@@ -113,6 +121,7 @@ class RackAutoInstrumentationTest < Minitest::Test
 
   def test_middleware_that_returns_early_records_middleware_rollup_metric
     get '/?return-early=true'
+
     assert_metrics_recorded_exclusive([
       "Apdex",
       "ApdexAll",
