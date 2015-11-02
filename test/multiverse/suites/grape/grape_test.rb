@@ -197,6 +197,7 @@ class GrapeTest < Minitest::Test
         expected = {
           "response.headers.contentType" => last_response.content_type,
           "request.headers.contentLength" => last_request.content_length.to_i,
+          "request.headers.contentType" => last_request.content_type,
           "request.headers.host" => last_request.host,
           "request.method" => last_request.request_method
         }
