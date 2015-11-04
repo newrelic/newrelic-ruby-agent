@@ -4,6 +4,7 @@ namespace :newrelic do
   require File.join(File.dirname(__FILE__), '..', 'new_relic', 'agent', 'supported_versions')
 
   task :supported_versions, [:format] => [] do |t, args|
+    require 'cgi'
 
     def version_list(list)
       return "-" if list.nil? || list.empty?
@@ -37,17 +38,26 @@ namespace :newrelic do
       puts erb.result(binding).gsub(/^ *$/, '')
     end
 
+    def include_if_exists(filename)
+      path = File.join(File.dirname(__FILE__), filename)
+      puts File.read(path) if File.exists?(path)
+    end
+
     VersionStruct = Struct.new(:name, :supported, :deprecated, :experimental, :notes)
 
     format = args[:format] || "txt"
     erb = build_erb(format)
 
-    write_versions("Ruby Versions",   :ruby, erb)
-    write_versions("Web Servers",     :app_server, erb)
-    write_versions("Web Frameworks",  :web, erb)
+    include_if_exists("versions.preface.#{format}")
+
+    write_versions("Ruby versions",   :ruby, erb)
+    write_versions("Web servers",     :app_server, erb)
+    write_versions("Web frameworks",  :web, erb)
     write_versions("Database",        :database, erb)
-    write_versions("Background Jobs", :background, erb)
-    write_versions("HTTP Clients",    :http, erb)
+    write_versions("Background jobs", :background, erb)
+    write_versions("HTTP clients",    :http, erb)
     write_versions("Other",           :other, erb)
+
+    include_if_exists("versions.postface.#{format}")
   end
 end
