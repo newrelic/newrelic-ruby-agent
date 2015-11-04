@@ -65,6 +65,11 @@ namespace :test do
     t.verbose = true
   end
 
+  Rake::TestTask.new(:nullverse) do |t|
+    t.pattern = "#{agent_home}/test/nullverse/*_test.rb"
+    t.verbose = true
+  end
+
   # Note unit testing task is defined in lib/tasks/tests.rake to facilitate
   # running them in a rails application environment.
 
