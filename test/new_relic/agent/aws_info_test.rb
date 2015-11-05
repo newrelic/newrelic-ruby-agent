@@ -27,8 +27,7 @@ module NewRelic::Agent
       Net::HTTP.stubs(:get).returns("j" * 1000)
 
       NewRelic::Agent.logger.stubs(:debug)
-      NewRelic::Agent.logger.expects(:debug).with(anything,
-                                                  instance_of(NewRelic::Agent::AWSInfo::ResponseError))
+      NewRelic::Agent.logger.expects(:debug).with(anything)
 
       AWSInfo.new
     end
