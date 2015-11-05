@@ -229,6 +229,14 @@ class ParameterCaptureTest < RailsMultiverseTest
         "request.headers.host" => request.host,
         "request.headers.accept" => request.accept
       }
+
+      # ActionController::IntegrationTest sets this header whereas ActionDispatch::IntegrationTest
+      # does not. Since we test using both we need to conditionally expect content_length to be set.
+
+      unless defined?(ActionDispatch::IntegrationTest)
+        expected["response.headers.contentLength"] = response.content_length
+      end
+
       actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
       # request method may be a symbol or string based on Rails versions
