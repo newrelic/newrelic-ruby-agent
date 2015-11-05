@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.14.2 ##
+
+  * Improved transaction names for Sinatra
+
+  The agent will now use sinatra.route for transaction names on versions of Sinatra
+  that set it in the request environment. This gives names that closer resemble the
+  routes defined in the Sinatra DSL.  Thanks to Brian Phillips for the suggestion!
+
 ## v3.14.1 ##
 
   * Add support for setting a display name on hosts
