@@ -9,11 +9,16 @@ module NewRelic
         module TransactionNamer
           extend self
 
-          def transaction_name_for_route(env, request)
-            name = route_for_sinatra(env)
-            name = route_name_for_padrino(request) if name.nil?
+          SINATRA_ROUTE = 'sinatra.route'
 
-            transaction_name(name, request) unless name.nil?
+          def transaction_name_for_route(env, request)
+            if env.key? SINATRA_ROUTE
+              env[SINATRA_ROUTE]
+            else
+              name = route_for_sinatra(env)
+              name = route_name_for_padrino(request) if name.nil?
+              transaction_name(name, request) unless name.nil?
+            end
           end
 
           def initial_transaction_name(request)

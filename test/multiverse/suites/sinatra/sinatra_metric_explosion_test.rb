@@ -42,9 +42,15 @@ class SinatraMetricExplosionTest < Minitest::Test
 
   def test_transaction_name_from_route
     get '/hello/world'
+
+    segment = if last_request.env.key? 'sinatra.route'
+      'GET /hello/:name'
+    else
+      'GET hello/([^/?#]+)'
+    end
     assert_metrics_recorded([
-      'Controller/Sinatra/SinatraTestApp/GET hello/([^/?#]+)',
-      'Apdex/Sinatra/SinatraTestApp/GET hello/([^/?#]+)'
+      "Controller/Sinatra/SinatraTestApp/#{segment}",
+      "Apdex/Sinatra/SinatraTestApp/#{segment}"
     ])
   end
 

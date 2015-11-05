@@ -10,6 +10,65 @@ module SinatraTestCases
   include Rack::Test::Methods
   include MultiverseHelpers
 
+  module SinatraRouteNaming
+    # get '/route/:name'
+    def route_name_segment
+      'GET /route/:name'
+    end
+
+    # get '/route/no_match'
+    def route_no_match_segment
+      'GET /route/no_match'
+    end
+
+    # get /\/regex.*/
+    def regex_segment
+      'GET (?-mix:\/regex.*)'
+    end
+
+    # get '/precondition'
+    def precondition_segment
+      'GET /precondition'
+    end
+
+    #get '/ignored'
+    def ignored_segment
+      'GET /ignored'
+    end
+  end
+
+  module NRRouteNaming
+    # get '/route/:name'
+    def route_name_segment
+      'GET route/([^/?#]+)'
+    end
+
+    # get '/route/no_match'
+    def route_no_match_segment
+      'GET route/no_match'
+    end
+
+    # get /\/regex.*/
+    def regex_segment
+      'GET regex.*'
+    end
+
+    # get '/precondition'
+    def precondition_segment
+      'GET precondition'
+    end
+
+    #get '/ignored'
+    def ignored_segment
+      'GET ignored'
+    end
+  end
+
+  if Sinatra::VERSION >= '1.4.3'
+    include SinatraRouteNaming
+  else
+    include NRRouteNaming
+  end
 
   def app
     raise "Must implement app on your test case"
@@ -69,27 +128,30 @@ module SinatraTestCases
   def test_correct_pattern
     get '/route/match'
     assert_equal 'first route', last_response.body
-    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET route/([^/?#]+)"])
+    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{route_name_segment}"])
   end
 
   def test_finds_second_route
     get '/route/no_match'
     assert_equal 'second route', last_response.body
-    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET route/no_match"])
+    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{route_no_match_segment}"])
   end
 
   def test_with_regex_pattern
     get '/regexes'
     assert_equal "Yeah, regex's!", last_response.body
-    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET regex.*"])
+    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{regex_segment}"])
   end
 
-  def test_set_unknown_transaction_name_if_error_in_routing
-    ::NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer \
-      .stubs(:http_verb).raises(StandardError.new('madness'))
+  # this test is not applicable to environments that use sinatra.route for txn naming
+  if self.include? NRRouteNaming
+    def test_set_unknown_transaction_name_if_error_in_routing
+      ::NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer \
+        .stubs(:http_verb).raises(StandardError.new('madness'))
 
-    get '/user/login'
-    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/(unknown)"])
+      get '/user/login'
+      assert_metrics_recorded(["Controller/Sinatra/#{app_name}/(unknown)"])
+    end
   end
 
   # https://support.newrelic.com/tickets/31061
@@ -98,7 +160,7 @@ module SinatraTestCases
 
     assert_equal 200, last_response.status
     assert_equal 'precondition only happened once', last_response.body
-    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET precondition"])
+    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{precondition_segment}"])
   end
 
   def test_filter
@@ -112,7 +174,7 @@ module SinatraTestCases
     get '/ignored'
 
     assert_equal 200, last_response.status
-    assert_metrics_not_recorded(["Controller/Sinatra/#{app_name}/GET ignored"])
+    assert_metrics_not_recorded(["Controller/Sinatra/#{app_name}/#{ignored_segment}"])
   end
 
   def test_rack_request_params_errors_are_swallowed
