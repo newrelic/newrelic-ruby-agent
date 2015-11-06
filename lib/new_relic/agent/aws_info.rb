@@ -62,7 +62,7 @@ module NewRelic
         rescue Timeout::Error
           handle_error "UtilizationData timed out fetching remote keys."
         rescue StandardError => e
-          handle_error "UtilizationData encountered error fetching remote keys", e
+          handle_error "UtilizationData encountered error fetching remote keys: #{e.message}"
         end
       end
 
