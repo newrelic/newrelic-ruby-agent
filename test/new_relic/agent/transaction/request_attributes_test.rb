@@ -17,6 +17,7 @@ module NewRelic
           assert_equal "/", attrs.request_path
           assert_nil attrs.referer
           assert_nil attrs.content_length
+          assert_nil attrs.content_type
           assert_nil attrs.host
           assert_nil attrs.user_agent
           assert_nil attrs.request_method
@@ -41,6 +42,13 @@ module NewRelic
           attrs = RequestAttributes.new request
 
           assert_equal 111, attrs.content_length
+        end
+
+        def test_sets_content_type_from_request
+          request = stub 'request', :content_type => "application/json"
+          attrs = RequestAttributes.new request
+
+          assert_equal "application/json", attrs.content_type
         end
 
         def test_sets_host_from_request

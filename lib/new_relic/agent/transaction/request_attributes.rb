@@ -8,8 +8,8 @@ module NewRelic
   module Agent
     class Transaction
       class RequestAttributes
-        attr_reader :request_path, :referer, :accept, :content_length, :host,
-                    :port, :user_agent, :request_method
+        attr_reader :request_path, :referer, :accept, :content_length, :content_type,
+                    :host, :port, :user_agent, :request_method
 
         HTTP_ACCEPT_HEADER_KEY = "HTTP_ACCEPT".freeze
 
@@ -18,6 +18,7 @@ module NewRelic
           @referer = referer_from_request request
           @accept = attribute_from_env request, HTTP_ACCEPT_HEADER_KEY
           @content_length = content_length_from_request request
+          @content_type = attribute_from_request request, :content_type
           @host = attribute_from_request request, :host
           @port = port_from_request request
           @user_agent = attribute_from_request request, :user_agent
@@ -39,6 +40,10 @@ module NewRelic
 
           if content_length
             txn.add_agent_attribute :'request.headers.contentLength', content_length, default_destinations
+          end
+
+          if content_type
+            txn.add_agent_attribute :'request.headers.contentType', content_type, default_destinations
           end
 
           if host
