@@ -21,6 +21,10 @@ class SinatraModularTestApp < Sinatra::Base
     end
   end
 
+  get '/' do
+    "root path"
+  end
+
   get '/user/login' do
     "please log in"
   end

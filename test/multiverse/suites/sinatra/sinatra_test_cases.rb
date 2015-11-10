@@ -136,4 +136,11 @@ module SinatraTestCases
       stubs(:params).returns({}).
       then.raises("Rack::Request#params error")
   end
+
+  def test_root_path_naming
+    get '/'
+
+    assert_metrics_recorded ["Controller/Sinatra/#{app_name}/GET /"]
+    refute_metrics_recorded ["Controller/Sinatra/#{app_name}/GET "]
+  end
 end
