@@ -37,9 +37,9 @@ module NewRelic
           # Eventually the logic for adding reservoir data will move to the sampled buffer
           # so it can be shared with the other event aggregators. We'll first get it working
           # here and then promote the functionality later.
-          stats = reservoir_stats
+          metadata = reservoir_metadata
           @error_event_buffer.reset!
-          [stats, samples]
+          [metadata, samples]
         end
       end
 
@@ -65,7 +65,7 @@ module NewRelic
 
       private
 
-      def reservoir_stats
+      def reservoir_metadata
         {
           :reservoir_size => Agent.config[:'error_collector.max_event_samples_stored'],
           :events_seen => @error_event_buffer.num_seen

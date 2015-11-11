@@ -60,8 +60,8 @@ class CustomAnalyticsEventsTest < Minitest::Test
   end
 
   def last_custom_event_submission
-    submissions = $collector.calls_for('custom_event_data')
-    assert_equal(1, submissions.size)
-    submissions.first.events
+    posts = $collector.calls_for('custom_event_data')
+    assert_equal(1, posts.size)
+    posts.first.events
   end
 end

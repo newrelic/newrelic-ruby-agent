@@ -35,7 +35,9 @@ module NewRelic::Agent
         @aggregator.record(:footype, :number => i)
       end
 
-      results = @aggregator.harvest!
+      metadata, results = @aggregator.harvest!
+      assert_equal(max_samples, metadata[:reservoir_size])
+      assert_equal(n, metadata[:events_seen])
       assert_equal(max_samples, results.size)
     end
 
@@ -48,7 +50,9 @@ module NewRelic::Agent
 
       new_max_samples = orig_max_samples - 10
       with_config(:'custom_insights_events.max_samples_stored' => new_max_samples) do
-        results = @aggregator.harvest!
+        metadata, results = @aggregator.harvest!
+        assert_equal(new_max_samples, metadata[:reservoir_size])
+        assert_equal(orig_max_samples, metadata[:events_seen])
         assert_equal(new_max_samples, results.size)
       end
     end
@@ -66,7 +70,7 @@ module NewRelic::Agent
 
         @aggregator.merge!(old_events)
 
-        events = @aggregator.harvest!
+        _, events = @aggregator.harvest!
 
         assert_equal(10, events.size)
       end
@@ -76,13 +80,36 @@ module NewRelic::Agent
       t0 = Time.now
       @aggregator.record(:type_a, :foo => :bar, :baz => :qux)
 
-      events = @aggregator.harvest!
+      _, events = @aggregator.harvest!
 
       assert_equal(1, events.size)
       event = events.first
 
       assert_equal({ 'type' => 'type_a', 'timestamp' => t0.to_i }, event[0])
       assert_equal({ 'foo'  => 'bar'   , 'baz'       => 'qux'   }, event[1])
+    end
+
+    def test_sample_counts_are_correct_after_merge
+      with_config :'custom_insights_events.max_samples_stored' => 5 do
+        buffer = @aggregator.instance_variable_get :@buffer
+
+        4.times { @aggregator.record(:t, :foo => :bar) }
+        last_harvest = @aggregator.harvest!
+
+        assert_equal 4, buffer.seen_lifetime
+        assert_equal 4, buffer.captured_lifetime
+        assert_equal 4, last_harvest[0][:events_seen]
+
+        4.times { @aggregator.record(:t, :foo => :bar) }
+        @aggregator.merge! last_harvest
+
+        reservoir_stats, samples = @aggregator.harvest!
+
+        assert_equal 5, samples.size
+        assert_equal 8, reservoir_stats[:events_seen]
+        assert_equal 8, buffer.seen_lifetime
+        assert_equal 5, buffer.captured_lifetime
+      end
     end
   end
 end

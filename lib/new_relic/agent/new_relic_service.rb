@@ -175,8 +175,9 @@ module NewRelic
       end
 
       def custom_event_data(data)
-        invoke_remote(:custom_event_data, [@agent_id, data],
-          :item_count => data.size)
+        _, items = data
+        invoke_remote(:custom_event_data, [@agent_id, *data],
+          :item_count => items.size)
       end
 
       def error_event_data(data)

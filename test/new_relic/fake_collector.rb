@@ -192,7 +192,7 @@ module NewRelic
         when 'analytic_event_data'
           AnalyticEventDataPost.new(opts)
         when 'custom_event_data'
-          AnalyticEventDataPost.new(opts)
+          CustomEventDataPost.new(opts)
         when 'error_data'
           ErrorDataPost.new(opts)
         when 'error_event_data'
@@ -381,6 +381,16 @@ module NewRelic
 
       def intrinsic_attributes
         @params["intrinsics"]
+      end
+    end
+
+    class CustomEventDataPost < AgentPost
+      attr_reader :reservoir_metadata, :events
+
+      def initialize opts={}
+        super
+        @reservoir_metadata = body[1]
+        @events = body[2]
       end
     end
 
