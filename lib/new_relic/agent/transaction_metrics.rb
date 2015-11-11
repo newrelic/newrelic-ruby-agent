@@ -17,7 +17,15 @@ module NewRelic
         @scoped   = Hash.new(&DEFAULT_PROC)
       end
 
-      def record_scoped(names, value=nil, aux=nil, &blk)
+      # As a general rule, when recording a scoped metric, the corresponding
+      # unscoped metric should always be recorded as well.
+      #
+      # As an optimization, scoped metrics are representated within this class
+      # only by their entries in the @scoped Hash, and it's up to clients to
+      # propagate them into unscoped metrics as well when instances of this
+      # class are merged into the global metric store.
+      #
+      def record_scoped_and_unscoped(names, value=nil, aux=nil, &blk)
         _record_metrics(names, value, aux, @scoped, &blk)
       end
 

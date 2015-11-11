@@ -93,8 +93,7 @@ module NewRelic
         def record_scoped_and_unscoped_metrics(state, scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
           txn = state.current_transaction
           if txn
-            txn.metrics.record_scoped(scoped_metric, value, aux, &blk)
-            txn.metrics.record_unscoped(scoped_metric, value, aux, &blk)
+            txn.metrics.record_scoped_and_unscoped(scoped_metric, value, aux, &blk)
             if summary_metrics
               txn.metrics.record_unscoped(summary_metrics, value, aux, &blk)
             end
