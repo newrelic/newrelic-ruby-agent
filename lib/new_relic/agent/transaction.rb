@@ -8,6 +8,7 @@ require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
 require 'new_relic/agent/transaction/request_attributes'
+require 'new_relic/agent/transaction_event'
 
 module NewRelic
   module Agent
@@ -523,9 +524,11 @@ module NewRelic
         record_queue_time
 
         generate_payload(state, start_time, end_time)
-        record_exceptions
-        merge_metrics
 
+        record_exceptions
+        record_transaction_event
+
+        merge_metrics
         send_transaction_finished_event
       end
 
@@ -752,6 +755,13 @@ module NewRelic
         else
           @exceptions[error] = options
         end
+      end
+
+      def record_transaction_event
+        return unless NewRelic::Agent.config[:'analytics_events.enabled']
+
+        event = TransactionEvent.new(payload)
+        agent.transaction_event_aggregator.record event
       end
 
       QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'.freeze

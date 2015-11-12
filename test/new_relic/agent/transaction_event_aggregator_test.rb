@@ -7,13 +7,13 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/transaction_event_aggregator'
 require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/transaction_event'
 
 class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
 
   def setup
     freeze_time
-    @event_listener = NewRelic::Agent::EventListener.new
-    @event_aggregator = NewRelic::Agent::TransactionEventAggregator.new(@event_listener)
+    @event_aggregator = NewRelic::Agent::TransactionEventAggregator.new
 
     @attributes = nil
   end
@@ -409,14 +409,15 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       :attributes => attributes,
       :error => false
     }.merge(options)
-    @event_listener.notify(:transaction_finished, payload)
+
+    @event_aggregator.record TransactionEvent.new(payload)
   end
 
   def with_sampler_config(options = {})
     defaults = { :'analytics_events.max_samples_stored' => 100 }
     defaults.merge!(options)
     with_config(defaults) do
-      @event_listener.notify( :finished_configuring )
+      NewRelic::Agent.instance.events.notify(:finished_configuring)
       yield
     end
   end

@@ -64,7 +64,7 @@ module NewRelic
         @harvester       = NewRelic::Agent::Harvester.new(@events)
         @after_fork_lock = Mutex.new
 
-        @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new(@events)
+        @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new
         @custom_event_aggregator      = NewRelic::Agent::CustomEventAggregator.new
 
         @connect_state      = :pending
@@ -138,6 +138,7 @@ module NewRelic
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
         attr_reader :custom_event_aggregator
+        attr_reader :transaction_event_aggregator
 
         attr_reader :attribute_filter
 
