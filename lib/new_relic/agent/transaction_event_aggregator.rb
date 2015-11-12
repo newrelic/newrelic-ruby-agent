@@ -10,31 +10,7 @@ require 'new_relic/agent' unless defined?( NewRelic::Agent )
 require 'new_relic/agent/payload_metric_mapping'
 
 class NewRelic::Agent::TransactionEventAggregator
-  include NewRelic::Coerce,
-          MonitorMixin
-
-  # The type field of the sample
-  SAMPLE_TYPE              = 'Transaction'.freeze
-
-  # Strings for static keys of the sample structure
-  TYPE_KEY                       = 'type'.freeze
-  TIMESTAMP_KEY                  = 'timestamp'.freeze
-  NAME_KEY                       = 'name'.freeze
-  DURATION_KEY                   = 'duration'.freeze
-  ERROR_KEY                      = 'error'.freeze
-  GUID_KEY                       = 'nr.guid'.freeze
-  REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
-  CAT_TRIP_ID_KEY                = 'nr.tripId'.freeze
-  CAT_PATH_HASH_KEY              = 'nr.pathHash'.freeze
-  CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'.freeze
-  CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'.freeze
-  APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'.freeze
-  SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId".freeze
-  SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
-  SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
-
-  # To avoid allocations when we have empty custom or agent attributes
-  EMPTY_HASH = {}.freeze
+  include MonitorMixin
 
   def initialize( event_listener )
     super()
@@ -60,7 +36,7 @@ class NewRelic::Agent::TransactionEventAggregator
   end
 
   def reset!
-    sample_count, request_count, synthetics_dropped = 0
+    sample_count, request_count, synthetics_dropped = 0, 0, 0
     old_samples = nil
 
     self.synchronize do
@@ -147,19 +123,16 @@ class NewRelic::Agent::TransactionEventAggregator
   def on_transaction_finished(payload)
     return unless @enabled
 
-    attributes = payload[:attributes]
-    main_event = create_main_event(payload)
-    custom_attributes = create_custom_attributes(attributes)
-    agent_attributes  = create_agent_attributes(attributes)
+    event = TransactionEvent.new payload
 
-    self.synchronize { append_event([main_event, custom_attributes, agent_attributes]) }
+    self.synchronize { append_event(event.to_collector_array) }
     notify_full if !@notified_full && @samples.full?
   end
 
   def append_event(event)
     main_event, _ = event
 
-    if main_event.include?(SYNTHETICS_RESOURCE_ID_KEY)
+    if main_event.include?(TransactionEvent::SYNTHETICS_RESOURCE_ID_KEY)
       # Try adding to synthetics buffer. If anything is rejected, give it a
       # shot in the main transaction events (where it may get sampled)
       _, rejected = @synthetics_samples.append_with_reject(event)
@@ -172,57 +145,97 @@ class NewRelic::Agent::TransactionEventAggregator
     end
   end
 
-  def create_main_event(payload)
-    sample = {
+
+  class TransactionEvent
+    include NewRelic::Coerce
+
+    # The type field of the sample
+    SAMPLE_TYPE              = 'Transaction'.freeze
+
+    # Strings for static keys of the sample structure
+    TYPE_KEY                       = 'type'.freeze
+    TIMESTAMP_KEY                  = 'timestamp'.freeze
+    NAME_KEY                       = 'name'.freeze
+    DURATION_KEY                   = 'duration'.freeze
+    ERROR_KEY                      = 'error'.freeze
+    GUID_KEY                       = 'nr.guid'.freeze
+    REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
+    CAT_TRIP_ID_KEY                = 'nr.tripId'.freeze
+    CAT_PATH_HASH_KEY              = 'nr.pathHash'.freeze
+    CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'.freeze
+    CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'.freeze
+    APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'.freeze
+    SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId".freeze
+    SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
+    SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
+
+    # To avoid allocations when we have empty custom or agent attributes
+    EMPTY_HASH = {}.freeze
+
+    def initialize(payload)
+      @intrinsics = {
       TIMESTAMP_KEY => float(payload[:start_timestamp]),
       NAME_KEY      => string(payload[:name]),
       DURATION_KEY  => float(payload[:duration]),
       TYPE_KEY      => SAMPLE_TYPE,
       ERROR_KEY     => payload[:error]
-    }
-    NewRelic::Agent::PayloadMetricMapping.append_mapped_metrics(payload[:metrics], sample)
-    optionally_append(GUID_KEY,                       :guid, sample, payload)
-    optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
-    optionally_append(CAT_TRIP_ID_KEY,                :cat_trip_id, sample, payload)
-    optionally_append(CAT_PATH_HASH_KEY,              :cat_path_hash, sample, payload)
-    optionally_append(CAT_REFERRING_PATH_HASH_KEY,    :cat_referring_path_hash, sample, payload)
-    optionally_append(APDEX_PERF_ZONE_KEY,            :apdex_perf_zone, sample, payload)
-    optionally_append(SYNTHETICS_RESOURCE_ID_KEY,     :synthetics_resource_id, sample, payload)
-    optionally_append(SYNTHETICS_JOB_ID_KEY,          :synthetics_job_id, sample, payload)
-    optionally_append(SYNTHETICS_MONITOR_ID_KEY,      :synthetics_monitor_id, sample, payload)
-    append_cat_alternate_path_hashes(sample, payload)
-    sample
-  end
+      }
 
-  def append_cat_alternate_path_hashes(sample, payload)
-    if payload.include?(:cat_alternate_path_hashes)
-      sample[CAT_ALTERNATE_PATH_HASHES_KEY] = payload[:cat_alternate_path_hashes].sort.join(',')
+      NewRelic::Agent::PayloadMetricMapping.append_mapped_metrics(payload[:metrics], @intrinsics)
+      append_optional_attributes(@intrinsics, payload)
+
+      @attributes = payload[:attributes]
     end
-  end
 
-  def optionally_append(sample_key, payload_key, sample, payload)
-    if payload.include?(payload_key)
-      sample[sample_key] = string(payload[payload_key])
+    def to_collector_array
+      [@intrinsics, custom_attributes, agent_attributes]
     end
-  end
 
-  def create_custom_attributes(attributes)
-    if attributes
-      custom_attributes = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
-      custom_attributes = custom_attributes
-      custom_attributes.freeze
-    else
-      EMPTY_HASH
+    private
+
+    def append_optional_attributes(sample, payload)
+      optionally_append(GUID_KEY,                       :guid, sample, payload)
+      optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
+      optionally_append(CAT_TRIP_ID_KEY,                :cat_trip_id, sample, payload)
+      optionally_append(CAT_PATH_HASH_KEY,              :cat_path_hash, sample, payload)
+      optionally_append(CAT_REFERRING_PATH_HASH_KEY,    :cat_referring_path_hash, sample, payload)
+      optionally_append(APDEX_PERF_ZONE_KEY,            :apdex_perf_zone, sample, payload)
+      optionally_append(SYNTHETICS_RESOURCE_ID_KEY,     :synthetics_resource_id, sample, payload)
+      optionally_append(SYNTHETICS_JOB_ID_KEY,          :synthetics_job_id, sample, payload)
+      optionally_append(SYNTHETICS_MONITOR_ID_KEY,      :synthetics_monitor_id, sample, payload)
+      append_cat_alternate_path_hashes(sample, payload)
     end
-  end
 
-  def create_agent_attributes(attributes)
-    if attributes
-      agent_attributes = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
-      agent_attributes = agent_attributes
-      agent_attributes.freeze
-    else
-      EMPTY_HASH
+    COMMA = ','.freeze
+
+    def append_cat_alternate_path_hashes(sample, payload)
+      if payload.include?(:cat_alternate_path_hashes)
+        sample[CAT_ALTERNATE_PATH_HASHES_KEY] = payload[:cat_alternate_path_hashes].sort.join(COMMA)
+      end
+    end
+
+    def optionally_append(sample_key, payload_key, sample, payload)
+      if payload.include?(payload_key)
+        sample[sample_key] = string(payload[payload_key])
+      end
+    end
+
+    def custom_attributes
+      if @attributes
+        attrs = @attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+        attrs.freeze
+      else
+        EMPTY_HASH
+      end
+    end
+
+    def agent_attributes
+      if @attributes
+        attrs = @attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+        attrs.freeze
+      else
+        EMPTY_HASH
+      end
     end
   end
 end
