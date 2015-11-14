@@ -7,19 +7,16 @@ require 'monitor'
 
 require 'newrelic_rpm' unless defined?( NewRelic )
 require 'new_relic/agent' unless defined?( NewRelic::Agent )
-require 'new_relic/agent/payload_metric_mapping'
 
 class NewRelic::Agent::TransactionEventAggregator
   include MonitorMixin
 
   def initialize
-    super()
+    super
 
     @enabled       = false
     @notified_full = false
-
-    @samples            = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[:'analytics_events.max_samples_stored'])
-    @synthetics_samples = ::NewRelic::Agent::SyntheticsEventBuffer.new(NewRelic::Agent.config[:'synthetics.events_limit'])
+    @samples       = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[:'analytics_events.max_samples_stored'])
 
     self.register_config_callbacks
   end
@@ -31,35 +28,31 @@ class NewRelic::Agent::TransactionEventAggregator
 
   # Fetch a copy of the sampler's gathered samples. (Synchronized)
   def samples
-    return self.synchronize { @samples.to_a.concat(@synthetics_samples.to_a) }
+    return self.synchronize { @samples.to_a }
   end
 
   def reset!
-    sample_count, request_count, synthetics_dropped = 0, 0, 0
+    sample_count, request_count = 0, 0
     old_samples = nil
 
     self.synchronize do
       sample_count = @samples.size
       request_count = @samples.num_seen
 
-      synthetics_dropped = @synthetics_samples.num_dropped
-
-      old_samples = @samples.to_a + @synthetics_samples.to_a
+      old_samples = @samples.to_a
       @samples.reset!
-      @synthetics_samples.reset!
 
       @notified_full = false
     end
 
-    [old_samples, sample_count, request_count, synthetics_dropped]
+    [old_samples, sample_count, request_count]
   end
 
   # Clear any existing samples, reset the last sample time, and return the
   # previous set of samples. (Synchronized)
   def harvest!
-    old_samples, sample_count, request_count, synthetics_dropped = reset!
+    old_samples, sample_count, request_count = reset!
     record_sampling_rate(request_count, sample_count) if @enabled
-    record_dropped_synthetics(synthetics_dropped)
     old_samples
   end
 
@@ -88,24 +81,10 @@ class NewRelic::Agent::TransactionEventAggregator
     engine.tl_record_supportability_metric_count("TransactionEventAggregator/samples", sample_count)
   end
 
-  def record_dropped_synthetics(synthetics_dropped)
-    return unless synthetics_dropped > 0
-
-    NewRelic::Agent.logger.debug("Synthetics transaction event limit (#{@samples.capacity}) reached. Further synthetics events this harvest period dropped.")
-
-    engine = NewRelic::Agent.instance.stats_engine
-    engine.tl_record_supportability_metric_count("TransactionEventAggregator/synthetics_events_dropped", synthetics_dropped)
-  end
-
   def register_config_callbacks
     NewRelic::Agent.config.register_callback(:'analytics_events.max_samples_stored') do |max_samples|
       NewRelic::Agent.logger.debug "TransactionEventAggregator max_samples set to #{max_samples}"
       self.synchronize { @samples.capacity = max_samples }
-    end
-
-    NewRelic::Agent.config.register_callback(:'synthetics.events_limit') do |max_samples|
-      NewRelic::Agent.logger.debug "TransactionEventAggregator limit for synthetics events set to #{max_samples}"
-      self.synchronize { @synthetics_samples.capacity = max_samples }
     end
 
     NewRelic::Agent.config.register_callback(:'analytics_events.enabled') do |enabled|
@@ -126,18 +105,18 @@ class NewRelic::Agent::TransactionEventAggregator
   end
 
   def append_event(event)
-    main_event, _ = event
+    # main_event, _ = event
 
-    if main_event.include?(TransactionEvent::SYNTHETICS_RESOURCE_ID_KEY)
-      # Try adding to synthetics buffer. If anything is rejected, give it a
-      # shot in the main transaction events (where it may get sampled)
-      _, rejected = @synthetics_samples.append_with_reject(event)
+    # if main_event.include?(TransactionEvent::SYNTHETICS_RESOURCE_ID_KEY)
+    #   # Try adding to synthetics buffer. If anything is rejected, give it a
+    #   # shot in the main transaction events (where it may get sampled)
+    #   _, rejected = @synthetics_samples.append_with_reject(event)
 
-      if rejected
-        @samples.append(rejected)
-      end
-    else
+    #   if rejected
+    #     @samples.append(rejected)
+    #   end
+    # else
       @samples.append(event)
-    end
+    # end
   end
 end

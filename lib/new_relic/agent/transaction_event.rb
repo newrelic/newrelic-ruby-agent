@@ -7,6 +7,8 @@
 # necessary for creating a transaction event and to facilitate transfer of events between
 # the transaction event aggregator and the synthetics container.
 
+require 'new_relic/agent/payload_metric_mapping'
+
 class TransactionEvent
   include NewRelic::Coerce
 
