@@ -21,7 +21,7 @@ module NewRelic
         Agent.config[:'error_collector.capture_events']
       end
 
-      def append_event noticed_error, transaction_payload
+      def append_event noticed_error, transaction_payload = nil
         return unless enabled?
 
         @lock.synchronize do
@@ -96,15 +96,18 @@ module NewRelic
           :type => EVENT_TYPE,
           :'error.class' => noticed_error.exception_class_name,
           :'error.message' => noticed_error.message,
-          :timestamp => noticed_error.timestamp.to_f,
-          :transactionName => transaction_payload[:name],
-          :duration => transaction_payload[:duration]
+          :timestamp => noticed_error.timestamp.to_f
         }
+
         attrs[:port] = noticed_error.request_port if noticed_error.request_port
 
-        append_synthetics transaction_payload, attrs
-        append_cat transaction_payload, attrs
-        PayloadMetricMapping.append_mapped_metrics transaction_payload[:metrics], attrs
+        if transaction_payload
+          attrs[:transactionName] = transaction_payload[:name]
+          attrs[:duration] = transaction_payload[:duration]
+          append_synthetics transaction_payload, attrs
+          append_cat transaction_payload, attrs
+          PayloadMetricMapping.append_mapped_metrics transaction_payload[:metrics], attrs
+        end
 
         attrs
       end

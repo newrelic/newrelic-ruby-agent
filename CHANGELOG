@@ -39,6 +39,11 @@
   as part of a transaction trace. Now transaction trace nodes will be created for every query
   executed during a transaction.
 
+  * Bugfix for NewRelic::Agent.notice_error
+
+  Fixes issue introduced in v3.14.0 where calling NewRelic::Agent.notice_error outside of an active transaction results in a NoMethodError.
+
+
 ## v3.14.0 ##
 
   * pruby marshaller removed
