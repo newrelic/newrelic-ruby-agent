@@ -743,6 +743,7 @@ module NewRelic
 
           @error_recorded = !!agent.error_collector.notice_error(exception, options) || @error_recorded
         end
+        payload[:error] = @error_recorded if payload
       end
 
       # Do not call this.  Invoke the class method instead.
