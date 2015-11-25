@@ -32,8 +32,20 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def test_empty
     @error_collector.notice_error(nil, :metric=> 'path')
-    errors = harvest_error_traces
-    assert_equal 0, errors.length
+    traces = harvest_error_traces
+    events = harvest_error_events
+
+    assert_equal 0, traces.length
+    assert_equal 0, events.length
+  end
+
+  def test_records_error_outside_of_transaction
+    @error_collector.notice_error StandardError.new
+    traces = harvest_error_traces
+    events = harvest_error_events
+
+    assert_equal 1, traces.length
+    assert_equal 1, events.length
   end
 
   def test_drops_deprecated_options
@@ -52,9 +64,11 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     @error_collector.notice_error(IOError.new("message"), :metric => 'path')
 
-    errors = harvest_error_traces
+    traces = harvest_error_traces
+    events = harvest_error_events
 
-    assert_equal 0, errors.length
+    assert_equal 0, traces.length
+    assert_equal 0, events.length
   end
 
   def test_exclude_later_config_changes
@@ -63,9 +77,11 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     NewRelic::Agent.config.add_config_for_testing(:'error_collector.ignore_errors' => "IOError")
     @error_collector.notice_error(IOError.new("message"))
 
-    errors = harvest_error_traces
+    traces = harvest_error_traces
+    events = harvest_error_events
 
-    assert_equal 1, errors.length
+    assert_equal 1, traces.length
+    assert_equal 1, events.length
   end
 
   def test_exclude_block
@@ -74,9 +90,11 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     @error_collector.notice_error(IOError.new("message"), :metric => 'path')
     @error_collector.notice_error(StandardError.new("message"), :metric => 'path')
 
-    errors = harvest_error_traces
+    traces = harvest_error_traces
+    events = harvest_error_events
 
-    assert_equal 1, errors.length
+    assert_equal 1, traces.length
+    assert_equal 1, events.length
   end
 
   def test_failure_in_exclude_block
@@ -86,9 +104,11 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
     @error_collector.notice_error(StandardError.new("message"))
 
-    errors = harvest_error_traces
+    traces = harvest_error_traces
+    events = harvest_error_events
 
-    assert_equal 1, errors.length
+    assert_equal 1, traces.length
+    assert_equal 1, events.length
   end
 
   def test_failure_block_assigned_with_different_instance
@@ -371,5 +391,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def harvest_error_traces
     @error_collector.error_trace_aggregator.harvest!
+  end
+
+  def harvest_error_events
+    @error_collector.error_event_aggregator.harvest![1]
   end
 end

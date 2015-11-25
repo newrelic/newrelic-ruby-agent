@@ -199,7 +199,8 @@ module NewRelic
         increment_error_count!(state, exception, options)
         noticed_error = create_noticed_error(exception, options)
         error_trace_aggregator.add_to_error_queue(noticed_error)
-        error_event_aggregator.append_event(noticed_error, state.current_transaction.payload)
+        payload = state.current_transaction ? state.current_transaction.payload : nil
+        error_event_aggregator.append_event(noticed_error, payload)
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)

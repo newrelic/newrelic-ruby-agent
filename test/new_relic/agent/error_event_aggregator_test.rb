@@ -33,13 +33,24 @@ module NewRelic
 
       include NewRelic::DataContainerTests
 
+      def test_generates_event_without_payload
+        error_event_aggregator.append_event create_noticed_error, nil
+
+        intrinsics, *_ = last_error_event
+
+        assert_equal "TransactionError", intrinsics[:type]
+        assert_in_delta Time.now.to_f, intrinsics[:timestamp], 0.001
+        assert_equal "RuntimeError", intrinsics[:'error.class']
+        assert_equal "Big Controller!", intrinsics[:'error.message']
+      end
+
       def test_generates_event_from_error
         generate_error
 
         intrinsics, *_ = last_error_event
 
         assert_equal "TransactionError", intrinsics[:type]
-        assert_equal Time.now.to_f, intrinsics[:timestamp]
+        assert_in_delta Time.now.to_f, intrinsics[:timestamp], 0.001
         assert_equal "RuntimeError", intrinsics[:'error.class']
         assert_equal "Big Controller!", intrinsics[:'error.message']
         assert_equal "Controller/blogs/index", intrinsics[:transactionName]
