@@ -5,7 +5,9 @@
 class ErrorEventsTest < Minitest::Test
   include MultiverseHelpers
 
-  setup_and_teardown_agent
+  setup_and_teardown_agent do
+    freeze_time
+  end
 
   def test_error_events_are_submitted
     txn = generate_errors
@@ -62,6 +64,18 @@ class ErrorEventsTest < Minitest::Test
 
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
     assert_equal(0, $collector.calls_for(:error_event_data).size)
+  end
+
+  def test_error_events_created_outside_of_transaction
+    NewRelic::Agent.notice_error RuntimeError.new "No Txn"
+    NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
+
+    intrinsics, _, _ = last_error_event
+
+    assert_equal "TransactionError", intrinsics["type"]
+    assert_in_delta Time.now.to_f, intrinsics["timestamp"], 0.001
+    assert_equal "RuntimeError", intrinsics["error.class"]
+    assert_equal "No Txn", intrinsics["error.message"]
   end
 
   def generate_errors num_errors = 1
