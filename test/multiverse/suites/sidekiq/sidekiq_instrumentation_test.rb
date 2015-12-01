@@ -14,6 +14,7 @@ require 'logger'
 require 'stringio'
 
 require 'fake_collector'
+require File.join(File.dirname(__FILE__), "test_model")
 require File.join(File.dirname(__FILE__), "test_worker")
 
 class SidekiqTest < Minitest::Test
@@ -21,7 +22,7 @@ class SidekiqTest < Minitest::Test
 
   ROLLUP_METRIC            = 'OtherTransaction/SidekiqJob/all'
   TRANSACTION_NAME         = 'OtherTransaction/SidekiqJob/TestWorker/perform'
-  DELAYED_TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/TestWorker/record'
+  DELAYED_TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/TestModel/do_work'
   DELAYED_FAILED_TXN_NAME  = 'OtherTransaction/SidekiqJob/Sidekiq::Extensions::DelayedClass/perform'
 
   include MultiverseHelpers
@@ -51,7 +52,7 @@ class SidekiqTest < Minitest::Test
 
   def run_delayed
     run_and_transmit do |i|
-      TestWorker.delay(:queue => SidekiqServer.instance.queue_name, :retry => false).record('jobs_completed', i + 1)
+      TestModel.delay(:queue => SidekiqServer.instance.queue_name, :retry => false).do_work
     end
   end
 
