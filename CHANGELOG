@@ -8,6 +8,11 @@
   that set it in the request environment. This gives names that closer resemble the
   routes defined in the Sinatra DSL.  Thanks to Brian Phillips for the suggestion!
 
+  * Bugfix for error flag on transaction events
+
+  There was an issue causing the error flag to always be set to false for Insights
+  transaction events that has been fixed.
+
 ## v3.14.1 ##
 
   * Add support for setting a display name on hosts

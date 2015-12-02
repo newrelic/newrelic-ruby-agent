@@ -284,8 +284,6 @@ module NewRelic
         @ignore_enduser = false
         @ignore_trace = false
 
-        @error_recorded = false
-
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
@@ -607,7 +605,7 @@ module NewRelic
           :duration             => duration,
           :metrics              => @metrics,
           :attributes           => @attributes,
-          :error                => error_recorded?
+          :error                => false
         }
         append_cat_info(state, duration, @payload)
         append_apdex_perf_zone(duration, @payload)
@@ -735,14 +733,16 @@ module NewRelic
       end
 
       def record_exceptions
+        error_recorded = false
         @exceptions.each do |exception, options|
           options[:uri]      ||= request_path if request_path
           options[:port]       = request_port if request_port
           options[:metric]     = best_name
           options[:attributes] = @attributes
 
-          @error_recorded = !!agent.error_collector.notice_error(exception, options) || @error_recorded
+          error_recorded = !!agent.error_collector.notice_error(exception, options) || error_recorded
         end
+        payload[:error] = error_recorded if payload
       end
 
       # Do not call this.  Invoke the class method instead.
@@ -752,10 +752,6 @@ module NewRelic
         else
           @exceptions[error] = options
         end
-      end
-
-      def error_recorded?
-        @error_recorded
       end
 
       QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'.freeze
