@@ -11,6 +11,20 @@ if RUBY_VERSION >= '2.0.0' || (RUBY_PLATFORM == 'java')
 
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
+
+  gemfile <<-RB
+    gem 'json'
+    gem 'sidekiq', '~> 3.5.3'
+    gem 'rack'
+    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  RB
+
+  gemfile <<-RB
+    gem 'json'
+    gem 'sidekiq', '~> 4.0.0'
+    gem 'rack'
+    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  RB
 end
 
 gemfile <<-RB
