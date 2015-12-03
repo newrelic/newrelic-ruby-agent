@@ -46,8 +46,12 @@
 
   * Bugfix for NewRelic::Agent.notice_error
 
-  Fixes issue introduced in v3.14.0 where calling NewRelic::Agent.notice_error outside of an active transaction results in a NoMethodError.
+  Fixes issue introduced in v3.14.0 where calling NewRelic::Agent.notice_error outside of an active
+  transaction results in a NoMethodError.
 
+  * Bugfix for Resque TransactionError events
+
+  Fixes error preventing Transaction Error events generated in Resque tasks from being sent to New Relic.
 
 ## v3.14.0 ##
 
