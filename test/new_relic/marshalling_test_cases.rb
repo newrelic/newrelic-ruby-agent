@@ -107,6 +107,41 @@ module MarshallingTestCases
     assert_equal(expected_event, events.first)
   end
 
+  def test_sends_error_events
+    t0 = freeze_time(Time.at(Time.now.to_i))
+
+    with_around_hook do
+      Transactioner.new.break_it
+    end
+
+    transmit_data
+
+    result = $collector.calls_for('error_event_data')
+
+    assert_equal 1, result.length
+    events = result.first.error_events
+    assert_equal 1, events.length
+
+    expected_event = [
+      {
+        "type" => "TransactionError",
+        "error.class" => "StandardError",
+        "error.message" => "Sorry!",
+        "timestamp" => t0.to_f,
+        "transactionName" => "TestTransaction/break_it",
+        "duration" => 0.0
+      },
+      {},
+      {}
+    ]
+
+    event = events.first
+    # this is only present on REE, and we don't really care - the point of this
+    # test is just to validate basic marshalling
+    event[0].delete("gcCumulative")
+    assert_equal(expected_event, event)
+  end
+
   class Transactioner
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
@@ -115,6 +150,13 @@ module MarshallingTestCases
     end
 
     add_transaction_tracer :do_it
+
+    def break_it
+      NewRelic::Agent.set_transaction_name("break_it", :category => "TestTransaction")
+      NewRelic::Agent.notice_error StandardError.new("Sorry!")
+    end
+
+    add_transaction_tracer :break_it
   end
 
   def with_around_hook(&blk)
