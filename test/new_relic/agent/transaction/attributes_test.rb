@@ -212,7 +212,7 @@ class AttributesTest < Minitest::Test
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => 42)
 
-    assert_equal 42, custom_attributes(attributes)["key"]
+    assert_equal "42", custom_attributes(attributes)["key"]
   end
 
   def test_limits_attribute_count

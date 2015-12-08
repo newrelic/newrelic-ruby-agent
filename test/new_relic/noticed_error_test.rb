@@ -202,7 +202,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
       error.attributes = attributes
 
-      assert_equal custom_attrs, error.custom_attributes
+      assert_equal({"name" => "Ron Burgundy", "channel" => "4"}, error.custom_attributes)
     end
   end
 

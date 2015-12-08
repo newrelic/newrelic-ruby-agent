@@ -89,6 +89,10 @@ class CoerceTest < Minitest::Test
     string(Unstringable.new, "HERE")
   end
 
+  def test_scalar_integer
+    assert_equal "1234", scalar(1234)
+  end
+
   class Unstringable
     undef :to_s
   end

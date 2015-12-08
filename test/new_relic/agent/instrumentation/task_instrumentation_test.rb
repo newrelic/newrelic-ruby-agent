@@ -137,7 +137,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
     refute_nil(cpu_time, "cpu time nil: \n#{sample}")
     assert(cpu_time >= 0, "cpu time: #{cpu_time},\n#{sample}")
-    assert_equal(10, attributes_for(sample, :agent)['request.parameters.level'])
+    assert_equal('10', attributes_for(sample, :agent)['request.parameters.level'])
   end
 
   def test_abort_transaction
