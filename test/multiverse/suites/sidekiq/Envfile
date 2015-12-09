@@ -14,14 +14,18 @@ if RUBY_VERSION >= '2.0.0' || (RUBY_PLATFORM == 'java')
 
   gemfile <<-RB
     gem 'json'
-    gem 'sidekiq', '~> 3.5.3'
+    gem 'sidekiq', '~> 4.0.0'
     gem 'rack'
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
+end
 
+if RUBY_VERSION >= '2.0.0' && RUBY_PLATFORM != 'java'
+  # We skip testing Sidekiq 3.5.3 on JRuby due to an error in Sidekiq's shutdown:
+  # https://github.com/mperham/sidekiq/issues/2703
   gemfile <<-RB
     gem 'json'
-    gem 'sidekiq', '~> 4.0.0'
+    gem 'sidekiq', '~> 3.5.3'
     gem 'rack'
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
