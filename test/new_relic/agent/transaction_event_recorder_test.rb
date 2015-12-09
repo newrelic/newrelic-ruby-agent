@@ -18,7 +18,7 @@ module NewRelic
       def test_synthetics_events_overflow_to_transaction_buffer
         with_config :'synthetics.events_limit' => 10 do
           20.times do
-            generate_request :synthetics_resource_id => 100
+            generate_request
           end
 
           txn_events = harvest_transaction_events!
@@ -32,10 +32,10 @@ module NewRelic
       def test_synthetics_events_timestamp_bumps_go_to_main_buffer
         with_config :'synthetics.events_limit' => 10 do
           10.times do |i|
-            generate_request(:timestamp => i + 10, :synthetics_resource_id => 100)
+            generate_request("syn_#{i}", :timestamp => i + 10)
           end
 
-          generate_request(:timestamp => 1, :synthetics_resource_id => 100)
+          generate_request("syn_10", :timestamp => 1)
 
           txn_events = harvest_transaction_events!
           syn_events = harvest_synthetics_events!
@@ -46,12 +46,13 @@ module NewRelic
         end
       end
 
-      def generate_request options={}
+      def generate_request name='whatever', options={}
         payload = {
-          :name => "Controller/blogs/index",
+          :name => "Controller/#{name}",
           :type => :controller,
           :start_timestamp => options[:timestamp] || Time.now.to_f,
           :duration => 0.1,
+          :synthetics_resource_id => 100,
           :attributes => attributes,
           :error => false
         }.merge(options)

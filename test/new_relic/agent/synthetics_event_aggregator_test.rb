@@ -43,7 +43,7 @@ module NewRelic
       def test_synthetics_events_kept_by_timestamp
         with_config :'synthetics.events_limit' => 10 do
           11.times do |i|
-            _, rejected = generate_request(:timestamp => i)
+            _, rejected = generate_request('whatever', :timestamp => i)
             if i < 10
               assert_nil rejected, "Expected event to be accepted"
             else
@@ -57,10 +57,10 @@ module NewRelic
       def test_sythetics_events_rejected_when_buffer_is_full_of_newer_events
         with_config :'synthetics.events_limit' => 10 do
           11.times do |i|
-            generate_request :timestamp => i + 10.0
+            generate_request 'whatever', :timestamp => i + 10.0
           end
 
-          generate_request :timestamp => 1
+          generate_request 'whatever', :timestamp => 1
           samples = last_synthetics_events
           assert_equal 10, samples.size
           timestamps = samples.map do |(main, _)|
@@ -159,7 +159,7 @@ module NewRelic
         last_synthetics_events.first
       end
 
-      def generate_request options={}
+      def generate_request name='whatever', options={}
         payload = {
           :name => "Controller/blogs/index",
           :type => :controller,
