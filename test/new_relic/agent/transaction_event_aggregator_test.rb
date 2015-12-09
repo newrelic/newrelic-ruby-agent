@@ -304,69 +304,6 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     end
   end
 
-  # def test_synthetics_events_overflow_to_transaction_buffer
-  #   with_sampler_config(:'synthetics.events_limit' => 10) do
-  #     20.times do
-  #       generate_request('synthetic', :synthetics_resource_id => 100)
-  #     end
-
-  #     assert_equal 20, @event_aggregator.samples.size
-  #   end
-  # end
-
-  # def test_synthetics_events_timestamp_bumps_go_to_main_buffer
-  #   with_sampler_config(:'synthetics.events_limit' => 10) do
-  #     10.times do |i|
-  #       generate_request('synthetic', :timestamp => i + 10, :synthetics_resource_id => 100)
-  #     end
-
-  #     generate_request('synthetic', :timestamp => 1, :synthetics_resource_id => 100)
-
-  #     assert_equal 11, @event_aggregator.samples.size
-  #   end
-  # end
-
-  # def test_merging_synthetics_still_applies_limit
-  #   samples = with_sampler_config(:'synthetics.events_limit' => 20) do
-  #     20.times do
-  #       generate_request('synthetic', :synthetics_resource_id => 100)
-  #     end
-  #     @event_aggregator.harvest!
-  #   end
-
-  #   with_sampler_config(:'synthetics.events_limit' => 10,
-  #                       :'analytics_events.max_samples_stored' => 0) do
-  #     @event_aggregator.merge!(samples)
-  #     assert_equal 10, @event_aggregator.samples.size
-  #   end
-  # end
-
-  # def test_synthetics_event_dropped_records_supportability_metrics
-  #   with_sampler_config(:'synthetics.events_limit' => 20) do
-  #     20.times do
-  #       generate_request('synthetic', :synthetics_resource_id => 100)
-  #     end
-
-  #     @event_aggregator.harvest!
-
-  #     metric = 'Supportability/TransactionEventAggregator/synthetics_events_dropped'
-  #     assert_metrics_not_recorded(metric)
-  #   end
-  # end
-
-  # def test_synthetics_event_dropped_records_supportability_metrics
-  #   with_sampler_config(:'synthetics.events_limit' => 10) do
-  #     20.times do
-  #       generate_request('synthetic', :synthetics_resource_id => 100)
-  #     end
-
-  #     @event_aggregator.harvest!
-
-  #     metric = 'Supportability/TransactionEventAggregator/synthetics_events_dropped'
-  #     assert_metrics_recorded(metric => { :call_count => 10 })
-  #   end
-  # end
-
   #
   # Helpers
   #

@@ -29,7 +29,24 @@ module NewRelic
         end
       end
 
-      def generate_request(options={})
+      def test_synthetics_events_timestamp_bumps_go_to_main_buffer
+        with_config :'synthetics.events_limit' => 10 do
+          10.times do |i|
+            generate_request(:timestamp => i + 10, :synthetics_resource_id => 100)
+          end
+
+          generate_request(:timestamp => 1, :synthetics_resource_id => 100)
+
+          txn_events = harvest_transaction_events!
+          syn_events = harvest_synthetics_events!
+
+          assert_equal 10, syn_events.size
+          assert_equal 10.0, syn_events[0][0]["timestamp"]
+          assert_equal 1, txn_events.size
+        end
+      end
+
+      def generate_request options={}
         payload = {
           :name => "Controller/blogs/index",
           :type => :controller,

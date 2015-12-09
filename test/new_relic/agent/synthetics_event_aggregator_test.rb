@@ -113,6 +113,32 @@ module NewRelic
         assert_equal attrs, custom_attrs
       end
 
+      def test_does_not_record_supportability_metric_when_no_events_dropped
+        with_config :'synthetics.events_limit' => 20 do
+          20.times do
+            generate_request
+          end
+
+          @synthetics_event_aggregator.harvest!
+
+          metric = 'Supportability/TransactionEventAggregator/synthetics_events_dropped'
+          assert_metrics_not_recorded(metric)
+        end
+      end
+
+      def test_synthetics_event_dropped_records_supportability_metrics
+        with_config :'synthetics.events_limit' => 10 do
+          20.times do
+            generate_request
+          end
+
+          @synthetics_event_aggregator.harvest!
+
+          metric = 'Supportability/SyntheticsEventAggregator/synthetics_events_dropped'
+          assert_metrics_recorded(metric => { :call_count => 10 })
+        end
+      end
+
       def test_includes_agent_attributes
         attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_TRANSACTION_EVENTS
         attributes.add_agent_attribute :httpResponseCode, "200", AttributeFilter::DST_TRANSACTION_EVENTS
