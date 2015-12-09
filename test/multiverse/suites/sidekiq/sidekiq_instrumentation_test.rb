@@ -135,22 +135,11 @@ class SidekiqTest < Minitest::Test
   # the middleware stack) wouldn't get noticed, but there was no proper hook
   # to catch it. 3.x+ gives us an error_handler, so only add our misbehaving
   # middleware for those cases.
-  if Sidekiq::VERSION >= '3' && Sidekiq::VERSION < '4'
+  if Sidekiq::VERSION >= '3'
     def test_captures_sidekiq_internal_errors
-      # Ugly, but need to coerce an internal error in Sidekiq that doesn't bail
-      # from processing entirely. This fouls up Sidekiq::Processor#stats in a
-      # spot that calls handle exception but doesn't die.
-      Redis.any_instance.stubs(:hmset).raises("Uh oh")
-      run_jobs
-
-      assert_error_for_each_job(nil)
-    end
-  elsif Sidekiq::VERSION >= '4'
-    def test_captures_sidekiq_internal_errors
-      # In Sidekiq 4, most Redis communcation was moved to a heartbeat thread,
-      # so we will be unable to detect the stubbed Redis errors from above anymore.
-      # What we really care about though is that Sidekiq properly forwards errors
-      # to our custom error handler in order for us to notice the error.
+      # When testing internal Sidekiq error capturing, we're looking to
+      # ensure Sidekiq properly forwards errors to our custom error handler
+      # in order for us to notice the error.
 
       exception = StandardError.new('foo')
       NewRelic::Agent.expects(:notice_error).with(exception)
