@@ -50,6 +50,10 @@ class TransactionEvent
     @attributes = payload[:attributes]
   end
 
+  def synthetics?
+    @intrinsics.key? SYNTHETICS_RESOURCE_ID_KEY
+  end
+
   def to_collector_array
     [@intrinsics, custom_attributes, agent_attributes]
   end

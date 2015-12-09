@@ -43,7 +43,8 @@ module NewRelic
         end
       end
 
-      def record_or_reject event
+      def append_or_reject event
+        return unless enabled?
         result = nil
         @lock.synchronize do
           result = @samples.append_with_reject event.to_collector_array

@@ -34,7 +34,6 @@ module NewRelic
         main_event, _ = event
         main_event[TIMESTAMP]
       end
-
     end
   end
 end

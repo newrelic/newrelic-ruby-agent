@@ -24,7 +24,7 @@ module NewRelic
 
       def populate_container(sampler, n)
         n.times do |i|
-          generate_request("whatever#{i}")
+          generate_request
         end
       end
 
@@ -43,7 +43,7 @@ module NewRelic
       def test_synthetics_events_kept_by_timestamp
         with_config :'synthetics.events_limit' => 10 do
           11.times do |i|
-            _, rejected = generate_request('synthetic', :timestamp => i)
+            _, rejected = generate_request(:timestamp => i)
             if i < 10
               assert_nil rejected, "Expected event to be accepted"
             else
@@ -57,10 +57,10 @@ module NewRelic
       def test_sythetics_events_rejected_when_buffer_is_full_of_newer_events
         with_config :'synthetics.events_limit' => 10 do
           11.times do |i|
-            generate_request('synthetic', :timestamp => i + 10.0)
+            generate_request :timestamp => i + 10.0
           end
 
-          generate_request('synthetic', :timestamp => 1)
+          generate_request :timestamp => 1
           samples = last_synthetics_events
           assert_equal 10, samples.size
           timestamps = samples.map do |(main, _)|
@@ -71,6 +71,60 @@ module NewRelic
         end
       end
 
+      def test_records_dropped_synthetics
+        @synthetics_event_aggregator.expects(:record_dropped_synthetics).with(5).once
+        with_config :'synthetics.events_limit' => 10 do
+          15.times { generate_request }
+        end
+        @synthetics_event_aggregator.harvest!
+      end
+
+      def test_does_not_drop_samples_when_used_from_multiple_threads
+        with_config :'synthetics.events_limit' => 100 * 100 do
+          threads = []
+          25.times do
+            threads << Thread.new do
+              100.times{ generate_request }
+            end
+          end
+          threads.each { |t| t.join }
+
+          assert_equal(25 * 100, last_synthetics_events.size)
+        end
+      end
+
+      def test_events_not_recorded_when_disabled
+        with_config :'analytics_events.enabled' => false do
+          generate_request
+          errors = last_synthetics_events
+          assert_empty errors
+        end
+      end
+
+      def test_includes_custom_attributes
+        attrs = {"user" => "Wes Mantooth", "channel" => 9}
+
+        attributes.merge_custom_attributes attrs
+
+        generate_request
+
+        _, custom_attrs, _ = last_synthetics_event
+
+        assert_equal attrs, custom_attrs
+      end
+
+      def test_includes_agent_attributes
+        attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_TRANSACTION_EVENTS
+        attributes.add_agent_attribute :httpResponseCode, "200", AttributeFilter::DST_TRANSACTION_EVENTS
+
+        generate_request
+
+        _, _, agent_attrs = last_synthetics_event
+
+        expected = {:"request.headers.referer" => "http://blog.site/home", :httpResponseCode => "200"}
+        assert_equal expected, agent_attrs
+      end
+
       def last_synthetics_events
         @synthetics_event_aggregator.harvest!
       end
@@ -79,9 +133,9 @@ module NewRelic
         last_synthetics_events.first
       end
 
-      def generate_request(name='synthetic', options={})
+      def generate_request options={}
         payload = {
-          :name => "Controller/#{name}",
+          :name => "Controller/blogs/index",
           :type => :controller,
           :start_timestamp => options[:timestamp] || Time.now.to_f,
           :duration => 0.1,
@@ -90,7 +144,7 @@ module NewRelic
           :error => false
         }.merge(options)
 
-        @synthetics_event_aggregator.record_or_reject TransactionEvent.new(payload)
+        @synthetics_event_aggregator.append_or_reject TransactionEvent.new(payload)
       end
 
       def attributes

@@ -104,13 +104,13 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     end
 
     def test_listener_merges_analytics_events
-      transaction_event_aggregator = NewRelic::Agent.agent.instance_variable_get(:@transaction_event_aggregator)
+      transaction_event_aggregator = NewRelic::Agent.agent.transaction_event_aggregator
 
       start_listener_with_pipe(699)
       NewRelic::Agent.agent.stubs(:connected?).returns(true)
       run_child(699) do
         NewRelic::Agent.after_fork(:report_to_channel => 699)
-        transaction_event_aggregator.record TransactionEvent.new({
+        transaction_event_aggregator.append TransactionEvent.new({
           :start_timestamp => Time.now,
           :name => 'whatever',
           :duration => 10,

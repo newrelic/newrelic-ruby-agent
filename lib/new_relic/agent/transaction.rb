@@ -758,10 +758,7 @@ module NewRelic
       end
 
       def record_transaction_event
-        return unless NewRelic::Agent.config[:'analytics_events.enabled']
-
-        event = TransactionEvent.new(payload)
-        agent.transaction_event_aggregator.record event
+        agent.transaction_event_recorder.record payload
       end
 
       QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'.freeze

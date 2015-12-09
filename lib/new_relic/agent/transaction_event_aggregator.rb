@@ -60,7 +60,7 @@ class NewRelic::Agent::TransactionEventAggregator
   # transmission to the collector. (Synchronized)
   def merge!(old_samples)
     self.synchronize do
-      old_samples.each { |s| append_event(s) }
+      old_samples.each { |s| @samples.append s }
     end
   end
 
@@ -97,26 +97,26 @@ class NewRelic::Agent::TransactionEventAggregator
     @notified_full = true
   end
 
-  def record(event)
+  def append(event)
     return unless @enabled
 
-    self.synchronize { append_event(event.to_collector_array) }
+    self.synchronize { @samples.append event.to_collector_array }
     notify_full if !@notified_full && @samples.full?
   end
 
-  def append_event(event)
-    # main_event, _ = event
+  # def append_event(event)
+  #   # main_event, _ = event
 
-    # if main_event.include?(TransactionEvent::SYNTHETICS_RESOURCE_ID_KEY)
-    #   # Try adding to synthetics buffer. If anything is rejected, give it a
-    #   # shot in the main transaction events (where it may get sampled)
-    #   _, rejected = @synthetics_samples.append_with_reject(event)
+  #   # if main_event.include?(TransactionEvent::SYNTHETICS_RESOURCE_ID_KEY)
+  #   #   # Try adding to synthetics buffer. If anything is rejected, give it a
+  #   #   # shot in the main transaction events (where it may get sampled)
+  #   #   _, rejected = @synthetics_samples.append_with_reject(event)
 
-    #   if rejected
-    #     @samples.append(rejected)
-    #   end
-    # else
-      @samples.append(event)
-    # end
-  end
+  #   #   if rejected
+  #   #     @samples.append(rejected)
+  #   #   end
+  #   # else
+  #     @samples.append(event)
+  #   # end
+  # end
 end

@@ -381,7 +381,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       :error => false
     }.merge(options)
 
-    @event_aggregator.record TransactionEvent.new(payload)
+    @event_aggregator.append TransactionEvent.new(payload)
   end
 
   def with_sampler_config(options = {})
