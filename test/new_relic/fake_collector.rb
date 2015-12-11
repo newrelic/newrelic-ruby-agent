@@ -340,12 +340,12 @@ module NewRelic
 
     class AnalyticEventDataPost < AgentPost
 
-      attr_reader :events
+      attr_reader :reservoir_metadata, :events
 
-      def initialize(opts={})
+      def initialize opts={}
         super
-
-        @events = @body[1]
+        @reservoir_metadata = body[1]
+        @events = body[2]
       end
     end
 

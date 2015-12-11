@@ -238,7 +238,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     with_sampler_config do
       5.times { generate_request }
 
-      old_samples = @event_aggregator.harvest!
+      _, old_samples = @event_aggregator.harvest!
 
       assert_equal 5, old_samples.size
       assert_equal 0, @event_aggregator.samples.size

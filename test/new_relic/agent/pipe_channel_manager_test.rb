@@ -119,7 +119,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         NewRelic::Agent.agent.send(:transmit_event_data)
       end
 
-      assert_equal(1, transaction_event_aggregator.samples.size)
+      samples = transaction_event_aggregator.samples
+      assert_equal(1, samples.size)
     end
 
     def test_listener_merges_sql_traces

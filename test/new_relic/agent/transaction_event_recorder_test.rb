@@ -11,7 +11,6 @@ module NewRelic
 
       def setup
         @recorder = TransactionEventRecorder.new
-        freeze_time
         @attributes = nil
       end
 
@@ -21,7 +20,7 @@ module NewRelic
             generate_request
           end
 
-          txn_events = harvest_transaction_events!
+          _, txn_events = harvest_transaction_events!
           syn_events = harvest_synthetics_events!
 
           assert_equal 10, txn_events.size
@@ -37,7 +36,7 @@ module NewRelic
 
           generate_request("syn_10", :timestamp => 1)
 
-          txn_events = harvest_transaction_events!
+          _, txn_events = harvest_transaction_events!
           syn_events = harvest_synthetics_events!
 
           assert_equal 10, syn_events.size

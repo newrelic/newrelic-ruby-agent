@@ -18,7 +18,7 @@ class NewRelic::Agent::TransactionEventAggregator
     @notified_full = false
     @samples       = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[:'analytics_events.max_samples_stored'])
 
-    self.register_config_callbacks
+    register_config_callbacks
   end
 
 
@@ -32,36 +32,60 @@ class NewRelic::Agent::TransactionEventAggregator
   end
 
   def reset!
+    self.synchronize do
+      @samples.reset!
+    end
+  end
+
+  # Clear any existing samples, reset the last sample time, and return the
+  # previous set of samples. (Synchronized)
+  def harvest!
     sample_count, request_count = 0, 0
-    old_samples = nil
+    old_samples, metadata = nil, nil
 
     self.synchronize do
       sample_count = @samples.size
       request_count = @samples.num_seen
 
       old_samples = @samples.to_a
+      metadata = reservoir_metadata
       @samples.reset!
 
       @notified_full = false
     end
 
-    [old_samples, sample_count, request_count]
-  end
-
-  # Clear any existing samples, reset the last sample time, and return the
-  # previous set of samples. (Synchronized)
-  def harvest!
-    old_samples, sample_count, request_count = reset!
     record_sampling_rate(request_count, sample_count) if @enabled
-    old_samples
+    [metadata, old_samples]
   end
 
   # Merge samples back into the buffer, for example after a failed
   # transmission to the collector. (Synchronized)
-  def merge!(old_samples)
+  def merge!(payload)
     self.synchronize do
-      old_samples.each { |s| @samples.append s }
+      _, events = payload
+      @samples.decrement_lifetime_counts_by samples.count
+      events.each { |s| @samples.append s }
     end
+  end
+
+  def append(event)
+    return unless @enabled
+
+    self.synchronize { @samples.append event.to_collector_array }
+    notify_full if !@notified_full && @samples.full?
+  end
+
+  def has_metadata?
+    true
+  end
+
+  private
+
+  def reservoir_metadata
+    {
+      :reservoir_size => NewRelic::Agent.config[:'analytics_events.max_samples_stored'],
+      :events_seen => @samples.num_seen
+    }
   end
 
   def record_sampling_rate(request_count, sample_count) #THREAD_LOCAL_ACCESS
@@ -96,27 +120,4 @@ class NewRelic::Agent::TransactionEventAggregator
     NewRelic::Agent.logger.debug "Transaction event capacity of #{@samples.capacity} reached, beginning sampling"
     @notified_full = true
   end
-
-  def append(event)
-    return unless @enabled
-
-    self.synchronize { @samples.append event.to_collector_array }
-    notify_full if !@notified_full && @samples.full?
-  end
-
-  # def append_event(event)
-  #   # main_event, _ = event
-
-  #   # if main_event.include?(TransactionEvent::SYNTHETICS_RESOURCE_ID_KEY)
-  #   #   # Try adding to synthetics buffer. If anything is rejected, give it a
-  #   #   # shot in the main transaction events (where it may get sampled)
-  #   #   _, rejected = @synthetics_samples.append_with_reject(event)
-
-  #   #   if rejected
-  #   #     @samples.append(rejected)
-  #   #   end
-  #   # else
-  #     @samples.append(event)
-  #   # end
-  # end
 end

@@ -170,8 +170,16 @@ module NewRelic
       end
 
       def analytic_event_data(data)
-        invoke_remote(:analytic_event_data, [@agent_id, data],
-          :item_count => data.size)
+        # temporary for the refactor to add metadata to sampled containers
+        # remove once synthetics event buffer has metadata
+        if data[0].is_a?(Hash)
+          _, items = data
+          invoke_remote(:analytic_event_data, [@agent_id, *data],
+            :item_count => items.size)
+        else
+          invoke_remote(:analytic_event_data, [@agent_id, data],
+            :item_count => data.size)
+        end
       end
 
       def custom_event_data(data)

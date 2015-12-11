@@ -271,7 +271,7 @@ module NewRelic
       def test_harvest_and_send_analytic_event_data_merges_in_samples_on_failure
         service = @agent.service
         transaction_event_aggregator = @agent.transaction_event_aggregator
-        samples = [mock('some analytics event')]
+        samples = [{:reservoir_size => 100, :events_seen => 1}, [mock('some analytics event')]]
 
         transaction_event_aggregator.expects(:harvest!).returns(samples)
         transaction_event_aggregator.expects(:merge!).with(samples)
