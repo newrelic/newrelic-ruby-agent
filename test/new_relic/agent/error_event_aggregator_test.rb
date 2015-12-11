@@ -110,7 +110,7 @@ module NewRelic
 
         _, custom_attrs, _ = last_error_event
 
-        assert_equal attrs, custom_attrs
+        assert_equal({"user" => "Wes Mantooth", "channel" => "9"}, custom_attrs)
       end
 
       def test_includes_agent_attributes

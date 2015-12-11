@@ -100,7 +100,7 @@ class AttributeProcessingTest < Minitest::Test
     assert_equal(
       {
         'foo'    => 1.0,
-        'bar'    => 2,
+        'bar'    => "2",
         'bang'   => 'woot',
         'ok'     => 'dokey',
         'yes'    => '[]',

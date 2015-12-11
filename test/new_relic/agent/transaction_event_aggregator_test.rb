@@ -51,8 +51,8 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       generate_request('whatever')
 
       result = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
-      assert_equal 2, result['bing']
-      assert_equal 3, result['1']
+      assert_equal '2', result['bing']
+      assert_equal '3', result['1']
     end
   end
 
@@ -84,7 +84,7 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
       generate_request('whatever')
 
       custom_attrs = captured_transaction_event[CUSTOM_ATTRIBUTES_INDEX]
-      assert_equal 2, custom_attrs['bing']
+      assert_equal '2', custom_attrs['bing']
     end
   end
 

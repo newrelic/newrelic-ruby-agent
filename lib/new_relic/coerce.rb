@@ -46,8 +46,10 @@ module NewRelic
 
     def scalar(val)
       case val
-      when String, Integer, TrueClass, FalseClass, NilClass
+      when String, TrueClass, FalseClass, NilClass
         val
+      when Integer
+        val.to_s
       when Float
         if val.finite?
           val
