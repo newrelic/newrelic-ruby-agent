@@ -240,6 +240,30 @@ class NewRelic::Agent::TransactionEventAggregatorTest < Minitest::Test
     end
   end
 
+  def test_sample_counts_are_correct_after_merge
+    with_config :'analytics_events.max_samples_stored' => 5 do
+      buffer = @event_aggregator.instance_variable_get :@samples
+
+      4.times { generate_request }
+      last_harvest = @event_aggregator.harvest!
+
+      assert_equal 4, buffer.seen_lifetime
+      assert_equal 4, buffer.captured_lifetime
+      assert_equal 4, last_harvest[0][:events_seen]
+
+      4.times { generate_request }
+      @event_aggregator.merge! last_harvest
+
+      reservoir_stats, samples = @event_aggregator.harvest!
+
+      assert_equal 5, samples.size
+      assert_equal 8, reservoir_stats[:events_seen]
+      assert_equal 8, buffer.seen_lifetime
+      assert_equal 5, buffer.captured_lifetime
+    end
+  end
+
+
   def test_limits_total_number_of_samples_to_max_samples_stored
     with_config( :'analytics_events.max_samples_stored' => 100 ) do
       150.times { generate_request }
