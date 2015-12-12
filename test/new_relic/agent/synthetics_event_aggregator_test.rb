@@ -8,7 +8,7 @@ require 'new_relic/agent/synthetics_event_aggregator'
 
 module NewRelic
   module Agent
-    class SyntheticsAggregatorTest < Minitest::Test
+    class SyntheticsEventAggregatorTest < Minitest::Test
       def setup
         freeze_time
         @synthetics_event_aggregator = SyntheticsEventAggregator.new
@@ -152,7 +152,7 @@ module NewRelic
       end
 
       def last_synthetics_events
-        @synthetics_event_aggregator.harvest!
+        @synthetics_event_aggregator.harvest![1]
       end
 
       def last_synthetics_event

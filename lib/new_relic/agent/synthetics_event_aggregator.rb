@@ -20,26 +20,29 @@ module NewRelic
       end
 
       def reset!
-        num_dropped = 0
-        samples = nil
         @lock.synchronize do
-          num_dropped = @samples.num_dropped
-          samples = @samples.to_a
           @samples.reset!
-          @notified_full = false
         end
-        [samples, num_dropped]
       end
 
       def harvest!
-        samples, num_dropped = reset!
+        num_dropped = 0
+        metadata, samples = nil, nil
+        @lock.synchronize do
+          num_dropped = @samples.num_dropped
+          samples = @samples.to_a
+          metadata = reservoir_metadata
+          @samples.reset!
+          @notified_full = false
+        end
         record_dropped_synthetics(num_dropped)
-        samples
+        [metadata, samples]
       end
 
-      def merge! samples
+      def merge! payload
+        _, events = payload
         @lock.synchronize do
-          samples.each { |s| @samples.append_with_reject s}
+          events.each { |e| @samples.append_with_reject e}
         end
       end
 
@@ -52,7 +55,18 @@ module NewRelic
         result
       end
 
+      def has_metadata?
+        true
+      end
+
       private
+
+      def reservoir_metadata
+        {
+          :reservoir_size => NewRelic::Agent.config[:'synthetics.events_limit'],
+          :events_seen => @samples.num_seen
+        }
+      end
 
       def record_dropped_synthetics(synthetics_dropped)
         return unless synthetics_dropped > 0

@@ -21,7 +21,7 @@ module NewRelic
           end
 
           _, txn_events = harvest_transaction_events!
-          syn_events = harvest_synthetics_events!
+          _, syn_events = harvest_synthetics_events!
 
           assert_equal 10, txn_events.size
           assert_equal 10, syn_events.size
@@ -37,7 +37,7 @@ module NewRelic
           generate_request("syn_10", :timestamp => 1)
 
           _, txn_events = harvest_transaction_events!
-          syn_events = harvest_synthetics_events!
+          _, syn_events = harvest_synthetics_events!
 
           assert_equal 10, syn_events.size
           assert_equal 10.0, syn_events[0][0]["timestamp"]
