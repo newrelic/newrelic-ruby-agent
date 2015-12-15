@@ -3,85 +3,31 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/sampled_buffer'
+require 'new_relic/agent/event_aggregator'
 require 'new_relic/agent/payload_metric_mapping'
 
 module NewRelic
   module Agent
-    class ErrorEventAggregator
+    class ErrorEventAggregator < EventAggregator
       EVENT_TYPE = "TransactionError".freeze
 
-      def initialize
-        @lock = Mutex.new
-        @error_event_buffer = SampledBuffer.new Agent.config[:'error_collector.max_event_samples_stored']
-        register_config_callbacks
-      end
+      named :ErrorEventAggregator
 
-      def enabled?
-        Agent.config[:'error_collector.capture_events']
-      end
+      capacity_key :'error_collector.max_event_samples_stored'
+
+      enabled_key :'error_collector.capture_events'
 
       def append_event noticed_error, transaction_payload = nil
         return unless enabled?
 
         @lock.synchronize do
-          @error_event_buffer.append do
+          @buffer.append do
             event_for_collector(noticed_error, transaction_payload)
           end
         end
       end
 
-      def harvest!
-        @lock.synchronize do
-          samples = @error_event_buffer.to_a
-          # Eventually the logic for adding reservoir data will move to the sampled buffer
-          # so it can be shared with the other event aggregators. We'll first get it working
-          # here and then promote the functionality later.
-          metadata = reservoir_metadata
-          @error_event_buffer.reset!
-          [metadata, samples]
-        end
-      end
-
-      def reset!
-        @lock.synchronize do
-          @error_event_buffer.reset!
-        end
-      end
-
-      # samples will have already been transformed into
-      # collector primitives by event_for_collector
-      def merge! payload
-        @lock.synchronize do
-          _, samples = payload
-          @error_event_buffer.decrement_lifetime_counts_by samples.count
-          samples.each { |s| @error_event_buffer.append s }
-        end
-      end
-
-      def has_metadata?
-        true
-      end
-
       private
-
-      def reservoir_metadata
-        {
-          :reservoir_size => Agent.config[:'error_collector.max_event_samples_stored'],
-          :events_seen => @error_event_buffer.num_seen
-        }
-      end
-
-      def register_config_callbacks
-        NewRelic::Agent.config.register_callback(:'error_collector.max_event_samples_stored') do |max_samples|
-          NewRelic::Agent.logger.debug "ErrorEventAggregator max_samples set to #{max_samples}"
-          @lock.synchronize { @error_event_buffer.capacity = max_samples }
-        end
-
-        NewRelic::Agent.config.register_callback(:'error_collector.capture_events') do |enabled|
-          ::NewRelic::Agent.logger.debug "Error events will #{enabled ? '' : 'not '}be sent to the New Relic service."
-        end
-      end
 
       def event_for_collector noticed_error, transaction_payload
         [

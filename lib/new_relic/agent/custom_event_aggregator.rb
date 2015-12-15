@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/sized_buffer'
+require 'new_relic/agent/sampled_buffer'
 require 'new_relic/agent/attribute_processing'
 
 module NewRelic

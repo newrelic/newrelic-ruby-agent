@@ -7,6 +7,7 @@ require 'monitor'
 
 require 'newrelic_rpm' unless defined?( NewRelic )
 require 'new_relic/agent' unless defined?( NewRelic::Agent )
+require 'new_relic/agent/sampled_buffer'
 
 class NewRelic::Agent::TransactionEventAggregator
   include MonitorMixin
