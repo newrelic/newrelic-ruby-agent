@@ -44,8 +44,10 @@ module NewRelic
 
       def test_enabled_relects_config_value
         assert @aggregator.enabled?, "Expected enabled? to be true"
-        NewRelic::Agent.config.stubs(:[]).with(:enabled_key).returns(false)
-        refute @aggregator.enabled?, "Expected enabled? to be false"
+
+        with_config :enabled_key => false do
+          refute @aggregator.enabled?, "Expected enabled? to be false"
+        end
       end
     end
   end

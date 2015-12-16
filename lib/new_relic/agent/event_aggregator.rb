@@ -24,6 +24,8 @@ module NewRelic
       def initialize
         @lock = Mutex.new
         @buffer = SampledBuffer.new(NewRelic::Agent.config[self.class.capacity_key])
+        @enabled = false
+        @notified_full = false
         register_capacity_callback
         register_enabled_callback
         after_initialize
@@ -34,7 +36,7 @@ module NewRelic
       end
 
       def enabled?
-        Agent.config[self.class.enabled_key]
+        @enabled
       end
 
       def has_metadata?
@@ -86,6 +88,8 @@ module NewRelic
 
       def register_enabled_callback
         NewRelic::Agent.config.register_callback(self.class.enabled_key) do |enabled|
+          # intentionally unsynchronized for liveness
+          @enabled = enabled
           ::NewRelic::Agent.logger.debug "#{self.class.named} will #{enabled ? '' : 'not '}be sent to the New Relic service."
         end
       end
