@@ -39,8 +39,7 @@ module NewRelic
 
           rest          = string[@trim_range]
           leading_slash = rest.slice!(LEADING_SLASH_REGEX)
-
-          segments = rest.split(SEGMENT_SEPARATOR)
+          segments = rest.split(SEGMENT_SEPARATOR, -1)
           segments.map! { |s| @terms.include?(s) ? s : SEGMENT_PLACEHOLDER }
           transformed_suffix = collapse_adjacent_placeholder_segments(segments)
 
