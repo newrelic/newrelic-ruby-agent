@@ -29,13 +29,16 @@ module NewRelic
         end
 
         def matches?(string)
-          return false unless @prefix
-
+          return false unless valid?
           string.start_with?(@prefix)
         end
 
+        def valid?
+          @prefix && @terms
+        end
+
         def apply(string)
-          return string unless @prefix && @terms
+          return string unless valid?
 
           rest          = string[@trim_range]
           leading_slash = rest.slice!(LEADING_SLASH_REGEX)
