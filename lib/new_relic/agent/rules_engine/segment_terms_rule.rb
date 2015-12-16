@@ -15,7 +15,7 @@ module NewRelic
         def initialize(options)
           @prefix          = options['prefix']
           @terms           = options['terms']
-          @trim_range      = (@prefix.size..-1)
+          @trim_range      = (@prefix.size..-1) if @prefix.kind_of?(String)
         end
 
         def terminal?
@@ -23,10 +23,14 @@ module NewRelic
         end
 
         def matches?(string)
+          return false unless @prefix.kind_of?(String)
+
           string.start_with?(@prefix)
         end
 
         def apply(string)
+          return string unless @prefix && @terms
+
           rest          = string[@trim_range]
           leading_slash = rest.slice!(LEADING_SLASH_REGEX)
 
