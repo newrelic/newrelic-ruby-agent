@@ -31,8 +31,12 @@ module NewRelic
         after_initialize
       end
 
-      # interface method for subclasses to overide to provide post-initialization setup
+      # interface method for subclasses to override to provide post-initialization setup
       def after_initialize
+      end
+
+      # interface method for subclasses to override to provide post harvest functionality
+      def after_harvest metadata
       end
 
       def enabled?
@@ -48,10 +52,11 @@ module NewRelic
         samples = []
         @lock.synchronize do
           samples.concat @buffer.to_a
-          metadata = reservoir_metadata
+          metadata = @buffer.metadata
           @buffer.reset!
         end
-        [metadata, samples]
+        after_harvest metadata
+        [reservoir_metadata(metadata), samples]
       end
 
       def merge! payload
@@ -70,10 +75,10 @@ module NewRelic
 
       private
 
-      def reservoir_metadata
+      def reservoir_metadata metadata
         {
-          :reservoir_size => Agent.config[self.class.capacity_key],
-          :events_seen => @buffer.num_seen
+          :reservoir_size => metadata[:capacity],
+          :events_seen => metadata[:seen]
         }
       end
 

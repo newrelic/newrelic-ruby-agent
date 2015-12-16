@@ -14,6 +14,8 @@ module NewRelic
         capacity_key :cap_key
         enabled_key :enabled_key
 
+        attr_reader :buffer
+
         def append item
           @buffer.append item
           notify_if_full
@@ -49,6 +51,13 @@ module NewRelic
         with_config :enabled_key => false do
           refute @aggregator.enabled?, "Expected enabled? to be false"
         end
+      end
+
+      def test_after_harvest_invoked_with_report
+        metadata = {:meta => true}
+        @aggregator.buffer.stubs(:metadata).returns(metadata)
+        @aggregator.expects(:after_harvest).with(metadata)
+        @aggregator.harvest!
       end
 
       def test_notifies_full
