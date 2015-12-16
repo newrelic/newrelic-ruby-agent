@@ -16,6 +16,7 @@ module NewRelic
 
         def append item
           @buffer.append item
+          notify_if_full
         end
       end
 
@@ -47,6 +48,13 @@ module NewRelic
 
         with_config :enabled_key => false do
           refute @aggregator.enabled?, "Expected enabled? to be false"
+        end
+      end
+
+      def test_notifies_full
+        expects_logging :debug, includes("TestAggregator capacity of 5 reached")
+        with_config :cap_key => 5 do
+          6.times { |i| @aggregator.append i}
         end
       end
     end

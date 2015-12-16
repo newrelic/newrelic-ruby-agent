@@ -93,6 +93,13 @@ module NewRelic
           ::NewRelic::Agent.logger.debug "#{self.class.named} will #{enabled ? '' : 'not '}be sent to the New Relic service."
         end
       end
+
+      # method should only be called from within a synchronize block
+      def notify_if_full
+        return unless !@notified_full && @buffer.full?
+        NewRelic::Agent.logger.debug "#{self.class.named} capacity of #{@buffer.capacity} reached, beginning sampling"
+        @notified_full = true
+      end
     end
   end
 end
