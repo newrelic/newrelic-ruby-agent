@@ -6,16 +6,22 @@ module NewRelic
   module Agent
     class RulesEngine
       class SegmentTermsRule
+        PREFIX_KEY                        = 'prefix'.freeze
+        TERMS_KEY                         = 'terms'.freeze
         SEGMENT_PLACEHOLDER               = '*'.freeze
         ADJACENT_PLACEHOLDERS_REGEX       = %r{((?:^|/)\*)(?:/\*)*}.freeze
         ADJACENT_PLACEHOLDERS_REPLACEMENT = '\1'.freeze
+        VALID_PREFIX_SEGMENT_COUNT        = 2
 
         attr_reader :prefix, :terms
 
         def initialize(options)
-          @prefix          = options['prefix']
-          @terms           = options['terms']
-          @trim_range      = (@prefix.size..-1) if @prefix.kind_of?(String)
+          if options[PREFIX_KEY].kind_of?(String) &&
+             options[PREFIX_KEY].split(SEGMENT_SEPARATOR, VALID_PREFIX_SEGMENT_COUNT + 1).count == VALID_PREFIX_SEGMENT_COUNT
+            @prefix          = options[PREFIX_KEY]
+            @terms           = options[TERMS_KEY]
+            @trim_range      = (@prefix.size..-1)
+          end
         end
 
         def terminal?
@@ -23,7 +29,7 @@ module NewRelic
         end
 
         def matches?(string)
-          return false unless @prefix.kind_of?(String)
+          return false unless @prefix
 
           string.start_with?(@prefix)
         end
