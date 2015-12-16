@@ -27,9 +27,14 @@ module NewRelic
         segment_rule_specs = connect_response['transaction_segment_terms'] || []
 
         txn_name_rules = txn_name_specs.map     { |s| ReplacementRule.new(s) }
-        segment_rules  = segment_rule_specs.map { |s| SegmentTermsRule.new(s) }
+        segment_rules  = segment_rule_specs.inject({}) do |rules, spec|
+          if spec[SegmentTermsRule::PREFIX_KEY]
+            rules[spec[SegmentTermsRule::PREFIX_KEY] ] = SegmentTermsRule.new(spec)
+          end
+          rules
+        end
 
-        self.new(txn_name_rules, segment_rules)
+        self.new(txn_name_rules, segment_rules.values)
       end
 
       def initialize(rules=[], segment_term_rules=[])
