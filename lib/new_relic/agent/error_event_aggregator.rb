@@ -24,7 +24,6 @@ module NewRelic
           @buffer.append do
             event_for_collector(noticed_error, transaction_payload)
           end
-
           notify_if_full
         end
       end

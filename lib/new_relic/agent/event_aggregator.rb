@@ -53,7 +53,7 @@ module NewRelic
         @lock.synchronize do
           samples.concat @buffer.to_a
           metadata = @buffer.metadata
-          @buffer.reset!
+          reset_buffer!
         end
         after_harvest metadata
         [reservoir_metadata(metadata), samples]
@@ -69,7 +69,7 @@ module NewRelic
 
       def reset!
         @lock.synchronize do
-          @buffer.reset!
+          reset_buffer!
         end
       end
 
@@ -104,6 +104,11 @@ module NewRelic
         return unless !@notified_full && @buffer.full?
         NewRelic::Agent.logger.debug "#{self.class.named} capacity of #{@buffer.capacity} reached, beginning sampling"
         @notified_full = true
+      end
+
+      def reset_buffer!
+        @buffer.reset!
+        @notified_full = false
       end
     end
   end

@@ -63,7 +63,53 @@ module NewRelic
       def test_notifies_full
         expects_logging :debug, includes("TestAggregator capacity of 5 reached")
         with_config :cap_key => 5 do
-          6.times { |i| @aggregator.append i}
+          5.times { |i| @aggregator.append i}
+        end
+      end
+
+      def test_notifies_full_only_once
+        expects_logging :debug, includes("TestAggregator capacity of 5 reached")
+        with_config :cap_key => 5 do
+          5.times { |i| @aggregator.append i}
+        end
+
+        @aggregator.harvest!
+
+        expects_no_logging :debug
+        with_config :cap_key => 5 do
+          5.times { |i| @aggregator.append i}
+        end
+      end
+
+      def test_notifies_full_resets_after_harvest
+        msg = "TestAggregator capacity of 5 reached"
+
+        expects_logging :debug, includes(msg)
+        with_config :cap_key => 5 do
+          5.times { |i| @aggregator.append i}
+        end
+
+        @aggregator.harvest!
+
+        expects_logging :debug, includes(msg)
+        with_config :cap_key => 5 do
+          5.times { |i| @aggregator.append i}
+        end
+      end
+
+      def test_notifies_full_resets_after_buffer_reset
+        msg = "TestAggregator capacity of 5 reached"
+
+        expects_logging :debug, includes(msg)
+        with_config :cap_key => 5 do
+          5.times { |i| @aggregator.append i}
+        end
+
+        @aggregator.reset!
+
+        expects_logging :debug, includes(msg)
+        with_config :cap_key => 5 do
+          5.times { |i| @aggregator.append i}
         end
       end
     end
