@@ -12,7 +12,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar, :baz => :qux)
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
-    events = last_custom_event_submission
+    events = last_posted_events
 
     expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i },
                       {'foo' => 'bar', 'baz' => 'qux'}]
@@ -37,7 +37,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     NewRelic::Agent.record_custom_event(good_event_type, :foo => :bar)
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
-    events = last_custom_event_submission
+    events = last_posted_events
 
     assert_equal(1, events.size)
     assert_equal(good_event_type, events.first[0]['type'])
@@ -59,9 +59,24 @@ class CustomAnalyticsEventsTest < Minitest::Test
     assert_equal(0, $collector.calls_for(:custom_event_data).size)
   end
 
-  def last_custom_event_submission
+  def test_post_includes_metadata
+    10.times do |i|
+      NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar, :baz => :qux, :i => i)
+    end
+
+    NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+    post = last_custom_event_post
+
+    assert_equal({"reservoir_size"=>1000, "events_seen"=>10}, post.reservoir_metadata)
+  end
+
+  def last_custom_event_post
     posts = $collector.calls_for('custom_event_data')
     assert_equal(1, posts.size)
-    posts.first.events
+    posts.first
+  end
+
+  def last_posted_events
+    last_custom_event_post.events
   end
 end
