@@ -16,8 +16,7 @@ module NewRelic
         attr_reader :prefix, :terms
 
         def initialize(options)
-          if options[PREFIX_KEY].kind_of?(String) &&
-             options[PREFIX_KEY].split(SEGMENT_SEPARATOR, VALID_PREFIX_SEGMENT_COUNT + 1).count == VALID_PREFIX_SEGMENT_COUNT
+          if options[PREFIX_KEY].kind_of?(String) && valid_prefix_segment_count?(options[PREFIX_KEY])
             @prefix          = options[PREFIX_KEY]
             @terms           = options[TERMS_KEY]
             @trim_range      = (@prefix.size..-1)
@@ -33,6 +32,11 @@ module NewRelic
 
           string.start_with?(@prefix) &&
             (string[@prefix.chomp(SEGMENT_SEPARATOR).size] == SEGMENT_SEPARATOR || string.size == @prefix.size)
+        end
+
+        def valid_prefix_segment_count?(prefix)
+          (prefix.count(SEGMENT_SEPARATOR) == 2 && prefix[prefix.rindex(SEGMENT_SEPARATOR) + 1].nil?) ||
+          (prefix.count(SEGMENT_SEPARATOR) == 1 && !prefix[prefix.rindex(SEGMENT_SEPARATOR) + 1].nil?)
         end
 
         def valid?
