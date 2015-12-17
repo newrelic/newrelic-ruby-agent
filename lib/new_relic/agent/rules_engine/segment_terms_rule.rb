@@ -30,7 +30,9 @@ module NewRelic
 
         def matches?(string)
           return false unless valid?
-          string.start_with?(@prefix)
+
+          string.start_with?(@prefix) &&
+            (string[@prefix.chomp(SEGMENT_SEPARATOR).size] == SEGMENT_SEPARATOR || string.size == @prefix.size)
         end
 
         def valid?
