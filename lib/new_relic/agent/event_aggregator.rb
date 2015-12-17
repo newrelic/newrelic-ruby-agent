@@ -19,11 +19,19 @@ module NewRelic
         def enabled_key key = nil
           key ? @enabled_key = key : @enabled_key
         end
+
+        def buffer_class klass = nil
+          if klass
+            @buffer_class = klass
+          else
+            @buffer_class ||= SampledBuffer
+          end
+        end
       end
 
       def initialize
         @lock = Mutex.new
-        @buffer = SampledBuffer.new(NewRelic::Agent.config[self.class.capacity_key])
+        @buffer = self.class.buffer_class.new NewRelic::Agent.config[self.class.capacity_key]
         @enabled = false
         @notified_full = false
         register_capacity_callback
@@ -99,7 +107,6 @@ module NewRelic
         end
       end
 
-      # method should only be called from within a synchronize block
       def notify_if_full
         return unless !@notified_full && @buffer.full?
         NewRelic::Agent.logger.debug "#{self.class.named} capacity of #{@buffer.capacity} reached, beginning sampling"

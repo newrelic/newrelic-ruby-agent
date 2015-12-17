@@ -112,6 +112,23 @@ module NewRelic
           5.times { |i| @aggregator.append i}
         end
       end
+
+      def test_buffer_class_defaults_to_sampled_buffer
+        assert_kind_of NewRelic::Agent::SampledBuffer, @aggregator.buffer
+      end
+
+      def test_buffer_class_is_overridable
+        klass = Class.new(EventAggregator) do
+          named :TestAggregator2
+          capacity_key :cap_key
+          enabled_key :enabled_key
+          buffer_class NewRelic::Agent::SizedBuffer
+          attr_reader :buffer
+        end
+        instance = klass.new
+
+        assert_kind_of NewRelic::Agent::SizedBuffer, instance.buffer
+      end
     end
   end
 end
