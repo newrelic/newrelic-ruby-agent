@@ -71,14 +71,6 @@ module NewRelic
         end
       end
 
-      def test_records_dropped_synthetics
-        @synthetics_event_aggregator.expects(:record_dropped_synthetics).with(5).once
-        with_config :'synthetics.events_limit' => 10 do
-          15.times { generate_request }
-        end
-        @synthetics_event_aggregator.harvest!
-      end
-
       def test_does_not_drop_samples_when_used_from_multiple_threads
         with_config :'synthetics.events_limit' => 100 * 100 do
           threads = []
