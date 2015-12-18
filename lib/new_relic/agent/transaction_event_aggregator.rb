@@ -13,11 +13,6 @@ class NewRelic::Agent::TransactionEventAggregator < NewRelic::Agent::EventAggreg
   capacity_key :'analytics_events.max_samples_stored'
   enabled_key :'analytics_events.enabled'
 
-  # Fetch a copy of the sampler's gathered samples. (Synchronized)
-  def samples
-    return @lock.synchronize { @buffer.to_a }
-  end
-
   def append(event)
     return unless @enabled
 
@@ -35,7 +30,6 @@ class NewRelic::Agent::TransactionEventAggregator < NewRelic::Agent::EventAggreg
   end
 
   def record_sampling_rate(metadata) #THREAD_LOCAL_ACCESS
-
     NewRelic::Agent.logger.debug("Sampled %d / %d (%.1f %%) requests this cycle, %d / %d (%.1f %%) since startup" % [
       metadata[:captured],
       metadata[:seen],
