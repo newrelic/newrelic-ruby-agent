@@ -12,14 +12,14 @@ module NewRelic::Agent::Database
     }
 
     def self.create_input_statements(raw_query, dialects)
-      dialects.map do |dialect|
+      dialects.select{|dialect| DIALECT_MAP.keys.include?(dialect)}.map do |dialect|
         NewRelic::Agent::Database::Statement.new(raw_query, {:adapter => DIALECT_MAP[dialect]})
       end
     end
 
     def build_failure_message(statement, acceptable_outputs, actual_output)
       msg = "Failed to obfuscate #{statement.adapter} query correctly.\n"
-      msg << "Input:    #{statement.to_s}\n"
+      msg << "Input:    #{statement.inspect}\n"
       if acceptable_outputs.size == 1
         msg << "Expected: #{acceptable_outputs.first}\n"
       else
