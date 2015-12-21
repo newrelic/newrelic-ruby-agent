@@ -14,7 +14,6 @@ module NewRelic
         attr_reader :obfuscator
 
         QUERY_TOO_LARGE_MESSAGE     = "Query too large (over 16k characters) to safely obfuscate".freeze
-        FAILED_TO_OBFUSCATE_MESSAGE = "Failed to obfuscate SQL query - quote characters remained after obfuscation".freeze
         ELLIPSIS = "...".freeze
 
         def initialize
@@ -55,22 +54,7 @@ module NewRelic
             return QUERY_TOO_LARGE_MESSAGE
           end
 
-          obfuscate_double_quotes = stmt.adapter.to_s !~ /postgres|sqlite/
-
-          if obfuscate_double_quotes
-            obfuscated = obfuscate(stmt.sql, stmt.adapter)
-            if contains_quotes?(obfuscated)
-              obfuscated = FAILED_TO_OBFUSCATE_MESSAGE
-            end
-          else
-            obfuscated = obfuscate(stmt.sql, stmt.adapter)
-            if contains_single_quotes?(obfuscated)
-              obfuscated = FAILED_TO_OBFUSCATE_MESSAGE
-            end
-          end
-
-
-          obfuscated.to_s # return back to a regular String
+          obfuscate(stmt.sql, stmt.adapter).to_s
         end
       end
     end

@@ -48,10 +48,13 @@ module NewRelic
         # query was malformed, and so our obfuscation can't reliably find
         # literals. In such a case, we'll replace the entire query with a
         # placeholder.
-        LITERAL_SINGLE_QUOTE = "'".freeze
-        LITERAL_DOUBLE_QUOTE = '"'.freeze
+        CLEANUP_REGEX = {
+          :mysql => /'|"|\/\*|\*\//,
+          :postgresql => /'|\/\*|\*\/|\$/
+        }
 
         PLACEHOLDER = '?'.freeze
+        FAILED_TO_OBFUSCATE_MESSAGE = "Failed to obfuscate SQL query - quote characters remained after obfuscation".freeze
 
         def obfuscate_single_quote_literals(sql)
           obfuscated = sql.reverse
@@ -79,14 +82,16 @@ module NewRelic
             regex = FALLBACK_REGEX
           end
           obfuscated = sql.gsub!(regex, PLACEHOLDER) || sql
+          obfuscated = FAILED_TO_OBFUSCATE_MESSAGE if detect_unmatched_pairs(obfuscated, adapter)
+          obfuscated
         end
 
-        def contains_single_quotes?(str)
-          str.include?(LITERAL_SINGLE_QUOTE)
-        end
-
-        def contains_quotes?(str)
-          str.include?(LITERAL_SINGLE_QUOTE) || str.include?(LITERAL_DOUBLE_QUOTE)
+        def detect_unmatched_pairs(obfuscated, adapter)
+          if CLEANUP_REGEX[adapter]
+            CLEANUP_REGEX[adapter].match(obfuscated)
+          else
+            CLEANUP_REGEX[:mysql].match(obfuscated)
+          end
         end
       end
     end
