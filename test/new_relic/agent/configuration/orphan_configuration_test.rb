@@ -35,7 +35,7 @@ class OrphanedConfigTest < Minitest::Test
   DEFAULT_VALUE_OF_PATTERN  = /:default\s*=>\s*value_of\(:['"]?([a-z\._]+)['"]?\)\s*/
   REGISTER_CALLBACK_PATTERN = /register_callback\(:['"]?([a-z\._]+)['"]?\)/
   NAMED_DEPENDENCY_PATTERN  = /^\s*named[ (]+\:?([a-z0-9\._]+).*$/
-  EVENT_BUFFER_MACRO_PATTERN = /(capacity_key|enabled_key)\s+(:['"]?)([a-z\._]+)(['"])?/
+  EVENT_BUFFER_MACRO_PATTERN = /(capacity_key|enabled_key)\s+:['"]?([a-z\._]+)['"]?/
 
   def test_all_default_source_config_keys_are_used_in_the_agent
     non_test_files.each do |file|
