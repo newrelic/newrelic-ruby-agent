@@ -180,7 +180,7 @@ module NewRelic
       :sidekiq =>
       {
         :type        => :background,
-        :supported   => ["~>2.8"],
+        :supported   => ["~>2.8", "~>3.4.2", "~>4.0"],
         :url         => "https://rubygems.org/gems/sidekiq",
         :feed        => "https://rubygems.org/gems/sidekiq/versions.atom"
       },

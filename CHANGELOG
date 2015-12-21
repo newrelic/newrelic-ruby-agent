@@ -13,6 +13,10 @@
   There was an issue causing the error flag to always be set to false for Insights
   transaction events that has been fixed.
 
+  * Official support for Sidekiq 4
+
+  The Ruby agent now officially supports Sidekiq 4.
+
 ## v3.14.1 ##
 
   * Add support for setting a display name on hosts
