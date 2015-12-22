@@ -32,15 +32,20 @@ module NewRelic
           :uuids => /\{?(?:[0-9a-f]\-*){32}\}?/i,
           :hexadecimal_literals => /0x[0-9a-f]+/i,
           :boolean_literals => /true|false|null/i,
-          :numeric_literals => /\b-?(?:[0-9]+\.)?[0-9]+([eE][+-]?[0-9]+)?/
+          :numeric_literals => /\b-?(?:[0-9]+\.)?[0-9]+([eE][+-]?[0-9]+)?/,
+          :oracle_quoted_strings => /q'\[.*?(?:\]'|$)|q'\{.*?(?:\}'|$)|q'\<.*?(?:\>'|$)|q'\(.*?(?:\)'|$)/
         }
 
         DIALECT_COMPONENTS = {
           :fallback   => COMPONENTS_REGEX_MAP.keys,
           :mysql      => [:single_quotes, :double_quotes, :comments, :multi_line_comments,
                           :hexadecimal_literals, :boolean_literals, :numeric_literals],
-          :postgresql => [:single_quotes, :dollar_quotes, :comments, :multi_line_comments,
-                          :uuids, :boolean_literals, :numeric_literals]
+          :postgres   => [:single_quotes, :dollar_quotes, :comments, :multi_line_comments,
+                          :uuids, :boolean_literals, :numeric_literals],
+          :oracle     => [:single_quotes, :comments, :multi_line_comments, :numeric_literals,
+                          :oracle_quoted_strings],
+          :cassandra  => [:single_quotes, :comments, :multi_line_comments, :uuids,
+                          :hexadecimal_literals, :boolean_literals, :numeric_literals]
         }
 
         # We use these to check whether the query contains any quote characters
@@ -50,7 +55,9 @@ module NewRelic
         # placeholder.
         CLEANUP_REGEX = {
           :mysql => /'|"|\/\*|\*\//,
-          :postgresql => /'|\/\*|\*\/|\$/
+          :postgres => /'|\/\*|\*\/|\$/,
+          :cassandra => /'|\/\*|\*\//,
+          :oracle => /'|\/\*|\*\//
         }
 
         PLACEHOLDER = '?'.freeze
@@ -69,15 +76,21 @@ module NewRelic
         end
 
         MYSQL_COMPONENTS_REGEX = self.generate_regex(:mysql)
-        POSTGRES_COMPONENTS_REGEX = self.generate_regex(:postgresql)
+        POSTGRES_COMPONENTS_REGEX = self.generate_regex(:postgres)
+        ORACLE_COMPONENTS_REGEX = self.generate_regex(:oracle)
+        CASSANDRA_COMPONENTS_REGEX = self.generate_regex(:cassandra)
         FALLBACK_REGEX = self.generate_regex(:fallback)
 
         def obfuscate(sql, adapter)
           case adapter
           when :mysql
             regex = MYSQL_COMPONENTS_REGEX
-          when :postgresql
+          when :postgres
             regex = POSTGRES_COMPONENTS_REGEX
+          when :oracle
+            regex = ORACLE_COMPONENTS_REGEX
+          when :cassandra
+            regex = CASSANDRA_COMPONENTS_REGEX
           else
             regex = FALLBACK_REGEX
           end

@@ -6,14 +6,9 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'te
 
 module NewRelic::Agent::Database
   class SqlObfuscationTest < Minitest::Test
-    DIALECT_MAP = {
-      'postgres' => :postgresql,
-      'mysql'    => :mysql
-    }
-
     def self.create_input_statements(raw_query, dialects)
-      dialects.select{|dialect| DIALECT_MAP.keys.include?(dialect)}.map do |dialect|
-        NewRelic::Agent::Database::Statement.new(raw_query, {:adapter => DIALECT_MAP[dialect]})
+      dialects.map do |dialect|
+        NewRelic::Agent::Database::Statement.new(raw_query, {:adapter => dialect.to_sym})
       end
     end
 
