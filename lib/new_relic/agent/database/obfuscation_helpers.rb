@@ -6,23 +6,6 @@ module NewRelic
   module Agent
     module Database
       module ObfuscationHelpers
-        # Note that the following regex is applied to a reversed version
-        # of the query. This is why the backslash escape sequences (\' and \")
-        # appear reversed within them.
-        #
-        # Note that some database adapters (notably, PostgreSQL with
-        # standard_conforming_strings on and MySQL with NO_BACKSLASH_ESCAPES on)
-        # do not apply special treatment to backslashes within quoted string
-        # literals. We don't have an easy way of determining whether the
-        # database connection from which a query was captured was operating in
-        # one of these modes, but the obfuscation is done in such a way that it
-        # should not matter.
-        #
-        # Reversing the query string before obfuscation allows us to get around
-        # the fact that a \' appearing within a string may or may not terminate
-        # the string, because we know that a string cannot *start* with a \'.
-        REVERSE_SINGLE_QUOTES_REGEX = /'(?:''|'\\|[^'])*'/
-
         COMPONENTS_REGEX_MAP = {
           :single_quotes => /'(?:[^']|'')*?(?:\\'.*|'(?!'))/,
           :double_quotes => /"(?:[^"]|"")*?(?:\\".*|"(?!"))/,
@@ -64,10 +47,7 @@ module NewRelic
         FAILED_TO_OBFUSCATE_MESSAGE = "Failed to obfuscate SQL query - quote characters remained after obfuscation".freeze
 
         def obfuscate_single_quote_literals(sql)
-          obfuscated = sql.reverse
-          obfuscated.gsub!(REVERSE_SINGLE_QUOTES_REGEX, PLACEHOLDER)
-          obfuscated.reverse!
-          obfuscated
+          sql.gsub!(COMPONENTS_REGEX_MAP[:single_quotes], PLACEHOLDER) || sql
         end
 
         def self.generate_regex(dialect)
