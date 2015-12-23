@@ -5,7 +5,7 @@
 require 'timeout'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/pipe_channel_manager'
-require 'new_relic/agent/transaction_event'
+require 'new_relic/agent/transaction_event_primitive'
 
 class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
   include TransactionSampleTestHelper
@@ -110,7 +110,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       NewRelic::Agent.agent.stubs(:connected?).returns(true)
       run_child(699) do
         NewRelic::Agent.after_fork(:report_to_channel => 699)
-        transaction_event_aggregator.append TransactionEvent.new({
+        transaction_event_aggregator.append NewRelic::Agent::TransactionEventPrimitive.create({
           :start_timestamp => Time.now,
           :name => 'whatever',
           :duration => 10,

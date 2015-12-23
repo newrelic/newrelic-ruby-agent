@@ -13,11 +13,11 @@ class NewRelic::Agent::TransactionEventAggregator < NewRelic::Agent::EventAggreg
   capacity_key :'analytics_events.max_samples_stored'
   enabled_key :'analytics_events.enabled'
 
-  def append(event)
+  def append event, &blk
     return unless @enabled
 
     @lock.synchronize do
-      @buffer.append event.to_collector_array
+      @buffer.append event, &blk
       notify_if_full
     end
   end

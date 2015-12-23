@@ -5,6 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require 'new_relic/agent/synthetics_event_aggregator'
+require 'new_relic/agent/transaction_event_primitive'
 
 module NewRelic
   module Agent
@@ -162,7 +163,7 @@ module NewRelic
           :error => false
         }.merge(options)
 
-        @synthetics_event_aggregator.append_or_reject TransactionEvent.new(payload)
+        @synthetics_event_aggregator.append_or_reject TransactionEventPrimitive.create(payload)
       end
 
       def attributes

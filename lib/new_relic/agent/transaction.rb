@@ -8,7 +8,6 @@ require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
 require 'new_relic/agent/transaction/request_attributes'
-require 'new_relic/agent/transaction_event'
 
 module NewRelic
   module Agent
