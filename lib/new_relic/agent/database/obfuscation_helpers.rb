@@ -80,7 +80,7 @@ module NewRelic
           else
             regex = FALLBACK_REGEX
           end
-          obfuscated = sql.gsub!(regex, PLACEHOLDER) || sql
+          obfuscated = sql.gsub(regex, PLACEHOLDER)
           obfuscated = FAILED_TO_OBFUSCATE_MESSAGE if detect_unmatched_pairs(obfuscated, adapter)
           obfuscated
         end

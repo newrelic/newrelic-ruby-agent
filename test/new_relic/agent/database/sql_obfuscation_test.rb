@@ -8,7 +8,7 @@ module NewRelic::Agent::Database
   class SqlObfuscationTest < Minitest::Test
     def self.create_input_statements(raw_query, dialects)
       dialects.map do |dialect|
-        NewRelic::Agent::Database::Statement.new(raw_query, {:adapter => dialect.to_sym})
+        NewRelic::Agent::Database::Statement.new(raw_query, {:adapter => dialect})
       end
     end
 

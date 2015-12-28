@@ -327,7 +327,7 @@ module NewRelic
         end
 
         def adapter
-          config && config[:adapter]
+          config && config[:adapter] && config[:adapter].to_sym
         end
       end
     end
