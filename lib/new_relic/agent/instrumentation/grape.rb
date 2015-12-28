@@ -11,7 +11,7 @@ module NewRelic
         extend self
 
         API_ENDPOINT   = 'api.endpoint'.freeze
-        FORMAT_REGEX   = /\(\/?\.:format\)/.freeze
+        FORMAT_REGEX   = /\(\/?\.[\:\w]*\)/.freeze # either :format (< 0.12.0) or .ext (>= 0.12.0)
         VERSION_REGEX  = /:version(\/|$)/.freeze
         EMPTY_STRING   = ''.freeze
         MIN_VERSION    = VersionNumber.new("0.2.0")
