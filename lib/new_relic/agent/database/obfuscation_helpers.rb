@@ -25,6 +25,8 @@ module NewRelic
                           :hexadecimal_literals, :boolean_literals, :numeric_literals],
           :postgres   => [:single_quotes, :dollar_quotes, :comments, :multi_line_comments,
                           :uuids, :boolean_literals, :numeric_literals],
+          :sqlite     => [:single_quotes, :comments, :multi_line_comments, :hexadecimal_literals,
+                          :boolean_literals, :numeric_literals],
           :oracle     => [:single_quotes, :comments, :multi_line_comments, :numeric_literals,
                           :oracle_quoted_strings],
           :cassandra  => [:single_quotes, :comments, :multi_line_comments, :uuids,
@@ -39,6 +41,7 @@ module NewRelic
         CLEANUP_REGEX = {
           :mysql => /'|"|\/\*|\*\//,
           :postgres => /'|\/\*|\*\/|\$/,
+          :sqlite => /'|\/\*|\*\/|\$/,
           :cassandra => /'|\/\*|\*\//,
           :oracle => /'|\/\*|\*\//
         }
@@ -57,6 +60,7 @@ module NewRelic
 
         MYSQL_COMPONENTS_REGEX = self.generate_regex(:mysql)
         POSTGRES_COMPONENTS_REGEX = self.generate_regex(:postgres)
+        SQLITE_COMPONENTS_REGEX = self.generate_regex(:sqlite)
         ORACLE_COMPONENTS_REGEX = self.generate_regex(:oracle)
         CASSANDRA_COMPONENTS_REGEX = self.generate_regex(:cassandra)
         FALLBACK_REGEX = self.generate_regex(:fallback)
@@ -67,6 +71,8 @@ module NewRelic
             regex = MYSQL_COMPONENTS_REGEX
           when :postgres
             regex = POSTGRES_COMPONENTS_REGEX
+          when :sqlite
+            regex = SQLITE_COMPONENTS_REGEX
           when :oracle
             regex = ORACLE_COMPONENTS_REGEX
           when :cassandra
