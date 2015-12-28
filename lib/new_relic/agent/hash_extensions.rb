@@ -21,6 +21,21 @@ module NewRelic
           object
         end
       end
+
+      # recurses through hashes and arrays and symbolizes keys
+      def symbolize_keys_in_object(object)
+        case object
+        when Hash
+          object.inject({}) do |memo, (k, v)|
+            memo[k.to_sym] = symbolize_keys_in_object(v)
+            memo
+          end
+        when Array
+          object.map {|o| symbolize_keys_in_object(o)}
+        else
+          object
+        end
+      end
     end
   end
 end
