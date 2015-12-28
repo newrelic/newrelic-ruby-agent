@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.15.0 ##
+
+  * Fixes Grape metrics with a default extension
+
+  Starting with Grape 0.12.0 an API with a single format no longer declares methods with (.:format),
+  but with, for example, (.json). NewRelic instrumentation failed to strip the extension from the
+  transaction name.
+
 ## v3.14.3 ##
 
   * Don't inadvertently send sensitive information from DataMapper SQLErrors
