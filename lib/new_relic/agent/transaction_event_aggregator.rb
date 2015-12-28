@@ -13,8 +13,9 @@ class NewRelic::Agent::TransactionEventAggregator < NewRelic::Agent::EventAggreg
   capacity_key :'analytics_events.max_samples_stored'
   enabled_key :'analytics_events.enabled'
 
-  def append event, &blk
-    return unless @enabled
+  def append event=nil, &blk
+    raise ArgumentError, "Expected argument or block, but received both" if event && blk
+    return unless enabled?
 
     @lock.synchronize do
       @buffer.append event, &blk

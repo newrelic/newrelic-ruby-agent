@@ -41,11 +41,6 @@ module NewRelic
         assert_equal 1, last_transaction_events.length
       end
 
-      EVENT_DATA_INDEX = 0
-      CUSTOM_ATTRIBUTES_INDEX = 1
-      AGENT_ATTRIBUTES_INDEX = 2
-
-
       def test_records_background_tasks
         generate_request('a', :type => :controller)
         generate_request('b', :type => :background)
@@ -147,12 +142,43 @@ module NewRelic
         end
       end
 
+      def test_append_accepts_a_block
+        payload = generate_payload
+        @event_aggregator.append { TransactionEventPrimitive.create(payload) }
+        assert_equal 1, last_transaction_events.size
+      end
+
+      def test_block_is_not_executed_unless_buffer_admits_event
+        event = nil
+
+        with_config :'analytics_events.max_samples_stored' => 5 do
+          5.times { generate_request }
+
+          #cause sample to be discarded by the sampled buffer
+          buffer = @event_aggregator.instance_variable_get :@buffer
+          buffer.stubs(:rand).returns(6)
+
+          payload = generate_payload
+          @event_aggregator.append do
+            event = TransactionEventPrimitive.create(payload)
+          end
+        end
+
+        assert_nil event, "Did not expect block to be executed"
+        refute_includes last_transaction_events, event
+      end
+
       #
       # Helpers
       #
 
       def generate_request(name='whatever', options={})
-        payload = {
+        payload = generate_payload name, options
+        @event_aggregator.append TransactionEventPrimitive.create(payload)
+      end
+
+      def generate_payload(name='whatever', options={})
+        {
           :name => "Controller/#{name}",
           :type => :controller,
           :start_timestamp => options[:timestamp] || Time.now.to_f,
@@ -160,7 +186,6 @@ module NewRelic
           :attributes => attributes,
           :error => false
         }.merge(options)
-        @event_aggregator.append TransactionEventPrimitive.create(payload)
       end
 
       def attributes
