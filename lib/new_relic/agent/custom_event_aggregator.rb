@@ -57,13 +57,15 @@ module NewRelic
       def harvest!
         results = []
         drop_count = 0
+        metadata = nil
         @lock.synchronize do
           results.concat(@buffer.to_a)
           drop_count += @buffer.num_dropped
+          metadata = reservoir_metadata
           @buffer.reset!
         end
         note_dropped_events(results.size, drop_count)
-        results
+        [metadata, results]
       end
 
       def note_dropped_events(captured_count, dropped_count)
@@ -77,8 +79,10 @@ module NewRelic
         engine.tl_record_supportability_metric_count("Events/Customer/Dropped",  dropped_count)
       end
 
-      def merge!(events)
+      def merge!(payload)
+        _, events = payload
         @lock.synchronize do
+          @buffer.decrement_lifetime_counts_by events.count
           events.each do |event|
             @buffer.append(event)
           end
@@ -95,6 +99,18 @@ module NewRelic
         @buffer.note_dropped
       end
 
+      def has_metadata?
+        true
+      end
+
+      private
+
+      def reservoir_metadata
+        {
+          :reservoir_size => NewRelic::Agent.config[DEFAULT_CAPACITY_KEY],
+          :events_seen => @buffer.num_seen
+        }
+      end
     end
   end
 end

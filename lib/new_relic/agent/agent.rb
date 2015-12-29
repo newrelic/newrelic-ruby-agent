@@ -21,7 +21,7 @@ require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/synthetics_monitor'
 require 'new_relic/agent/synthetics_event_buffer'
-require 'new_relic/agent/transaction_event_aggregator'
+require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
@@ -64,7 +64,8 @@ module NewRelic
         @harvester       = NewRelic::Agent::Harvester.new(@events)
         @after_fork_lock = Mutex.new
 
-        @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new(@events)
+        @transaction_event_recorder = NewRelic::Agent::TransactionEventRecorder.new
+
         @custom_event_aggregator      = NewRelic::Agent::CustomEventAggregator.new
 
         @connect_state      = :pending
@@ -138,8 +139,16 @@ module NewRelic
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
         attr_reader :custom_event_aggregator
-
+        attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
+
+        def transaction_event_aggregator
+          @transaction_event_recorder.transaction_event_aggregator
+        end
+
+        def synthetics_event_aggregator
+          @transaction_event_recorder.synthetics_event_aggregator
+        end
 
         # This method should be called in a forked process after a fork.
         # It assumes the parent process initialized the agent, but does
@@ -557,7 +566,7 @@ module NewRelic
           @stats_engine.reset!
           @error_collector.drop_buffered_data
           @transaction_sampler.reset!
-          @transaction_event_aggregator.reset!
+          @transaction_event_recorder.drop_buffered_data
           @custom_event_aggregator.reset!
           @sql_sampler.reset!
         end
@@ -926,7 +935,7 @@ module NewRelic
           when :transaction_sample_data then @transaction_sampler
           when :error_data              then @error_collector.error_trace_aggregator
           when :error_event_data        then @error_collector.error_event_aggregator
-          when :analytic_event_data     then @transaction_event_aggregator
+          when :analytic_event_data     then transaction_event_aggregator
           when :custom_event_data       then @custom_event_aggregator
           when :sql_trace_data          then @sql_sampler
           end
@@ -1100,7 +1109,8 @@ module NewRelic
         end
 
         def harvest_and_send_analytic_event_data
-          harvest_and_send_from_container(@transaction_event_aggregator, :analytic_event_data)
+          harvest_and_send_from_container(transaction_event_aggregator, :analytic_event_data)
+          harvest_and_send_from_container(synthetics_event_aggregator, :analytic_event_data)
           harvest_and_send_from_container(@custom_event_aggregator,      :custom_event_data)
         end
 
