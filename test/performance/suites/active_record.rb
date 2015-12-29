@@ -7,7 +7,7 @@ class ActiveRecordTest < Performance::TestCase
   def setup
     require 'new_relic/agent/instrumentation/active_record_helper'
 
-    const_set(:ActiveRecordHelper, NewRelic::Agent::Instrumentation::ActiveRecordHelper) unless defined?(ActiveRecordHelper)
+    ActiveRecordTest.const_set(:ActiveRecordHelper, NewRelic::Agent::Instrumentation::ActiveRecordHelper) unless defined?(ActiveRecordHelper)
 
     if ActiveRecordHelper.respond_to?(:metrics_for)
       @run = ActiveRecordHelper.method(:metrics_for)
