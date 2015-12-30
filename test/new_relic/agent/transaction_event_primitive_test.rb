@@ -3,6 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require 'new_relic/agent/attribute_filter'
+require 'new_relic/agent/transaction/attributes'
 require 'new_relic/agent/transaction_event_primitive'
 
 module NewRelic
