@@ -68,16 +68,14 @@ module NewRelic
       end
 
       def test_notifies_full_only_once
-        expects_logging :debug, includes("TestAggregator capacity of 5 reached")
         with_config :cap_key => 5 do
+          msg = "TestAggregator capacity of 5 reached"
+          # this will trigger a message to be logged
           5.times { |i| @aggregator.append i}
-        end
 
-        @aggregator.harvest!
-
-        expects_no_logging :debug
-        with_config :cap_key => 5 do
-          5.times { |i| @aggregator.append i}
+          # we expect subsequent appends not to trigger logging
+          expects_logging :debug, Not(includes(msg))
+          3.times {@aggregator.append 'no logs'}
         end
       end
 
