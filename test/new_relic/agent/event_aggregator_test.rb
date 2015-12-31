@@ -127,6 +127,52 @@ module NewRelic
 
         assert_kind_of NewRelic::Agent::SizedBuffer, instance.buffer
       end
+
+      def test_buffer_adjusts_count_by_default_on_merge
+        with_config :cap_key => 5 do
+          buffer = @aggregator.buffer
+
+          4.times { |i| @aggregator.append i  }
+          last_harvest = @aggregator.harvest!
+
+          assert_equal 4, buffer.seen_lifetime
+          assert_equal 4, buffer.captured_lifetime
+          assert_equal 4, last_harvest[0][:events_seen]
+
+          4.times { |i| @aggregator.append i }
+          @aggregator.merge! last_harvest
+
+          reservoir_stats, samples = @aggregator.harvest!
+
+          assert_equal 5, samples.size
+          assert_equal 8, reservoir_stats[:events_seen]
+          assert_equal 8, buffer.seen_lifetime
+          assert_equal 5, buffer.captured_lifetime
+        end
+      end
+
+      def test_buffer_adds_to_original_count_on_merge_when_specified
+        with_config :cap_key => 5 do
+          buffer = @aggregator.buffer
+
+          4.times { |i| @aggregator.append i  }
+          last_harvest = @aggregator.harvest!
+
+          assert_equal 4, buffer.seen_lifetime
+          assert_equal 4, buffer.captured_lifetime
+          assert_equal 4, last_harvest[0][:events_seen]
+
+          4.times { |i| @aggregator.append i }
+          @aggregator.merge! last_harvest, false
+
+          reservoir_stats, samples = @aggregator.harvest!
+
+          assert_equal 5, samples.size
+          assert_equal 8, reservoir_stats[:events_seen]
+          assert_equal 12, buffer.seen_lifetime
+          assert_equal 9, buffer.captured_lifetime
+        end
+      end
     end
   end
 end

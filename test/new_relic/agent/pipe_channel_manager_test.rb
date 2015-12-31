@@ -105,6 +105,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     def test_listener_merges_analytics_events
       transaction_event_aggregator = NewRelic::Agent.agent.transaction_event_aggregator
+      reset_lifetime_counts! transaction_event_aggregator
 
       start_listener_with_pipe(699)
       NewRelic::Agent.agent.stubs(:connected?).returns(true)
@@ -119,8 +120,35 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         NewRelic::Agent.agent.send(:transmit_event_data)
       end
 
-      samples = transaction_event_aggregator.harvest![1]
+      _, samples = transaction_event_aggregator.harvest!
+
       assert_equal(1, samples.size)
+      assert_lifetime_counts(transaction_event_aggregator, 1)
+    end
+
+    def test_listener_merges_error_events
+      error_event_aggregator = NewRelic::Agent.agent.error_collector.error_event_aggregator
+      reset_lifetime_counts! error_event_aggregator
+
+      sampler = NewRelic::Agent.agent.error_collector
+      sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
+                           :metric => 'path', :referer => 'test_referer',
+                           :request_params => {:x => 'y'})
+
+      start_listener_with_pipe(668)
+
+      run_child(668) do
+        NewRelic::Agent.after_fork
+        new_sampler = NewRelic::Agent::ErrorCollector.new
+        new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
+                                 :metric => 'path', :referer => 'test_referer',
+                                 :request_params => {:x => 'y'})
+        service = NewRelic::Agent::PipeService.new(668)
+        service.error_event_data(new_sampler.error_event_aggregator.harvest!)
+      end
+      _, errors = error_event_aggregator.harvest!
+      assert_equal(2, errors.size)
+      assert_lifetime_counts(error_event_aggregator, 2)
     end
 
     def test_listener_merges_sql_traces
@@ -277,5 +305,17 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     until pipe_finished?(channel_id)
       sleep 0.01
     end
+  end
+
+  def assert_lifetime_counts container, value
+    buffer = container.instance_variable_get :@buffer
+    assert_equal value, buffer.captured_lifetime
+    assert_equal value, buffer.seen_lifetime
+  end
+
+  def reset_lifetime_counts! container
+    buffer = container.instance_variable_get :@buffer
+    buffer.instance_variable_set :@captured_lifetime, 0
+    buffer.instance_variable_set :@seen_lifetime, 0
   end
 end

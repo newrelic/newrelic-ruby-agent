@@ -67,10 +67,18 @@ module NewRelic
         [reservoir_metadata(metadata), samples]
       end
 
-      def merge! payload
+      # Merges samples from payload back into buffer and optionally adjusts the count of
+      # the buffer to ensure accuracy of buffer of metadata. We want to make sure not to
+      # double count samples being merged back in from a failed harvest, yet we do not
+      # want to under-count samples being merged from the PipeService.
+      def merge! payload, adjust_count = true
         @lock.synchronize do
           _, samples = payload
-          @buffer.decrement_lifetime_counts_by samples.count
+
+          if adjust_count
+            @buffer.decrement_lifetime_counts_by samples.count
+          end
+
           samples.each { |s| @buffer.append s }
         end
       end

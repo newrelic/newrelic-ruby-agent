@@ -943,7 +943,12 @@ module NewRelic
 
         def merge_data_for_endpoint(endpoint, data)
           if data && !data.empty?
-            container_for_endpoint(endpoint).merge!(data)
+            container = container_for_endpoint endpoint
+            if container.respond_to?(:has_metadata?) && container.has_metadata?
+              container_for_endpoint(endpoint).merge!(data, false)
+            else
+              container_for_endpoint(endpoint).merge!(data)
+            end
           end
         rescue => e
           NewRelic::Agent.logger.error("Error while merging #{endpoint} data from child: ", e)
