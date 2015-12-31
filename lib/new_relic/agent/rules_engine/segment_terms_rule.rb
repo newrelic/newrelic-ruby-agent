@@ -31,7 +31,12 @@ module NewRelic
           return false unless valid?
 
           string.start_with?(@prefix) &&
-            (string[@prefix.chomp(SEGMENT_SEPARATOR).size] == SEGMENT_SEPARATOR || string.size == @prefix.size)
+            (prefix_matches_on_segment_boundary?(string) || string.size == @prefix.size)
+        end
+
+        def prefix_matches_on_segment_boundary?(string)
+          string.size > @prefix.size &&
+            string[@prefix.chomp(SEGMENT_SEPARATOR).size].chr == SEGMENT_SEPARATOR
         end
 
         def valid_prefix_segment_count?(prefix)
