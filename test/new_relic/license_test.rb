@@ -70,6 +70,8 @@ class LicenseTest < Minitest::Test
       File.expand_path(__FILE__) == path ||
       # skip rpm_test_app and other stuff that ends up in tmp
       path.include?(gem_root + '/tmp/') ||
+      # skip vendor/bundle
+      path.include?(gem_root + '/vendor/bundle') ||
       # skip the auto-generated build.rb file
       path =~ %r{lib/new_relic/build\.rb} ||
       # skip tags file

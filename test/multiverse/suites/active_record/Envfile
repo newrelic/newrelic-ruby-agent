@@ -6,6 +6,7 @@ boilerplate_gems = <<-BOILERPLATE
   else
     gem 'mysql'
   end
+  gem 'i18n', '< 0.7.0' if RUBY_VERSION < '1.9.3' # i18n >= 0.7.0 only works on Ruby 1.9.3 and newer
 BOILERPLATE
 
 if RUBY_VERSION >= '1.9.3'

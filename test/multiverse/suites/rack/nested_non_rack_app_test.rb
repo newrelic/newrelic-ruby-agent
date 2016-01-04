@@ -58,7 +58,7 @@ class NestedNonRackAppTest < Minitest::Test
         "Nested/Controller/Rack/NestedNonRackAppTest::RailsishApp/call",
         ["Nested/Controller/Rack/NestedNonRackAppTest::RailsishApp/call", "Controller/NestedNonRackAppTest::RailsishApp/inner"]
       ],
-      :ignore_filter => /^Supportability\/EnvironmentReport/
+      :ignore_filter => /^Supportability/
     )
   end
 end
