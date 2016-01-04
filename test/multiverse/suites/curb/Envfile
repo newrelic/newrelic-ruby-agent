@@ -12,7 +12,7 @@ gemfile <<-RB
   gem 'json', :platforms => [:rbx, :mri_18]
 
   # We try translating URIs through Addressable if it's there, so test with it.
-  gem 'addressable', :require => 'addressable/uri'
+  gem 'addressable', '2.3.8', :require => 'addressable/uri' # addressable >= 2.4.0 does not support Ruby 1.8.7
 RB
 
 gemfile <<-RB

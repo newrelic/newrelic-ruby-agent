@@ -11,7 +11,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
   def after_setup
     super
-    @redis = Redis.new
+    @redis = Redis.new(:timeout => 25) # Default is 5 secs; a flushall takes longer on a busy box (i.e. CI)
 
     # Creating a new client doesn't actually establish a connection, so make
     # sure we do that by issuing a dummy get command, and then drop metrics

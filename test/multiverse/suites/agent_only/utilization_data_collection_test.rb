@@ -54,6 +54,8 @@ class UtilizationDataCollectionTest < Minitest::Test
     NewRelic::Agent::Hostname.stubs(:get).returns("host")
     NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
     NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
+    NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns(nil)
+    NewRelic::Agent::AWSInfo.any_instance.stubs(:loaded?).returns(false)
 
     # this will trigger the agent to connect and send utilization data
     setup_agent

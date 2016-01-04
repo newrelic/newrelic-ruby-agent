@@ -21,14 +21,12 @@ module NewRelic::Agent
       utilization_data = UtilizationData.new
 
       expected = {
-        :aws => {
-          :id => "i-e7e85ce1",
-          :type => "m3.medium",
-          :zone => "us-west-2b"
-        }
+        :id => "i-e7e85ce1",
+        :type => "m3.medium",
+        :zone => "us-west-2b"
       }
 
-      assert_equal expected, utilization_data.to_collector_hash[:vendors]
+      assert_equal expected, utilization_data.to_collector_hash[:vendors][:aws]
     end
 
     def test_aws_information_is_omitted_when_available_but_disabled_by_config
@@ -38,7 +36,7 @@ module NewRelic::Agent
         :availability_zone => "us-west-2b"
       )
 
-      with_config(:'utilization.detect_aws' => false) do
+      with_config(:'utilization.detect_aws' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
         assert_nil utilization_data.to_collector_hash[:vendors]
       end
@@ -103,6 +101,8 @@ module NewRelic::Agent
     end
 
     def test_vendor_information_is_omitted_if_unavailable
+      NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns(nil)
+
       utilization_data = UtilizationData.new
 
       assert_nil utilization_data.to_collector_hash[:vendors]
