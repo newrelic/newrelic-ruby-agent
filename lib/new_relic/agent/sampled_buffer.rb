@@ -20,14 +20,9 @@ module NewRelic
         @seen_lifetime     = 0
       end
 
-      def reset!
-        @captured_lifetime += @items.size
-        @seen_lifetime     += @seen
-        super
-      end
-
       def append(x = nil, &blk)
         @seen += 1
+        @seen_lifetime += 1
         append_event(x, &blk)
       end
 
@@ -37,6 +32,7 @@ module NewRelic
         if @items.size < @capacity
           x = blk.call if block_given?
           @items << x
+          @captured_lifetime += 1
           return x
         else
           m = rand(@seen) # [0, @seen)
@@ -58,6 +54,13 @@ module NewRelic
 
       def sample_rate_lifetime
         @captured_lifetime > 0 ? (@captured_lifetime.to_f / @seen_lifetime) : 0.0
+      end
+
+      def metadata
+        super.merge!(
+          :captured_lifetime => @captured_lifetime,
+          :seen_lifetime => @seen_lifetime
+        )
       end
     end
   end

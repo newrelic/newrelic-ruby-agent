@@ -171,7 +171,7 @@ module NewRelic
 
       def test_sample_counts_are_correct_after_merge
         with_config :'error_collector.max_event_samples_stored' => 5 do
-          buffer = error_event_aggregator.instance_variable_get :@error_event_buffer
+          buffer = error_event_aggregator.instance_variable_get :@buffer
 
           4.times { generate_error }
           last_harvest = error_event_aggregator.harvest!
@@ -260,7 +260,7 @@ module NewRelic
       def reset_error_event_buffer_state
         # this is not ideal, but we need to reset these counts to clear out state
         # between tests
-        buffer = error_event_aggregator.instance_variable_get :@error_event_buffer
+        buffer = error_event_aggregator.instance_variable_get :@buffer
         buffer.instance_variable_set :@seen_lifetime, 0
         buffer.instance_variable_set :@captured_lifetime, 0
       end

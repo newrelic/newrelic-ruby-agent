@@ -604,7 +604,7 @@ def json_dump_and_encode(object)
 end
 
 def get_last_analytics_event
-  NewRelic::Agent.agent.transaction_event_aggregator.samples.last
+  NewRelic::Agent.agent.transaction_event_aggregator.harvest![1].last
 end
 
 def swap_instance_method(target, method_name, new_method_implementation, &blk)

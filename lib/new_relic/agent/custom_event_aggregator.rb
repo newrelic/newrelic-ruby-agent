@@ -2,35 +2,21 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/sized_buffer'
+require 'new_relic/agent/event_aggregator'
 require 'new_relic/agent/attribute_processing'
 
 module NewRelic
   module Agent
-    class CustomEventAggregator
+    class CustomEventAggregator < EventAggregator
       include NewRelic::Coerce
 
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
       EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
 
-      DEFAULT_CAPACITY_KEY = :'custom_insights_events.max_samples_stored'
-
-      def initialize
-        @lock         = Mutex.new
-        @buffer       = SampledBuffer.new(NewRelic::Agent.config[DEFAULT_CAPACITY_KEY])
-        @type_strings = Hash.new { |hash, key| hash[key] = key.to_s.freeze }
-        register_config_callbacks
-      end
-
-      def register_config_callbacks
-        NewRelic::Agent.config.register_callback(DEFAULT_CAPACITY_KEY) do |max_samples|
-          NewRelic::Agent.logger.debug "CustomEventAggregator max_samples set to #{max_samples}"
-          @lock.synchronize do
-            @buffer.capacity = max_samples
-          end
-        end
-      end
+      named :CustomEventAggregator
+      capacity_key :'custom_insights_events.max_samples_stored'
+      enabled_key :'custom_insights_events.enabled'
 
       def record(type, attributes)
         unless attributes.is_a? Hash
@@ -54,62 +40,35 @@ module NewRelic
         stored
       end
 
-      def harvest!
-        results = []
-        drop_count = 0
-        metadata = nil
-        @lock.synchronize do
-          results.concat(@buffer.to_a)
-          drop_count += @buffer.num_dropped
-          metadata = reservoir_metadata
-          @buffer.reset!
-        end
-        note_dropped_events(results.size, drop_count)
-        [metadata, results]
+      private
+
+      def after_initialize
+        @type_strings = Hash.new { |hash, key| hash[key] = key.to_s.freeze }
       end
 
-      def note_dropped_events(captured_count, dropped_count)
-        total_count = captured_count + dropped_count
+      def after_harvest metadata
+        dropped_count = metadata[:seen] - metadata[:captured]
+        note_dropped_events(metadata[:seen], dropped_count)
+        record_supportability_metrics(metadata[:seen], metadata[:captured], dropped_count)
+      end
+
+      def note_dropped_events total_count, dropped_count
         if dropped_count > 0
           NewRelic::Agent.logger.warn("Dropped #{dropped_count} custom events out of #{total_count}.")
         end
+      end
+
+      def record_supportability_metrics total_count, captured_count, dropped_count
         engine = NewRelic::Agent.instance.stats_engine
         engine.tl_record_supportability_metric_count("Events/Customer/Seen"   ,    total_count)
         engine.tl_record_supportability_metric_count("Events/Customer/Sent"   , captured_count)
         engine.tl_record_supportability_metric_count("Events/Customer/Dropped",  dropped_count)
       end
 
-      def merge!(payload)
-        _, events = payload
-        @lock.synchronize do
-          @buffer.decrement_lifetime_counts_by events.count
-          events.each do |event|
-            @buffer.append(event)
-          end
-        end
-      end
-
-      def reset!
-        @lock.synchronize { @buffer.reset! }
-      end
-
       def note_dropped_event(type)
         ::NewRelic::Agent.logger.log_once(:warn, "dropping_event_of_type:#{type}",
           "Invalid event type name '#{type}', not recording.")
         @buffer.note_dropped
-      end
-
-      def has_metadata?
-        true
-      end
-
-      private
-
-      def reservoir_metadata
-        {
-          :reservoir_size => NewRelic::Agent.config[DEFAULT_CAPACITY_KEY],
-          :events_seen => @buffer.num_seen
-        }
       end
     end
   end
