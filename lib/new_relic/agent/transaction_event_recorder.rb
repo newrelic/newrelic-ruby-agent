@@ -27,7 +27,7 @@ module NewRelic
           _, rejected = synthetics_event_aggregator.append_or_reject event
           transaction_event_aggregator.append event if rejected
         else
-          transaction_event_aggregator.append create_event(payload)
+          transaction_event_aggregator.append { create_event(payload) }
         end
       end
 
