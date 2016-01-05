@@ -30,6 +30,12 @@ cache:
     - /home/travis/bundle
     - /home/travis/gemfiles
 
+branches:
+  only:
+    - master
+    - dev
+    - release
+
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - rbx-2.5.8
