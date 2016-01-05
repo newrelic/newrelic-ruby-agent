@@ -49,7 +49,7 @@ module NewRelic
       def test_agent_attributes_in_event_are_normalized_to_string_keys
         attributes.add_agent_attribute(:yahoo, 7, NewRelic::Agent::AttributeFilter::DST_ALL)
         attributes.add_agent_attribute(4, 2, NewRelic::Agent::AttributeFilter::DST_ALL)
-        *_, agent_attrs = TransactionEventPrimitive.create generate_payload('puce')
+        _, _, agent_attrs = TransactionEventPrimitive.create generate_payload('puce')
 
         assert_equal 7, agent_attrs[:yahoo]
         assert_equal 2, agent_attrs[4]
@@ -70,7 +70,7 @@ module NewRelic
       def test_includes_agent_attributes_in_event
         attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
 
-        *_, agent_attrs = TransactionEventPrimitive.create generate_payload
+        _, _, agent_attrs = TransactionEventPrimitive.create generate_payload
         assert_equal 2, agent_attrs['bing']
       end
 
@@ -86,7 +86,7 @@ module NewRelic
         with_config('transaction_events.attributes.enabled' => false) do
           attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
 
-          *_, agent_attrs = TransactionEventPrimitive.create generate_payload
+          _, _, agent_attrs = TransactionEventPrimitive.create generate_payload
           assert_empty agent_attrs
         end
       end
@@ -104,7 +104,7 @@ module NewRelic
         with_config('analytics_events.capture_attributes' => false) do
           attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
 
-          *_, agent_attrs = TransactionEventPrimitive.create generate_payload
+          _, _, agent_attrs = TransactionEventPrimitive.create generate_payload
           assert_empty agent_attrs
         end
       end
