@@ -17,11 +17,11 @@ module NewRelic
       def test_creates_intrinsics
         intrinsics, *_ = TransactionEventPrimitive.create generate_payload
 
-        assert_equal :Transaction, intrinsics[:type]
-        assert_in_delta Time.now.to_f, intrinsics[:timestamp], 0.001
-        assert_equal "Controller/whatever", intrinsics[:name]
-        assert_equal false, intrinsics[:error]
-        assert_equal 0.1, intrinsics[:duration]
+        assert_equal "Transaction", intrinsics['type']
+        assert_in_delta Time.now.to_f, intrinsics['timestamp'], 0.001
+        assert_equal "Controller/whatever", intrinsics['name']
+        assert_equal false, intrinsics['error']
+        assert_equal 0.1, intrinsics['duration']
       end
 
       def test_event_includes_synthetics
@@ -33,9 +33,9 @@ module NewRelic
 
         intrinsics, *_ = TransactionEventPrimitive.create payload
 
-        assert_equal '3', intrinsics[:'nr.syntheticsResourceId']
-        assert_equal '4', intrinsics[:'nr.syntheticsJobId']
-        assert_equal '5', intrinsics[:'nr.syntheticsMonitorId']
+        assert_equal '3', intrinsics['nr.syntheticsResourceId']
+        assert_equal '4', intrinsics['nr.syntheticsJobId']
+        assert_equal '5', intrinsics['nr.syntheticsMonitorId']
       end
 
       def test_custom_attributes_in_event_are_normalized_to_string_keys
@@ -58,7 +58,7 @@ module NewRelic
       def test_error_is_included_in_event_data
         event_data, *_ = TransactionEventPrimitive.create generate_payload('whatever', :error => true)
 
-        assert event_data[:error]
+        assert event_data['error']
       end
 
       def test_includes_custom_attributes_in_event
@@ -116,8 +116,8 @@ module NewRelic
         attributes.merge_custom_attributes('type' => 'giraffe', 'duration' => 'hippo')
         event, custom_attrs, _ = TransactionEventPrimitive.create generate_payload('whatever', :metrics => metrics)
 
-        assert_equal :Transaction, event[:type]
-        assert_equal 0.1, event[:duration]
+        assert_equal 'Transaction', event['type']
+        assert_equal 0.1, event['duration']
 
         assert_equal 'giraffe', custom_attrs['type']
         assert_equal 'hippo', custom_attrs['duration']
@@ -159,17 +159,17 @@ module NewRelic
       def test_samples_on_transaction_finished_event_include_apdex_perf_zone
         event_data, *_ = TransactionEventPrimitive.create generate_payload('name', :apdex_perf_zone => 'S')
 
-        assert_equal 'S', event_data[:'nr.apdexPerfZone']
+        assert_equal 'S', event_data['nr.apdexPerfZone']
       end
 
       def test_samples_on_transaction_finished_event_includes_guid
         event_data, *_ = TransactionEventPrimitive.create generate_payload('name', :guid => "GUID")
-        assert_equal "GUID", event_data[:'nr.guid']
+        assert_equal "GUID", event_data["nr.guid"]
       end
 
       def test_samples_on_transaction_finished_event_includes_referring_transaction_guid
         event_data, *_ = TransactionEventPrimitive.create generate_payload('name', :referring_transaction_guid=> "REFER")
-        assert_equal "REFER", event_data[:'nr.referringTransactionGuid']
+        assert_equal "REFER", event_data["nr.referringTransactionGuid"]
       end
 
       def generate_payload name = 'whatever', options = {}

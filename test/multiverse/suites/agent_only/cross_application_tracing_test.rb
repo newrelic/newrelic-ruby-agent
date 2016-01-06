@@ -85,8 +85,8 @@ class CrossApplicationTracingTest < Minitest::Test
         assert_event_attributes(
           event,
           test_case['name'],
-          NewRelic::Agent::HashExtensions.symbolize_keys_in_object(test_case['expectedIntrinsicFields']),
-          NewRelic::Agent::HashExtensions.symbolize_keys_in_object(test_case['nonExpectedIntrinsicFields'])
+          test_case['expectedIntrinsicFields'],
+          test_case['nonExpectedIntrinsicFields']
         )
       end
     end

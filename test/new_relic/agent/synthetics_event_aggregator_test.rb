@@ -49,7 +49,7 @@ module NewRelic
               assert_nil rejected, "Expected event to be accepted"
             else
               refute_nil rejected, "Expected event to be rejected"
-              assert_equal 10.0, rejected.first[:timestamp]
+              assert_equal 10.0, rejected.first["timestamp"]
             end
           end
         end
@@ -65,7 +65,7 @@ module NewRelic
           samples = last_synthetics_events
           assert_equal 10, samples.size
           timestamps = samples.map do |(main, _)|
-            main[:timestamp]
+            main["timestamp"]
           end.sort
 
           assert_equal ([1] + (10..18).to_a), timestamps
