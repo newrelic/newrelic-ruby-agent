@@ -15,7 +15,7 @@ module NewRelic::Agent
     end
 
     def create_event(timestamp)
-      [{'timestamp' => timestamp}, {}]
+      [{:timestamp => timestamp}, {}]
     end
 
     def test_append_with_reject_returns_rejected_item

@@ -40,7 +40,7 @@ module NewRelic
           _, syn_events = harvest_synthetics_events!
 
           assert_equal 10, syn_events.size
-          assert_equal 10.0, syn_events[0][0]['timestamp']
+          assert_equal 10.0, syn_events[0][0][:timestamp]
           assert_equal 1, txn_events.size
         end
       end
