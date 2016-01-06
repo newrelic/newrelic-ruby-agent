@@ -17,10 +17,13 @@ module NewRelic
 
       # To avoid allocations when we have empty custom or agent attributes
       EMPTY_HASH = {}.freeze
+      # Always use string representation of timestamp since the SyntheticsEventBuffer
+      # checks the 'timestamp' value for admission into its buffer
+      TIMESTAMP = "timestamp".freeze
 
       def create(payload)
         intrinsics = {
-        :timestamp => float(payload[:start_timestamp]),
+        TIMESTAMP => float(payload[:start_timestamp]),
         :name     => string(payload[:name]),
         :duration  => float(payload[:duration]),
         :type     => :Transaction,
