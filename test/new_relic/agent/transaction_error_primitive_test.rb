@@ -18,13 +18,13 @@ module NewRelic
       def test_event_includes_expected_intrinsics
         intrinsics, *_ = create_event
 
-        assert_equal :TransactionError, intrinsics[:type]
-        assert_in_delta Time.now.to_f, intrinsics[:timestamp], 0.001
-        assert_equal "RuntimeError", intrinsics[:'error.class']
-        assert_equal "Big Controller!", intrinsics[:'error.message']
-        assert_equal "Controller/blogs/index", intrinsics[:transactionName]
-        assert_equal 0.1, intrinsics[:duration]
-        assert_equal 80, intrinsics[:port]
+        assert_equal 'TransactionError', intrinsics['type']
+        assert_in_delta Time.now.to_f, intrinsics['timestamp'], 0.001
+        assert_equal "RuntimeError", intrinsics['error.class']
+        assert_equal "Big Controller!", intrinsics['error.message']
+        assert_equal "Controller/blogs/index", intrinsics['transactionName']
+        assert_equal 0.1, intrinsics['duration']
+        assert_equal 80, intrinsics['port']
       end
 
       def test_event_includes_synthetics
@@ -34,9 +34,9 @@ module NewRelic
           :synthetics_monitor_id=>5
         }
 
-        assert_equal 3, intrinsics[:'nr.syntheticsResourceId']
-        assert_equal 4, intrinsics[:'nr.syntheticsJobId']
-        assert_equal 5, intrinsics[:'nr.syntheticsMonitorId']
+        assert_equal 3, intrinsics['nr.syntheticsResourceId']
+        assert_equal 4, intrinsics['nr.syntheticsJobId']
+        assert_equal 5, intrinsics['nr.syntheticsMonitorId']
       end
 
       def test_includes_mapped_metrics
@@ -59,8 +59,8 @@ module NewRelic
       def test_includes_cat_attributes
         intrinsics, *_ = create_event :payload_options => {:guid => "GUID", :referring_transaction_guid=>"REFERRING_GUID"}
 
-        assert_equal "GUID", intrinsics[:"nr.transactionGuid"]
-        assert_equal "REFERRING_GUID", intrinsics[:"nr.referringTransactionGuid"]
+        assert_equal "GUID", intrinsics["nr.transactionGuid"]
+        assert_equal "REFERRING_GUID", intrinsics["nr.referringTransactionGuid"]
       end
 
       def test_includes_custom_attributes

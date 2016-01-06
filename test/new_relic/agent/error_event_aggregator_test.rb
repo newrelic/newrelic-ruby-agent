@@ -38,10 +38,10 @@ module NewRelic
 
         intrinsics, *_ = last_error_event
 
-        assert_equal :TransactionError, intrinsics[:type]
-        assert_in_delta Time.now.to_f, intrinsics[:timestamp], 0.001
-        assert_equal "RuntimeError", intrinsics[:'error.class']
-        assert_equal "Big Controller!", intrinsics[:'error.message']
+        assert_equal 'TransactionError', intrinsics['type']
+        assert_in_delta Time.now.to_f, intrinsics['timestamp'], 0.001
+        assert_equal "RuntimeError", intrinsics['error.class']
+        assert_equal "Big Controller!", intrinsics['error.message']
       end
 
       def test_generates_event_from_error
@@ -49,13 +49,13 @@ module NewRelic
 
         intrinsics, *_ = last_error_event
 
-        assert_equal :TransactionError, intrinsics[:type]
-        assert_in_delta Time.now.to_f, intrinsics[:timestamp], 0.001
-        assert_equal "RuntimeError", intrinsics[:'error.class']
-        assert_equal "Big Controller!", intrinsics[:'error.message']
-        assert_equal "Controller/blogs/index", intrinsics[:transactionName]
-        assert_equal 0.1, intrinsics[:duration]
-        assert_equal 80, intrinsics[:port]
+        assert_equal 'TransactionError', intrinsics['type']
+        assert_in_delta Time.now.to_f, intrinsics['timestamp'], 0.001
+        assert_equal "RuntimeError", intrinsics['error.class']
+        assert_equal "Big Controller!", intrinsics['error.message']
+        assert_equal "Controller/blogs/index", intrinsics['transactionName']
+        assert_equal 0.1, intrinsics['duration']
+        assert_equal 80, intrinsics['port']
       end
 
       def test_respects_max_samples_stored
