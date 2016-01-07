@@ -2,7 +2,7 @@ mysql: &mysql
 <% if defined?(JRuby) %>
   adapter: jdbcmysql
 <% else %>
-  adapter: mysql
+  adapter: mysql2
 <% end %>
   socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
   username: root

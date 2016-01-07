@@ -70,6 +70,7 @@ env:
     - TYPE=UNIT ENVIRONMENT=rails40
     - TYPE=UNIT ENVIRONMENT=rails41
     - TYPE=UNIT ENVIRONMENT=rails42
+    - TYPE=UNIT ENVIRONMENT=rails50
     - TYPE=UNIT ENVIRONMENT=norails
     - TYPE=FUNCTIONAL GROUP=agent
     - TYPE=FUNCTIONAL GROUP=api
@@ -106,6 +107,8 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails22
     - rvm: 2.1.8
       env: TYPE=UNIT ENVIRONMENT=rails23
+    - rvm: 2.1.8
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # 2.0
     - rvm: 2.0.0-p648
@@ -114,18 +117,24 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails22
     - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails23
+    - rvm: 2.0.0-p648
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # 1.9.3
     - rvm: 1.9.3
       env: TYPE=UNIT ENVIRONMENT=rails21
     - rvm: 1.9.3
       env: TYPE=UNIT ENVIRONMENT=rails22
+    - rvm: 1.9.3
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # 1.9.2
     - rvm: 1.9.2
       env: TYPE=UNIT ENVIRONMENT=rails21
     - rvm: 1.9.2
       env: TYPE=UNIT ENVIRONMENT=rails22
+    - rvm: 1.9.2
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # REE
     - rvm: ree
@@ -134,6 +143,9 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails41
     - rvm: ree
       env: TYPE=UNIT ENVIRONMENT=rails42
+    - rvm: ree
+      env: TYPE=UNIT ENVIRONMENT=rails50
+
 
     # 1.8.7
     - rvm: 1.8.7
@@ -142,6 +154,8 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails41
     - rvm: 1.8.7
       env: TYPE=UNIT ENVIRONMENT=rails42
+    - rvm: 1.8.7
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # jruby 1.7
     - rvm: jruby-1.7.23
