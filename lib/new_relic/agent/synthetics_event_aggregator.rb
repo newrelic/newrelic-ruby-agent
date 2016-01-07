@@ -19,7 +19,7 @@ module NewRelic
         return unless enabled?
 
         @lock.synchronize do
-          @buffer.append_with_reject event.to_collector_array
+          @buffer.append_with_reject event
         end
       end
 

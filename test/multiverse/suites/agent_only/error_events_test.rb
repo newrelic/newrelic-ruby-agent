@@ -94,8 +94,8 @@ class ErrorEventsTest < Minitest::Test
 
   def last_error_event
     post = last_error_event_post
-    assert_equal(1, post.error_events.size)
-    post.error_events.last
+    assert_equal(1, post.events.size)
+    post.events.last
   end
 
   def last_error_event_post
