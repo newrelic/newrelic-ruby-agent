@@ -31,29 +31,4 @@ class HashExtensionsTest < Minitest::Test
     refute_same arg, result
     assert_includes arg.keys, :foo
   end
-
-  def test_symbolize_keys_in_object_with_nested_hash
-    hash = {"foo" => {"bar" => [{"baz" => "qux"}, "quux"]}}
-    expected = {:foo => {:bar => [{:baz => "qux"}, "quux"]}}
-
-    actual = NewRelic::Agent::HashExtensions.symbolize_keys_in_object(hash)
-
-    assert_equal expected, actual
-  end
-
-  def test_symbolize_keys_in_object_with_array
-    array = ["foo", {"bar" => [{"baz" => "qux"}, "quux"]}]
-    expected = ["foo", {:bar => [{:baz => "qux"}, "quux"]}]
-
-    actual = NewRelic::Agent::HashExtensions.symbolize_keys_in_object(array)
-
-    assert_equal expected, actual
-  end
-
-  def test_symbolize_keys_in_object_does_not_mutate_argument
-    arg = {"foo" => "bar"}
-    result = NewRelic::Agent::HashExtensions.symbolize_keys_in_object(arg)
-    refute_same arg, result
-    assert_includes arg.keys, "foo"
-  end
 end
