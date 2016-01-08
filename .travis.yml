@@ -145,10 +145,6 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails42
     - rvm: ree
       env: TYPE=UNIT ENVIRONMENT=rails50
-<<<<<<< d98a3c0050a2c0e182a207092698a7b5904c58fc
-=======
-
->>>>>>> RUBY-1531 Rails 5.0.0beta1 instrumentation
 
     # 1.8.7
     - rvm: 1.8.7
