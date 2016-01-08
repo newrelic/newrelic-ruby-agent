@@ -10,27 +10,27 @@ module NewRelic
           :single_quotes => /'(?:[^']|'')*?(?:\\'.*|'(?!'))/,
           :double_quotes => /"(?:[^"]|"")*?(?:\\".*|"(?!"))/,
           :dollar_quotes => /(\$(?!\d)[^$]*?\$).*?(?:\1|$)/,
+          :uuids => /\{?(?:[0-9a-fA-F]\-*){32}\}?/,
+          :numeric_literals => /\b-?(?:[0-9]+\.)?[0-9]+([eE][+-]?[0-9]+)?\b/,
+          :boolean_literals => /\b(?:true|false|null)\b/i,
+          :hexadecimal_literals => /0x[0-9a-fA-F]+/,
           :comments => /(?:#|--).*?(?=\r|\n|$)/i,
           :multi_line_comments => /\/\*(?:[^\/]|\/[^*])*?(?:\*\/|\/\*.*)/,
-          :uuids => /\{?(?:[0-9a-fA-F]\-*){32}\}?/,
-          :hexadecimal_literals => /0x[0-9a-fA-F]+/,
-          :boolean_literals => /\b(?:true|false|null)\b/i,
-          :numeric_literals => /\b-?(?:[0-9]+\.)?[0-9]+([eE][+-]?[0-9]+)?\b/,
           :oracle_quoted_strings => /q'\[.*?(?:\]'|$)|q'\{.*?(?:\}'|$)|q'\<.*?(?:\>'|$)|q'\(.*?(?:\)'|$)/
         }
 
         DIALECT_COMPONENTS = {
           :fallback   => COMPONENTS_REGEX_MAP.keys,
-          :mysql      => [:single_quotes, :double_quotes, :comments, :multi_line_comments,
-                          :hexadecimal_literals, :boolean_literals, :numeric_literals],
-          :postgres   => [:single_quotes, :dollar_quotes, :comments, :multi_line_comments,
-                          :uuids, :boolean_literals, :numeric_literals],
-          :sqlite     => [:single_quotes, :comments, :multi_line_comments, :hexadecimal_literals,
-                          :boolean_literals, :numeric_literals],
-          :oracle     => [:single_quotes, :comments, :multi_line_comments, :numeric_literals,
-                          :oracle_quoted_strings],
-          :cassandra  => [:single_quotes, :comments, :multi_line_comments, :uuids,
-                          :hexadecimal_literals, :boolean_literals, :numeric_literals]
+          :mysql      => [:single_quotes, :double_quotes, :numeric_literals, :boolean_literals,
+                          :hexadecimal_literals, :comments, :multi_line_comments],
+          :postgres   => [:single_quotes, :dollar_quotes, :uuids, :numeric_literals,
+                          :boolean_literals, :comments, :multi_line_comments],
+          :sqlite     => [:single_quotes, :numeric_literals, :boolean_literals, :hexadecimal_literals,
+                          :comments, :multi_line_comments],
+          :oracle     => [:single_quotes, :oracle_quoted_strings, :numeric_literals, :comments,
+                          :multi_line_comments],
+          :cassandra  => [:single_quotes, :uuids, :numeric_literals, :boolean_literals,
+                          :hexadecimal_literals, :comments, :multi_line_comments]
         }
 
         # We use these to check whether the query contains any quote characters
