@@ -164,6 +164,8 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails22
     - rvm: jruby-1.7.23
       env: TYPE=UNIT ENVIRONMENT=rails23
+    - rvm: jruby-1.7.23
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # jruby 9.0
     - rvm: jruby-9.0.4.0
