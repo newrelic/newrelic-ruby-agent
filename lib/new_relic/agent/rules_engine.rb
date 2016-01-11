@@ -28,15 +28,24 @@ module NewRelic
 
         txn_name_rules = txn_name_specs.map { |s| ReplacementRule.new(s) }
 
-        segment_rules  = segment_rule_specs.inject({}) do |rules, spec|
+        segment_rules = segment_rule_specs.map do |spec|
           if spec[SegmentTermsRule::PREFIX_KEY] && SegmentTermsRule.valid?(spec)
-            rule = SegmentTermsRule.new(spec)
-            rules[spec[SegmentTermsRule::PREFIX_KEY] ] = rule
+            SegmentTermsRule.new(spec)
           end
-          rules
         end
 
-        self.new(txn_name_rules, segment_rules.values)
+        reject_rules_with_duplicate_prefixes!(segment_rules)
+
+        self.new(txn_name_rules, segment_rules)
+      end
+
+      # When multiple rules share the same prefix,
+      # only apply the rule with the last instance of the prefix.
+      def self.reject_rules_with_duplicate_prefixes!(rules)
+        rules.compact!
+        rules.reverse!
+        rules.uniq! { |rule| rule.prefix }
+        rules.reverse!
       end
 
       def initialize(rules=[], segment_term_rules=[])
