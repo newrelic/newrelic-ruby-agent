@@ -29,9 +29,9 @@ module NewRelic
         txn_name_rules = txn_name_specs.map { |s| ReplacementRule.new(s) }
 
         segment_rules  = segment_rule_specs.inject({}) do |rules, spec|
-          if spec[SegmentTermsRule::PREFIX_KEY]
+          if spec[SegmentTermsRule::PREFIX_KEY] && SegmentTermsRule.valid?(spec)
             rule = SegmentTermsRule.new(spec)
-            rules[spec[SegmentTermsRule::PREFIX_KEY] ] = rule if rule.valid?
+            rules[spec[SegmentTermsRule::PREFIX_KEY] ] = rule
           end
           rules
         end

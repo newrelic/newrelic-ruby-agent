@@ -15,12 +15,21 @@ module NewRelic
 
         attr_reader :prefix, :terms
 
+        def self.valid?(rule_spec)
+          rule_spec[PREFIX_KEY].kind_of?(String) &&
+          rule_spec[TERMS_KEY].kind_of?(Array) &&
+          valid_prefix_segment_count?(rule_spec[PREFIX_KEY])
+        end
+
+        def self.valid_prefix_segment_count?(prefix)
+          (prefix.count(SEGMENT_SEPARATOR) == 2 && prefix[prefix.rindex(SEGMENT_SEPARATOR) + 1].nil?) ||
+          (prefix.count(SEGMENT_SEPARATOR) == 1 && !prefix[prefix.rindex(SEGMENT_SEPARATOR) + 1].nil?)
+        end
+
         def initialize(options)
-          if options[PREFIX_KEY].kind_of?(String) && valid_prefix_segment_count?(options[PREFIX_KEY])
-            @prefix          = options[PREFIX_KEY]
-            @terms           = options[TERMS_KEY]
-            @trim_range      = (@prefix.size..-1)
-          end
+          @prefix          = options[PREFIX_KEY]
+          @terms           = options[TERMS_KEY]
+          @trim_range      = (@prefix.size..-1)
         end
 
         def terminal?
@@ -28,8 +37,6 @@ module NewRelic
         end
 
         def matches?(string)
-          return false unless valid?
-
           string.start_with?(@prefix) &&
             (prefix_matches_on_segment_boundary?(string) || string.size == @prefix.size)
         end
@@ -39,18 +46,7 @@ module NewRelic
             string[@prefix.chomp(SEGMENT_SEPARATOR).size].chr == SEGMENT_SEPARATOR
         end
 
-        def valid_prefix_segment_count?(prefix)
-          (prefix.count(SEGMENT_SEPARATOR) == 2 && prefix[prefix.rindex(SEGMENT_SEPARATOR) + 1].nil?) ||
-          (prefix.count(SEGMENT_SEPARATOR) == 1 && !prefix[prefix.rindex(SEGMENT_SEPARATOR) + 1].nil?)
-        end
-
-        def valid?
-          @prefix && @terms
-        end
-
         def apply(string)
-          return string unless valid?
-
           rest          = string[@trim_range]
           leading_slash = rest.slice!(LEADING_SLASH_REGEX)
           segments = rest.split(SEGMENT_SEPARATOR, -1)
