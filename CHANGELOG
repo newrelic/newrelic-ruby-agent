@@ -4,8 +4,8 @@
 
   * Improved transaction names for Sinatra
 
-  The agent will now use sinatra.route for transaction names on versions of Sinatra
-  that set it in the request environment. This gives names that closer resemble the
+  The agent will now use sinatra.route for transaction names on Sinatra 1.4.3+,
+  which sets it in the request environment. This gives names that closer resemble the
   routes defined in the Sinatra DSL.  Thanks to Brian Phillips for the suggestion!
 
   * Bugfix for error flag on transaction events
@@ -16,6 +16,11 @@
   * Official support for Sidekiq 4
 
   The Ruby agent now officially supports Sidekiq 4.
+
+  * Additional attributes collected
+
+  The agent now collects the following information in web transactions:
+  Content-Length HTTP response and Content-Type HTTP request headers.
 
 ## v3.14.1 ##
 
