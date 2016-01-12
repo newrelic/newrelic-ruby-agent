@@ -1293,10 +1293,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_assigns_synthetics_to_intrinsic_attributes
-    txn = in_transaction do |txn|
-      txn.raw_synthetics_header = ""
-      txn.synthetics_payload = [1, 1, 100, 200, 300]
-      txn
+    txn = in_transaction do |t|
+      t.raw_synthetics_header = ""
+      t.synthetics_payload = [1, 1, 100, 200, 300]
+      t
     end
 
     result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -1307,7 +1307,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
 
   def test_intrinsic_attributes_include_gc_time
-    txn = in_transaction do |txn|
+    txn = in_transaction do |t|
       NewRelic::Agent::StatsEngine::GCProfiler.stubs(:record_delta).returns(10.0)
     end
 
@@ -1320,9 +1320,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
-    txn = in_transaction do |txn|
+    txn = in_transaction do |t|
       NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
-      guid = txn.guid
+      guid = t.guid
     end
 
     result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -1343,10 +1343,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_intrinsic_attributes_include_path_hash
     path_hash = nil
 
-    txn = in_transaction do |txn|
+    txn = in_transaction do |t|
       state = NewRelic::Agent::TransactionState.tl_get
       state.is_cross_app_caller = true
-      path_hash = txn.cat_path_hash(state)
+      path_hash = t.cat_path_hash(state)
     end
 
     result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -1354,9 +1354,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_synthetics_attributes_not_included_if_not_valid_synthetics_request
-    txn = in_transaction do |txn|
-      txn.raw_synthetics_header = nil
-      txn.synthetics_payload = nil
+    txn = in_transaction do |t|
+      t.raw_synthetics_header = nil
+      t.synthetics_payload = nil
     end
 
     result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -1366,8 +1366,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_intrinsic_attributes_include_cpu_time
-    txn = in_transaction do |txn|
-      txn.stubs(:cpu_burn).returns(22.0)
+    txn = in_transaction do |t|
+      t.stubs(:cpu_burn).returns(22.0)
     end
 
     result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
