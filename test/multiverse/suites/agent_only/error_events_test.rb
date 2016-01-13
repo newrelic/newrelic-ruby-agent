@@ -86,18 +86,6 @@ class ErrorEventsTest < Minitest::Test
     assert_equal "No Txn", intrinsics["error.message"]
   end
 
-  def test_error_events_created_outside_of_transaction
-    NewRelic::Agent.notice_error RuntimeError.new "No Txn"
-    NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
-
-    intrinsics, _, _ = last_error_event
-
-    assert_equal "TransactionError", intrinsics["type"]
-    assert_in_delta Time.now.to_f, intrinsics["timestamp"], 0.001
-    assert_equal "RuntimeError", intrinsics["error.class"]
-    assert_equal "No Txn", intrinsics["error.message"]
-  end
-
   def generate_errors num_errors = 1
     in_transaction :transaction_name => "Controller/blogs/index" do |t|
       num_errors.times { t.notice_error RuntimeError.new "Big Controller" }
