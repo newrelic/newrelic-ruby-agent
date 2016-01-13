@@ -66,11 +66,13 @@ end
 if RUBY_VERSION <= '1.9.3' && (!defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby')
 gemfile <<-RB
   gem 'rails', '~> 2.3.18'
+  gem 'activerecord-mysql2-adapter'
   #{boilerplate_gems}
 RB
 
 gemfile <<-RB
   gem "rails", "~> 2.2.3"
+  gem 'activerecord-mysql2-adapter'
   #{boilerplate_gems}
 RB
 end
@@ -78,6 +80,7 @@ end
 if RUBY_VERSION < '1.9.2'
 gemfile <<-RB
   gem "rails", "~> 2.1.2"
+  gem 'activerecord-mysql2-adapter'
   #{boilerplate_gems}
 RB
 end
