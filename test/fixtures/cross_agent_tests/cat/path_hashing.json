@@ -1,0 +1,51 @@
+[
+  {
+    "name": "no referring path hash",
+    "referringPathHash": null,
+    "applicationName": "application A",
+    "transactionName": "transaction A",
+    "expectedPathHash": "5e17050e"
+  },
+  {
+    "name": "leading zero on resulting path hash",
+    "referringPathHash": null,
+    "applicationName": "my application",
+    "transactionName": "transaction 13",
+    "expectedPathHash": "097ca5e1"
+  },
+  {
+    "name": "with referring path hash",
+    "referringPathHash": "95f2f716",
+    "applicationName": "app2",
+    "transactionName": "txn2",
+    "expectedPathHash": "ef72c2e6"
+  },
+  {
+    "name": "with referring path hash leading zero",
+    "referringPathHash": "077634eb",
+    "applicationName": "app3",
+    "transactionName": "txn3",
+    "expectedPathHash": "bfd6587f"
+  },
+  {
+    "name": "with multi-byte UTF-8 characters in transaction name",
+    "referringPathHash": "95f2f716",
+    "applicationName": "app1",
+    "transactionName": "Доверяй, но проверяй",
+    "expectedPathHash": "b7ad900e"
+  },
+  {
+    "name": "high bit of referringPathHash set",
+    "referringPathHash": "80000000",
+    "applicationName": "app1",
+    "transactionName": "txn1",
+    "expectedPathHash": "95f2f717"
+  },
+  {
+    "name": "low bit of referringPathHash set",
+    "referringPathHash": "00000001",
+    "applicationName": "app1",
+    "transactionName": "txn1",
+    "expectedPathHash": "95f2f714"
+  }
+]
