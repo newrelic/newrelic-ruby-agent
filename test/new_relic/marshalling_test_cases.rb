@@ -119,7 +119,7 @@ module MarshallingTestCases
     result = $collector.calls_for('error_event_data')
 
     assert_equal 1, result.length
-    events = result.first.events
+    events = result.first.error_events
     assert_equal 1, events.length
 
     expected_event = [
