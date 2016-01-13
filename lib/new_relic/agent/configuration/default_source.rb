@@ -879,7 +879,7 @@ module NewRelic
           :public => true,
           :type => Float,
           :allowed_from_server => true,
-          :description => 'Defines a duration threshold, over which the agent will collect explain plans in slow SQL queries.'
+          :description => 'Defines a duration threshold, over which the agent will collect slow SQL queries, with or without explain plans.'
         },
         :'slow_sql.explain_enabled' => {
           :default => value_of(:'transaction_tracer.explain_enabled'),
