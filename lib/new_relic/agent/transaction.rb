@@ -53,6 +53,7 @@ module NewRelic
                     :jruby_cpu_start,
                     :process_cpu_start,
                     :http_response_code,
+                    :response_content_length,
                     :response_content_type
 
       attr_reader :guid,
@@ -282,8 +283,6 @@ module NewRelic
         @ignore_apdex = false
         @ignore_enduser = false
         @ignore_trace = false
-
-        @error_recorded = false
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
@@ -524,9 +523,11 @@ module NewRelic
         record_queue_time
 
         generate_payload(state, start_time, end_time)
-        record_exceptions
-        merge_metrics
 
+        record_exceptions
+        record_transaction_event
+
+        merge_metrics
         send_transaction_finished_event
       end
 
@@ -537,6 +538,10 @@ module NewRelic
 
         if http_response_code
           add_agent_attribute(:httpResponseCode, http_response_code.to_s, default_destinations)
+        end
+
+        if response_content_length
+          add_agent_attribute(:'response.headers.contentLength', response_content_length.to_i, default_destinations)
         end
 
         if response_content_type
@@ -602,7 +607,7 @@ module NewRelic
           :duration             => duration,
           :metrics              => @metrics,
           :attributes           => @attributes,
-          :error                => error_recorded?
+          :error                => false
         }
         append_cat_info(state, duration, @payload)
         append_apdex_perf_zone(duration, @payload)
@@ -730,14 +735,16 @@ module NewRelic
       end
 
       def record_exceptions
+        error_recorded = false
         @exceptions.each do |exception, options|
           options[:uri]      ||= request_path if request_path
           options[:port]       = request_port if request_port
           options[:metric]     = best_name
           options[:attributes] = @attributes
 
-          @error_recorded = !!agent.error_collector.notice_error(exception, options) || @error_recorded
+          error_recorded = !!agent.error_collector.notice_error(exception, options) || error_recorded
         end
+        payload[:error] = error_recorded if payload
       end
 
       # Do not call this.  Invoke the class method instead.
@@ -749,8 +756,8 @@ module NewRelic
         end
       end
 
-      def error_recorded?
-        @error_recorded
+      def record_transaction_event
+        agent.transaction_event_recorder.record payload
       end
 
       QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'.freeze

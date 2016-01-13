@@ -10,8 +10,8 @@ class TransactionMetricsTest < Minitest::Test
     @metrics = NewRelic::Agent::TransactionMetrics.new
   end
 
-  def test_record_scoped_should_record_a_scoped_metric
-    @metrics.record_scoped('foo', 42, 12)
+  def test_record_scoped_and_unscoped_should_record_a_scoped_metric
+    @metrics.record_scoped_and_unscoped('foo', 42, 12)
     assert_scoped_metrics(@metrics, ['foo'], {
       :call_count           => 1,
       :total_call_time      => 42,
@@ -20,8 +20,8 @@ class TransactionMetricsTest < Minitest::Test
     assert_unscoped_metrics(@metrics, [])
   end
 
-  def test_record_scoped_should_take_multiple_metrics
-    @metrics.record_scoped(['foo', 'bar'], 42, 12)
+  def test_record_scoped_and_unscoped_should_take_multiple_metrics
+    @metrics.record_scoped_and_unscoped(['foo', 'bar'], 42, 12)
     assert_scoped_metrics(@metrics, ['foo', 'bar'], {
       :call_count           => 1,
       :total_call_time      => 42,
@@ -30,8 +30,8 @@ class TransactionMetricsTest < Minitest::Test
     assert_unscoped_metrics(@metrics, [])
   end
 
-  def test_record_scoped_should_take_a_block
-    @metrics.record_scoped('foo') do |stats|
+  def test_record_scoped_and_unscoped_should_take_a_block
+    @metrics.record_scoped_and_unscoped('foo') do |stats|
       stats.call_count           = 3
       stats.total_call_time      = 2
       stats.total_exclusive_time = 1
@@ -80,7 +80,7 @@ class TransactionMetricsTest < Minitest::Test
 
   def test_square_brackets_look_up_unscoped_metrics
     @metrics.record_unscoped('foo', 42, 12)
-    @metrics.record_scoped('foo', 2, 1)
+    @metrics.record_scoped_and_unscoped('foo', 2, 1)
     assert_equal(42, @metrics['foo'].total_call_time)
   end
 

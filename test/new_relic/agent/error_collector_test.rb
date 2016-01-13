@@ -265,7 +265,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def test_skip_notice_error_is_true_if_the_error_collector_is_disabled
     error = StandardError.new
-    with_config(:'error_collector.enabled' => false) do
+    with_config(:'error_collector.enabled' => false, :'error_collector.capture_events' => false) do
       assert @error_collector.skip_notice_error?(error)
     end
   end

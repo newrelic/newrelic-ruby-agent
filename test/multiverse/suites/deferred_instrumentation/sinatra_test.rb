@@ -2,11 +2,11 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'sinatra', 'sinatra_test_cases'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
-
 require 'newrelic_rpm'
 require 'sinatra'
+
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'sinatra', 'sinatra_test_cases'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
 
 class DeferredSinatraTestApp < Sinatra::Base
   include NewRelic::Agent::Instrumentation::Rack
@@ -23,6 +23,10 @@ class DeferredSinatraTestApp < Sinatra::Base
         halt 404 unless boolean
       end
     end
+  end
+
+  get '/' do
+    "root path"
   end
 
   get '/user/login' do

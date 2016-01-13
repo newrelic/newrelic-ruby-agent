@@ -52,18 +52,26 @@ class ErrorEventsTest < Minitest::Test
   end
 
   def test_does_not_record_error_events_when_disabled_by_feature_gate
-    connect_response = {
+
+    $collector.stub('connect', {
       'agent_run_id'          => 1,
       'collect_error_events' => false
-    }
-
-    $collector.stub('connect', connect_response)
+    })
     trigger_agent_reconnect
 
     generate_errors 5
 
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
     assert_equal(0, $collector.calls_for(:error_event_data).size)
+
+    # reset the collect_error_events flag so that the ErrorEventAggregator
+    # will be enabled for the next test
+    $collector.stub('connect', {
+      'agent_run_id'          => 1,
+      'collect_error_events' => true
+    })
+
+    trigger_agent_reconnect
   end
 
   def test_error_events_created_outside_of_transaction
@@ -86,8 +94,8 @@ class ErrorEventsTest < Minitest::Test
 
   def last_error_event
     post = last_error_event_post
-    assert_equal(1, post.error_events.size)
-    post.error_events.last
+    assert_equal(1, post.events.size)
+    post.events.last
   end
 
   def last_error_event_post

@@ -1441,7 +1441,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     txn = in_transaction do
     end
 
-    refute txn.error_recorded?, "Did not expected error to be recorded"
+    refute txn.payload[:error], "Did not expected error to be recorded"
   end
 
   def test_error_recorded_predicate_true_when_error_recorded
@@ -1449,7 +1449,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       t.notice_error StandardError.new "Sorry!"
     end
 
-    assert txn.error_recorded?, "Expected error to be recorded"
+    assert txn.payload[:error], "Expected error to be recorded"
   end
 
   def test_error_recorded_predicate_abides_by_ignore_filter
@@ -1462,7 +1462,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
         t.notice_error StandardError.new "Sorry!"
       end
 
-      refute txn.error_recorded?, "Expected error to be apologetic"
+      refute txn.payload[:error], "Expected error to be apologetic"
     end
   end
 
@@ -1478,7 +1478,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
         t.notice_error StandardError.new "Sorry!"
       end
 
-      assert txn.error_recorded?, "Expected error to be recorded"
+      assert txn.payload[:error], "Expected error to be recorded"
     end
   end
 end

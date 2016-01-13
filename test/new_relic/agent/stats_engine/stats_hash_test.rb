@@ -136,14 +136,14 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     txn_metrics = NewRelic::Agent::TransactionMetrics.new
     txn_metrics.record_unscoped(specs[0].name, 1)
     txn_metrics.record_unscoped(specs[1].name, 2)
-    txn_metrics.record_scoped(specs[3].name, 3)
+    txn_metrics.record_scoped_and_unscoped(specs[3].name, 3)
 
     hash.merge_transaction_metrics!(txn_metrics, 'a_scope')
 
     assert_equal(4, hash.to_h.keys.size)
     assert_equal(2, hash[specs[0]].call_count)
     assert_equal(2, hash[specs[1]].call_count)
-    assert_equal(1, hash[specs[2]].call_count)
+    assert_equal(2, hash[specs[2]].call_count)
     assert_equal(1, hash[specs[3]].call_count)
   end
 

@@ -1,14 +1,15 @@
+if RUBY_VERSION > '1.8.7' # padrino-core 0.11.0 requires http_router 0.11.0 which has syntax errors in 1.8.7.
 gemfile <<-RB
-  # Gemspec from rubygems on this version gets illformed warnings on 1.8.7
-  gem 'http_router', '0.11.0', :git => 'git://github.com/joshbuddy/http_router.git', :tag => 'v0.11.0'
-
   gem 'activesupport', '~> 3'
   gem 'padrino', '~> 0.11.0'
   gem 'rack-test', :require => 'rack/test'
+  gem 'i18n', '< 0.7' if RUBY_VERSION < '1.9.3' # i18n >= 0.7.0 only works on Ruby 1.9.3 and newer
 RB
+end
 
 gemfile <<-RB
   gem 'activesupport', '~> 3'
   gem 'padrino', '~> 0.10.0'
   gem 'rack-test', :require => 'rack/test'
+  gem 'i18n', '< 0.7' if RUBY_VERSION < '1.9.3' # i18n >= 0.7.0 only works on Ruby 1.9.3 and newer
 RB

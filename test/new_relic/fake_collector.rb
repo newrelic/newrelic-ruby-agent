@@ -192,7 +192,7 @@ module NewRelic
         when 'analytic_event_data'
           AnalyticEventDataPost.new(opts)
         when 'custom_event_data'
-          AnalyticEventDataPost.new(opts)
+          CustomEventDataPost.new(opts)
         when 'error_data'
           ErrorDataPost.new(opts)
         when 'error_event_data'
@@ -338,16 +338,19 @@ module NewRelic
       end
     end
 
-    class AnalyticEventDataPost < AgentPost
+    class ReservoirSampledContainerPost < AgentPost
+      attr_reader :reservoir_metadata, :events
 
-      attr_reader :events
-
-      def initialize(opts={})
+      def initialize opts={}
         super
-
-        @events = @body[1]
+        @reservoir_metadata = body[1]
+        @events = body[2]
       end
     end
+
+    class AnalyticEventDataPost < ReservoirSampledContainerPost; end
+    class CustomEventDataPost < ReservoirSampledContainerPost; end
+    class ErrorEventDataPost < ReservoirSampledContainerPost; end
 
     class ErrorDataPost < AgentPost
 
@@ -381,16 +384,6 @@ module NewRelic
 
       def intrinsic_attributes
         @params["intrinsics"]
-      end
-    end
-
-    class ErrorEventDataPost < AgentPost
-      attr_reader :reservoir_metadata, :error_events
-
-      def initialize opts={}
-        super
-        @reservoir_metadata = body[1]
-        @error_events = body[2]
       end
     end
   end

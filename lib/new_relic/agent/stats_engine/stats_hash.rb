@@ -153,6 +153,7 @@ module NewRelic
         txn_metrics.each_scoped do |name, stats|
           spec = NewRelic::MetricSpec.new(name, scope)
           merge_or_insert(@scoped, spec, stats)
+          merge_or_insert(@unscoped, name, stats)
         end
       end
 
@@ -160,7 +161,7 @@ module NewRelic
         if target.has_key?(name)
           target[name].merge!(stats)
         else
-          target[name] = stats
+          target[name] = stats.dup
         end
       end
     end

@@ -62,20 +62,23 @@ class PumaRackBuilderTest < Minitest::Test
   def test_puma_rack_builder_is_auto_instrumented
     @app.call @env
 
-    assert_metrics_recorded_exclusive [
-      "Apdex",
-      "ApdexAll",
-      "HttpDispatcher",
-      "Middleware/all",
-      "Apdex/Rack/PumaRackBuilderTest::ExampleApp/call",
-      "Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
-      "Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call",
-      "Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call",
-      "Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
-      ["Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
-      ["Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
-      ["Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"]
-    ]
+    assert_metrics_recorded_exclusive(
+      [
+        "Apdex",
+        "ApdexAll",
+        "HttpDispatcher",
+        "Middleware/all",
+        "Apdex/Rack/PumaRackBuilderTest::ExampleApp/call",
+        "Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
+        "Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call",
+        "Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call",
+        "Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
+        ["Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
+        ["Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
+        ["Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"]
+      ],
+      :ignore_filter => /^Supportability/
+    )
   end
 end
 end

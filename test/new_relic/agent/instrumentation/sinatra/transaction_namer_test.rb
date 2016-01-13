@@ -28,6 +28,13 @@ module NewRelic
             assert_equal "GET path/:id", result
           end
 
+          def test_transaction_name_for_root_route
+            env = { "newrelic.last_route" => /\A\/\z/}
+            request = stub(:request_method => "GET")
+            result = TransactionNamer.transaction_name_for_route(env, request)
+            assert_equal "GET /", result
+          end
+
           def test_transaction_name_for_route_without_routes
             assert_nil TransactionNamer.transaction_name_for_route({}, nil)
           end

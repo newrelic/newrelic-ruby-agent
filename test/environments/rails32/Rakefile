@@ -8,4 +8,5 @@ RpmTestApp::Application.load_tasks
 require 'tasks/all'
 
 Rake::Task["default"].clear
-task :default => [:'test:newrelic']
+task :default => [:'test:newrelic_with_db']
+task :'test:newrelic_with_db' => [:'db:create', :'test:newrelic']

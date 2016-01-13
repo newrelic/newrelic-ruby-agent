@@ -14,6 +14,7 @@ require 'logger'
 require 'stringio'
 
 require 'fake_collector'
+require File.join(File.dirname(__FILE__), "test_model")
 require File.join(File.dirname(__FILE__), "test_worker")
 
 class SidekiqTest < Minitest::Test
@@ -21,7 +22,7 @@ class SidekiqTest < Minitest::Test
 
   ROLLUP_METRIC            = 'OtherTransaction/SidekiqJob/all'
   TRANSACTION_NAME         = 'OtherTransaction/SidekiqJob/TestWorker/perform'
-  DELAYED_TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/TestWorker/record'
+  DELAYED_TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/TestModel/do_work'
   DELAYED_FAILED_TXN_NAME  = 'OtherTransaction/SidekiqJob/Sidekiq::Extensions::DelayedClass/perform'
 
   include MultiverseHelpers
@@ -51,7 +52,7 @@ class SidekiqTest < Minitest::Test
 
   def run_delayed
     run_and_transmit do |i|
-      TestWorker.delay(:queue => SidekiqServer.instance.queue_name, :retry => false).record('jobs_completed', i + 1)
+      TestModel.delay(:queue => SidekiqServer.instance.queue_name, :retry => false).do_work
     end
   end
 
@@ -131,18 +132,18 @@ class SidekiqTest < Minitest::Test
   end
 
   # In <= 2.x of Sidekiq, internal errors (or potentially errors further out
-  # the middleware stack) wouldn't get noticed, but there was no propery hook
-  # to catch it. 3.x+ gives us a error_handler, so only add our misbehaving
+  # the middleware stack) wouldn't get noticed, but there was no proper hook
+  # to catch it. 3.x+ gives us an error_handler, so only add our misbehaving
   # middleware for those cases.
   if Sidekiq::VERSION >= '3'
     def test_captures_sidekiq_internal_errors
-      # Ugly, but need to coerce an internal error in Sidekiq that doesn't bail
-      # from processing entirely. This fouls up Sidekiq::Processor#stats in a
-      # spot that calls handle exception but doesn't die.
-      Redis.any_instance.stubs(:hmset).raises("Uh oh")
-      run_jobs
+      # When testing internal Sidekiq error capturing, we're looking to
+      # ensure Sidekiq properly forwards errors to our custom error handler
+      # in order for us to notice the error.
 
-      assert_error_for_each_job(nil)
+      exception = StandardError.new('foo')
+      NewRelic::Agent.expects(:notice_error).with(exception)
+      Sidekiq::CLI.instance.handle_exception(exception)
     end
   end
 

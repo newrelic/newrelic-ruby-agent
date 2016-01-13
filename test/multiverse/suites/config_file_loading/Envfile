@@ -3,7 +3,7 @@ omit_collector!
 gemfile <<-RB
   # stub file system so we can test that newrelic.yml can be loaded from
   # various places.
-  gem 'fakefs', :require => 'fakefs/safe'
+  gem 'fakefs', '0.5.4', :require => 'fakefs/safe' # 0.5.4 required for 1.8.7 compatibility.
 
   # Because we delay the agent, order of jruby-openssl matters
   gem 'jruby-openssl', '~> 0.9.10', :platforms => [:jruby]

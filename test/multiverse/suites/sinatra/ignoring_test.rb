@@ -82,23 +82,26 @@ class SinatraIgnoreTest < SinatraTestCase
 
   def test_seen_route
     get_and_assert_ok '/record'
+    segment = name_for_route 'record'
     assert_metrics_recorded([
-      "Controller/Sinatra/#{app_name}/GET record",
-      "Apdex/Sinatra/#{app_name}/GET record"])
+      "Controller/Sinatra/#{app_name}/#{segment}",
+      "Apdex/Sinatra/#{app_name}/#{segment}"])
   end
 
   def test_ignores_exact_match
     get_and_assert_ok '/ignore'
+    segment = name_for_route 'ignore'
     assert_metrics_not_recorded([
-      "Controller/Sinatra/#{app_name}/GET ignore",
-      "Apdex/Sinatra/#{app_name}/GET ignore"])
+      "Controller/Sinatra/#{app_name}/#{segment}",
+      "Apdex/Sinatra/#{app_name}/#{segment}"])
   end
 
   def test_ignores_by_splats
     get_and_assert_ok '/splattered'
+    segment = name_for_route 'splattered'
     assert_metrics_not_recorded([
-      "Controller/Sinatra/#{app_name}/GET splattered",
-      "Apdex/Sinatra/#{app_name}/GET splattered"])
+      "Controller/Sinatra/#{app_name}/#{segment}",
+      "Apdex/Sinatra/#{app_name}/#{segment}"])
   end
 
   def test_ignores_can_be_declared_in_batches
@@ -106,58 +109,73 @@ class SinatraIgnoreTest < SinatraTestCase
     get_and_assert_ok '/v2'
     get_and_assert_ok '/v3'
 
+    v1_segment = name_for_route 'v1'
+    v2_segment = name_for_route 'v2'
+    v3_segment = name_for_route 'v3'
+
     assert_metrics_not_recorded([
-      "Controller/Sinatra/#{app_name}/GET v1",
-      "Controller/Sinatra/#{app_name}/GET v2",
-      "Apdex/Sinatra/#{app_name}/GET v1",
-      "Apdex/Sinatra/#{app_name}/GET v2"])
+      "Controller/Sinatra/#{app_name}/#{v1_segment}",
+      "Controller/Sinatra/#{app_name}/#{v2_segment}",
+      "Apdex/Sinatra/#{app_name}/#{v1_segment}",
+      "Apdex/Sinatra/#{app_name}/#{v2_segment}"])
 
     assert_metrics_recorded([
-      "Controller/Sinatra/#{app_name}/GET v3",
-      "Apdex/Sinatra/#{app_name}/GET v3"])
+      "Controller/Sinatra/#{app_name}/#{v3_segment}",
+      "Apdex/Sinatra/#{app_name}/#{v3_segment}"])
   end
 
   def test_seen_with_regex
     get_and_assert_ok '/regex_seen'
+    segment = name_for_route 'regex_seen'
     assert_metrics_recorded([
-      "Controller/Sinatra/#{app_name}/GET regex_seen",
-      "Apdex/Sinatra/#{app_name}/GET regex_seen"])
+      "Controller/Sinatra/#{app_name}/#{segment}",
+      "Apdex/Sinatra/#{app_name}/#{segment}"])
   end
 
   def test_ignores_by_regex
     get_and_assert_ok '/skip_regex'
+    segment = name_for_route 'skip_regex'
     assert_metrics_not_recorded([
-      "Controller/Sinatra/#{app_name}/GET skip_regex",
-      "Apdex/Sinatra/#{app_name}/GET skip_regex"])
+      "Controller/Sinatra/#{app_name}/#{segment}",
+      "Apdex/Sinatra/#{app_name}/#{segment}"])
   end
 
   def test_ignore_apdex
     get_and_assert_ok '/no_apdex'
-    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET no_apdex"])
-    assert_metrics_not_recorded(["Apdex/Sinatra/#{app_name}/GET no_apdex"])
+    segment = name_for_route 'no_apdex'
+    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{segment}"])
+    assert_metrics_not_recorded(["Apdex/Sinatra/#{app_name}/#{segment}"])
   end
 
   def test_ignore_enduser_should_only_apply_to_specified_route
     get_and_assert_ok '/enduser'
-
+    segment = name_for_route 'enduser'
     refute_enduser_ignored(last_response)
     assert_metrics_recorded([
-      "Controller/Sinatra/#{app_name}/GET enduser",
-      "Apdex/Sinatra/#{app_name}/GET enduser"])
+      "Controller/Sinatra/#{app_name}/#{segment}",
+      "Apdex/Sinatra/#{app_name}/#{segment}"])
   end
 
   def test_ignore_enduser
     get_and_assert_ok '/no_enduser'
-
+    segment = name_for_route 'no_enduser'
     assert_enduser_ignored(last_response)
     assert_metrics_recorded([
-      "Controller/Sinatra/#{app_name}/GET no_enduser",
-      "Apdex/Sinatra/#{app_name}/GET no_enduser"])
+      "Controller/Sinatra/#{app_name}/#{segment}",
+      "Apdex/Sinatra/#{app_name}/#{segment}"])
   end
 
   def test_ignore_errors_in_ignored_transactions
     get '/ignored_erroring'
     assert_metrics_not_recorded(["Errors/all"])
+  end
+
+  def name_for_route path
+    if last_request.env.key? 'sinatra.route'
+      "GET /#{path}"
+    else
+      "GET #{path}"
+    end
   end
 end
 
@@ -198,7 +216,7 @@ class SinatraIgnoreApdexAndEndUserTest < SinatraTestCase
 
   def test_ignores_apdex
     get_and_assert_ok '/'
-    assert_metrics_not_recorded(["Apdex/Sinatra/#{app.to_s}/GET "])
+    assert_metrics_not_recorded(["Apdex/Sinatra/#{app.to_s}/GET /"])
   end
 
   def test_ignores_enduser

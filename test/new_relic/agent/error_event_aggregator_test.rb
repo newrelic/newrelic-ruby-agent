@@ -38,10 +38,10 @@ module NewRelic
 
         intrinsics, *_ = last_error_event
 
-        assert_equal "TransactionError", intrinsics[:type]
-        assert_in_delta Time.now.to_f, intrinsics[:timestamp], 0.001
-        assert_equal "RuntimeError", intrinsics[:'error.class']
-        assert_equal "Big Controller!", intrinsics[:'error.message']
+        assert_equal 'TransactionError', intrinsics['type']
+        assert_in_delta Time.now.to_f, intrinsics['timestamp'], 0.001
+        assert_equal "RuntimeError", intrinsics['error.class']
+        assert_equal "Big Controller!", intrinsics['error.message']
       end
 
       def test_generates_event_from_error
@@ -49,81 +49,13 @@ module NewRelic
 
         intrinsics, *_ = last_error_event
 
-        assert_equal "TransactionError", intrinsics[:type]
-        assert_in_delta Time.now.to_f, intrinsics[:timestamp], 0.001
-        assert_equal "RuntimeError", intrinsics[:'error.class']
-        assert_equal "Big Controller!", intrinsics[:'error.message']
-        assert_equal "Controller/blogs/index", intrinsics[:transactionName]
-        assert_equal 0.1, intrinsics[:duration]
-        assert_equal 80, intrinsics[:port]
-      end
-
-      def test_event_includes_synthetics
-        generate_error :payload_options => {
-          :synthetics_resource_id=>3,
-          :synthetics_job_id=>4,
-          :synthetics_monitor_id=>5
-        }
-
-        intrinsics, *_ = last_error_event
-
-        assert_equal 3, intrinsics[:'nr.syntheticsResourceId']
-        assert_equal 4, intrinsics[:'nr.syntheticsJobId']
-        assert_equal 5, intrinsics[:'nr.syntheticsMonitorId']
-      end
-
-      def test_includes_mapped_metrics
-        metrics = NewRelic::Agent::TransactionMetrics.new
-        metrics.record_unscoped 'Datastore/all', 10
-        metrics.record_unscoped 'GC/Transaction/all', 11
-        metrics.record_unscoped 'WebFrontend/QueueTime', 12
-        metrics.record_unscoped 'External/allWeb', 13
-
-        generate_error :payload_options => {:metrics => metrics}
-
-        intrinsics, *_ = last_error_event
-
-        assert_equal 10.0, intrinsics["databaseDuration"]
-        assert_equal 1, intrinsics["databaseCallCount"]
-        assert_equal 11.0, intrinsics["gcCumulative"]
-        assert_equal 12.0, intrinsics["queueDuration"]
-        assert_equal 13.0, intrinsics["externalDuration"]
-        assert_equal 1, intrinsics["externalCallCount"]
-      end
-
-      def test_includes_cat_attributes
-        generate_error :payload_options => {:guid => "GUID", :referring_transaction_guid=>"REFERRING_GUID"}
-
-        intrinsics, *_ = last_error_event
-
-        assert_equal "GUID", intrinsics[:"nr.transactionGuid"]
-        assert_equal "REFERRING_GUID", intrinsics[:"nr.referringTransactionGuid"]
-      end
-
-      def test_includes_custom_attributes
-        attrs = {"user" => "Wes Mantooth", "channel" => 9}
-
-        attributes = Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-        attributes.merge_custom_attributes attrs
-
-        generate_error :error_options => {:attributes => attributes}
-
-        _, custom_attrs, _ = last_error_event
-
-        assert_equal attrs, custom_attrs
-      end
-
-      def test_includes_agent_attributes
-        attributes = Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-        attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_ERROR_COLLECTOR
-        attributes.add_agent_attribute :httpResponseCode, "200", AttributeFilter::DST_ERROR_COLLECTOR
-
-        generate_error :error_options => {:attributes => attributes}
-
-        _, _, agent_attrs = last_error_event
-
-        expected = {:"request.headers.referer" => "http://blog.site/home", :httpResponseCode => "200"}
-        assert_equal expected, agent_attrs
+        assert_equal 'TransactionError', intrinsics['type']
+        assert_in_delta Time.now.to_f, intrinsics['timestamp'], 0.001
+        assert_equal "RuntimeError", intrinsics['error.class']
+        assert_equal "Big Controller!", intrinsics['error.message']
+        assert_equal "Controller/blogs/index", intrinsics['transactionName']
+        assert_equal 0.1, intrinsics['duration']
+        assert_equal 80, intrinsics['port']
       end
 
       def test_respects_max_samples_stored
@@ -171,7 +103,7 @@ module NewRelic
 
       def test_sample_counts_are_correct_after_merge
         with_config :'error_collector.max_event_samples_stored' => 5 do
-          buffer = error_event_aggregator.instance_variable_get :@error_event_buffer
+          buffer = error_event_aggregator.instance_variable_get :@buffer
 
           4.times { generate_error }
           last_harvest = error_event_aggregator.harvest!
@@ -260,7 +192,7 @@ module NewRelic
       def reset_error_event_buffer_state
         # this is not ideal, but we need to reset these counts to clear out state
         # between tests
-        buffer = error_event_aggregator.instance_variable_get :@error_event_buffer
+        buffer = error_event_aggregator.instance_variable_get :@buffer
         buffer.instance_variable_set :@seen_lifetime, 0
         buffer.instance_variable_set :@captured_lifetime, 0
       end

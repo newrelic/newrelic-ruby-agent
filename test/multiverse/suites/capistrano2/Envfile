@@ -5,4 +5,8 @@ end
 gemfile <<-RB
   gem 'capistrano', '~>2.15.5'
   gem 'rack'
+  if RUBY_VERSION <= '1.9.3'
+    gem 'highline', '1.6.21'
+    gem 'net-ssh', '2.9.2'
+  end
 RB

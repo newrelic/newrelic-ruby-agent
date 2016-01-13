@@ -149,4 +149,20 @@ module NewRelic::Agent::EventBufferTestCases
     assert_equal(0.5, buffer.sample_rate)
   end
 
+  def test_metadata
+    buffer = buffer_class.new(5)
+    7.times { buffer << 'x' }
+
+    expected = {
+      :capacity => 5,
+      :seen => 7,
+      :captured => 5
+    }
+
+    metadata = buffer.metadata
+    metadata.delete :captured_lifetime
+    metadata.delete :seen_lifetime
+
+    assert_equal expected, metadata
+  end
 end

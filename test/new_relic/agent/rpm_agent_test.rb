@@ -13,6 +13,7 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
 
   def teardown
     NewRelic::Agent.instance.shutdown
+    NewRelic::Agent.drop_buffered_data
   end
 
   def test_public_apis

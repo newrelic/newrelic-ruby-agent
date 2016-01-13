@@ -12,6 +12,7 @@ gemfile <<-RB
   gem 'json', '>= 1.8.1'
   gem 'datamapper', '~> 1.2.0', :require => 'data_mapper'
   gem 'dm-ar-finders', '~> 1.2.0'
+  gem 'addressable', '2.3.8', :require => 'addressable/uri' # addressable >= 2.4.0 does not support Ruby 1.8.7
   #{adapter_gems}
 RB
 
@@ -19,12 +20,14 @@ if RUBY_VERSION < '2.0.0'
 gemfile <<-RB
   gem 'datamapper', '~> 1.1.0'
   gem 'dm-ar-finders', '~> 1.1.0'
+  gem 'addressable', :require => 'addressable/uri'
   #{adapter_gems}
 RB
 
 gemfile <<-RB
   gem 'datamapper', '~> 1.0.2'
   gem 'dm-ar-finders', '~> 1.0.2'
+  gem 'addressable', '2.3.8', :require => 'addressable/uri' # addressable >= 2.4.0 does not support Ruby 1.8.7
   #{adapter_gems}
 RB
 end

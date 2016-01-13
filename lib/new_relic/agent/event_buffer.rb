@@ -78,6 +78,13 @@ module NewRelic
         @items.dup
       end
 
+      def metadata
+        {
+          :capacity => @capacity,
+          :captured => @items.size,
+          :seen => @seen
+        }
+      end
     end
   end
 end

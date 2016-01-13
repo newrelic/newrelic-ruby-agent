@@ -36,7 +36,7 @@ class RackUnsupportedVersionTest < Minitest::Test
 
   def test_no_instrumentation_when_not_supported
     get '/'
-    assert_metrics_recorded_exclusive([])
+    assert_metrics_recorded_exclusive([], :ignore_filter => /^Supportability/)
   end
 end
 

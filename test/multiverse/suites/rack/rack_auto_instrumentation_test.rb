@@ -77,7 +77,7 @@ class RackAutoInstrumentationTest < Minitest::Test
         ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
         ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
       ],
-      :ignore_filter => /^Supportability\/EnvironmentReport/
+      :ignore_filter => /^Supportability/
     )
   end
 
@@ -122,18 +122,21 @@ class RackAutoInstrumentationTest < Minitest::Test
   def test_middleware_that_returns_early_records_middleware_rollup_metric
     get '/?return-early=true'
 
-    assert_metrics_recorded_exclusive([
-      "Apdex",
-      "ApdexAll",
-      "HttpDispatcher",
-      "Middleware/all",
-      "Apdex/Middleware/Rack/MiddlewareTwo/call",
-      "Controller/Middleware/Rack/MiddlewareTwo/call",
-      "Middleware/Rack/MiddlewareOne/call",
-      "Middleware/Rack/MiddlewareTwo/call",
-      ["Middleware/Rack/MiddlewareOne/call", "Controller/Middleware/Rack/MiddlewareTwo/call"],
-      ["Middleware/Rack/MiddlewareTwo/call", "Controller/Middleware/Rack/MiddlewareTwo/call"]
-    ])
+    assert_metrics_recorded_exclusive(
+      [
+        "Apdex",
+        "ApdexAll",
+        "HttpDispatcher",
+        "Middleware/all",
+        "Apdex/Middleware/Rack/MiddlewareTwo/call",
+        "Controller/Middleware/Rack/MiddlewareTwo/call",
+        "Middleware/Rack/MiddlewareOne/call",
+        "Middleware/Rack/MiddlewareTwo/call",
+        ["Middleware/Rack/MiddlewareOne/call", "Controller/Middleware/Rack/MiddlewareTwo/call"],
+        ["Middleware/Rack/MiddlewareTwo/call", "Controller/Middleware/Rack/MiddlewareTwo/call"]
+      ],
+      :ignore_filter => /^Supportability/
+    )
   end
 
   def test_middleware_that_returns_early_middleware_all_has_correct_call_times
