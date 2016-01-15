@@ -38,7 +38,6 @@ branches:
 
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
-  - rbx-2.5.8
   - jruby-1.7.23
   - jruby-9.0.4.0
   - 2.2.4
@@ -48,6 +47,7 @@ rvm:
   - 1.9.2
   - ree
   - 1.8.7
+  - rbx-2.5.8
 
 env:
   global:
@@ -85,6 +85,7 @@ env:
 matrix:
   allow_failures:
     - rvm: rbx-2.5.8
+  fast_finish: true
   exclude:
     - rvm: rbx-2.5.8 # Currently hangs
       env: TYPE=FUNCTIONAL GROUP=agent
