@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.14.3 ##
+
+  * Improved SQL obfuscation algorithm
+
+  To help standardize SQL obfuscation across New Relic language agents, we've
+  improved the algorithm used and added more test cases.
+
 ## v3.14.2 ##
 
   * Improved transaction names for Sinatra

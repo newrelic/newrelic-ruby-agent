@@ -327,7 +327,23 @@ module NewRelic
         end
 
         def adapter
-          config && config[:adapter]
+          config && config[:adapter] && symbolized_adapter(config[:adapter].to_s.downcase)
+        end
+
+        POSTGRES_PREFIX = 'postgres'.freeze
+        MYSQL_PREFIX = 'mysql'.freeze
+        SQLITE_PREFIX = 'sqlite'.freeze
+
+        def symbolized_adapter(adapter)
+          if adapter.start_with? POSTGRES_PREFIX
+            :postgres
+          elsif adapter.start_with? MYSQL_PREFIX
+            :mysql
+          elsif adapter.start_with? SQLITE_PREFIX
+            :sqlite
+          else
+            adapter.to_sym
+          end
         end
       end
     end

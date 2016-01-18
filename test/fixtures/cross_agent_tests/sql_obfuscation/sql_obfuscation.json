@@ -26,7 +26,9 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "SELECT * FROM t WHERE foo='bar/*' AND baz='whatever */qux'"
   },
@@ -36,7 +38,8 @@
       "SELECT \"t001\".\"c2\" FROM \"t001\" WHERE \"t001\".\"c2\" = ? AND c3=? LIMIT ?"
     ],
     "dialects": [
-      "postgres"
+      "postgres",
+      "oracle"
     ],
     "sql": "SELECT \"t001\".\"c2\" FROM \"t001\" WHERE \"t001\".\"c2\" = 'value' AND c3=1234 LIMIT 1"
   },
@@ -57,7 +60,9 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "SELECT * FROM t WHERE foo='bar--' AND\n  baz='qux--'"
   },
@@ -68,7 +73,9 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "SELECT * FROM foo WHERE bar='baz' /* Hide Me */"
   },
@@ -79,7 +86,9 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "SELECT * FROM foobar WHERE password='hunter2'\n-- No peeking!"
   },
@@ -90,19 +99,22 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "SELECT foo, bar FROM baz WHERE password='hunter2' # Secret"
   },
   {
     "name": "escape_string_constants.postgres",
+    "sql": "SELECT \"col1\", \"col2\" from \"table\" WHERE \"col3\"=E'foo\\'bar\\\\baz' AND country=e'foo\\'bar\\\\baz'",
     "obfuscated": [
+      "SELECT \"col1\", \"col2\" from \"table\" WHERE \"col3\"=E?",
       "SELECT \"col1\", \"col2\" from \"table\" WHERE \"col3\"=E? AND country=e?"
     ],
     "dialects": [
       "postgres"
     ],
-    "sql": "SELECT \"col1\", \"col2\" from \"table\" WHERE \"col3\"=E'foo\\'bar\\\\baz' AND country=e'foo\\'bar\\\\baz'",
     "comments": [
       "PostgreSQL supports an alternate string quoting mode where backslash escape",
       "sequences are interpreted.",
@@ -126,20 +138,25 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "SELECT c11.col1, c22.col2 FROM table c11, table c22 WHERE value='nothing'"
   },
   {
     "name": "numeric_literals",
+    "sql": "INSERT INTO X VALUES(1, 23456, 123.456, 99+100)",
     "obfuscated": [
+      "INSERT INTO X VALUES(?, ?, ?, ?+?)",
       "INSERT INTO X VALUES(?, ?, ?.?, ?+?)"
     ],
     "dialects": [
       "mysql",
-      "postgres"
-    ],
-    "sql": "INSERT INTO X VALUES(1, 23456, 123.456, 99+100)"
+      "postgres",
+      "oracle",
+      "cassandra"
+    ]
   },
   {
     "name": "string_double_quoted.mysql",
@@ -158,7 +175,9 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "SELECT * FROM table WHERE name='foo' AND value = 'bar'"
   },
@@ -169,7 +188,9 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "SELECT * FROM table WHERE col='foo\\''bar'",
     "comments": [
@@ -185,7 +206,9 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "SELECT * FROM table WHERE col1='foo\"bar' AND col2='what\"ever'"
   },
@@ -196,7 +219,9 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "select * from accounts where accounts.name != 'dude \n newline' order by accounts.name"
   },
@@ -212,24 +237,28 @@
   },
   {
     "name": "string_with_escaped_quotes.mysql",
+    "sql": "INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son', \"\"\"jim''s\"\" hat\", \"\\\"jim''s secret\\\"\")",
     "obfuscated": [
+      "INSERT INTO X values(?, ?,?, ? , ?, ?, ?",
       "INSERT INTO X values(?, ?,?, ? , ?, ?, ?)"
     ],
     "dialects": [
       "mysql"
-    ],
-    "sql": "INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son', \"\"\"jim''s\"\" hat\", \"\\\"jim''s secret\\\"\")"
+    ]
   },
   {
     "name": "string_with_trailing_backslash",
+    "sql": "SELECT * FROM table WHERE name='foo\\' AND color='blue'",
     "obfuscated": [
+      "SELECT * FROM table WHERE name=?",
       "SELECT * FROM table WHERE name=? AND color=?"
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
-    "sql": "SELECT * FROM table WHERE name='foo\\' AND color='blue'",
     "comments": [
       "If backslashes are being ignored in single-quoted strings",
       "(standard_conforming_strings=on in PostgreSQL, or NO_BACKSLASH_ESCAPES is on",
@@ -253,20 +282,25 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "SELECT * FROM table WHERE foo='this string ends with a backslash\\\\'"
   },
   {
     "name": "string_with_trailing_escaped_quote",
+    "sql": "SELECT * FROM table WHERE name='foo\\'' AND color='blue'",
     "obfuscated": [
+      "SELECT * FROM table WHERE name=?",
       "SELECT * FROM table WHERE name=? AND color=?"
     ],
     "dialects": [
       "mysql",
-      "postgres"
-    ],
-    "sql": "SELECT * FROM table WHERE name='foo\\'' AND color='blue'"
+      "postgres",
+      "oracle",
+      "cassandra"
+    ]
   },
   {
     "name": "string_with_twin_single_quotes",
@@ -275,68 +309,85 @@
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "sql": "INSERT INTO X values('', 'a''b c',0, 1 , 'd''e f''s h')"
   },
   {
     "name": "pathological/end_of_line_comments_with_quotes",
+    "sql": "SELECT * FROM t WHERE -- '\n  bar='baz' -- '",
     "obfuscated": [
+      "SELECT * FROM t WHERE ?\n  bar=? ?",
       "SELECT * FROM t WHERE ?"
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
-    "sql": "SELECT * FROM t WHERE -- '\n  bar='baz' -- '",
     "pathological": true
   },
   {
     "name": "pathological/mixed_comments_and_quotes",
+    "sql": "SELECT * FROM t WHERE /* ' */ \n  bar='baz' -- '",
     "obfuscated": [
+      "SELECT * FROM t WHERE ? \n  bar=? ?",
       "SELECT * FROM t WHERE ?"
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
-    "sql": "SELECT * FROM t WHERE /* ' */ \n  bar='baz' -- '",
     "pathological": true
   },
   {
     "name": "pathological/mixed_quotes_comments_and_newlines",
+    "sql": "SELECT * FROM t WHERE -- '\n  /* ' */ c2='xxx' /* ' */\n  c='x\n  xx' -- '",
     "obfuscated": [
+      "SELECT * FROM t WHERE ?\n  ? c2=? ?\n  c=? ?",
       "SELECT * FROM t WHERE ?"
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
-    "sql": "SELECT * FROM t WHERE -- '\n  /* ' */ c2='xxx' /* ' */\n  c='x\n  xx' -- '",
     "pathological": true
   },
   {
     "name": "pathological/mixed_quotes_end_of_line_comments",
+    "sql": "SELECT * FROM t WHERE -- '\n  c='x\n  xx' -- '",
     "obfuscated": [
+      "SELECT * FROM t WHERE ?\n  c=? ?",
       "SELECT * FROM t WHERE ?"
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
-    "sql": "SELECT * FROM t WHERE -- '\n  c='x\n  xx' -- '",
     "pathological": true
   },
   {
     "name": "pathological/quote_delimiters_in_comments",
+    "sql": "SELECT * FROM foo WHERE col='value1' AND /* don't */ col2='value1' /* won't */",
     "obfuscated": [
+      "SELECT * FROM foo WHERE col=? AND ? col2=? ?",
       "SELECT * FROM foo WHERE col=? AND ?"
     ],
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
-    "sql": "SELECT * FROM foo WHERE col='value1' AND /* don't */ col2='value1' /* won't */",
     "pathological": true
   },
   {
@@ -355,11 +406,176 @@
     "sql": "SELECT * FROM table WHERE foo='bar' AND baz='nothing to see here",
     "dialects": [
       "mysql",
-      "postgres"
+      "postgres",
+      "oracle",
+      "cassandra"
     ],
     "obfuscated": [
       "?"
     ],
     "malformed": true
+  },
+  {
+    "name": "dollar_quotes",
+    "sql": "SELECT * FROM \"foo\" WHERE \"foo\" = $a$dollar quotes can be $b$nested$b$$a$ and bar = 'baz'",
+    "obfuscated": [
+      "SELECT * FROM \"foo\" WHERE \"foo\" = ? and bar = ?"
+    ],
+    "dialects": [
+      "postgres"
+    ]
+  },
+  {
+    "name": "non_quote_escape",
+    "sql": "select * from foo where bar = 'some\\tthing' and baz = 10",
+    "obfuscated": [
+      "select * from foo where bar = ? and baz = ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres",
+      "oracle",
+      "cassandra"
+    ]
+  },
+  {
+    "name": "end_of_string_backslash_and_line_comment_with_quite",
+    "sql": "select * from users where user = 'user1\\' password = 'hunter 2' -- ->don't count this quote",
+    "obfuscated": [
+      "select * from users where user = ?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres",
+      "oracle",
+      "cassandra"
+    ],
+    "pathological": true
+  },
+  {
+    "name": "oracle_bracket_quote",
+    "sql": "select * from foo where bar=q'[baz's]' and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "oracle"
+    ]
+  },
+  {
+    "name": "oracle_brace_quote",
+    "sql": "select * from foo where bar=q'{baz's}' and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "oracle"
+    ]
+  },
+  {
+    "name": "oracle_angle_quote",
+    "sql": "select * from foo where bar=q'<baz's>' and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "oracle"
+    ]
+  },
+  {
+    "name": "oracle_paren_quote",
+    "sql": "select * from foo where bar=q'(baz's)' and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "oracle"
+    ]
+  },
+  {
+    "name": "cassandra_blobs",
+    "sql": "select * from foo where bar=0xabcdef123 and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "cassandra"
+    ]
+  },
+  {
+    "name": "hex_literals",
+    "sql": "select * from foo where bar=0x2F and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "mysql"
+    ]
+  },
+  {
+    "name": "exponential_literals",
+    "sql": "select * from foo where bar=1.234e-5 and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres",
+      "oracle",
+      "cassandra"
+    ]
+  },
+  {
+    "name": "uuid",
+    "sql": "select * from foo where bar=01234567-89ab-cdef-0123-456789abcdef and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "postgres",
+      "cassandra"
+    ]
+  },
+  {
+    "name": "uuid_with_braces",
+    "sql": "select * from foo where bar={01234567-89ab-cdef-0123-456789abcdef} and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "postgres"
+    ]
+  },
+  {
+    "name": "uuid_no_dashes",
+    "sql": "select * from foo where bar=0123456789abcdef0123456789abcdef and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "postgres"
+    ]
+  },
+  {
+    "name": "uuid_random_dashes",
+    "sql": "select * from foo where bar={012-345678-9abc-def012345678-9abcdef} and x=5",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "postgres"
+    ]
+  },
+  {
+    "name": "booleans",
+    "sql": "select * from foo where bar=true and x=FALSE",
+    "obfuscated": [
+      "select * from foo where bar=? and x=?"
+    ],
+    "dialects": [
+      "mysql",
+      "postgres",
+      "cassandra"
+    ]
   }
 ]
