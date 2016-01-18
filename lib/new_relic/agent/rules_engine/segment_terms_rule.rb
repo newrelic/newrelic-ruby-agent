@@ -22,8 +22,11 @@ module NewRelic
         end
 
         def self.valid_prefix_segment_count?(prefix)
-          (prefix.count(SEGMENT_SEPARATOR) == 2 && prefix[prefix.rindex(SEGMENT_SEPARATOR) + 1].nil?) ||
-          (prefix.count(SEGMENT_SEPARATOR) == 1 && !prefix[prefix.rindex(SEGMENT_SEPARATOR) + 1].nil?)
+          count = prefix.count(SEGMENT_SEPARATOR)
+          rindex = prefix.rindex(SEGMENT_SEPARATOR)
+
+          (count == 2 && prefix[rindex + 1].nil?) ||
+          (count == 1 && !prefix[rindex + 1].nil?)
         end
 
         def initialize(options)
