@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/rules_engine/replacement_rule'
 require 'new_relic/agent/rules_engine/segment_terms_rule'
+require 'new_relic/language_support'
 
 module NewRelic
   module Agent
@@ -41,16 +42,33 @@ module NewRelic
 
         reject_rules_with_duplicate_prefixes!(segment_rules)
 
+        segment_rules.reverse! # Reset the rules to their original order.
+
         self.new(txn_name_rules, segment_rules)
       end
 
       # When multiple rules share the same prefix,
       # only apply the rule with the last instance of the prefix.
-      # Since we build the list of rules in reverse,
-      # no need to reverse the list before calling #uniq!
+      # Note that the incoming rules are in reverse order to facilitate this.
       def self.reject_rules_with_duplicate_prefixes!(rules)
-        rules.uniq! { |rule| rule.prefix }
-        rules.reverse!
+        if NewRelic::LanguageSupport.uniq_accepts_block?
+          rules.uniq! { |rule| rule.prefix }
+        else
+          reject_rules_with_duplicate_prefixes_without_uniq_block!(rules)
+        end
+      end
+
+      def self.reject_rules_with_duplicate_prefixes_without_uniq_block!(rules)
+        unique_rules = {}
+
+        rules.reject! do |rule|
+          if unique_rules[rule.prefix]
+            true
+          else
+            unique_rules[rule.prefix] = rule
+            false
+          end
+        end
       end
 
       def initialize(rules=[], segment_term_rules=[])
