@@ -28,9 +28,14 @@ module NewRelic
 
         txn_name_rules = txn_name_specs.map { |s| ReplacementRule.new(s) }
 
-        segment_rules = segment_rule_specs.map do |spec|
+        segment_rules = []
+
+        segment_rule_specs.each do |spec|
           if spec[SegmentTermsRule::PREFIX_KEY] && SegmentTermsRule.valid?(spec)
-            SegmentTermsRule.new(spec)
+            # Build segment_rules in reverse order from which they're provided,
+            # so that when we eliminate duplicates with #uniq!, we retain the last
+            # instances of repeated rules.
+            segment_rules.unshift SegmentTermsRule.new(spec)
           end
         end
 
@@ -41,9 +46,9 @@ module NewRelic
 
       # When multiple rules share the same prefix,
       # only apply the rule with the last instance of the prefix.
+      # Since we build the list of rules in reverse,
+      # no need to reverse the list before calling #uniq!
       def self.reject_rules_with_duplicate_prefixes!(rules)
-        rules.compact!
-        rules.reverse!
         rules.uniq! { |rule| rule.prefix }
         rules.reverse!
       end
