@@ -5,6 +5,8 @@
 module NewRelic::LanguageSupport
   extend self
 
+  RUBY_VERSION_192 = '1.9.2'.freeze
+
   # need to use syck rather than psych when possible
   def needs_syck?
     !NewRelic::LanguageSupport.using_engine?('jruby') &&
@@ -88,6 +90,12 @@ module NewRelic::LanguageSupport
     else
       false
     end
+  end
+
+  if ::RUBY_VERSION >= RUBY_VERSION_192
+    def uniq_accepts_block?; true; end
+  else
+    def uniq_accepts_block?; false; end
   end
 
   def jruby?

@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/rules_engine/replacement_rule'
 require 'new_relic/agent/rules_engine/segment_terms_rule'
+require 'new_relic/language_support'
 
 module NewRelic
   module Agent
@@ -26,10 +27,46 @@ module NewRelic
         txn_name_specs     = connect_response['transaction_name_rules']    || []
         segment_rule_specs = connect_response['transaction_segment_terms'] || []
 
-        txn_name_rules = txn_name_specs.map     { |s| ReplacementRule.new(s) }
-        segment_rules  = segment_rule_specs.map { |s| SegmentTermsRule.new(s) }
+        txn_name_rules = txn_name_specs.map { |s| ReplacementRule.new(s) }
+
+        segment_rules = []
+
+        segment_rule_specs.each do |spec|
+          if spec[SegmentTermsRule::PREFIX_KEY] && SegmentTermsRule.valid?(spec)
+            # Build segment_rules in reverse order from which they're provided,
+            # so that when we eliminate duplicates with #uniq!, we retain the last
+            # instances of repeated rules.
+            segment_rules.unshift SegmentTermsRule.new(spec)
+          end
+        end
+
+        reject_rules_with_duplicate_prefixes!(segment_rules)
+
+        segment_rules.reverse! # Reset the rules to their original order.
 
         self.new(txn_name_rules, segment_rules)
+      end
+
+      # When multiple rules share the same prefix,
+      # only apply the rule with the last instance of the prefix.
+      # Note that the incoming rules are in reverse order to facilitate this.
+      if NewRelic::LanguageSupport.uniq_accepts_block?
+        def self.reject_rules_with_duplicate_prefixes!(rules)
+          rules.uniq! { |rule| rule.prefix }
+        end
+      else
+        def self.reject_rules_with_duplicate_prefixes!(rules)
+          unique_rules = {}
+
+          rules.reject! do |rule|
+            if unique_rules[rule.prefix]
+              true
+            else
+              unique_rules[rule.prefix] = rule
+              false
+            end
+          end
+        end
       end
 
       def initialize(rules=[], segment_term_rules=[])
