@@ -102,20 +102,19 @@ DependencyDetection.defer do
   executes do
     ActionView::Template.class_eval do
       include NewRelic::Agent::MethodTracer
-      def render_with_newrelic(*args, &block)
-        options = if @virtual_path && @virtual_path.starts_with?('/') # file render
-          {:file => true }
-        else
-          {}
-        end
-        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(@identifier, options)}/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.render_type(@identifier)}"
-        trace_execution_scoped str do
-          render_without_newrelic(*args, &block)
+      prepend Module.new do
+        def render(*args, &block)
+          options = if @virtual_path && @virtual_path.starts_with?('/') # file render
+            {:file => true }
+          else
+            {}
+          end
+          str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(@identifier, options)}/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.render_type(@identifier)}"
+          trace_execution_scoped str do
+            super(*args, &block)
+          end
         end
       end
-
-      alias_method :render_without_newrelic, :render
-      alias_method :render, :render_with_newrelic
 
     end
   end
@@ -143,33 +142,30 @@ DependencyDetection.defer do
       include NewRelic::Agent::MethodTracer
       # namespaced helper methods
 
-      def render_with_newrelic(context, options)
-        # This is needed for rails 3.2 compatibility
-        @details = extract_details(options) if respond_to? :extract_details, true
-        identifier = determine_template(options) ? determine_template(options).identifier : nil
-        scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier, options)}/Rendering"
-        trace_execution_scoped scope_name do
-          render_without_newrelic(context, options)
+      prepend Module.new do
+        def render(context, options)
+          # This is needed for rails 3.2 compatibility
+          @details = extract_details(options) if respond_to? :extract_details, true
+          identifier = determine_template(options) ? determine_template(options).identifier : nil
+          scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier, options)}/Rendering"
+          trace_execution_scoped scope_name do
+            super(context, options)
+          end
         end
       end
-
-      alias_method :render_without_newrelic, :render
-      alias_method :render, :render_with_newrelic
     end
 
     ActionView::PartialRenderer.class_eval do
       include NewRelic::Agent::MethodTracer
-
-      def instrument_with_newrelic(name, payload = {}, &block)
-        identifier = payload[:identifier]
-        scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier)}/Partial"
-        trace_execution_scoped(scope_name) do
-          instrument_without_newrelic(name, payload, &block)
+      prepend Module.new do
+        def instrument(name, payload = {}, &block)
+          identifier = payload[:identifier]
+          scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier)}/Partial"
+          trace_execution_scoped(scope_name) do
+            super(name, payload, &block)
+          end
         end
       end
-
-      alias_method :instrument_without_newrelic, :instrument
-      alias_method :instrument, :instrument_with_newrelic
     end
   end
 end

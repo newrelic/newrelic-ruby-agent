@@ -35,17 +35,13 @@ DependencyDetection.defer do
         NewRelic::Agent::Transaction.notice_error exception, :custom_params => custom_params
       end
 
-      def rescue_action_with_newrelic_trace(exception)
-        rescue_action_without_newrelic_trace exception
-        NewRelic::Agent::Transaction.notice_error exception
+      prepend Module.new do
+        protected
+        def rescue_action(exception)
+          super exception
+          NewRelic::Agent::Transaction.notice_error exception
+        end
       end
-
-      # Compare with #alias_method_chain, which is not available in
-      # Rails 1.1:
-      alias_method :rescue_action_without_newrelic_trace, :rescue_action
-      alias_method :rescue_action, :rescue_action_with_newrelic_trace
-      protected :rescue_action
-
     end
   end
 end

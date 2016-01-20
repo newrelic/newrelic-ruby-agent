@@ -96,19 +96,17 @@ DependencyDetection.defer do
   executes do
     ActionController::Base.class_eval do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      prepend Module.new do
+        private
+        def perform_action_with_newrelic_trace_wrapper
+          munged_params = (respond_to?(:filter_parameters)) ? filter_parameters(params) : params
+          munged_params = NewRelic::Agent::ParameterFiltering.filter_rails_request_parameters(munged_params)
 
-      def perform_action_with_newrelic_trace_wrapper
-        munged_params = (respond_to?(:filter_parameters)) ? filter_parameters(params) : params
-        munged_params = NewRelic::Agent::ParameterFiltering.filter_rails_request_parameters(munged_params)
-
-        perform_action_with_newrelic_trace(:params => munged_params) do
-          perform_action_without_newrelic_trace
+          super(:params => munged_params) do
+            perform_action_without_newrelic_trace
+          end
         end
       end
-
-      alias_method :perform_action_without_newrelic_trace, :perform_action
-      alias_method :perform_action, :perform_action_with_newrelic_trace_wrapper
-      private :perform_action
 
       # determine the path that is used in the metric name for
       # the called controller action

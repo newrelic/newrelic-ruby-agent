@@ -21,29 +21,31 @@ DependencyDetection.defer do
   executes do
     module Rake
       class Task
-        alias_method :invoke_without_newrelic, :invoke
 
-        def invoke(*args)
-          unless NewRelic::Agent::Instrumentation::RakeInstrumentation.should_trace? name
-            return invoke_without_newrelic(*args)
-          end
+        prepend Module.new do
+          def invoke(*args)
+            unless NewRelic::Agent::Instrumentation::RakeInstrumentation.should_trace? name
+              return super(*args)
+            end
 
-          begin
-            timeout = NewRelic::Agent.config[:'rake.connect_timeout']
-            NewRelic::Agent.instance.wait_on_connect(timeout)
-          rescue => e
-            NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
-            return invoke_without_newrelic(*args)
-          end
+            begin
+              timeout = NewRelic::Agent.config[:'rake.connect_timeout']
+              NewRelic::Agent.instance.wait_on_connect(timeout)
+            rescue => e
+              NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
+              return super(*args)
+            end
 
-          NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
+            NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
 
-          state = NewRelic::Agent::TransactionState.tl_get
-          NewRelic::Agent::Transaction.wrap(state, "OtherTransaction/Rake/invoke/#{name}", :rake)  do
-            NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
-            invoke_without_newrelic(*args)
+            state = NewRelic::Agent::TransactionState.tl_get
+            NewRelic::Agent::Transaction.wrap(state, "OtherTransaction/Rake/invoke/#{name}", :rake)  do
+              NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
+              super(*args)
+            end
           end
         end
+
       end
     end
   end

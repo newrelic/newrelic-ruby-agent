@@ -27,18 +27,17 @@ DependencyDetection.defer do
         "#{controller_name}/#{action_name}"
       end
 
-      protected
+      prepend Module.new do
+        protected
 
-      def _dispatch_with_newrelic_trace(*args)
-        options = {}
-        options[:params] = params
-        perform_action_with_newrelic_trace(options) do
-          _dispatch_without_newrelic_trace(*args)
+        def _dispatch(*args)
+          options = {}
+          options[:params] = params
+          perform_action_with_newrelic_trace(options) do
+            super(*args)
+          end
         end
       end
-
-      alias_method :_dispatch_without_newrelic_trace, :_dispatch
-      alias_method :_dispatch, :_dispatch_with_newrelic_trace
     end
   end
 end

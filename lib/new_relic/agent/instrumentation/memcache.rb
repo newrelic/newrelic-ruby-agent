@@ -31,31 +31,27 @@ module NewRelic
         end
 
         def instrument_methods(client_class, requested_methods = METHODS)
-          supported_methods_for(client_class, requested_methods).each do |method_name|
+          client_class.class_eval do
+            prepend Module.new do
+              supported_methods_for(client_class, requested_methods).each do |method_name|
+                visibility = NewRelic::Helper.instance_method_visibility client_class, method_name
+                define_method method_name do |*args, &block|
+                  metrics = Datastores::MetricHelper.metrics_for("Memcached", method_name)
 
-            visibility = NewRelic::Helper.instance_method_visibility client_class, method_name
-            method_name_without = :"#{method_name}_without_newrelic_trace"
-
-            client_class.class_eval do
-              alias_method method_name_without, method_name
-
-              define_method method_name do |*args, &block|
-                metrics = Datastores::MetricHelper.metrics_for("Memcached", method_name)
-
-                NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-                  t0 = Time.now
-                  begin
-                    send method_name_without, *args, &block
-                  ensure
-                    if NewRelic::Agent.config[:capture_memcache_keys]
-                      NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
+                  NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
+                    t0 = Time.now
+                    begin
+                      super(*args, &block)
+                    ensure
+                      if NewRelic::Agent.config[:capture_memcache_keys]
+                        NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
+                      end
                     end
                   end
                 end
-              end
 
-              send visibility, method_name
-              send visibility, method_name_without
+                send visibility, method_name
+              end
             end
           end
         end
