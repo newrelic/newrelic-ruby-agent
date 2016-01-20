@@ -1,9 +1,5 @@
 mysql: &mysql
-<% if defined?(JRuby) %>
-  adapter: jdbcmysql
-<% else %>
-  adapter: mysql2
-<% end %>
+  adapter: <%= RUBY_VERSION < '1.9.3' ? 'mysql' : 'mysql2' %>
   socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
   username: root
   host: localhost
