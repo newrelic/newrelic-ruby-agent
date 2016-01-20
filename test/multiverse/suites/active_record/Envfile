@@ -9,7 +9,7 @@ boilerplate_gems = <<-BOILERPLATE
   gem 'i18n', '< 0.7.0' if RUBY_VERSION < '1.9.3' # i18n >= 0.7.0 only works on Ruby 1.9.3 and newer
 BOILERPLATE
 
-if RUBY_VERSION >= '2.2.2'
+if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
   gemfile <<-RB
     gem 'activerecord', '~> 5.0.0beta1'
     gem 'minitest', '~> 5.2.3'
