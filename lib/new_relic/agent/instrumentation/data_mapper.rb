@@ -136,7 +136,21 @@ module NewRelic
               name)
 
             NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-              self.send("#{method_name}_without_newrelic", *args, &blk)
+              begin
+                self.send("#{method_name}_without_newrelic", *args, &blk)
+              rescue ::DataObjects::SQLError => e
+                strategy = NewRelic::Agent::Database.record_sql_method(:slow_sql)
+                case strategy
+                when :obfuscated
+                  statement = NewRelic::Agent::Database::Statement.new(e.query, :adapter => self.options[:adapter])
+                  obfuscated_sql = NewRelic::Agent::Database.obfuscate_sql(statement)
+                  e.instance_variable_set(:@query, obfuscated_sql)
+                when :off
+                  e.instance_variable_set(:@query, nil)
+                end
+
+                raise
+              end
             end
           end
         end

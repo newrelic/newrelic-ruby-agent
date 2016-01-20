@@ -311,6 +311,19 @@ class DataMapperTest < Minitest::Test
     db.send(:log, msg)
   end
 
+  def test_obfuscate_query_in_sqlerror
+    invalid_query = "select * from users where password='Slurms McKenzie' limit 1"
+    with_config(:'slow_sql.record_sql' => 'obfuscated') do
+      begin
+        DataMapper.repository.adapter.select(invalid_query)
+      rescue => e
+        NewRelic::Agent.notice_error(e)
+      end
+    end
+
+    refute last_traced_error.message.include?(invalid_query)
+  end
+
   def assert_against_record(operation)
     post = Post.create!(:title => "Dummy post", :body => "whatever, man")
 
