@@ -28,44 +28,46 @@ module NewRelic
 
         def self.included(instrumented_class)
           instrumented_class.class_eval do
-            unless instrumented_class.method_defined?(:log_without_newrelic_instrumentation)
-              alias_method :log_without_newrelic_instrumentation, :log
-              alias_method :log, :log_with_newrelic_instrumentation
-              protected :log
+            protected :log
+            unless include?(NewRelic::Agent::Instrumentation::ActiveRecord::LogInstrumentation)
+              prepend NewRelic::Agent::Instrumentation::ActiveRecord::LogInstrumentation
             end
           end
         end
 
-        def log_with_newrelic_instrumentation(*args, &block) #THREAD_LOCAL_ACCESS
-          state = NewRelic::Agent::TransactionState.tl_get
+        module LogInstrumentation
+          protected
+          def log(*args, &block) #THREAD_LOCAL_ACCESS
+            state = NewRelic::Agent::TransactionState.tl_get
 
-          if !state.is_execution_traced?
-            return log_without_newrelic_instrumentation(*args, &block)
-          end
+            if !state.is_execution_traced?
+              return super(*args, &block)
+            end
 
-          sql, name, _ = args
-          metrics = ActiveRecordHelper.metrics_for(
-            NewRelic::Helper.correctly_encoded(name),
-            NewRelic::Helper.correctly_encoded(sql),
-            @config && @config[:adapter])
+            sql, name, _ = args
+            metrics = ActiveRecordHelper.metrics_for(
+              NewRelic::Helper.correctly_encoded(name),
+              NewRelic::Helper.correctly_encoded(sql),
+              @config && @config[:adapter])
 
-          # It is critical that we grab this name before trace_execution_scoped
-          # because that method mutates the metrics list passed in.
-          scoped_metric = metrics.first
+            # It is critical that we grab this name before trace_execution_scoped
+            # because that method mutates the metrics list passed in.
+            scoped_metric = metrics.first
 
-          NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-            t0 = Time.now
-            begin
-              log_without_newrelic_instrumentation(*args, &block)
-            ensure
-              elapsed_time = (Time.now - t0).to_f
+            NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
+              t0 = Time.now
+              begin
+                super(*args, &block)
+              ensure
+                elapsed_time = (Time.now - t0).to_f
 
-              NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
-                                                    @config, elapsed_time,
-                                                    state, EXPLAINER)
-              NewRelic::Agent.instance.sql_sampler.notice_sql(sql, scoped_metric,
-                                                    @config, elapsed_time,
-                                                    state, EXPLAINER)
+                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
+                                                      @config, elapsed_time,
+                                                      state, EXPLAINER)
+                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, scoped_metric,
+                                                      @config, elapsed_time,
+                                                      state, EXPLAINER)
+              end
             end
           end
         end

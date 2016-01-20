@@ -28,97 +28,82 @@ DependencyDetection.defer do
                     :_nr_original_on_complete,
                     :_nr_serial
 
-      # We have to hook these three methods separately, as they don't use
-      # Curl::Easy#http
-      def http_head_with_newrelic(*args, &blk)
-        self._nr_http_verb = :HEAD
-        http_head_without_newrelic(*args, &blk)
-      end
-      alias_method :http_head_without_newrelic, :http_head
-      alias_method :http_head, :http_head_with_newrelic
+      module NewRelicInstrumentation
 
-      def http_post_with_newrelic(*args, &blk)
-        self._nr_http_verb = :POST
-        http_post_without_newrelic(*args, &blk)
-      end
-      alias_method :http_post_without_newrelic, :http_post
-      alias_method :http_post, :http_post_with_newrelic
+        # We have to hook these three methods separately, as they don't use
+        # Curl::Easy#http
+        def http_head(*args, &blk)
+          self._nr_http_verb = :HEAD
+          http_head(*args, &blk)
+        end
 
-      def http_put_with_newrelic(*args, &blk)
-        self._nr_http_verb = :PUT
-        http_put_without_newrelic(*args, &blk)
-      end
-      alias_method :http_put_without_newrelic, :http_put
-      alias_method :http_put, :http_put_with_newrelic
+        def http_post(*args, &blk)
+          self._nr_http_verb = :POST
+          http_post(*args, &blk)
+        end
+
+        def http_put(*args, &blk)
+          self._nr_http_verb = :PUT
+          http_put(*args, &blk)
+        end
 
 
-      # Hook the #http method to set the verb.
-      def http_with_newrelic( verb )
-        self._nr_http_verb = verb.to_s.upcase
-        http_without_newrelic( verb )
-      end
-
-      alias_method :http_without_newrelic, :http
-      alias_method :http, :http_with_newrelic
+        # Hook the #http method to set the verb.
+        def http( verb )
+          self._nr_http_verb = verb.to_s.upcase
+          http( verb )
+        end
 
 
-      # Hook the #perform method to mark the request as non-parallel.
-      def perform_with_newrelic
-        self._nr_serial = true
-        perform_without_newrelic
-      end
+        # Hook the #perform method to mark the request as non-parallel.
+        def perform
+          self._nr_serial = true
+          perform
+        end
 
-      alias_method :perform_without_newrelic, :perform
-      alias_method :perform, :perform_with_newrelic
-
-      # We override this method in order to ensure access to header_str even
-      # though we use an on_header callback
-      def header_str_with_newrelic
-        if self._nr_serial
-          self._nr_header_str
-        else
-          # Since we didn't install a header callback for a non-serial request,
-          # just fall back to the original implementation.
-          header_str_without_newrelic
+        # We override this method in order to ensure access to header_str even
+        # though we use an on_header callback
+        def header_str
+          if self._nr_serial
+            self._nr_header_str
+          else
+            # Since we didn't install a header callback for a non-serial request,
+            # just fall back to the original implementation.
+            header_str
+          end
         end
       end
-
-      alias_method :header_str_without_newrelic, :header_str
-      alias_method :header_str, :header_str_with_newrelic
+      prepend NewRelicInstrumentation
     end # class Curl::Easy
 
 
     class Curl::Multi
       include NewRelic::Agent::MethodTracer
 
-      # Add CAT with callbacks if the request is serial
-      def add_with_newrelic(curl) #THREAD_LOCAL_ACCESS
-        if curl.respond_to?(:_nr_serial) && curl._nr_serial
-          hook_pending_request(curl) if NewRelic::Agent.tl_is_execution_traced?
+      module NewRelicInstrumentation
+        # Add CAT with callbacks if the request is serial
+        def add(curl) #THREAD_LOCAL_ACCESS
+          if curl.respond_to?(:_nr_serial) && curl._nr_serial
+            hook_pending_request(curl) if NewRelic::Agent.tl_is_execution_traced?
+          end
+
+          return super( curl )
         end
 
-        return add_without_newrelic( curl )
-      end
 
-      alias_method :add_without_newrelic, :add
-      alias_method :add, :add_with_newrelic
+        # Trace as an External/Multiple call if the first request isn't serial.
+        def perform(&blk)
+          return super if
+            self.requests.first &&
+            self.requests.first.respond_to?(:_nr_serial) &&
+            self.requests.first._nr_serial
 
-
-      # Trace as an External/Multiple call if the first request isn't serial.
-      def perform_with_newrelic(&blk)
-        return perform_without_newrelic if
-          self.requests.first &&
-          self.requests.first.respond_to?(:_nr_serial) &&
-          self.requests.first._nr_serial
-
-        trace_execution_scoped("External/Multiple/Curb::Multi/perform") do
-          perform_without_newrelic(&blk)
+          trace_execution_scoped("External/Multiple/Curb::Multi/perform") do
+            super(&blk)
+          end
         end
       end
-
-      alias_method :perform_without_newrelic, :perform
-      alias_method :perform, :perform_with_newrelic
-
+      prepend NewRelicInstrumentation
 
       # Instrument the specified +request+ (a Curl::Easy object) and set up cross-application
       # tracing if it's enabled.

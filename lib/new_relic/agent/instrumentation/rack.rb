@@ -98,28 +98,19 @@ module NewRelic
             end
             self._nr_deferred_detection_ran = false
 
-            include ::NewRelic::Agent::Instrumentation::RackBuilder
-
-            alias_method :to_app_without_newrelic, :to_app
-            alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
-
             if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
               ::NewRelic::Agent.logger.info "Installing #{builder_class} middleware instrumentation"
-              alias_method :run_without_newrelic, :run
-              alias_method :run, :run_with_newrelic
-
-              alias_method :use_without_newrelic, :use
-              alias_method :use, :use_with_newrelic
+              prepend ::NewRelic::Agent::Instrumentation::RackBuilder
             end
           end
 
           def self.instrument_url_map url_map_class
             url_map_class.class_eval do
-              alias_method :initialize_without_newrelic, :initialize
-
-              def initialize(map = {})
-                traced_map = ::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map)
-                initialize_without_newrelic(traced_map)
+              prepend Module.new do
+                def initialize(map = {})
+                  traced_map = ::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map)
+                  super(traced_map)
+                end
               end
             end
           end
@@ -127,21 +118,21 @@ module NewRelic
       end
 
       module RackBuilder
-        def run_with_newrelic(app, *args)
+        def run(app, *args)
           if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
             wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
-            run_without_newrelic(wrapped_app, *args)
+            super(wrapped_app, *args)
           else
-            run_without_newrelic(app, *args)
+            super(app, *args)
           end
         end
 
-        def use_with_newrelic(middleware_class, *args, &blk)
+        def use(middleware_class, *args, &blk)
           if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
             wrapped_middleware_class = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
-            use_without_newrelic(wrapped_middleware_class, *args, &blk)
+            super(wrapped_middleware_class, *args, &blk)
           else
-            use_without_newrelic(middleware_class, *args, &blk)
+            super(middleware_class, *args, &blk)
           end
         end
 
@@ -151,14 +142,14 @@ module NewRelic
         # every application, making it a good place to do a final call to
         # DependencyDetection.detect!, since all libraries are likely loaded at
         # this point.
-        def to_app_with_newrelic_deferred_dependency_detection
+        def to_app
           unless self.class._nr_deferred_detection_ran
             NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
             DependencyDetection.detect!
             self.class._nr_deferred_detection_ran = true
           end
 
-          result = to_app_without_newrelic
+          result = super
           ::NewRelic::Agent::Instrumentation::RackHelpers.check_for_late_instrumentation(result)
 
           result

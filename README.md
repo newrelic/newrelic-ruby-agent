@@ -62,19 +62,9 @@ UI.
 
 #### Rails Installation
 
-You can install the agent as a Gem:
-
-For Bundler:
-
-Add the following line to your Gemfile:
+You can install the agent as a Gem, add the following line to your Gemfile:
 
     gem 'newrelic_rpm'
-
-For Rails 2.x without Bundler:
-
-edit `environment.rb` and add to the initalizer block:
-
-    config.gem "newrelic_rpm"
 
 #### Sinatra Installation
 

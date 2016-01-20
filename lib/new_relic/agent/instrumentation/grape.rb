@@ -49,6 +49,23 @@ module NewRelic
           txn.merge_request_parameters(params)
         end
       end
+
+      module GrapeInstrumentationCall
+        def call(*args)
+          begin
+            response = super(*args)
+          ensure
+            begin
+              endpoint = env[::NewRelic::Agent::Instrumentation::GrapeInstrumentation::API_ENDPOINT]
+              ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.handle_transaction(endpoint, self.class.name)
+            rescue => e
+              ::NewRelic::Agent.logger.warn("Error in Grape instrumentation", e)
+            end
+          end
+
+          response
+        end
+      end
     end
   end
 end
@@ -88,23 +105,7 @@ DependencyDetection.defer do
 
   def instrument_call
     ::Grape::API.class_eval do
-      def call_with_new_relic(env)
-        begin
-          response = call_without_new_relic(env)
-        ensure
-          begin
-            endpoint = env[::NewRelic::Agent::Instrumentation::GrapeInstrumentation::API_ENDPOINT]
-            ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.handle_transaction(endpoint, self.class.name)
-          rescue => e
-            ::NewRelic::Agent.logger.warn("Error in Grape instrumentation", e)
-          end
-        end
-
-        response
-      end
-
-      alias_method :call_without_new_relic, :call
-      alias_method :call, :call_with_new_relic
+      prepend GrapeInstrumentationCall
     end
   end
 

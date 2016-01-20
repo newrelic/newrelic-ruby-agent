@@ -19,65 +19,59 @@ module NewRelic
 
         def instrument_save_methods
           ::ActiveRecord::Base.class_eval do
-            alias_method :save_without_newrelic, :save
-
-            def save(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
-                save_without_newrelic(*args, &blk)
-              end
-            end
-
-            alias_method :save_without_newrelic!, :save!
-
-            def save!(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
-                save_without_newrelic!(*args, &blk)
-              end
-            end
+            prepend ::NewRelic::Agent::Instrumentation::ActiveRecordHelper::SaveMethods
           end
         end
 
         def instrument_relation_methods
           ::ActiveRecord::Relation.class_eval do
-            alias_method :update_all_without_newrelic, :update_all
+            prepend ::NewRelic::Agent::Instrumentation::ActiveRecordHelper::RelationMethods
+          end
+        end
 
-            def update_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                update_all_without_newrelic(*args, &blk)
-              end
+        module SaveMethods
+          def save(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+              super(*args, &blk)
             end
+          end
 
-            alias_method :delete_all_without_newrelic, :delete_all
-
-            def delete_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                delete_all_without_newrelic(*args, &blk)
-              end
+          def save!(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+              super(*args, &blk)
             end
+          end
+        end
 
-            alias_method :destroy_all_without_newrelic, :destroy_all
-
-            def destroy_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                destroy_all_without_newrelic(*args, &blk)
-              end
+        module RelationMethods
+          def update_all(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super(*args, &blk)
             end
+          end
 
-            alias_method :calculate_without_newrelic, :calculate
-
-            def calculate(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                calculate_without_newrelic(*args, &blk)
-              end
+          def delete_all(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super(*args, &blk)
             end
+          end
 
-            if method_defined?(:pluck)
-              alias_method :pluck_without_newrelic, :pluck
+          def destroy_all(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super(*args, &blk)
+            end
+          end
 
-              def pluck(*args, &blk)
-                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                  pluck_without_newrelic(*args, &blk)
-                end
+          def calculate(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super(*args, &blk)
+            end
+          end
+
+          if method_defined?(:pluck)
+            def pluck(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super(*args, &blk)
               end
             end
           end

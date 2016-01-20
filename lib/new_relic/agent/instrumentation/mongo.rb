@@ -70,74 +70,71 @@ DependencyDetection.defer do
         NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(operation, payload)
       end
 
-      def instrument_with_new_relic_trace(name, payload = {}, &block)
-        metrics = new_relic_generate_metrics(name, payload)
+      prepend Module.new do
+        def instrument(name, payload = {}, &block)
+          metrics = new_relic_generate_metrics(name, payload)
 
-        trace_execution_scoped(metrics) do
-          t0 = Time.now
+          trace_execution_scoped(metrics) do
+            t0 = Time.now
 
-          result = NewRelic::Agent.disable_all_tracing do
-            instrument_without_new_relic_trace(name, payload, &block)
+            result = NewRelic::Agent.disable_all_tracing do
+              super(name, payload, &block)
+            end
+
+            new_relic_notice_statement(t0, payload, name)
+            result
           end
-
-          new_relic_notice_statement(t0, payload, name)
-          result
         end
       end
-
-      alias_method :instrument_without_new_relic_trace, :instrument
-      alias_method :instrument, :instrument_with_new_relic_trace
     end
   end
 
   def instrument_save
     ::Mongo::Collection.class_eval do
-      def save_with_new_relic_trace(doc, opts = {}, &block)
-        metrics = new_relic_generate_metrics(:save)
-        trace_execution_scoped(metrics) do
-          t0 = Time.now
+      prepend Module.new do
+        def save(doc, opts = {}, &block)
+          metrics = new_relic_generate_metrics(:save)
+          trace_execution_scoped(metrics) do
+            t0 = Time.now
 
-          result = NewRelic::Agent.disable_all_tracing do
-            save_without_new_relic_trace(doc, opts, &block)
+            result = NewRelic::Agent.disable_all_tracing do
+              super(doc, opts, &block)
+            end
+
+            new_relic_notice_statement(t0, doc, :save)
+            result
           end
-
-          new_relic_notice_statement(t0, doc, :save)
-          result
         end
       end
-
-      alias_method :save_without_new_relic_trace, :save
-      alias_method :save, :save_with_new_relic_trace
     end
   end
 
   def instrument_ensure_index
     ::Mongo::Collection.class_eval do
-      def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
-        metrics = new_relic_generate_metrics(:ensureIndex)
-        trace_execution_scoped(metrics) do
-          t0 = Time.now
+      prepend Module.new do
+        def ensure_index(spec, opts = {}, &block)
+          metrics = new_relic_generate_metrics(:ensureIndex)
+          trace_execution_scoped(metrics) do
+            t0 = Time.now
 
-          result = NewRelic::Agent.disable_all_tracing do
-            ensure_index_without_new_relic_trace(spec, opts, &block)
+            result = NewRelic::Agent.disable_all_tracing do
+              super(spec, opts, &block)
+            end
+
+            spec = case spec
+                   when Array
+                     Hash[spec]
+                   when String, Symbol
+                     { spec => 1 }
+                   else
+                     spec.dup
+                   end
+
+            new_relic_notice_statement(t0, spec, :ensureIndex)
+            result
           end
-
-          spec = case spec
-                 when Array
-                   Hash[spec]
-                 when String, Symbol
-                   { spec => 1 }
-                 else
-                   spec.dup
-                 end
-
-          new_relic_notice_statement(t0, spec, :ensureIndex)
-          result
         end
       end
-
-      alias_method :ensure_index_without_new_relic_trace, :ensure_index
-      alias_method :ensure_index, :ensure_index_with_new_relic_trace
     end
   end
 end
