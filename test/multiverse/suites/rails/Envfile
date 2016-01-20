@@ -1,4 +1,4 @@
-if RUBY_VERSION >= '2.2.2'
+if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
   gemfile <<-RB
     gem 'rails', '~>5.0.0beta1'
     gem 'haml', :require => false
