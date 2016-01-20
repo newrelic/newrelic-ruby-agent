@@ -324,6 +324,16 @@ class DataMapperTest < Minitest::Test
     refute last_traced_error.message.include?(invalid_query)
   end
 
+  def test_splice_user_password_from_sqlerror
+    begin
+      DataMapper.repository.adapter.select("select * from users")
+    rescue => e
+      NewRelic::Agent.notice_error(e)
+    end
+
+    refute last_traced_error.message.include?('&password=')
+  end
+
   def assert_against_record(operation)
     post = Post.create!(:title => "Dummy post", :body => "whatever, man")
 

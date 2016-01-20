@@ -139,6 +139,8 @@ module NewRelic
               begin
                 self.send("#{method_name}_without_newrelic", *args, &blk)
               rescue ::DataObjects::SQLError => e
+                e.uri.gsub!(/&password=.+&/, '&') if e.uri.include?('&password=')
+
                 strategy = NewRelic::Agent::Database.record_sql_method(:slow_sql)
                 case strategy
                 when :obfuscated
