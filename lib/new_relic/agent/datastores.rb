@@ -34,25 +34,22 @@ module NewRelic
       # @api public
       #
       def self.trace(clazz, method_name, product, operation = method_name)
-        clazz.class_eval do
-          method_name_without_newrelic = "#{method_name}_without_newrelic"
-
-          if NewRelic::Helper.instance_methods_include?(clazz, method_name) &&
-             !NewRelic::Helper.instance_methods_include?(clazz, method_name_without_newrelic)
-
-            visibility = NewRelic::Helper.instance_method_visibility(clazz, method_name)
-
-            alias_method method_name_without_newrelic, method_name
-
+        if NewRelic::Helper.instance_methods_include?(clazz, method_name)
+          visibility = NewRelic::Helper.instance_method_visibility(clazz, method_name)
+          
+          tracer_module = Module.new do
             define_method(method_name) do |*args, &blk|
               metrics = MetricHelper.metrics_for(product, operation)
               NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-                send(method_name_without_newrelic, *args, &blk)
+                super(*args, &blk)
               end
             end
 
             send visibility, method_name
-            send visibility, method_name_without_newrelic
+          end
+
+          clazz.class_eval do
+            prepend tracer_module
           end
         end
       end
