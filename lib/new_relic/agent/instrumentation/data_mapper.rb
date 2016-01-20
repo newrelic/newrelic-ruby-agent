@@ -109,6 +109,9 @@ module NewRelic
       end
 
       DATA_MAPPER = "DataMapper".freeze
+      PASSWORD_REGEX = /&password=.*?&/
+      AMPERSAND = '&'.freeze
+      PASSWORD_PARAM = '&password='.freeze
 
       def self.method_body(clazz, method_name, operation_only)
         use_model_name   = NewRelic::Helper.instance_methods_include?(clazz, :model)
@@ -139,7 +142,7 @@ module NewRelic
               begin
                 self.send("#{method_name}_without_newrelic", *args, &blk)
               rescue ::DataObjects::SQLError => e
-                e.uri.gsub!(/&password=.+&/, '&') if e.uri.include?('&password=')
+                e.uri.gsub!(PASSWORD_REGEX, AMPERSAND) if e.uri.include?(PASSWORD_PARAM)
 
                 strategy = NewRelic::Agent::Database.record_sql_method(:slow_sql)
                 case strategy
