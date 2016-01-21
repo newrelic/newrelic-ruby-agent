@@ -3,17 +3,12 @@ boilerplate_gems = <<-BOILERPLATE
   gem 'rake'
   gem 'i18n', '< 0.7.0' if RUBY_VERSION < '1.9.3' # i18n >= 0.7.0 only works on Ruby 1.9.3 and newer
 
-  platform :ruby do
-    if RUBY_VERSION < '1.9.3'
-      gem 'mysql'
-    else
-      gem 'mysql2', '~> 0.3.20'
-    end
-  end
-
-  platform :jruby do
-    gem "activerecord-jdbc-adapter"
-    gem 'jdbc-mysql'
+  if RUBY_PLATFORM == 'java'
+    gem "activerecord-jdbcmysql-adapter"
+  elsif RUBY_VERSION < '1.9.3'
+    gem 'mysql'
+  else
+    gem 'mysql2', '~> 0.3.20'
   end
 BOILERPLATE
 
@@ -61,7 +56,9 @@ if RUBY_VERSION < '2.2.0'
 
   gemfile <<-RB
     gem 'activerecord', '~> 3.0.20'
-    gem 'activerecord-mysql2-adapter'
+    if RUBY_PLATFORM != 'java'
+      gem 'activerecord-mysql2-adapter'
+    end
     #{boilerplate_gems}
   RB
 end
