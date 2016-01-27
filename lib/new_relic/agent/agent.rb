@@ -74,8 +74,6 @@ module NewRelic
 
         @wait_on_connect_reader, @wait_on_connect_writer = IO.pipe
 
-        @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
-
         setup_attribute_filter
       end
 
@@ -104,8 +102,6 @@ module NewRelic
       # instances
       module InstanceMethods
 
-        # holds a proc that is used to obfuscate sql statements
-        attr_reader :obfuscator
         # the statistics engine that holds all the timeslice data
         attr_reader :stats_engine
         # the transaction sampler that handles recording transactions
