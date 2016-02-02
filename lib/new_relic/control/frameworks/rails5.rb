@@ -8,15 +8,6 @@ module NewRelic
   class Control
     module Frameworks
       class Rails5 < NewRelic::Control::Frameworks::Rails4
-        def rails_gem_list
-          Bundler.rubygems.all_specs.map do |gem|
-            "#{gem.name} (#{gem.version})"
-          end
-        end
-
-        def append_plugin_list
-          # Rails 5 does not allow plugins
-        end
       end
     end
   end
