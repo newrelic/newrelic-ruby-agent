@@ -14,8 +14,7 @@ platforms :jruby do
 end
 
 platforms :ruby do
-  gem "mysql"
-  gem "activerecord-mysql-adapter"
+  gem "mysql2"
 end
 
 platforms :rbx do

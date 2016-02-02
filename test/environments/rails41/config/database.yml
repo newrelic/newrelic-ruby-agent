@@ -1,5 +1,5 @@
 mysql: &mysql
-  adapter: mysql
+  adapter: mysql2
   socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
   username: root
   host: localhost
