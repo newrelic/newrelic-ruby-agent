@@ -86,7 +86,7 @@ module NewRelic
       {
         :type        => :web,
         :supported   => ["~>2.1.0", "~>2.2.0", "~>2.3.0", "~3.0.0", "~>3.1.0", "~>3.2.0", "~>4.0.0", "~>4.1.0", "~>4.2.0"],
-        :experimental=> ["5.0.0beta1"],
+        :experimental=> ["5.0.0beta2"],
         :deprecated  => ["~>2.0.0"],
         :url         => "https://rubygems.org/gems/rails",
         :feed        => "https://rubygems.org/gems/rails/versions.atom",
