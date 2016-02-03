@@ -331,7 +331,8 @@ class DataMapperTest < Minitest::Test
       NewRelic::Agent.notice_error(e)
     end
 
-    refute last_traced_error.message.include?('&password=')
+    refute last_traced_error.message.include?('&password='),
+      "error message expected not to contain '&password=' but did: #{last_traced_error && last_traced_error.message}"
   end
 
   def assert_against_record(operation)
