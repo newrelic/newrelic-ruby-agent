@@ -109,7 +109,7 @@ namespace :newrelic do
       if spec[:default].is_a?(Proc)
         '(Dynamic)'
       else
-        spec[:default].inspect
+        "<code>#{spec[:default].inspect}</code>"
       end
     end
 
