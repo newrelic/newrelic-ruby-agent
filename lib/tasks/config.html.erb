@@ -6,7 +6,7 @@
 <dl class="clamshell-list">
   <% configs.each do |config|%>
   <!-- ********** <%= config[:key] %> ********** -->
-  <dt id="<%=config[:key]%>"><%=config[:key]%></dt>
+  <dt id="<%= config[:key].gsub('.', '-') %>"><%=config[:key]%></dt>
   <dd>
   <table class="specs">
     <tbody>
