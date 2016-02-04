@@ -298,7 +298,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Sets the level of detail of log messages. Possible log levels, in increasing order of detail, are: <code>error</code>, <code>warn</code>, <code>info</code> or <code>debug</code>.'
+          :description => 'Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: <code>error</code>, <code>warn</code>, <code>info</code> or <code>debug</code>.'
         },
         :high_security => {
           :default => false,
@@ -403,7 +403,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Defines a comma-delimited list of rake tasks that the agent should not instrument. For example, <code>assets:precompile,db:migrate</code>.'
+          :description => 'Defines a comma-delimited list of Rake tasks that the agent should not instrument. For example, <code>assets:precompile,db:migrate</code>.'
         },
         :disable_rake => {
           :default => false,
@@ -425,7 +425,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
-          :description => 'Specify an array Rake tasks to automatically instrument.'
+          :description => 'Specify an array of Rake tasks to automatically instrument.'
         },
         :'rake.connect_timeout' => {
           :default => 10,
@@ -654,7 +654,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent will remove <code>newrelic_rpm</code> from backtraces.'
+          :description => 'If <code>true</code>, the agent won't remove <code>newrelic_rpm</code> from backtraces.'
         },
         :disable_harvest_thread => {
           :default => false,
@@ -851,14 +851,14 @@ module NewRelic
           :type         => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :description  => 'If <code>true</code>, the agent will not install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.'
+          :description  => 'If <code>true</code>, the agent won't install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.'
         },
         :disable_redis => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent will not install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.'
+          :description  => 'If <code>true</code>, the agent won't install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.'
         },
         :disable_redis_instrumentation => {
           :default      => false,
@@ -1174,7 +1174,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent <a href="https://docs.newrelic.com/docs/agents/ruby-agent/features/ruby-vm-measurements">samples performance measurements from the Ruby VM</a>.'
+          :description  => 'If <code>true</code>, the agent won't <a href="https://docs.newrelic.com/docs/agents/ruby-agent/features/ruby-vm-measurements">sample performance measurements from the Ruby VM</a>.'
         },
         :disable_memory_sampler => {
           :default      => false,
@@ -1182,7 +1182,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent samples the memory usage of the host process.'
+          :description  => 'If <code>true</code>, the agent won't sample the memory usage of the host process.'
         },
         :disable_cpu_sampler => {
           :default      => false,
@@ -1190,7 +1190,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent samples the CPU usage of the host process.'
+          :description  => 'If <code>true</code>, the agent won't sample the CPU usage of the host process.'
         },
         :disable_delayed_job_sampler => {
           :default      => false,
@@ -1198,7 +1198,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent measures the depth of Delayed Job queues.'
+          :description  => 'If <code>true</code>, the agent won't measure the depth of Delayed Job queues.'
         },
         :disable_active_record_4 => {
           :default      => false,
@@ -1206,7 +1206,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent installs instrumentation for ActiveRecord 4.'
+          :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 4.'
         },
         :disable_curb => {
           :default      => false,
@@ -1214,7 +1214,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent installs instrumentation for the curb gem.'
+          :description  => 'If <code>true</code>, disables instrumentation for the curb gem.'
         },
         :disable_excon => {
           :default      => false,
@@ -1222,7 +1222,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent installs instrumentation for the excon gem.'
+          :description  => 'If <code>true</code>, disables instrumentation for the excon gem.'
         },
         :disable_httpclient => {
           :default      => false,
@@ -1230,7 +1230,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent installs instrumentation for the httpclient gem.'
+          :description  => 'If <code>true</code>, disables instrumentation for the httpclient gem.'
         },
         :disable_net_http => {
           :default      => false,
@@ -1238,7 +1238,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent installs instrumentation for Net::HTTP.'
+          :description  => 'If <code>true</code>, disables instrumentation for Net::HTTP.'
         },
         :disable_rack => {
           :default      => false,
@@ -1278,7 +1278,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent uses RubyProf in developer mode (if RubyProf is installed).'
+          :description  => 'If <code>true</code>, the agent won't use RubyProf in developer mode.'
         },
         :disable_typhoeus => {
           :default      => false,
@@ -1286,14 +1286,14 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent installs instrumentation for the typhoeus gem.'
+          :description  => 'If <code>true</code>, the agent won't install instrumentation for the typhoeus gem.'
         },
         :disable_middleware_instrumentation => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent wraps third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
+          :description  => 'If <code>true</code>, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
         },
         :disable_rails_middleware => {
           :default      => false,
@@ -1395,14 +1395,14 @@ module NewRelic
           :public       => false,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables installation of Grape instrumentation.'
+          :description  => 'If <code>true</code>, the agent won't install Grape instrumentation.'
         },
         :disable_grape => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables installation of Grape instrumentation.'
+          :description  => 'If <code>true</code>, the agent won't install Grape instrumentation.'
         },
         :'attributes.enabled' => {
           :default     => true,
