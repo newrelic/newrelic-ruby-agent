@@ -41,7 +41,7 @@ rvm:
   - jruby-1.7.23
   - jruby-9.0.4.0
   - 2.2.4
-  - 2.1.8
+  - 2.1.7
   - 2.0.0-p648
   - 1.9.3
   - 1.9.2
@@ -100,11 +100,11 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails23
 
     # 2.1
-    - rvm: 2.1.8
+    - rvm: 2.1.7
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.1.8
+    - rvm: 2.1.7
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.1.8
+    - rvm: 2.1.7
       env: TYPE=UNIT ENVIRONMENT=rails23
 
     # 2.0
