@@ -389,7 +389,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Specify a list of constants that should prevent the agent from starting automatically. Separate individual constants with a comma <code>,</code>. For example, <code>Rails::Console, UninstrumentedBackgroundJob</code>.'
+          :description => 'Specify a list of constants that should prevent the agent from starting automatically. Separate individual constants with a comma <code>,</code>. For example, <code>Rails::Console,UninstrumentedBackgroundJob</code>.'
         },
         :'autostart.blacklisted_executables' => {
           :default => 'irb,rspec',
