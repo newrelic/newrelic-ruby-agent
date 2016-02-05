@@ -313,10 +313,14 @@ module NewRelic
 
       private
 
+      # need to hash the same way in every process, to be able to aggregate slow SQL traces
       def consistent_hash(string)
-        # need to hash the same way in every process
-        Digest::MD5.hexdigest(string).hex \
-          .modulo(2**31-1)  # ensure sql_id fits in an INT(11)
+        if NewRelic::Agent.config[:'slow_sql.use_longer_sql_id']
+          Digest::MD5.hexdigest(string).hex.modulo(2**63-1)
+        else
+          # from when sql_id needed to fit in an INT(11)
+          Digest::MD5.hexdigest(string).hex.modulo(2**31-1)
+        end
       end
     end
   end
