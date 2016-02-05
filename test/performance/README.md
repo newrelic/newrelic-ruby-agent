@@ -104,13 +104,6 @@ by specifying the path to the agent you want to test against by passing the `-A`
 flag to the `runner` script, or by setting the `AGENT_PATH` environment variable
 when using the rake task.
 
-## Sending results to Hako
-
-This is currently considered experimental, but you can send results
-automatically to Hako by passing `-R HakoReporter` on the command line to the
-`runner`. This will produce JSON-formatted versions of each test result, and
-submit them to Hako. You will need to set the `HAKO_TOKEN` environment variable
-to a valid Hako access token when doing this.
 
 ## Writing tests
 
@@ -146,10 +139,10 @@ compatibility with JRuby.
 Additionally, when operating in this mode, the `newrelic_rpm` gem will not be
 loaded until *after* the fork call. This means that your **test cases must be
 loadable (though not necessarily runnable) without the `newrelic_rpm` gem
-avaiable**.
+available**.
 
 Not all command-line options to the runner work with this test isolation yet.
-You can disable it by passing the `-I/--inline` flag to the runner.
+You can disable it by passing the `-I` or `--inline` flag to the runner.
 
 ## Adding instrumentation layers
 
@@ -164,7 +157,7 @@ Instrumentors inherit from `Performance::Instrumentation::Instrumentor`, and may
 constrain themselves to running only on certain platforms (see `instrumentor.rb`
 for a list) by calling the `platforms` method in their class definitions. They
 may also signal that they should be used by default by calling `on_by_default`.
-They should imlement the `before`, `after` and `results` methods as follows:
+They should implement the `before`, `after` and `results` methods as follows:
 
 The `before` method is called before each test is run. The test class and test
 name are passed as arguments.

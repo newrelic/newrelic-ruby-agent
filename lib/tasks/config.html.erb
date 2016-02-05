@@ -6,7 +6,7 @@
 <dl class="clamshell-list">
   <% configs.each do |config|%>
   <!-- ********** <%= config[:key] %> ********** -->
-  <dt id="<%=config[:key]%>"><%=config[:key]%></dt>
+  <dt id="<%= config[:key].gsub('.', '-') %>"><%=config[:key]%></dt>
   <dd>
   <table class="specs">
     <tbody>
@@ -17,6 +17,10 @@
       <tr>
         <th>Default</th>
         <td><%=config[:default]%></td>
+      </tr>
+      <tr>
+        <th>Environ variable</th>
+        <td><code><%=config[:env_var]%></code></td>
       </tr>
     </tbody>
   </table>

@@ -12,7 +12,7 @@ class RenameRuleTest < Minitest::Test
       { 'match_expression' => 'Nothing',        'replacement' => 'Something' }
     ]
     segment_terms_rules = [
-      { 'prefix' => 'other', 'terms' => ['Nothing', 'one', 'two'] }
+      { 'prefix' => 'other/qux', 'terms' => ['Nothing', 'one', 'two'] }
     ]
     collector.stub('connect', {
       'agent_run_id'              => 666,
@@ -60,32 +60,32 @@ class RenameRuleTest < Minitest::Test
 
   def test_transaction_segment_terms_do_not_apply_to_metrics
     in_transaction do
-      NewRelic::Agent.record_metric("other/foo/bar", 42)
+      NewRelic::Agent.record_metric("other/qux/foo/bar", 42)
     end
 
-    assert_metrics_recorded(['other/foo/bar'])
+    assert_metrics_recorded(['other/qux/foo/bar'])
   end
 
   def test_transaction_segment_terms_do_apply_to_transaction_names
     in_transaction do
-      NewRelic::Agent.set_transaction_name('one/two/three/four')
+      NewRelic::Agent.set_transaction_name('qux/one/two/three/four')
     end
 
-    assert_metrics_recorded(['other/one/two/*'])
-    assert_metrics_not_recorded(['other/one/two/three/four'])
+    assert_metrics_recorded(['other/qux/one/two/*'])
+    assert_metrics_not_recorded(['other/qux/one/two/three/four'])
   end
 
   def test_transaction_segment_terms_applied_after_other_rules
     in_transaction do
-      NewRelic::Agent.set_transaction_name('Nothing/one/two/three')
+      NewRelic::Agent.set_transaction_name('qux/Nothing/one/two/three')
     end
 
-    assert_metrics_recorded(['other/*/one/two/*'])
+    assert_metrics_recorded(['other/qux/*/one/two/*'])
     assert_metrics_not_recorded([
-      'other/Something/one/two/*',
-      'other/Something/one/two/three',
-      'other/Nothing/one/two/*',
-      'other/Nothing/one/two/three'
+      'other/qux/Something/one/two/*',
+      'other/qux/Something/one/two/three',
+      'other/qux/Nothing/one/two/*',
+      'other/qux/Nothing/one/two/three'
     ])
   end
 end

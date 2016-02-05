@@ -12,7 +12,7 @@ module NewRelic
 
         # Note that this regex can't be shared with the ones in the
         # Database::Obfuscator class because here we don't look for
-        # backslash-escaped strings (and those regexes are backwards).
+        # backslash-escaped strings.
         QUOTED_STRINGS_REGEX = /'(?:[^']|'')*'|"(?:[^"]|"")*"/
         LABEL_LINE_REGEX     = /^([^:\n]*:\s+).*$/.freeze
 

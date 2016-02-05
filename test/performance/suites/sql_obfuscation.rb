@@ -28,4 +28,23 @@ class SqlObfuscationTests < Performance::TestCase
       NewRelic::Agent::Database.obfuscate_sql(@short_query_pg)
     end    
   end
+
+  def test_obfuscate_cross_agent_tests
+    test_cases = load_cross_agent_test('sql_obfuscation/sql_obfuscation')
+    statements = []
+
+    test_cases.each do |test_case|
+      query = test_case['sql']
+
+      test_case['dialects'].map do |dialect|
+        statements << NewRelic::Agent::Database::Statement.new(query, {:adapter => dialect})
+      end
+    end
+
+    measure do
+      statements.each do |statement|
+        NewRelic::Agent::Database.obfuscate_sql(statement)
+      end
+    end
+  end
 end

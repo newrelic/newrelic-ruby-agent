@@ -1,0 +1,1441 @@
+{
+  "tests": [
+    {
+      "title": "happy_connect",
+      "comment": "Verifies that the agent connects correctly under normal circumstances and sends the right metadata with each request",
+      "steps": [
+        {
+          "event_agent_start": {
+            "payload": {
+              "host": "collector.newrelic.com",
+              "port": 443,
+              "license_key": "licenseKey1"
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "get_redirect_host",
+            "host": "collector.newrelic.com",
+            "port": 443,
+            "license_key": "licenseKey1",
+            "response_payload": {
+              "return_value": "collector55.newrelic.com"
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "connect",
+            "host": "collector55.newrelic.com",
+            "port": 443,
+            "license_key": "licenseKey1",
+            "response_payload": {
+              "return_value": {
+                "agent_run_id": "agentRunId1"
+              }
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "host": "collector55.newrelic.com",
+            "port": 443,
+            "license_key": "licenseKey1",
+            "agent_run_id": "agentRunId1",
+            "command": "agent_settings"
+          }
+        }
+      ]
+    },
+    {
+      "title": "invalid_license",
+      "comment": "Verifies that the agent stops itself after receiving a license error",
+      "steps": [
+        {
+          "event_agent_start": {
+            "payload": {
+              "host": "collector.newrelic.com",
+              "port": 443,
+              "license_key": "WRONG"
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "get_redirect_host",
+            "response_payload": {
+              "exception": {
+                "error_type": "NewRelic::Agent::LicenseException"
+              }
+            }
+          }
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_no_request": {}
+        }
+      ]
+    },
+    {
+      "title": "happy_metric_data",
+      "comment": "Verifies that the agent serializes metrics correctly and sends them to the right endpoint",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/ApplePie",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_request": {
+            "command": "metric_data",
+            "payload": [
+              "agentRunId1",
+              "__ANY_FLOAT__",
+              "__ANY_FLOAT__",
+              [
+                [
+                  {
+                    "name": "DotNet/DefaultController/FooBar"
+                  },
+                  [
+                    1,
+                    2,
+                    2,
+                    2,
+                    2,
+                    4
+                  ]
+                ],
+                [
+                  {
+                    "name": "DotNet/DefaultController/ApplePie"
+                  },
+                  [
+                    1,
+                    2,
+                    2,
+                    2,
+                    2,
+                    4
+                  ]
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "happy_transaction_event_data",
+      "comment": "Verifies that the agent serializes transaction events correctly and sends them to the right endpoint",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_transaction_event": {
+            "payload": {
+              "intrinsic_attributes": {
+                "name": "WebTransaction/Action/FooBar",
+                "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                "timestamp": 12345,
+                "duration": 6.789
+              },
+              "user_attributes": {
+                "my_attribute": "my_value"
+              },
+              "agent_attributes": {
+                "response.status": "200"
+              }
+            }
+          }
+        },
+        {
+          "event_harvest_transaction_events": {}
+        },
+        {
+          "expect_request": {
+            "command": "analytic_event_data",
+            "payload": [
+              "agentRunId1",
+              [
+                [
+                  {
+                    "type": "Transaction",
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                    "timestamp": 12345,
+                    "duration": 6.789
+                  },
+                  {
+                    "my_attribute": "my_value"
+                  },
+                  {
+                    "response.status": "200"
+                  }
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "happy_custom_event_data",
+      "comment": "Verifies that the agent serializes transaction events correctly and sends them to the right endpoint",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_custom_event": {
+            "payload": {
+              "intrinsic_attributes": {
+                "type": "myType"
+              },
+              "user_attributes": {
+                "my_attribute": "my_value"
+              }
+            }
+          }
+        },
+        {
+          "event_harvest_custom_events": {}
+        },
+        {
+          "expect_request": {
+            "command": "custom_event_data",
+            "payload": [
+              "agentRunId1",
+              [
+                [
+                  {
+                    "type": "myType",
+                    "timestamp": "__ANY_FLOAT__"
+                  },
+                  {
+                    "my_attribute": "my_value"
+                  }
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "happy_transaction_sample_data",
+      "comment": "Verifies that the agent serializes transaction samples correctly and sends them to the right endpoint",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_transaction_sample": {
+            "payload": {
+              "timestamp": "2000-01-01 01:01:01",
+              "duration": 9967,
+              "path": "WebTransaction/Action/FooBar",
+              "uri": "http://localhost/MyApp/FooBar",
+              "trace_data": [
+                946688461,
+                [],
+                [],
+                [
+                  123,
+                  456,
+                  "rootSegment",
+                  {},
+                  [],
+                  "myClass",
+                  "myMethod"
+                ],
+                {
+                  "intrinsics": {
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817"
+                  },
+                  "userAttributes": {
+                    "my_attribute": "my_value"
+                  },
+                  "agentAttributes": {
+                    "response.status": "200"
+                  }
+                }
+              ],
+              "guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+              "unused": null,
+              "force_persist": false,
+              "xrey_session_id": null,
+              "synthetics_resource_id": null
+            }
+          }
+        },
+        {
+          "event_harvest_transaction_samples": {}
+        },
+        {
+          "expect_request": {
+            "command": "transaction_sample_data",
+            "payload": [
+              "agentRunId1",
+              [
+                [
+                  946688461,
+                  9967,
+                  "WebTransaction/Action/FooBar",
+                  "http://localhost/MyApp/FooBar",
+                  "eJxVjk9rwzAMxb+LzkmWP05q79YNdutpgx1KKEqqZIbGLpY9KCHfvXbHDgUh6b33A+moRNdJKbqqKLN1S3Ws6iYK0Xaxg7PWf9K8kPHwSPsMltv7BZkhbQfyP/YMfbYCzhHae+/0EDwxvK7giK/WMBXs0YdoQV2WsGUQmNwzutxO+G9ELspfvARKsDbRN6zHB2hwScA3DV8ODePotTUv+7/xYe0buviZccUc9DldlM2gqG3ycVdRLsZmytUk61ypVkyTUkJWO9i2/g7A4VcY",
+                  "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                  null,
+                  false,
+                  null,
+                  null
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "happy_error_data",
+      "comment": "Verifies that the agent serializes error traces correctly and sends them to the right endpoint",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_error": {
+            "payload": {
+              "timestamp": "2000-01-01 01:01:01",
+              "path": "WebTransaction/Action/FooBar",
+              "message": "Oh no!",
+              "exception_class_name": "System.Exception",
+              "attributes": {
+                "stack_trace": [
+                  "at SomeMethod1()",
+                  "at SomeMethod2()"
+                ],
+                "agent_attributes": {
+                  "response.status": "200"
+                },
+                "user_attributes": {
+                  "my_attribute": "my_value"
+                },
+                "intrinsic_attributes": {},
+                "request_uri": "http://localhost/MyApp/FooBar"
+              },
+              "guid": "283b9e53-c71e-4c3f-9f82-9954ff994817"
+            }
+          }
+        },
+        {
+          "event_harvest_errors": {}
+        },
+        {
+          "expect_request": {
+            "command": "error_data",
+            "payload": [
+              "agentRunId1",
+              [
+                [
+                  946688461,
+                  "WebTransaction/Action/FooBar",
+                  "Oh no!",
+                  "System.Exception",
+                  {
+                    "stack_trace": [
+                      "at SomeMethod1()",
+                      "at SomeMethod2()"
+                    ],
+                    "agentAttributes": {
+                      "response.status": "200"
+                    },
+                    "userAttributes": {
+                      "my_attribute": "my_value"
+                    },
+                    "intrinsics": {},
+                    "request_uri": "http://localhost/MyApp/FooBar"
+                  },
+                  "283b9e53-c71e-4c3f-9f82-9954ff994817"
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "happy_sql_trace_data",
+      "comment": "Verifies that the agent serializes SQL traces correctly and sends them to the right endpoint",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_sql_trace": {
+            "payload": {
+              "transaction_name": "WebTransaction/Action/FooBar",
+              "uri": "http://localhost/MyApp/FooBar",
+              "sql_id": 123,
+              "sql": "SELECT * FROM foo",
+              "database_metric_name": "Datastore/statement/Postgres/MyTable/select",
+              "call_time": 1,
+              "parameter_data": {}
+            }
+          }
+        },
+        {
+          "event_sql_trace": {
+            "payload": {
+              "transaction_name": "WebTransaction/Action/FooBar",
+              "uri": "http://localhost/MyApp/FooBar",
+              "sql_id": 123,
+              "sql": "SELECT * FROM foo",
+              "database_metric_name": "Datastore/statement/Postgres/MyTable/select",
+              "call_time": 9001,
+              "parameter_data": {}
+            }
+          }
+        },
+        {
+          "event_harvest_sql_traces": {}
+        },
+        {
+          "expect_request": {
+            "command": "sql_trace_data",
+            "payload": [
+              [
+                [
+                  "WebTransaction/Action/FooBar",
+                  "http://localhost/MyApp/FooBar",
+                  123,
+                  "SELECT * FROM foo",
+                  "Datastore/statement/Postgres/MyTable/select",
+                  2,
+                  9002,
+                  1,
+                  9001,
+                  "eJyrrgUAAXUA+Q=="
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "harvest_force_restart",
+      "comment": "Verifies that the agent restarts when told to and doesn't resend sent data",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_request": {
+            "command": "metric_data",
+            "response_payload": {
+              "exception": {
+                "error_type": "NewRelic::Agent::ForceRestartException"
+              }
+            }
+          }
+        },
+        {
+          "composite_step": "get_redirect_host"
+        },
+        {
+          "expect_request": {
+            "command": "connect",
+            "response_payload": {
+              "return_value": {
+                "agent_run_id": "agentRunId2"
+              }
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "agent_settings",
+            "agent_run_id": "agentRunId2"
+          }
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/ApplePie",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_request": {
+            "command": "metric_data",
+            "agent_run_id": "agentRunId2",
+            "payload": [
+              "agentRunId2",
+              "__ANY_FLOAT__",
+              "__ANY_FLOAT__",
+              [
+                [
+                  {
+                    "name": "DotNet/DefaultController/ApplePie"
+                  },
+                  [
+                    1,
+                    2,
+                    2,
+                    2,
+                    2,
+                    4
+                  ]
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "harvest_force_disconnect",
+      "comment": "Verifies that the agent shuts down when told to",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_request": {
+            "command": "metric_data",
+            "response_payload": {
+              "exception": {
+                "error_type": "NewRelic::Agent::ForceDisconnectException"
+              }
+            }
+          }
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/ApplePie",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_no_request": {}
+        }
+      ]
+    },
+    {
+      "title": "restart_agent_command",
+      "comment": "Verifies that agent responds to the Restart command and doesn't send data collected before the restart",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_get_agent_commands": {}
+        },
+        {
+          "expect_request": {
+            "command": "get_agent_commands",
+            "payload": [
+              "agentRunId1"
+            ],
+            "response_payload": {
+              "return_value": [
+                [
+                  1,
+                  {
+                    "name": "restart",
+                    "arguments": {}
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "composite_step": "get_redirect_host"
+        },
+        {
+          "expect_request": {
+            "command": "connect",
+            "response_payload": {
+              "return_value": {
+                "agent_run_id": "agentRunId2"
+              }
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "agent_settings",
+            "agent_run_id": "agentRunId2"
+          }
+        },
+        {
+          "expect_request": {
+            "command": "agent_command_results",
+            "agent_run_id": "agentRunId2",
+            "payload": [
+              "agentRunId2",
+              {
+                "1": null
+              }
+            ]
+          }
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/ApplePie",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_request": {
+            "command": "metric_data",
+            "agent_run_id": "agentRunId2",
+            "payload": [
+              "agentRunId2",
+              "__ANY_FLOAT__",
+              "__ANY_FLOAT__",
+              [
+                [
+                  {
+                    "name": "DotNet/DefaultController/ApplePie"
+                  },
+                  [
+                    1,
+                    2,
+                    2,
+                    2,
+                    2,
+                    4
+                  ]
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "shutdown_agent_command",
+      "comment": "Verifies that agent responds to the Shutdown command and does not do a final harvest",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_get_agent_commands": {}
+        },
+        {
+          "expect_request": {
+            "command": "get_agent_commands",
+            "payload": [
+              "agentRunId1"
+            ],
+            "response_payload": {
+              "return_value": [
+                [
+                  1,
+                  {
+                    "name": "shutdown",
+                    "arguments": {}
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/ApplePie",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_no_request": {}
+        }
+      ]
+    },
+    {
+      "title": "local_config_update",
+      "comment": "Verifies that agent reconnects and discards all previously collected data if local configuration changes are made",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_local_config_update": {}
+        },
+        {
+          "expect_request": {
+            "command": "shutdown"
+          }
+        },
+        {
+          "composite_step": "get_redirect_host"
+        },
+        {
+          "expect_request": {
+            "command": "connect",
+            "response_payload": {
+              "return_value": {
+                "agent_run_id": "agentRunId2"
+              }
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "agent_settings",
+            "agent_run_id": "agentRunId2"
+          }
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/ApplePie",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_request": {
+            "command": "metric_data",
+            "agent_run_id": "agentRunId2",
+            "payload": [
+              "agentRunId2",
+              "__ANY_FLOAT__",
+              "__ANY_FLOAT__",
+              [
+                [
+                  {
+                    "name": "DotNet/DefaultController/ApplePie"
+                  },
+                  [
+                    1,
+                    2,
+                    2,
+                    2,
+                    2,
+                    4
+                  ]
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "final_harvest",
+      "comment": "Verifies that the agent does a final harvest before shutting down",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_agent_shutting_down": {}
+        },
+        {
+          "expect_request": {
+            "command": "metric_data",
+            "payload": [
+              "agentRunId1",
+              "__ANY_FLOAT__",
+              "__ANY_FLOAT__",
+              [
+                [
+                  {
+                    "name": "DotNet/DefaultController/FooBar"
+                  },
+                  [
+                    1,
+                    2,
+                    2,
+                    2,
+                    2,
+                    4
+                  ]
+                ]
+              ]
+            ]
+          }
+        },
+        {
+          "expect_request": {
+            "command": "shutdown"
+          }
+        }
+      ]
+    },
+    {
+      "title": "harvest_successful",
+      "comment": "Verifies that the agent does not retain any data after a successful harvest",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_transaction_event": {
+            "payload": {
+              "intrinsic_attributes": {
+                "name": "WebTransaction/Action/FooBar",
+                "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                "timestamp": 12345,
+                "duration": 6.789
+              },
+              "user_attributes": {},
+              "agent_attributes": {}
+            }
+          }
+        },
+        {
+          "event_harvest_transaction_events": {}
+        },
+        {
+          "expect_request": {
+            "command": "analytic_event_data",
+            "payload": [
+              "agentRunId1",
+              [
+                [
+                  {
+                    "type": "Transaction",
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                    "timestamp": 12345,
+                    "duration": 6.789
+                  },
+                  {},
+                  {}
+                ]
+              ]
+            ]
+          }
+        },
+        {
+          "event_harvest_transaction_events": {}
+        },
+        {
+          "expect_no_request": {}
+        }
+      ]
+    },
+    {
+      "title": "harvest_service_unavailable",
+      "comment": "Verifies that the agent retains all data after receiving a 503 status code during a harvest",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_transaction_event": {
+            "payload": {
+              "intrinsic_attributes": {
+                "name": "WebTransaction/Action/FooBar",
+                "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                "timestamp": 12345,
+                "duration": 6.789
+              },
+              "user_attributes": {},
+              "agent_attributes": {}
+            }
+          }
+        },
+        {
+          "event_transaction_event": {
+            "payload": {
+              "intrinsic_attributes": {
+                "name": "WebTransaction/Action/FooBar",
+                "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                "timestamp": 12345,
+                "duration": 6.789
+              },
+              "user_attributes": {},
+              "agent_attributes": {}
+            }
+          }
+        },
+        {
+          "event_harvest_transaction_events": {}
+        },
+        {
+          "expect_request": {
+            "command": "analytic_event_data",
+            "payload": [
+              "agentRunId1",
+              [
+                [
+                  {
+                    "type": "Transaction",
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                    "timestamp": 12345,
+                    "duration": 6.789
+                  },
+                  {},
+                  {}
+                ],
+                [
+                  {
+                    "type": "Transaction",
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                    "timestamp": 12345,
+                    "duration": 6.789
+                  },
+                  {},
+                  {}
+                ]
+              ]
+            ],
+            "response_status_code": 503
+          }
+        },
+        {
+          "event_harvest_transaction_events": {}
+        },
+        {
+          "expect_request": {
+            "command": "analytic_event_data",
+            "payload": [
+              "agentRunId1",
+              [
+                [
+                  {
+                    "type": "Transaction",
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                    "timestamp": 12345,
+                    "duration": 6.789
+                  },
+                  {},
+                  {}
+                ],
+                [
+                  {
+                    "type": "Transaction",
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                    "timestamp": 12345,
+                    "duration": 6.789
+                  },
+                  {},
+                  {}
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "harvest_post_too_big",
+      "comment": "Verifies that the agent retains half of the data after receiving a PostTooBigException during a harvest",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_transaction_event": {
+            "payload": {
+              "intrinsic_attributes": {
+                "name": "WebTransaction/Action/FooBar",
+                "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                "timestamp": 12345,
+                "duration": 6.789
+              },
+              "user_attributes": {},
+              "agent_attributes": {}
+            }
+          }
+        },
+        {
+          "event_transaction_event": {
+            "payload": {
+              "intrinsic_attributes": {
+                "name": "WebTransaction/Action/FooBar",
+                "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                "timestamp": 12345,
+                "duration": 6.789
+              },
+              "user_attributes": {},
+              "agent_attributes": {}
+            }
+          }
+        },
+        {
+          "event_harvest_transaction_events": {}
+        },
+        {
+          "expect_request": {
+            "command": "analytic_event_data",
+            "payload": [
+              "agentRunId1",
+              [
+                [
+                  {
+                    "type": "Transaction",
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                    "timestamp": 12345,
+                    "duration": 6.789
+                  },
+                  {},
+                  {}
+                ],
+                [
+                  {
+                    "type": "Transaction",
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                    "timestamp": 12345,
+                    "duration": 6.789
+                  },
+                  {},
+                  {}
+                ]
+              ]
+            ],
+            "response_payload": {
+              "exception": {
+                "error_type": "NewRelic::Agent::PostTooBigException"
+              }
+            }
+          }
+        },
+        {
+          "event_harvest_transaction_events": {}
+        },
+        {
+          "expect_request": {
+            "command": "analytic_event_data",
+            "payload": [
+              "agentRunId1",
+              [
+                [
+                  {
+                    "type": "Transaction",
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                    "timestamp": 12345,
+                    "duration": 6.789
+                  },
+                  {},
+                  {}
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "harvest_unexpected_server_error",
+      "comment": "Verifies that the agent discards all data after receiving any unexpected status code during a harvest",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_transaction_event": {
+            "payload": {
+              "intrinsic_attributes": {
+                "name": "WebTransaction/Action/FooBar",
+                "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                "timestamp": 12345,
+                "duration": 6.789
+              },
+              "user_attributes": {},
+              "agent_attributes": {}
+            }
+          }
+        },
+        {
+          "event_harvest_transaction_events": {}
+        },
+        {
+          "expect_request": {
+            "command": "analytic_event_data",
+            "payload": [
+              "agentRunId1",
+              [
+                [
+                  {
+                    "type": "Transaction",
+                    "name": "WebTransaction/Action/FooBar",
+                    "nr.guid": "283b9e53-c71e-4c3f-9f82-9954ff994817",
+                    "timestamp": 12345,
+                    "duration": 6.789
+                  },
+                  {},
+                  {}
+                ]
+              ]
+            ],
+            "response_status_code": 451
+          }
+        },
+        {
+          "event_harvest_transaction_events": {}
+        },
+        {
+          "expect_no_request": {}
+        }
+      ]
+    },
+    {
+      "title": "harvest_connection_error",
+      "comment": "Verifies that the agent retains all data after a connection error during a harvest",
+      "steps": []
+    },
+    {
+      "title": "harvest_runtime_error",
+      "comment": "Verifies that the agent discards all data after a runtime error during a harvest",
+      "steps": []
+    },
+    {
+      "title": "thread_profiler",
+      "comment": "Verifies that agents handle thread profiling appropriately",
+      "steps": [
+        {
+          "composite_step": "startup"
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_get_agent_commands": {}
+        },
+        {
+          "expect_request": {
+            "command": "get_agent_commands",
+            "payload": [
+              "agentRunId1"
+            ],
+            "response_payload": {
+              "return_value": [
+                [
+                  1,
+                  {
+                    "name": "start_profiler",
+                    "arguments": {}
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "agent_command_results",
+            "payload": [
+              "agentRunId1",
+              {
+                "1": null
+              }
+            ]
+          }
+        },
+        {
+          "event_get_agent_commands": {}
+        },
+        {
+          "expect_request": {
+            "command": "get_agent_commands",
+            "payload": [
+              "agentRunId1"
+            ],
+            "response_payload": {
+              "return_value": [
+                [
+                  2,
+                  {
+                    "name": "stop_profiler",
+                    "arguments": {}
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "agent_command_results",
+            "payload": [
+              "agentRunId1",
+              {
+                "2": null
+              }
+            ]
+          }
+        },
+        {
+          "expect_request": {
+            "command": "profile_data"
+          }
+        }
+      ]
+    },
+    {
+      "title": "connect_failure_retries",
+      "comment": "Verifies that the agent retries after failing to connect and discards data collected between retries",
+      "steps": [
+        {
+          "event_agent_start": {
+            "payload": {
+              "host": "collector.newrelic.com",
+              "port": 443,
+              "license_key": "licenseKey1"
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "get_redirect_host",
+            "host": "collector.newrelic.com",
+            "port": 443,
+            "license_key": "licenseKey1",
+            "response_status_code": 503
+          }
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/FooBar",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "event_retry_connect": {}
+        },
+        {
+          "composite_step": "get_redirect_host"
+        },
+        {
+          "expect_request": {
+            "command": "connect",
+            "response_payload": {
+              "return_value": {
+                "agent_run_id": "agentRunId1"
+              }
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "agent_settings",
+            "agent_run_id": "agentRunId1"
+          }
+        },
+        {
+          "event_metric": {
+            "payload": {
+              "name": "DotNet/DefaultController/ApplePie",
+              "time": 2
+            }
+          }
+        },
+        {
+          "event_harvest_metrics": {}
+        },
+        {
+          "expect_request": {
+            "command": "metric_data",
+            "agent_run_id": "agentRunId1",
+            "payload": [
+              "agentRunId1",
+              "__ANY_FLOAT__",
+              "__ANY_FLOAT__",
+              [
+                [
+                  {
+                    "name": "DotNet/DefaultController/ApplePie"
+                  },
+                  [
+                    1,
+                    2,
+                    2,
+                    2,
+                    2,
+                    4
+                  ]
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "composite_steps": [
+    {
+      "name": "get_redirect_host",
+      "steps": [
+        {
+          "expect_request": {
+            "host": "collector.newrelic.com",
+            "port": 443,
+            "command": "get_redirect_host",
+            "response_payload": {
+              "return_value": "collector55.newrelic.com"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "startup",
+      "steps": [
+        {
+          "event_agent_start": {
+            "payload": {
+              "host": "collector.newrelic.com",
+              "port": 443,
+              "license_key": "licenseKey1"
+            }
+          }
+        },
+        {
+          "composite_step": "get_redirect_host"
+        },
+        {
+          "expect_request": {
+            "command": "connect",
+            "host": "collector55.newrelic.com",
+            "port": 443,
+            "response_payload": {
+              "return_value": {
+                "agent_run_id": "agentRunId1"
+              }
+            }
+          }
+        },
+        {
+          "expect_request": {
+            "command": "agent_settings",
+            "host": "collector55.newrelic.com",
+            "port": 443,
+            "license_key": "licenseKey1",
+            "agent_run_id": "agentRunId1"
+          }
+        }
+      ]
+    }
+  ]
+}

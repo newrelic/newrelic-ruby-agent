@@ -61,7 +61,7 @@ module Performance
     def column_widths
       widths = Array.new(@schema.size, 0)
       @schema.each_with_index do |col, idx|
-        widths[idx] = col.name.size
+        widths[idx] = col.name.to_s.size
       end
       @rows.each do |row|
         row.each_with_index do |cell, idx|

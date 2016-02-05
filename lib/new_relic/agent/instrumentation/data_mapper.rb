@@ -109,6 +109,9 @@ module NewRelic
       end
 
       DATA_MAPPER = "DataMapper".freeze
+      PASSWORD_REGEX = /&password=.*?&/
+      AMPERSAND = '&'.freeze
+      PASSWORD_PARAM = '&password='.freeze
 
       def self.method_body(clazz, method_name, operation_only)
         use_model_name   = NewRelic::Helper.instance_methods_include?(clazz, :model)
@@ -136,7 +139,23 @@ module NewRelic
               name)
 
             NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-              self.send("#{method_name}_without_newrelic", *args, &blk)
+              begin
+                self.send("#{method_name}_without_newrelic", *args, &blk)
+              rescue ::DataObjects::SQLError => e
+                e.uri.gsub!(PASSWORD_REGEX, AMPERSAND) if e.uri.include?(PASSWORD_PARAM)
+
+                strategy = NewRelic::Agent::Database.record_sql_method(:slow_sql)
+                case strategy
+                when :obfuscated
+                  statement = NewRelic::Agent::Database::Statement.new(e.query, :adapter => self.options[:adapter])
+                  obfuscated_sql = NewRelic::Agent::Database.obfuscate_sql(statement)
+                  e.instance_variable_set(:@query, obfuscated_sql)
+                when :off
+                  e.instance_variable_set(:@query, nil)
+                end
+
+                raise
+              end
             end
           end
         end

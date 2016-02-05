@@ -6,71 +6,91 @@ module NewRelic
   module Agent
     module Database
       module ObfuscationHelpers
-        # Note that the following two regexes are applied to a reversed version
-        # of the query. This is why the backslash escape sequences (\' and \")
-        # appear reversed within them.
-        #
-        # Note that some database adapters (notably, PostgreSQL with
-        # standard_conforming_strings on and MySQL with NO_BACKSLASH_ESCAPES on)
-        # do not apply special treatment to backslashes within quoted string
-        # literals. We don't have an easy way of determining whether the
-        # database connection from which a query was captured was operating in
-        # one of these modes, but the obfuscation is done in such a way that it
-        # should not matter.
-        #
-        # Reversing the query string before obfuscation allows us to get around
-        # the fact that a \' appearing within a string may or may not terminate
-        # the string, because we know that a string cannot *start* with a \'.
-        REVERSE_SINGLE_QUOTES_REGEX = /'(?:''|'\\|[^'])*'/
-        REVERSE_ANY_QUOTES_REGEX    = /'(?:''|'\\|[^'])*'|"(?:""|"\\|[^"])*"/
+        COMPONENTS_REGEX_MAP = {
+          :single_quotes => /'(?:[^']|'')*?(?:\\'.*|'(?!'))/,
+          :double_quotes => /"(?:[^"]|"")*?(?:\\".*|"(?!"))/,
+          :dollar_quotes => /(\$(?!\d)[^$]*?\$).*?(?:\1|$)/,
+          :uuids => /\{?(?:[0-9a-fA-F]\-*){32}\}?/,
+          :numeric_literals => /\b-?(?:[0-9]+\.)?[0-9]+([eE][+-]?[0-9]+)?\b/,
+          :boolean_literals => /\b(?:true|false|null)\b/i,
+          :hexadecimal_literals => /0x[0-9a-fA-F]+/,
+          :comments => /(?:#|--).*?(?=\r|\n|$)/i,
+          :multi_line_comments => /\/\*(?:[^\/]|\/[^*])*?(?:\*\/|\/\*.*)/,
+          :oracle_quoted_strings => /q'\[.*?(?:\]'|$)|q'\{.*?(?:\}'|$)|q'\<.*?(?:\>'|$)|q'\(.*?(?:\)'|$)/
+        }
 
-        NUMERICS_REGEX = /\b\d+\b/
-
-        # We take a conservative, overly-aggressive approach to obfuscating
-        # comments, and drop everything from the query after encountering any
-        # character sequence that could be a comment initiator. We do this after
-        # removal of string literals to avoid accidentally over-obfuscating when
-        # a string literal contains a comment initiator.
-        SQL_COMMENT_REGEX = Regexp.new('(?:/\*|--|#).*', Regexp::MULTILINE).freeze
+        DIALECT_COMPONENTS = {
+          :fallback   => COMPONENTS_REGEX_MAP.keys,
+          :mysql      => [:single_quotes, :double_quotes, :numeric_literals, :boolean_literals,
+                          :hexadecimal_literals, :comments, :multi_line_comments],
+          :postgres   => [:single_quotes, :dollar_quotes, :uuids, :numeric_literals,
+                          :boolean_literals, :comments, :multi_line_comments],
+          :sqlite     => [:single_quotes, :numeric_literals, :boolean_literals, :hexadecimal_literals,
+                          :comments, :multi_line_comments],
+          :oracle     => [:single_quotes, :oracle_quoted_strings, :numeric_literals, :comments,
+                          :multi_line_comments],
+          :cassandra  => [:single_quotes, :uuids, :numeric_literals, :boolean_literals,
+                          :hexadecimal_literals, :comments, :multi_line_comments]
+        }
 
         # We use these to check whether the query contains any quote characters
         # after obfuscation. If so, that's a good indication that the original
-        # query was malformed, and so our obfuscation can't reliabily find
+        # query was malformed, and so our obfuscation can't reliably find
         # literals. In such a case, we'll replace the entire query with a
         # placeholder.
-        LITERAL_SINGLE_QUOTE = "'".freeze
-        LITERAL_DOUBLE_QUOTE = '"'.freeze
+        CLEANUP_REGEX = {
+          :mysql => /'|"|\/\*|\*\//,
+          :postgres => /'|\/\*|\*\/|\$(?!\?)/,
+          :sqlite => /'|\/\*|\*\/|\$/,
+          :cassandra => /'|\/\*|\*\//,
+          :oracle => /'|\/\*|\*\//
+        }
 
         PLACEHOLDER = '?'.freeze
+        FAILED_TO_OBFUSCATE_MESSAGE = "Failed to obfuscate SQL query - quote characters remained after obfuscation".freeze
 
         def obfuscate_single_quote_literals(sql)
-          obfuscated = sql.reverse
-          obfuscated.gsub!(REVERSE_SINGLE_QUOTES_REGEX, PLACEHOLDER)
-          obfuscated.reverse!
+          sql.gsub!(COMPONENTS_REGEX_MAP[:single_quotes], PLACEHOLDER) || sql
+        end
+
+        def self.generate_regex(dialect)
+          components = DIALECT_COMPONENTS[dialect]
+          Regexp.union(components.map{|component| COMPONENTS_REGEX_MAP[component]})
+        end
+
+        MYSQL_COMPONENTS_REGEX = self.generate_regex(:mysql)
+        POSTGRES_COMPONENTS_REGEX = self.generate_regex(:postgres)
+        SQLITE_COMPONENTS_REGEX = self.generate_regex(:sqlite)
+        ORACLE_COMPONENTS_REGEX = self.generate_regex(:oracle)
+        CASSANDRA_COMPONENTS_REGEX = self.generate_regex(:cassandra)
+        FALLBACK_REGEX = self.generate_regex(:fallback)
+
+        def obfuscate(sql, adapter)
+          case adapter
+          when :mysql
+            regex = MYSQL_COMPONENTS_REGEX
+          when :postgres
+            regex = POSTGRES_COMPONENTS_REGEX
+          when :sqlite
+            regex = SQLITE_COMPONENTS_REGEX
+          when :oracle
+            regex = ORACLE_COMPONENTS_REGEX
+          when :cassandra
+            regex = CASSANDRA_COMPONENTS_REGEX
+          else
+            regex = FALLBACK_REGEX
+          end
+          obfuscated = sql.gsub(regex, PLACEHOLDER)
+          obfuscated = FAILED_TO_OBFUSCATE_MESSAGE if detect_unmatched_pairs(obfuscated, adapter)
           obfuscated
         end
 
-        def obfuscate_quoted_literals(sql)
-          obfuscated = sql.reverse
-          obfuscated.gsub!(REVERSE_ANY_QUOTES_REGEX, PLACEHOLDER)
-          obfuscated.reverse!
-          obfuscated
-        end
-
-        def obfuscate_numeric_literals(sql)
-          sql.gsub(NUMERICS_REGEX, PLACEHOLDER)
-        end
-
-        def remove_comments(sql)
-          sql.gsub(SQL_COMMENT_REGEX, PLACEHOLDER)
-        end
-
-        def contains_single_quotes?(str)
-          str.include?(LITERAL_SINGLE_QUOTE)
-        end
-
-        def contains_quotes?(str)
-          str.include?(LITERAL_SINGLE_QUOTE) || str.include?(LITERAL_DOUBLE_QUOTE)
+        def detect_unmatched_pairs(obfuscated, adapter)
+          if CLEANUP_REGEX[adapter]
+            CLEANUP_REGEX[adapter].match(obfuscated)
+          else
+            CLEANUP_REGEX[:mysql].match(obfuscated)
+          end
         end
       end
     end
