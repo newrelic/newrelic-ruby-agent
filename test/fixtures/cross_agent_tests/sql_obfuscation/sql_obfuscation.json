@@ -426,6 +426,16 @@
     ]
   },
   {
+    "name": "variable_substitution_not_mistaken_for_dollar_quotes",
+    "sql": "INSERT INTO \"foo\" (\"bar\", \"baz\", \"qux\") VALUES ($1, $2, $3) RETURNING \"id\"",
+    "obfuscated": [
+      "INSERT INTO \"foo\" (\"bar\", \"baz\", \"qux\") VALUES ($?, $?, $?) RETURNING \"id\""
+    ],
+    "dialects": [
+      "postgres"
+    ]
+  },
+  {
     "name": "non_quote_escape",
     "sql": "select * from foo where bar = 'some\\tthing' and baz = 10",
     "obfuscated": [
