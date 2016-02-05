@@ -46,7 +46,8 @@ namespace :newrelic do
           :key         => format_key(section_key, key),
           :type        => format_type(value[:type]),
           :description => format_description(value),
-          :default     => format_default_value(value)
+          :default     => format_default_value(value),
+          :env_var     => format_env_var(section_key, key)
         }
       end
       sections
@@ -109,8 +110,15 @@ namespace :newrelic do
       if spec[:default].is_a?(Proc)
         '(Dynamic)'
       else
-        spec[:default].inspect
+        "<code>#{spec[:default].inspect}</code>"
       end
+    end
+
+    def format_env_var(section_key, key)
+      v = "NEW_RELIC_"
+      v << "#{section_key}_" unless section_key == GENERAL || section_key == DISABLING
+      v << key.to_s
+      v.upcase
     end
 
     def pluck(key, config_hash)
