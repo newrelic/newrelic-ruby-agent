@@ -895,6 +895,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Defines an obfuscation level for slow SQL queries. Valid options are <code>obfuscated</code>, <code>raw</code>, <code>none</code>).'
         },
+        :'slow_sql.use_longer_sql_id' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'Generate a longer sql_id for slow SQL traces. sql_id is used for aggregation of similar queries.'
+        },
         :'mongo.capture_queries' => {
           :default => true,
           :public => true,

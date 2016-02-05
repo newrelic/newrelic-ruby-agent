@@ -15,6 +15,13 @@
   To help standardize SQL obfuscation across New Relic language agents, we've
   improved the algorithm used and added more test cases.
 
+  * Configurable longer sql_id attribute on slow SQL traces
+
+  The sql_id attribute on slow SQL traces is used to aggregate normalized
+  queries together. Previously, these IDs would generally be 9-10 digits long,
+  due to a backend restriction. If `slow_sql.use_longer_sql_id` is set to `true`,
+  these IDs will now be 18-19 digits long.
+
 ## v3.14.2 ##
 
   * Improved transaction names for Sinatra
