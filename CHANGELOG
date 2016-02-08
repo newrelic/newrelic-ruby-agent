@@ -2,11 +2,24 @@
 
 ## v3.15.0 ##
 
-  * Fixes Grape metrics with a default extension
+  * Don't include extension from single format Grape API transaction names
 
-  Starting with Grape 0.12.0 an API with a single format no longer declares methods with (.:format),
-  but with, for example, (.json). NewRelic instrumentation failed to strip the extension from the
-  transaction name.
+  Starting with Grape 0.12.0, an API with a single format no longer declares
+  methods with `.:format`, but with an extension such as `.json`. Thanks Daniel
+  Doubrovkine for the contribution!
+
+  * Fix warnings about shadowing outer local variable when running tests
+
+  Thanks Rafael Almeida de Carvalho for the contribution!
+
+  * Check config first for Rails middleware instrumentation installation
+
+  Checking the config first avoids issues with mock classes that don't implement
+  `VERSION`. Thanks Jesse Sanford for the contribution!
+
+  * Remove a trailing whitespace in the template for generated newrelic.yml
+
+  Thanks Paul Menzel for the contribution!
 
 ## v3.14.3 ##
 
