@@ -28,7 +28,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "SELECT * FROM t WHERE foo='bar/*' AND baz='whatever */qux'"
   },
@@ -62,7 +63,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "SELECT * FROM t WHERE foo='bar--' AND\n  baz='qux--'"
   },
@@ -75,7 +77,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "SELECT * FROM foo WHERE bar='baz' /* Hide Me */"
   },
@@ -88,7 +91,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "SELECT * FROM foobar WHERE password='hunter2'\n-- No peeking!"
   },
@@ -101,7 +105,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "SELECT foo, bar FROM baz WHERE password='hunter2' # Secret"
   },
@@ -140,7 +145,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "SELECT c11.col1, c22.col2 FROM table c11, table c22 WHERE value='nothing'"
   },
@@ -155,7 +161,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ]
   },
   {
@@ -177,7 +184,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "SELECT * FROM table WHERE name='foo' AND value = 'bar'"
   },
@@ -190,7 +198,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "SELECT * FROM table WHERE col='foo\\''bar'",
     "comments": [
@@ -208,7 +217,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "SELECT * FROM table WHERE col1='foo\"bar' AND col2='what\"ever'"
   },
@@ -221,7 +231,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "select * from accounts where accounts.name != 'dude \n newline' order by accounts.name"
   },
@@ -257,7 +268,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "comments": [
       "If backslashes are being ignored in single-quoted strings",
@@ -284,7 +296,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "SELECT * FROM table WHERE foo='this string ends with a backslash\\\\'"
   },
@@ -299,7 +312,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ]
   },
   {
@@ -311,7 +325,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "sql": "INSERT INTO X values('', 'a''b c',0, 1 , 'd''e f''s h')"
   },
@@ -326,7 +341,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "pathological": true
   },
@@ -341,7 +357,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "pathological": true
   },
@@ -356,7 +373,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "pathological": true
   },
@@ -371,7 +389,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "pathological": true
   },
@@ -386,7 +405,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "pathological": true
   },
@@ -408,7 +428,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "obfuscated": [
       "?"
@@ -445,7 +466,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ]
   },
   {
@@ -458,7 +480,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ],
     "pathological": true
   },
@@ -509,7 +532,8 @@
       "select * from foo where bar=? and x=?"
     ],
     "dialects": [
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ]
   },
   {
@@ -519,7 +543,9 @@
       "select * from foo where bar=? and x=?"
     ],
     "dialects": [
-      "mysql"
+      "mysql",
+      "cassandra",
+      "sqlite"
     ]
   },
   {
@@ -532,7 +558,8 @@
       "mysql",
       "postgres",
       "oracle",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ]
   },
   {
@@ -585,7 +612,8 @@
     "dialects": [
       "mysql",
       "postgres",
-      "cassandra"
+      "cassandra",
+      "sqlite"
     ]
   }
 ]
