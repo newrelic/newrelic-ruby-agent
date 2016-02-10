@@ -1423,28 +1423,28 @@ module NewRelic
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'Enable or disable capture of attributes for transaction traces.'
+          :description => 'If <code>true</code>, the agent captures attributes from transaction traces.'
         },
         :'transaction_events.attributes.enabled' => {
           :default     => value_of(:'analytics_events.capture_attributes'),
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'Enable or disable capture of attributes for transaction events.'
+          :description => 'If <code>true</code>, the agent captures attributes from transaction events.'
         },
         :'error_collector.attributes.enabled' => {
           :default     => value_of(:'error_collector.capture_attributes'),
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'Enable or disable capture of attributes for error collection.'
+          :description => 'If <code>true</code>, the agent captures attributes from error collection.'
         },
         :'browser_monitoring.attributes.enabled' => {
           :default     => value_of(:'browser_monitoring.capture_attributes'),
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'Enable or disable capture of attributes for browser monitoring.'
+          :description => 'If <code>true</code>, the agent captures attributes from browser monitoring.'
         },
         :'attributes.exclude' => {
           :default     => [],
@@ -1452,7 +1452,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform   => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from all destinations. Allows * as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from all destinations. Allows <code>*</code> as wildcard at end.'
         },
         :'transaction_tracer.attributes.exclude' => {
           :default     => [],
@@ -1460,7 +1460,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform   => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from transaction traces. Allows * as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from transaction traces. Allows <code>*</code> as wildcard at end.'
         },
         :'transaction_events.attributes.exclude' => {
           :default     => [],
@@ -1468,7 +1468,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from transaction events. Allows * as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from transaction events. Allows <code>*</code> as wildcard at end.'
         },
         :'error_collector.attributes.exclude' => {
           :default     => [],
@@ -1476,7 +1476,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from error collection. Allows * as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from error collection. Allows <code>*</code> as wildcard at end.'
         },
         :'browser_monitoring.attributes.exclude' => {
           :default     => [],
@@ -1484,7 +1484,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from browser monitoring. Allows * as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from browser monitoring. Allows <code>*</code> as wildcard at end.'
         },
         :'attributes.include' => {
           :default     => [],
@@ -1492,7 +1492,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include in all destinations. Allows * as wildcard at end.'
+          :description => 'Prefix of attributes to include in all destinations. Allows <code>*</code> as wildcard at end.'
         },
         :'transaction_tracer.attributes.include' => {
           :default     => [],
@@ -1500,7 +1500,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include in transaction traces. Allows * as wildcard at end.'
+          :description => 'Prefix of attributes to include in transaction traces. Allows <code>*</code> as wildcard at end.'
         },
         :'transaction_events.attributes.include' => {
           :default     => [],
@@ -1508,7 +1508,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include in transaction events. Allows * as wildcard at end.'
+          :description => 'Prefix of attributes to include in transaction events. Allows <code>*</code> as wildcard at end.'
         },
         :'error_collector.attributes.include' => {
           :default     => [],
@@ -1516,7 +1516,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include in error collection. Allows * as wildcard at end.'
+          :description => 'Prefix of attributes to include in error collection. Allows <code>*</code> as wildcard at end.'
         },
         :'browser_monitoring.attributes.include' => {
           :default     => [],
@@ -1524,7 +1524,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include in browser monitoring. Allows * as wildcard at end.'
+          :description => 'Prefix of attributes to include in browser monitoring. Allows <code>*</code> as wildcard at end.'
         },
         :'utilization.detect_aws' => {
           :default     => true,
