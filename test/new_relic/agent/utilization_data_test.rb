@@ -132,6 +132,15 @@ module NewRelic::Agent
       assert_equal 128, utilization_data.to_collector_hash[:total_ram_mib]
     end
 
+    def test_memory_is_nil_when_proc_meminfo_is_unreadable
+      NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns(nil)
+
+      utilization_data = UtilizationData.new
+
+      assert_nil utilization_data.to_collector_hash[:total_ram_mib], "Expected total_ram_mib to be nil"
+    end
+
     def test_metadata_version_is_present_in_collector_hash
       utilization_data = UtilizationData.new
 
