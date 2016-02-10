@@ -41,7 +41,7 @@ module NewRelic
         CLEANUP_REGEX = {
           :mysql => /'|"|\/\*|\*\//,
           :postgres => /'|\/\*|\*\/|\$(?!\?)/,
-          :sqlite => /'|\/\*|\*\/|\$/,
+          :sqlite => /'|\/\*|\*\//,
           :cassandra => /'|\/\*|\*\//,
           :oracle => /'|\/\*|\*\//
         }
