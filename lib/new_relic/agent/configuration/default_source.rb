@@ -1413,42 +1413,42 @@ module NewRelic
         },
         :'attributes.enabled' => {
           :default     => true,
-          :public      => false,
+          :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'If <code>true</code>, enables capture of attributes for all destinations.'
         },
         :'transaction_tracer.attributes.enabled' => {
           :default     => value_of(:'transaction_tracer.capture_attributes'),
-          :public      => false,
+          :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'Enable or disable capture of attributes for transaction traces.'
         },
         :'transaction_events.attributes.enabled' => {
           :default     => value_of(:'analytics_events.capture_attributes'),
-          :public      => false,
+          :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'Enable or disable capture of attributes for transaction events.'
         },
         :'error_collector.attributes.enabled' => {
           :default     => value_of(:'error_collector.capture_attributes'),
-          :public      => false,
+          :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'Enable or disable capture of attributes for error collection.'
         },
         :'browser_monitoring.attributes.enabled' => {
           :default     => value_of(:'browser_monitoring.capture_attributes'),
-          :public      => false,
+          :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'Enable or disable capture of attributes for browser monitoring.'
         },
         :'attributes.exclude' => {
           :default     => [],
-          :public      => false,
+          :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform   => DefaultSource.method(:convert_to_list),
@@ -1456,7 +1456,7 @@ module NewRelic
         },
         :'transaction_tracer.attributes.exclude' => {
           :default     => [],
-          :public      => false,
+          :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform   => DefaultSource.method(:convert_to_list),
@@ -1464,7 +1464,7 @@ module NewRelic
         },
         :'transaction_events.attributes.exclude' => {
           :default     => [],
-          :public      => false,
+          :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
@@ -1472,7 +1472,7 @@ module NewRelic
         },
         :'error_collector.attributes.exclude' => {
           :default     => [],
-          :public      => false,
+          :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
@@ -1480,7 +1480,7 @@ module NewRelic
         },
         :'browser_monitoring.attributes.exclude' => {
           :default     => [],
-          :public      => false,
+          :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
@@ -1488,7 +1488,7 @@ module NewRelic
         },
         :'attributes.include' => {
           :default     => [],
-          :public      => false,
+          :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
@@ -1496,7 +1496,7 @@ module NewRelic
         },
         :'transaction_tracer.attributes.include' => {
           :default     => [],
-          :public      => false,
+          :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
@@ -1504,7 +1504,7 @@ module NewRelic
         },
         :'transaction_events.attributes.include' => {
           :default     => [],
-          :public      => false,
+          :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
@@ -1512,7 +1512,7 @@ module NewRelic
         },
         :'error_collector.attributes.include' => {
           :default     => [],
-          :public      => false,
+          :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
@@ -1520,7 +1520,7 @@ module NewRelic
         },
         :'browser_monitoring.attributes.include' => {
           :default     => [],
-          :public      => false,
+          :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
