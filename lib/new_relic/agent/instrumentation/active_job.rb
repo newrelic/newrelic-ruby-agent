@@ -75,7 +75,12 @@ module NewRelic
         end
 
         def self.adapter
-          adapter_class = ::ActiveJob::Base.queue_adapter.class == Class ? ::ActiveJob::Base.queue_adapter : ::ActiveJob::Base.queue_adapter.class
+          adapter_class = if ::ActiveJob::Base.queue_adapter.class == Class
+            ::ActiveJob::Base.queue_adapter
+          else
+            ::ActiveJob::Base.queue_adapter.class
+          end
+
           clean_adapter_name(adapter_class.name)
         end
 
