@@ -75,7 +75,13 @@ module NewRelic
         end
 
         def self.adapter
-          clean_adapter_name(::ActiveJob::Base.queue_adapter.name)
+          adapter_class = if ::ActiveJob::Base.queue_adapter.class == Class
+            ::ActiveJob::Base.queue_adapter
+          else
+            ::ActiveJob::Base.queue_adapter.class
+          end
+
+          clean_adapter_name(adapter_class.name)
         end
 
         ADAPTER_REGEX = /ActiveJob::QueueAdapters::(.*)Adapter/

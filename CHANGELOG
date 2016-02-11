@@ -2,6 +2,12 @@
 
 ## v3.15.0 ##
 
+  * Rails 5 support
+
+  This release includes preliminary support for Rails 5 as of 5.0.0.beta2.
+  Please note that this release does not include any support for ActionCable,
+  the WebSockets framework new to Rails 5.
+
   * Don't include extension from single format Grape API transaction names
 
   Starting with Grape 0.12.0, an API with a single format no longer declares
