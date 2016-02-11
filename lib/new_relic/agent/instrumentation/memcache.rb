@@ -7,7 +7,7 @@
 # See:
 #     http://www.deveiate.org/code/Ruby-MemCache/ (Gem: Ruby-MemCache)
 #     http://seattlerb.rubyforge.org/memcache-client/ (Gem: memcache-client)
-#     http://github.com/mperham/dalli (Gem: dalli)
+#     https://github.com/mperham/dalli (Gem: dalli)
 
 require 'new_relic/agent/datastores/metric_helper'
 

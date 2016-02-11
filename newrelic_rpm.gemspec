@@ -19,7 +19,7 @@ Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
 in production. The New Relic Ruby Agent is dual-purposed as a either a
 Gem or plugin, hosted on
-http://github.com/newrelic/rpm/
+https://github.com/newrelic/rpm/
 EOS
   s.email = "support@newrelic.com"
   s.executables = [ "mongrel_rpm", "newrelic_cmd", "newrelic", "nrdebug" ]
@@ -36,7 +36,7 @@ EOS
   file_list << build_file_path if File.exist?(build_file_path)
   s.files = file_list
 
-  s.homepage = "http://www.github.com/newrelic/rpm"
+  s.homepage = "https://github.com/newrelic/rpm"
   s.require_paths = ["lib"]
   s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Ruby Agent"
