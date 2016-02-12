@@ -41,7 +41,7 @@ rvm:
   - jruby-1.7.23
   - jruby-9.0.4.0
   - 2.2.4
-  - 2.1.7
+  - 2.1.8
   - 2.0.0-p648
   - 1.9.3
   - 1.9.2
@@ -54,7 +54,7 @@ env:
     - CI_BUNDLE_PATH=/home/travis/bundle
     - BUNDLE_PATH=/home/travis/bundle
     - MONGODB=2.6.11
-    - JAVA_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+    - JAVA_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx512m"
     - JRUBY_OPTS="-Xcompile.invokedynamic=false -J-Djruby.compile.mode=OFF"
     - RBXOPT="-Xcompiler.no_rbc -Xint"
     - SERIALIZE=1
@@ -70,6 +70,7 @@ env:
     - TYPE=UNIT ENVIRONMENT=rails40
     - TYPE=UNIT ENVIRONMENT=rails41
     - TYPE=UNIT ENVIRONMENT=rails42
+    - TYPE=UNIT ENVIRONMENT=rails50
     - TYPE=UNIT ENVIRONMENT=norails
     - TYPE=FUNCTIONAL GROUP=agent
     - TYPE=FUNCTIONAL GROUP=api
@@ -100,12 +101,14 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails23
 
     # 2.1
-    - rvm: 2.1.7
+    - rvm: 2.1.8
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.1.7
+    - rvm: 2.1.8
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.1.7
+    - rvm: 2.1.8
       env: TYPE=UNIT ENVIRONMENT=rails23
+    - rvm: 2.1.8
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # 2.0
     - rvm: 2.0.0-p648
@@ -114,18 +117,24 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails22
     - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails23
+    - rvm: 2.0.0-p648
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # 1.9.3
     - rvm: 1.9.3
       env: TYPE=UNIT ENVIRONMENT=rails21
     - rvm: 1.9.3
       env: TYPE=UNIT ENVIRONMENT=rails22
+    - rvm: 1.9.3
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # 1.9.2
     - rvm: 1.9.2
       env: TYPE=UNIT ENVIRONMENT=rails21
     - rvm: 1.9.2
       env: TYPE=UNIT ENVIRONMENT=rails22
+    - rvm: 1.9.2
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # REE
     - rvm: ree
@@ -134,6 +143,8 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails41
     - rvm: ree
       env: TYPE=UNIT ENVIRONMENT=rails42
+    - rvm: ree
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # 1.8.7
     - rvm: 1.8.7
@@ -142,6 +153,8 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails41
     - rvm: 1.8.7
       env: TYPE=UNIT ENVIRONMENT=rails42
+    - rvm: 1.8.7
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # jruby 1.7
     - rvm: jruby-1.7.23
@@ -150,6 +163,8 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails22
     - rvm: jruby-1.7.23
       env: TYPE=UNIT ENVIRONMENT=rails23
+    - rvm: jruby-1.7.23
+      env: TYPE=UNIT ENVIRONMENT=rails50
 
     # jruby 9.0
     - rvm: jruby-9.0.4.0
@@ -178,4 +193,3 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails31
     - rvm: rbx-2.5.8
       env: TYPE=UNIT ENVIRONMENT=rails32
-

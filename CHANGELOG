@@ -1,5 +1,36 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.15.0 ##
+
+  * Rails 5 support
+
+  This release includes experimental support for Rails 5 as of 5.0.0.beta2.
+  Please note that this release does not include any support for ActionCable,
+  the WebSockets framework new to Rails 5.
+
+  * Don't include extension from single format Grape API transaction names
+
+  Starting with Grape 0.12.0, an API with a single format no longer declares
+  methods with `.:format`, but with an extension such as `.json`. Thanks Daniel
+  Doubrovkine for the contribution!
+
+  * Fix warnings about shadowing outer local variable when running tests
+
+  Thanks Rafael Almeida de Carvalho for the contribution!
+
+  * Check config first for Rails middleware instrumentation installation
+
+  Checking the config first avoids issues with mock classes that don't implement
+  `VERSION`. Thanks Jesse Sanford for the contribution!
+
+  * Remove a trailing whitespace in the template for generated newrelic.yml
+
+  Thanks Paul Menzel for the contribution!
+
+  * Reference external resources in comments and readme with HTTPS
+
+  Thanks Benjamin Quorning for the contribution!
+
 ## v3.14.3 ##
 
   * Don't inadvertently send sensitive information from DataMapper SQLErrors

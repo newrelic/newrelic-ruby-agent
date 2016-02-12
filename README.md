@@ -5,7 +5,7 @@ New Relic, Inc (http://www.newrelic.com).  It provides you with deep
 information about the performance of your Rails or Ruby
 application as it runs in production. The New Relic Ruby Agent is
 dual-purposed as a either a Gem or a Rails plugin, hosted on
-[github](http://github.com/newrelic/rpm/tree/master).
+[github](https://github.com/newrelic/rpm/tree/master).
 
 The New Relic Ruby Agent runs in one of two modes:
 

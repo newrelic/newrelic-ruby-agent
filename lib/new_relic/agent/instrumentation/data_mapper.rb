@@ -109,7 +109,7 @@ module NewRelic
       end
 
       DATA_MAPPER = "DataMapper".freeze
-      PASSWORD_REGEX = /&password=.*?&/
+      PASSWORD_REGEX = /&password=.*?(&|$)/
       AMPERSAND = '&'.freeze
       PASSWORD_PARAM = '&password='.freeze
 

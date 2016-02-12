@@ -473,7 +473,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     statement = node.params[:sql]
     assert_match(/^SELECT /, statement.sql)
 
-    assert_equal(adapter, statement.adapter)
+    assert_match(statement.adapter.to_s, adapter.to_s)
     refute_nil(statement.config)
     refute_nil(statement.explainer)
   end

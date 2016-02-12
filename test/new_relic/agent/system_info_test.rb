@@ -90,6 +90,12 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     assert_nil @sysinfo.parse_linux_meminfo_in_mib("")
   end
 
+  def test_ram_in_mb_nil_when_proc_meminfo_unreadable
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/meminfo').returns(nil)
+    assert_nil NewRelic::Agent::SystemInfo.ram_in_mib, "Expected ram_in_mib to be nil"
+  end
+
   def test_system_info_darwin_predicate
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
     assert NewRelic::Agent::SystemInfo.darwin?, "Expected OS to match darwin"

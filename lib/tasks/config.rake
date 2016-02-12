@@ -2,12 +2,14 @@ namespace :newrelic do
   namespace :config do
     desc "Describe available New Relic configuration settings."
 
-    GENERAL   = "general"
-    DISABLING = "disabling"
+    GENERAL    = "general"
+    DISABLING  = "disabling"
+    ATTRIBUTES = "attributes"
 
     SECTION_DESCRIPTIONS = {
       GENERAL              => 'These settings are available for agent configuration. Some settings depend on your New Relic subscription level.',
       DISABLING            => 'Use these settings to toggle instrumentation types during agent startup.',
+      ATTRIBUTES           => '<a href="https://docs.newrelic.com/docs/features/agent-attributes">Attributes</a> are key-value pairs containing information that determines the properties of an event or transaction. These key-value pairs can be viewed within transaction traces in New Relic APM, traced errors in New Relic APM, transaction events in Insights, and page views in Insights. You can customize exactly which attributes will be sent to each of these destinations.',
       "transaction_tracer" => 'The <a href="/docs/apm/traces/transaction-traces/transaction-traces">transaction traces</a> feature collects detailed information from a selection of transactions, including a summary of the calling sequence, a breakdown of time spent, and a list of SQL queries and their query plans (on mysql and postgresql). Available features depend on your New Relic subscription level.',
       "error_collector"    => 'The agent collects and reports all uncaught exceptions by default. These configuration options allow you to customize the error collection.',
       "browser_monitoring" => 'New Relic Browser\'s <a href="/docs/browser/new-relic-browser/page-load-timing/page-load-timing-process">page load timing</a> feature (sometimes referred to as real user monitoring or RUM) gives you insight into the performance real users are experiencing with your website. This is accomplished by measuring the time it takes for your users\' browsers to download and render your web pages by injecting a small amount of JavaScript code into the header and footer of each page.',
@@ -32,22 +34,23 @@ namespace :newrelic do
         next unless value[:public]
 
         section_key = GENERAL
-        section = key.to_s.match(/(.*)\.(.*)/)
+        key = key.to_s
+        components = key.split(".")
 
-        if section
-          section_key = section[1]
-          key = section[2]
-        elsif key.to_s.match(/^disable_/)
+        if key.match(/^disable_/)           # "disable_httpclient"
           section_key = DISABLING
-          key = key.to_s
+        elsif components.length == 2        # "analytics_events.enabled"
+          section_key = components.first
+        elsif components[1] == "attributes" # "transaction_tracer.attributes.enabled"
+          section_key = ATTRIBUTES
         end
 
         sections[section_key] << {
-          :key         => format_key(section_key, key),
+          :key         => key,
           :type        => format_type(value[:type]),
           :description => format_description(value),
           :default     => format_default_value(value),
-          :env_var     => format_env_var(section_key, key)
+          :env_var     => format_env_var(key)
         }
       end
       sections
@@ -72,14 +75,6 @@ namespace :newrelic do
         section_key = section[0]
         section.insert(1, format_name(section_key))
         section.insert(2, SECTION_DESCRIPTIONS[section_key])
-      end
-    end
-
-    def format_key(section_key, key)
-      if section_key == GENERAL || section_key == DISABLING
-        key.to_s
-      else
-        "#{section_key}.#{key}"
       end
     end
 
@@ -114,11 +109,8 @@ namespace :newrelic do
       end
     end
 
-    def format_env_var(section_key, key)
-      v = "NEW_RELIC_"
-      v << "#{section_key}_" unless section_key == GENERAL || section_key == DISABLING
-      v << key.to_s
-      v.upcase
+    def format_env_var(key)
+      "NEW_RELIC_#{key.gsub(".", "_").upcase}"
     end
 
     def pluck(key, config_hash)
