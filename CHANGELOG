@@ -27,6 +27,10 @@
 
   Thanks Paul Menzel for the contribution!
 
+  * Reference external resources in comments and readme with HTTPS
+
+  Thanks Benjamin Quorning for the contribution!
+
 ## v3.14.3 ##
 
   * Don't inadvertently send sensitive information from DataMapper SQLErrors
