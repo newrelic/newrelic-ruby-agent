@@ -9,7 +9,7 @@
 		</th>
 		<td colspan=<%= colspan %>><small>
 			<div class="sql_statement">
-				<%= line_wrap_sql(@sql.sql) %>
+				<%= line_wrap_sql(@sql.respond_to?(:sql) ? @sql.sql : @sql) %>
 			</div>
 		</small></td>
 	</tr>
