@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.15.1 ##
+
+  * Defer referencing ::ActiveRecord::Base to avoid triggering its autoloading
+  too soon
+
+  In 3.12.1 and later versions of the agent, the agent references (and
+  therefore loads) ActiveRecord::Base earlier on in the Rails loading process.
+  This could jump ahead of initializers that should be run first. We now wait
+  until ActiveRecord::Base is loaded elsewhere.
+
 ## v3.15.0 ##
 
   * Rails 5 support
