@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+require 'new_relic/agent/instrumentation/action_cable_subscriber'
 
 DependencyDetection.defer do
   @name = :rails5_action_cable
@@ -11,28 +12,12 @@ DependencyDetection.defer do
      defined?(::ActionCable)
   end
 
-  depends_on do
-    # !NewRelic::Agent.config[:disable_view_instrumentation] &&
-    #   !NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribed?
-    true
+  executes do
+    ::NewRelic::Agent.logger.info 'Installing Rails 5 ActionCable Instrumentation'
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 5 ActionCable'
-  end
-
-  executes do
-    ::ActionCable::Channel::Base.class_eval do
-      include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-      alias_method :perform_action_without_newrelic, :perform_action
-
-      def perform_action data
-        action = extract_action data
-        NewRelic::Agent.logger.info "Recording Action cable txn: #{action}"
-        perform_action_with_newrelic_trace :category => :controller, :name => action do
-          perform_action_without_newrelic data
-        end
-      end
-    end
+    ActiveSupport::Notifications.subscribe('perform_action.action_cable',
+      NewRelic::Agent::Instrumentation::ActionCableSubscriber.new)
   end
 end
