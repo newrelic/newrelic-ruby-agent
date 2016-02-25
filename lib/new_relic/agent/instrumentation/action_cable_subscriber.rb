@@ -28,10 +28,8 @@ module NewRelic
 
         private
 
-        CATEGORY = "Controller/ActionCable".freeze
-
         def start_transaction state, payload
-          Transaction.start(state, CATEGORY, :transaction_name => name_from_payload(payload))
+          Transaction.start(state, :action_cable, :transaction_name => name_from_payload(payload))
         end
 
         def finish_transaction state
@@ -39,7 +37,7 @@ module NewRelic
         end
 
         def name_from_payload payload
-          "#{CATEGORY}/#{payload[:channel_class]}/#{payload[:action]}"
+          "Controller/ActionCable/#{payload[:channel_class]}/#{payload[:action]}"
         end
       end
     end

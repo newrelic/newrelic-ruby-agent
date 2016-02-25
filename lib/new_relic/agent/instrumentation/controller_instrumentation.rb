@@ -228,14 +228,15 @@ module NewRelic
           def self.prefix_for_category(txn, category = nil)
             category ||= (txn && txn.category)
             case category
-            when :controller then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
-            when :task       then ::NewRelic::Agent::Transaction::TASK_PREFIX
-            when :rack       then ::NewRelic::Agent::Transaction::RACK_PREFIX
-            when :uri        then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
-            when :sinatra    then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
-            when :middleware then ::NewRelic::Agent::Transaction::MIDDLEWARE_PREFIX
-            when :grape      then ::NewRelic::Agent::Transaction::GRAPE_PREFIX
-            when :rake       then ::NewRelic::Agent::Transaction::RAKE_PREFIX
+            when :controller    then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :task          then ::NewRelic::Agent::Transaction::TASK_PREFIX
+            when :rack          then ::NewRelic::Agent::Transaction::RACK_PREFIX
+            when :uri           then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :sinatra       then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
+            when :middleware    then ::NewRelic::Agent::Transaction::MIDDLEWARE_PREFIX
+            when :grape         then ::NewRelic::Agent::Transaction::GRAPE_PREFIX
+            when :rake          then ::NewRelic::Agent::Transaction::RAKE_PREFIX
+            when :action_cable  then ::NewRelic::Agent::Transaction::ACTION_CABLE_PREFIX
             else "#{category.to_s}/" # for internal use only
             end
           end

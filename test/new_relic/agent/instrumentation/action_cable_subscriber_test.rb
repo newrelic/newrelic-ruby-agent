@@ -31,14 +31,28 @@ module NewRelic
           @stats_engine.clear_stats
         end
 
-        def test_creates_transaction
+        def test_creates_web_transaction
           @subscriber.start('perform_action.action_cable', :id, payload)
+          assert NewRelic::Agent::TransactionState.tl_get.in_web_transaction?
+          advance_time(1.0)
           @subscriber.finish('perform_action.action_cable', :id, payload)
 
           assert_equal('Controller/ActionCable/TestChannel/test_action',
                        NewRelic::Agent.instance.transaction_sampler.last_sample.transaction_name)
           assert_equal('Controller/ActionCable/TestChannel/test_action',
                        NewRelic::Agent.instance.transaction_sampler.last_sample.root_node.called_nodes[0].metric_name)
+        end
+
+        def test_records_apdex_metrics
+          @subscriber.start('perform_action.action_cable', :id, payload)
+          advance_time(1.5)
+          @subscriber.finish('perform_action.action_cable', :id, payload)
+
+          expected_values = { :apdex_f => 0, :apdex_t => 1, :apdex_s => 0 }
+          assert_metrics_recorded(
+            'Apdex/ActionCable/TestChannel/test_action' => expected_values,
+            'Apdex' => expected_values
+          )
         end
 
         def payload action='test_action'
