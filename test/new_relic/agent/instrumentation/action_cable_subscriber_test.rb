@@ -55,6 +55,36 @@ module NewRelic
           )
         end
 
+        def test_sets_default_transaction_name_on_start
+          @subscriber.start('perform_action.action_cable', :id, payload)
+          assert_equal 'Controller/ActionCable/TestChannel/test_action', NewRelic::Agent::Transaction.tl_current.best_name
+        ensure
+          @subscriber.finish('perform_action.action_cable', :id, payload)
+        end
+
+        def test_sets_default_transaction_keeps_name_through_stop
+          @subscriber.start('perform_action.action_cable', :id, payload)
+          txn = NewRelic::Agent::Transaction.tl_current
+          @subscriber.finish('perform_action.action_cable', :id, payload)
+          assert_equal 'Controller/ActionCable/TestChannel/test_action', txn.best_name
+        end
+
+        def test_sets_transaction_name
+          @subscriber.start('perform_action.action_cable', :id, payload)
+          NewRelic::Agent.set_transaction_name('something/else')
+          assert_equal 'Controller/ActionCable/something/else', NewRelic::Agent::Transaction.tl_current.best_name
+        ensure
+          @subscriber.finish('perform_action.action_cable', :id, payload)
+        end
+
+        def test_sets_transaction_name_holds_through_stop
+          @subscriber.start('perform_action.action_cable', :id, payload)
+          txn = NewRelic::Agent::Transaction.tl_current
+          NewRelic::Agent.set_transaction_name('something/else')
+          @subscriber.finish('perform_action.action_cable', :id, payload)
+          assert_equal 'Controller/ActionCable/something/else', txn.best_name
+        end
+
         def payload action='test_action'
           {:channel_class=>"TestChannel", :action=>action.to_sym, :data=>{"action"=>"#{action}"}}
         end
