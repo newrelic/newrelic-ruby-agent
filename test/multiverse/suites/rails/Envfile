@@ -1,5 +1,10 @@
 if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
   gemfile <<-RB
+    gem 'rails', :git => 'https://github.com/mwear/rails.git', :branch => 'master'
+    gem 'haml', :require => false
+    gem 'minitest', '5.2.3'
+  RB
+  gemfile <<-RB
     gem 'rails', '5.0.0beta3'
     gem 'haml', :require => false
     gem 'minitest', '5.2.3'
