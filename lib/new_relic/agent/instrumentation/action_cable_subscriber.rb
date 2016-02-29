@@ -21,6 +21,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
           super
+          notice_error payload if payload.key? :exception
           finish_transaction state
         rescue => e
           log_notification_error e, name, 'finish'
@@ -38,6 +39,10 @@ module NewRelic
 
         def name_from_payload payload
           "Controller/ActionCable/#{payload[:channel_class]}/#{payload[:action]}"
+        end
+
+        def notice_error payload
+          NewRelic::Agent.notice_error payload[:exception_object]
         end
       end
     end
