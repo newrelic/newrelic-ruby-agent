@@ -43,6 +43,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'mysql'}
     config.default('val')
     sql = 'SELECT foo'
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
+
     connection = mock('mysql connection')
     plan = {
       "select_type"=>"SIMPLE", "key_len"=>nil, "table"=>"blogs", "id"=>"1",
@@ -54,7 +56,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     # two rows, two columns
     connection.expects(:execute).with('EXPLAIN SELECT foo').returns(result)
     NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
-    result = NewRelic::Agent::Database.explain_sql(sql, config, @explainer)
+    result = NewRelic::Agent::Database.explain_sql(statement)
     assert_equal(plan.keys.sort, result[0].sort)
     assert_equal(plan.values.compact.sort, result[1][0].compact.sort)
   end
@@ -63,6 +65,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = { :adapter => 'mysql2' }
     config.default('val')
     sql = 'SELECT * FROM items'
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
 
     # Sequel returns explain plans to us as one giant preformatted string rather
     # than individual rows.
@@ -77,7 +80,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     connection = mock('mysql connection')
     connection.expects(:execute).with('EXPLAIN SELECT * FROM items').returns(plan_string)
     NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
-    result = NewRelic::Agent::Database.explain_sql(sql, config, @explainer)
+    result = NewRelic::Agent::Database.explain_sql(statement)
     assert_nil(result[0])
     assert_equal([plan_string], result[1])
   end
@@ -86,6 +89,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = { :adapter => 'mysql' }
     config.default('val')
     sql = 'SELECT * FROM items'
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
 
     # Sequel returns explain plans to us as one giant preformatted string rather
     # than individual rows.
@@ -100,7 +104,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     connection = mock('mysql connection')
     connection.expects(:execute).with('EXPLAIN SELECT * FROM items').returns(plan_string)
     NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
-    result = NewRelic::Agent::Database.explain_sql(sql, config, @explainer)
+    result = NewRelic::Agent::Database.explain_sql(statement)
     assert_nil(result[0])
     assert_equal([plan_string], result[1])
   end
@@ -110,6 +114,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config.default('val')
     sql = 'SELECT foo'
     connection = mock('mysql connection')
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
 
     plan_fields = ["select_type", "key_len", "table", "id", "possible_keys", "type", "Extra", "rows", "ref", "key"]
     plan_row =    ["SIMPLE",       nil,      "blogs", "1",   nil,            "ALL",  "",      "2",     nil,   nil ]
@@ -121,7 +126,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     # two rows, two columns
     connection.expects(:execute).with('EXPLAIN SELECT foo').returns(result)
     NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
-    result = NewRelic::Agent::Database.explain_sql(sql, config, @explainer)
+    result = NewRelic::Agent::Database.explain_sql(statement)
     assert_equal(plan_fields.sort, result[0].sort)
     assert_equal(plan_row.compact.sort, result[1][0].compact.sort)
   end
@@ -131,6 +136,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config.default('val')
     sql = 'select count(id) from blogs limit 1'
     connection = stub('pg connection', :disconnect! => true)
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
+
     plan = [{"QUERY PLAN"=>"Limit  (cost=11.75..11.76 rows=1 width=4)"},
             {"QUERY PLAN"=>"  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"},
             {"QUERY PLAN"=>"        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"}]
@@ -140,13 +147,15 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
                   [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
                    ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
                    ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]],
-                 NewRelic::Agent::Database.explain_sql(sql, config, @explainer))
+                 NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_explain_sql_one_select_with_pg_connection_string
     config = {:adapter => 'postgresql'}
     config.default('val')
     sql = 'select count(id) from blogs limit 1'
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
+
     connection = stub('pg connection', :disconnect! => true)
     plan = "Limit  (cost=11.75..11.76 rows=1 width=4)
   ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)
@@ -158,13 +167,15 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
                   [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
                    ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
                    ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]],
-                 NewRelic::Agent::Database.explain_sql(sql, config, @explainer))
+                 NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_explain_sql_obfuscates_for_postgres
     config = {:adapter => 'postgresql'}
     config.default('val')
     sql = "SELECT * FROM blogs WHERE blogs.id=1234 AND blogs.title='sensitive text'"
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
+
     connection = stub('pg connection', :disconnect! => true)
     plan = [{"QUERY PLAN"=>" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"},
             {"QUERY PLAN"=>"   Index Cond: (id = 1234)"},
@@ -176,7 +187,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
                     [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
                      ["   Index Cond: ?"],
                      ["   Filter: ?"]]],
-                   NewRelic::Agent::Database.explain_sql(sql, config, @explainer))
+                   NewRelic::Agent::Database.explain_sql(statement))
     end
   end
 
@@ -184,6 +195,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'postgresql'}
     config.default('val')
     sql = "SELECT * FROM blogs WHERE blogs.id=1234 AND blogs.title='sensitive text'"
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
+
     connection = stub('pg connection', :disconnect! => true)
     plan = [{"QUERY PLAN"=>" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"},
             {"QUERY PLAN"=>"   Index Cond: (id = 1234)"},
@@ -195,7 +208,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
                     [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
                      ["   Index Cond: (id = 1234)"],
                      ["   Filter: ((title)::text = 'sensitive text'::text)"]]],
-                   NewRelic::Agent::Database.explain_sql(sql, config, @explainer))
+                   NewRelic::Agent::Database.explain_sql(statement))
     end
   end
 
@@ -203,6 +216,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'sqlite'}
     config.default('val')
     sql = 'SELECT foo'
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
+
     connection = mock('sqlite connection')
     plan = [
       {"addr"=>0, "opcode"=>"Trace", "p1"=>0, "p2"=>0, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>0, 1=>"Trace", 2=>0, 3=>0, 4=>0, 5=>"", 6=>"00", 7=>nil},
@@ -214,7 +229,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     ]
     connection.expects(:execute).with('EXPLAIN SELECT foo').returns(plan)
     NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
-    result = NewRelic::Agent::Database.explain_sql(sql, config, @explainer)
+    result = NewRelic::Agent::Database.explain_sql(statement)
 
     expected_headers = %w[addr opcode p1 p2 p3 p4 p5 comment]
     expected_values  = plan.map do |row|
@@ -234,7 +249,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     expects_logging(:debug, 'Unable to collect explain plan for parameterized query.')
 
     sql = 'SELECT * FROM table WHERE id = $1'
-    assert_equal [], NewRelic::Agent::Database.explain_sql(sql, config, @explainer)
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
+    assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
   end
 
   def test_do_collect_explain_for_parameter_looking_literal
@@ -243,12 +259,14 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     connection = mock('literal connection')
     plan = [{"QUERY PLAN"=>"Some Jazz"}]
     sql = "SELECT * FROM table WHERE id = 'noise $11'"
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
+
+    NewRelic::Agent::Database.stubs(:get_connection).with(config).returns(connection)
     confirm_sql = Proc.new {|query| query.include?(sql) }
     connection.expects(:execute).with(&confirm_sql).returns(plan)
-    NewRelic::Agent::Database.stubs(:get_connection).with(config).returns(connection)
 
     assert_equal([['QUERY PLAN'], [["Some Jazz"]]],
-                 NewRelic::Agent::Database.explain_sql(sql, config, @explainer))
+                 NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_dont_collect_explain_for_truncated_query
@@ -260,7 +278,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     expects_logging(:debug, 'Unable to collect explain plan for truncated query.')
 
     sql = 'SELECT * FROM table WHERE id IN (1,2,3,4,5...'
-    assert_equal [], NewRelic::Agent::Database.explain_sql(sql, config, @explainer)
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
+    assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
   end
 
   def test_dont_collect_explain_if_adapter_not_recognized
@@ -272,21 +291,23 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     expects_logging(:debug, "Not collecting explain plan because an unknown connection adapter ('dorkdb') was used.")
 
     sql = 'SELECT * FROM table WHERE id IN (1,2,3,4,5)'
-    assert_equal [], NewRelic::Agent::Database.explain_sql(sql, config, @explainer)
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, @explainer)
+    assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
   end
 
   def test_explain_sql_no_sql
-    assert_equal(nil, NewRelic::Agent::Database.explain_sql(nil, nil))
+    statement = NewRelic::Agent::Database::Statement.new('', nil)
+    assert_equal(nil, NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_explain_sql_no_connection_config
-    assert_equal(nil, NewRelic::Agent::Database.explain_sql('select foo', nil))
+    statement = NewRelic::Agent::Database::Statement.new('select foo', nil)
+    assert_equal(nil, NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_explain_sql_non_select
-    assert_equal([], NewRelic::Agent::Database.explain_sql('foo',
-                                                           mock('config'),
-                                                           @explainer))
+    statement = NewRelic::Agent::Database::Statement.new('foo', mock('config'), @explainer)
+    assert_equal([], NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_explain_sql_one_select_no_connection
@@ -296,7 +317,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     # errors to percolate up.
     config = mock('config')
     config.stubs(:[]).returns(nil)
-    assert_equal([], NewRelic::Agent::Database.explain_sql('SELECT', config, @explainer))
+    statement = NewRelic::Agent::Database::Statement.new('SELECT', config, @explainer)
+    assert_equal([], NewRelic::Agent::Database.explain_sql(statement))
   end
 
   # See SqlObfuscationTest, which uses cross agent tests for the basic SQL

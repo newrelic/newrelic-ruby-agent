@@ -40,13 +40,13 @@ module NewRelic
           log_notification_error(e, name, 'finish')
         end
 
-        def get_explain_plan( config, query )
-          connection = NewRelic::Agent::Database.get_connection(config) do
-            ::ActiveRecord::Base.send("#{config[:adapter]}_connection",
-                                      config)
+        def get_explain_plan(statement)
+          connection = NewRelic::Agent::Database.get_connection(statement.config) do
+            ::ActiveRecord::Base.send("#{statement.config[:adapter]}_connection",
+                                      statement.config)
           end
           if connection && connection.respond_to?(:execute)
-            return connection.execute("EXPLAIN #{query}")
+            return connection.execute("EXPLAIN #{statement.sql}")
           end
         end
 

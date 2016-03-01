@@ -234,7 +234,7 @@ module NewRelic
 
       def explain
         if statement.config && statement.explainer
-          NewRelic::Agent::Database.explain_sql(statement.sql, statement.config, statement.explainer)
+          NewRelic::Agent::Database.explain_sql(statement)
         end
       end
 

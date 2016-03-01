@@ -165,12 +165,9 @@ module NewRelic
           return params[:explain_plan] if params.key?(:explain_plan)
 
           statement = params[:sql]
-          return nil unless statement.respond_to?(:config) &&
-            statement.respond_to?(:explainer)
+          return nil unless statement.is_a?(Database::Statement)
 
-          NewRelic::Agent::Database.explain_sql(statement.sql,
-                                                statement.config,
-                                                statement.explainer)
+          NewRelic::Agent::Database.explain_sql(statement)
         end
 
         def obfuscated_sql
