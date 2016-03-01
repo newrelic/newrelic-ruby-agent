@@ -183,7 +183,9 @@ class ViewInstrumentationTest < RailsMultiverseTest
 
       # Different versions have significant difference in handling, but we're
       # happy enough with what each of them does in the unknown case
-      if Rails::VERSION::MAJOR.to_i < 3 || (Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0)
+      if Rails::VERSION::MAJOR.to_i < 3 ||
+          (Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0) ||
+            Rails::VERSION::MAJOR.to_i == 5
         refute find_node_with_name_matching(sample, /^View/)
       elsif Rails::VERSION::MAJOR.to_i == 3
         assert find_node_with_name(sample, 'View/collection/Partial')
