@@ -9,7 +9,12 @@ DependencyDetection.defer do
   depends_on do
     defined?(::Rails) &&
      ::Rails::VERSION::MAJOR.to_i == 5 &&
-     defined?(::ActionCable)
+       defined?(::ActionCable)
+  end
+
+  depends_on do
+    !NewRelic::Agent.config[:disable_action_cable_instrumentation] &&
+      !NewRelic::Agent::Instrumentation::ActionCableSubscriber.subscribed?
   end
 
   executes do
