@@ -65,16 +65,18 @@ module NewRelic
             end
 
             # memoize
-            @metric_name ||= "View/#{metric_path(identifier)}/#{metric_action(name)}"
+            @metric_name ||= "View/#{metric_path(name, identifier)}/#{metric_action(name)}"
             @metric_name
           end
 
-          def metric_path(identifier)
-            if identifier == nil
+          def metric_path(name, identifier)
+            # Rails 5 sets identifier to nil for empty collections,
+            # so do not mistake rendering a collection for rendering a file.
+            if identifier == nil && name != 'render_collection.action_view'
               'file'
             elsif identifier =~ /template$/
               identifier
-            elsif (parts = identifier.split('/')).size > 1
+            elsif identifier && (parts = identifier.split('/')).size > 1
               parts[-2..-1].join('/')
             else
               ::NewRelic::Agent::UNKNOWN_METRIC
