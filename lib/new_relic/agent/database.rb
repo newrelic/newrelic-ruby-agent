@@ -318,12 +318,14 @@ module NewRelic
       end
 
       class Statement
-        attr_accessor :sql, :config, :explainer
+        attr_accessor :sql, :config, :explainer, :binds, :name
 
-        def initialize(sql, config={}, explainer=nil)
+        def initialize(sql, config={}, explainer=nil, binds=[], name="SQL")
           @sql = Database.capture_query(sql)
           @config = config
           @explainer = explainer
+          @binds = binds
+          @name = name
         end
 
         def adapter
