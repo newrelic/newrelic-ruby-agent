@@ -13,7 +13,7 @@ module NewRelic
     # the console during interactive sessions.
     #
     # It should be possible to override Autostart logic with an explicit
-    # configuration, for example the NEWRELIC_AGENT_ENABLED environment variable or
+    # configuration, for example the NEW_RELIC_AGENT_ENABLED environment variable or
     # agent_enabled key in newrelic.yml
     module Autostart
       extend self

@@ -87,7 +87,7 @@ module NewRelic
                              "The agent will continue running in #{@started_in_env.inspect}. To alter this, ensure the desired environment is set before the agent starts.")
         else
           Agent.logger.info("Starting the New Relic agent in #{env.inspect} environment.",
-                            "To prevent agent startup add a NEWRELIC_AGENT_ENABLED=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
+                            "To prevent agent startup add a NEW_RELIC_AGENT_ENABLED=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
         end
 
         env
