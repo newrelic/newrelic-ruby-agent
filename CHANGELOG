@@ -15,6 +15,13 @@
   This could jump ahead of initializers that should be run first. We now wait
   until ActiveRecord::Base is loaded elsewhere.
 
+  * Fix explain plans for non-parameterized queries with single quote literals
+
+  The agent does not run explain plans for queries still containing parameters
+  (such as `SELECT * FROM UNICORNS WHERE ID = $1 LIMIT 1`). This check was
+  unfortunately mutating the query to be obfuscated, causing an inability to
+  collect an explain plan. This has now been fixed.
+
 ## v3.15.0 ##
 
   * Rails 5 support
