@@ -1,11 +1,6 @@
 source 'https://rubygems.org'
 
-if RUBY_VERSION < '1.9.3' # Rails 3.2.22.1 is incompatible with MRI 1.8.7 / ree
-  gem 'rails', '3.2.22'
-else
-  gem 'rails', '~>3.2.20'
-end
-
+gem 'rails', '~>3.2.20'
 gem 'i18n', '0.6.11'
 
 gem 'rake', '~>10.1.1'

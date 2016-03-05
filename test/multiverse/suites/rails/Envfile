@@ -30,11 +30,7 @@ if RUBY_VERSION >= '1.9.3'
 end
 
 gemfile <<-RB
-  if RUBY_VERSION < '1.9.3' # Rails 3.2.22.1 is incompatible with MRI 1.8.7 / ree
-    gem 'rails', '3.2.22'
-  else
-    gem 'rails', '~>3.2.20'
-  end
+  gem 'rails', '~>3.2.20'
   gem 'i18n', '~>0.6.11'
   gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
   gem 'minitest_tu_shim', :require => false
@@ -42,11 +38,7 @@ gemfile <<-RB
 RB
 
 gemfile <<-RB
-  if RUBY_VERSION < '1.9.3' # Rails 3.2.22.1 is incompatible with MRI 1.8.7 / ree
-    gem 'rails', '3.2.22'
-  else
-    gem 'rails', '~>3.2.20'
-  end
+  gem 'rails', '~>3.2.20'
   gem 'i18n', '~>0.6.11'
   gem 'sinatra', '~> 1.4.5'
   gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
