@@ -1,6 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
 ## v3.15.1 ##
+  * Rack 2 alpha support
+
+  This release includes experimental support for Rack 2 as of 2.0.0.alpha.
+  Rack 2 is still in development, but the agent should work as expected for
+  those who are experimenting with Rack 2.
 
   * Defer referencing ::ActiveRecord::Base to avoid triggering its autoloading
   too soon
