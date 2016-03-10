@@ -57,6 +57,16 @@ module TestModuleWithLog
   add_method_tracer :other_method, 'Custom/foo/bar'
 end
 
+class MyClass
+  def self.class_method
+  end
+
+  class << self
+    include NewRelic::Agent::MethodTracer
+    add_method_tracer :class_method
+  end
+end
+
 class NewRelic::Agent::MethodTracerTest < Minitest::Test
   attr_reader :stats_engine
 
@@ -178,6 +188,24 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     simple_method
 
     stats = @stats_engine.get_stats("Custom/#{self.class.name}/simple_method")
+    assert stats.call_count == 1
+  end
+
+  def test_add_class_method_tracer
+    MyClass.class_method
+    stats = @stats_engine.get_stats("Custom/MyClass/Class/class_method")
+    assert stats.call_count == 1
+  end
+
+  def test_add_anonymous_class_method_tracer
+    cls = Class.new do
+      def instance_method; end
+      include NewRelic::Agent::MethodTracer
+      add_method_tracer :instance_method
+    end
+
+    cls.new.instance_method
+    stats = @stats_engine.get_stats("Custom/AnonymousClass/instance_method")
     assert stats.call_count == 1
   end
 
