@@ -215,6 +215,32 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal(expected_values, result[1])
   end
 
+  def test_explain_sql_select_with_sqlite3_explain_string_result
+    config = {:adapter => 'sqlite3'}
+    sql = 'SELECT foo'
+
+    plan = [
+      {"addr"=>0, "opcode"=>"Trace", "p1"=>0, "p2"=>0, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>0, 1=>"Trace", 2=>0, 3=>0, 4=>0, 5=>"", 6=>"00", 7=>nil},
+      {"addr"=>1, "opcode"=>"Goto",  "p1"=>0, "p2"=>5, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>1, 1=>"Goto",  2=>0, 3=>5, 4=>0, 5=>"", 6=>"00", 7=>nil},
+      {"addr"=>2, "opcode"=>"String8", "p1"=>0, "p2"=>1, "p3"=>0, "p4"=>"foo", "p5"=>"00", "comment"=>nil, 0=>2, 1=>"String8", 2=>0, 3=>1, 4=>0, 5=>"foo", 6=>"00", 7=>nil},
+      {"addr"=>3, "opcode"=>"ResultRow", "p1"=>1, "p2"=>1, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>3, 1=>"ResultRow", 2=>1, 3=>1, 4=>0, 5=>"", 6=>"00", 7=>nil},
+      {"addr"=>4, "opcode"=>"Halt", "p1"=>0, "p2"=>0, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>4, 1=>"Halt", 2=>0, 3=>0, 4=>0, 5=>"", 6=>"00", 7=>nil},
+      {"addr"=>5, "opcode"=>"Goto", "p1"=>0, "p2"=>2, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>5, 1=>"Goto", 2=>0, 3=>2, 4=>0, 5=>"", 6=>"00", 7=>nil}
+    ]
+    explainer = lambda { |statement| plan}
+
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
+    result = NewRelic::Agent::Database.explain_sql(statement)
+
+    expected_headers = %w[addr opcode p1 p2 p3 p4 p5 comment]
+    expected_values  = plan.map do |row|
+      expected_headers.map { |h| row[h] }
+    end
+
+    assert_equal(expected_headers.sort, result[0].sort)
+    assert_equal(expected_values, result[1])
+  end
+
   def test_explain_sql_no_sql
     statement = NewRelic::Agent::Database::Statement.new('', nil)
     assert_equal(nil, NewRelic::Agent::Database.explain_sql(statement))

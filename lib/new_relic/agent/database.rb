@@ -122,7 +122,7 @@ module NewRelic
         return explain_plan || []
       end
 
-      SUPPORTED_ADAPTERS_FOR_EXPLAIN = %w[postgres postgresql mysql2 mysql sqlite].freeze
+      SUPPORTED_ADAPTERS_FOR_EXPLAIN = %w[postgres postgresql mysql2 mysql sqlite sqlite3].freeze
 
       def explain_statement(statement)
         return unless statement.explainer && is_select?(statement.sql)
@@ -163,7 +163,7 @@ module NewRelic
           process_explain_results_mysql2(results)
         when 'mysql'
           process_explain_results_mysql(results)
-        when 'sqlite'
+        when 'sqlite', 'sqlite3'
           process_explain_results_sqlite(results)
         end
       end
