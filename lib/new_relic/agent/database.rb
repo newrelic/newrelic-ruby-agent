@@ -153,9 +153,13 @@ module NewRelic
       end
 
       def process_resultset(results, adapter)
-        case adapter.to_s
-        when 'postgres', 'postgresql'
-          process_explain_results_postgres(results)
+        if adapter.start_with? 'postgres'
+          return process_explain_results_postgres(results)
+        elsif results.is_a?(String)
+          return string_explain_plan_results(results)
+        end
+
+        case adapter
         when 'mysql2'
           process_explain_results_mysql2(results)
         when 'mysql'
@@ -194,7 +198,6 @@ module NewRelic
       end
 
       def process_explain_results_mysql(results)
-        return string_explain_plan_results(results) if results.is_a?(String)
         headers = []
         values  = []
         if results.is_a?(Array)
@@ -216,7 +219,6 @@ module NewRelic
       end
 
       def process_explain_results_mysql2(results)
-        return string_explain_plan_results(results) if results.is_a?(String)
         headers = results.fields
         values  = []
         results.each { |row| values << row }
@@ -226,7 +228,6 @@ module NewRelic
       SQLITE_EXPLAIN_COLUMNS = %w[addr opcode p1 p2 p3 p4 p5 comment]
 
       def process_explain_results_sqlite(results)
-        return string_explain_plan_results(results) if results.is_a?(String)
         headers = SQLITE_EXPLAIN_COLUMNS
         values  = []
         results.each do |row|
