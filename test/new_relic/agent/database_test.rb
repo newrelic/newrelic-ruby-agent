@@ -215,6 +215,25 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal(expected_values, result[1])
   end
 
+  def test_explain_sql_no_sql
+    statement = NewRelic::Agent::Database::Statement.new('', nil)
+    assert_equal(nil, NewRelic::Agent::Database.explain_sql(statement))
+  end
+
+  def test_explain_sql_non_select
+    statement = NewRelic::Agent::Database::Statement.new('foo', mock('config'), mock('explainer'))
+    assert_equal([], NewRelic::Agent::Database.explain_sql(statement))
+  end
+
+  def test_dont_collect_explain_for_truncated_query
+    config = {:adapter => 'postgresql'}
+    sql = 'SELECT * FROM table WHERE id IN (1,2,3,4,5...'
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
+
+    expects_logging(:debug, 'Unable to collect explain plan for truncated query.')
+    assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
+  end
+
   def test_dont_collect_explain_for_parameterized_query
     config = {:adapter => 'postgresql'}
     sql = 'SELECT * FROM table WHERE id = $1'
@@ -235,15 +254,6 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
                  NewRelic::Agent::Database.explain_sql(statement))
   end
 
-  def test_dont_collect_explain_for_truncated_query
-    config = {:adapter => 'postgresql'}
-    sql = 'SELECT * FROM table WHERE id IN (1,2,3,4,5...'
-    statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
-
-    expects_logging(:debug, 'Unable to collect explain plan for truncated query.')
-    assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
-  end
-
   def test_dont_collect_explain_if_adapter_not_recognized
     config = {:adapter => 'dorkdb'}
     sql = 'SELECT * FROM table WHERE id IN (1,2,3,4,5)'
@@ -253,19 +263,9 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
   end
 
-  def test_explain_sql_no_sql
-    statement = NewRelic::Agent::Database::Statement.new('', nil)
-    assert_equal(nil, NewRelic::Agent::Database.explain_sql(statement))
-  end
-
   def test_explain_sql_no_connection_config
     statement = NewRelic::Agent::Database::Statement.new('select foo', nil)
     assert_equal(nil, NewRelic::Agent::Database.explain_sql(statement))
-  end
-
-  def test_explain_sql_non_select
-    statement = NewRelic::Agent::Database::Statement.new('foo', mock('config'), mock('explainer'))
-    assert_equal([], NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_explain_sql_one_select_no_connection
