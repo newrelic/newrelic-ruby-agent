@@ -109,13 +109,12 @@ module NewRelic
 
       # Perform this in the runtime environment of a managed
       # application, to explain the sql statement executed within a
-      # node of a transaction sample. Returns an array of
-      # explanations (which is an array rows consisting of an array of
-      # strings for each column returned by the the explain query)
-      # Note this happens only for statements whose execution time
-      # exceeds a threshold (e.g. 500ms) and only within the slowest
-      # transaction in a report period, selected for shipment to New
-      # Relic
+      # node of a transaction sample. Returns an array of two arrays.
+      # The first array contains the headers, while the second consists of
+      # arrays of strings for each column returned by the explain query.
+      # Note this happens only for statements whose execution time exceeds
+      # a threshold (e.g. 500ms) and only within the slowest transaction
+      # in a report period, selected for shipment to New Relic
       def explain_sql(statement)
         return nil unless statement.sql && statement.explainer && statement.config
         statement.sql = statement.sql.split(";\n")[0] # only explain the first
