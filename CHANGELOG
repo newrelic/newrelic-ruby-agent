@@ -22,6 +22,13 @@
   unfortunately mutating the query to be obfuscated, causing an inability to
   collect an explain plan. This has now been fixed.
 
+  * Fix default metric name for tracing class methods
+
+  When using `add_method_tracer` on a class method but without passing in a
+  `metric_name_code`, the default metric name will now look like
+  `Custom/ClassName/Class/method_name`. We also addressed default
+  metric names for anonymous classes and modules.
+
 ## v3.15.0 ##
 
   * Rails 5 support
