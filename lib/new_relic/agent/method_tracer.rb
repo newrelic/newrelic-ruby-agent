@@ -385,7 +385,7 @@ module NewRelic
         end
 
         def class_name
-          return self.name if self.name
+          return self.name if self.name && !self.name.empty?
           return "AnonymousModule" if self.to_s.start_with?("#<Module:")
 
           # trying to get the "MyClass" portion of "#<Class:MyClass>"
