@@ -7,6 +7,11 @@
   Rack 2 is still in development, but the agent should work as expected for
   those who are experimenting with Rack 2.
 
+  * Rails 5 beta 3 support
+
+  We've tweaked our Action View instrumentation to accommodate changes introduced
+  in Rails v5.0.0.beta3.
+
   * Defer referencing ::ActiveRecord::Base to avoid triggering its autoloading
   too soon
 
