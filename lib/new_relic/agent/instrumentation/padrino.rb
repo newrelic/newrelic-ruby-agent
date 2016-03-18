@@ -27,6 +27,42 @@ DependencyDetection.defer do
 
       alias dispatch_without_newrelic dispatch!
       alias dispatch! dispatch_with_newrelic
+
+      # Padrino 0.13 mustermann routing
+      if private_method_defined?(:invoke_route)
+        include NewRelic::Agent::Instrumentation::Padrino
+
+        alias invoke_route_without_newrelic invoke_route
+        alias invoke_route invoke_route_with_newrelic
+      end
+    end
+  end
+end
+
+module NewRelic
+  module Agent
+    module Instrumentation
+      module Padrino
+        def invoke_route_with_newrelic(*args, &block)
+          begin
+            env["newrelic.last_route"] = args[0].original_path
+          rescue => e
+            ::NewRelic::Agent.logger.debug("Failed determining last route in Padrino", e)
+          end
+
+          begin
+            txn_name = ::NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer.transaction_name_for_route(env, request)
+            unless txn_name.nil?
+              ::NewRelic::Agent::Transaction.set_default_transaction_name(
+                "#{self.class.name}/#{txn_name}", :sinatra)
+            end
+          rescue => e
+            ::NewRelic::Agent.logger.debug("Failed during invoke_route to set transaction name", e)
+          end
+
+          invoke_route_without_newrelic(*args, &block)
+        end
+      end
     end
   end
 end
