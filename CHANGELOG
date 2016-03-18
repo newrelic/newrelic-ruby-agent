@@ -34,6 +34,15 @@
   `Custom/ClassName/Class/method_name`. We also addressed default
   metric names for anonymous classes and modules.
 
+  * Fix issue when rendering SQL strings in developer mode
+
+  When we obfuscate SQL statements, we rewrite the Statement objects as
+  SQL strings inline in our sample buffers at harvest time. However, in
+  developer mode, we also read out of these buffers when rendering pages.
+  Depending on whether a harvest has run yet, the buffer will contain either
+  Statement objects, SQL strings, or a mix. Now, developer mode can handle
+  them all!
+
 ## v3.15.0 ##
 
   * Rails 5 support
