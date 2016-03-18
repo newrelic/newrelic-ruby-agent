@@ -1,5 +1,48 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.15.1 ##
+  * Rack 2 alpha support
+
+  This release includes experimental support for Rack 2 as of 2.0.0.alpha.
+  Rack 2 is still in development, but the agent should work as expected for
+  those who are experimenting with Rack 2.
+
+  * Rails 5 beta 3 support
+
+  We've tweaked our Action View instrumentation to accommodate changes introduced
+  in Rails v5.0.0.beta3.
+
+  * Defer referencing ::ActiveRecord::Base to avoid triggering its autoloading
+  too soon
+
+  In 3.12.1 and later versions of the agent, the agent references (and
+  therefore loads) ActiveRecord::Base earlier on in the Rails loading process.
+  This could jump ahead of initializers that should be run first. We now wait
+  until ActiveRecord::Base is loaded elsewhere.
+
+  * Fix explain plans for non-parameterized queries with single quote literals
+
+  The agent does not run explain plans for queries still containing parameters
+  (such as `SELECT * FROM UNICORNS WHERE ID = $1 LIMIT 1`). This check was
+  unfortunately mutating the query to be obfuscated, causing an inability to
+  collect an explain plan. This has now been fixed.
+
+  * Fix default metric name for tracing class methods
+
+  When using `add_method_tracer` on a class method but without passing in a
+  `metric_name_code`, the default metric name will now look like
+  `Custom/ClassName/Class/method_name`. We also addressed default
+  metric names for anonymous classes and modules.
+
+  * Fix issue when rendering SQL strings in developer mode
+
+  When we obfuscate SQL statements, we rewrite the Statement objects as
+  SQL strings inline in our sample buffers at harvest time. However, in
+  developer mode, we also read out of these buffers when rendering pages.
+  Depending on whether a harvest has run yet, the buffer will contain either
+  Statement objects, SQL strings, or a mix. Now, developer mode can handle
+  them all!
+
 ## v3.15.0 ##
 
   * Rails 5 support

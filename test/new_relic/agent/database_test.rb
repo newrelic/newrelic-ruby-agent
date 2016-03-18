@@ -242,10 +242,11 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config.default('val')
     connection = mock('literal connection')
     plan = [{"QUERY PLAN"=>"Some Jazz"}]
-    connection.stubs(:execute).returns(plan)
+    sql = "SELECT * FROM table WHERE id = 'noise $11'"
+    confirm_sql = Proc.new {|query| query.include?(sql) }
+    connection.expects(:execute).with(&confirm_sql).returns(plan)
     NewRelic::Agent::Database.stubs(:get_connection).with(config).returns(connection)
 
-    sql = "SELECT * FROM table WHERE id = 'noise $11'"
     assert_equal([['QUERY PLAN'], [["Some Jazz"]]],
                  NewRelic::Agent::Database.explain_sql(sql, config, @explainer))
   end

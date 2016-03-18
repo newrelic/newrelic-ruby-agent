@@ -174,6 +174,7 @@ module Multiverse
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./ || (defined?(JRUBY_VERSION) && JRUBY_VERSION > '1.7')
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
+        f.puts rake_line unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
         if RUBY_VERSION == "1.8.7"
           f.puts "gem 'json'" unless gemfile_text =~ /^\s.*gem .json./
         end
@@ -220,6 +221,15 @@ module Multiverse
 
     def minitest_line
       "gem 'minitest', '~> 4.7.5', :require => false"
+    end
+
+    # rake 11 dropped support for ruby < 1.9.3
+    def rake_line
+      if RUBY_VERSION < '1.9.3'
+        "gem 'rake', '< 11'"
+      else
+        "gem 'rake'"
+      end
     end
 
     def print_environment
