@@ -35,6 +35,50 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal('sqlite', NewRelic::Agent::Database.adapter_from_config(config))
   end
 
+  # An ActiveRecord::Result is what you get back when executing a
+  # query using exec_query on the connection, which is what we're
+  # doing now for explain plans in AR4 instrumentation
+  def test_explain_sql_with_mysql2_activerecord_result
+    return unless defined?(::ActiveRecord::Result)
+    config = {:adapter => 'mysql2'}
+    sql = 'SELECT * FROM spells where id=1'
+
+    columns = ["id", "select_type", "table", "type", "possible_keys", "key", "key_len", "ref", "rows", "Extra"]
+    rows = [["1", "SIMPLE", "spells", "const", "PRIMARY", "PRIMARY", "4", "const", "1", ""]]
+    activerecord_result = ::ActiveRecord::Result.new(columns, rows)
+    explainer = lambda { |statement| activerecord_result}
+
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
+    result = NewRelic::Agent::Database.explain_sql(statement)
+
+    assert_equal([columns, rows], result)
+  end
+
+  def test_explain_sql_obfuscates_for_postgres_activerecord_result
+    return unless defined?(::ActiveRecord::Result)
+    config = {:adapter => 'postgres'}
+    sql = "SELECT * FROM blogs WHERE blogs.id=1234 AND blogs.title='sensitive text'"
+
+    columns = ["stuffs"]
+    rows = [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
+            ["   Index Cond: (id = 1234)"],
+            ["   Filter: ((title)::text = 'sensitive text'::text)"]]
+    activerecord_result = ::ActiveRecord::Result.new(columns, rows)
+    explainer = lambda { |statement| activerecord_result}
+
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
+    expected_result = [['QUERY PLAN'],
+                       [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
+                        ["   Index Cond: ?"],
+                        ["   Filter: ?"]
+                      ]]
+
+    with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
+      result = NewRelic::Agent::Database.explain_sql(statement)
+      assert_equal(expected_result, result)
+    end
+  end
+
   # The following tests in the format _with_##_explain_result go
   # through the different kinds of results when using an explainer
   # that calls .execute on the connection
@@ -265,7 +309,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = 'SELECT * FROM table WHERE id = $1'
     statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
 
-    expects_logging(:debug, 'Unable to collect explain plan for parameterized query.')
+    expects_logging(:debug, 'Unable to collect explain plan for parameter-less parameterized query.')
     assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
   end
 
@@ -275,6 +319,19 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     plan = [{"QUERY PLAN"=>"Some Jazz"}]
     explainer = lambda { |statement| plan}
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
+
+    assert_equal([['QUERY PLAN'], [["Some Jazz"]]],
+                 NewRelic::Agent::Database.explain_sql(statement))
+  end
+
+  def test_do_collect_explain_for_parameterized_query_with_binds
+    config = {:adapter => 'postgresql'}
+    sql = 'SELECT * FROM table WHERE id = $1'
+    # binds objects don't actually look like this, just need non-blank for test
+    binds = "values for the parameters"
+    plan = [{"QUERY PLAN"=>"Some Jazz"}]
+    explainer = lambda { |statement| plan}
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer, binds)
 
     assert_equal([['QUERY PLAN'], [["Some Jazz"]]],
                  NewRelic::Agent::Database.explain_sql(statement))

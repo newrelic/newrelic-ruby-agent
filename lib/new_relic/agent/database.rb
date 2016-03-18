@@ -132,8 +132,8 @@ module NewRelic
           return
         end
 
-        if parameterized?(statement.sql)
-          NewRelic::Agent.logger.debug('Unable to collect explain plan for parameterized query.')
+        if parameterized?(statement.sql) && statement.binds.empty?
+          NewRelic::Agent.logger.debug('Unable to collect explain plan for parameter-less parameterized query.')
           return
         end
 
@@ -154,6 +154,9 @@ module NewRelic
       def process_resultset(results, adapter)
         if adapter.start_with? 'postgres'
           return process_explain_results_postgres(results)
+        elsif defined?(::ActiveRecord::Result) && results.is_a?(::ActiveRecord::Result)
+          # Note if adapter is mysql, will only have headers, not values
+          return [results.columns, results.rows]
         elsif results.is_a?(String)
           return string_explain_plan_results(results)
         end
@@ -171,7 +174,9 @@ module NewRelic
       QUERY_PLAN = 'QUERY PLAN'.freeze
 
       def process_explain_results_postgres(results)
-        if results.is_a?(String)
+        if defined?(::ActiveRecord::Result) && results.is_a?(::ActiveRecord::Result)
+          query_plan_string = results.rows.join("\n")
+        elsif results.is_a?(String)
           query_plan_string = results
         else
           lines = []
