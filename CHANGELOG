@@ -43,6 +43,13 @@
   Statement objects, SQL strings, or a mix. Now, developer mode can handle
   them all!
 
+  * Fix DelayedJob Sampler reporting incorrect counts in Active Record 3 and below
+
+  When fixing various deprecation warnings on ActiveRecord 4, we introduced
+  a regression in our DelayedJob sampler which caused us to incorrectly report
+  failed and locked job counts in ActiveRecord 3 and below. This is now fixed.
+  Thanks Rangel Dokov for the contribution!
+
 ## v3.15.0 ##
 
   * Rails 5 support
