@@ -11,14 +11,13 @@
   <tbody>
   <% for version in versions %>
     <tr>
-      <td><b><%= version.name %></b></td>
+      <td rowspan=<%= if version.notes; 2; else; 1; end %>><b><%= version.name %></b></td>
       <td><%= CGI.escapeHTML(version_list(version.supported)) %></td>
       <td><%= CGI.escapeHTML(version_list(version.deprecated)) %></td>
       <td><%= CGI.escapeHTML(version_list(version.experimental)) %></td>
     </tr>
     <% if version.notes %>
     <tr>
-      <td></td>
       <td colspan="3">
         <%= version.notes.join("<br />") %>
       </td>
