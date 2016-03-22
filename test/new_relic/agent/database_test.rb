@@ -12,27 +12,32 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   def test_adapter_from_config_string
     config = { :adapter => 'mysql' }
-    assert_equal('mysql', NewRelic::Agent::Database.adapter_from_config(config))
+    statement = NewRelic::Agent::Database::Statement.new('some query')
+    assert_equal('mysql', statement.adapter_from_config(config))
   end
 
   def test_adapter_from_config_symbol
     config = { :adapter => :mysql }
-    assert_equal('mysql', NewRelic::Agent::Database.adapter_from_config(config))
+    statement = NewRelic::Agent::Database::Statement.new('some query')
+    assert_equal('mysql', statement.adapter_from_config(config))
   end
 
   def test_adapter_from_config_uri_jdbc_postgresql
     config = { :uri=>"jdbc:postgresql://host/database?user=posgres" }
-    assert_equal('postgresql', NewRelic::Agent::Database.adapter_from_config(config))
+    statement = NewRelic::Agent::Database::Statement.new('some query')
+    assert_equal('postgresql', statement.adapter_from_config(config))
   end
 
   def test_adapter_from_config_uri_jdbc_mysql
     config = { :uri=>"jdbc:mysql://host/database" }
-    assert_equal('mysql', NewRelic::Agent::Database.adapter_from_config(config))
+    statement = NewRelic::Agent::Database::Statement.new('some query')
+    assert_equal('mysql', statement.adapter_from_config(config))
   end
 
   def test_adapter_from_config_uri_jdbc_sqlite
     config = { :uri => "jdbc:sqlite::memory" }
-    assert_equal('sqlite', NewRelic::Agent::Database.adapter_from_config(config))
+    statement = NewRelic::Agent::Database::Statement.new('some query')
+    assert_equal('sqlite', statement.adapter_from_config(config))
   end
 
   # An ActiveRecord::Result is what you get back when executing a

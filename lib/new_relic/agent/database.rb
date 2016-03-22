@@ -95,18 +95,6 @@ module NewRelic
         ConnectionManager.instance.close_connections
       end
 
-      # This takes a connection config hash from ActiveRecord or Sequel and
-      # returns a string describing the associated database adapter
-      def adapter_from_config(config)
-        if config[:adapter]
-          return config[:adapter].to_s
-        elsif config[:uri] && config[:uri].to_s =~ /^jdbc:([^:]+):/
-          # This case is for Sequel with the jdbc-mysql, jdbc-postgres, or
-          # jdbc-sqlite3 gems.
-          return $1
-        end
-      end
-
       # Perform this in the runtime environment of a managed
       # application, to explain the sql statement executed within a
       # node of a transaction sample. Returns an array of two arrays.
@@ -118,139 +106,7 @@ module NewRelic
       def explain_sql(statement)
         return nil unless statement.sql && statement.explainer && statement.config
         statement.sql = statement.sql.split(";\n")[0] # only explain the first
-        explain_plan = explain_statement(statement)
-        return explain_plan || []
-      end
-
-      SUPPORTED_ADAPTERS_FOR_EXPLAIN = %w[postgres postgresql mysql2 mysql sqlite sqlite3].freeze
-
-      def explain_statement(statement)
-        return unless statement.explainer && is_select?(statement.sql)
-
-        if statement.sql[-3,3] == '...'
-          NewRelic::Agent.logger.debug('Unable to collect explain plan for truncated query.')
-          return
-        end
-
-        if parameterized?(statement.sql) && statement.binds.empty?
-          NewRelic::Agent.logger.debug('Unable to collect explain plan for parameter-less parameterized query.')
-          return
-        end
-
-        adapter = adapter_from_config(statement.config)
-        if !SUPPORTED_ADAPTERS_FOR_EXPLAIN.include?(adapter)
-          NewRelic::Agent.logger.debug("Not collecting explain plan because an unknown connection adapter ('#{adapter}') was used.")
-          return
-        end
-
-        handle_exception_in_explain do
-          start = Time.now
-          plan = statement.explainer.call(statement)
-          ::NewRelic::Agent.record_metric("Supportability/Database/execute_explain_plan", Time.now - start)
-          return process_resultset(plan, adapter) if plan
-        end
-      end
-
-      def process_resultset(results, adapter)
-        if adapter.start_with? 'postgres'
-          return process_explain_results_postgres(results)
-        elsif defined?(::ActiveRecord::Result) && results.is_a?(::ActiveRecord::Result)
-          # Note if adapter is mysql, will only have headers, not values
-          return [results.columns, results.rows]
-        elsif results.is_a?(String)
-          return string_explain_plan_results(results)
-        end
-
-        case adapter
-        when 'mysql2'
-          process_explain_results_mysql2(results)
-        when 'mysql'
-          process_explain_results_mysql(results)
-        when 'sqlite', 'sqlite3'
-          process_explain_results_sqlite(results)
-        end
-      end
-
-      QUERY_PLAN = 'QUERY PLAN'.freeze
-
-      def process_explain_results_postgres(results)
-        if defined?(::ActiveRecord::Result) && results.is_a?(::ActiveRecord::Result)
-          query_plan_string = results.rows.join("\n")
-        elsif results.is_a?(String)
-          query_plan_string = results
-        else
-          lines = []
-          results.each { |row| lines << row[QUERY_PLAN] }
-          query_plan_string = lines.join("\n")
-        end
-
-        unless record_sql_method == :raw
-          query_plan_string = NewRelic::Agent::Database::PostgresExplainObfuscator.obfuscate(query_plan_string)
-        end
-        values = query_plan_string.split("\n").map { |line| [line] }
-
-        [[QUERY_PLAN], values]
-      end
-
-      # Sequel returns explain plans as just one big pre-formatted String
-      # In that case, we send a nil headers array, and the single string
-      # wrapped in an array for the values.
-      # Note that we don't use this method for Postgres explain plans, since
-      # they need to be passed through the explain plan obfuscator first.
-      def string_explain_plan_results(results)
-        [nil, [results]]
-      end
-
-      def process_explain_results_mysql(results)
-        headers = []
-        values  = []
-        if results.is_a?(Array)
-          # We're probably using the jdbc-mysql gem for JRuby, which will give
-          # us an array of hashes.
-          headers = results.first.keys
-          results.each do |row|
-            values << headers.map { |h| row[h] }
-          end
-        else
-          # We're probably using the native mysql driver gem, which will give us
-          # a Mysql::Result object that responds to each_hash
-          results.each_hash do |row|
-            headers = row.keys
-            values << headers.map { |h| row[h] }
-          end
-        end
-        [headers, values]
-      end
-
-      def process_explain_results_mysql2(results)
-        headers = results.fields
-        values  = []
-        results.each { |row| values << row }
-        [headers, values]
-      end
-
-      SQLITE_EXPLAIN_COLUMNS = %w[addr opcode p1 p2 p3 p4 p5 comment]
-
-      def process_explain_results_sqlite(results)
-        headers = SQLITE_EXPLAIN_COLUMNS
-        values  = []
-        results.each do |row|
-          values << headers.map { |h| row[h] }
-        end
-        [headers, values]
-      end
-
-      def handle_exception_in_explain
-        yield
-      rescue => e
-        begin
-          # guarantees no throw from explain_sql
-          ::NewRelic::Agent.logger.error("Error getting query plan:", e)
-          nil
-        rescue
-          # double exception. throw up your hands
-          nil
-        end
+        return statement.explain || []
       end
 
       KNOWN_OPERATIONS = [
@@ -276,14 +132,6 @@ module NewRelic
           op = $1.downcase
           return op if KNOWN_OPERATIONS.include?(op)
         end
-      end
-
-      def is_select?(statement)
-        parse_operation_from_query(statement) == 'select'
-      end
-
-      def parameterized?(statement)
-        Obfuscator.instance.obfuscate_single_quote_literals(statement) =~ /\$\d+/
       end
 
       class ConnectionManager
@@ -353,6 +201,166 @@ module NewRelic
           else
             adapter.to_sym
           end
+        end
+
+        def explain
+          return unless explainable?
+          handle_exception_in_explain do
+            start = Time.now
+            plan = @explainer.call(self)
+            ::NewRelic::Agent.record_metric("Supportability/Database/execute_explain_plan", Time.now - start)
+            return process_resultset(plan, adapter_from_config(@config)) if plan
+          end
+        end
+
+        # TODO: move a bunch of this into a module?
+        # TODO: make this consistent with the adapter property
+        # This takes a connection config hash from ActiveRecord or Sequel and
+        # returns a string describing the associated database adapter
+        def adapter_from_config(config)
+          if config[:adapter]
+            return config[:adapter].to_s
+          elsif config[:uri] && config[:uri].to_s =~ /^jdbc:([^:]+):/
+            # This case is for Sequel with the jdbc-mysql, jdbc-postgres, or
+            # jdbc-sqlite3 gems.
+            return $1
+          end
+        end
+
+        private
+
+        SUPPORTED_ADAPTERS_FOR_EXPLAIN = %w[postgres postgresql mysql2 mysql sqlite sqlite3].freeze
+
+        def explainable?
+          return false unless @explainer && is_select?(@sql)
+
+          if @sql[-3,3] == '...'
+            NewRelic::Agent.logger.debug('Unable to collect explain plan for truncated query.')
+            return false
+          end
+
+          if parameterized?(@sql) && @binds.empty?
+            NewRelic::Agent.logger.debug('Unable to collect explain plan for parameter-less parameterized query.')
+            return false
+          end
+
+          adapter = adapter_from_config(@config)
+          if !SUPPORTED_ADAPTERS_FOR_EXPLAIN.include?(adapter)
+            NewRelic::Agent.logger.debug("Not collecting explain plan because an unknown connection adapter ('#{adapter}') was used.")
+            return false
+          end
+
+          true
+        end
+
+        def is_select?(sql)
+          NewRelic::Agent::Database.parse_operation_from_query(sql) == 'select'
+        end
+
+        def parameterized?(sql)
+          Obfuscator.instance.obfuscate_single_quote_literals(sql) =~ /\$\d+/
+        end
+
+        def handle_exception_in_explain
+          yield
+        rescue => e
+          begin
+            # guarantees no throw from explain_sql
+            ::NewRelic::Agent.logger.error("Error getting query plan:", e)
+            nil
+          rescue
+            # double exception. throw up your hands
+            nil
+          end
+        end
+
+        def process_resultset(results, adapter)
+          if adapter.start_with? 'postgres'
+            return process_explain_results_postgres(results)
+          elsif defined?(::ActiveRecord::Result) && results.is_a?(::ActiveRecord::Result)
+            # Note if adapter is mysql, will only have headers, not values
+            return [results.columns, results.rows]
+          elsif results.is_a?(String)
+            return string_explain_plan_results(results)
+          end
+
+          case adapter
+          when 'mysql2'
+            process_explain_results_mysql2(results)
+          when 'mysql'
+            process_explain_results_mysql(results)
+          when 'sqlite', 'sqlite3'
+            process_explain_results_sqlite(results)
+          end
+        end
+
+        QUERY_PLAN = 'QUERY PLAN'.freeze
+
+        def process_explain_results_postgres(results)
+          if defined?(::ActiveRecord::Result) && results.is_a?(::ActiveRecord::Result)
+            query_plan_string = results.rows.join("\n")
+          elsif results.is_a?(String)
+            query_plan_string = results
+          else
+            lines = []
+            results.each { |row| lines << row[QUERY_PLAN] }
+            query_plan_string = lines.join("\n")
+          end
+
+          unless NewRelic::Agent::Database.record_sql_method == :raw
+            query_plan_string = NewRelic::Agent::Database::PostgresExplainObfuscator.obfuscate(query_plan_string)
+          end
+          values = query_plan_string.split("\n").map { |line| [line] }
+
+          [[QUERY_PLAN], values]
+        end
+
+        # Sequel returns explain plans as just one big pre-formatted String
+        # In that case, we send a nil headers array, and the single string
+        # wrapped in an array for the values.
+        # Note that we don't use this method for Postgres explain plans, since
+        # they need to be passed through the explain plan obfuscator first.
+        def string_explain_plan_results(results)
+          [nil, [results]]
+        end
+
+        def process_explain_results_mysql(results)
+          headers = []
+          values  = []
+          if results.is_a?(Array)
+            # We're probably using the jdbc-mysql gem for JRuby, which will give
+            # us an array of hashes.
+            headers = results.first.keys
+            results.each do |row|
+              values << headers.map { |h| row[h] }
+            end
+          else
+            # We're probably using the native mysql driver gem, which will give us
+            # a Mysql::Result object that responds to each_hash
+            results.each_hash do |row|
+              headers = row.keys
+              values << headers.map { |h| row[h] }
+            end
+          end
+          [headers, values]
+        end
+
+        def process_explain_results_mysql2(results)
+          headers = results.fields
+          values  = []
+          results.each { |row| values << row }
+          [headers, values]
+        end
+
+        SQLITE_EXPLAIN_COLUMNS = %w[addr opcode p1 p2 p3 p4 p5 comment]
+
+        def process_explain_results_sqlite(results)
+          headers = SQLITE_EXPLAIN_COLUMNS
+          values  = []
+          results.each do |row|
+            values << headers.map { |h| row[h] }
+          end
+          [headers, values]
         end
       end
     end
