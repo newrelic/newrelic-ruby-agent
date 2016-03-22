@@ -4,7 +4,6 @@
 
 require 'singleton'
 require 'new_relic/agent/database/explain_plan_helpers'
-require 'new_relic/agent/database/obfuscation_helpers'
 require 'new_relic/agent/database/obfuscator'
 
 module NewRelic
