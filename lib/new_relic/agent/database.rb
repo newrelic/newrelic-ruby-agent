@@ -325,7 +325,9 @@ module NewRelic
       class Statement
         attr_accessor :sql, :config, :explainer, :binds, :name
 
-        def initialize(sql, config={}, explainer=nil, binds=[], name="SQL")
+        DEFAULT_QUERY_NAME = "SQL".freeze
+
+        def initialize(sql, config={}, explainer=nil, binds=[], name=DEFAULT_QUERY_NAME)
           @sql = Database.capture_query(sql)
           @config = config
           @explainer = explainer
