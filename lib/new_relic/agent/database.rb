@@ -184,23 +184,15 @@ module NewRelic
           @name = name
         end
 
+        # This takes a connection config hash from ActiveRecord or Sequel and
+        # returns a symbol describing the associated database adapter
         def adapter
-          config && config[:adapter] && symbolized_adapter(config[:adapter].to_s.downcase)
-        end
+          return unless @config
+          @adapter ||= begin
+            return symbolized_adapter(@config[:adapter].to_s.downcase) if @config[:adapter]
 
-        POSTGRES_PREFIX = 'postgres'.freeze
-        MYSQL_PREFIX = 'mysql'.freeze
-        SQLITE_PREFIX = 'sqlite'.freeze
-
-        def symbolized_adapter(adapter)
-          if adapter.start_with? POSTGRES_PREFIX
-            :postgres
-          elsif adapter.start_with? MYSQL_PREFIX
-            :mysql
-          elsif adapter.start_with? SQLITE_PREFIX
-            :sqlite
-          else
-            adapter.to_sym
+            # This case is for Sequel with the jdbc-mysql, jdbc-postgres, or jdbc-sqlite3 gems.
+            symbolized_adapter($1) if @config[:uri] && @config[:uri].to_s =~ /^jdbc:([^:]+):/
           end
         end
 
@@ -210,24 +202,32 @@ module NewRelic
             start = Time.now
             plan = @explainer.call(self)
             ::NewRelic::Agent.record_metric("Supportability/Database/execute_explain_plan", Time.now - start)
-            return process_resultset(plan, adapter_from_config(@config)) if plan
-          end
-        end
-
-        # TODO: make this consistent with the adapter property
-        # This takes a connection config hash from ActiveRecord or Sequel and
-        # returns a string describing the associated database adapter
-        def adapter_from_config(config)
-          if config[:adapter]
-            return config[:adapter].to_s
-          elsif config[:uri] && config[:uri].to_s =~ /^jdbc:([^:]+):/
-            # This case is for Sequel with the jdbc-mysql, jdbc-postgres, or
-            # jdbc-sqlite3 gems.
-            return $1
+            return process_resultset(plan, adapter) if plan
           end
         end
 
         private
+
+        POSTGRES_PREFIX = 'postgres'.freeze
+        MYSQL_PREFIX    = 'mysql'.freeze
+        MYSQL2_PREFIX   = 'mysql2'.freeze
+        SQLITE_PREFIX   = 'sqlite'.freeze
+
+        def symbolized_adapter(adapter)
+          if adapter.start_with? POSTGRES_PREFIX
+            :postgres
+          elsif adapter == MYSQL_PREFIX
+            :mysql
+          # For the purpose of fetching explain plans, we need to maintain the distinction
+          # between usage of mysql and mysql2. Obfuscation is the same, though.
+          elsif adapter == MYSQL2_PREFIX
+            :mysql2
+          elsif adapter.start_with? SQLITE_PREFIX
+            :sqlite
+          else
+            adapter.to_sym
+          end
+        end
 
         def explainable?
           return false unless @explainer && is_select?(@sql)
@@ -242,7 +242,6 @@ module NewRelic
             return false
           end
 
-          adapter = adapter_from_config(@config)
           if !SUPPORTED_ADAPTERS_FOR_EXPLAIN.include?(adapter)
             NewRelic::Agent.logger.debug("Not collecting explain plan because an unknown connection adapter ('#{adapter}') was used.")
             return false

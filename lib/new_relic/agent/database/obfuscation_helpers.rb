@@ -40,6 +40,7 @@ module NewRelic
         # placeholder.
         CLEANUP_REGEX = {
           :mysql => /'|"|\/\*|\*\//,
+          :mysql2 => /'|"|\/\*|\*\//,
           :postgres => /'|\/\*|\*\/|\$(?!\?)/,
           :sqlite => /'|\/\*|\*\//,
           :cassandra => /'|\/\*|\*\//,
@@ -68,7 +69,7 @@ module NewRelic
 
         def obfuscate(sql, adapter)
           case adapter
-          when :mysql
+          when :mysql, :mysql2
             regex = MYSQL_COMPONENTS_REGEX
           when :postgres
             regex = POSTGRES_COMPONENTS_REGEX

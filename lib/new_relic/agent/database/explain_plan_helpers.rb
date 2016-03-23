@@ -10,7 +10,7 @@ module NewRelic
     module Database
       module ExplainPlanHelpers
 
-        SUPPORTED_ADAPTERS_FOR_EXPLAIN = %w[postgres postgresql mysql2 mysql sqlite sqlite3].freeze
+        SUPPORTED_ADAPTERS_FOR_EXPLAIN = [:postgres, :mysql2, :mysql, :sqlite]
 
         def is_select?(sql)
           NewRelic::Agent::Database.parse_operation_from_query(sql) == 'select'
@@ -34,7 +34,7 @@ module NewRelic
         end
 
         def process_resultset(results, adapter)
-          if adapter.start_with? 'postgres'
+          if adapter == :postgres
             return process_explain_results_postgres(results)
           elsif defined?(::ActiveRecord::Result) && results.is_a?(::ActiveRecord::Result)
             # Note if adapter is mysql, will only have headers, not values
@@ -44,11 +44,11 @@ module NewRelic
           end
 
           case adapter
-          when 'mysql2'
+          when :mysql2
             process_explain_results_mysql2(results)
-          when 'mysql'
+          when :mysql
             process_explain_results_mysql(results)
-          when 'sqlite', 'sqlite3'
+          when :sqlite
             process_explain_results_sqlite(results)
           end
         end
