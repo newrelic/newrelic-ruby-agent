@@ -9,7 +9,6 @@ module NewRelic
       class MongodbCommandSubscriber
 
         MONGODB = 'MongoDB'.freeze
-        GET_MORE = "getMore".freeze
         COLLECTION = "collection".freeze
 
         def started(event)
