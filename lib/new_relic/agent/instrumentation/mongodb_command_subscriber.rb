@@ -45,7 +45,7 @@ module NewRelic
         private
 
         def collection(event)
-          if event.command_name == GET_MORE
+          if event.command_name == GET_MORE || event.command_name == :getMore
             event.command[COLLECTION]
           else
             event.command.values.first
