@@ -188,11 +188,14 @@ module NewRelic
         # returns a symbol describing the associated database adapter
         def adapter
           return unless @config
-          @adapter ||= begin
-            return symbolized_adapter(@config[:adapter].to_s.downcase) if @config[:adapter]
 
+          @adapter ||= if @config[:adapter]
+            symbolized_adapter(@config[:adapter].to_s.downcase)
+          elsif @config[:uri] && @config[:uri].to_s =~ /^jdbc:([^:]+):/
             # This case is for Sequel with the jdbc-mysql, jdbc-postgres, or jdbc-sqlite3 gems.
-            symbolized_adapter($1) if @config[:uri] && @config[:uri].to_s =~ /^jdbc:([^:]+):/
+            symbolized_adapter($1)
+          else
+            nil
           end
         end
 
