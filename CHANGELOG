@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.15.2 ##
+  * Restore older DataMapper support after password obfuscation fix
+
+  Back in 3.14.3, we released a fix to avoid inadvertently sending sensitive
+  information from DataMapper SQLErrors. Our implementation did not account for
+  DataMapper versions below v0.10.0 not implementing the #options accessor.
+  Thanks Bram de Vries for the fix to our fix!
+
 ## v3.15.1 ##
   * Rack 2 alpha support
 
