@@ -90,7 +90,7 @@ module NewRelic
         stats_hash.each do |metric_spec, stats|
           # Omit empty stats as an optimization
           unless stats.is_reset?
-            metric_data_array << NewRelic::MetricData.new(metric_spec, stats, nil)
+            metric_data_array << NewRelic::MetricData.new(metric_spec, stats)
           end
         end
         metric_data_array
