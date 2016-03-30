@@ -222,7 +222,7 @@ module Multiverse
 
     # mime-types got a new dependency after 2.99 that breaks compatibility with ruby < 2.0
     def mime_types_line
-      if RUBY_VERSION < '1.9.3'
+      if RUBY_VERSION <= '1.9.3'
         "gem 'mime-types', '1.25.1'"
       elsif RUBY_VERSION < '2'
         "gem 'mime-types', '2.99'"
