@@ -173,6 +173,7 @@ module Multiverse
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./ || (defined?(JRUBY_VERSION) && JRUBY_VERSION > '1.7')
+        f.puts mime_types_line unless gemfile_text =~ /^\s*gem .mime-types[^_-]./
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts rake_line unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
         if RUBY_VERSION == "1.8.7"
@@ -217,6 +218,17 @@ module Multiverse
 
     def jruby_openssl_line
       "gem 'jruby-openssl', '~> 0.9.10', :require => false, :platforms => [:jruby]"
+    end
+
+    # mime-types got a new dependency after 2.99 that breaks compatibility with ruby < 2.0
+    def mime_types_line
+      if RUBY_VERSION <= '1.9.3'
+        "gem 'mime-types', '1.25.1'"
+      elsif RUBY_VERSION < '2'
+        "gem 'mime-types', '2.99'"
+      else
+        ''
+      end
     end
 
     def minitest_line
