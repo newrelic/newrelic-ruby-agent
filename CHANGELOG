@@ -1,6 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
 ## v3.15.2 ##
+
   * Restore older DataMapper support after password obfuscation fix
 
   Back in 3.14.3, we released a fix to avoid inadvertently sending sensitive
@@ -8,7 +9,19 @@
   DataMapper versions below v0.10.0 not implementing the #options accessor.
   Thanks Bram de Vries for the fix to our fix!
 
+  * Padrino 0.13.1 Support
+
+  We have incorporated changes from the community that bring the agent up to
+  date with the new routing engine in Padrino 0.13.x. These changes address
+  how the agent generates a transaction name from a Padrino route. Users of
+  the latest versions of Padrino were previously seeing the default transaction
+  name "(unknown)" for all of their Padrino 0.13.x routes. With these changes,
+  users will instead see the full Padrino route template in their transaction
+  names, including any parameter placeholders. Thanks Robert Schulze for the
+  contribution!
+
 ## v3.15.1 ##
+
   * Rack 2 alpha support
 
   This release includes experimental support for Rack 2 as of 2.0.0.alpha.
