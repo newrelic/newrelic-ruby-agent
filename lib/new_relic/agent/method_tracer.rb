@@ -202,7 +202,7 @@ module NewRelic
           # Example:
           #  Foo.default_metric_name_code('bar') #=> "Custom/#{Foo.name}/bar"
           def default_metric_name_code(method_name)
-            "Custom/#{class_name}/#{method_name}"
+            "Custom/#{derived_class_name}/#{method_name}"
           end
 
           # Checks to see if the method we are attempting to trace
@@ -210,7 +210,7 @@ module NewRelic
           # anything if the method doesn't exist.
           def newrelic_method_exists?(method_name)
             exists = method_defined?(method_name) || private_method_defined?(method_name)
-            ::NewRelic::Agent.logger.error("Did not trace #{class_name}##{method_name} because that method does not exist") unless exists
+            ::NewRelic::Agent.logger.error("Did not trace #{derived_class_name}##{method_name} because that method does not exist") unless exists
             exists
           end
 
@@ -278,7 +278,7 @@ module NewRelic
 
           private
 
-          def class_name
+          def derived_class_name
             return self.name if self.name && !self.name.empty?
             return "AnonymousModule" if self.to_s.start_with?("#<Module:")
 
@@ -362,7 +362,7 @@ module NewRelic
           alias_method method_name, _traced_method_name(method_name, metric_name_code)
           send visibility, method_name
           send visibility, _traced_method_name(method_name, metric_name_code)
-          ::NewRelic::Agent.logger.debug("Traced method: class = #{class_name},"+
+          ::NewRelic::Agent.logger.debug("Traced method: class = #{derived_class_name},"+
                     "method = #{method_name}, "+
                     "metric = '#{metric_name_code}'")
         end
