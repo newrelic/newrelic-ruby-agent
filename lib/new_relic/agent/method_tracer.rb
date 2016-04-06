@@ -275,6 +275,23 @@ module NewRelic
               method_without_push_scope(method_name, metric_name_code, options)
             end
           end
+
+          private
+
+          def class_name
+            return self.name if self.name && !self.name.empty?
+            return "AnonymousModule" if self.to_s.start_with?("#<Module:")
+
+            # trying to get the "MyClass" portion of "#<Class:MyClass>"
+            name = self.to_s[/^#<Class:(.+)>$/, 1]
+            if name.start_with?("0x")
+              "AnonymousClass"
+            elsif name.start_with?("#<Class:")
+              "AnonymousClass/Class"
+            else
+              "#{name}/Class"
+            end
+          end
         end
         include AddMethodTracer
 
@@ -382,21 +399,6 @@ module NewRelic
         # that are not allowed in the middle of method names
         def _sanitize_name(name)
           name.to_s.tr_s('^a-zA-Z0-9', '_')
-        end
-
-        def class_name
-          return self.name if self.name && !self.name.empty?
-          return "AnonymousModule" if self.to_s.start_with?("#<Module:")
-
-          # trying to get the "MyClass" portion of "#<Class:MyClass>"
-          name = self.to_s[/^#<Class:(.+)>$/, 1]
-          if name.start_with?("0x")
-            "AnonymousClass"
-          elsif name.start_with?("#<Class:")
-            "AnonymousClass/Class"
-          else
-            "#{name}/Class"
-          end
         end
       end
 
