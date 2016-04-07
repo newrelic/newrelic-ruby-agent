@@ -26,6 +26,11 @@
   names, including any parameter placeholders. Thanks Robert Schulze for the
   contribution!
 
+  * Update transaction naming for Grape 0.16.x
+
+  In Grape 0.16.x, `route_` methods are no longer prefixed. Thanks to Daniel
+  Doubrovkine for the contribution!
+
 ## v3.15.1 ##
 
   * Rack 2 alpha support
