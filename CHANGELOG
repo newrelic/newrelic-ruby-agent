@@ -2,6 +2,12 @@
 
 ## v3.15.2 ##
 
+  * Fix getMore metric grouping issue in Mongo 2.2.x instrumentation
+
+  A metric grouping issue had cropped up again when using the most recent
+  Mongo driver (2.2.0) with the most recent release of the database (3.2.4).
+  We now have a (hopefully) more futureproof setup for preventing these.
+
   * Restore older DataMapper support after password obfuscation fix
 
   Back in 3.14.3, we released a fix to avoid inadvertently sending sensitive
