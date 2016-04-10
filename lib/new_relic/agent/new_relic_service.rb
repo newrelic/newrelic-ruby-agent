@@ -105,7 +105,7 @@ module NewRelic
         NewRelic::Agent.logger.error("Failed to fill metric ID cache from response, error details follow ", e)
       end
 
-      # The collector wants to recieve metric data in a format that's different
+      # The collector wants to receive metric data in a format that's different
       # from how we store it internally, so this method handles the translation.
       # It also handles translating metric names to IDs using our metric ID cache.
       def build_metric_data_array(stats_hash)
