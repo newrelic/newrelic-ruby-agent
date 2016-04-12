@@ -68,10 +68,6 @@ module NewRelic
         yield
       end
 
-      def reset_metric_id_cache
-        # we don't cache metric IDs, so nothing to do
-      end
-
       private
 
       def marshal_payload(data)
