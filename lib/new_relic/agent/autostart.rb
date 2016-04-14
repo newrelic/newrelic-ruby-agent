@@ -8,7 +8,7 @@ module NewRelic
     # monitoring.
     #
     # If the agent is in a monitored environment (e.g. production) it will
-    # attempt to avoid starting at "inapproriate" times, for example in an IRB
+    # attempt to avoid starting at "inappropriate" times, for example in an IRB
     # session.  On Heroku, logs typically go to STDOUT so agent logs can spam
     # the console during interactive sessions.
     #
