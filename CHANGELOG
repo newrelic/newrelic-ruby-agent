@@ -2,6 +2,14 @@
 
 ## v3.15.2 ##
 
+  * Run explain plans on parameterized slow queries in AR4
+
+  In our ActiveRecord 4 instrumentation, we moved to tracing slow queries
+  using the payloads from subscribing to ActiveSupport::Notifications for
+  `sql.active_record` events. As a result, we were unable to run explain
+  plans on parameterized queries. This has now been updated to pass along
+  and use the parameter values, when available, to get the explain plans.
+
   * Fix getMore metric grouping issue in Mongo 2.2.x instrumentation
 
   A metric grouping issue had cropped up again when using the most recent
