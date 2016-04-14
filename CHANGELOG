@@ -31,6 +31,11 @@
   In Grape 0.16.x, `route_` methods are no longer prefixed. Thanks to Daniel
   Doubrovkine for the contribution!
 
+  * Fix name collision on method created for default metric name fix
+
+  We had a name collision with the yard gem, which sets a `class_name` method
+  on Module. We're now using a better name for that method.
+
 ## v3.15.1 ##
 
   * Rack 2 alpha support

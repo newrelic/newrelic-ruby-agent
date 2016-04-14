@@ -202,7 +202,7 @@ module NewRelic
           # Example:
           #  Foo.default_metric_name_code('bar') #=> "Custom/#{Foo.name}/bar"
           def default_metric_name_code(method_name)
-            "Custom/#{class_name}/#{method_name}"
+            "Custom/#{derived_class_name}/#{method_name}"
           end
 
           # Checks to see if the method we are attempting to trace
@@ -210,7 +210,7 @@ module NewRelic
           # anything if the method doesn't exist.
           def newrelic_method_exists?(method_name)
             exists = method_defined?(method_name) || private_method_defined?(method_name)
-            ::NewRelic::Agent.logger.error("Did not trace #{class_name}##{method_name} because that method does not exist") unless exists
+            ::NewRelic::Agent.logger.error("Did not trace #{derived_class_name}##{method_name} because that method does not exist") unless exists
             exists
           end
 
@@ -273,6 +273,23 @@ module NewRelic
               method_with_push_scope(method_name, metric_name_code, options)
             else
               method_without_push_scope(method_name, metric_name_code, options)
+            end
+          end
+
+          private
+
+          def derived_class_name
+            return self.name if self.name && !self.name.empty?
+            return "AnonymousModule" if self.to_s.start_with?("#<Module:")
+
+            # trying to get the "MyClass" portion of "#<Class:MyClass>"
+            name = self.to_s[/^#<Class:(.+)>$/, 1]
+            if name.start_with?("0x")
+              "AnonymousClass"
+            elsif name.start_with?("#<Class:")
+              "AnonymousClass/Class"
+            else
+              "#{name}/Class"
             end
           end
         end
@@ -345,7 +362,7 @@ module NewRelic
           alias_method method_name, _traced_method_name(method_name, metric_name_code)
           send visibility, method_name
           send visibility, _traced_method_name(method_name, metric_name_code)
-          ::NewRelic::Agent.logger.debug("Traced method: class = #{class_name},"+
+          ::NewRelic::Agent.logger.debug("Traced method: class = #{derived_class_name},"+
                     "method = #{method_name}, "+
                     "metric = '#{metric_name_code}'")
         end
@@ -382,21 +399,6 @@ module NewRelic
         # that are not allowed in the middle of method names
         def _sanitize_name(name)
           name.to_s.tr_s('^a-zA-Z0-9', '_')
-        end
-
-        def class_name
-          return self.name if self.name && !self.name.empty?
-          return "AnonymousModule" if self.to_s.start_with?("#<Module:")
-
-          # trying to get the "MyClass" portion of "#<Class:MyClass>"
-          name = self.to_s[/^#<Class:(.+)>$/, 1]
-          if name.start_with?("0x")
-            "AnonymousClass"
-          elsif name.start_with?("#<Class:")
-            "AnonymousClass/Class"
-          else
-            "#{name}/Class"
-          end
         end
       end
 
