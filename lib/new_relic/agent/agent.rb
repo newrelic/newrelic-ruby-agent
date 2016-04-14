@@ -1033,7 +1033,7 @@ module NewRelic
         #    drop any stored data and reset to a clean state.
         #
         #  #merge!(payload)
-        #    merge the given pyalod back into the internal buffer of the
+        #    merge the given payload back into the internal buffer of the
         #    container, so that it may be harvested again later.
         #
         def harvest_and_send_from_container(container, endpoint)
