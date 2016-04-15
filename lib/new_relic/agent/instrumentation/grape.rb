@@ -29,12 +29,12 @@ module NewRelic
         end
 
         def name_for_transaction(route, class_name)
-          action_name = route.route_path.sub(FORMAT_REGEX, EMPTY_STRING)
-          method_name = route.route_method
+          action_name = route.path.sub(FORMAT_REGEX, EMPTY_STRING)
+          method_name = route.request_method
 
-          if route.route_version
+          if route.version
             action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
-            "#{class_name}-#{route.route_version}#{action_name} (#{method_name})"
+            "#{class_name}-#{route.version}#{action_name} (#{method_name})"
           else
             "#{class_name}#{action_name} (#{method_name})"
           end
