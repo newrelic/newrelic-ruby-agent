@@ -57,7 +57,7 @@ class NewRelic::MetricSpecTest < Minitest::Test
 
       compare_stat(stats, import)
 
-      metric_data = NewRelic::MetricData.new(spec, stats, 10)
+      metric_data = NewRelic::MetricData.new(spec, stats)
 
       import = ::ActiveSupport::JSON.decode(metric_data.to_json)
 
@@ -137,9 +137,8 @@ class NewRelic::MetricSpecTest < Minitest::Test
   end
 
   def compare_metric_data(metric_data, import)
-    assert_equal 3, import.length
-    assert_equal metric_data.metric_id, import['metric_id']
-    compare_spec(metric_data.metric_spec, import['metric_spec']) unless metric_data.metric_id
+    assert_equal 2, import.length
+    compare_spec(metric_data.metric_spec, import['metric_spec'])
     compare_stat(metric_data.stats, import['stats'])
   end
 end

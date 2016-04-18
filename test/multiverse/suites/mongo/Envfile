@@ -1,5 +1,8 @@
 if RUBY_VERSION >= '1.9.3'
   gemfile <<-RB
+    gem 'mongo', '~>2.2.0'
+  RB
+  gemfile <<-RB
     gem 'mongo', '~>2.1.0'
   RB
   gemfile <<-RB

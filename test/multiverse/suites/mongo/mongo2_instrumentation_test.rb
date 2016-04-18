@@ -270,12 +270,13 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               :collection => @collection_name,
               'insert' => @collection_name,
               :operation  => :insert,
-              'writeConcern' => { :w => 1 },
               'ordered' => true
             }
 
             result = node.params[:statement]
-
+            # the writeConcern is added by some, but not all versions of the mongo driver,
+            # we don't care if it's present or not, just that the statement is noticed
+            result.delete('writeConcern')
             assert_equal expected, result
           end
 
