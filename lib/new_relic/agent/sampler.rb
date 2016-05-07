@@ -24,7 +24,7 @@ module NewRelic
       end
 
       def self.name
-        @name
+        @name ||= nil
       end
 
       def self.inherited(subclass)
@@ -37,7 +37,7 @@ module NewRelic
       end
 
       def self.enabled?
-        if @name
+        if self.name
           config_key = "disable_#{@name}_sampler"
           !(Agent.config[config_key])
         else

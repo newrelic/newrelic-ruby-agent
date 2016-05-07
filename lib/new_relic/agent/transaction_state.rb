@@ -38,6 +38,7 @@ module NewRelic
         @traced_method_stack = TracedMethodStack.new
         @current_transaction = nil
         @record_tt = nil
+        @record_sql = nil
       end
 
       # This starts the timer for the transaction.

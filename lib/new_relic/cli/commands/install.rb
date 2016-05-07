@@ -23,7 +23,7 @@ class NewRelic::Cli::Install < NewRelic::Cli::Command
   attr_reader :dest_dir, :license_key, :generated_for_user, :quiet, :src_file, :app_name
   def initialize command_line_args={}
     super command_line_args
-    if !@dest_dir
+    if !(@dest_dir ||= nil)
       # Install a newrelic.yml file into the local config directory.
       if File.directory? "config"
         @dest_dir = "config"

@@ -33,6 +33,8 @@ module NewRelic
             @sampler = ShellPS.new("ps -o rss")
           elsif platform =~ /solaris/
             @sampler = ShellPS.new("/usr/bin/ps -o rss -p")
+          else
+            @sampler = nil
           end
 
           raise Unsupported, "Unsupported platform for getting memory: #{platform}" if @sampler.nil?
