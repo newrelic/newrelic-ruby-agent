@@ -12,6 +12,7 @@ module NewRelic
     attr_accessor :stats
 
     def initialize(metric_spec, stats)
+      @original_spec = nil
       @metric_spec = metric_spec
       self.stats = stats
     end

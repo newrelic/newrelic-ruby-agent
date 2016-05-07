@@ -33,6 +33,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
     super(command_line_args)
     @description ||= @leftover && @leftover.join(" ")
     @user ||= ENV['USER']
+    @environment ||= nil
     control.env = @environment if @environment
 
     load_yaml_from_env(control.env)
@@ -69,7 +70,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
             :description => @description,
             :user => @user,
             :revision => @revision,
-            :changelog => @changelog
+            :changelog => @changelog ||= nil
       }.each do |k, v|
         create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
       end
@@ -119,7 +120,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
                "currently: #{control.env}") { | e | @environment = e }
       o.on("-u", "--user=USER", String,
              "Specify the user deploying, for information only",
-             "Default: #{@user || '<none>'}") { | u | @user = u }
+             "Default: #{defined?(@user) && @user || '<none>'}") { | u | @user = u }
       o.on("-r", "--revision=REV", String,
              "Specify the revision being deployed") { | r | @revision = r }
       o.on("-l", "--license-key=KEY", String,

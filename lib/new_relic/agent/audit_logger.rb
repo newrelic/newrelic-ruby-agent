@@ -13,6 +13,7 @@ module NewRelic
         @enabled = NewRelic::Agent.config[:'audit_log.enabled']
         @endpoints = NewRelic::Agent.config[:'audit_log.endpoints']
         @encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
+        @log = nil
       end
 
       attr_writer :enabled

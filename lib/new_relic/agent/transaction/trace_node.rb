@@ -19,6 +19,7 @@ module NewRelic
         def initialize(timestamp, metric_name)
           @entry_timestamp = timestamp
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
+          @exit_timestamp  = nil
           @called_nodes    = nil
         end
 
@@ -42,7 +43,7 @@ module NewRelic
           [ NewRelic::Helper.time_to_millis(@entry_timestamp),
             NewRelic::Helper.time_to_millis(@exit_timestamp),
             NewRelic::Coerce.string(@metric_name),
-            (@params || {}) ] +
+            (@params ||= {}) ] +
             [ (@called_nodes ? @called_nodes.map{|s| s.to_array} : []) ]
         end
 

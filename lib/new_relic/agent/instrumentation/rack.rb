@@ -79,7 +79,7 @@ module NewRelic
         end
 
         def self.check_for_late_instrumentation(app)
-          return if @checked_for_late_instrumentation
+          return if @checked_for_late_instrumentation ||= nil
           @checked_for_late_instrumentation = true
           if middleware_instrumentation_enabled?
             if ::NewRelic::Agent::Instrumentation::MiddlewareProxy.needs_wrapping?(app)
