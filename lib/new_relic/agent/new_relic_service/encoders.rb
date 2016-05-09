@@ -4,6 +4,7 @@
 
 require 'base64'
 require 'zlib'
+require 'stringio'
 
 module NewRelic
   module Agent
@@ -16,8 +17,23 @@ module NewRelic
         end
 
         module Compressed
-          def self.encode(data, opts=nil)
-            Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
+          module Deflate
+            def self.encode(data, opts=nil)
+              Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
+            end
+          end
+
+          module Gzip
+            BINARY = "BINARY".freeze
+
+            def self.encode(data, opts=nil)
+              output = StringIO.new
+              output.set_encoding BINARY
+              gz = Zlib::GzipWriter.new(output, Zlib::DEFAULT_COMPRESSION, Zlib::DEFAULT_STRATEGY)
+              gz.write(data)
+              output.rewind
+              output.string
+            end
           end
         end
 
@@ -29,7 +45,7 @@ module NewRelic
               Agent.config[:normalize_json_string_encodings]
             end
             json = ::NewRelic::JSONWrapper.dump(data, :normalize => normalize_encodings)
-            Base64.encode64(Compressed.encode(json))
+            Base64.encode64(Compressed::Deflate.encode(json))
           end
         end
       end
