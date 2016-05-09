@@ -432,7 +432,11 @@ module NewRelic
       #                    contact
       #  - :data => the data to send as the body of the request
       def send_request(opts)
-        request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)
+        if Agent.config[:put_for_data_send]
+          request = Net::HTTP::Put.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)
+        else
+          request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)
+        end
         request['user-agent'] = user_agent
         request.content_type = "application/octet-stream"
         request.body = opts[:data]
@@ -444,7 +448,7 @@ module NewRelic
         begin
           attempts += 1
           conn = http_connection
-          ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]}"
+          ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]} with #{request.method}"
           NewRelic::TimerLib.timeout(@request_timeout) do
             response = conn.request(request)
           end
