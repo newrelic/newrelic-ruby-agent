@@ -1542,6 +1542,30 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, the agent automatically detects that it is running in Docker.'
         },
+        :'utilization.billing_hostname' => {
+          :default     => nil,
+          :allow_nil   => true,
+          :public      => true,
+          :type        => String,
+          :allowed_from_server => false,
+          :description => 'The configured server name by a customer.'
+        },
+        :'utilization.logical_processors' => {
+          :default     => nil,
+          :allow_nil   => true,
+          :public      => true,
+          :type        => Integer,
+          :allowed_from_server => false,
+          :description => 'The total number of hyper-threaded execution contexts available.'
+        },
+        :'utilization.total_ram_mib' => {
+          :default     => nil,
+          :allow_nil   => true,
+          :public      => true,
+          :type        => Integer,
+          :allowed_from_server => false,
+          :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
+        },
         :'disable_utilization' => {
           :default     => false,
           :public      => false,
