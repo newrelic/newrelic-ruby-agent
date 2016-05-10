@@ -9,46 +9,56 @@ namespace :newrelic do
   # notifies New Relic of a deployment
   desc "Record a deployment in New Relic (newrelic.com)"
   task :notice_deployment do
-    run_locally do
-      environment = fetch(:newrelic_rails_env, fetch(:rack_env, fetch(:rails_env, fetch(:stage, "production"))))
-
-      require 'new_relic/cli/command.rb'
-
-      begin
-        # allow overrides to be defined for revision, description, changelog, appname, and user
-        rev         = fetch(:newrelic_revision)
-        description = fetch(:newrelic_desc)
-        changelog   = fetch(:newrelic_changelog)
-        appname     = fetch(:newrelic_appname)
-        user        = fetch(:newrelic_user)
-        license_key = fetch(:newrelic_license_key)
-
-        unless scm == :none
-          changelog ||= lookup_changelog
-          rev       ||= fetch(:current_revision)
-        end
-
-        new_revision = rev
-        deploy_options = {
-          :environment => environment,
-          :revision    => new_revision,
-          :changelog   => changelog,
-          :description => description,
-          :appname     => appname,
-          :user        => user,
-          :license_key => license_key
-        }
-
-        debug "Uploading deployment to New Relic"
-        deployment = NewRelic::Cli::Deployments.new deploy_options
-        deployment.run
-        info "Uploaded deployment information to New Relic"
-
-      rescue NewRelic::Cli::Command::CommandFailure => e
-        info e.message
-      rescue => e
-        info "Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
+    if fetch(:newrelic_role)
+      on roles(fetch(:newrelic_role)) do
+        send_deploymet_notification_to_newrelic
       end
+    else
+      run_locally do
+        send_deploymet_notification_to_newrelic
+      end
+    end
+  end
+
+  def send_deploymet_notification_to_newrelic
+    environment = fetch(:newrelic_rails_env, fetch(:rack_env, fetch(:rails_env, fetch(:stage, "production"))))
+
+    require 'new_relic/cli/command.rb'
+
+    begin
+      # allow overrides to be defined for revision, description, changelog, appname, and user
+      rev         = fetch(:newrelic_revision)
+      description = fetch(:newrelic_desc)
+      changelog   = fetch(:newrelic_changelog)
+      appname     = fetch(:newrelic_appname)
+      user        = fetch(:newrelic_user)
+      license_key = fetch(:newrelic_license_key)
+
+      unless scm == :none
+        changelog ||= lookup_changelog
+        rev       ||= fetch(:current_revision)
+      end
+
+      new_revision = rev
+      deploy_options = {
+        :environment => environment,
+        :revision    => new_revision,
+        :changelog   => changelog,
+        :description => description,
+        :appname     => appname,
+        :user        => user,
+        :license_key => license_key
+      }
+
+      debug "Uploading deployment to New Relic"
+      deployment = NewRelic::Cli::Deployments.new deploy_options
+      deployment.run
+      info "Uploaded deployment information to New Relic"
+
+    rescue NewRelic::Cli::Command::CommandFailure => e
+      info e.message
+    rescue => e
+      info "Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
     end
   end
 
