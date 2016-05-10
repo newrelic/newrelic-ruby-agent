@@ -79,9 +79,19 @@ module NewRelic
 
       def config_hash
         config_hash = {}
-        config_hash[:hostname] = configured_hostname if configured_hostname
-        config_hash[:logical_processors] = configured_logical_processors if configured_logical_processors
-        config_hash[:total_ram_mib] = configured_total_ram_mib if configured_total_ram_mib
+
+        if hostname = configured_hostname
+          config_hash[:hostname] = hostname
+        end
+
+        if logical_processors = configured_logical_processors
+          config_hash[:logical_processors] = logical_processors
+        end
+
+        if total_ram_mib = configured_total_ram_mib
+          config_hash[:total_ram_mib] = total_ram_mib
+        end
+
         config_hash
       end
     end
