@@ -7,7 +7,7 @@
     <div class="sql_statement">
       <small>
         <% if segment[:sql] %>
-          <%= line_wrap_sql(segment[:sql].sql ) %>
+          <%= line_wrap_sql(segment[:sql].respond_to?(:sql) ? segment[:sql].sql : segment[:sql]) %>
         <% else %>
           Non-sql query: <%= segment.metric_name %> <%= line_wrap_sql(segment[:key]) %>
         <% end %></small>

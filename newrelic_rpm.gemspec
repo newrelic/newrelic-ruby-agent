@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 1.8.7'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Tim Krajcar", "Matthew Wear", "Katherine Wu", "Karl Sandwich" ]
+  s.authors = [ "Tim Krajcar", "Matthew Wear", "Katherine Wu", "Karl Sandwich", "Caito Scherr" ]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.licenses    = ['New Relic', 'MIT', 'Ruby']
   s.description = <<-EOS
@@ -27,7 +27,7 @@ EOS
     "CHANGELOG",
     "LICENSE",
     "README.md",
-    "GUIDELINES_FOR_CONTRIBUTING.md",
+    "CONTRIBUTING.md",
     "newrelic.yml"
   ]
 

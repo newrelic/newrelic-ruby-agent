@@ -1,5 +1,96 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.15.2 ##
+
+  * Run explain plans on parameterized slow queries in AR4
+
+  In our ActiveRecord 4 instrumentation, we moved to tracing slow queries
+  using the payloads from ActiveSupport::Notifications `sql.active_record`
+  events. As a result, we were unable to run explain plans on parameterized
+  queries. This has now been updated to pass along and use the parameter values,
+  when available, to get the explain plans.
+
+  * Fix getMore metric grouping issue in Mongo 2.2.x instrumentation
+
+  A metric grouping issue had cropped up when using the most recent Mongo gem
+  (2.2.0) with the most recent release of the server (3.2.4). We now have a more
+  future-proof setup for preventing these.
+
+  * Restore older DataMapper support after password obfuscation fix
+
+  Back in 3.14.3, we released a fix to avoid inadvertently sending sensitive
+  information from DataMapper SQLErrors. Our implementation did not account for
+  DataMapper versions below v0.10.0 not implementing the #options accessor.
+  Thanks Bram de Vries for the fix to our fix!
+
+  * Padrino 0.13.1 Support
+
+  Users with Padrino 0.13.x apps were previously seeing the default transaction
+  name "(unknown)" for all of their routes. We now provide the full Padrino
+  route template in transaction names, including any parameter placeholders.
+  Thanks Robert Schulze for the contribution!
+
+  * Update transaction naming for Grape 0.16.x
+
+  In Grape 0.16.x, `route_` methods are no longer prefixed. Thanks to Daniel
+  Doubrovkine for the contribution!
+
+  * Fix name collision on method created for default metric name fix
+
+  We had a name collision with the yard gem, which sets a `class_name` method
+  on Module. We've renamed our internal method to `derived_class_name` instead.
+
+## v3.15.1 ##
+
+  * Rack 2 alpha support
+
+  This release includes experimental support for Rack 2 as of 2.0.0.alpha.
+  Rack 2 is still in development, but the agent should work as expected for
+  those who are experimenting with Rack 2.
+
+  * Rails 5 beta 3 support
+
+  We've tweaked our Action View instrumentation to accommodate changes introduced
+  in Rails v5.0.0.beta3.
+
+  * Defer referencing ::ActiveRecord::Base to avoid triggering its autoloading
+  too soon
+
+  In 3.12.1 and later versions of the agent, the agent references (and
+  therefore loads) ActiveRecord::Base earlier on in the Rails loading process.
+  This could jump ahead of initializers that should be run first. We now wait
+  until ActiveRecord::Base is loaded elsewhere.
+
+  * Fix explain plans for non-parameterized queries with single quote literals
+
+  The agent does not run explain plans for queries still containing parameters
+  (such as `SELECT * FROM UNICORNS WHERE ID = $1 LIMIT 1`). This check was
+  unfortunately mutating the query to be obfuscated, causing an inability to
+  collect an explain plan. This has now been fixed.
+
+  * Fix default metric name for tracing class methods
+
+  When using `add_method_tracer` on a class method but without passing in a
+  `metric_name_code`, the default metric name will now look like
+  `Custom/ClassName/Class/method_name`. We also addressed default
+  metric names for anonymous classes and modules.
+
+  * Fix issue when rendering SQL strings in developer mode
+
+  When we obfuscate SQL statements, we rewrite the Statement objects as
+  SQL strings inline in our sample buffers at harvest time. However, in
+  developer mode, we also read out of these buffers when rendering pages.
+  Depending on whether a harvest has run yet, the buffer will contain either
+  Statement objects, SQL strings, or a mix. Now, developer mode can handle
+  them all!
+
+  * Fix DelayedJob Sampler reporting incorrect counts in Active Record 3 and below
+
+  When fixing various deprecation warnings on ActiveRecord 4, we introduced
+  a regression in our DelayedJob sampler which caused us to incorrectly report
+  failed and locked job counts in ActiveRecord 3 and below. This is now fixed.
+  Thanks Rangel Dokov for the contribution!
+
 ## v3.15.0 ##
 
   * Rails 5 support

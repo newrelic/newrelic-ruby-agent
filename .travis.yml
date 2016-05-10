@@ -36,6 +36,11 @@ branches:
     - dev
     - release
 
+notifications:
+  webhooks: http://notifitron.herokuapp.com/
+  on_success: always
+  on_failure: always
+
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - jruby-1.7.23
@@ -54,7 +59,7 @@ env:
     - CI_BUNDLE_PATH=/home/travis/bundle
     - BUNDLE_PATH=/home/travis/bundle
     - MONGODB=2.6.11
-    - JAVA_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx512m"
+    - JAVA_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx640m"
     - JRUBY_OPTS="-Xcompile.invokedynamic=false -J-Djruby.compile.mode=OFF"
     - RBXOPT="-Xcompiler.no_rbc -Xint"
     - SERIALIZE=1

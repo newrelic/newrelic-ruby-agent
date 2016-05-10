@@ -44,6 +44,11 @@ module NewRelic
         end
 
         class RenderEvent < Event
+
+          RENDER_TEMPLATE_EVENT_NAME   = 'render_template.action_view'.freeze
+          RENDER_PARTIAL_EVENT_NAME    = 'render_partial.action_view'.freeze
+          RENDER_COLLECTION_EVENT_NAME = 'render_collection.action_view'.freeze
+
           # Nearly every "render_blah.action_view" event has a child
           # in the form of "!render_blah.action_view".  The children
           # are the ones we want to record.  There are a couple
@@ -65,16 +70,18 @@ module NewRelic
             end
 
             # memoize
-            @metric_name ||= "View/#{metric_path(identifier)}/#{metric_action(name)}"
+            @metric_name ||= "View/#{metric_path(name, identifier)}/#{metric_action(name)}"
             @metric_name
           end
 
-          def metric_path(identifier)
-            if identifier == nil
+          def metric_path(name, identifier)
+            # Rails 5 sets identifier to nil for empty collections,
+            # so do not mistake rendering a collection for rendering a file.
+            if identifier == nil && name != RENDER_COLLECTION_EVENT_NAME
               'file'
             elsif identifier =~ /template$/
               identifier
-            elsif (parts = identifier.split('/')).size > 1
+            elsif identifier && (parts = identifier.split('/')).size > 1
               parts[-2..-1].join('/')
             else
               ::NewRelic::Agent::UNKNOWN_METRIC
@@ -83,9 +90,9 @@ module NewRelic
 
           def metric_action(name)
             case name
-            when /render_template.action_view$/  then 'Rendering'
-            when 'render_partial.action_view'    then 'Partial'
-            when 'render_collection.action_view' then 'Partial'
+            when /#{RENDER_TEMPLATE_EVENT_NAME}$/ then 'Rendering'
+            when RENDER_PARTIAL_EVENT_NAME        then 'Partial'
+            when RENDER_COLLECTION_EVENT_NAME     then 'Partial'
             end
           end
         end

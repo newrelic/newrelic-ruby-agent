@@ -40,13 +40,15 @@ module NewRelic
           log_notification_error(e, name, 'finish')
         end
 
-        def get_explain_plan( config, query )
-          connection = NewRelic::Agent::Database.get_connection(config) do
-            ::ActiveRecord::Base.send("#{config[:adapter]}_connection",
-                                      config)
+        def get_explain_plan(statement)
+          connection = NewRelic::Agent::Database.get_connection(statement.config) do
+            ::ActiveRecord::Base.send("#{statement.config[:adapter]}_connection",
+                                      statement.config)
           end
-          if connection && connection.respond_to?(:execute)
-            return connection.execute("EXPLAIN #{query}")
+          if connection && connection.respond_to?(:exec_query)
+            return connection.exec_query("EXPLAIN #{statement.sql}",
+                                         "Explain #{statement.name}",
+                                         statement.binds)
           end
         end
 
@@ -59,12 +61,12 @@ module NewRelic
           NewRelic::Agent.instance.transaction_sampler \
             .notice_sql(event.payload[:sql], config,
                         Helper.milliseconds_to_seconds(event.duration),
-                        state, @explainer)
+                        state, @explainer, event.payload[:binds], event.payload[:name])
 
           NewRelic::Agent.instance.sql_sampler \
             .notice_sql(event.payload[:sql], metric, config,
                         Helper.milliseconds_to_seconds(event.duration),
-                        state, @explainer)
+                        state, @explainer, event.payload[:binds], event.payload[:name])
 
           # exit transaction trace node
           stack.pop_frame(state, frame, metric, event.end)

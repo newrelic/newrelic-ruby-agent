@@ -267,7 +267,6 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:metric_data, dummy_rsp)
     stats_hash = NewRelic::Agent::StatsHash.new
     stats_hash.harvested_at = Time.now
-    @service.expects(:fill_metric_id_cache).with(dummy_rsp)
     response = @service.metric_data(stats_hash)
 
     assert_equal 4, @http_handle.last_request_payload.size
@@ -276,7 +275,6 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_metric_data_sends_harvest_timestamps
     @http_handle.respond_to(:metric_data, 'foo')
-    @service.stubs(:fill_metric_id_cache)
 
     t0 = freeze_time
     stats_hash = NewRelic::Agent::StatsHash.new
@@ -295,36 +293,6 @@ class NewRelicServiceTest < Minitest::Test
     _, last_harvest_timestamp, harvest_timestamp, _ = payload
     assert_in_delta(t1.to_f, harvest_timestamp, 0.0001)
     assert_in_delta(t0.to_f, last_harvest_timestamp, 0.0001)
-  end
-
-  def test_fill_metric_id_cache_from_collect_response
-    response = [[{"scope"=>"Controller/blogs/index", "name"=>"Database/SQL/other"}, 1328],
-                [{"scope"=>"", "name"=>"WebFrontend/QueueTime"}, 10],
-                [{"scope"=>"", "name"=>"ActiveRecord/Blog/find"}, 1017]]
-
-    @service.send(:fill_metric_id_cache, response)
-
-    cache = @service.metric_id_cache
-    assert_equal 1328, cache[NewRelic::MetricSpec.new('Database/SQL/other', 'Controller/blogs/index')]
-    assert_equal 10,   cache[NewRelic::MetricSpec.new('WebFrontend/QueueTime')]
-    assert_equal 1017, cache[NewRelic::MetricSpec.new('ActiveRecord/Blog/find')]
-  end
-
-  def test_caches_metric_ids_for_future_use
-    dummy_rsp = [[{ 'name' => 'a', 'scope' => '' }, 42]]
-    @http_handle.respond_to(:metric_data, dummy_rsp)
-
-    hash = build_stats_hash('a' => 1)
-
-    @service.metric_data(hash)
-
-    hash = build_stats_hash('a' => 1)
-    stats = hash[NewRelic::MetricSpec.new('a')]
-
-    results = @service.build_metric_data_array(hash)
-    assert_nil(results.first.metric_spec)
-    assert_equal(stats, results.first.stats)
-    assert_equal(42, results.first.metric_id)
   end
 
   def test_metric_data_harvest_time_based_on_stats_hash_creation
@@ -427,7 +395,6 @@ class NewRelicServiceTest < Minitest::Test
 
     @service.connect
     @http_handle.respond_to(:metric_data, 0)
-    @service.stubs(:fill_metric_id_cache)
     stats_hash = NewRelic::Agent::StatsHash.new
     stats_hash.harvested_at = Time.now
     @service.metric_data(stats_hash)
@@ -680,25 +647,6 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal(hash[spec2], metric_data_2.stats)
   end
 
-  def test_build_metric_data_array_uses_metric_id_cache_if_possible
-    hash = NewRelic::Agent::StatsHash.new
-
-    spec1 = NewRelic::MetricSpec.new('foo')
-    spec2 = NewRelic::MetricSpec.new('bar')
-    hash.record(spec1, 1)
-    hash.record(spec2, 1)
-
-    @service.stubs(:metric_id_cache).returns({ spec1 => 42 })
-    metric_data_array = @service.build_metric_data_array(hash)
-
-    assert_equal(2, metric_data_array.size)
-
-    metric_data1 = metric_data_array.find { |md| md.metric_id == 42 }
-    metric_data2 = metric_data_array.find { |md| md.metric_spec == spec2 }
-    assert_nil(metric_data1.metric_spec)
-    assert_nil(metric_data2.metric_id)
-  end
-
   def test_build_metric_data_array_omits_empty_stats
     hash = NewRelic::Agent::StatsHash.new
 
@@ -802,12 +750,6 @@ class NewRelicServiceTest < Minitest::Test
       'Supportability/invoke_remote_size',
       'Supportability/invoke_remote_size/foobar'
     ])
-  end
-
-  def test_force_restart_clears_metric_cache
-    @service.metric_id_cache[1] = "boo"
-    @service.force_restart
-    assert_empty @service.metric_id_cache
   end
 
   def test_force_restart_closes_shared_connections

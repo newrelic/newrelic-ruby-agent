@@ -31,7 +31,7 @@ Environments" section under "Getting Started".
 
 We welcome code contributions (in the form of pull requests) from our user
 community.  Before submitting a pull request please review
-[GUIDELINES_FOR_CONTRIBUTING](https://github.com/newrelic/rpm/blob/master/GUIDELINES_FOR_CONTRIBUTING.md).
+[these guidelines](https://github.com/newrelic/rpm/blob/master/CONTRIBUTING.md).
 
 Following these helps us efficiently review and incorporate your contribution
 and avoid breaking your code with future changes to the agent.

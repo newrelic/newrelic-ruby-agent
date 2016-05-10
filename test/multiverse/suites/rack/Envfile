@@ -9,6 +9,23 @@ gemfile <<-RB
 RB
 
 gemfile <<-RB
+  gem 'puma', '~>2.12.3'
+RB
+
+if RUBY_VERSION >= '2.2.2'
+  gemfile <<-RB
+    gem 'puma', '~>2.12.3'
+    gem 'rack', '2.0.0.alpha'
+    gem 'rack-test'
+  RB
+
+  gemfile <<-RB
+    gem 'rack', '2.0.0.alpha'
+    gem 'rack-test'
+  RB
+end
+
+gemfile <<-RB
   gem 'rack', '~>1.6.0'
   gem 'rack-test'
 RB

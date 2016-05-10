@@ -63,37 +63,6 @@ class HarvestTimestampsTest < Minitest::Test
     end
   end
 
-  def test_timestamps_updated_even_if_filling_metric_id_cache_fails
-    t0 = freeze_time.to_f
-
-    simulate_fork
-    NewRelic::Agent.after_fork
-
-    # Induce a failure in filling the metric ID cache by handing back a bogus
-    # response to the first metric_data post.
-    $collector.stub('metric_data', [[[[]]]], 200)
-    t1 = advance_time(10).to_f
-    trigger_metric_data_post
-    first_post = last_metric_data_post
-
-    $collector.reset
-    t2 = advance_time(10).to_f
-    trigger_metric_data_post
-    second_post = last_metric_data_post
-
-    if RUBY_VERSION == '1.8.7'
-      # 1.8 + JSON is finicky about comparing floats.
-      # If the timestamps are within 0.001 seconds, it's Good Enough.
-      assert_in_delta(t0, first_post[1], 0.001)
-      assert_in_delta(t1, first_post[2], 0.001)
-      assert_in_delta(t1, second_post[1], 0.001)
-      assert_in_delta(t2, second_post[2], 0.001)
-    else
-      assert_equal([t0, t1], first_post[1..2])
-      assert_equal([t1, t2], second_post[1..2])
-    end
-  end
-
   def trigger_metric_data_post
     NewRelic::Agent.agent.send(:transmit_data)
   end

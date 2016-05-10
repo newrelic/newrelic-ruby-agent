@@ -232,6 +232,17 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     assert_equal('View/model/_list.html.erb/Partial',
                  partial_nodes[0].metric_name)
   end
+
+  def test_metric_path_identifies_file_render_event
+    render_event = NewRelic::Agent::Instrumentation::ActionViewSubscriber::RenderEvent.new('foo', 0, 0, 'bar', {} )
+    assert_equal('file', render_event.metric_path('baz', nil) )
+  end
+
+  def test_metric_path_cannot_identify_empty_collection_render_event
+    render_event = NewRelic::Agent::Instrumentation::ActionViewSubscriber::RenderEvent.new('foo', 0, 0, 'bar', {} )
+    assert_equal('(unknown)', render_event.metric_path('render_collection.action_view', nil) )
+  end
+
 end if ::Rails::VERSION::MAJOR.to_i >= 4
 
 else

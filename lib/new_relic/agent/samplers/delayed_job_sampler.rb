@@ -51,7 +51,7 @@ module NewRelic
 
         def count(query)
           if ::ActiveRecord::VERSION::MAJOR.to_i < 4
-            ::Delayed::Job.count(query)
+            ::Delayed::Job.count(:conditions => query)
           else
             ::Delayed::Job.where(query).count
           end

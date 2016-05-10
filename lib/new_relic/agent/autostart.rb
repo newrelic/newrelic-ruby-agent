@@ -8,12 +8,12 @@ module NewRelic
     # monitoring.
     #
     # If the agent is in a monitored environment (e.g. production) it will
-    # attempt to avoid starting at "inapproriate" times, for example in an IRB
+    # attempt to avoid starting at "inappropriate" times, for example in an IRB
     # session.  On Heroku, logs typically go to STDOUT so agent logs can spam
     # the console during interactive sessions.
     #
     # It should be possible to override Autostart logic with an explicit
-    # configuration, for example the NEWRELIC_AGENT_ENABLED environment variable or
+    # configuration, for example the NEW_RELIC_AGENT_ENABLED environment variable or
     # agent_enabled key in newrelic.yml
     module Autostart
       extend self

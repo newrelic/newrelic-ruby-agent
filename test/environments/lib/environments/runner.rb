@@ -97,7 +97,7 @@ module Environments
       bundling = `cd #{dir} && bundle install --local`
       unless $?.success?
         puts "Failed local bundle, trying again with full bundle..."
-        bundling = `cd #{dir} && bundle install`
+        bundling = `cd #{dir} && bundle install --retry 3`
       end
 
       bundling = red(bundling) unless $?.success?

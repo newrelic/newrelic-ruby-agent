@@ -54,9 +54,12 @@ class DeveloperModeTest < Minitest::Test
   def test_explain_sql_displays_query_plan
     sample = @sampler.dev_mode_sample_buffer.samples[0]
     sql_segment = app.send(:sql_segments, sample)[0]
-    explain_results = NewRelic::Agent::Database.process_resultset(dummy_mysql_explain_result, 'mysql')
-
+    explain_results = [["Id", "Select Type", "Table", "Type", "Possible Keys", "Key", "Key Length",
+                        "Ref", "Rows", "Extra"],
+                       [["1", "SIMPLE", "sandwiches", "range", "PRIMARY", "PRIMARY", "4", "", "1",
+                         "Using index"]]]
     NewRelic::Agent::Transaction::TraceNode.any_instance.expects(:explain_sql).returns(explain_results)
+
     get "/newrelic/explain_sql?id=#{sample.sample_id}&segment=#{sql_segment.object_id}"
 
     assert last_response.ok?
