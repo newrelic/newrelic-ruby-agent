@@ -515,6 +515,20 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Maximum number of bytes to send to the New Relic data collection service.'
         },
+        :put_for_data_send => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'Use HTTP PUT requests instead of POST.'
+        },
+        :compressed_content_encoding => {
+          :default => 'deflate',
+          :public => false,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'Encoding to use if data needs to be compressed. The options are deflate and gzip.'
+        },
         :timeout => {
           :default => 2 * 60, # 2 minutes
           :public => true,
