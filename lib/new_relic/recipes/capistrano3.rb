@@ -11,16 +11,16 @@ namespace :newrelic do
   task :notice_deployment do
     if fetch(:newrelic_role)
       on roles(fetch(:newrelic_role)) do
-        notice_deploymet
+        send_deploymet_notification_to_newrelic
       end
     else
       run_locally do
-        notice_deploymet
+        send_deploymet_notification_to_newrelic
       end
     end
   end
 
-  def notice_deploymet
+  def send_deploymet_notification_to_newrelic
     environment = fetch(:newrelic_rails_env, fetch(:rack_env, fetch(:rails_env, fetch(:stage, "production"))))
 
     require 'new_relic/cli/command.rb'
