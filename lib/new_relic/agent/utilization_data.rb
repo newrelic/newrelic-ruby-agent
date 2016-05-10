@@ -26,6 +26,18 @@ module NewRelic
         ::NewRelic::Agent::SystemInfo.ram_in_mib
       end
 
+      def configured_hostname
+        Agent.config[:'utilization.billing_hostname']
+      end
+
+      def configured_logical_processors
+        Agent.config[:'utilization.logical_processors']
+      end
+
+      def configured_total_ram_mib
+        Agent.config[:'utilization.total_ram_mib']
+      end
+
       def to_collector_hash
         result = {
           :metadata_version => METADATA_VERSION,
@@ -67,25 +79,10 @@ module NewRelic
 
       def config_hash
         config_hash = {}
-        if valid_type?(:'utilization.billing_hostname')
-          config_hash[:hostname] = Agent.config[:'utilization.billing_hostname']
-        end
-        if valid_type?(:'utilization.logical_processors')
-          config_hash[:logical_processors] = Agent.config[:'utilization.logical_processors']
-        end
-        if valid_type?(:'utilization.total_ram_mib')
-          config_hash[:total_ram_mib] = Agent.config[:'utilization.total_ram_mib']
-        end
+        config_hash[:hostname] = configured_hostname if configured_hostname
+        config_hash[:logical_processors] = configured_logical_processors if configured_logical_processors
+        config_hash[:total_ram_mib] = configured_total_ram_mib if configured_total_ram_mib
         config_hash
-      end
-
-      def valid_type?(key)
-        if Agent.config[key].is_a?(Configuration::DEFAULTS[key][:type])
-          return true
-        elsif Agent.config[key]
-          NewRelic::Agent.logger.warn "Configured #{key} should be a #{Configuration::DEFAULTS[key][:type]} but is a #{Agent.config[key].class} instead."
-        end
-        false
       end
     end
   end

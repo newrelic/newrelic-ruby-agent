@@ -154,13 +154,6 @@ module NewRelic::Agent
       end
     end
 
-    def test_configured_hostname_not_added_to_config_hash_if_wrong_type
-      with_config(:'utilization.billing_hostname' => 1) do
-        utilization_data = UtilizationData.new
-        assert_nil utilization_data.to_collector_hash[:config]
-      end
-    end
-
     def test_configured_logical_processors_added_to_config_hash
       with_config(:'utilization.logical_processors' => 42) do
         utilization_data = UtilizationData.new
@@ -168,24 +161,10 @@ module NewRelic::Agent
       end
     end
 
-    def test_configured_logical_processors_not_added_to_config_hash_if_wrong_type
-      with_config(:'utilization.logical_processors' => '42') do
-        utilization_data = UtilizationData.new
-        assert_nil utilization_data.to_collector_hash[:config]
-      end
-    end
-
     def test_configured_total_ram_mib_added_to_config_hash
       with_config(:'utilization.total_ram_mib' => 42) do
         utilization_data = UtilizationData.new
         assert_equal 42, utilization_data.to_collector_hash[:config][:total_ram_mib]
-      end
-    end
-
-    def test_configured_total_ram_mib_not_added_to_config_hash_if_wrong_type
-      with_config(:'utilization.total_ram_mib' => '42') do
-        utilization_data = UtilizationData.new
-        assert_nil utilization_data.to_collector_hash[:config]
       end
     end
 

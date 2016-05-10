@@ -1554,7 +1554,7 @@ module NewRelic
           :default     => nil,
           :allow_nil   => true,
           :public      => true,
-          :type        => Integer,
+          :type        => Fixnum,
           :allowed_from_server => false,
           :description => 'The total number of hyper-threaded execution contexts available.'
         },
@@ -1562,7 +1562,7 @@ module NewRelic
           :default     => nil,
           :allow_nil   => true,
           :public      => true,
-          :type        => Integer,
+          :type        => Fixnum,
           :allowed_from_server => false,
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
         },
