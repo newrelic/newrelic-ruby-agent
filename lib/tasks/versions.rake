@@ -53,7 +53,7 @@ namespace :newrelic do
     write_versions("Ruby versions",   :ruby, erb)
     write_versions("Web servers",     :app_server, erb)
     write_versions("Web frameworks",  :web, erb)
-    write_versions("Database",        :database, erb)
+    write_versions("Databases",       :database, erb)
     write_versions("Background jobs", :background, erb)
     write_versions("HTTP clients",    :http, erb)
     write_versions("Other",           :other, erb)
