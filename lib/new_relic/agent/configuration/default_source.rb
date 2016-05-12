@@ -1545,7 +1545,7 @@ module NewRelic
         :'utilization.billing_hostname' => {
           :default     => nil,
           :allow_nil   => true,
-          :public      => true,
+          :public      => false,
           :type        => String,
           :allowed_from_server => false,
           :description => 'The configured server name by a customer.'
@@ -1553,7 +1553,7 @@ module NewRelic
         :'utilization.logical_processors' => {
           :default     => nil,
           :allow_nil   => true,
-          :public      => true,
+          :public      => false,
           :type        => Fixnum,
           :allowed_from_server => false,
           :description => 'The total number of hyper-threaded execution contexts available.'
@@ -1561,7 +1561,7 @@ module NewRelic
         :'utilization.total_ram_mib' => {
           :default     => nil,
           :allow_nil   => true,
-          :public      => true,
+          :public      => false,
           :type        => Fixnum,
           :allowed_from_server => false,
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
