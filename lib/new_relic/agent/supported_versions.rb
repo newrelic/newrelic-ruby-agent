@@ -11,7 +11,7 @@ module NewRelic
       {
         :type        => :ruby,
         :name        => "MRI",
-        :supported   => ["1.8.7", "1.9.2", "1.9.3", "2.0.0", "~> 2.1.0", "~> 2.2.0" ],
+        :supported   => ["1.8.7", "1.9.2", "1.9.3", "2.0.0", "~> 2.1.0", "~> 2.2.0", "~> 2.3.0"],
         :url         => "https://www.ruby-lang.org",
         :feed        => "https://www.ruby-lang.org/en/feeds/news.rss",
         :notes       => [
