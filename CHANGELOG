@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.15.3
+
+  * Make it possible to define a newrelic_role for deployment with Capistrano 3
+
+  Thanks NielsKSchjoedt for the contribution!
+
 ## v3.15.2 ##
 
   * Run explain plans on parameterized slow queries in AR4
