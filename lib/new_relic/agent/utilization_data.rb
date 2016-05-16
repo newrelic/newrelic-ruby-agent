@@ -26,6 +26,18 @@ module NewRelic
         ::NewRelic::Agent::SystemInfo.ram_in_mib
       end
 
+      def configured_hostname
+        Agent.config[:'utilization.billing_hostname']
+      end
+
+      def configured_logical_processors
+        Agent.config[:'utilization.logical_processors']
+      end
+
+      def configured_total_ram_mib
+        Agent.config[:'utilization.total_ram_mib']
+      end
+
       def to_collector_hash
         result = {
           :metadata_version => METADATA_VERSION,
@@ -36,6 +48,7 @@ module NewRelic
 
         append_aws_info(result)
         append_docker_info(result)
+        append_configured_values(result)
 
         result
       end
@@ -58,6 +71,28 @@ module NewRelic
           collector_hash[:vendors] ||= {}
           collector_hash[:vendors][:docker] = {:id => docker_container_id}
         end
+      end
+
+      def append_configured_values(collector_hash)
+        collector_hash[:config] = config_hash unless config_hash.empty?
+      end
+
+      def config_hash
+        config_hash = {}
+
+        if hostname = configured_hostname
+          config_hash[:hostname] = hostname
+        end
+
+        if logical_processors = configured_logical_processors
+          config_hash[:logical_processors] = logical_processors
+        end
+
+        if total_ram_mib = configured_total_ram_mib
+          config_hash[:total_ram_mib] = total_ram_mib
+        end
+
+        config_hash
       end
     end
   end

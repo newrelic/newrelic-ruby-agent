@@ -147,6 +147,27 @@ module NewRelic::Agent
       assert_equal UtilizationData::METADATA_VERSION, utilization_data.to_collector_hash[:metadata_version]
     end
 
+    def test_configured_hostname_added_to_config_hash
+      with_config(:'utilization.billing_hostname' => 'BillNye') do
+        utilization_data = UtilizationData.new
+        assert_equal 'BillNye', utilization_data.to_collector_hash[:config][:hostname]
+      end
+    end
+
+    def test_configured_logical_processors_added_to_config_hash
+      with_config(:'utilization.logical_processors' => 42) do
+        utilization_data = UtilizationData.new
+        assert_equal 42, utilization_data.to_collector_hash[:config][:logical_processors]
+      end
+    end
+
+    def test_configured_total_ram_mib_added_to_config_hash
+      with_config(:'utilization.total_ram_mib' => 42) do
+        utilization_data = UtilizationData.new
+        assert_equal 42, utilization_data.to_collector_hash[:config][:total_ram_mib]
+      end
+    end
+
     def stub_aws_info(responses = {})
       AWSInfo.any_instance.stubs(:remote_fetch).with("instance-id").returns(responses[:instance_id])
       AWSInfo.any_instance.stubs(:remote_fetch).with("instance-type").returns(responses[:instance_type])
