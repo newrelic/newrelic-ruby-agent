@@ -529,6 +529,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Encoding to use if data needs to be compressed. The options are deflate and gzip.'
         },
+        :simple_encoding => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'When enabled the agent will compress payloads destined for the collector, but will not pre-compress parts of the payload.'
+        },
         :timeout => {
           :default => 2 * 60, # 2 minutes
           :public => true,
