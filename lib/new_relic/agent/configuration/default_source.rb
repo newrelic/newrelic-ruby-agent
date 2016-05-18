@@ -519,14 +519,14 @@ module NewRelic
           :default => false,
           :public => false,
           :type => Boolean,
-          :allowed_from_server => true,
+          :allowed_from_server => false,
           :description => 'Use HTTP PUT requests instead of POST.'
         },
         :compressed_content_encoding => {
           :default => 'deflate',
           :public => false,
           :type => String,
-          :allowed_from_server => true,
+          :allowed_from_server => false,
           :description => 'Encoding to use if data needs to be compressed. The options are deflate and gzip.'
         },
         :simple_encoding => {
