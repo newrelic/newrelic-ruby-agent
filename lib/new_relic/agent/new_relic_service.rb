@@ -163,7 +163,7 @@ module NewRelic
       # to a risk of segfaults if we compress aggressively.
       def compress_request_if_needed(data)
         encoding = 'identity'
-        if data.size > 64 * 1024 || Agent.config[:simple_compression]
+        if data.size > 64 * 1024
           encoding = Agent.config[:compressed_content_encoding]
           data = if encoding == 'gzip'
             Encoders::Compressed::Gzip.encode(data)

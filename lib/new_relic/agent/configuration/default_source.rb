@@ -529,7 +529,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Encoding to use if data needs to be compressed. The options are deflate and gzip.'
         },
-        :simple_encoding => {
+        :simple_compression => {
           :default => false,
           :public => false,
           :type => Boolean,
