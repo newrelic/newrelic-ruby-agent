@@ -214,6 +214,27 @@ class AgentAttributesTest < Minitest::Test
     assert_browser_monitoring_has_agent_attribute("request.parameters.bar", "baz")
   end
 
+  def test_request_uri_captured_on_transaction_events_when_enabled
+    config = {:'transaction_events.attributes.include' => 'request_uri'}
+    txn_options = {
+      :request => stub(:path => "/foobar")
+    }
+    run_transaction(config, txn_options)
+
+    assert_event_has_agent_attribute("request_uri", "/foobar")
+  end
+
+  def test_request_uri_excluded_by_default
+    config = {:'transaction_events.attributes.include' => ''}
+    txn_options = {
+      :request => stub(:path => "/foobar")
+    }
+    run_transaction(config, txn_options)
+
+    refute_event_has_agent_attribute("request_uri")
+    refute_transaction_trace_has_agent_attribute("request_uri")
+  end
+
   def test_http_response_code_excluded_in_txn_events_when_disabled
     with_config(:'transaction_events.attributes.exclude' => 'httpResponseCode') do
       in_web_transaction do |txn|
