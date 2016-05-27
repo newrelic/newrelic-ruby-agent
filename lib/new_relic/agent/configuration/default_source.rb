@@ -1586,13 +1586,6 @@ module NewRelic
           :type        => Fixnum,
           :allowed_from_server => false,
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
-        },
-        :'disable_utilization' => {
-          :default     => false,
-          :public      => false,
-          :type        => Boolean,
-          :allowed_from_server => false,
-          :description => 'Disable sending utilization data as part of connect settings hash.'
         }
       }.freeze
     end

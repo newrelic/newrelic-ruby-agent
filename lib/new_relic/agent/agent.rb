@@ -818,24 +818,19 @@ module NewRelic
           def connect_settings
             sanitize_environment_report
 
-            settings = {
-              :pid => $$,
-              :host => local_host,
-              :display_host => Agent.config[:'process_host.display_name'],
-              :app_name => Agent.config.app_names,
-              :language => 'ruby',
-              :labels => Agent.config.parsed_labels,
+            {
+              :pid           => $$,
+              :host          => local_host,
+              :display_host  => Agent.config[:'process_host.display_name'],
+              :app_name      => Agent.config.app_names,
+              :language      => 'ruby',
+              :labels        => Agent.config.parsed_labels,
               :agent_version => NewRelic::VERSION::STRING,
-              :environment => @environment_report,
-              :settings => Agent.config.to_collector_hash,
-              :high_security => Agent.config[:high_security]
+              :environment   => @environment_report,
+              :settings      => Agent.config.to_collector_hash,
+              :high_security => Agent.config[:high_security],
+              :utilization   => UtilizationData.new.to_collector_hash
             }
-
-            unless Agent.config[:disable_utilization]
-              settings[:utilization] = UtilizationData.new.to_collector_hash
-            end
-
-            settings
           end
 
           # Returns connect data passed back from the server

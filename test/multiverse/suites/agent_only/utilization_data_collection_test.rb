@@ -63,13 +63,6 @@ class UtilizationDataCollectionTest < Minitest::Test
     assert_equal expected, single_connect_posted.utilization
   end
 
-  def test_utilization_data_not_sent_when_disabled
-    with_config :disable_utilization => true do
-      setup_agent
-      assert_nil single_connect_posted.utilization, "Expected utilization data to be nil"
-    end
-  end
-
   def with_fake_metadata_service
     metadata_service = NewRelic::FakeInstanceMetadataService.new
     metadata_service.run

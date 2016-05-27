@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes #
 
-## v3.15.3
+## v3.16.0
 
   * Make it possible to define a newrelic_role for deployment with Capistrano 3
 
