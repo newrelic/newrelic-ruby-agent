@@ -7,6 +7,11 @@
   The Ruby agent now instruments Action Cable channel actions and calls to
   ActionCable::Channel#Transmit in Rails 5.
 
+  * Obfuscate queries from `oracle_enhanced` adapter correctly
+
+  This change allows the `oracle_enhanced` adapter to use the same
+  obfuscation as `oracle` adapters. Thanks Dan Drinkard for the contribution!
+
   * Make it possible to define a newrelic_role for deployment with Capistrano 3
 
   Thanks NielsKSchjoedt for the contribution!
