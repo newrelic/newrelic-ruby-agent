@@ -311,7 +311,6 @@ module NewRelic
       def test_connect_does_not_retry_if_keep_retrying_false
         @agent.service.expects(:connect).once.raises(Timeout::Error)
         @agent.send(:connect, :keep_retrying => false)
-        assert(@agent.disconnected?)
       end
 
       def test_connect_does_not_retry_on_license_error

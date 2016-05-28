@@ -730,8 +730,8 @@ module NewRelic
           # number of attempts we've made to contact the server
           attr_accessor :connect_attempts
 
-          # Disconnect just sets connected to false, which prevents
-          # the agent from trying to connect again
+          # Disconnect just sets the connect state to disconnected, preventing
+          # further retries.
           def disconnect
             @connect_state = :disconnected
             true
@@ -947,22 +947,24 @@ module NewRelic
 
         public :merge_data_for_endpoint
 
-        # Connect to the server and validate the license.  If successful,
-        # connected? returns true when finished.  If not successful, you can
-        # keep calling this.  Return false if we could not establish a
-        # connection with the server and we should not retry, such as if
-        # there's a bad license key.
+        # Establish a connection to New Relic servers.
         #
-        # Set keep_retrying=false to disable retrying and return asap, such as when
-        # invoked in the foreground.  Otherwise this runs until a successful
-        # connection is made, or the server rejects us.
+        # By default, if a connection has already been established, this method
+        # will be a no-op.
         #
-        # * <tt>:keep_retrying => false</tt> to only try to connect once, and
-        #   return with the connection set to nil.  This ensures we may try again
-        #   later (default true).
-        # * <tt>force_reconnect => true</tt> if you want to establish a new connection
-        #   to the server before running the worker loop.  This means you get a separate
-        #   agent run and New Relic sees it as a separate instance (default is false).
+        # @param [Hash] options
+        # @option options [Boolean] :keep_retrying (true)
+        #   If true, this method will block until a connection is successfully
+        #   established, continuing to retry upon failure. If false, this method
+        #   will return after either successfully connecting, or after failing
+        #   once.
+        #
+        # @option options [Boolean] :force_reconnect (false)
+        #   If true, this method will force establishment of a new connection
+        #   with New Relic, even if there is already an existing connection.
+        #   This is useful primarily when re-establishing a new conneciton after
+        #   forking off from a parent process.
+        #
         def connect(options={})
           defaults = {
             :keep_retrying => Agent.config[:keep_retrying],
@@ -990,8 +992,6 @@ module NewRelic
             ::NewRelic::Agent.logger.info "Will re-attempt in #{connect_retry_period} seconds"
             sleep connect_retry_period
             retry
-          else
-            disconnect
           end
         rescue Exception => e
           ::NewRelic::Agent.logger.error "Exception of unexpected type during Agent#connect():", e

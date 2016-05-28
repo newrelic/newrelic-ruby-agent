@@ -286,9 +286,6 @@ module NewRelic
     #
     def manual_start(options={})
       raise "Options must be a hash" unless Hash === options
-      if options[:start_channel_listener]
-        NewRelic::Agent::PipeChannelManager.listener.start
-      end
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
     end
 

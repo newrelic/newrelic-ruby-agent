@@ -6,6 +6,13 @@
 
   Thanks NielsKSchjoedt for the contribution!
 
+  * Retry initial connection to New Relic in Resque master if needed
+
+  Previously, if the initial connection to New Relic in a monitored Resque
+  master process failed, the agent would not retry, and monitoring for the
+  process would be lost. This has been fixed, and the agent will continue
+  retrying in its background harvest thread until it successfully connects.
+
 ## v3.15.2 ##
 
   * Run explain plans on parameterized slow queries in AR4
