@@ -205,7 +205,6 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     cls.new.instance_method
-    # require 'pry'; binding.pry
     stats = @stats_engine.get_stats("Custom/AnonymousClass/instance_method")
     assert stats.call_count == 1
   end
