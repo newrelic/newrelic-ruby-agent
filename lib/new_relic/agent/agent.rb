@@ -962,7 +962,7 @@ module NewRelic
         # @option options [Boolean] :force_reconnect (false)
         #   If true, this method will force establishment of a new connection
         #   with New Relic, even if there is already an existing connection.
-        #   This is useful primarily when re-establishing a new conneciton after
+        #   This is useful primarily when re-establishing a new connection after
         #   forking off from a parent process.
         #
         def connect(options={})
