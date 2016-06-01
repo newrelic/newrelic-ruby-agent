@@ -7,12 +7,6 @@ class TestClass
     trace_execution_scoped(['a', 'b']) do
     end
   end
-
-  def method_2
-    callback = Proc.new { ['c', 'd'] }
-    trace_execution_scoped(['a', 'b'], { :additional_metrics_callback => callback }) do
-    end
-  end
 end
 
 class TraceExecutionScopedTests < Performance::TestCase
@@ -24,9 +18,5 @@ class TraceExecutionScopedTests < Performance::TestCase
 
   def test_without_callback
     measure { @test_class.method_1 }
-  end
-
-  def test_with_callback
-    measure { @test_class.method_2 }
   end
 end

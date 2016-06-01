@@ -128,21 +128,6 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_metrics_recorded_exclusive([])
   end
 
-  def test_trace_execution_scoped_records_metric_data_from_callback
-    metric = "hello"
-    callback_metric = "goodbye"
-    callback = Proc.new { callback_metric }
-    options = { :additional_metrics_callback => callback }
-
-    self.class.trace_execution_scoped(metric, options) do
-      advance_time 0.05
-    end
-
-    stats = @stats_engine.get_stats(callback_metric)
-    check_time 0.05, stats.total_call_time
-    assert_equal 1, stats.call_count
-  end
-
   def test_trace_execution_scoped_pushes_transaction_scope
     self.class.trace_execution_scoped('yeap') do
       'ptoo'
