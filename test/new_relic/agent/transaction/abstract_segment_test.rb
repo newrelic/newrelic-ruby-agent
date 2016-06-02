@@ -22,6 +22,10 @@ module NewRelic
           freeze_time
         end
 
+        def teardown
+          NewRelic::Agent.drop_buffered_data
+        end
+
         def test_segment_is_nameable
           segment = BasicSegment.new  "Custom/basic/segment"
           assert_equal "Custom/basic/segment", segment.name
@@ -62,6 +66,19 @@ module NewRelic
 
           #local metrics will be merged into global store at the end of the transction
           assert_metrics_recorded ["Custom/basic/segment", "Basic/all"]
+        end
+
+        # this preserves a strange case that is currently present in the agent where for some
+        # segments we would like to create a TT node for the segment, but not record
+        # metrics
+        def test_segments_will_not_record_metrics_when_turned_off
+          segment = BasicSegment.new "Custom/basic/segment"
+          segment.record_metrics = false
+          segment.start
+          advance_time 1.0
+          segment.finish
+
+          refute_metrics_recorded ["Custom/basic/segment", "Basic/all"]
         end
       end
     end

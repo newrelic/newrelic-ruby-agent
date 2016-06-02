@@ -24,7 +24,15 @@ module NewRelic
           @end_time = Time.now
           @duration = @end_time.to_f - @start_time.to_f
           @exclusive_duration = @duration - children_time
-          record_metrics
+          record_metrics if record_metrics?
+        end
+
+        def record_metrics?
+          @record_metrics
+        end
+
+        def record_metrics= value
+          @record_metrics = value
         end
 
         def record_metrics
