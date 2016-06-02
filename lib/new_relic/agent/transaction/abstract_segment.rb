@@ -24,6 +24,21 @@ module NewRelic
           @end_time = Time.now
           @duration = @end_time.to_f - @start_time.to_f
           @exclusive_duration = @duration - children_time
+          record_metrics
+        end
+
+        def record_metrics
+          raise NotImplementedError, "Subclasses must implement record_metrics"
+        end
+
+        private
+
+        def metric_cache
+          if @transaction
+            @transaction.metrics
+          else
+            NewRelic::Agent.instance.stats_engine
+          end
         end
       end
     end

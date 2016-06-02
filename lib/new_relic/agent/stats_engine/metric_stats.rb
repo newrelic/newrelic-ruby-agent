@@ -66,6 +66,15 @@ module NewRelic
           end
         end
 
+        # This aliasing was introduced for T2 so that MetricsStats and
+        # TransactionStates have the same interface for recording
+        # unscoped metrics. The tl_ version should be used outside of the
+        # segment api.
+        #
+        # @api private
+        #
+        alias_method :record_unscoped, :tl_record_unscoped_metrics
+
         # Like tl_record_unscoped_metrics, but records a scoped metric as well.
         #
         # This is an internal method, subject to change at any time. Client apps
@@ -107,6 +116,15 @@ module NewRelic
             end
           end
         end
+
+        # This aliasing was introduced for T2 so that MetricsStats and
+        # TransactionStates have the same interface for recording
+        # scoped metrics. The tl_ version should be used outside of the
+        # segment api.
+        #
+        # @api private
+        #
+        alias_method :record_scoped_and_unscoped, :tl_record_scoped_and_unscoped_metrics
 
         # This method is deprecated and not thread safe, and should not be used
         # by any new client code.

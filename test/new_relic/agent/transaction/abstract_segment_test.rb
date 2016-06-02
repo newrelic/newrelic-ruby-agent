@@ -12,6 +12,10 @@ module NewRelic
     class Transaction
       class AbstractSegmentTest < Minitest::Test
         class BasicSegment < AbstractSegment
+          def record_metrics
+            metric_cache.record_scoped_and_unscoped name, duration, exclusive_duration
+            metric_cache.record_unscoped "Basic/all", duration, exclusive_duration
+          end
         end
 
         def setup
@@ -34,6 +38,17 @@ module NewRelic
           assert_equal Time.now, segment.end_time
           assert_equal 1.0, segment.duration
           assert_equal 1.0, segment.exclusive_duration
+        end
+
+        def test_segment_records_metrics
+          segment = BasicSegment.new "Custom/basic/segment"
+          segment.start
+          assert_equal Time.now, segment.start_time
+
+          advance_time 1.0
+          segment.finish
+
+          assert_metrics_recorded ["Custom/basic/segment", "Basic/all"]
         end
       end
     end
