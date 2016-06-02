@@ -43,11 +43,24 @@ module NewRelic
         def test_segment_records_metrics
           segment = BasicSegment.new "Custom/basic/segment"
           segment.start
-          assert_equal Time.now, segment.start_time
-
           advance_time 1.0
           segment.finish
 
+          assert_metrics_recorded ["Custom/basic/segment", "Basic/all"]
+        end
+
+        def test_segment_records_metrics_in_local_cache_if_part_of_transaction
+          segment = BasicSegment.new "Custom/basic/segment"
+          txn = in_transaction "test_transaction" do
+            segment.transaction = txn
+            segment.start
+            advance_time 1.0
+            segment.finish
+
+            refute_metrics_recorded ["Custom/basic/segment", "Basic/all"]
+          end
+
+          #local metrics will be merged into global store at the end of the transction
           assert_metrics_recorded ["Custom/basic/segment", "Basic/all"]
         end
       end
