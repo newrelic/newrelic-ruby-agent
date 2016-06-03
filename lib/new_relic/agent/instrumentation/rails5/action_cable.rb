@@ -18,11 +18,11 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 5 ActionCable Instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 5 Action Cable instrumentation'
   end
 
   executes do
-    # enumerate the spefic events we want so that we do not get unexpected additions in the future
+    # enumerate the specific events we want so that we do not get unexpected additions in the future
     ActiveSupport::Notifications.subscribe(/(perform_action|transmit)\.action_cable/,
       NewRelic::Agent::Instrumentation::ActionCableSubscriber.new)
   end
