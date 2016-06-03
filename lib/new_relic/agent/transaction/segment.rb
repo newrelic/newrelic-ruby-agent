@@ -10,7 +10,7 @@ module NewRelic
       class Segment < AbstractSegment
         # unscoped_metrics can be nil, a string, or array. we do this to save
         # object allocations. if allocations weren't important then we would
-        # initialize it as an array that would empty, one item, or many items.
+        # initialize it as an array that would be empty, have one item, or many items.
         attr_reader :unscoped_metrics
 
         def initialize name, unscoped_metrics=nil

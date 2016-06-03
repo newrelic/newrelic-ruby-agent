@@ -25,6 +25,7 @@ module NewRelic
           @duration = @end_time.to_f - @start_time.to_f
           @exclusive_duration = @duration - children_time
           record_metrics if record_metrics?
+          @transaction.segment_complete self if @transaction
         end
 
         def record_metrics?

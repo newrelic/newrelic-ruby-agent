@@ -17,7 +17,7 @@ module NewRelic
     #
     # @api public
     class Transaction
-      extend Tracing
+      include Tracing
 
       # for nested transactions
       SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
@@ -41,6 +41,9 @@ module NewRelic
 
       TRACE_OPTIONS_SCOPED         = { :metric => true, :scoped_metric => true }.freeze
       TRACE_OPTIONS_UNSCOPED       = { :metric => true, :scoped_metric => false }.freeze
+
+      # reference to the transaction state managing this transaction
+      attr_accessor :state
 
       # A Time instance for the start time, never nil
       attr_accessor :start_time
@@ -77,6 +80,8 @@ module NewRelic
       def self.tl_current
         TransactionState.tl_get.current_transaction
       end
+
+      singleton_class.send :alias_method, :current, :tl_current
 
       def self.set_default_transaction_name(name, category = nil, node_name = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
@@ -129,6 +134,7 @@ module NewRelic
       def self.start_new_transaction(state, category, options)
         txn = Transaction.new(category, options)
         state.reset(txn)
+        txn.state = state
         txn.start(state)
         txn
       end

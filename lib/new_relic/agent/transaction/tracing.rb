@@ -8,15 +8,33 @@ module NewRelic
   module Agent
     class Transaction
       module Tracing
-        def start_segment name, unscoped_metrics=nil
-          segment = create_segment name, unscoped_metrics
-          segment.start
-          segment
+        module ClassMethods
+          def start_segment name, unscoped_metrics=nil
+            segment = create_segment name, unscoped_metrics
+            segment.start
+            segment
+          end
+
+          def create_segment name, unscoped_metrics
+            segment = Segment.new name, unscoped_metrics
+            if txn = current
+              txn.add_segment segment
+            end
+            segment
+          end
         end
 
-        def create_segment name, unscoped_metrics
-          segment = Segment.new name, unscoped_metrics
-          segment
+        def self.included base
+          base.extend ClassMethods
+        end
+
+        def segment_complete segment
+          state.traced_method_stack.pop_frame(state, segment, segment.name, segment.end_time, segment.record_metrics?)
+        end
+
+        def add_segment segment
+          segment.transaction = self
+          state.traced_method_stack.push_segment state, segment
         end
       end
     end
