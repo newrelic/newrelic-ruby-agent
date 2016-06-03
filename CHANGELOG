@@ -2,6 +2,11 @@
 
 ## v3.16.0
 
+  * Action Cable instrumentation
+
+  The Ruby agent now instruments Action Cable channel actions and calls to
+  ActionCable::Channel#Transmit in Rails 5.
+
   * Make it possible to define a newrelic_role for deployment with Capistrano 3
 
   Thanks NielsKSchjoedt for the contribution!
