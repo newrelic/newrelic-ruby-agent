@@ -5,6 +5,7 @@
 class TestClass
   def method_1
     trace_execution_scoped(['a', 'b']) do
+      "hi"
     end
   end
 end
@@ -16,7 +17,7 @@ class TraceExecutionScopedTests < Performance::TestCase
     require 'new_relic/agent/method_tracer'
   end
 
-  def test_without_callback
+  def test_trace_execution_scoped
     measure { @test_class.method_1 }
   end
 end

@@ -74,17 +74,15 @@ module NewRelic
         first_name   = metric_names.shift
         return yield unless first_name
 
-        start_time = Time.now.to_f
-        expected_scope = trace_execution_scoped_header(state, start_time)
+        segment = NewRelic::Agent::Transaction.start_segment first_name, metric_names
+        segment.record_metrics = options.fetch(:metric, true)
 
         begin
-          result = yield
-          result
+          yield
         ensure
-          trace_execution_scoped_footer(state, start_time, first_name, metric_names, expected_scope, options)
+          segment.finish
         end
       end
-
     end
   end
 end
