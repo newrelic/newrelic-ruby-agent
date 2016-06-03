@@ -26,6 +26,11 @@ module NewRelic
           @exclusive_duration = @duration - children_time
           record_metrics if record_metrics?
           @transaction.segment_complete self if @transaction
+        rescue => e
+          # This rescue block was added for the benefit of this test:
+          # test/multiverse/suites/bare/standalone_instrumentation_test.rb
+          # See the top of the test for details.
+          NewRelic::Agent.logger.error "Exception finishing segment: #{name}", e
         end
 
         def record_metrics?
