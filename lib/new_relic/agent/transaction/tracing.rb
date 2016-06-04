@@ -17,7 +17,7 @@ module NewRelic
 
           def create_segment name, unscoped_metrics=nil
             segment = Segment.new name, unscoped_metrics
-            if txn = current
+            if txn = tl_current
               txn.add_segment segment
             end
             segment

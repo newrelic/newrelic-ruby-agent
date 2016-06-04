@@ -81,8 +81,6 @@ module NewRelic
         TransactionState.tl_get.current_transaction
       end
 
-      singleton_class.send :alias_method, :current, :tl_current
-
       def self.set_default_transaction_name(name, category = nil, node_name = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
         name = txn.make_transaction_name(name, category)
