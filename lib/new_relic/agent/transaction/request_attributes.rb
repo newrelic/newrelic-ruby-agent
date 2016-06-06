@@ -34,8 +34,8 @@ module NewRelic
             txn.add_agent_attribute :'request.headers.referer', referer, AttributeFilter::DST_ERROR_COLLECTOR
           end
 
-          if request_path
-            txn.add_agent_attribute :request_uri, request_path, AttributeFilter::DST_NONE
+          if request_path && configured_to_collect?
+            txn.add_agent_attribute :request_uri, request_path, AttributeFilter::DST_TRANSACTION_EVENTS
           end
 
           if accept
@@ -112,6 +112,10 @@ module NewRelic
           if env = attribute_from_request(request, :env)
             env[key]
           end
+        end
+
+        def configured_to_collect?
+          NewRelic::Agent.config[:'transaction_events.attributes.include'].include?("request_uri")
         end
       end
     end
