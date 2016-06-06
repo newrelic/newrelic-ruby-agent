@@ -224,6 +224,7 @@ class AgentAttributesTest < Minitest::Test
     assert_event_has_agent_attribute("request_uri", "/foobar")
     refute_error_has_agent_attribute("request_uri")
     refute_transaction_trace_has_agent_attribute("request_uri")
+    refute_browser_monitoring_has_agent_attribute("request_uri")
   end
 
   def test_request_uri_excluded_by_default
@@ -236,6 +237,7 @@ class AgentAttributesTest < Minitest::Test
     refute_event_has_agent_attribute("request_uri")
     refute_error_has_agent_attribute("request_uri")
     refute_transaction_trace_has_agent_attribute("request_uri")
+    refute_browser_monitoring_has_agent_attribute("request_uri")
   end
 
   def test_http_response_code_excluded_in_txn_events_when_disabled
