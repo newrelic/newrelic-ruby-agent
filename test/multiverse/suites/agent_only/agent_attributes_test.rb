@@ -248,7 +248,7 @@ class AgentAttributesTest < Minitest::Test
     refute_transaction_trace_has_agent_attribute("request_uri")
   end
 
-  def test_request_uri_not_captured_on_event_traces
+  def test_request_uri_not_captured_on_error_traces
     config = {:'error_collector.attributes.include' => 'request_uri'}
     txn_options = {
       :request => stub(:path => "/foobar")
@@ -258,7 +258,7 @@ class AgentAttributesTest < Minitest::Test
     refute_error_has_agent_attribute("request_uri")
   end
 
-  def test_request_uri_not_captured_on_traces
+  def test_request_uri_not_captured_on_traces_if_only_configured_as_general_attribute
     config = {:'attributes.include' => 'request_uri'}
     txn_options = {
       :request => stub(:path => "/foobar")
