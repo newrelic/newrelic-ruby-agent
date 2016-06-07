@@ -12,6 +12,8 @@ module NewRelic
                     :host, :port, :user_agent, :request_method
 
         HTTP_ACCEPT_HEADER_KEY = "HTTP_ACCEPT".freeze
+        REQUEST_URI_KEY = "request_uri".freeze
+        WILDCARD = "*".freeze
 
         def initialize request
           @request_path = path_from_request request
@@ -115,7 +117,8 @@ module NewRelic
         end
 
         def configured_to_collect?
-          NewRelic::Agent.config[:'transaction_events.attributes.include'].include?("request_uri")
+          txn_event_attributes = NewRelic::Agent.config[:'transaction_events.attributes.include']
+          txn_event_attributes.include?(REQUEST_URI_KEY) || txn_event_attributes.include?(WILDCARD) 
         end
       end
     end
