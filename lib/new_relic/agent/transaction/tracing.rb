@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/transaction/segment'
+require 'new_relic/agent/transaction/datastore_segment'
 
 module NewRelic
   module Agent
@@ -17,6 +18,20 @@ module NewRelic
 
           def create_segment name, unscoped_metrics=nil
             segment = Segment.new name, unscoped_metrics
+            if txn = tl_current
+              txn.add_segment segment
+            end
+            segment
+          end
+
+          def start_datastore_segment product, operation, collection=nil
+            segment = create_datastore_segment product, operation, collection
+            segment.start
+            segment
+          end
+
+          def create_datastore_segment product, operation, collection=nil
+            segment = DatastoreSegment.new product, operation, collection
             if txn = tl_current
               txn.add_segment segment
             end
