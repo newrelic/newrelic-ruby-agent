@@ -44,6 +44,14 @@ module NewRelic
           end
         end
 
+        def self.scoped_metric_for product, operation, collection=nil
+          if collection
+            statement_metric_for product, collection, operation
+          else
+            operation_metric_for product, operation
+          end
+        end
+
         def self.metrics_for(product, operation, collection = nil, generic_product = nil)
           if overrides = overridden_operation_and_collection
             if should_override?(overrides, product, generic_product)

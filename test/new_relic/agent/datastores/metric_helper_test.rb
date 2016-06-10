@@ -26,6 +26,18 @@ module NewRelic
         assert_equal expected, result
       end
 
+      def test_scoped_metric_for_with_collection
+        expected = "Datastore/statement/JonanDB/wiggles/select"
+        result = Datastores::MetricHelper.scoped_metric_for(@product, @operation, @collection)
+        assert_equal expected, result
+      end
+
+      def test_scoped_metric_for_without_collection
+        expected = "Datastore/operation/JonanDB/select"
+        result = Datastores::MetricHelper.scoped_metric_for(@product, @operation)
+        assert_equal expected, result
+      end
+
       def test_metrics_for_in_web_context
         Transaction.stubs(:recording_web_transaction?).returns(true)
         expected = [
@@ -126,7 +138,6 @@ module NewRelic
           end
         end
       end
-
     end
   end
 end
