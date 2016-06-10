@@ -16,7 +16,8 @@ module NewRelic
           @operation = operation
           @collection = collection
 
-          super Datastores::MetricHelper.scoped_metric_for product, operation, collection
+          super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
+                Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection)
         end
       end
     end

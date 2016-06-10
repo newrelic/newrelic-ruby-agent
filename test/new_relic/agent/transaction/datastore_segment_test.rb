@@ -27,6 +27,41 @@ module NewRelic
           segment = DatastoreSegment.new "SQLite", "select"
           assert_equal "Datastore/operation/SQLite/select", segment.name
         end
+
+        def test_segment_records_expected_metrics
+          Transaction.stubs(:recording_web_transaction?).returns(true)
+
+          segment = DatastoreSegment.new "SQLite", "insert", "Blog"
+          segment.start
+          advance_time 1
+          segment.finish
+
+          assert_metrics_recorded [
+            "Datastore/statement/SQLite/Blog/insert",
+            "Datastore/operation/SQLite/insert",
+            "Datastore/SQLite/allWeb",
+            "Datastore/SQLite/all",
+            "Datastore/allWeb",
+            "Datastore/all"
+          ]
+        end
+
+        def test_segment_records_expected_metrics_without_collection
+          Transaction.stubs(:recording_web_transaction?).returns(true)
+
+          segment = DatastoreSegment.new "SQLite", "select"
+          segment.start
+          advance_time 1
+          segment.finish
+
+          assert_metrics_recorded [
+            "Datastore/operation/SQLite/select",
+            "Datastore/SQLite/allWeb",
+            "Datastore/SQLite/all",
+            "Datastore/allWeb",
+            "Datastore/all"
+          ]
+        end
       end
     end
   end
