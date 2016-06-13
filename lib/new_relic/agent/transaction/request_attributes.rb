@@ -34,6 +34,10 @@ module NewRelic
             txn.add_agent_attribute :'request.headers.referer', referer, AttributeFilter::DST_ERROR_COLLECTOR
           end
 
+          if request_path
+            txn.add_agent_attribute :request_uri, request_path, AttributeFilter::DST_NONE
+          end
+
           if accept
             txn.add_agent_attribute :'request.headers.accept', accept, default_destinations
           end
