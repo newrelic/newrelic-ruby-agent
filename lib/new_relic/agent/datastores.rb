@@ -45,10 +45,10 @@ module NewRelic
             alias_method method_name_without_newrelic, method_name
 
             define_method(method_name) do |*args, &blk|
-              metrics = MetricHelper.metrics_for(product, operation)
-              NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-                send(method_name_without_newrelic, *args, &blk)
-              end
+              segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation)
+              result = send(method_name_without_newrelic, *args, &blk)
+              segment.finish
+              result
             end
 
             send visibility, method_name
@@ -103,18 +103,16 @@ module NewRelic
       def self.wrap(product, operation, collection = nil, callback = nil)
         return yield unless operation
 
-        metrics = MetricHelper.metrics_for(product, operation, collection)
-        scoped_metric = metrics.first
-        NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-          t0 = Time.now if callback
-          begin
-            result = yield
-          ensure
-            if callback
-              elapsed_time = (Time.now - t0).to_f
-              callback.call(result, scoped_metric, elapsed_time)
-            end
+        segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection)
+
+        begin
+         result = yield
+        ensure
+          if callback
+            elapsed_time = (Time.now - segment.start_time).to_f
+            callback.call(result, segment.name, elapsed_time)
           end
+          segment.finish
         end
       end
 
