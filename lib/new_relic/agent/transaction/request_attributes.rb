@@ -122,7 +122,7 @@ module NewRelic
 
         def configured_to_collect?
           txn_event_attributes = NewRelic::Agent.config[:'transaction_events.attributes.include']
-          txn_event_attributes.include?(REQUEST_URI_KEY) || txn_event_attributes.include?(WILDCARD) 
+          txn_event_attributes.any?{|attribute| attribute == REQUEST_URI_KEY || attribute == WILDCARD}
         end
       end
     end
