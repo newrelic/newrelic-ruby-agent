@@ -44,7 +44,8 @@ module NewRelic
           :postgres => /'|\/\*|\*\/|\$(?!\?)/,
           :sqlite => /'|\/\*|\*\//,
           :cassandra => /'|\/\*|\*\//,
-          :oracle => /'|\/\*|\*\//
+          :oracle => /'|\/\*|\*\//,
+          :oracle_enhanced => /'|\/\*|\*\//
         }
 
         PLACEHOLDER = '?'.freeze
@@ -75,7 +76,7 @@ module NewRelic
             regex = POSTGRES_COMPONENTS_REGEX
           when :sqlite
             regex = SQLITE_COMPONENTS_REGEX
-          when :oracle
+          when :oracle, :oracle_enhanced
             regex = ORACLE_COMPONENTS_REGEX
           when :cassandra
             regex = CASSANDRA_COMPONENTS_REGEX
