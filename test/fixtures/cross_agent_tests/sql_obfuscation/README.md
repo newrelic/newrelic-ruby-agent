@@ -33,3 +33,4 @@ SQL Syntax Documentation:
 * [PostgreSQL](http://www.postgresql.org/docs/8.4/static/sql-syntax.html)
 * [Cassandra](http://docs.datastax.com/en/cql/3.1/cql/cql_reference/cql_lexicon_c.html)
 * [Oracle](http://docs.oracle.com/cd/B28359_01/appdev.111/b28370/langelems.htm)
+* [SQLite](https://www.sqlite.org/lang.html)

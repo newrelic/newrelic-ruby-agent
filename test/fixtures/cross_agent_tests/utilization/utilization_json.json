@@ -1,0 +1,132 @@
+[
+  {
+    "testname":"only agent derived data",
+    "input_total_ram_mib": 1024,
+    "input_logical_processors": 8,
+    "input_hostname": "myhost",
+    "expected_output_json": {
+      "metadata_version":2,
+      "logical_processors":8,
+      "total_ram_mib":1024,
+      "hostname":"myhost"
+    }
+  },
+  {
+    "testname":"only agent derived data with aws",
+    "input_total_ram_mib": 2048,
+    "input_logical_processors": 8,
+    "input_hostname": "myotherhost",
+    "input_aws_id": "8BADFOOD",
+    "input_aws_type": "t2.micro",
+    "input_aws_zone": "us-west-1",
+    "expected_output_json": {
+      "metadata_version":2,
+      "logical_processors":8,
+      "total_ram_mib":2048,
+      "hostname":"myotherhost",
+      "vendors": {
+        "aws": {
+          "id":"8BADFOOD",
+          "type":"t2.micro",
+          "zone":"us-west-1"
+        }
+      }
+    }
+  },
+  {
+    "testname":"only agent derived but bad data",
+    "input_total_ram_mib": null,
+    "input_logical_processors": null,
+    "input_hostname": "myotherhost",
+    "expected_output_json": {
+      "metadata_version": 2,
+      "logical_processors":null,
+      "total_ram_mib":null,
+      "hostname":"myotherhost"
+    }
+  },
+  {
+    "testname":"agent derived null and so environment variables",
+    "input_total_ram_mib": null,
+    "input_logical_processors": null,
+    "input_hostname": "myotherhost",
+    "input_environment_variables": {
+      "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": 8,
+      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB" : 2048
+    },
+    "expected_output_json": {
+      "metadata_version": 2,
+      "logical_processors":null,
+      "total_ram_mib":null,
+      "hostname":"myotherhost",
+      "config" : {
+        "logical_processors": 8,
+        "total_ram_mib": 2048
+      }
+    }
+  },
+  {
+    "testname":"all environment variables",
+    "input_total_ram_mib": 1,
+    "input_logical_processors": 2,
+    "input_hostname": "myotherhost",
+    "input_environment_variables": {
+      "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": 16,
+      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB" : 4096,
+      "NEW_RELIC_UTILIZATION_BILLING_HOSTNAME" : "localhost"
+    },
+    "expected_output_json": {
+      "metadata_version": 2,
+      "logical_processors":2,
+      "total_ram_mib":1,
+      "hostname":"myotherhost",
+      "config" : {
+        "logical_processors": 16,
+        "total_ram_mib": 4096,
+        "hostname": "localhost"
+      }
+    }
+  },
+  {
+    "testname":"all environment variables with error in processors",
+    "input_total_ram_mib": 1024,
+    "input_logical_processors": 4,
+    "input_hostname": "myotherhost",
+    "input_environment_variables": {
+      "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": "abc",
+      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB" : 4096,
+      "NEW_RELIC_UTILIZATION_BILLING_HOSTNAME" : "localhost"
+    },
+    "expected_output_json": {
+      "metadata_version": 2,
+      "logical_processors":4,
+      "total_ram_mib":1024,
+      "hostname":"myotherhost",
+      "config" : {
+        "total_ram_mib": 4096,
+        "hostname": "localhost"
+      }
+    }
+  },
+  {
+    "testname":"all environment variables with error in ram",
+    "input_total_ram_mib": 1024,
+    "input_logical_processors": 4,
+    "input_hostname": "myotherhost",
+    "input_environment_variables": {
+      "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": 8,
+      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB" : "notgood",
+      "NEW_RELIC_UTILIZATION_BILLING_HOSTNAME" : "localhost"
+    },
+    "expected_output_json": {
+      "metadata_version": 2,
+      "logical_processors":4,
+      "total_ram_mib":1024,
+      "hostname":"myotherhost",
+      "config" : {
+        "logical_processors": 8,
+        "hostname": "localhost"
+      }
+    }
+  }
+]
