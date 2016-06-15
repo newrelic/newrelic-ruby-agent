@@ -218,10 +218,12 @@ module NewRelic::Agent
       :NEW_RELIC_UTILIZATION_BILLING_HOSTNAME => :'utilization.billing_hostname'
     }
 
+    NUMERIC_ENV_OPTS = [:NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS, :NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB]
+
     def convert_env_to_config_options test_case
       env_inputs = test_case.fetch :input_environment_variables, {}
       env_inputs.keys.inject({}) do |memo, k|
-        memo[ENV_TO_OPTIONS[k]] = env_inputs[k]
+        memo[ENV_TO_OPTIONS[k]] = NUMERIC_ENV_OPTS.include?(k) ? env_inputs[k].to_i : env_inputs[k]
         memo
       end
     end

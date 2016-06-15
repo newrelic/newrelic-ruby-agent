@@ -30,12 +30,21 @@ module NewRelic
         Agent.config[:'utilization.billing_hostname']
       end
 
+      # this is slightly ugly, but if a string value is passed in
+      # for the env var: NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS the
+      # coercion from EnvironmentSource will turn that into a numerical 0,
+      # which is not a reasonable value for logical_processes and should
+      # not be sent up
       def configured_logical_processors
-        Agent.config[:'utilization.logical_processors']
+        logical_processors = Agent.config[:'utilization.logical_processors']
+        logical_processors unless logical_processors == 0
       end
 
+      # see comment above as the situation is the same for:
+      # NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB
       def configured_total_ram_mib
-        Agent.config[:'utilization.total_ram_mib']
+        total_ram = Agent.config[:'utilization.total_ram_mib']
+        total_ram unless total_ram == 0
       end
 
       def to_collector_hash
