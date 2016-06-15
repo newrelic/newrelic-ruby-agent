@@ -173,7 +173,12 @@ module NewRelic::Agent
       test_case = HashExtensions.symbolize_keys_in_object test_case
       define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
         setup_cross_agent_test_stubs test_case
-        with_config convert_env_to_config_options(test_case) do
+        # This is a little bit ugly, but TravisCI runs these tests in a docker environment,
+        # which means we get an unexpected docker id in the vendors hash. Since none of the
+        # cross agent tests expect docker ids in the vendors hash we can safely turn off
+        # docker detection.
+        options = convert_env_to_config_options(test_case).merge(:'utilization.detect_docker' => false)
+        with_config options do
           assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash
         end
       end
