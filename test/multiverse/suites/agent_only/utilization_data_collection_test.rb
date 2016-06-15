@@ -11,7 +11,7 @@ class UtilizationDataCollectionTest < Minitest::Test
   def test_sends_all_utilization_data_on_connect
     expected = {
       "hostname" => "host",
-      "metadata_version" => 1,
+      "metadata_version" => 2,
       "logical_processors" => 5,
       "total_ram_mib" => 128,
       "vendors" => {
@@ -46,7 +46,7 @@ class UtilizationDataCollectionTest < Minitest::Test
   def test_omits_sending_vendor_data_on_connect_when_not_available
      expected = {
       "hostname" => "host",
-      "metadata_version" => 1,
+      "metadata_version" => 2,
       "logical_processors" => 5,
       "total_ram_mib" => 128
     }
