@@ -168,6 +168,64 @@ module NewRelic::Agent
       end
     end
 
+    load_cross_agent_test("utilization/utilization_json").each_with_index do |test_case, i|
+
+      test_case = HashExtensions.symbolize_keys_in_object test_case
+      define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
+        setup_cross_agent_test_stubs test_case
+        with_config convert_env_to_config_options(test_case) do
+          assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash
+        end
+      end
+    end
+
+    def setup_cross_agent_test_stubs test_case
+      stub_utilization_inputs test_case
+      stub_aws_inputs test_case
+    end
+
+    UTILIZATION_INPUTS = {
+      :input_total_ram_mib => :ram_in_mib,
+      :input_logical_processors => :cpu_count,
+      :input_hostname => :hostname
+    }
+
+    def stub_utilization_inputs test_case
+      test_case.keys.each do |key|
+        if meth = UTILIZATION_INPUTS[key]
+          UtilizationData.any_instance.stubs(meth).returns(test_case[key])
+        end
+      end
+    end
+
+    AWS_INPUTS = {
+      :input_aws_id => :instance_id,
+      :input_aws_type => :instance_type,
+      :input_aws_zone => :availability_zone
+    }
+
+    def stub_aws_inputs test_case
+      test_case.keys.each do |key|
+        if meth = AWS_INPUTS[key]
+          AWSInfo.any_instance.stubs(meth).returns(test_case[key])
+        end
+      end
+    end
+
+    ENV_TO_OPTIONS = {
+      :NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS => :'utilization.logical_processors',
+      :NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB =>  :'utilization.total_ram_mib',
+      :NEW_RELIC_UTILIZATION_BILLING_HOSTNAME => :'utilization.billing_hostname'
+    }
+
+    def convert_env_to_config_options test_case
+      env_inputs = test_case.fetch :input_environment_variables, {}
+      env_inputs.keys.inject({}) do |memo, k|
+        memo[ENV_TO_OPTIONS[k]] = env_inputs[k]
+        memo
+      end
+    end
+
     def stub_aws_info(responses = {})
       AWSInfo.any_instance.stubs(:remote_fetch).with("instance-id").returns(responses[:instance_id])
       AWSInfo.any_instance.stubs(:remote_fetch).with("instance-type").returns(responses[:instance_type])
