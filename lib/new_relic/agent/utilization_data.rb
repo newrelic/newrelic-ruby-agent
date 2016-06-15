@@ -7,7 +7,7 @@ require 'new_relic/agent/aws_info'
 module NewRelic
   module Agent
     class UtilizationData
-      METADATA_VERSION = 1
+      METADATA_VERSION = 2
 
       def hostname
         NewRelic::Agent::Hostname.get
