@@ -168,7 +168,7 @@ module NewRelic::Agent
       end
     end
 
-    load_cross_agent_test("utilization/utilization_json").each_with_index do |test_case, i|
+    load_cross_agent_test("utilization/utilization_json").each do |test_case|
 
       test_case = HashExtensions.symbolize_keys_in_object test_case
       define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
