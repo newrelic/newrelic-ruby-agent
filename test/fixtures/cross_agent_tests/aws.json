@@ -7,7 +7,7 @@
         "timeout":false
       },
       "http://169.254.169.254/2008-02-01/meta-data/instance-id":{
-        "response":"test.id",
+        "response":"i-test.19characters",
         "timeout":false
       },
       "http://169.254.169.254/2008-02-01/meta-data/placement/availability-zone":{
@@ -17,7 +17,7 @@
     },
     "expected_vendors_hash": {
       "aws": {
-        "id": "test.id",
+        "id": "i-test.19characters",
         "type": "test.type",
         "zone": "us-west-2b"
       }
