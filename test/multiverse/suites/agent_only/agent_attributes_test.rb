@@ -272,6 +272,20 @@ class AgentAttributesTest < Minitest::Test
     refute_event_has_agent_attribute("request_uri")
   end
 
+  def test_request_uri_only_included_on_transaction_events_with_attributes_include_wildcard
+    config = { :'attributes.include' => '*',
+               :'transaction_events.attributes.include' => 'request_uri'}
+
+    txn_options = {
+      :request => stub(:path => "/foobar")
+    }
+    run_transaction(config, txn_options)
+
+    assert_event_has_agent_attribute("request_uri", "/foobar")
+    refute_transaction_trace_has_agent_attribute("request_uri")
+    refute_error_has_agent_attribute("request_uri")
+  end
+
   def test_request_uri_captured_with_wildcard
     config = {:'transaction_events.attributes.include' => '*'}
     txn_options = {
