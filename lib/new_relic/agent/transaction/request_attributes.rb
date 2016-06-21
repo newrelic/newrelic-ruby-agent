@@ -12,6 +12,8 @@ module NewRelic
                     :host, :port, :user_agent, :request_method
 
         HTTP_ACCEPT_HEADER_KEY = "HTTP_ACCEPT".freeze
+        REQUEST_URI_KEY = "request_uri".freeze
+        WILDCARD = "*".freeze
 
         def initialize request
           @request_path = path_from_request request
@@ -32,6 +34,14 @@ module NewRelic
 
           if referer
             txn.add_agent_attribute :'request.headers.referer', referer, AttributeFilter::DST_ERROR_COLLECTOR
+          end
+
+          # This is temporary and aims to avoid collecting this attribute on transaction and error traces, 
+          # which already directly have a path value that the RPM UI depends on. We will either only
+          # collect request_uri as an agent attribute, in conjunction with UI work, or we will stop collecting
+          # this as an agent attribute (RUBY-1573)
+          if request_path && configured_to_collect?
+            txn.add_agent_attribute :request_uri, request_path, AttributeFilter::DST_TRANSACTION_EVENTS
           end
 
           if accept
@@ -108,6 +118,11 @@ module NewRelic
           if env = attribute_from_request(request, :env)
             env[key]
           end
+        end
+
+        def configured_to_collect?
+          txn_event_attributes = NewRelic::Agent.config[:'transaction_events.attributes.include']
+          txn_event_attributes.any?{|attribute| attribute == REQUEST_URI_KEY || attribute == WILDCARD}
         end
       end
     end

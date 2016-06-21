@@ -164,8 +164,12 @@ module NewRelic
       def compress_request_if_needed(data)
         encoding = 'identity'
         if data.size > 64 * 1024
-          data = Encoders::Compressed.encode(data)
-          encoding = 'deflate'
+          encoding = Agent.config[:compressed_content_encoding]
+          data = if encoding == 'gzip'
+            Encoders::Compressed::Gzip.encode(data)
+          else
+            Encoders::Compressed::Deflate.encode(data)
+          end
         end
         check_post_size(data)
         [data, encoding]
@@ -432,7 +436,11 @@ module NewRelic
       #                    contact
       #  - :data => the data to send as the body of the request
       def send_request(opts)
-        request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)
+        if Agent.config[:put_for_data_send]
+          request = Net::HTTP::Put.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)
+        else
+          request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)
+        end
         request['user-agent'] = user_agent
         request.content_type = "application/octet-stream"
         request.body = opts[:data]
@@ -444,7 +452,7 @@ module NewRelic
         begin
           attempts += 1
           conn = http_connection
-          ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]}"
+          ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]} with #{request.method}"
           NewRelic::TimerLib.timeout(@request_timeout) do
             response = conn.request(request)
           end

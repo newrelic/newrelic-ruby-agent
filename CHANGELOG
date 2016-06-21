@@ -1,5 +1,28 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.16.0
+
+  * Experimental Action Cable instrumentation
+
+  The Ruby agent instruments Action Cable channel actions and calls to
+  ActionCable::Channel#Transmit in Rails 5 RC1. Feedback is welcome!
+
+  * Obfuscate queries from `oracle_enhanced` adapter correctly
+
+  This change allows the `oracle_enhanced` adapter to use the same
+  obfuscation as `oracle` adapters. Thanks Dan Drinkard for the contribution!
+
+  * Make it possible to define a newrelic_role for deployment with Capistrano 3
+
+  Thanks NielsKSchjoedt for the contribution!
+
+  * Retry initial connection to New Relic in Resque master if needed
+
+  Previously, if the initial connection to New Relic in a monitored Resque
+  master process failed, the agent would not retry, and monitoring for the
+  process would be lost. This has been fixed, and the agent will continue
+  retrying in its background harvest thread until it successfully connects.
+
 ## v3.15.2 ##
 
   * Run explain plans on parameterized slow queries in AR4

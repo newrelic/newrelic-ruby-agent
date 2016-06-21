@@ -11,7 +11,7 @@ class UtilizationDataCollectionTest < Minitest::Test
   def test_sends_all_utilization_data_on_connect
     expected = {
       "hostname" => "host",
-      "metadata_version" => 1,
+      "metadata_version" => 2,
       "logical_processors" => 5,
       "total_ram_mib" => 128,
       "vendors" => {
@@ -46,7 +46,7 @@ class UtilizationDataCollectionTest < Minitest::Test
   def test_omits_sending_vendor_data_on_connect_when_not_available
      expected = {
       "hostname" => "host",
-      "metadata_version" => 1,
+      "metadata_version" => 2,
       "logical_processors" => 5,
       "total_ram_mib" => 128
     }
@@ -61,13 +61,6 @@ class UtilizationDataCollectionTest < Minitest::Test
     setup_agent
 
     assert_equal expected, single_connect_posted.utilization
-  end
-
-  def test_utilization_data_not_sent_when_disabled
-    with_config :disable_utilization => true do
-      setup_agent
-      assert_nil single_connect_posted.utilization, "Expected utilization data to be nil"
-    end
   end
 
   def with_fake_metadata_service

@@ -55,7 +55,11 @@ module NewRelic
         end
 
         def default_encoder
-          Encoders::Base64CompressedJSON
+          if NewRelic::Agent.config[:simple_compression]
+            Encoders::Identity
+          else
+            Encoders::Base64CompressedJSON
+          end
         end
 
         def format

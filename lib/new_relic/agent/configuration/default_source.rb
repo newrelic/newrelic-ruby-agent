@@ -515,6 +515,27 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Maximum number of bytes to send to the New Relic data collection service.'
         },
+        :put_for_data_send => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Use HTTP PUT requests instead of POST.'
+        },
+        :compressed_content_encoding => {
+          :default => 'deflate',
+          :public => false,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Encoding to use if data needs to be compressed. The options are deflate and gzip.'
+        },
+        :simple_compression => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'When enabled the agent will compress payloads destined for the collector, but will not pre-compress parts of the payload.'
+        },
         :timeout => {
           :default => 2 * 60, # 2 minutes
           :public => true,
@@ -693,6 +714,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'If <code>true</code>, disables ActiveJob instrumentation.'
+        },
+        :disable_action_cable_instrumentation => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, disables Action Cable instrumentation.'
         },
         :disable_memcached => {
           :default => value_of(:disable_memcache_instrumentation),
@@ -1542,12 +1571,29 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, the agent automatically detects that it is running in Docker.'
         },
-        :'disable_utilization' => {
-          :default     => false,
+        :'utilization.billing_hostname' => {
+          :default     => nil,
+          :allow_nil   => true,
           :public      => false,
-          :type        => Boolean,
+          :type        => String,
           :allowed_from_server => false,
-          :description => 'Disable sending utilization data as part of connect settings hash.'
+          :description => 'The configured server name by a customer.'
+        },
+        :'utilization.logical_processors' => {
+          :default     => nil,
+          :allow_nil   => true,
+          :public      => false,
+          :type        => Fixnum,
+          :allowed_from_server => false,
+          :description => 'The total number of hyper-threaded execution contexts available.'
+        },
+        :'utilization.total_ram_mib' => {
+          :default     => nil,
+          :allow_nil   => true,
+          :public      => false,
+          :type        => Fixnum,
+          :allowed_from_server => false,
+          :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
         }
       }.freeze
     end
