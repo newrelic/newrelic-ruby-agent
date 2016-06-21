@@ -46,9 +46,11 @@ module NewRelic
 
             define_method(method_name) do |*args, &blk|
               segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation)
-              result = send(method_name_without_newrelic, *args, &blk)
-              segment.finish
-              result
+              begin
+                send(method_name_without_newrelic, *args, &blk)
+              ensure
+                segment.finish
+              end
             end
 
             send visibility, method_name
@@ -106,7 +108,7 @@ module NewRelic
         segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection)
 
         begin
-         result = yield
+          result = yield
         ensure
           if callback
             elapsed_time = (Time.now - segment.start_time).to_f

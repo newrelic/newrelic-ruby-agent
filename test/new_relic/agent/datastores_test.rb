@@ -24,6 +24,12 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     NewRelic::Agent::Datastores.trace self, :find,     "MyFirstDatabase"
     NewRelic::Agent::Datastores.trace self, :save,     "MyFirstDatabase", "create"
     NewRelic::Agent::Datastores.trace self, :internal, "MyFirstDatabase"
+
+    def boom
+      raise "haha"
+    end
+
+    NewRelic::Agent::Datastores.trace self, :boom, "MyFirstDatabase", "boom"
   end
 
   def setup
@@ -170,6 +176,17 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     with_config(:'transaction_tracer.record_sql' => 'none') do
       NewRelic::Agent::Datastores.notice_statement(query, elapsed)
     end
+  end
+
+  def test_node_created_when_exception_occurs
+    db = MyFirstDatabase.new
+    in_transaction do
+      db.find
+      db.boom
+    end
+  rescue
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    refute_nil find_node_with_name(sample, "Datastore/operation/MyFirstDatabase/boom")
   end
 
   def assert_statement_metrics(operation, collection, type)
