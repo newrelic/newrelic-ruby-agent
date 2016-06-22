@@ -54,7 +54,7 @@ module Sequel
         begin
           rval = super(*args, &blk)
         ensure
-          notice_sql(sql, scoped_metric, args, t0, Time.now)
+          notice_sql(sql, scoped_metric, t0, Time.now)
         end
       end
 
@@ -66,7 +66,7 @@ module Sequel
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool)
     ].freeze
 
-    def notice_sql(sql, metric_name, args, start, finish)
+    def notice_sql(sql, metric_name, start, finish)
       state    = NewRelic::Agent::TransactionState.tl_get
       duration = finish - start
 
