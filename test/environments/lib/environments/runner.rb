@@ -94,15 +94,33 @@ module Environments
 
     def bundle(dir)
       puts "Bundling in #{dir}..."
-      bundling = `cd #{dir} && bundle install --local`
+      command = "cd #{dir} && bundle install --local"
+      system(command)
       unless $?.success?
         puts "Failed local bundle, trying again with full bundle..."
-        bundling = `cd #{dir} && bundle install --retry 3`
+        command = "cd #{dir} && bundle install --retry 3"
+        try_shell_command_n_times(command, 3)
       end
 
-      bundling = red(bundling) unless $?.success?
-      puts bundling
+      command = red(command) unless $?.success?
+      puts command
       $?
+    end
+
+    def try_shell_command_n_times(cmd, n)
+      count = 0
+      loop do
+        count += 1
+        system cmd
+        if $?.success?
+          break
+        elsif count < n
+          redo
+        else
+          puts "System command: #{cmd} failed #{n} times. Giving up..."
+          break
+        end
+      end
     end
 
     def run(dir)
