@@ -37,6 +37,12 @@ module NewRelic
         frame
       end
 
+      def push_segment state, segment
+        transaction_sampler.notice_push_frame(state, segment.start_time) if sampler_enabled?
+        @stack.push segment
+        segment
+      end
+
       # Pops a frame off the transaction stack - this updates the transaction
       # sampler that we've finished execution of a traced method.
       #
@@ -50,7 +56,7 @@ module NewRelic
         note_children_time(frame, time, deduct_call_time_from_parent)
 
         transaction_sampler.notice_pop_frame(state, name, time) if sampler_enabled?
-        frame.name = name
+        frame.name = name if frame.is_a? TracedMethodFrame
         frame
       end
 

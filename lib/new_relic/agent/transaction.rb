@@ -8,6 +8,7 @@ require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
 require 'new_relic/agent/transaction/request_attributes'
+require 'new_relic/agent/transaction/tracing'
 
 module NewRelic
   module Agent
@@ -16,6 +17,7 @@ module NewRelic
     #
     # @api public
     class Transaction
+      include Tracing
 
       # for nested transactions
       SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
@@ -40,6 +42,9 @@ module NewRelic
 
       TRACE_OPTIONS_SCOPED         = { :metric => true, :scoped_metric => true }.freeze
       TRACE_OPTIONS_UNSCOPED       = { :metric => true, :scoped_metric => false }.freeze
+
+      # reference to the transaction state managing this transaction
+      attr_accessor :state
 
       # A Time instance for the start time, never nil
       attr_accessor :start_time
@@ -128,6 +133,7 @@ module NewRelic
       def self.start_new_transaction(state, category, options)
         txn = Transaction.new(category, options)
         state.reset(txn)
+        txn.state = state
         txn.start(state)
         txn
       end
