@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Fix instrumentation for Sequel 4.35.0
+
+  The latest version of Sequel changes the name and signature of the method
+  that the Ruby Agent wraps for instrumentation. The agent has been updated
+  to handle these changes. Users using Sequel 4.35.0 or newer should upgrade
+  their agent.
+
 ## v3.16.0
 
   * Make it possible to define a newrelic_role for deployment with Capistrano 3
