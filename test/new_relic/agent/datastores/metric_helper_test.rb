@@ -56,6 +56,59 @@ module NewRelic
         assert_equal expected, result
       end
 
+      def test_scoped_metric_for_with_collection
+        expected = "Datastore/statement/JonanDB/wiggles/select"
+        result = Datastores::MetricHelper.scoped_metric_for(@product, @operation, @collection)
+        assert_equal expected, result
+      end
+
+      def test_scoped_metric_for_without_collection
+        expected = "Datastore/operation/JonanDB/select"
+        result = Datastores::MetricHelper.scoped_metric_for(@product, @operation)
+        assert_equal expected, result
+      end
+
+      def test_unscoped_metrics_for_in_web_context
+        Transaction.stubs(:recording_web_transaction?).returns(true)
+        expected = [
+          "Datastore/operation/JonanDB/select",
+          "Datastore/JonanDB/allWeb",
+          "Datastore/JonanDB/all",
+          "Datastore/allWeb",
+          "Datastore/all"
+        ]
+
+        result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, @collection)
+        assert_equal expected, result
+      end
+
+      def test_unscoped_metrics_for_outside_web_context
+        Transaction.stubs(:recording_web_transaction?).returns(false)
+        expected = [
+          "Datastore/operation/JonanDB/select",
+          "Datastore/JonanDB/allOther",
+          "Datastore/JonanDB/all",
+          "Datastore/allOther",
+          "Datastore/all"
+        ]
+
+        result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, @collection)
+        assert_equal expected, result
+      end
+
+      def test_unscoped_metrics_for_without_collection
+        Transaction.stubs(:recording_web_transaction?).returns(false)
+        expected = [
+          "Datastore/JonanDB/allOther",
+          "Datastore/JonanDB/all",
+          "Datastore/allOther",
+          "Datastore/all"
+        ]
+
+        result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation)
+        assert_equal expected, result
+      end
+
       def test_metrics_for_obeys_collection_and_operation_overrides
         in_transaction do
           NewRelic::Agent.with_database_metric_name("Model", "new_method") do
@@ -126,7 +179,6 @@ module NewRelic
           end
         end
       end
-
     end
   end
 end

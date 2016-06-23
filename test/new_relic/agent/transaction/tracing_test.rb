@@ -62,6 +62,31 @@ module NewRelic
           trace = last_transaction_trace
           refute_nil find_node_with_name(trace, segment_name), "Expected trace to have node with name: #{segment_name}"
         end
+
+
+        def test_start_segment
+          in_transaction "test_txn" do |txn|
+            segment = Transaction.start_segment "Custom/segment/method"
+            assert_equal Time.now, segment.start_time
+            assert_equal txn, segment.transaction
+
+            advance_time 1
+            segment.finish
+            assert_equal Time.now, segment.end_time
+          end
+        end
+
+        def test_start_datastore_segment
+          in_transaction "test_txn" do |txn|
+            segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            assert_equal Time.now, segment.start_time
+            assert_equal txn, segment.transaction
+
+            advance_time 1
+            segment.finish
+            assert_equal Time.now, segment.end_time
+          end
+        end
       end
     end
   end
