@@ -179,6 +179,18 @@ module NewRelic
           end
         end
       end
+
+      def test_operation_from_sql
+        sql = "SELECT * FROM blogs where id = 5"
+        operation = Datastores::MetricHelper.operation_from_sql sql
+        assert_equal "select", operation
+      end
+
+      def test_operation_from_sql_returns_other_for_unrecognized_operation
+        sql = "DESCRIBE blogs"
+        operation = Datastores::MetricHelper.operation_from_sql sql
+        assert_equal "Other", operation
+      end
     end
   end
 end
