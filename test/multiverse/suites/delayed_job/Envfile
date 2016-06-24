@@ -82,6 +82,7 @@ if RUBY_VERSION >= '1.9.3'
   RB
 end
 
+if RUBY_VERSION < '2.3.0'
 [dj4_with_active_record, dj3_with_active_record, dj2_with_active_record3].each do |dj|
   gemfile <<-RB
     gem 'activerecord', '~> 3.2.19'
@@ -100,6 +101,7 @@ end
     gem 'i18n', '~> 0.5.4'
     #{dj}
   RB
+end
 end
 
 if RUBY_VERSION <= '1.9.3'
