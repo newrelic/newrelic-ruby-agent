@@ -44,8 +44,12 @@ module NewRelic
         end
 
         def add_segment segment
-          segment.transaction = self
-          state.traced_method_stack.push_segment state, segment
+          if state.is_execution_traced?
+            segment.transaction = self
+            state.traced_method_stack.push_segment state, segment
+          else
+            segment.ignore!
+          end
         end
 
         def segment_complete segment
