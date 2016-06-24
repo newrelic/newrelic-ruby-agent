@@ -32,8 +32,18 @@ module Sequel
   #
   module NewRelicInstrumentation
 
-    # Instrument all queries that go through #execute_query.
-    def log_yield(sql, args=nil) #THREAD_LOCAL_ACCESS
+    module Naming
+      def self.query_method_name
+        if Sequel::VERSION >= "4.35.0"
+          :log_connection_yield
+        else
+          :log_yield
+        end
+      end
+    end
+
+    define_method Naming.query_method_name do |*args, &blk| #THREAD_LOCAL_ACCESS
+      sql = args.first
       rval = nil
       product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(self.class.adapter_scheme)
       metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_from_sql(product, sql)
@@ -42,20 +52,21 @@ module Sequel
       NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
         t0 = Time.now
         begin
-          rval = super
+          rval = super(*args, &blk)
         ensure
-          notice_sql(sql, scoped_metric, args, t0, Time.now)
+          notice_sql(sql, scoped_metric, t0, Time.now)
         end
       end
 
       return rval
     end
 
+
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool)
     ].freeze
 
-    def notice_sql(sql, metric_name, args, start, finish)
+    def notice_sql(sql, metric_name, start, finish)
       state    = NewRelic::Agent::TransactionState.tl_get
       duration = finish - start
 
