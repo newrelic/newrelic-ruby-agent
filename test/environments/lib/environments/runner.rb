@@ -5,6 +5,7 @@
 require 'bundler'
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'multiverse', 'lib', 'multiverse', 'color'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'multiverse', 'lib', 'multiverse', 'shell_utils'))
 
 module Environments
   class Runner
@@ -94,33 +95,16 @@ module Environments
 
     def bundle(dir)
       puts "Bundling in #{dir}..."
-      command = "cd #{dir} && bundle install --local"
-      system(command)
+      result = `cd #{dir} && bundle install --local`
       unless $?.success?
         puts "Failed local bundle, trying again with full bundle..."
         command = "cd #{dir} && bundle install --retry 3"
-        try_shell_command_n_times(command, 3)
+        result = ShellUtils.try_command_n_times(command, 3)
       end
 
-      command = red(command) unless $?.success?
-      puts command
+      result = red(result) unless $?.success?
+      puts result
       $?
-    end
-
-    def try_shell_command_n_times(cmd, n)
-      count = 0
-      loop do
-        count += 1
-        system cmd
-        if $?.success?
-          break
-        elsif count < n
-          redo
-        else
-          puts "System command: #{cmd} failed #{n} times. Giving up..."
-          break
-        end
-      end
     end
 
     def run(dir)
