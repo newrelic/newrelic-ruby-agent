@@ -6,7 +6,7 @@ module Multiverse
   module ShellUtils
     module_function
 
-    def try_command_n_times(cmd, n)
+    def try_command_n_times(cmd, n, wait_time=1)
       count = 0
       loop do
         count += 1
@@ -14,6 +14,7 @@ module Multiverse
         if $?.success?
           return result
         elsif count < n
+          sleep wait_time
           redo
         else
           puts "System command: #{cmd} failed #{n} times. Giving up..."
