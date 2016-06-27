@@ -99,7 +99,7 @@ module Environments
       unless $?.success?
         puts "Failed local bundle, trying again with full bundle..."
         command = "cd #{dir} && bundle install --retry 3"
-        result = ShellUtils.try_command_n_times(command, 3)
+        result = Multiverse::ShellUtils.try_command_n_times(command, 3)
       end
 
       result = red(result) unless $?.success?
