@@ -93,8 +93,12 @@ module NewRelic
         end
 
         def self.metrics_from_sql(product, sql)
-          operation = NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
+          operation = operation_from_sql(sql)
           metrics_for(product, operation)
+        end
+
+        def self.operation_from_sql(sql)
+          NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
         end
 
         # Allow Transaction#with_database_metric_name to override our

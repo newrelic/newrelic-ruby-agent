@@ -44,21 +44,17 @@ module Sequel
 
     define_method Naming.query_method_name do |*args, &blk| #THREAD_LOCAL_ACCESS
       sql = args.first
-      rval = nil
+
       product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(self.class.adapter_scheme)
-      metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_from_sql(product, sql)
-      scoped_metric = metrics.first
+      operation = NewRelic::Agent::Datastores::MetricHelper.operation_from_sql(sql)
+      segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation
 
-      NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-        t0 = Time.now
-        begin
-          rval = super(*args, &blk)
-        ensure
-          notice_sql(sql, scoped_metric, t0, Time.now)
-        end
+      begin
+        super(*args, &blk)
+      ensure
+        notice_sql(sql, segment.name, segment.start_time, Time.now)
+        segment.finish
       end
-
-      return rval
     end
 
 

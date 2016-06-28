@@ -80,6 +80,28 @@ module NewRelic
 
           refute_metrics_recorded ["Custom/basic/segment", "Basic/all"]
         end
+
+        def test_segments_will_not_record_metrics_when_ignored
+          segment = BasicSegment.new "Custom/basic/segment"
+          segment.ignore!
+          segment.start
+          advance_time 1.0
+          segment.finish
+
+          refute_metrics_recorded ["Custom/basic/segment", "Basic/all"]
+        end
+
+        def test_segment_does_not_notify_transaction_when_finished_if_ignored
+          segment = BasicSegment.new "Custom/basic/segment"
+          in_transaction "test_transaction" do |txn|
+            txn.expects(:segment_complete).with(segment).never
+            segment.transaction = txn
+            segment.start
+            segment.ignore!
+            advance_time 1.0
+            segment.finish
+          end
+        end
       end
     end
   end

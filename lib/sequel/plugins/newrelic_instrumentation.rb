@@ -22,12 +22,13 @@ module Sequel
         def wrap_sequel_method(method_name, operation_name=method_name)
           define_method(method_name) do |*args, &block|
             klass = self.is_a?(Class) ? self : self.class
-
             product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(db.adapter_scheme)
-            metrics = ::NewRelic::Agent::Datastores::MetricHelper.metrics_for(product, operation_name, klass.name)
+            segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation_name, klass.name)
 
-            NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
+            begin
               NewRelic::Agent.disable_all_tracing { super(*args, &block) }
+            ensure
+              segment.finish
             end
           end
         end
