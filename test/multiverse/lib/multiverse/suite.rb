@@ -12,6 +12,7 @@ require 'fileutils'
 require 'digest'
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
+require File.expand_path(File.join(File.dirname(__FILE__), 'shell_utils'))
 
 module Multiverse
   class Suite
@@ -111,7 +112,7 @@ module Multiverse
         puts "Waiting on '#{bundling_lock_file}' for our chance to bundle" if verbose?
         f.flock(File::LOCK_EX)
         puts "Let's get ready to BUNDLE!" if verbose?
-        bundler_out = `bundle`
+        bundler_out = ShellUtils.try_command_n_times 'bundle install --retry 3', 3
       end
       bundler_out
     end
