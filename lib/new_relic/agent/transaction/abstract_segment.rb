@@ -22,8 +22,8 @@ module NewRelic
 
         def finish
           @end_time = Time.now
-          @duration = @end_time.to_f - @start_time.to_f
-          @exclusive_duration = @duration - children_time
+          @duration = end_time.to_f - start_time.to_f
+          @exclusive_duration = duration - children_time
           record_metrics if record_metrics?
           @transaction.segment_complete self if transaction
         rescue => e
@@ -48,8 +48,8 @@ module NewRelic
         private
 
         def metric_cache
-          if @transaction
-            @transaction.metrics
+          if transaction
+            transaction.metrics
           else
             NewRelic::Agent.instance.stats_engine
           end
