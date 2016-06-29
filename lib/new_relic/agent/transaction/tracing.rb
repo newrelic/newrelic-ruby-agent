@@ -18,9 +18,7 @@ module NewRelic
 
           def create_segment name, unscoped_metrics=nil
             segment = Segment.new name, unscoped_metrics
-            if txn = tl_current
-              txn.add_segment segment
-            end
+            setup_segment segment
             segment
           end
 
@@ -32,10 +30,18 @@ module NewRelic
 
           def create_datastore_segment product, operation, collection=nil
             segment = DatastoreSegment.new product, operation, collection
-            if txn = tl_current
+            setup_segment segment
+            segment
+          end
+
+          private
+
+          def setup_segment segment
+            state = NewRelic::Agent::TransactionState.tl_get
+            segment.record_metrics = state.is_execution_traced?
+            if (txn = state.current_transaction) && state.is_execution_traced?
               txn.add_segment segment
             end
-            segment
           end
         end
 
@@ -44,12 +50,8 @@ module NewRelic
         end
 
         def add_segment segment
-          if state.is_execution_traced?
-            segment.transaction = self
-            state.traced_method_stack.push_segment state, segment
-          else
-            segment.ignore!
-          end
+          segment.transaction = self
+          state.traced_method_stack.push_segment state, segment
         end
 
         def segment_complete segment

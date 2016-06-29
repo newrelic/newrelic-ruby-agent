@@ -87,6 +87,30 @@ module NewRelic
             assert_equal Time.now, segment.end_time
           end
         end
+
+        def test_start_segment_with_tracing_disabled_in_transaction
+          segment = nil
+          in_transaction "test_txn" do |txn|
+            NewRelic::Agent.disable_all_tracing do
+              segment = Transaction.start_segment "Custom/segment/method", "Custom/all"
+              advance_time 1
+              segment.finish
+            end
+          end
+          assert_nil segment.transaction, "Did not expect segment to associated with a transaction"
+          refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
+        end
+
+        def test_start_segment_with_tracing_disabled_outside_transaction
+          segment = nil
+          NewRelic::Agent.disable_all_tracing do
+            segment = Transaction.start_segment "Custom/segment/method", "Custom/all"
+            advance_time 1
+            segment.finish
+          end
+          assert_nil segment.transaction, "Did not expect segment to associated with a transaction"
+          refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
+        end
       end
     end
   end
