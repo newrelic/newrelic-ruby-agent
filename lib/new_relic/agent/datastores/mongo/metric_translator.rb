@@ -59,12 +59,6 @@ module NewRelic
 
           MONGO_PRODUCT_NAME = "MongoDB".freeze
 
-          def self.build_metrics(name, collection)
-            NewRelic::Agent::Datastores::MetricHelper.metrics_for(MONGO_PRODUCT_NAME,
-                                                                  name,
-                                                                  collection)
-          end
-
           def self.collection_in_selector?(payload)
             payload[:collection] == '$cmd' && payload[:selector]
           end
