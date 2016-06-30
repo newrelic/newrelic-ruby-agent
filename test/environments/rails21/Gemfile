@@ -7,8 +7,7 @@ gem 'minitest', '~>4.7.5'
 gem "mocha", :require => false
 gem "jeweler", "1.4.0"
 gem "rdoc"
-
-gem 'rack'
+gem 'rack', '< 2.0.0'
 gem 'rack-test'
 gem 'newrelic_rpm', :path => "../../.."
 

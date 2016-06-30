@@ -15,7 +15,7 @@ end
 
 gem 'minitest', '5.2.3'
 gem 'mocha', :require => false
-gem 'rack'
+gem 'rack', '< 2.0.0'
 gem 'rack-test'
 
 platforms :jruby do
