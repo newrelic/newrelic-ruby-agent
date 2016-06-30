@@ -168,6 +168,8 @@ module Multiverse
     end
 
     def generate_gemfile(gemfile_text, env_index, local = true)
+      pin_rack_version_if_needed(gemfile_text)
+
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
       File.open(gemfile,'w') do |f|
         f.puts '  source "https://rubygems.org"' unless local
@@ -242,6 +244,16 @@ module Multiverse
         "gem 'rake', '< 11'"
       else
         "gem 'rake'"
+      end
+    end
+
+    # Rack 2.0 works with Ruby > 2.2.2. Earlier rubies need to pin
+    # their Rack version prior to 2.0
+    def pin_rack_version_if_needed gemfile_text
+      return if suite == "rack"
+      rx = /^\s*?gem\s*?('|")rack('|")\s*?$/
+      if gemfile_text =~ rx && RUBY_VERSION < "2.2.2"
+        gemfile_text.gsub! rx, 'gem "rack", "< 2.0.0"'
       end
     end
 
