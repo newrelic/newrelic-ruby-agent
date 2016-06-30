@@ -51,17 +51,9 @@ module NewRelic
               collection = collection_name_from_rename_selector(payload)
             end
 
-            [name, collection]
+            [name.to_s, collection]
           rescue => e
             NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
-            nil
-          end
-
-          def self.metrics_for(name, payload)
-            build_metrics(*operation_and_collection_for(name, payload))
-          rescue => e
-            NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
-            []
             nil
           end
 
