@@ -52,6 +52,9 @@ module NewRelic
             end
 
             [name, collection]
+          rescue => e
+            NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
+            nil
           end
 
           def self.metrics_for(name, payload)
@@ -59,6 +62,7 @@ module NewRelic
           rescue => e
             NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
             []
+            nil
           end
 
           MONGO_PRODUCT_NAME = "MongoDB".freeze

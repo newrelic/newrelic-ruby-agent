@@ -69,20 +69,26 @@ DependencyDetection.defer do
         { :collection => self.name, :database => self.db.name }
       end
 
-      def instrument_with_new_relic_trace(name, payload = {}, &block)
+      def new_relic_start_segment name, payload
         product = NewRelic::Agent::Datastores::Mongo::MetricTranslator::MONGO_PRODUCT_NAME
-        operation, collection = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for name, payload
-        segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection
+        op_and_col = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for name, payload
+        if op_and_col
+          NewRelic::Agent::Transaction.start_datastore_segment product, *op_and_col
+        end
+      end
+
+      def instrument_with_new_relic_trace(name, payload = {}, &block)
+        segment = new_relic_start_segment name, payload
 
         begin
           result = NewRelic::Agent.disable_all_tracing do
             instrument_without_new_relic_trace(name, payload, &block)
           end
 
-          new_relic_notice_statement(segment.start_time, payload, name)
+          new_relic_notice_statement(segment.start_time, payload, name) if segment
           result
         ensure
-          segment.finish
+          segment.finish if segment
         end
       end
 
@@ -94,19 +100,17 @@ DependencyDetection.defer do
   def instrument_save
     ::Mongo::Collection.class_eval do
       def save_with_new_relic_trace(doc, opts = {}, &block)
-        product = NewRelic::Agent::Datastores::Mongo::MetricTranslator::MONGO_PRODUCT_NAME
-        operation, collection = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for :save, new_relic_default_payload
-        segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection
+        segment = new_relic_start_segment :save, new_relic_default_payload
 
         begin
           result = NewRelic::Agent.disable_all_tracing do
             save_without_new_relic_trace(doc, opts, &block)
           end
 
-          new_relic_notice_statement(segment.start_time, doc, :save)
+          new_relic_notice_statement(segment.start_time, doc, :save) if segment
           result
         ensure
-          segment.finish
+          segment.finish if segment
         end
       end
 
@@ -118,9 +122,7 @@ DependencyDetection.defer do
   def instrument_ensure_index
     ::Mongo::Collection.class_eval do
       def ensure_index_with_new_relic_trace(spec, opts = {}, &block)
-        product = NewRelic::Agent::Datastores::Mongo::MetricTranslator::MONGO_PRODUCT_NAME
-        operation, collection = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for :ensureIndex, new_relic_default_payload
-        segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection
+        segment = new_relic_start_segment :ensureIndex, new_relic_default_payload
 
         begin
           result = NewRelic::Agent.disable_all_tracing do
@@ -136,10 +138,10 @@ DependencyDetection.defer do
                    spec.dup
                  end
 
-          new_relic_notice_statement(segment.start_time, spec, :ensureIndex)
+          new_relic_notice_statement(segment.start_time, spec, :ensureIndex) if segment
           result
         ensure
-          segment.finish
+          segment.finish if segment
         end
       end
 
