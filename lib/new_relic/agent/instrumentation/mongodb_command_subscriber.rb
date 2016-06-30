@@ -7,13 +7,13 @@ module NewRelic
   module Agent
     module Instrumentation
       class MongodbCommandSubscriber
-
         MONGODB = 'MongoDB'.freeze
         COLLECTION = "collection".freeze
 
         def started(event)
           begin
             return unless NewRelic::Agent.tl_is_execution_traced?
+            segments[event.operation_id] = start_segment event
             operations[event.operation_id] = event
           rescue Exception => e
             log_notification_error('started', e)
@@ -25,14 +25,9 @@ module NewRelic
             state = NewRelic::Agent::TransactionState.tl_get
             return unless state.is_execution_traced?
             started_event = operations.delete(event.operation_id)
-
-            base, *other_metrics = metrics(started_event)
-
-            NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(
-              base, other_metrics, event.duration
-            )
-
-            notice_nosql_statement(state, started_event, base, event.duration)
+            segment = segments.delete(event.operation_id)
+            notice_nosql_statement(state, started_event, segment.name, event.duration)
+            segment.finish
           rescue Exception => e
             log_notification_error('completed', e)
           end
@@ -42,6 +37,12 @@ module NewRelic
         alias :failed :completed
 
         private
+
+        def start_segment event
+          NewRelic::Agent::Transaction.start_datastore_segment(
+            MONGODB, event.command_name, collection(event)
+          )
+        end
 
         def collection(event)
           event.command[COLLECTION] || event.command[:collection] || event.command.values.first
@@ -60,6 +61,10 @@ module NewRelic
           @operations ||= {}
         end
 
+        def segments
+          @segments ||= {}
+        end
+
         def generate_statement(event)
           NewRelic::Agent::Datastores::Mongo::EventFormatter.format(
             event.command_name,
@@ -69,19 +74,9 @@ module NewRelic
         end
 
         def notice_nosql_statement(state, event, metric, duration)
-          end_time = Time.now.to_f
-
-          stack  = state.traced_method_stack
-
-          # enter transaction trace node
-          frame = stack.push_frame(state, :mongo_db, end_time - duration)
-
           NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(
               generate_statement(event), duration
             )
-
-          # exit transaction trace node
-          stack.pop_frame(state, frame, metric, end_time)
         end
       end
     end
