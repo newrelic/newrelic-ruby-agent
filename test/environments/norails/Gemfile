@@ -4,7 +4,13 @@ gem 'rake', '~>10.1.1'
 
 gem 'minitest', '~>4.7.5'
 gem 'mocha', :require => false
-gem 'rack'
+
+if RUBY_VERSION < '2.2.2'
+  gem 'rack', '< 2.0.0'
+else
+  gem 'rack'
+end
+
 gem 'rack-test'
 gem 'json' if RUBY_VERSION == "1.8.7"
 
