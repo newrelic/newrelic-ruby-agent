@@ -169,6 +169,7 @@ module Multiverse
 
     def generate_gemfile(gemfile_text, env_index, local = true)
       pin_rack_version_if_needed(gemfile_text)
+      pin_json_version_if_needed(gemfile_text)
 
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
       File.open(gemfile,'w') do |f|
@@ -254,6 +255,21 @@ module Multiverse
       rx = /^\s*?gem\s*?('|")rack('|")\s*?$/
       if gemfile_text =~ rx && RUBY_VERSION < "2.2.2"
         gemfile_text.gsub! rx, 'gem "rack", "< 2.0.0"'
+      end
+    end
+
+    # JSON gem version 2.0.0 requires Ruby ~> 2.0. We need to pin
+    # the json version for older rubies.
+    def pin_json_version_if_needed gemfile_text
+      return if suite == "json" || RUBY_VERSION >= "2.0.0"
+
+      match = gemfile_text.match(/^\s*?(gem\s*?('|")json('|")).*?$/)
+      if match
+        version = '< 2.0.0'
+        return if match[0].include? version
+
+        replacement = match[0].gsub(match[1], "#{match[1]}, '#{version}'")
+        gemfile_text.gsub! match[0], replacement
       end
     end
 
