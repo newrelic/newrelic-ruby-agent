@@ -11,32 +11,22 @@ module NewRelic
       module Tracing
         module ClassMethods
           def start_segment name, unscoped_metrics=nil
-            segment = create_segment name, unscoped_metrics
-            segment.start
-            segment
-          end
-
-          def create_segment name, unscoped_metrics=nil
             segment = Segment.new name, unscoped_metrics
-            setup_segment segment
+            segment.start
+            add_segment segment
             segment
           end
 
           def start_datastore_segment product, operation, collection=nil
-            segment = create_datastore_segment product, operation, collection
-            segment.start
-            segment
-          end
-
-          def create_datastore_segment product, operation, collection=nil
             segment = DatastoreSegment.new product, operation, collection
-            setup_segment segment
+            segment.start
+            add_segment segment
             segment
           end
 
           private
 
-          def setup_segment segment
+          def add_segment segment
             state = NewRelic::Agent::TransactionState.tl_get
             segment.record_metrics = state.is_execution_traced?
             if (txn = state.current_transaction) && state.is_execution_traced?
