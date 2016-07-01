@@ -13,7 +13,7 @@ BOILERPLATE
 
 if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
   gemfile <<-RB
-    gem 'activerecord', '~> 5.0.0beta3'
+    gem 'activerecord', '~> 5.0.0'
     gem 'minitest', '~> 5.2.3'
     #{boilerplate_gems}
   RB
