@@ -9,10 +9,14 @@
 
 ## v3.16.0
 
-  * Experimental Action Cable instrumentation
+  * Official Rails 5.0 support
+
+  This version of the agent has been verified against the Rails 5.0.0 release.
+
+  * Early access Action Cable instrumentation
 
   The Ruby agent instruments Action Cable channel actions and calls to
-  ActionCable::Channel#Transmit in Rails 5 RC1. Feedback is welcome!
+  ActionCable::Channel#Transmit in Rails 5. Feedback is welcome!
 
   * Obfuscate queries from `oracle_enhanced` adapter correctly
 
