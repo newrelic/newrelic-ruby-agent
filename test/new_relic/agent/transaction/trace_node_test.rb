@@ -232,7 +232,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
 
     # should have a default value
-    assert_equal(nil, s.instance_eval { @params })
+    assert_equal(nil, s.instance_eval { @params ||= nil})
     assert_equal({}, s.params)
 
     # should otherwise take the value from the @params var
@@ -329,7 +329,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_params_equal
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    assert_equal(nil, s.instance_eval { @params })
+    assert_equal(nil, s.instance_eval { @params ||= nil })
 
     params = {:foo => 'correct'}
 
@@ -353,7 +353,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_parent_node_equals
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    assert_equal(nil, s.instance_eval { @parent_node })
+    assert_equal(nil, s.instance_eval { @parent_node ||= nil})
     fake_node = mock('node')
     s.send(:parent_node=, fake_node)
     assert_equal(fake_node, s.parent_node)

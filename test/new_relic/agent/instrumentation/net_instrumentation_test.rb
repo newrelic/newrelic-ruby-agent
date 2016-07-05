@@ -16,6 +16,8 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
       :encoding_key                       => 'gringletoes'
     )
 
+    @response ||= nil
+
     @socket = fixture_tcp_socket( @response )
 
     NewRelic::Agent.instance.stats_engine.clear_stats

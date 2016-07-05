@@ -11,8 +11,8 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
   def setup
     NewRelic::Cli::Deployments.class_eval do
       attr_accessor :messages, :exit_status, :errors, :revision, :license_key
-      def err(message); @errors = @errors ? @errors + message : message; end
-      def info(message); @messages = @messages ? @messages + message : message; end
+      def err(message); @errors = "#{@errors ||= nil}#{message}"; end
+      def info(message); @messages = "#{@messages ||=nil}#{message}"; end
       def just_exit(status=0); @exit_status ||= status; end
     end
     @config = { :license_key => 'a' * 40,
@@ -37,12 +37,14 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
     rescue NewRelic::Cli::Command::CommandFailure => c
       assert_match(/^Usage/, c.message)
     end
+    @deployment = nil
   end
 
   def test_bad_command
     assert_raises NewRelic::Cli::Command::CommandFailure do
       NewRelic::Cli::Deployments.new ["-foo", "bar"]
     end
+    @deployment = nil
   end
 
   def test_interactive
@@ -81,6 +83,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
         deployment.run
       end
     end
+    @deployment = nil
   end
 
   def test_error_if_failed_yaml
@@ -90,6 +93,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
       deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
       deployment.run
     end
+    @deployment = nil
   end
 
   def test_with_specified_license_key

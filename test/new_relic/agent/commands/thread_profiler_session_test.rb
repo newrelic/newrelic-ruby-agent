@@ -20,6 +20,7 @@ module ThreadProfilerSessionTestHelpers
     "only_request_threads" => false,
     "profile_agent_code" => false,
   }
+
   STOP = {
     "profile_id" => 42,
     "report_data" => true,
