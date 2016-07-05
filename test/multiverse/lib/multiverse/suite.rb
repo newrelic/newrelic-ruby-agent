@@ -181,7 +181,7 @@ module Multiverse
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts rake_line unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
         if RUBY_VERSION == "1.8.7"
-          f.puts "gem 'json'" unless gemfile_text =~ /^\s.*gem .json./
+          f.puts "gem 'json', '< 2.0.0'" unless gemfile_text =~ /^\s.*gem .json./
         end
 
         rbx_gemfile_lines(f, gemfile_text)
@@ -259,9 +259,14 @@ module Multiverse
     end
 
     # JSON gem version 2.0.0 requires Ruby ~> 2.0. We need to pin
-    # the json version for older rubies.
+    # the json version for older rubies. In some cases json is pulled
+    # in by other libraries without pinning the version. For older rubies
+    # we will preemptively require json with an appropriate version. None of
+    # this is ideal and should be fixed, either by this PR to bundler:
+    # https://github.com/bundler/bundler/pull/4650 or with a better solution
+    # in mutiverse.
     def pin_json_version_if_needed gemfile_text
-      return if suite == "json" || RUBY_VERSION >= "2.0.0"
+      return if suite == "json" || suite == "no_json" || RUBY_VERSION >= "2.0.0"
 
       match = gemfile_text.match(/^\s*?(gem\s*?('|")json('|")).*?$/)
       if match
@@ -270,6 +275,8 @@ module Multiverse
 
         replacement = match[0].gsub(match[1], "#{match[1]}, '#{version}'")
         gemfile_text.gsub! match[0], replacement
+      else
+        gemfile_text.concat "\ngem 'json', '< 2.0.0'\n"
       end
     end
 
