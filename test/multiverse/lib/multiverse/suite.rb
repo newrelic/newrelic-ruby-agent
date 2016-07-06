@@ -169,6 +169,7 @@ module Multiverse
 
     def generate_gemfile(gemfile_text, env_index, local = true)
       pin_rack_version_if_needed(gemfile_text)
+      pin_json_version_if_needed(gemfile_text)
 
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
       File.open(gemfile,'w') do |f|
@@ -180,7 +181,7 @@ module Multiverse
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts rake_line unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
         if RUBY_VERSION == "1.8.7"
-          f.puts "gem 'json'" unless gemfile_text =~ /^\s.*gem .json./
+          f.puts "gem 'json', '< 2.0.0'" unless gemfile_text =~ /^\s.*gem .json./
         end
 
         rbx_gemfile_lines(f, gemfile_text)
@@ -255,6 +256,37 @@ module Multiverse
       if gemfile_text =~ rx && RUBY_VERSION < "2.2.2"
         gemfile_text.gsub! rx, 'gem "rack", "< 2.0.0"'
       end
+    end
+
+    # JSON gem version 2.0.0 requires Ruby ~> 2.0. We need to pin
+    # the json version for older rubies. In some cases json is pulled
+    # in by other libraries without pinning the version. For older rubies
+    # we will preemptively require json with an appropriate version. None of
+    # this is ideal and should be fixed, either by this PR to bundler:
+    # https://github.com/bundler/bundler/pull/4650 or with a better solution
+    # in mutiverse.
+    def pin_json_version_if_needed gemfile_text
+      return if suite == "json" || suite == "no_json" ||
+        RUBY_VERSION >= "2.0.0" && !pin_json_for_jruby?
+
+      match = gemfile_text.match(/^\s*?(gem\s*?('|")json('|")).*?$/)
+      if match
+        version = '< 2.0.0'
+        return if match[0].include? version
+
+        replacement = match[0].gsub(match[1], "#{match[1]}, '#{version}'")
+        gemfile_text.gsub! match[0], replacement
+      else
+        gemfile_text.concat "\ngem 'json', '< 2.0.0'\n"
+      end
+    end
+
+    # Bundler does not seem to be able to find version 2.0.1 of the json
+    # gem for jruby 9000. This is likely a temporary situation and we
+    # can probably remove this check in the near future. For now we need
+    # this for CI to pass.
+    def pin_json_for_jruby?
+      defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && RUBY_VERSION >= "2.0.0"
     end
 
     def print_environment
