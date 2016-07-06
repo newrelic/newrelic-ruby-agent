@@ -266,7 +266,8 @@ module Multiverse
     # https://github.com/bundler/bundler/pull/4650 or with a better solution
     # in mutiverse.
     def pin_json_version_if_needed gemfile_text
-      return if suite == "json" || suite == "no_json" || RUBY_VERSION >= "2.0.0"
+      return if suite == "json" || suite == "no_json" ||
+        RUBY_VERSION >= "2.0.0" && !pin_json_for_jruby?
 
       match = gemfile_text.match(/^\s*?(gem\s*?('|")json('|")).*?$/)
       if match
@@ -278,6 +279,14 @@ module Multiverse
       else
         gemfile_text.concat "\ngem 'json', '< 2.0.0'\n"
       end
+    end
+
+    # Bundler does not seem to be able to find version 2.0.1 of the json
+    # gem for jruby 9000. This is likely a temporary situation and we
+    # can probably remove this check in the near future. For now we need
+    # this for CI to pass.
+    def pin_json_for_jruby?
+      defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && RUBY_VERSION >= "2.0.0"
     end
 
     def print_environment
