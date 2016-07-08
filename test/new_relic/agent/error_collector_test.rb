@@ -250,17 +250,33 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_extract_stack_trace
-    exception = mock('exception', :original_exception => nil,
+    exception = mock('exception', :cause => nil,
+                                  :original_exception => nil,
                                   :backtrace => nil)
 
     assert_equal('<no stack trace>', @error_collector.extract_stack_trace(exception))
   end
 
-  def test_extract_stack_trace_positive
-    orig = mock('original', :backtrace => "STACK STACK STACK")
-    exception = mock('exception', :original_exception => orig)
+  def test_extract_stack_trace_uses_cause_first
+    nested_exception = mock('exception', :backtrace => "Foo STACK")
+    exception = mock('exception', :cause => nested_exception)
 
-    assert_equal('STACK STACK STACK', @error_collector.extract_stack_trace(exception))
+    assert_equal('Foo STACK', @error_collector.extract_stack_trace(exception))
+  end
+
+  def test_extract_stack_trace_uses_original_exception_second
+    nested_exception = mock('exception', :backtrace => "Bar STACK")
+    exception = mock('exception', :cause => nil, :original_exception => nested_exception)
+
+    assert_equal('Bar STACK', @error_collector.extract_stack_trace(exception))
+  end
+
+  def test_extract_stack_trace_uses_backtrace_last
+    exception = mock('exception', :cause => nil,
+                                  :original_exception => nil,
+                                  :backtrace => "Baz STACK")
+
+    assert_equal('Baz STACK', @error_collector.extract_stack_trace(exception))
   end
 
   def test_skip_notice_error_is_true_if_the_error_collector_is_disabled
