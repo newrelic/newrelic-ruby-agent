@@ -86,15 +86,19 @@ module NewRelic
         ACTIVE_RECORD = "ActiveRecord".freeze unless defined?(ACTIVE_RECORD)
         OTHER         = "other".freeze unless defined?(OTHER)
 
-        def metrics_for(name, sql, adapter_name)
+        def product_operation_collection_for name, sql, adapter_name
           product   = map_product(adapter_name)
           splits    = split_name(name)
           model     = model_from_splits(splits)
           operation = operation_from_splits(splits, sql)
+          NewRelic::Agent::Datastores::MetricHelper.product_operation_collection_for product, operation, model, ACTIVE_RECORD
+        end
 
+        def metrics_for(name, sql, adapter_name)
+          product, operation, collection = product_operation_collection_for(name, sql, adapter_name)
           NewRelic::Agent::Datastores::MetricHelper.metrics_for(product,
                                                                 operation,
-                                                                model,
+                                                                collection,
                                                                 ACTIVE_RECORD)
         end
 
