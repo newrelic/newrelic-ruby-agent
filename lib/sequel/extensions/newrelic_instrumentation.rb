@@ -32,8 +32,30 @@ module Sequel
   #
   module NewRelicInstrumentation
 
+    def self.extended(db)
+      if db.respond_to?(:log_connection_yield)
+        db.extend(LogConnectionYield)
+      else
+        db.extend(LogYield)
+      end
+    end
+
+    module LogConnectionYield
+      def log_connection_yield(sql, conn, args=nil) #THREAD_LOCAL_ACCESS
+        trace_log_yield(sql, args) { super }
+      end
+    end
+
+    module LogYield
+      # Override #log_yield for backward compatibility with versions <= 4.34
+      # See https://github.com/jeremyevans/sequel/commit/aab4d16f842256211420755648f242e768d4834c
+      def log_yield(sql, args=nil, &block)
+        trace_log_yield(sql, args) { super }
+      end
+    end
+
     # Instrument all queries that go through #execute_query.
-    def log_yield(sql, args=nil) #THREAD_LOCAL_ACCESS
+    def trace_log_yield(sql, args, &block)
       rval = nil
       product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(self.class.adapter_scheme)
       metrics = NewRelic::Agent::Datastores::MetricHelper.metrics_from_sql(product, sql)
@@ -42,7 +64,7 @@ module Sequel
       NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
         t0 = Time.now
         begin
-          rval = super
+          rval = yield
         ensure
           notice_sql(sql, scoped_metric, args, t0, Time.now)
         end
