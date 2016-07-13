@@ -44,29 +44,26 @@ module NewRelic
           end
 
           sql, name, _ = args
-          metrics = ActiveRecordHelper.metrics_for(
+
+          product, operation, collection = ActiveRecordHelper.product_operation_collection_for(
             NewRelic::Helper.correctly_encoded(name),
             NewRelic::Helper.correctly_encoded(sql),
             @config && @config[:adapter])
 
-          # It is critical that we grab this name before trace_execution_scoped
-          # because that method mutates the metrics list passed in.
-          scoped_metric = metrics.first
+          segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection)
 
-          NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-            t0 = Time.now
-            begin
-              log_without_newrelic_instrumentation(*args, &block)
-            ensure
-              elapsed_time = (Time.now - t0).to_f
+          begin
+            log_without_newrelic_instrumentation(*args, &block)
+          ensure
+            elapsed_time = (Time.now - segment.start_time).to_f
 
-              NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
-                                                    @config, elapsed_time,
-                                                    state, EXPLAINER)
-              NewRelic::Agent.instance.sql_sampler.notice_sql(sql, scoped_metric,
-                                                    @config, elapsed_time,
-                                                    state, EXPLAINER)
-            end
+            NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
+                                                  @config, elapsed_time,
+                                                  state, EXPLAINER)
+            NewRelic::Agent.instance.sql_sampler.notice_sql(sql, segment.name,
+                                                  @config, elapsed_time,
+                                                  state, EXPLAINER)
+            segment.finish
           end
         end
       end
