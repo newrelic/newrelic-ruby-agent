@@ -67,14 +67,18 @@ module NewRelic
           metrics
         end
 
-        def self.metrics_for(product, operation, collection = nil, generic_product = nil)
+        def self.product_operation_collection_for product, operation, collection=nil, generic_product = nil
           if overrides = overridden_operation_and_collection
             if should_override?(overrides, product, generic_product)
               operation  = overrides[0] || operation
               collection = overrides[1] || collection
             end
           end
+          [product, operation, collection]
+        end
 
+        def self.metrics_for(product, operation, collection = nil, generic_product = nil)
+          product, operation, collection = product_operation_collection_for(product, operation, collection, generic_product)
           suffix = all_suffix
 
           # Order of these metrics matters--the first metric in the list will

@@ -109,19 +109,11 @@ module NewRelic
         assert_equal expected, result
       end
 
-      def test_metrics_for_obeys_collection_and_operation_overrides
+      def test_product_operation_collection_for_obeys_collection_and_operation_overrides
         in_transaction do
           NewRelic::Agent.with_database_metric_name("Model", "new_method") do
-            expected = [
-              "Datastore/statement/JonanDB/Model/new_method",
-              "Datastore/operation/JonanDB/new_method",
-              "Datastore/JonanDB/allOther",
-              "Datastore/JonanDB/all",
-              "Datastore/allOther",
-              "Datastore/all"
-            ]
-
-            result = Datastores::MetricHelper.metrics_for(@product, "original_method")
+            result = Datastores::MetricHelper.product_operation_collection_for(@product, "original_method")
+            expected = [@product, "new_method", "Model"]
             assert_equal expected, result
           end
         end
@@ -130,16 +122,8 @@ module NewRelic
       def test_metrics_for_obeys_collection_override
         in_transaction do
           NewRelic::Agent.with_database_metric_name("Model", nil) do
-            expected = [
-              "Datastore/statement/JonanDB/Model/original_method",
-              "Datastore/operation/JonanDB/original_method",
-              "Datastore/JonanDB/allOther",
-              "Datastore/JonanDB/all",
-              "Datastore/allOther",
-              "Datastore/all"
-            ]
-
-            result = Datastores::MetricHelper.metrics_for(@product, "original_method")
+            result = Datastores::MetricHelper.product_operation_collection_for(@product, "original_method")
+            expected = [@product, "original_method", "Model"]
             assert_equal expected, result
           end
         end
@@ -148,15 +132,8 @@ module NewRelic
       def test_metrics_ignore_overrides_for_other_products
         in_transaction do
           NewRelic::Agent.with_database_metric_name("Model", "new_method", "FauxDB") do
-            expected = [
-              "Datastore/operation/JonanDB/original_method",
-              "Datastore/JonanDB/allOther",
-              "Datastore/JonanDB/all",
-              "Datastore/allOther",
-              "Datastore/all"
-            ]
-
-            result = Datastores::MetricHelper.metrics_for(@product, "original_method")
+            result = Datastores::MetricHelper.product_operation_collection_for(@product, "original_method")
+            expected = [@product, "original_method", nil]
             assert_equal expected, result
           end
         end
@@ -165,16 +142,8 @@ module NewRelic
       def test_metrics_applies_overrides_by_generic_product_name
         in_transaction do
           NewRelic::Agent.with_database_metric_name("Model", "new_method") do
-            expected = [
-              "Datastore/statement/MoreSpecificDB/Model/new_method",
-              "Datastore/operation/MoreSpecificDB/new_method",
-              "Datastore/MoreSpecificDB/allOther",
-              "Datastore/MoreSpecificDB/all",
-              "Datastore/allOther",
-              "Datastore/all"
-            ]
-
-            result = Datastores::MetricHelper.metrics_for("MoreSpecificDB", "original_method", nil, @product)
+            result = Datastores::MetricHelper.product_operation_collection_for("MoreSpecificDB", "original_method", nil, @product)
+            expected = ["MoreSpecificDB", "new_method", "Model"]
             assert_equal expected, result
           end
         end
