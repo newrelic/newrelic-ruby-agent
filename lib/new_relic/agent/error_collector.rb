@@ -185,8 +185,8 @@ module NewRelic
 
       # extracts a stack trace from the exception for debugging purposes
       def extract_stack_trace(exception)
-        actual_exception = sense_method(exception, 'cause') || sense_method(exception, 'original_exception') || exception
-        sense_method(actual_exception, 'backtrace') || '<no stack trace>'
+        actual_exception = sense_method(exception, :cause) || sense_method(exception, :original_exception) || exception
+        sense_method(actual_exception, :backtrace) || '<no stack trace>'
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
