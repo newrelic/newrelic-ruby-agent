@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Fix deprecation warnings from various Rails error subclasses
+
+  Rails 5 deprecates #original_exception on a few internal subclasses of
+  StandardError in favor of Exception#cause from Ruby stdlib. The agent has
+  been updated to try Exception#cause first, thus avoiding deprecation
+  warnings. Thanks Alexander Stuart-Kregor for the contribution!
+
+
   * Fix instrumentation for Sequel 4.35.0
 
   The latest version of Sequel changes the name and signature of the method
