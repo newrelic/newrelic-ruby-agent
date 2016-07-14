@@ -13,7 +13,6 @@ module NewRelic
           @name = name
           @children_time = 0.0
           @record_metrics = true
-          @ignored = false
           @transaction = nil
         end
 
@@ -23,10 +22,10 @@ module NewRelic
 
         def finish
           @end_time = Time.now
-          @duration = @end_time.to_f - @start_time.to_f
-          @exclusive_duration = @duration - children_time
+          @duration = end_time.to_f - start_time.to_f
+          @exclusive_duration = duration - children_time
           record_metrics if record_metrics?
-          @transaction.segment_complete self if transaction && !ignored?
+          @transaction.segment_complete self if transaction
         rescue => e
           # This rescue block was added for the benefit of this test:
           # test/multiverse/suites/bare/standalone_instrumentation_test.rb
@@ -34,16 +33,8 @@ module NewRelic
           NewRelic::Agent.logger.error "Exception finishing segment: #{name}", e
         end
 
-        def ignore!
-          @ignored = true
-        end
-
-        def ignored?
-          @ignored
-        end
-
         def record_metrics?
-          @record_metrics && !ignored?
+          @record_metrics
         end
 
         def record_metrics= value
@@ -57,8 +48,8 @@ module NewRelic
         private
 
         def metric_cache
-          if @transaction
-            @transaction.metrics
+          if transaction
+            transaction.metrics
           else
             NewRelic::Agent.instance.stats_engine
           end

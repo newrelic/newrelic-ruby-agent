@@ -8,10 +8,9 @@ module NewRelic
   module TestHelpers
     module MongoMetricBuilder
       def build_test_metrics(name)
-        NewRelic::Agent::Datastores::Mongo::MetricTranslator.build_metrics(
-          name,
-          @collection_name
-        )
+        NewRelic::Agent::Datastores::MetricHelper.metrics_for("MongoDB",
+                                                              name,
+                                                              @collection_name)
       end
 
       def metrics_with_attributes(metrics, attributes = { :call_count => 1 })

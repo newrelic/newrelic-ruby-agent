@@ -13,94 +13,60 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
     @collection_name = 'tribbles'
   end
 
-  def test_metrics_for_insert
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:insert, { :collection => @collection_name })
-    expected = build_test_metrics(:insert)
-
-    assert_equal expected, metrics
+  def test_operation_and_collection_for_insert
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:insert, { :collection => @collection_name })
+    assert_equal ['insert', @collection_name], result
   end
 
-  def test_build_metrics_includes_web
-    in_web_transaction do
-      metrics = build_test_metrics('test')
-      assert_includes metrics, 'Datastore/allWeb'
-    end
+  def test_operation_and_collection_for_is_graceful_if_exceptions_are_raised
+    NewRelic::Agent::Datastores::Mongo::MetricTranslator.stubs(:find_one?).raises("Boom")
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, {})
+    assert_nil result
   end
 
-  def test_build_metrics_includes_other
-    in_background_transaction do
-      metrics = build_test_metrics('test')
-      assert_includes metrics, 'Datastore/allOther'
-    end
-  end
-
-  def test_build_metrics_includes_all_for_web
-    in_web_transaction do
-      metrics = build_test_metrics('test')
-      assert_includes metrics, 'Datastore/all'
-    end
-  end
-
-  def test_build_metrics_includes_all_for_other
-    in_background_transaction do
-      metrics = build_test_metrics('test')
-      assert_includes metrics, 'Datastore/all'
-    end
-  end
-
-  def test_build_metrics_is_graceful_if_exceptions_are_raised
-    NewRelic::Agent::Datastores::MetricHelper.stubs(:metrics_for).raises("Boom")
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, {})
-    assert_empty metrics
-  end
-
-  def test_metrics_for_find
+  def test_operation_and_collection_for_find
     payload = { :database   => @database_name,
                 :collection => @collection_name,
                 :selector   => { "name" => "soterios johnson" } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:find)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['find', @collection_name], result
   end
 
-  def test_metrics_for_find_one
+  def test_operation_and_collection_for_find_one
     payload = { :database   => @database_name,
                 :collection => @collection_name,
                 :selector   => {},
                 :limit      => -1 }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:findOne)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['findOne' ,@collection_name], result
   end
 
-  def test_metrics_for_remove
+  def test_operation_and_collection_for_remove
     payload = { :database   => @database_name,
                 :collection => @collection_name,
                 :selector   => { "name" => "soterios johnson" } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:remove, payload)
-    expected = build_test_metrics(:remove)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:remove, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['remove', @collection_name], result
   end
 
-  def test_metrics_for_update
+  def test_operation_and_collection_for_update
     payload = { :database   => @database_name,
                 :collection => @collection_name,
                 :selector   => { "name" => "soterios johnson" },
                 :document   => { "name" => "codemonkey" } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:update, payload)
-    expected = build_test_metrics(:update)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:update, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['update', @collection_name], result
   end
 
-  def test_metrics_for_distinct
+  def test_operation_and_collection_for_distinct
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
@@ -108,13 +74,12 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
                                  :key      => "name",
                                  :query    => nil } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:distinct, payload)
-    expected = build_test_metrics(:distinct)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:distinct, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['distinct', @collection_name], result
   end
 
-  def test_metrics_for_count
+  def test_operation_and_collection_for_count
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
@@ -122,13 +87,12 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
                                  "query"  => {},
                                  "fields" => nil } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:count)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['count', @collection_name], result
   end
 
-  def test_metrics_for_group
+  def test_operation_and_collection_for_group
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
@@ -138,26 +102,24 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
                                               "initial" => {:count=>0},
                                               "key"     => {"name"=>1}}}}
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:group)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['group', @collection_name], result
   end
 
-  def test_metrics_for_aggregate
+  def test_operation_and_collection_for_aggregate
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   =>  { "aggregate" => @collection_name,
                                   "pipeline" => [{"$group" => {:_id => "$says", :total => {"$sum" => 1}}}]}}
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:aggregate)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['aggregate', @collection_name], result
   end
 
-  def test_metrics_for_mapreduce
+  def test_operation_and_collection_for_mapreduce
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
@@ -166,14 +128,13 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
                                   "reduce" => stub("BSON::Code"),
                                   :out => "results"}}
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:mapreduce)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['mapreduce', @collection_name], result
   end
 
 
-  def test_metrics_for_find_and_modify
+  def test_operation_and_collection_for_find_and_modify
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
@@ -181,13 +142,12 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
                                  :query         => { "name" => "soterios johnson" },
                                  :update        => {"name" => "codemonkey" } } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:findAndModify)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['findAndModify', @collection_name], result
   end
 
-  def test_metrics_for_find_and_remove
+  def test_operation_and_collection_for_find_and_remove
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
@@ -195,89 +155,82 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
                                  :query         => { "name" => "soterios johnson" },
                                  :remove        => true } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:findAndRemove)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['findAndRemove', @collection_name], result
   end
 
-  def test_metrics_for_create_index
+  def test_operation_and_collection_for_create_index
     payload = { :database   => @database_name,
                 :collection => "system.indexes",
                 :documents  => [ { :name => "name_1",
                                     :ns   => "#{@database_name}.#{@collection_name}",
                                     :key  => { "name" => 1 } } ] }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:insert, payload)
-    expected = build_test_metrics(:createIndex)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:insert, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['createIndex', @collection_name], result
   end
 
-  def test_metrics_for_drop_indexes
+  def test_operation_and_collection_for_drop_indexes
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector => { :deleteIndexes => @collection_name,
                                :index         => "*" } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:dropIndexes)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['dropIndexes', @collection_name], result
   end
 
-  def test_metrics_for_drop_index
+  def test_operation_and_collection_for_drop_index
     payload = { :database => @database_name,
                 :collection => "$cmd",
                 :limit => -1,
                 :selector => { :deleteIndexes => @collection_name,
                                :index => "name_1" } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:dropIndex)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['dropIndex', @collection_name], result
   end
 
-  def test_metrics_for_reindex
+  def test_operation_and_collection_for_reindex
     payload = { :database => @database_name,
                 :collection => "$cmd",
                 :limit => -1,
                 :selector => { :reIndex=> @collection_name } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:reIndex)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['reIndex', @collection_name], result
   end
 
-  def test_metrics_for_drop_collection
+  def test_operation_and_collection_for_drop_collection
     payload = { :database   => @database_name,
                 :collection =>"$cmd",
                 :limit      => -1,
                 :selector   => { :drop => @collection_name } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:drop)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['drop', @collection_name], result
   end
 
-  def test_metrics_for_rename_collection
+  def test_operation_and_collection_for_rename_collection
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   => { :renameCollection => "#{@database_name}.#{@collection_name}",
                                  :to=>"#{@database_name}.renamed_#{@collection_name}" } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:renameCollection)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['renameCollection', @collection_name], result
   end
 
-  def test_metrics_for_ismaster
+  def test_operation_and_collection_for_ismaster
     payload = { :database   => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
@@ -285,25 +238,23 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
     @collection_name = "$cmd"
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:ismaster)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['ismaster', @collection_name], result
   end
 
-  def test_metrics_for_collstats
+  def test_operation_and_collection_for_collstats
     payload = { :database   => @database_name,
                 :collection =>"$cmd",
                 :limit      => -1,
                 :selector   => { :collstats => @collection_name } }
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:collstats)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['collstats', @collection_name], result
   end
 
-  def test_metrics_for_unknown_command
+  def test_operation_and_collection_for_unknown_command
     payload = { :database => @database_name,
                 :collection => "$cmd",
                 :limit => -1,
@@ -311,10 +262,9 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
     @collection_name = "$cmd"
 
-    metrics = NewRelic::Agent::Datastores::Mongo::MetricTranslator.metrics_for(:find, payload)
-    expected = build_test_metrics(:mongomongomongo)
+    result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal expected, metrics
+    assert_equal ['mongomongomongo', @collection_name], result
     assert_metrics_recorded(["Supportability/Mongo/UnknownCollection"])
   end
 end
