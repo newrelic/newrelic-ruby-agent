@@ -143,7 +143,7 @@ module NewRelic
               strategy = NewRelic::Agent::Database.record_sql_method(:slow_sql)
               case strategy
               when :obfuscated
-                adapter_name = self.respond_to?(:options) ? self.options[:adapter] : self.repository.adapter.uri.scheme
+                adapter_name = self.respond_to?(:options) ? self.options[:adapter] : self.repository.adapter.options[:adapter]
                 statement = NewRelic::Agent::Database::Statement.new(e.query, :adapter => adapter_name)
                 obfuscated_sql = NewRelic::Agent::Database.obfuscate_sql(statement)
                 e.instance_variable_set(:@query, obfuscated_sql)
