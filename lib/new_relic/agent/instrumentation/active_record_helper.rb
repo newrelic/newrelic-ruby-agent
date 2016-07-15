@@ -94,14 +94,6 @@ module NewRelic
           NewRelic::Agent::Datastores::MetricHelper.product_operation_collection_for product, operation, model, ACTIVE_RECORD
         end
 
-        def metrics_for(name, sql, adapter_name)
-          product, operation, collection = product_operation_collection_for(name, sql, adapter_name)
-          NewRelic::Agent::Datastores::MetricHelper.metrics_for(product,
-                                                                operation,
-                                                                collection,
-                                                                ACTIVE_RECORD)
-        end
-
         # @deprecated
         def rollup_metrics_for(*_)
           NewRelic::Agent::Deprecator.deprecate("ActiveRecordHelper.rollup_metrics_for",
