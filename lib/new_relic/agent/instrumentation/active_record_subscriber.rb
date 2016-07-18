@@ -111,14 +111,12 @@ module NewRelic
 
           def notice_sql
             NewRelic::Agent.instance.transaction_sampler \
-              .notice_sql(sql, @config,
-                          Helper.milliseconds_to_seconds(duration),
-                          state, @explainer, payload[:binds], payload[:name])
+              .notice_sql(sql, @config, duration, state, @explainer,
+                          payload[:binds], payload[:name])
 
             NewRelic::Agent.instance.sql_sampler \
-              .notice_sql(sql, @segment.name, @config,
-                          Helper.milliseconds_to_seconds(duration),
-                          state, @explainer, payload[:binds], payload[:name])
+              .notice_sql(sql, @segment.name, @config, duration, state,
+                          @explainer, payload[:binds], payload[:name])
           end
         end
       end
