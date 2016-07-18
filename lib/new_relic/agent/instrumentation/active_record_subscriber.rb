@@ -23,7 +23,8 @@ module NewRelic
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
           return if payload[:name] == CACHED_QUERY_NAME
           return unless NewRelic::Agent.tl_is_execution_traced?
-          event = ActiveRecordEvent.new(name, Time.now, nil, id, payload, @explainer)
+          config = active_record_config(payload)
+          event = ActiveRecordEvent.new(name, Time.now, nil, id, payload, @explainer, config)
           push_event(event)
         rescue => e
           log_notification_error(e, name, 'start')
@@ -51,10 +52,28 @@ module NewRelic
           end
         end
 
+        def active_record_config(payload)
+          return unless payload[:connection_id]
+
+          connection = nil
+          connection_id = payload[:connection_id]
+
+          ::ActiveRecord::Base.connection_handler.connection_pool_list.each do |handler|
+            connection = handler.connections.detect do |conn|
+              conn.object_id == connection_id
+            end
+
+            break if connection
+          end
+
+          connection.instance_variable_get(:@config) if connection
+        end
+
         class ActiveRecordEvent < Event
-          def initialize(name, start, ending, transaction_id, payload, explainer)
+          def initialize(name, start, ending, transaction_id, payload, explainer, config)
             super(name, start, ending, transaction_id, payload)
             @explainer = explainer
+            @config = config
             @segment = start_segment
           end
 
@@ -65,7 +84,7 @@ module NewRelic
           # we need to work around this limitation.
           def start_segment
             product, operation, collection = ActiveRecordHelper.product_operation_collection_for(payload[:name],
-                                              sql, config && config[:adapter])
+                                              sql, @config && @config[:adapter])
             segment = NewRelic::Agent::Transaction::DatastoreSegment.new product, operation, collection
             if txn = state.current_transaction
               segment.transaction = txn
@@ -90,33 +109,14 @@ module NewRelic
             @sql ||= Helper.correctly_encoded payload[:sql]
           end
 
-          def config
-            @config ||= begin
-              if payload[:connection_id]
-                connection = nil
-                connection_id = payload[:connection_id]
-
-                ::ActiveRecord::Base.connection_handler.connection_pool_list.each do |handler|
-                  connection = handler.connections.detect do |conn|
-                    conn.object_id == connection_id
-                  end
-
-                  break if connection
-                end
-
-                connection.instance_variable_get(:@config) if connection
-              end
-            end
-          end
-
           def notice_sql
             NewRelic::Agent.instance.transaction_sampler \
-              .notice_sql(sql, config,
+              .notice_sql(sql, @config,
                           Helper.milliseconds_to_seconds(duration),
                           state, @explainer, payload[:binds], payload[:name])
 
             NewRelic::Agent.instance.sql_sampler \
-              .notice_sql(sql, @segment.name, config,
+              .notice_sql(sql, @segment.name, @config,
                           Helper.milliseconds_to_seconds(duration),
                           state, @explainer, payload[:binds], payload[:name])
           end

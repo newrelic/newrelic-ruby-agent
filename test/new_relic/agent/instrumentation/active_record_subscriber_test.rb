@@ -119,10 +119,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     target_connection = ActiveRecord::Base.connection_handler.connection_pool_list.first.connections.first
     expected_config = target_connection.instance_variable_get(:@config)
 
-    event = mock('event')
-    event.stubs(:payload).returns({ :connection_id => target_connection.object_id })
+    payload = { :connection_id => target_connection.object_id }
 
-    result = @subscriber.active_record_config_for_event(event)
+    result = @subscriber.active_record_config(payload)
     assert_equal expected_config, result
   end
 end
