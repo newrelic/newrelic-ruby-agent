@@ -119,7 +119,7 @@ module NewRelic
         end
       end
 
-      def test_metrics_for_obeys_collection_override
+      def test_product_operation_collection_for_obeys_collection_override
         in_transaction do
           NewRelic::Agent.with_database_metric_name("Model", nil) do
             result = Datastores::MetricHelper.product_operation_collection_for(@product, "original_method")
@@ -129,7 +129,7 @@ module NewRelic
         end
       end
 
-      def test_metrics_ignore_overrides_for_other_products
+      def test_product_operation_collection_for_ignore_overrides_for_other_products
         in_transaction do
           NewRelic::Agent.with_database_metric_name("Model", "new_method", "FauxDB") do
             result = Datastores::MetricHelper.product_operation_collection_for(@product, "original_method")
@@ -139,7 +139,7 @@ module NewRelic
         end
       end
 
-      def test_metrics_applies_overrides_by_generic_product_name
+      def test_product_operation_collection_for_applies_overrides_by_generic_product_name
         in_transaction do
           NewRelic::Agent.with_database_metric_name("Model", "new_method") do
             result = Datastores::MetricHelper.product_operation_collection_for("MoreSpecificDB", "original_method", nil, @product)
