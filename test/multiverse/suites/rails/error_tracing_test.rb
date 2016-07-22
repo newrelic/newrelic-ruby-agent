@@ -134,8 +134,8 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
 
   def test_should_capture_error_raised_in_view
     get '/error/view_error'
-    assert_error_reported_once('this is an uncaught view error',
-                               'Controller/error/view_error')
+    assert_equal 1, errors.size
+    assert_includes ['this is an uncaught view error', 'ActionView::Template::Error'], errors[0].message
   end
 
   def test_should_capture_error_raised_in_controller

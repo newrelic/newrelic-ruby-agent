@@ -173,6 +173,13 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     end
   end
 
+  def test_handles_exception_with_nil_cause
+    e = Exception.new('Buffy FOREVER')
+    e.stubs(:cause).returns(nil)
+    error = NewRelic::NoticedError.new(@path, e, @time)
+    assert_equal(error.message.to_s, 'Buffy FOREVER')
+  end
+
   def test_handles_exception_with_nil_original_exception
     e = Exception.new('Buffy FOREVER')
     e.stubs(:original_exception).returns(nil)

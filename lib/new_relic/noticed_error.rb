@@ -30,7 +30,9 @@ class NewRelic::NoticedError
 
     if exception.nil?
       @message = '<no message>'
-    elsif exception.respond_to?('original_exception')
+    elsif exception.respond_to?(:cause)
+      @message = (exception.cause || exception).to_s
+    elsif exception.respond_to?(:original_exception)
       @message = (exception.original_exception || exception).to_s
     else # exception is not nil, but does not respond to original_exception
       @message = exception.to_s
