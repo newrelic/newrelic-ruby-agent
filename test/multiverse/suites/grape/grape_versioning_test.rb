@@ -47,11 +47,23 @@ unless ::Grape::VERSION == '0.1.5'
     end
 
     #version from http accept header is not supported in older versions of grape
-    if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('4.0.0')
+    if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('0.16.0')
       def test_version_from_accept_version_header_is_recorded_in_transaction_name
         @app_class = GrapeVersioning::ApiV4
         get '/fish', {}, 'HTTP_ACCEPT_VERSION' => 'v4'
         assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV4-v4/fish (GET)')
+      end
+
+      def test_version_from_accept_version_header_is_recorded_in_transaction_name_cascading_versions_penultimate
+        @app_class = GrapeVersioning::CascadingAPI
+        get '/fish', {}, 'HTTP_ACCEPT_VERSION' => 'v4'
+        assert_metrics_recorded('Controller/Grape/GrapeVersioning::CascadingAPI-v4/fish (GET)')
+      end
+
+      def test_version_from_accept_version_header_is_recorded_in_transaction_name_cascading_versions_latest
+        @app_class = GrapeVersioning::CascadingAPI
+        get '/fish', {}, 'HTTP_ACCEPT_VERSION' => 'v5'
+        assert_metrics_recorded('Controller/Grape/GrapeVersioning::CascadingAPI-v5/fish (GET)')
       end
     end
 
