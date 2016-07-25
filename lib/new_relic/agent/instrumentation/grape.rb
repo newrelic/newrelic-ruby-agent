@@ -11,43 +11,46 @@ module NewRelic
         extend self
 
         API_ENDPOINT   = 'api.endpoint'.freeze
+        API_VERSION    = 'api.version'.freeze
         FORMAT_REGEX   = /\(\/?\.[\:\w]*\)/.freeze # either :format (< 0.12.0) or .ext (>= 0.12.0)
         VERSION_REGEX  = /:version(\/|$)/.freeze
         EMPTY_STRING   = ''.freeze
         MIN_VERSION    = VersionNumber.new("0.2.0")
 
-        def handle_transaction(endpoint, class_name)
+        def handle_transaction(endpoint, class_name, version)
           return unless endpoint && route = endpoint.route
-          name_transaction(route, class_name)
+          name_transaction(route, class_name, version)
           capture_params(endpoint)
         end
 
-        def name_transaction(route, class_name)
-          txn_name = name_for_transaction(route, class_name)
+        def name_transaction(route, class_name, version)
+          txn_name = name_for_transaction(route, class_name, version)
           node_name = "Middleware/Grape/#{class_name}/call"
           Transaction.set_default_transaction_name(txn_name, :grape, node_name)
         end
 
         if defined?(Grape::VERSION) && VersionNumber.new(::Grape::VERSION) >= VersionNumber.new("0.16.0")
-          def name_for_transaction(route, class_name)
+          def name_for_transaction(route, class_name, version)
             action_name = route.path.sub(FORMAT_REGEX, EMPTY_STRING)
             method_name = route.request_method
+            version ||= route.version
 
-            if route.version
+            if version
               action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
-              "#{class_name}-#{route.version}#{action_name} (#{method_name})"
+              "#{class_name}-#{version}#{action_name} (#{method_name})"
             else
               "#{class_name}#{action_name} (#{method_name})"
             end
           end
         else
-          def name_for_transaction(route, class_name)
+          def name_for_transaction(route, class_name, version)
             action_name = route.route_path.sub(FORMAT_REGEX, EMPTY_STRING)
             method_name = route.route_method
+            version ||= route.route_version
 
-            if route.route_version
+            if version
               action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
-              "#{class_name}-#{route.route_version}#{action_name} (#{method_name})"
+              "#{class_name}-#{version}#{action_name} (#{method_name})"
             else
               "#{class_name}#{action_name} (#{method_name})"
             end
@@ -108,7 +111,8 @@ DependencyDetection.defer do
         ensure
           begin
             endpoint = env[::NewRelic::Agent::Instrumentation::GrapeInstrumentation::API_ENDPOINT]
-            ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.handle_transaction(endpoint, self.class.name)
+            version = env[::NewRelic::Agent::Instrumentation::GrapeInstrumentation::API_VERSION]
+            ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.handle_transaction(endpoint, self.class.name, version)
           rescue => e
             ::NewRelic::Agent.logger.warn("Error in Grape instrumentation", e)
           end
