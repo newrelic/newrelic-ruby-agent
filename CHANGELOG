@@ -2,12 +2,11 @@
 
   * Fix grape endpoint versions in transaction names
 
-  Grape 0.16 changed Route#version (nee #route_version) to possibly return
-  an Array of versions for the current endpoint. The agent has been
-  updated to use rack.env['api.version'] set by grape, and fall back to
-  joining the version Array with '|' before inclusion in the transaction
-  name when api.version is not available. Thanks Geoff Massanek for the
-  contribution!
+  Grape 0.16 changed Route#version (formerly #route_version) to possibly return
+  an Array of versions for the current endpoint. The agent has been updated to
+  use rack.env['api.version'] set by grape, and fall back to joining the version
+  Array with '|' before inclusion in the transaction name when api.version is
+  not available. Thanks Geoff Massanek for the contribution!
 
   * Fix deprecation warnings from various Rails error subclasses
 
