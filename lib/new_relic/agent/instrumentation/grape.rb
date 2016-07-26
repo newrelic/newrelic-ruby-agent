@@ -16,6 +16,7 @@ module NewRelic
         VERSION_REGEX  = /:version(\/|$)/.freeze
         EMPTY_STRING   = ''.freeze
         MIN_VERSION    = VersionNumber.new("0.2.0")
+        PIPE_STRING    = '|'.freeze
 
         def handle_transaction(endpoint, class_name, version)
           return unless endpoint && route = endpoint.route
@@ -34,6 +35,10 @@ module NewRelic
             action_name = route.path.sub(FORMAT_REGEX, EMPTY_STRING)
             method_name = route.request_method
             version ||= route.version
+
+            # defaulting does not set rack.env['api.version'] and route.version may return Array
+            #
+            version = version.join(PIPE_STRING) if Array === version
 
             if version
               action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
