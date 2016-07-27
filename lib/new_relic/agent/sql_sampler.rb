@@ -140,7 +140,7 @@ module NewRelic
       # @api public
       # @deprecated Use {Datastores.notice_sql} instead.
       #
-      def notice_sql(sql, metric_name, config, duration, state=nil, explainer=nil, binds=[], name="SQL") #THREAD_LOCAL_ACCESS sometimes
+      def notice_sql(sql, metric_name, config, duration, state=nil, explainer=nil, binds=nil, name=nil) #THREAD_LOCAL_ACCESS sometimes
         state ||= TransactionState.tl_get
         data = state.sql_sampler_transaction_data
         return unless data

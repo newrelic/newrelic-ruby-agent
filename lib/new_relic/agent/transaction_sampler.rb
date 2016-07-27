@@ -183,7 +183,7 @@ module NewRelic
       # @api public
       # @deprecated Use {Datastores.notice_sql} instead.
       #
-      def notice_sql(sql, config, duration, state=nil, explainer=nil, binds=[], name="SQL") #THREAD_LOCAL_ACCESS sometimes
+      def notice_sql(sql, config, duration, state=nil, explainer=nil, binds=nil, name=nil) #THREAD_LOCAL_ACCESS sometimes
         # some statements (particularly INSERTS with large BLOBS
         # may be very large; we should trim them to a maximum usable length
         state ||= TransactionState.tl_get

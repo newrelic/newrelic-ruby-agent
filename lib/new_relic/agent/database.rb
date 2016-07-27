@@ -176,7 +176,7 @@ module NewRelic
 
         DEFAULT_QUERY_NAME = "SQL".freeze
 
-        def initialize(sql, config={}, explainer=nil, binds=[], name=DEFAULT_QUERY_NAME)
+        def initialize(sql, config={}, explainer=nil, binds=nil, name=DEFAULT_QUERY_NAME)
           @sql = Database.capture_query(sql)
           @config = config
           @explainer = explainer
@@ -240,7 +240,7 @@ module NewRelic
             return false
           end
 
-          if parameterized?(@sql) && @binds.empty?
+          if parameterized?(@sql) && (!@binds || @binds.empty?)
             NewRelic::Agent.logger.debug('Unable to collect explain plan for parameter-less parameterized query.')
             return false
           end
