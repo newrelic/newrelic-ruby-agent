@@ -80,6 +80,14 @@ module NewRelic
 
           refute_metrics_recorded ["Custom/basic/segment", "Basic/all"]
         end
+
+        def test_segment_complete_callback_executes_when_segment_finished
+          segment = BasicSegment.new "Custom/basic/segment"
+          segment.expects(:segment_complete)
+          segment.start
+          advance_time 1.0
+          segment.finish
+        end
       end
     end
   end
