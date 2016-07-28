@@ -39,4 +39,21 @@ class DatastoresPerfTest < Performance::TestCase
       end
     end
   end
+
+  SQL = "select * from users".freeze
+  METRIC_NAME = "Datastore/statement/MySQL/users/select".freeze
+
+  def test_notice_sql
+    measure do
+      NewRelic::Agent::Datastores.notice_sql(SQL, METRIC_NAME, 3.0)
+    end
+  end
+
+  def test_segment_notice_sql
+    segment = NewRelic::Agent::Transaction::DatastoreSegment.new "MySQL", "select", "users"
+    conf = {:adapter => :mysql}
+    measure do
+      segment._notice_sql SQL, conf
+    end
+  end
 end
