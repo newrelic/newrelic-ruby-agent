@@ -194,6 +194,13 @@ module NewRelic
         end
       end
 
+
+      def notice_sql_statement(statement, duration) #THREAD_LOCAL_ACCESS sometimes
+        state ||= TransactionState.tl_get
+        builder = state.transaction_sample_builder
+        notice_extra_data(builder, statement, duration, :sql)
+      end
+
       # Attaches an additional non-SQL query parameter to the current
       # transaction trace node.
       #
