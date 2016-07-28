@@ -59,6 +59,14 @@ module NewRelic
             NewRelic::Agent.instance.stats_engine
           end
         end
+
+        def transaction_state
+          @transaction_state ||= if @transaction
+            transaction.state
+          else
+            TransactionState.tl_get
+          end
+        end
       end
     end
   end
