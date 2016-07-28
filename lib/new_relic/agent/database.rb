@@ -232,10 +232,12 @@ module NewRelic
           end
         end
 
+        ELLIPSIS = "...".freeze
+
         def explainable?
           return false unless @explainer && is_select?(@sql)
 
-          if @sql[-3,3] == '...'
+          if @sql.end_with?(ELLIPSIS)
             NewRelic::Agent.logger.debug('Unable to collect explain plan for truncated query.')
             return false
           end
