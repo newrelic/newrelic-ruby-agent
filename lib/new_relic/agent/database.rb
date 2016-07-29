@@ -177,7 +177,7 @@ module NewRelic
         DEFAULT_QUERY_NAME = "SQL".freeze
 
         def initialize(sql, config={}, explainer=nil, binds=nil, name=DEFAULT_QUERY_NAME)
-          @sql = Database.capture_query(sql)
+          @sql = Database.capture_query(sql.dup)
           @config = config
           @explainer = explainer
           @binds = binds

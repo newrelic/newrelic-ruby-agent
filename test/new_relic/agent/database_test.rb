@@ -470,6 +470,15 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     end
   end
 
+  def test_database_statement_does_not_mutate_sql
+    table_name = 'a' * 17_000
+    sql = "select * from #{table_name}"
+    expected_sql = sql.dup
+    statement = NewRelic::Agent::Database::Statement.new sql, {:adapter => :mysql}
+    refute_equal sql, statement.sql
+    assert_equal expected_sql, sql
+  end
+
   # Ruby 1.8 doesn't have String#encoding
   def encoding_from_string(str)
     if str.respond_to?(:encoding)
