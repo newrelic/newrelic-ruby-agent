@@ -69,7 +69,11 @@ module NewRelic
             segment.notice_sql "select * from blogs"
             advance_time 2.0
             Agent.instance.transaction_sampler.expects(:notice_sql_statement).with(segment.sql_statement, 2.0)
-            Agent.instance.sql_sampler.expects(:notice_sql_statement).with(segment.sql_statement, segment.name, 2.0)
+            Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
+              assert_equal segment.sql_statement.sql, statement.sql_statement
+              assert_equal segment.name, name
+              assert_equal duration, 2.0
+            end
             segment.finish
           end
         end
@@ -81,7 +85,11 @@ module NewRelic
             segment._notice_sql "select * from blogs", {:adapter => :sqlite}, explainer
             advance_time 2.0
             Agent.instance.transaction_sampler.expects(:notice_sql_statement).with(segment.sql_statement, 2.0)
-            Agent.instance.sql_sampler.expects(:notice_sql_statement).with(segment.sql_statement, segment.name, 2.0)
+            Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
+              assert_equal segment.sql_statement.sql, statement.sql_statement
+              assert_equal segment.name, name
+              assert_equal duration, 2.0
+            end
             segment.finish
           end
         end

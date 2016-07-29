@@ -37,7 +37,7 @@ module NewRelic
           return unless sql_statement
 
           NewRelic::Agent.instance.transaction_sampler.notice_sql_statement(sql_statement, duration)
-          NewRelic::Agent.instance.sql_sampler.notice_sql_statement(sql_statement, name, duration)
+          NewRelic::Agent.instance.sql_sampler.notice_sql_statement(sql_statement.dup, name, duration)
         end
 
         def record_sql?
