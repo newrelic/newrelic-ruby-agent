@@ -66,7 +66,19 @@ module NewRelic
         def test_notice_sql
           in_transaction do
             segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
-            segment._notice_sql "select * from blogs", {:adapter => :sqlite}
+            segment.notice_sql "select * from blogs"
+            advance_time 2.0
+            Agent.instance.transaction_sampler.expects(:notice_sql_statement).with(segment.sql_statement, 2.0)
+            Agent.instance.sql_sampler.expects(:notice_sql_statement).with(segment.sql_statement, segment.name, 2.0)
+            segment.finish
+          end
+        end
+
+        def test_internal_notice_sql
+          explainer = stub(:explainer)
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
+            segment._notice_sql "select * from blogs", {:adapter => :sqlite}, explainer
             advance_time 2.0
             Agent.instance.transaction_sampler.expects(:notice_sql_statement).with(segment.sql_statement, 2.0)
             Agent.instance.sql_sampler.expects(:notice_sql_statement).with(segment.sql_statement, segment.name, 2.0)

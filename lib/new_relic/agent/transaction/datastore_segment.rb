@@ -21,8 +21,12 @@ module NewRelic
                 Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection)
         end
 
+        def notice_sql sql
+          _notice_sql sql
+        end
+
         # @api private
-        def _notice_sql sql, config, explainer=nil, binds=nil, name=nil
+        def _notice_sql sql, config=nil, explainer=nil, binds=nil, name=nil
           return unless record_sql?
           @sql_statement = Database::Statement.new sql, config, explainer, binds, name
         end
