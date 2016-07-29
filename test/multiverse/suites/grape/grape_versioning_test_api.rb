@@ -46,8 +46,8 @@ unless ::Grape::VERSION == '0.1.5'
 
     class ApiV4 < Grape::API
       #version from http accept header is not supported in older versions of grape
-      if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('4.0.0')
-        version 'v4', :using => :accept_version_header
+      if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('0.16.0')
+        version ['v4', 'v5'], :using => :accept_version_header
       end
 
       format :json
@@ -59,12 +59,70 @@ unless ::Grape::VERSION == '0.1.5'
       end
     end
 
+    class CascadingAPI < Grape::API
+      #version from http accept header is not supported in older versions of grape
+      if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('0.16.0')
+        version 'v5', :using => :accept_version_header
+      end
+
+      format :json
+
+      resource :fish do
+        get do
+          "api v5"
+        end
+      end
+
+      mount ApiV4
+    end
+
     class Unversioned < Grape::API
       format :json
 
       resource :fish do
         get do
           "api v5"
+        end
+      end
+    end
+
+    class SharedApi < Grape::API
+      format :json
+      version 'v1', 'v2', 'v3', 'v4'
+      resource :fish do
+        get do
+          "api v1-4"
+        end
+      end
+    end
+
+    class SharedBlockApi < Grape::API
+      format :json
+      version 'v1', 'v2', 'v3', 'v4' do
+        resource :fish do
+          get do
+            "api v1-4"
+          end
+        end
+      end
+    end
+
+    class DefaultHeaderApi < Grape::API
+      format :json
+      version 'v2', 'v3', :using => :header, :vendor => "newrelic"
+      resource :fish do
+        get do
+          "api v1-4"
+        end
+      end
+    end
+
+    class DefaultAcceptVersionHeaderApi < Grape::API
+      format :json
+      version 'v2', 'v3', :using => :accept_version_header
+      resource :fish do
+        get do
+          "api v1-4"
         end
       end
     end
