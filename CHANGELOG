@@ -15,13 +15,18 @@
   been updated to try Exception#cause first, thus avoiding deprecation
   warnings. Thanks Alexander Stuart-Kregor for the contribution!
 
-
   * Fix instrumentation for Sequel 4.35.0
 
   The latest version of Sequel changes the name and signature of the method
   that the Ruby Agent wraps for instrumentation. The agent has been updated
   to handle these changes. Users using Sequel 4.35.0 or newer should upgrade
   their agent.
+
+  * Fix DataMapper instrumentation for additional versions
+
+  Different versions of DataMapper have different methods for retrieving the
+  adapter name, and Postmodern expanded our coverage. Thanks for the
+  contribution!
 
 ## v3.16.0
 
