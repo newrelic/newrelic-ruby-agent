@@ -23,7 +23,9 @@ module NewRelic
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
           return if payload[:name] == CACHED_QUERY_NAME
           return unless NewRelic::Agent.tl_is_execution_traced?
-          super
+          config = active_record_config(payload)
+          event = ActiveRecordEvent.new(name, Time.now, nil, id, payload, @explainer, config)
+          push_event(event)
         rescue => e
           log_notification_error(e, name, 'start')
         end
@@ -32,10 +34,8 @@ module NewRelic
           return if payload[:name] == CACHED_QUERY_NAME
           state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
-          event  = pop_event(id)
-          config = active_record_config_for_event(event)
-          base_metric = record_metrics(event, config)
-          notice_sql(state, event, config, base_metric)
+          event = pop_event(id)
+          event.finish
         rescue => e
           log_notification_error(e, name, 'finish')
         end
@@ -52,43 +52,11 @@ module NewRelic
           end
         end
 
-        def notice_sql(state, event, config, metric)
-          stack  = state.traced_method_stack
-
-          # enter transaction trace node
-          frame = stack.push_frame(state, :active_record, event.time)
-
-          NewRelic::Agent.instance.transaction_sampler \
-            .notice_sql(event.payload[:sql], config,
-                        Helper.milliseconds_to_seconds(event.duration),
-                        state, @explainer, event.payload[:binds], event.payload[:name])
-
-          NewRelic::Agent.instance.sql_sampler \
-            .notice_sql(event.payload[:sql], metric, config,
-                        Helper.milliseconds_to_seconds(event.duration),
-                        state, @explainer, event.payload[:binds], event.payload[:name])
-
-          # exit transaction trace node
-          stack.pop_frame(state, frame, metric, event.end)
-        end
-
-        def record_metrics(event, config) #THREAD_LOCAL_ACCESS
-          base, *other_metrics = ActiveRecordHelper.metrics_for(event.payload[:name],
-                                                               NewRelic::Helper.correctly_encoded(event.payload[:sql]),
-                                                               config && config[:adapter])
-
-          NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(
-            base, other_metrics,
-            Helper.milliseconds_to_seconds(event.duration))
-
-          base
-        end
-
-        def active_record_config_for_event(event)
-          return unless event.payload[:connection_id]
+        def active_record_config(payload)
+          return unless payload[:connection_id]
 
           connection = nil
-          connection_id = event.payload[:connection_id]
+          connection_id = payload[:connection_id]
 
           ::ActiveRecord::Base.connection_handler.connection_pool_list.each do |handler|
             connection = handler.connections.detect do |conn|
@@ -99,6 +67,57 @@ module NewRelic
           end
 
           connection.instance_variable_get(:@config) if connection
+        end
+
+        class ActiveRecordEvent < Event
+          def initialize(name, start, ending, transaction_id, payload, explainer, config)
+            super(name, start, ending, transaction_id, payload)
+            @explainer = explainer
+            @config = config
+            @segment = start_segment
+          end
+
+          # Events do not always finish in the order they are started for this subscriber.
+          # The traced_method_stack expects that frames are popped off in the order that they
+          # are pushed, otherwise it will continue to pop up the stack until it finds the frame
+          # it expects. This will be fixed when we replace the tracer internals, but for now
+          # we need to work around this limitation.
+          def start_segment
+            product, operation, collection = ActiveRecordHelper.product_operation_collection_for(payload[:name],
+                                              sql, @config && @config[:adapter])
+            segment = NewRelic::Agent::Transaction::DatastoreSegment.new product, operation, collection
+            if txn = state.current_transaction
+              segment.transaction = txn
+            end
+            segment.start
+            segment
+          end
+
+          # See comment for start_segment as we continue to work around limitations of the
+          # current tracer in this method.
+          def finish
+            state.traced_method_stack.push_segment state, @segment
+            notice_sql
+            @segment.finish
+          end
+
+          def state
+            @state ||= NewRelic::Agent::TransactionState.tl_get
+          end
+
+          def sql
+            @sql ||= Helper.correctly_encoded payload[:sql]
+          end
+
+          def notice_sql
+            NewRelic::Agent.instance.transaction_sampler \
+              .notice_sql(sql, @config, duration, state, @explainer,
+                          payload[:binds], payload[:name])
+
+            NewRelic::Agent.instance.sql_sampler \
+              .notice_sql(sql, @segment.name, @config, duration, state,
+                          @explainer, payload[:binds], payload[:name])
+          end
         end
       end
     end
