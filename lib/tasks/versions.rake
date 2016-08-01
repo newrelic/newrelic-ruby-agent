@@ -33,8 +33,8 @@ namespace :newrelic do
     end
 
     def write_versions(title, type, erb)
-      anchor = title.downcase.gsub(" ", "_")
-      versions = versions_for_type(type)
+      title.downcase.gsub(" ", "_")
+      versions_for_type(type)
       puts erb.result(binding).gsub(/^ *$/, '')
     end
 

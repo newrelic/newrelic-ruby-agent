@@ -487,6 +487,14 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
 
       def fake_last_poll_took(last_poll_length)
+        # avoid method redefinition warnings
+        class << @service
+          begin
+            remove_method :adjust_polling_time
+          rescue NameError
+          end
+        end
+
         # We need to adjust Time.now during the midst of poll
         # Slip in before the adjust_polling_time call to advance the clock
         @service.define_singleton_method(:adjust_polling_time) do |end_time, *args|

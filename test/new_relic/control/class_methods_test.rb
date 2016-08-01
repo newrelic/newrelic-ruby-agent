@@ -8,6 +8,10 @@ require 'new_relic/control/class_methods'
 class BaseClassMethods
   # stub class to enable testing of the module
   include NewRelic::Control::ClassMethods
+
+  def initialize
+    @instance = nil
+  end
 end
 
 class NewRelic::Control::ClassMethodsTest < Minitest::Test
@@ -17,7 +21,7 @@ class NewRelic::Control::ClassMethodsTest < Minitest::Test
   end
 
   def test_instance
-    assert_equal(nil, @base.instance_variable_get('@instance'), 'instance should start out nil')
+    assert_equal(nil, @base.instance_variable_get(:@instance), 'instance should start out nil')
     @base.expects(:new_instance).returns('a new instance')
     assert_equal('a new instance', @base.instance, "should return the result from the #new_instance call")
   end

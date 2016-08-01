@@ -330,7 +330,7 @@ end
 
 def refute_contains_request_params(attributes)
   attributes.keys.each do |key|
-    refute_match /^request\.parameters\./, key.to_s
+    refute_match(/^request\.parameters\./, key.to_s)
   end
 end
 
@@ -622,18 +622,13 @@ def cross_agent_tests_dir
   File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'cross_agent_tests'))
 end
 
-def replace_camelcase(contents)
-  { "callCount" => "call_count" }.each_pair do |original, replacement|
-    contents.gsub!(original, replacement)
-  end
-  contents
-end
-
 def load_cross_agent_test(name)
   test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
   data = File.read(test_file_path)
-  data = replace_camelcase(data)
-  NewRelic::JSONWrapper.load(data)
+  data.gsub!('callCount', 'call_count')
+  data = NewRelic::JSONWrapper.load(data)
+  data.each { |testcase| testcase['testname'].gsub! ' ', '_' if String === testcase['testname'] }
+  data
 end
 
 def each_cross_agent_test(options)

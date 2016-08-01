@@ -9,7 +9,7 @@ require 'new_relic/agent/transaction/datastore_segment'
 module NewRelic
   module Agent
     class Transaction
-      class SegmentTest < Minitest::Test
+      class DatastoreSegmentTest < Minitest::Test
         def setup
           freeze_time
         end

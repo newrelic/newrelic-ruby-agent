@@ -2,9 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/metric_parser'
 # The metric where the mongrel queue time is stored
 module NewRelic
+  autoload :MetricParser, 'new_relic/metric_parser'
   module MetricParser
     class WebFrontend < NewRelic::MetricParser::MetricParser
       def short_name
