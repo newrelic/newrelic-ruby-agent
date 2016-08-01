@@ -27,8 +27,17 @@ module NewRelic
 
       extend self
 
+      # Properly encode, truncate, and dup the incoming query.
+      # Take care not to the dup the query more than once as
+      # correctly encoded may also dup the query.
       def capture_query(query)
-        Helper.correctly_encoded(truncate_query(query))
+        id = query.object_id
+        query = Helper.correctly_encoded(truncate_query(query))
+        if query.object_id == id
+          query.dup
+        else
+          query
+        end
       end
 
       def truncate_query(query)
@@ -177,7 +186,7 @@ module NewRelic
         DEFAULT_QUERY_NAME = "SQL".freeze
 
         def initialize(sql, config={}, explainer=nil, binds=nil, name=DEFAULT_QUERY_NAME)
-          @sql = Database.capture_query(sql.dup)
+          @sql = Database.capture_query(sql)
           @config = config
           @explainer = explainer
           @binds = binds
