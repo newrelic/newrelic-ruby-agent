@@ -19,7 +19,7 @@ The `settings` hash contains a number of key-value pairs that the agent will nee
 | Name | Meaning |
 | ---- | ------- |
 | `agentEncodingKey`| The encoding key used by the agent for deobfuscation of the Synthetics request header. |
-| `syntheticsEncodingKey` | The encoding key used by Synthetics to obfuscate the Synthetics request header. In most tests, `encodingKey` and `syntheticsEncodingKey` are the same. |
+| `syntheticsEncodingKey` | The encoding key used by Synthetics to obfuscate the Synthetics request header. In most tests, `agentEncodingKey` and `syntheticsEncodingKey` are the same. |
 | `transactionGuid` | The GUID of the simulated transaction. In a non-simulated transaction, this will be randomly generated. But, for testing purposes, you should assign this value as the GUID, since the tests will check for this value to be set in the `nr.guid` attribute of the Transaction Event. |
 | `trustedAccountIds` | A list of accounts ids that the agent trusts. If the Synthetics request contains a non-trusted account id, it is an invalid request.|
 
@@ -30,7 +30,7 @@ The input for each test is a Synthetics request header. The test fixture file sh
 | Name | Meaning |
 | ---- | ------- |
 | `inputHeaderPayload` | A decoded form of the contents of the `X-NewRelic-Synthetics` request header. |
-| `inputObfuscatedHeader` | An obfuscated form of the `X-NewRelic-Synthetics` request header. If you obfuscate `syntheticsHeaderPayload` using the CAT obfuscation algorithm, this should be the output. |
+| `inputObfuscatedHeader` | An obfuscated form of the `X-NewRelic-Synthetics` request header. If you obfuscate `inputHeaderPayload` using the `syntheticsEncodingKey`, this should be the output. |
 
 ## Outputs
 

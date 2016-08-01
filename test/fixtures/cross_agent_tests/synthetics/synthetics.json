@@ -87,7 +87,7 @@
   {
     "name": "invalid_synthetics_request_unsupported_version",
     "settings": {
-      "encodingKey": "1234567890123456789012345678901234567890",
+      "agentEncodingKey": "1234567890123456789012345678901234567890",
       "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
       "transactionGuid": "9323dc260548ed0e",
       "trustedAccountIds": [
@@ -133,7 +133,7 @@
   {
     "name": "invalid_synthetics_request_untrusted_account_id",
     "settings": {
-      "encodingKey": "1234567890123456789012345678901234567890",
+      "agentEncodingKey": "1234567890123456789012345678901234567890",
       "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
       "transactionGuid": "9323dc260548ed0e",
       "trustedAccountIds": [
@@ -179,7 +179,7 @@
   {
     "name": "invalid_synthetics_request_mismatched_encoding_key",
     "settings": {
-      "encodingKey": "0000000000000000000000000000000000000000",
+      "agentEncodingKey": "0000000000000000000000000000000000000000",
       "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
       "transactionGuid": "9323dc260548ed0e",
       "trustedAccountIds": [
@@ -225,7 +225,7 @@
   {
     "name": "invalid_synthetics_request_too_few_header_elements",
     "settings": {
-      "encodingKey": "1234567890123456789012345678901234567890",
+      "agentEncodingKey": "1234567890123456789012345678901234567890",
       "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
       "transactionGuid": "9323dc260548ed0e",
       "trustedAccountIds": [
@@ -270,7 +270,7 @@
   {
     "name": "invalid_synthetics_request_too_many_header_elements",
     "settings": {
-      "encodingKey": "1234567890123456789012345678901234567890",
+      "agentEncodingKey": "1234567890123456789012345678901234567890",
       "syntheticsEncodingKey": "1234567890123456789012345678901234567890",
       "transactionGuid": "9323dc260548ed0e",
       "trustedAccountIds": [
