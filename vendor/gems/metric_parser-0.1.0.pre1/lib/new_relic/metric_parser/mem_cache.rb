@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/metric_parser'
 module NewRelic
+  autoload :MetricParser, 'new_relic/metric_parser'
   module MetricParser
     class MemCache < NewRelic::MetricParser::MetricParser
       def is_memcache?; true; end
@@ -12,9 +12,6 @@ module NewRelic
       # the full name
       def short_name
         'Memcache'
-      end
-      def developer_name
-        "Memcache #{segments[1..-1].join '/'}"
       end
 
       def all?
