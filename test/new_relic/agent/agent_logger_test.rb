@@ -6,20 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'new_relic/agent/agent_logger'
 require 'new_relic/agent/null_logger'
 
-class ArrayLogDevice
-  def initialize( array=[] )
-    @array = array
-  end
-  attr_reader :array
-
-  def write( message )
-    @array << message
-  end
-
-  def close; end
-end
-
-
 class AgentLoggerTest < Minitest::Test
 
   LEVELS = [:fatal, :error, :warn, :info, :debug]

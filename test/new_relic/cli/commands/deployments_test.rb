@@ -6,15 +6,16 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/cli/command'
 require 'new_relic/cli/commands/deployments'
 
+NewRelic::Cli::Deployments.class_eval do
+  attr_accessor :messages, :exit_status, :errors, :revision, :license_key
+  def err(message); @errors = "#{@errors ||= nil}#{message}"; end
+  def info(message); @messages = "#{@messages ||=nil}#{message}"; end
+  def just_exit(status=0); @exit_status ||= status; end
+end
+
 class NewRelic::Cli::DeploymentsTest < Minitest::Test
 
   def setup
-    NewRelic::Cli::Deployments.class_eval do
-      attr_accessor :messages, :exit_status, :errors, :revision, :license_key
-      def err(message); @errors = "#{@errors ||= nil}#{message}"; end
-      def info(message); @messages = "#{@messages ||=nil}#{message}"; end
-      def just_exit(status=0); @exit_status ||= status; end
-    end
     @config = { :license_key => 'a' * 40,
                 :config_path => 'test/config/newrelic.yml' }
     NewRelic::Agent.config.add_config_for_testing(@config)
