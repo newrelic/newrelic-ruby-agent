@@ -30,10 +30,12 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   #
   def initialize command_line_args
     @control = NewRelic::Control.instance
+    @environment = nil
+    @changelog   = nil
+    @user        = nil
     super(command_line_args)
     @description ||= @leftover && @leftover.join(" ")
     @user ||= ENV['USER']
-    @environment ||= nil
     control.env = @environment if @environment
 
     load_yaml_from_env(control.env)
@@ -70,7 +72,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
             :description => @description,
             :user => @user,
             :revision => @revision,
-            :changelog => @changelog ||= nil
+            :changelog => @changelog
       }.each do |k, v|
         create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
       end
@@ -120,7 +122,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
                "currently: #{control.env}") { | e | @environment = e }
       o.on("-u", "--user=USER", String,
              "Specify the user deploying, for information only",
-             "Default: #{defined?(@user) && @user || '<none>'}") { | u | @user = u }
+             "Default: #{@user || '<none>'}") { | u | @user = u }
       o.on("-r", "--revision=REV", String,
              "Specify the revision being deployed") { | r | @revision = r }
       o.on("-l", "--license-key=KEY", String,

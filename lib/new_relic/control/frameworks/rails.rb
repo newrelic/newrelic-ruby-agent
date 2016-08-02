@@ -69,7 +69,7 @@ module NewRelic
         end
 
         def install_agent_hooks(config)
-          return if @agent_hooks_installed ||= nil
+          return if defined?(@agent_hooks_installed) && @agent_hooks_installed
           @agent_hooks_installed = true
           return if config.nil? || !config.respond_to?(:middleware)
           begin
@@ -83,7 +83,7 @@ module NewRelic
         end
 
         def install_browser_monitoring(config)
-          return if @browser_monitoring_installed ||= nil
+          return if defined?(@browser_monitoring_installed) && @browser_monitoring_installed
           @browser_monitoring_installed = true
           return if config.nil? || !config.respond_to?(:middleware) || !Agent.config[:'browser_monitoring.auto_instrument']
           begin
@@ -96,8 +96,8 @@ module NewRelic
         end
 
         def install_developer_mode(rails_config)
-          return if @installed ||= nil
-          @installed = true
+          return if defined?(@developer_mode_installed) && @developer_mode_installed
+          @developer_mode_installed = true
           if rails_config && rails_config.respond_to?(:middleware)
             begin
               require 'new_relic/rack/developer_mode'

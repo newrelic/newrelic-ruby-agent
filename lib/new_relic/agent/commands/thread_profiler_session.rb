@@ -16,7 +16,7 @@ module NewRelic
           @backtrace_service = backtrace_service
           @started_at = nil
           @finished_profile = nil
-          @profile ||= nil
+          @profile = nil
         end
 
         def handle_start_command(agent_command)

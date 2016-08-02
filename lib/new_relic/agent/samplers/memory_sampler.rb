@@ -14,6 +14,8 @@ module NewRelic
         attr_accessor :sampler
 
         def initialize
+          @sampler = nil
+
           # macos, linux, solaris
           if defined? JRuby
             @sampler = JavaHeapSampler.new
@@ -33,8 +35,6 @@ module NewRelic
             @sampler = ShellPS.new("ps -o rss")
           elsif platform =~ /solaris/
             @sampler = ShellPS.new("/usr/bin/ps -o rss -p")
-          else
-            @sampler = nil
           end
 
           raise Unsupported, "Unsupported platform for getting memory: #{platform}" if @sampler.nil?
