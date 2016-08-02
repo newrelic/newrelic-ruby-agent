@@ -12,7 +12,7 @@ module NewRelic
         attr_reader :exit_timestamp
         attr_reader :parent_node
 
-        attr_accessor :metric_name
+        attr_accessor :metric_name, :params
 
         UNKNOWN_NODE_NAME = '<unknown>'.freeze
 
@@ -21,6 +21,8 @@ module NewRelic
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
           @exit_timestamp  = nil
           @called_nodes    = nil
+          @params          = {}
+          @parent_node     = nil
         end
 
         # sets the final timestamp on a node to indicate the exit
@@ -43,7 +45,7 @@ module NewRelic
           [ NewRelic::Helper.time_to_millis(@entry_timestamp),
             NewRelic::Helper.time_to_millis(@exit_timestamp),
             NewRelic::Coerce.string(@metric_name),
-            (@params ||= {}) ] +
+            params ] +
             [ (@called_nodes ? @called_nodes.map{|s| s.to_array} : []) ]
         end
 
@@ -115,14 +117,6 @@ module NewRelic
 
         def [](key)
           params[key]
-        end
-
-        def params
-          @params ||= {}
-        end
-
-        def params=(p)
-          @params = p
         end
 
         # call the provided block for this node and each
