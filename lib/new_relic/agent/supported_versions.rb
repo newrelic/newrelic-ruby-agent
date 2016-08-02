@@ -230,6 +230,13 @@ module NewRelic
           "Supported for all agent-supported versions of Ruby.",
           "For more information on supported HTTP clients see http://docs.newrelic.com/docs/ruby/ruby-http-clients."]
       },
+      :httprb =>
+      {
+        :type        => :http,
+        :supported   => [ ">= 0.9.9"],
+        :url         => "https://rubygems.org/gems/http",
+        :feed        => "https://rubygems.org/gems/http/versions.atom"
+      },
 
       # Other
       :sunspot =>
