@@ -89,6 +89,7 @@ module NewRelic
             if txn = state.current_transaction
               segment.transaction = txn
             end
+            segment._notice_sql sql, @config, @explainer, payload[:binds], payload[:name]
             segment.start
             segment
           end
@@ -97,7 +98,6 @@ module NewRelic
           # current tracer in this method.
           def finish
             state.traced_method_stack.push_segment state, @segment
-            notice_sql
             @segment.finish
           end
 
@@ -107,16 +107,6 @@ module NewRelic
 
           def sql
             @sql ||= Helper.correctly_encoded payload[:sql]
-          end
-
-          def notice_sql
-            NewRelic::Agent.instance.transaction_sampler \
-              .notice_sql(sql, @config, duration, state, @explainer,
-                          payload[:binds], payload[:name])
-
-            NewRelic::Agent.instance.sql_sampler \
-              .notice_sql(sql, @segment.name, @config, duration, state,
-                          @explainer, payload[:binds], payload[:name])
           end
         end
       end

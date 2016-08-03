@@ -51,18 +51,11 @@ module NewRelic
             @config && @config[:adapter])
 
           segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection)
+          segment._notice_sql(sql, @config, EXPLAINER)
 
           begin
             log_without_newrelic_instrumentation(*args, &block)
           ensure
-            elapsed_time = (Time.now - segment.start_time).to_f
-
-            NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
-                                                  @config, elapsed_time,
-                                                  state, EXPLAINER)
-            NewRelic::Agent.instance.sql_sampler.notice_sql(sql, segment.name,
-                                                  @config, elapsed_time,
-                                                  state, EXPLAINER)
             segment.finish
           end
         end

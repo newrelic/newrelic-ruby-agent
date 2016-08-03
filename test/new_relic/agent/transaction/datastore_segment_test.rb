@@ -9,7 +9,7 @@ require 'new_relic/agent/transaction/datastore_segment'
 module NewRelic
   module Agent
     class Transaction
-      class SegmentTest < Minitest::Test
+      class DatastoreSegmentTest < Minitest::Test
         def setup
           freeze_time
         end
@@ -61,6 +61,37 @@ module NewRelic
             "Datastore/allWeb",
             "Datastore/all"
           ]
+        end
+
+        def test_notice_sql
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
+            segment.notice_sql "select * from blogs"
+            advance_time 2.0
+            Agent.instance.transaction_sampler.expects(:notice_sql_statement).with(segment.sql_statement, 2.0)
+            Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
+              assert_equal segment.sql_statement.sql, statement.sql_statement
+              assert_equal segment.name, name
+              assert_equal duration, 2.0
+            end
+            segment.finish
+          end
+        end
+
+        def test_internal_notice_sql
+          explainer = stub(:explainer)
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
+            segment._notice_sql "select * from blogs", {:adapter => :sqlite}, explainer
+            advance_time 2.0
+            Agent.instance.transaction_sampler.expects(:notice_sql_statement).with(segment.sql_statement, 2.0)
+            Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
+              assert_equal segment.sql_statement.sql, statement.sql_statement
+              assert_equal segment.name, name
+              assert_equal duration, 2.0
+            end
+            segment.finish
+          end
         end
       end
     end

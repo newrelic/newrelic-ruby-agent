@@ -64,6 +64,21 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     assert_equal 2, @sampler.tl_transaction_data.sql_data.size
   end
 
+  def test_notice_sql_statement
+    @sampler.on_start_transaction(@state, nil)
+
+    sql = "select * from test"
+    metric_name = "Database/test/select"
+    statement = NewRelic::Agent::Database::Statement.new sql, {:adapter => :mysql}
+
+    @sampler.notice_sql_statement(statement, metric_name, 1.5)
+
+    slow_sql =  @sampler.tl_transaction_data.sql_data[0]
+
+    assert_equal statement, slow_sql.statement
+    assert_equal metric_name, slow_sql.metric_name
+  end
+
   def test_notice_sql_truncates_query
     @sampler.on_start_transaction(@state, nil)
     message = 'a' * 17_000

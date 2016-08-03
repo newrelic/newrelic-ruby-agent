@@ -25,6 +25,7 @@ module NewRelic
           @duration = end_time.to_f - start_time.to_f
           @exclusive_duration = duration - children_time
           record_metrics if record_metrics?
+          segment_complete
           @transaction.segment_complete self if transaction
         rescue => e
           # This rescue block was added for the benefit of this test:
@@ -47,11 +48,23 @@ module NewRelic
 
         private
 
+        # callback for subclasses to override
+        def segment_complete
+        end
+
         def metric_cache
           if transaction
             transaction.metrics
           else
             NewRelic::Agent.instance.stats_engine
+          end
+        end
+
+        def transaction_state
+          @transaction_state ||= if @transaction
+            transaction.state
+          else
+            TransactionState.tl_get
           end
         end
       end
