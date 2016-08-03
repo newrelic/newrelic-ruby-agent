@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/transaction/datastore_segment'
+require 'new_relic/agent/transaction/external_request_segment'
 
 module NewRelic
   module Agent
@@ -24,6 +25,13 @@ module NewRelic
             product ||= UNKNOWN_PRODUCT
             operation ||= UNKNOWN_OPERATION
             segment = DatastoreSegment.new product, operation, collection, host, port_path_or_id, database_name
+            segment.start
+            add_segment segment
+            segment
+          end
+
+          def start_external_request_segment library, uri, procedure
+            segment = ExternalRequestSegment.new library, uri, procedure
             segment.start
             add_segment segment
             segment
