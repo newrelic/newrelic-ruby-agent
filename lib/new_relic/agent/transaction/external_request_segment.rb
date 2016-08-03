@@ -31,6 +31,27 @@ module NewRelic
         def normalize_uri uri
           uri.is_a?(URI) ? uri : HTTPClients::URIUtil.parse_url(uri)
         end
+
+        EXTERNAL_ALL = "External/all".freeze
+
+        def unscoped_metrics
+          [
+            EXTERNAL_ALL,
+            "External/#{host}/all",
+            suffixed_rollup_metric
+          ]
+        end
+
+        EXTERNAL_ALL_WEB = "External/allWeb".freeze
+        EXTERNAL_ALL_OTHER = "External/allOther".freeze
+
+        def suffixed_rollup_metric
+          if Transaction.recording_web_transaction?
+            EXTERNAL_ALL_WEB
+          else
+            EXTERNAL_ALL_OTHER
+          end
+        end
       end
     end
   end
