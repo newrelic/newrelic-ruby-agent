@@ -1,0 +1,19 @@
+suite_condition("http.rb is only supported for versions >= 2.0.0") do
+  RUBY_VERSION >= '2.0.0'
+end
+
+httprb_versions = %w(2.0.3
+                     2.0.2
+                     2.0.1
+                     2.0.0
+                     1.0.4
+                     0.9.9
+                     0.8.14
+                     0.7.4)
+
+httprb_versions.each do |httprb_version|
+  gemfile <<-RB
+    gem 'http', '~> #{httprb_version}'
+    gem 'rack'
+  RB
+end
