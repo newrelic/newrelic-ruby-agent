@@ -13,12 +13,8 @@ module NewRelic
         end
 
         def [](key)
-          response.headers.each do |k,v|
-            if key.downcase == k.downcase
-              return v
-            end
-          end
-          nil
+          _, value = response.headers.find { |k,_| key.downcase == k.downcase }
+          value unless value.nil?
         end
 
         def to_hash
@@ -38,12 +34,16 @@ module NewRelic
           "http.rb"
         end
 
-        def method
-          request.verb
+        def host
+          if hostname = self['host']
+            hostname.split(':').first
+          else
+            request.host
+          end
         end
 
-        def host
-          request.socket_host
+        def method
+          request.verb.upcase
         end
 
         def [](key)
