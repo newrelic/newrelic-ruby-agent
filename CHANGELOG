@@ -1,10 +1,17 @@
 # New Relic Ruby Agent Release Notes #
 
-  * Fix grape endpoint versions in transaction names
+## v3.16.1
+
+  * Internal datastore instrumentation rewrites
+
+  The agent's internal tracing of datastore segments has been rewritten, and
+  instrumentation updated to utilize the new classes.
+
+  * Fix Grape endpoint versions in transaction names
 
   Grape 0.16 changed Route#version (formerly #route_version) to possibly return
   an Array of versions for the current endpoint. The agent has been updated to
-  use rack.env['api.version'] set by grape, and fall back to joining the version
+  use rack.env['api.version'] set by Grape, and fall back to joining the version
   Array with '|' before inclusion in the transaction name when api.version is
   not available. Thanks Geoff Massanek for the contribution!
 
