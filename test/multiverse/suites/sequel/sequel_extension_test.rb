@@ -68,7 +68,7 @@ class SequelExtensionTest < Minitest::Test
 
   def test_doesnt_block_constraint_errors
     first_post = @posts.insert(:title => 'The Thing', :content => 'A wicked short story.')
-    assert_raises(Sequel::DatabaseError) do
+    assert_raises(Sequel::DatabaseError, Sequel::UniqueConstraintViolation) do
       @posts.insert(:id => first_post, :title => 'Copy Cat', :content => 'A wicked short story.')
     end
   end

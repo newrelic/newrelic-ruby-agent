@@ -18,7 +18,10 @@ class NewRelic::Agent::MockScopeListener
     @scopes << scope
   end
 
-  def on_finishing_transaction(time)
+  def on_start_transaction(state, start_time)
+  end
+
+  def on_finishing_transaction(state, txn, time=Time.now)
   end
 
   def enabled?

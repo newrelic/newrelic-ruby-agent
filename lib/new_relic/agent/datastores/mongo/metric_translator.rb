@@ -10,7 +10,7 @@ module NewRelic
     module Datastores
       module Mongo
         module MetricTranslator
-          def self.metrics_for(name, payload)
+          def self.operation_and_collection_for(name, payload)
             payload ||= {}
 
             if collection_in_selector?(payload)
@@ -51,19 +51,13 @@ module NewRelic
               collection = collection_name_from_rename_selector(payload)
             end
 
-            build_metrics(name, collection)
+            [name.to_s, collection]
           rescue => e
             NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
-            []
+            nil
           end
 
           MONGO_PRODUCT_NAME = "MongoDB".freeze
-
-          def self.build_metrics(name, collection)
-            NewRelic::Agent::Datastores::MetricHelper.metrics_for(MONGO_PRODUCT_NAME,
-                                                                  name,
-                                                                  collection)
-          end
 
           def self.collection_in_selector?(payload)
             payload[:collection] == '$cmd' && payload[:selector]

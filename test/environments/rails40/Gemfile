@@ -23,7 +23,7 @@ end
 # minitest/unit instead via a different path).
 gem 'minitest', '~>4.7.5', :require => false
 gem 'mocha', :require => false
-gem 'rack'
+gem 'rack', '< 2.0.0'
 gem 'rack-test'
 
 platforms :jruby do
@@ -39,7 +39,7 @@ end
 
 platforms :rbx do
   gem "rubysl"
-  gem "json"
+  gem "json", '< 2.0.0'
   # If we don't skip the require here, test-unit tries to install its at_exit
   # hook and run when we run our rake task to create the test DB.
   gem "rubysl-test-unit", :require => false

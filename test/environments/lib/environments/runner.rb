@@ -5,6 +5,7 @@
 require 'bundler'
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'multiverse', 'lib', 'multiverse', 'color'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'multiverse', 'lib', 'multiverse', 'shell_utils'))
 
 module Environments
   class Runner
@@ -94,14 +95,15 @@ module Environments
 
     def bundle(dir)
       puts "Bundling in #{dir}..."
-      bundling = `cd #{dir} && bundle install --local`
+      result = `cd #{dir} && bundle install --local`
       unless $?.success?
         puts "Failed local bundle, trying again with full bundle..."
-        bundling = `cd #{dir} && bundle install --retry 3`
+        command = "cd #{dir} && bundle install --retry 3"
+        result = Multiverse::ShellUtils.try_command_n_times(command, 3)
       end
 
-      bundling = red(bundling) unless $?.success?
-      puts bundling
+      result = red(result) unless $?.success?
+      puts result
       $?
     end
 

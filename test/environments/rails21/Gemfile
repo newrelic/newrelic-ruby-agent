@@ -7,8 +7,7 @@ gem 'minitest', '~>4.7.5'
 gem "mocha", :require => false
 gem "jeweler", "1.4.0"
 gem "rdoc"
-
-gem 'rack'
+gem 'rack', '< 2.0.0'
 gem 'rack-test'
 gem 'newrelic_rpm', :path => "../../.."
 
@@ -24,4 +23,8 @@ end
 gem 'pry', '~> 0.9.12'
 gem 'hometown', '~> 0.2.5'
 
-gem 'git', '< 1.3' if RUBY_VERSION < '1.9' # git 1.3.0 requires Ruby version >= 1.9
+if RUBY_VERSION < '1.9'
+  gem 'git', '< 1.3' # git 1.3.0 requires Ruby version >= 1.9
+  gem 'json_pure', '< 2.0'
+end
+

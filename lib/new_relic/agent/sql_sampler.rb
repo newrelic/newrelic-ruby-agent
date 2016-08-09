@@ -140,7 +140,7 @@ module NewRelic
       # @api public
       # @deprecated Use {Datastores.notice_sql} instead.
       #
-      def notice_sql(sql, metric_name, config, duration, state=nil, explainer=nil, binds=[], name="SQL") #THREAD_LOCAL_ACCESS sometimes
+      def notice_sql(sql, metric_name, config, duration, state=nil, explainer=nil, binds=nil, name=nil) #THREAD_LOCAL_ACCESS sometimes
         state ||= TransactionState.tl_get
         data = state.sql_sampler_transaction_data
         return unless data
@@ -149,6 +149,19 @@ module NewRelic
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
             statement = Database::Statement.new(sql, config, explainer, binds, name)
+            data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace)
+          end
+        end
+      end
+
+      def notice_sql_statement(statement, metric_name, duration)
+        state ||= TransactionState.tl_get
+        data = state.sql_sampler_transaction_data
+        return unless data
+
+        if state.is_sql_recorded?
+          if duration > Agent.config[:'slow_sql.explain_threshold']
+            backtrace = caller.join("\n")
             data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace)
           end
         end

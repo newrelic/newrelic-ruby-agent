@@ -40,17 +40,15 @@ module NewRelic
               alias_method method_name_without, method_name
 
               define_method method_name do |*args, &block|
-                metrics = Datastores::MetricHelper.metrics_for("Memcached", method_name)
-
-                NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
-                  t0 = Time.now
-                  begin
-                    send method_name_without, *args, &block
-                  ensure
-                    if NewRelic::Agent.config[:capture_memcache_keys]
-                      NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
-                    end
+                segment = NewRelic::Agent::Transaction.start_datastore_segment "Memcached", method_name
+                begin
+                  send method_name_without, *args, &block
+                ensure
+                  if NewRelic::Agent.config[:capture_memcache_keys]
+                    NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect,
+                                                                              (Time.now - segment.start_time).to_f) rescue nil
                   end
+                  segment.finish
                 end
               end
 

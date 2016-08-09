@@ -44,14 +44,41 @@ module NewRelic
           end
         end
 
-        def self.metrics_for(product, operation, collection = nil, generic_product = nil)
+        def self.scoped_metric_for product, operation, collection=nil
+          if collection
+            statement_metric_for product, collection, operation
+          else
+            operation_metric_for product, operation
+          end
+        end
+
+        def self.unscoped_metrics_for product, operation, collection=nil
+          suffix = all_suffix
+
+          metrics = [
+            product_suffixed_rollup(product, suffix),
+            product_rollup(product),
+            suffixed_rollup(suffix),
+            ROLLUP_METRIC
+          ]
+
+          metrics.unshift operation_metric_for(product, operation) if collection
+
+          metrics
+        end
+
+        def self.product_operation_collection_for product, operation, collection=nil, generic_product = nil
           if overrides = overridden_operation_and_collection
             if should_override?(overrides, product, generic_product)
               operation  = overrides[0] || operation
               collection = overrides[1] || collection
             end
           end
+          [product, operation, collection]
+        end
 
+        def self.metrics_for(product, operation, collection = nil, generic_product = nil)
+          product, operation, collection = product_operation_collection_for(product, operation, collection, generic_product)
           suffix = all_suffix
 
           # Order of these metrics matters--the first metric in the list will
@@ -70,8 +97,12 @@ module NewRelic
         end
 
         def self.metrics_from_sql(product, sql)
-          operation = NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
+          operation = operation_from_sql(sql)
           metrics_for(product, operation)
+        end
+
+        def self.operation_from_sql(sql)
+          NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
         end
 
         # Allow Transaction#with_database_metric_name to override our

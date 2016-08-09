@@ -9,6 +9,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
   if RUBY_VERSION > "1.9.3"
     def setup
+      freeze_time
       @started_event = mock('started event')
       @started_event.stubs(:operation_id).returns(1)
       @started_event.stubs(:command_name).returns('find')
@@ -66,6 +67,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     def simulate_query
       @subscriber.started(@started_event)
+      advance_time @succeeded_event.duration
       @subscriber.succeeded(@succeeded_event)
     end
   end

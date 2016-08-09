@@ -5,12 +5,7 @@
 class TestClass
   def method_1
     trace_execution_scoped(['a', 'b']) do
-    end
-  end
-
-  def method_2
-    callback = Proc.new { ['c', 'd'] }
-    trace_execution_scoped(['a', 'b'], { :additional_metrics_callback => callback }) do
+      "hi"
     end
   end
 end
@@ -22,11 +17,15 @@ class TraceExecutionScopedTests < Performance::TestCase
     require 'new_relic/agent/method_tracer'
   end
 
-  def test_without_callback
+  def test_trace_execution_scoped
     measure { @test_class.method_1 }
   end
 
-  def test_with_callback
-    measure { @test_class.method_2 }
+  def test_trace_execution_scoped_in_a_transaction
+    measure do
+      in_transaction do
+        @test_class.method_1
+      end
+   end
   end
 end

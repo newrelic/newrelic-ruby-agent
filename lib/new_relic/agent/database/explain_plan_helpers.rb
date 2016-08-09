@@ -11,9 +11,10 @@ module NewRelic
       module ExplainPlanHelpers
 
         SUPPORTED_ADAPTERS_FOR_EXPLAIN = [:postgres, :mysql2, :mysql, :sqlite]
+        SELECT = 'select'.freeze
 
         def is_select?(sql)
-          NewRelic::Agent::Database.parse_operation_from_query(sql) == 'select'
+          NewRelic::Agent::Database.parse_operation_from_query(sql) == SELECT
         end
 
         def parameterized?(sql)

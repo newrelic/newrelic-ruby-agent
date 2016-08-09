@@ -6,7 +6,7 @@ gem 'i18n', '0.6.11'
 gem 'rake', '~>10.1.1'
 gem 'minitest', '~>4.7.5'
 gem 'mocha', :require => false
-gem 'rack'
+gem 'rack', '< 2.0.0'
 gem 'rack-test'
 
 gem 'newrelic_rpm', :path => '../../..'

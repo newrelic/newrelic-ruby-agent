@@ -11,7 +11,7 @@ module NewRelic
       {
         :type        => :ruby,
         :name        => "MRI",
-        :supported   => ["1.8.7", "1.9.2", "1.9.3", "2.0.0", "~> 2.1.0", "~> 2.2.0" ],
+        :supported   => ["1.8.7", "1.9.2", "1.9.3", "2.0.0", "~> 2.1.0", "~> 2.2.0", "~> 2.3.0"],
         :url         => "https://www.ruby-lang.org",
         :feed        => "https://www.ruby-lang.org/en/feeds/news.rss",
         :notes       => [
@@ -85,8 +85,7 @@ module NewRelic
       :rails =>
       {
         :type        => :web,
-        :supported   => ["~>2.1.0", "~>2.2.0", "~>2.3.0", "~3.0.0", "~>3.1.0", "~>3.2.0", "~>4.0.0", "~>4.1.0", "~>4.2.0"],
-        :experimental=> ["5.0.0.rc1"],
+        :supported   => ["~>2.1.0", "~>2.2.0", "~>2.3.0", "~3.0.0", "~>3.1.0", "~>3.2.0", "~>4.0.0", "~>4.1.0", "~>4.2.0", "~> 5.0.0"],
         :deprecated  => ["~>2.0.0"],
         :url         => "https://rubygems.org/gems/rails",
         :feed        => "https://rubygems.org/gems/rails/versions.atom",

@@ -202,6 +202,19 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0, @state)
   end
 
+  def test_notice_sql_statment_recording_sql
+    @state.record_sql = true
+    builder = @sampler.tl_builder
+    @sampler.expects(:notice_extra_data).with do |sample_builder, message, duration, key|
+      sample_builder == builder &&
+      message.sql == 'some sql' &&
+      duration == 1.0 &&
+      key == :sql
+    end
+    statement = NewRelic::Agent::Database::Statement.new 'some sql', {:config => 'a config'}
+    @sampler.notice_sql_statement(statement, 1.0)
+  end
+
   def test_notice_nosql
     builder = @sampler.tl_builder
     @sampler.expects(:notice_extra_data).with(builder, 'a key', 1.0, :key)
