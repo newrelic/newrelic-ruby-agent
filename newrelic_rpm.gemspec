@@ -49,14 +49,6 @@ EOS
   s.add_development_dependency 'pry', '~> 0.9.12'
   s.add_development_dependency 'hometown', '~> 0.2.5'
 
-  # Only let Guard run on newer Rubies
-  if RUBY_VERSION >= "1.9.3"
-    s.add_development_dependency 'guard'
-    s.add_development_dependency 'listen', '< 3.1' if RUBY_VERSION < "2.2.3"
-    s.add_development_dependency 'guard-minitest'
-    s.add_development_dependency 'rb-fsevent'
-  end
-
   # rack-cache ~> 1.2 is specified by actionpack 3.2, but rack-cache 1.3.1 only works on Ruby 1.9.3 & newer. :(
   # https://github.com/rtomayko/rack-cache/issues/124
   if RUBY_VERSION < "1.9.3"
