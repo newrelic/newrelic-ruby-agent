@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes #
 
-## v3.16.1
+## v3.16.1 ##
 
   * Internal datastore instrumentation rewrites
 
@@ -35,7 +35,7 @@
   adapter name, and Postmodern expanded our coverage. Thanks for the
   contribution!
 
-## v3.16.0
+## v3.16.0 ##
 
   * Official Rails 5.0 support
 
