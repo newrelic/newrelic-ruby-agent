@@ -23,7 +23,7 @@ namespace :newrelic do
 
     def output(format)
       config_hash = build_config_hash
-      sections = flatten_config_hash(config_hash)
+      flatten_config_hash(config_hash)
 
       puts build_erb(format).result(binding)
     end

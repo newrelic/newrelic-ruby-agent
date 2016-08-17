@@ -129,7 +129,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     end
   end
 
-  def test_increment_error_count_record_summary_and_txn_metric
+  def test_increment_error_count_record_summary_and_web_txn_metric
     in_web_transaction('Controller/class/method') do
       @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get, StandardError.new('Boo'))
     end
@@ -139,7 +139,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
                              'Errors/Controller/class/method'])
   end
 
-  def test_increment_error_count_record_summary_and_txn_metric
+  def test_increment_error_count_record_summary_and_other_txn_metric
     in_background_transaction('OtherTransaction/AnotherFramework/Job/perform') do
       @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get, StandardError.new('Boo'))
     end

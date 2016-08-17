@@ -26,6 +26,7 @@ module NewRelic
         def initialize(event_listener=nil)
           @profiles = {}
           @buffer = {}
+          @last_poll = nil
 
           # synchronizes access to @profiles and @buffer above
           @lock = Mutex.new

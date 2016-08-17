@@ -30,6 +30,9 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   #
   def initialize command_line_args
     @control = NewRelic::Control.instance
+    @environment = nil
+    @changelog   = nil
+    @user        = nil
     super(command_line_args)
     @description ||= @leftover && @leftover.join(" ")
     @user ||= ENV['USER']

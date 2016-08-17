@@ -139,6 +139,7 @@ module NewRelic
         attr_accessor :pipes, :timeout, :select_timeout
 
         def initialize
+          @started = nil
           @pipes = {}
           @pipes_lock = Mutex.new
 

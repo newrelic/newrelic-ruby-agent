@@ -71,6 +71,8 @@ module NewRelic
         @connect_state      = :pending
         @connect_attempts   = 0
         @environment_report = nil
+        @waited_on_connect  = nil
+        @connected_pid      = nil
 
         @wait_on_connect_reader, @wait_on_connect_writer = IO.pipe
 
@@ -472,7 +474,7 @@ module NewRelic
           end
 
           def in_resque_child_process?
-            @service.is_a?(NewRelic::Agent::PipeService)
+            defined?(@service) && @service.is_a?(NewRelic::Agent::PipeService)
           end
 
           # Sanity-check the agent configuration and start the agent,

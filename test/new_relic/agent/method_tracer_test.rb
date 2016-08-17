@@ -79,6 +79,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     @scope_listener = NewRelic::Agent::MockScopeListener.new
     @old_sampler = NewRelic::Agent.instance.transaction_sampler
     NewRelic::Agent.instance.stubs(:transaction_sampler).returns(@scope_listener)
+    @metric_name ||= nil
 
     freeze_time
 

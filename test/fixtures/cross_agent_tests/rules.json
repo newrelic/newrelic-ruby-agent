@@ -19,7 +19,7 @@
     ]
   },
   {
-    "testname":"replace first",
+    "testname":"replace segment",
     "rules":[{"match_expression":"^/userid/.*/folderid",          "replacement":"/userid/*/folderid/*",          "ignore":false, "eval_order":1},
              {"match_expression":"/need_not_be_first_segment/.*", "replacement":"*/need_not_be_first_segment/*", "ignore":false, "eval_order":2}],
     "tests":

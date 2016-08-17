@@ -17,7 +17,8 @@ module NewRelic::DeveloperModeHelper
   end
 
   def trace_row_display_limit_reached
-   (!@detail_node_count.nil? && @detail_node_count > trace_row_display_limit) || sql_segments(@sample).length > trace_row_display_limit
+    (defined?(@detail_node_count) && !@detail_node_count.nil? && (@detail_node_count > trace_row_display_limit)) ||
+      sql_segments(@sample).length > trace_row_display_limit
   end
 
   # return the highest level in the call stack for the trace that is not rails or
