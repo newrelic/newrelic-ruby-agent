@@ -46,6 +46,15 @@ module NewRelic
           raise NotImplementedError, "Subclasses must implement record_metrics"
         end
 
+        INSPECT_IGNORE = [:@transaction, :@transaction_state].freeze
+
+        def inspect
+          ivars = (instance_variables - INSPECT_IGNORE).inject([]) do |memo, var_name|
+            memo << "#{var_name}=#{instance_variable_get(var_name).inspect}"
+          end
+          sprintf('#<%s:0x%x %s>', self.class.name, object_id, ivars.join(', '))
+        end
+
         private
 
         # callback for subclasses to override
