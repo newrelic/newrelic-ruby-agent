@@ -1,6 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
-## v3.16.1
+## v3.16.2 ##
+
+  * Fix for "Unexpected frame in traced method stack" errors
+
+  Our ActiveRecord 4.x instrumentation could have generated "Unexpected frame in
+  traced method stack" errors when used outside of an active transaction (for
+  example, in custom background job handlers). This has been fixed.
+
+## v3.16.1 ##
 
   * Internal datastore instrumentation rewrites
 
