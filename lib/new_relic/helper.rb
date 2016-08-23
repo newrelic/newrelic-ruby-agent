@@ -47,9 +47,5 @@ module NewRelic
     def time_to_millis(time)
       (time.to_f * 1000).round
     end
-
-    def milliseconds_to_seconds(milliseconds)
-      milliseconds / 1000.0
-    end
   end
 end
