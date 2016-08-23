@@ -10,6 +10,7 @@ class StartUpTest < Minitest::Test
   JRUBY_9000_NOISE = [
     /uri\:classloader\:\/jruby\/kernel\/kernel\.rb\:\d*\: warning: unsupported exec option: close_others/, # https://github.com/jruby/jruby/issues/1913
     /.*\/lib\/ruby\/stdlib\/jar_dependencies.rb:\d*: warning: shadowing outer local variable - (group_id|artifact_id)/, #https://github.com/mkristian/jar-dependencies/commit/65c71261b1522f7b10fcb95de42ea4799de3a83a
+    /.*warning\: too many arguments for format string/ # Fixed in 9.1.3.0, see https://github.com/jruby/jruby/issues/3934
   ]
   BUNDLER_NOISE = [
     %r{.*gems/bundler-1.12.5/lib/bundler/rubygems_integration.rb:468: warning: method redefined; discarding old find_spec_for_exe},
