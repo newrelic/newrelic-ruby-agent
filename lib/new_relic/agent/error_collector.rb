@@ -196,7 +196,11 @@ module NewRelic
         tag_exception(exception)
 
         state = ::NewRelic::Agent::TransactionState.tl_get
-        increment_error_count!(state, exception, options)
+
+        unless options[:trace_only]
+          increment_error_count!(state, exception, options)
+        end
+
         noticed_error = create_noticed_error(exception, options)
         error_trace_aggregator.add_to_error_queue(noticed_error)
         payload = state.current_transaction ? state.current_transaction.payload : nil
