@@ -99,7 +99,7 @@ module NewRelic
           end
 
           def newrelic_read_attr(attr_name) # :nodoc:
-            instance_variable_get(attr_name)
+            instance_variable_get(attr_name) if instance_variable_defined?(attr_name)
           end
 
           # Add transaction tracing to the given method.  This will treat

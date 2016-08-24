@@ -17,6 +17,7 @@ module NewRelic::DeveloperModeHelper
   end
 
   def trace_row_display_limit_reached
+    @detail_node_count ||= nil
    (!@detail_node_count.nil? && @detail_node_count > trace_row_display_limit) || sql_segments(@sample).length > trace_row_display_limit
   end
 

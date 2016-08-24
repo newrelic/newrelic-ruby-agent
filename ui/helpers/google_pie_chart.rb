@@ -11,6 +11,7 @@ class GooglePieChart
   def initialize
     # an array of [label, value]
     @data = []
+    @max = nil
     self.width = 300
     self.height = 200
   end
