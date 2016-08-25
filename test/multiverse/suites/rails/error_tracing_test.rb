@@ -70,6 +70,11 @@ class ErrorController < ApplicationController
     raise 'bad things'
   end
 
+  def noticed_error_with_trace_only
+    NewRelic::Agent.notice_error("Raise the gates!", :trace_only => true)
+    render :text => 'Runner 5'
+  end
+
   if Rails::VERSION::MAJOR == 2
     filter_parameter_logging(:secret)
   end
@@ -283,6 +288,20 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
       attributes = user_attributes_for_single_error_posted
       assert_empty attributes
     end
+  end
+
+  def test_should_not_increment_metrics_on_trace_only_errors
+    get '/error/noticed_error_with_trace_only'
+
+    assert_equal(1, errors.size,
+                 'Error with :trace_only should have been recorded')
+
+    assert_metrics_not_recorded([
+      'Errors/all',
+      'Errors/Controller/error/noticed_error_with_trace_only'
+    ])
+
+    assert_metrics_recorded("Apdex" => { :apdex_s => 1 })
   end
 
   protected

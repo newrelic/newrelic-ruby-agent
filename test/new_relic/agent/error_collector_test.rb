@@ -383,6 +383,16 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     end
   end
 
+  def test_trace_only_does_not_increment_metrics
+    @error_collector.notice_error(StandardError.new, :trace_only => true)
+    traces = harvest_error_traces
+    events = harvest_error_events
+
+    assert_equal 1, traces.length
+    assert_equal 1, events.length
+    assert_metrics_not_recorded ['Errors/all']
+  end
+
   private
 
   def expects_error_count_increase(increase)
