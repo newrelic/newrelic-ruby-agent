@@ -5,7 +5,7 @@ services:
 
 language: ruby
 
-sudo: false
+sudo: required
 
 script: ./test/script/ci.sh
 
