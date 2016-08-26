@@ -20,11 +20,11 @@ module NewRelic
       @sampler_classes = []
 
       class << self
-        attr_reader :name
+        attr_reader :shorthand_name
       end
 
       def self.named(new_name)
-        @name = new_name
+        @shorthand_name = new_name
       end
 
       def self.inherited(subclass)
@@ -37,8 +37,8 @@ module NewRelic
       end
 
       def self.enabled?
-        if name
-          config_key = "disable_#{name}_sampler"
+        if shorthand_name
+          config_key = "disable_#{shorthand_name}_sampler"
           !(Agent.config[config_key])
         else
           true
