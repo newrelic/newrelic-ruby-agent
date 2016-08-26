@@ -53,7 +53,7 @@ module NewRelic
       # we have clients who are defining their own subclasses of this class, and
       # expecting to be able to call super with an ID.
       def initialize(id=nil)
-        @id = id || self.class.name
+        @id = id || self.class.shorthand_name
       end
 
       def poll
