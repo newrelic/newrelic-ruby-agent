@@ -1,5 +1,10 @@
 # New Relic Ruby Agent Release Notes #
 
+  * HTTP.rb support
+
+  The agent has been updated to add instrumentation support for the HTTP gem,
+  including Cross Application Tracing. Thanks Tiago Sousa for the contribution!
+
   * Prevent redundant Delayed::Job instrumentation installation
 
   This change was to handle situations where multiple Delayed::Worker instances
