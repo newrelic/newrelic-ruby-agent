@@ -393,6 +393,21 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_metrics_not_recorded ['Errors/all']
   end
 
+  def test_trace_only_not_recorded_as_custom_attribute
+    @error_collector.notice_error(StandardError.new, :trace_only => true)
+    traces = harvest_error_traces
+    events = harvest_error_events
+
+    assert_equal 1, traces.length
+    assert_equal 1, events.length
+
+    event_attrs = events[0][1]
+    refute event_attrs.key?("trace_only"), "Unexpected attribute trace_only found in custom attributes"
+
+    trace_attrs = traces[0].attributes_from_notice_error
+    refute trace_attrs.key?(:trace_only), "Unexpected attribute trace_only found in custom attributes"
+  end
+
   private
 
   def expects_error_count_increase(increase)
