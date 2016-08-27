@@ -73,7 +73,7 @@ class LabelsTest < Minitest::Test
         ENV['NEW_RELIC_LABELS'] = nil
       end
     end
-  end
+  end unless RUBY_VERSION < '1.9'
 
   def assert_connect_had_labels(expected)
     result = $collector.calls_for('connect').last['labels']

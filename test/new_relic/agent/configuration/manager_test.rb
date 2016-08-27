@@ -298,8 +298,9 @@ module NewRelic::Agent::Configuration
 
         assert_warning if testcase["warning"]
         assert_equal(testcase["expected"].sort_by { |h| h["label_type"] },
-                     @manager.parse_labels_from_string.sort_by { |h| h["label_type"] })
-      end
+                     @manager.parse_labels_from_string.sort_by { |h| h["label_type"] },
+                     "failed on #{testcase["name"]}")
+      end unless RUBY_VERSION < '1.9'
     end
 
     def test_parse_labels_from_dictionary_with_hard_failure
