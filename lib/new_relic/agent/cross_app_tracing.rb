@@ -190,6 +190,17 @@ module NewRelic
         NewRelic::Agent.logger.debug "Not injecting x-process header", err
       end
 
+      def insert_request_headers(request, txn_guid, trip_id, path_hash, synthetics_header)
+        cross_app_id = NewRelic::Agent.config[:cross_process_id]
+        txn_data  = NewRelic::JSONWrapper.dump([txn_guid, false, trip_id, path_hash])
+
+        request[NR_ID_HEADER]  = obfuscator.obfuscate(cross_app_id)
+        request[NR_TXN_HEADER] = obfuscator.obfuscate(txn_data)
+        if synthetics_header
+          request[NR_SYNTHETICS_HEADER] = synthetics_header
+        end
+      end
+
       def add_transaction_trace_parameters(request, response)
         filtered_uri = ::NewRelic::Agent::HTTPClients::URIUtil.filter_uri(request.uri)
         transaction_sampler.add_node_parameters(:uri => filtered_uri)

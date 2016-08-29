@@ -26,6 +26,24 @@ module NewRelic
           uri.host
         end
 
+        def add_request_headers request
+          unless CrossAppTracing.cross_app_enabled?
+            NewRelic::Agent.logger.debug "Not injecting x-process header"
+            return
+          end
+
+          transaction_state.is_cross_app_caller = true
+          txn_guid = transaction_state.request_guid
+          trip_id   = transaction && transaction.cat_trip_id(transaction_state)
+          path_hash = transaction && transaction.cat_path_hash(transaction_state)
+          synthetics_header = transaction && transaction.raw_synthetics_header
+
+          CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash, synthetics_header
+        rescue => e
+          NewRelic::Agent.logger.error "Error in add_request_headers", e
+        end
+
+
         private
 
         def normalize_uri uri
