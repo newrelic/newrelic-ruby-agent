@@ -434,6 +434,37 @@ module NewRelic
       NewRelic::Agent.set_user_attributes(:is => "bunk")
     end
 
+    def test_modules_and_classes_return_name_properly
+      valid = [Module, Class]
+      stack = [NewRelic]
+
+      loop do
+        a = stack.pop
+
+        if a.respond_to? :name
+          b = if RUBY_VERSION < '2.0.0'
+                a.name.split('::').reduce(nil) { |c,n| (c || Kernel).const_get n }
+              else
+                Kernel.const_get a.name
+              end
+          assert_equal a, b
+        end
+
+        if a.respond_to? :constants
+          stack.concat a.constants.map { |c| a.const_get c }.select do |c|
+            if valid.include?(c.class) && !c.ancestors.include?(Minitest::Test)
+              assert_instance_of String, c.name
+              c.name.start_with?(a.name)
+            else
+              false
+            end
+          end
+        end
+
+        break if stack.empty?
+      end
+    end
+
     private
 
     def with_unstarted_agent

@@ -20,11 +20,11 @@ module NewRelic
       @sampler_classes = []
 
       class << self
-        attr_reader :name
+        attr_reader :shorthand_name
       end
 
       def self.named(new_name)
-        @name = new_name
+        @shorthand_name = new_name
       end
 
       def self.inherited(subclass)
@@ -37,8 +37,8 @@ module NewRelic
       end
 
       def self.enabled?
-        if name
-          config_key = "disable_#{name}_sampler"
+        if shorthand_name
+          config_key = "disable_#{shorthand_name}_sampler"
           !(Agent.config[config_key])
         else
           true
@@ -53,7 +53,7 @@ module NewRelic
       # we have clients who are defining their own subclasses of this class, and
       # expecting to be able to call super with an ID.
       def initialize(id=nil)
-        @id = id || self.class.name
+        @id = id || self.class.shorthand_name
       end
 
       def poll
