@@ -442,7 +442,11 @@ module NewRelic
         a = stack.pop
 
         if a.respond_to? :name
-          b = Kernel.const_get a.name
+          b = if RUBY_VERSION < '2.0.0'
+                a.name.split('::').reduce(nil) { |c,n| (c || Kernel).const_get n }
+              else
+                Kernel.const_get a.name
+              end
           assert_equal a, b
         end
 
