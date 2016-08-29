@@ -97,7 +97,9 @@ DependencyDetection.defer do
                       end
         NewRelic::DelayedJobInjection.worker_name = worker_name
 
-        if defined?(::Delayed::Job) && ::Delayed::Job.method_defined?(:invoke_job)
+        if defined?(::Delayed::Job) && ::Delayed::Job.method_defined?(:invoke_job) &&
+          !(::Delayed::Job.method_defined?(:invoke_job_without_new_relic) )
+
           ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 2/2]'
           install_newrelic_job_tracer
           NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job
