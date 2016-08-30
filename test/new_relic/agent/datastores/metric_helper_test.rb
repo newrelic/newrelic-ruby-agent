@@ -26,6 +26,13 @@ module NewRelic
         assert_equal expected, result
       end
 
+      def test_instance_metric_for
+        instance_id = "localhost:1337807"
+        expected = "Datastore/instance/JonanDB/#{instance_id}"
+        result = Datastores::MetricHelper.instance_metric_for(@product, instance_id)
+        assert_equal expected, result
+      end
+
       def test_metrics_for_in_web_context
         Transaction.stubs(:recording_web_transaction?).returns(true)
         expected = [

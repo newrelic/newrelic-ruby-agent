@@ -24,6 +24,10 @@ module NewRelic
           "Datastore/operation/#{product}/#{operation}"
         end
 
+        def self.instance_metric_for(product, instance_identifier)
+          "Datastore/instance/#{product}/#{instance_identifier}"
+        end
+
         def self.product_suffixed_rollup(product, suffix)
           "Datastore/#{product}/#{suffix}"
         end
