@@ -116,6 +116,20 @@ module NewRelic
         assert_equal expected, result
       end
 
+      def test_unscoped_metrics_for_with_instance_identifier
+        Transaction.stubs(:recording_web_transaction?).returns(false)
+        expected = [
+          "Datastore/instance/JonanDB/localhost:1337807",
+          "Datastore/JonanDB/allOther",
+          "Datastore/JonanDB/all",
+          "Datastore/allOther",
+          "Datastore/all"
+        ]
+
+        result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, nil, "localhost:1337807")
+        assert_equal expected, result
+      end
+
       def test_product_operation_collection_for_obeys_collection_and_operation_overrides
         in_transaction do
           NewRelic::Agent.with_database_metric_name("Model", "new_method") do
