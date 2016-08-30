@@ -14,6 +14,8 @@ module NewRelic
         attr_accessor :sampler
 
         def initialize
+          @sampler = nil
+
           # macos, linux, solaris
           if defined? JRuby
             @sampler = JavaHeapSampler.new

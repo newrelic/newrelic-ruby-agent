@@ -18,11 +18,11 @@
     "name":        "multiple_labels_with_leading_and_trailing_whitespaces",
     "labelString": "   Data Center   : East Coast  ;   Deployment Flavor    :  Integration Environment   ",
     "warning":     false,
-    "expected":    [ 
+    "expected":    [
         { "label_type": "Data Center", "label_value": "East Coast" },
         { "label_type": "Deployment Flavor", "label_value": "Integration Environment" }
     ]
-  }, 
+  },
   {
     "name":        "single",
     "labelString": "Server:East",
@@ -53,7 +53,7 @@
   {
     "name":        "truncation",
     "labelString": "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK:VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
-    "warning":     false,
+    "warning":     true,
     "expected":    [ {
       "label_type":  "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",
       "label_value": "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"
@@ -62,19 +62,27 @@
   {
     "name":        "single_label_key_to_be_truncated_with_leading_and_trailing_whitespaces",
     "labelString": "           123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345TTTTT       :value",
-    "warning":     false,
-    "expected":    [ 
+    "warning":     true,
+    "expected":    [
         { "label_type": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345", "label_value": "value" }
     ]
-  }, 
+  },
   {
     "name":        "single_label_value_to_be_truncated_with_leading_and_trailing_whitespaces",
     "labelString": "key:           123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345TTTTT       ",
-    "warning":     false,
-    "expected":    [ 
-        { "label_type": "key", "label_value": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345" } 
+    "warning":     true,
+    "expected":    [
+        { "label_type": "key", "label_value": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345" }
     ]
-  }, 
+  },
+  {
+    "name":        "utf8",
+    "labelString": "kéÿ:vãlüê",
+    "warning":     false,
+    "expected":    [
+        { "label_type": "kéÿ", "label_value": "vãlüê" }
+    ]
+  },
   {
     "name":        "failed_no_delimiters",
     "labelString": "Server",
@@ -129,5 +137,59 @@
       { "label_type": "50", "label_value": "50" }, { "label_type": "51", "label_value": "51" }, { "label_type": "52", "label_value": "52" }, { "label_type": "53", "label_value": "53" }, { "label_type": "54", "label_value": "54" },
       { "label_type": "55", "label_value": "55" }, { "label_type": "56", "label_value": "56" }, { "label_type": "57", "label_value": "57" }, { "label_type": "58", "label_value": "58" }, { "label_type": "59", "label_value": "59" },
       { "label_type": "60", "label_value": "60" }, { "label_type": "61", "label_value": "61" }, { "label_type": "62", "label_value": "62" }, { "label_type": "63", "label_value": "63" } ]
+  },
+  {
+    "name":        "trailing_semicolons",
+    "labelString": "foo:bar;;",
+    "warning":     false,
+    "expected":    [ { "label_type": "foo", "label_value": "bar" } ]
+  },
+  {
+    "name":        "leading_semicolons",
+    "labelString": ";;foo:bar",
+    "warning":     false,
+    "expected":    [ { "label_type": "foo", "label_value": "bar" } ]
+  },
+  {
+    "name":        "empty_label",
+    "labelString": "foo:bar;;zip:zap",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "trailing_colons",
+    "labelString": "foo:bar;:",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "leading_colons",
+    "labelString": ":;foo:bar",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "empty_pair",
+    "labelString": " : ",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name":        "empty_pair_in_middle_of_string",
+    "labelString": "foo:bar; : ;zip:zap",
+    "warning":     true,
+    "expected":    []
+  },
+  {
+    "name": "long_multibyte_utf8",
+    "labelString": "foo:€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€",
+    "warning": true,
+    "expected": [ { "label_type": "foo", "label_value": "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€" } ]
+  },
+  {
+    "name": "long_4byte_utf8",
+    "labelString": "foo:𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆",
+    "warning": true,
+    "expected": [ { "label_type": "foo", "label_value": "𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆𝌆"}]
   }
 ]

@@ -15,7 +15,7 @@
 	</tr>
 <% end %>
 
-<% if @obfuscated_sql %>
+<% if defined?(@obfuscated_sql) && @obfuscated_sql %>
 	<tr>
 		<th align=right valign=top>
 		Obfuscated Query

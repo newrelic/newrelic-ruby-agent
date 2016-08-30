@@ -2,10 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/metric_parser'
 # OtherTransaction metrics must have at least three segments: /OtherTransaction/<task>/*
 # Task is "Background", "Resque", "DelayedJob" etc.
 module NewRelic
+  autoload :MetricParser, 'new_relic/metric_parser'
   module MetricParser
     class OtherTransaction < NewRelic::MetricParser::MetricParser
 

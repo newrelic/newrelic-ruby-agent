@@ -210,16 +210,31 @@ module NewRelic
       end
     end
 
-    # Notice the error with the given available options:
+    # Send an error to New Relic.
     #
-    # * <tt>:uri</tt> => Request path, minus request params or query string
-    # * <tt>:metric</tt> => The metric name associated with the transaction
-    # * <tt>:custom_params</tt> => Custom parameters
+    # @param [Exception] exception Error you wish to send
+    # @param [Hash]      options Modify how New Relic processes the error
+    # @option options [Hash]    :custom_params Custom parameters to attach to the trace
+    # @option options [Boolean] :trace_only Only record the error trace
+    #                           (do not affect error rate or Apdex status)
+    # @option options [String]  :uri Request path, minus request params or query string
+    #                           (usually not needed)
+    # @option options [String]  :metric Metric name associated with the transaction
+    #                           (usually not needed)
     #
-    # Previous versions of the agent allowed passing :request_params but
-    # those are now ignored. Associate the request with the enclosing
-    # transaction, or record additional information as custom attributes.
-    # Anything left over is treated as custom params.
+    # Any option keys other than the ones listed here are treated as
+    # <code>:custom_params</code>.
+    #
+    # *Note:* Previous versions of the agent allowed passing
+    # <code>:request_params</code>, but those are now ignored.  If you
+    # need to record the request parameters, call this method inside a
+    # transaction or pass the information in
+    # <code>:custom_params</code>.
+    #
+    # Most of the time, you do not need to specify the
+    # <code>:uri</code> or <code>:metric</code> options; only pass
+    # them if you are calling <code>notice_error</code> outside a
+    # transaction.
     #
     # @api public
     #

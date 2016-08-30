@@ -792,15 +792,18 @@ module NewRelic
       APDEX_TXN_METRIC_PREFIX       = 'Apdex/'.freeze
       APDEX_OTHER_TXN_METRIC_PREFIX = 'ApdexOther/Transaction/'.freeze
 
-      def had_error?
-        @exceptions.each do |exception, _|
-          return true unless NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
+      def had_error_affecting_apdex?
+        @exceptions.each do |exception, options|
+          ignored    = NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
+          trace_only = options[:trace_only]
+
+          return true unless ignored || trace_only
         end
         false
       end
 
       def apdex_bucket(duration, current_apdex_t)
-        self.class.apdex_bucket(duration, had_error?, current_apdex_t)
+        self.class.apdex_bucket(duration, had_error_affecting_apdex?, current_apdex_t)
       end
 
       def record_apdex(state, end_time=Time.now)

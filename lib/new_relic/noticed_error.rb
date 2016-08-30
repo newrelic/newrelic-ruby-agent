@@ -57,6 +57,8 @@ class NewRelic::NoticedError
       @message = STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE
     end
 
+    @attributes_from_notice_error = nil
+    @attributes = nil
     @timestamp = timestamp
   end
 

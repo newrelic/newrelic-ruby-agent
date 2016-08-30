@@ -245,7 +245,7 @@ module NewRelic
         end
 
         def break_label_string_into_pairs(labels)
-          stripped_labels = labels.strip
+          stripped_labels = labels.strip.sub(/^;*/,'').sub(/;*$/,'')
           stripped_labels.split(';').map do |pair|
             pair.split(':').map(&:strip)
           end

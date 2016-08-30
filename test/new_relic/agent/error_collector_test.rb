@@ -129,7 +129,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     end
   end
 
-  def test_increment_error_count_record_summary_and_txn_metric
+  def test_increment_error_count_record_summary_and_web_txn_metric
     in_web_transaction('Controller/class/method') do
       @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get, StandardError.new('Boo'))
     end
@@ -139,7 +139,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
                              'Errors/Controller/class/method'])
   end
 
-  def test_increment_error_count_record_summary_and_txn_metric
+  def test_increment_error_count_record_summary_and_other_txn_metric
     in_background_transaction('OtherTransaction/AnotherFramework/Job/perform') do
       @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get, StandardError.new('Boo'))
     end
@@ -381,6 +381,31 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
       @error_collector.notice_error(e)
       refute @error_collector.exception_tagged?(e)
     end
+  end
+
+  def test_trace_only_does_not_increment_metrics
+    @error_collector.notice_error(StandardError.new, :trace_only => true)
+    traces = harvest_error_traces
+    events = harvest_error_events
+
+    assert_equal 1, traces.length
+    assert_equal 1, events.length
+    assert_metrics_not_recorded ['Errors/all']
+  end
+
+  def test_trace_only_not_recorded_as_custom_attribute
+    @error_collector.notice_error(StandardError.new, :trace_only => true)
+    traces = harvest_error_traces
+    events = harvest_error_events
+
+    assert_equal 1, traces.length
+    assert_equal 1, events.length
+
+    event_attrs = events[0][1]
+    refute event_attrs.key?("trace_only"), "Unexpected attribute trace_only found in custom attributes"
+
+    trace_attrs = traces[0].attributes_from_notice_error
+    refute trace_attrs.key?(:trace_only), "Unexpected attribute trace_only found in custom attributes"
   end
 
   private

@@ -5,7 +5,7 @@ services:
 
 language: ruby
 
-sudo: false
+sudo: required
 
 script: ./test/script/ci.sh
 
@@ -44,10 +44,10 @@ notifications:
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - jruby-1.7.23
-  - jruby-9.0.4.0
+  - jruby-9.1.2.0
   - 2.3.1
   - 2.2.5
-  - 2.1.8
+  - 2.1.10
   - 2.0.0-p648
   - 1.9.3
   - 1.9.2
@@ -115,13 +115,13 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails23
 
     # 2.1
-    - rvm: 2.1.8
+    - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.1.8
+    - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.1.8
+    - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.1.8
+    - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails50
 
     # 2.0
@@ -181,17 +181,17 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails50
 
     # jruby 9.0
-    - rvm: jruby-9.0.4.0
+    - rvm: jruby-9.1.2.0
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: jruby-9.0.4.0
+    - rvm: jruby-9.1.2.0
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: jruby-9.0.4.0
+    - rvm: jruby-9.1.2.0
       env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: jruby-9.0.4.0
+    - rvm: jruby-9.1.2.0
       env: TYPE=UNIT ENVIRONMENT=rails30
-    - rvm: jruby-9.0.4.0
+    - rvm: jruby-9.1.2.0
       env: TYPE=UNIT ENVIRONMENT=rails31
-    - rvm: jruby-9.0.4.0
+    - rvm: jruby-9.1.2.0
       env: TYPE=UNIT ENVIRONMENT=rails32
 
     # rbx

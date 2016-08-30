@@ -23,7 +23,7 @@ module NewRelic
       {
         :type        => :ruby,
         :name        => "JRuby",
-        :supported   => ["~> 1.6.0", "~> 1.7.0", "~> 9.0"],
+        :supported   => ["~> 1.7.0", "~> 9.0", "~> 9.1"],
         :url         => "http://jruby.org",
         :feed        => "http://jruby.org/atom.xml"
       },

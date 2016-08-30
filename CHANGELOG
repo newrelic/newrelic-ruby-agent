@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Prevent redundant Delayed::Job instrumentation installation
+
+  This change was to handle situations where multiple Delayed::Worker instances
+  are being created but Delayed::Job has already been instrumented. Thanks Tony
+  Brown for the contribution!
+
 ## v3.16.2 ##
 
   * Fix for "Unexpected frame in traced method stack" errors
@@ -43,7 +49,7 @@
   adapter name, and Postmodern expanded our coverage. Thanks for the
   contribution!
 
-## v3.16.0
+## v3.16.0 ##
 
   * Official Rails 5.0 support
 

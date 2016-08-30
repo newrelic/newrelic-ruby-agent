@@ -1,6 +1,6 @@
 begin
   require 'rake/testtask'
-rescue LoadError => e
+rescue LoadError
 end
 
 if defined? Rake::TestTask

@@ -20,10 +20,11 @@ module NewRelic
         @should_run = true
         @next_invocation_time = Time.now
         @period = 60.0
-        @duration = opts[:duration] if opts[:duration]
-        @limit = opts[:limit] if opts[:limit]
+        @duration = opts[:duration]
+        @limit = opts[:limit]
         @iterations = 0
         @propagate_errors = opts.fetch(:propagate_errors, false)
+        @deadline = nil
       end
 
       # Reset state that is changed by running the worker loop

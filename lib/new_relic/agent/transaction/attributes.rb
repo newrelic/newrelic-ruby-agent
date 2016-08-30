@@ -25,6 +25,7 @@ module NewRelic
 
           @custom_destinations = {}
           @agent_destinations = {}
+          @already_warned_count_limit = nil
         end
 
         def add_agent_attribute(key, value, default_destinations)
