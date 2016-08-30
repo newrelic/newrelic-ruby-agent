@@ -12,13 +12,13 @@ module NewRelic
       class DatastoreSegment < Segment
         attr_reader :product, :operation, :collection, :sql_statement
 
-        def initialize product, operation, collection = nil
+        def initialize product, operation, collection = nil, instance_identifier=nil
           @product = product
           @operation = operation
           @collection = collection
           @sql_statement = nil
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
-                Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection)
+                Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, instance_identifier)
         end
 
         def notice_sql sql
