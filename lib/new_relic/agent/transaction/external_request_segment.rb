@@ -15,6 +15,7 @@ module NewRelic
           @library = library
           @uri = normalize_uri uri
           @procedure = procedure
+          @app_data = nil
           super()
         end
 
@@ -43,6 +44,33 @@ module NewRelic
           NewRelic::Agent.logger.error "Error in add_request_headers", e
         end
 
+        def read_response_headers response
+          return unless CrossAppTracing.response_is_crossapp?(response)
+          return unless data = CrossAppTracing.extract_appdata(response)
+
+          if CrossAppTracing.valid_cross_app_id?(data[0])
+            @app_data = data
+            update_segment_name
+          end
+        rescue => e
+          NewRelic::Agent.logger.error "Error in read_response_headers", e
+        end
+
+        def cross_app_request?
+          !!@app_data
+        end
+
+        def cross_process_id
+          @app_data && @app_data[0]
+        end
+
+        def transaction_guid
+          @app_data && @app_data[5]
+        end
+
+        def cross_process_transaction_name
+          @app_data && @app_data[1]
+        end
 
         private
 
@@ -53,11 +81,16 @@ module NewRelic
         EXTERNAL_ALL = "External/all".freeze
 
         def unscoped_metrics
-          [
-            EXTERNAL_ALL,
+          metrics = [ EXTERNAL_ALL,
             "External/#{host}/all",
             suffixed_rollup_metric
           ]
+
+          if cross_app_request?
+            metrics << "ExternalApp/#{host}/#{cross_process_id}/all"
+          end
+
+          metrics
         end
 
         EXTERNAL_ALL_WEB = "External/allWeb".freeze
@@ -68,6 +101,14 @@ module NewRelic
             EXTERNAL_ALL_WEB
           else
             EXTERNAL_ALL_OTHER
+          end
+        end
+
+        def update_segment_name
+          if @app_data
+            @name = "ExternalTransaction/#{host}/#{cross_process_id}/#{cross_process_transaction_name}"
+          else
+            @name = "External/#{host}/#{library}/#{procedure}"
           end
         end
       end

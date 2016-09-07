@@ -337,6 +337,10 @@ module NewRelic
             "malformed cross application ID %p" % [ id ]
       end
 
+      def valid_cross_app_id?(xp_id)
+        !!(xp_id =~ /\A\d+#\d+\z/)
+      end
+
 
       # Check the given +name+ to ensure it conforms to the format of a valid transaction
       # name.
