@@ -11,6 +11,9 @@ module NewRelic
   module Agent
     class Transaction
       class ExternalRequestSegmentTest < Minitest::Test
+
+        TRANSACTION_GUID = 'BEC1BC64675138B9'
+
         def test_generates_expected_name
           segment = ExternalRequestSegment.new "Typhoeus", "http://remotehost.com/blogs/index", "GET"
           assert_equal "External/remotehost.com/Typhoeus/GET", segment.name
@@ -45,11 +48,24 @@ module NewRelic
           assert headers.key?("X-NewRelic-Transaction"), "Expected to find X-NewRelic-Transaction header"
         end
 
+        def test_segment_writes_sythetics_header_for_synthetics_txn
+          headers = {}
+          with_config cat_config do
+            in_transaction :category => :controller do |txn|
+              txn.raw_synthetics_header = json_dump_and_encode [1, 42, 100, 200, 300]
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+              segment.add_request_headers headers
+              segment.finish
+            end
+          end
+          assert headers.key?("X-NewRelic-Synthetics"), "Expected to find X-NewRelic-Synthetics header"
+        end
+
         def cat_config
           {
             :cross_process_id    => "269975#22824",
             :encoding_key        => "jotorotoes",
-            :trusted_account_ids => [269975]
+            :trusted_account_ids => [1,269975]
           }
         end
       end
