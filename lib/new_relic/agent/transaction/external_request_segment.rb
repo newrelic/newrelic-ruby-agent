@@ -15,6 +15,7 @@ module NewRelic
           @library = library
           @uri = normalize_uri uri
           @procedure = procedure
+          @host_header = nil
           @app_data = nil
           super()
         end
@@ -24,10 +25,14 @@ module NewRelic
         end
 
         def host
-          uri.host
+          @host_header || uri.host
         end
 
+        # This method will add NewRelic headers for cross application tracing and
+        # will check to see if a host header is used for the request. If a host
+        # header is used it will update the segment name to reflect the host header.
         def add_request_headers request
+          process_host_header request
           unless CrossAppTracing.cross_app_enabled?
             NewRelic::Agent.logger.debug "Not injecting x-process header"
             return
@@ -76,6 +81,12 @@ module NewRelic
 
         def normalize_uri uri
           uri.is_a?(URI) ? uri : HTTPClients::URIUtil.parse_url(uri)
+        end
+
+        def process_host_header request
+          if @host_header = CrossAppTracing.host_from_request_header(request)
+            update_segment_name
+          end
         end
 
         EXTERNAL_ALL = "External/all".freeze

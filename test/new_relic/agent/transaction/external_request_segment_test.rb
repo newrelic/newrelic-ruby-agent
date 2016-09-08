@@ -48,7 +48,7 @@ module NewRelic
           assert headers.key?("X-NewRelic-Transaction"), "Expected to find X-NewRelic-Transaction header"
         end
 
-        def test_segment_writes_sythetics_header_for_synthetics_txn
+        def test_segment_writes_synthetics_header_for_synthetics_txn
           headers = {}
           with_config cat_config do
             in_transaction :category => :controller do |txn|
@@ -59,6 +59,19 @@ module NewRelic
             end
           end
           assert headers.key?("X-NewRelic-Synthetics"), "Expected to find X-NewRelic-Synthetics header"
+        end
+
+        def test_add_request_headers_renames_segment_based_on_host_header
+          headers = {"host" => "anotherhost.local"}
+          with_config cat_config do
+            in_transaction :category => :controller do
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+              assert_equal "External/remotehost.com/Net::HTTP/GET", segment.name
+              segment.add_request_headers headers
+              assert_equal "External/anotherhost.local/Net::HTTP/GET", segment.name
+              segment.finish
+            end
+          end
         end
 
         def test_read_response_headers_decodes_valid_appdata

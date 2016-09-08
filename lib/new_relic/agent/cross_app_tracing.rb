@@ -201,6 +201,15 @@ module NewRelic
         end
       end
 
+      HOST = 'host'.freeze
+      SEMI_COLON = ':'.freeze
+
+      def host_from_request_header request
+        if host = request[HOST]
+          host.split(SEMI_COLON).first
+        end
+      end
+
       def add_transaction_trace_parameters(request, response)
         filtered_uri = ::NewRelic::Agent::HTTPClients::URIUtil.filter_uri(request.uri)
         transaction_sampler.add_node_parameters(:uri => filtered_uri)
