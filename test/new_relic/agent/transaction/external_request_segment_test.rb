@@ -23,7 +23,7 @@ module NewRelic
         end
 
         def test_segment_records_expected_metrics_for_non_cat_txn
-          in_transaction :category => :controller do
+          in_transaction "test", :category => :controller do
             segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
             segment.finish
           end
@@ -32,7 +32,8 @@ module NewRelic
             "External/remotehost.com/Net::HTTP/GET",
             "External/all",
             "External/remotehost.com/all",
-            "External/allWeb"
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
 
           assert_metrics_recorded expected_metrics
@@ -44,7 +45,7 @@ module NewRelic
           }
 
           with_config cat_config do
-            in_transaction :category => :controller do |txn|
+            in_transaction "test", :category => :controller do |txn|
               segment = Transaction.start_external_request_segment "Net::HTTP", "http://newrelic.com/blogs/index", "GET"
               segment.read_response_headers response
               segment.finish
@@ -56,7 +57,8 @@ module NewRelic
             "ExternalApp/newrelic.com/1#1884/all",
             "External/all",
             "External/newrelic.com/all",
-            "External/allWeb"
+            "External/allWeb",
+            ["ExternalTransaction/newrelic.com/1#1884/txn-name", "test"]
           ]
 
           assert_metrics_recorded expected_metrics
