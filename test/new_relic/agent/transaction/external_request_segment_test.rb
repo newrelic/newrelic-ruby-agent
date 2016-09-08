@@ -112,6 +112,42 @@ module NewRelic
           end
         end
 
+        def test_uri_recorded_as_tt_attribute
+          segment = nil
+          uri = "http://newrelic.com/blogs/index"
+
+          in_transaction :category => :controller do
+            segment = Transaction.start_external_request_segment "Net::HTTP", uri, "GET"
+            segment.finish
+          end
+
+          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          node = find_node_with_name(sample, segment.name)
+
+          assert_equal uri, node.params[:uri]
+        end
+
+        def test_guid_recorded_as_tt_attribute_for_cat_txn
+          segment = nil
+
+          response = {
+            'X-NewRelic-App-Data' => make_app_data_payload("1#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID)
+          }
+
+          with_config cat_config do
+            in_transaction :category => :controller do
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://newrelic.com/blogs/index", "GET"
+              segment.read_response_headers response
+              segment.finish
+            end
+          end
+
+          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          node = find_node_with_name(sample, segment.name)
+
+          assert_equal TRANSACTION_GUID, node.params[:transaction_guid]
+        end
+
         def cat_config
           {
             :cross_process_id    => "269975#22824",

@@ -79,6 +79,14 @@ module NewRelic
 
         private
 
+        def segment_complete
+          node_params = {:uri => HTTPClients::URIUtil.filter_uri(uri)}
+          if cross_app_request?
+            node_params[:transaction_guid] = transaction_guid
+          end
+          Agent.instance.transaction_sampler.add_node_parameters node_params
+        end
+
         def normalize_uri uri
           uri.is_a?(URI) ? uri : HTTPClients::URIUtil.parse_url(uri)
         end
