@@ -11,8 +11,11 @@ module NewRelic
   module Agent
     class Transaction
       class ExternalRequestSegmentTest < Minitest::Test
-
         TRANSACTION_GUID = 'BEC1BC64675138B9'
+
+        def teardown
+          NewRelic::Agent.drop_buffered_data
+        end
 
         def test_generates_expected_name
           segment = ExternalRequestSegment.new "Typhoeus", "http://remotehost.com/blogs/index", "GET"
@@ -29,6 +32,30 @@ module NewRelic
             "External/remotehost.com/Net::HTTP/GET",
             "External/all",
             "External/remotehost.com/all",
+            "External/allWeb"
+          ]
+
+          assert_metrics_recorded expected_metrics
+        end
+
+        def test_segment_records_expected_metrics_for_cat_transaction
+          response = {
+            'X-NewRelic-App-Data' => make_app_data_payload("1#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID)
+          }
+
+          with_config cat_config do
+            in_transaction :category => :controller do |txn|
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://newrelic.com/blogs/index", "GET"
+              segment.read_response_headers response
+              segment.finish
+            end
+          end
+
+          expected_metrics = [
+            "ExternalTransaction/newrelic.com/1#1884/txn-name",
+            "ExternalApp/newrelic.com/1#1884/all",
+            "External/all",
+            "External/newrelic.com/all",
             "External/allWeb"
           ]
 
