@@ -13,6 +13,12 @@ module NewRelic
       class ExternalRequestSegmentTest < Minitest::Test
         TRANSACTION_GUID = 'BEC1BC64675138B9'
 
+        def setup
+          @obfuscator = NewRelic::Agent::Obfuscator.new "jotorotoes"
+          CrossAppTracing.stubs(:obfuscator).returns(@obfuscator)
+          CrossAppTracing.stubs(:valid_encoding_key?).returns(true)
+        end
+
         def teardown
           NewRelic::Agent.drop_buffered_data
         end
@@ -194,14 +200,12 @@ module NewRelic
         def cat_config
           {
             :cross_process_id    => "269975#22824",
-            :encoding_key        => "jotorotoes",
             :trusted_account_ids => [1,269975]
           }
         end
 
         def make_app_data_payload( *args )
-          obfuscator = NewRelic::Agent::Obfuscator.new("jotorotoes")
-          return obfuscator.obfuscate( args.to_json ) + "\n"
+          @obfuscator.obfuscate( args.to_json ) + "\n"
         end
       end
     end
