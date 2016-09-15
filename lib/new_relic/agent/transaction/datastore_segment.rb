@@ -10,13 +10,14 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-        attr_reader :product, :operation, :collection, :sql_statement
+        attr_reader :product, :operation, :collection, :sql_statement, :instance_identifier
 
         def initialize product, operation, collection = nil, instance_identifier=nil
           @product = product
           @operation = operation
           @collection = collection
           @sql_statement = nil
+          @instance_identifier = instance_identifier
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
                 Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, instance_identifier)
         end
@@ -34,8 +35,18 @@ module NewRelic
         private
 
         def segment_complete
-          return unless sql_statement
+          add_segment_parameters
+          notice_sql_statement if sql_statement
+        end
 
+        def add_segment_parameters
+          if instance_identifier
+            node_params = { :instance => instance_identifier }
+            NewRelic::Agent.instance.transaction_sampler.add_node_parameters node_params
+          end
+        end
+
+        def notice_sql_statement
           NewRelic::Agent.instance.transaction_sampler.notice_sql_statement(sql_statement, duration)
           NewRelic::Agent.instance.sql_sampler.notice_sql_statement(sql_statement.dup, name, duration)
         end
