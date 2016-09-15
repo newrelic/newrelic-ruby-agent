@@ -96,6 +96,21 @@ module NewRelic
           assert_equal node.params[:instance], "localhost:{1337807}"
         end
 
+        def test_add_database_name_segment_parameter
+          segment = nil
+
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, nil, "jonan.gummy_planet"
+            advance_time 1
+            segment.finish
+          end
+
+          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          node = find_node_with_name(sample, segment.name)
+
+          assert_equal node.params[:database_name], "jonan.gummy_planet"
+        end
+
         def test_notice_sql
           in_transaction do
             segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"

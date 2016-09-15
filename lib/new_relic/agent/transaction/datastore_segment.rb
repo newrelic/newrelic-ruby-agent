@@ -10,14 +10,15 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-        attr_reader :product, :operation, :collection, :sql_statement, :instance_identifier
+        attr_reader :product, :operation, :collection, :sql_statement, :instance_identifier, :database_name
 
-        def initialize product, operation, collection = nil, instance_identifier=nil
+        def initialize product, operation, collection = nil, instance_identifier=nil, database_name=nil
           @product = product
           @operation = operation
           @collection = collection
           @sql_statement = nil
           @instance_identifier = instance_identifier
+          @database_name = database_name
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
                 Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, instance_identifier)
         end
@@ -40,10 +41,13 @@ module NewRelic
         end
 
         def add_segment_parameters
-          if instance_identifier
-            node_params = { :instance => instance_identifier }
-            NewRelic::Agent.instance.transaction_sampler.add_node_parameters node_params
-          end
+          return unless instance_identifier || database_name
+
+          node_params = {}
+          node_params[:instance] = instance_identifier if instance_identifier
+          node_params[:database_name] = database_name if database_name
+
+          NewRelic::Agent.instance.transaction_sampler.add_node_parameters node_params
         end
 
         def notice_sql_statement

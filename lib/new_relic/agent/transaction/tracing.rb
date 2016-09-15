@@ -17,8 +17,8 @@ module NewRelic
             segment
           end
 
-          def start_datastore_segment product, operation, collection=nil, instance_identifier=nil
-            segment = DatastoreSegment.new product, operation, collection, instance_identifier
+          def start_datastore_segment product, operation, collection=nil, instance_identifier=nil, database_name=nil
+            segment = DatastoreSegment.new product, operation, collection, instance_identifier, database_name
             segment.start
             add_segment segment
             segment
