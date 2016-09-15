@@ -52,6 +52,15 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     )
   end
 
+  def test_records_datastore_instance_metric
+    config = { :host => "jonan.gummy_planet" }
+    @subscriber.stubs(:active_record_config).returns(config)
+
+    simulate_query(2)
+
+    assert_metrics_recorded('Datastore/instance/ActiveRecord/jonan.gummy_planet:{default}')
+  end
+
   def test_records_nothing_if_tracing_disabled
     freeze_time
 
