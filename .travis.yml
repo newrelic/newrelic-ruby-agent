@@ -13,7 +13,8 @@ before_install:
   - 'mkdir -p /home/travis/gemfiles && touch /home/travis/gemfiles/IGNORE.txt && cp -R /home/travis/gemfiles/* .'
   - 'if [[ `ruby --version` =~ ^ruby\ 1\. ]]; then gem update --system 1.8.25; fi'
   - gem --version
-  - gem install bundler
+  # currently there's an incompatibility between Bundler 1.13 with JRuby 1.7, see Bundler issue #4975
+  - 'if [[ `ruby --version` =~ ^jruby\ 1\. ]]; then rvm use @global && gem uninstall -x bundler && gem install bundler -v 1.12.5; else gem install bundler; fi'
   - bundle --version
 
 install: bundle install --local --path=/home/travis/bundle || bundle --path=/home/travis/bundle

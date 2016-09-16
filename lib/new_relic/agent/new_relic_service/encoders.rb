@@ -31,6 +31,7 @@ module NewRelic
               output.set_encoding BINARY
               gz = Zlib::GzipWriter.new(output, Zlib::DEFAULT_COMPRESSION, Zlib::DEFAULT_STRATEGY)
               gz.write(data)
+              gz.close
               output.rewind
               output.string
             end
