@@ -30,7 +30,7 @@ module NewRelic
         # @api private
         def _notice_sql sql, config=nil, explainer=nil, binds=nil, name=nil
           return unless record_sql?
-          @sql_statement = Database::Statement.new sql, config, explainer, binds, name, instance_identifier
+          @sql_statement = Database::Statement.new sql, config, explainer, binds, name, instance_identifier, database_name
         end
 
         private

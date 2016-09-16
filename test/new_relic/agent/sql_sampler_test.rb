@@ -371,7 +371,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_to_collector_array_with_database_instance_params
-    statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet")
+    statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet", "pizza_cube")
     slow = NewRelic::Agent::SlowSql.new(statement, "transaction", 1.0)
     trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
     encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
@@ -379,6 +379,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     *_ , params = trace.to_collector_array(encoder)
 
     assert_equal "jonan.gummy_planet", params[:instance]
+    assert_equal "pizza_cube", params[:database_name]
   end
 
   def test_merge_without_existing_trace

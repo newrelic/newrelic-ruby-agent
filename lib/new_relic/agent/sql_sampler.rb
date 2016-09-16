@@ -239,6 +239,7 @@ module NewRelic
       def base_params
         params = {}
         params[:instance] = statement.instance_identifier if statement.instance_identifier
+        params[:database_name] = statement.database_name if statement.database_name
 
         params
       end
