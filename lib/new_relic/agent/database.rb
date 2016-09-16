@@ -181,16 +181,17 @@ module NewRelic
       class Statement
         include ExplainPlanHelpers
 
-        attr_accessor :sql, :config, :explainer, :binds, :name
+        attr_accessor :sql, :config, :explainer, :binds, :name, :instance_identifier
 
         DEFAULT_QUERY_NAME = "SQL".freeze
 
-        def initialize(sql, config={}, explainer=nil, binds=nil, name=DEFAULT_QUERY_NAME)
+        def initialize(sql, config={}, explainer=nil, binds=nil, name=DEFAULT_QUERY_NAME, instance_identifier=nil)
           @sql = Database.capture_query(sql)
           @config = config
           @explainer = explainer
           @binds = binds
           @name = name
+          @instance_identifier = instance_identifier
         end
 
         # This takes a connection config hash from ActiveRecord or Sequel and

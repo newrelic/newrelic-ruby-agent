@@ -370,6 +370,17 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     assert_equal expected, trace.to_collector_array(marshaller.default_encoder)
   end
 
+  def test_to_collector_array_with_database_instance_params
+    statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet")
+    slow = NewRelic::Agent::SlowSql.new(statement, "transaction", 1.0)
+    trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
+    encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
+
+    *_ , params = trace.to_collector_array(encoder)
+
+    assert_equal "jonan.gummy_planet", params[:instance]
+  end
+
   def test_merge_without_existing_trace
     query = "select * from test"
     statement = NewRelic::Agent::Database::Statement.new(query, {})

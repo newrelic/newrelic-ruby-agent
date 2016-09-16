@@ -126,6 +126,16 @@ module NewRelic
           end
         end
 
+        def test_notice_sql_creates_database_statement_with_identifier
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "jonan.gummy_planet"
+            segment.notice_sql "select * from blogs"
+            segment.finish
+
+            assert_equal "jonan.gummy_planet", segment.sql_statement.instance_identifier
+          end
+        end
+
         def test_internal_notice_sql
           explainer = stub(:explainer)
           in_transaction do
