@@ -376,7 +376,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
     encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
-    *_ , params = trace.to_collector_array(encoder)
+    params = trace.to_collector_array(encoder).last
 
     assert_equal "jonan.gummy_planet", params[:instance]
     assert_equal "pizza_cube", params[:database_name]
