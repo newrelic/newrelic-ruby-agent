@@ -1326,6 +1326,14 @@ module NewRelic
           :allowed_from_server => false,
           :description  => 'If <code>true</code>, the agent won\'t install instrumentation for the typhoeus gem.'
         },
+        :disable_httprb => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'If <code>true</code>, the agent won\'t install instrumentation for the http.rb gem.'
+        },
         :disable_middleware_instrumentation => {
           :default      => false,
           :public       => true,
