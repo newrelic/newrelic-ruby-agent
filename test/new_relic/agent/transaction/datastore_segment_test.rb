@@ -66,13 +66,13 @@ module NewRelic
         def test_segment_records_expected_metrics_with_instance_identifier
           Transaction.stubs(:recording_web_transaction?).returns(true)
 
-          segment = DatastoreSegment.new "SQLite", "select", nil, "localhost:1337807"
+          segment = DatastoreSegment.new "SQLite", "select", nil, "localhost:{1337807}"
           segment.start
           advance_time 1
           segment.finish
 
           assert_metrics_recorded [
-            "Datastore/instance/SQLite/localhost:1337807",
+            "Datastore/instance/SQLite/localhost:{1337807}",
             "Datastore/operation/SQLite/select",
             "Datastore/SQLite/allWeb",
             "Datastore/SQLite/all",
