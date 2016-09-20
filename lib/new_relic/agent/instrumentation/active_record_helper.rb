@@ -217,7 +217,7 @@ module NewRelic
             ::
           ].freeze unless defined?(LOCALHOST)
 
-          DEFAULT = "default".freeze
+          DEFAULT = "default".freeze unless defined?(DEFAULT)
 
           def for(config)
             host = config[:host]
