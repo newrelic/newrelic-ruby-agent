@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.16.3 ##
+
   * HTTP.rb support
 
   The agent has been updated to add instrumentation support for the HTTP gem,
