@@ -5,7 +5,7 @@
 module Performance
   module Instrumentation
     class StackProfProfile < Instrumentor
-      platforms :mri_21, :mri_22
+      platforms :mri_21, :mri_22, :mri_23
 
       def self.setup
         require 'tmpdir'
@@ -31,7 +31,7 @@ module Performance
         output_dot_path = artifact_path(test, test_name, "dot")
         report = StackProf::Report.new(results)
         File.open(output_dot_path, "w") do |f|
-          report.print_graphviz(nil, f)
+          report.print_graphviz({}, f)
         end
         @artifacts << output_dot_path
       end
