@@ -1,5 +1,19 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.16.3 ##
+
+  * Add `:trace_only` option to `notice_error` API
+
+  Previously, calling `notice_error` would record the trace, increment the
+  error count, and consider the transaction failing for Apdex purposes. This
+  method now accepts a `:trace_only` boolean option which, if true, will only
+  record the trace and not affect the error count or transaction.
+
+  * HTTP.rb support
+
+  The agent has been updated to add instrumentation support for the HTTP gem,
+  including Cross Application Tracing. Thanks Tiago Sousa for the contribution!
+
   * Prevent redundant Delayed::Job instrumentation installation
 
   This change was to handle situations where multiple Delayed::Worker instances
