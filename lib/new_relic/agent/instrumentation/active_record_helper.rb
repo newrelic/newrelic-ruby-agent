@@ -218,8 +218,11 @@ module NewRelic
           ].freeze unless defined?(LOCALHOST)
 
           DEFAULT = "default".freeze unless defined?(DEFAULT)
+          UNKNOWN_INSTANCE = "unknown:{unknown}".freeze unless defined?(UNKNOWN_INSTANCE)
 
           def for(config)
+            return UNKNOWN_INSTANCE unless config
+
             host = config[:host]
             port = config[:port] || DEFAULT
 
