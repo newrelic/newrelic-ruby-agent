@@ -219,6 +219,8 @@ module NewRelic
 
           DEFAULT = "default".freeze unless defined?(DEFAULT)
           UNKNOWN_INSTANCE = "unknown:{unknown}".freeze unless defined?(UNKNOWN_INSTANCE)
+          UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
+          EMPTY_STRING = "".freeze unless defined?(EMPTY_STRING)
 
           def for(config)
             return UNKNOWN_INSTANCE unless config
@@ -232,7 +234,7 @@ module NewRelic
           private
 
           def determine_host(configured_value)
-            if configured_value.nil? || LOCALHOST.include?(configured_value)
+            if configured_value.nil? || configured_value.empty? || LOCALHOST.include?(configured_value)
               Hostname.get
             else
               configured_value
@@ -240,7 +242,13 @@ module NewRelic
           end
 
           def determine_ppi(configured_value)
-            configured_value || DEFAULT
+            if configured_value.nil?
+              DEFAULT
+            elsif configured_value == EMPTY_STRING
+              UNKNOWN
+            else
+              configured_value
+            end
           end
         end
       end

@@ -25,6 +25,16 @@ module NewRelic
             assert_equal "jonan.pizza_cube:{default}", InstanceIdentifier.for({})
           end
 
+          def test_for_constructs_id_with_weird_configs
+            config = {
+              :host => "",
+              :port => ""
+            }
+            NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
+
+            assert_equal "jonan.pizza_cube:{unknown}", InstanceIdentifier.for(config)
+          end
+
           def test_for_constructs_id_with_configured_host_without_port
             config = { :host => "jonan.gummy_planet" }
 
