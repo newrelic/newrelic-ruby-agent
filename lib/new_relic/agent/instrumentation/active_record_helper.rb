@@ -223,14 +223,24 @@ module NewRelic
           def for(config)
             return UNKNOWN_INSTANCE unless config
 
-            host = config[:host]
-            port = config[:port] || DEFAULT
+            host = determine_host(config[:host])
+            port_path_or_id = determine_ppi(config[:port])
 
-            if host.nil? || LOCALHOST.include?(host)
-              host = Hostname.get
+            "#{host}:{#{port_path_or_id}}"
+          end
+
+          private
+
+          def determine_host(configured_value)
+            if configured_value.nil? || LOCALHOST.include?(configured_value)
+              Hostname.get
+            else
+              configured_value
             end
+          end
 
-            "#{host}:{#{port}}"
+          def determine_ppi(configured_value)
+            configured_value || DEFAULT
           end
         end
       end
