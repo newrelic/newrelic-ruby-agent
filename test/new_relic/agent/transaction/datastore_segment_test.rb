@@ -63,6 +63,54 @@ module NewRelic
           ]
         end
 
+        def test_segment_records_expected_metrics_with_instance_identifier
+          Transaction.stubs(:recording_web_transaction?).returns(true)
+
+          segment = DatastoreSegment.new "SQLite", "select", nil, "localhost:{1337807}"
+          segment.start
+          advance_time 1
+          segment.finish
+
+          assert_metrics_recorded [
+            "Datastore/instance/SQLite/localhost:{1337807}",
+            "Datastore/operation/SQLite/select",
+            "Datastore/SQLite/allWeb",
+            "Datastore/SQLite/all",
+            "Datastore/allWeb",
+            "Datastore/all"
+          ]
+        end
+
+        def test_add_instance_identifier_segment_parameter
+          segment = nil
+
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "localhost:{1337807}"
+            advance_time 1
+            segment.finish
+          end
+
+          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          node = find_node_with_name(sample, segment.name)
+
+          assert_equal node.params[:instance], "localhost:{1337807}"
+        end
+
+        def test_add_database_name_segment_parameter
+          segment = nil
+
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, nil, "jonan.gummy_planet"
+            advance_time 1
+            segment.finish
+          end
+
+          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          node = find_node_with_name(sample, segment.name)
+
+          assert_equal node.params[:database_name], "jonan.gummy_planet"
+        end
+
         def test_notice_sql
           in_transaction do
             segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
@@ -75,6 +123,26 @@ module NewRelic
               assert_equal duration, 2.0
             end
             segment.finish
+          end
+        end
+
+        def test_notice_sql_creates_database_statement_with_identifier
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "jonan.gummy_planet"
+            segment.notice_sql "select * from blogs"
+            segment.finish
+
+            assert_equal "jonan.gummy_planet", segment.sql_statement.instance_identifier
+          end
+        end
+
+        def test_notice_sql_creates_database_statement_with_database_name
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, nil, "pizza_cube"
+            segment.notice_sql "select * from blogs"
+            segment.finish
+
+            assert_equal "pizza_cube", segment.sql_statement.database_name
           end
         end
 

@@ -204,6 +204,32 @@ module NewRelic
                               ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
         end
 
+        module InstanceIdentifier
+          extend self
+
+          LOCALHOST = %w[
+            localhost
+            0.0.0.0
+            127.0.0.1
+            0:0:0:0:0:0:0:1
+            0:0:0:0:0:0:0:0
+            ::1
+            ::
+          ].freeze unless defined?(LOCALHOST)
+
+          DEFAULT = "default".freeze unless defined?(DEFAULT)
+
+          def for(config)
+            host = config[:host]
+            port = config[:port] || DEFAULT
+
+            if host.nil? || LOCALHOST.include?(host)
+              host = Hostname.get
+            end
+
+            "#{host}:{#{port}}"
+          end
+        end
       end
     end
   end

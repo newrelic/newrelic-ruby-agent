@@ -85,7 +85,10 @@ module NewRelic
           def start_segment
             product, operation, collection = ActiveRecordHelper.product_operation_collection_for(payload[:name],
                                               sql, @config && @config[:adapter])
-            segment = NewRelic::Agent::Transaction::DatastoreSegment.new product, operation, collection
+            identifier = @config && ActiveRecordHelper::InstanceIdentifier.for(@config)
+            database = @config && @config[:database]
+
+            segment = NewRelic::Agent::Transaction::DatastoreSegment.new product, operation, collection, identifier, database
             if txn = state.current_transaction
               segment.transaction = txn
             end

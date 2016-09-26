@@ -10,15 +10,17 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-        attr_reader :product, :operation, :collection, :sql_statement
+        attr_reader :product, :operation, :collection, :sql_statement, :instance_identifier, :database_name
 
-        def initialize product, operation, collection = nil
+        def initialize product, operation, collection = nil, instance_identifier=nil, database_name=nil
           @product = product
           @operation = operation
           @collection = collection
           @sql_statement = nil
+          @instance_identifier = instance_identifier
+          @database_name = database_name
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
-                Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection)
+                Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, instance_identifier)
         end
 
         def notice_sql sql
@@ -28,14 +30,27 @@ module NewRelic
         # @api private
         def _notice_sql sql, config=nil, explainer=nil, binds=nil, name=nil
           return unless record_sql?
-          @sql_statement = Database::Statement.new sql, config, explainer, binds, name
+          @sql_statement = Database::Statement.new sql, config, explainer, binds, name, instance_identifier, database_name
         end
 
         private
 
         def segment_complete
-          return unless sql_statement
+          add_segment_parameters
+          notice_sql_statement if sql_statement
+        end
 
+        def add_segment_parameters
+          return unless instance_identifier || database_name
+
+          node_params = {}
+          node_params[:instance] = instance_identifier if instance_identifier
+          node_params[:database_name] = database_name if database_name
+
+          NewRelic::Agent.instance.transaction_sampler.add_node_parameters node_params
+        end
+
+        def notice_sql_statement
           NewRelic::Agent.instance.transaction_sampler.notice_sql_statement(sql_statement, duration)
           NewRelic::Agent.instance.sql_sampler.notice_sql_statement(sql_statement.dup, name, duration)
         end
