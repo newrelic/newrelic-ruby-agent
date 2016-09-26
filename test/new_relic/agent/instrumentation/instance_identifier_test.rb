@@ -66,6 +66,16 @@ module NewRelic
 
             assert_equal "jonan.gummy_planet:{3306}", InstanceIdentifier.for(config)
           end
+
+          def test_for_constructs_id_with_postgres_directory
+            NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
+            config = {
+              :adapter => "postgresql",
+              :host => "/tmp"
+            }
+
+            assert_equal "jonan.pizza_cube:{5432}", InstanceIdentifier.for(config)
+          end
         end
       end
     end

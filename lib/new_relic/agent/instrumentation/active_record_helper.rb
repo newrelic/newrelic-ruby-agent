@@ -235,20 +235,25 @@ module NewRelic
           UNKNOWN_INSTANCE = "unknown:{unknown}".freeze unless defined?(UNKNOWN_INSTANCE)
           UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
           EMPTY_STRING = "".freeze unless defined?(EMPTY_STRING)
+          SLASH = "/".freeze unless defined?(SLASH)
 
           def for(config)
             return UNKNOWN_INSTANCE unless config
 
-            host = determine_host(config[:host])
-            port_path_or_id = determine_ppi(config[:port], PRODUCT_SYMBOLS[config[:adapter]])
+            symbolized_adapter = PRODUCT_SYMBOLS[config[:adapter]]
+            host = determine_host(config[:host], symbolized_adapter)
+            port_path_or_id = determine_ppi(config[:port], symbolized_adapter)
 
             "#{host}:{#{port_path_or_id}}"
           end
 
           private
 
-          def determine_host(configured_value)
-            if configured_value.nil? || configured_value.empty? || LOCALHOST.include?(configured_value)
+          def determine_host(configured_value, adapter)
+            if configured_value.nil? || configured_value.empty? ||
+              LOCALHOST.include?(configured_value) ||
+              adapter == :postgres && configured_value.start_with?(SLASH)
+
               Hostname.get
             else
               configured_value
