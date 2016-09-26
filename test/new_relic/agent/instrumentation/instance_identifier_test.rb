@@ -57,6 +57,15 @@ module NewRelic
               assert_equal "jonan.pizza_cube:{default}", InstanceIdentifier.for(config)
             end
           end
+
+          def test_for_constructs_id_with_default_port
+            config = {
+              :adapter => "mysql",
+              :host => "jonan.gummy_planet"
+            }
+
+            assert_equal "jonan.gummy_planet:{3306}", InstanceIdentifier.for(config)
+          end
         end
       end
     end

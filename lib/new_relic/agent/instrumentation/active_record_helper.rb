@@ -217,6 +217,20 @@ module NewRelic
             ::
           ].freeze unless defined?(LOCALHOST)
 
+          PRODUCT_SYMBOLS = {
+            "mysql"      => :mysql,
+            "mysql2"     => :mysql,
+            "jdbcmysql"  => :mysql,
+
+            "postgresql"     => :postgres,
+            "jdbcpostgresql" => :postgres
+          }.freeze unless defined?(PRODUCT_SYMBOLS)
+
+          DATASTORE_DEFAULT_PORTS = {
+            :mysql    => 3306,
+            :postgres => 5432
+          }.freeze unless defined?(DATASTORE_DEFAULT_PORTS)
+
           DEFAULT = "default".freeze unless defined?(DEFAULT)
           UNKNOWN_INSTANCE = "unknown:{unknown}".freeze unless defined?(UNKNOWN_INSTANCE)
           UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
@@ -226,7 +240,7 @@ module NewRelic
             return UNKNOWN_INSTANCE unless config
 
             host = determine_host(config[:host])
-            port_path_or_id = determine_ppi(config[:port])
+            port_path_or_id = determine_ppi(config[:port], PRODUCT_SYMBOLS[config[:adapter]])
 
             "#{host}:{#{port_path_or_id}}"
           end
@@ -241,9 +255,9 @@ module NewRelic
             end
           end
 
-          def determine_ppi(configured_value)
+          def determine_ppi(configured_value, adapter)
             if configured_value.nil?
-              DEFAULT
+              DATASTORE_DEFAULT_PORTS[adapter] || DEFAULT
             elsif configured_value == EMPTY_STRING
               UNKNOWN
             else
