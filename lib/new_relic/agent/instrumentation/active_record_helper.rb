@@ -232,7 +232,7 @@ module NewRelic
           }.freeze unless defined?(DATASTORE_DEFAULT_PORTS)
 
           DEFAULT = "default".freeze unless defined?(DEFAULT)
-          UNKNOWN_INSTANCE = "unknown:{unknown}".freeze unless defined?(UNKNOWN_INSTANCE)
+          UNKNOWN_INSTANCE = "unknown:unknown".freeze unless defined?(UNKNOWN_INSTANCE)
           UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
           EMPTY_STRING = "".freeze unless defined?(EMPTY_STRING)
           SLASH = "/".freeze unless defined?(SLASH)
@@ -244,7 +244,7 @@ module NewRelic
             host = determine_host(config[:host], symbolized_adapter)
             port_path_or_id = determine_ppi(config[:port], symbolized_adapter)
 
-            "#{host}:{#{port_path_or_id}}"
+            "#{host}:#{port_path_or_id}"
           end
 
           private
