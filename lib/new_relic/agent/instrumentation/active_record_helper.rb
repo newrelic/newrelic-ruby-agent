@@ -244,6 +244,10 @@ module NewRelic
             host = determine_host(config[:host], symbolized_adapter)
             port_path_or_id = determine_ppi(config[:port], symbolized_adapter)
 
+            if postgres_unix_domain_socket_case?(config[:host], symbolized_adapter)
+              port_path_or_id = DEFAULT
+            end
+
             "#{host}:#{port_path_or_id}"
           end
 
@@ -252,7 +256,7 @@ module NewRelic
           def determine_host(configured_value, adapter)
             if configured_value.nil? || configured_value.empty? ||
               LOCALHOST.include?(configured_value) ||
-              adapter == :postgres && configured_value.start_with?(SLASH)
+              postgres_unix_domain_socket_case?(configured_value, adapter)
 
               Hostname.get
             else
@@ -268,6 +272,10 @@ module NewRelic
             else
               configured_value
             end
+          end
+
+          def postgres_unix_domain_socket_case?(host, adapter)
+            adapter == :postgres && host && host.start_with?(SLASH)
           end
         end
       end

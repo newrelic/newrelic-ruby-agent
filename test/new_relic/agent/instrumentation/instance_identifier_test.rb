@@ -74,7 +74,7 @@ module NewRelic
               :host => "/tmp"
             }
 
-            assert_equal "jonan.pizza_cube:5432", InstanceIdentifier.for(config)
+            assert_equal "jonan.pizza_cube:default", InstanceIdentifier.for(config)
           end
         end
       end
