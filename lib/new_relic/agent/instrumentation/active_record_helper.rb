@@ -217,17 +217,64 @@ module NewRelic
             ::
           ].freeze unless defined?(LOCALHOST)
 
+          PRODUCT_SYMBOLS = {
+            "mysql"      => :mysql,
+            "mysql2"     => :mysql,
+            "jdbcmysql"  => :mysql,
+
+            "postgresql"     => :postgres,
+            "jdbcpostgresql" => :postgres
+          }.freeze unless defined?(PRODUCT_SYMBOLS)
+
+          DATASTORE_DEFAULT_PORTS = {
+            :mysql    => 3306,
+            :postgres => 5432
+          }.freeze unless defined?(DATASTORE_DEFAULT_PORTS)
+
           DEFAULT = "default".freeze unless defined?(DEFAULT)
+          UNKNOWN_INSTANCE = "unknown:unknown".freeze unless defined?(UNKNOWN_INSTANCE)
+          UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
+          SLASH = "/".freeze unless defined?(SLASH)
 
           def for(config)
-            host = config[:host]
-            port = config[:port] || DEFAULT
+            return UNKNOWN_INSTANCE unless config
 
-            if host.nil? || LOCALHOST.include?(host)
-              host = Hostname.get
+            symbolized_adapter = PRODUCT_SYMBOLS[config[:adapter]]
+            host = determine_host(config[:host], symbolized_adapter)
+            port_path_or_id = determine_ppi(config[:port], symbolized_adapter)
+
+            if postgres_unix_domain_socket_case?(config[:host], symbolized_adapter)
+              port_path_or_id = DEFAULT
             end
 
-            "#{host}:{#{port}}"
+            "#{host}:#{port_path_or_id}"
+          end
+
+          private
+
+          def determine_host(configured_value, adapter)
+            if configured_value.nil? || configured_value.empty? ||
+              LOCALHOST.include?(configured_value) ||
+              postgres_unix_domain_socket_case?(configured_value, adapter)
+
+              Hostname.get
+            else
+              configured_value
+            end
+          end
+
+          def determine_ppi(configured_value, adapter)
+            if configured_value.nil?
+              DATASTORE_DEFAULT_PORTS[adapter] || DEFAULT
+            elsif configured_value.is_a?(Fixnum) || configured_value.to_i != 0
+              configured_value
+            else
+              UNKNOWN
+            end
+          end
+
+          def postgres_unix_domain_socket_case?(host, adapter)
+            adapter == :postgres && host && host.start_with?(SLASH)
           end
         end
       end

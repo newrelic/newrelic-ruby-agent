@@ -16,26 +16,36 @@ module NewRelic
               :port => 42
             }
 
-            assert_equal "jonan.local:{42}", InstanceIdentifier.for(config)
+            assert_equal "jonan.local:42", InstanceIdentifier.for(config)
           end
 
           def test_for_constructs_id_with_unspecified_configuration
             NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
 
-            assert_equal "jonan.pizza_cube:{default}", InstanceIdentifier.for({})
+            assert_equal "jonan.pizza_cube:default", InstanceIdentifier.for({})
+          end
+
+          def test_for_constructs_id_with_weird_configs
+            config = {
+              :host => "",
+              :port => ""
+            }
+            NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
+
+            assert_equal "jonan.pizza_cube:unknown", InstanceIdentifier.for(config)
           end
 
           def test_for_constructs_id_with_configured_host_without_port
             config = { :host => "jonan.gummy_planet" }
 
-            assert_equal "jonan.gummy_planet:{default}", InstanceIdentifier.for(config)
+            assert_equal "jonan.gummy_planet:default", InstanceIdentifier.for(config)
           end
 
           def test_for_constructs_id_with_port_without_host
             NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
             config = { :port => 1337 }
 
-            assert_equal "jonan.pizza_cube:{1337}", InstanceIdentifier.for(config)
+            assert_equal "jonan.pizza_cube:1337", InstanceIdentifier.for(config)
           end
 
           def test_for_constructs_id_with_detected_localhost
@@ -44,8 +54,27 @@ module NewRelic
             %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:0 ::1 ::].each do |host|
               config = { :host => host }
 
-              assert_equal "jonan.pizza_cube:{default}", InstanceIdentifier.for(config)
+              assert_equal "jonan.pizza_cube:default", InstanceIdentifier.for(config)
             end
+          end
+
+          def test_for_constructs_id_with_default_port
+            config = {
+              :adapter => "mysql",
+              :host => "jonan.gummy_planet"
+            }
+
+            assert_equal "jonan.gummy_planet:3306", InstanceIdentifier.for(config)
+          end
+
+          def test_for_constructs_id_with_postgres_directory
+            NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
+            config = {
+              :adapter => "postgresql",
+              :host => "/tmp"
+            }
+
+            assert_equal "jonan.pizza_cube:default", InstanceIdentifier.for(config)
           end
         end
       end

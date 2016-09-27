@@ -66,13 +66,13 @@ module NewRelic
         def test_segment_records_expected_metrics_with_instance_identifier
           Transaction.stubs(:recording_web_transaction?).returns(true)
 
-          segment = DatastoreSegment.new "SQLite", "select", nil, "localhost:{1337807}"
+          segment = DatastoreSegment.new "SQLite", "select", nil, "localhost:1337807"
           segment.start
           advance_time 1
           segment.finish
 
           assert_metrics_recorded [
-            "Datastore/instance/SQLite/localhost:{1337807}",
+            "Datastore/instance/SQLite/localhost:1337807",
             "Datastore/operation/SQLite/select",
             "Datastore/SQLite/allWeb",
             "Datastore/SQLite/all",
@@ -85,7 +85,7 @@ module NewRelic
           segment = nil
 
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "localhost:{1337807}"
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "localhost:1337807"
             advance_time 1
             segment.finish
           end
@@ -93,7 +93,7 @@ module NewRelic
           sample = NewRelic::Agent.agent.transaction_sampler.last_sample
           node = find_node_with_name(sample, segment.name)
 
-          assert_equal node.params[:instance], "localhost:{1337807}"
+          assert_equal node.params[:instance], "localhost:1337807"
         end
 
         def test_add_database_name_segment_parameter
