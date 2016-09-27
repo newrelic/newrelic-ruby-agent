@@ -234,7 +234,6 @@ module NewRelic
           DEFAULT = "default".freeze unless defined?(DEFAULT)
           UNKNOWN_INSTANCE = "unknown:unknown".freeze unless defined?(UNKNOWN_INSTANCE)
           UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
-          EMPTY_STRING = "".freeze unless defined?(EMPTY_STRING)
           SLASH = "/".freeze unless defined?(SLASH)
 
           def for(config)
@@ -267,10 +266,10 @@ module NewRelic
           def determine_ppi(configured_value, adapter)
             if configured_value.nil?
               DATASTORE_DEFAULT_PORTS[adapter] || DEFAULT
-            elsif configured_value == EMPTY_STRING
-              UNKNOWN
-            else
+            elsif configured_value.is_a?(Fixnum) || configured_value.to_i != 0
               configured_value
+            else
+              UNKNOWN
             end
           end
 
