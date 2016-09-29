@@ -241,11 +241,7 @@ module NewRelic
 
             symbolized_adapter = PRODUCT_SYMBOLS[config[:adapter]]
             host = determine_host(config[:host], symbolized_adapter)
-            port_path_or_id = determine_ppi(config[:port], symbolized_adapter)
-
-            if postgres_unix_domain_socket_case?(config[:host], symbolized_adapter)
-              port_path_or_id = DEFAULT
-            end
+            port_path_or_id = determine_ppi(config, symbolized_adapter)
 
             "#{host}:#{port_path_or_id}"
           end
@@ -263,11 +259,15 @@ module NewRelic
             end
           end
 
-          def determine_ppi(configured_value, adapter)
-            if configured_value.nil?
+          def determine_ppi(config, adapter)
+            if config[:socket]
+              config[:socket]
+            elsif postgres_unix_domain_socket_case?(config[:host], adapter)
+              DEFAULT
+            elsif config[:port].nil?
               DATASTORE_DEFAULT_PORTS[adapter] || DEFAULT
-            elsif configured_value.is_a?(Fixnum) || configured_value.to_i != 0
-              configured_value
+            elsif config[:port].is_a?(Fixnum) || config[:port].to_i != 0
+              config[:port]
             else
               UNKNOWN
             end

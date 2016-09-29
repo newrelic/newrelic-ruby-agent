@@ -76,6 +76,19 @@ module NewRelic
 
             assert_equal "jonan.pizza_cube:default", InstanceIdentifier.for(config)
           end
+
+          def test_for_constructs_id_with_mysql_socket
+            NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
+            %w[ mysql mysql2 jdbcmysql ].each do |adapter|
+              config = {
+                :adapter => adapter,
+                :socket => "/var/run/mysqld.sock"
+              }
+
+              assert_equal "jonan.pizza_cube:/var/run/mysqld.sock", InstanceIdentifier.for(config)
+            end
+          end
+
         end
       end
     end
