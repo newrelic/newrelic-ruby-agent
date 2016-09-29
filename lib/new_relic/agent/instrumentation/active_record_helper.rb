@@ -240,7 +240,7 @@ module NewRelic
             return UNKNOWN_INSTANCE unless config
 
             symbolized_adapter = PRODUCT_SYMBOLS[config[:adapter]]
-            host = determine_host(config[:host], symbolized_adapter)
+            host = determine_host(config, symbolized_adapter)
             port_path_or_id = determine_ppi(config, symbolized_adapter)
 
             "#{host}:#{port_path_or_id}"
@@ -248,12 +248,15 @@ module NewRelic
 
           private
 
-          def determine_host(configured_value, adapter)
-            if configured_value.nil? || configured_value.empty? ||
+          def determine_host(config, adapter)
+            configured_value = config[:host]
+            if configured_value.nil? ||
               LOCALHOST.include?(configured_value) ||
               postgres_unix_domain_socket_case?(configured_value, adapter)
 
               Hostname.get
+            elsif configured_value.empty?
+              UNKNOWN
             else
               configured_value
             end
@@ -261,7 +264,7 @@ module NewRelic
 
           def determine_ppi(config, adapter)
             if config[:socket]
-              config[:socket]
+              config[:socket].empty? ? UNKNOWN : config[:socket]
             elsif postgres_unix_domain_socket_case?(config[:host], adapter)
               DEFAULT
             elsif config[:port].nil?
