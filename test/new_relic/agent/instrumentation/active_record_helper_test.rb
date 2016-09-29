@@ -68,5 +68,29 @@ module NewRelic::Agent::Instrumentation
       result = ActiveRecordHelper.rollup_metrics_for("boo")
       assert_equal ["Datastore/allOther", "Datastore/all"], result
     end
+
+    load_cross_agent_test('datastores/datastore_instances').each do |test|
+      define_method :"test_#{test['name'].tr(' ', '_')}" do
+        NewRelic::Agent::Hostname.stubs(:get).returns(test['system_hostname'])
+        config = convert_test_case_to_config test
+        puts config
+        assert_equal test['expected_instance_identifier'], ActiveRecordHelper::InstanceIdentifier.for(config)
+      end
+    end
+
+    CONFIG_NAMES = {
+      "db_hostname" => :host,
+      "unix_socket" => :socket,
+      "port" => :port
+    }
+
+    def convert_test_case_to_config test_case
+      test_case.inject({}) do |memo, (k,v)|
+        if config_key = CONFIG_NAMES[k]
+          memo[config_key] = v
+        end
+        memo
+      end
+    end
   end
 end
