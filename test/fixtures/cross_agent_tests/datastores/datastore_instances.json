@@ -1,0 +1,98 @@
+[
+  {
+    "name": "instance identifer uses system hostname when db reports localhost",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "localhost",
+    "port": 5432,
+    "expected_instance_identifier": "datanerd-01:5432"
+  },
+  {
+    "name": "instance identifer uses system hostname when db reports host as loopback adapter IPv4",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "127.0.0.1",
+    "port": 5252,
+    "expected_instance_identifier": "datanerd-01:5252"
+  },
+  {
+    "name": "instance identifer uses system hostname when db reports host as loopback adapter IPv6",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "0:0:0:0:0:0:0:1",
+    "port": 5252,
+    "expected_instance_identifier": "datanerd-01:5252"
+  },
+  {
+    "name": "instance identifer uses system hostname when db reports host as loopback adapter IPv6 shorthand",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "::1",
+    "port": 5252,
+    "expected_instance_identifier": "datanerd-01:5252"
+  },
+  {
+    "name": "instance identifer uses system hostname when db reports default host IPv4",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "0.0.0.0",
+    "port": 5757,
+    "expected_instance_identifier": "datanerd-01:5757"
+  },
+  {
+    "name": "instance identifer uses system hostname when db reports default host IPv6",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "0:0:0:0:0:0:0:0",
+    "port": 5757,
+    "expected_instance_identifier": "datanerd-01:5757"
+  },
+  {
+    "name": "instance identifer uses system hostname when db reports default host IPv6 shorthand",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "::",
+    "port": 5757,
+    "expected_instance_identifier": "datanerd-01:5757"
+  },
+  {
+    "name": "instance identifer uses db host when not local",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "accounts-db",
+    "port": 8420,
+    "expected_instance_identifier": "accounts-db:8420"
+  },
+  {
+    "name": "detects default UDS case",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "localhost",
+    "expected_instance_identifier": "datanerd-01:default"
+  },
+  {
+    "name": "instance identifer uses unix socket path if provided",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "localhost",
+    "unix_socket": "/var/mysql/mysql.sock",
+    "expected_instance_identifier": "datanerd-01:/var/mysql/mysql.sock"
+  },
+  {
+    "name": "instance identifer reports unknown if host omitted",
+    "system_hostname": "datanerd-01",
+    "port": 3600,
+    "expected_instance_identifier": "unknown:3600"
+  },
+  {
+    "name": "instance identifer reports unknown if host empty",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "",
+    "port": 3600,
+    "expected_instance_identifier": "unknown:3600"
+  },
+  {
+    "name": "instance identifer reports unknown if port empty",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "localhost",
+    "port": "",
+    "expected_instance_identifier": "datanerd-01:unknown"
+  },
+  {
+    "name": "instance identifer reports unknown if unix_socket empty",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "localhost",
+    "unix_socket": "",
+    "expected_instance_identifier": "datanerd-01:unknown"
+  }
+]
