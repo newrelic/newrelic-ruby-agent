@@ -69,12 +69,6 @@
     "expected_instance_identifier": "datanerd-01:/var/mysql/mysql.sock"
   },
   {
-    "name": "instance identifer reports unknown if host omitted",
-    "system_hostname": "datanerd-01",
-    "port": 3600,
-    "expected_instance_identifier": "unknown:3600"
-  },
-  {
     "name": "instance identifer reports unknown if host empty",
     "system_hostname": "datanerd-01",
     "db_hostname": "",
