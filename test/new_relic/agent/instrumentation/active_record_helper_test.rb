@@ -73,7 +73,6 @@ module NewRelic::Agent::Instrumentation
       define_method :"test_#{test['name'].tr(' ', '_')}" do
         NewRelic::Agent::Hostname.stubs(:get).returns(test['system_hostname'])
         config = convert_test_case_to_config test
-        puts config
         assert_equal test['expected_instance_identifier'], ActiveRecordHelper::InstanceIdentifier.for(config)
       end
     end
