@@ -15,7 +15,7 @@ module NewRelic
             rescue => e
               ::NewRelic::Agent.logger.error("Thread #{label} exited with error", e)
             rescue Exception => e
-              ::NewRelic::Agent.logger.error("Thread #{label} exited with exception. Re-raising in case of interupt.", e)
+              ::NewRelic::Agent.logger.error("Thread #{label} exited with exception. Re-raising in case of interrupt.", e)
               raise
             ensure
               ::NewRelic::Agent.logger.debug("Exiting New Relic thread: #{label}")
