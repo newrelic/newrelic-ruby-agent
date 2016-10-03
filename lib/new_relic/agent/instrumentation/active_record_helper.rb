@@ -240,7 +240,7 @@ module NewRelic
             return UNKNOWN_INSTANCE unless config
 
             symbolized_adapter = PRODUCT_SYMBOLS[config[:adapter]]
-            host = determine_host(config, symbolized_adapter)
+            host = determine_host(config[:host], symbolized_adapter)
             port_path_or_id = determine_ppi(config, symbolized_adapter)
 
             "#{host}:#{port_path_or_id}"
@@ -248,8 +248,7 @@ module NewRelic
 
           private
 
-          def determine_host(config, adapter)
-            configured_value = config[:host]
+          def determine_host(configured_value, adapter)
             if configured_value.nil? ||
               LOCALHOST.include?(configured_value) ||
               postgres_unix_domain_socket_case?(configured_value, adapter)
