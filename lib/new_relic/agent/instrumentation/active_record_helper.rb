@@ -249,11 +249,13 @@ module NewRelic
           private
 
           def determine_host(configured_value, adapter)
-            if configured_value.nil? || configured_value.empty? ||
+            if configured_value.nil? ||
               LOCALHOST.include?(configured_value) ||
               postgres_unix_domain_socket_case?(configured_value, adapter)
 
               Hostname.get
+            elsif configured_value.empty?
+              UNKNOWN
             else
               configured_value
             end
@@ -261,7 +263,7 @@ module NewRelic
 
           def determine_ppi(config, adapter)
             if config[:socket]
-              config[:socket]
+              config[:socket].empty? ? UNKNOWN : config[:socket]
             elsif postgres_unix_domain_socket_case?(config[:host], adapter)
               DEFAULT
             elsif config[:port].nil?
