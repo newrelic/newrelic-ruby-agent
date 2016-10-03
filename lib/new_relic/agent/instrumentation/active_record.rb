@@ -50,7 +50,10 @@ module NewRelic
             NewRelic::Helper.correctly_encoded(sql),
             @config && @config[:adapter])
 
-          segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection)
+          identifier = ActiveRecordHelper::InstanceIdentifier.for(@config)
+          database = @config && @config[:database]
+
+          segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection, identifier, database)
           segment._notice_sql(sql, @config, EXPLAINER)
 
           begin
