@@ -243,7 +243,7 @@ module NewRelic
             host = determine_host(config[:host], symbolized_adapter)
             port_path_or_id = determine_ppi(config, symbolized_adapter)
 
-            "#{host}:#{port_path_or_id}"
+            "#{host}/#{port_path_or_id}"
           end
 
           private
