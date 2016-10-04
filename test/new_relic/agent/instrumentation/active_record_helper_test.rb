@@ -71,16 +71,22 @@ module NewRelic::Agent::Instrumentation
 
     load_cross_agent_test('datastores/datastore_instances').each do |test|
       define_method :"test_#{test['name'].tr(' ', '_')}" do
+        NewRelic::Agent.drop_buffered_data
         NewRelic::Agent::Hostname.stubs(:get).returns(test['system_hostname'])
+
         config = convert_test_case_to_config test
-        assert_equal test['expected_instance_identifier'], ActiveRecordHelper::InstanceIdentifier.for(config)
+        segment = NewRelic::Agent::Transaction.start_datastore_segment config[:adapter], "find", "Blog", ActiveRecordHelper::InstanceIdentifier.for(config)
+        segment.finish
+
+        assert_metrics_recorded test['expected_instance_metric']
       end
     end
 
     CONFIG_NAMES = {
       "db_hostname" => :host,
       "unix_socket" => :socket,
-      "port" => :port
+      "port" => :port,
+      "adapter" => :adapter
     }
 
     def convert_test_case_to_config test_case
