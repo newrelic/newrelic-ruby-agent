@@ -3,7 +3,7 @@
     "name": "instance metric uses system hostname when db reports localhost",
     "system_hostname": "datanerd-01",
     "db_hostname": "localhost",
-    "adapter": "Postgres",
+    "product": "Postgres",
     "port": 5432,
     "expected_instance_metric": "Datastore/instance/Postgres/datanerd-01/5432"
   },
@@ -11,7 +11,7 @@
     "name": "instance metric uses system hostname when db reports host as loopback adapter IPv4",
     "system_hostname": "datanerd-01",
     "db_hostname": "127.0.0.1",
-    "adapter": "Postgres",
+    "product": "Postgres",
     "port": 5252,
     "expected_instance_metric": "Datastore/instance/Postgres/datanerd-01/5252"
   },
@@ -19,7 +19,7 @@
     "name": "instance metric uses system hostname when db reports host as loopback adapter IPv6",
     "system_hostname": "datanerd-01",
     "db_hostname": "0:0:0:0:0:0:0:1",
-    "adapter": "Postgres",
+    "product": "Postgres",
     "port": 5252,
     "expected_instance_metric": "Datastore/instance/Postgres/datanerd-01/5252"
   },
@@ -27,7 +27,7 @@
     "name": "instance metric uses system hostname when db reports host as loopback adapter IPv6 shorthand",
     "system_hostname": "datanerd-01",
     "db_hostname": "::1",
-    "adapter": "Postgres",
+    "product": "Postgres",
     "port": 5252,
     "expected_instance_metric": "Datastore/instance/Postgres/datanerd-01/5252"
   },
@@ -35,7 +35,7 @@
     "name": "instance metric uses system hostname when db reports default host IPv4",
     "system_hostname": "datanerd-01",
     "db_hostname": "0.0.0.0",
-    "adapter": "MySQL",
+    "product": "MySQL",
     "port": 3600,
     "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/3600"
   },
@@ -43,7 +43,7 @@
     "name": "instance metric uses system hostname when db reports default host IPv6",
     "system_hostname": "datanerd-01",
     "db_hostname": "0:0:0:0:0:0:0:0",
-    "adapter": "MySQL",
+    "product": "MySQL",
     "port": 5757,
     "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/5757"
   },
@@ -51,7 +51,7 @@
     "name": "instance metric uses system hostname when db reports default host IPv6 shorthand",
     "system_hostname": "datanerd-01",
     "db_hostname": "::",
-    "adapter": "MySQL",
+    "product": "MySQL",
     "port": 5757,
     "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/5757"
   },
@@ -59,7 +59,7 @@
     "name": "instance metric uses db host when not local",
     "system_hostname": "datanerd-01",
     "db_hostname": "accounts-db",
-    "adapter": "MySQL",
+    "product": "MySQL",
     "port": 8420,
     "expected_instance_metric": "Datastore/instance/MySQL/accounts-db/8420"
   },
@@ -67,14 +67,14 @@
     "name": "detects default UDS case",
     "system_hostname": "datanerd-01",
     "db_hostname": "localhost",
-    "adapter": "MySQL",
+    "product": "MySQL",
     "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/default"
   },
   {
     "name": "instance metric uses unix socket path if provided",
     "system_hostname": "datanerd-01",
     "db_hostname": "localhost",
-    "adapter": "MySQL",
+    "product": "MySQL",
     "unix_socket": "/var/mysql/mysql.sock",
     "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01//var/mysql/mysql.sock"
   },
@@ -82,7 +82,7 @@
     "name": "instance metric reports unknown if host empty",
     "system_hostname": "datanerd-01",
     "db_hostname": "",
-    "adapter": "MySQL",
+    "product": "MySQL",
     "port": 3600,
     "expected_instance_metric": "Datastore/instance/MySQL/unknown/3600"
   },
@@ -90,7 +90,7 @@
     "name": "instance metric reports unknown if port empty",
     "system_hostname": "datanerd-01",
     "db_hostname": "localhost",
-    "adapter": "MySQL",
+    "product": "MySQL",
     "port": "",
     "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/unknown"
   },
@@ -98,8 +98,23 @@
     "name": "instance metric reports unknown if unix_socket empty",
     "system_hostname": "datanerd-01",
     "db_hostname": "localhost",
-    "adapter": "MySQL",
+    "product": "MySQL",
     "unix_socket": "",
     "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/unknown"
+  },
+  {
+    "name": "instance metric with ip v6 host",
+    "system_hostname": "datanerd-01",
+    "db_hostname": "2001:0DB8:AC10:FE01:0000:0000:0000:0000",
+    "product": "Postgres",
+    "port": 5432,
+    "expected_instance_metric": "Datastore/instance/Postgres/2001:0DB8:AC10:FE01:0000:0000:0000:0000/5432"
+  },
+  {
+    "name": "instance metric for filesystem database",
+    "system_hostname": "datanerd-01",
+    "product": "SQLite",
+    "database_path": "/db/all.sqlite3",
+    "expected_instance_metric": "Datastore/instance/SQLite/datanerd-01//db/all.sqlite3"
   }
 ]
