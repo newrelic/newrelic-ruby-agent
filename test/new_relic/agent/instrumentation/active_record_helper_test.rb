@@ -79,7 +79,9 @@ module NewRelic::Agent::Instrumentation
         NewRelic::Agent::Hostname.stubs(:get).returns(test['system_hostname'])
 
         config = convert_test_case_to_config test
-        segment = NewRelic::Agent::Transaction.start_datastore_segment config[:adapter], "find", "Blog", ActiveRecordHelper::InstanceIdentifier.for(config)
+
+        product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil , config[:adapter]
+        segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection, ActiveRecordHelper::InstanceIdentifier.for(config)
         segment.finish
 
         assert_metrics_recorded test['expected_instance_metric']
@@ -94,12 +96,24 @@ module NewRelic::Agent::Instrumentation
     }
 
     def convert_test_case_to_config test_case
-      test_case.inject({}) do |memo, (k,v)|
+      config = test_case.inject({}) do |memo, (k,v)|
         if config_key = CONFIG_NAMES[k]
           memo[config_key] = v
         end
         memo
       end
+      convert_product_to_adapter config
+      config
+    end
+
+    PRODUCT_TO_ADAPTER_NAMES = {
+      "Postgres" => "postgresql",
+      "MySQL" => "mysql",
+      "SQLite" => "sqlite3"
+    }
+
+    def convert_product_to_adapter config
+      config[:adapter] = PRODUCT_TO_ADAPTER_NAMES[config[:adapter]]
     end
   end
 end
