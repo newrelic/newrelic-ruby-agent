@@ -69,7 +69,11 @@ module NewRelic::Agent::Instrumentation
       assert_equal ["Datastore/allOther", "Datastore/all"], result
     end
 
+    SUPPORTED_PRODUCTS = ["Postgres", "MySQL"]
+
     load_cross_agent_test('datastores/datastore_instances').each do |test|
+      next unless SUPPORTED_PRODUCTS.include?(test['product'])
+
       define_method :"test_#{test['name'].tr(' ', '_')}" do
         NewRelic::Agent.drop_buffered_data
         NewRelic::Agent::Hostname.stubs(:get).returns(test['system_hostname'])
@@ -86,7 +90,7 @@ module NewRelic::Agent::Instrumentation
       "db_hostname" => :host,
       "unix_socket" => :socket,
       "port" => :port,
-      "adapter" => :adapter
+      "product" => :adapter
     }
 
     def convert_test_case_to_config test_case
