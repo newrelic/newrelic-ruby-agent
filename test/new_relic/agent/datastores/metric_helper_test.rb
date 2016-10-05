@@ -27,7 +27,7 @@ module NewRelic
       end
 
       def test_instance_metric_for
-        instance_id = "localhost:1337807"
+        instance_id = "localhost/1337807"
         expected = "Datastore/instance/JonanDB/#{instance_id}"
         result = Datastores::MetricHelper.instance_metric_for(@product, instance_id)
         assert_equal expected, result
@@ -119,14 +119,14 @@ module NewRelic
       def test_unscoped_metrics_for_with_instance_identifier
         Transaction.stubs(:recording_web_transaction?).returns(false)
         expected = [
-          "Datastore/instance/JonanDB/localhost:1337807",
+          "Datastore/instance/JonanDB/localhost/1337807",
           "Datastore/JonanDB/allOther",
           "Datastore/JonanDB/all",
           "Datastore/allOther",
           "Datastore/all"
         ]
 
-        result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, nil, "localhost:1337807")
+        result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, nil, "localhost/1337807")
         assert_equal expected, result
       end
 

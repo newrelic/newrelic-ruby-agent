@@ -58,7 +58,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
 
     simulate_query(2)
 
-    assert_metrics_recorded('Datastore/instance/ActiveRecord/jonan.gummy_planet:default')
+    assert_metrics_recorded('Datastore/instance/ActiveRecord/jonan.gummy_planet/default')
   end
 
   def test_records_nothing_if_tracing_disabled
