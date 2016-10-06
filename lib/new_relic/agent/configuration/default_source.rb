@@ -1602,6 +1602,20 @@ module NewRelic
           :type        => Fixnum,
           :allowed_from_server => false,
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
+        },
+        :'datastore_tracer.instance_reporting.enabled' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>false</code>, the agent will not report datastore instance metrics, nor add <code>host</code> or <code>path_port_or_id</code> parameters to transaction or slow sql traces.'
+        },
+        :'datastore_tracer.database_name_reporting.enabled' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>false</code>, the agent will not add <code>database_name</code> parameter to transaction or slow sql traces.'
         }
       }.freeze
     end

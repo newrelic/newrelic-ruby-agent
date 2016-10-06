@@ -85,8 +85,15 @@ module NewRelic
           def start_segment
             product, operation, collection = ActiveRecordHelper.product_operation_collection_for(payload[:name],
                                               sql, @config && @config[:adapter])
-            identifier = ActiveRecordHelper::InstanceIdentifier.for(@config)
-            database = @config && @config[:database]
+
+            identifier = nil
+            database = nil
+            if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
+              identifier = ActiveRecordHelper::InstanceIdentifier.for(@config)
+            end
+            if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
+              database = @config && @config[:database]
+            end
 
             segment = NewRelic::Agent::Transaction::DatastoreSegment.new product, operation, collection, identifier, database
             if txn = state.current_transaction

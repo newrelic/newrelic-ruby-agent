@@ -44,8 +44,12 @@ module NewRelic
           return unless instance_identifier || database_name
 
           node_params = {}
-          node_params[:instance] = instance_identifier if instance_identifier
-          node_params[:database_name] = database_name if database_name
+          if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled'] && instance_identifier
+            node_params[:instance] = instance_identifier
+          end
+          if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled'] && database_name
+            node_params[:database_name] = database_name
+          end
 
           NewRelic::Agent.instance.transaction_sampler.add_node_parameters node_params
         end
