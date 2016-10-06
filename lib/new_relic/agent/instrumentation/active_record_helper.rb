@@ -264,7 +264,7 @@ module NewRelic
           def determine_ppi(config, adapter)
             if config[:socket]
               config[:socket].empty? ? UNKNOWN : config[:socket]
-            elsif postgres_unix_domain_socket_case?(config[:host], adapter)
+            elsif postgres_unix_domain_socket_case?(config[:host], adapter) || mysql_default_case?(config, adapter)
               DEFAULT
             elsif config[:port].nil?
               DATASTORE_DEFAULT_PORTS[adapter] || DEFAULT
@@ -277,6 +277,12 @@ module NewRelic
 
           def postgres_unix_domain_socket_case?(host, adapter)
             adapter == :postgres && host && host.start_with?(SLASH)
+          end
+
+          def mysql_default_case?(config, adapter)
+            (adapter == :mysql2 || adapter == :mysql) &&
+              LOCALHOST.include?(config[:host]) &&
+              !config[:port]
           end
         end
       end
