@@ -50,7 +50,8 @@ module NewRelic
             NewRelic::Helper.correctly_encoded(sql),
             @config && @config[:adapter])
 
-          identifier, database = nil, nil
+          identifier = nil
+          database = nil
           if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
             identifier = ActiveRecordHelper::InstanceIdentifier.for(@config)
           end

@@ -86,7 +86,8 @@ module NewRelic
             product, operation, collection = ActiveRecordHelper.product_operation_collection_for(payload[:name],
                                               sql, @config && @config[:adapter])
 
-            identifier, database = nil, nil
+            identifier = nil
+            database = nil
             if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
               identifier = ActiveRecordHelper::InstanceIdentifier.for(@config)
             end
