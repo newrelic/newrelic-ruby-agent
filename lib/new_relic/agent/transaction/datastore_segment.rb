@@ -10,14 +10,15 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-        attr_reader :product, :operation, :collection, :sql_statement, :instance_identifier, :database_name
+        attr_reader :product, :operation, :collection, :sql_statement, :host, :path_port_or_id, :database_name
 
-        def initialize product, operation, collection = nil, instance_identifier=nil, database_name=nil
+        def initialize product, operation, collection = nil, host = nil, path_port_or_id = nil, database_name=nil
           @product = product
           @operation = operation
           @collection = collection
           @sql_statement = nil
-          @instance_identifier = instance_identifier
+          @host = host
+          @path_port_or_id = path_port_or_id
           @database_name = database_name
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
                 Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, instance_identifier)
@@ -41,17 +42,28 @@ module NewRelic
         end
 
         def add_segment_parameters
-          return unless instance_identifier || database_name
+          instance_reporting_enabled = NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
+          db_name_reporting_enabled = NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
+          return unless instance_reporting_enabled || db_name_reporting_enabled
 
-          node_params = {}
-          if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled'] && instance_identifier
-            node_params[:instance] = instance_identifier
-          end
-          if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled'] && database_name
-            node_params[:database_name] = database_name
-          end
+          params = {}
+          add_instance_parameters params if instance_reporting_enabled
+          add_database_name_parameter params if db_name_reporting_enabled
 
-          NewRelic::Agent.instance.transaction_sampler.add_node_parameters node_params
+          NewRelic::Agent.instance.transaction_sampler.add_node_parameters params
+        end
+
+        def add_instance_parameters params
+          params[:instance] = instance_identifier if host && path_port_or_id
+        end
+
+        def add_database_name_parameter(params)
+          params[:database_name] = database_name if database_name
+        end
+
+        # temporary: part of refactor to separate instance identifier
+        def instance_identifier
+          "#{host}/#{path_port_or_id}"
         end
 
         def notice_sql_statement
