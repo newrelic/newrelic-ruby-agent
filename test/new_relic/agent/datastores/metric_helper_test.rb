@@ -28,8 +28,10 @@ module NewRelic
 
       def test_instance_metric_for
         instance_id = "localhost/1337807"
-        expected = "Datastore/instance/JonanDB/#{instance_id}"
-        result = Datastores::MetricHelper.instance_metric_for(@product, instance_id)
+        host = "localhost"
+        port = "1337807"
+        expected = "Datastore/instance/JonanDB/#{host}/#{port}"
+        result = Datastores::MetricHelper.instance_metric_for(@product, host, port)
         assert_equal expected, result
       end
 
@@ -126,7 +128,7 @@ module NewRelic
           "Datastore/all"
         ]
 
-        result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, nil, "localhost/1337807")
+        result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, nil, "localhost", "1337807")
         assert_equal expected, result
       end
 

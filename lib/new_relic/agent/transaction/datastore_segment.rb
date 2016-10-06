@@ -21,7 +21,7 @@ module NewRelic
           @path_port_or_id = path_port_or_id
           @database_name = database_name
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
-                Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, instance_identifier)
+                Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host, path_port_or_id)
         end
 
         def notice_sql sql
@@ -31,7 +31,7 @@ module NewRelic
         # @api private
         def _notice_sql sql, config=nil, explainer=nil, binds=nil, name=nil
           return unless record_sql?
-          @sql_statement = Database::Statement.new sql, config, explainer, binds, name, instance_identifier, database_name
+          @sql_statement = Database::Statement.new sql, config, explainer, binds, name, host, path_port_or_id, database_name
         end
 
         private
