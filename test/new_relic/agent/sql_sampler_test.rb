@@ -371,20 +371,20 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_to_collector_array_with_database_instance_params
-    statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet", "pizza_cube")
+    statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet", "1337", "pizza_cube")
     slow = NewRelic::Agent::SlowSql.new(statement, "transaction", 1.0)
     trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
     encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
     params = trace.to_collector_array(encoder).last
 
-    assert_equal "jonan.gummy_planet", params[:instance]
+    assert_equal "jonan.gummy_planet/1337", params[:instance]
     assert_equal "pizza_cube", params[:database_name]
   end
 
   def test_to_collector_array_with_instance_reporting_disabled
     with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
-      statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet", "pizza_cube")
+      statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet", "1337", "pizza_cube")
       slow = NewRelic::Agent::SlowSql.new(statement, "transaction", 1.0)
       trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
       encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
@@ -398,14 +398,14 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_to_collector_array_with_database_name_reporting_disabled
     with_config(:'datastore_tracer.database_name_reporting.enabled' => false) do
-      statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet", "pizza_cube")
+      statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet", "1337", "pizza_cube")
       slow = NewRelic::Agent::SlowSql.new(statement, "transaction", 1.0)
       trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
       encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
       params = trace.to_collector_array(encoder).last
 
-      assert_equal "jonan.gummy_planet", params[:instance]
+      assert_equal "jonan.gummy_planet/1337", params[:instance]
       refute params.key? :database_name
     end
   end
