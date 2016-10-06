@@ -232,7 +232,6 @@ module NewRelic
           }.freeze unless defined?(DATASTORE_DEFAULT_PORTS)
 
           DEFAULT = "default".freeze unless defined?(DEFAULT)
-          UNKNOWN_INSTANCE = "unknown:unknown".freeze unless defined?(UNKNOWN_INSTANCE)
           UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
           SLASH = "/".freeze unless defined?(SLASH)
 
