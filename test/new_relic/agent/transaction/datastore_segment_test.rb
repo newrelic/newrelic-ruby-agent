@@ -81,6 +81,19 @@ module NewRelic
           ]
         end
 
+        def test_segment_does_not_record_instance_id_metrics_when_disabled
+          with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
+            Transaction.stubs(:recording_web_transaction?).returns(true)
+
+            segment = DatastoreSegment.new "SQLite", "select", nil, "localhost/1337807"
+            segment.start
+            advance_time 1
+            segment.finish
+
+            assert_metrics_not_recorded "Datastore/instance/SQLite/localhost/1337807"
+          end
+        end
+
         def test_add_instance_identifier_segment_parameter
           segment = nil
 
@@ -96,6 +109,23 @@ module NewRelic
           assert_equal node.params[:instance], "localhost/1337807"
         end
 
+        def test_does_not_add_instance_identifier_segment_parameter_when_disabled
+          with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
+            segment = nil
+
+            in_transaction do
+              segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "localhost/1337807"
+              advance_time 1
+              segment.finish
+            end
+
+            sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+            node = find_node_with_name(sample, segment.name)
+
+            refute node.params.key? :instance
+          end
+        end
+
         def test_add_database_name_segment_parameter
           segment = nil
 
@@ -109,6 +139,23 @@ module NewRelic
           node = find_node_with_name(sample, segment.name)
 
           assert_equal node.params[:database_name], "jonan.gummy_planet"
+        end
+
+        def test_does_not_add_database_name_segment_parameter_when_disabled
+          with_config(:'datastore_tracer.database_name_reporting.enabled' => false) do
+            segment = nil
+
+            in_transaction do
+              segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, nil, "jonan.gummy_planet"
+              advance_time 1
+              segment.finish
+            end
+
+            sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+            node = find_node_with_name(sample, segment.name)
+
+            refute node.params.key? :database_name
+          end
         end
 
         def test_notice_sql

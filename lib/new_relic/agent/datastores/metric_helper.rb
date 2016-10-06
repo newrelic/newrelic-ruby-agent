@@ -66,7 +66,9 @@ module NewRelic
             ROLLUP_METRIC
           ]
 
-          metrics.unshift instance_metric_for(product, instance_identifier) if instance_identifier
+          if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled'] && instance_identifier
+            metrics.unshift instance_metric_for(product, instance_identifier)
+          end
           metrics.unshift operation_metric_for(product, operation) if collection
 
           metrics

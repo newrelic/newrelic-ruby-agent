@@ -238,8 +238,13 @@ module NewRelic
 
       def base_params
         params = {}
-        params[:instance] = statement.instance_identifier if statement.instance_identifier
-        params[:database_name] = statement.database_name if statement.database_name
+
+        if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled'] && statement.instance_identifier
+          params[:instance] = statement.instance_identifier
+        end
+        if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled'] && statement.database_name
+          params[:database_name] = statement.database_name
+        end
 
         params
       end
