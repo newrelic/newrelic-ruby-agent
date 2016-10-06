@@ -16,13 +16,21 @@ module NewRelic
               :port => 42
             }
 
-            assert_equal "jonan.local/42", InstanceIdentifier.for(config)
+            host = InstanceIdentifier.host(config)
+            ppid = InstanceIdentifier.path_port_or_id(config)
+
+            assert_equal "jonan.local", host
+            assert_equal "42", ppid
           end
 
           def test_for_constructs_id_with_unspecified_configuration
             NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
+            config = {}
+            host = InstanceIdentifier.host(config)
+            ppid = InstanceIdentifier.path_port_or_id(config)
 
-            assert_equal "jonan.pizza_cube/default", InstanceIdentifier.for({})
+            assert_equal "jonan.pizza_cube", host
+            assert_equal "default", ppid
           end
 
           def test_for_constructs_id_with_weird_configs
@@ -31,20 +39,32 @@ module NewRelic
               :port => ""
             }
 
-            assert_equal "unknown/unknown", InstanceIdentifier.for(config)
+            host = InstanceIdentifier.host(config)
+            ppid = InstanceIdentifier.path_port_or_id(config)
+
+            assert_equal "unknown", host
+            assert_equal "unknown", ppid
           end
 
           def test_for_constructs_id_with_configured_host_without_port
             config = { :host => "jonan.gummy_planet" }
 
-            assert_equal "jonan.gummy_planet/default", InstanceIdentifier.for(config)
+            host = InstanceIdentifier.host(config)
+            ppid = InstanceIdentifier.path_port_or_id(config)
+
+            assert_equal "jonan.gummy_planet", host
+            assert_equal "default", ppid
           end
 
           def test_for_constructs_id_with_port_without_host
             NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
             config = { :port => 1337 }
 
-            assert_equal "jonan.pizza_cube/1337", InstanceIdentifier.for(config)
+            host = InstanceIdentifier.host(config)
+            ppid = InstanceIdentifier.path_port_or_id(config)
+
+            assert_equal "jonan.pizza_cube", host
+            assert_equal "1337", ppid
           end
 
           def test_for_constructs_id_with_detected_localhost
@@ -53,7 +73,11 @@ module NewRelic
             %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:0 ::1 ::].each do |host|
               config = { :host => host }
 
-              assert_equal "jonan.pizza_cube/default", InstanceIdentifier.for(config)
+              host = InstanceIdentifier.host(config)
+              ppid = InstanceIdentifier.path_port_or_id(config)
+
+              assert_equal "jonan.pizza_cube", host
+              assert_equal "default", ppid
             end
           end
 
@@ -63,7 +87,11 @@ module NewRelic
               :host => "jonan.gummy_planet"
             }
 
-            assert_equal "jonan.gummy_planet/3306", InstanceIdentifier.for(config)
+            host = InstanceIdentifier.host(config)
+            ppid = InstanceIdentifier.path_port_or_id(config)
+
+            assert_equal "jonan.gummy_planet", host
+            assert_equal "3306", ppid
           end
 
           def test_for_constructs_id_with_postgres_directory
@@ -73,7 +101,11 @@ module NewRelic
               :host => "/tmp"
             }
 
-            assert_equal "jonan.pizza_cube/default", InstanceIdentifier.for(config)
+            host = InstanceIdentifier.host(config)
+            ppid = InstanceIdentifier.path_port_or_id(config)
+
+            assert_equal "jonan.pizza_cube", host
+            assert_equal "default", ppid
           end
 
           def test_for_constructs_id_with_mysql_socket
@@ -84,10 +116,13 @@ module NewRelic
                 :socket => "/var/run/mysqld.sock"
               }
 
-              assert_equal "jonan.pizza_cube//var/run/mysqld.sock", InstanceIdentifier.for(config)
+              host = InstanceIdentifier.host(config)
+              ppid = InstanceIdentifier.path_port_or_id(config)
+
+              assert_equal "jonan.pizza_cube", host
+              assert_equal "/var/run/mysqld.sock", ppid
             end
           end
-
         end
       end
     end
