@@ -17,7 +17,7 @@ module NewRelic
             }
 
             host = InstanceIdentification.host(config)
-            ppid = InstanceIdentification.path_port_or_id(config)
+            ppid = InstanceIdentification.port_path_or_id(config)
 
             assert_equal "jonan.local", host
             assert_equal "42", ppid
@@ -27,7 +27,7 @@ module NewRelic
             NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
             config = {}
             host = InstanceIdentification.host(config)
-            ppid = InstanceIdentification.path_port_or_id(config)
+            ppid = InstanceIdentification.port_path_or_id(config)
 
             assert_equal "jonan.pizza_cube", host
             assert_equal "default", ppid
@@ -40,7 +40,7 @@ module NewRelic
             }
 
             host = InstanceIdentification.host(config)
-            ppid = InstanceIdentification.path_port_or_id(config)
+            ppid = InstanceIdentification.port_path_or_id(config)
 
             assert_equal "unknown", host
             assert_equal "unknown", ppid
@@ -50,7 +50,7 @@ module NewRelic
             config = { :host => "jonan.gummy_planet" }
 
             host = InstanceIdentification.host(config)
-            ppid = InstanceIdentification.path_port_or_id(config)
+            ppid = InstanceIdentification.port_path_or_id(config)
 
             assert_equal "jonan.gummy_planet", host
             assert_equal "default", ppid
@@ -61,7 +61,7 @@ module NewRelic
             config = { :port => 1337 }
 
             host = InstanceIdentification.host(config)
-            ppid = InstanceIdentification.path_port_or_id(config)
+            ppid = InstanceIdentification.port_path_or_id(config)
 
             assert_equal "jonan.pizza_cube", host
             assert_equal "1337", ppid
@@ -74,7 +74,7 @@ module NewRelic
               config = { :host => host }
 
               host = InstanceIdentification.host(config)
-              ppid = InstanceIdentification.path_port_or_id(config)
+              ppid = InstanceIdentification.port_path_or_id(config)
 
               assert_equal "jonan.pizza_cube", host
               assert_equal "default", ppid
@@ -88,7 +88,7 @@ module NewRelic
             }
 
             host = InstanceIdentification.host(config)
-            ppid = InstanceIdentification.path_port_or_id(config)
+            ppid = InstanceIdentification.port_path_or_id(config)
 
             assert_equal "jonan.gummy_planet", host
             assert_equal "3306", ppid
@@ -102,7 +102,7 @@ module NewRelic
             }
 
             host = InstanceIdentification.host(config)
-            ppid = InstanceIdentification.path_port_or_id(config)
+            ppid = InstanceIdentification.port_path_or_id(config)
 
             assert_equal "jonan.pizza_cube", host
             assert_equal "default", ppid
@@ -117,7 +117,7 @@ module NewRelic
               }
 
               host = InstanceIdentification.host(config)
-              ppid = InstanceIdentification.path_port_or_id(config)
+              ppid = InstanceIdentification.port_path_or_id(config)
 
               assert_equal "jonan.pizza_cube", host
               assert_equal "/var/run/mysqld.sock", ppid
@@ -137,9 +137,9 @@ module NewRelic
 
               product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil , config[:adapter]
               host = ActiveRecordHelper::InstanceIdentification.host(config)
-              path_port_or_id = ActiveRecordHelper::InstanceIdentification.path_port_or_id(config)
+              port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
 
-              segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection, host, path_port_or_id
+              segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection, host, port_path_or_id
               segment.finish
 
               assert_metrics_recorded test['expected_instance_metric']

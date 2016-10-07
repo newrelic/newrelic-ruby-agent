@@ -107,7 +107,7 @@ module NewRelic
           node = find_node_with_name(sample, segment.name)
 
           assert_equal "localhost", node.params[:host]
-          assert_equal "1337807", node.params[:path_port_or_id]
+          assert_equal "1337807", node.params[:port_path_or_id]
         end
 
         def test_does_not_add_instance_identifier_segment_parameter_when_disabled
@@ -124,7 +124,7 @@ module NewRelic
             node = find_node_with_name(sample, segment.name)
 
             refute node.params.key? :host
-            refute node.params.key? :path_port_or_id
+            refute node.params.key? :port_path_or_id
           end
         end
 

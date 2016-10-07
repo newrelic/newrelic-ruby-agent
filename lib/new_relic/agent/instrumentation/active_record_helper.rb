@@ -250,7 +250,7 @@ module NewRelic
             end
           end
 
-          def path_port_or_id(config)
+          def port_path_or_id(config)
             adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if config[:socket]
               config[:socket].empty? ? UNKNOWN : config[:socket]

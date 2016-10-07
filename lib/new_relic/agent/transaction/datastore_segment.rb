@@ -10,18 +10,18 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-        attr_reader :product, :operation, :collection, :sql_statement, :host, :path_port_or_id, :database_name
+        attr_reader :product, :operation, :collection, :sql_statement, :host, :port_path_or_id, :database_name
 
-        def initialize product, operation, collection = nil, host = nil, path_port_or_id = nil, database_name=nil
+        def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name=nil
           @product = product
           @operation = operation
           @collection = collection
           @sql_statement = nil
           @host = host
-          @path_port_or_id = path_port_or_id
+          @port_path_or_id = port_path_or_id
           @database_name = database_name
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
-                Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host, path_port_or_id)
+                Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
         end
 
         def notice_sql sql
@@ -31,7 +31,7 @@ module NewRelic
         # @api private
         def _notice_sql sql, config=nil, explainer=nil, binds=nil, name=nil
           return unless record_sql?
-          @sql_statement = Database::Statement.new sql, config, explainer, binds, name, host, path_port_or_id, database_name
+          @sql_statement = Database::Statement.new sql, config, explainer, binds, name, host, port_path_or_id, database_name
         end
 
         private
@@ -55,7 +55,7 @@ module NewRelic
 
         def add_instance_parameters params
           params[:host] = host if host
-          params[:path_port_or_id] = path_port_or_id if path_port_or_id
+          params[:port_path_or_id] = port_path_or_id if port_path_or_id
         end
 
         def add_database_name_parameter(params)
