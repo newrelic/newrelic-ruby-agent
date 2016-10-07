@@ -52,13 +52,22 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     )
   end
 
-  def test_records_datastore_instance_metric
-    config = { :host => "jonan.gummy_planet" }
+  def test_records_datastore_instance_metric_for_supported_adapter
+    config = { :adapter => "mysql", :host => "jonan.gummy_planet", :port => 3306 }
     @subscriber.stubs(:active_record_config).returns(config)
 
     simulate_query(2)
 
-    assert_metrics_recorded('Datastore/instance/ActiveRecord/jonan.gummy_planet/default')
+    assert_metrics_recorded('Datastore/instance/MySQL/jonan.gummy_planet/3306')
+  end
+
+  def test_does_not_record_datastore_instance_metric_for_unsupported_adapter
+    config = { :adapter => "JonanDB", :host => "jonan.gummy_planet" }
+    @subscriber.stubs(:active_record_config).returns(config)
+
+    simulate_query(2)
+
+    assert_metrics_not_recorded('Datastore/instance/JonanDB/jonan.gummy_planet/default')
   end
 
   def test_does_not_record_datastore_instance_metric_if_disabled
