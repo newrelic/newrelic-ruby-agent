@@ -236,6 +236,8 @@ module NewRelic
           SLASH = "/".freeze unless defined?(SLASH)
 
           def host(config)
+            return UNKNOWN unless config
+
             configured_value  = config[:host]
             adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if configured_value.nil? ||
@@ -251,6 +253,8 @@ module NewRelic
           end
 
           def port_path_or_id(config)
+            return UNKNOWN unless config
+
             adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if config[:socket]
               config[:socket].empty? ? UNKNOWN : config[:socket]
