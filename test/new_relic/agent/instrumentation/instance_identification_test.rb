@@ -124,6 +124,12 @@ module NewRelic
             end
           end
 
+          def test_supports_supported_adapters
+            %w(mysql mysql2 postgresql).each do |adapter|
+              assert InstanceIdentification.supported_adapter?({:adapter => adapter })
+            end
+          end
+
           SUPPORTED_PRODUCTS = ["Postgres", "MySQL"]
 
           load_cross_agent_test('datastores/datastore_instances').each do |test|
