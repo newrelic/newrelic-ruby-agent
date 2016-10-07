@@ -204,7 +204,7 @@ module NewRelic
                               ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
         end
 
-        module InstanceIdentifier
+        module InstanceIdentification
           extend self
 
           LOCALHOST = %w[
@@ -227,28 +227,19 @@ module NewRelic
           }.freeze unless defined?(PRODUCT_SYMBOLS)
 
           DATASTORE_DEFAULT_PORTS = {
-            :mysql    => 3306,
-            :postgres => 5432
+            :mysql    => "3306",
+            :postgres => "5432"
           }.freeze unless defined?(DATASTORE_DEFAULT_PORTS)
 
           DEFAULT = "default".freeze unless defined?(DEFAULT)
-          UNKNOWN_INSTANCE = "unknown:unknown".freeze unless defined?(UNKNOWN_INSTANCE)
           UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
           SLASH = "/".freeze unless defined?(SLASH)
 
-          def for(config)
-            return UNKNOWN_INSTANCE unless config
+          def host(config)
+            return UNKNOWN unless config
 
-            symbolized_adapter = PRODUCT_SYMBOLS[config[:adapter]]
-            host = determine_host(config[:host], symbolized_adapter)
-            port_path_or_id = determine_ppi(config, symbolized_adapter)
-
-            "#{host}/#{port_path_or_id}"
-          end
-
-          private
-
-          def determine_host(configured_value, adapter)
+            configured_value  = config[:host]
+            adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if configured_value.nil? ||
               LOCALHOST.include?(configured_value) ||
               postgres_unix_domain_socket_case?(configured_value, adapter)
@@ -261,7 +252,10 @@ module NewRelic
             end
           end
 
-          def determine_ppi(config, adapter)
+          def port_path_or_id(config)
+            return UNKNOWN unless config
+
+            adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if config[:socket]
               config[:socket].empty? ? UNKNOWN : config[:socket]
             elsif postgres_unix_domain_socket_case?(config[:host], adapter) || mysql_default_case?(config, adapter)
@@ -269,11 +263,13 @@ module NewRelic
             elsif config[:port].nil?
               DATASTORE_DEFAULT_PORTS[adapter] || DEFAULT
             elsif config[:port].is_a?(Fixnum) || config[:port].to_i != 0
-              config[:port]
+              config[:port].to_s
             else
               UNKNOWN
             end
           end
+
+          private
 
           def postgres_unix_domain_socket_case?(host, adapter)
             adapter == :postgres && host && host.start_with?(SLASH)

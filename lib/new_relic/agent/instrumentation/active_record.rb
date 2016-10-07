@@ -50,16 +50,18 @@ module NewRelic
             NewRelic::Helper.correctly_encoded(sql),
             @config && @config[:adapter])
 
-          identifier = nil
+          host = nil
+          port_path_or_id = nil
           database = nil
           if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
-            identifier = ActiveRecordHelper::InstanceIdentifier.for(@config)
+            host = ActiveRecordHelper::InstanceIdentification.host(@config)
+            port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(@config)
           end
           if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
             database = @config && @config[:database]
           end
 
-          segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection, identifier, database)
+          segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection, host, port_path_or_id, database)
           segment._notice_sql(sql, @config, EXPLAINER)
 
           begin

@@ -68,52 +68,5 @@ module NewRelic::Agent::Instrumentation
       result = ActiveRecordHelper.rollup_metrics_for("boo")
       assert_equal ["Datastore/allOther", "Datastore/all"], result
     end
-
-    SUPPORTED_PRODUCTS = ["Postgres", "MySQL"]
-
-    load_cross_agent_test('datastores/datastore_instances').each do |test|
-      next unless SUPPORTED_PRODUCTS.include?(test['product'])
-
-      define_method :"test_#{test['name'].tr(' ', '_')}" do
-        NewRelic::Agent.drop_buffered_data
-        NewRelic::Agent::Hostname.stubs(:get).returns(test['system_hostname'])
-
-        config = convert_test_case_to_config test
-
-        product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil , config[:adapter]
-        segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection, ActiveRecordHelper::InstanceIdentifier.for(config)
-        segment.finish
-
-        assert_metrics_recorded test['expected_instance_metric']
-      end
-    end
-
-    CONFIG_NAMES = {
-      "db_hostname" => :host,
-      "unix_socket" => :socket,
-      "port" => :port,
-      "product" => :adapter
-    }
-
-    def convert_test_case_to_config test_case
-      config = test_case.inject({}) do |memo, (k,v)|
-        if config_key = CONFIG_NAMES[k]
-          memo[config_key] = v
-        end
-        memo
-      end
-      convert_product_to_adapter config
-      config
-    end
-
-    PRODUCT_TO_ADAPTER_NAMES = {
-      "Postgres" => "postgresql",
-      "MySQL" => "mysql",
-      "SQLite" => "sqlite3"
-    }
-
-    def convert_product_to_adapter config
-      config[:adapter] = PRODUCT_TO_ADAPTER_NAMES[config[:adapter]]
-    end
   end
 end

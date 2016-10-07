@@ -1608,7 +1608,7 @@ module NewRelic
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>false</code>, the agent will not report datastore instance metrics, nor add <code>host</code> or <code>path_port_or_id</code> parameters to transaction or slow sql traces.'
+          :description => 'If <code>false</code>, the agent will not report datastore instance metrics, nor add <code>host</code> or <code>port_path_or_id</code> parameters to transaction or slow sql traces.'
         },
         :'datastore_tracer.database_name_reporting.enabled' => {
           :default     => true,
