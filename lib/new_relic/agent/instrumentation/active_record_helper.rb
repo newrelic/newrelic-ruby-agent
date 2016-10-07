@@ -269,7 +269,7 @@ module NewRelic
             end
           end
 
-          SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze
+          SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze unless defined?(SUPPORTED_ADAPTERS)
 
           def supported_adapter? config
             config && SUPPORTED_ADAPTERS.include?(PRODUCT_SYMBOLS[config[:adapter]])
