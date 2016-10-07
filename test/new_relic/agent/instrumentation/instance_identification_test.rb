@@ -8,7 +8,7 @@ module NewRelic
   module Agent
     module Instrumentation
       module ActiveRecordHelper
-        class InstanceIdentifierTest < Minitest::Test
+        class InstanceIdentificationTest < Minitest::Test
 
           def test_for_constructs_id_with_configured_host_and_port
             config = {
@@ -16,8 +16,8 @@ module NewRelic
               :port => 42
             }
 
-            host = InstanceIdentifier.host(config)
-            ppid = InstanceIdentifier.path_port_or_id(config)
+            host = InstanceIdentification.host(config)
+            ppid = InstanceIdentification.path_port_or_id(config)
 
             assert_equal "jonan.local", host
             assert_equal "42", ppid
@@ -26,8 +26,8 @@ module NewRelic
           def test_for_constructs_id_with_unspecified_configuration
             NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
             config = {}
-            host = InstanceIdentifier.host(config)
-            ppid = InstanceIdentifier.path_port_or_id(config)
+            host = InstanceIdentification.host(config)
+            ppid = InstanceIdentification.path_port_or_id(config)
 
             assert_equal "jonan.pizza_cube", host
             assert_equal "default", ppid
@@ -39,8 +39,8 @@ module NewRelic
               :port => ""
             }
 
-            host = InstanceIdentifier.host(config)
-            ppid = InstanceIdentifier.path_port_or_id(config)
+            host = InstanceIdentification.host(config)
+            ppid = InstanceIdentification.path_port_or_id(config)
 
             assert_equal "unknown", host
             assert_equal "unknown", ppid
@@ -49,8 +49,8 @@ module NewRelic
           def test_for_constructs_id_with_configured_host_without_port
             config = { :host => "jonan.gummy_planet" }
 
-            host = InstanceIdentifier.host(config)
-            ppid = InstanceIdentifier.path_port_or_id(config)
+            host = InstanceIdentification.host(config)
+            ppid = InstanceIdentification.path_port_or_id(config)
 
             assert_equal "jonan.gummy_planet", host
             assert_equal "default", ppid
@@ -60,8 +60,8 @@ module NewRelic
             NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
             config = { :port => 1337 }
 
-            host = InstanceIdentifier.host(config)
-            ppid = InstanceIdentifier.path_port_or_id(config)
+            host = InstanceIdentification.host(config)
+            ppid = InstanceIdentification.path_port_or_id(config)
 
             assert_equal "jonan.pizza_cube", host
             assert_equal "1337", ppid
@@ -73,8 +73,8 @@ module NewRelic
             %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:0 ::1 ::].each do |host|
               config = { :host => host }
 
-              host = InstanceIdentifier.host(config)
-              ppid = InstanceIdentifier.path_port_or_id(config)
+              host = InstanceIdentification.host(config)
+              ppid = InstanceIdentification.path_port_or_id(config)
 
               assert_equal "jonan.pizza_cube", host
               assert_equal "default", ppid
@@ -87,8 +87,8 @@ module NewRelic
               :host => "jonan.gummy_planet"
             }
 
-            host = InstanceIdentifier.host(config)
-            ppid = InstanceIdentifier.path_port_or_id(config)
+            host = InstanceIdentification.host(config)
+            ppid = InstanceIdentification.path_port_or_id(config)
 
             assert_equal "jonan.gummy_planet", host
             assert_equal "3306", ppid
@@ -101,8 +101,8 @@ module NewRelic
               :host => "/tmp"
             }
 
-            host = InstanceIdentifier.host(config)
-            ppid = InstanceIdentifier.path_port_or_id(config)
+            host = InstanceIdentification.host(config)
+            ppid = InstanceIdentification.path_port_or_id(config)
 
             assert_equal "jonan.pizza_cube", host
             assert_equal "default", ppid
@@ -116,8 +116,8 @@ module NewRelic
                 :socket => "/var/run/mysqld.sock"
               }
 
-              host = InstanceIdentifier.host(config)
-              ppid = InstanceIdentifier.path_port_or_id(config)
+              host = InstanceIdentification.host(config)
+              ppid = InstanceIdentification.path_port_or_id(config)
 
               assert_equal "jonan.pizza_cube", host
               assert_equal "/var/run/mysqld.sock", ppid

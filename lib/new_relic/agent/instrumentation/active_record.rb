@@ -54,8 +54,8 @@ module NewRelic
           port_path_or_id
           database = nil
           if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
-            host = ActiveRecordHelper::InstanceIdentifier.host(@config)
-            port_path_or_id = ActiveRecordHelper::InstanceIdentifier.port_path_or_id(@config)
+            host = ActiveRecordHelper::InstanceIdentification.host(@config)
+            port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(@config)
           end
           if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
             database = @config && @config[:database]

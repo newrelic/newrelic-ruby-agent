@@ -81,8 +81,8 @@ module NewRelic::Agent::Instrumentation
         config = convert_test_case_to_config test
 
         product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil , config[:adapter]
-        host = ActiveRecordHelper::InstanceIdentifier.host(config)
-        path_port_or_id = ActiveRecordHelper::InstanceIdentifier.path_port_or_id(config)
+        host = ActiveRecordHelper::InstanceIdentification.host(config)
+        path_port_or_id = ActiveRecordHelper::InstanceIdentification.path_port_or_id(config)
 
         segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection, host, path_port_or_id
         segment.finish

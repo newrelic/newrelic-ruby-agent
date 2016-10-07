@@ -204,7 +204,7 @@ module NewRelic
                               ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
         end
 
-        module InstanceIdentifier
+        module InstanceIdentification
           extend self
 
           LOCALHOST = %w[
