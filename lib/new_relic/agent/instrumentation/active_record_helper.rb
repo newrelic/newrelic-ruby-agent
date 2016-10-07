@@ -235,10 +235,6 @@ module NewRelic
           UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
           SLASH = "/".freeze unless defined?(SLASH)
 
-          def for(config)
-            "#{host(config)}/#{path_port_or_id(config)}"
-          end
-
           def host(config)
             configured_value  = config[:host]
             adapter = PRODUCT_SYMBOLS[config[:adapter]]
