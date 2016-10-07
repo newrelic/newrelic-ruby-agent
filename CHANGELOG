@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.17.0 ##
+  * Datastore instance reporting for ActiveRecord
+
+  The agent now collects database instance information for ActiveRecord operations,
+  when using the MySQL and Postgres adapters.  This information (database server
+  and database name) is displayed in transaction traces and slow query traces.
+
 ## v3.16.3 ##
 
   * Add `:trace_only` option to `notice_error` API
