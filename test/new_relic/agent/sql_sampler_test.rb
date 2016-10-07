@@ -378,7 +378,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
     params = trace.to_collector_array(encoder).last
 
-    assert_equal "jonan.gummy_planet/1337", params[:instance]
+    assert_equal "jonan.gummy_planet", params[:host]
+    assert_equal "1337", params[:port_path_or_id]
     assert_equal "pizza_cube", params[:database_name]
   end
 
@@ -391,7 +392,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
       params = trace.to_collector_array(encoder).last
 
-      refute params.key? :instance
+      refute params.key? :host
+      refute params.key? :port_path_or_id
       assert_equal "pizza_cube", params[:database_name]
     end
   end
@@ -405,7 +407,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
       params = trace.to_collector_array(encoder).last
 
-      assert_equal "jonan.gummy_planet/1337", params[:instance]
+      assert_equal "jonan.gummy_planet", params[:host]
+      assert_equal "1337", params[:port_path_or_id]
       refute params.key? :database_name
     end
   end
