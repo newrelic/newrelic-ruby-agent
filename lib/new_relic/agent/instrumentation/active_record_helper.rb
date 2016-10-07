@@ -269,6 +269,12 @@ module NewRelic
             end
           end
 
+          SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze
+
+          def supported_adapter? config
+            config && SUPPORTED_ADAPTERS.include?(PRODUCT_SYMBOLS[config[:adapter]])
+          end
+
           private
 
           def postgres_unix_domain_socket_case?(host, adapter)
