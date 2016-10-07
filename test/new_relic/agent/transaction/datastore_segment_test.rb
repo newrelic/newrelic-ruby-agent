@@ -106,7 +106,8 @@ module NewRelic
           sample = NewRelic::Agent.agent.transaction_sampler.last_sample
           node = find_node_with_name(sample, segment.name)
 
-          assert_equal "localhost/1337807", node.params[:instance]
+          assert_equal "localhost", node.params[:host]
+          assert_equal "1337807", node.params[:path_port_or_id]
         end
 
         def test_does_not_add_instance_identifier_segment_parameter_when_disabled
@@ -122,7 +123,8 @@ module NewRelic
             sample = NewRelic::Agent.agent.transaction_sampler.last_sample
             node = find_node_with_name(sample, segment.name)
 
-            refute node.params.key? :instance
+            refute node.params.key? :host
+            refute node.params.key? :path_port_or_id
           end
         end
 

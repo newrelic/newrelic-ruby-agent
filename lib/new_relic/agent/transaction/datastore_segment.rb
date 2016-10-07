@@ -54,7 +54,8 @@ module NewRelic
         end
 
         def add_instance_parameters params
-          params[:instance] = instance_identifier if host && path_port_or_id
+          params[:host] = host if host
+          params[:path_port_or_id] = path_port_or_id if path_port_or_id
         end
 
         def add_database_name_parameter(params)
