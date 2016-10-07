@@ -196,13 +196,6 @@ module NewRelic
           @database_name = database_name
         end
 
-        #temporary part of refactor
-        def instance_identifier
-          if host && port_path_or_id
-            "#{host}/#{port_path_or_id}"
-          end
-        end
-
         # This takes a connection config hash from ActiveRecord or Sequel and
         # returns a symbol describing the associated database adapter
         def adapter

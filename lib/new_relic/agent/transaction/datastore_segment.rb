@@ -62,11 +62,6 @@ module NewRelic
           params[:database_name] = database_name if database_name
         end
 
-        # temporary: part of refactor to separate instance identifier
-        def instance_identifier
-          "#{host}/#{path_port_or_id}"
-        end
-
         def notice_sql_statement
           NewRelic::Agent.instance.transaction_sampler.notice_sql_statement(sql_statement, duration)
           NewRelic::Agent.instance.sql_sampler.notice_sql_statement(sql_statement.dup, name, duration)

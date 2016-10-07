@@ -177,11 +177,12 @@ module NewRelic
 
         def test_notice_sql_creates_database_statement_with_identifier
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "jonan.gummy_planet", "733t"
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "jonan.gummy_planet", "1337"
             segment.notice_sql "select * from blogs"
             segment.finish
 
-            assert_equal "jonan.gummy_planet/733t", segment.sql_statement.instance_identifier
+            assert_equal "jonan.gummy_planet", segment.sql_statement.host
+            assert_equal "1337", segment.sql_statement.port_path_or_id
           end
         end
 
