@@ -14,7 +14,7 @@ elsif RUBY_VERSION < '2'
 end
 
 gem 'minitest', '5.2.3'
-gem 'mocha', :require => false
+gem 'mocha', '1.1', :require => false
 gem 'rack', '< 2.0.0'
 gem 'rack-test'
 
