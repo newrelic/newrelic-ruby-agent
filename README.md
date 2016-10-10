@@ -78,9 +78,11 @@ edit `environment.rb` and add to the initalizer block:
 
 #### Sinatra Installation
 
-To use the Ruby Agent with a Sinatra app, add
+To use the Ruby Agent with a Sinatra app, add:
 
-    require 'newrelic_rpm'
+```ruby
+require 'newrelic_rpm'
+```
 
 in your Sinatra app, below the Sinatra require directive.
 
@@ -93,13 +95,17 @@ the middleware stack.  See the `config.ru` sample below.
 
 #### Other Environments
 
-You can use the Ruby Agent to monitor any Ruby application.  Add
+You can use the Ruby Agent to monitor any Ruby application. Add:
 
-    require 'newrelic_rpm'
+```ruby
+require 'newrelic_rpm'
+```
 
-to your startup sequence and then manually start the agent using
+to your startup sequence and then manually start the agent using:
 
-    NewRelic::Agent.manual_start
+```ruby
+NewRelic::Agent.manual_start
+```
 
 For information about instrumenting pure Rack applications, see our
 [Rack middlewares documentation](http://docs.newrelic.com/docs/ruby/rack-middlewares).

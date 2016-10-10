@@ -24,6 +24,10 @@ module NewRelic
           "Datastore/operation/#{product}/#{operation}"
         end
 
+        def self.instance_metric_for(product, host, port_path_or_id)
+          "Datastore/instance/#{product}/#{host}/#{port_path_or_id}"
+        end
+
         def self.product_suffixed_rollup(product, suffix)
           "Datastore/#{product}/#{suffix}"
         end
@@ -52,7 +56,7 @@ module NewRelic
           end
         end
 
-        def self.unscoped_metrics_for product, operation, collection=nil
+        def self.unscoped_metrics_for product, operation, collection=nil, host=nil, port_path_or_id=nil
           suffix = all_suffix
 
           metrics = [
@@ -62,6 +66,9 @@ module NewRelic
             ROLLUP_METRIC
           ]
 
+          if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled'] && host && port_path_or_id
+            metrics.unshift instance_metric_for(product, host, port_path_or_id)
+          end
           metrics.unshift operation_metric_for(product, operation) if collection
 
           metrics

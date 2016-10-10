@@ -40,7 +40,7 @@ module NewRelic
       rescue StandardError, SystemStackError, SystemCallError => e
         ::NewRelic::Agent.logger.warn("Failed writing to audit log", e)
       rescue Exception => e
-        ::NewRelic::Agent.logger.warn("Failed writing to audit log with exception. Re-raising in case of interupt.", e)
+        ::NewRelic::Agent.logger.warn("Failed writing to audit log with exception. Re-raising in case of interrupt.", e)
         raise
       end
 

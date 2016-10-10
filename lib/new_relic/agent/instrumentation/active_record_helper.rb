@@ -204,6 +204,89 @@ module NewRelic
                               ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
         end
 
+        module InstanceIdentification
+          extend self
+
+          LOCALHOST = %w[
+            localhost
+            0.0.0.0
+            127.0.0.1
+            0:0:0:0:0:0:0:1
+            0:0:0:0:0:0:0:0
+            ::1
+            ::
+          ].freeze unless defined?(LOCALHOST)
+
+          PRODUCT_SYMBOLS = {
+            "mysql"      => :mysql,
+            "mysql2"     => :mysql,
+            "jdbcmysql"  => :mysql,
+
+            "postgresql"     => :postgres,
+            "jdbcpostgresql" => :postgres
+          }.freeze unless defined?(PRODUCT_SYMBOLS)
+
+          DATASTORE_DEFAULT_PORTS = {
+            :mysql    => "3306",
+            :postgres => "5432"
+          }.freeze unless defined?(DATASTORE_DEFAULT_PORTS)
+
+          DEFAULT = "default".freeze unless defined?(DEFAULT)
+          UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
+          SLASH = "/".freeze unless defined?(SLASH)
+
+          def host(config)
+            return UNKNOWN unless config
+
+            configured_value  = config[:host]
+            adapter = PRODUCT_SYMBOLS[config[:adapter]]
+            if configured_value.nil? ||
+              LOCALHOST.include?(configured_value) ||
+              postgres_unix_domain_socket_case?(configured_value, adapter)
+
+              Hostname.get
+            elsif configured_value.empty?
+              UNKNOWN
+            else
+              configured_value
+            end
+          end
+
+          def port_path_or_id(config)
+            return UNKNOWN unless config
+
+            adapter = PRODUCT_SYMBOLS[config[:adapter]]
+            if config[:socket]
+              config[:socket].empty? ? UNKNOWN : config[:socket]
+            elsif postgres_unix_domain_socket_case?(config[:host], adapter) || mysql_default_case?(config, adapter)
+              DEFAULT
+            elsif config[:port].nil?
+              DATASTORE_DEFAULT_PORTS[adapter] || DEFAULT
+            elsif config[:port].is_a?(Fixnum) || config[:port].to_i != 0
+              config[:port].to_s
+            else
+              UNKNOWN
+            end
+          end
+
+          SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze unless defined?(SUPPORTED_ADAPTERS)
+
+          def supported_adapter? config
+            config && SUPPORTED_ADAPTERS.include?(PRODUCT_SYMBOLS[config[:adapter]])
+          end
+
+          private
+
+          def postgres_unix_domain_socket_case?(host, adapter)
+            adapter == :postgres && host && host.start_with?(SLASH)
+          end
+
+          def mysql_default_case?(config, adapter)
+            (adapter == :mysql2 || adapter == :mysql) &&
+              LOCALHOST.include?(config[:host]) &&
+              !config[:port]
+          end
+        end
       end
     end
   end

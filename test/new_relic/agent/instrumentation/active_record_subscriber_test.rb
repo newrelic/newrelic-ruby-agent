@@ -52,6 +52,46 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     )
   end
 
+  def test_records_datastore_instance_metric_for_supported_adapter
+    config = { :adapter => "mysql", :host => "jonan.gummy_planet", :port => 3306 }
+    @subscriber.stubs(:active_record_config).returns(config)
+
+    simulate_query(2)
+
+    assert_metrics_recorded('Datastore/instance/MySQL/jonan.gummy_planet/3306')
+  end
+
+  def test_does_not_record_datastore_instance_metric_for_unsupported_adapter
+    config = { :adapter => "JonanDB", :host => "jonan.gummy_planet" }
+    @subscriber.stubs(:active_record_config).returns(config)
+
+    simulate_query(2)
+
+    assert_metrics_not_recorded('Datastore/instance/JonanDB/jonan.gummy_planet/default')
+  end
+
+  def test_does_not_record_datastore_instance_metric_if_disabled
+    with_config('datastore_tracer.instance_reporting.enabled' => false) do
+      config = { :host => "jonan.gummy_planet" }
+      @subscriber.stubs(:active_record_config).returns(config)
+
+      simulate_query(2)
+
+      assert_metrics_not_recorded('Datastore/instance/ActiveRecord/jonan.gummy_planet/default')
+    end
+  end
+
+  def test_does_not_record_database_name_if_disabled
+    config = { :host => "jonan.gummy_planet", :database => "pizza_cube" }
+    @subscriber.stubs(:active_record_config).returns(config)
+    with_config('datastore_tracer.database_name_reporting.enabled' => false) do
+      in_transaction { simulate_query(2) }
+    end
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    node = find_node_with_name_matching sample, /Datastore\//
+    refute node.params.key?(:database_name)
+  end
+
   def test_records_nothing_if_tracing_disabled
     freeze_time
 

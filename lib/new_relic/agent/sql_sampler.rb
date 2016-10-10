@@ -236,6 +236,20 @@ module NewRelic
         statement.sql
       end
 
+      def base_params
+        params = {}
+
+        if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
+          params[:host] = statement.host if statement.host
+          params[:port_path_or_id] = statement.port_path_or_id if statement.port_path_or_id
+        end
+        if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled'] && statement.database_name
+          params[:database_name] = statement.database_name
+        end
+
+        params
+      end
+
       def obfuscate
         NewRelic::Agent::Database.obfuscate_sql(statement)
       end
@@ -268,7 +282,7 @@ module NewRelic
 
       def initialize(normalized_query, slow_sql, path, uri)
         super()
-        @params = {}
+        @params = slow_sql.base_params
         @sql_id = consistent_hash(normalized_query)
         set_primary slow_sql, path, uri
         record_data_point(float(slow_sql.duration))

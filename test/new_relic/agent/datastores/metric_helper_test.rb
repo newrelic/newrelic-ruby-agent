@@ -26,6 +26,15 @@ module NewRelic
         assert_equal expected, result
       end
 
+      def test_instance_metric_for
+        instance_id = "localhost/1337807"
+        host = "localhost"
+        port = "1337807"
+        expected = "Datastore/instance/JonanDB/#{host}/#{port}"
+        result = Datastores::MetricHelper.instance_metric_for(@product, host, port)
+        assert_equal expected, result
+      end
+
       def test_metrics_for_in_web_context
         Transaction.stubs(:recording_web_transaction?).returns(true)
         expected = [
@@ -107,6 +116,35 @@ module NewRelic
 
         result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation)
         assert_equal expected, result
+      end
+
+      def test_unscoped_metrics_for_with_instance_identifier
+        Transaction.stubs(:recording_web_transaction?).returns(false)
+        expected = [
+          "Datastore/instance/JonanDB/localhost/1337807",
+          "Datastore/JonanDB/allOther",
+          "Datastore/JonanDB/all",
+          "Datastore/allOther",
+          "Datastore/all"
+        ]
+
+        result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, nil, "localhost", "1337807")
+        assert_equal expected, result
+      end
+
+      def test_unscoped_metrics_for_with_instance_identifier_and_instance_reporting_disabled
+        with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
+          Transaction.stubs(:recording_web_transaction?).returns(false)
+          expected = [
+            "Datastore/JonanDB/allOther",
+            "Datastore/JonanDB/all",
+            "Datastore/allOther",
+            "Datastore/all"
+          ]
+
+          result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, nil, "localhost/1337807")
+          assert_equal expected, result
+        end
       end
 
       def test_product_operation_collection_for_obeys_collection_and_operation_overrides
