@@ -1,6 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
 ## v3.17.0 ##
+
   * Datastore instance reporting for ActiveRecord
 
   The agent now collects database instance information for ActiveRecord operations,
