@@ -22,7 +22,7 @@ end
 # us from inadvertently loading minitest 5.3.0 on rbx (we'll require
 # minitest/unit instead via a different path).
 gem 'minitest', '~>4.7.5', :require => false
-gem 'mocha', :require => false
+gem 'mocha', '1.1', :require => false
 gem 'rack', '< 2.0.0'
 gem 'rack-test'
 
