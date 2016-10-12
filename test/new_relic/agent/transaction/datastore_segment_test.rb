@@ -211,6 +211,18 @@ module NewRelic
             segment.finish
           end
         end
+
+        def test_notice_nosql_statement
+          statement = "set mykey 123"
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "Redis", "set"
+            segment.notice_nosql_statement statement
+            advance_time 2.0
+
+            Agent.instance.transaction_sampler.expects(:notice_nosql_statement).with(statement, 2.0)
+            segment.finish
+          end
+        end
       end
     end
   end
