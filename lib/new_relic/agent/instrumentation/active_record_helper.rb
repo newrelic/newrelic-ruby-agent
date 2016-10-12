@@ -207,16 +207,6 @@ module NewRelic
         module InstanceIdentification
           extend self
 
-          LOCALHOST = %w[
-            localhost
-            0.0.0.0
-            127.0.0.1
-            0:0:0:0:0:0:0:1
-            0:0:0:0:0:0:0:0
-            ::1
-            ::
-          ].freeze unless defined?(LOCALHOST)
-
           PRODUCT_SYMBOLS = {
             "mysql"      => :mysql,
             "mysql2"     => :mysql,
@@ -241,7 +231,7 @@ module NewRelic
             configured_value  = config[:host]
             adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if configured_value.nil? ||
-              LOCALHOST.include?(configured_value) ||
+              Hostname.local?(configured_value) ||
               postgres_unix_domain_socket_case?(configured_value, adapter)
 
               Hostname.get
@@ -283,7 +273,7 @@ module NewRelic
 
           def mysql_default_case?(config, adapter)
             (adapter == :mysql2 || adapter == :mysql) &&
-              LOCALHOST.include?(config[:host]) &&
+              Hostname.local?(config[:host]) &&
               !config[:port]
           end
         end
