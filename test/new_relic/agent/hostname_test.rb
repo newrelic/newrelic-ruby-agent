@@ -100,6 +100,14 @@ module NewRelic
         end
       end
 
+      def test_get_external_returns_host_for_localhost
+        assert_equal "Rivendell", NewRelic::Agent::Hostname.get_external("localhost")
+      end
+
+      def test_get_external_returns_argument_for_nonlocalhost
+        assert_equal "drscheffler", NewRelic::Agent::Hostname.get_external("drscheffler")
+      end
+
       def with_dyno_name(dyno_name, config_options)
         with_config(config_options) do
           ENV['DYNO'] = dyno_name

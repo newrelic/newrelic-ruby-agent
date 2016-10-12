@@ -39,6 +39,10 @@ module NewRelic
       def self.local? host_or_ip
         LOCALHOST.include?(host_or_ip)
       end
+
+      def self.get_external host_or_ip
+        local?(host_or_ip) ? get : host_or_ip
+      end
     end
   end
 end
