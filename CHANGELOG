@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Rescue errors from attempts to fetch slow query explain plans
+
+  For slow queries through ActiveRecord 4+, the agent will attempt to fetch
+  an explain plan on SELECT statements. In the event that this causes an
+  error, such as being run on an adapter that doesn't implement `exec_query`,
+  the agent will now rescue and log those errors.
+
 ## v3.17.0 ##
 
   * Datastore instance reporting for ActiveRecord
