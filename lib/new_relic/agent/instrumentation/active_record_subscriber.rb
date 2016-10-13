@@ -50,6 +50,8 @@ module NewRelic
                                          "Explain #{statement.name}",
                                          statement.binds)
           end
+        rescue => e
+          NewRelic::Agent.logger.debug "Couldn't fetch the explain plan for #{statement} due to #{e}"
         end
 
         def active_record_config(payload)
