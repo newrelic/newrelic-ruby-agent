@@ -243,5 +243,21 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_equal('6379', node[:port_path_or_id])
     assert_equal('0', node[:database_name])
   end
+
+  def test_instrumentation_returns_expected_values
+    assert_equal 0, @redis.del('foo')
+
+    assert_equal 'OK', @redis.set('foo', 'bar')
+    assert_equal 'bar', @redis.get('foo')
+    assert_equal 1, @redis.del('foo')
+
+    assert_equal ['OK','OK'], @redis.multi { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
+    assert_equal ['bar', 'bat'], @redis.multi { @redis.get('foo'); @redis.get('baz') }
+    assert_equal 2, @redis.del('foo', 'baz')
+
+    assert_equal ['OK','OK'], @redis.pipelined { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
+    assert_equal ['bar', 'bat'], @redis.pipelined { @redis.get('foo'); @redis.get('baz') }
+    assert_equal 2, @redis.del('foo', 'baz')
+  end
 end
 end

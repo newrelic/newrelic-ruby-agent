@@ -38,8 +38,8 @@ DependencyDetection.defer do
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
           operation, nil, hostname, port_path_or_id, db)
         begin
-          call_without_new_relic(*args, &block)
           segment.notice_nosql_statement(statement) if statement
+          call_without_new_relic(*args, &block)
         ensure
           segment.finish
         end
@@ -58,8 +58,8 @@ DependencyDetection.defer do
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
           operation, nil, hostname, port_path_or_id, db)
         begin
-          call_pipeline_without_new_relic(*args, &block)
           segment.notice_nosql_statement(statement)
+          call_pipeline_without_new_relic(*args, &block)
         ensure
           segment.finish
         end
