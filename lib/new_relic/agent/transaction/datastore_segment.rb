@@ -20,7 +20,7 @@ module NewRelic
           @sql_statement = nil
           @nosql_statement = nil
           @host = host
-          @port_path_or_id = port_path_or_id
+          @port_path_or_id = port_path_or_id.to_s
           @database_name = database_name
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
                 Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host, port_path_or_id)

@@ -34,7 +34,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allOther" => { :call_count => 2 },
       "Datastore/Redis/all" => { :call_count => 2 },
       "Datastore/allOther" => { :call_count => 2 },
-      "Datastore/all" => { :call_count => 2 }
+      "Datastore/all" => { :call_count => 2 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 2 }
     }
 
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
@@ -63,7 +64,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all"=> { :call_count => 1 },
       "Datastore/allOther"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 }
+      "Datastore/all"=> { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded(expected)
   end
@@ -78,7 +80,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allWeb" => { :call_count => 1 },
       "Datastore/Redis/all"=> { :call_count => 1 },
       "Datastore/allWeb"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 }
+      "Datastore/all"=> { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded(expected)
   end
@@ -91,7 +94,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all"=> { :call_count => 1 },
       "Datastore/allOther"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 }
+      "Datastore/all"=> { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded(expected)
   end
@@ -128,7 +132,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allWeb" => { :call_count => 1 },
       "Datastore/Redis/all"=> { :call_count => 1 },
       "Datastore/allWeb"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 }
+      "Datastore/all"=> { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded(expected)
   end
@@ -144,7 +149,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all" => { :call_count => 1 },
       "Datastore/allOther" => { :call_count => 1 },
-      "Datastore/all" => { :call_count => 1 }
+      "Datastore/all" => { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
   end
@@ -174,7 +180,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all" => { :call_count => 1 },
       "Datastore/allOther" => { :call_count => 1 },
-      "Datastore/all" => { :call_count => 1 }
+      "Datastore/all" => { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
   end
@@ -207,6 +214,18 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
 
     assert_equal("multi\nset \"darkpact\" \"sorcery\"\nget \"chaos orb\"\nexec", pipeline_node[:statement])
+  end
+
+  def test_records_instance_parameters_on_tt_node
+    in_transaction do
+      @redis.get("foo")
+    end
+
+    tt = last_transaction_trace
+
+    get_node = tt.root_node.called_nodes[0].called_nodes[0]
+    assert_equal(NewRelic::Agent::Hostname.get, get_node[:host])
+    assert_equal('6379', get_node[:port_path_or_id])
   end
 end
 end
