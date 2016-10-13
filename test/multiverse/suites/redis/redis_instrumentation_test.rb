@@ -216,7 +216,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_equal("multi\nset \"darkpact\" \"sorcery\"\nget \"chaos orb\"\nexec", pipeline_node[:statement])
   end
 
-  def test_records_instance_parameters_on_tt_node
+  def test_records_instance_parameters_on_tt_node_for_get
     in_transaction do
       @redis.get("foo")
     end
@@ -226,6 +226,22 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     get_node = tt.root_node.called_nodes[0].called_nodes[0]
     assert_equal(NewRelic::Agent::Hostname.get, get_node[:host])
     assert_equal('6379', get_node[:port_path_or_id])
+    assert_equal('0', get_node[:database_name])
+  end
+
+  def test_records_instance_parameters_on_tt_node_for_multi
+    in_transaction do
+      @redis.multi do
+        @redis.get("foo")
+      end
+    end
+
+    tt = last_transaction_trace
+
+    node = tt.root_node.called_nodes[0].called_nodes[0]
+    assert_equal(NewRelic::Agent::Hostname.get, node[:host])
+    assert_equal('6379', node[:port_path_or_id])
+    assert_equal('0', node[:database_name])
   end
 end
 end
