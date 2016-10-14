@@ -31,12 +31,10 @@ DependencyDetection.defer do
       def call(*args, &block)
         operation = args[0][0]
         statement = ::NewRelic::Agent::Datastores::Redis.format_command(args[0])
-
-        hostname = determine_hostname_parameter
-        port_path_or_id = path || port
+        attributes = datastore_instance_attributes
 
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-          operation, nil, hostname, port_path_or_id, db)
+          operation, nil, attributes[:hostname], attributes[:port_path_or_id], attributes[:database_name])
         begin
           segment.notice_nosql_statement(statement) if statement
           call_without_new_relic(*args, &block)
@@ -51,12 +49,10 @@ DependencyDetection.defer do
         pipeline = args[0]
         operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? NewRelic::Agent::Datastores::Redis::MULTI_OPERATION : NewRelic::Agent::Datastores::Redis::PIPELINE_OPERATION
         statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline.commands)
-
-        hostname = determine_hostname_parameter
-        port_path_or_id = path || port
+        attributes = datastore_instance_attributes
 
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-          operation, nil, hostname, port_path_or_id, db)
+          operation, nil, attributes[:hostname], attributes[:port_path_or_id], attributes[:database_name])
         begin
           segment.notice_nosql_statement(statement)
           call_pipeline_without_new_relic(*args, &block)
@@ -68,11 +64,10 @@ DependencyDetection.defer do
       alias_method :connect_without_new_relic, :connect
 
       def connect(*args, &block)
-        hostname = determine_hostname_parameter
-        port_path_or_id = path || port
+        attributes = datastore_instance_attributes
 
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-          NewRelic::Agent::Datastores::Redis::CONNECT, nil, hostname, port_path_or_id, db)
+          NewRelic::Agent::Datastores::Redis::CONNECT, nil, attributes[:hostname], attributes[:port_path_or_id], attributes[:database_name])
 
         begin
           connect_without_new_relic(*args, &block)
@@ -83,7 +78,15 @@ DependencyDetection.defer do
 
       private
 
-      def determine_hostname_parameter
+      def datastore_instance_attributes
+        attributes = {}
+        attributes[:hostname] = determine_hostname_attribute
+        attributes[:port_path_or_id] = path || port
+        attributes[:database_name] = db
+        attributes
+      end
+
+      def determine_hostname_attribute
         path ? NewRelic::Agent::Hostname.get : NewRelic::Agent::Hostname.get_external(host)
       end
     end
