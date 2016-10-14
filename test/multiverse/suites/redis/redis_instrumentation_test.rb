@@ -229,6 +229,21 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_equal('0', get_node[:database_name])
   end
 
+  def test_records_hostname_on_tt_node_for_get_with_unix_domain_socket
+    redis = Redis.new
+    redis.client.stubs(:path).returns('/tmp/redis.sock')
+
+    in_transaction do
+      redis.get("foo")
+    end
+
+    tt = last_transaction_trace
+
+    node = tt.root_node.called_nodes[0].called_nodes[0]
+    assert_equal(NewRelic::Agent::Hostname.get, node[:host])
+    assert_equal('/tmp/redis.sock', node[:port_path_or_id])
+  end
+
   def test_records_instance_parameters_on_tt_node_for_multi
     in_transaction do
       @redis.multi do
@@ -242,6 +257,23 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_equal(NewRelic::Agent::Hostname.get, node[:host])
     assert_equal('6379', node[:port_path_or_id])
     assert_equal('0', node[:database_name])
+  end
+
+  def test_records_hostname_on_tt_node_for_multi_with_unix_domain_socket
+    redis = Redis.new
+    redis.client.stubs(:path).returns('/tmp/redis.sock')
+
+    in_transaction do
+      redis.multi do
+        redis.get("foo")
+      end
+    end
+
+    tt = last_transaction_trace
+
+    node = tt.root_node.called_nodes[0].called_nodes[0]
+    assert_equal(NewRelic::Agent::Hostname.get, node[:host])
+    assert_equal('/tmp/redis.sock', node[:port_path_or_id])
   end
 
   def test_instrumentation_returns_expected_values
