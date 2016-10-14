@@ -80,9 +80,13 @@ DependencyDetection.defer do
 
       def datastore_instance_attributes
         attributes = {}
-        attributes[:hostname] = determine_hostname_attribute
-        attributes[:port_path_or_id] = path || port
-        attributes[:database_name] = db
+        if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
+          attributes[:hostname] = determine_hostname_attribute
+          attributes[:port_path_or_id] = path || port
+        end
+        if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
+          attributes[:database_name] = db
+        end
         attributes
       end
 
