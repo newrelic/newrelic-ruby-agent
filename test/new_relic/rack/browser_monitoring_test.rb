@@ -66,7 +66,8 @@ EOL
       :'rum.enabled' => true,
       :license_key => 'a' * 40,
       :js_agent_loader => 'loader',
-      :disable_harvest_thread => true
+      :disable_harvest_thread => true,
+      :'rules.ignore_url_regexes' => [/^\/skip_instrument/]
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
   end
@@ -82,6 +83,11 @@ EOL
     in_transaction do
       assert NewRelic::Agent.browser_timing_header.size > 0
     end
+  end
+
+  def test_should_not_instrument_blacklisted_paths
+    assert !app.should_instrument?({'PATH_INFO' => '/skip_instrument'}, 200, {'Content-Type' => 'text/html'}), "Expected not to instrument requests for blacklisted path."
+    assert app.should_instrument?({'PATH_INFO' => '/should_instrument'}, 200, {'Content-Type' => 'text/html'}), "Expected to instrument requests for not blacklisted path."
   end
 
   def test_should_only_instrument_successful_html_requests
