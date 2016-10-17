@@ -10,16 +10,18 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-        attr_reader :product, :operation, :collection, :sql_statement, :host, :port_path_or_id, :database_name
+        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host,
+                    :port_path_or_id, :database_name
 
         def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name=nil
           @product = product
           @operation = operation
           @collection = collection
           @sql_statement = nil
+          @nosql_statement = nil
           @host = host
-          @port_path_or_id = port_path_or_id
-          @database_name = database_name
+          @port_path_or_id = port_path_or_id ? port_path_or_id.to_s : nil
+          @database_name = database_name ? database_name.to_s : nil
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
                 Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
         end
@@ -34,11 +36,17 @@ module NewRelic
           @sql_statement = Database::Statement.new sql, config, explainer, binds, name, host, port_path_or_id, database_name
         end
 
+        def notice_nosql_statement nosql_statement
+          return unless record_sql?
+          @nosql_statement = nosql_statement
+        end
+
         private
 
         def segment_complete
           add_segment_parameters
           notice_sql_statement if sql_statement
+          notice_statement if nosql_statement
         end
 
         def add_segment_parameters
@@ -65,6 +73,12 @@ module NewRelic
         def notice_sql_statement
           NewRelic::Agent.instance.transaction_sampler.notice_sql_statement(sql_statement, duration)
           NewRelic::Agent.instance.sql_sampler.notice_sql_statement(sql_statement.dup, name, duration)
+          nil
+        end
+
+        def notice_statement
+          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(nosql_statement, duration)
+          nil
         end
 
         def record_sql?
