@@ -39,8 +39,10 @@ module NewRelic
         private
 
         def start_segment event
+          host = host_from_address event.address
+          path_port_or_id = port_path_or_id_from_address event.address
           NewRelic::Agent::Transaction.start_datastore_segment(
-            MONGODB, event.command_name, collection(event)
+            MONGODB, event.command_name, collection(event), host, path_port_or_id
           )
         end
 
@@ -67,6 +69,28 @@ module NewRelic
             event.database_name,
             event.command
           )
+        end
+
+        def host_from_address(address)
+          if unix_domain_socket? address.host
+            Hostname.get
+          else
+            Hostname.get_external address.host
+          end
+        end
+
+        def port_path_or_id_from_address(address)
+          if unix_domain_socket? address.host
+            address.host
+          else
+            address.port
+          end
+        end
+
+        SLASH = "/".freeze
+
+        def unix_domain_socket?(host)
+          host.start_with? SLASH
         end
 
         def notice_nosql_statement(state, event, metric, duration)

@@ -15,6 +15,8 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
       @started_event.stubs(:command_name).returns('find')
       @started_event.stubs(:database_name).returns('mongodb-test')
       @started_event.stubs(:command).returns({ 'find' => 'users', 'filter' => { 'name' => 'test' }})
+      address = stub('address', :host => "127.0.0.1", :port => 27017)
+      @started_event.stubs(:address).returns(address)
 
       @succeeded_event = mock('succeeded event')
       @succeeded_event.stubs(:operation_id).returns(1)
@@ -22,6 +24,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
       @subscriber = NewRelic::Agent::Instrumentation::MongodbCommandSubscriber.new
 
+      NewRelic::Agent::Hostname.stubs(:get).returns("nerd-server")
       @stats_engine = NewRelic::Agent.instance.stats_engine
       @stats_engine.clear_stats
     end
@@ -63,6 +66,32 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
     def test_should_not_raise_due_to_an_exception_during_instrumentation_callback
       @subscriber.stubs(:metrics).raises(StandardError)
       simulate_query
+    end
+
+    def test_records_instance_metrics_for_tcp_connection
+      simulate_query
+      assert_metrics_recorded('Datastore/instance/MongoDB/nerd-server/27017')
+    end
+
+    def test_records_instance_metrics_for_unix_domain_socket
+      address = stub('address', :host => "/tmp/mongodb-27017.sock", :port => nil)
+      @started_event.stubs(:address).returns(address)
+      simulate_query
+      assert_metrics_recorded('Datastore/instance/MongoDB/nerd-server//tmp/mongodb-27017.sock')
+    end
+
+    def test_records_tt_segment_parameters_for_datastore_instance
+      in_transaction do
+        simulate_query
+      end
+
+      tt = last_transaction_trace
+
+      node = find_node_with_name_matching tt, /^Datastore\//
+
+      assert_equal(NewRelic::Agent::Hostname.get, node[:host])
+      assert_equal('27017', node[:port_path_or_id])
+      #assert_equal('0', node[:database_name])
     end
 
     def simulate_query
