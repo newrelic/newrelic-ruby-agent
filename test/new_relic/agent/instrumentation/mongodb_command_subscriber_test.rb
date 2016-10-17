@@ -91,7 +91,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
       assert_equal(NewRelic::Agent::Hostname.get, node[:host])
       assert_equal('27017', node[:port_path_or_id])
-      #assert_equal('0', node[:database_name])
+      assert_equal('mongodb-test', node[:database_name])
     end
 
     def simulate_query
