@@ -48,10 +48,6 @@ module NewRelic
           event.command[COLLECTION] || event.command[:collection] || event.command.values.first
         end
 
-        def metrics(event)
-          NewRelic::Agent::Datastores::MetricHelper.metrics_for(MONGODB, event.command_name, collection(event))
-        end
-
         def log_notification_error(event_type, error)
           NewRelic::Agent.logger.error("Error during MongoDB #{event_type} event:")
           NewRelic::Agent.logger.log_exception(:error, error)
