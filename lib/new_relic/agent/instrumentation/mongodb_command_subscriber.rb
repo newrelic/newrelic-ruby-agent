@@ -14,7 +14,6 @@ module NewRelic
           begin
             return unless NewRelic::Agent.tl_is_execution_traced?
             segments[event.operation_id] = start_segment event
-            operations[event.operation_id] = event
           rescue Exception => e
             log_notification_error('started', e)
           end
@@ -24,9 +23,7 @@ module NewRelic
           begin
             state = NewRelic::Agent::TransactionState.tl_get
             return unless state.is_execution_traced?
-            started_event = operations.delete(event.operation_id)
             segment = segments.delete(event.operation_id)
-            notice_nosql_statement(state, started_event, segment.name, event.duration)
             segment.finish
           rescue Exception => e
             log_notification_error('completed', e)
@@ -41,9 +38,11 @@ module NewRelic
         def start_segment event
           host = host_from_address event.address
           port_path_or_id = port_path_or_id_from_address event.address
-          NewRelic::Agent::Transaction.start_datastore_segment(
+          segment = NewRelic::Agent::Transaction.start_datastore_segment(
             MONGODB, event.command_name, collection(event), host, port_path_or_id, event.database_name
           )
+          segment.notice_nosql_statement(generate_statement(event))
+          segment
         end
 
         def collection(event)
@@ -53,10 +52,6 @@ module NewRelic
         def log_notification_error(event_type, error)
           NewRelic::Agent.logger.error("Error during MongoDB #{event_type} event:")
           NewRelic::Agent.logger.log_exception(:error, error)
-        end
-
-        def operations
-          @operations ||= {}
         end
 
         def segments
@@ -91,12 +86,6 @@ module NewRelic
 
         def unix_domain_socket?(host)
           host.start_with? SLASH
-        end
-
-        def notice_nosql_statement(state, event, metric, duration)
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(
-              generate_statement(event), duration
-            )
         end
       end
     end
