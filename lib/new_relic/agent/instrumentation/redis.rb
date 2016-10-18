@@ -14,6 +14,10 @@ module NewRelic
         def host_for(client)
           client.path ? NewRelic::Agent::Hostname.get : NewRelic::Agent::Hostname.get_external(client.host)
         end
+
+        def port_path_or_id_for(client)
+          client.path || client.port
+        end
       end
     end
   end
@@ -47,7 +51,7 @@ DependencyDetection.defer do
         statement = ::NewRelic::Agent::Datastores::Redis.format_command(args[0])
 
         hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
-        port_path_or_id = path || port
+        port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
           operation, nil, hostname, port_path_or_id, db)
@@ -67,7 +71,7 @@ DependencyDetection.defer do
         statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline.commands)
 
         hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
-        port_path_or_id = path || port
+        port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
           operation, nil, hostname, port_path_or_id, db)
@@ -83,7 +87,7 @@ DependencyDetection.defer do
 
       def connect(*args, &block)
         hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
-        port_path_or_id = path || port
+        port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
           NewRelic::Agent::Datastores::Redis::CONNECT, nil, hostname, port_path_or_id, db)
