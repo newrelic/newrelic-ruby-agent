@@ -66,12 +66,17 @@ module NewRelic
           )
         end
 
+        UNKNOWN = "unknown".freeze
+
         def host_from_address(address)
           if unix_domain_socket? address.host
             Hostname.get
           else
             Hostname.get_external address.host
           end
+        rescue => e
+          NewRelic::Agent.logger.debug "Failed to retrieve Mongo host: #{e}"
+          UNKNOWN
         end
 
         def port_path_or_id_from_address(address)
@@ -80,6 +85,9 @@ module NewRelic
           else
             address.port
           end
+        rescue => e
+          NewRelic::Agent.logger.debug "Failed to retrieve Mongo port_path_or_id: #{e}"
+          UNKNOWN
         end
 
         SLASH = "/".freeze

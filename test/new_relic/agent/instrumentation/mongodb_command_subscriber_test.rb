@@ -80,6 +80,12 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
       assert_metrics_recorded('Datastore/instance/MongoDB/nerd-server//tmp/mongodb-27017.sock')
     end
 
+    def test_records_unknown_unknown_metric_when_error_gathering_instance_data
+      @started_event.stubs(:address).returns(nil)
+      simulate_query
+      assert_metrics_recorded('Datastore/instance/MongoDB/unknown/unknown')
+    end
+
     def test_records_tt_segment_parameters_for_datastore_instance
       in_transaction do
         simulate_query
@@ -93,6 +99,8 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
       assert_equal('27017', node[:port_path_or_id])
       assert_equal('mongodb-test', node[:database_name])
     end
+
+
 
     def simulate_query
       @subscriber.started(@started_event)
