@@ -11,12 +11,20 @@ module NewRelic
       module Redis
         extend self
 
+        UNKNOWN = "unknown".freeze
+
         def host_for(client)
           client.path ? NewRelic::Agent::Hostname.get : NewRelic::Agent::Hostname.get_external(client.host)
+        rescue => e
+          NewRelic::Agent.logger.debug "Failed to retrieve Redis host: #{e}"
+          UNKNOWN
         end
 
         def port_path_or_id_for(client)
           client.path || client.port
+        rescue => e
+          NewRelic::Agent.logger.debug "Failed to retrieve Redis port_path_or_id: #{e}"
+          UNKNOWN
         end
       end
     end
