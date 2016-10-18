@@ -92,6 +92,17 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     refute node.params.key?(:database_name)
   end
 
+  def test_records_unknown_unknown_when_error_gathering_instance_data
+    NewRelic::Agent::Hostname.stubs(:get).raises StandardError.new
+    NewRelic::Agent::Instrumentation::ActiveRecordHelper::InstanceIdentification.stubs(:mysql_default_case?).raises StandardError.new
+    config = {:adapter => 'mysql', :host => "127.0.0.1"}
+    @subscriber.stubs(:active_record_config).returns(config)
+
+    simulate_query
+
+    assert_metrics_recorded("Datastore/instance/MySQL/unknown/unknown")
+  end
+
   def test_records_nothing_if_tracing_disabled
     freeze_time
 
