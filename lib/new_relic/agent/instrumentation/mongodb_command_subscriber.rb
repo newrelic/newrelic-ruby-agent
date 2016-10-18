@@ -40,9 +40,9 @@ module NewRelic
 
         def start_segment event
           host = host_from_address event.address
-          path_port_or_id = port_path_or_id_from_address event.address
+          port_path_or_id = port_path_or_id_from_address event.address
           NewRelic::Agent::Transaction.start_datastore_segment(
-            MONGODB, event.command_name, collection(event), host, path_port_or_id, event.database_name
+            MONGODB, event.command_name, collection(event), host, port_path_or_id, event.database_name
           )
         end
 
