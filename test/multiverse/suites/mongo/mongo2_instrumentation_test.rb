@@ -225,6 +225,21 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             assert_equal expected, actual
           end
 
+          def test_trace_nodes_have_instance_attributes
+            @collection.insert_one :name => "test", :active => true
+            NewRelic::Agent.drop_buffered_data
+            in_transaction "webby" do
+              @collection.find(:active => true).to_a
+            end
+
+            trace = last_transaction_trace
+            node = find_node_with_name_matching trace, /^Datastore\//
+
+            assert_equal NewRelic::Agent::Hostname.get, node[:host]
+            assert_equal '27017', node[:port_path_or_id]
+            assert_equal @database_name, node[:database_name]
+          end
+
           def test_drop_collection
             @collection.drop
 
