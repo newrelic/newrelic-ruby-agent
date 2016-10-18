@@ -84,21 +84,13 @@ module NewRelic
           [product, operation, collection]
         end
 
-        def self.metrics_for(product, operation, collection = nil, generic_product = nil)
+        def self.metrics_for(product, operation, collection = nil, generic_product = nil, host=nil, port_path_or_id=nil)
           product, operation, collection = product_operation_collection_for(product, operation, collection, generic_product)
-          suffix = all_suffix
 
           # Order of these metrics matters--the first metric in the list will
           # be treated as the scoped metric in a bunch of different cases.
-          metrics = [
-            operation_metric_for(product, operation),
-            product_suffixed_rollup(product, suffix),
-            product_rollup(product),
-            suffixed_rollup(suffix),
-            ROLLUP_METRIC
-          ]
-
-          metrics.unshift statement_metric_for(product, collection, operation) if collection
+          metrics = unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
+          metrics.unshift scoped_metric_for(product, operation, collection)
 
           metrics
         end
