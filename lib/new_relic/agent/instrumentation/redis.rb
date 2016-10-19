@@ -5,6 +5,32 @@
 require 'new_relic/agent/datastores'
 require 'new_relic/agent/datastores/redis'
 
+module NewRelic
+  module Agent
+    module Instrumentation
+      module Redis
+        extend self
+
+        UNKNOWN = "unknown".freeze
+
+        def host_for(client)
+          client.path ? NewRelic::Agent::Hostname.get : NewRelic::Agent::Hostname.get_external(client.host)
+        rescue => e
+          NewRelic::Agent.logger.debug "Failed to retrieve Redis host: #{e}"
+          UNKNOWN
+        end
+
+        def port_path_or_id_for(client)
+          client.path || client.port
+        rescue => e
+          NewRelic::Agent.logger.debug "Failed to retrieve Redis port_path_or_id: #{e}"
+          UNKNOWN
+        end
+      end
+    end
+  end
+end
+
 DependencyDetection.defer do
   # Why not :redis? newrelic-redis used that name, so avoid conflicting
   named :redis_instrumentation
@@ -31,10 +57,12 @@ DependencyDetection.defer do
       def call(*args, &block)
         operation = args[0][0]
         statement = ::NewRelic::Agent::Datastores::Redis.format_command(args[0])
-        attributes = datastore_instance_attributes
+
+        hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
+        port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-          operation, nil, attributes[:hostname], attributes[:port_path_or_id], attributes[:database_name])
+          operation, nil, hostname, port_path_or_id, db)
         begin
           segment.notice_nosql_statement(statement) if statement
           call_without_new_relic(*args, &block)
@@ -49,10 +77,12 @@ DependencyDetection.defer do
         pipeline = args[0]
         operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? NewRelic::Agent::Datastores::Redis::MULTI_OPERATION : NewRelic::Agent::Datastores::Redis::PIPELINE_OPERATION
         statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline.commands)
-        attributes = datastore_instance_attributes
+
+        hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
+        port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-          operation, nil, attributes[:hostname], attributes[:port_path_or_id], attributes[:database_name])
+          operation, nil, hostname, port_path_or_id, db)
         begin
           segment.notice_nosql_statement(statement)
           call_pipeline_without_new_relic(*args, &block)
@@ -64,34 +94,17 @@ DependencyDetection.defer do
       alias_method :connect_without_new_relic, :connect
 
       def connect(*args, &block)
-        attributes = datastore_instance_attributes
+        hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
+        port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
         segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-          NewRelic::Agent::Datastores::Redis::CONNECT, nil, attributes[:hostname], attributes[:port_path_or_id], attributes[:database_name])
+          NewRelic::Agent::Datastores::Redis::CONNECT, nil, hostname, port_path_or_id, db)
 
         begin
           connect_without_new_relic(*args, &block)
         ensure
           segment.finish
         end
-      end
-
-      private
-
-      def datastore_instance_attributes
-        attributes = {}
-        if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
-          attributes[:hostname] = determine_hostname_attribute
-          attributes[:port_path_or_id] = path || port
-        end
-        if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
-          attributes[:database_name] = db
-        end
-        attributes
-      end
-
-      def determine_hostname_attribute
-        path ? NewRelic::Agent::Hostname.get : NewRelic::Agent::Hostname.get_external(host)
       end
     end
   end

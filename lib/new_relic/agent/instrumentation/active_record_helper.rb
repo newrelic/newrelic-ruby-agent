@@ -240,6 +240,10 @@ module NewRelic
             else
               configured_value
             end
+
+          rescue => e
+            NewRelic::Agent.logger.debug "Failed to retrieve ActiveRecord host: #{e}"
+            UNKNOWN
           end
 
           def port_path_or_id(config)
@@ -257,6 +261,10 @@ module NewRelic
             else
               UNKNOWN
             end
+
+          rescue => e
+            NewRelic::Agent.logger.debug "Failed to retrieve ActiveRecord port_path_or_id: #{e}"
+            UNKNOWN
           end
 
           SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze unless defined?(SUPPORTED_ADAPTERS)

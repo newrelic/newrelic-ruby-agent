@@ -276,6 +276,15 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_equal('/tmp/redis.sock', node[:port_path_or_id])
   end
 
+  def test_records_unknown_unknown_metric_when_error_gathering_instance_data
+    redis = Redis.new
+    redis.client.stubs(:path).raises StandardError.new
+
+    redis.get("foo")
+
+    assert_metrics_recorded('Datastore/instance/Redis/unknown/unknown')
+  end
+
   def test_instrumentation_returns_expected_values
     assert_equal 0, @redis.del('foo')
 
