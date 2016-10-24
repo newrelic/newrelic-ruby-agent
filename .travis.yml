@@ -5,7 +5,7 @@ services:
 
 language: ruby
 
-sudo: required
+sudo: false
 
 script: ./test/script/ci.sh
 
@@ -43,18 +43,7 @@ notifications:
   on_failure: always
 
 rvm:
-  # Run slowest builds first to try and optimize overall cycle time.
-  - jruby-1.7.23
-  - jruby-9.1.2.0
   - 2.3.1
-  - 2.2.5
-  - 2.1.10
-  - 2.0.0-p648
-  - 1.9.3
-  - 1.9.2
-  - ree
-  - 1.8.7
-  - rbx-2.5.8
 
 env:
   global:
@@ -68,143 +57,7 @@ env:
     - TESTOPTS="-v"
     - VERBOSE = 1
   matrix:
-    - TYPE=UNIT ENVIRONMENT=rails21
-    - TYPE=UNIT ENVIRONMENT=rails22
-    - TYPE=UNIT ENVIRONMENT=rails23
-    - TYPE=UNIT ENVIRONMENT=rails30
-    - TYPE=UNIT ENVIRONMENT=rails31
-    - TYPE=UNIT ENVIRONMENT=rails32
-    - TYPE=UNIT ENVIRONMENT=rails40
-    - TYPE=UNIT ENVIRONMENT=rails41
-    - TYPE=UNIT ENVIRONMENT=rails42
-    - TYPE=UNIT ENVIRONMENT=rails50
-    - TYPE=UNIT ENVIRONMENT=norails
-    - TYPE=FUNCTIONAL GROUP=agent
-    - TYPE=FUNCTIONAL GROUP=api
     - TYPE=FUNCTIONAL GROUP=background
-    - TYPE=FUNCTIONAL GROUP=database
-    - TYPE=FUNCTIONAL GROUP=httpclients
-    - TYPE=FUNCTIONAL GROUP=rails
-    - TYPE=FUNCTIONAL GROUP=serialization
-    - TYPE=FUNCTIONAL GROUP=sinatra
-    - TYPE=FUNCTIONAL GROUP=rest
-    - TYPE=NULLVERSE
 
 matrix:
-  allow_failures:
-    - rvm: rbx-2.5.8
   fast_finish: true
-  exclude:
-    - rvm: rbx-2.5.8 # Currently hangs
-      env: TYPE=FUNCTIONAL GROUP=agent
-
-    # Unsupported Rails/Ruby combinations
-    # 2.3
-    - rvm: 2.3.1
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.3.1
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.3.1
-      env: TYPE=UNIT ENVIRONMENT=rails23
-
-    # 2.2
-    - rvm: 2.2.5
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.2.5
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.2.5
-      env: TYPE=UNIT ENVIRONMENT=rails23
-
-    # 2.1
-    - rvm: 2.1.10
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.1.10
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.1.10
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.1.10
-      env: TYPE=UNIT ENVIRONMENT=rails50
-
-    # 2.0
-    - rvm: 2.0.0-p648
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.0.0-p648
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.0.0-p648
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.0.0-p648
-      env: TYPE=UNIT ENVIRONMENT=rails50
-
-    # 1.9.3
-    - rvm: 1.9.3
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 1.9.3
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 1.9.3
-      env: TYPE=UNIT ENVIRONMENT=rails50
-
-    # 1.9.2
-    - rvm: 1.9.2
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 1.9.2
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 1.9.2
-      env: TYPE=UNIT ENVIRONMENT=rails50
-
-    # REE
-    - rvm: ree
-      env: TYPE=UNIT ENVIRONMENT=rails40
-    - rvm: ree
-      env: TYPE=UNIT ENVIRONMENT=rails41
-    - rvm: ree
-      env: TYPE=UNIT ENVIRONMENT=rails42
-    - rvm: ree
-      env: TYPE=UNIT ENVIRONMENT=rails50
-
-    # 1.8.7
-    - rvm: 1.8.7
-      env: TYPE=UNIT ENVIRONMENT=rails40
-    - rvm: 1.8.7
-      env: TYPE=UNIT ENVIRONMENT=rails41
-    - rvm: 1.8.7
-      env: TYPE=UNIT ENVIRONMENT=rails42
-    - rvm: 1.8.7
-      env: TYPE=UNIT ENVIRONMENT=rails50
-
-    # jruby 1.7
-    - rvm: jruby-1.7.23
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: jruby-1.7.23
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: jruby-1.7.23
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: jruby-1.7.23
-      env: TYPE=UNIT ENVIRONMENT=rails50
-
-    # jruby 9.0
-    - rvm: jruby-9.1.2.0
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: jruby-9.1.2.0
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: jruby-9.1.2.0
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: jruby-9.1.2.0
-      env: TYPE=UNIT ENVIRONMENT=rails30
-    - rvm: jruby-9.1.2.0
-      env: TYPE=UNIT ENVIRONMENT=rails31
-    - rvm: jruby-9.1.2.0
-      env: TYPE=UNIT ENVIRONMENT=rails32
-
-    # rbx
-    - rvm: rbx-2.5.8
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: rbx-2.5.8
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: rbx-2.5.8
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: rbx-2.5.8
-      env: TYPE=UNIT ENVIRONMENT=rails30
-    - rvm: rbx-2.5.8
-      env: TYPE=UNIT ENVIRONMENT=rails31
-    - rvm: rbx-2.5.8
-      env: TYPE=UNIT ENVIRONMENT=rails32
