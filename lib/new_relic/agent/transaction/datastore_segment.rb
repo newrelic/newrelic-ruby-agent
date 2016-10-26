@@ -22,8 +22,7 @@ module NewRelic
           @host = host
           @port_path_or_id = port_path_or_id ? port_path_or_id.to_s : nil
           @database_name = database_name ? database_name.to_s : nil
-          super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
-                Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
+          super Datastores::MetricHelper.scoped_metric_for(product, operation, collection)
         end
 
         def notice_sql sql
@@ -42,6 +41,11 @@ module NewRelic
         end
 
         private
+
+        def record_metrics
+          @unscoped_metrics = Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
+          super
+        end
 
         def segment_complete
           add_segment_parameters
