@@ -10,6 +10,7 @@
 #     https://github.com/mperham/dalli (Gem: dalli)
 
 require 'new_relic/agent/datastores/metric_helper'
+require 'new_relic/agent/instrumentation/memcache/dalli'
 
 module NewRelic
   module Agent
@@ -94,48 +95,5 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation for memcached gem'
     ::NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Memcached)
-  end
-end
-
-DependencyDetection.defer do
-  named :dalli
-
-  depends_on do
-    NewRelic::Agent::Instrumentation::Memcache.enabled?
-  end
-
-  depends_on do
-    defined?(::Dalli::Client)
-  end
-
-  executes do
-    ::NewRelic::Agent.logger.info 'Installing Memcache instrumentation for dalli gem'
-    ::NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client)
-  end
-end
-
-DependencyDetection.defer do
-  named :dalli_cas_client
-
-  depends_on do
-    NewRelic::Agent::Instrumentation::Memcache.enabled?
-  end
-
-  depends_on do
-    # These CAS client methods are only optionally defined if users require
-    # dalli/cas/client. Use a separate dependency block so it can potentially
-    # re-evaluate after they've done that require.
-    defined?(::Dalli::Client) &&
-      ::NewRelic::Agent::Instrumentation::Memcache.supported_methods_for(::Dalli::Client,
-                                                                         CAS_CLIENT_METHODS).any?
-  end
-
-  CAS_CLIENT_METHODS = [:get_cas, :get_multi_cas, :set_cas, :replace_cas,
-                        :delete_cas]
-
-  executes do
-    ::NewRelic::Agent.logger.info 'Installing Dalli CAS Client Memcache instrumentation'
-    ::NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client,
-                                                                    CAS_CLIENT_METHODS)
   end
 end
