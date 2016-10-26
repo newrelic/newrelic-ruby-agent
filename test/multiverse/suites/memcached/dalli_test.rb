@@ -8,6 +8,18 @@ if defined?(Dalli)
   class DalliTest < Minitest::Test
     include MemcacheTestCases
 
+    def instance_metric
+      "Datastore/instance/Memcached/#{NewRelic::Agent::Hostname.get}/11211"
+    end
+
+    def expected_web_metrics(command)
+      super.unshift instance_metric
+    end
+
+    def expected_bg_metrics(command)
+      super.unshift instance_metric
+    end
+
     def setup
       @cache = Dalli::Client.new("127.0.0.1:11211", :socket_timeout => 2.0)
     end

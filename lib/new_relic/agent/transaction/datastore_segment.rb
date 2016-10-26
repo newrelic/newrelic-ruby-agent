@@ -10,8 +10,8 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host,
-                    :port_path_or_id, :database_name
+        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement
+        attr_accessor :host, :port_path_or_id, :database_name
 
         def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name=nil
           @product = product
