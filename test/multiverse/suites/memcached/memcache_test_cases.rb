@@ -299,4 +299,17 @@ module MemcacheTestCases
     assert_memcache_metrics_recorded expected_metrics
     assert_equal 3, @cache.get(key)
   end
+
+  def test_get_in_web_with_capture_memcache_keys
+    with_config(:capture_memcache_keys => true) do
+      key = set_key_for_testcase
+      in_web_transaction("Controller/#{self.class}/action") do
+        @cache.get(key)
+      end
+      trace = last_transaction_trace
+      segment = find_node_with_name trace, 'Datastore/operation/Memcached/get'
+      assert_equal "get \"#{key}\"", segment[:statement]
+    end
+  end
+
 end

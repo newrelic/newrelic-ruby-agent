@@ -14,6 +14,20 @@ if defined?(Dalli)
       @cache = Dalli::Client.new("127.0.0.1:11211", :socket_timeout => 2.0)
     end
 
+    if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?
+      def test_get_multi_in_web_with_capture_memcache_keys
+        with_config(:capture_memcache_keys => true) do
+          key = set_key_for_testcase
+          in_web_transaction("Controller/#{self.class}/action") do
+            @cache.get_multi(key)
+          end
+          trace = last_transaction_trace
+          segment = find_node_with_name trace, 'Datastore/operation/Memcached/get_multi_request'
+          assert_equal "get_multi_request [\"#{key}\"]", segment[:statement]
+        end
+      end
+    end
+
     def instance_metric
       "Datastore/instance/Memcached/#{NewRelic::Agent::Hostname.get}/11211"
     end

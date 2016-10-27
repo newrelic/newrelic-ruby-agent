@@ -46,8 +46,7 @@ module NewRelic
                   send method_name_without, *args, &block
                 ensure
                   if NewRelic::Agent.config[:capture_memcache_keys]
-                    NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect,
-                                                                              (Time.now - segment.start_time).to_f) rescue nil
+                    segment.notice_nosql_statement "#{method_name} #{args.first.inspect}"
                   end
                   segment.finish
                 end

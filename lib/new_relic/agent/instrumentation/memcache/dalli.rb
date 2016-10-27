@@ -65,8 +65,7 @@ module NewRelic
                   send_multiget_without_newrelic_trace(keys)
                 ensure
                   if ::NewRelic::Agent.config[:capture_memcache_keys]
-                    ::NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect,
-                                                                                (Time.now - segment.start_time).to_f) rescue nil
+                    segment.notice_nosql_statement "#{SEND_MULTIGET_METRIC_NAME} #{keys.inspect}"
                   end
                   segment.finish
                 end
