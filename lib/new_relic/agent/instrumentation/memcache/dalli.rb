@@ -59,8 +59,9 @@ module NewRelic
               alias_method :send_multiget_without_newrelic_trace, :send_multiget
 
               def send_multiget(keys)
-                external_host = ::NewRelic::Agent::Hostname.get_external(hostname)
-                segment = ::NewRelic::Agent::Transaction.start_datastore_segment(MEMCACHED, SEND_MULTIGET_METRIC_NAME, nil, external_host, port)
+                segment = ::NewRelic::Agent::Transaction.start_datastore_segment(MEMCACHED, SEND_MULTIGET_METRIC_NAME)
+                ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, self)
+
                 begin
                   send_multiget_without_newrelic_trace(keys)
                 ensure
