@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Datastore instance reporting for Redis, MongoDB, and memcached
+
+  The agent now collects datastore instance information for Redis, MongoDB,
+  and memcached. This information is displayed in transaction traces and slow
+  query traces. For memcached only, multi requests will expand to individual
+  server nodes, and the operation and key(s) will show in the trace details
+  "Database query" section.
+
   * Rescue errors from attempts to fetch slow query explain plans
 
   For slow queries through ActiveRecord 4+, the agent will attempt to fetch
