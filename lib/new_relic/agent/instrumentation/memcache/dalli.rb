@@ -14,7 +14,8 @@ module NewRelic
           MEMCACHED = "Memcached".freeze
           METHODS = [:get, :set, :add, :incr, :decr, :delete, :replace, :append, :prepend, :cas]
           SEND_MULTIGET_METRIC_NAME = "get_multi_request".freeze
-          DATASTORE_INSTANCES_SUPPORTED_VERSION = '2.6.4'
+          DATASTORE_INSTANCES_SUPPORTED_VERSION = '2.6.4'.freeze
+          SLASH = '/'.freeze
 
           def supports_datastore_instances?
             ::Dalli::VERSION >= DATASTORE_INSTANCES_SUPPORTED_VERSION
@@ -42,8 +43,7 @@ module NewRelic
                   if txn = ::NewRelic::Agent::Transaction.tl_current
                     segment = txn.current_segment
                     if ::NewRelic::Agent::Transaction::DatastoreSegment === segment
-                      segment.host = ::NewRelic::Agent::Hostname.get_external server.hostname
-                      segment.port_path_or_id = server.port
+                      ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
                     end
                   end
                 rescue => e
@@ -91,6 +91,16 @@ module NewRelic
 
               __send__ visibility, method_name
               __send__ visibility, method_name_without
+            end
+          end
+
+          def assign_instance_to segment, server
+            if server.hostname.start_with? SLASH
+              segment.host = ::NewRelic::Agent::Hostname.get
+              segment.port_path_or_id = server.hostname
+            else
+              segment.host = ::NewRelic::Agent::Hostname.get_external server.hostname
+              segment.port_path_or_id = server.port
             end
           end
 
