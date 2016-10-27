@@ -10,8 +10,8 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement
-        attr_accessor :host, :port_path_or_id, :database_name
+        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :port_path_or_id
+        attr_accessor :host, :database_name
 
         def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name=nil
           @product = product
@@ -20,9 +20,13 @@ module NewRelic
           @sql_statement = nil
           @nosql_statement = nil
           @host = host
-          @port_path_or_id = port_path_or_id ? port_path_or_id.to_s : nil
+          self.port_path_or_id = port_path_or_id
           @database_name = database_name ? database_name.to_s : nil
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection)
+        end
+
+        def port_path_or_id= ppi
+          @port_path_or_id = ppi ? ppi.to_s : nil
         end
 
         def notice_sql sql

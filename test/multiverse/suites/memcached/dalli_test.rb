@@ -8,35 +8,10 @@ if defined?(Dalli)
   class DalliTest < Minitest::Test
     include MemcacheTestCases
 
+    MULTI_OPERATIONS = [:get_multi, :get_multi_cas]
+
     def setup
       @cache = Dalli::Client.new("127.0.0.1:11211", :socket_timeout => 2.0)
-    end
-
-    if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?
-
-      def test_get_multi_in_web
-        key = set_key_for_testcase
-
-        expected_metrics = expected_web_metrics(:get_multi_request)
-
-        in_web_transaction("Controller/#{self.class}/action") do
-          @cache.get_multi(key)
-        end
-
-        assert_memcache_metrics_recorded expected_metrics
-      end
-
-      def test_get_multi_in_background
-        key = set_key_for_testcase
-
-        expected_metrics = expected_bg_metrics(:get_multi_request)
-
-        in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
-          @cache.get_multi(key)
-        end
-
-        assert_memcache_metrics_recorded expected_metrics
-      end
     end
 
     def instance_metric
@@ -44,21 +19,27 @@ if defined?(Dalli)
     end
 
     def expected_web_metrics(command)
-      metrics = super
       if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?
+        datastore_command = MULTI_OPERATIONS.include?(command) ? :get_multi_request : command
+        metrics = super(datastore_command)
         metrics.unshift instance_metric
-        metrics.unshift 'Ruby/Memcached/get_multi' if command == :get_multi_request
+        metrics.unshift "Ruby/Memcached/Dalli/#{command}" if command != datastore_command
+        metrics
+      else
+        super
       end
-      metrics
     end
 
     def expected_bg_metrics(command)
-      metrics = super
       if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?
+        datastore_command = MULTI_OPERATIONS.include?(command) ? :get_multi_request : command
+        metrics = super(datastore_command)
         metrics.unshift instance_metric
-        metrics.unshift 'Ruby/Memcached/get_multi' if command == :get_multi_request
+        metrics.unshift "Ruby/Memcached/Dalli/#{command}" if command != datastore_command
+        metrics
+      else
+        super
       end
-      metrics
     end
   end
 
@@ -85,20 +66,19 @@ if defined?(Dalli)
         assert_equal value, @cache.get(@cas_key)
       end
 
-      # TODO: resurrect in next commit
-      # def test_get_multi_cas
-      #   expected_metrics = expected_web_metrics(:get_multi_cas)
+      def test_get_multi_cas
+        expected_metrics = expected_web_metrics(:get_multi_cas)
 
-      #   value = nil
-      #   in_web_transaction("Controller/#{self.class}/action") do
-      #     # returns { "cas_key" => [value, cas] }
-      #     value, _ = @cache.get_multi_cas(@cas_key)
-      #   end
+        value = nil
+        in_web_transaction("Controller/#{self.class}/action") do
+          # returns { "cas_key" => [value, cas] }
+          value, _ = @cache.get_multi_cas(@cas_key)
+        end
 
-      #   assert_memcache_metrics_recorded expected_metrics
-      #   assert_equal 1, value.values.length
-      #   assert_equal value.values.first.first, @cache.get(@cas_key)
-      # end
+        assert_memcache_metrics_recorded expected_metrics
+        assert_equal 1, value.values.length
+        assert_equal value.values.first.first, @cache.get(@cas_key)
+      end
 
       def test_set_cas
         expected_metrics = expected_web_metrics(:set_cas)

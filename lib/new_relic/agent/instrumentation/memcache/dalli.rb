@@ -82,7 +82,7 @@ module NewRelic
               alias_method method_name_without, method_name
 
               define_method method_name do |*args, &block|
-                segment = NewRelic::Agent::Transaction.start_segment "Ruby/Memcached/#{method_name}"
+                segment = NewRelic::Agent::Transaction.start_segment "Ruby/Memcached/Dalli/#{method_name}"
                 begin
                   __send__ method_name_without, *args, &block
                 ensure
@@ -134,11 +134,11 @@ DependencyDetection.defer do
                                                                          CAS_CLIENT_METHODS).any?
   end
 
-  CAS_CLIENT_METHODS = [:get_cas, :get_multi_cas, :set_cas, :replace_cas, :delete_cas]
+  CAS_CLIENT_METHODS = [:get_cas, :set_cas, :replace_cas, :delete_cas]
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing Dalli CAS Client Memcache instrumentation'
-    ::NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client,
-                                                                    CAS_CLIENT_METHODS)
+    ::NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client, CAS_CLIENT_METHODS)
+    ::NewRelic::Agent::Instrumentation::Memcache::Dalli.instrument_multi_method(:get_multi_cas)
   end
 end
