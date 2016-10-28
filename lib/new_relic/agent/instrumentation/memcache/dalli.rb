@@ -14,6 +14,7 @@ module NewRelic
           SEND_MULTIGET_METRIC_NAME = "get_multi_request".freeze
           DATASTORE_INSTANCES_SUPPORTED_VERSION = '2.6.4'.freeze
           SLASH = '/'.freeze
+          UNKNOWN = 'unknown'.freeze
 
           def supports_datastore_instances?
             ::Dalli::VERSION >= DATASTORE_INSTANCES_SUPPORTED_VERSION
@@ -101,6 +102,10 @@ module NewRelic
               segment.host = ::NewRelic::Agent::Hostname.get_external server.hostname
               segment.port_path_or_id = server.port
             end
+          rescue => e
+            ::NewRelic::Agent.logger.debug "failed to retrieve memcached instance info: #{e.message}"
+            segment.host = UNKNOWN
+            segment.port_path_or_id = UNKNOWN
           end
 
         end

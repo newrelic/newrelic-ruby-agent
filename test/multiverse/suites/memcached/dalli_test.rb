@@ -48,6 +48,13 @@ if defined?(Dalli)
         segment.expects(:port_path_or_id=).with('/tmp/jonanfs.sock')
         server = ::Dalli::Server.new '/tmp/jonanfs.sock'
         ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
+
+        NewRelic::Agent::Hostname.stubs(:get).raises("oops")
+        segment = mock('datastore_segment')
+        segment.expects(:host=).with('unknown')
+        segment.expects(:port_path_or_id=).with('unknown')
+        server = ::Dalli::Server.new '/tmp/jonanfs.sock'
+        ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
       end
 
     end
