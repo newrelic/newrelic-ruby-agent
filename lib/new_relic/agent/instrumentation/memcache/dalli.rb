@@ -12,12 +12,12 @@ module NewRelic
           MEMCACHED = "Memcached".freeze
           METHODS = [:get, :set, :add, :incr, :decr, :delete, :replace, :append, :prepend, :cas]
           SEND_MULTIGET_METRIC_NAME = "get_multi_request".freeze
-          DATASTORE_INSTANCES_SUPPORTED_VERSION = '2.6.4'.freeze
+          DATASTORE_INSTANCES_SUPPORTED_VERSION = ::NewRelic::VersionNumber.new '2.6.4'
           SLASH = '/'.freeze
           UNKNOWN = 'unknown'.freeze
 
           def supports_datastore_instances?
-            ::Dalli::VERSION >= DATASTORE_INSTANCES_SUPPORTED_VERSION
+            DATASTORE_INSTANCES_SUPPORTED_VERSION <= ::Dalli::VERSION
           end
 
           def instrument_methods
