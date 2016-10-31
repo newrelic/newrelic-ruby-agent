@@ -46,7 +46,7 @@ module NewRelic
                     end
                   end
                 rescue => e
-                  ::NewRelic::Agent.logger.warn "unable to set instance info on datastore segment: #{e.message}"
+                  ::NewRelic::Agent.logger.warn "Unable to set instance info on datastore segment: #{e.message}"
                 end
                 server
               end
@@ -103,7 +103,7 @@ module NewRelic
               segment.port_path_or_id = server.port
             end
           rescue => e
-            ::NewRelic::Agent.logger.debug "failed to retrieve memcached instance info: #{e.message}"
+            ::NewRelic::Agent.logger.debug "Failed to retrieve memcached instance info: #{e.message}"
             segment.host = UNKNOWN
             segment.port_path_or_id = UNKNOWN
           end
