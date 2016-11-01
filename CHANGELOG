@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.17.1 ##
+
   * Datastore instance reporting for Redis, MongoDB, and memcached
 
   The agent now collects datastore instance information for Redis, MongoDB,
