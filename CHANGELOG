@@ -6,7 +6,11 @@
   and memcached. This information is displayed in transaction traces and slow
   query traces. For memcached only, multi requests will expand to individual
   server nodes, and the operation and key(s) will show in the trace details
-  "Database query" section.
+  "Database query" section. Metrics for `get_multi` nodes will change slightly.
+  Parent nodes for a `get_multi` will be recorded as generic segments. Their
+  children will be recorded as datastore segments under the name
+  `get_multi_request` and represent a batch request to a single Memcached
+  instance.
 
   * Rescue errors from attempts to fetch slow query explain plans
 
