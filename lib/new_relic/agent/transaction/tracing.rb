@@ -47,6 +47,10 @@ module NewRelic
         def segment_complete segment
           state.traced_method_stack.pop_frame(state, segment, segment.name, segment.end_time, segment.record_metrics?)
         end
+
+        def current_segment
+          state.traced_method_stack.last
+        end
       end
     end
   end

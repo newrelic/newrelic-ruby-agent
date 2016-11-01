@@ -12,11 +12,26 @@ if defined?(Memcached)
       @cache = Memcached.new('localhost', :support_cas => true)
     end
 
+    def additional_web_metrics_for command
+      [
+        "Datastore/operation/Memcached/#{command}",
+        ["Datastore/operation/Memcached/#{command}", "Controller/#{self.class}/action"]
+      ]
+    end
+
+    def additional_bg_metrics_for command
+      [
+        "Datastore/operation/Memcached/#{command}",
+        ["Datastore/operation/Memcached/#{command}", "OtherTransaction/Background/#{self.class}/bg_task"]
+      ]
+    end
+
     def test_get_in_web
       if Memcached::VERSION >= '1.8.0'
         key = set_key_for_testcase
 
         expected_metrics = expected_web_metrics(:single_get)
+        expected_metrics += additional_web_metrics_for(:get)
 
         in_web_transaction("Controller/#{self.class}/action") do
           @cache.get(key)
@@ -33,6 +48,7 @@ if defined?(Memcached)
       key = set_key_for_testcase
 
       expected_metrics = expected_web_metrics(:multi_get)
+      expected_metrics += additional_web_metrics_for(:get)
 
       in_web_transaction("Controller/#{self.class}/action") do
         @cache.get([key])
@@ -72,6 +88,7 @@ if defined?(Memcached)
 
       if Memcached::VERSION >= '1.8.0'
         expected_metrics = (expected_web_metrics(:single_get) + expected_web_metrics(:single_cas)).uniq
+        expected_metrics += additional_web_metrics_for(:cas)
       else
         expected_metrics = expected_web_metrics(:cas)
       end
@@ -89,6 +106,7 @@ if defined?(Memcached)
         key = set_key_for_testcase
 
         expected_metrics = expected_bg_metrics(:single_get)
+        expected_metrics += additional_bg_metrics_for(:get)
 
         in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
           @cache.get(key)
@@ -106,6 +124,7 @@ if defined?(Memcached)
       key = set_key_for_testcase
 
       expected_metrics = expected_bg_metrics(:multi_get)
+      expected_metrics += additional_bg_metrics_for(:get)
 
       in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
         @cache.get([key])
@@ -144,6 +163,7 @@ if defined?(Memcached)
       key = set_key_for_testcase(1)
       if Memcached::VERSION >= '1.8.0'
         expected_metrics = (expected_bg_metrics(:single_get) + expected_bg_metrics(:single_cas)).uniq
+        expected_metrics += additional_bg_metrics_for(:cas)
       else
         expected_metrics = expected_bg_metrics(:cas)
       end

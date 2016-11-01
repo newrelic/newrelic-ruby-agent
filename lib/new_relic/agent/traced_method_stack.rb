@@ -100,6 +100,10 @@ module NewRelic
       def empty?
         @stack.empty?
       end
+
+      def last
+        @stack.last
+      end
     end
   end
 end

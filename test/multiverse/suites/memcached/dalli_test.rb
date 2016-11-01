@@ -8,8 +8,90 @@ if defined?(Dalli)
   class DalliTest < Minitest::Test
     include MemcacheTestCases
 
+    MULTI_OPERATIONS = [:get_multi, :get_multi_cas]
+
     def setup
       @cache = Dalli::Client.new("127.0.0.1:11211", :socket_timeout => 2.0)
+    end
+
+    if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?
+
+      def test_get_multi_in_web_with_capture_memcache_keys
+        with_config(:capture_memcache_keys => true) do
+          key = set_key_for_testcase
+          in_web_transaction("Controller/#{self.class}/action") do
+            @cache.get_multi(key)
+          end
+          trace = last_transaction_trace
+          segment = find_node_with_name trace, 'Datastore/operation/Memcached/get_multi_request'
+          assert_equal "get_multi_request [\"#{key}\"]", segment[:statement]
+        end
+      end
+
+      def test_assign_instance_to_with_ip_and_port
+        NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
+        segment = mock('datastore_segment')
+        segment.expects(:host=).with('jonan.pizza_cube')
+        segment.expects(:port_path_or_id=).with(11211)
+        server = ::Dalli::Server.new '127.0.0.1:11211'
+        ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
+      end
+
+      def test_assign_instance_to_with_name_and_port
+        NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
+        segment = mock('datastore_segment')
+        segment.expects(:host=).with('jonan.gummy_planet')
+        segment.expects(:port_path_or_id=).with(11211)
+        server = ::Dalli::Server.new 'jonan.gummy_planet:11211'
+        ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
+      end
+
+      def test_assign_instance_to_with_unix_domain_socket
+        NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
+        segment = mock('datastore_segment')
+        segment.expects(:host=).with('jonan.pizza_cube')
+        segment.expects(:port_path_or_id=).with('/tmp/jonanfs.sock')
+        server = ::Dalli::Server.new '/tmp/jonanfs.sock'
+        ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
+      end
+
+      def test_assign_instance_to_when_exception_raised
+        NewRelic::Agent::Hostname.stubs(:get).raises("oops")
+        segment = mock('datastore_segment')
+        segment.expects(:host=).with('unknown')
+        segment.expects(:port_path_or_id=).with('unknown')
+        server = ::Dalli::Server.new '/tmp/jonanfs.sock'
+        ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
+      end
+
+    end
+
+    def instance_metric
+      "Datastore/instance/Memcached/#{NewRelic::Agent::Hostname.get}/11211"
+    end
+
+    def expected_web_metrics(command)
+      if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?
+        datastore_command = MULTI_OPERATIONS.include?(command) ? :get_multi_request : command
+        metrics = super(datastore_command)
+        metrics.unshift instance_metric
+        metrics.unshift "Ruby/Memcached/Dalli/#{command}" if command != datastore_command
+        metrics
+      else
+        super
+      end
+    end
+
+    def expected_bg_metrics(command)
+      if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?
+        datastore_command = MULTI_OPERATIONS.include?(command) ? :get_multi_request : command
+        metrics = super(datastore_command)
+        metrics.unshift instance_metric
+        metrics.unshift "Ruby/Memcached/Dalli/#{command}" if command != datastore_command
+        metrics
+      else
+        super
+      end
     end
   end
 
@@ -49,7 +131,6 @@ if defined?(Dalli)
         assert_equal 1, value.values.length
         assert_equal value.values.first.first, @cache.get(@cas_key)
       end
-
 
       def test_set_cas
         expected_metrics = expected_web_metrics(:set_cas)
