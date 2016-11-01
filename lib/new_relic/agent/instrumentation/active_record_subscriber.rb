@@ -50,6 +50,8 @@ module NewRelic
                                          "Explain #{statement.name}",
                                          statement.binds)
           end
+        rescue => e
+          NewRelic::Agent.logger.debug "Couldn't fetch the explain plan for #{statement} due to #{e}"
         end
 
         def active_record_config(payload)
@@ -91,13 +93,9 @@ module NewRelic
             database = nil
 
             if ActiveRecordHelper::InstanceIdentification.supported_adapter?(@config)
-              if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
-                host = ActiveRecordHelper::InstanceIdentification.host(@config)
-                port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(@config)
-              end
-              if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
-                database = @config && @config[:database]
-              end
+              host = ActiveRecordHelper::InstanceIdentification.host(@config)
+              port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(@config)
+              database = @config && @config[:database]
             end
 
             segment = NewRelic::Agent::Transaction::DatastoreSegment.new product, operation, collection, host, port_path_or_id, database

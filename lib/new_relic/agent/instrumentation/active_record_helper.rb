@@ -207,16 +207,6 @@ module NewRelic
         module InstanceIdentification
           extend self
 
-          LOCALHOST = %w[
-            localhost
-            0.0.0.0
-            127.0.0.1
-            0:0:0:0:0:0:0:1
-            0:0:0:0:0:0:0:0
-            ::1
-            ::
-          ].freeze unless defined?(LOCALHOST)
-
           PRODUCT_SYMBOLS = {
             "mysql"      => :mysql,
             "mysql2"     => :mysql,
@@ -241,7 +231,7 @@ module NewRelic
             configured_value  = config[:host]
             adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if configured_value.nil? ||
-              LOCALHOST.include?(configured_value) ||
+              Hostname.local?(configured_value) ||
               postgres_unix_domain_socket_case?(configured_value, adapter)
 
               Hostname.get
@@ -250,6 +240,10 @@ module NewRelic
             else
               configured_value
             end
+
+          rescue => e
+            NewRelic::Agent.logger.debug "Failed to retrieve ActiveRecord host: #{e}"
+            UNKNOWN
           end
 
           def port_path_or_id(config)
@@ -267,6 +261,10 @@ module NewRelic
             else
               UNKNOWN
             end
+
+          rescue => e
+            NewRelic::Agent.logger.debug "Failed to retrieve ActiveRecord port_path_or_id: #{e}"
+            UNKNOWN
           end
 
           SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze unless defined?(SUPPORTED_ADAPTERS)
@@ -283,7 +281,7 @@ module NewRelic
 
           def mysql_default_case?(config, adapter)
             (adapter == :mysql2 || adapter == :mysql) &&
-              LOCALHOST.include?(config[:host]) &&
+              Hostname.local?(config[:host]) &&
               !config[:port]
           end
         end

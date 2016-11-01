@@ -34,7 +34,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allOther" => { :call_count => 2 },
       "Datastore/Redis/all" => { :call_count => 2 },
       "Datastore/allOther" => { :call_count => 2 },
-      "Datastore/all" => { :call_count => 2 }
+      "Datastore/all" => { :call_count => 2 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 2 }
     }
 
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
@@ -63,7 +64,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all"=> { :call_count => 1 },
       "Datastore/allOther"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 }
+      "Datastore/all"=> { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded(expected)
   end
@@ -78,7 +80,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allWeb" => { :call_count => 1 },
       "Datastore/Redis/all"=> { :call_count => 1 },
       "Datastore/allWeb"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 }
+      "Datastore/all"=> { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded(expected)
   end
@@ -91,7 +94,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all"=> { :call_count => 1 },
       "Datastore/allOther"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 }
+      "Datastore/all"=> { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded(expected)
   end
@@ -128,7 +132,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allWeb" => { :call_count => 1 },
       "Datastore/Redis/all"=> { :call_count => 1 },
       "Datastore/allWeb"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 }
+      "Datastore/all"=> { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded(expected)
   end
@@ -144,7 +149,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all" => { :call_count => 1 },
       "Datastore/allOther" => { :call_count => 1 },
-      "Datastore/all" => { :call_count => 1 }
+      "Datastore/all" => { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
   end
@@ -174,7 +180,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all" => { :call_count => 1 },
       "Datastore/allOther" => { :call_count => 1 },
-      "Datastore/all" => { :call_count => 1 }
+      "Datastore/all" => { :call_count => 1 },
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
     }
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
   end
@@ -207,6 +214,91 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
 
     assert_equal("multi\nset \"darkpact\" \"sorcery\"\nget \"chaos orb\"\nexec", pipeline_node[:statement])
+  end
+
+  def test_records_instance_parameters_on_tt_node_for_get
+    in_transaction do
+      @redis.get("foo")
+    end
+
+    tt = last_transaction_trace
+
+    get_node = tt.root_node.called_nodes[0].called_nodes[0]
+    assert_equal(NewRelic::Agent::Hostname.get, get_node[:host])
+    assert_equal('6379', get_node[:port_path_or_id])
+    assert_equal('0', get_node[:database_name])
+  end
+
+  def test_records_hostname_on_tt_node_for_get_with_unix_domain_socket
+    redis = Redis.new
+    redis.client.stubs(:path).returns('/tmp/redis.sock')
+
+    in_transaction do
+      redis.get("foo")
+    end
+
+    tt = last_transaction_trace
+
+    node = tt.root_node.called_nodes[0].called_nodes[0]
+    assert_equal(NewRelic::Agent::Hostname.get, node[:host])
+    assert_equal('/tmp/redis.sock', node[:port_path_or_id])
+  end
+
+  def test_records_instance_parameters_on_tt_node_for_multi
+    in_transaction do
+      @redis.multi do
+        @redis.get("foo")
+      end
+    end
+
+    tt = last_transaction_trace
+
+    node = tt.root_node.called_nodes[0].called_nodes[0]
+    assert_equal(NewRelic::Agent::Hostname.get, node[:host])
+    assert_equal('6379', node[:port_path_or_id])
+    assert_equal('0', node[:database_name])
+  end
+
+  def test_records_hostname_on_tt_node_for_multi_with_unix_domain_socket
+    redis = Redis.new
+    redis.client.stubs(:path).returns('/tmp/redis.sock')
+
+    in_transaction do
+      redis.multi do
+        redis.get("foo")
+      end
+    end
+
+    tt = last_transaction_trace
+
+    node = tt.root_node.called_nodes[0].called_nodes[0]
+    assert_equal(NewRelic::Agent::Hostname.get, node[:host])
+    assert_equal('/tmp/redis.sock', node[:port_path_or_id])
+  end
+
+  def test_records_unknown_unknown_metric_when_error_gathering_instance_data
+    redis = Redis.new
+    redis.client.stubs(:path).raises StandardError.new
+
+    redis.get("foo")
+
+    assert_metrics_recorded('Datastore/instance/Redis/unknown/unknown')
+  end
+
+  def test_instrumentation_returns_expected_values
+    assert_equal 0, @redis.del('foo')
+
+    assert_equal 'OK', @redis.set('foo', 'bar')
+    assert_equal 'bar', @redis.get('foo')
+    assert_equal 1, @redis.del('foo')
+
+    assert_equal ['OK','OK'], @redis.multi { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
+    assert_equal ['bar', 'bat'], @redis.multi { @redis.get('foo'); @redis.get('baz') }
+    assert_equal 2, @redis.del('foo', 'baz')
+
+    assert_equal ['OK','OK'], @redis.pipelined { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
+    assert_equal ['bar', 'bat'], @redis.pipelined { @redis.get('foo'); @redis.get('baz') }
+    assert_equal 2, @redis.del('foo', 'baz')
   end
 end
 end

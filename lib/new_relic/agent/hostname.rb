@@ -25,6 +25,24 @@ module NewRelic
       def self.get_dyno_prefixes
         ::NewRelic::Agent.config[:'heroku.dyno_name_prefixes_to_shorten']
       end
+
+      LOCALHOST = %w[
+        localhost
+        0.0.0.0
+        127.0.0.1
+        0:0:0:0:0:0:0:1
+        0:0:0:0:0:0:0:0
+        ::1
+        ::
+      ].freeze
+
+      def self.local? host_or_ip
+        LOCALHOST.include?(host_or_ip)
+      end
+
+      def self.get_external host_or_ip
+        local?(host_or_ip) ? get : host_or_ip
+      end
     end
   end
 end

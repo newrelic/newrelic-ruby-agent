@@ -7,10 +7,17 @@ require 'new_relic/agent/datastores/mongo/metric_translator'
 module NewRelic
   module TestHelpers
     module MongoMetricBuilder
-      def build_test_metrics(name)
-        NewRelic::Agent::Datastores::MetricHelper.metrics_for("MongoDB",
-                                                              name,
-                                                              @collection_name)
+      def build_test_metrics(name, instance_metrics=false)
+        host = nil
+        port = nil
+
+        if instance_metrics
+          host = NewRelic::Agent::Hostname.get
+          port = 27017
+        end
+
+        NewRelic::Agent::Datastores::MetricHelper.metrics_for(
+          "MongoDB", name, @collection_name, host, port)
       end
 
       def metrics_with_attributes(metrics, attributes = { :call_count => 1 })

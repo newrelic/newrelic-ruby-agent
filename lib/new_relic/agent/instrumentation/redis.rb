@@ -5,6 +5,32 @@
 require 'new_relic/agent/datastores'
 require 'new_relic/agent/datastores/redis'
 
+module NewRelic
+  module Agent
+    module Instrumentation
+      module Redis
+        extend self
+
+        UNKNOWN = "unknown".freeze
+
+        def host_for(client)
+          client.path ? NewRelic::Agent::Hostname.get : NewRelic::Agent::Hostname.get_external(client.host)
+        rescue => e
+          NewRelic::Agent.logger.debug "Failed to retrieve Redis host: #{e}"
+          UNKNOWN
+        end
+
+        def port_path_or_id_for(client)
+          client.path || client.port
+        rescue => e
+          NewRelic::Agent.logger.debug "Failed to retrieve Redis port_path_or_id: #{e}"
+          UNKNOWN
+        end
+      end
+    end
+  end
+end
+
 DependencyDetection.defer do
   # Why not :redis? newrelic-redis used that name, so avoid conflicting
   named :redis_instrumentation
@@ -32,14 +58,16 @@ DependencyDetection.defer do
         operation = args[0][0]
         statement = ::NewRelic::Agent::Datastores::Redis.format_command(args[0])
 
-        if statement
-          callback = Proc.new do |result, _, elapsed|
-            NewRelic::Agent::Datastores.notice_statement(statement, elapsed)
-          end
-        end
+        hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
+        port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
-        NewRelic::Agent::Datastores.wrap(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME, operation, nil, callback) do
+        segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
+          operation, nil, hostname, port_path_or_id, db)
+        begin
+          segment.notice_nosql_statement(statement) if statement
           call_without_new_relic(*args, &block)
+        ensure
+          segment.finish
         end
       end
 
@@ -50,20 +78,32 @@ DependencyDetection.defer do
         operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? NewRelic::Agent::Datastores::Redis::MULTI_OPERATION : NewRelic::Agent::Datastores::Redis::PIPELINE_OPERATION
         statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline.commands)
 
-        callback = Proc.new do |result, _, elapsed|
-          NewRelic::Agent::Datastores.notice_statement(statement, elapsed)
-        end
+        hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
+        port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
-        NewRelic::Agent::Datastores.wrap(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME, operation, nil, callback) do
+        segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
+          operation, nil, hostname, port_path_or_id, db)
+        begin
+          segment.notice_nosql_statement(statement)
           call_pipeline_without_new_relic(*args, &block)
+        ensure
+          segment.finish
         end
       end
 
       alias_method :connect_without_new_relic, :connect
 
       def connect(*args, &block)
-        NewRelic::Agent::Datastores.wrap(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME, NewRelic::Agent::Datastores::Redis::CONNECT) do
+        hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
+        port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
+
+        segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
+          NewRelic::Agent::Datastores::Redis::CONNECT, nil, hostname, port_path_or_id, db)
+
+        begin
           connect_without_new_relic(*args, &block)
+        ensure
+          segment.finish
         end
       end
     end
