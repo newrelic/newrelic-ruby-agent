@@ -81,6 +81,53 @@ module NewRelic
           ]
         end
 
+        def test_segment_records_expected_metrics_with_instance_identifier_host_only
+          Transaction.stubs(:recording_web_transaction?).returns(true)
+
+          segment = DatastoreSegment.new "SQLite", "select", nil, "localhost"
+          segment.start
+          advance_time 1
+          segment.finish
+
+          assert_metrics_recorded [
+            "Datastore/instance/SQLite/localhost/unknown",
+            "Datastore/operation/SQLite/select",
+            "Datastore/SQLite/allWeb",
+            "Datastore/SQLite/all",
+            "Datastore/allWeb",
+            "Datastore/all"
+          ]
+        end
+
+        def test_segment_records_expected_metrics_with_instance_identifier_port_only
+          Transaction.stubs(:recording_web_transaction?).returns(true)
+
+          segment = DatastoreSegment.new "SQLite", "select", nil, nil, 1337807
+          segment.start
+          advance_time 1
+          segment.finish
+
+          assert_metrics_recorded [
+            "Datastore/instance/SQLite/unknown/1337807",
+            "Datastore/operation/SQLite/select",
+            "Datastore/SQLite/allWeb",
+            "Datastore/SQLite/all",
+            "Datastore/allWeb",
+            "Datastore/all"
+          ]
+        end
+
+        def test_segment_does_not_record_expected_metrics_with_empty_data
+          Transaction.stubs(:recording_web_transaction?).returns(true)
+
+          segment = DatastoreSegment.new "SQLite", "select", nil
+          segment.start
+          advance_time 1
+          segment.finish
+
+          assert_metrics_not_recorded "Datastore/instance/SQLite/unknown/unknown"
+        end
+
         def test_segment_does_not_record_instance_id_metrics_when_disabled
           with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
             Transaction.stubs(:recording_web_transaction?).returns(true)
@@ -223,6 +270,39 @@ module NewRelic
             segment.finish
           end
         end
+
+        def test_set_instance_info_with_valid_data
+          segment = DatastoreSegment.new "SQLite", "select", nil
+          segment.set_instance_info 'jonan.gummy_planet', 1337807
+          assert_equal 'jonan.gummy_planet', segment.host
+          assert_equal '1337807', segment.port_path_or_id
+        end
+
+        def test_set_instance_info_with_empty_host
+          segment = DatastoreSegment.new "SQLite", "select", nil
+          segment.set_instance_info nil, 1337807
+          assert_equal 'unknown', segment.host
+          assert_equal '1337807', segment.port_path_or_id
+        end
+
+        def test_set_instance_info_with_empty_port_path_or_id
+          segment = DatastoreSegment.new "SQLite", "select", nil
+          segment.set_instance_info 'jonan.gummy_planet', nil
+          assert_equal 'jonan.gummy_planet', segment.host
+          assert_equal 'unknown', segment.port_path_or_id
+        end
+
+        def test_set_instance_info_with_empty_data
+          segment = DatastoreSegment.new "SQLite", "select", nil
+          segment.set_instance_info nil, nil
+          assert_nil segment.host
+          assert_nil segment.port_path_or_id
+
+          segment.set_instance_info '', ''
+          assert_nil segment.host
+          assert_nil segment.port_path_or_id
+        end
+
       end
     end
   end

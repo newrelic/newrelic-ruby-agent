@@ -100,6 +100,13 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
       assert_equal('mongodb-test', node[:database_name])
     end
 
+    def test_does_not_record_unknown_unknown_metric_when_data_empty
+      address = stub('address', :host => "", :port => "")
+      @started_event.stubs(:address).returns(address)
+      simulate_query
+      assert_metrics_not_recorded('Datastore/instance/MongoDB/unknown/unknown')
+    end
+
 
 
     def simulate_query
