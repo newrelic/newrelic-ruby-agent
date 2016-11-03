@@ -118,8 +118,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_records_unknown_unknown_when_error_gathering_instance_data
-    NewRelic::Agent::Hostname.stubs(:get).raises StandardError.new
+    NewRelic::Agent::Instrumentation::ActiveRecordHelper::InstanceIdentification.stubs(:postgres_unix_domain_socket_case?).raises StandardError.new
     NewRelic::Agent::Instrumentation::ActiveRecordHelper::InstanceIdentification.stubs(:mysql_default_case?).raises StandardError.new
+
     config = {:adapter => 'mysql', :host => "127.0.0.1"}
     @subscriber.stubs(:active_record_config).returns(config)
 
