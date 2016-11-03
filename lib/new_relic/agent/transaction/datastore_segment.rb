@@ -10,23 +10,45 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :port_path_or_id
-        attr_accessor :host, :database_name
 
-        def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name=nil
+        UNKNOWN = 'unknown'.freeze
+
+        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id
+        attr_accessor :database_name
+
+        def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil
           @product = product
           @operation = operation
           @collection = collection
           @sql_statement = nil
           @nosql_statement = nil
-          @host = host
-          self.port_path_or_id = port_path_or_id
+          set_instance_info host, port_path_or_id
           @database_name = database_name ? database_name.to_s : nil
           super Datastores::MetricHelper.scoped_metric_for(product, operation, collection)
         end
 
-        def port_path_or_id= ppi
-          @port_path_or_id = ppi ? ppi.to_s : nil
+        def set_instance_info host = nil, port_path_or_id = nil
+          port_path_or_id = port_path_or_id.to_s if port_path_or_id
+          host_present = host && !host.empty?
+          ppi_present = port_path_or_id && !port_path_or_id.empty?
+
+          case
+          when host_present && ppi_present
+            @host = host
+            @port_path_or_id = port_path_or_id
+
+          when host_present && !ppi_present
+            @host = host
+            @port_path_or_id = UNKNOWN
+
+          when !host_present && ppi_present
+            @host = UNKNOWN
+            @port_path_or_id = port_path_or_id
+
+          else
+            @host = @port_path_or_id = nil
+
+          end
         end
 
         def notice_sql sql
