@@ -9,17 +9,16 @@ module NewRelic
     class DatastoreApiTest < Minitest::Test
       def setup
         freeze_time
+        NewRelic::Agent.drop_buffered_data
       end
 
       load_cross_agent_test('datastores/datastore_api').each do |test|
         define_method :"test_#{test['test_name'].tr(' ', '_')}" do
-
-          NewRelic::Agent.drop_buffered_data
           NewRelic::Agent::Hostname.stubs(:get).returns(test['input']['system_hostname'])
 
           params = test['input']['parameters']
           txn_helper_method = test['input']['is_web'] ? :in_web_transaction : :in_background_transaction
-          config = test['input']['configuration']
+          config = test['input']['configuration'].merge(:disable_harvest_thread => true)
 
           with_config config do
             send(txn_helper_method) do
