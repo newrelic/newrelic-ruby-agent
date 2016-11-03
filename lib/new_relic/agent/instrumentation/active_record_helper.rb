@@ -224,7 +224,7 @@ module NewRelic
           DEFAULT = "default".freeze unless defined?(DEFAULT)
           UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
           SLASH = "/".freeze unless defined?(SLASH)
-          LOCALHOST = "localhost".freeze
+          LOCALHOST = "localhost".freeze unless defined?(LOCALHOST)
 
           def host(config)
             return UNKNOWN unless config
