@@ -37,9 +37,9 @@ module NewRelic
 
             segment_name = test['expectation']['metrics_scoped'][0]
 
-            #assert_metrics_recorded test['expectation']['metrics_unscoped']
-            #assert_expected_tt_segment_params segment_name, host, port_path_or_id, database_name
-            #assert_expected_slow_sql_params host, port_path_or_id, database_name
+            assert_metrics_recorded test['expectation']['metrics_unscoped']
+            assert_expected_tt_segment_params segment_name, host, port_path_or_id, database_name
+            assert_expected_slow_sql_params host, port_path_or_id, database_name
           end
         end
       end
