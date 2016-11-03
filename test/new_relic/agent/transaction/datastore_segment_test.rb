@@ -160,10 +160,12 @@ module NewRelic
         def test_localhost_replaced_by_system_hostname
           NewRelic::Agent::Hostname.stubs(:get).returns("jonan.gummy_planet")
 
-          segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", "blogs", "localhost", "1337"
-          segment.finish
+          %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:0 ::1 ::].each do |host|
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", "blogs", host, "1337"
+            segment.finish
 
-          assert_equal "jonan.gummy_planet", segment.host
+            assert_equal "jonan.gummy_planet", segment.host
+          end
         end
 
         def test_does_not_add_instance_identifier_segment_parameter_when_disabled

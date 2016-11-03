@@ -24,12 +24,11 @@ module NewRelic
           end
 
           def test_for_constructs_id_with_unspecified_configuration
-            NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
             config = {}
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
 
-            assert_equal "jonan.pizza_cube", host
+            assert_equal "localhost", host
             assert_equal "default", ppid
           end
 
@@ -57,28 +56,13 @@ module NewRelic
           end
 
           def test_for_constructs_id_with_port_without_host
-            NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
             config = { :port => 1337 }
 
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
 
-            assert_equal "jonan.pizza_cube", host
+            assert_equal "localhost", host
             assert_equal "1337", ppid
-          end
-
-          def test_for_constructs_id_with_detected_localhost
-            NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
-
-            %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:0 ::1 ::].each do |host|
-              config = { :host => host }
-
-              host = InstanceIdentification.host(config)
-              ppid = InstanceIdentification.port_path_or_id(config)
-
-              assert_equal "jonan.pizza_cube", host
-              assert_equal "default", ppid
-            end
           end
 
           def test_for_constructs_id_with_default_port
@@ -95,7 +79,6 @@ module NewRelic
           end
 
           def test_for_constructs_id_with_postgres_directory
-            NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
             config = {
               :adapter => "postgresql",
               :host => "/tmp"
@@ -104,12 +87,11 @@ module NewRelic
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
 
-            assert_equal "jonan.pizza_cube", host
+            assert_equal "localhost", host
             assert_equal "default", ppid
           end
 
           def test_for_constructs_id_with_mysql_socket
-            NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
             %w[ mysql mysql2 jdbcmysql ].each do |adapter|
               config = {
                 :adapter => adapter,
@@ -119,7 +101,7 @@ module NewRelic
               host = InstanceIdentification.host(config)
               ppid = InstanceIdentification.port_path_or_id(config)
 
-              assert_equal "jonan.pizza_cube", host
+              assert_equal "localhost", host
               assert_equal "/var/run/mysqld.sock", ppid
             end
           end
