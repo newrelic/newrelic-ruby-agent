@@ -137,6 +137,8 @@ module NewRelic
 
             begin
               self.send("#{method_name}_without_newrelic", *args, &blk)
+            rescue ::DataObjects::ConnectionError => e
+              raise
             rescue ::DataObjects::SQLError => e
               e.uri.gsub!(PASSWORD_REGEX, AMPERSAND) if e.uri.include?(PASSWORD_PARAM)
 
