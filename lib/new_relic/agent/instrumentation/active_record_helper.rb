@@ -224,6 +224,7 @@ module NewRelic
           DEFAULT = "default".freeze unless defined?(DEFAULT)
           UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
           SLASH = "/".freeze unless defined?(SLASH)
+          LOCALHOST = "localhost".freeze unless defined?(LOCALHOST)
 
           def host(config)
             return UNKNOWN unless config
@@ -231,10 +232,9 @@ module NewRelic
             configured_value  = config[:host]
             adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if configured_value.nil? ||
-              Hostname.local?(configured_value) ||
               postgres_unix_domain_socket_case?(configured_value, adapter)
 
-              Hostname.get
+              LOCALHOST
             elsif configured_value.empty?
               UNKNOWN
             else

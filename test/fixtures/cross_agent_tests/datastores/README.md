@@ -9,7 +9,7 @@ The datastore instance tests provide attributes similar to what an agent could e
 | product | always | the database product for this configuration
 | port | sometimes | the port reported by the database adapter |
 | unix_socket | sometimes |the path to a unix domain socket reported by a database adapter |
-| db_path | sometimes |the path to a filesystem database |
+| database_path | sometimes |the path to a filesystem database |
 | expected\_instance\_metric | always | the instance metric expected to be generated from the given attributes |
 
 ## Implementing the test cases

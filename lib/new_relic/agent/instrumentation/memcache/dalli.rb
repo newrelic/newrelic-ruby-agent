@@ -15,6 +15,7 @@ module NewRelic
           DATASTORE_INSTANCES_SUPPORTED_VERSION = ::NewRelic::VersionNumber.new '2.6.4'
           SLASH = '/'.freeze
           UNKNOWN = 'unknown'.freeze
+          LOCALHOST = 'localhost'.freeze
 
           def supports_datastore_instances?
             DATASTORE_INSTANCES_SUPPORTED_VERSION <= ::Dalli::VERSION
@@ -97,10 +98,10 @@ module NewRelic
           def assign_instance_to segment, server
             host = port_path_or_id = nil
             if server.hostname.start_with? SLASH
-              host = ::NewRelic::Agent::Hostname.get
+              host = LOCALHOST
               port_path_or_id = server.hostname
             else
-              host = ::NewRelic::Agent::Hostname.get_external server.hostname
+              host = server.hostname
               port_path_or_id = server.port
             end
             segment.set_instance_info host, port_path_or_id

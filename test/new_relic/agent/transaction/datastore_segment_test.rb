@@ -66,13 +66,13 @@ module NewRelic
         def test_segment_records_expected_metrics_with_instance_identifier
           Transaction.stubs(:recording_web_transaction?).returns(true)
 
-          segment = DatastoreSegment.new "SQLite", "select", nil, "localhost", "1337807"
+          segment = DatastoreSegment.new "SQLite", "select", nil, "jonan-01", "1337807"
           segment.start
           advance_time 1
           segment.finish
 
           assert_metrics_recorded [
-            "Datastore/instance/SQLite/localhost/1337807",
+            "Datastore/instance/SQLite/jonan-01/1337807",
             "Datastore/operation/SQLite/select",
             "Datastore/SQLite/allWeb",
             "Datastore/SQLite/all",
@@ -84,13 +84,13 @@ module NewRelic
         def test_segment_records_expected_metrics_with_instance_identifier_host_only
           Transaction.stubs(:recording_web_transaction?).returns(true)
 
-          segment = DatastoreSegment.new "SQLite", "select", nil, "localhost"
+          segment = DatastoreSegment.new "SQLite", "select", nil, "jonan-01"
           segment.start
           advance_time 1
           segment.finish
 
           assert_metrics_recorded [
-            "Datastore/instance/SQLite/localhost/unknown",
+            "Datastore/instance/SQLite/jonan-01/unknown",
             "Datastore/operation/SQLite/select",
             "Datastore/SQLite/allWeb",
             "Datastore/SQLite/all",
@@ -132,12 +132,12 @@ module NewRelic
           with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
             Transaction.stubs(:recording_web_transaction?).returns(true)
 
-            segment = DatastoreSegment.new "SQLite", "select", nil, "localhost/1337807"
+            segment = DatastoreSegment.new "SQLite", "select", nil, "jonan-01", "1337807"
             segment.start
             advance_time 1
             segment.finish
 
-            assert_metrics_not_recorded "Datastore/instance/SQLite/localhost/1337807"
+            assert_metrics_not_recorded "Datastore/instance/SQLite/jonan-01/1337807"
           end
         end
 
@@ -145,7 +145,7 @@ module NewRelic
           segment = nil
 
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "localhost", "1337807"
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "jonan-01", "1337807"
             advance_time 1
             segment.finish
           end
@@ -153,8 +153,19 @@ module NewRelic
           sample = NewRelic::Agent.agent.transaction_sampler.last_sample
           node = find_node_with_name(sample, segment.name)
 
-          assert_equal "localhost", node.params[:host]
+          assert_equal "jonan-01", node.params[:host]
           assert_equal "1337807", node.params[:port_path_or_id]
+        end
+
+        def test_localhost_replaced_by_system_hostname
+          NewRelic::Agent::Hostname.stubs(:get).returns("jonan.gummy_planet")
+
+          %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:0 ::1 ::].each do |host|
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", "blogs", host, "1337"
+            segment.finish
+
+            assert_equal "jonan.gummy_planet", segment.host
+          end
         end
 
         def test_does_not_add_instance_identifier_segment_parameter_when_disabled
@@ -302,7 +313,6 @@ module NewRelic
           assert_nil segment.host
           assert_nil segment.port_path_or_id
         end
-
       end
     end
   end

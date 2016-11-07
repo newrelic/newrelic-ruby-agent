@@ -5,6 +5,7 @@
 require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/datastores/metric_helper'
 require 'new_relic/agent/database'
+require 'new_relic/agent/hostname'
 
 module NewRelic
   module Agent
@@ -32,6 +33,8 @@ module NewRelic
           host_present = host && !host.empty?
           ppi_present = port_path_or_id && !port_path_or_id.empty?
 
+          host = NewRelic::Agent::Hostname.get_external host if host_present
+
           case
           when host_present && ppi_present
             @host = host
@@ -47,7 +50,6 @@ module NewRelic
 
           else
             @host = @port_path_or_id = nil
-
           end
         end
 
