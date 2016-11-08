@@ -197,7 +197,7 @@
   Please note that this release does not include any support for ActionCable,
   the WebSockets framework new to Rails 5.
 
-  * Don't include extension from single format Grape API transaction names
+  * Don't include extension from single format Grape API transaction names
 
   Starting with Grape 0.12.0, an API with a single format no longer declares
   methods with `.:format`, but with an extension such as `.json`. Thanks Daniel
@@ -2145,17 +2145,17 @@
    is only a problem if GC could happen *between* transactions, as in, for
    example, out-of-band GC in Unicorn. fixed.
 
-v3.4.0.1
+## v3.4.0.1
  * Prevent the agent from resolving the collector address when disabled.
  * Fix for error collector configuration that was introduced during beta.
  * Preserve method visibility when methods are traced with #add_method_tracer and #add_transaction_tracer
 
-v3.4.0
+## v3.4.0
  * Major refactor of data transmission mechanism.  This enabled child processes to send data to parent processes, which then send the data to the New Relic service.  This should only affect Resque users, dramatically improving their experience.
  * Moved Resque instrumentation from rpm_contrib to main agent.  Resque users should discontinue use of rpm_contrib or upgrade to 2.1.11.
  * Resolve issue with configuring the Error Collector when using server-side configuration.
 
-v3.3.5
+## v3.3.5
  * [FIX] Allow tracing of methods ending in ! and ?
  * [PERF] Give up after scanning first 50k of the response in RUM
    auto-instrumentation.
@@ -2165,27 +2165,27 @@ v3.3.5
    Workers/DelayedJob.  queue_length is also broken out by queue name or priority
    depending on the version of DelayedJob deployed.
 
-v3.3.4.1
+## v3.3.4.1
  * Bug fix when rendering empty collection in Rails 3.1+
 
-v3.3.4
+## v3.3.4
   * Rails 3 view instrumentation
 
-v3.3.3
+## v3.3.3
   * Improved Sinatra instrumentation
   * Limit the number of nodes collected in long running transactions to prevent leaking memory
 
-v3.3.2.1
+## v3.3.2.1
   * [SECURITY] fix for cookie handling by End User Monitoring instrumentation
 
-v3.3.2
+## v3.3.2
   * deployments recipe change: truncate git SHAs to 7 characters
   * Fixes for obfuscation of PostgreSQL and SQLite queries
   * Fix for lost database connections when using a forking framework
   * Workaround for RedHat kernel bug which prevented blocking reads of /proc fs
   * Do not trap signals when handling exceptions
 
-v3.3.1
+## v3.3.1
   * improved Ruby 1.8.6 support
   * fix for issues with RAILS_ROOT deprecation warnings
   * fixed incorrect 1.9 GC time reporting
@@ -2193,18 +2193,18 @@ v3.3.1
   * fix for RUM instrumentation repoting bad timing info in some cases
   * refactored ActiveRecord instrumentation, no longer requires Rails
 
-v3.3.0
+## v3.3.0
   * fix for GC instrumentation when using Ruby 1.9
   * new feature to correlate browser and server transaction traces
   * new feature to trace slow sql statements
   * fix to help cope with malformed rack responses
   * do not try to instrument versions of ActiveMerchant that are too old
 
-v3.2.0.1
+## v3.2.0.1
   * Updated LICENSE
   * Updated links to support docs
 
-v3.2.0
+## v3.2.0
   * Fix over-detection of mongrel and unicorn and only start the agent when
     actual server is running
   * Improve developer mode backtraces to support ruby 1.9.2, windows
@@ -2214,14 +2214,14 @@ v3.2.0
   * Performance enhancements (thanks to Jeremy Kemper)
   * Fix overly verbose STDOUT message (thanks to Anselm Helbig)
 
-v3.1.2
+## v3.1.2
   * Fixed some thread safety issues
   * Work around for Ruby 1.8.7 Marshal crash bug
   * Numerous community patches (Gabriel Horner, Bradley Harris, Diego Garcia,
     Tommy Sullivan, Greg Hazel, John Thomas Marino, Paul Elliott, Pan Thomakos)
   * Fixed RUM instrumentation bug
 
-v3.1.1
+## v3.1.1
   * Support for Rails 3.1 (thanks to Ben Hoskings via github)
   * Support for Rubinius
   * Fixed issues affecting some Delayed Job users where log files were not appearing
@@ -2231,17 +2231,17 @@ v3.1.1
   * Support for logging to STDOUT
   * Support for Spymemcached client on jruby
 
-v3.1.0
+## v3.1.0
   * Support for aggregating data from short-running
     processes to reduce reporting overhead
   * Numerous bug fixes
   * Increased unit test coverage
 
-v3.0.1
+## v3.0.1
   * Updated Real User Monitoring to reduce javascript size and improve
     compatibility, fix a few known bugs
 
-v3.0.0
+## v3.0.0
   * Support for Real User Monitoring
   * Back end work on internals to improve reliability
   * added a 'log_file_name' and 'log_file_path' configuration variable to allow
@@ -2250,16 +2250,16 @@ v3.0.0
   * Remove some previously deprecated methods
   * Remove Sequel instrumentation pending more work
 
-v2.14.1
+## v2.14.1
   * Avoid overriding methods named 'log' when including the MethodTracer module
   * Ensure that all load paths for 'new_relic/agent' go through 'new_relic/control' first
   * Remove some debugging output from tests
 
-v2.14.0
+## v2.14.0
   * Dependency detection framework to prevent multi-loading or early-loading
     of instrumentation files
 
-v2.13.5
+## v2.13.5
   * Moved the API helper to the github newrelic_api gem.
   * Revamped queue time to include server, queue, and middleware time
   * Increased test coverage and stability
@@ -2273,10 +2273,10 @@ v2.13.5
     are not subclasses of StandardError
   * Fix active record instrumentation load order for Rails 3
 
-v2.13.4
+## v2.13.4
   * Update DNS lookup code to remove hardcoded IP addresses
 
-v2.13.3
+## v2.13.3
   * Dalli instrumentation from Mike Perham (thanks Mike)
   * Datamapper instrumentation from Jordan Ritter (thanks Jordan)
   * Apdex now defaults to 0.5
@@ -2291,13 +2291,13 @@ v2.13.3
   * When using Unicorn, preload_app: true is recommended to get proper
     after_fork behavior.
 
-v2.13.2
+## v2.13.2
   * Remove a puts. Yes, a whole release for a puts.
 
-v2.13.1
+## v2.13.1
   * Add missing require in rails 3 framework control
 
-v2.13.0
+## v2.13.0
   * developer mode is now a rack middleware and can be used on any framework;
     it is no longer supported automatically on versions of Rails prior to 2.3;
     see README for details
@@ -2320,35 +2320,35 @@ v2.13.0
   * fixed a bug related to enabling a gold trial / upgrade not sending
     transaction traces correctly
 
-v2.12.3
+## v2.12.3
   * fix regression in startup sequence
 
-v2.12.2
+## v2.12.2
   * fix for regression in Rails 2.1 inline rendering
   * workaround bug found in some rubies that caused a segv and/or NoMemoryError
     when deflating content for upload
   * avoid creating connection thread in unicorn/passenger spawners
 
-v2.12.1
+## v2.12.1
   * fix bug in profile mode
   * fix race condition in Delayed::Job instrumentation loading
   * fix glassfish detection in latest glassfish gem
 
-v2.12.0
+## v2.12.0
   * support basic instrumentation for ActsAsSolr and Sunspot
 
-v2.11.3
+## v2.11.3
   * fix bug in startup when running JRuby
 
-v2.11.2
+## v2.11.2
   * fix for unicorn not reporting when the proc line had 'master' in it
   * fix regression for passenger 2.0 and earlier
   * fix after_fork in the shim
 
-v2.11.1
+## v2.11.1
   * republished gem without generated rdocs
 
-v2.11.0
+## v2.11.0
   * rails3 instrumentation (no developer mode support yet)
   * removed the ensure_worker_thread started and instead defined an after_fork
     handler that will set up the agent properly in forked processes.
@@ -2364,7 +2364,7 @@ v2.11.0
   * add logger method to public_api
   * support list notation for ignored exceptions in the newrelic.yml
 
-v2.10.8
+## v2.10.8
   * fix bug in delayed_job instrumentation that caused the job queue sampler
     to run in the wrong place
   * change startup sequence and code that restarts the worker loop
@@ -2378,20 +2378,20 @@ v2.10.8
   * simplify WorkerLoop and add better protection for concurrency
   * preliminary support for rails3
 
-v2.10.6
+## v2.10.6
   * fix missing URL and referrer on some traced errors and transactions
   * gather traced errors *after* executing the rescue chain in ActionController
   * always load controller instrumentation
   * pick up token validation from newrelic.yml
 
-v2.10.5
+## v2.10.5
   * fix bug in delayed_job instrumentation occurring when there was no DJ log
 
-v2.10.4
+## v2.10.4
   * fix incompatibility with Capistrano 2.5.16
   * strip down URLs reported in transactions and errors to path only
 
-v2.10.3
+## v2.10.3
   * optimization to reduce overhead: move background samplers into foreground thread
   * change default config file to ignore RoutingErrors
   * moved the background task instrumentation into a separate tab in the RPM UI
@@ -2406,12 +2406,12 @@ v2.10.3
   * fix incompatibility with Hoptoad where Hoptoad was not getting errors handled by New Relic
   * many other optimizations, bug fixes and documentation improvements
 
-v2.10.2.
+## v2.10.2.
   * beta release of 2.10
   * fix bugs with Sinatra app instrumentation
   * minor doc updates
 
-v2.10.1.
+## v2.10.1.
   * alpha release of 2.10
   * rack support, including metal; ignores 404s; requires a module inclusion (see docs)
   * sinatra support, displays actions named by the URI pattern matched
@@ -2447,7 +2447,7 @@ v2.10.1.
   * refactored stats_engine code for readability
   * optimization: reduce wakeup times for harvest thread
 
-v2.10.0.
+## v2.10.0.
   * alpha release of 2.10
   * support unicorn
   * instrumentation of GC for REE and MRE with GC patch
@@ -2466,30 +2466,30 @@ v2.10.0.
   * remove method_tracer shim to avoid timing problems in monitoring daemons
   * for non-rails daemons, look at APP_ROOT and NRCONFIG env vars for custom locations
 
-v2.9.9.
+## v2.9.9.
   * Disable at_exit handler for Unicorn which sometimes caused the
     agent to stop reporting immediately.
 
-v2.9.8.
+## v2.9.8.
   * add instrumentation for Net::HTTP calls, to show up as "External"
   * added support for validating agents in the cloud.
   * recognize Unicorn dispatcher
   * add NewRelic module definitions to ActiveRecord instrumentation
 
-v2.9.5.
+## v2.9.5.
   * Snow Leopard memory fix
 
-v2.9.4.
+## v2.9.4.
   * clamp size of data sent to server
   * reset statistics for passenger when forking to avoid erroneous data
   * fix problem deserializing errors from the server
   * fix incompatibility with postgres introduced in 2.9.
 
-v2.9.3.
+## v2.9.3.
   * fix startup failure in Windows due to memory sampler
   * add JRuby environment information
 
-v2.9.2.
+## v2.9.2.
   * change default apdex_t to 0.5 seconds
   * fix bug in deployments introduced by multi_homed setting
   * support overriding the log in the agent api
@@ -2498,7 +2498,7 @@ v2.9.2.
   * display count of sql statements on the list of transactions in dev mode
   * fixes for merb--thanks to Carl Lerche
 
-v2.9.1.
+## v2.9.1.
   * add newrelic_ignore_apdex method to controller classes to allow
     you to omit some actions from apdex statistics
   * Add hook for Passenger shutdown events to get more timely shutdown
@@ -2510,7 +2510,7 @@ v2.9.1.
   * support multi-homed host with multiple apps running on duplicate
     ports
 
-v2.9.0.
+## v2.9.0.
   Noteworthy Enhancements
   * give visibility to templates and partials in Rails 2.1 and later, in
     dev mode and production
@@ -2568,13 +2568,13 @@ v2.9.0.
   * capture cpu utilization adjusted for processor count
   * transaction sampling
 
-v2.8.10.
+## v2.8.10.
   * fix thin support with rails 2.3.2 when using script/server
   * fix incompatibility with rails 2.3.2 and script/server options
     processing
   * minor tweak to environment gathering for gem mode
 
-v2.8.9.
+## v2.8.9.
   * fix problem finding the newrelic controller in dev mode
   * fix incompatibility with older versions of optparse
   * fix potential jvm problem with jruby
@@ -2582,24 +2582,24 @@ v2.8.9.
   * change error message about window sampler in windows not supported to a
     warning message
 
-v2.8.8.
+## v2.8.8.
   * fix error with jruby on windows
   * fix problem where webrick was being incorrectly detected causing some
     problems with mongrel application assignments--had to disable webrick
     for now
 
-v2.8.7.
+## v2.8.7.
   * fix for ssl connection hanging problems
   * fix problem recognizing mongrel in rails 2.3.2
   * fastcgi support in rails 2.3.2
   * put back webrick support
 
-v2.8.6.
+## v2.8.6.
   * fix for capture_params when using file uploads in controller actions
   * use pure ruby NS lookup for collector host to eliminate possibly
     blocking applications
 
-v2.8.5.
+## v2.8.5.
   * fix reference to CommandError which was breaking some cap scripts
   * fix incompatibility with Rails 2.0 in the server API
   * fix problem with litespeed with Lite accounts
@@ -2608,23 +2608,23 @@ v2.8.5.
     AbstractController to address incompatibility with MailController
   * fix problem in devmode displaying sql with embedded urls
 
-v2.8.4.
+## v2.8.4.
   * fix bug in capistrano recipe causing cap commands to fail with error
     about not finding Version class
 
-v2.8.3.
+## v2.8.3.
   * refactor unit tests so they will run in a generic rails environment
   * require classes in advance to avoid autoloading.  this is to address
     incompatibilities with desert as well as more flexibility in gem
     initialization
   * fixed newrelic_helper.rb 1.9 incompatibility
 
-v2.8.2.
+## v2.8.2.
   * fix Ruby 1.9 syntax compatibility errors
   * update the class loading sanity check, will notify server of errors
   * fix agent output on script and rake task execution
 
-v2.8.1.
+## v2.8.1.
   * Convert the deployment information upload script to an executable and
     put in the bin directory.  When installed as a gem this command is
     symlinked to /usr/bin.  Usage: newrelic_cmd deployments --help
@@ -2632,7 +2632,7 @@ v2.8.1.
   * Fix deployments api so it will work from a gem
   * Fix thin incompatibility in developer mode
 
-v2.8.0.
+## v2.8.0.
   * add beta of api in new_relic_api.rb
   * instrumented dynamic finders in ActiveRecord
   * preliminary support for capturing deployment information via capistrano
@@ -2646,21 +2646,21 @@ v2.8.0.
     transient network problem
   * fix IgnoreSilentlyException message
 
-v2.7.4.
+## v2.7.4.
   * fix error when trying to serialize some kinds of Enumerable objects
   * added extra debug logging
   * added app_name to app mapping
 
-v2.7.3.
+## v2.7.3.
   * fix compatibility issue with 1.8.5 causing error with Dir.glob
 
-v2.7.2.
+## v2.7.2.
   * fix problem with passenger edge not being a detected environment
 
-v2.7.1.
+## v2.7.1.
   * fix problem with skipped dispatcher instrumentation
 
-v2.7.0.
+## v2.7.0.
   * Repackage to support both plugin and Gem installation
   * Support passenger/litespeed/jruby application naming
   * Update method for calculating dispatcher queue time
@@ -2671,62 +2671,62 @@ v2.7.0.
   * Performance tuning
   * bugfixes
 
-v2.5.3.
+## v2.5.3.
   * fix error in transaction tracing causing traces not to show up
 
-v2.5.2.
+## v2.5.2.
   * fixes for postgres explain plan support
 
-v2.5.1.
+## v2.5.1.
   * bugfixes
 
-v2.5.0.
+## v2.5.0.
   * add agent support for rpm 1.1 features
   * Fix regression error with thin support
 
-v2.4.3.
+## v2.4.3.
   * added 'newrelic_ignore' controller class method with :except and :only options for finer grained control
     over the blocking of instrumentation in controllers.
   * bugfixes
 
-v2.4.2.
+## v2.4.2.
   * error reporting in early access
 
-v2.4.1.
+## v2.4.1.
   * bugfix: initializing developer mode
 
-v2.4.0.
+## v2.4.0.
   * Beta support for LiteSpeed and Passenger
 
-v2.3.7.
+## v2.3.7.
   * bugfixes
 
-v2.3.6.
+## v2.3.6.
   * bugfixes
 
-v2.3.5.
+## v2.3.5.
   * bugfixes: pie chart data, rails 1.1 compatibility
 
-v2.3.4.
+## v2.3.4.
   * bugfix
 
-v2.3.3.
+## v2.3.3.
   * bugfix for non-mysql databases
 
-v2.3.2.
+## v2.3.2.
   * bugfixes
   * Add enhancement for Transaction Traces early access feature
 
-v2.3.1.
+## v2.3.1.
   * bugfixes
 
-v2.3.0.
+## v2.3.0.
   + Add support for Transaction Traces early access feature
 
-v2.2.2.
+## v2.2.2.
   * bugfixes
 
-v2.2.1.
+## v2.2.1.
   + Add rails 2.1 support for Developer Mode
   + Changes to memory sampler: Add support for JRuby and fix Solaris support.
   * Stop catching exceptions and start catching StandardError; other exception cleanup
@@ -2734,25 +2734,23 @@ v2.2.1.
   * Improved support for thin domain sockets
   * Support JRuby environments
 
-v2.1.6.
+## v2.1.6.
   * bugfixes
 
-v2.1.5.
+## v2.1.5.
   * bugfixes
 
-v2.1.4.
+## v2.1.4.
   * bugfixes
 
-v2.1.3.
+## v2.1.3.
   * bugfixes
 
-v2.1.2.
+## v2.1.2.
   * bugfixes
 
-v2.1.1.
+## v2.1.1.
   * bugfixes
 
-v2.1.0.
+## v2.1.0.
   * release for private beta
-
-
