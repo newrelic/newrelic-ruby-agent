@@ -8,6 +8,8 @@ require 'sidekiq/cli'
 class SidekiqServer
   include Singleton
 
+  THREAD_JOIN_TIMEOUT = 30
+
   attr_reader :queue_name
 
   def initialize
@@ -26,6 +28,8 @@ class SidekiqServer
   def stop
     puts "Trying to stop Sidekiq gracefully from #{$$}"
     Process.kill("INT", $$)
-    @cli_thread.join
+    if @cli_thread.join(THREAD_JOIN_TIMEOUT).nil?
+      puts "#{$$} Sidekiq::CLI thread timeout on exit (#{THREAD_JOIN_TIMEOUT}s)"
+    end
   end
 end
