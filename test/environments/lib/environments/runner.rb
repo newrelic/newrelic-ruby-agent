@@ -43,7 +43,7 @@ module Environments
 
       puts yellow("Tests to run:\n\t#{tests_to_run.map{|s|s.gsub(env_root + "/", "")}.join("\n\t")}")
       tests_to_run.each do |dir|
-        Bundler.with_original_env do
+        Bundler.with_clean_env do
           dir = File.expand_path(dir)
           puts "", yellow("Running tests for #{dir}")
           status = bundle(dir)
