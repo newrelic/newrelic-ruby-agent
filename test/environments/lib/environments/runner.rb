@@ -6,6 +6,7 @@ require 'bundler'
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'multiverse', 'lib', 'multiverse', 'color'))
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'multiverse', 'lib', 'multiverse', 'shell_utils'))
+require File.expand_path '../../../../multiverse/lib/multiverse/suite', __FILE__
 
 module Environments
   class Runner
@@ -43,8 +44,7 @@ module Environments
 
       puts yellow("Tests to run:\n\t#{tests_to_run.map{|s|s.gsub(env_root + "/", "")}.join("\n\t")}")
       tests_to_run.each do |dir|
-        Bundler.with_original_env do
-          ENV.delete_if {|k, _| k[0, 7] == "BUNDLE_" }
+        Bundler.with_clean_env do
           dir = File.expand_path(dir)
           puts "", yellow("Running tests for #{dir}")
           status = bundle(dir)

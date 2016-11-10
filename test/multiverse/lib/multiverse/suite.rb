@@ -300,7 +300,7 @@ module Multiverse
     end
 
     def execute_child_environment(env_index)
-      with_original_env do
+      with_clean_env do
         ENV["MULTIVERSE_ENV"] = env_index.to_s
         log_test_running_process
         configure_before_bundling
@@ -341,7 +341,7 @@ module Multiverse
 
       environments.each_with_index do |gemfile_text, env_index|
         puts yellow("... for Envfile entry #{env_index}")
-        with_original_env do
+        with_clean_env do
           load_dependencies(gemfile_text, env_index, false)
         end
       end
@@ -406,21 +406,18 @@ module Multiverse
       return filter_env == index
     end
 
-    def with_original_env
+    def with_clean_env
       if defined?(Bundler)
         # clear $BUNDLE_GEMFILE and $RUBYOPT so that the ruby subprocess can run
         # in the context of another bundle.
-        Bundler.with_original_env do
-          ENV.delete_if {|k, _| k[0, 7] == "BUNDLE_" }
-          yield
-        end
+        Bundler.with_clean_env { yield }
       else
         yield
       end
     end
 
     def execute_in_foreground(env)
-      with_original_env do
+      with_clean_env do
         puts yellow("Running #{suite.inspect} for Envfile entry #{env}\n")
         system(child_command_line(env))
         check_for_failure(env)
@@ -428,7 +425,7 @@ module Multiverse
     end
 
     def execute_in_background(env)
-      with_original_env do
+      with_clean_env do
         OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
 
         IO.popen(child_command_line(env)) do |io|
