@@ -6,6 +6,7 @@ require 'bundler'
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'multiverse', 'lib', 'multiverse', 'color'))
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'multiverse', 'lib', 'multiverse', 'shell_utils'))
+require File.expand_path '../../../../multiverse/lib/multiverse/suite', __FILE__
 
 module Environments
   class Runner

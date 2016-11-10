@@ -37,24 +37,24 @@ branches:
     - dev
     - release
 
-notifications:
-  webhooks: http://notifitron.herokuapp.com/
-  on_success: always
-  on_failure: always
+# notifications:
+#   webhooks: http://notifitron.herokuapp.com/
+#   on_success: always
+#   on_failure: always
 
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
-  - jruby-1.7.23
+  # - jruby-1.7.23
   - jruby-9.1.2.0
   - 2.3.1
   - 2.2.5
-  - 2.1.10
-  - 2.0.0-p648
-  - 1.9.3
-  - 1.9.2
-  - ree
-  - 1.8.7
-  - rbx-2.5.8
+    #   - 2.1.10
+    #   - 2.0.0-p648
+    #   - 1.9.3
+    #   - 1.9.2
+    #   - ree
+    #   - 1.8.7
+    #   - rbx-2.5.8
 
 env:
   global:
@@ -68,27 +68,28 @@ env:
     - TESTOPTS="-v"
     - VERBOSE = 1
   matrix:
-    - TYPE=UNIT ENVIRONMENT=rails21
-    - TYPE=UNIT ENVIRONMENT=rails22
-    - TYPE=UNIT ENVIRONMENT=rails23
-    - TYPE=UNIT ENVIRONMENT=rails30
-    - TYPE=UNIT ENVIRONMENT=rails31
-    - TYPE=UNIT ENVIRONMENT=rails32
-    - TYPE=UNIT ENVIRONMENT=rails40
-    - TYPE=UNIT ENVIRONMENT=rails41
-    - TYPE=UNIT ENVIRONMENT=rails42
+    #     - TYPE=UNIT ENVIRONMENT=rails21
+    #     - TYPE=UNIT ENVIRONMENT=rails22
+    #     - TYPE=UNIT ENVIRONMENT=rails23
+    #     - TYPE=UNIT ENVIRONMENT=rails30
+    #     - TYPE=UNIT ENVIRONMENT=rails31
+    #     - TYPE=UNIT ENVIRONMENT=rails32
+    #     - TYPE=UNIT ENVIRONMENT=rails40
+    #     - TYPE=UNIT ENVIRONMENT=rails41
+    #     - TYPE=UNIT ENVIRONMENT=rails42
     - TYPE=UNIT ENVIRONMENT=rails50
-    - TYPE=UNIT ENVIRONMENT=norails
-    - TYPE=FUNCTIONAL GROUP=agent
-    - TYPE=FUNCTIONAL GROUP=api
+      #     - TYPE=UNIT ENVIRONMENT=norails
+      #     - TYPE=FUNCTIONAL GROUP=agent
+      #     - TYPE=FUNCTIONAL GROUP=api
     - TYPE=FUNCTIONAL GROUP=background
-    - TYPE=FUNCTIONAL GROUP=database
-    - TYPE=FUNCTIONAL GROUP=httpclients
-    - TYPE=FUNCTIONAL GROUP=rails
-    - TYPE=FUNCTIONAL GROUP=serialization
-    - TYPE=FUNCTIONAL GROUP=sinatra
-    - TYPE=FUNCTIONAL GROUP=rest
-    - TYPE=NULLVERSE
+      #     - TYPE=FUNCTIONAL GROUP=database
+      #     - TYPE=FUNCTIONAL GROUP=httpclients
+      #     - TYPE=FUNCTIONAL GROUP=rails
+      #     - TYPE=FUNCTIONAL GROUP=serialization
+      #     - TYPE=FUNCTIONAL GROUP=sinatra
+      #     - TYPE=FUNCTIONAL GROUP=rest
+      #     - TYPE=FUNCTIONAL GROUP=rake
+      #     - TYPE=NULLVERSE
 
 matrix:
   allow_failures:

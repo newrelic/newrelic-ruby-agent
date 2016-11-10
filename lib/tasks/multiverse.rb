@@ -37,7 +37,7 @@
 
 namespace :test do
   desc "Run functional test suite for New Relic"
-  task :multiverse, [:suite, :param1, :param2, :param3, :param4] => [] do |t, args|
+  task :multiverse, [:suite, :param1, :param2, :param3, :param4, :param5] => [] do |t, args|
     # Assumed that we're starting from the root of the gem unless already set
     ENV['SUITES_DIRECTORY'] ||= File.expand_path(File.join("test", "multiverse"))
 
