@@ -10,26 +10,16 @@ sudo: required
 script: ./test/script/ci.sh
 
 before_install:
-  - 'mkdir -p /home/travis/gemfiles && touch /home/travis/gemfiles/IGNORE.txt && cp -R /home/travis/gemfiles/* .'
-  - 'if [[ `ruby --version` =~ ^ruby\ 1\. ]]; then gem update --system 1.8.25; fi'
+  - ./test/script/before_install/mkdir_gemfiles.sh
+  - ./test/script/before_install/revert_rubygems.sh
   - gem --version
-  # currently there's an incompatibility between Bundler 1.13 with JRuby 1.7, see Bundler issue #4975
-  - 'if [[ `ruby --version` =~ ^jruby\ 1\. ]]; then rvm use @global && gem uninstall -x bundler && gem install bundler -v 1.12.5; else gem install bundler; fi'
+  - ./test/script/before_install/jruby_bundler.sh
+  - ./test/script/before_install/gemstash_mirror.sh
   - bundle --version
 
-install: bundle install --local --path=/home/travis/bundle || bundle --path=/home/travis/bundle
+install: bundle install
 
-# Travis default Mongo is currently 2.4.14, which has some instrumentation differences with >= 2.6.
-before_script:
-  - 'if [[ $GROUP == "database" ]]; then ./test/script/install_mongodb.sh; fi'
-
-before_cache:
-  - rsync -a --prune-empty-dirs --include '*/' --include 'Gemfile.*' --exclude '*' . /home/travis/gemfiles
-
-cache:
-  directories:
-    - /home/travis/bundle
-    - /home/travis/gemfiles
+before_script: ./test/script/before_script/install_mongodb.sh
 
 branches:
   only:
@@ -44,10 +34,10 @@ notifications:
 
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
-  - jruby-1.7.23
+  - jruby-1.7.23 # NOTE: see test/script/before_install/jruby_bundler.sh
   - jruby-9.1.2.0
-  - 2.3.1
-  - 2.2.5
+  - 2.3.2
+  - 2.2.6
   - 2.1.10
   - 2.0.0-p648
   - 1.9.3
@@ -58,7 +48,6 @@ rvm:
 
 env:
   global:
-    - CI_BUNDLE_PATH=/home/travis/bundle
     - BUNDLE_PATH=/home/travis/bundle
     - MONGODB=2.6.11
     - JAVA_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx640m"
@@ -88,6 +77,7 @@ env:
     - TYPE=FUNCTIONAL GROUP=serialization
     - TYPE=FUNCTIONAL GROUP=sinatra
     - TYPE=FUNCTIONAL GROUP=rest
+    - TYPE=FUNCTIONAL GROUP=rake
     - TYPE=NULLVERSE
 
 matrix:
