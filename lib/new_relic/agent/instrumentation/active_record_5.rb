@@ -11,19 +11,48 @@ module NewRelic
 
         module BaseExtensions
           def save(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ::NewRelic::Agent::Instrumentation::ActiveRecord::ACTIVE_RECORD) do
+            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
               super
             end
           end
 
           def save!(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ::NewRelic::Agent::Instrumentation::ActiveRecord::ACTIVE_RECORD) do
+            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
               super
             end
           end
         end
 
         module RelationExtensions
+          def update_all(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super
+            end
+          end
+
+          def delete_all(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super
+            end
+          end
+
+          def destroy_all(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super
+            end
+          end
+
+          def calculate(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super
+            end
+          end
+
+          def pluck(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super
+            end
+          end
         end
       end
     end
@@ -54,7 +83,7 @@ DependencyDetection.defer do
 
     ActiveSupport.on_load(:active_record) do
       ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecord::BaseExtensions
-      ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_relation_methods
+      ::ActiveRecord::Relation.prepend ::NewRelic::Agent::Instrumentation::ActiveRecord::RelationExtensions
     end
   end
 end
