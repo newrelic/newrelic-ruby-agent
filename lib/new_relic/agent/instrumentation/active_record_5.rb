@@ -3,6 +3,33 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 
+module NewRelic
+  module Agent
+    module Instrumentation
+      module ActiveRecord
+        ACTIVE_RECORD = "ActiveRecord".freeze
+
+        module BaseExtensions
+          def save(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ::NewRelic::Agent::Instrumentation::ActiveRecord::ACTIVE_RECORD) do
+              super
+            end
+          end
+
+          def save!(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ::NewRelic::Agent::Instrumentation::ActiveRecord::ACTIVE_RECORD) do
+              super
+            end
+          end
+        end
+
+        module RelationExtensions
+        end
+      end
+    end
+  end
+end
+
 DependencyDetection.defer do
   named :active_record_5
 
@@ -26,7 +53,8 @@ DependencyDetection.defer do
       NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new)
 
     ActiveSupport.on_load(:active_record) do
-      ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
+      ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecord::BaseExtensions
+      ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_relation_methods
     end
   end
 end
