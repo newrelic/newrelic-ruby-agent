@@ -8,7 +8,7 @@ gem 'mocha', :require => false
 gem 'rack', '< 2.0.0'
 gem 'rack-test'
 
-if RUBY_VERSION < '1.9'
+if RUBY_VERSION < '2.0'
   gem 'rdoc', '4.2.0'
 else
   gem 'rdoc'
