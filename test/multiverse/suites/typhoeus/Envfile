@@ -13,6 +13,9 @@ gemfile <<-RB
 
   # We try translating URIs through Addressable if it's there, so test with it.
   gem 'addressable', :require => 'addressable/uri'
+  if RUBY_PLATFORM == 'java' && RUBY_VERSION < '2.0'
+    gem 'public_suffix', '< 1.5'
+  end
 RB
 
 gemfile <<-RB
