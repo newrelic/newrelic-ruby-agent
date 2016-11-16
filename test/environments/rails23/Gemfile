@@ -7,7 +7,12 @@ gem 'minitest', '~>4.7.5'
 gem 'mocha', :require => false
 gem 'rack', '< 2.0.0'
 gem 'rack-test'
-gem 'rdoc'
+
+if RUBY_VERSION < '2.0'
+  gem 'rdoc', '4.2.0'
+else
+  gem 'rdoc'
+end
 
 gem "newrelic_rpm", :path => '../../..'
 
