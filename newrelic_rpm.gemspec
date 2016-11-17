@@ -24,7 +24,7 @@ EOS
   s.email = "support@newrelic.com"
   s.executables = [ "mongrel_rpm", "newrelic_cmd", "newrelic", "nrdebug" ]
   s.extra_rdoc_files = [
-    "CHANGELOG",
+    "CHANGELOG.md",
     "LICENSE",
     "README.md",
     "CONTRIBUTING.md",
