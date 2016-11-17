@@ -5,6 +5,6 @@
 
 set -ev
 
-if [ -n "$TRAVIS_PRIVATE" ]; then
-  bundle config mirror.https://rubygems.org http://ci.datanerd.us:9292
+if [ -n "$GEMSTASH_MIRROR" ]; then
+  bundle config mirror.https://rubygems.org $GEMSTASH_MIRROR
 fi

@@ -7,10 +7,7 @@ language: ruby
 
 sudo: required
 
-script: ./test/script/ci.sh
-
 before_install:
-  - ./test/script/before_install/mkdir_gemfiles.sh
   - ./test/script/before_install/revert_rubygems.sh
   - gem --version
   - ./test/script/before_install/jruby_bundler.sh
@@ -20,6 +17,8 @@ before_install:
 install: bundle install
 
 before_script: ./test/script/before_script/install_mongodb.sh
+
+script: ./test/script/ci.sh
 
 branches:
   only:
