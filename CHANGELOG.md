@@ -9,6 +9,17 @@
   better compatibility between our ActiveRecord Instrumentation and
   other third party gems that modify ActiveRecord using `Module.prepend`.
 
+  * Account for DataMapper database connection errors
+
+  Our DataMapper instrumentation traces instances of DataObjects::SQLError
+  being raised and removes the password from the URI attribute. However,
+  when DataObjects cannot connect to the database (ex: could not resolve
+  host), it will raise a DataObjects::ConnectionError. This inherits from
+  DataObjects::SQLError but has `nil` for its URI attribute, since no
+  connection has been made yet. To avoid the password check here on `nil`,
+  the agent catches and re-raises any instances of DataObjects::ConnectionError
+  explicitly. Thanks Postmodern for this contribution!
+
 ## v3.17.1 ##
 
   * Datastore instance reporting for Redis, MongoDB, and memcached
