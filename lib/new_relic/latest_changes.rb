@@ -5,7 +5,7 @@
 module NewRelic
   module LatestChanges
     def self.default_changelog
-      File.join(File.dirname(__FILE__), '..', '..', 'CHANGELOG')
+      File.join(File.dirname(__FILE__), '..', '..', 'CHANGELOG.md')
     end
 
     FOOTER = <<'EOS'
