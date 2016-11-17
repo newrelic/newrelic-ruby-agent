@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Use Module.prepend for ActiveRecord 5 Instrumentation
+
+  Rails 5 deprecated the use of `alias_method_chain` in favor using
+  `Module.prepend`. Mixing `Module.prepend` and `alias_method_chain`
+  can lead to a SystemStackError when an `alias_method_chain` is
+  applied after a module has been prepended. This should ensure
+  better compatibility between our ActiveRecord Instrumentation and
+  other third party gems that modify ActiveRecord using `Module.prepend`.
+
 ## v3.17.1 ##
 
   * Datastore instance reporting for Redis, MongoDB, and memcached
