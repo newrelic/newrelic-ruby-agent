@@ -208,11 +208,19 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
-  def test_initialize_uses_correct_license_key_settings
+  def test_initialize_uses_license_key_from_config
     with_config(:license_key => 'abcde') do
       service = NewRelic::Agent::NewRelicService.new
-      assert_equal 'abcde', service.instance_variable_get(:@license_key)
+      assert_equal 'abcde', service.send(:license_key)
     end
+  end
+
+  def test_initialize_uses_license_key_from_manual_start
+    service = NewRelic::Agent::NewRelicService.new
+    NewRelic::Agent.manual_start :license_key => "geronimo"
+
+    assert_equal 'geronimo', service.send(:license_key)
+    NewRelic::Agent.shutdown
   end
 
   def test_connect_sets_agent_id_and_config_data
