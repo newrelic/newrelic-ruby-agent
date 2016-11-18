@@ -15,7 +15,11 @@ module NewRelic
         end
       end
 
-      class Boolean; end
+      class Boolean
+        def self.===(o)
+          TrueClass === o or FalseClass === o
+        end
+      end
 
       class DefaultSource
         attr_reader :defaults
