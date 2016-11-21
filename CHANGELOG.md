@@ -9,6 +9,12 @@
   better compatibility between our ActiveRecord Instrumentation and
   other third party gems that modify ActiveRecord using `Module.prepend`.
 
+  * Use license key passed in to NewRelic::Agent.manual_start
+
+  Previously, the license key passed in when manually starting the agent
+  with NewRelic::Agent.manual_start was not referenced when setting up
+  the connection to report data to New Relic. This is now fixed.
+
   * Account for DataMapper database connection errors
 
   Our DataMapper instrumentation traces instances of DataObjects::SQLError
