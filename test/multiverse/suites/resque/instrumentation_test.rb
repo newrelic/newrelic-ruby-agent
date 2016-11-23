@@ -30,6 +30,10 @@ class ResqueTest < Minitest::Test
       sleep sleep_duration
       @count += 1
     end
+
+    def self.request(args)
+      "we are not amused"
+    end
   end
 
   JOB_COUNT = 5
