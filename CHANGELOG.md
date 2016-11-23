@@ -26,6 +26,13 @@
   the agent catches and re-raises any instances of DataObjects::ConnectionError
   explicitly. Thanks Postmodern for this contribution!
 
+  * Account for request methods that require arguments
+
+  When tracing a transaction, the agent tries to get the request object
+  from a controller if it wasn't explicitly passed in. However, this posed
+  problems in non-controller transactions with their own `request` methods
+  defined that required arguments, such as in Resque jobs. This is now fixed.
+
 ## v3.17.1 ##
 
   * Datastore instance reporting for Redis, MongoDB, and memcached
