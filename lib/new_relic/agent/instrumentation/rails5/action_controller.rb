@@ -12,7 +12,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    defined?(ActionController) && defined?(ActionController::Base)
+    defined?(ActionController) && (defined?(ActionController::Base) || defined?(ActionController::API))
   end
 
   executes do
@@ -20,9 +20,18 @@ DependencyDetection.defer do
   end
 
   executes do
-    class ActionController::Base
-      include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    if defined?(ActionController::Base)
+      class ActionController::Base
+        include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      end
     end
+
+    if defined?(ActionController::API)
+      class ActionController::API
+        include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      end
+    end
+
     NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
       .subscribe(/^process_action.action_controller$/)
   end
