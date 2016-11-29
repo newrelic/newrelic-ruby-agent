@@ -384,7 +384,7 @@ module NewRelic
             opts[:request]
           # in a Rails app
           elsif self.respond_to?(:request)
-            self.request
+            self.request rescue nil
           end
         end
 
@@ -426,7 +426,7 @@ module NewRelic
         def create_transaction_options(trace_options, category, state)
           txn_options = {}
           txn_options[:request]   = trace_options[:request]
-          txn_options[:request] ||= request if respond_to?(:request)
+          txn_options[:request] ||= request if respond_to?(:request) rescue nil
           # params should have been filtered before calling perform_action_with_newrelic_trace
           txn_options[:filtered_params] = trace_options[:params]
           txn_options[:transaction_name] = TransactionNamer.name_for(nil, self, category, trace_options)
