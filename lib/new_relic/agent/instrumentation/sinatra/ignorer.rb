@@ -41,7 +41,7 @@ module NewRelic
             settings.newrelic_ignores[type] += routes.map do |r|
               # Ugly sending to private Base#compile, but we want to mimic
               # exactly Sinatra's mapping of route text to regex
-              send(:compile, r).first
+              Array(send(:compile, r)).first
             end
           end
 
