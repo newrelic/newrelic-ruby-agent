@@ -40,7 +40,7 @@ class SinatraErrorTracingTest < Minitest::Test
   def test_ignores_notfound_errors_by_default
     get '/ignored_boom'
     assert_equal 404, last_response.status
-    assert_match %r{Sinatra doesn&rsquo;t know this ditty\.}, last_response.body
+    assert_match %r{Sinatra doesn(&rsquo;|’)t know this ditty\.}, last_response.body
 
     errors = harvest_error_traces!
     assert_equal(0, errors.size)

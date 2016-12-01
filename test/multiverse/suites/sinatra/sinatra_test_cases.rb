@@ -21,9 +21,15 @@ module SinatraTestCases
       'GET /route/no_match'
     end
 
-    # get /\/regex.*/
-    def regex_segment
-      'GET (?-mix:\/regex.*)'
+    if NewRelic::VersionNumber.new(Sinatra::VERSION).major_version < 2
+      # get /\/regex.*/
+      def regex_segment
+        'GET (?-mix:\/regex.*)'
+      end
+    else
+      def regex_segment
+        'GET \/regex.*'
+      end
     end
 
     # get '/precondition'
@@ -178,25 +184,37 @@ module SinatraTestCases
   end
 
   def test_rack_request_params_errors_are_swallowed
-    fail_on_second_params_call
+    trigger_error_on_params
 
     get '/pass'
-    assert_equal 200, last_response.status
+
+    expected_status = NewRelic::VersionNumber.new(Sinatra::VERSION).major_version < 2 ? 200 : 400
+
+    assert_equal expected_status, last_response.status
   end
 
   def test_rack_request_params_errors_are_logged
     NewRelic::Agent.logger.stubs(:debug)
     NewRelic::Agent.logger.expects(:debug).with("Failed to get params from Rack request.", kind_of(StandardError)).at_least_once
 
-    fail_on_second_params_call
+    trigger_error_on_params
 
     get '/pass'
   end
 
-  def fail_on_second_params_call
-    Sinatra::Request.any_instance.
+
+  if NewRelic::VersionNumber.new(Sinatra::VERSION).major_version < 2
+    def trigger_error_on_params
+      Sinatra::Request.any_instance.
       stubs(:params).returns({}).
-      then.raises("Rack::Request#params error")
+      then.raises(StandardError.new "Rack::Request#params error")
+    end
+  else
+    def trigger_error_on_params
+      Sinatra::Request.any_instance.
+      stubs(:params).
+      raises(Sinatra::BadRequest.new)
+    end
   end
 
   def test_root_path_naming
