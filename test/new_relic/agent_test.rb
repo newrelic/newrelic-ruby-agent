@@ -451,7 +451,7 @@ module NewRelic
         end
 
         if a.respond_to? :constants
-          stack.concat a.constants.map { |c| a.const_get c }.select do |c|
+          consts = a.constants.map { |c| a.const_get c }.select do |c|
             if valid.include?(c.class) && !c.ancestors.include?(Minitest::Test)
               assert_instance_of String, c.name
               c.name.start_with?(a.name)
@@ -459,6 +459,7 @@ module NewRelic
               false
             end
           end
+          stack.concat consts
         end
 
         break if stack.empty?

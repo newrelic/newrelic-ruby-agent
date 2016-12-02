@@ -256,7 +256,7 @@ module NewRelic
               DEFAULT
             elsif config[:port].nil?
               DATASTORE_DEFAULT_PORTS[adapter] || DEFAULT
-            elsif config[:port].is_a?(Fixnum) || config[:port].to_i != 0
+            elsif config[:port].is_a?(Integer) || config[:port].to_i != 0
               config[:port].to_s
             else
               UNKNOWN

@@ -15,7 +15,11 @@ module NewRelic
         end
       end
 
-      class Boolean; end
+      class Boolean
+        def self.===(o)
+          TrueClass === o or FalseClass === o
+        end
+      end
 
       class DefaultSource
         attr_reader :defaults
@@ -329,7 +333,7 @@ module NewRelic
           :default => 8080,
           :allow_nil => true,
           :public => true,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => false,
           :description => 'Defines a port for communicating with the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> via a proxy server.'
         },
@@ -432,7 +436,7 @@ module NewRelic
         :'rake.connect_timeout' => {
           :default => 10,
           :public => true,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => false,
           :description => 'Timeout for waiting on connect to complete before a rake task'
         },
@@ -483,14 +487,14 @@ module NewRelic
         :port => {
           :default => DefaultSource.port,
           :public => false,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => false,
           :description => 'Port for the New Relic data collection service.'
         },
         :api_port => {
           :default => value_of(:port),
           :public => false,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => false,
           :description => 'Port for the New Relic API host.'
         },
@@ -511,7 +515,7 @@ module NewRelic
         :post_size_limit => {
           :default => 2 * 1024 * 1024, # 2MB
           :public => false,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => true,
           :description => 'Maximum number of bytes to send to the New Relic data collection service.'
         },
@@ -539,7 +543,7 @@ module NewRelic
         :timeout => {
           :default => 2 * 60, # 2 minutes
           :public => true,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => false,
           :description => 'Defines the maximum number of seconds the agent should spend attempting to connect to the collector.'
         },
@@ -553,14 +557,14 @@ module NewRelic
         :data_report_period => {
           :default => 60,
           :public => false,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic data collection service. Note that transaction events have a separate report period, specified by data_report_periods.analytic_event_data.'
         },
         :'data_report_periods.analytic_event_data' => {
           :default => 60,
           :public => false,
-          :type => Fixnum,
+          :type => Integer,
           :dynamic_name => true,
           :allowed_from_server => true,
           :description => 'Number of seconds between connections to the New Relic data collection service for sending transaction event data.'
@@ -857,7 +861,7 @@ module NewRelic
         :'transaction_tracer.limit_segments' => {
           :default => 4000,
           :public => true,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => true,
           :description => 'Maximum number of transaction trace nodes to record in a single transaction trace.'
         },
@@ -979,7 +983,7 @@ module NewRelic
         :'error_collector.max_event_samples_stored' => {
           :default => 100,
           :public => true,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => true,
           :description => 'Defines the maximum number of <a href="https://docs.newrelic.com/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights">TransactionError events</a> sent to Insights per harvest cycle.'
         },
@@ -1152,7 +1156,7 @@ module NewRelic
         :'xray_session.max_samples' => {
           :default => 10,
           :public => false,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => true,
           :description => 'Maximum number of transaction traces to buffer for active X-Ray sessions'
         },
@@ -1180,7 +1184,7 @@ module NewRelic
         :'analytics_events.max_samples_stored' => {
           :default => 1200,
           :public => true,
-          :type => Fixnum,
+          :type => Integer,
           :allowed_from_server => true,
           :description => 'Defines the maximum number of request events reported from a single harvest.'
         },
@@ -1395,7 +1399,7 @@ module NewRelic
         :keep_alive_timeout => {
           :default      => 60,
           :public       => false,
-          :type         => Fixnum,
+          :type         => Integer,
           :allowed_from_server => true,
           :description  => 'Timeout for keep alive on TCP connection to collector if supported by Ruby version. Only used in conjunction when aggressive_keepalive is enabled.'
         },
@@ -1418,14 +1422,14 @@ module NewRelic
         :'synthetics.traces_limit' => {
           :default      => 20,
           :public       => false,
-          :type         => Fixnum,
+          :type         => Integer,
           :allowed_from_server => true,
           :description  => 'Maximum number of synthetics transaction traces to hold for a given harvest'
         },
         :'synthetics.events_limit' => {
           :default      => 200,
           :public       => false,
-          :type         => Fixnum,
+          :type         => Integer,
           :allowed_from_server => true,
           :description  => 'Maximum number of synthetics transaction events to hold for a given harvest'
         },
@@ -1439,7 +1443,7 @@ module NewRelic
         :'custom_insights_events.max_samples_stored' => {
           :default      => 1000,
           :public       => true,
-          :type         => Fixnum,
+          :type         => Integer,
           :allowed_from_server => true,
           :description  => 'Specify a maximum number of custom Insights events to buffer in memory at a time.',
           :dynamic_name => true
@@ -1599,7 +1603,7 @@ module NewRelic
           :default     => nil,
           :allow_nil   => true,
           :public      => false,
-          :type        => Fixnum,
+          :type        => Integer,
           :allowed_from_server => false,
           :description => 'The total number of hyper-threaded execution contexts available.'
         },
@@ -1607,7 +1611,7 @@ module NewRelic
           :default     => nil,
           :allow_nil   => true,
           :public      => false,
-          :type        => Fixnum,
+          :type        => Integer,
           :allowed_from_server => false,
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
         },
