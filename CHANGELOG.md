@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Include controller instrumentation module in Rails 5 API
+
+  The agent now includes the ControllerInstrumentation module into
+  ActionController::API. This gives Rails API controllers access to
+  helper methods like `newrelic_ignore` in support of the existing
+  event-subscription-based action instrumentation. Thanks Andreas
+  Thurn for the contribution!
+
   * Use Module.prepend for ActiveRecord 5 Instrumentation
 
   Rails 5 deprecated the use of `alias_method_chain` in favor using
