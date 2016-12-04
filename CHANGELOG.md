@@ -1,5 +1,10 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Early Access Sinatra 2.0 instrumentation
+
+  Our Sinatra instrumentation has been updated to work with Sinatra
+  2.0.0.beta2.
+
   * Include controller instrumentation module in Rails 5 API
 
   The agent now includes the ControllerInstrumentation module into
