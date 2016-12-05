@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v3.17.2
+
+  * Compatibility with Ruby 2.4.0-preview3
+
+  The Ruby agent has been updated to work on Ruby 2.4.0-preview3.
+
   * Early Access Sinatra 2.0 instrumentation
 
   Our Sinatra instrumentation has been updated to work with Sinatra
@@ -13,14 +19,14 @@
   event-subscription-based action instrumentation. Thanks Andreas
   Thurn for the contribution!
 
-  * Use Module.prepend for ActiveRecord 5 Instrumentation
+  * Use Module#prepend for ActiveRecord 5 Instrumentation
 
-  Rails 5 deprecated the use of `alias_method_chain` in favor using
-  `Module.prepend`. Mixing `Module.prepend` and `alias_method_chain`
+  Rails 5 deprecated the use of `alias_method_chain` in favor of using
+  `Module#prepend`. Mixing `Module#prepend` and `alias_method_chain`
   can lead to a SystemStackError when an `alias_method_chain` is
   applied after a module has been prepended. This should ensure
   better compatibility between our ActiveRecord Instrumentation and
-  other third party gems that modify ActiveRecord using `Module.prepend`.
+  other third party gems that modify ActiveRecord using `Module#prepend`.
 
   * Use license key passed in to NewRelic::Agent.manual_start
 
