@@ -12,7 +12,7 @@ module NewRelic
 
     MAJOR = 3
     MINOR = 17
-    TINY  = 1
+    TINY  = 2
 
     begin
       require File.join(File.dirname(__FILE__), 'build')
@@ -57,10 +57,10 @@ module NewRelic
       a, b = parts1.first, parts2.first
       case
         when a.nil? && b.nil? then 0
-        when a.nil? then b.is_a?(Fixnum) ?  -1 : 1
+        when a.nil? then b.is_a?(Integer) ?  -1 : 1
         when b.nil? then -compare(parts2, parts1)
         when a.to_s == b.to_s then compare(parts1[1..-1], parts2[1..-1])
-        when a.is_a?(String) then b.is_a?(Fixnum) ?  -1 : (a <=> b)
+        when a.is_a?(String) then b.is_a?(Integer) ?  -1 : (a <=> b)
         when b.is_a?(String) then -compare(parts2, parts1)
         else # they are both fixnums, not nil
           a <=> b

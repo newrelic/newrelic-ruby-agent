@@ -30,6 +30,10 @@ module NewRelic::Rack
       assert NewRelic::Agent.instance.error_collector.enabled?
     end
 
+    def teardown
+      NewRelic::Agent.drop_buffered_data
+    end
+
     def test_notice_and_reraise_errors
       assert_raises RuntimeError do
         get '/'

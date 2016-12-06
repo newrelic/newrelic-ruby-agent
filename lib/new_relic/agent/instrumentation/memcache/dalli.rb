@@ -15,6 +15,7 @@ module NewRelic
           DATASTORE_INSTANCES_SUPPORTED_VERSION = ::NewRelic::VersionNumber.new '2.6.4'
           SLASH = '/'.freeze
           UNKNOWN = 'unknown'.freeze
+          LOCALHOST = 'localhost'.freeze
 
           def supports_datastore_instances?
             DATASTORE_INSTANCES_SUPPORTED_VERSION <= ::Dalli::VERSION
@@ -95,17 +96,18 @@ module NewRelic
           end
 
           def assign_instance_to segment, server
+            host = port_path_or_id = nil
             if server.hostname.start_with? SLASH
-              segment.host = ::NewRelic::Agent::Hostname.get
-              segment.port_path_or_id = server.hostname
+              host = LOCALHOST
+              port_path_or_id = server.hostname
             else
-              segment.host = ::NewRelic::Agent::Hostname.get_external server.hostname
-              segment.port_path_or_id = server.port
+              host = server.hostname
+              port_path_or_id = server.port
             end
+            segment.set_instance_info host, port_path_or_id
           rescue => e
             ::NewRelic::Agent.logger.debug "Failed to retrieve memcached instance info: #{e.message}"
-            segment.host = UNKNOWN
-            segment.port_path_or_id = UNKNOWN
+            segment.set_instance_info UNKNOWN, UNKNOWN
           end
 
         end

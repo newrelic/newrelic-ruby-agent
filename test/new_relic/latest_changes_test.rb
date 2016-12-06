@@ -14,7 +14,7 @@ module NewRelic
       # the gem post-installation, since that's run in our gem's context. So
       # just fix up the pathing in the test for finding default changelog.
       if RUBY_VERSION < '1.9.1'
-        NewRelic::LatestChanges.stubs(:default_changelog).returns(File.join(File.dirname(__FILE__), '..', '..', 'CHANGELOG'))
+        NewRelic::LatestChanges.stubs(:default_changelog).returns(File.join(File.dirname(__FILE__), '..', '..', 'CHANGELOG.md'))
       end
     end
 

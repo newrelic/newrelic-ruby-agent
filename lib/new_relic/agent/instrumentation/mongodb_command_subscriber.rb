@@ -67,12 +67,13 @@ module NewRelic
         end
 
         UNKNOWN = "unknown".freeze
+        LOCALHOST = "localhost".freeze
 
         def host_from_address(address)
           if unix_domain_socket? address.host
-            Hostname.get
+            LOCALHOST
           else
-            Hostname.get_external address.host
+            address.host
           end
         rescue => e
           NewRelic::Agent.logger.debug "Failed to retrieve Mongo host: #{e}"

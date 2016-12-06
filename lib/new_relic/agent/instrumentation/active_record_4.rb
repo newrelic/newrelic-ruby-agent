@@ -9,7 +9,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(::ActiveRecord) && defined?(::ActiveRecord::Base) &&
       defined?(::ActiveRecord::VERSION) &&
-      ::ActiveRecord::VERSION::MAJOR.to_i >= 4
+      ::ActiveRecord::VERSION::MAJOR.to_i == 4
   end
 
   depends_on do
@@ -18,7 +18,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveRecord 4+ instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing ActiveRecord 4 instrumentation'
   end
 
   executes do

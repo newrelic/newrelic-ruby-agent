@@ -91,6 +91,15 @@ module NewRelic
           end
         end
 
+        def test_start_datastore_segment_provides_defaults_without_params
+            segment = Transaction.start_datastore_segment
+            segment.finish
+
+            assert_equal "Datastore/operation/Unknown/other", segment.name
+            assert_equal "Unknown", segment.product
+            assert_equal "other", segment.operation
+        end
+
         def test_start_segment_with_tracing_disabled_in_transaction
           segment = nil
           in_transaction "test_txn" do |txn|

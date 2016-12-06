@@ -12,9 +12,10 @@ module NewRelic
         extend self
 
         UNKNOWN = "unknown".freeze
+        LOCALHOST = "localhost".freeze
 
         def host_for(client)
-          client.path ? NewRelic::Agent::Hostname.get : NewRelic::Agent::Hostname.get_external(client.host)
+          client.path ? LOCALHOST : client.host
         rescue => e
           NewRelic::Agent.logger.debug "Failed to retrieve Redis host: #{e}"
           UNKNOWN

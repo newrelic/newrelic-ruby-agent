@@ -32,22 +32,6 @@
     "expected_instance_metric": "Datastore/instance/Postgres/datanerd-01/5252"
   },
   {
-    "name": "instance metric uses system hostname when db reports default host IPv4",
-    "system_hostname": "datanerd-01",
-    "db_hostname": "0.0.0.0",
-    "product": "MySQL",
-    "port": 3600,
-    "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/3600"
-  },
-  {
-    "name": "instance metric uses system hostname when db reports default host IPv6",
-    "system_hostname": "datanerd-01",
-    "db_hostname": "0:0:0:0:0:0:0:0",
-    "product": "MySQL",
-    "port": 5757,
-    "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/5757"
-  },
-  {
     "name": "instance metric uses system hostname when db reports default host IPv6 shorthand",
     "system_hostname": "datanerd-01",
     "db_hostname": "::",
@@ -64,43 +48,12 @@
     "expected_instance_metric": "Datastore/instance/MySQL/accounts-db/8420"
   },
   {
-    "name": "detects default UDS case",
-    "system_hostname": "datanerd-01",
-    "db_hostname": "localhost",
-    "product": "MySQL",
-    "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/default"
-  },
-  {
     "name": "instance metric uses unix socket path if provided",
     "system_hostname": "datanerd-01",
     "db_hostname": "localhost",
     "product": "MySQL",
     "unix_socket": "/var/mysql/mysql.sock",
     "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01//var/mysql/mysql.sock"
-  },
-  {
-    "name": "instance metric reports unknown if host empty",
-    "system_hostname": "datanerd-01",
-    "db_hostname": "",
-    "product": "MySQL",
-    "port": 3600,
-    "expected_instance_metric": "Datastore/instance/MySQL/unknown/3600"
-  },
-  {
-    "name": "instance metric reports unknown if port empty",
-    "system_hostname": "datanerd-01",
-    "db_hostname": "localhost",
-    "product": "MySQL",
-    "port": "",
-    "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/unknown"
-  },
-  {
-    "name": "instance metric reports unknown if unix_socket empty",
-    "system_hostname": "datanerd-01",
-    "db_hostname": "localhost",
-    "product": "MySQL",
-    "unix_socket": "",
-    "expected_instance_metric": "Datastore/instance/MySQL/datanerd-01/unknown"
   },
   {
     "name": "instance metric with ip v6 host",

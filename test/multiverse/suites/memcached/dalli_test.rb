@@ -29,38 +29,31 @@ if defined?(Dalli)
       end
 
       def test_assign_instance_to_with_ip_and_port
-        NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
         segment = mock('datastore_segment')
-        segment.expects(:host=).with('jonan.pizza_cube')
-        segment.expects(:port_path_or_id=).with(11211)
+        segment.expects(:set_instance_info).with('127.0.0.1', 11211)
         server = ::Dalli::Server.new '127.0.0.1:11211'
         ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_with_name_and_port
-        NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
         segment = mock('datastore_segment')
-        segment.expects(:host=).with('jonan.gummy_planet')
-        segment.expects(:port_path_or_id=).with(11211)
+        segment.expects(:set_instance_info).with('jonan.gummy_planet', 11211)
         server = ::Dalli::Server.new 'jonan.gummy_planet:11211'
         ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_with_unix_domain_socket
-        NewRelic::Agent::Hostname.stubs(:get).returns("jonan.pizza_cube")
         segment = mock('datastore_segment')
-        segment.expects(:host=).with('jonan.pizza_cube')
-        segment.expects(:port_path_or_id=).with('/tmp/jonanfs.sock')
+        segment.expects(:set_instance_info).with('localhost', '/tmp/jonanfs.sock')
         server = ::Dalli::Server.new '/tmp/jonanfs.sock'
         ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_when_exception_raised
-        NewRelic::Agent::Hostname.stubs(:get).raises("oops")
         segment = mock('datastore_segment')
-        segment.expects(:host=).with('unknown')
-        segment.expects(:port_path_or_id=).with('unknown')
+        segment.expects(:set_instance_info).with('unknown', 'unknown')
         server = ::Dalli::Server.new '/tmp/jonanfs.sock'
+        server.stubs(:hostname).raises("oops")
         ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
       end
 

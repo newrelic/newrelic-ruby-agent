@@ -33,7 +33,7 @@ module NewRelic
       attr_reader :collector, :marshaller
 
       def initialize(license_key=nil, collector=control.server)
-        @license_key = license_key || Agent.config[:license_key]
+        @license_key = license_key
         @collector = collector
         @request_timeout = Agent.config[:timeout]
         @ssl_cert_store = nil
@@ -337,12 +337,16 @@ module NewRelic
       # The path on the server that we should post our data to
       def remote_method_uri(method, format)
         params = {'run_id' => @agent_id, 'marshal_format' => format}
-        uri = "/agent_listener/#{PROTOCOL_VERSION}/#{@license_key}/#{method}"
+        uri = "/agent_listener/#{PROTOCOL_VERSION}/#{license_key}/#{method}"
         uri << '?' + params.map do |k,v|
           next unless v
           "#{k}=#{v}"
         end.compact.join('&')
         uri
+      end
+
+      def license_key
+        @license_key ||= Agent.config[:license_key]
       end
 
       # send a message via post to the actual server. This attempts

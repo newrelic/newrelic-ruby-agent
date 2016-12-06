@@ -24,7 +24,7 @@ EOS
   s.email = "support@newrelic.com"
   s.executables = [ "mongrel_rpm", "newrelic_cmd", "newrelic", "nrdebug" ]
   s.extra_rdoc_files = [
-    "CHANGELOG",
+    "CHANGELOG.md",
     "LICENSE",
     "README.md",
     "CONTRIBUTING.md",
@@ -46,6 +46,7 @@ EOS
   s.add_development_dependency 'mocha', '~> 0.13.0'
   s.add_development_dependency 'yard'
   s.add_development_dependency 'rails', '~> 3.2.13'
+  s.add_development_dependency 'json', '>= 2.0.2' if RUBY_VERSION >= '2.4.0' # possible bundler issue?
   s.add_development_dependency 'pry', '~> 0.9.12'
   s.add_development_dependency 'hometown', '~> 0.2.5'
 
