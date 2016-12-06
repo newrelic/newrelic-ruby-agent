@@ -63,9 +63,11 @@ namespace :newrelic do
   end
 
   def lookup_changelog
-    debug "Retrieving changelog for New Relic Deployment details"
     previous_revision = fetch(:previous_revision)
     current_revision = fetch(:current_revision)
+    return unless current_revision && previous_revision
+
+    debug "Retrieving changelog for New Relic Deployment details"
 
     if scm == :git
       log_command = "git --no-pager log --no-color --pretty=format:'  * %an: %s' " +
