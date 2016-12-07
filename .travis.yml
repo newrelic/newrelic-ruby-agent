@@ -10,7 +10,6 @@ sudo: required
 before_install:
   - ./test/script/before_install/revert_rubygems.sh
   - gem --version
-  - ./test/script/before_install/jruby_bundler.sh
   - ./test/script/before_install/gemstash_mirror.sh
   - bundle --version
 
@@ -33,7 +32,7 @@ notifications:
 
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
-  - jruby-1.7.23 # NOTE: see test/script/before_install/jruby_bundler.sh
+  - jruby-1.7.23
   - jruby-9.1.2.0
   - 2.3.2
   - 2.2.6
