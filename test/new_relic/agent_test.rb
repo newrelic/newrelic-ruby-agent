@@ -14,7 +14,6 @@ module NewRelic
 
     def setup
       NewRelic::Agent.drop_buffered_data
-      NewRelic::Agent.manual_start
       NewRelic::Agent.reset_config
       NewRelic::Agent.instance.stubs(:start_worker_thread)
     end
@@ -74,12 +73,19 @@ module NewRelic
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => true})
       NewRelic::Agent.manual_start
+      if NewRelic::Agent.instance.started?
+        mock_local_env = mock
+        mock_local_env.stubs(:discovered_dispatcher)
+        mock_control.expects(:local_env).returns(mock_local_env)
+        NewRelic::Agent.shutdown
+      end
     end
 
     def test_manual_start_with_opts
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => false})
       NewRelic::Agent.manual_start(:sync_startup => false)
+      NewRelic::Agent.shutdown
     end
 
     def test_manual_start_starts_channel_listener
@@ -98,6 +104,7 @@ module NewRelic
 
         NewRelic::Agent.manual_start
       end
+      NewRelic::Agent.shutdown
     end
 
     def test_get_stats
@@ -195,6 +202,7 @@ module NewRelic
     def test_instance
       NewRelic::Agent.manual_start
       assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance, "should return the same agent for both identical methods")
+      NewRelic::Agent.shutdown
     end
 
     def test_register_report_channel

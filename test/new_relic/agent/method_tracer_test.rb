@@ -95,6 +95,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     @metric_name = nil
+    NewRelic::Agent.shutdown
     super
   end
 

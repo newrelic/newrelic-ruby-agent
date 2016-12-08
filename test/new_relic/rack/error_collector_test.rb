@@ -32,6 +32,7 @@ module NewRelic::Rack
 
     def teardown
       NewRelic::Agent.drop_buffered_data
+      NewRelic::Agent.shutdown
     end
 
     def test_notice_and_reraise_errors

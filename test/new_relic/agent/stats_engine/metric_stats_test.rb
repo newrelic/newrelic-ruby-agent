@@ -15,6 +15,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
 
   def teardown
     @engine.reset!
+    NewRelic::Agent.shutdown
     super
   end
 
