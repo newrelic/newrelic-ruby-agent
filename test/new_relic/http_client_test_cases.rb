@@ -440,7 +440,9 @@ module HttpClientTestCases
         get_response
 
         last_node = find_last_transaction_node()
-        refute last_node.params.key?(:uri)
+        unless last_node.metric_name.start_with? "External"
+          refute last_node.params.key?(:uri)
+        end
       end
     end
   end

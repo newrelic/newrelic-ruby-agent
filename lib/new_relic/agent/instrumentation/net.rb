@@ -20,12 +20,23 @@ DependencyDetection.defer do
       def request_with_newrelic_trace(request, *args, &block)
         wrapped_request = NewRelic::Agent::HTTPClients::NetHTTPRequest.new(self, request)
 
-        NewRelic::Agent::CrossAppTracing.tl_trace_http_request( wrapped_request ) do
+        segment = NewRelic::Agent::Transaction.start_external_request_segment(
+          wrapped_request.type, wrapped_request.uri, wrapped_request.method)
+
+        begin
+          response = nil
+          segment.add_request_headers wrapped_request
+
           # RUBY-1244 Disable further tracing in request to avoid double
           # counting if connection wasn't started (which calls request again).
           NewRelic::Agent.disable_all_tracing do
-            request_without_newrelic_trace( request, *args, &block )
+            response = request_without_newrelic_trace( request, *args, &block )
           end
+
+          segment.read_response_headers response
+          response
+        ensure
+          segment.finish
         end
       end
 
