@@ -124,11 +124,27 @@ module NewRelic
           refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
         end
 
+
         def test_current_segment_in_transaction
           in_transaction "test_txn" do |txn|
             segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
             assert_equal segment, txn.current_segment
             segment.finish
+          end
+        end
+
+        def test_start_external_request_segment
+          in_transaction "test_txn" do |txn|
+            segment = Transaction.start_external_request_segment "Net::HTTP", "http://site.com/endpoint", "GET"
+            assert_equal Time.now, segment.start_time
+            assert_equal txn, segment.transaction
+            assert_equal "Net::HTTP", segment.library
+            assert_equal "http://site.com/endpoint", segment.uri.to_s
+            assert_equal "GET", segment.procedure
+
+            advance_time 1
+            segment.finish
+            assert_equal Time.now, segment.end_time
           end
         end
       end

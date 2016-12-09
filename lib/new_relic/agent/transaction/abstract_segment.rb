@@ -9,7 +9,7 @@ module NewRelic
         attr_reader :start_time, :end_time, :duration, :exclusive_duration
         attr_accessor :name, :children_time, :transaction
 
-        def initialize name
+        def initialize name=nil
           @name = name
           @children_time = 0.0
           @record_metrics = true
