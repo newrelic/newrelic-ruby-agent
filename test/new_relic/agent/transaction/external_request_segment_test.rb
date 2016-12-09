@@ -11,6 +11,26 @@ module NewRelic
   module Agent
     class Transaction
       class ExternalRequestSegmentTest < Minitest::Test
+        class RequestWrapper
+          attr_reader :headers
+
+          def initialize headers = {}
+            @headers = headers
+          end
+
+          def [] key
+            @headers[key]
+          end
+
+          def []= key, value
+            @headers[key] = value
+          end
+
+          def host_from_header
+            self['host']
+          end
+        end
+
         TRANSACTION_GUID = 'BEC1BC64675138B9'
 
         def setup
@@ -85,38 +105,38 @@ module NewRelic
         end
 
         def test_segment_writes_outbound_request_headers
-          headers = {}
+          request = RequestWrapper.new
           with_config cat_config do
             in_transaction :category => :controller do
               segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
-              segment.add_request_headers headers
+              segment.add_request_headers request
               segment.finish
             end
           end
-          assert headers.key?("X-NewRelic-ID"), "Expected to find X-NewRelic-ID header"
-          assert headers.key?("X-NewRelic-Transaction"), "Expected to find X-NewRelic-Transaction header"
+          assert request.headers.key?("X-NewRelic-ID"), "Expected to find X-NewRelic-ID header"
+          assert request.headers.key?("X-NewRelic-Transaction"), "Expected to find X-NewRelic-Transaction header"
         end
 
         def test_segment_writes_synthetics_header_for_synthetics_txn
-          headers = {}
+          request = RequestWrapper.new
           with_config cat_config do
             in_transaction :category => :controller do |txn|
               txn.raw_synthetics_header = json_dump_and_encode [1, 42, 100, 200, 300]
               segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
-              segment.add_request_headers headers
+              segment.add_request_headers request
               segment.finish
             end
           end
-          assert headers.key?("X-NewRelic-Synthetics"), "Expected to find X-NewRelic-Synthetics header"
+          assert request.headers.key?("X-NewRelic-Synthetics"), "Expected to find X-NewRelic-Synthetics header"
         end
 
         def test_add_request_headers_renames_segment_based_on_host_header
-          headers = {"host" => "anotherhost.local"}
+          request = RequestWrapper.new({"host" => "anotherhost.local"})
           with_config cat_config do
             in_transaction :category => :controller do
               segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
               assert_equal "External/remotehost.com/Net::HTTP/GET", segment.name
-              segment.add_request_headers headers
+              segment.add_request_headers request
               assert_equal "External/anotherhost.local/Net::HTTP/GET", segment.name
               segment.finish
             end

@@ -201,15 +201,6 @@ module NewRelic
         end
       end
 
-      HOST = 'host'.freeze
-      SEMI_COLON = ':'.freeze
-
-      def host_from_request_header request
-        if host = request[HOST]
-          host.split(SEMI_COLON).first
-        end
-      end
-
       def add_transaction_trace_parameters(request, response)
         filtered_uri = ::NewRelic::Agent::HTTPClients::URIUtil.filter_uri(request.uri)
         transaction_sampler.add_node_parameters(:uri => filtered_uri)
@@ -217,7 +208,6 @@ module NewRelic
           add_cat_transaction_trace_parameters(response)
         end
       end
-
 
       # Extract any custom parameters from +response+ if it's cross-application and
       # add them to the current TT node.

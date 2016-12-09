@@ -92,7 +92,7 @@ module NewRelic
         end
 
         def process_host_header request
-          if @host_header = CrossAppTracing.host_from_request_header(request)
+          if @host_header = request.host_from_header
             update_segment_name
           end
         end
