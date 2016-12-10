@@ -54,7 +54,7 @@ module NewRelic
         UHOST = 'Host'.freeze
 
         def host_from_header
-          self['host'] || self['Host']
+          self[LHOST] || self[UHOST]
         end
 
         def host
