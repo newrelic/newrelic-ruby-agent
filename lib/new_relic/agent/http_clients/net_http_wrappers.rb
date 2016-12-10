@@ -11,16 +11,23 @@ module NewRelic
           @request = request
         end
 
+        NET_HTTP = 'Net::HTTP'.freeze
+
         def type
-          'Net::HTTP'
+          NET_HTTP
+        end
+
+        HOST = 'host'.freeze
+        COLON = ':'.freeze
+
+        def host_from_header
+          if hostname = self[HOST]
+            hostname.split(COLON).first
+          end
         end
 
         def host
-          if hostname = self['host']
-            hostname.split(':').first
-          else
-            @connection.address
-          end
+          host_from_header || @connection.address
         end
 
         def method
