@@ -29,25 +29,32 @@ module NewRelic
       class HTTPClientRequest
         attr_reader :request, :uri
 
+        HTTP_CLIENT = "HTTPClient".freeze
+        LHOST = 'host'.freeze
+        UHOST = 'Host'.freeze
+        COLON = ':'.freeze
+
         def initialize(request)
           @request = request
           @uri = request.header.request_uri
         end
 
         def type
-          "HTTPClient"
+          HTTP_CLIENT
         end
 
         def method
           request.header.request_method
         end
 
-        def host
-          if hostname = (self['host'] || self['Host'])
-            hostname.split(':').first
-          else
-            uri.host.to_s
+        def host_from_header
+          if hostname = (self[LHOST] || self[UHOST])
+            hostname.split(COLON).first
           end
+        end
+
+        def host
+          host_from_header || uri.host.to_s
         end
 
         def [](key)
