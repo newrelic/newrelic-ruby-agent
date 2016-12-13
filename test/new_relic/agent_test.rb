@@ -73,19 +73,12 @@ module NewRelic
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => true})
       NewRelic::Agent.manual_start
-      if NewRelic::Agent.instance.started?
-        mock_local_env = mock
-        mock_local_env.stubs(:discovered_dispatcher)
-        mock_control.expects(:local_env).returns(mock_local_env)
-        NewRelic::Agent.shutdown
-      end
     end
 
     def test_manual_start_with_opts
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => false})
       NewRelic::Agent.manual_start(:sync_startup => false)
-      NewRelic::Agent.shutdown
     end
 
     def test_manual_start_starts_channel_listener
