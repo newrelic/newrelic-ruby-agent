@@ -20,13 +20,20 @@ DependencyDetection.defer do
       def perform_with_newrelic_trace(request, options)
         wrapped_request = ::NewRelic::Agent::HTTPClients::HTTPRequest.new(request)
 
-        response = nil
-        ::NewRelic::Agent::CrossAppTracing.tl_trace_http_request(wrapped_request) do
-          response = perform_without_newrelic_trace(request, options)
-          ::NewRelic::Agent::HTTPClients::HTTPResponse.new(response)
-        end
+        begin
+          segment = NewRelic::Agent::Transaction.start_external_request_segment(
+            wrapped_request.type, wrapped_request.uri, wrapped_request.method)
 
-        response
+          segment.add_request_headers wrapped_request
+
+          response = perform_without_newrelic_trace(request, options)
+          wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPResponse.new response
+          segment.read_response_headers wrapped_response
+
+          response
+        ensure
+          segment.finish if segment
+        end
       end
 
       alias perform_without_newrelic_trace perform
