@@ -15,14 +15,24 @@ module ::Excon
     end
 
     def request_with_newrelic_trace(params, &block)
-      orig_response = nil
       resolved_params = newrelic_resolved_request_params(params)
       wrapped_request = ::NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(resolved_params)
-      ::NewRelic::Agent::CrossAppTracing.tl_trace_http_request(wrapped_request) do
-        orig_response = request_without_newrelic_trace(resolved_params, &block)
-        ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(orig_response)
+      segment = NewRelic::Agent::Transaction.start_external_request_segment(
+                  wrapped_request.type, wrapped_request.uri, wrapped_request.method)
+
+      begin
+        response = nil
+        segment.add_request_headers wrapped_request
+
+        response = request_without_newrelic_trace(resolved_params, &block)
+
+        wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(response)
+        segment.read_response_headers wrapped_response
+
+        response
+      ensure
+        segment.finish
       end
-      orig_response
     end
 
     def self.install_newrelic_instrumentation

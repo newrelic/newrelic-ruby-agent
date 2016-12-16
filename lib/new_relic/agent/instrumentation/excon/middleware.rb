@@ -19,10 +19,12 @@ module ::Excon
           # accompanying response_call/error_call.
           if datum[:connection] && !datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
             wrapped_request = ::NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(datum)
-            state   = ::NewRelic::Agent::TransactionState.tl_get
-            t0      = Time.now
-            node = ::NewRelic::Agent::CrossAppTracing.start_trace(state, t0, wrapped_request)
-            datum[:connection].instance_variable_set(TRACE_DATA_IVAR, [t0, node, wrapped_request])
+            segment = NewRelic::Agent::Transaction.start_external_request_segment(
+                        wrapped_request.type, wrapped_request.uri, wrapped_request.method)
+
+            segment.add_request_headers wrapped_request
+
+            datum[:connection].instance_variable_set(TRACE_DATA_IVAR, segment)
           end
         rescue => e
           NewRelic::Agent.logger.debug(e)
@@ -41,15 +43,18 @@ module ::Excon
       end
 
       def finish_trace(datum) #THREAD_LOCAL_ACCESS
-        trace_data = datum[:connection] && datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
-        if trace_data
-          datum[:connection].instance_variable_set(TRACE_DATA_IVAR, nil)
-          t0, node, wrapped_request = trace_data
-          if datum[:response]
-            wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(datum[:response])
+        segment = datum[:connection] && datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
+        if segment
+          begin
+            datum[:connection].instance_variable_set(TRACE_DATA_IVAR, nil)
+
+            if datum[:response]
+              wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(datum[:response])
+              segment.read_response_headers wrapped_response
+            end
+          ensure
+            segment.finish
           end
-          state = ::NewRelic::Agent::TransactionState.tl_get
-          ::NewRelic::Agent::CrossAppTracing.finish_trace(state, t0, node, wrapped_request, wrapped_response)
         end
       end
     end
