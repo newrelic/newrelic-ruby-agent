@@ -89,19 +89,19 @@ matrix:
 
     # Unsupported Rails/Ruby combinations
     # 2.3
-    - rvm: 2.3.1
+    - rvm: 2.3.2
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.3.1
+    - rvm: 2.3.2
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.3.1
+    - rvm: 2.3.2
       env: TYPE=UNIT ENVIRONMENT=rails23
 
     # 2.2
-    - rvm: 2.2.5
+    - rvm: 2.2.6
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.2.5
+    - rvm: 2.2.6
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.2.5
+    - rvm: 2.2.6
       env: TYPE=UNIT ENVIRONMENT=rails23
 
     # 2.1
