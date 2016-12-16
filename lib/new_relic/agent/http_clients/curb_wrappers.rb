@@ -7,16 +7,24 @@ module NewRelic
     module HTTPClients
 
       class CurbRequest
+        CURB = 'Curb'.freeze
+        LHOST = 'host'.freeze
+        UHOST = 'Host'.freeze
+
         def initialize( curlobj )
           @curlobj = curlobj
         end
 
         def type
-          'Curb'
+          CURB
+        end
+
+        def host_from_header
+          self[LHOST] || self[UHOST]
         end
 
         def host
-          self["host"] || self["Host"] || self.uri.host
+          host_from_header || self.uri.host
         end
 
         def method
