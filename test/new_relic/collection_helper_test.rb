@@ -13,6 +13,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     super
   end
   def teardown
+    NewRelic::Agent.shutdown
     super
   end
 

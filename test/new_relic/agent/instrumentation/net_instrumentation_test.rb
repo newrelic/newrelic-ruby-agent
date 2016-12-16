@@ -23,6 +23,10 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
 
+  def teardown
+    NewRelic::Agent.shutdown
+  end
+
   def test_scope_stack_integrity_maintained_on_request_failure
     @socket.stubs(:write).raises('fake network error')
     with_config(:"cross_application_tracer.enabled" => true) do
