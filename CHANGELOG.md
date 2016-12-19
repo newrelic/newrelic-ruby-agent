@@ -1,6 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## v3.17.2
+  * Ensure values for revisions on Capistrano deploy notices
+
+  Previously, running the task to look up the changelog could
+  generate an error, if there weren't previous and current revisions
+  defined. This has now been fixed. Thanks Winfield Peterson for the
+  contribution!
+
+## v3.17.2 ##
 
   * Compatibility with Ruby 2.4.0-preview3
 
