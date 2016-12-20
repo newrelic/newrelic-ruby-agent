@@ -7,9 +7,9 @@ require 'new_relic/cli/command'
 
 class DeploymentTest < Minitest::Test
   def setup
-    $rpm_site ||= NewRelic::FakeRpmSite.new
-    $rpm_site.reset
-    $rpm_site.run
+    @rpm_site ||= NewRelic::FakeRpmSite.new
+    @rpm_site.reset
+    @rpm_site.run
   end
 
   def test_deploys_to_configured_application
@@ -35,17 +35,14 @@ class DeploymentTest < Minitest::Test
     assert_deployment_value("changelog",      "The greatest weakness of most humans is their hesitancy to tell others they love them while they're alive.")
   end
 
-  def test_newrelic_revision_override
-  end
-
   def assert_deployment_value(key, value)
-    assert_equal(1, $rpm_site.requests.count)
-    assert_equal(value, $rpm_site.requests.first["deployment"][key])
+    assert_equal(1, @rpm_site.requests.count)
+    assert_equal(value, @rpm_site.requests.first["deployment"][key])
   end
 
   def cap_it(custom_env={})
     cmd = "cap production newrelic:notice_deployment"
-    default_env = { 'FAKE_RPM_SITE_PORT' => $rpm_site.port.to_s }
+    default_env = { 'FAKE_RPM_SITE_PORT' => @rpm_site.port.to_s }
     output = with_environment(default_env.merge(custom_env)) do
       `#{cmd}`
     end
