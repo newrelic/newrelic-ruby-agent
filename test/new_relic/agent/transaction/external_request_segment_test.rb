@@ -169,20 +169,6 @@ module NewRelic
           assert_metrics_recorded expected_metrics
         end
 
-        def test_segment_records_expected_metrics_outside_transaction
-          segment = Transaction.start_external_request_segment "Net::HTTP", "http://newrelic.com/blogs/index", "GET"
-          segment.finish
-
-          expected_metrics = [
-            "External/newrelic.com/Net::HTTP/GET",
-            "External/all",
-            "External/newrelic.com/all",
-            "External/allOther"
-          ]
-
-          assert_metrics_recorded expected_metrics
-        end
-
         def test_segment_writes_outbound_request_headers
           request = RequestWrapper.new
           with_config cat_config do

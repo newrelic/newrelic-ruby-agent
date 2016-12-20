@@ -18,15 +18,6 @@ module NewRelic
           NewRelic::Agent.drop_buffered_data
         end
 
-        def test_segment_without_transaction_records_metrics
-          segment = Transaction.start_segment  "Custom/simple/segment", "Segment/all"
-          segment.start
-          advance_time 1.0
-          segment.finish
-
-          assert_metrics_recorded ["Custom/simple/segment", "Segment/all"]
-        end
-
         def test_segment_bound_to_transaction_records_metrics
           in_transaction "test_txn" do
             segment = Transaction.start_segment  "Custom/simple/segment", "Segment/all"
