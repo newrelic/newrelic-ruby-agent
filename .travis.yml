@@ -81,6 +81,7 @@ env:
 matrix:
   allow_failures:
     - rvm: rbx-2.5.8
+    - rvm: ree
   fast_finish: true
   exclude:
     - rvm: rbx-2.5.8 # Currently hangs
