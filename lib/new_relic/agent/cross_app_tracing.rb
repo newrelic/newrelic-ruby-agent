@@ -143,7 +143,12 @@ module NewRelic
       end
 
       def valid_cross_process_id?
-        NewRelic::Agent.config[:cross_process_id] && NewRelic::Agent.config[:cross_process_id].length > 0
+        if NewRelic::Agent.config[:cross_process_id] && NewRelic::Agent.config[:cross_process_id].length > 0
+          true
+        else
+          NewRelic::Agent.logger.debug "No cross_process_id configured"
+          false
+        end
       end
 
       def valid_encoding_key?
@@ -165,8 +170,7 @@ module NewRelic
 
       # Inject the X-Process header into the outgoing +request+.
       def inject_request_headers(state, request)
-        cross_app_id = NewRelic::Agent.config[:cross_process_id] or
-          raise NewRelic::Agent::CrossAppTracing::Error, "no cross app ID configured"
+        cross_app_id = NewRelic::Agent.config[:cross_process_id]
 
         state.is_cross_app_caller = true
         txn_guid = state.request_guid
