@@ -65,6 +65,85 @@ module NewRelic
           assert_metrics_recorded expected_metrics
         end
 
+        def test_segment_records_noncat_metrics_when_cat_disabled
+          request = RequestWrapper.new
+          response = {
+            'X-NewRelic-App-Data' => make_app_data_payload("1#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID)
+          }
+
+          with_config(cat_config.merge({:"cross_application_tracer.enabled" => false})) do
+            in_transaction "test", :category => :controller do
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+              segment.add_request_headers request
+              segment.read_response_headers response
+              segment.finish
+            end
+          end
+
+          expected_metrics = [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+
+          assert_metrics_recorded expected_metrics
+        end
+
+        def test_segment_records_noncat_metrics_without_valid_cross_process_id
+          request = RequestWrapper.new
+          response = {
+            'X-NewRelic-App-Data' => make_app_data_payload("1#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID)
+          }
+
+          with_config(cat_config.merge({:cross_process_id => ''})) do
+            in_transaction "test", :category => :controller do
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+              segment.add_request_headers request
+              segment.read_response_headers response
+              segment.finish
+            end
+          end
+
+          expected_metrics = [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+
+          assert_metrics_recorded expected_metrics
+        end
+
+        def test_segment_records_noncat_metrics_without_valid_encoding_key
+          CrossAppTracing.unstub(:valid_encoding_key?)
+          request = RequestWrapper.new
+          response = {
+            'X-NewRelic-App-Data' => make_app_data_payload("1#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID)
+          }
+
+          with_config(cat_config.merge({:encoding_key => ''})) do
+            in_transaction "test", :category => :controller do
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+              segment.add_request_headers request
+              segment.read_response_headers response
+              segment.finish
+            end
+          end
+
+          expected_metrics = [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+
+          assert_metrics_recorded expected_metrics
+        end
+
         def test_segment_records_expected_metrics_for_cat_transaction
           response = {
             'X-NewRelic-App-Data' => make_app_data_payload("1#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID)
@@ -165,6 +244,25 @@ module NewRelic
         def test_read_response_headers_ignores_invalid_appdata
           response = {
             'X-NewRelic-App-Data' => "this#is#not#valid#appdata"
+          }
+
+          with_config cat_config do
+            in_transaction :category => :controller do |txn|
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+              segment.read_response_headers response
+              segment.finish
+
+              refute segment.cross_app_request?
+              assert_nil segment.cross_process_id
+              assert_nil segment.cross_process_transaction_name
+              assert_nil segment.transaction_guid
+            end
+          end
+        end
+
+        def test_read_response_headers_ignores_invalid_cross_app_id
+          response = {
+            'X-NewRelic-App-Data' => make_app_data_payload("not_an_ID", "txn-name", 2, 8, 0, TRANSACTION_GUID)
           }
 
           with_config cat_config do

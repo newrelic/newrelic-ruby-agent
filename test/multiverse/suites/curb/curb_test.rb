@@ -107,8 +107,7 @@ class CurbTest < Minitest::Test
   # end
 
   def test_doesnt_propagate_errors_in_instrumentation
-    NewRelic::Agent::CrossAppTracing.stubs( :start_trace ).
-      raises( StandardError, "something bad happened" )
+    NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
 
     res = Curl::Easy.http_get( default_url )
 
