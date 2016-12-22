@@ -208,6 +208,25 @@ module NewRelic
           end
         end
 
+        def test_read_response_headers_ignores_invalid_cross_app_id
+          response = {
+            'X-NewRelic-App-Data' => make_app_data_payload("not_an_ID", "txn-name", 2, 8, 0, TRANSACTION_GUID)
+          }
+
+          with_config cat_config do
+            in_transaction :category => :controller do |txn|
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+              segment.read_response_headers response
+              segment.finish
+
+              refute segment.cross_app_request?
+              assert_nil segment.cross_process_id
+              assert_nil segment.cross_process_transaction_name
+              assert_nil segment.transaction_guid
+            end
+          end
+        end
+
         def test_uri_recorded_as_tt_attribute
           segment = nil
           uri = "http://newrelic.com/blogs/index"

@@ -264,7 +264,7 @@ module NewRelic
       def metrics_for_crossapp_response( request, response )
         xp_id, txn_name, _q_time, _r_time, _req_len, _ = extract_appdata( response )
 
-        check_crossapp_id( xp_id )
+        raise NewRelic::Agent::CrossAppTracing::Error unless valid_cross_app_id?( xp_id )
         check_transaction_name( txn_name )
 
         metrics = []
@@ -316,14 +316,6 @@ module NewRelic
 
       def transaction_sampler
         NewRelic::Agent.instance.transaction_sampler
-      end
-
-      # Check the given +id+ to ensure it conforms to the format of a cross-application
-      # ID. Raises an NewRelic::Agent::CrossAppTracing::Error if it doesn't.
-      def check_crossapp_id( id )
-        id =~ /\A\d+#\d+\z/ or
-          raise NewRelic::Agent::CrossAppTracing::Error,
-            "malformed cross application ID %p" % [ id ]
       end
 
       def valid_cross_app_id?(xp_id)

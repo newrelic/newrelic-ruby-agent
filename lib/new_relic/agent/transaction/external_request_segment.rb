@@ -61,6 +61,8 @@ module NewRelic
           if CrossAppTracing.valid_cross_app_id?(data[0])
             @app_data = data
             update_segment_name
+          else
+            NewRelic::Agent.logger.debug "External segment response has invalid cross_app_id"
           end
         rescue => e
           NewRelic::Agent.logger.error "Error in read_response_headers", e
