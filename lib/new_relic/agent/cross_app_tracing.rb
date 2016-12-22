@@ -30,29 +30,6 @@ module NewRelic
       module_function
       ###############
 
-      # Send the given +request+, adding metrics appropriate to the
-      # response when it comes back.
-      #
-      # See the documentation for +start_trace+ for an explanation of what
-      # +request+ should look like.
-      #
-      def tl_trace_http_request(request)
-        state = NewRelic::Agent::TransactionState.tl_get
-        return yield unless state.is_execution_traced?
-
-        # It's important to set t0 outside the ensured block, otherwise there's
-        # a race condition if we raise after begin but before t0's set.
-        t0 = Time.now
-        begin
-          node = start_trace(state, t0, request)
-          response = yield
-        ensure
-          finish_trace(state, t0, node, request, response)
-        end
-
-        return response
-      end
-
       # Set up the necessary state for cross-application tracing before the
       # given +request+ goes out.
       #
