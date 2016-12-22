@@ -11,7 +11,6 @@ module NewRelic
       class ActionControllerSubscriber < EventedSubscriber
 
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
-          state = TransactionState.tl_get
           request = state.request
           event = ControllerEvent.new(name, Time.now, nil, id, payload, request)
           push_event(event)
@@ -31,8 +30,6 @@ module NewRelic
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
           event = pop_event(id)
           event.payload.merge!(payload)
-
-          state = TransactionState.tl_get
 
           if state.is_execution_traced? && !event.ignored?
             stop_transaction(state, event)

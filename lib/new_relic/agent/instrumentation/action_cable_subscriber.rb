@@ -11,7 +11,6 @@ module NewRelic
         PERFORM_ACTION = 'perform_action.action_cable'.freeze
 
         def start name, id, payload #THREAD_LOCAL_ACCESS
-          state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
           event = super
           if event.name == PERFORM_ACTION
@@ -24,7 +23,6 @@ module NewRelic
         end
 
         def finish name, id, payload #THREAD_LOCAL_ACCESS
-          state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
           event = super
           notice_error payload if payload.key? :exception

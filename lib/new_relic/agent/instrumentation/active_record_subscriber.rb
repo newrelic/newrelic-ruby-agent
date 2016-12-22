@@ -32,7 +32,6 @@ module NewRelic
 
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
           return if payload[:name] == CACHED_QUERY_NAME
-          state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
           event = pop_event(id)
           event.finish

@@ -27,10 +27,6 @@ module NewRelic
           log_notification_error(e, name, 'finish')
         end
 
-        def state
-          NewRelic::Agent::TransactionState.tl_get
-        end
-
         class RenderEvent < Event
           attr_accessor :segment
 
