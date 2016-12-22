@@ -32,121 +32,161 @@ class DataMapperTest < Minitest::Test
     # calls the instance #save method, so that's all we see on that version.
     expected_metric = DataMapper::VERSION < "1.1" ? :save : :create
     assert_basic_metrics(expected_metric) do
-      Post.create(:title => "Dummy post", :body => "whatever, man")
+      in_transaction do
+        Post.create(:title => "Dummy post", :body => "whatever, man")
+      end
     end
   end
 
   def test_create!
     assert_basic_metrics(:create) do
-      Post.create!(:title => "Dummy post", :body => "whatever, man")
+      in_transaction do
+        Post.create!(:title => "Dummy post", :body => "whatever, man")
+      end
     end
   end
 
   def test_get
     assert_against_record(:get) do |post|
-      Post.get(post.id)
+      in_transaction do
+        Post.get(post.id)
+      end
     end
   end
 
   def test_get!
     assert_against_record(:get) do |post|
-      Post.get!(post.id)
+      in_transaction do
+        Post.get!(post.id)
+      end
     end
   end
 
   def test_first
     assert_against_record(:first) do
-      Post.first
+      in_transaction do
+        Post.first
+      end
     end
   end
 
   def test_all
     assert_against_record(:all) do
-      Post.all
+      in_transaction do
+        Post.all
+      end
     end
   end
 
   def test_last
     assert_against_record(:last) do
-      Post.last
+      in_transaction do
+        Post.last
+      end
     end
   end
 
   def test_bulk_update
     assert_against_record(:update) do
-      Post.update(:title => 'other title')
+      in_transaction do
+        Post.update(:title => 'other title')
+      end
     end
   end
 
   def test_bulk_update!
     assert_against_record(:update) do
-      Post.update!(:title => 'other title')
+      in_transaction do
+        Post.update!(:title => 'other title')
+      end
     end
   end
 
   def test_instance_update
     assert_against_record(:update) do |post|
-      post.update(:title => 'other title')
+      in_transaction do
+        post.update(:title => 'other title')
+      end
     end
   end
 
   def test_bulk_update!
     assert_against_record(:update) do |post|
-      post.update!(:title => 'other title')
+      in_transaction do
+        post.update!(:title => 'other title')
+      end
     end
   end
 
   def test_bulk_destroy
     assert_against_record(:destroy) do
-      Post.destroy
+      in_transaction do
+        Post.destroy
+      end
     end
   end
 
   def test_bulk_destroy!
     assert_against_record(:destroy) do
-      Post.destroy!
+      in_transaction do
+        Post.destroy!
+      end
     end
   end
 
   def test_instance_destroy
     assert_against_record(:destroy) do |post|
-      post.destroy
+      in_transaction do
+        post.destroy
+      end
     end
   end
 
   def test_instance_destroy!
     assert_against_record(:destroy) do |post|
-      post.destroy!
+      in_transaction do
+        post.destroy!
+      end
     end
   end
 
   def test_save
     assert_against_record(:save) do |post|
-      post.save
+      in_transaction do
+        post.save
+      end
     end
   end
 
   def test_save!
     assert_against_record(:save) do |post|
-      post.save!
+      in_transaction do
+        post.save!
+      end
     end
   end
 
   def test_aggregate
     assert_against_record(:aggregate) do
-      Post.aggregate(:title, :all.count)
+      in_transaction do
+        Post.aggregate(:title, :all.count)
+      end
     end
   end
 
   def test_find
     assert_against_record(:find) do
-      Post.find(1)
+      in_transaction do
+        Post.find(1)
+      end
     end
   end
 
   def test_find_by_sql
     assert_against_record(:find_by_sql) do
-      Post.find_by_sql('select * from posts')
+      in_transaction do
+        Post.find_by_sql('select * from posts')
+      end
     end
   end
 
@@ -168,25 +208,33 @@ class DataMapperTest < Minitest::Test
 
   def test_collection_get
     assert_against_record(:get) do
-      Post.all.get(1)
+      in_transaction do
+        Post.all.get(1)
+      end
     end
   end
 
   def test_collection_first
     assert_against_record(:first) do
-      Post.all.first
+      in_transaction do
+        Post.all.first
+      end
     end
   end
 
   def test_collection_last
     assert_against_record(:last) do
-      Post.all.last
+      in_transaction do
+        Post.all.last
+      end
     end
   end
 
   def test_collection_all
     assert_against_record(:all) do
-      Post.all.all # sic
+      in_transaction do
+        Post.all.all # sic
+      end
     end
 
     assert_metrics_recorded(
@@ -196,49 +244,65 @@ class DataMapperTest < Minitest::Test
 
   def test_collection_lazy_load
     assert_against_record(:lazy_load) do
-      Post.all.send(:lazy_load)
+      in_transaction do
+        Post.all.send(:lazy_load)
+      end
     end
   end
 
   def test_collection_create
     assert_against_record(:create) do
-      Post.all.create(:title => "The Title", :body => "Body")
+      in_transaction do
+        Post.all.create(:title => "The Title", :body => "Body")
+      end
     end
   end
 
   def test_collection_create!
     assert_against_record(:create) do
-      Post.all.create!(:title => "The Title", :body => "Body")
+      in_transaction do
+        Post.all.create!(:title => "The Title", :body => "Body")
+      end
     end
   end
 
   def test_collection_update
     assert_against_record(:update) do
-      Post.all.update(:title => "Another")
+      in_transaction do
+        Post.all.update(:title => "Another")
+      end
     end
   end
 
   def test_collection_update!
     assert_against_record(:update) do
-      Post.all.update!(:title => "Another")
+      in_transaction do
+        Post.all.update!(:title => "Another")
+      end
     end
   end
 
   def test_collection_destroy
     assert_against_record(:destroy) do
-      Post.all.destroy
+      in_transaction do
+        Post.all.destroy
+      end
     end
   end
 
   def test_collection_destroy!
     assert_against_record(:destroy) do
-      Post.all.destroy!
+      in_transaction do
+        Post.all.destroy!
+      end
     end
   end
 
   def test_collection_aggregate
     assert_against_record(:aggregate) do
-      Post.all.aggregate(:title, :all.count)
+      in_transaction do
+        Post.all.aggregate(:title, :all.count)
+      end
     end
   end
 
@@ -282,8 +346,10 @@ class DataMapperTest < Minitest::Test
   end
 
   def test_datamapper_transaction_commit
-    Post.transaction do |t|
-      Post.destroy!
+    in_transaction do
+      Post.transaction do |t|
+        Post.destroy!
+      end
     end
 
     assert_metrics_recorded([
@@ -315,7 +381,9 @@ class DataMapperTest < Minitest::Test
     invalid_query = "select * from users where password='Slurms McKenzie' limit 1"
     with_config(:'slow_sql.record_sql' => 'obfuscated') do
       begin
-        DataMapper.repository.adapter.select(invalid_query)
+        in_transaction do
+          DataMapper.repository.adapter.select(invalid_query)
+        end
       rescue => e
         NewRelic::Agent.notice_error(e)
       end
@@ -326,7 +394,9 @@ class DataMapperTest < Minitest::Test
 
   def test_splice_user_password_from_sqlerror
     begin
-      DataMapper.repository.adapter.select("select * from users")
+      in_transaction do
+        DataMapper.repository.adapter.select("select * from users")
+      end
     rescue => e
       NewRelic::Agent.notice_error(e)
     end
