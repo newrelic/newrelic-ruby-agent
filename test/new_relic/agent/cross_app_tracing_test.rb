@@ -20,32 +20,6 @@ module NewRelic
         @state = NewRelic::Agent::TransactionState.tl_get
       end
 
-      def test_finish_trace_treats_nil_start_time_as_agent_error
-        expects_logging(:error, any_parameters)
-        expects_no_pop_frame
-        CrossAppTracing.finish_trace(@state, nil, node, request, response)
-      end
-
-      # Since we log and swallow errors, assert on the logging to ensure these
-      # paths are cleanly accepting nils, not just smothering the exceptions.
-
-      def test_finish_trace_allows_nil_node
-        expects_no_logging(:error)
-        CrossAppTracing.finish_trace(@state, Time.now, nil, request, response)
-      end
-
-      def test_finish_trace_allows_nil_request
-        expects_no_logging(:error)
-        expects_pop_frame
-        CrossAppTracing.finish_trace(@state, Time.now, node, nil, response)
-      end
-
-      def test_finish_trace_allows_nil_response
-        expects_no_logging(:error)
-        expects_pop_frame
-        CrossAppTracing.finish_trace(@state, Time.now, node, request, nil)
-      end
-
       def expects_pop_frame
         @state.traced_method_stack.stubs(:pop_frame).once
       end

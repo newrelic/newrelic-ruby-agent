@@ -30,57 +30,6 @@ module NewRelic
       module_function
       ###############
 
-      # Finish tracing the HTTP +request+ that started at +t0+ with the information in
-      # +response+ and the given +http+ connection.
-      #
-      # The +request+ must conform to the same interface described in the documentation
-      # for +start_trace+.
-      #
-      # The +response+ must respond to the following methods:
-      #
-      # * [](key) - Reads response headers.
-      # * to_hash - Converts response headers to a Hash
-      #
-      def finish_trace(state, t0, node, request, response)
-        unless t0
-          NewRelic::Agent.logger.error("HTTP request trace finished without start time. This is probably an agent bug.")
-          return
-        end
-
-        t1 = Time.now
-        duration = t1.to_f - t0.to_f
-
-        begin
-          if request
-            # Figure out which metrics we need to report based on the request and response
-            # The last (most-specific) one is scoped.
-            metrics = metrics_for(request, response)
-            scoped_metric = metrics.pop
-
-            stats_engine.record_scoped_and_unscoped_metrics(
-              state, scoped_metric, metrics, duration)
-
-            # If we don't have node, something failed during start_trace so
-            # the current node isn't the HTTP call it should have been.
-            if node
-              node.name = scoped_metric
-              add_transaction_trace_parameters(request, response)
-            end
-          end
-        ensure
-          # If we have a node, always pop the traced method stack to avoid
-          # an inconsistent state, which prevents tracing of whole transaction.
-          if node
-            stack = state.traced_method_stack
-            stack.pop_frame(state, node, scoped_metric, t1)
-          end
-        end
-      rescue NewRelic::Agent::CrossAppTracing::Error => err
-        NewRelic::Agent.logger.debug "while cross app tracing", err
-      rescue => err
-        NewRelic::Agent.logger.error "Uncaught exception while finishing an HTTP request trace", err
-      end
-
       def cross_app_enabled?
         valid_cross_process_id? &&
           valid_encoding_key? &&
