@@ -29,12 +29,12 @@ module NewRelic
         end
 
         def test_segment_records_expected_metrics
-          Transaction.stubs(:recording_web_transaction?).returns(true)
-
-          segment = DatastoreSegment.new "SQLite", "insert", "Blog"
-          segment.start
-          advance_time 1
-          segment.finish
+          in_web_transaction "text_txn" do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            segment.start
+            advance_time 1
+            segment.finish
+          end
 
           assert_metrics_recorded [
             "Datastore/statement/SQLite/Blog/insert",
@@ -47,12 +47,12 @@ module NewRelic
         end
 
         def test_segment_records_expected_metrics_without_collection
-          Transaction.stubs(:recording_web_transaction?).returns(true)
-
-          segment = DatastoreSegment.new "SQLite", "select"
-          segment.start
-          advance_time 1
-          segment.finish
+          in_web_transaction "text_txn" do
+            segment = Transaction.start_datastore_segment "SQLite", "select"
+            segment.start
+            advance_time 1
+            segment.finish
+          end
 
           assert_metrics_recorded [
             "Datastore/operation/SQLite/select",
@@ -64,12 +64,12 @@ module NewRelic
         end
 
         def test_segment_records_expected_metrics_with_instance_identifier
-          Transaction.stubs(:recording_web_transaction?).returns(true)
-
-          segment = DatastoreSegment.new "SQLite", "select", nil, "jonan-01", "1337807"
-          segment.start
-          advance_time 1
-          segment.finish
+          in_web_transaction "text_txn" do
+            segment = Transaction.start_datastore_segment "SQLite", "select", nil, "jonan-01", "1337807"
+            segment.start
+            advance_time 1
+            segment.finish
+          end
 
           assert_metrics_recorded [
             "Datastore/instance/SQLite/jonan-01/1337807",
@@ -82,12 +82,12 @@ module NewRelic
         end
 
         def test_segment_records_expected_metrics_with_instance_identifier_host_only
-          Transaction.stubs(:recording_web_transaction?).returns(true)
-
-          segment = DatastoreSegment.new "SQLite", "select", nil, "jonan-01"
-          segment.start
-          advance_time 1
-          segment.finish
+          in_web_transaction "text_txn" do
+            segment = Transaction.start_datastore_segment "SQLite", "select", nil, "jonan-01"
+            segment.start
+            advance_time 1
+            segment.finish
+          end
 
           assert_metrics_recorded [
             "Datastore/instance/SQLite/jonan-01/unknown",
@@ -100,12 +100,12 @@ module NewRelic
         end
 
         def test_segment_records_expected_metrics_with_instance_identifier_port_only
-          Transaction.stubs(:recording_web_transaction?).returns(true)
-
-          segment = DatastoreSegment.new "SQLite", "select", nil, nil, 1337807
-          segment.start
-          advance_time 1
-          segment.finish
+          in_web_transaction "text_txn" do
+            segment = Transaction.start_datastore_segment "SQLite", "select", nil, nil, 1337807
+            segment.start
+            advance_time 1
+            segment.finish
+          end
 
           assert_metrics_recorded [
             "Datastore/instance/SQLite/unknown/1337807",
@@ -118,24 +118,24 @@ module NewRelic
         end
 
         def test_segment_does_not_record_expected_metrics_with_empty_data
-          Transaction.stubs(:recording_web_transaction?).returns(true)
-
-          segment = DatastoreSegment.new "SQLite", "select", nil
-          segment.start
-          advance_time 1
-          segment.finish
+          in_web_transaction "text_txn" do
+            segment = Transaction.start_datastore_segment "SQLite", "select", nil
+            segment.start
+            advance_time 1
+            segment.finish
+          end
 
           assert_metrics_not_recorded "Datastore/instance/SQLite/unknown/unknown"
         end
 
         def test_segment_does_not_record_instance_id_metrics_when_disabled
           with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
-            Transaction.stubs(:recording_web_transaction?).returns(true)
-
-            segment = DatastoreSegment.new "SQLite", "select", nil, "jonan-01", "1337807"
-            segment.start
-            advance_time 1
-            segment.finish
+            in_web_transaction "text_txn" do
+              segment = Transaction.start_datastore_segment "SQLite", "select", nil, "jonan-01", "1337807"
+              segment.start
+              advance_time 1
+              segment.finish
+            end
 
             assert_metrics_not_recorded "Datastore/instance/SQLite/jonan-01/1337807"
           end

@@ -45,18 +45,21 @@ module NewRelic
         end
 
         def test_segment_records_metrics
-          segment = BasicSegment.new "Custom/basic/segment"
-          segment.start
-          advance_time 1.0
-          segment.finish
+          in_transaction do |txn|
+            segment = BasicSegment.new "Custom/basic/segment"
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
 
           assert_metrics_recorded ["Custom/basic/segment", "Basic/all"]
         end
 
         def test_segment_records_metrics_in_local_cache_if_part_of_transaction
           segment = BasicSegment.new "Custom/basic/segment"
-          txn = in_transaction "test_transaction" do
-            segment.transaction = txn
+          in_transaction "test_transaction" do |txn|
+            txn.add_segment segment
             segment.start
             advance_time 1.0
             segment.finish
@@ -72,21 +75,27 @@ module NewRelic
         # segments we would like to create a TT node for the segment, but not record
         # metrics
         def test_segments_will_not_record_metrics_when_turned_off
-          segment = BasicSegment.new "Custom/basic/segment"
-          segment.record_metrics = false
-          segment.start
-          advance_time 1.0
-          segment.finish
+          in_transaction do |txn|
+            segment = BasicSegment.new "Custom/basic/segment"
+            txn.add_segment segment
+            segment.record_metrics = false
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
 
           refute_metrics_recorded ["Custom/basic/segment", "Basic/all"]
         end
 
         def test_segment_complete_callback_executes_when_segment_finished
-          segment = BasicSegment.new "Custom/basic/segment"
-          segment.expects(:segment_complete)
-          segment.start
-          advance_time 1.0
-          segment.finish
+          in_transaction do |txn|
+            segment = BasicSegment.new "Custom/basic/segment"
+            txn.add_segment segment
+            segment.expects(:segment_complete)
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
         end
       end
     end

@@ -38,6 +38,10 @@ module NewRelic
             segment.start
             advance_time 1.0
             segment.finish
+
+            #clean up traced method stack
+            txn.unstub(:segment_complete)
+            txn.segment_complete(segment)
           end
         end
 

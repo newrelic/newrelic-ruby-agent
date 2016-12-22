@@ -31,19 +31,25 @@ module NewRelic
         end
 
         def test_segment_records_metrics
-          segment = Segment.new  "Custom/simple/segment", "Segment/all"
-          segment.start
-          advance_time 1.0
-          segment.finish
+          in_transaction do |txn|
+            segment = Segment.new  "Custom/simple/segment", "Segment/all"
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
 
           assert_metrics_recorded ["Custom/simple/segment", "Segment/all"]
         end
 
         def test_segment_records_metrics_when_given_as_array
-          segment = Segment.new  "Custom/simple/segment", ["Segment/all", "Other/all"]
-          segment.start
-          advance_time 1.0
-          segment.finish
+          in_transaction do |txn|
+            segment = Segment.new  "Custom/simple/segment", ["Segment/all", "Other/all"]
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
 
           assert_metrics_recorded ["Custom/simple/segment", "Segment/all", "Other/all"]
         end
