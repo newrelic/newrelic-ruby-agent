@@ -54,9 +54,11 @@ module NewRelic
             NewRelic::Agent.logger.debug "Unable to read_response_headers from external segment"
             return
           end
-
-          return unless CrossAppTracing.response_is_crossapp?(response)
-          return unless data = CrossAppTracing.extract_appdata(response)
+          return unless CrossAppTracing.response_has_crossapp_header?(response)
+          unless data = CrossAppTracing.extract_appdata(response)
+            NewRelic::Agent.logger.debug "Couldn't extract_appdata from external segment response"
+            return
+          end
 
           if CrossAppTracing.valid_cross_app_id?(data[0])
             @app_data = data

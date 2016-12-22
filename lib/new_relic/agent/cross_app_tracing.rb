@@ -206,7 +206,7 @@ module NewRelic
       def add_transaction_trace_parameters(request, response)
         filtered_uri = ::NewRelic::Agent::HTTPClients::URIUtil.filter_uri(request.uri)
         transaction_sampler.add_node_parameters(:uri => filtered_uri)
-        if response && response_is_crossapp?(response)
+        if response && response_has_crossapp_header?(response)
           add_cat_transaction_trace_parameters(response)
         end
       end
@@ -227,7 +227,7 @@ module NewRelic
       def metrics_for( request, response )
         metrics = common_metrics( request )
 
-        if response && response_is_crossapp?( response )
+        if response && response_has_crossapp_header?( response )
           begin
             metrics.concat metrics_for_crossapp_response( request, response )
           rescue => err
@@ -258,8 +258,13 @@ module NewRelic
         return metrics
       end
 
-      def response_is_crossapp?( response )
-        !!response[NR_APPDATA_HEADER]
+      def response_has_crossapp_header?(response)
+        if !!response[NR_APPDATA_HEADER]
+          true
+        else
+          NewRelic::Agent.logger.debug "No #{NR_APPDATA_HEADER} header"
+          false
+        end
       end
 
 
@@ -290,16 +295,14 @@ module NewRelic
       #    <request content length in bytes>,
       #    <transaction GUID>
       #  ]
-      def extract_appdata( response )
-        appdata = response[NR_APPDATA_HEADER] or
-          raise NewRelic::Agent::CrossAppTracing::Error,
-            "Can't derive metrics for response: no #{NR_APPDATA_HEADER} header!"
+      def extract_appdata(response)
+        appdata = response[NR_APPDATA_HEADER]
 
-        decoded_appdata = obfuscator.deobfuscate( appdata )
-        decoded_appdata.set_encoding( ::Encoding::UTF_8 ) if
-          decoded_appdata.respond_to?( :set_encoding )
+        decoded_appdata = obfuscator.deobfuscate(appdata)
+        decoded_appdata.set_encoding(::Encoding::UTF_8) if
+          decoded_appdata.respond_to?(:set_encoding)
 
-        return NewRelic::JSONWrapper.load( decoded_appdata )
+        NewRelic::JSONWrapper.load(decoded_appdata)
       end
 
 
