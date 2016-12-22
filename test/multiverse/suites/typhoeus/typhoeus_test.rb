@@ -103,7 +103,7 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
 
     def test_request_succeeds_even_if_tracing_doesnt
       in_transaction("test") do
-        ::NewRelic::Agent::CrossAppTracing.stubs(:start_trace).raises("Booom")
+        ::NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
         res = get_response
 
         assert_match %r/<head>/i, body(res)

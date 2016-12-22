@@ -20,19 +20,6 @@ module NewRelic
         @state = NewRelic::Agent::TransactionState.tl_get
       end
 
-      def test_start_trace
-        t0   = Time.now
-        node = CrossAppTracing.start_trace(@state, t0, request)
-        refute_nil node
-      end
-
-      def test_start_trace_has_nil_node_on_agent_failure
-        @state.traced_method_stack.stubs(:push_frame).raises("Boom!")
-        t0      = Time.now
-        node = CrossAppTracing.start_trace(@state, t0, request)
-        assert_nil node
-      end
-
       def test_finish_trace_treats_nil_start_time_as_agent_error
         expects_logging(:error, any_parameters)
         expects_no_pop_frame

@@ -30,37 +30,6 @@ module NewRelic
       module_function
       ###############
 
-      # Set up the necessary state for cross-application tracing before the
-      # given +request+ goes out.
-      #
-      # The +request+ object passed in must respond to the following methods:
-      #
-      # * type - Return a String describing the underlying library being used
-      #          to make the request (e.g. 'Net::HTTP' or 'Typhoeus')
-      # * host - Return a String with the hostname or IP of the host being
-      #          communicated with.
-      # * method  - Return a String with the HTTP method name for this request
-      # * [](key) - Lookup an HTTP request header by name
-      # * []=(key, val) - Set an HTTP request header by name
-      # * uri  - Full URI of the request
-      #
-      # This method returns the transaction node if it was sucessfully pushed.
-      def start_trace(state, t0, request)
-        inject_request_headers(state, request) if cross_app_enabled?
-        stack = state.traced_method_stack
-        node = stack.push_frame(state, :http_request, t0)
-
-        return node
-      rescue => err
-        NewRelic::Agent.logger.error "Uncaught exception while tracing HTTP request", err
-        return nil
-      rescue Exception => e
-        NewRelic::Agent.logger.debug "Unexpected exception raised while tracing HTTP request", e
-
-        raise e
-      end
-
-
       # Finish tracing the HTTP +request+ that started at +t0+ with the information in
       # +response+ and the given +http+ connection.
       #
