@@ -8,16 +8,16 @@ module NewRelic
     module CrossAppTracing
 
       # The cross app response header for "outgoing" calls
-      NR_APPDATA_HEADER = 'X-NewRelic-App-Data'
+      NR_APPDATA_HEADER = 'X-NewRelic-App-Data'.freeze
 
       # The cross app id header for "outgoing" calls
-      NR_ID_HEADER = 'X-NewRelic-ID'
+      NR_ID_HEADER = 'X-NewRelic-ID'.freeze
 
       # The cross app transaction header for "outgoing" calls
-      NR_TXN_HEADER = 'X-NewRelic-Transaction'
+      NR_TXN_HEADER = 'X-NewRelic-Transaction'.freeze
 
       # The cross app synthetics header
-      NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'
+      NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
 
       ###############
       module_function
