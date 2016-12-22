@@ -65,6 +65,32 @@ module NewRelic
           assert_metrics_recorded expected_metrics
         end
 
+        def test_segment_records_noncat_metrics_when_cat_disabled
+          request = RequestWrapper.new
+          response = {
+            'X-NewRelic-App-Data' => make_app_data_payload("1#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID)
+          }
+
+          with_config(cat_config.merge({:"cross_application_tracer.enabled" => false})) do
+            in_transaction "test", :category => :controller do
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+              segment.add_request_headers request
+              segment.read_response_headers response
+              segment.finish
+            end
+          end
+
+          expected_metrics = [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+
+          assert_metrics_recorded expected_metrics
+        end
+
         def test_segment_records_noncat_metrics_without_valid_cross_process_id
           request = RequestWrapper.new
           response = {

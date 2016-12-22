@@ -135,7 +135,6 @@ module NewRelic
         NewRelic::Agent.logger.error "Uncaught exception while finishing an HTTP request trace", err
       end
 
-      # Return +true+ if cross app tracing is enabled in the config.
       def cross_app_enabled?
         valid_cross_process_id? &&
           valid_encoding_key? &&
