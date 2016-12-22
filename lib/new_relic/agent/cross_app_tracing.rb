@@ -147,22 +147,20 @@ module NewRelic
       end
 
       def valid_encoding_key?
-        NewRelic::Agent.config[:encoding_key] && NewRelic::Agent.config[:encoding_key].length > 0
+        if NewRelic::Agent.config[:encoding_key] && NewRelic::Agent.config[:encoding_key].length > 0
+          true
+        else
+          NewRelic::Agent.logger.debug "No encoding_key set"
+          false
+        end
       end
 
       def cross_application_tracer_enabled?
         NewRelic::Agent.config[:"cross_application_tracer.enabled"] || NewRelic::Agent.config[:cross_application_tracing]
       end
 
-      # Fetcher for the cross app encoding key. Raises a
-      # NewRelic::Agent::CrossAppTracing::Error if the key isn't configured.
-      def cross_app_encoding_key
-        NewRelic::Agent.config[:encoding_key] or
-          raise NewRelic::Agent::CrossAppTracing::Error, "No encoding_key set."
-      end
-
       def obfuscator
-        @obfuscator ||= NewRelic::Agent::Obfuscator.new(cross_app_encoding_key)
+        @obfuscator ||= NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
       end
 
       # Inject the X-Process header into the outgoing +request+.
@@ -256,16 +254,8 @@ module NewRelic
         return metrics
       end
 
-
-      # Returns +true+ if Cross Application Tracing is enabled, and the given +response+
-      # has the appropriate headers.
       def response_is_crossapp?( response )
-        return false unless cross_app_enabled?
-        unless response[NR_APPDATA_HEADER]
-          return false
-        end
-
-        return true
+        !!response[NR_APPDATA_HEADER]
       end
 
 

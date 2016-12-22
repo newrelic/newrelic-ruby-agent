@@ -34,7 +34,7 @@ module NewRelic
         def add_request_headers request
           process_host_header request
           unless CrossAppTracing.cross_app_enabled?
-            NewRelic::Agent.logger.debug "Not injecting x-process header"
+            NewRelic::Agent.logger.debug "Unable to add_request_headers from external segment"
             return
           end
 
@@ -50,6 +50,11 @@ module NewRelic
         end
 
         def read_response_headers response
+          unless CrossAppTracing.cross_app_enabled?
+            NewRelic::Agent.logger.debug "Unable to read_response_headers from external segment"
+            return
+          end
+
           return unless CrossAppTracing.response_is_crossapp?(response)
           return unless data = CrossAppTracing.extract_appdata(response)
 
