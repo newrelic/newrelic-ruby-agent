@@ -95,7 +95,8 @@ module HttpClientTestCases
   end
 
   def test_get
-    res = get_response
+    res = nil
+    in_transaction { res = get_response }
 
     assert_match %r/<head>/i, body(res)
     assert_externals_recorded_for("localhost", "GET")
@@ -108,7 +109,11 @@ module HttpClientTestCases
   def test_get_with_host_header
     uri = default_uri
     uri.host = '127.0.0.1'
-    res = get_response(uri.to_s, 'Host' => 'test.local')
+    res = nil
+
+    in_transaction do
+      res = get_response(uri.to_s, 'Host' => 'test.local')
+    end
 
     assert_match %r/<head>/i, body(res)
     assert_externals_recorded_for("test.local", "GET")
@@ -117,7 +122,11 @@ module HttpClientTestCases
   def test_get_with_host_header_lowercase
     uri = default_uri
     uri.host = '127.0.0.1'
-    res = get_response(uri.to_s, 'host' => 'test.local')
+    res = nil
+
+    in_transaction do
+      res = get_response(uri.to_s, 'host' => 'test.local')
+    end
 
     assert_match %r/<head>/i, body(res)
     assert_externals_recorded_for("test.local", "GET")
@@ -128,7 +137,11 @@ module HttpClientTestCases
   def test_get_with_reused_connection
     if self.respond_to?(:get_response_multi)
       n = 2
-      responses = get_response_multi(default_url, n)
+      responses = nil
+
+      in_transaction do
+        responses = get_response_multi(default_url, n)
+      end
 
       responses.each do |res|
         assert_match %r/<head>/i, body(res)
@@ -195,28 +208,31 @@ module HttpClientTestCases
   end
 
   def test_head
-    head_response
+    in_transaction { head_response }
     assert_externals_recorded_for("localhost", "HEAD")
   end
 
   def test_post
-    post_response
+    in_transaction { post_response }
     assert_externals_recorded_for("localhost", "POST")
   end
 
   def test_put
-    put_response
+    in_transaction { put_response }
     assert_externals_recorded_for("localhost", "PUT")
   end
 
   def test_delete
-    delete_response
+    in_transaction { delete_response }
     assert_externals_recorded_for("localhost", "DELETE")
   end
 
   if defined?(::Addressable)
     def test_url_not_supported_by_stdlib_uri
-      res = get_response("#{protocol}://foo:^password*12@localhost:#{server.port}/status")
+      res = nil
+      in_transaction do
+        res = get_response("#{protocol}://foo:^password*12@localhost:#{server.port}/status")
+      end
 
       assert_match %r/<head>/i, body(res)
       assert_externals_recorded_for("localhost", "GET")
@@ -228,14 +244,14 @@ module HttpClientTestCases
 
   def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
     with_config(:"cross_application_tracer.enabled" => true) do
-      get_response
+      in_transaction { get_response }
       assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
     end
   end
 
   def test_adds_a_request_header_to_outgoing_requests_if_old_xp_config_is_present
     with_config(:cross_application_tracing => true) do
-      get_response
+      in_transaction { get_response }
       assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
     end
   end
@@ -263,14 +279,14 @@ module HttpClientTestCases
   end
 
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
-    get_response
+    in_transaction { get_response }
     assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
   end
 
   def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
     with_config(:'cross_application_tracer.enabled' => true,
                 :cross_process_id => "") do
-      get_response
+      in_transaction { get_response }
       assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
     end
   end
@@ -278,7 +294,7 @@ module HttpClientTestCases
   def test_agent_doesnt_add_a_request_header_if_empty_encoding_key
     with_config(:'cross_application_tracer.enabled' => true,
                 :encoding_key => "") do
-      get_response
+      in_transaction { get_response }
       assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
     end
   end
@@ -376,7 +392,7 @@ module HttpClientTestCases
       raises( NoMethodError, "undefined method `push_scope'" )
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      res = get_response
+      in_transaction { res = get_response }
     end
 
     assert_equal NewRelic::FakeExternalServer::STATUS_MESSAGE, body(res)
@@ -388,7 +404,7 @@ module HttpClientTestCases
       raises( NoMethodError, "undefined method `pop_scope'" )
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      res = get_response
+      in_transaction { res = get_response }
     end
 
     assert_equal NewRelic::FakeExternalServer::STATUS_MESSAGE, body(res)
@@ -401,7 +417,7 @@ module HttpClientTestCases
     NewRelic::Agent.logger = logger
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      get_response
+      in_transaction { get_response }
     end
 
     refute_match( /undefined method `.*" for nil:NilClass/i,
@@ -424,7 +440,7 @@ module HttpClientTestCases
     NewRelic::JSONWrapper.stubs(:dump).raises("Boom!")
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      get_response
+      in_transaction { get_response }
     end
 
     assert_externals_recorded_for("localhost", "GET")

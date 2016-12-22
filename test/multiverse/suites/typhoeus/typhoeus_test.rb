@@ -124,7 +124,8 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
 
     if CURRENT_TYPHOEUS_VERSION >= SUPPORTS_URI_OBJECT_VERSION
       def test_get_with_uri
-        res = get_response(default_uri)
+        res = nil
+        in_transaction { res = get_response(default_uri) }
         assert_match %r/<head>/i, body(res)
         assert_externals_recorded_for("localhost", "GET")
       end
