@@ -19,106 +19,105 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
 
   def test_records_metrics_for_simple_template
     params = { :identifier => '/root/app/views/model/index.html.erb' }
-
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
-
-    @subscriber.start('render_template.action_view', :id, params)
-    @subscriber.start('!render_template.action_view', :id,
-                      :virtual_path => 'model/index')
-    @subscriber.finish('!render_template.action_view', :id,
-                       :virtual_path => 'model/index')
-    @subscriber.finish('render_template.action_view', :id, params)
-
+    freeze_time
+    in_transaction do
+      @subscriber.start('render_template.action_view', :id, params)
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'model/index')
+      advance_time 2.0
+      @subscriber.finish('!render_template.action_view', :id,
+                         :virtual_path => 'model/index')
+      @subscriber.finish('render_template.action_view', :id, params)
+    end
     expected = { :call_count => 1, :total_call_time => 2.0 }
     assert_metrics_recorded('View/model/index.html.erb/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_file
     params = { :identifier => '/root/something.txt' }
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
-
-    @subscriber.start('render_template.action_view', :id, params)
-    @subscriber.start('!render_template.action_view', :id,
-                      :virtual_path => nil)
-    @subscriber.finish('!render_template.action_view', :id,
-                       :virtual_path => nil)
-    @subscriber.finish('render_template.action_view', :id, params)
-
+    freeze_time
+    in_transaction do
+      @subscriber.start('render_template.action_view', :id, params)
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => nil)
+      advance_time 2.0
+      @subscriber.finish('!render_template.action_view', :id,
+                         :virtual_path => nil)
+      @subscriber.finish('render_template.action_view', :id, params)
+    end
     expected = { :call_count => 1, :total_call_time => 2.0 }
     assert_metrics_recorded('View/file/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_inline
     params = { :identifier => 'inline template' }
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
-
-    @subscriber.start('render_template.action_view', :id, params)
-    @subscriber.start('!render_template.action_view', :id,
-                      :virtual_path => nil)
-    @subscriber.finish('!render_template.action_view', :id,
-                       :virtual_path => nil)
-    @subscriber.finish('render_template.action_view', :id, params)
-
+    freeze_time
+    in_transaction do
+      @subscriber.start('render_template.action_view', :id, params)
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => nil)
+      advance_time 2.0
+      @subscriber.finish('!render_template.action_view', :id,
+                         :virtual_path => nil)
+      @subscriber.finish('render_template.action_view', :id, params)
+    end
     expected = { :call_count => 1, :total_call_time => 2.0 }
     assert_metrics_recorded('View/inline template/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_text
     params = { :identifier => 'text template' }
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0 + 2)
-
-    @subscriber.start('render_template.action_view', :id, params)
-    @subscriber.finish('render_template.action_view', :id, params)
-
+    freeze_time
+    in_transaction do
+      @subscriber.start('render_template.action_view', :id, params)
+      advance_time 2.0
+      @subscriber.finish('render_template.action_view', :id, params)
+    end
     expected = { :call_count => 1, :total_call_time => 2.0 }
     assert_metrics_recorded('View/text template/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_partial
     params = { :identifier => '/root/app/views/model/_form.html.erb' }
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
-
-    @subscriber.start('render_partial.action_view', :id, params)
-    @subscriber.start('!render_template.action_view', :id,
-                      :virtual_path => 'model/_form')
-    @subscriber.finish('!render_template.action_view', :id,
-                       :virtual_path => 'model/_form')
-    @subscriber.finish('render_partial.action_view', :id, params)
-
+    freeze_time
+    in_transaction do
+      @subscriber.start('render_partial.action_view', :id, params)
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'model/_form')
+      advance_time 2.0
+      @subscriber.finish('!render_template.action_view', :id,
+                         :virtual_path => 'model/_form')
+      @subscriber.finish('render_partial.action_view', :id, params)
+    end
     expected = { :call_count => 1, :total_call_time => 2.0 }
     assert_metrics_recorded('View/model/_form.html.erb/Partial' => expected)
   end
 
   def test_records_metrics_for_simple_collection
     params = { :identifier => '/root/app/views/model/_user.html.erb' }
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
-
-    @subscriber.start('render_collection.action_view', :id, params)
-    @subscriber.start('!render_template.action_view', :id,
-                      :virtual_path => 'model/_user')
-    @subscriber.finish('!render_template.action_view', :id,
-                       :virtual_path => 'model/_user')
-    @subscriber.finish('render_collection.action_view', :id, params)
-
+    freeze_time
+    in_transaction do
+      @subscriber.start('render_collection.action_view', :id, params)
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'model/_user')
+      advance_time 2.0
+      @subscriber.finish('!render_template.action_view', :id,
+                         :virtual_path => 'model/_user')
+      @subscriber.finish('render_collection.action_view', :id, params)
+    end
     expected = { :call_count => 1, :total_call_time => 2.0 }
     assert_metrics_recorded('View/model/_user.html.erb/Partial' => expected)
   end
 
   def test_records_metrics_for_layout
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0 + 2)
-
-    @subscriber.start('!render_template.action_view', :id,
-                      :virtual_path => 'layouts/application')
-    @subscriber.finish('!render_template.action_view', :id,
-                       :virtual_path => 'layouts/application')
-
+    freeze_time
+    in_transaction do
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'layouts/application')
+      advance_time 2.0
+      @subscriber.finish('!render_template.action_view', :id,
+                         :virtual_path => 'layouts/application')
+    end
     expected = { :call_count => 1, :total_call_time => 2.0 }
     assert_metrics_recorded('View/layouts/application/Rendering' => expected)
   end
