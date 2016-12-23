@@ -87,12 +87,28 @@ module NewRelic
         end
 
         def test_start_datastore_segment_provides_defaults_without_params
-            segment = Transaction.start_datastore_segment
-            segment.finish
+          segment = Transaction.start_datastore_segment
+          segment.finish
 
-            assert_equal "Datastore/operation/Unknown/other", segment.name
-            assert_equal "Unknown", segment.product
-            assert_equal "other", segment.operation
+          assert_equal "Datastore/operation/Unknown/other", segment.name
+          assert_equal "Unknown", segment.product
+          assert_equal "other", segment.operation
+        end
+
+        def test_start_datastore_segment_does_not_record_metrics_outside_of_txn
+          segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+          segment.start
+          advance_time 1
+          segment.finish
+
+          refute_metrics_recorded [
+            "Datastore/statement/SQLite/Blog/insert",
+            "Datastore/operation/SQLite/insert",
+            "Datastore/SQLite/allWeb",
+            "Datastore/SQLite/all",
+            "Datastore/allWeb",
+            "Datastore/all"
+          ]
         end
 
         def test_start_segment_with_tracing_disabled_in_transaction
@@ -108,17 +124,6 @@ module NewRelic
           refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
         end
 
-        def test_start_segment_with_tracing_disabled_outside_transaction
-          segment = nil
-          NewRelic::Agent.disable_all_tracing do
-            segment = Transaction.start_segment "Custom/segment/method", "Custom/all"
-            advance_time 1
-            segment.finish
-          end
-          assert_nil segment.transaction, "Did not expect segment to associated with a transaction"
-          refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
-        end
-
 
         def test_current_segment_in_transaction
           in_transaction "test_txn" do |txn|
@@ -126,6 +131,15 @@ module NewRelic
             assert_equal segment, txn.current_segment
             segment.finish
           end
+        end
+
+        def test_segment_started_oustide_txn_does_not_record_metrics
+          segment = Transaction.start_segment "Custom/segment/method", "Custom/all"
+          advance_time 1
+          segment.finish
+
+          assert_nil segment.transaction, "Did not expect segment to associated with a transaction"
+          refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
         end
 
         def test_start_external_request_segment
@@ -141,6 +155,19 @@ module NewRelic
             segment.finish
             assert_equal Time.now, segment.end_time
           end
+        end
+
+        def test_segment_does_not_record_metrics_outside_of_txn
+          segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+          segment.finish
+
+          refute_metrics_recorded [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
         end
       end
     end

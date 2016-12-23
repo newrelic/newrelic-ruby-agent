@@ -28,6 +28,23 @@ module NewRelic
           assert_equal "Datastore/operation/SQLite/select", segment.name
         end
 
+
+        def test_segment_does_not_record_metrics_outside_of_txn
+          segment = DatastoreSegment.new "SQLite", "insert", "Blog"
+          segment.start
+          advance_time 1
+          segment.finish
+
+          refute_metrics_recorded [
+            "Datastore/statement/SQLite/Blog/insert",
+            "Datastore/operation/SQLite/insert",
+            "Datastore/SQLite/allWeb",
+            "Datastore/SQLite/all",
+            "Datastore/allWeb",
+            "Datastore/all"
+          ]
+        end
+
         def test_segment_records_expected_metrics
           in_web_transaction "text_txn" do
             segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "insert", "Blog"

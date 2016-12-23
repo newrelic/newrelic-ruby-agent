@@ -75,7 +75,9 @@ module NewRelic
         return yield unless first_name
 
         segment = NewRelic::Agent::Transaction.start_segment first_name, metric_names
-        segment.record_metrics = options.fetch(:metric, true)
+        if options[:metric] == false
+          segment.record_metrics = false
+        end
 
         begin
           yield

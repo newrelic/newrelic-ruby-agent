@@ -41,9 +41,10 @@ module NewRelic
 
           def add_segment segment
             state = NewRelic::Agent::TransactionState.tl_get
-            segment.record_metrics = state.is_execution_traced?
             if (txn = state.current_transaction) && state.is_execution_traced?
               txn.add_segment segment
+            else
+              segment.record_metrics = false
             end
           end
         end

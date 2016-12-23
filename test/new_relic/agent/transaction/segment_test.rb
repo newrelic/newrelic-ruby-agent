@@ -30,6 +30,24 @@ module NewRelic
           assert_equal ["Segment/all", "Other/all"], segment.unscoped_metrics
         end
 
+        def test_segment_does_not_record_metrics_outside_of_txn
+          segment = Segment.new  "Custom/simple/segment", "Segment/all"
+          segment.start
+          advance_time 1.0
+          segment.finish
+
+          refute_metrics_recorded ["Custom/simple/segment", "Segment/all"]
+        end
+
+        def test_segment_does_not_record_metrics_outside_of_txn
+          segment = Segment.new  "Custom/simple/segment", "Segment/all"
+          segment.start
+          advance_time 1.0
+          segment.finish
+
+          assert_metrics_not_recorded ["Custom/simple/segment", "Segment/all"]
+        end
+
         def test_segment_records_metrics
           in_transaction do |txn|
             segment = Segment.new  "Custom/simple/segment", "Segment/all"
