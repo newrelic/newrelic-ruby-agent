@@ -98,7 +98,7 @@ module NewRelic
           refute_nil(find_node_with_name(sample, metric_name), "Expected trace to have node with name: #{metric_name}")
         end
 
-        def test_records_unscoped_metrics_but_does_not_create_trace_for_transmit_outside_of_active_txn
+        def test_does_not_record_unscoped_metrics_nor_create_trace_for_transmit_outside_of_active_txn
           @subscriber.start('transmit.action_cable', :id, payload_for_transmit)
           advance_time(1.0)
           @subscriber.finish('transmit.action_cable', :id, payload_for_transmit)
@@ -106,7 +106,7 @@ module NewRelic
           sample = NewRelic::Agent.instance.transaction_sampler.last_sample
 
           assert_nil sample, "Did not expect a transaction to be created for transmit"
-          assert_metrics_recorded ['Ruby/ActionCable/TestChannel/transmit']
+          refute_metrics_recorded ['Ruby/ActionCable/TestChannel/transmit']
         end
 
         def payload_for_perform_action action = 'test_action'
