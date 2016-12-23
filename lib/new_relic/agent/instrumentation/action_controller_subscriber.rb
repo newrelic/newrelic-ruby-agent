@@ -16,7 +16,7 @@ module NewRelic
           push_event(event)
 
           if state.is_execution_traced? && !event.ignored?
-            start_transaction(state, event)
+            start_transaction(event)
           else
             # if this transaction is ignored, make sure child
             # transaction are also ignored
@@ -32,7 +32,7 @@ module NewRelic
           event.payload.merge!(payload)
 
           if state.is_execution_traced? && !event.ignored?
-            stop_transaction(state, event)
+            stop_transaction(event)
           else
             Agent.instance.pop_trace_execution_flag
           end
@@ -40,7 +40,7 @@ module NewRelic
           log_notification_error(e, name, 'finish')
         end
 
-        def start_transaction(state, event)
+        def start_transaction(event)
           Transaction.start(state, :controller,
                             :request          => event.request,
                             :filtered_params  => filter(event.payload[:params]),
@@ -48,7 +48,7 @@ module NewRelic
                             :transaction_name => event.metric_name)
         end
 
-        def stop_transaction(state, event)
+        def stop_transaction(event)
           txn = state.current_transaction
           txn.ignore_apdex!   if event.apdex_ignored?
           txn.ignore_enduser! if event.enduser_ignored?
