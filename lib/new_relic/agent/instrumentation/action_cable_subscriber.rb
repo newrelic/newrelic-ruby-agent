@@ -46,14 +46,11 @@ module NewRelic
         end
 
         def start_recording_metrics event
-          expected_scope = MethodTracerHelpers::trace_execution_scoped_header(state, event.time.to_f)
-          event.payload[:expected_scope] =  expected_scope
+          event.payload[:segment] = Transaction.start_segment metric_name_from_event(event)
         end
 
         def stop_recording_metrics event
-          expected_scope = event.payload.delete :expected_scope
-          metric_name = metric_name_from_event event
-          MethodTracerHelpers::trace_execution_scoped_footer(state, event.time.to_f, metric_name, [], expected_scope, {:metric => true}, event.end.to_f)
+          event.payload[:segment].finish if event.payload[:segment]
         end
 
         def transaction_name_from_event event
