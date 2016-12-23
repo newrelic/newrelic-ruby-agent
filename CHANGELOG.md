@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Include ControllerInstrumentation module with ActiveSupport.on_load
+
+  The agent will now use the `on_load :action_controller` hook to include
+  the ControllerInstrumentation module in to both the `Base` and `API`
+  classes of ActionController for Rails 5. This ensures that the proper
+  load order is retained, minimizing side-effects of having the agent in
+  an application.
+
   * Ensure values for revisions on Capistrano deploy notices
 
   Previously, running the task to look up the changelog could
