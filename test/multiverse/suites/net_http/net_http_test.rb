@@ -90,7 +90,9 @@ class NetHttpTest < Minitest::Test
     # Don't check this specific condition against SSL, since API doesn't support it
     return if use_ssl?
 
-    Net::HTTP.get default_uri
+    in_transaction do
+      Net::HTTP.get default_uri
+    end
 
     assert_metrics_recorded([
       'External/all',
@@ -103,7 +105,9 @@ class NetHttpTest < Minitest::Test
   # https://newrelic.atlassian.net/browse/RUBY-835
   def test_direct_get_request_doesnt_double_count
     http = create_http(default_uri)
-    http.request(Net::HTTP::Get.new(default_uri.request_uri))
+    in_transaction do
+      http.request(Net::HTTP::Get.new(default_uri.request_uri))
+    end
 
     assert_metrics_recorded(
       'External/localhost/Net::HTTP/GET' => { :call_count => 1 })

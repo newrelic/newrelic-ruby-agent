@@ -121,14 +121,15 @@ module NewRelic
               NewRelic::Agent.drop_buffered_data
               NewRelic::Agent::Hostname.stubs(:get).returns(test['system_hostname'])
 
-              config = convert_test_case_to_config test
+              in_transaction do
+                config = convert_test_case_to_config test
+                product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil , config[:adapter]
+                host = ActiveRecordHelper::InstanceIdentification.host(config)
+                port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
 
-              product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil , config[:adapter]
-              host = ActiveRecordHelper::InstanceIdentification.host(config)
-              port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
-
-              segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection, host, port_path_or_id
-              segment.finish
+                segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection, host, port_path_or_id
+                segment.finish
+              end
 
               assert_metrics_recorded test['expected_instance_metric']
             end

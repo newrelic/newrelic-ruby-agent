@@ -30,7 +30,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
     end
 
     def test_records_metrics_for_simple_find
-      simulate_query
+      in_transaction { simulate_query }
 
       metric_name = 'Datastore/statement/MongoDB/users/find'
       assert_metrics_recorded(
@@ -65,31 +65,29 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     def test_should_not_raise_due_to_an_exception_during_instrumentation_callback
       @subscriber.stubs(:metrics).raises(StandardError)
-      simulate_query
+      in_transaction { simulate_query }
     end
 
     def test_records_instance_metrics_for_tcp_connection
-      simulate_query
+      in_transaction { simulate_query }
       assert_metrics_recorded('Datastore/instance/MongoDB/nerd-server/27017')
     end
 
     def test_records_instance_metrics_for_unix_domain_socket
       address = stub('address', :host => "/tmp/mongodb-27017.sock", :port => nil)
       @started_event.stubs(:address).returns(address)
-      simulate_query
+      in_transaction { simulate_query }
       assert_metrics_recorded('Datastore/instance/MongoDB/nerd-server//tmp/mongodb-27017.sock')
     end
 
     def test_records_unknown_unknown_metric_when_error_gathering_instance_data
       @started_event.stubs(:address).returns(nil)
-      simulate_query
+      in_transaction { simulate_query }
       assert_metrics_recorded('Datastore/instance/MongoDB/unknown/unknown')
     end
 
     def test_records_tt_segment_parameters_for_datastore_instance
-      in_transaction do
-        simulate_query
-      end
+      in_transaction { simulate_query }
 
       tt = last_transaction_trace
 
@@ -103,11 +101,9 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
     def test_does_not_record_unknown_unknown_metric_when_data_empty
       address = stub('address', :host => "", :port => "")
       @started_event.stubs(:address).returns(address)
-      simulate_query
+      in_transaction { simulate_query }
       assert_metrics_not_recorded('Datastore/instance/MongoDB/unknown/unknown')
     end
-
-
 
     def simulate_query
       @subscriber.started(@started_event)

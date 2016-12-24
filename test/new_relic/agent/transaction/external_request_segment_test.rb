@@ -48,6 +48,19 @@ module NewRelic
           assert_equal "External/remotehost.com/Typhoeus/GET", segment.name
         end
 
+        def test_segment_does_not_record_metrics_outside_of_txn
+          segment = ExternalRequestSegment.new "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+          segment.finish
+
+          refute_metrics_recorded [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+        end
+
         def test_segment_records_expected_metrics_for_non_cat_txn
           in_transaction "test", :category => :controller do
             segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
@@ -164,20 +177,6 @@ module NewRelic
             "External/newrelic.com/all",
             "External/allWeb",
             ["ExternalTransaction/newrelic.com/1#1884/txn-name", "test"]
-          ]
-
-          assert_metrics_recorded expected_metrics
-        end
-
-        def test_segment_records_expected_metrics_outside_transaction
-          segment = Transaction.start_external_request_segment "Net::HTTP", "http://newrelic.com/blogs/index", "GET"
-          segment.finish
-
-          expected_metrics = [
-            "External/newrelic.com/Net::HTTP/GET",
-            "External/all",
-            "External/newrelic.com/all",
-            "External/allOther"
           ]
 
           assert_metrics_recorded expected_metrics

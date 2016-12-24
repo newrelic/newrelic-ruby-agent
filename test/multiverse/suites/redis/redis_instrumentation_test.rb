@@ -26,10 +26,16 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
   def test_records_metrics_for_connect
     redis = Redis.new
-    redis.get("foo")
+
+    in_transaction "test_txn" do
+      redis.get("foo")
+    end
 
     expected = {
+      "test_txn" => { :call_count => 1 },
+      ["Datastore/operation/Redis/connect", "test_txn"] => { :call_count => 1 },
       "Datastore/operation/Redis/connect" => { :call_count => 1 },
+      ["Datastore/operation/Redis/get", "test_txn"] => { :call_count => 1 },
       "Datastore/operation/Redis/get" => { :call_count => 1 },
       "Datastore/Redis/allOther" => { :call_count => 2 },
       "Datastore/Redis/all" => { :call_count => 2 },
@@ -57,7 +63,9 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
   end
 
   def test_records_metrics_for_set
-    @redis.set 'time', 'walk'
+    in_transaction do
+      @redis.set 'time', 'walk'
+    end
 
     expected = {
       "Datastore/operation/Redis/set" => { :call_count => 1 },
@@ -86,8 +94,10 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_metrics_recorded(expected)
   end
 
-  def test_records_metrics_for_get
-    @redis.get 'mox sapphire'
+  def test_records_metrics_for_get_in_background_txn
+    in_background_transaction do
+      @redis.get 'mox sapphire'
+    end
 
     expected = {
       "Datastore/operation/Redis/get" => { :call_count => 1 },
@@ -139,12 +149,16 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
   end
 
   def test_records_metrics_for_pipelined_commands
-    @redis.pipelined do
-      @redis.get 'great log'
-      @redis.get 'late log'
+    in_transaction 'test_txn' do
+      @redis.pipelined do
+        @redis.get 'great log'
+        @redis.get 'late log'
+      end
     end
 
     expected = {
+      "test_txn" => { :call_count => 1 },
+      ["Datastore/operation/Redis/pipeline", "test_txn"] => { :call_count => 1 },
       "Datastore/operation/Redis/pipeline" => { :call_count => 1 },
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all" => { :call_count => 1 },
@@ -170,12 +184,16 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
   end
 
   def test_records_metrics_for_multi_blocks
-    @redis.multi do
-      @redis.get 'darkpact'
-      @redis.get 'chaos orb'
+    in_transaction 'test_txn' do
+      @redis.multi do
+        @redis.get 'darkpact'
+        @redis.get 'chaos orb'
+      end
     end
 
     expected = {
+      "test_txn" => { :call_count => 1 },
+      ["Datastore/operation/Redis/multi", "test_txn"] => { :call_count => 1 },
       "Datastore/operation/Redis/multi" => { :call_count => 1 },
       "Datastore/Redis/allOther" => { :call_count => 1 },
       "Datastore/Redis/all" => { :call_count => 1 },
@@ -279,8 +297,9 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
   def test_records_unknown_unknown_metric_when_error_gathering_instance_data
     redis = Redis.new
     redis.client.stubs(:path).raises StandardError.new
-
-    redis.get("foo")
+    in_transaction do
+      redis.get("foo")
+    end
 
     assert_metrics_recorded('Datastore/instance/Redis/unknown/unknown')
   end

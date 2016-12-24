@@ -33,7 +33,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   def test_records_metrics_for_simple_find
     freeze_time
 
-    simulate_query(2)
+    in_transaction('test_txn') { simulate_query(2) }
 
     metric_name = 'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
     assert_metrics_recorded(
@@ -56,7 +56,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     config = { :adapter => "mysql", :host => "jonan.gummy_planet", :port => 3306 }
     @subscriber.stubs(:active_record_config).returns(config)
 
-    simulate_query(2)
+    in_transaction('test_txn') { simulate_query(2) }
 
     assert_metrics_recorded('Datastore/instance/MySQL/jonan.gummy_planet/3306')
   end
@@ -65,14 +65,14 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     config = { :adapter => "mysql", :host => "jonan.gummy_planet", :port => "" }
     @subscriber.stubs(:active_record_config).returns(config)
 
-    simulate_query(2)
+    in_transaction('test_txn') { simulate_query(2) }
 
     assert_metrics_recorded('Datastore/instance/MySQL/jonan.gummy_planet/unknown')
 
     config = { :adapter => "mysql", :host => "", :port => 3306 }
     @subscriber.stubs(:active_record_config).returns(config)
 
-    simulate_query(2)
+    in_transaction('test_txn') { simulate_query(2) }
 
     assert_metrics_recorded('Datastore/instance/MySQL/unknown/3306')
   end
@@ -81,7 +81,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     config = { :adapter => "JonanDB", :host => "jonan.gummy_planet" }
     @subscriber.stubs(:active_record_config).returns(config)
 
-    simulate_query(2)
+    in_transaction('test_txn') { simulate_query(2) }
 
     assert_metrics_not_recorded('Datastore/instance/JonanDB/jonan.gummy_planet/default')
   end
@@ -91,7 +91,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
       config = { :host => "jonan.gummy_planet" }
       @subscriber.stubs(:active_record_config).returns(config)
 
-      simulate_query(2)
+      in_transaction('test_txn') { simulate_query(2) }
 
       assert_metrics_not_recorded('Datastore/instance/ActiveRecord/jonan.gummy_planet/default')
     end
@@ -101,7 +101,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     config = { :adapter => "", :host => "" }
     @subscriber.stubs(:active_record_config).returns(config)
 
-    simulate_query(2)
+    in_transaction('test_txn') { simulate_query(2) }
 
     assert_metrics_not_recorded('Datastore/instance/unknown/unknown')
   end
@@ -124,7 +124,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     config = {:adapter => 'mysql', :host => "127.0.0.1"}
     @subscriber.stubs(:active_record_config).returns(config)
 
-    simulate_query
+    in_transaction('test_txn') { simulate_query(2) }
 
     assert_metrics_recorded("Datastore/instance/MySQL/unknown/unknown")
   end
@@ -132,7 +132,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   def test_records_nothing_if_tracing_disabled
     freeze_time
 
-    NewRelic::Agent.disable_all_tracing { simulate_query(2) }
+    in_transaction('test_txn') do
+      NewRelic::Agent.disable_all_tracing { simulate_query(2) }
+    end
 
     metric_name = 'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
     assert_metrics_not_recorded([metric_name])
