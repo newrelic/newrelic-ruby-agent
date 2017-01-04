@@ -10,6 +10,7 @@ require 'newrelic_rpm'
 require 'agent_helper'
 require 'new_relic/fake_external_server'
 require 'net/http'
+require 'json'
 
 STDOUT.sync = true
 
@@ -17,12 +18,14 @@ server = NewRelic::FakeExternalServer.new(3035)
 server.reset
 server.run
 
-puts "ready..."
+puts JSON.dump({:message => "started"})
 
-while command = gets.chomp do
-  if command == "shutdown"
+while message = JSON.parse(gets) do
+  case message["command"]
+  when "shutdown"
     server.stop
-    puts "done..."
     exit(0)
+  when "add_headers"
+    server.override_response_headers message["payload"]
   end
 end
