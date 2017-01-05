@@ -72,3 +72,5 @@ end
 after_suite do
   $mongo.stop
 end
+
+# vim: ft=ruby

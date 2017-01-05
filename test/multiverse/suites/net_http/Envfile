@@ -2,3 +2,5 @@ gemfile <<-RB
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 RB
+
+# vim: ft=ruby

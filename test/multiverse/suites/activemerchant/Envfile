@@ -1,3 +1,5 @@
+suite_condition("only test on < 2.4"){ RUBY_VERSION < '2.4.0' }
+
 gemfile <<-RB
   gem 'activemerchant', '~>1.43.1'
   gem 'rack'
@@ -34,3 +36,5 @@ gemfile <<-RB
   # Need to load newrelic_rpm after ActiveMerchant Gateways are required
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
 RB
+
+# vim: ft=ruby

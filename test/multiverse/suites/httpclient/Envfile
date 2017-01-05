@@ -11,3 +11,5 @@ httpclient_versions.each do |httpclient_version|
     gem 'json', :platforms => [:rbx, :mri_18]
   RB
 end
+
+# vim: ft=ruby

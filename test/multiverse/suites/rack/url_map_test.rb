@@ -11,6 +11,10 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
 class UrlMapTest < Minitest::Test
   include MultiverseHelpers
 
+  def setup
+    NewRelic::Agent.drop_buffered_data
+  end
+
   def teardown
     NewRelic::Agent.drop_buffered_data
   end
