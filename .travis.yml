@@ -34,6 +34,7 @@ rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - jruby-1.7.23
   - jruby-9.1.2.0
+  - 2.4.0
   - 2.3.3
   - 2.2.6
   - 2.1.10
@@ -88,6 +89,14 @@ matrix:
       env: TYPE=FUNCTIONAL GROUP=agent
 
     # Unsupported Rails/Ruby combinations
+    # 2.4
+    - rvm: 2.4.0
+      env: TYPE=UNIT ENVIRONMENT=rails21
+    - rvm: 2.4.0
+      env: TYPE=UNIT ENVIRONMENT=rails22
+    - rvm: 2.4.0
+      env: TYPE=UNIT ENVIRONMENT=rails23
+
     # 2.3
     - rvm: 2.3.3
       env: TYPE=UNIT ENVIRONMENT=rails21
