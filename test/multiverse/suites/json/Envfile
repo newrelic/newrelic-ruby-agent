@@ -1,10 +1,11 @@
-all_versions = [ '~> 2.0.2' ]
+after_2_0_0  = [ '~> 2.0.2' ]
 before_2_4_0 = [ '~> 1.8.1' ]
 before_2_2_0 = [ '~> 1.7.7', '~> 1.6.8', '~> 1.5.5' ]
 before_2_0_0 = [ '~> 1.4.6', '~> 1.2.4', '~> 1.1.9' ]
 before_1_9_2 = [ '1.1.2' ]
 
-json_gems = all_versions.dup
+json_gems = []
+json_gems += after_2_0_0  if RUBY_VERSION >= '2.0.0'
 json_gems += before_2_4_0 if RUBY_VERSION < '2.4.0'
 json_gems += before_2_2_0 if RUBY_VERSION < '2.2.0'
 json_gems += before_2_0_0 if RUBY_VERSION < '2.0.0'
