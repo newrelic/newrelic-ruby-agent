@@ -37,14 +37,34 @@
 
 namespace :test do
   desc "Run functional test suite for New Relic"
-  task :multiverse, [:suite, :param1, :param2, :param3, :param4] => [] do |t, args|
-    # Assumed that we're starting from the root of the gem unless already set
-    ENV['SUITES_DIRECTORY'] ||= File.expand_path(File.join("test", "multiverse"))
+  task :multiverse, [:suite, :param1, :param2, :param3, :param4] => ['multiverse:env'] do |_, args|
+    Multiverse::Runner.run(args.suite, Multiverse::Runner.parse_args(args))
+  end
 
-    agent_root = File.expand_path(File.join(__FILE__, "..", "..", ".."))
-    require File.expand_path(File.join(agent_root, 'test', 'multiverse', 'lib', 'multiverse', 'environment'))
+  namespace :multiverse do
 
-    opts = Multiverse::Runner.parse_args(args)
-    Multiverse::Runner.run(args.suite, opts)
+    task :env do
+      # ENV['SUITES_DIRECTORY'] = File.expand_path('../../test/multiverse/suites', __FILE__)
+      require File.expand_path('../../../test/multiverse/lib/multiverse', __FILE__)
+    end
+
+    desc "Clean cached gemfiles from Bundler.bundle_path"
+    task :clean_gemfile_cache do
+      glob = File.expand_path 'multiverse-cache/Gemfile.*.lock', Bundler.bundle_path
+      File.delete(*Dir[glob])
+    end
+
+    desc "Test the multiverse testing framework by executing tests in test/multiverse/test. Get meta with it."
+    task :self, [:suite, :mode] do |_, args|
+      args.with_defaults(:suite => "", :mode => "")
+      puts ("Testing the multiverse testing framework...")
+      test_files = FileList['test/multiverse/test/*_test.rb']
+      ruby test_files.join(" ")
+    end
+
+    task :prime, [:suite] => [:env] do |_, args|
+      Multiverse::Runner.prime(args.suite, Multiverse::Runner.parse_args(args))
+    end
+
   end
 end

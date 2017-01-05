@@ -22,27 +22,6 @@ namespace :test do
 
   agent_home = File.expand_path(File.dirname(__FILE__))
 
-  # Agent-specific setup to enforce getting our proper suites directory
-  task :multiverse_setup do
-    ENV["SUITES_DIRECTORY"] = File.expand_path(File.join(File.dirname(__FILE__), 'test', 'multiverse', 'suites'))
-  end
-
-  task :multiverse => :multiverse_setup
-
-  desc "Test the multiverse testing framework by executing tests in test/multiverse/test. Get meta with it."
-  task 'multiverse:self', [:suite, :mode] => [] do |t, args|
-    args.with_defaults(:suite => "", :mode => "")
-    puts ("Testing the multiverse testing framework...")
-    test_files = FileList['test/multiverse/test/*_test.rb']
-    ruby test_files.join(" ")
-  end
-
-  task 'multiverse:prime', [:suite] => [] do |t, args|
-    require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'multiverse', 'lib', 'multiverse', 'environment'))
-    opts = Multiverse::Runner.parse_args(args)
-    Multiverse::Runner.prime(args.suite, opts)
-  end
-
   desc "Run agent performance tests"
   task :performance, [:suite, :name] => [] do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'performance', 'lib', 'performance'))
