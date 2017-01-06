@@ -1,4 +1,7 @@
 # New Relic Ruby Agent Release Notes #
+
+## v3.18.0 ##
+
   * Agent-based metrics will not be recorded outside of active transactions
 
   The agent has historically recorded metrics outside of a transaction. In
