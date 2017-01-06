@@ -35,6 +35,11 @@
   defined. This has now been fixed. Thanks Winfield Peterson for the
   contribution!
 
+  * External Segment Rewrites
+
+  The agent has made internal changes to how it represents segments for
+  external web requests.
+
 ## v3.17.2 ##
 
   * compatibility with ruby 2.4.0-preview3
