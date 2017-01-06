@@ -11,6 +11,7 @@ before_install:
   - ./test/script/before_install/revert_rubygems.sh
   - gem --version
   - ./test/script/before_install/gemstash_mirror.sh
+  - ./test/script/before_install/update_bundler.sh
   - bundle --version
 
 install: bundle install
