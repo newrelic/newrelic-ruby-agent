@@ -17,6 +17,7 @@ gemfile <<-RB
   gem 'rake', '~> 10.4'
   gem 'rails', '~> 4.2.1'
   gem 'minitest', '5.2.3'
+  gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
 RB
 else
 gemfile <<-RB

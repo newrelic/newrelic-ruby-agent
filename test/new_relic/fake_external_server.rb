@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'rack'
-require 'fake_server'
+require 'new_relic/fake_server'
 require 'new_relic/rack/agent_hooks'
 
 require 'json' if RUBY_VERSION >= '1.9'
