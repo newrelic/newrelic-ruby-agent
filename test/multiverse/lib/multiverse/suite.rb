@@ -11,8 +11,8 @@ require 'base64'
 require 'fileutils'
 require 'digest'
 
-require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
-require File.expand_path(File.join(File.dirname(__FILE__), 'shell_utils'))
+require File.expand_path '../../multiverse', __FILE__
+require File.expand_path '../shell_utils', __FILE__
 
 module Multiverse
   class Suite
@@ -20,7 +20,7 @@ module Multiverse
     attr_accessor :directory, :opts
 
     def initialize(directory, opts={})
-      self.directory  = directory
+      self.directory  = File.expand_path directory
       self.opts       = opts
       ENV["VERBOSE"]  = '1' if opts[:verbose]
     end
@@ -63,12 +63,17 @@ module Multiverse
     end
 
     def clean_gemfiles(env_index)
-      FileUtils.rm_rf File.join(directory, "Gemfile.#{env_index}")
-      FileUtils.rm_rf File.join(directory, "Gemfile.#{env_index}.lock")
+      gemfiles = ["Gemfile.#{env_index}", "Gemfile.#{env_index}.lock"]
+      gemfiles.each {|f| File.delete(f) if File.exist?(f)}
     end
 
     def envfile_path
-      File.join(directory, 'Envfile')
+      ep = File.expand_path 'Envfile'
+      if !File.exist?(ep)
+        ep = File.expand_path 'Envfile', directory
+        raise "#{ep} not found" unless File.exist?(ep)
+      end
+      ep
     end
 
     def environments
@@ -136,14 +141,6 @@ module Multiverse
       "Gemfile.#{suite}.#{env_index}.#{envfile_hash}.lock"
     end
 
-    def cache_gemfile_lock(env_index)
-      filename = cached_gemfile_lock_filename(env_index)
-      dst_path = File.join(bundler_cache_dir, filename)
-      src_path = File.join(directory, "Gemfile.#{env_index}.lock")
-      puts "Caching Gemfile.lock from #{src_path} to #{dst_path}" if verbose?
-      FileUtils.cp(src_path, dst_path)
-    end
-
     def ensure_bundle_cached(env_index)
       cache_dir = bundler_cache_dir
       FileUtils.mkdir_p(cache_dir)
@@ -164,7 +161,6 @@ module Multiverse
       bundler_out = exclusive_bundle
       puts bundler_out if verbose? || $? != 0
       raise "bundle command failed with (#{$?})" unless $? == 0
-      cache_gemfile_lock(env_index) if use_cache?
     end
 
     def generate_gemfile(gemfile_text, env_index, local = true)
@@ -236,7 +232,22 @@ module Multiverse
     end
 
     def minitest_line
-      "gem 'minitest', '~> 4.7.5', :require => false"
+      "gem 'minitest', '~> #{minitest_version}', :require => false"
+    end
+
+    def minitest_version
+      case
+      when RUBY_VERSION >= '2.4'
+        '5.10.1'
+      else
+        '4.7.5'
+      end
+    end
+
+    def require_minitest
+      require 'minitest'
+    rescue LoadError
+      require 'minitest/unit'
     end
 
     # rake 11 dropped support for ruby < 1.9.3
@@ -266,18 +277,28 @@ module Multiverse
     # https://github.com/bundler/bundler/pull/4650 or with a better solution
     # in mutiverse.
     def pin_json_version_if_needed gemfile_text
-      return if suite == "json" || suite == "no_json" ||
-        RUBY_VERSION >= "2.0.0" && !pin_json_for_jruby?
+      return if suite == "json" || suite == "no_json" || suite == "datamapper" ||
+        RUBY_VERSION >= "2.0.0" && RUBY_VERSION < "2.4.0" &&
+        !pin_json_for_jruby?
 
-      match = gemfile_text.match(/^\s*?(gem\s*?('|")json('|")).*?$/)
+      match = gemfile_text.match(/^\s*?(gem\s*?['"]json['"]).*?$/)
+      version = json_version
       if match
-        version = '< 2.0.0'
         return if match[0].include? version
 
         replacement = match[0].gsub(match[1], "#{match[1]}, '#{version}'")
         gemfile_text.gsub! match[0], replacement
       else
-        gemfile_text.concat "\ngem 'json', '< 2.0.0'\n"
+        gemfile_text.concat "\ngem 'json', '#{version}'\n"
+      end
+    end
+
+    def json_version
+      case
+      when RUBY_VERSION >= '2.4'
+        '~> 2.0.2'
+      else
+        '< 2.0.0'
       end
     end
 
@@ -488,7 +509,7 @@ module Multiverse
     end
 
     def configure_child_environment
-      require 'minitest/unit'
+      require_minitest
       patch_minitest_base_for_old_versions
       prevent_minitest_auto_run
       require_mocha

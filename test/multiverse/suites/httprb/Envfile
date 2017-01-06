@@ -17,3 +17,5 @@ httprb_versions.each do |httprb_version|
     gem 'rack'
   RB
 end
+
+# vim: ft=ruby

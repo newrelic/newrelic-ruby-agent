@@ -1,3 +1,5 @@
+suite_condition("only test on < 2.4"){ RUBY_VERSION < '2.4.0' }
+
 adapter_gems = <<-RB
   gem 'dm-sqlite-adapter'
 
@@ -31,3 +33,5 @@ gemfile <<-RB
   #{adapter_gems}
 RB
 end
+
+# vim: ft=ruby

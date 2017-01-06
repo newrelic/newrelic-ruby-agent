@@ -50,3 +50,5 @@ end
 before_suite do
   system('memcached -d -l localhost') unless memcache_running?
 end
+
+# vim: ft=ruby

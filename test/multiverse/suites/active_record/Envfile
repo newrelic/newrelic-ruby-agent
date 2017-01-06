@@ -19,7 +19,7 @@ if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
   RB
 end
 
-if RUBY_VERSION >= '1.9.3'
+if RUBY_VERSION >= '1.9.3' && RUBY_VERSION < '2.4.0'
   gemfile <<-RB
     gem 'activerecord', '~> 4.2.0'
     gem 'minitest', '~> 5.2.3'
@@ -83,3 +83,5 @@ gemfile <<-RB
   #{boilerplate_gems}
 RB
 end
+
+# vim: ft=ruby
