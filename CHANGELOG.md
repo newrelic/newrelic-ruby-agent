@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## v3.17.2
+  ## v3.17.2 ##
 
   * Compatibility with Ruby 2.4.0-preview3
 
