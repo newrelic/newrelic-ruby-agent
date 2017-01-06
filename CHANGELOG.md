@@ -1,4 +1,10 @@
 # New Relic Ruby Agent Release Notes #
+
+  * Ruby 2.4.0 support
+
+  The agent is now tested against the official release of ruby 2.4.0,
+  excluding incompatible packages.
+
   * Agent-based metrics will not be recorded outside of active transactions
 
   The agent has historically recorded metrics outside of a transaction. In
@@ -29,9 +35,9 @@
 
 ## v3.17.2 ##
 
-  * Compatibility with Ruby 2.4.0-preview3
+  * compatibility with ruby 2.4.0-preview3
 
-  The Ruby agent has been updated to work on Ruby 2.4.0-preview3.
+  the ruby agent has been updated to work on ruby 2.4.0-preview3.
 
   * Early Access Sinatra 2.0 instrumentation
 
