@@ -85,13 +85,13 @@ module Multiverse
       "agent"         => ["agent_only", "bare", "config_file_loading",
                           "deferred_instrumentation", "high_security", "no_json"],
       "api"           => ["grape"],
-      "background"    => ["delayed_job", "resque"],
+      "background"    => ["delayed_job", "sidekiq"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
       "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "httprb"],
       "rails"         => ["active_record", "rails"],
       "serialization" => ["json", "marshalling", "yajl"],
       "sinatra"       => ["sinatra", "padrino"],
-      "background_2"  => ["rake", "sidekiq"],
+      "background_2"  => ["rake", "resque"],
 
       "rest"          => []  # Specially handled below
     }
