@@ -33,10 +33,7 @@ module NewRelic
         # header is used it will update the segment name to reflect the host header.
         def add_request_headers request
           process_host_header request
-          unless CrossAppTracing.cross_app_enabled?
-            NewRelic::Agent.logger.debug "Unable to add_request_headers from external segment"
-            return
-          end
+          return unless CrossAppTracing.cross_app_enabled?
 
           transaction_state.is_cross_app_caller = true
           txn_guid = transaction_state.request_guid
@@ -50,10 +47,7 @@ module NewRelic
         end
 
         def read_response_headers response
-          unless CrossAppTracing.cross_app_enabled?
-            NewRelic::Agent.logger.debug "Unable to read_response_headers from external segment"
-            return
-          end
+          return unless CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.response_has_crossapp_header?(response)
           unless data = CrossAppTracing.extract_appdata(response)
             NewRelic::Agent.logger.debug "Couldn't extract_appdata from external segment response"
