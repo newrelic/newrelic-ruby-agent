@@ -1,5 +1,10 @@
 gemfile <<-RB
   gem 'rack'
+  gem 'redis', '~>4.0.0.rc1'
+RB
+
+gemfile <<-RB
+  gem 'rack'
   gem 'redis', '~>3.2.1'
 RB
 

@@ -1,5 +1,9 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Early access Redis 4.0 instrumentation
+
+  Our Redis instrumentation has been tested against Redis 4.0.0.rc1.
+
 ## v3.18.0 ##
 
   * Ruby 2.4.0 support

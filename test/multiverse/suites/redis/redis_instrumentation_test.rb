@@ -249,7 +249,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
   def test_records_hostname_on_tt_node_for_get_with_unix_domain_socket
     redis = Redis.new
-    redis.client.stubs(:path).returns('/tmp/redis.sock')
+    redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
     in_transaction do
       redis.get("foo")
@@ -279,7 +279,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
   def test_records_hostname_on_tt_node_for_multi_with_unix_domain_socket
     redis = Redis.new
-    redis.client.stubs(:path).returns('/tmp/redis.sock')
+    redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
     in_transaction do
       redis.multi do
@@ -296,7 +296,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
   def test_records_unknown_unknown_metric_when_error_gathering_instance_data
     redis = Redis.new
-    redis.client.stubs(:path).raises StandardError.new
+    redis.send(client).stubs(:path).raises StandardError.new
     in_transaction do
       redis.get("foo")
     end
@@ -318,6 +318,14 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_equal ['OK','OK'], @redis.pipelined { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
     assert_equal ['bar', 'bat'], @redis.pipelined { @redis.get('foo'); @redis.get('baz') }
     assert_equal 2, @redis.del('foo', 'baz')
+  end
+
+  def client
+    if NewRelic::VersionNumber.new(Redis::VERSION).major_version < 4
+      :client
+    else
+      :_client
+    end
   end
 end
 end
