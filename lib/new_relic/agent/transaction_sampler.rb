@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/transaction_sample_builder'
-require 'new_relic/agent/transaction/developer_mode_sample_buffer'
 require 'new_relic/agent/transaction/slowest_sample_buffer'
 require 'new_relic/agent/transaction/synthetics_sample_buffer'
 require 'new_relic/agent/transaction/xray_sample_buffer'
@@ -20,14 +19,12 @@ module NewRelic
     #
     # @api public
     class TransactionSampler
-      attr_reader :last_sample, :dev_mode_sample_buffer, :xray_sample_buffer
+      attr_reader :last_sample, :xray_sample_buffer
 
       def initialize
-        @dev_mode_sample_buffer = NewRelic::Agent::Transaction::DeveloperModeSampleBuffer.new
         @xray_sample_buffer = NewRelic::Agent::Transaction::XraySampleBuffer.new
 
         @sample_buffers = []
-        @sample_buffers << @dev_mode_sample_buffer
         @sample_buffers << @xray_sample_buffer
         @sample_buffers << NewRelic::Agent::Transaction::SlowestSampleBuffer.new
         @sample_buffers << NewRelic::Agent::Transaction::SyntheticsSampleBuffer.new
@@ -72,11 +69,7 @@ module NewRelic
         builder = state.transaction_sample_builder
         return unless builder
 
-        node = builder.trace_entry(time.to_f)
-        if @dev_mode_sample_buffer
-          @dev_mode_sample_buffer.visit_node(node)
-        end
-        node
+        builder.trace_entry(time.to_f)
       end
 
       # Informs the transaction sample builder about the end of a traced frame
