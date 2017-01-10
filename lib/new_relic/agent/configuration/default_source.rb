@@ -433,13 +433,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Timeout for waiting on connect to complete before a rake task'
         },
-        :'profiling.available' => {
-          :default => DefaultSource.profiling_available,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'Determines if ruby-prof is available for developer mode profiling.'
-        },
         :apdex_t => {
           :default => 0.5,
           :public => true,
