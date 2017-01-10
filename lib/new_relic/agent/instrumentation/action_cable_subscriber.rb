@@ -11,27 +11,25 @@ module NewRelic
         PERFORM_ACTION = 'perform_action.action_cable'.freeze
 
         def start name, id, payload #THREAD_LOCAL_ACCESS
-          state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
           event = super
           if event.name == PERFORM_ACTION
-            start_transaction state, event
+            start_transaction event
           else
-            start_recording_metrics state, event
+            start_recording_metrics event
           end
         rescue => e
           log_notification_error e, name, 'start'
         end
 
         def finish name, id, payload #THREAD_LOCAL_ACCESS
-          state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
           event = super
           notice_error payload if payload.key? :exception
           if event.name == PERFORM_ACTION
-            finish_transaction state
+            finish_transaction
           else
-            stop_recording_metrics state, event
+            stop_recording_metrics event
           end
         rescue => e
           log_notification_error e, name, 'finish'
@@ -39,23 +37,20 @@ module NewRelic
 
         private
 
-        def start_transaction state, event
+        def start_transaction event
           Transaction.start(state, :action_cable, :transaction_name => transaction_name_from_event(event))
         end
 
-        def finish_transaction state
+        def finish_transaction
           Transaction.stop(state)
         end
 
-        def start_recording_metrics state, event
-          expected_scope = MethodTracerHelpers::trace_execution_scoped_header(state, event.time.to_f)
-          event.payload[:expected_scope] =  expected_scope
+        def start_recording_metrics event
+          event.payload[:segment] = Transaction.start_segment metric_name_from_event(event)
         end
 
-        def stop_recording_metrics state, event
-          expected_scope = event.payload.delete :expected_scope
-          metric_name = metric_name_from_event event
-          MethodTracerHelpers::trace_execution_scoped_footer(state, event.time.to_f, metric_name, [], expected_scope, {:metric => true}, event.end.to_f)
+        def stop_recording_metrics event
+          event.payload[:segment].finish if event.payload[:segment]
         end
 
         def transaction_name_from_event event

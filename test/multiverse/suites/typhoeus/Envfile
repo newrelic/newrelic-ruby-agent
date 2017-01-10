@@ -32,38 +32,40 @@ gemfile <<-RB
   gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
-gemfile <<-RB
-  # Compatibility issues with ethon 0.5.12 https://github.com/typhoeus/ethon/issues/51
-  gem 'ethon', '0.5.11'
+if RUBY_VERSION < '2.4.0'
+  gemfile <<-RB
+    # Compatibility issues with ethon 0.5.12 https://github.com/typhoeus/ethon/issues/51
+    gem 'ethon', '0.5.11'
 
-  # ethon 0.5.11 requires mime-types ~> 1.18
-  # normally, this wouldn't be a problem, but
-  # we have other checks to work around other
-  # mime-type dependency issues, so we need
-  # to specify it here.
-  gem 'mime-types', '~> 1.18'
+    # ethon 0.5.11 requires mime-types ~> 1.18
+    # normally, this wouldn't be a problem, but
+    # we have other checks to work around other
+    # mime-type dependency issues, so we need
+    # to specify it here.
+    gem 'mime-types', '~> 1.18'
 
-  gem 'typhoeus', '~> 0.5.4'
-  gem 'rack'
-  gem 'json', :platforms => [:rbx, :mri_18]
-RB
+    gem 'typhoeus', '~> 0.5.4'
+    gem 'rack'
+    gem 'json', :platforms => [:rbx, :mri_18]
+  RB
 
-# Earliest supported version
-gemfile <<-RB
-  # Compatibility issues with ethon 0.5.12 https://github.com/typhoeus/ethon/issues/51
-  gem 'ethon', '0.5.11'
+  # Earliest supported version
+  gemfile <<-RB
+    # Compatibility issues with ethon 0.5.12 https://github.com/typhoeus/ethon/issues/51
+    gem 'ethon', '0.5.11'
 
-  # ethon 0.5.11 requires mime-types ~> 1.18
-  # normally, this wouldn't be a problem, but
-  # we have other checks to work around other
-  # mime-type dependency issues, so we need
-  # to specify it here.
-  gem 'mime-types', '~> 1.18'
+    # ethon 0.5.11 requires mime-types ~> 1.18
+    # normally, this wouldn't be a problem, but
+    # we have other checks to work around other
+    # mime-type dependency issues, so we need
+    # to specify it here.
+    gem 'mime-types', '~> 1.18'
 
-  gem 'typhoeus', '0.5.3'
-  gem 'rack'
-  gem 'json', :platforms => [:rbx, :mri_18]
-RB
+    gem 'typhoeus', '0.5.3'
+    gem 'rack'
+    gem 'json', :platforms => [:rbx, :mri_18]
+  RB
+end
 
 # Prior to supported versions
 gemfile <<-RB
@@ -81,3 +83,5 @@ gemfile <<-RB
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 RB
+
+# vim: ft=ruby

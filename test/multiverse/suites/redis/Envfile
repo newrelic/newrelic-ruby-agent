@@ -12,3 +12,5 @@ gemfile <<-RB
   gem 'rack'
   gem 'redis', '2.2.2' # newest unsupported version
 RB
+
+# vim: ft=ruby

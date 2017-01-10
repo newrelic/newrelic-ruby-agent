@@ -11,15 +11,6 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     NewRelic::Agent.agent.stats_engine.clear_stats
   end
 
-  def test_metric_recording_outside_transaction
-    trace_execution_scoped(['foo']) do
-      # meh
-    end
-    assert_metrics_recorded_exclusive(
-      'foo' => { :call_count => 1 }
-    )
-  end
-
   def test_metric_recording_in_non_nested_transaction
     in_transaction('outer') do
       trace_execution_scoped(['foo', 'bar']) do

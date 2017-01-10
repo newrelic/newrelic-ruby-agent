@@ -21,3 +21,5 @@ gemfile <<-RB
   gem 'rack-test', :require => 'rack/test'
   gem 'i18n', '< 0.7' if RUBY_VERSION < '1.9.3' # i18n >= 0.7.0 only works on Ruby 1.9.3 and newer
 RB
+
+# vim: ft=ruby

@@ -23,3 +23,5 @@ gemfile <<-RB
   gem 'sinatra',   '~> 1.2.9'
   gem 'rack-test', :require => 'rack/test'
 RB
+
+# vim: ft=ruby

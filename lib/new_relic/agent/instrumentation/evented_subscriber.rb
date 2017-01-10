@@ -58,6 +58,10 @@ module NewRelic
         def event_stack
           Thread.current[@queue_key] ||= Hash.new {|h,id| h[id] = [] }
         end
+
+        def state
+          NewRelic::Agent::TransactionState.tl_get
+        end
       end
 
       # Taken from ActiveSupport::Notifications::Event, pasted here

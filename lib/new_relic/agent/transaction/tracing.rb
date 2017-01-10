@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/transaction/datastore_segment'
+require 'new_relic/agent/transaction/external_request_segment'
 
 module NewRelic
   module Agent
@@ -29,13 +30,21 @@ module NewRelic
             segment
           end
 
+          def start_external_request_segment library, uri, procedure
+            segment = ExternalRequestSegment.new library, uri, procedure
+            segment.start
+            add_segment segment
+            segment
+          end
+
           private
 
           def add_segment segment
             state = NewRelic::Agent::TransactionState.tl_get
-            segment.record_metrics = state.is_execution_traced?
             if (txn = state.current_transaction) && state.is_execution_traced?
               txn.add_segment segment
+            else
+              segment.record_metrics = false
             end
           end
         end

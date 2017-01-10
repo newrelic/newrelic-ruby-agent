@@ -23,6 +23,10 @@ module NewRelic
       end
 
       class HTTPRequest
+        HTTP_RB = 'http.rb'.freeze
+        HOST    = 'host'.freeze
+        COLON   = ':'.freeze
+
         attr_reader :request, :uri
 
         def initialize(request)
@@ -31,15 +35,17 @@ module NewRelic
         end
 
         def type
-          "http.rb"
+          HTTP_RB
+        end
+
+        def host_from_header
+          if hostname = self[HOST]
+            hostname.split(COLON).first
+          end
         end
 
         def host
-          if hostname = self['host']
-            hostname.split(':').first
-          else
-            request.host
-          end
+          host_from_header || request.host
         end
 
         def method

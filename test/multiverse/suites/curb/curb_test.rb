@@ -1,5 +1,5 @@
 # encoding: utf-8
-# This file is distributed under New Relic"s license terms.
+# This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'curb'
@@ -107,8 +107,7 @@ class CurbTest < Minitest::Test
   # end
 
   def test_doesnt_propagate_errors_in_instrumentation
-    NewRelic::Agent::CrossAppTracing.stubs( :start_trace ).
-      raises( StandardError, "something bad happened" )
+    NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
 
     res = Curl::Easy.http_get( default_url )
 

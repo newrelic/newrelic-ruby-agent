@@ -9,15 +9,12 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionViewSubscriber < EventedSubscriber
+
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
           event = RenderEvent.new(name, Time.now, nil, id, payload)
           push_event(event)
-
-          state = NewRelic::Agent::TransactionState.tl_get
-
           if state.is_execution_traced? && event.recordable?
-            stack = state.traced_method_stack
-            event.frame = stack.push_frame(state, :action_view, event.time)
+            event.segment = NewRelic::Agent::Transaction.start_segment event.metric_name
           end
         rescue => e
           log_notification_error(e, name, 'start')
@@ -25,25 +22,13 @@ module NewRelic
 
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
           event = pop_event(id)
-
-          state = NewRelic::Agent::TransactionState.tl_get
-
-          if state.is_execution_traced? && event.recordable?
-            stack = state.traced_method_stack
-            frame = stack.pop_frame(state, event.frame, event.metric_name, event.end)
-            record_metrics(event, frame)
-          end
+          event.segment.finish if event.segment
         rescue => e
           log_notification_error(e, name, 'finish')
         end
 
-        def record_metrics(event, frame) #THREAD_LOCAL_ACCESS
-          exclusive = event.duration - frame.children_time
-          NewRelic::Agent.instance.stats_engine.tl_record_scoped_and_unscoped_metrics(
-            event.metric_name, nil, event.duration, exclusive)
-        end
-
         class RenderEvent < Event
+          attr_accessor :segment
 
           RENDER_TEMPLATE_EVENT_NAME   = 'render_template.action_view'.freeze
           RENDER_PARTIAL_EVENT_NAME    = 'render_partial.action_view'.freeze

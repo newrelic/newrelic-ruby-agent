@@ -22,7 +22,7 @@ if RUBY_VERSION >= '1.9.3'
   RB
 end
 
-if RUBY_VERSION >= '1.9.3'
+if RUBY_VERSION >= '1.9.3' && RUBY_VERSION < '2.4.0'
   gemfile <<-RB
     gem 'delayed_job', '~> 4.1.0'
     gem 'delayed_job_active_record', '~> 4.1.0'
@@ -33,7 +33,7 @@ if RUBY_VERSION >= '1.9.3'
 end
 
 # delayed_job_active_record (and older baked into delayed_job) support
-if RUBY_VERSION >= '1.9.3'
+if RUBY_VERSION >= '1.9.3' && RUBY_VERSION < '2.4.0'
   dj4_with_active_record = <<-DJ
     gem 'delayed_job', '~> 4.0.4'
     gem 'delayed_job_active_record', '~> 4.0.2'
@@ -60,7 +60,7 @@ dj2_with_active_record3 = <<-DJ
   #{boilerplate_gems}
 DJ
 
-if RUBY_VERSION >= '1.9.3'
+if RUBY_VERSION >= '1.9.3' && RUBY_VERSION < '2.4.0'
   gemfile <<-RB
     gem 'activerecord', '~> 4.2.0'
     gem 'i18n', '~> 0.7.0'

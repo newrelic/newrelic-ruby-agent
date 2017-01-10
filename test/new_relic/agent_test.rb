@@ -14,7 +14,6 @@ module NewRelic
 
     def setup
       NewRelic::Agent.drop_buffered_data
-      NewRelic::Agent.manual_start
       NewRelic::Agent.reset_config
       NewRelic::Agent.instance.stubs(:start_worker_thread)
     end
@@ -98,6 +97,7 @@ module NewRelic
 
         NewRelic::Agent.manual_start
       end
+      NewRelic::Agent.shutdown
     end
 
     def test_get_stats
@@ -195,6 +195,7 @@ module NewRelic
     def test_instance
       NewRelic::Agent.manual_start
       assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance, "should return the same agent for both identical methods")
+      NewRelic::Agent.shutdown
     end
 
     def test_register_report_channel

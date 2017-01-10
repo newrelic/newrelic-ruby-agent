@@ -60,3 +60,5 @@ gemfile <<-RB
   gem 'rack', '1.0.1'
   gem 'rack-test'
 RB
+
+# vim: ft=ruby

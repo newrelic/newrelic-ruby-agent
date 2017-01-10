@@ -20,16 +20,8 @@ DependencyDetection.defer do
   end
 
   executes do
-    if defined?(ActionController::Base)
-      class ActionController::Base
-        include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-      end
-    end
-
-    if defined?(ActionController::API)
-      class ActionController::API
-        include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-      end
+    ActiveSupport.on_load(:action_controller) do |c|
+      c.include NewRelic::Agent::Instrumentation::ControllerInstrumentation
     end
 
     NewRelic::Agent::Instrumentation::ActionControllerSubscriber \

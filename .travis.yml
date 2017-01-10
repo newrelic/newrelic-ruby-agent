@@ -10,8 +10,8 @@ sudo: required
 before_install:
   - ./test/script/before_install/revert_rubygems.sh
   - gem --version
-  - ./test/script/before_install/jruby_bundler.sh
   - ./test/script/before_install/gemstash_mirror.sh
+  - ./test/script/before_install/update_bundler.sh
   - bundle --version
 
 install: bundle install
@@ -33,9 +33,10 @@ notifications:
 
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
-  - jruby-1.7.23 # NOTE: see test/script/before_install/jruby_bundler.sh
+  - jruby-1.7.23
   - jruby-9.1.2.0
-  - 2.3.2
+  - 2.4.0
+  - 2.3.3
   - 2.2.6
   - 2.1.10
   - 2.0.0-p648
@@ -76,32 +77,53 @@ env:
     - TYPE=FUNCTIONAL GROUP=serialization
     - TYPE=FUNCTIONAL GROUP=sinatra
     - TYPE=FUNCTIONAL GROUP=rest
-    - TYPE=FUNCTIONAL GROUP=rake
+    - TYPE=FUNCTIONAL GROUP=background_2
     - TYPE=NULLVERSE
 
 matrix:
   allow_failures:
     - rvm: rbx-2.5.8
+    - rvm: ree
   fast_finish: true
   exclude:
     - rvm: rbx-2.5.8 # Currently hangs
       env: TYPE=FUNCTIONAL GROUP=agent
 
     # Unsupported Rails/Ruby combinations
-    # 2.3
-    - rvm: 2.3.1
+    # 2.4
+    - rvm: 2.4.0
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.3.1
+    - rvm: 2.4.0
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.3.1
+    - rvm: 2.4.0
+      env: TYPE=UNIT ENVIRONMENT=rails23
+    - rvm: 2.4.0
+      env: TYPE=UNIT ENVIRONMENT=rails30
+    - rvm: 2.4.0
+      env: TYPE=UNIT ENVIRONMENT=rails31
+    - rvm: 2.4.0
+      env: TYPE=UNIT ENVIRONMENT=rails32
+    - rvm: 2.4.0
+      env: TYPE=UNIT ENVIRONMENT=rails40
+    - rvm: 2.4.0
+      env: TYPE=UNIT ENVIRONMENT=rails41
+    - rvm: 2.4.0
+      env: TYPE=UNIT ENVIRONMENT=rails42
+
+    # 2.3
+    - rvm: 2.3.3
+      env: TYPE=UNIT ENVIRONMENT=rails21
+    - rvm: 2.3.3
+      env: TYPE=UNIT ENVIRONMENT=rails22
+    - rvm: 2.3.3
       env: TYPE=UNIT ENVIRONMENT=rails23
 
     # 2.2
-    - rvm: 2.2.5
+    - rvm: 2.2.6
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.2.5
+    - rvm: 2.2.6
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.2.5
+    - rvm: 2.2.6
       env: TYPE=UNIT ENVIRONMENT=rails23
 
     # 2.1

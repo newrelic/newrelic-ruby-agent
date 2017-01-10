@@ -1,5 +1,5 @@
 # encoding: utf-8
-# This file is distributed under New Relic"s license terms.
+# This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require "typhoeus"
@@ -103,7 +103,7 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
 
     def test_request_succeeds_even_if_tracing_doesnt
       in_transaction("test") do
-        ::NewRelic::Agent::CrossAppTracing.stubs(:start_trace).raises("Booom")
+        ::NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
         res = get_response
 
         assert_match %r/<head>/i, body(res)
@@ -124,7 +124,8 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
 
     if CURRENT_TYPHOEUS_VERSION >= SUPPORTS_URI_OBJECT_VERSION
       def test_get_with_uri
-        res = get_response(default_uri)
+        res = nil
+        in_transaction { res = get_response(default_uri) }
         assert_match %r/<head>/i, body(res)
         assert_externals_recorded_for("localhost", "GET")
       end

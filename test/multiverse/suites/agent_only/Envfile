@@ -1,4 +1,5 @@
 gemfile <<-RB
+  gem 'minitest', '4.7.5'
   gem 'rack'
   gem 'rack-test'
 RB

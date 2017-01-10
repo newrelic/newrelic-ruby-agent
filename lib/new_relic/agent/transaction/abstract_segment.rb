@@ -9,7 +9,7 @@ module NewRelic
         attr_reader :start_time, :end_time, :duration, :exclusive_duration
         attr_accessor :name, :children_time, :transaction
 
-        def initialize name
+        def initialize name=nil
           @name = name
           @children_time = 0.0
           @record_metrics = true
@@ -24,9 +24,11 @@ module NewRelic
           @end_time = Time.now
           @duration = end_time.to_f - start_time.to_f
           @exclusive_duration = duration - children_time
-          record_metrics if record_metrics?
-          segment_complete
-          @transaction.segment_complete self if transaction
+          if transaction
+            record_metrics if record_metrics?
+            segment_complete
+            transaction.segment_complete self
+          end
         rescue => e
           # This rescue block was added for the benefit of this test:
           # test/multiverse/suites/bare/standalone_instrumentation_test.rb
@@ -62,11 +64,7 @@ module NewRelic
         end
 
         def metric_cache
-          if transaction
-            transaction.metrics
-          else
-            NewRelic::Agent.instance.stats_engine
-          end
+          transaction.metrics
         end
 
         def transaction_state

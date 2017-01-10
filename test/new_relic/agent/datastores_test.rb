@@ -56,16 +56,6 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     assert_metrics("find", "Other")
   end
 
-  def test_outside_transaction
-    MyFirstDatabase.new.find
-    assert_metrics_recorded([
-                            "Datastore/operation/MyFirstDatabase/find",
-                            "Datastore/MyFirstDatabase/allOther",
-                            "Datastore/MyFirstDatabase/all",
-                            "Datastore/allOther",
-                            "Datastore/all"])
-  end
-
   def test_separate_operation_name
     in_background_transaction("txn") do
       MyFirstDatabase.new.save

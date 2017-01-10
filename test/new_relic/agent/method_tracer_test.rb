@@ -95,6 +95,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     @metric_name = nil
+    NewRelic::Agent.shutdown
     super
   end
 
@@ -112,8 +113,11 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
   def test_trace_execution_scoped_records_metric_data
     metric = "hello"
-    self.class.trace_execution_scoped(metric) do
-      advance_time 0.05
+
+    in_transaction do
+      self.class.trace_execution_scoped(metric) do
+        advance_time 0.05
+      end
     end
 
     stats = @stats_engine.get_stats(metric)
@@ -177,14 +181,18 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   def test_add_method_tracer__default
     self.class.add_method_tracer :simple_method
 
-    simple_method
+    in_transaction do
+      simple_method
+    end
 
     stats = @stats_engine.get_stats("Custom/#{self.class.name}/simple_method")
     assert stats.call_count == 1
   end
 
   def test_add_class_method_tracer
-    MyClass.class_method
+    in_transaction do
+      MyClass.class_method
+    end
     stats = @stats_engine.get_stats("Custom/MyClass/Class/class_method")
     assert stats.call_count == 1
   end
@@ -196,7 +204,10 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       add_method_tracer :instance_method
     end
 
-    cls.new.instance_method
+    in_transaction do
+      cls.new.instance_method
+    end
+
     stats = @stats_engine.get_stats("Custom/AnonymousClass/instance_method")
     assert stats.call_count == 1
   end
@@ -206,7 +217,9 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     self.class.add_method_tracer :simple_method
     self.class.add_method_tracer :simple_method
 
-    simple_method
+    in_transaction do
+      simple_method
+    end
 
     stats = @stats_engine.get_stats("Custom/#{self.class.name}/simple_method")
     assert stats.call_count == 1
@@ -247,8 +260,11 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     NewRelic::Agent.instance.stubs(:transaction_sampler).returns(@old_sampler)
 
     mock = Insider.new(@stats_engine)
-    mock.catcher(0)
-    mock.catcher(5)
+
+    in_transaction do
+      mock.catcher(0)
+      mock.catcher(5)
+    end
 
     stats = @stats_engine.get_stats("catcher")
     assert_equal 2, stats.call_count

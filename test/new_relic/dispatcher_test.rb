@@ -54,6 +54,7 @@ class DispatcherTest < Minitest::Test
     NewRelic::Agent.manual_start(:dispatcher   => :resque)
     assert_equal :resque, NewRelic::Agent.config[:dispatcher]
     assert_dispatcher_reported_to_environment_report :resque
+    NewRelic::Agent.shutdown
   end
 
 end
