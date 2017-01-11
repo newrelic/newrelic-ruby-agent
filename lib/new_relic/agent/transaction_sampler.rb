@@ -62,9 +62,6 @@ module NewRelic
 
       # This delegates to the builder to create a new open transaction node
       # for the frame, beginning at the optionally specified time.
-      #
-      # Note that in developer mode, this captures a stacktrace for
-      # the beginning of each node, which can be fairly slow
       def notice_push_frame(state, time=Time.now)
         builder = state.transaction_sample_builder
         return unless builder
