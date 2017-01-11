@@ -51,7 +51,7 @@ module NewRelic
       end
 
       def enabled?
-        Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
+        Agent.config[:'transaction_tracer.enabled']
       end
 
       def on_start_transaction(state, start_time)

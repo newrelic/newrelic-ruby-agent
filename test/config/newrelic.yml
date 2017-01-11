@@ -11,8 +11,7 @@ test:
   log_level: info
   agent_enabled: false
   monitor_mode: false
-  developer_mode: true
-  disable_samplers: true
+  test_mode: true
   api_host: 127.0.0.1
   api_port: 443
   message: '<%= generated_for_user %>'

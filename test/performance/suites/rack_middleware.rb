@@ -67,13 +67,11 @@ class RackMiddleware < Performance::TestCase
       :encoding_key    => 'lolz',
       :application_id  => '5, 6', # collector can return app multiple ids
       :'rum.enabled'   => true,
-      :license_key     => 'a' * 40,
-      :developer_mode  => false
+      :license_key     => 'a' * 40
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
 
     NewRelic::Agent.manual_start(
-      :developer_mode => false,
       :monitor_mode   => false
     )
 

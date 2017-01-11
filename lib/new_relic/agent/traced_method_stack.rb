@@ -86,7 +86,7 @@ module NewRelic
       end
 
       def sampler_enabled?
-        Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
+        Agent.config[:'transaction_tracer.enabled']
       end
 
       def transaction_sampler

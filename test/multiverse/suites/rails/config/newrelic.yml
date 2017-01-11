@@ -18,7 +18,6 @@ common: &default_settings
 
 development:
   <<: *default_settings
-  developer: true
 
 test:
   <<: *default_settings

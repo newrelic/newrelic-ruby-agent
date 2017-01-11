@@ -24,14 +24,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     NewRelic::Agent.instance.service = @service
     @local_host = nil
 
-    @test_config = { :developer_mode => true }
     NewRelic::Agent.reset_config
-    NewRelic::Agent.config.add_config_for_testing(@test_config)
-  end
-
-  def teardown
-    NewRelic::Agent.reset_config
-    NewRelic::Agent.config.remove_config(@test_config)
   end
 
   def control
@@ -129,16 +122,14 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_configure_transaction_tracer_negative
     with_config(:'transaction_tracer.enabled' => false) do
-      assert @transaction_sampler.enabled?
+      refute @transaction_sampler.enabled?
     end
   end
 
   def test_configure_transaction_tracer_server_disabled
     config = NewRelic::Agent::Configuration::ServerSource.new('collect_traces' => false)
-    with_config(:developer_mode => false) do
-      with_config(config) do
-        refute @transaction_sampler.enabled?
-      end
+    with_config(config) do
+      refute @transaction_sampler.enabled?
     end
   end
 

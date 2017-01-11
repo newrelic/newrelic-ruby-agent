@@ -108,7 +108,7 @@ module NewRelic
         def self.agent_enabled
           Proc.new {
             NewRelic::Agent.config[:enabled] &&
-            (NewRelic::Agent.config[:developer_mode] || NewRelic::Agent.config[:monitor_mode]) &&
+            (NewRelic::Agent.config[:test_mode] || NewRelic::Agent.config[:monitor_mode]) &&
             NewRelic::Agent::Autostart.agent_should_start?
           }
         end
@@ -278,19 +278,12 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'When <code>true</code>, the agent transmits data about your app to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>.'
         },
-        :developer_mode => {
-          :default => value_of(:developer),
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'When <code>true</code>, enables developer mode, a local analytics package built into the agent for rack applications. Access developer mode analytics by visiting <b>/newrelic</b> in your application.'
-        },
-        :developer => {
+        :test_mode => {
           :default => false,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Alternative method of enabling developer_mode.'
+          :description => 'Used in tests for agent to start up but not connect to collector. Formerly used <code>developer_mode</code> in test config for this purpose.'
         },
         :log_level => {
           :default => 'info',
@@ -1307,14 +1300,6 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description  => 'If <code>true</code>, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.'
-        },
-        :disable_rubyprof => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t use RubyProf in developer mode.'
         },
         :disable_typhoeus => {
           :default      => false,

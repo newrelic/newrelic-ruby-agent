@@ -81,8 +81,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def test_on_start_transaction_disabled
-    with_config(:'transaction_tracer.enabled' => false,
-                :developer_mode => false) do
+    with_config(:'transaction_tracer.enabled' => false) do
       @sampler.expects(:start_builder).never
       @sampler.on_start_transaction(@state, Time.at(100))
     end
@@ -228,8 +227,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def test_harvest_when_disabled
-    with_config(:'transaction_tracer.enabled' => false,
-                :developer_mode => false) do
+    with_config(:'transaction_tracer.enabled' => false) do
       assert_equal([], @sampler.harvest!)
     end
   end
@@ -367,8 +365,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def test_start_builder_disabled
     @state.transaction_sample_builder = 'not nil.'
-    with_config(:'transaction_tracer.enabled' => false,
-                :developer_mode => false) do
+    with_config(:'transaction_tracer.enabled' => false) do
       @sampler.send(:start_builder, @state)
       assert_equal(nil, @state.transaction_sample_builder,
                    "should clear the transaction builder when disabled")
