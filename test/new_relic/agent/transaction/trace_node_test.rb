@@ -280,25 +280,6 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     end
   end
 
-  def test_find_node_default
-    s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    id_to_find = s.object_id
-    # should return itself in the base case
-    assert_equal(s, s.find_node(id_to_find))
-  end
-
-  def test_find_node_not_found
-    s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    assert_equal(nil, s.find_node(-1))
-  end
-
-  def test_find_node_with_children
-    s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
-    id_to_find = s.object_id
-    # should return itself in the base case
-    assert_equal(s, s.find_node(id_to_find))
-  end
-
   def test_explain_sql_raising_an_error
     s = NewRelic::Agent::Transaction::TraceNode.new(Time.now, 'Custom/test/metric')
     config = { :adapter => 'mysql' }
