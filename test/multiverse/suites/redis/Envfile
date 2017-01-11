@@ -1,3 +1,10 @@
+if RUBY_VERSION >= '2.1'
+  gemfile <<-RB
+    gem 'rack'
+    gem 'redis', '~>4.0.0.rc1'
+  RB
+end
+
 gemfile <<-RB
   gem 'rack'
   gem 'redis', '~>3.2.1'
