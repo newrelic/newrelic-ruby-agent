@@ -655,13 +655,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, disables view instrumentation.'
         },
-        :disable_backtrace_cleanup => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent won\'t remove <code>newrelic_rpm</code> from backtraces.'
-        },
         :disable_harvest_thread => {
           :default => false,
           :public => false,
