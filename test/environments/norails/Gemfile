@@ -12,7 +12,7 @@ else
 end
 
 gem 'rack-test'
-gem 'json', '< 2.0.0' if RUBY_VERSION == "1.8.7"
+gem 'json', '< 1.8.5' if RUBY_VERSION == "1.8.7"
 
 platforms :rbx do
   gem "rubysl"
