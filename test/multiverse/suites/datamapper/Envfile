@@ -11,7 +11,6 @@ adapter_gems = <<-RB
 RB
 
 gemfile <<-RB
-  gem 'json', '>= 1.8.1'
   gem 'datamapper', '~> 1.2.0', :require => 'data_mapper'
   gem 'dm-ar-finders', '~> 1.2.0'
   gem 'addressable', '2.3.8', :require => 'addressable/uri' # addressable >= 2.4.0 does not support Ruby 1.8.7

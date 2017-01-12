@@ -17,7 +17,6 @@ gem 'json', '< 1.8.5' if RUBY_VERSION == "1.8.7"
 platforms :rbx do
   gem "rubysl"
   gem "rubysl-test-unit"
-  gem "json", '< 2.0.0'
   gem "psych"
   gem "racc"  # https://github.com/rubinius/rubinius/issues/2632
 end
