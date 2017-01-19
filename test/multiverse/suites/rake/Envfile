@@ -1,7 +1,12 @@
 if RUBY_VERSION >= '1.9.3'
   gemfile <<-RB
     gem 'rack'
-    gem 'rake', '~> 11.1.0'
+    gem 'rake', '~> 12.0'
+  RB
+
+  gemfile <<-RB
+    gem 'rack'
+    gem 'rake', '~> 11.1'
   RB
 end
 
