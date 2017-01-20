@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+## v4.0.0 ##
+
+  * Require Ruby 2.0.0+
+
+  The agent no longer supports Ruby versions prior to 2.0, JRuby 1.7 and
+  earlier, and all versions of Rubinius. For more information, check out our
+  [community forum](https://discuss.newrelic.com/t/support-for-ruby-jruby-1-x-is-being-deprecated-in-ruby-agent-4-0-0/44787).
+
   * Early access Redis 4.0 instrumentation
 
   Our Redis instrumentation has been tested against Redis 4.0.0.rc1.
