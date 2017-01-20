@@ -15,6 +15,14 @@ projects. Syntax must be compatible with all supported Ruby implementations
 (e.g. no 1.9 specific hash syntax) and we can't assume the presence of any
 specific libraries, including `ActiveSupport`, `ActiveRecord`, etc.
 
+## Branches
+
+The head of master will generally have New Relic's latest release. However,
+New Relic reserves the ability to push an edge to the master. If you download a
+release from this repo, use the appropriate tag. New Relic usually pushes beta
+versions of a release to a working branch before tagging them for General
+Availability.
+
 ## Testing
 
 The agent includes a suite of unit and functional tests which should be used to
