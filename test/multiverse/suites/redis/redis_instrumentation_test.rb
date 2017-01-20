@@ -321,7 +321,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
   end
 
   def client
-    if NewRelic::VersionNumber.new(Redis::VERSION).major_version < 4
+    if Gem::Version.new(Redis::VERSION).segments[0] < 4
       :client
     else
       :_client

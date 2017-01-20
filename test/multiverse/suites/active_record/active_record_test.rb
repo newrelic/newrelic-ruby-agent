@@ -28,9 +28,9 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
     def active_record_version
       if defined?(::ActiveRecord::VERSION::MINOR)
-        NewRelic::VersionNumber.new(::ActiveRecord::VERSION::STRING)
+        Gem::Version.new(::ActiveRecord::VERSION::STRING)
       else
-        NewRelic::VersionNumber.new("2.1.0")  # Can't tell between 2.1 and 2.2. Meh.
+        Gem::Version.new("2.1.0")  # Can't tell between 2.1 and 2.2. Meh.
       end
     end
   end
@@ -59,7 +59,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  if active_record_version >= NewRelic::VersionNumber.new('3.2.0')
+  if active_record_version >= Gem::Version.new('3.2.0')
     def test_metrics_for_pluck
       in_web_transaction do
         Order.pluck(:id)
@@ -69,7 +69,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  if active_record_version >= NewRelic::VersionNumber.new('4.0.0')
+  if active_record_version >= Gem::Version.new('4.0.0')
     def test_metrics_for_ids
       in_web_transaction do
         Order.ids
@@ -222,7 +222,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   # delete and touch did not exist in AR 2.2
-  if active_record_version >= NewRelic::VersionNumber.new('3.0.0')
+  if active_record_version >= Gem::Version.new('3.0.0')
     def test_metrics_for_delete
       in_web_transaction do
         order = Order.create("name" => "burt")
@@ -321,7 +321,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   # update & update! didn't become public until 4.0
-  if active_record_version >= NewRelic::VersionNumber.new('4.0.0')
+  if active_record_version >= Gem::Version.new('4.0.0')
     def test_metrics_for_update
       in_web_transaction do
         order = Order.create(:name => "wendy")

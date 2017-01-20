@@ -28,7 +28,7 @@ module NewRelic
         end
 
         def version
-          @rails_version ||= NewRelic::VersionNumber.new(::Rails::VERSION::STRING)
+          @rails_version ||= Gem::Version.new(::Rails::VERSION::STRING)
         end
 
         protected

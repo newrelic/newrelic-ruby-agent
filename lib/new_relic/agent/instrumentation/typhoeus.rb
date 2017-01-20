@@ -50,10 +50,10 @@ end
 
 module NewRelic::Agent::Instrumentation::TyphoeusTracing
 
-  EARLIEST_VERSION = NewRelic::VersionNumber.new("0.5.3")
+  EARLIEST_VERSION = Gem::Version.new("0.5.3")
 
   def self.is_supported_version?
-    NewRelic::VersionNumber.new(Typhoeus::VERSION) >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLIEST_VERSION
+    Gem::Version.new(Typhoeus::VERSION) >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLIEST_VERSION
   end
 
   def self.request_is_hydra_enabled?(request)

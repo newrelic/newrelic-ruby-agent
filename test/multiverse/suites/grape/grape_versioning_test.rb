@@ -47,7 +47,7 @@ unless ::Grape::VERSION == '0.1.5'
     end
 
     #version from http accept header is not supported in older versions of grape
-    if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('0.16.0')
+    if Gem::Version.new(Grape::VERSION) >= Gem::Version.new('0.16.0')
       def test_version_from_accept_version_header_is_recorded_in_transaction_name
         @app_class = GrapeVersioning::ApiV4
         get '/fish', {}, 'HTTP_ACCEPT_VERSION' => 'v4'
@@ -106,7 +106,7 @@ unless ::Grape::VERSION == '0.1.5'
     #
     # defaulting with header key/empty value does not set rack.env['api.version']
     #
-    if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('0.5.0')
+    if Gem::Version.new(Grape::VERSION) >= Gem::Version.new('0.5.0')
       def test_default_accept_version_header_version_in_tranasaction_names
         @app_class = GrapeVersioning::DefaultAcceptVersionHeaderApi
         get "/fish", nil, 'HTTP_ACCEPT_VERSION' => ''
