@@ -33,15 +33,11 @@ module NewRelic
 
       CONTROLLER_MIDDLEWARE_PREFIX = 'Controller/Middleware/Rack'.freeze
 
-      NESTED_TRACE_STOP_OPTIONS    = { :metric => true }.freeze
       WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
       TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
       EMPTY_SUMMARY_METRICS        = [].freeze
-
-      TRACE_OPTIONS_SCOPED         = { :metric => true, :scoped_metric => true }.freeze
-      TRACE_OPTIONS_UNSCOPED       = { :metric => true, :scoped_metric => false }.freeze
 
       # reference to the transaction state managing this transaction
       attr_accessor :state
