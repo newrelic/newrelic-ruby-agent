@@ -49,7 +49,7 @@ module NewRelic
         end
 
         def test_segment_records_metrics
-          in_transaction do |txn|
+          in_transaction "test" do |txn|
             segment = Segment.new  "Custom/simple/segment", "Segment/all"
             txn.add_segment segment
             segment.start
@@ -57,7 +57,12 @@ module NewRelic
             segment.finish
           end
 
-          assert_metrics_recorded ["Custom/simple/segment", "Segment/all"]
+          assert_metrics_recorded_exclusive [
+            "test",
+            ["Custom/simple/segment", "test"],
+            "Custom/simple/segment",
+            "Segment/all"
+          ]
         end
 
         def test_segment_records_metrics_when_given_as_array
@@ -70,6 +75,37 @@ module NewRelic
           end
 
           assert_metrics_recorded ["Custom/simple/segment", "Segment/all", "Other/all"]
+        end
+
+        def test_segment_can_disable_scoped_metric_recording
+          in_transaction('test') do |txn|
+            segment = Segment.new  "Custom/simple/segment", "Segment/all"
+            segment.record_scoped_metric = false
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
+
+          assert_metrics_recorded_exclusive ["test", "Custom/simple/segment", "Segment/all"]
+        end
+
+        def test_segment_can_disable_scoped_metric_recording_with_unscoped_as_frozen_array
+          in_transaction('test') do |txn|
+            segment = Segment.new  "Custom/simple/segment", ["Segment/all", "Segment/allOther"].freeze
+            segment.record_scoped_metric = false
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
+
+          assert_metrics_recorded_exclusive [
+            "test",
+            "Custom/simple/segment",
+            "Segment/all",
+            "Segment/allOther"
+          ]
         end
       end
     end

@@ -13,6 +13,7 @@ module NewRelic
           @name = name
           @children_time = 0.0
           @record_metrics = true
+          @record_scoped_metric = true
           @transaction = nil
         end
 
@@ -42,6 +43,14 @@ module NewRelic
 
         def record_metrics= value
           @record_metrics = value
+        end
+
+        def record_scoped_metric?
+          @record_scoped_metric
+        end
+
+        def record_scoped_metric= value
+          @record_scoped_metric = value
         end
 
         def record_metrics
