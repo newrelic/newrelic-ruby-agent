@@ -37,7 +37,6 @@ module NewRelic
       TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
-      EMPTY_SUMMARY_METRICS        = [].freeze
 
       # reference to the transaction state managing this transaction
       attr_accessor :state
@@ -413,10 +412,10 @@ module NewRelic
 
       def create_segment(name)
         nested_name = self.class.nested_transaction_name(name)
+        summary_metrics = nil
+
         if nested_name.start_with?(MIDDLEWARE_PREFIX)
           summary_metrics = MIDDLEWARE_SUMMARY_METRICS
-        else
-          summary_metrics = EMPTY_SUMMARY_METRICS
         end
 
         segment = self.class.start_segment name, summary_metrics
