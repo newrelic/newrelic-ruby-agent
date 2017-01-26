@@ -4,16 +4,6 @@
 
 module NewRelic
   module Agent
-    class TracedMethodFrame
-      attr_reader :tag
-      attr_accessor :name, :start_time, :children_time
-      def initialize(tag, start_time)
-        @tag = tag
-        @start_time = start_time
-        @children_time = 0
-      end
-    end
-
     # TracedMethodStack is responsible for tracking the push and pop of methods
     # that we are tracing, notifying the transaction sampler, and calculating
     # exclusive time when a method is complete. This is allowed whether a
@@ -41,11 +31,8 @@ module NewRelic
       # +name+ will be applied to the generated transaction trace node.
       def pop_frame(state, expected_frame, name, time, deduct_call_time_from_parent=true)
         frame = fetch_matching_frame(expected_frame)
-
         note_children_time(frame, time, deduct_call_time_from_parent)
-
         transaction_sampler.notice_pop_frame(state, name, time) if sampler_enabled?
-        frame.name = name if frame.is_a? TracedMethodFrame
         frame
       end
 
