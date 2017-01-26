@@ -15,6 +15,7 @@ module NewRelic
         end
 
         def teardown
+          unfreeze_time
           NewRelic::Agent.drop_buffered_data
         end
 
@@ -168,6 +169,34 @@ module NewRelic
             "External/allWeb",
             ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
+        end
+
+        def test_children_time
+          in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment "metric a"
+            advance_time(0.001)
+
+            segment_b = NewRelic::Agent::Transaction.start_segment "metric b"
+            advance_time(0.002)
+
+            segment_c = NewRelic::Agent::Transaction::start_segment "metric c"
+            advance_time(0.003)
+            segment_c.finish
+            assert_equal 0, segment_c.children_time
+
+            advance_time(0.001)
+
+            segment_d = NewRelic::Agent::Transaction.start_segment "metric d"
+            advance_time(0.002)
+            segment_d.finish
+            assert_equal 0, segment_d.children_time
+
+            segment_b.finish
+            assert_in_delta(segment_c.duration + segment_d.duration, segment_b.children_time, 0.0001)
+
+            segment_a.finish
+            assert_in_delta(segment_b.duration, segment_a.children_time, 0.0001)
+          end
         end
       end
     end

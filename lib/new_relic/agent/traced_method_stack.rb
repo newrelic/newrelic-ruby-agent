@@ -23,19 +23,8 @@ module NewRelic
         @stack = []
       end
 
-      # Pushes a frame onto the transaction stack - this generates a
+      # Pushes a segment onto the transaction stack - this generates a
       # Agent::Transaction::TraceNode at the end of transaction execution.
-      #
-      # The generated node won't be named until pop_frame is called.
-      #
-      # +tag+ should be a Symbol, and is only for debugging purposes to
-      # identify this frame if the stack gets corrupted.
-      def push_frame(state, tag, time = Time.now.to_f)
-        transaction_sampler.notice_push_frame(state, time) if sampler_enabled?
-        frame = TracedMethodFrame.new(tag, time)
-        @stack.push frame
-        frame
-      end
 
       def push_segment state, segment
         transaction_sampler.notice_push_frame(state, segment.start_time) if sampler_enabled?
