@@ -5,7 +5,7 @@
 module Performance
   module Instrumentation
     class PerfToolsProfile < Instrumentor
-      platforms :mri_19, :mri_20, :mri_21
+      platforms :mri_20, :mri_21
 
       def self.setup
         require 'tmpdir'
