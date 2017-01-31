@@ -10,7 +10,7 @@ require 'timeout'
 require 'ostruct'
 require 'fake_server'
 
-require 'json' if RUBY_VERSION >= '1.9'
+require 'json'
 
 module NewRelic
   class FakeCollector < FakeServer

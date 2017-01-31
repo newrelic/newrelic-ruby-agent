@@ -6,7 +6,7 @@ require 'rack'
 require 'new_relic/fake_server'
 require 'new_relic/rack/agent_hooks'
 
-require 'json' if RUBY_VERSION >= '1.9'
+require 'json'
 
 module NewRelic
   class FakeExternalServer < FakeServer

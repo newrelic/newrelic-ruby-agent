@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','..','test_helper'))
 require 'new_relic/agent/vm/mri_vm'
 
-unless NewRelic::LanguageSupport.jruby? || NewRelic::LanguageSupport.rubinius?
+unless NewRelic::LanguageSupport.jruby?
   module NewRelic
     module Agent
       module VM
@@ -15,12 +15,10 @@ unless NewRelic::LanguageSupport.jruby? || NewRelic::LanguageSupport.rubinius?
             @vm = MriVM.new
           end
 
-          unless RUBY_VERSION < '1.9.2'
-            def test_gather_gc_time_sets_gc_total_time_if_gc_profiler_is_enabled
-              NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(true)
-              @vm.gather_gc_time(@snap)
-              refute_nil @snap.gc_total_time
-            end
+          def test_gather_gc_time_sets_gc_total_time_if_gc_profiler_is_enabled
+            NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(true)
+            @vm.gather_gc_time(@snap)
+            refute_nil @snap.gc_total_time
           end
 
           def test_gather_gc_time_does_not_set_gc_total_time_if_gc_profiler_is_disabled

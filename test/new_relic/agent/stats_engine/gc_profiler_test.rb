@@ -51,13 +51,8 @@ class NewRelic::Agent::StatsEngine
       assert_metrics_not_recorded([GCProfiler::GC_ROLLUP, GCProfiler::GC_WEB, GCProfiler::GC_OTHER])
     end
 
-    using_jruby       = NewRelic::LanguageSupport.jruby?
-    using_ree         = NewRelic::LanguageSupport.ree?
-    using_ruby18      = NewRelic::LanguageSupport.using_version?('1.8')
-    using_ruby19_plus = !using_ruby18
-
     # Only run these tests in environments where GCProfiler is usable
-    if !using_jruby && (using_ree || using_ruby19_plus)
+    if !NewRelic::LanguageSupport.jruby?
       def test_record_delta_returns_delta_in_seconds
         GCProfiler.init
 
