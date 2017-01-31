@@ -2,25 +2,19 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-if RUBY_VERSION >= '1.9'
-
 class EncodingHandlingTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent
 
-  # We're hitting a Rubinius bug when running this test there:
-  # https://github.com/rubinius/rubinius/issues/2899
-  unless NewRelic::LanguageSupport.rubinius?
-    def test_handles_mis_encoded_database_queries
-      with_config(:'transaction_tracer.transaction_threshold' => 0.0,
-        :'transaction_tracer.record_sql' => :raw) do
-        in_transaction do
-          state = NewRelic::Agent::TransactionState.tl_get
-          agent.transaction_sampler.notice_sql(bad_string, nil, 42, state)
-        end
-        assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
+  def test_handles_mis_encoded_database_queries
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0,
+      :'transaction_tracer.record_sql' => :raw) do
+      in_transaction do
+        state = NewRelic::Agent::TransactionState.tl_get
+        agent.transaction_sampler.notice_sql(bad_string, nil, 42, state)
       end
+      assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
     end
   end
 
@@ -125,6 +119,4 @@ class EncodingHandlingTest < Minitest::Test
   def normalized_bad_string
     bad_string.force_encoding('ISO-8859-1').encode('UTF-8')
   end
-end
-
 end

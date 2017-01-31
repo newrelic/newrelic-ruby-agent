@@ -367,13 +367,13 @@ class DataMapperTest < Minitest::Test
   def test_should_not_bomb_out_if_a_query_is_in_an_invalid_encoding
     db = DummyConnection.new
     q = "select ICS95095010000000000083320000BS01030000004100+\xFF00000000000000000"
-    q.force_encoding 'UTF-8' if RUBY_VERSION >= '1.9'
+    q.force_encoding 'UTF-8'
 
     msg = mock
     msg.stubs(:duration).returns(1)
     msg.stubs(:query).returns(q)
 
-    assert_equal false, msg.query.valid_encoding? if RUBY_VERSION >= '1.9'
+    assert_equal false, msg.query.valid_encoding?
     db.send(:log, msg)
   end
 

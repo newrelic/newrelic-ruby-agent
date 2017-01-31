@@ -36,12 +36,6 @@ class MarshalingTest < Minitest::Test
     expected = expected_sample.to_collector_array(encoder)
     expected = NewRelic::Agent::EncodingNormalizer.normalize_object(expected)
 
-    if RUBY_VERSION == '1.8.7'
-      # 1.8 + JSON is finicky about comparing floats.
-      # If the timestamps are within 0.001 seconds, it's Good Enough.
-      assert_in_delta(expected[4][0], actual[4][0], 0.001)
-      actual[4][0] = expected[4][0]
-    end
     assert_equal(expected, actual)
   end
 

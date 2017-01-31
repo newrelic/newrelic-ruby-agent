@@ -5,8 +5,6 @@
 # https://newrelic.atlassian.net/wiki/display/eng/Agent+Thread+Profiling
 # https://newrelic.atlassian.net/browse/RUBY-917
 
-if RUBY_VERSION >= '1.9'
-
 require 'thread'
 
 class ThreadProfilingTest < Minitest::Test
@@ -136,5 +134,4 @@ class ThreadProfilingTest < Minitest::Test
     assert !profile_data.traces[type].empty?, "Zero #{type} traces seen"
   end
 
-end
 end
