@@ -369,8 +369,7 @@ module NewRelic
     #
     # @api public
     def require_test_helper
-      path = File.join(__FILE__, '..', '..', '..', 'test', 'agent_helper')
-      require File.expand_path(path)
+      require File.expand_path('../../../test/agent_helper', __FILE__)
     end
 
     # This method sets the block sent to this method as a sql
