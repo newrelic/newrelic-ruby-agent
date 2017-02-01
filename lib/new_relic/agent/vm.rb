@@ -5,7 +5,6 @@
 require 'new_relic/language_support'
 require 'new_relic/agent/vm/mri_vm'
 require 'new_relic/agent/vm/jruby_vm'
-require 'new_relic/agent/vm/rubinius_vm'
 
 module NewRelic
   module Agent
@@ -19,10 +18,8 @@ module NewRelic
       end
 
       def self.create_vm
-        if NewRelic::LanguageSupport.using_engine?('jruby')
+        if NewRelic::LanguageSupport.jruby?
           JRubyVM.new
-        elsif NewRelic::LanguageSupport.using_engine?('rbx')
-          RubiniusVM.new
         else
           MriVM.new
         end

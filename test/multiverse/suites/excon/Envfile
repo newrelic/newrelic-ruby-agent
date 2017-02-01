@@ -9,9 +9,6 @@ else
                       0.10.0)
 end
 
-# Excon 0.10.0 doesn't seem to work on Rubinius 2.2.10
-excon_versions.delete("0.10.0") if defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
-
 excon_versions.each do |excon_version|
   gemfile <<-RB
     gem 'excon', '~> #{excon_version}'

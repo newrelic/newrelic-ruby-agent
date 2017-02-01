@@ -50,23 +50,8 @@ module NewRelic
       # When multiple rules share the same prefix,
       # only apply the rule with the last instance of the prefix.
       # Note that the incoming rules are in reverse order to facilitate this.
-      if NewRelic::LanguageSupport.uniq_accepts_block?
-        def self.reject_rules_with_duplicate_prefixes!(rules)
-          rules.uniq! { |rule| rule.prefix }
-        end
-      else
-        def self.reject_rules_with_duplicate_prefixes!(rules)
-          unique_rules = {}
-
-          rules.reject! do |rule|
-            if unique_rules[rule.prefix]
-              true
-            else
-              unique_rules[rule.prefix] = rule
-              false
-            end
-          end
-        end
+      def self.reject_rules_with_duplicate_prefixes!(rules)
+        rules.uniq! { |rule| rule.prefix }
       end
 
       def initialize(rules=[], segment_term_rules=[])

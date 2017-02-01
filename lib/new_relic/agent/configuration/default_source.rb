@@ -127,13 +127,6 @@ module NewRelic
           Proc.new { NewRelic::Control.instance.local_env.discovered_dispatcher }
         end
 
-        # On Rubies with string encodings support (1.9.x+), default to always
-        # normalize encodings since it's safest and fast. Without that support
-        # the conversions are too expensive, so only enable if overridden to.
-        def self.normalize_json_string_encodings
-          Proc.new { NewRelic::LanguageSupport.supports_string_encodings? }
-        end
-
         def self.thread_profiler_enabled
           Proc.new { NewRelic::Agent::Threading::BacktraceService.is_supported? }
         end
@@ -1204,7 +1197,7 @@ module NewRelic
           :description => 'Controls whether to check on running a transaction whether to respawn the harvest thread.'
         },
         :normalize_json_string_encodings => {
-          :default => DefaultSource.normalize_json_string_encodings,
+          :default => true,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,

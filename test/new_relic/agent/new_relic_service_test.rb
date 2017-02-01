@@ -495,24 +495,18 @@ class NewRelicServiceTest < Minitest::Test
     def test_json_marshaller_handles_binary_strings
       input_string = (0..255).to_a.pack("C*")
       roundtripped_string = roundtrip_data(input_string)
-
-      if NewRelic::LanguageSupport.supports_string_encodings?
-        assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
-      end
-
+      assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
       expected = force_to_utf8(input_string.dup)
       assert_equal(expected, roundtripped_string)
     end
 
-    if NewRelic::LanguageSupport.supports_string_encodings?
-      def test_json_marshaller_handles_strings_with_incorrect_encoding
-        input_string = (0..255).to_a.pack("C*").force_encoding("UTF-8")
-        roundtripped_string = roundtrip_data(input_string)
+    def test_json_marshaller_handles_strings_with_incorrect_encoding
+      input_string = (0..255).to_a.pack("C*").force_encoding("UTF-8")
+      roundtripped_string = roundtrip_data(input_string)
 
-        assert_equal(Encoding.find('UTF-8'), input_string.encoding)
-        expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
-        assert_equal(expected, roundtripped_string)
-      end
+      assert_equal(Encoding.find('UTF-8'), input_string.encoding)
+      expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
+      assert_equal(expected, roundtripped_string)
     end
 
     def test_json_marshaller_failure_when_not_normalizing
@@ -782,11 +776,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def force_to_utf8(string)
-    if NewRelic::LanguageSupport.supports_string_encodings?
-      string.force_encoding('ISO-8859-1').encode('UTF-8')
-    else
-      Iconv.iconv('utf-8', 'iso-8859-1', string).join
-    end
+    string.force_encoding('ISO-8859-1').encode('UTF-8')
   end
 
   def generate_random_byte_sequence(length=255, encoding=nil)
@@ -811,11 +801,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def random_encoding
-    if NewRelic::LanguageSupport.supports_string_encodings?
-      Encoding.list.sample
-    else
-      nil
-    end
+    Encoding.list.sample
   end
 
   def roundtrip_data(data, normalize = true)

@@ -227,14 +227,6 @@ module Multiverse
       end
     end
 
-    # Bundler does not seem to be able to find version 2.0.1 of the json
-    # gem for jruby 9000. This is likely a temporary situation and we
-    # can probably remove this check in the near future. For now we need
-    # this for CI to pass.
-    def pin_json_for_jruby?
-      defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && RUBY_VERSION >= "2.0.0"
-    end
-
     def print_environment
       puts yellow("Environment loaded with:") if verbose?
       gems = Bundler.definition.specs.inject([]) do |m, s|

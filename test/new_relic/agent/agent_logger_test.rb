@@ -248,8 +248,8 @@ class AgentLoggerTest < Minitest::Test
 
   def test_log_exception_gets_backtrace_for_system_stack_error
     # This facility compensates for poor SystemStackError traces on MRI.
-    # JRuby and Rubinius raise errors with good backtraces, so skip this test.
-    return if jruby? || rubinius?
+    # JRuby raises errors with good backtraces, so skip this test.
+    return if NewRelic::LanguageSupport.jruby?
 
     logger = create_basic_logger
 

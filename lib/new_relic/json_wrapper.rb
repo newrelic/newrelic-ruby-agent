@@ -52,10 +52,6 @@ module NewRelic
       @backend_name
     end
 
-    def self.supports_normalization?
-      NewRelic::LanguageSupport.supports_string_encodings?
-    end
-
     def self.dump(object, options={})
       object = normalize(object) if options[:normalize]
       # okjson doesn't handle symbol keys, so we must stringify them before encoding
