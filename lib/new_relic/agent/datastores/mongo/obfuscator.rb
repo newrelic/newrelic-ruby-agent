@@ -26,13 +26,15 @@ module NewRelic
             end
           end
 
+          QUESTION_MARK = '?'.freeze
+
           def self.obfuscate_value(value, whitelist = WHITELIST)
             if value.is_a?(Hash)
               obfuscate_statement(value, whitelist)
             elsif value.is_a?(Array)
               value.map {|v| obfuscate_value(v, whitelist)}
             else
-              '?'
+              QUESTION_MARK
             end
           end
         end
