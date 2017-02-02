@@ -535,14 +535,6 @@ module NewRelic
             return false
           end
 
-          unless NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-            NewRelic::Agent.logger.error "JSON marshaller requested, but the 'json' gem was not available. ",
-              "You will need to: 1) upgrade to Ruby 1.9.3 or newer (strongly recommended), ",
-              "2) add the 'json' gem to your Gemfile or operating environment, ",
-              "or 3) use a version of newrelic_rpm prior to 3.14.0."
-            return false
-          end
-
           return true
         end
 

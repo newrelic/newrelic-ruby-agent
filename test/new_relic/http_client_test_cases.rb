@@ -437,7 +437,7 @@ module HttpClientTestCases
   # https://newrelic.atlassian.net/browse/RUBY-1244
   def test_failure_in_our_start_code_still_records_externals
     # Fake a failure in our start-up code...
-    NewRelic::JSONWrapper.stubs(:dump).raises("Boom!")
+    ::JSON.stubs(:dump).raises("Boom!")
 
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction { get_response }
@@ -449,7 +449,7 @@ module HttpClientTestCases
   # https://newrelic.atlassian.net/browse/RUBY-1244
   def test_failure_to_add_tt_node_doesnt_append_params_to_wrong_node
     # Fake a failure in our start-up code...
-    NewRelic::JSONWrapper.stubs(:dump).raises("Boom!")
+    ::JSON.stubs(:dump).raises("Boom!")
 
     in_transaction do
       with_config(:"cross_application_tracer.enabled" => true) do
@@ -606,7 +606,7 @@ module HttpClientTestCases
 
   def decode_payload(payload)
     obfuscator = NewRelic::Agent::Obfuscator.new('gringletoes')
-    NewRelic::JSONWrapper.load(obfuscator.deobfuscate(payload))
+    ::JSON.load(obfuscator.deobfuscate(payload))
   end
 
   def set_explicit_transaction_name(name)

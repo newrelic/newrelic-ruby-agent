@@ -144,7 +144,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def test_browser_timing_header_safe_when_json_dump_fails
     in_transaction do
-      NewRelic::JSONWrapper.stubs(:dump).raises("Serialize? Hahahaha")
+      ::JSON.stubs(:dump).raises("Serialize? Hahahaha")
       assert_equal "", instrumentor.browser_timing_header
     end
   end
@@ -323,7 +323,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def unpack_to_object(text)
     unpacked_atts = instrumentor.obfuscator.deobfuscate(text)
-    NewRelic::JSONWrapper.load(unpacked_atts)
+    ::JSON.load(unpacked_atts)
   end
 
   def formatted_for_matching(value)

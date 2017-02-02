@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'digest'
+require 'json'
 
 require 'new_relic/agent/inbound_request_monitor'
 require 'new_relic/agent/transaction_state'
@@ -129,7 +130,7 @@ module NewRelic
           content_length,
           state.request_guid
         ]
-        payload = obfuscator.obfuscate(NewRelic::JSONWrapper.dump(payload))
+        payload = obfuscator.obfuscate(::JSON.dump(payload))
       end
 
       def set_transaction_attributes(state)

@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'base64'
+require 'json'
 require 'new_relic/agent/obfuscator'
 require 'new_relic/agent/transaction_timings'
 
@@ -112,7 +113,7 @@ module NewRelic
 
         txn.freeze_name_and_execute_if_not_ignored do
           data = data_for_js_agent(state)
-          json = NewRelic::JSONWrapper.dump(data)
+          json = ::JSON.dump(data)
           return html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
         end
 
@@ -168,7 +169,7 @@ module NewRelic
         append_agent_attributes!(txn, atts)
 
         unless atts.empty?
-          json = NewRelic::JSONWrapper.dump(atts)
+          json = ::JSON.dump(atts)
           data[ATTS_KEY] = obfuscator.obfuscate(json)
         end
       end

@@ -359,7 +359,7 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_profile_data_does_not_normalize_encodings
     @http_handle.respond_to(:profile_data, nil)
-    NewRelic::JSONWrapper.expects(:normalize).never
+    NewRelic::Agent::EncodingNormalizer.expects(:normalize_object).never
     @service.profile_data([])
   end
 
@@ -441,116 +441,114 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
-  if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-    def test_json_marshaller_handles_responses_from_collector
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      assert_equal ['beep', 'boop'], marshaller.load('{"return_value": ["beep","boop"]}')
-    end
+  def test_json_marshaller_handles_responses_from_collector
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    assert_equal ['beep', 'boop'], marshaller.load('{"return_value": ["beep","boop"]}')
+  end
 
-    def test_json_marshaller_handles_errors_from_collector
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      assert_raises(NewRelic::Agent::NewRelicService::CollectorError,
-                   'JavaCrash: error message') do
-        marshaller.load('{"exception": {"message": "error message", "error_type": "JavaCrash"}}')
-      end
+  def test_json_marshaller_handles_errors_from_collector
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    assert_raises(NewRelic::Agent::NewRelicService::CollectorError,
+                 'JavaCrash: error message') do
+      marshaller.load('{"exception": {"message": "error message", "error_type": "JavaCrash"}}')
     end
+  end
 
-    def test_json_marshaller_logs_on_empty_response_from_collector
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      expects_logging(:error, any_parameters)
-      assert_nil marshaller.load('')
+  def test_json_marshaller_logs_on_empty_response_from_collector
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    expects_logging(:error, any_parameters)
+    assert_nil marshaller.load('')
+  end
+
+  def test_json_marshaller_logs_on_nil_response_from_collector
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    expects_logging(:error, any_parameters)
+    assert_nil marshaller.load(nil)
+  end
+
+  def test_raises_serialization_error_if_json_serialization_fails
+    ::JSON.stubs(:dump).raises(RuntimeError.new('blah'))
+    assert_raises(NewRelic::Agent::SerializationError) do
+      @service.send(:invoke_remote, 'wiggle', [{}])
     end
+  end
 
-    def test_json_marshaller_logs_on_nil_response_from_collector
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      expects_logging(:error, any_parameters)
-      assert_nil marshaller.load(nil)
-    end
-
-    def test_raises_serialization_error_if_json_serialization_fails
-      ::NewRelic::JSONWrapper.stubs(:dump).raises(RuntimeError.new('blah'))
+  def test_raises_serialization_error_if_encoding_normalization_fails
+    with_config(:normalize_json_string_encodings => true) do
+      @http_handle.respond_to(:wiggle, 'hi')
+      NewRelic::Agent::EncodingNormalizer.stubs(:normalize_object).raises('blah')
       assert_raises(NewRelic::Agent::SerializationError) do
         @service.send(:invoke_remote, 'wiggle', [{}])
       end
     end
+  end
 
-    def test_raises_serialization_error_if_encoding_normalization_fails
-      with_config(:normalize_json_string_encodings => true) do
-        @http_handle.respond_to(:wiggle, 'hi')
-        NewRelic::JSONWrapper.stubs(:normalize).raises('blah')
-        assert_raises(NewRelic::Agent::SerializationError) do
-          @service.send(:invoke_remote, 'wiggle', [{}])
-        end
-      end
+  def test_skips_normalization_if_configured_to
+    @http_handle.respond_to(:wiggle, 'hello')
+    with_config(:normalize_json_string_encodings => false) do
+      NewRelic::Agent::EncodingNormalizer.expects(:normalize_object).never
+      @service.send(:invoke_remote, 'wiggle', [{ 'foo' => 'bar' }])
     end
+  end
 
-    def test_skips_normalization_if_configured_to
-      @http_handle.respond_to(:wiggle, 'hello')
-      with_config(:normalize_json_string_encodings => false) do
-        NewRelic::JSONWrapper.expects(:normalize).never
-        @service.send(:invoke_remote, 'wiggle', [{ 'foo' => 'bar' }])
-      end
+  def test_json_marshaller_handles_binary_strings
+    input_string = (0..255).to_a.pack("C*")
+    roundtripped_string = roundtrip_data(input_string)
+    assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
+    expected = force_to_utf8(input_string.dup)
+    assert_equal(expected, roundtripped_string)
+  end
+
+  def test_json_marshaller_handles_strings_with_incorrect_encoding
+    input_string = (0..255).to_a.pack("C*").force_encoding("UTF-8")
+    roundtripped_string = roundtrip_data(input_string)
+
+    assert_equal(Encoding.find('UTF-8'), input_string.encoding)
+    expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
+    assert_equal(expected, roundtripped_string)
+  end
+
+  def test_json_marshaller_failure_when_not_normalizing
+    input_string = (0..255).to_a.pack("C*")
+    assert_raises(NewRelic::Agent::SerializationError) do
+      roundtrip_data(input_string, false)
     end
+  end
 
-    def test_json_marshaller_handles_binary_strings
-      input_string = (0..255).to_a.pack("C*")
-      roundtripped_string = roundtrip_data(input_string)
-      assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
-      expected = force_to_utf8(input_string.dup)
-      assert_equal(expected, roundtripped_string)
-    end
+  def test_json_marshaller_should_handle_crazy_strings
+    root = generate_object_graph_with_crazy_strings
+    result = roundtrip_data(root)
 
-    def test_json_marshaller_handles_strings_with_incorrect_encoding
-      input_string = (0..255).to_a.pack("C*").force_encoding("UTF-8")
-      roundtripped_string = roundtrip_data(input_string)
+    # Note that there's technically a possibility of collision here:
+    # if two of the randomly-generated key strings happen to normalize to the
+    # same value, we might see <100 results, but the chances of this seem
+    # vanishingly small.
+    assert_equal(100, result.length)
+  end
 
-      assert_equal(Encoding.find('UTF-8'), input_string.encoding)
-      expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
-      assert_equal(expected, roundtripped_string)
-    end
+  def test_normalization_should_account_for_to_collector_array
+    binary_string = generate_random_byte_sequence
+    data = DummyDataClass.new(binary_string, [])
+    result = roundtrip_data(data)
 
-    def test_json_marshaller_failure_when_not_normalizing
-      input_string = (0..255).to_a.pack("C*")
-      assert_raises(NewRelic::Agent::SerializationError) do
-        roundtrip_data(input_string, false)
-      end
-    end
+    expected_string = force_to_utf8(binary_string)
+    assert_equal(expected_string, result[0])
+  end
 
-    def test_json_marshaller_should_handle_crazy_strings
-      root = generate_object_graph_with_crazy_strings
-      result = roundtrip_data(root)
+  def test_normalization_should_account_for_to_collector_array_with_nested_encodings
+    binary_string = generate_random_byte_sequence
+    data = DummyDataClass.new(binary_string, [binary_string])
+    result = roundtrip_data(data)
 
-      # Note that there's technically a possibility of collision here:
-      # if two of the randomly-generated key strings happen to normalize to the
-      # same value, we might see <100 results, but the chances of this seem
-      # vanishingly small.
-      assert_equal(100, result.length)
-    end
+    expected_string = force_to_utf8(binary_string)
+    assert_equal(expected_string, result[0])
 
-    def test_normalization_should_account_for_to_collector_array
-      binary_string = generate_random_byte_sequence
-      data = DummyDataClass.new(binary_string, [])
-      result = roundtrip_data(data)
+    base64_encoded_compressed_json_field = result[1]
+    compressed_json_field = Base64.decode64(base64_encoded_compressed_json_field)
+    json_field = Zlib::Inflate.inflate(compressed_json_field)
+    field = JSON.parse(json_field)
 
-      expected_string = force_to_utf8(binary_string)
-      assert_equal(expected_string, result[0])
-    end
-
-    def test_normalization_should_account_for_to_collector_array_with_nested_encodings
-      binary_string = generate_random_byte_sequence
-      data = DummyDataClass.new(binary_string, [binary_string])
-      result = roundtrip_data(data)
-
-      expected_string = force_to_utf8(binary_string)
-      assert_equal(expected_string, result[0])
-
-      base64_encoded_compressed_json_field = result[1]
-      compressed_json_field = Base64.decode64(base64_encoded_compressed_json_field)
-      json_field = Zlib::Inflate.inflate(compressed_json_field)
-      field = JSON.parse(json_field)
-
-      assert_equal([expected_string], field)
-    end
+    assert_equal([expected_string], field)
   end
 
   def test_compress_request_if_needed_compresses_large_payloads

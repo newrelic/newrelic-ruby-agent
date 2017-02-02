@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'json'
 require 'new_relic/agent/new_relic_service/marshaller'
 
 module NewRelic
@@ -10,10 +11,6 @@ module NewRelic
       # Marshal collector protocol with JSON when available
       class JsonMarshaller < Marshaller
         def initialize
-          ::NewRelic::Agent.logger.debug "Using JSON marshaller (#{NewRelic::JSONWrapper.backend_name})"
-          unless self.class.is_supported?
-            ::NewRelic::Agent.logger.error "JSON backend #{NewRelic::JSONWrapper.backend_name} is not supported."
-          end
           warn_for_yajl
         end
 
@@ -33,13 +30,11 @@ module NewRelic
         def dump(ruby, opts={})
           prepared = prepare(ruby, opts)
 
-          if opts[:skip_normalization]
-            normalize_encodings = false
-          else
-            normalize_encodings = Agent.config[:normalize_json_string_encodings]
+          if !opts[:skip_normalization] && Agent.config[:normalize_json_string_encodings]
+            prepared = NewRelic::Agent::EncodingNormalizer.normalize_object(prepared)
           end
 
-          NewRelic::JSONWrapper.dump(prepared, :normalize => normalize_encodings)
+          ::JSON.dump(prepared)
         end
 
         def load(data)
@@ -48,7 +43,7 @@ module NewRelic
             return nil
           end
 
-          return_value(NewRelic::JSONWrapper.load(data))
+          return_value(::JSON.load(data))
         rescue => e
           ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered loading collector response: #{data}"
           raise
@@ -64,10 +59,6 @@ module NewRelic
 
         def format
           'json'
-        end
-
-        def self.is_supported?
-          NewRelic::JSONWrapper.usable_for_collector_serialization?
         end
 
         def self.human_readable?
