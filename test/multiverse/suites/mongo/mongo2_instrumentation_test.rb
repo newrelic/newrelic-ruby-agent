@@ -239,6 +239,20 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             assert_equal expected, node[:statement]["pipeline"]
           end
 
+          def test_filter_obfuscated_by_default
+            in_transaction do
+              @collection.find("name" => "Wes Mantooth", "count" => {"$gte" => 1}).to_a
+            end
+
+            sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+            metric = "Datastore/statement/MongoDB/#{@collection_name}/find"
+            node = find_node_with_name(sample, metric)
+
+            expected = {"name"=>"?", "count"=>{"$gte"=>"?"}}
+
+            assert_equal expected, node[:statement]["filter"]
+          end
+
           def test_batched_queries
             25.times do |i|
               @collection.insert_one :name => "test-#{i}", :active => true
