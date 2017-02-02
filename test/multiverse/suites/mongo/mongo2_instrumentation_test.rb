@@ -24,7 +24,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             @collection_name = "tribbles-#{SecureRandom.hex(16)}"
             @collection = @database.collection(@collection_name)
 
-            @tribbles = [{'name' => 'soterios johnson'}, {'name' => 'wes mantooth'}]
+            @tribbles = [{'name' => 'soterios johnson', 'count' => 1}, {'name' => 'wes mantooth', 'count' => 2}]
 
             NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
             NewRelic::Agent.drop_buffered_data
@@ -203,6 +203,40 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
+          end
+
+          def test_records_metrics_for_aggregate
+            in_transaction do
+              @collection.aggregate([
+                {'$group' => {'_id' => "name", "max" => {'$max'=>"$count"}}},
+                {'$match' => {'max' => {'$gte' => 1}}}
+              ]).to_a
+            end
+
+            metrics = build_test_metrics(:aggregate, true)
+            expected = metrics_with_attributes(metrics)
+
+            assert_metrics_recorded(expected)
+          end
+
+          def test_aggregate_pipeline_obfuscated_by_default
+            in_transaction do
+              @collection.aggregate([
+                {'$group' => {'_id' => "name", "max" => {'$max'=>"$count"}}},
+                {'$match' => {'max' => {'$gte' => 1}}}
+              ]).to_a
+            end
+
+            sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+            metric = "Datastore/statement/MongoDB/#{@collection_name}/aggregate"
+            node = find_node_with_name(sample, metric)
+
+            expected = [
+              {"$group"=>{"_id"=>"?", "max"=>{"$max"=>"?"}}},
+              {"$match"=>{"max"=>{"$gte"=>"?"}}}
+            ]
+
+            assert_equal expected, node[:statement]["pipeline"]
           end
 
           def test_batched_queries
