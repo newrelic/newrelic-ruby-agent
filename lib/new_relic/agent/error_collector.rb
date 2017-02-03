@@ -14,8 +14,8 @@ module NewRelic
       # Maximum possible length of the queue - defaults to 20, may be
       # made configurable in the future. This is a tradeoff between
       # memory and data retention
-      MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
-      EXCEPTION_TAG_IVAR = :'@__nr_seen_exception' unless defined? EXCEPTION_TAG_IVAR
+      MAX_ERROR_QUEUE_LENGTH = 20
+      EXCEPTION_TAG_IVAR = :'@__nr_seen_exception'
 
       attr_reader :error_trace_aggregator, :error_event_aggregator
 

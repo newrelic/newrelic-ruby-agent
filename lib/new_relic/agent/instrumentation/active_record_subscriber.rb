@@ -11,7 +11,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActiveRecordSubscriber < EventedSubscriber
-        CACHED_QUERY_NAME = 'CACHE'.freeze unless defined? CACHED_QUERY_NAME
+        CACHED_QUERY_NAME = 'CACHE'.freeze
 
         def initialize
           # We cache this in an instance variable to avoid re-calling method

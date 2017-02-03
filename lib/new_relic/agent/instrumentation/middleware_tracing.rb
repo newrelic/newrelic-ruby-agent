@@ -26,7 +26,7 @@ module NewRelic
   module Agent
     module Instrumentation
       module MiddlewareTracing
-        TXN_STARTED_KEY = 'newrelic.transaction_started'.freeze unless defined?(TXN_STARTED_KEY)
+        TXN_STARTED_KEY = 'newrelic.transaction_started'.freeze
 
         def _nr_has_middleware_tracing
           true
@@ -58,7 +58,7 @@ module NewRelic
 
         # the trailing unless is for the benefit for Ruby 1.8.7 and can be removed
         # when it is deprecated.
-        CONTENT_TYPE = 'Content-Type'.freeze unless defined?(CONTENT_TYPE)
+        CONTENT_TYPE = 'Content-Type'.freeze
 
         def capture_response_content_type(state, result)
           if result.is_a?(Array) && state.current_transaction
@@ -69,7 +69,7 @@ module NewRelic
 
         # the trailing unless is for the benefit for Ruby 1.8.7 and can be removed
         # when it is deprecated.
-        CONTENT_LENGTH = 'Content-Length'.freeze unless defined?(CONTENT_LENGTH)
+        CONTENT_LENGTH = 'Content-Length'.freeze
 
         def capture_response_content_length(state, result)
           if result.is_a?(Array) && state.current_transaction
