@@ -10,7 +10,7 @@ module NewRelic
         module EventFormatter
 
           # Keys that will get their values replaced with '?'.
-          OBFUSCATE_KEYS = [ 'filter', 'query' ].freeze
+          OBFUSCATE_KEYS = [ 'filter', 'query', 'pipeline' ].freeze
 
           # Keys that will get completely removed from the statement.
           BLACKLISTED_KEYS = [ 'deletes', 'documents', 'updates' ].freeze
