@@ -177,7 +177,7 @@ module Multiverse
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts rake_line unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
         if RUBY_VERSION == "1.8.7"
-          f.puts "gem 'json', '< 2.0.0'" unless gemfile_text =~ /^\s.*gem .json./
+          f.puts "gem 'json', '< 1.8.5'" unless gemfile_text =~ /^\s.*gem .json./
         end
 
         rbx_gemfile_lines(f, gemfile_text)
@@ -297,6 +297,8 @@ module Multiverse
       case
       when RUBY_VERSION >= '2.4'
         '~> 2.0.2'
+      when RUBY_VERSION == '1.8.7'
+        '< 1.8.5'
       else
         '< 2.0.0'
       end

@@ -11,17 +11,22 @@ module NewRelic
           WHITELIST = [:operation].freeze
 
           def self.obfuscate_statement(source, whitelist = WHITELIST)
-            obfuscated = {}
-            source.each do |key, value|
-              if whitelist.include?(key)
-                obfuscated[key] = value
-              else
-                obfuscated[key] = obfuscate_value(value, whitelist)
+            if source.is_a? Hash
+              obfuscated = {}
+              source.each do |key, value|
+                if whitelist.include?(key)
+                  obfuscated[key] = value
+                else
+                  obfuscated[key] = obfuscate_value(value, whitelist)
+                end
               end
+              obfuscated
+            else
+              obfuscate_value(source, whitelist)
             end
-
-            obfuscated
           end
+
+          QUESTION_MARK = '?'.freeze
 
           def self.obfuscate_value(value, whitelist = WHITELIST)
             if value.is_a?(Hash)
@@ -29,7 +34,7 @@ module NewRelic
             elsif value.is_a?(Array)
               value.map {|v| obfuscate_value(v, whitelist)}
             else
-              '?'
+              QUESTION_MARK
             end
           end
         end

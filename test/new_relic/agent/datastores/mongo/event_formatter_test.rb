@@ -56,6 +56,14 @@ module NewRelic
             "deletes" => [{ :q => { :_id => { "$gt" => 1 }}, :limit => 1 }]
           }.freeze
 
+          AGGREGATE_COMMAND = {
+            "aggregate"=>"tribbles",
+            "pipeline"=>[
+              {"$group"=> {"_id"=>"name", "max"=>{"$max"=>"$count"}}},
+              {"$match"=>{"max"=>{"$gte"=>1}}}
+            ]
+          }
+
           if RUBY_VERSION > "1.9.3"
 
             def test_doesnt_modify_incoming_statement
@@ -144,6 +152,22 @@ module NewRelic
               }
 
               formatted = EventFormatter.format(:delete, DATABASE, DELETE_COMMAND)
+              assert_equal expected, formatted
+            end
+
+            def test_event_formatter_obfuscates_pipeline
+              expected = {
+                :operation => :aggregate,
+                :database => DATABASE,
+                :collection => "tribbles",
+                "aggregate" => "tribbles",
+                "pipeline" => [
+                  {"$group" => {"_id" => "?", "max" => {"$max" => "?"}}},
+                  {"$match" => {"max" => {"$gte" => "?"}}}
+                ]
+              }
+
+              formatted = EventFormatter.format(:aggregate, DATABASE, AGGREGATE_COMMAND)
               assert_equal expected, formatted
             end
           end

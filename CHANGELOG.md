@@ -1,5 +1,20 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.18.1 ##
+
+  * Ensure Mongo aggregate queries are properly obfuscated
+
+  Instrumentation for the Mongo 2.x driver had a bug where the `pipeline`
+  attribute of Mongo aggregate queries was not properly obfuscated. Users
+  who have sensitive data in their `aggregate` queries are strongly encouraged
+  to upgrade to this version of the agent. Users who are unable to upgrade are
+  encouraged to turn off query collection using by setting
+  `mongo.capture_queries` to false in their newrelic.yml files.
+
+  * Early access Redis 4.0 instrumentation
+
+  Our Redis instrumentation has been tested against Redis 4.0.0.rc1.
+
 ## v3.18.0 ##
 
   * Ruby 2.4.0 support
