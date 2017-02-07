@@ -1,35 +1,19 @@
-suite_condition("Typhoeus excluded on 1.8.7") do
-  # Under Ruby 1.8.7 there are periodic segfaults with Typhoeus
-  # and the Ruby agent. This predated our Typhoeus instrumentation, but given
-  # usage levels and obscurity of the issue, it isn't worth deeper digging.
-  # Just use >= 1.9
-  RUBY_VERSION > '1.8.7'
-end
-
 gemfile <<-RB
   gem 'typhoeus', '~> 0.7.1'
   gem 'rack'
-  gem 'json', :platforms => [:rbx, :mri_18]
 
   # We try translating URIs through Addressable if it's there, so test with it.
   gem 'addressable', :require => 'addressable/uri'
-  if RUBY_VERSION < '1.9.3'
-    gem 'public_suffix', '< 1.4'
-  elsif RUBY_VERSION < '2.0'
-    gem 'public_suffix', '< 1.5'
-  end
 RB
 
 gemfile <<-RB
   gem 'typhoeus', '~> 0.7.1'
   gem 'rack'
-  gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
 gemfile <<-RB
   gem 'typhoeus', '~> 0.6.9'
   gem 'rack'
-  gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
 if RUBY_VERSION < '2.4.0'
@@ -46,7 +30,6 @@ if RUBY_VERSION < '2.4.0'
 
     gem 'typhoeus', '~> 0.5.4'
     gem 'rack'
-    gem 'json', :platforms => [:rbx, :mri_18]
   RB
 
   # Earliest supported version
@@ -63,7 +46,6 @@ if RUBY_VERSION < '2.4.0'
 
     gem 'typhoeus', '0.5.3'
     gem 'rack'
-    gem 'json', :platforms => [:rbx, :mri_18]
   RB
 end
 
@@ -81,7 +63,6 @@ gemfile <<-RB
 
   gem 'typhoeus', '0.5.2'
   gem 'rack'
-  gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
 # vim: ft=ruby

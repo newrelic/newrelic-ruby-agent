@@ -1,6 +1,6 @@
 mysql: &mysql
   adapter: mysql2
-  socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
+  socket: <%= (`uname -s` =~ /Linux/ ) ? "" : "/tmp/mysql.sock" %>
   username: root
   host: localhost
   database: <%= db = "#{ENV['RUBY_VERSION']}#{ENV['BRANCH']}"; db.empty? ? "rails_blog" : db %>

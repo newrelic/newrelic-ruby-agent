@@ -4,20 +4,17 @@
 
 require './app'
 
-# These tests only return consistent results for REE or MRI >= 1.9.2
-if NewRelic::LanguageSupport.ree? ||
-    (RUBY_VERSION >= '1.9.2' &&
-     !NewRelic::LanguageSupport.jruby? &&
-     !NewRelic::LanguageSupport.rubinius?)
+# These tests only return consistent results MRI >= 1.9.2
+if !NewRelic::LanguageSupport.jruby?
 
 class GcController < ApplicationController
   def gc_action
     begin
       NewRelic::Agent::StatsEngine::GCProfiler.init
-      initial_gc_count = current_gc_count
+      initial_gc_count = ::GC.count
 
       Timeout.timeout(5) do
-        until current_gc_count > initial_gc_count
+        until ::GC.count > initial_gc_count
           long_string = "01234567" * 100_000
           long_string = nil
           another_long_string = "01234567" * 100_000
@@ -29,14 +26,6 @@ class GcController < ApplicationController
     end
 
     render :text => 'ha'
-  end
-
-  def current_gc_count
-    if NewRelic::LanguageSupport.ree?
-      ::GC.collections
-    elsif RUBY_VERSION >= '1.9.2'
-      ::GC.count
-    end
   end
 end
 

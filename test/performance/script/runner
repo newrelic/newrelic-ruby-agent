@@ -8,9 +8,7 @@ require 'optparse'
 require 'rubygems'
 require 'json'
 
-require File.join(File.dirname(__FILE__), '..', 'lib', 'performance')
-
-target_versions = nil
+require File.expand_path('../../lib/performance', __FILE__)
 
 options = {}
 parser = OptionParser.new do |opts|

@@ -2,8 +2,6 @@ mysql: &mysql
   adapter: <%=
     if defined?(JRuby)
       'jdbcmysql'
-    elsif RUBY_VERSION <= '1.9.3'
-      'mysql'
     else
       'mysql2'
     end %>

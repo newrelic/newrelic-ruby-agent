@@ -154,7 +154,7 @@ EOL
 
   def test_with_invalid_us_ascii_encoding
     response = "<html><body>Jürgen</body></html>"
-    response.force_encoding(Encoding.find("US-ASCII")) if RUBY_VERSION >= '1.9'
+    response.force_encoding(Encoding.find("US-ASCII"))
     TestApp.next_response = Rack::Response.new(response)
 
     get '/'

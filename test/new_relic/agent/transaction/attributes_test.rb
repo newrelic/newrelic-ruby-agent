@@ -118,12 +118,8 @@ class AttributesTest < Minitest::Test
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     result = custom_attributes["key"]
-    if RUBY_VERSION >= "1.9.3"
-      assert result.valid_encoding?
-      assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
-    else
-      assert_equal NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT, result.bytesize
-    end
+    assert result.valid_encoding?
+    assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
   end
 
   def test_truncates_multibyte_symbol
@@ -135,12 +131,8 @@ class AttributesTest < Minitest::Test
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     result = custom_attributes["key"]
-    if RUBY_VERSION >= "1.9.3"
-      assert result.valid_encoding?
-      assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
-    else
-      assert_equal NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT, result.bytesize
-    end
+    assert result.valid_encoding?
+    assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
   end
 
   def test_limits_key_length

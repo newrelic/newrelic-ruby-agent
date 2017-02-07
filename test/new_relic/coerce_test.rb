@@ -16,9 +16,7 @@ class CoerceTest < Minitest::Test
     assert_equal 1, int(Rational(1, 1))
     assert_equal 0, int("invalid")
     assert_equal 0, int(nil)
-
-    # http://ruby-doc.org/core-1.8.7/Symbol.html#method-i-to_i
-    assert_equal 0, int(:wat) unless RUBY_VERSION < '1.9'
+    assert_equal 0, int(:wat)
   end
 
   def test_int_coerce_logs

@@ -36,8 +36,7 @@ class PipeServiceTest < Minitest::Test
     service.metric_data({})
   end
 
-  if NewRelic::LanguageSupport.can_fork? &&
-      !NewRelic::LanguageSupport.using_version?('1.9.1')
+  if NewRelic::LanguageSupport.can_fork?
 
     def test_metric_data
       received_data = data_from_forked_process do

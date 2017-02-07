@@ -168,18 +168,16 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     assert_equal(42, chained_stats.total_call_time)
   end
 
-  if RUBY_VERSION >= '1.9'
-    def test_to_json_enforces_float_values
-      s1 = NewRelic::Agent::Stats.new
-      s1.trace_call 3.to_r
-      s1.trace_call 7.to_r
+  def test_to_json_enforces_float_values
+    s1 = NewRelic::Agent::Stats.new
+    s1.trace_call 3.to_r
+    s1.trace_call 7.to_r
 
-      assert_equal 3.0, JSON.load(s1.to_json)['min_call_time']
-    end
+    assert_equal 3.0, JSON.load(s1.to_json)['min_call_time']
   end
 
   private
-  def validate (stats, count, total, min, max, exclusive = nil)
+  def validate(stats, count, total, min, max, exclusive = nil)
     assert_equal count, stats.call_count
     assert_equal total, stats.total_call_time
     assert_equal min,   stats.min_call_time

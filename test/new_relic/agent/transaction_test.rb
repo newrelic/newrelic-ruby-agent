@@ -885,11 +885,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def with_java_classes_loaded
-    # class_variable_set is private on 1.8.7 :(
-    ::NewRelic::Agent::Transaction.send(:class_variable_set, :@@java_classes_loaded, true)
+    ::NewRelic::Agent::Transaction.class_variable_set :@@java_classes_loaded, true
     yield
   ensure
-    ::NewRelic::Agent::Transaction.send(:class_variable_set, :@@java_classes_loaded, false)
+    ::NewRelic::Agent::Transaction.class_variable_set :@@java_classes_loaded, false
   end
 
   def test_cpu_burn_normal

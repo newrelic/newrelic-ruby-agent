@@ -5,7 +5,7 @@
 module Performance
   module Instrumentation
     class MRIGCStats < Instrumentor
-      platforms :mri_193, :mri_20, :mri_21, :mri_22, :mri_23
+      platforms :mri_20, :mri_21, :mri_22, :mri_23, :mri_24
       on_by_default
 
       def before(*)
@@ -24,11 +24,9 @@ module Performance
           :gc_runs      => @stats_after[:count] - @stats_before[:count],
           :live_objects => heap_live_after      - heap_live_before
         }
-        if RUBY_VERSION >= "2.0.0"
-          allocs_before = @stats_before[:total_allocated_objects] || @stats_before[:total_allocated_object]
-          allocs_after  = @stats_after[:total_allocated_objects]  || @stats_after[:total_allocated_object]
-          res[:allocations] = allocs_after - allocs_before
-        end
+        allocs_before = @stats_before[:total_allocated_objects] || @stats_before[:total_allocated_object]
+        allocs_after  = @stats_after[:total_allocated_objects]  || @stats_after[:total_allocated_object]
+        res[:allocations] = allocs_after - allocs_before
         res
       end
     end

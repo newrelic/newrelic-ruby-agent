@@ -40,7 +40,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
   end
 
-  if NewRelic::LanguageSupport.can_fork? && !NewRelic::LanguageSupport.using_version?('1.9.1')
+  if NewRelic::LanguageSupport.can_fork?
     def test_listener_merges_timeslice_metrics
       metric = 'Custom/test/method'
       engine = NewRelic::Agent.agent.stats_engine
@@ -259,10 +259,6 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
   end
 
   def test_listener_pipes_race_condition
-    # 1.8.7 doesn't have easy singleton_class access, but also doesn't have
-    # races thanks to green threads and the GIL, so pitch it!
-    return if RUBY_VERSION < "1.9.2"
-
     begin
       listener = NewRelic::Agent::PipeChannelManager.listener
       listener.instance_variable_set(:@select_timeout, 0.00001)

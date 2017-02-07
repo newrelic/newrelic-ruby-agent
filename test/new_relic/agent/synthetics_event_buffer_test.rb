@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'test/new_relic/agent/event_buffer_test_cases'
+require 'new_relic/agent/event_buffer_test_cases'
 require 'new_relic/agent/synthetics_event_buffer'
 
 module NewRelic::Agent

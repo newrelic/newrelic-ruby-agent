@@ -6,17 +6,6 @@ require File.expand_path(File.join(__FILE__,'..','..','test_helper'))
 
 module NewRelic
   class LatestChangesTest < MiniTest::Test
-    def setup
-      # 1.8.7 returns relative paths for __FILE__. test:env environment then
-      # can't find the CHANGELOG since current dir is test app instead of gem.
-      #
-      # This doesn't impact production usage of NewRelic::LatestChanges on
-      # the gem post-installation, since that's run in our gem's context. So
-      # just fix up the pathing in the test for finding default changelog.
-      if RUBY_VERSION < '1.9.1'
-        NewRelic::LatestChanges.stubs(:default_changelog).returns(File.join(File.dirname(__FILE__), '..', '..', 'CHANGELOG.md'))
-      end
-    end
 
     def test_read_default_changelog
       result = NewRelic::LatestChanges.read
