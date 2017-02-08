@@ -9,7 +9,7 @@ module NewRelic
         ALL_TRANSACTIONS = "**ALL**".freeze
 
         def self.is_supported?
-          RUBY_VERSION >= "1.9.2" && !is_resque?
+          !is_resque?
         end
 
         # Because of Resque's forking, we don't poll thread backtraces for it.
