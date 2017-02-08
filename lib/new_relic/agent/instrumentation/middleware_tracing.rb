@@ -56,8 +56,6 @@ module NewRelic
           end
         end
 
-        # the trailing unless is for the benefit for Ruby 1.8.7 and can be removed
-        # when it is deprecated.
         CONTENT_TYPE = 'Content-Type'.freeze
 
         def capture_response_content_type(state, result)
@@ -67,8 +65,6 @@ module NewRelic
           end
         end
 
-        # the trailing unless is for the benefit for Ruby 1.8.7 and can be removed
-        # when it is deprecated.
         CONTENT_LENGTH = 'Content-Length'.freeze
 
         def capture_response_content_length(state, result)
