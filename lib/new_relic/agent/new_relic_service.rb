@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'zlib'
+require 'timeout'
 require 'new_relic/agent/audit_logger'
 require 'new_relic/agent/new_relic_service/encoders'
 require 'new_relic/agent/new_relic_service/marshaller'
@@ -267,7 +268,7 @@ module NewRelic
 
       def start_connection(conn)
         NewRelic::Agent.logger.debug("Opening TCP connection to #{conn.address}:#{conn.port}")
-        NewRelic::TimerLib.timeout(@request_timeout) { conn.start }
+        Timeout.timeout(@request_timeout) { conn.start }
         conn
       end
 
@@ -457,7 +458,7 @@ module NewRelic
           attempts += 1
           conn = http_connection
           ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]} with #{request.method}"
-          NewRelic::TimerLib.timeout(@request_timeout) do
+          Timeout.timeout(@request_timeout) do
             response = conn.request(request)
           end
         rescue *CONNECTION_ERRORS => e
