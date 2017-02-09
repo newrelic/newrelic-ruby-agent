@@ -115,7 +115,7 @@ module NewRelic
         end
 
         def rails_version
-          @rails_version ||= NewRelic::VersionNumber.new(::Rails::VERSION::STRING)
+          @rails_version ||= Gem::Version.new(::Rails::VERSION::STRING)
         end
 
         protected

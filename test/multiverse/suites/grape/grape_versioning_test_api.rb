@@ -46,7 +46,7 @@ unless ::Grape::VERSION == '0.1.5'
 
     class ApiV4 < Grape::API
       #version from http accept header is not supported in older versions of grape
-      if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('0.16.0')
+      if Gem::Version.new(Grape::VERSION) >= Gem::Version.new('0.16.0')
         version ['v4', 'v5'], :using => :accept_version_header
       end
 
@@ -61,7 +61,7 @@ unless ::Grape::VERSION == '0.1.5'
 
     class CascadingAPI < Grape::API
       #version from http accept header is not supported in older versions of grape
-      if NewRelic::VersionNumber.new(Grape::VERSION) >= NewRelic::VersionNumber.new('0.16.0')
+      if Gem::Version.new(Grape::VERSION) >= Gem::Version.new('0.16.0')
         version 'v5', :using => :accept_version_header
       end
 

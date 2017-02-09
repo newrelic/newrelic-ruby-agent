@@ -14,12 +14,12 @@ module NewRelic
           warn_for_yajl
         end
 
-        OK_YAJL_VERSION = NewRelic::VersionNumber.new("1.2.1")
+        OK_YAJL_VERSION = Gem::Version.new("1.2.1")
 
         def warn_for_yajl
           if defined?(::Yajl)
             require 'yajl/version'
-            if NewRelic::VersionNumber.new(::Yajl::VERSION) < OK_YAJL_VERSION
+            if Gem::Version.new(::Yajl::VERSION) < OK_YAJL_VERSION
               ::NewRelic::Agent.logger.warn "Detected yajl-ruby version #{::Yajl::VERSION} which can cause segfaults with newrelic_rpm's thread profiling features. We strongly recommend you upgrade to the latest yajl-ruby version available."
             end
           end

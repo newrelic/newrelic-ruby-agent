@@ -61,16 +61,16 @@ module NewRelic
         def self.rack_version_supported?
           return false unless defined? ::Rack
 
-          version = ::NewRelic::VersionNumber.new(::Rack.release)
-          min_version = ::NewRelic::VersionNumber.new('1.1.0')
+          version = Gem::Version.new(::Rack.release)
+          min_version = Gem::Version.new('1.1.0')
           version >= min_version
         end
 
         def self.puma_rack_version_supported?
           return false unless defined? ::Puma::Const::PUMA_VERSION
 
-          version = ::NewRelic::VersionNumber.new(::Puma::Const::PUMA_VERSION)
-          min_version = ::NewRelic::VersionNumber.new('2.12.0')
+          version = Gem::Version.new(::Puma::Const::PUMA_VERSION)
+          min_version = Gem::Version.new('2.12.0')
           version >= min_version
         end
 

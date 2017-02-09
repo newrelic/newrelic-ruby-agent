@@ -58,7 +58,7 @@ module NewRelic
         end
 
         def self.is_supported_version?
-          ::NewRelic::VersionNumber.new(::Rake::VERSION) >= ::NewRelic::VersionNumber.new("10.0.0")
+          Gem::Version.new(::Rake::VERSION) >= Gem::Version.new("10.0.0")
         end
 
         def self.safe_from_third_party_gem?

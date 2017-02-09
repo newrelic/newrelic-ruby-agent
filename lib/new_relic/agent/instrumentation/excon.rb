@@ -25,15 +25,15 @@ DependencyDetection.defer do
   # so we could safely subscribe and not be clobbered by future subscribers,
   # but alas, it does not yet.
 
-  EXCON_MIN_VERSION = ::NewRelic::VersionNumber.new("0.10.1")
-  EXCON_MIDDLEWARE_MIN_VERSION = ::NewRelic::VersionNumber.new("0.19.0")
+  EXCON_MIN_VERSION = Gem::Version.new("0.10.1")
+  EXCON_MIDDLEWARE_MIN_VERSION = Gem::Version.new("0.19.0")
 
   depends_on do
     defined?(::Excon) && defined?(::Excon::VERSION)
   end
 
   executes do
-    excon_version = NewRelic::VersionNumber.new(::Excon::VERSION)
+    excon_version = Gem::Version.new(::Excon::VERSION)
     if excon_version >= EXCON_MIN_VERSION
       install_excon_instrumentation(excon_version)
     else
