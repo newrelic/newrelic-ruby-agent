@@ -8,6 +8,21 @@
   earlier, and all versions of Rubinius. For more information, check out our
   [community forum](https://discuss.newrelic.com/t/support-for-ruby-jruby-1-x-is-being-deprecated-in-ruby-agent-4-0-0/44787).
 
+  * OkJson vendored library removed
+
+  Ruby 1.8 did not include the JSON gem by default, so the agent included a
+  vendored version of [OkJson](https://github.com/kr/okjson) that it would fall
+  back on using in cases where the JSON gem was not available. This has been
+  removed.
+
+  * YAJL workaround removed
+
+  [Yajl-ruby](https://github.com/brianmario/yajl-ruby) versions prior to 1.2 had
+  the potential to cause a segmentation fault when working large, deeply-nested
+  objects like thread profiles. If you are using yajl-ruby with the `JSON`
+  monkey patches enabled by requiring `yajl/json_gem`, you should upgrade to
+  at least version 1.2.
+
 ## v3.18.1 ##
 
   * Ensure Mongo aggregate queries are properly obfuscated
