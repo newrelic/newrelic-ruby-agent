@@ -14,8 +14,6 @@ module NewRelic
 
         EMPTY_HASH = {}.freeze
 
-        CAN_BYTESLICE = String.instance_methods.include?(:byteslice)
-
         def initialize(filter)
           @filter = filter
 
@@ -148,15 +146,8 @@ module NewRelic
         # the end. It'll either remove the one-character-too-many we have, or
         # peel off the partial, mangled character left by the byteslice.
         def slice(incoming)
-          if CAN_BYTESLICE
-            result = incoming.to_s.byteslice(0, VALUE_LIMIT + 1)
-          else
-            # < 1.9.3 doesn't have byteslice, so we take off bytes instead.
-            result = incoming.to_s.bytes.take(VALUE_LIMIT + 1).pack("C*")
-          end
-
+          result = incoming.to_s.byteslice(0, VALUE_LIMIT + 1)
           result.chop!
-          result
         end
       end
     end

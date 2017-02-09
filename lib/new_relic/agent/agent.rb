@@ -382,26 +382,10 @@ module NewRelic
             )
           end
 
-          # There's an MRI 1.9 bug that loses exit codes in at_exit blocks.
-          # A workaround is necessary to get correct exit codes for the agent's
-          # test suites.
-          # http://bugs.ruby-lang.org/issues/5218
-          def need_exit_code_workaround?
-            defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby" && RUBY_VERSION.match(/^1\.9/)
-          end
-
           def install_exit_handler
             return unless should_install_exit_handler?
             NewRelic::Agent.logger.debug("Installing at_exit handler")
-            at_exit do
-              if need_exit_code_workaround?
-                exit_status = $!.status if $!.is_a?(SystemExit)
-                shutdown
-                exit exit_status if exit_status
-              else
-                shutdown
-              end
-            end
+            at_exit { shutdown }
           end
 
           # Classy logging of the agent version and the current pid,

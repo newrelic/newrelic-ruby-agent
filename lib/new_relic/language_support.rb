@@ -33,10 +33,6 @@ module NewRelic
       RUBY_ENGINE == 'jruby'
     end
 
-    def using_version?(version)
-      Gem::Version.new(version) == Gem::Version.new(RUBY_VERSION)
-    end
-
     def constantize(const_name)
       const_name.to_s.sub(/\A::/,'').split('::').inject(Object) do |namespace, name|
         begin

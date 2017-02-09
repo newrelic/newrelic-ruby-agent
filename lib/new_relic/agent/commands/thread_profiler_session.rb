@@ -87,12 +87,8 @@ module NewRelic
 
         def raise_unsupported_error
           msg = <<-EOF
-Thread profiling is only supported on 1.9.2 and greater versions of Ruby.
-We detected running agents capable of profiling, but the profile started with
-an agent running Ruby #{RUBY_VERSION}.
-
-Profiling again might select an appropriate agent, but we recommend running a
-consistent version of Ruby across your application for better results.
+Thread profiling is not supported for Resque processes. If you did not intend to
+profile a Resque process, profiling again might select an appropriate agent.
           EOF
           raise_command_error(msg)
         end
