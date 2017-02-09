@@ -5,6 +5,8 @@
 # These helpers should not have any gem dependencies except on newrelic_rpm
 # itself, and should be usable from within any multiverse suite.
 
+require 'json'
+
 class ArrayLogDevice
   def initialize( array=[] )
     @array = array
@@ -600,7 +602,7 @@ ensure
 end
 
 def json_dump_and_encode(object)
-  Base64.encode64(NewRelic::JSONWrapper.dump(object))
+  Base64.encode64(::JSON.dump(object))
 end
 
 def get_last_analytics_event
@@ -626,7 +628,7 @@ def load_cross_agent_test(name)
   test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
   data = File.read(test_file_path)
   data.gsub!('callCount', 'call_count')
-  data = NewRelic::JSONWrapper.load(data)
+  data = ::JSON.load(data)
   data.each { |testcase| testcase['testname'].gsub! ' ', '_' if String === testcase['testname'] }
   data
 end

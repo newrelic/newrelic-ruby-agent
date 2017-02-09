@@ -15,8 +15,8 @@ module NewRelic
       class MiddlewareProxy
         include MiddlewareTracing
 
-        ANONYMOUS_CLASS   = "AnonymousClass".freeze unless defined?(ANONYMOUS_CLASS)
-        OBJECT_CLASS_NAME = "Object".freeze unless defined?(OBJECT_CLASS_NAME)
+        ANONYMOUS_CLASS   = "AnonymousClass".freeze
+        OBJECT_CLASS_NAME = "Object".freeze
 
         # This class is used to wrap classes that are passed to
         # Rack::Builder#use without synchronously instantiating those classes.

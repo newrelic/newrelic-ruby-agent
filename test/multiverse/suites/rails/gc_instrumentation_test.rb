@@ -37,7 +37,7 @@ class GCRailsInstrumentationTest < ActionController::TestCase
   setup_and_teardown_agent do
     NewRelic::Agent.drop_buffered_data
     NewRelic::Agent::StatsEngine::GCProfiler.reset
-    enable_gc_stats
+    GC::Profiler.enable
     @controller = GcController.new
   end
 
@@ -68,14 +68,6 @@ class GCRailsInstrumentationTest < ActionController::TestCase
     NewRelic::Agent.agent.stats_engine.
       get_stats(name, true, false, scope).
       total_call_time
-  end
-
-  def enable_gc_stats
-    if NewRelic::LanguageSupport.ree?
-      GC.enable_stats
-    elsif RUBY_VERSION >= '1.9.2'
-      GC::Profiler.enable
-    end
   end
 end
 

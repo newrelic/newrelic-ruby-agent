@@ -8,8 +8,7 @@ module NewRelic
   module Agent
     module EncodingNormalizer
       def self.normalize_string(raw_string)
-        @normalizer ||= choose_normalizer
-        @normalizer.normalize(raw_string)
+        EncodingNormalizer.normalize(raw_string)
       end
 
       def self.normalize_object(object)
@@ -37,14 +36,6 @@ module NewRelic
         end
       end
 
-      def self.choose_normalizer
-        if NewRelic::LanguageSupport.supports_string_encodings?
-          EncodingNormalizer
-        else
-          IconvNormalizer
-        end
-      end
-
       module EncodingNormalizer
         def self.normalize(raw_string)
           encoding = raw_string.encoding
@@ -67,16 +58,6 @@ module NewRelic
             end
           end
           normalized
-        end
-      end
-
-      module IconvNormalizer
-        def self.normalize(raw_string)
-          if @iconv.nil?
-            require 'iconv'
-            @iconv = Iconv.new('utf-8', 'iso-8859-1')
-          end
-          @iconv.iconv(raw_string)
         end
       end
     end

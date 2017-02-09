@@ -12,7 +12,5 @@ class YajlTest < Minitest::Test
   include MultiverseHelpers
   include MarshallingTestCases
 
-  setup_and_teardown_agent do
-    Yajl::Encoder.expects(:encode).never
-  end
+  setup_and_teardown_agent
 end

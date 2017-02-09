@@ -8,8 +8,7 @@ require 'logger'
 require 'stringio'
 
 # ActiveJob is in Rails 4.2+, so make sure we're on an allowed version before
-# we try to load. Previously just tried to require it, but that had load issues
-# on Rubinius.
+# we try to load.
 if Rails::VERSION::STRING >= "4.2.0"
 
 require 'active_job'

@@ -241,7 +241,7 @@ module NewRelic::Agent
 
     def unpacked_response
       return nil unless response_app_data
-      NewRelic::JSONWrapper.load(Base64.decode64(response_app_data))
+      ::JSON.load(Base64.decode64(response_app_data))
     end
 
   end

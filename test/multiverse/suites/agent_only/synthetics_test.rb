@@ -38,7 +38,7 @@ class SyntheticsTest < Minitest::Test
 
     return nil if synthetics_payload.empty?
 
-    encoded_synthetics_payload   = ::NewRelic::JSONWrapper.dump(synthetics_payload)
+    encoded_synthetics_payload   = ::JSON.dump(synthetics_payload)
     obfuscated_synthetics_header = ::NewRelic::Agent::Obfuscator.new(synthetics_key).obfuscate(encoded_synthetics_payload)
 
     assert_equal(test['inputObfuscatedHeader']['X-NewRelic-Synthetics'], obfuscated_synthetics_header)

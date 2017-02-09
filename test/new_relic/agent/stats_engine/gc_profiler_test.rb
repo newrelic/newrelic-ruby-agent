@@ -30,16 +30,9 @@ class NewRelic::Agent::StatsEngine
 
     def test_init_profiler_for_ruby_19_and_greater
       return unless defined?(::GC::Profiler)
-      return if NewRelic::LanguageSupport.using_engine?('jruby')
+      return if NewRelic::LanguageSupport.jruby?
 
       ::GC::Profiler.stubs(:enabled?).returns(true)
-
-      assert_equal(GCProfiler::CoreGCProfiler,
-                   GCProfiler.init.class)
-    end
-
-    def test_init_profiler_for_rbx_uses_stdlib
-      return unless defined?(::Rubinius::GC)
 
       assert_equal(GCProfiler::CoreGCProfiler,
                    GCProfiler.init.class)

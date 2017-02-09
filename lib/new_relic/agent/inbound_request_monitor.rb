@@ -10,6 +10,9 @@
 # be called when the agent is fully configured. That method is expected to
 # subscribe to the necessary request events, such as before_call and after_call
 # for the monitor to do its work.
+
+require 'json'
+
 module NewRelic
   module Agent
     class InboundRequestMonitor
@@ -30,7 +33,7 @@ module NewRelic
 
       def deserialize_header(encoded_header, key)
         decoded_header = obfuscator.deobfuscate(encoded_header)
-        NewRelic::JSONWrapper.load(decoded_header)
+        ::JSON.load(decoded_header)
       rescue => err
         # If we have a failure of any type here, just return nil and carry on
         NewRelic::Agent.logger.debug("Failure deserializing encoded header '#{key}' in #{self.class}, #{err.class}, #{err.message}")

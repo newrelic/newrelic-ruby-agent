@@ -117,7 +117,7 @@ module NewRelic
         if @mock.keys.include? method
           status, body = @mock[method].evaluate
           res.status = status
-          res.write ::NewRelic::JSONWrapper.dump(body)
+          res.write ::JSON.dump(body)
         else
           res.status = 500
           res.write "Method not found"
@@ -129,7 +129,7 @@ module NewRelic
           raw_body = req.body.read
           raw_body = Zlib::Inflate.inflate(raw_body) if req.env["HTTP_CONTENT_ENCODING"] == "deflate"
 
-          body = ::NewRelic::JSONWrapper.load(raw_body)
+          body = ::JSON.load(raw_body)
         rescue
           body = "UNABLE TO DECODE BODY: #{raw_body}"
 

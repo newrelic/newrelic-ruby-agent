@@ -130,12 +130,10 @@ class AuditLoggerTest < Minitest::Test
 
   def test_logs_json_with_json_marshaller
     marshaller_cls = NewRelic::Agent::NewRelicService::JsonMarshaller
-    if marshaller_cls.is_supported?
-      setup_fake_logger
-      json_marshaller = marshaller_cls.new
-      @logger.log_request(@uri, @dummy_data, json_marshaller)
-      assert_audit_log_contains_object(read_log_body, @dummy_data, :json)
-    end
+    setup_fake_logger
+    json_marshaller = marshaller_cls.new
+    @logger.log_request(@uri, @dummy_data, json_marshaller)
+    assert_audit_log_contains_object(read_log_body, @dummy_data, :json)
   end
 
   def test_allows_through_endpoints

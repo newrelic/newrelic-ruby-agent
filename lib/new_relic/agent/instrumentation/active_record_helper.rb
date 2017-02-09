@@ -83,8 +83,8 @@ module NewRelic
           end
         end
 
-        ACTIVE_RECORD = "ActiveRecord".freeze unless defined?(ACTIVE_RECORD)
-        OTHER         = "other".freeze unless defined?(OTHER)
+        ACTIVE_RECORD = "ActiveRecord".freeze
+        OTHER         = "other".freeze
 
         def product_operation_collection_for name, sql, adapter_name
           product   = map_product(adapter_name)
@@ -109,8 +109,8 @@ module NewRelic
            NewRelic::Agent::Datastores::MetricHelper::ROLLUP_METRIC]
         end
 
-        SPACE = ' '.freeze unless defined?(SPACE)
-        EMPTY = [].freeze unless defined?(EMPTY)
+        SPACE = ' '.freeze
+        EMPTY = [].freeze
 
         def split_name(name)
           if name && name.respond_to?(:split)
@@ -150,7 +150,7 @@ module NewRelic
           'Destroy' => 'destroy',
           'Update'  => 'update',
           'Save'    => 'save'
-        }.freeze unless defined?(OPERATION_NAMES)
+        }.freeze
 
         def map_operation(raw_operation)
           direct_op = OPERATION_NAMES[raw_operation]
@@ -195,9 +195,9 @@ module NewRelic
 
           # https://rubygems.org/gems/activerecord-oracle_enhanced-adapter
           "oracle_enhanced" => "Oracle"
-        }.freeze unless defined?(PRODUCT_NAMES)
+        }.freeze
 
-        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze unless defined?(ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
+        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
 
         def map_product(adapter_name)
           PRODUCT_NAMES.fetch(adapter_name,
@@ -214,17 +214,17 @@ module NewRelic
 
             "postgresql"     => :postgres,
             "jdbcpostgresql" => :postgres
-          }.freeze unless defined?(PRODUCT_SYMBOLS)
+          }.freeze
 
           DATASTORE_DEFAULT_PORTS = {
             :mysql    => "3306",
             :postgres => "5432"
-          }.freeze unless defined?(DATASTORE_DEFAULT_PORTS)
+          }.freeze
 
-          DEFAULT = "default".freeze unless defined?(DEFAULT)
-          UNKNOWN = "unknown".freeze unless defined?(UNKNOWN)
-          SLASH = "/".freeze unless defined?(SLASH)
-          LOCALHOST = "localhost".freeze unless defined?(LOCALHOST)
+          DEFAULT = "default".freeze
+          UNKNOWN = "unknown".freeze
+          SLASH = "/".freeze
+          LOCALHOST = "localhost".freeze
 
           def host(config)
             return UNKNOWN unless config
@@ -267,7 +267,7 @@ module NewRelic
             UNKNOWN
           end
 
-          SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze unless defined?(SUPPORTED_ADAPTERS)
+          SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze
 
           def supported_adapter? config
             config && SUPPORTED_ADAPTERS.include?(PRODUCT_SYMBOLS[config[:adapter]])

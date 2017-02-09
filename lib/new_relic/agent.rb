@@ -31,8 +31,8 @@ module NewRelic
     require 'new_relic/metric_data'
     require 'new_relic/collection_helper'
     require 'new_relic/noticed_error'
-    require 'new_relic/timer_lib'
 
+    require 'new_relic/agent/encoding_normalizer'
     require 'new_relic/agent/stats'
     require 'new_relic/agent/chained_call'
     require 'new_relic/agent/cross_app_monitor'

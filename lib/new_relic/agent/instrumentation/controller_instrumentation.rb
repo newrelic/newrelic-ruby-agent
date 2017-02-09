@@ -43,10 +43,10 @@ module NewRelic
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
-        NR_DO_NOT_TRACE_KEY   = :'@do_not_trace'   unless defined?(NR_DO_NOT_TRACE_KEY  )
-        NR_IGNORE_APDEX_KEY   = :'@ignore_apdex'   unless defined?(NR_IGNORE_APDEX_KEY  )
-        NR_IGNORE_ENDUSER_KEY = :'@ignore_enduser' unless defined?(NR_IGNORE_ENDUSER_KEY)
-        NR_DEFAULT_OPTIONS    = {}.freeze          unless defined?(NR_DEFAULT_OPTIONS   )
+        NR_DO_NOT_TRACE_KEY   = :'@do_not_trace'
+        NR_IGNORE_APDEX_KEY   = :'@ignore_apdex'
+        NR_IGNORE_ENDUSER_KEY = :'@ignore_enduser'
+        NR_DEFAULT_OPTIONS    = {}.freeze
 
         # @api public
         module ClassMethods
