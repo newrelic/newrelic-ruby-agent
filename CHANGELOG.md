@@ -34,6 +34,8 @@
   encouraged to turn off query collection using by setting
   `mongo.capture_queries` to false in their newrelic.yml files.
 
+  This release fixes [New Relic Security Bulletin NR17-03](https://docs.newrelic.com/docs/accounts-partnerships/accounts/security-bulletins/security-bulletin-nr17-03).
+
   * Early access Redis 4.0 instrumentation
 
   Our Redis instrumentation has been tested against Redis 4.0.0.rc1.
