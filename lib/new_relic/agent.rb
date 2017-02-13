@@ -658,11 +658,6 @@ module NewRelic
       Transaction.abort_transaction!
     end
 
-    # Remove after 5/9/15
-    def record_transaction(*args)
-      NewRelic::Agent.logger.warn('This method has been deprecated, please see https://docs.newrelic.com/docs/ruby/ruby-agent-api for current API documentation.')
-    end
-
     # @!endgroup
 
     def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
