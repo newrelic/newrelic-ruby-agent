@@ -644,12 +644,6 @@ module NewRelic
 
     alias get_stats_no_scope get_stats
 
-    # Deprecated in favor of drop_buffered_data
-    #
-    # @api public
-    # @deprecated
-    def reset_stats; drop_buffered_data; end
-
     # Cancel the collection of the current transaction in progress, if
     # any.  Only affects the transaction started on this thread once
     # it has started and before it has completed.

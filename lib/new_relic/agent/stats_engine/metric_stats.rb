@@ -167,11 +167,6 @@ module NewRelic
           end
         end
 
-        # Renamed to reset!, here for backwards compatibility with 3rd-party
-        # gems (though this really isn't part of the public API).
-        # @deprecated
-        def reset_stats; reset!; end
-
         # merge data from previous harvests into this stats engine
         def merge!(other_stats_hash)
           with_stats_lock do

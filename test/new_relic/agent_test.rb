@@ -63,12 +63,6 @@ module NewRelic
       NewRelic::Agent.after_fork
     end
 
-    def test_reset_stats
-      mock_agent = mocked_agent
-      mock_agent.expects(:drop_buffered_data)
-      NewRelic::Agent.reset_stats
-    end
-
     def test_manual_start_default
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => true})
