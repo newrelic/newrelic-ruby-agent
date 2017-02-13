@@ -18,15 +18,6 @@ module NewRelic
       class MetricFrame
 
         # @deprecated
-        def self.recording_web_transaction?
-          NewRelic::Agent::Deprecator.deprecate(
-            "NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction?",
-            "NewRelic::Agent::Transaction.recording_web_transaction?")
-
-          Transaction.recording_web_transaction?
-        end
-
-        # @deprecated
         def self.abort_transaction!
           NewRelic::Agent::Deprecator.deprecate(
             "NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!",

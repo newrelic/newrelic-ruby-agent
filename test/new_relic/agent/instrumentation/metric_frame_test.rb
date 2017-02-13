@@ -10,11 +10,6 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Minitest::Test
   # old interface for folks. Real testing of the underlying functionality
   # should go with the Transaction methods we invoke, not these tests.
 
-  def test_recording_web_transaction
-    NewRelic::Agent::Transaction.expects(:recording_web_transaction?)
-    NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction?
-  end
-
   def test_abort_transaction
     NewRelic::Agent::Transaction.expects(:abort_transaction!)
     NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!
