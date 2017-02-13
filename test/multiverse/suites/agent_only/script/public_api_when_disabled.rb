@@ -48,7 +48,6 @@ NewRelic::Agent.set_sql_obfuscator do
 end
 
 NewRelic::Agent.browser_timing_header
-NewRelic::Agent.browser_timing_footer
 
 NewRelic::Agent.add_custom_attributes(:custom => "attributes")
 

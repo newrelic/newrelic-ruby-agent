@@ -622,17 +622,6 @@ module NewRelic
 
     # @!group Deprecated methods
 
-    # In previous agent releases, this method was required for manual RUM
-    # instrumentation. That work is now all done by the browser_timing_header
-    # method, but this is left for compatibility.
-    #
-    # @api public
-    # @deprecated
-    #
-    def browser_timing_footer
-      ""
-    end
-
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #
