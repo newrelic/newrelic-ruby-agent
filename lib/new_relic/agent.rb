@@ -636,19 +636,6 @@ module NewRelic
       ""
     end
 
-    ADD_CUSTOM_ATTRIBUTES  = "NewRelic::Agent.add_custom_attributes".freeze
-    SET_USER_ATTRIBUTES    = "NewRelic::Agent.set_user_attributes".freeze
-
-    # Deprecated. Use add_custom_attributes instead.
-    #
-    # @deprecated
-    # @api public
-    #
-    def set_user_attributes(*args)
-      NewRelic::Agent::Deprecator.deprecate(SET_USER_ATTRIBUTES, ADD_CUSTOM_ATTRIBUTES)
-      add_custom_attributes(*args)
-    end
-
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #

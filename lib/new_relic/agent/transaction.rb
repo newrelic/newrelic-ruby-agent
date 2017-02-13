@@ -864,8 +864,6 @@ module NewRelic
         attributes.merge_custom_attributes(p)
       end
 
-      alias_method :set_user_attributes, :add_custom_attributes
-
       def recording_web_transaction?
         web_category?(@category)
       end
