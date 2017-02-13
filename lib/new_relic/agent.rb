@@ -637,18 +637,7 @@ module NewRelic
     end
 
     ADD_CUSTOM_ATTRIBUTES  = "NewRelic::Agent.add_custom_attributes".freeze
-    ADD_REQUEST_PARAMETERS = "NewRelic::Agent.add_request_parameters".freeze
     SET_USER_ATTRIBUTES    = "NewRelic::Agent.set_user_attributes".freeze
-
-    # Deprecated. Use add_custom_attributes instead.
-    #
-    # @deprecated
-    # @api public
-    #
-    def add_request_parameters(*args)
-      NewRelic::Agent::Deprecator.deprecate(ADD_REQUEST_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
-      add_custom_attributes(*args)
-    end
 
     # Deprecated. Use add_custom_attributes instead.
     #
