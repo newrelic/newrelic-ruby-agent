@@ -51,7 +51,6 @@ NewRelic::Agent.browser_timing_header
 NewRelic::Agent.browser_timing_footer
 
 NewRelic::Agent.add_custom_attributes(:custom => "attributes")
-NewRelic::Agent.add_custom_parameters(:custom => "parameters")
 NewRelic::Agent.add_request_parameters(:request => "parameters")
 NewRelic::Agent.set_user_attributes(:user => "attributes")
 

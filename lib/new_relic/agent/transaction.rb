@@ -865,7 +865,6 @@ module NewRelic
       end
 
       alias_method :set_user_attributes, :add_custom_attributes
-      alias_method :add_custom_parameters, :add_custom_attributes
 
       def recording_web_transaction?
         web_category?(@category)

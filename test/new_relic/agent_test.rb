@@ -420,11 +420,6 @@ module NewRelic
       end
     end
 
-    def test_add_custom_parameters_deprecated
-      NewRelic::Agent::Deprecator.expects(:deprecate)
-      NewRelic::Agent.add_custom_parameters(:is => "bunk")
-    end
-
     def test_add_request_parameters_deprecated
       NewRelic::Agent::Deprecator.expects(:deprecate)
       NewRelic::Agent.add_request_parameters(:is => "bunk")
