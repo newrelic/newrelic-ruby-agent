@@ -56,9 +56,6 @@ module NewRelic
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
-    # this is a shim that's here only for backwards compatibility
-    require 'new_relic/agent/instrumentation/metric_frame'
-
     require 'new_relic/agent/samplers/cpu_sampler'
     require 'new_relic/agent/samplers/memory_sampler'
     require 'new_relic/agent/samplers/object_sampler'

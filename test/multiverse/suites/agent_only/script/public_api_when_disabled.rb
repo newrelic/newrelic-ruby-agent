@@ -61,5 +61,3 @@ NewRelic::Agent.abort_transaction!
 
 NewRelic::Agent.after_fork(options={})
 NewRelic::Agent.shutdown(options={})
-
-NewRelic::Agent::Deprecator.deprecate("SomeClass#old_method")
