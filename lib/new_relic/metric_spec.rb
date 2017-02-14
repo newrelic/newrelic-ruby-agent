@@ -42,23 +42,6 @@ class NewRelic::MetricSpec
     @name.hash ^ @scope.hash
   end
 
-  # return a new metric spec if the given regex
-  # matches the name or scope.
-  def sub(pattern, replacement, apply_to_scope = true)
-    ::NewRelic::Agent.logger.warn("The sub method on metric specs is deprecated") rescue nil
-    return nil if name !~ pattern &&
-     (!apply_to_scope || scope.nil? || scope !~ pattern)
-    new_name = name.sub(pattern, replacement)[LENGTH_RANGE]
-
-    if apply_to_scope
-      new_scope = (scope && scope.sub(pattern, replacement)[LENGTH_RANGE])
-    else
-      new_scope = scope
-    end
-
-    self.class.new new_name, new_scope
-  end
-
   def to_s
     return name if scope.empty?
     "#{name}:#{scope}"
