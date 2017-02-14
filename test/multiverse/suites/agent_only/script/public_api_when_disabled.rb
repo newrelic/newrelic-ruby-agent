@@ -55,7 +55,5 @@ NewRelic::Agent.get_stats("Foo/Bar")
 NewRelic::Agent.get_stats_no_scope("Foo/Bar")
 NewRelic::Agent.drop_buffered_data
 
-NewRelic::Agent.abort_transaction!
-
 NewRelic::Agent.after_fork(options={})
 NewRelic::Agent.shutdown(options={})

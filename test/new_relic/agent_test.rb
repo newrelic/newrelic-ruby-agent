@@ -131,11 +131,6 @@ module NewRelic
       NewRelic::Agent.instance_eval { @agent = old_agent }
     end
 
-    def test_abort_transaction_bang
-      NewRelic::Agent::Transaction.expects(:abort_transaction!)
-      NewRelic::Agent.abort_transaction!
-    end
-
     def test_is_transaction_traced_true
       NewRelic::Agent::TransactionState.tl_get.record_tt = true
       assert_equal(true, NewRelic::Agent.tl_is_transaction_traced?, 'should be true since the thread local is set')
