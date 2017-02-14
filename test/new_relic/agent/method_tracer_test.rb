@@ -142,20 +142,6 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
   end
 
-  def test_basic__original_api
-    metric = "hello"
-    in_transaction do |txn|
-      self.class.trace_method_execution(metric, true, true, true) do
-        advance_time(0.05)
-      end
-      assert_equal metric,  @scope_listener.scopes.last
-    end
-
-    stats = @stats_engine.get_stats(metric)
-    check_time 0.05, stats.total_call_time
-    assert_equal 1, stats.call_count
-  end
-
   METRIC = "metric"
   def test_add_method_tracer
     @metric_name = METRIC
@@ -450,12 +436,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
     public_api_methods = [
       'trace_execution_unscoped',
-      'trace_execution_scoped',
-      'trace_method_execution',            # deprecated
-      'trace_method_execution_with_scope', # deprecated
-      'trace_method_execution_no_scope',   # deprecated
-      'get_stats_scoped',                  # deprecated
-      'get_stats_unscoped'                 # deprecated
+      'trace_execution_scoped'
     ]
 
     assert_equal(public_api_methods.sort, added_methods.map(&:to_s).sort)
