@@ -620,32 +620,6 @@ module NewRelic
 
     # @!endgroup
 
-    # @!group Deprecated methods
-
-    # Get or create a statistics gatherer that will aggregate numerical data
-    # under a metric name.
-    #
-    # +metric_name+ should follow a slash separated path convention. Application
-    # specific metrics should begin with "Custom/".
-    #
-    # Return a NewRelic::Agent::Stats that accepts data
-    # via calls to add_data_point(value).
-    #
-    # This method is deprecated in favor of record_metric and increment_metric,
-    # and is not thread-safe.
-    #
-    # @api public
-    # @deprecated
-    #
-    def get_stats(metric_name, use_scope=false)
-      return unless agent
-      agent.stats_engine.get_stats(metric_name, use_scope)
-    end
-
-    alias get_stats_no_scope get_stats
-
-    # @!endgroup
-
     def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end
 end

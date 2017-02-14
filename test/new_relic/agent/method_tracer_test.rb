@@ -461,20 +461,6 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_equal(public_api_methods.sort, added_methods.map(&:to_s).sort)
   end
 
-  def test_get_stats_unscoped
-    host_class = Class.new { include ::NewRelic::Agent::MethodTracer }
-    expected_stats = NewRelic::Agent.get_stats('foobar')
-    stats = host_class.new.get_stats_unscoped('foobar')
-    assert_same(expected_stats, stats)
-  end
-
-  def test_get_stats_scoped
-    host_class = Class.new { include ::NewRelic::Agent::MethodTracer }
-    expected_stats = NewRelic::Agent.get_stats('foobar', true)
-    stats = host_class.new.get_stats_scoped('foobar', false)
-    assert_same(expected_stats, stats)
-  end
-
   def trace_no_push_scope
     self.class.add_method_tracer :method_to_be_traced, 'X', :push_scope => false
     method_to_be_traced 1,2,3,true,nil

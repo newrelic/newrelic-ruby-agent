@@ -51,8 +51,6 @@ NewRelic::Agent.browser_timing_header
 
 NewRelic::Agent.add_custom_attributes(:custom => "attributes")
 
-NewRelic::Agent.get_stats("Foo/Bar")
-NewRelic::Agent.get_stats_no_scope("Foo/Bar")
 NewRelic::Agent.drop_buffered_data
 
 NewRelic::Agent.after_fork(options={})

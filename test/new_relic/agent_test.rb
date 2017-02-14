@@ -94,23 +94,6 @@ module NewRelic
       NewRelic::Agent.shutdown
     end
 
-    def test_get_stats
-      agent = mocked_agent
-      mock_stats_engine = mock('stats_engine')
-      agent.expects(:stats_engine).returns(mock_stats_engine)
-      mock_stats_engine.expects(:get_stats).with('Custom/test/metric', false)
-      NewRelic::Agent.get_stats('Custom/test/metric')
-    end
-
-    # note that this is the same as get_stats above, they're just aliases
-    def test_get_stats_no_scope
-      agent = mocked_agent
-      mock_stats_engine = mock('stats_engine')
-      agent.expects(:stats_engine).returns(mock_stats_engine)
-      mock_stats_engine.expects(:get_stats).with('Custom/test/metric', false)
-      NewRelic::Agent.get_stats_no_scope('Custom/test/metric')
-    end
-
     def test_agent_logs_warning_when_not_started
       with_unstarted_agent do
         expects_logging(:warn, includes("hasn't been started"))
