@@ -6,7 +6,6 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
 require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/agent_hooks'
-require 'new_relic/rack/error_collector'
 
 class RackEnvMutationTest < Minitest::Test
   attr_accessor :inner_app
