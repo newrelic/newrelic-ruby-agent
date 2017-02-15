@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/stats_engine/metric_stats'
-require 'new_relic/agent/stats_engine/samplers'
 require 'new_relic/agent/stats_engine/gc_profiler'
 require 'new_relic/agent/stats_engine/stats_hash'
 
@@ -12,7 +11,6 @@ module NewRelic
     # This class handles all the statistics gathering for the agent
     class StatsEngine
       include MetricStats
-      include Samplers
 
       attr_accessor :metric_rules
 
