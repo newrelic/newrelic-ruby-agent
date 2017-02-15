@@ -23,6 +23,34 @@
   monkey patches enabled by requiring `yajl/json_gem`, you should upgrade to
   at least version 1.2.
 
+  * Deprecated APIs removed
+
+    * `Agent.abort_transaction!`
+    * `Agent.add_custom_parameters`
+    * `Agent.add_request_parameters`
+    * `Agent.browser_timing_footer`
+    * `Agent.get_stats`
+    * `Agent.get_stats_no_scope`
+    * `Agent.record_transaction`
+    * `Agent.reset_stats`
+    * `Agent.set_user_attributes`
+    * `ActionController#newrelic_notice_error`
+    * `ActiveRecordHelper.rollup_metrics_for` (may be incompatible with newrelic_moped)
+    * `Instrumentation::MetricFrame.recording_web_transaction?`
+    * `Instrumentation::MetricFrame.abort_transaction!`
+    * `MethodTracer.get_stats_scoped`
+    * `MethodTracer.get_stats_unscoped`
+    * `MethodTracer.trace_method_execution`
+    * `MethodTracer.trace_method_execution_no_scope`
+    * `MethodTracer.trace_method_execution_with_scope`
+    * `MetricSpec#sub`
+    * `NoticedError#exception_class`
+    * `StatsEngine::Samplers.add_sampler`
+    * `StatsEngine::Samplers.add_harvest_sampler`
+
+  The above methods have had deprecation notices on them for some time and
+  have now been removed.
+
 ## v3.18.1 ##
 
   * Ensure Mongo aggregate queries are properly obfuscated
