@@ -7,52 +7,6 @@ require 'new_relic/agent/instrumentation/controller_instrumentation'
 module NewRelic
   module Agent
     module Instrumentation
-      # == Instrumentation for Rack
-      #
-      # Since version 3.9.0, New Relic instruments Rack middlewares by default.
-      # As a result, this entire module has been deprecated.
-      #
-      # @api public
-      # @deprecated
-      #
-      module Rack
-        include ControllerInstrumentation
-
-        def newrelic_request_headers(_)
-          @newrelic_request.env
-        end
-
-        def call_with_newrelic(*args)
-          @newrelic_request = ::Rack::Request.new(args.first)
-          perform_action_with_newrelic_trace(:category => :middleware, :request => @newrelic_request) do
-            result = call_without_newrelic(*args)
-            # Ignore cascaded calls
-            Transaction.abort_transaction! if result.first == 404
-            result
-          end
-        end
-
-        def self.included middleware #:nodoc:
-          middleware.class_eval do
-            alias call_without_newrelic call
-            alias call call_with_newrelic
-          end
-        end
-
-        def self.extended middleware #:nodoc:
-          middleware.class_eval do
-            class << self
-              alias call_without_newrelic call
-              alias call call_with_newrelic
-            end
-          end
-        end
-
-        def _nr_has_middleware_tracing
-          true
-        end
-      end
-
       module RackHelpers
         def self.version_supported?
           rack_version_supported? || puma_rack_version_supported?

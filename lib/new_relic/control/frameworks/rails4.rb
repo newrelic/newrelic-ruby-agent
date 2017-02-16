@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/control/frameworks/rails3'
-require 'new_relic/rack/error_collector'
+
 module NewRelic
   class Control
     module Frameworks
