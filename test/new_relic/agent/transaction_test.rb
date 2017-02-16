@@ -680,13 +680,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_user_attributes_alias_to_custom_parameters
-    in_transaction('user_attributes') do |txn|
-      txn.set_user_attributes(:set_instance => :set_instance)
-      assert_has_custom_attribute(txn, "set_instance")
-    end
-  end
-
   def test_notice_error_in_current_transaction_saves_it_for_finishing
     in_transaction('failing') do |txn|
       NewRelic::Agent::Transaction.notice_error("")

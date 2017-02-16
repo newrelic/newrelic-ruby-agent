@@ -56,9 +56,6 @@ module NewRelic
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
-    # this is a shim that's here only for backwards compatibility
-    require 'new_relic/agent/instrumentation/metric_frame'
-
     require 'new_relic/agent/samplers/cpu_sampler'
     require 'new_relic/agent/samplers/memory_sampler'
     require 'new_relic/agent/samplers/object_sampler'
@@ -619,103 +616,6 @@ module NewRelic
     def browser_timing_header
       return "" unless agent
       agent.javascript_instrumentor.browser_timing_header
-    end
-
-    # @!endgroup
-
-    # @!group Deprecated methods
-
-    # In previous agent releases, this method was required for manual RUM
-    # instrumentation. That work is now all done by the browser_timing_header
-    # method, but this is left for compatibility.
-    #
-    # @api public
-    # @deprecated
-    #
-    def browser_timing_footer
-      ""
-    end
-
-    ADD_CUSTOM_ATTRIBUTES  = "NewRelic::Agent.add_custom_attributes".freeze
-    ADD_CUSTOM_PARAMETERS  = "NewRelic::Agent.add_custom_parameters".freeze
-    ADD_REQUEST_PARAMETERS = "NewRelic::Agent.add_request_parameters".freeze
-    SET_USER_ATTRIBUTES    = "NewRelic::Agent.set_user_attributes".freeze
-
-    # Deprecated. Use add_custom_attributes instead.
-    #
-    # @deprecated
-    # @api public
-    #
-    def add_custom_parameters(*args)
-      NewRelic::Agent::Deprecator.deprecate(ADD_CUSTOM_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
-      add_custom_attributes(*args)
-    end
-
-    # Deprecated. Use add_custom_attributes instead.
-    #
-    # @deprecated
-    # @api public
-    #
-    def add_request_parameters(*args)
-      NewRelic::Agent::Deprecator.deprecate(ADD_REQUEST_PARAMETERS, ADD_CUSTOM_ATTRIBUTES)
-      add_custom_attributes(*args)
-    end
-
-    # Deprecated. Use add_custom_attributes instead.
-    #
-    # @deprecated
-    # @api public
-    #
-    def set_user_attributes(*args)
-      NewRelic::Agent::Deprecator.deprecate(SET_USER_ATTRIBUTES, ADD_CUSTOM_ATTRIBUTES)
-      add_custom_attributes(*args)
-    end
-
-    # Get or create a statistics gatherer that will aggregate numerical data
-    # under a metric name.
-    #
-    # +metric_name+ should follow a slash separated path convention. Application
-    # specific metrics should begin with "Custom/".
-    #
-    # Return a NewRelic::Agent::Stats that accepts data
-    # via calls to add_data_point(value).
-    #
-    # This method is deprecated in favor of record_metric and increment_metric,
-    # and is not thread-safe.
-    #
-    # @api public
-    # @deprecated
-    #
-    def get_stats(metric_name, use_scope=false)
-      return unless agent
-      agent.stats_engine.get_stats(metric_name, use_scope)
-    end
-
-    alias get_stats_no_scope get_stats
-
-    # Deprecated in favor of drop_buffered_data
-    #
-    # @api public
-    # @deprecated
-    def reset_stats; drop_buffered_data; end
-
-    # Cancel the collection of the current transaction in progress, if
-    # any.  Only affects the transaction started on this thread once
-    # it has started and before it has completed.
-    #
-    # This method has been deprecated in favor of ignore_transaction,
-    # which does what people expect this method to do.
-    #
-    # @api public
-    # @deprecated
-    #
-    def abort_transaction!
-      Transaction.abort_transaction!
-    end
-
-    # Remove after 5/9/15
-    def record_transaction(*args)
-      NewRelic::Agent.logger.warn('This method has been deprecated, please see https://docs.newrelic.com/docs/ruby/ruby-agent-api for current API documentation.')
     end
 
     # @!endgroup

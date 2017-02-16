@@ -545,11 +545,6 @@ module NewRelic
           @sql_sampler.reset!
         end
 
-        # Deprecated, and not part of the public API, but here for backwards
-        # compatibility because some 3rd-party gems call it.
-        # @deprecated
-        def reset_stats; drop_buffered_data; end
-
         # Clear out state for any objects that we know lock from our parents
         # This is necessary for cases where we're in a forked child and Ruby
         # might be holding locks for background thread that aren't there anymore.

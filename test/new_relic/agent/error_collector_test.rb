@@ -124,9 +124,15 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_increments_count_on_errors
-    expects_error_count_increase(1) do
-      @error_collector.notice_error(StandardError.new("Boo"))
-    end
+    @error_collector.notice_error(StandardError.new("Boo"))
+    assert_metrics_recorded(
+      'Errors/all' => { :call_count => 1}
+    )
+
+    @error_collector.notice_error(StandardError.new("Boo"))
+    assert_metrics_recorded(
+      'Errors/all' => { :call_count => 2}
+    )
   end
 
   def test_increment_error_count_record_summary_and_web_txn_metric
@@ -409,16 +415,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   private
-
-  def expects_error_count_increase(increase)
-    count = get_error_stats
-    yield
-    assert_equal increase, get_error_stats - count
-  end
-
-  def get_error_stats
-    NewRelic::Agent.get_stats("Errors/all").call_count
-  end
 
   def wrapped_filter_proc
     Proc.new do |e|

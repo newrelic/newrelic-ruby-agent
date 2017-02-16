@@ -7,7 +7,6 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 require File.join(File.dirname(__FILE__), 'example_app')
 require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/agent_hooks'
-require 'new_relic/rack/error_collector'
 
 class HttpResponseCodeTest < Minitest::Test
   include MultiverseHelpers

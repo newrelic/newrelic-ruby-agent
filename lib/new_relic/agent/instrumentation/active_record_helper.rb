@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/datastores/metric_helper'
-require 'new_relic/agent/deprecator'
 
 module NewRelic
   module Agent
@@ -92,21 +91,6 @@ module NewRelic
           model     = model_from_splits(splits)
           operation = operation_from_splits(splits, sql)
           NewRelic::Agent::Datastores::MetricHelper.product_operation_collection_for product, operation, model, ACTIVE_RECORD
-        end
-
-        # @deprecated
-        def rollup_metrics_for(*_)
-          NewRelic::Agent::Deprecator.deprecate("ActiveRecordHelper.rollup_metrics_for",
-                                                "NewRelic::Agent::Datastores::MetricHelper.metrics_for")
-
-          rollup_metric = if NewRelic::Agent::Transaction.recording_web_transaction?
-            NewRelic::Agent::Datastores::MetricHelper::WEB_ROLLUP_METRIC
-          else
-            NewRelic::Agent::Datastores::MetricHelper::OTHER_ROLLUP_METRIC
-          end
-
-          [rollup_metric,
-           NewRelic::Agent::Datastores::MetricHelper::ROLLUP_METRIC]
         end
 
         SPACE = ' '.freeze

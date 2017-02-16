@@ -48,4 +48,32 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
     Object.const_set('JRUBY_VERSION', string)
   end
 
+  def test_cpu_sampler_records_user_and_system_time
+    timeinfo0 = mock
+    timeinfo0.stubs(:utime).returns(10.0)
+    timeinfo0.stubs(:stime).returns(5.0)
+
+    timeinfo1 = mock
+    timeinfo1.stubs(:utime).returns(14.0) # +5s
+    timeinfo1.stubs(:stime).returns(7.0)  # +2s
+
+    elapsed = 10
+
+    freeze_time
+    Process.stubs(:times).returns(timeinfo0, timeinfo1)
+    NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(4)
+
+    s = NewRelic::Agent::Samplers::CpuSampler.new # this calls poll
+    advance_time(elapsed)
+    s.poll
+
+    assert_metrics_recorded({
+      'CPU/User Time'   => { :call_count => 1, :total_call_time => 4.0 },
+      'CPU/System Time' => { :call_count => 1, :total_call_time => 2.0 },
+      # (4s user time)   / ((10s elapsed time) * 4 cpus) = 0.1
+      'CPU/User/Utilization'   => { :call_count => 1, :total_call_time => 0.1 },
+      # (2s system time) / ((10s elapsed time) * 4 cpus) = 0.05
+      'CPU/System/Utilization' => { :call_count => 1, :total_call_time => 0.05 }
+    })
+  end
 end

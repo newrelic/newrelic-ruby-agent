@@ -63,12 +63,6 @@ module NewRelic
       NewRelic::Agent.after_fork
     end
 
-    def test_reset_stats
-      mock_agent = mocked_agent
-      mock_agent.expects(:drop_buffered_data)
-      NewRelic::Agent.reset_stats
-    end
-
     def test_manual_start_default
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => true})
@@ -100,23 +94,6 @@ module NewRelic
       NewRelic::Agent.shutdown
     end
 
-    def test_get_stats
-      agent = mocked_agent
-      mock_stats_engine = mock('stats_engine')
-      agent.expects(:stats_engine).returns(mock_stats_engine)
-      mock_stats_engine.expects(:get_stats).with('Custom/test/metric', false)
-      NewRelic::Agent.get_stats('Custom/test/metric')
-    end
-
-    # note that this is the same as get_stats above, they're just aliases
-    def test_get_stats_no_scope
-      agent = mocked_agent
-      mock_stats_engine = mock('stats_engine')
-      agent.expects(:stats_engine).returns(mock_stats_engine)
-      mock_stats_engine.expects(:get_stats).with('Custom/test/metric', false)
-      NewRelic::Agent.get_stats_no_scope('Custom/test/metric')
-    end
-
     def test_agent_logs_warning_when_not_started
       with_unstarted_agent do
         expects_logging(:warn, includes("hasn't been started"))
@@ -135,11 +112,6 @@ module NewRelic
       NewRelic::Agent.instance_eval { @agent = 'not nil' }
       assert_equal('not nil', NewRelic::Agent.agent, "should return the value from @agent")
       NewRelic::Agent.instance_eval { @agent = old_agent }
-    end
-
-    def test_abort_transaction_bang
-      NewRelic::Agent::Transaction.expects(:abort_transaction!)
-      NewRelic::Agent.abort_transaction!
     end
 
     def test_is_transaction_traced_true
@@ -418,21 +390,6 @@ module NewRelic
         NewRelic::Agent.ignore_enduser
         assert txn.ignore_enduser?
       end
-    end
-
-    def test_add_custom_parameters_deprecated
-      NewRelic::Agent::Deprecator.expects(:deprecate)
-      NewRelic::Agent.add_custom_parameters(:is => "bunk")
-    end
-
-    def test_add_request_parameters_deprecated
-      NewRelic::Agent::Deprecator.expects(:deprecate)
-      NewRelic::Agent.add_request_parameters(:is => "bunk")
-    end
-
-    def test_set_user_attributes_deprecated
-      NewRelic::Agent::Deprecator.expects(:deprecate)
-      NewRelic::Agent.set_user_attributes(:is => "bunk")
     end
 
     def test_modules_and_classes_return_name_properly

@@ -93,57 +93,6 @@ module NewRelic
         end
       end
 
-      # Deprecated: original method preserved for API backward compatibility.
-      # Use either #trace_execution_scoped or #trace_execution_unscoped
-      #
-      # @api public
-      # @deprecated
-      #
-      def trace_method_execution(metric_names, push_scope, produce_metric, deduct_call_time_from_parent, &block) #:nodoc:
-        if push_scope
-          trace_execution_scoped(metric_names, :metric => produce_metric,
-                                 :deduct_call_time_from_parent => deduct_call_time_from_parent, &block)
-        else
-          trace_execution_unscoped(metric_names, &block)
-        end
-      end
-
-      # Deprecated. Use #trace_execution_scoped, a version with an options hash.
-      #
-      # @deprecated
-      #
-      def trace_method_execution_with_scope(metric_names, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false, &block) #:nodoc:
-        trace_execution_scoped(metric_names,
-                               :metric => produce_metric,
-                               :deduct_call_time_from_parent => deduct_call_time_from_parent,
-                               :scoped_metric_only => scoped_metric_only, &block)
-      end
-
-      alias trace_method_execution_no_scope trace_execution_unscoped #:nodoc:
-
-      #
-      # This method is deprecated and exists only for backwards-compatibility
-      # reasons. Usages should be replaced with calls to
-      # NewRelic::Agent.record_metric.
-      #
-      # @api public
-      # @deprecated
-      #
-      def get_stats_scoped(first_name, scoped_metric_only)
-        NewRelic::Agent.instance.stats_engine.get_stats(first_name, true, scoped_metric_only)
-      end
-
-      # This method is deprecated and exists only for backwards-compatibility
-      # reasons. Usages should be replaced with calls to
-      # NewRelic::Agent.record_metric.
-      #
-      # @api public
-      # @deprecated
-      #
-      def get_stats_unscoped(name)
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope(name)
-      end
-
       # Defines methods used at the class level, for adding instrumentation
       # @api public
       module ClassMethods

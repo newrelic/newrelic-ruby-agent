@@ -140,16 +140,6 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     assert_equal(10, attributes_for(sample, :agent)['request.parameters.level'])
   end
 
-  def test_abort_transaction
-    perform_action_with_newrelic_trace(:name => 'hello', :force => true) do
-      self.class.inspect
-      NewRelic::Agent.abort_transaction!
-    end
-    # We record the controller metric still, but abort any transaction recording.
-    assert_metrics_recorded(['Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/hello'])
-    assert_nil(@agent.transaction_sampler.last_sample)
-  end
-
   def test_perform_action_with_newrelic_trace_saves_params
     account = 'Redrocks'
     with_config(:capture_params => true) do

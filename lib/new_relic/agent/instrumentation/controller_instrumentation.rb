@@ -38,7 +38,6 @@ module NewRelic
           def self.included(clazz)
             clazz.extend(ClassMethodsShim)
           end
-          def newrelic_notice_error(*args); end
           def new_relic_trace_controller_action(*args); yield; end
           def perform_action_with_newrelic_trace(*args); yield; end
         end

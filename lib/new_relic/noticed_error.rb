@@ -53,13 +53,6 @@ class NewRelic::NoticedError
     @timestamp = timestamp
   end
 
-  # @exception_class has been deprecated in favor of the more descriptive
-  # @exception_class_name.
-  # @deprecated
-  def exception_class
-    exception_class_name
-  end
-
   def ==(other)
     if other.respond_to?(:exception_id)
       exception_id == other.exception_id
