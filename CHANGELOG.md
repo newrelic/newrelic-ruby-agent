@@ -34,6 +34,7 @@
     * `Agent.record_transaction`
     * `Agent.reset_stats`
     * `Agent.set_user_attributes`
+    * `Agent::Instrumentation::Rack`
     * `ActionController#newrelic_notice_error`
     * `ActiveRecordHelper.rollup_metrics_for` (may be incompatible with newrelic_moped)
     * `Instrumentation::MetricFrame.recording_web_transaction?`
@@ -45,6 +46,7 @@
     * `MethodTracer.trace_method_execution_with_scope`
     * `MetricSpec#sub`
     * `NoticedError#exception_class`
+    * `Rack::ErrorCollector`
     * `StatsEngine::Samplers.add_sampler`
     * `StatsEngine::Samplers.add_harvest_sampler`
 
