@@ -109,19 +109,6 @@ module NewRelic
         end
 
         # This method is deprecated and not thread safe, and should not be used
-        # by any new client code.
-        #
-        # Lookup the Stats object for a given unscoped metric, returning a new
-        # Stats object if one did not exist previously.
-        #
-        # @api public
-        # @deprecated Use {::NewRelic::Agent.record_metric} instead.
-        #
-        def get_stats_no_scope(metric_name)
-          get_stats(metric_name, false)
-        end
-
-        # This method is deprecated and not thread safe, and should not be used
         # by any new client code. Use NewRelic::Agent.record_metric instead.
         #
         # If scoped_metric_only is true, only a scoped metric is created (used

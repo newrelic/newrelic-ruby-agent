@@ -256,9 +256,9 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     rules_engine = NewRelic::Agent::RulesEngine.new([rule])
 
     @engine.metric_rules = rules_engine
-    @engine.get_stats_no_scope('Custom/foo/1/bar/22').record_data_point(1)
-    @engine.get_stats_no_scope('Custom/foo/3/bar/44').record_data_point(1)
-    @engine.get_stats_no_scope('Custom/foo/5/bar/66').record_data_point(1)
+    @engine.tl_record_unscoped_metrics('Custom/foo/1/bar/22', 1)
+    @engine.tl_record_unscoped_metrics('Custom/foo/3/bar/44', 1)
+    @engine.tl_record_unscoped_metrics('Custom/foo/5/bar/66', 1)
 
     harvested = @engine.harvest!.to_h
 

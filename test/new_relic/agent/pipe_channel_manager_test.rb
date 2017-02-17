@@ -43,21 +43,20 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
   if NewRelic::LanguageSupport.can_fork?
     def test_listener_merges_timeslice_metrics
       metric = 'Custom/test/method'
-      engine = NewRelic::Agent.agent.stats_engine
-      engine.get_stats_no_scope(metric).record_data_point(1.0)
+
+      NewRelic::Agent.record_metric(metric, 1.0)
 
       start_listener_with_pipe(666)
 
       run_child(666) do
         NewRelic::Agent.after_fork
         new_engine = NewRelic::Agent::StatsEngine.new
-        new_engine.get_stats_no_scope(metric).record_data_point(2.0)
+        new_engine.tl_record_unscoped_metrics(metric, 2.0)
         service = NewRelic::Agent::PipeService.new(666)
         service.metric_data(new_engine.harvest!)
       end
 
       assert_metrics_recorded(metric => { :total_call_time => 3.0 })
-      engine.reset!
     end
 
     def test_listener_merges_transaction_traces
