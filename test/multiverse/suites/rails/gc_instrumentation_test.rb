@@ -46,8 +46,13 @@ class GCRailsInstrumentationTest < ActionController::TestCase
     get :gc_action
     elapsed = Time.now.to_f - start.to_f
 
-    assert_in_range(elapsed, get_call_time('GC/Transaction/allWeb'))
-    assert_in_range(elapsed, get_call_time('GC/Transaction/allWeb', 'Controller/gc/gc_action'))
+    stats_hash = NewRelic::Agent.instance.stats_engine.reset!
+
+    gc_metric_unscoped = stats_hash[NewRelic::MetricSpec.new('GC/Transaction/allWeb')]
+    gc_metric_scoped = stats_hash[NewRelic::MetricSpec.new('GC/Transaction/allWeb', 'Controller/gc/gc_action')]
+
+    assert_in_range(elapsed, gc_metric_unscoped.total_call_time)
+    assert_in_range(elapsed, gc_metric_scoped.total_call_time)
   end
 
   def test_records_transaction_param_for_gc_activity
@@ -62,12 +67,6 @@ class GCRailsInstrumentationTest < ActionController::TestCase
   def assert_in_range(duration, gc_time)
     assert gc_time > 0.0, "GC Time wasn't recorded!"
     assert gc_time < duration, "GC Time #{gc_time} can't be more than elapsed #{duration}!"
-  end
-
-  def get_call_time(name, scope=nil)
-    NewRelic::Agent.agent.stats_engine.
-      get_stats(name, true, false, scope).
-      total_call_time
   end
 end
 

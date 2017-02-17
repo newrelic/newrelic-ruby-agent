@@ -108,36 +108,6 @@ module NewRelic
           end
         end
 
-        # This method is deprecated and not thread safe, and should not be used
-        # by any new client code. Use NewRelic::Agent.record_metric instead.
-        #
-        # If scoped_metric_only is true, only a scoped metric is created (used
-        # by rendering metrics which by definition are per controller only)
-        # Leaving second, unused parameter for compatibility
-        #
-        # @api public
-        # @deprecated Use {::NewRelic::Agent.record_metric} instead.
-        #
-        def get_stats(metric_name, _ = true, scoped_metric_only = false, scope = nil)
-          stats = nil
-          with_stats_lock do
-            if scoped_metric_only
-              stats = @stats_hash[NewRelic::MetricSpec.new(metric_name, scope)]
-            else
-              unscoped_spec = NewRelic::MetricSpec.new(metric_name)
-              unscoped_stats = @stats_hash[unscoped_spec]
-              if scope && scope != metric_name
-                scoped_spec = NewRelic::MetricSpec.new(metric_name, scope)
-                scoped_stats = @stats_hash[scoped_spec]
-                stats = NewRelic::Agent::ChainedStats.new(scoped_stats, unscoped_stats)
-              else
-                stats = unscoped_stats
-              end
-            end
-          end
-          stats
-        end
-
         # Helper for recording a straight value into the count
         def tl_record_supportability_metric_count(metric, value)
           real_name = "Supportability/#{metric}"
