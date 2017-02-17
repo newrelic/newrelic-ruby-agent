@@ -180,12 +180,16 @@ module NewRelic
       # detection and soft fail-safe. Returns nil if the method does
       # not exist
       def sense_method(object, method)
-        object.send(method) if object.respond_to?(method)
+        object.__send__(method) if object.respond_to?(method)
       end
 
       # extracts a stack trace from the exception for debugging purposes
       def extract_stack_trace(exception)
-        actual_exception = sense_method(exception, :cause) || sense_method(exception, :original_exception) || exception
+        actual_exception = if defined?(Rails) && Rails::VERSION::MAJOR < 5
+                             sense_method(exception, :original_exception) || exception
+                           else
+                             exception
+                           end
         sense_method(actual_exception, :backtrace) || '<no stack trace>'
       end
 
