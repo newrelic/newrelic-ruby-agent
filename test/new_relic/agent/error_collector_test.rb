@@ -48,17 +48,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal 1, events.length
   end
 
-  def test_drops_deprecated_options
-    expects_logging(:warn, any_parameters)
-    error = @error_collector.create_noticed_error(StandardError.new("message"),
-                                  :referer => "lalalalala",
-                                  :request => stub('request'),
-                                  :request_params => {:x => 'y'})
-
-
-    assert_empty error.attributes_from_notice_error
-  end
-
   def test_exclude
     @error_collector.ignore(["IOError"])
 

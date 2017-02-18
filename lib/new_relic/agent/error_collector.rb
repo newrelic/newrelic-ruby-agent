@@ -225,8 +225,6 @@ module NewRelic
         noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = extract_stack_trace(exception)
 
-        handle_deprecated_options(options)
-
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
 
         # Any options that are passed to notice_error which aren't known keys
@@ -234,21 +232,6 @@ module NewRelic
         noticed_error.attributes_from_notice_error.merge!(options)
 
         noticed_error
-      end
-
-      DEPRECATED_OPTIONS_MSG = "Passing %s to notice_error is no longer supported. Set values on the enclosing transaction or record them as custom attributes instead.".freeze
-      DEPRECATED_OPTIONS = [:request_params, :request, :referer].freeze
-
-      # Old options no longer used by notice_error can still be passed. If they
-      # are, they shouldn't get merged into custom attributes. Delete and
-      # warn callers so they can fix their calls to notice_error.
-      def handle_deprecated_options(options)
-        DEPRECATED_OPTIONS.each do |deprecated|
-          if options.include?(deprecated)
-            NewRelic::Agent.logger.warn(DEPRECATED_OPTIONS_MSG % deprecated)
-            options.delete(deprecated)
-          end
-        end
       end
 
       # *Use sparingly for difficult to track bugs.*
