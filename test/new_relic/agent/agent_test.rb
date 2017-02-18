@@ -205,7 +205,6 @@ module NewRelic
         nthreads.times do |tid|
           t = Thread.new do
             nmetrics.times do |mid|
-              #@agent.stats_engine.get_stats("m#{mid}").record_data_point(1)
               @agent.stats_engine.tl_record_unscoped_metrics("m#{mid}", 1)
             end
           end
