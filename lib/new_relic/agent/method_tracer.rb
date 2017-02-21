@@ -98,9 +98,7 @@ module NewRelic
       module ClassMethods
         # contains methods refactored out of the #add_method_tracer method
         module AddMethodTracer
-          ALLOWED_KEYS = [:force, :metric, :push_scope, :code_header, :code_footer].freeze
-
-          DEPRECATED_KEYS = [:force, :scoped_metric_only, :deduct_call_time_from_parent].freeze
+          ALLOWED_KEYS = [:metric, :push_scope, :code_header, :code_footer].freeze
 
           # raises an error when the
           # NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer
@@ -108,16 +106,10 @@ module NewRelic
           # debugging new instrumentation by failing fast
           def check_for_illegal_keys!(method_name, options)
             unrecognized_keys = options.keys - ALLOWED_KEYS
-            deprecated_keys   = options.keys & DEPRECATED_KEYS
 
             if unrecognized_keys.any?
               raise "Unrecognized options when adding method tracer to #{method_name}: " +
                     unrecognized_keys.join(', ')
-            end
-
-            if deprecated_keys.any?
-              NewRelic::Agent.logger.warn("Deprecated options when adding method tracer to #{method_name}: "+
-                deprecated_keys.join(', '))
             end
           end
 

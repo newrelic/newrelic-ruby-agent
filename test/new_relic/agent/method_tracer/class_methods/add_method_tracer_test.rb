@@ -64,16 +64,6 @@ module NewRelic
               check_for_illegal_keys!(:rainbow_dash, test_keys)
             end
 
-            def test_check_for_illegal_keys_deprecated
-              log = with_array_logger do
-                check_for_illegal_keys!(:rarity, :force => true)
-              end.array
-
-              assert_equal(1, log.size)
-
-              assert_match(/Deprecated options when adding method tracer to rarity: force/, log[0])
-            end
-
             def test_traced_method_exists_positive
               self.expects(:_traced_method_name)
               self.expects(:method_defined?).returns(true)

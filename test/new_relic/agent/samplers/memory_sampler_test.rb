@@ -13,25 +13,24 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
   end
 
   def test_memory__default
+    stub_sampler_get_memory
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.poll
     s.poll
     s.poll
-    stats = @stats_engine.get_stats_no_scope("Memory/Physical")
-    assert_equal(3, stats.call_count)
-    assert stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{stats.total_call_time}"
+    assert_metrics_recorded "Memory/Physical" => {:call_count => 3, :total_call_time => 999}
   end
 
   def test_memory__linux
     return if RUBY_PLATFORM =~ /darwin/
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'linux'
+    stub_sampler_get_memory
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.poll
     s.poll
     s.poll
-    stats = @stats_engine.get_stats_no_scope("Memory/Physical")
-    assert_equal 3, stats.call_count
-    assert stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{stats.total_call_time}"
+
+    assert_metrics_recorded "Memory/Physical" => {:call_count => 3, :total_call_time => 999}
   end
 
   def test_memory__solaris
@@ -40,9 +39,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 999
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.poll
-    stats = @stats_engine.get_stats_no_scope("Memory/Physical")
-    assert_equal 1, stats.call_count
-    assert_equal 999, stats.total_call_time
+    assert_metrics_recorded "Memory/Physical" => {:call_count => 1, :total_call_time => 999}
   end
 
   def test_memory__windows
@@ -56,5 +53,14 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
   def test_memory__is_supported
     NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns 'windows'
     assert !NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform? || defined? JRuby
+  end
+
+  def stub_sampler_get_memory
+    if defined? JRuby
+      NewRelic::Agent::Samplers::MemorySampler::JavaHeapSampler.any_instance.stubs(:get_memory).returns 333
+    else
+      NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 333
+      NewRelic::Agent::Samplers::MemorySampler::ProcStatus.any_instance.stubs(:get_memory).returns 333
+    end
   end
 end

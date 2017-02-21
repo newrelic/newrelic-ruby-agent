@@ -45,6 +45,8 @@
     * `MethodTracer.trace_method_execution_no_scope`
     * `MethodTracer.trace_method_execution_with_scope`
     * `MetricSpec#sub`
+    * `MetricStats#get_stats`
+    * `MetricStats#get_stats_no_scope`
     * `NoticedError#exception_class`
     * `Rack::ErrorCollector`
     * `StatsEngine::Samplers.add_sampler`
@@ -52,6 +54,16 @@
 
   The above methods have had deprecation notices on them for some time and
   have now been removed.
+
+  The agent no longer deletes deprecated keys passed to `add_method_tracer`. Passing
+  in deprecated keys can cause an exception. Ensure that you are not passing any of
+  the following keys: `:force, :scoped_metric_only, :deduct_call_time_from_parent`
+  to `add_method_tracer`.
+
+  The agent no longer deletes deprecated keys passed in as options to
+  `NewRelic::Agent.notice_error`. If you are passing any of these deprecated
+  keys: `:request_params, :request, :referer` to the `notice_error` API please
+  delete them otherwise they will be collected as custom attributes.
 
 ## v3.18.1 ##
 
