@@ -279,8 +279,8 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     @engine.tl_record_unscoped_metrics "a", 2
     assert_metrics_recorded "a" => {:call_count => 1, :total_call_time => 2}
 
-    # # this should merge the contents of the previous harvest,
-    # # so the stats for metric "a" should have 2 data points
+    # this should merge the contents of the previous harvest,
+    # so the stats for metric "a" should have 2 data points
     @engine.merge!(harvest)
     harvest = @engine.harvest!
     stats = harvest[NewRelic::MetricSpec.new("a")]
