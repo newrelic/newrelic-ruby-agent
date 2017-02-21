@@ -14,6 +14,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
 
   def test_memory__default
     NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 333
+    NewRelic::Agent::Samplers::MemorySampler::ProcStatus.any_instance.stubs(:get_memory).returns 333
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.poll
     s.poll
@@ -25,6 +26,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     return if RUBY_PLATFORM =~ /darwin/
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'linux'
     NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 333
+    NewRelic::Agent::Samplers::MemorySampler::ProcStatus.any_instance.stubs(:get_memory).returns 333
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.poll
     s.poll
