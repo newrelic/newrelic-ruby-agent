@@ -65,6 +65,13 @@
   keys: `:request_params, :request, :referer` to the `notice_error` API please
   delete them otherwise they will be collected as custom attributes.
 
+  * Error handling changes
+
+  The agent now only checks for `original_exception` in environments with Rails
+  versions prior to 5. Checking for `Exception#cause` has been removed. In addition,
+  the agent now will match class name with message and backtrace when noticing
+  errors that have an `original_exception`.
+
 ## v3.18.1 ##
 
   * Ensure Mongo aggregate queries are properly obfuscated

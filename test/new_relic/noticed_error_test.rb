@@ -5,6 +5,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 require 'new_relic/agent/transaction/attributes'
 
+class FooError < StandardError; end
+
 class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   include NewRelic::TestHelpers::Exceptions
 
@@ -173,18 +175,20 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     end
   end
 
-  def test_handles_exception_with_nil_cause
-    e = Exception.new('Buffy FOREVER')
-    e.stubs(:cause).returns(nil)
-    error = NewRelic::NoticedError.new(@path, e, @time)
-    assert_equal(error.message.to_s, 'Buffy FOREVER')
-  end
-
   def test_handles_exception_with_nil_original_exception
     e = Exception.new('Buffy FOREVER')
     e.stubs(:original_exception).returns(nil)
     error = NewRelic::NoticedError.new(@path, e, @time)
     assert_equal(error.message.to_s, 'Buffy FOREVER')
+  end
+
+  if defined?(Rails) && Rails::VERSION::MAJOR < 5
+    def test_uses_original_exception_class_name
+      orig = FooError.new
+      e = mock('exception', original_exception: orig)
+      error = NewRelic::NoticedError.new(@path, e, @time)
+      assert_equal(error.exception_class_name, 'FooError')
+    end
   end
 
   def test_intrinsics_always_get_sent
