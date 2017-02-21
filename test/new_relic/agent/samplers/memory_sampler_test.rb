@@ -13,8 +13,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
   end
 
   def test_memory__default
-    NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 333
-    NewRelic::Agent::Samplers::MemorySampler::ProcStatus.any_instance.stubs(:get_memory).returns 333
+    stub_sampler_get_memory
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.poll
     s.poll
@@ -25,8 +24,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
   def test_memory__linux
     return if RUBY_PLATFORM =~ /darwin/
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'linux'
-    NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 333
-    NewRelic::Agent::Samplers::MemorySampler::ProcStatus.any_instance.stubs(:get_memory).returns 333
+    stub_sampler_get_memory
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.poll
     s.poll
@@ -55,5 +53,14 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
   def test_memory__is_supported
     NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns 'windows'
     assert !NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform? || defined? JRuby
+  end
+
+  def stub_sampler_get_memory
+    if defined? JRuby
+      NewRelic::Agent::Samplers::MemorySampler::JavaHeapSampler.any_instance.stubs(:get_memory).returns 333
+    else
+      NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 333
+      NewRelic::Agent::Samplers::MemorySampler::ProcStatus.any_instance.stubs(:get_memory).returns 333
+    end
   end
 end
