@@ -86,7 +86,7 @@ module NewRelic
           Agent.logger.error("Attempted to start agent in #{env.inspect} environment, but agent was already running in #{@started_in_env.inspect}",
                              "The agent will continue running in #{@started_in_env.inspect}. To alter this, ensure the desired environment is set before the agent starts.")
         else
-          Agent.logger.info("Starting the New Relic agent in #{env.inspect} environment.",
+          Agent.logger.info("Starting the New Relic agent version #{NewRelic::VERSION::STRING} in #{env.inspect} environment.",
                             "To prevent agent startup add a NEW_RELIC_AGENT_ENABLED=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
         end
 
