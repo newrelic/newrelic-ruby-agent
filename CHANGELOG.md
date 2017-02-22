@@ -53,7 +53,8 @@
     * `StatsEngine::Samplers.add_harvest_sampler`
 
   The above methods have had deprecation notices on them for some time and
-  have now been removed.
+  have now been removed. For assistance migrating usage of these APIs, you can
+  reference https://docs.newrelic.com/node/2601.
 
   The agent no longer deletes deprecated keys passed to `add_method_tracer`. Passing
   in deprecated keys can cause an exception. Ensure that you are not passing any of
