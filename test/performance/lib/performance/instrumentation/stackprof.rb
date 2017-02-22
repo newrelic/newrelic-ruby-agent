@@ -5,7 +5,7 @@
 module Performance
   module Instrumentation
     class StackProfProfile < Instrumentor
-      platforms :mri_21, :mri_22, :mri_23
+      platforms :mri_21, :mri_22, :mri_23, :mri_24
 
       def self.setup
         require 'tmpdir'

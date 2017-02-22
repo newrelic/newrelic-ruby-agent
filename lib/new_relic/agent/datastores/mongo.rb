@@ -16,7 +16,7 @@ module NewRelic
         end
 
         def self.is_unsupported_2x?
-          defined?(::Mongo::VERSION) && VersionNumber.new(::Mongo::VERSION).major_version == 2 &&
+          defined?(::Mongo::VERSION) && Gem::Version.new(::Mongo::VERSION).segments[0] == 2 &&
             !self.is_monitoring_enabled?
         end
 

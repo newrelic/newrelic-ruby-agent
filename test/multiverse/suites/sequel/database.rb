@@ -10,9 +10,6 @@ require 'sequel'
 # DO NOT require newrelic_rpm here. Some of the tests rely on the timing of
 # when New Relic gets pulled in.
 if !defined?(DB)
-  def jruby?
-    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
-  end
 
   def create_tables(db)
     db.create_table( :authors ) do
@@ -37,7 +34,7 @@ if !defined?(DB)
   end
 
   # Use an in-memory SQLite database
-  if (jruby?)
+  if (RUBY_ENGINE == 'jruby')
     DB = Sequel.connect('jdbc:sqlite::memory:')
   else
     DB = Sequel.sqlite

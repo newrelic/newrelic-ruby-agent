@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 require 'fileutils'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'multiverse', 'environment'))
+require File.expand_path '../../multiverse/lib/multiverse/environment', __FILE__
 
 Multiverse::Runner.run ARGV[0].to_s

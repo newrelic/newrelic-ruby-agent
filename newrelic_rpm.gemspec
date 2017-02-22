@@ -8,7 +8,7 @@ require 'new_relic/latest_changes'
 Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
   s.version = NewRelic::VERSION::STRING
-  s.required_ruby_version = '>= 1.8.7'
+  s.required_ruby_version = '>= 2.0.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = [ "Tim Krajcar", "Matthew Wear", "Katherine Wu", "Kenichi Nakamura" ]
   s.date = Time.now.strftime('%Y-%m-%d')
@@ -50,24 +50,9 @@ EOS
   s.add_development_dependency 'pry', '~> 0.9.12'
   s.add_development_dependency 'hometown', '~> 0.2.5'
 
-  # rack-cache ~> 1.2 is specified by actionpack 3.2, but rack-cache 1.3.1 only works on Ruby 1.9.3 & newer. :(
-  # https://github.com/rtomayko/rack-cache/issues/124
-  if RUBY_VERSION < "1.9.3"
-   s.add_development_dependency "rack-cache", "~> 1.2.0"
-  end
-
-  # version lock down for i18n that is compatible with Ruby 1.8.7
-  s.add_development_dependency 'i18n', '0.6.11'
-
   if RUBY_PLATFORM == 'java'
     s.add_development_dependency 'activerecord-jdbcsqlite3-adapter'
-    s.add_development_dependency 'jruby-openssl', '~> 0.9.10' unless JRUBY_VERSION > '1.7'
   else
     s.add_development_dependency 'sqlite3'
-  end
-
-  if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
-    s.add_development_dependency 'rubysl'
-    s.add_development_dependency 'racc'
   end
 end

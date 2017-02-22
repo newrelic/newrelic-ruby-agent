@@ -131,10 +131,9 @@ class AttributeProcessingTest < Minitest::Test
       },
       NewRelic::Agent::AttributeProcessing.flatten_and_coerce(
         {
-          # Ruby 1.8.7 doesn't have Float::NAN, INFINITY so we have to hack it
-          'nan'  => 0.0  / 0.0,
-          'inf'  => 1.0  / 0.0,
-          'ninf' => -1.0 / 0.0
+          'nan'  => Float::NAN,
+          'inf'  => Float::INFINITY,
+          'ninf' => -Float::INFINITY
         }
       )
     )

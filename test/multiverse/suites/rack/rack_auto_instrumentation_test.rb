@@ -7,7 +7,6 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? 
 require File.join(File.dirname(__FILE__), 'example_app')
 require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/agent_hooks'
-require 'new_relic/rack/error_collector'
 
 class RackAutoInstrumentationTest < Minitest::Test
   include MultiverseHelpers
@@ -32,7 +31,6 @@ class RackAutoInstrumentationTest < Minitest::Test
       end
       use NewRelic::Rack::BrowserMonitoring
       use NewRelic::Rack::AgentHooks
-      use NewRelic::Rack::ErrorCollector
       run ExampleApp.new
     end
   end
@@ -62,20 +60,19 @@ class RackAutoInstrumentationTest < Minitest::Test
     with_config(:disable_middleware_instrumentation => true) do
       get '/'
     end
+
     assert_metrics_recorded_exclusive(
       [
         "Apdex",
         "ApdexAll",
         "HttpDispatcher",
         "Middleware/all",
-        "Apdex/Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
-        "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
-        "Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
+        "Apdex/Middleware/Rack/NewRelic::Rack::AgentHooks/call",
+        "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call",
         "Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call",
         "Middleware/Rack/NewRelic::Rack::AgentHooks/call",
-        ["Middleware/Rack/NewRelic::Rack::ErrorCollector/call",    "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
-        ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
-        ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Middleware/Rack/NewRelic::Rack::ErrorCollector/call"],
+        ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",    "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call"],
+        ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call"]
       ],
       :ignore_filter => /^Supportability/
     )
@@ -94,11 +91,9 @@ class RackAutoInstrumentationTest < Minitest::Test
         "Controller/Rack/ExampleApp/call",
         "Middleware/Rack/MiddlewareOne/call",
         "Middleware/Rack/MiddlewareTwo/call",
-        "Middleware/Rack/NewRelic::Rack::ErrorCollector/call",
         "Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call",
         "Middleware/Rack/NewRelic::Rack::AgentHooks/call",
         "Nested/Controller/Rack/ExampleApp/call",
-        ["Middleware/Rack/NewRelic::Rack::ErrorCollector/call",    "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/MiddlewareOne/call", "Controller/Rack/ExampleApp/call"],

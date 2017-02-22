@@ -243,9 +243,7 @@ module NewRelic
         end
 
         def unmarshal(data)
-          NewRelic::LanguageSupport.with_cautious_gc do
-            Marshal.load(data)
-          end
+          Marshal.load(data)
         rescue StandardError => e
           ::NewRelic::Agent.logger.error "Failure unmarshalling message from Resque child process", e
           ::NewRelic::Agent.logger.debug Base64.encode64(data)

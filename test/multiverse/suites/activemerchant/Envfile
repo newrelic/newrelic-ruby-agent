@@ -4,15 +4,8 @@ gemfile <<-RB
   gem 'activemerchant', '~>1.43.1'
   gem 'rack'
 
-  if RUBY_VERSION <= '1.9.2'
-    # Very special versioning to keep us running on 1.8.7 versions of Ruby
-    gem 'activesupport', '~>2.3.14', :require => 'active_support'
-    gem 'nokogiri', '~>1.4.7'
-    gem 'i18n', '~>0.6.11'
-  else
-    gem 'activesupport', '~>4.0.4'
-    gem 'nokogiri', '~>1.6.1'
-  end
+  gem 'activesupport', '~>4.0.4'
+  gem 'nokogiri', '~>1.6.1'
 
   # Need to load newrelic_rpm after ActiveMerchant Gateways are required
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
@@ -23,15 +16,8 @@ gemfile <<-RB
   gem 'active_utils', '2.2.3'
   gem 'rack'
 
-  if RUBY_VERSION <= '1.9.2'
-    # Very special versioning to keep us running on 1.8.7 versions of Ruby
-    gem 'activesupport', '~>2.3.14', :require => 'active_support'
-    gem 'nokogiri', '~>1.4.7'
-    gem 'i18n', '~>0.6.11'
-  else
-    gem 'activesupport', '~>4.0.4'
-    gem 'nokogiri', '~>1.5.11'
-  end
+  gem 'activesupport', '~>4.0.4'
+  gem 'nokogiri', '~>1.5.11'
 
   # Need to load newrelic_rpm after ActiveMerchant Gateways are required
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')

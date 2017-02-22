@@ -162,34 +162,32 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     ])
   end
 
-  unless NewRelic::LanguageSupport.rubinius? # Routine segfaults with rbx, see RUBY-1507
-    def test_record_scoped_and_unscoped_metrics_is_thread_safe
-      threads = []
-      nthreads = 25
-      iterations = 100
+  def test_record_scoped_and_unscoped_metrics_is_thread_safe
+    threads = []
+    nthreads = 25
+    iterations = 100
 
-      nthreads.times do |tid|
-        threads << Thread.new do
-          iterations.times do
-            in_transaction('txn') do
-              @engine.tl_record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
-              @engine.tl_record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
-            end
+    nthreads.times do |tid|
+      threads << Thread.new do
+        iterations.times do
+          in_transaction('txn') do
+            @engine.tl_record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
+            @engine.tl_record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
           end
         end
       end
-      threads.each { |t| t.join }
-
-      expected = { :call_count => nthreads * iterations }
-      assert_metrics_recorded(
-        'm1'          => expected,
-        'm2'          => expected,
-        ['m1', 'txn'] => expected,
-        ['m2', 'txn'] => expected,
-        'm3'          => expected,
-        'm4'          => expected
-      )
     end
+    threads.each { |t| t.join }
+
+    expected = { :call_count => nthreads * iterations }
+    assert_metrics_recorded(
+      'm1'          => expected,
+      'm2'          => expected,
+      ['m1', 'txn'] => expected,
+      ['m2', 'txn'] => expected,
+      'm3'          => expected,
+      'm4'          => expected
+    )
   end
 
   def test_record_scoped_and_unscoped_metrics_records_unscoped_if_not_in_txn
@@ -206,41 +204,22 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     )
   end
 
-  def test_get_no_scope
-    s1 = @engine.get_stats "a"
-    s2 = @engine.get_stats "a"
-    s3 = @engine.get_stats "b"
-
-    refute_nil s1
-    refute_nil s2
-    refute_nil s3
-
-    assert s1 == s2
-    refute_same(s1, s3)
-  end
-
   def test_harvest
     @engine.clear_stats
-    s1 = @engine.get_stats "a"
-    s2 = @engine.get_stats "c"
 
-    s1.trace_call 10
-    s2.trace_call 1
-    s2.trace_call 3
+    @engine.tl_record_unscoped_metrics "a", 10
+    @engine.tl_record_unscoped_metrics "c", 1
+    @engine.tl_record_unscoped_metrics "c", 3
 
-    assert_equal 1, @engine.get_stats("a").call_count
-    assert_equal 10, @engine.get_stats("a").total_call_time
-
-    assert_equal 2, @engine.get_stats("c").call_count
-    assert_equal 4, @engine.get_stats("c").total_call_time
+    assert_metrics_recorded({
+      "a" => {:call_count => 1, :total_call_time => 10},
+      "c" => {:call_count => 2, :total_call_time => 4}
+    })
 
     harvested = @engine.harvest!.to_h
 
     # after harvest, all the metrics should be reset
-    assert_equal 0, @engine.get_stats("a").call_count
-    assert_equal 0, @engine.get_stats("a").total_call_time
-    assert_equal 0, @engine.get_stats("c").call_count
-    assert_equal 0, @engine.get_stats("c").total_call_time
+    refute_metrics_recorded %w(a c)
 
     spec_a = NewRelic::MetricSpec.new('a')
 
@@ -258,9 +237,9 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
     rules_engine = NewRelic::Agent::RulesEngine.new([rule])
 
     @engine.metric_rules = rules_engine
-    @engine.get_stats_no_scope('Custom/foo/1/bar/22').record_data_point(1)
-    @engine.get_stats_no_scope('Custom/foo/3/bar/44').record_data_point(1)
-    @engine.get_stats_no_scope('Custom/foo/5/bar/66').record_data_point(1)
+    @engine.tl_record_unscoped_metrics('Custom/foo/1/bar/22', 1)
+    @engine.tl_record_unscoped_metrics('Custom/foo/3/bar/44', 1)
+    @engine.tl_record_unscoped_metrics('Custom/foo/5/bar/66', 1)
 
     harvested = @engine.harvest!.to_h
 
@@ -290,16 +269,15 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
   end
 
   def test_harvest_with_merge
-    s = @engine.get_stats "a"
-    s.trace_call 1
-    assert_equal 1, @engine.get_stats("a").call_count
+    @engine.tl_record_unscoped_metrics "a", 1
+    assert_metrics_recorded "a" => {:call_count => 1, :total_call_time => 1}
 
     harvest = @engine.harvest!
 
-    s = @engine.get_stats "a"
-    assert_equal 0, s.call_count
-    s.trace_call 2
-    assert_equal 1, s.call_count
+    assert_metrics_not_recorded "a"
+
+    @engine.tl_record_unscoped_metrics "a", 2
+    assert_metrics_recorded "a" => {:call_count => 1, :total_call_time => 2}
 
     # this should merge the contents of the previous harvest,
     # so the stats for metric "a" should have 2 data points
@@ -311,7 +289,7 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
   end
 
   def test_merge_merges
-    @engine.get_stats("foo").record_data_point(1)
+    @engine.tl_record_unscoped_metrics "foo", 1
 
     other_stats_hash = NewRelic::Agent::StatsHash.new()
     other_stats_hash.record(NewRelic::MetricSpec.new('foo'), 1)
@@ -319,10 +297,10 @@ class NewRelic::Agent::MetricStatsTest < Minitest::Test
 
     @engine.merge!(other_stats_hash)
 
-    foo_stats = @engine.get_stats('foo')
-    bar_stats = @engine.get_stats('bar')
-    assert_equal(2, foo_stats.call_count)
-    assert_equal(1, bar_stats.call_count)
+    assert_metrics_recorded ({
+      'foo' => {:call_count => 2},
+      'bar' => {:call_count => 1}
+    })
   end
 
   def test_harvest_adds_harvested_at_time

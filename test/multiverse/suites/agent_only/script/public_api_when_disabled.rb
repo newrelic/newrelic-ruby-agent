@@ -48,21 +48,10 @@ NewRelic::Agent.set_sql_obfuscator do
 end
 
 NewRelic::Agent.browser_timing_header
-NewRelic::Agent.browser_timing_footer
 
 NewRelic::Agent.add_custom_attributes(:custom => "attributes")
-NewRelic::Agent.add_custom_parameters(:custom => "parameters")
-NewRelic::Agent.add_request_parameters(:request => "parameters")
-NewRelic::Agent.set_user_attributes(:user => "attributes")
 
-NewRelic::Agent.get_stats("Foo/Bar")
-NewRelic::Agent.get_stats_no_scope("Foo/Bar")
-NewRelic::Agent.reset_stats
 NewRelic::Agent.drop_buffered_data
-
-NewRelic::Agent.abort_transaction!
 
 NewRelic::Agent.after_fork(options={})
 NewRelic::Agent.shutdown(options={})
-
-NewRelic::Agent::Deprecator.deprecate("SomeClass#old_method")

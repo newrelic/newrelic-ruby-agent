@@ -36,20 +36,15 @@ class MarshalingTest < Minitest::Test
     expected = expected_sample.to_collector_array(encoder)
     expected = NewRelic::Agent::EncodingNormalizer.normalize_object(expected)
 
-    if RUBY_VERSION == '1.8.7'
-      # 1.8 + JSON is finicky about comparing floats.
-      # If the timestamps are within 0.001 seconds, it's Good Enough.
-      assert_in_delta(expected[4][0], actual[4][0], 0.001)
-      actual[4][0] = expected[4][0]
-    end
     assert_equal(expected, actual)
   end
 
   def test_metric_data_marshalling
-    stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Custom/test/method')
-    stats.record_data_point(1.0)
-    stats.record_data_point(2.0, 1.0)
-    expected = [ 2, 3.0, 2.0, 1.0, 2.0, 5.0 ]
+    metric = 'Custom/test/method'
+    NewRelic::Agent.record_metric metric, 1.0
+    NewRelic::Agent.record_metric metric, 2.0
+
+    expected = [ 2, 3.0, 3.0, 1.0, 2.0, 5.0 ]
 
     agent.service.connect
     agent.send(:harvest_and_send_timeslice_data)

@@ -9,23 +9,21 @@ module NewRelic
       # Record queue time metrics based on any of three headers
       # which can be set on the request.
       module QueueTime
-        unless defined?(REQUEST_START_HEADER)
-          REQUEST_START_HEADER    = 'HTTP_X_REQUEST_START'.freeze
-          QUEUE_START_HEADER      = 'HTTP_X_QUEUE_START'.freeze
-          MIDDLEWARE_START_HEADER = 'HTTP_X_MIDDLEWARE_START'.freeze
-          ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'.freeze
-          # any timestamps before this are thrown out and the parser
-          # will try again with a larger unit (2000/1/1 UTC)
-          EARLIEST_ACCEPTABLE_TIME = Time.at(946684800)
+        REQUEST_START_HEADER    = 'HTTP_X_REQUEST_START'.freeze
+        QUEUE_START_HEADER      = 'HTTP_X_QUEUE_START'.freeze
+        MIDDLEWARE_START_HEADER = 'HTTP_X_MIDDLEWARE_START'.freeze
+        ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'.freeze
+        # any timestamps before this are thrown out and the parser
+        # will try again with a larger unit (2000/1/1 UTC)
+        EARLIEST_ACCEPTABLE_TIME = Time.at(946684800)
 
-          CANDIDATE_HEADERS = [
-            REQUEST_START_HEADER,
-            QUEUE_START_HEADER,
-            MIDDLEWARE_START_HEADER
-          ].freeze
+        CANDIDATE_HEADERS = [
+          REQUEST_START_HEADER,
+          QUEUE_START_HEADER,
+          MIDDLEWARE_START_HEADER
+        ].freeze
 
-          DIVISORS = [1_000_000, 1_000, 1]
-        end
+        DIVISORS = [1_000_000, 1_000, 1]
 
         module_function
 

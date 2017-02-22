@@ -15,7 +15,7 @@ module NewRelic
         FORMAT_REGEX   = /\(\/?\.[\:\w]*\)/.freeze # either :format (< 0.12.0) or .ext (>= 0.12.0)
         VERSION_REGEX  = /:version(\/|$)/.freeze
         EMPTY_STRING   = ''.freeze
-        MIN_VERSION    = VersionNumber.new("0.2.0")
+        MIN_VERSION    = Gem::Version.new("0.2.0")
         PIPE_STRING    = '|'.freeze
 
         def handle_transaction(endpoint, class_name, version)
@@ -30,7 +30,7 @@ module NewRelic
           Transaction.set_default_transaction_name(txn_name, :grape, node_name)
         end
 
-        if defined?(Grape::VERSION) && VersionNumber.new(::Grape::VERSION) >= VersionNumber.new("0.16.0")
+        if defined?(Grape::VERSION) && Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("0.16.0")
           def name_for_transaction(route, class_name, version)
             action_name = route.path.sub(FORMAT_REGEX, EMPTY_STRING)
             method_name = route.request_method
@@ -86,7 +86,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(::Grape::VERSION) &&
-      ::NewRelic::VersionNumber.new(::Grape::VERSION) >= ::NewRelic::Agent::Instrumentation::GrapeInstrumentation::MIN_VERSION
+      Gem::Version.new(::Grape::VERSION) >= ::NewRelic::Agent::Instrumentation::GrapeInstrumentation::MIN_VERSION
   end
 
   depends_on do

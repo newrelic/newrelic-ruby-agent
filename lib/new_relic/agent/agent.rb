@@ -376,32 +376,16 @@ module NewRelic
 
           def should_install_exit_handler?
             (
-              Agent.config[:send_data_on_exit]                  &&
-              !NewRelic::LanguageSupport.using_engine?('jruby') &&
+              Agent.config[:send_data_on_exit]  &&
+              !NewRelic::LanguageSupport.jruby? &&
               !sinatra_classic_app?
             )
-          end
-
-          # There's an MRI 1.9 bug that loses exit codes in at_exit blocks.
-          # A workaround is necessary to get correct exit codes for the agent's
-          # test suites.
-          # http://bugs.ruby-lang.org/issues/5218
-          def need_exit_code_workaround?
-            defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby" && RUBY_VERSION.match(/^1\.9/)
           end
 
           def install_exit_handler
             return unless should_install_exit_handler?
             NewRelic::Agent.logger.debug("Installing at_exit handler")
-            at_exit do
-              if need_exit_code_workaround?
-                exit_status = $!.status if $!.is_a?(SystemExit)
-                shutdown
-                exit exit_status if exit_status
-              else
-                shutdown
-              end
-            end
+            at_exit { shutdown }
           end
 
           # Classy logging of the agent version and the current pid,
@@ -535,14 +519,6 @@ module NewRelic
             return false
           end
 
-          unless NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-            NewRelic::Agent.logger.error "JSON marshaller requested, but the 'json' gem was not available. ",
-              "You will need to: 1) upgrade to Ruby 1.9.3 or newer (strongly recommended), ",
-              "2) add the 'json' gem to your Gemfile or operating environment, ",
-              "or 3) use a version of newrelic_rpm prior to 3.14.0."
-            return false
-          end
-
           return true
         end
 
@@ -568,11 +544,6 @@ module NewRelic
           @custom_event_aggregator.reset!
           @sql_sampler.reset!
         end
-
-        # Deprecated, and not part of the public API, but here for backwards
-        # compatibility because some 3rd-party gems call it.
-        # @deprecated
-        def reset_stats; drop_buffered_data; end
 
         # Clear out state for any objects that we know lock from our parents
         # This is necessary for cases where we're in a forked child and Ruby

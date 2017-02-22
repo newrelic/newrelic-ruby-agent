@@ -56,11 +56,6 @@ class ErrorController < ApplicationController
     render :text => "Shoulda noticed an error"
   end
 
-  def deprecated_noticed_error
-    newrelic_notice_error(RuntimeError.new('this error should be noticed'))
-    render :text => "Shoulda noticed an error"
-  end
-
   def middleware_error
     render :text => 'everything went great'
   end
@@ -153,14 +148,6 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
     get '/error/model_error'
     assert_error_reported_once('this is an uncaught model error',
                                'Controller/error/model_error')
-  end
-
-  if Rails::VERSION::MAJOR < 5
-    def test_should_capture_deprecated_noticed_error_in_controller
-      get '/error/deprecated_noticed_error'
-      assert_error_reported_once('this error should be noticed',
-                                 'Controller/error/deprecated_noticed_error')
-    end
   end
 
   def test_should_capture_noticed_error_in_controller

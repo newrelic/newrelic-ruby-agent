@@ -88,8 +88,4 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def test_agent_version_string
     assert_match(/\d\.\d+\.\d+/, NewRelic::VERSION::STRING)
   end
-
-  def test_record_transaction
-    NewRelic::Agent.record_transaction 0.5, 'uri' => "/users/create?foo=bar"
-  end
 end

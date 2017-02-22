@@ -4,15 +4,6 @@ gem 'rake', '< 11'
 
 gem 'rails', '~>4.2.1'
 
-# mime-types 2.99.1 and 3.x introduce mime-types-data
-# mime-types-data requires Ruby version >= 2.0
-# mime-types 2.99 requires Ruby version >= 1.9.3
-if RUBY_VERSION < '1.9.3'
-  gem 'mime-types', '1.25.1'
-elsif RUBY_VERSION < '2'
-  gem 'mime-types', '< 3'
-end
-
 gem 'minitest', '5.2.3'
 gem 'mocha', '1.1', :require => false
 gem 'rack', '< 2.0.0'
@@ -27,19 +18,6 @@ end
 platforms :ruby do
   gem "mysql2"
   gem "sqlite3"
-end
-
-platforms :rbx do
-  gem "rubysl"
-  gem "json", '< 2.0.0'
-  # If we don't skip the require here, test-unit tries to install its at_exit
-  # hook and run when we run our rake task to create the test DB.
-  gem "rubysl-test-unit", :require => false
-  gem "racc"  # https://github.com/rubinius/rubinius/issues/2632
-
-  # Compilation issues with rubysl-openssl 2.2.1, lock at 2.1.0 for now.
-  # https://github.com/rubysl/rubysl-openssl/issues/11
-  gem "rubysl-openssl", "2.1.0"
 end
 
 gem "newrelic_rpm", :path => "../../.."

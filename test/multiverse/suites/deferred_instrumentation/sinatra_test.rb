@@ -9,7 +9,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'sinatra', 'sin
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
 
 class DeferredSinatraTestApp < Sinatra::Base
-  include NewRelic::Agent::Instrumentation::Rack
   include NewRelic::TestHelpers::Exceptions
 
   configure do

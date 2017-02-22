@@ -9,20 +9,13 @@ module NewRelic
   module Helper
     extend self
 
-    # confirm a string is correctly encoded (in >= 1.9)
+    # Confirm a string is correctly encoded,
     # If not force the encoding to ASCII-8BIT (binary)
-    if NewRelic::LanguageSupport.supports_string_encodings?
-      def correctly_encoded(string)
-        return string unless string.is_a? String
-        # The .dup here is intentional, since force_encoding mutates the target,
-        # and we don't know who is going to use this string downstream of us.
-        string.valid_encoding? ? string : string.dup.force_encoding("ASCII-8BIT")
-      end
-    else
-      #noop
-      def correctly_encoded(string)
-        string
-      end
+    def correctly_encoded(string)
+      return string unless string.is_a? String
+      # The .dup here is intentional, since force_encoding mutates the target,
+      # and we don't know who is going to use this string downstream of us.
+      string.valid_encoding? ? string : string.dup.force_encoding(Encoding::ASCII_8BIT)
     end
 
     def instance_method_visibility(klass, method_name)

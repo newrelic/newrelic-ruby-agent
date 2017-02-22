@@ -14,8 +14,8 @@ module NewRelic
       # Maximum possible length of the queue - defaults to 20, may be
       # made configurable in the future. This is a tradeoff between
       # memory and data retention
-      MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
-      EXCEPTION_TAG_IVAR = :'@__nr_seen_exception' unless defined? EXCEPTION_TAG_IVAR
+      MAX_ERROR_QUEUE_LENGTH = 20
+      EXCEPTION_TAG_IVAR = :'@__nr_seen_exception'
 
       attr_reader :error_trace_aggregator, :error_event_aggregator
 
@@ -180,12 +180,16 @@ module NewRelic
       # detection and soft fail-safe. Returns nil if the method does
       # not exist
       def sense_method(object, method)
-        object.send(method) if object.respond_to?(method)
+        object.__send__(method) if object.respond_to?(method)
       end
 
       # extracts a stack trace from the exception for debugging purposes
       def extract_stack_trace(exception)
-        actual_exception = sense_method(exception, :cause) || sense_method(exception, :original_exception) || exception
+        actual_exception = if defined?(Rails) && Rails::VERSION::MAJOR < 5
+                             sense_method(exception, :original_exception) || exception
+                           else
+                             exception
+                           end
         sense_method(actual_exception, :backtrace) || '<no stack trace>'
       end
 
@@ -225,8 +229,6 @@ module NewRelic
         noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = extract_stack_trace(exception)
 
-        handle_deprecated_options(options)
-
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
 
         # Any options that are passed to notice_error which aren't known keys
@@ -234,21 +236,6 @@ module NewRelic
         noticed_error.attributes_from_notice_error.merge!(options)
 
         noticed_error
-      end
-
-      DEPRECATED_OPTIONS_MSG = "Passing %s to notice_error is no longer supported. Set values on the enclosing transaction or record them as custom attributes instead.".freeze
-      DEPRECATED_OPTIONS = [:request_params, :request, :referer].freeze
-
-      # Old options no longer used by notice_error can still be passed. If they
-      # are, they shouldn't get merged into custom attributes. Delete and
-      # warn callers so they can fix their calls to notice_error.
-      def handle_deprecated_options(options)
-        DEPRECATED_OPTIONS.each do |deprecated|
-          if options.include?(deprecated)
-            NewRelic::Agent.logger.warn(DEPRECATED_OPTIONS_MSG % deprecated)
-            options.delete(deprecated)
-          end
-        end
       end
 
       # *Use sparingly for difficult to track bugs.*

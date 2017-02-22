@@ -52,9 +52,25 @@ module NewRelic::Agent
       if expected_vendors_hash.nil?
         refute aws_info.loaded?
       else
-        actual = HashExtensions.stringify_keys_in_object(aws_info.to_collector_hash)
+        actual = stringify_keys_in_object(aws_info.to_collector_hash)
         assert_equal expected_vendors_hash["aws"], actual
       end
     end
+
+    # recurses through hashes and arrays and stringifies keys
+    def stringify_keys_in_object(object)
+      case object
+      when Hash
+        object.inject({}) do |memo, (k, v)|
+          memo[k.to_s] = stringify_keys_in_object(v)
+          memo
+        end
+      when Array
+        object.map {|o| stringify_keys_in_object(o)}
+      else
+        object
+      end
+    end
+
   end
 end

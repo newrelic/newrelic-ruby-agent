@@ -4,7 +4,7 @@
 
 require 'logger'
 
-$: << File.expand_path(File.dirname(__FILE__))
+$: << File.expand_path('..', __FILE__)
 
 require 'performance/platform'
 require 'performance/result'

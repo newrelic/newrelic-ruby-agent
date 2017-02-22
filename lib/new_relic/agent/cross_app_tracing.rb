@@ -3,6 +3,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'json'
+
 module NewRelic
   module Agent
     module CrossAppTracing
@@ -57,7 +59,7 @@ module NewRelic
 
       def insert_request_headers(request, txn_guid, trip_id, path_hash, synthetics_header)
         cross_app_id = NewRelic::Agent.config[:cross_process_id]
-        txn_data  = NewRelic::JSONWrapper.dump([txn_guid, false, trip_id, path_hash])
+        txn_data  = ::JSON.dump([txn_guid, false, trip_id, path_hash])
 
         request[NR_ID_HEADER]  = obfuscator.obfuscate(cross_app_id)
         request[NR_TXN_HEADER] = obfuscator.obfuscate(txn_data)
@@ -93,7 +95,7 @@ module NewRelic
         decoded_appdata.set_encoding(::Encoding::UTF_8) if
           decoded_appdata.respond_to?(:set_encoding)
 
-        NewRelic::JSONWrapper.load(decoded_appdata)
+        ::JSON.load(decoded_appdata)
       end
 
       def valid_cross_app_id?(xp_id)

@@ -11,30 +11,22 @@ module NewRelic
       {
         :type        => :ruby,
         :name        => "MRI",
-        :supported   => ["1.8.7", "1.9.2", "1.9.3", "2.0.0", "~> 2.1.0", "~> 2.2.0", "~> 2.3.0"],
-        :experimental=> ["2.4.0-preview3"],
+        :supported   => ["2.0.0", "~> 2.1.0", "~> 2.2.0", "~> 2.3.0", "~> 2.4.0"],
+        :deprecated  => ["1.8.6", "1.8.7", "1.9.2", "1.9.3"],
         :url         => "https://www.ruby-lang.org",
         :feed        => "https://www.ruby-lang.org/en/feeds/news.rss",
-        :notes       => [
-          "1.8.7 includes support for Ruby Enterprise Edition (REE).",
-          "1.8.7 & REE require the 'json' gem to be present in your Gemfile/operating environment.",
-          "Last supported agent on 1.8.6 was 3.6.8.168."]
+        :notes       => ["Last supported agent for 1.8.7, 1.9.2, and 1.9.3 was 3.18.0.329.",
+                         "Last supported agent on 1.8.6 was 3.6.8.168."]
       },
       :jruby =>
       {
         :type        => :ruby,
         :name        => "JRuby",
-        :supported   => ["~> 1.7.0", "~> 9.0", "~> 9.1"],
+        :supported   => ["~> 9.0", "~> 9.1"],
+        :deprecated  => ["~> 1.7.0"],
         :url         => "http://jruby.org",
-        :feed        => "http://jruby.org/atom.xml"
-      },
-      :rbx =>
-      {
-        :type        => :ruby,
-        :name        => "Rubinius",
-        :supported   => ["~> 2.2.1"],
-        :url         => "http://rubini.us",
-        :feed        => "http://rubini.us/feed/atom.xml"
+        :feed        => "http://jruby.org/atom.xml",
+        :notes       => ["Last supported agent for ~> 1.7.0 was 3.18.0.329."]
       },
 
       # App servers
@@ -86,11 +78,12 @@ module NewRelic
       :rails =>
       {
         :type        => :web,
-        :supported   => ["~>2.1.0", "~>2.2.0", "~>2.3.0", "~3.0.0", "~>3.1.0", "~>3.2.0", "~>4.0.0", "~>4.1.0", "~>4.2.0", "~> 5.0.0"],
-        :deprecated  => ["~>2.0.0"],
+        :supported   => ["~3.0.0", "~>3.1.0", "~>3.2.0", "~>4.0.0", "~>4.1.0", "~>4.2.0", "~> 5.0.0"],
+        :deprecated  => ["~>2.0.0", "~>2.1.0", "~>2.2.0", "~>2.3.0"],
         :url         => "https://rubygems.org/gems/rails",
         :feed        => "https://rubygems.org/gems/rails/versions.atom",
-        :notes       => ["Last supported agent for 2.0.x was 3.6.8.168"]
+        :notes       => ["Last supported agent for ~>2.1.0, ~>2.2.0, and ~>2.3.0 was 3.18.0.329.",
+                         "Last supported agent for 2.0.x was 3.6.8.168."]
       },
       :sinatra =>
       {

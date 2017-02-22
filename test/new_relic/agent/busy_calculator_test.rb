@@ -3,13 +3,14 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+
 class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
   attr_reader :now
+
   def setup
     @now = Time.now.to_f
     NewRelic::Agent::BusyCalculator.reset
     NewRelic::Agent.agent.stats_engine.clear_stats
-    @instance_busy = NewRelic::Agent.agent.stats_engine.get_stats_no_scope('Instance/Busy')
   end
 
   def test_normal
@@ -21,9 +22,9 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
     assert_equal 5, NewRelic::Agent::BusyCalculator.accumulator
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_equal 1, @instance_busy.call_count
-    assert_in_delta 0.50, @instance_busy.total_call_time, 0.05
+    assert_metrics_recorded 'Instance/Busy' => {:call_count => 1, :total_call_time => 0.50}
   end
+
   def test_split
     # start the timewindow 10 seconds ago
     # start a request at 5 seconds, don't finish
@@ -31,9 +32,9 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
     NewRelic::Agent::BusyCalculator.dispatcher_start(now - 5.0)
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_equal 1, @instance_busy.call_count, @instance_busy
-    assert_in_delta 0.50, @instance_busy.total_call_time, 0.05
+    assert_metrics_recorded 'Instance/Busy' => {:call_count => 1, :total_call_time => 0.50}
   end
+
   def test_reentrancy
     # start the timewindow 10 seconds ago
     # start a request at 5 seconds, don't finish, but make two more
@@ -48,9 +49,9 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
     NewRelic::Agent::BusyCalculator.dispatcher_finish(now - 1.0)
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_equal 1, @instance_busy.call_count
-    assert_in_delta 0.50, @instance_busy.total_call_time, 0.05
+    assert_metrics_recorded 'Instance/Busy' => {:call_count => 1, :total_call_time => 0.50}
   end
+
   def test_concurrency
     # start the timewindow 10 seconds ago
     # start a request at 10 seconds, 5 seconds long
@@ -70,23 +71,21 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
     NewRelic::Agent::BusyCalculator.stubs(:time_now).returns(now - 1.0)
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_equal 1, @instance_busy.call_count
-    # 3 + 6 = 9, or 90%
-    assert_in_delta 0.90, @instance_busy.total_call_time, 0.1
+    assert_metrics_recorded 'Instance/Busy' => {:call_count => 1, :total_call_time => 1.0}
+  end
 
-  end
   def test_dont_ignore_zero_counts
-    assert_equal 0, @instance_busy.call_count, "Problem with test--instance busy not starting off at zero."
     NewRelic::Agent::BusyCalculator.harvest_busy
     NewRelic::Agent::BusyCalculator.harvest_busy
     NewRelic::Agent::BusyCalculator.harvest_busy
-    assert_equal 3, @instance_busy.call_count
+
+    assert_metrics_recorded 'Instance/Busy' => {:call_count => 3}
   end
+
   def test_can_turn_off_recording
     with_config(:report_instance_busy => false) do
-      assert_equal 0, @instance_busy.call_count, "Problem with test--instance busy not starting off at zero."
       NewRelic::Agent::BusyCalculator.harvest_busy
-      assert_equal 0, @instance_busy.call_count
+      assert_metrics_not_recorded 'Instance/Busy'
     end
   end
 
@@ -94,5 +93,4 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
     NewRelic::Agent::TransactionState.tl_clear_for_testing
     NewRelic::Agent::BusyCalculator.dispatcher_finish
   end
-
 end

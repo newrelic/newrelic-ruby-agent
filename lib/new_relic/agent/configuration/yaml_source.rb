@@ -100,7 +100,7 @@ module NewRelic
 
         def process_yaml(file, env, config, path)
           if file
-            confighash = with_yaml_engine { YAML.load(file) }
+            confighash = YAML.load(file)
             unless confighash.key?(env)
               log_failure("Config file at #{path} doesn't include a '#{env}' section!")
             end
@@ -118,17 +118,6 @@ module NewRelic
             config['transaction_tracer'].delete('transaction_threshold')
           end
         end
-
-        def with_yaml_engine
-          return yield unless NewRelic::LanguageSupport.needs_syck?
-
-          yamler = ::YAML::ENGINE.yamler
-          ::YAML::ENGINE.yamler = 'syck'
-          result = yield
-          ::YAML::ENGINE.yamler = yamler
-          result
-        end
-
 
         def booleanify_values(config, *keys)
           # auto means defer ro default

@@ -5,39 +5,33 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
 class NewRelic::LanguageSupportTest < Minitest::Test
-  include ::NewRelic::TestHelpers::RuntimeDetection
 
   def test_object_space_usable_on_jruby_with_object_space_enabled
-    return unless jruby?
+    return unless NewRelic::LanguageSupport.jruby?
     JRuby.objectspace = true
     assert_truthy NewRelic::LanguageSupport.object_space_usable?
   end
 
   def test_object_space_not_usable_on_jruby_with_object_space_disabled
-    return unless jruby?
+    return unless NewRelic::LanguageSupport.jruby?
     JRuby.objectspace = false
-    assert_falsy NewRelic::LanguageSupport.object_space_usable?
-  end
-
-  def test_object_space_not_usable_on_rubinius
-    return unless rubinius?
     assert_falsy NewRelic::LanguageSupport.object_space_usable?
   end
 
   def test_gc_profiler_unavailable_without_constant
     undefine_constant(:'GC::Profiler') do
-      assert_equal false, NewRelic::LanguageSupport.gc_profiler_usable?
+      refute NewRelic::LanguageSupport.gc_profiler_usable?
     end
   end
 
   def test_gc_profiler_unavailable_on_jruby
-    return unless jruby?
+    return unless NewRelic::LanguageSupport.jruby?
     assert_equal false, NewRelic::LanguageSupport.gc_profiler_usable?
   end
 
   def test_gc_profiler_disabled_without_constant
     undefine_constant(:'GC::Profiler') do
-      assert_equal false, NewRelic::LanguageSupport.gc_profiler_enabled?
+      refute NewRelic::LanguageSupport.gc_profiler_enabled?
     end
   end
 
@@ -66,7 +60,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
   end
 
   def test_gc_profiler_disabled_on_jruby
-    return unless defined?(::GC::Profiler) && jruby?
+    return unless defined?(::GC::Profiler) && NewRelic::LanguageSupport.jruby?
 
     ::GC::Profiler.stubs(:enabled?).returns(true)
     assert_equal false, NewRelic::LanguageSupport.gc_profiler_enabled?

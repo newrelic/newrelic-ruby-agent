@@ -3,8 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'base64'
-require 'zlib'
+require 'json'
 require 'stringio'
+require 'zlib'
 
 module NewRelic
   module Agent
@@ -40,12 +41,10 @@ module NewRelic
 
         module Base64CompressedJSON
           def self.encode(data, opts={})
-            normalize_encodings = if opts[:skip_normalization]
-              false
-            else
-              Agent.config[:normalize_json_string_encodings]
+            if !opts[:skip_normalization] && Agent.config[:normalize_json_string_encodings]
+              data = NewRelic::Agent::EncodingNormalizer.normalize_object(data)
             end
-            json = ::NewRelic::JSONWrapper.dump(data, :normalize => normalize_encodings)
+            json = ::JSON.dump(data)
             Base64.encode64(Compressed::Deflate.encode(json))
           end
         end

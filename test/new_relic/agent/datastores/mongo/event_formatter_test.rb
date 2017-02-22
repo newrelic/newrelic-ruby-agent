@@ -64,112 +64,109 @@ module NewRelic
             ]
           }
 
-          if RUBY_VERSION > "1.9.3"
+          def test_doesnt_modify_incoming_statement
+            formatted = EventFormatter.format('find', DATABASE, FIND_COMMAND)
+            refute_same FIND_COMMAND, formatted
+          end
 
-            def test_doesnt_modify_incoming_statement
+          def test_can_disable_statement_capturing_queries
+            with_config(:'mongo.capture_queries' => false) do
               formatted = EventFormatter.format('find', DATABASE, FIND_COMMAND)
-              refute_same FIND_COMMAND, formatted
+              assert_nil formatted
             end
+          end
 
-            def test_can_disable_statement_capturing_queries
-              with_config(:'mongo.capture_queries' => false) do
-                formatted = EventFormatter.format('find', DATABASE, FIND_COMMAND)
-                assert_nil formatted
-              end
-            end
+          def test_event_formatter_obfuscates_by_default
+            expected = {
+              :operation => :find,
+              :database => DATABASE,
+              :collection => "tribbles",
+              "find" => "tribbles",
+              "filter" => { "_id" => { "$gt" => "?" }, "name" => "?" },
+              "sort" => { "_id" => 1 },
+              "limit" => 2,
+              "skip" => 2,
+              "comment" => "test",
+              "hint" => { "_id" => 1 },
+              "max" => { "_id" => 6 },
+              "maxScan" => 5000,
+              "maxTimeMS" => 6000,
+              "min" => { "_id" => 0 },
+              "readPreference" => { "mode" => "secondaryPreferred" },
+              "returnKey" => false,
+              "showRecordId" => false,
+              "snapshot" => false
+            }
 
-            def test_event_formatter_obfuscates_by_default
-              expected = {
+            formatted = EventFormatter.format(:find, DATABASE, FIND_COMMAND)
+            assert_equal expected, formatted
+          end
+
+          def test_event_formatter_raw_selectors
+            with_config(:'mongo.obfuscate_queries' => false) do
+              formatted = EventFormatter.format(:find, DATABASE, FIND_COMMAND)
+              expected = FIND_COMMAND.merge(
                 :operation => :find,
                 :database => DATABASE,
-                :collection => "tribbles",
-                "find" => "tribbles",
-                "filter" => { "_id" => { "$gt" => "?" }, "name" => "?" },
-                "sort" => { "_id" => 1 },
-                "limit" => 2,
-                "skip" => 2,
-                "comment" => "test",
-                "hint" => { "_id" => 1 },
-                "max" => { "_id" => 6 },
-                "maxScan" => 5000,
-                "maxTimeMS" => 6000,
-                "min" => { "_id" => 0 },
-                "readPreference" => { "mode" => "secondaryPreferred" },
-                "returnKey" => false,
-                "showRecordId" => false,
-                "snapshot" => false
-              }
-
-              formatted = EventFormatter.format(:find, DATABASE, FIND_COMMAND)
+                :collection => 'tribbles'
+              )
               assert_equal expected, formatted
             end
+          end
 
-            def test_event_formatter_raw_selectors
-              with_config(:'mongo.obfuscate_queries' => false) do
-                formatted = EventFormatter.format(:find, DATABASE, FIND_COMMAND)
-                expected = FIND_COMMAND.merge(
-                  :operation => :find,
-                  :database => DATABASE,
-                  :collection => 'tribbles'
-                )
-                assert_equal expected, formatted
-              end
-            end
+          def test_event_formatter_blacklists_inserts
+            expected = {
+              :operation => :insert,
+              :database => DATABASE,
+              :collection => "tribbles",
+              "insert" => "tribbles",
+              "ordered" => true
+            }
 
-            def test_event_formatter_blacklists_inserts
-              expected = {
-                :operation => :insert,
-                :database => DATABASE,
-                :collection => "tribbles",
-                "insert" => "tribbles",
-                "ordered" => true
-              }
+            formatted = EventFormatter.format(:insert, DATABASE, INSERT_COMMAND)
+            assert_equal expected, formatted
+          end
 
-              formatted = EventFormatter.format(:insert, DATABASE, INSERT_COMMAND)
-              assert_equal expected, formatted
-            end
+          def test_event_formatter_blacklists_updates
+            expected = {
+              :operation => :update,
+              :database => DATABASE,
+              :collection => "tribbles",
+              "update" => "tribbles",
+              "ordered" => true
+            }
 
-            def test_event_formatter_blacklists_updates
-              expected = {
-                :operation => :update,
-                :database => DATABASE,
-                :collection => "tribbles",
-                "update" => "tribbles",
-                "ordered" => true
-              }
+            formatted = EventFormatter.format(:update, DATABASE, UPDATE_COMMAND)
+            assert_equal expected, formatted
+          end
 
-              formatted = EventFormatter.format(:update, DATABASE, UPDATE_COMMAND)
-              assert_equal expected, formatted
-            end
+          def test_event_formatter_obfuscates_pipeline
+            expected = {
+              :operation => :aggregate,
+              :database => DATABASE,
+              :collection => "tribbles",
+              "aggregate" => "tribbles",
+              "pipeline" => [
+                {"$group" => {"_id" => "?", "max" => {"$max" => "?"}}},
+                {"$match" => {"max" => {"$gte" => "?"}}}
+              ]
+            }
 
-            def test_event_formatter_blacklists_deletes
-              expected = {
-                :operation => :delete,
-                :database => DATABASE,
-                :collection => "tribbles",
-                "delete" => "tribbles",
-                "ordered" => true
-              }
+            formatted = EventFormatter.format(:aggregate, DATABASE, AGGREGATE_COMMAND)
+            assert_equal expected, formatted
+          end
 
-              formatted = EventFormatter.format(:delete, DATABASE, DELETE_COMMAND)
-              assert_equal expected, formatted
-            end
+          def test_event_formatter_blacklists_deletes
+            expected = {
+              :operation => :delete,
+              :database => DATABASE,
+              :collection => "tribbles",
+              "delete" => "tribbles",
+              "ordered" => true
+            }
 
-            def test_event_formatter_obfuscates_pipeline
-              expected = {
-                :operation => :aggregate,
-                :database => DATABASE,
-                :collection => "tribbles",
-                "aggregate" => "tribbles",
-                "pipeline" => [
-                  {"$group" => {"_id" => "?", "max" => {"$max" => "?"}}},
-                  {"$match" => {"max" => {"$gte" => "?"}}}
-                ]
-              }
-
-              formatted = EventFormatter.format(:aggregate, DATABASE, AGGREGATE_COMMAND)
-              assert_equal expected, formatted
-            end
+            formatted = EventFormatter.format(:delete, DATABASE, DELETE_COMMAND)
+            assert_equal expected, formatted
           end
         end
       end

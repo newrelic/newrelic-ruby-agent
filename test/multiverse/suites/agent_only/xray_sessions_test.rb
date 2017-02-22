@@ -5,8 +5,6 @@
 # https://newrelic.atlassian.net/wiki/display/eng/Agent+Thread+Profiling
 # https://newrelic.atlassian.net/browse/RUBY-917
 
-if RUBY_VERSION >= '1.9'
-
 require 'rack/test'
 require './testing_app'
 
@@ -195,5 +193,4 @@ class XraySessionsTest < Minitest::Test
     end
   end
 
-end
 end

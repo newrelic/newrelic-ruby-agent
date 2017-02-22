@@ -165,7 +165,6 @@ module Multiverse
 
     def generate_gemfile(gemfile_text, env_index, local = true)
       pin_rack_version_if_needed(gemfile_text)
-      pin_json_version_if_needed(gemfile_text)
 
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
       File.open(gemfile,'w') do |f|
@@ -173,24 +172,15 @@ module Multiverse
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./ || (defined?(JRUBY_VERSION) && JRUBY_VERSION > '1.7')
-        f.puts mime_types_line unless gemfile_text =~ /^\s*gem .mime-types[^_-]./
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
-        f.puts rake_line unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
-        if RUBY_VERSION == "1.8.7"
-          f.puts "gem 'json', '< 1.8.5'" unless gemfile_text =~ /^\s.*gem .json./
-        end
-
-        rbx_gemfile_lines(f, gemfile_text)
+        f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
         f.puts "  gem 'mocha', '0.14.0', :require => false"
 
         if debug
-          pry_version = RUBY_VERSION > '1.8.7' ? '0.10.0' : '0.9.12'
-
-          # Pry 0.10.0 breaks compatibility with Ruby 1.8.7 :(
-          f.puts "  gem 'pry', '~> #{pry_version}'"
-          f.puts "  gem 'pry-byebug'" if defined?(RUBY_ENGINE) && RUBY_VERSION >= "2.0.0" && RUBY_ENGINE == "ruby"
-          f.puts "  gem 'pry-stack_explorer'" if defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby"
+          f.puts "  gem 'pry', '~> 0.10.0'"
+          f.puts "  gem 'pry-byebug', platforms: :mri"
+          f.puts "  gem 'pry-stack_explorer', platforms: :mri"
         end
       end
       puts yellow("Gemfile.#{env_index} set to:") if verbose?
@@ -204,31 +194,8 @@ module Multiverse
       line
     end
 
-    def rbx_gemfile_lines(f, gemfile_text)
-      return unless is_rbx?
-
-      f.puts "gem 'rubysl', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .rubysl./
-      f.puts "gem 'json', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .json./
-      f.puts "gem 'racc', :platforms => [:rbx]" unless gemfile_text =~ /^\s*gem .racc./
-    end
-
-    def is_rbx?
-      defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
-    end
-
     def jruby_openssl_line
       "gem 'jruby-openssl', '~> 0.9.10', :require => false, :platforms => [:jruby]"
-    end
-
-    # mime-types got a new dependency after 2.99 that breaks compatibility with ruby < 2.0
-    def mime_types_line
-      if RUBY_VERSION <= '1.9.3'
-        "gem 'mime-types', '1.25.1'"
-      elsif RUBY_VERSION < '2'
-        "gem 'mime-types', '2.99'"
-      else
-        ''
-      end
     end
 
     def minitest_line
@@ -250,15 +217,6 @@ module Multiverse
       require 'minitest/unit'
     end
 
-    # rake 11 dropped support for ruby < 1.9.3
-    def rake_line
-      if RUBY_VERSION < '1.9.3'
-        "gem 'rake', '< 11'"
-      else
-        "gem 'rake'"
-      end
-    end
-
     # Rack 2.0 works with Ruby > 2.2.2. Earlier rubies need to pin
     # their Rack version prior to 2.0
     def pin_rack_version_if_needed gemfile_text
@@ -267,49 +225,6 @@ module Multiverse
       if gemfile_text =~ rx && RUBY_VERSION < "2.2.2"
         gemfile_text.gsub! rx, 'gem "rack", "< 2.0.0"'
       end
-    end
-
-    # JSON gem version 2.0.0 requires Ruby ~> 2.0. We need to pin
-    # the json version for older rubies. In some cases json is pulled
-    # in by other libraries without pinning the version. For older rubies
-    # we will preemptively require json with an appropriate version. None of
-    # this is ideal and should be fixed, either by this PR to bundler:
-    # https://github.com/bundler/bundler/pull/4650 or with a better solution
-    # in mutiverse.
-    def pin_json_version_if_needed gemfile_text
-      return if suite == "json" || suite == "no_json" || suite == "datamapper" ||
-        RUBY_VERSION >= "2.0.0" && RUBY_VERSION < "2.4.0" &&
-        !pin_json_for_jruby?
-
-      match = gemfile_text.match(/^\s*?(gem\s*?['"]json['"]).*?$/)
-      version = json_version
-      if match
-        return if match[0].include? version
-
-        replacement = match[0].gsub(match[1], "#{match[1]}, '#{version}'")
-        gemfile_text.gsub! match[0], replacement
-      else
-        gemfile_text.concat "\ngem 'json', '#{version}'\n"
-      end
-    end
-
-    def json_version
-      case
-      when RUBY_VERSION >= '2.4'
-        '~> 2.0.2'
-      when RUBY_VERSION == '1.8.7'
-        '< 1.8.5'
-      else
-        '< 2.0.0'
-      end
-    end
-
-    # Bundler does not seem to be able to find version 2.0.1 of the json
-    # gem for jruby 9000. This is likely a temporary situation and we
-    # can probably remove this check in the near future. For now we need
-    # this for CI to pass.
-    def pin_json_for_jruby?
-      defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && RUBY_VERSION >= "2.0.0"
     end
 
     def print_environment
@@ -564,8 +479,8 @@ module Multiverse
 
     def require_helpers
       # If used from a 3rd-party, these paths likely need to be added
-      $LOAD_PATH << File.expand_path(File.join(__FILE__, "..", "..", "..", ".."))
-      $LOAD_PATH << File.expand_path(File.join(__FILE__, "..", "..", "..", "..", "new_relic"))
+      $: << File.expand_path('../../../..', __FILE__)
+      $: << File.expand_path('../../../../new_relic', __FILE__)
       require 'multiverse_helpers'
     end
 

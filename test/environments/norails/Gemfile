@@ -12,14 +12,6 @@ else
 end
 
 gem 'rack-test'
-gem 'json', '< 1.8.5' if RUBY_VERSION == "1.8.7"
-
-platforms :rbx do
-  gem "rubysl"
-  gem "rubysl-test-unit"
-  gem "psych"
-  gem "racc"  # https://github.com/rubinius/rubinius/issues/2632
-end
 
 gem "newrelic_rpm", :path => "../../.."
 

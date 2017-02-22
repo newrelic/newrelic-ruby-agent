@@ -21,7 +21,7 @@ module SinatraTestCases
       'GET /route/no_match'
     end
 
-    if NewRelic::VersionNumber.new(Sinatra::VERSION).major_version < 2
+    if Gem::Version.new(Sinatra::VERSION).segments[0] < 2
       # get /\/regex.*/
       def regex_segment
         'GET (?-mix:\/regex.*)'
@@ -188,7 +188,7 @@ module SinatraTestCases
 
     get '/pass'
 
-    expected_status = NewRelic::VersionNumber.new(Sinatra::VERSION).major_version < 2 ? 200 : 400
+    expected_status = Gem::Version.new(Sinatra::VERSION).segments[0] < 2 ? 200 : 400
 
     assert_equal expected_status, last_response.status
   end
@@ -203,7 +203,7 @@ module SinatraTestCases
   end
 
 
-  if NewRelic::VersionNumber.new(Sinatra::VERSION).major_version < 2
+  if Gem::Version.new(Sinatra::VERSION).segments[0] < 2
     def trigger_error_on_params
       Sinatra::Request.any_instance.
       stubs(:params).returns({}).

@@ -25,7 +25,7 @@ namespace :newrelic do
         end
     end
 
-    def build_erb(format)
+    def build_versions_erb(format)
       require 'erb'
       path = File.join(File.dirname(__FILE__), "versions.#{format}.erb")
       template = File.read(File.expand_path(path))
@@ -33,20 +33,22 @@ namespace :newrelic do
     end
 
     def write_versions(title, type, erb)
-      title.downcase.gsub(" ", "_")
-      versions_for_type(type)
+      anchor = title.downcase.gsub(" ", "_")
+      versions = versions_for_type(type)
       puts erb.result(binding).gsub(/^ *$/, '')
+
+      "#{anchor} #{versions}" # silences unused warnings
     end
 
     def include_if_exists(filename)
       path = File.join(File.dirname(__FILE__), filename)
-      puts File.read(path) if File.exists?(path)
+      puts File.read(path) if File.exist?(path)
     end
 
     VersionStruct = Struct.new(:name, :supported, :deprecated, :experimental, :notes)
 
     format = args[:format] || "txt"
-    erb = build_erb(format)
+    erb = build_versions_erb(format)
 
     include_if_exists("versions.preface.#{format}")
 

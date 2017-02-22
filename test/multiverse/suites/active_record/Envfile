@@ -1,11 +1,8 @@
 boilerplate_gems = <<-BOILERPLATE
   gem 'rack'
-  gem 'i18n', '< 0.7.0' if RUBY_VERSION < '1.9.3' # i18n >= 0.7.0 only works on Ruby 1.9.3 and newer
 
   if RUBY_PLATFORM == 'java'
     gem "activerecord-jdbcmysql-adapter"
-  elsif RUBY_VERSION <= '1.9.3'
-    gem 'mysql'
   else
     gem 'mysql2', '~> 0.3.20'
   end
@@ -19,7 +16,7 @@ if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
   RB
 end
 
-if RUBY_VERSION >= '1.9.3' && RUBY_VERSION < '2.4.0'
+if RUBY_VERSION < '2.4.0'
   gemfile <<-RB
     gem 'activerecord', '~> 4.2.0'
     gem 'minitest', '~> 5.2.3'
@@ -58,30 +55,6 @@ if RUBY_VERSION < '2.2.0'
     gem 'activerecord-mysql2-adapter' if RUBY_PLATFORM != 'java'
     #{boilerplate_gems}
   RB
-end
-
-# We pull in Rails on the older verions because ActiveRecord didn't have all
-# the tasks we need for setup, and there are some TestUnit vs Minitest oddities
-#
-# JRuby testing with 1.7 on Rails 2.x has issues and was already excluded in
-# test:env
-if RUBY_VERSION <= '1.9.3' && (!defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby')
-gemfile <<-RB
-  gem 'rails', '~> 2.3.18'
-  #{boilerplate_gems}
-RB
-
-gemfile <<-RB
-  gem "rails", "~> 2.2.3"
-  #{boilerplate_gems}
-RB
-end
-
-if RUBY_VERSION < '1.9.2'
-gemfile <<-RB
-  gem "rails", "~> 2.1.2"
-  #{boilerplate_gems}
-RB
 end
 
 # vim: ft=ruby

@@ -48,17 +48,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal 1, events.length
   end
 
-  def test_drops_deprecated_options
-    expects_logging(:warn, any_parameters)
-    error = @error_collector.create_noticed_error(StandardError.new("message"),
-                                  :referer => "lalalalala",
-                                  :request => stub('request'),
-                                  :request_params => {:x => 'y'})
-
-
-    assert_empty error.attributes_from_notice_error
-  end
-
   def test_exclude
     @error_collector.ignore(["IOError"])
 
@@ -124,9 +113,15 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_increments_count_on_errors
-    expects_error_count_increase(1) do
-      @error_collector.notice_error(StandardError.new("Boo"))
-    end
+    @error_collector.notice_error(StandardError.new("Boo"))
+    assert_metrics_recorded(
+      'Errors/all' => { :call_count => 1}
+    )
+
+    @error_collector.notice_error(StandardError.new("Boo"))
+    assert_metrics_recorded(
+      'Errors/all' => { :call_count => 2}
+    )
   end
 
   def test_increment_error_count_record_summary_and_web_txn_metric
@@ -250,33 +245,15 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_extract_stack_trace
-    exception = mock('exception', :cause => nil,
-                                  :original_exception => nil,
-                                  :backtrace => nil)
-
-    assert_equal('<no stack trace>', @error_collector.extract_stack_trace(exception))
+    assert_equal('<no stack trace>', @error_collector.extract_stack_trace(Exception.new))
   end
 
-  def test_extract_stack_trace_uses_cause_first
-    nested_exception = mock('exception', :backtrace => "Foo STACK")
-    exception = mock('exception', :cause => nested_exception)
-
-    assert_equal('Foo STACK', @error_collector.extract_stack_trace(exception))
-  end
-
-  def test_extract_stack_trace_uses_original_exception_second
-    nested_exception = mock('exception', :backtrace => "Bar STACK")
-    exception = mock('exception', :cause => nil, :original_exception => nested_exception)
-
-    assert_equal('Bar STACK', @error_collector.extract_stack_trace(exception))
-  end
-
-  def test_extract_stack_trace_uses_backtrace_last
-    exception = mock('exception', :cause => nil,
-                                  :original_exception => nil,
-                                  :backtrace => "Baz STACK")
-
-    assert_equal('Baz STACK', @error_collector.extract_stack_trace(exception))
+  if defined?(Rails) && Rails::VERSION::MAJOR < 5
+    def test_extract_stack_trace_from_original_exception
+      orig = mock('original', :backtrace => "STACK STACK STACK")
+      exception = mock('exception', :original_exception => orig)
+      assert_equal('STACK STACK STACK', @error_collector.extract_stack_trace(exception))
+    end
   end
 
   def test_skip_notice_error_is_true_if_the_error_collector_is_disabled
@@ -409,16 +386,6 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   private
-
-  def expects_error_count_increase(increase)
-    count = get_error_stats
-    yield
-    assert_equal increase, get_error_stats - count
-  end
-
-  def get_error_stats
-    NewRelic::Agent.get_stats("Errors/all").call_count
-  end
 
   def wrapped_filter_proc
     Proc.new do |e|
