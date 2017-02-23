@@ -11,7 +11,6 @@ module NewRelic
       # Handles methods related to actual Metric collection
       # @api public
       module MetricStats
-        SCOPE_PLACEHOLDER = '__SCOPE__'.freeze
 
         # Update the unscoped metrics given in metric_names.
         # metric_names may be either a single name, or an array of names.
