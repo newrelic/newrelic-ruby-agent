@@ -141,19 +141,5 @@ module NewRelic
         (other.min_call_time < min_call_time && other.call_count > 0) || call_count == 0
       end
     end
-
-    class ChainedStats
-      attr_accessor :scoped_stats, :unscoped_stats
-
-      def initialize(scoped_stats, unscoped_stats)
-        @scoped_stats = scoped_stats
-        @unscoped_stats = unscoped_stats
-      end
-
-      def method_missing(method, *args)
-        unscoped_stats.send(method, *args)
-        scoped_stats.send(method, *args)
-      end
-    end
   end
 end
