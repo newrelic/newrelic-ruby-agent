@@ -5,7 +5,9 @@
   * Require Ruby 2.0.0+
 
   The agent no longer supports Ruby versions prior to 2.0, JRuby 1.7 and
-  earlier, and all versions of Rubinius. For more information, check out our
+  earlier, and all versions of Rubinius. Customers using affected Rubies
+  can continue to run 3.x agent versions, but new features or bugfixes
+  will not be published for 3.x agents. For more information, check out our
   [community forum](https://discuss.newrelic.com/t/support-for-ruby-jruby-1-x-is-being-deprecated-in-ruby-agent-4-0-0/44787).
 
   * OkJson vendored library removed
@@ -17,7 +19,7 @@
 
   * YAJL workaround removed
 
-  [Yajl-ruby](https://github.com/brianmario/yajl-ruby) versions prior to 1.2 had
+  [yajl-ruby](https://github.com/brianmario/yajl-ruby) versions prior to 1.2 had
   the potential to cause a segmentation fault when working large, deeply-nested
   objects like thread profiles. If you are using yajl-ruby with the `JSON`
   monkey patches enabled by requiring `yajl/json_gem`, you should upgrade to
@@ -53,8 +55,8 @@
     * `StatsEngine::Samplers.add_harvest_sampler`
 
   The above methods have had deprecation notices on them for some time and
-  have now been removed. For assistance migrating usage of these APIs, you can
-  reference https://docs.newrelic.com/node/2601.
+  have now been removed. Assistance migrating usage of these APIs is
+  available at https://docs.newrelic.com/node/2601.
 
   The agent no longer deletes deprecated keys passed to `add_method_tracer`. Passing
   in deprecated keys can cause an exception. Ensure that you are not passing any of
@@ -63,7 +65,7 @@
 
   The agent no longer deletes deprecated keys passed in as options to
   `NewRelic::Agent.notice_error`. If you are passing any of these deprecated
-  keys: `:request_params, :request, :referer` to the `notice_error` API please
+  keys: `:request_params, :request, :referer` to the `notice_error` API, please
   delete them otherwise they will be collected as custom attributes.
 
   * Error handling changes
