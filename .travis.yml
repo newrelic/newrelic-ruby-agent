@@ -23,6 +23,7 @@ branches:
     - master
     - dev
     - release
+    - RUBY-1722_transaction_synchronicity
 
 notifications:
   webhooks: http://notifitron.herokuapp.com/
