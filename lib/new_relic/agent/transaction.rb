@@ -409,10 +409,9 @@ module NewRelic
       end
 
       def create_segment(name)
-        nested_name = self.class.nested_transaction_name(name)
         summary_metrics = nil
 
-        if nested_name.start_with?(MIDDLEWARE_PREFIX)
+        if name.start_with?(MIDDLEWARE_PREFIX)
           summary_metrics = MIDDLEWARE_SUMMARY_METRICS
         end
 
