@@ -12,7 +12,7 @@ module NewRelic
       class Rails < NewRelic::Control::Frameworks::Ruby
 
         def env
-          @env ||= RAILS_ENV.dup
+          @env ||= ( ENV['NEW_RELIC_ENV'] || RAILS_ENV.dup )
         end
 
         # Rails can return an empty string from this method, causing

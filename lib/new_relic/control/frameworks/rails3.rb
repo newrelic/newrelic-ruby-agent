@@ -16,7 +16,7 @@ module NewRelic
       class Rails3 < NewRelic::Control::Frameworks::Rails
 
         def env
-          @env ||= ::Rails.env.to_s
+          @env ||= ( ENV['NEW_RELIC_ENV'] || ::Rails.env.to_s )
         end
 
         def rails_root
