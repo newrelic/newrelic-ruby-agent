@@ -244,6 +244,8 @@ module NewRelic
       end
 
       def initialize(category, options)
+        @nesting_max_depth = 0
+        @initial_segment = nil
         @frame_stack = []
         @has_children = false
 
@@ -404,7 +406,13 @@ module NewRelic
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
-        create_segment @default_name
+        create_initial_segment @default_name
+      end
+
+      def create_initial_segment name
+        @initial_segment = create_segment @default_name
+        @initial_segment.record_scoped_metric = false
+        @initial_segment
       end
 
       def create_segment(name)
@@ -414,12 +422,15 @@ module NewRelic
           summary_metrics = MIDDLEWARE_SUMMARY_METRICS
         end
 
+        @nesting_max_depth += 1
         segment = self.class.start_segment name, summary_metrics
         frame_stack.push segment
         segment
       end
 
       def create_nested_frame(state, category, options)
+        nest_initial_segment if @nesting_max_depth == 1
+
         @has_children = true
         if options[:filtered_params] && !options[:filtered_params].empty?
           @filtered_params = options[:filtered_params]
@@ -429,6 +440,11 @@ module NewRelic
         nested_name = self.class.nested_transaction_name options[:transaction_name]
         create_segment nested_name
         set_default_transaction_name(options[:transaction_name], category)
+      end
+
+      def nest_initial_segment
+        @initial_segment.name = self.class.nested_transaction_name @initial_segment.name
+        @initial_segment.record_scoped_metric = true
       end
 
       # Call this to ensure that the current transaction trace is not saved
@@ -466,20 +482,15 @@ module NewRelic
         freeze_name_and_execute_if_not_ignored
         ignore! if user_defined_rules_ignore?
 
-        if @has_children
-          name = Transaction.nested_transaction_name(outermost_frame.name)
-          outermost_frame.record_scoped_metric = true
-        else
-          name = @frozen_name
-          outermost_frame.record_scoped_metric = false
+        unless @has_children
+          outermost_frame.name = @frozen_name
         end
 
-        outermost_frame.name = name
         outermost_frame.finish
 
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
-        commit!(state, end_time, name) unless @ignore_this_transaction
+        commit!(state, end_time, outermost_frame.name) unless @ignore_this_transaction
       end
 
       def user_defined_rules_ignore?
