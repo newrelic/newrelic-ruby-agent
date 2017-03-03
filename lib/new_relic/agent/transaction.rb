@@ -62,7 +62,8 @@ module NewRelic
                   :frame_stack,
                   :cat_path_hashes,
                   :attributes,
-                  :payload
+                  :payload,
+                  :nesting_max_depth
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -247,7 +248,6 @@ module NewRelic
         @nesting_max_depth = 0
         @initial_segment = nil
         @frame_stack = []
-        @has_children = false
 
         self.default_name = options[:transaction_name]
         @overridden_name    = nil
@@ -429,14 +429,12 @@ module NewRelic
       end
 
       def create_nested_frame(state, category, options)
-        nest_initial_segment if @nesting_max_depth == 1
-
-        @has_children = true
         if options[:filtered_params] && !options[:filtered_params].empty?
           @filtered_params = options[:filtered_params]
           merge_request_parameters(options[:filtered_params])
         end
 
+        nest_initial_segment if nesting_max_depth == 1
         nested_name = self.class.nested_transaction_name options[:transaction_name]
         create_segment nested_name
         set_default_transaction_name(options[:transaction_name], category)
@@ -482,7 +480,7 @@ module NewRelic
         freeze_name_and_execute_if_not_ignored
         ignore! if user_defined_rules_ignore?
 
-        unless @has_children
+        if nesting_max_depth == 1
           outermost_frame.name = @frozen_name
         end
 

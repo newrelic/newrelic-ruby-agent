@@ -1473,4 +1473,18 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       assert txn.payload[:error], "Expected error to be recorded"
     end
   end
+
+  def test_nesting_max_depth_increments
+    state = NewRelic::Agent::TransactionState.tl_get
+
+    txn = in_transaction do |t|
+      assert_equal 1, t.nesting_max_depth
+      NewRelic::Agent::Transaction.start state, :other, :transaction_name => "inner_1"
+      assert_equal 2, t.nesting_max_depth
+      NewRelic::Agent::Transaction.start state, :other, :transaction_name => "inner_2"
+      assert_equal 3, t.nesting_max_depth
+    end
+
+    assert_equal 3, txn.nesting_max_depth
+  end
 end
