@@ -147,7 +147,6 @@ module NewRelic
           txn.stop(state, end_time, nested_frame)
           state.reset
         else
-          nested_frame.name = nested_transaction_name(nested_frame.name)
           nested_frame.finish
         end
 
@@ -427,7 +426,8 @@ module NewRelic
           merge_request_parameters(options[:filtered_params])
         end
 
-        create_segment options[:transaction_name]
+        nested_name = self.class.nested_transaction_name options[:transaction_name]
+        create_segment nested_name
         set_default_transaction_name(options[:transaction_name], category)
       end
 
