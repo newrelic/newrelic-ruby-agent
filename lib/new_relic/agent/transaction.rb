@@ -346,6 +346,7 @@ module NewRelic
       end
 
       def name_last_frame(name)
+        name = self.class.nested_transaction_name(name) if nesting_max_depth > 1
         frame_stack.last.name = name
       end
 
