@@ -94,7 +94,7 @@ module NewRelic
       end
 
       def self.wrap(state, name, category, options = {})
-        Transaction.start(state, category, options.merge(:transaction_name => name))
+        segment = Transaction.start(state, category, options.merge(:transaction_name => name))
 
         begin
           # We shouldn't raise from Transaction.start, but only wrap the yield
@@ -104,21 +104,18 @@ module NewRelic
           Transaction.notice_error(e)
           raise e
         ensure
-          Transaction.stop(state)
+          segment.finish if segment
         end
       end
 
       def self.start(state, category, options)
         category ||= :controller
-        txn = state.current_transaction
 
-        if txn
+        if txn = state.current_transaction
           txn.create_nested_frame(state, category, options)
         else
-          txn = start_new_transaction(state, category, options)
+          start_new_transaction(state, category, options)
         end
-
-        txn
       rescue => e
         NewRelic::Agent.logger.error("Exception during Transaction.start", e)
         nil
@@ -129,7 +126,6 @@ module NewRelic
         state.reset(txn)
         txn.state = state
         txn.start(state)
-        txn
       end
 
       FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
@@ -147,8 +143,6 @@ module NewRelic
         if txn.frame_stack.empty?
           txn.stop(state, end_time, nested_frame)
           state.reset
-        else
-          nested_frame.finish
         end
 
         :transaction_stopped
@@ -426,6 +420,7 @@ module NewRelic
 
         @nesting_max_depth += 1
         segment = self.class.start_segment name, summary_metrics
+        segment.from_transaction_start = true
         frame_stack.push segment
         segment
       end
@@ -441,8 +436,9 @@ module NewRelic
 
         nest_initial_segment if nesting_max_depth == 1
         nested_name = self.class.nested_transaction_name options[:transaction_name]
-        create_segment nested_name
+        segment = create_segment nested_name
         set_default_transaction_name(options[:transaction_name], category)
+        segment
       end
 
       def nest_initial_segment

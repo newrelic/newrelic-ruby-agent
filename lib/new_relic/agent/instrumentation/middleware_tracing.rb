@@ -86,7 +86,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
 
           begin
-            Transaction.start(state, category, build_transaction_options(env, first_middleware))
+            segment = Transaction.start(state, category, build_transaction_options(env, first_middleware))
             events.notify(:before_call, env) if first_middleware
 
             result = (target == self) ? traced_call(env) : target.call(env)
@@ -101,7 +101,7 @@ module NewRelic
             NewRelic::Agent.notice_error(e)
             raise e
           ensure
-            Transaction.stop(state)
+            segment.finish if segment
           end
         end
 

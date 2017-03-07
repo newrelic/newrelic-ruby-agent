@@ -356,7 +356,7 @@ module NewRelic
           txn_options   = create_transaction_options(trace_options, category, state)
 
           begin
-            txn = Transaction.start(state, category, txn_options)
+            segment = Transaction.start(state, category, txn_options)
 
             begin
               yield
@@ -366,7 +366,7 @@ module NewRelic
             end
 
           ensure
-            Transaction.stop(state)
+            segment.finish if segment
           end
         end
 
