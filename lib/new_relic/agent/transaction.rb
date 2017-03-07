@@ -267,8 +267,8 @@ module NewRelic
         @cat_path_hashes = nil
 
         @ignore_this_transaction = false
-        @ignore_apdex = false
-        @ignore_enduser = false
+        @ignore_apdex = options.fetch(:ignore_apdex, false)
+        @ignore_enduser = options.fetch(:ignore_enduser, false)
         @ignore_trace = false
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
@@ -434,6 +434,9 @@ module NewRelic
           @filtered_params = options[:filtered_params]
           merge_request_parameters(options[:filtered_params])
         end
+
+        @ignore_apdex = options[:ignore_apdex] if options.key? :ignore_apdex
+        @ignore_enduser = options[:ignore_enduser] if options.key? :ignore_enduser
 
         nest_initial_segment if nesting_max_depth == 1
         nested_name = self.class.nested_transaction_name options[:transaction_name]
