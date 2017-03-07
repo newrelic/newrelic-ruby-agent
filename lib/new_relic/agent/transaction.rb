@@ -413,6 +413,7 @@ module NewRelic
       def create_initial_segment name
         @initial_segment = create_segment @default_name
         @initial_segment.record_scoped_metric = false
+        @initial_segment.record_metrics = false
         @initial_segment
       end
 
@@ -488,7 +489,7 @@ module NewRelic
           outermost_frame.name = @frozen_name
         end
 
-        outermost_frame.finish
+        @initial_segment.record_metrics
 
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
