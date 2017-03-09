@@ -26,4 +26,16 @@ class NewRelic::Control::Frameworks::RailsTest < Minitest::Test
       NewRelic::Control.instance.install_browser_monitoring(config)
     end
   end
+
+  def test_new_relic_env_should_be_used_when_specified_in_rails
+    with_constant_defined(:RAILS_ENV, "test") do
+      with_environment("NEW_RELIC_ENV" => "my_env") do
+        local_env = mock('local env')
+        assert_equal "my_env", NewRelic::Control::Frameworks::Rails.new(local_env).env
+        assert_equal "my_env", NewRelic::Control::Frameworks::Rails3.new(local_env).env
+        assert_equal "my_env", NewRelic::Control::Frameworks::Rails4.new(local_env).env
+        assert_equal "my_env", NewRelic::Control::Frameworks::Rails5.new(local_env).env
+      end
+    end
+  end
 end

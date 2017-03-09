@@ -5,9 +5,12 @@
 require 'new_relic/control/frameworks/rails'
 require 'new_relic/control/frameworks/rails3'
 require 'new_relic/control/frameworks/rails4'
+require 'new_relic/control/frameworks/rails5'
 
 if defined?(::Rails)
   parent_class = case ::Rails::VERSION::MAJOR.to_i
+  when 5
+    NewRelic::Control::Frameworks::Rails5
   when 4
     NewRelic::Control::Frameworks::Rails4
   when 3
@@ -23,7 +26,9 @@ class NewRelic::Control::Frameworks::Test < parent_class
 
   def app
     if defined?(::Rails) && defined?(::Rails::VERSION)
-      if ::Rails::VERSION::MAJOR.to_i == 4
+      if ::Rails::VERSION::MAJOR.to_i == 5
+        :rails5
+      elsif ::Rails::VERSION::MAJOR.to_i == 4
         :rails4
       elsif ::Rails::VERSION::MAJOR.to_i == 3
         :rails3

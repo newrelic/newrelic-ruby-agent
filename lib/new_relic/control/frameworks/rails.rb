@@ -11,10 +11,6 @@ module NewRelic
       # etc.
       class Rails < NewRelic::Control::Frameworks::Ruby
 
-        def env
-          @env ||= RAILS_ENV.dup
-        end
-
         # Rails can return an empty string from this method, causing
         # the agent not to start even when it is properly in a rails 3
         # application, so we test the value to make sure it actually
