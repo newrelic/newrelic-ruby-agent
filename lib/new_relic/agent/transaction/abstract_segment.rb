@@ -7,7 +7,7 @@ module NewRelic
     class Transaction
       class AbstractSegment
         attr_reader :start_time, :end_time, :duration, :exclusive_duration
-        attr_accessor :name, :children_time, :transaction
+        attr_accessor :name, :parent, :children_time, :transaction
 
         def initialize name=nil
           @name = name
@@ -15,6 +15,7 @@ module NewRelic
           @record_metrics = true
           @record_scoped_metric = true
           @transaction = nil
+          @parent = nil
         end
 
         def start

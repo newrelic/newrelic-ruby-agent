@@ -128,9 +128,33 @@ module NewRelic
 
         def test_current_segment_in_transaction
           in_transaction "test_txn" do |txn|
-            segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            assert_equal txn.initial_segment, txn.current_segment
+            ds_segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            assert_equal ds_segment, txn.current_segment
+
+            segment = Transaction.start_segment "Custom/basic/segment"
             assert_equal segment, txn.current_segment
+
             segment.finish
+            assert_equal ds_segment, txn.current_segment
+
+            ds_segment.finish
+            assert_equal txn.initial_segment, txn.current_segment
+          end
+        end
+
+        def test_segments_are_properly_parented
+          in_transaction "test_txn" do |txn|
+            assert_equal nil, txn.initial_segment.parent
+
+            ds_segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            assert_equal txn.initial_segment, ds_segment.parent
+
+            segment = Transaction.start_segment "Custom/basic/segment"
+            assert_equal ds_segment, segment.parent
+
+            segment.finish
+            ds_segment.finish
           end
         end
 

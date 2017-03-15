@@ -53,17 +53,18 @@ module NewRelic
           base.extend ClassMethods
         end
 
+        attr_reader :current_segment
+
         def add_segment segment
           segment.transaction = self
+          segment.parent = current_segment
+          @current_segment = segment
           state.traced_method_stack.push_segment state, segment
         end
 
         def segment_complete segment
+          @current_segment = segment.parent
           state.traced_method_stack.pop_frame(state, segment, segment.name, segment.end_time, segment.record_metrics?)
-        end
-
-        def current_segment
-          state.traced_method_stack.last
         end
       end
     end
