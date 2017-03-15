@@ -12,12 +12,11 @@ module NewRelic
 
         def start name, id, payload #THREAD_LOCAL_ACCESS
           return unless state.is_execution_traced?
-          event = CableEvent.new(name, Time.now, nil, id, payload)
-          push_event(event)
-          event.segment = if event.name == PERFORM_ACTION
+          event = super
+          if event.name == PERFORM_ACTION
             start_transaction event
           else
-            start_segment event
+            start_recording_metrics event
           end
         rescue => e
           log_notification_error e, name, 'start'
@@ -27,7 +26,11 @@ module NewRelic
           return unless state.is_execution_traced?
           event = super
           notice_error payload if payload.key? :exception
-          event.segment.finish if event.segment
+          if event.name == PERFORM_ACTION
+            finish_transaction
+          else
+            stop_recording_metrics event
+          end
         rescue => e
           log_notification_error e, name, 'finish'
         end
@@ -38,8 +41,16 @@ module NewRelic
           Transaction.start(state, :action_cable, :transaction_name => transaction_name_from_event(event))
         end
 
-        def start_segment event
-          Transaction.start_segment metric_name_from_event(event)
+        def finish_transaction
+          Transaction.stop(state)
+        end
+
+        def start_recording_metrics event
+          event.payload[:segment] = Transaction.start_segment metric_name_from_event(event)
+        end
+
+        def stop_recording_metrics event
+          event.payload[:segment].finish if event.payload[:segment]
         end
 
         def transaction_name_from_event event
@@ -60,10 +71,6 @@ module NewRelic
         def notice_error payload
           NewRelic::Agent.notice_error payload[:exception_object]
         end
-      end
-
-      class CableEvent < Event
-        attr_accessor :segment
       end
     end
   end

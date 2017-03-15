@@ -60,7 +60,6 @@ module NewRelic
 
         def segment_complete segment
           state.traced_method_stack.pop_frame(state, segment, segment.name, segment.end_time, segment.record_metrics?)
-          self.class.stop(state)if segment.from_transaction_start?
         end
 
         def current_segment

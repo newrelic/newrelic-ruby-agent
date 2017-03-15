@@ -12,11 +12,9 @@ module NewRelic
         # object allocations. if allocations weren't important then we would
         # initialize it as an array that would be empty, have one item, or many items.
         attr_reader :unscoped_metrics
-        attr_writer :from_transaction_start
 
         def initialize name = nil, unscoped_metrics=nil
           @unscoped_metrics = unscoped_metrics
-          @from_transaction_start = false
           super name
         end
 
@@ -29,10 +27,6 @@ module NewRelic
           if unscoped_metrics
             metric_cache.record_unscoped unscoped_metrics, duration, exclusive_duration
           end
-        end
-
-        def from_transaction_start?
-          @from_transaction_start
         end
 
         private

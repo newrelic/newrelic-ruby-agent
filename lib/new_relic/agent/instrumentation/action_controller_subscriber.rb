@@ -16,7 +16,7 @@ module NewRelic
           push_event(event)
 
           if state.is_execution_traced? && !event.ignored?
-            event.segment = start_transaction(event)
+            start_transaction(event)
           else
             # if this transaction is ignored, make sure child
             # transaction are also ignored
@@ -32,7 +32,7 @@ module NewRelic
           event.payload.merge!(payload)
 
           if state.is_execution_traced? && !event.ignored?
-            event.segment.finish
+            stop_transaction(event)
           else
             Agent.instance.pop_trace_execution_flag
           end
@@ -50,6 +50,11 @@ module NewRelic
                             :ignore_enduser   => event.enduser_ignored?)
         end
 
+        def stop_transaction(event)
+          txn = state.current_transaction
+          Transaction.stop(state)
+        end
+
         def filter(params)
           munged_params = NewRelic::Agent::ParameterFiltering.filter_rails_request_parameters(params)
           filters = Rails.application.config.filter_parameters
@@ -58,7 +63,7 @@ module NewRelic
       end
 
       class ControllerEvent < Event
-        attr_accessor :parent, :segment
+        attr_accessor :parent
         attr_reader :queue_start, :request
 
         def initialize(name, start, ending, transaction_id, payload, request)

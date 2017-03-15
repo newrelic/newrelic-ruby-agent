@@ -1479,12 +1479,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     txn = in_transaction do |t|
       assert_equal 1, t.nesting_max_depth
-      segment1 = NewRelic::Agent::Transaction.start state, :other, :transaction_name => "inner_1"
+      NewRelic::Agent::Transaction.start state, :other, :transaction_name => "inner_1"
       assert_equal 2, t.nesting_max_depth
-      segment2 = NewRelic::Agent::Transaction.start state, :other, :transaction_name => "inner_2"
+      NewRelic::Agent::Transaction.start state, :other, :transaction_name => "inner_2"
       assert_equal 3, t.nesting_max_depth
-      segment1.finish
-      segment2.finish
     end
 
     assert_equal 3, txn.nesting_max_depth
