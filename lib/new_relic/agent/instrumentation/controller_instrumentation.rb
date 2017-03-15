@@ -356,7 +356,7 @@ module NewRelic
           txn_options   = create_transaction_options(trace_options, category, state)
 
           begin
-            txn = Transaction.start(state, category, txn_options)
+            Transaction.start(state, category, txn_options)
 
             begin
               yield

@@ -51,7 +51,6 @@ module NewRelic
         end
 
         def stop_transaction(event)
-          txn = state.current_transaction
           Transaction.stop(state)
         end
 
