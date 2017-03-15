@@ -31,7 +31,6 @@ module NewRelic
       # +name+ will be applied to the generated transaction trace node.
       def pop_frame(state, expected_frame, name, time, deduct_call_time_from_parent=true)
         frame = fetch_matching_frame(expected_frame)
-        note_children_time(frame, time, deduct_call_time_from_parent)
         transaction_sampler.notice_pop_frame(state, name, time) if sampler_enabled?
         frame
       end
@@ -49,16 +48,6 @@ module NewRelic
         end
 
         raise "Frame not found in blame stack: #{expected_frame.inspect}"
-      end
-
-      def note_children_time(frame, time, deduct_call_time_from_parent)
-        if !@stack.empty?
-          if deduct_call_time_from_parent
-            @stack.last.children_time += (time - frame.start_time)
-          else
-            @stack.last.children_time += frame.children_time
-          end
-        end
       end
 
       def sampler_enabled?

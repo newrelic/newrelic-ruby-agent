@@ -222,6 +222,31 @@ module NewRelic
             assert_in_delta(segment_b.duration, segment_a.children_time, 0.0001)
           end
         end
+
+        def test_timing_correct_with_record_metrics_false
+          in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment "metric a"
+            advance_time(0.001)
+
+            segment_b = NewRelic::Agent::Transaction.start_segment "metric b"
+            segment_b.record_metrics = false
+            advance_time(0.002)
+
+            segment_c = NewRelic::Agent::Transaction::start_segment "metric c"
+            advance_time(0.003)
+            segment_c.finish
+            assert_equal 0, segment_c.children_time
+
+            advance_time(0.001)
+
+            segment_b.finish
+            assert_in_delta(segment_c.duration, segment_b.children_time, 0.0001)
+
+            segment_a.finish
+            assert_in_delta(segment_c.duration, segment_a.children_time, 0.0001)
+            assert_in_delta(0.001 + segment_b.exclusive_duration, segment_a.exclusive_duration, 0.0001)
+          end
+        end
       end
     end
   end

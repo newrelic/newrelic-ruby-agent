@@ -29,6 +29,7 @@ module NewRelic
           if transaction
             record_metrics if record_metrics?
             segment_complete
+            parent.child_complete self if parent
             transaction.segment_complete self
           end
         rescue => e
@@ -65,6 +66,16 @@ module NewRelic
             memo << "#{var_name}=#{instance_variable_get(var_name).inspect}"
           end
           sprintf('#<%s:0x%x %s>', self.class.name, object_id, ivars.join(', '))
+        end
+
+        protected
+
+        def child_complete segment
+          if segment.record_metrics?
+            self.children_time += segment.duration
+          else
+            self.children_time += segment.children_time
+          end
         end
 
         private
