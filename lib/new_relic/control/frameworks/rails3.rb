@@ -14,10 +14,6 @@ module NewRelic
       # not differ
       class Rails3 < NewRelic::Control::Frameworks::Rails
 
-        def env
-          @env ||= ::Rails.env.to_s
-        end
-
         def rails_root
           ::Rails.root.to_s
         end
