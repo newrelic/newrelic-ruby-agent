@@ -15,7 +15,7 @@ module NewRelic
         :deprecated  => ["1.8.6", "1.8.7", "1.9.2", "1.9.3"],
         :url         => "https://www.ruby-lang.org",
         :feed        => "https://www.ruby-lang.org/en/feeds/news.rss",
-        :notes       => ["Last supported agent for 1.8.7, 1.9.2, and 1.9.3 was 3.18.0.329.",
+        :notes       => ["Last supported agent for 1.8.7, 1.9.2, and 1.9.3 was 3.18.1.330.",
                          "Last supported agent on 1.8.6 was 3.6.8.168."]
       },
       :jruby =>
@@ -26,7 +26,7 @@ module NewRelic
         :deprecated  => ["~> 1.7.0"],
         :url         => "http://jruby.org",
         :feed        => "http://jruby.org/atom.xml",
-        :notes       => ["Last supported agent for ~> 1.7.0 was 3.18.0.329."]
+        :notes       => ["Last supported agent for ~> 1.7.0 was 3.18.1.330."]
       },
 
       # App servers
@@ -82,7 +82,7 @@ module NewRelic
         :deprecated  => ["~>2.0.0", "~>2.1.0", "~>2.2.0", "~>2.3.0"],
         :url         => "https://rubygems.org/gems/rails",
         :feed        => "https://rubygems.org/gems/rails/versions.atom",
-        :notes       => ["Last supported agent for ~>2.1.0, ~>2.2.0, and ~>2.3.0 was 3.18.0.329.",
+        :notes       => ["Last supported agent for ~>2.1.0, ~>2.2.0, and ~>2.3.0 was 3.18.1.330.",
                          "Last supported agent for 2.0.x was 3.6.8.168."]
       },
       :sinatra =>
