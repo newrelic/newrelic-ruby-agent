@@ -72,13 +72,6 @@ module NewRelic::Agent
       assert_equal(false, state.is_cross_app_callee?)
     end
 
-    def test_reset_forces_traced_method_stack_clear
-      segment = NewRelic::Agent::Transaction::Segment.new "reset_me"
-      state.traced_method_stack.push_segment(state, segment)
-      state.reset
-      assert_empty state.traced_method_stack
-    end
-
     def test_reset_doesnt_touch_record_tt
       state.record_tt = false
       state.reset
