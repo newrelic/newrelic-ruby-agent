@@ -515,6 +515,7 @@ module NewRelic
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
+        @segments.each { |s| s.record_metrics if s.record_metrics? }
         record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
@@ -523,7 +524,6 @@ module NewRelic
 
         record_exceptions
         record_transaction_event
-
         merge_metrics
         send_transaction_finished_event
       end
