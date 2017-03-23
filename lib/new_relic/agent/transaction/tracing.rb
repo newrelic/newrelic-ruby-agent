@@ -56,6 +56,7 @@ module NewRelic
         attr_reader :current_segment
 
         def add_segment segment
+          @segments << segment
           segment.transaction = self
           segment.parent = current_segment
           @current_segment = segment

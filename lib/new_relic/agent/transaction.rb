@@ -63,8 +63,7 @@ module NewRelic
                   :cat_path_hashes,
                   :attributes,
                   :payload,
-                  :nesting_max_depth,
-                  :initial_segment
+                  :nesting_max_depth
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -247,8 +246,8 @@ module NewRelic
 
       def initialize(category, options)
         @nesting_max_depth = 0
-        @initial_segment = nil
         @current_segment = nil
+        @segments = []
         @frame_stack = []
 
         self.default_name = options[:transaction_name]
@@ -412,10 +411,13 @@ module NewRelic
         create_initial_segment @default_name
       end
 
+      def initial_segment
+        @segments.first
+      end
+
       def create_initial_segment name
-        @initial_segment = create_segment @default_name
-        @initial_segment.record_scoped_metric = false
-        @initial_segment
+        segment = create_segment @default_name
+        segment.record_scoped_metric = false
       end
 
       def create_segment(name)
@@ -447,8 +449,8 @@ module NewRelic
       end
 
       def nest_initial_segment
-        @initial_segment.name = self.class.nested_transaction_name @initial_segment.name
-        @initial_segment.record_scoped_metric = true
+        self.initial_segment.name = self.class.nested_transaction_name initial_segment.name
+        initial_segment.record_scoped_metric = true
       end
 
       # Call this to ensure that the current transaction trace is not saved
@@ -490,7 +492,7 @@ module NewRelic
           outermost_frame.name = @frozen_name
         end
 
-        @initial_segment.finish
+        outermost_frame.finish
 
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
