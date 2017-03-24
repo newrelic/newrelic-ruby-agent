@@ -8,6 +8,7 @@ module NewRelic
       class AbstractSegment
         attr_reader :start_time, :end_time, :duration, :exclusive_duration
         attr_accessor :name, :parent, :children_time, :transaction
+        attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
 
         def initialize name=nil
           @name = name
@@ -16,6 +17,7 @@ module NewRelic
           @record_scoped_metric = true
           @transaction = nil
           @parent = nil
+          @record_on_finish = false
         end
 
         def start
@@ -27,6 +29,7 @@ module NewRelic
           @duration = end_time.to_f - start_time.to_f
           @exclusive_duration = duration - children_time
           if transaction
+            record_metrics if record_metrics? && record_on_finish?
             segment_complete
             parent.child_complete self if parent
             transaction.segment_complete self
@@ -42,16 +45,12 @@ module NewRelic
           @record_metrics
         end
 
-        def record_metrics= value
-          @record_metrics = value
-        end
-
         def record_scoped_metric?
           @record_scoped_metric
         end
 
-        def record_scoped_metric= value
-          @record_scoped_metric = value
+        def record_on_finish?
+          @record_on_finish
         end
 
         def record_metrics

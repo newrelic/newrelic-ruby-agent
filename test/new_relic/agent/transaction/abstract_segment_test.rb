@@ -97,6 +97,20 @@ module NewRelic
             segment.finish
           end
         end
+
+        def test_segment_records_metrics_on_finish
+          in_transaction do |txn|
+            segment = BasicSegment.new "Custom/basic/segment"
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.record_on_finish = true
+            segment.finish
+            assert_includes txn.metrics.instance_variable_get(:@scoped).keys, 'Custom/basic/segment'
+            assert_includes txn.metrics.instance_variable_get(:@unscoped).keys, 'Basic/all'
+          end
+        end
+
       end
     end
   end
