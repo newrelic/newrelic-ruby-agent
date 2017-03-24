@@ -63,7 +63,8 @@ module NewRelic
                   :cat_path_hashes,
                   :attributes,
                   :payload,
-                  :nesting_max_depth
+                  :nesting_max_depth,
+                  :segments
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -412,7 +413,7 @@ module NewRelic
       end
 
       def initial_segment
-        @segments.first
+        segments.first
       end
 
       def create_initial_segment name
@@ -515,7 +516,7 @@ module NewRelic
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
-        @segments.each { |s| s.record_metrics if s.record_metrics? }
+        segments.each { |s| s.record_metrics if s.record_metrics? }
         record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time

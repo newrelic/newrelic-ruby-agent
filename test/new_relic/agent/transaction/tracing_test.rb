@@ -247,6 +247,16 @@ module NewRelic
             assert_in_delta(0.001 + segment_b.exclusive_duration, segment_a.exclusive_duration, 0.0001)
           end
         end
+
+        def test_segments_abides_by_limit_configuration
+          limit = Agent.config[:'transaction_tracer.limit_segments']
+          txn = in_transaction do
+            (limit + 10).times do |n|
+              NewRelic::Agent::Transaction.start_segment "MyCustom/segment#{n}"
+            end
+          end
+          assert_equal limit, txn.segments.size
+        end
       end
     end
   end
