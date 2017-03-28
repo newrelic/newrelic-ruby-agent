@@ -22,7 +22,7 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
     assert_equal 5, NewRelic::Agent::BusyCalculator.accumulator
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_metrics_recorded 'Instance/Busy' => {:call_count => 1, :total_call_time => 0.50}
+    assert_instance_busy_metric_recorded call_count: 1, total_call_time: 0.50
   end
 
   def test_split
@@ -32,7 +32,7 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
     NewRelic::Agent::BusyCalculator.dispatcher_start(now - 5.0)
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_metrics_recorded 'Instance/Busy' => {:call_count => 1, :total_call_time => 0.50}
+    assert_instance_busy_metric_recorded call_count: 1, total_call_time: 0.50
   end
 
   def test_reentrancy
@@ -49,7 +49,7 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
     NewRelic::Agent::BusyCalculator.dispatcher_finish(now - 1.0)
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_metrics_recorded 'Instance/Busy' => {:call_count => 1, :total_call_time => 0.50}
+    assert_instance_busy_metric_recorded call_count: 1, total_call_time: 0.50
   end
 
   def test_concurrency
@@ -71,7 +71,7 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
     NewRelic::Agent::BusyCalculator.stubs(:time_now).returns(now - 1.0)
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_metrics_recorded 'Instance/Busy' => {:call_count => 1, :total_call_time => 1.0}
+    assert_instance_busy_metric_recorded call_count: 1, total_call_time: 1.0
   end
 
   def test_dont_ignore_zero_counts
@@ -79,7 +79,7 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
     NewRelic::Agent::BusyCalculator.harvest_busy
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_metrics_recorded 'Instance/Busy' => {:call_count => 3}
+    assert_instance_busy_metric_recorded :call_count => 3
   end
 
   def test_can_turn_off_recording
@@ -92,5 +92,13 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
   def test_finishing_without_starting_doesnt_raise
     NewRelic::Agent::TransactionState.tl_clear_for_testing
     NewRelic::Agent::BusyCalculator.dispatcher_finish
+  end
+
+  def assert_instance_busy_metric_recorded total_call_time: nil, call_count: 1
+    spec = NewRelic::MetricSpec.new("Instance/Busy")
+    stats = NewRelic::Agent.instance.stats_engine.to_h[spec]
+    refute_nil stats
+    assert_equal call_count, stats.call_count
+    assert_in_delta total_call_time, stats.total_call_time, 0.01 if total_call_time
   end
 end
