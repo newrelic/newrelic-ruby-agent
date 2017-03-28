@@ -9,8 +9,6 @@ module NewRelic
     # This class collects errors from the parent application, storing
     # them until they are harvested and transmitted to the server
     class ErrorCollector
-      include NewRelic::CollectionHelper
-
       # Maximum possible length of the queue - defaults to 20, may be
       # made configurable in the future. This is a tradeoff between
       # memory and data retention

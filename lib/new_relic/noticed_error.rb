@@ -4,6 +4,7 @@
 
 require 'new_relic/helper'
 require 'new_relic/agent/attribute_filter'
+require 'new_relic/collection_helper'
 
 # This class encapsulates an error that was noticed by New Relic in a managed app.
 class NewRelic::NoticedError

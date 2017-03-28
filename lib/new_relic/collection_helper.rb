@@ -31,24 +31,6 @@ module NewRelic
     end
   end
 
-  # Return an array of strings (backtrace), cleaned up for readability
-  # Return nil if there is no backtrace
-
-  def strip_nr_from_backtrace(backtrace)
-    if backtrace && !Agent.config[:disable_backtrace_cleanup]
-      # this is for 1.9.1, where strings no longer have Enumerable
-      backtrace = backtrace.split("\n") if String === backtrace
-      backtrace = backtrace.map(&:to_s)
-      backtrace = backtrace.reject do |line|
-        line.include?(NewRelic::Control.newrelic_root) or
-        line =~ /^newrelic_rpm\s/
-      end
-      # rename methods back to their original state
-      backtrace = backtrace.collect {|line| line.gsub(/_without_(newrelic|trace)/, "")}
-    end
-    backtrace
-  end
-
   private
 
   # Convert any kind of object to a short string.

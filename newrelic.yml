@@ -30,10 +30,6 @@ development:
   <<: *default_settings
   app_name: <%= app_name %> (Development)
 
-  # NOTE: There is substantial overhead when running in developer mode.
-  # Do not use for production or load testing.
-  developer_mode: true
-
 test:
   <<: *default_settings
   # It doesn't make sense to report to New Relic from automated test runs.

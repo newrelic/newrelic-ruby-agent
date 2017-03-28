@@ -11,7 +11,7 @@ test:
   log_level: info
   agent_enabled: false
   monitor_mode: false
-  developer_mode: true
+  test_mode: true
   disable_samplers: true
   api_host: 127.0.0.1
   api_port: 443
