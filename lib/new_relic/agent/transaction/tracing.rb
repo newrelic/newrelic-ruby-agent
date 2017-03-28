@@ -69,7 +69,9 @@ module NewRelic
 
         def segment_complete segment
           @current_segment = segment.parent
-          transaction_sampler.notice_pop_frame state, segment.name, segment.end_time if transaction_sampler_enabled?
+          if transaction_sampler_enabled? && !segment.record_on_finish?
+            transaction_sampler.notice_pop_frame state, segment.name, segment.end_time
+          end
         end
 
         private
