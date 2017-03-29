@@ -34,7 +34,7 @@ namespace :newrelic do
       user        = fetch(:newrelic_user)
       license_key = fetch(:newrelic_license_key)
 
-      unless scm == :none
+      if (respond_to?(:scm_plugin_installed?) && scm_plugin_installed?) || (scm.present? && scm != :none)
         changelog ||= lookup_changelog
         rev       ||= fetch(:current_revision)
       end
@@ -69,7 +69,7 @@ namespace :newrelic do
 
     debug "Retrieving changelog for New Relic Deployment details"
 
-    if scm == :git
+    if Rake::Task.task_defined?("git:check")
       log_command = "git --no-pager log --no-color --pretty=format:'  * %an: %s' " +
                     "--abbrev-commit --no-merges #{previous_revision}..#{current_revision}"
       `#{log_command}`
