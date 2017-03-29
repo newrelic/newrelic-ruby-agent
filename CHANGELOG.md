@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+## v4.1.0 ##
+
+  * Developer Mode removed
+
+  The Ruby Agent's Developer Mode, which provided a very limited view of your
+  application performance data, has been removed. For more information, check
+  out our [community forum](https://discuss.newrelic.com/t/feedback-on-the-ruby-agent-s-developer-mode/46957).
+
 ## v4.0.0 ##
 
   * Require Ruby 2.0.0+
