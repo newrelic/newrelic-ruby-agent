@@ -111,6 +111,15 @@ module NewRelic
           end
         end
 
+        def test_params_are_checkable_and_lazy_initializable
+          segment = BasicSegment.new "Custom/basic/segment"
+          refute segment.params?
+          assert_nil segment.instance_variable_get :@params
+
+          segment.params[:foo] = "bar"
+          assert segment.params?
+          assert_equal({foo: "bar"}, segment.params)
+        end
       end
     end
   end

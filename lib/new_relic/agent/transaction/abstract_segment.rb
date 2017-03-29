@@ -18,6 +18,7 @@ module NewRelic
           @transaction = nil
           @parent = nil
           @record_on_finish = false
+          @params = nil
         end
 
         def start
@@ -55,6 +56,14 @@ module NewRelic
 
         def record_metrics
           raise NotImplementedError, "Subclasses must implement record_metrics"
+        end
+
+        def params
+          @params ||= {}
+        end
+
+        def params?
+          !!@params
         end
 
         INSPECT_IGNORE = [:@transaction, :@transaction_state].freeze
