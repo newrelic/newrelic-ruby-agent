@@ -24,6 +24,7 @@ module NewRelic
   module Agent
     module Database
       MAX_QUERY_LENGTH = 16384
+      ELLIPSIS = "...".freeze
 
       extend self
 
@@ -42,7 +43,7 @@ module NewRelic
 
       def truncate_query(query)
         if query.length > (MAX_QUERY_LENGTH - 4)
-          query[0..MAX_QUERY_LENGTH - 4] + '...'
+          query[0..MAX_QUERY_LENGTH - 4] + ELLIPSIS
         else
           query
         end
@@ -250,8 +251,6 @@ module NewRelic
             adapter.to_sym
           end
         end
-
-        ELLIPSIS = "...".freeze
 
         def explainable?
           return false unless @explainer && is_select?(@sql)
