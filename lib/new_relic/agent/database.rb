@@ -221,6 +221,13 @@ module NewRelic
           end
         end
 
+        NEWLINE = "\n".freeze
+
+        def append_sql new_sql
+          return if new_sql.empty?
+          @sql = Database.truncate_query(@sql << NEWLINE << new_sql)
+        end
+
         private
 
         POSTGRES_PREFIX = 'postgres'.freeze
