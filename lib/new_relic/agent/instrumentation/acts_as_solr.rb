@@ -2,17 +2,19 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/database'
+
 module NewRelic
   module Instrumentation
     module ActsAsSolrInstrumentation
       module ParserMethodsInstrumentation
         def parse_query_with_newrelic(*args)
           self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
-            t0 = Time.now
             begin
               parse_query_without_newrelic(*args)
             ensure
-              NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
+              return unless txn = ::NewRelic::Agent::TransactionState.tl_get.current_transaction
+              txn.current_segment.params[:statement] = ::NewRelic::Agent::Database.truncate_query(args.first.inspect) rescue nil
             end
           end
         end
