@@ -40,7 +40,7 @@ module NewRelic
         end
 
         def uri
-          @uri ||= NewRelic::Agent::HTTPClients::URIUtil.parse_url(@curlobj.url)
+          @uri ||= NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(@curlobj.url)
         end
       end
 

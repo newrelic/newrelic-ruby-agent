@@ -13,7 +13,7 @@ module NewRelic
 
         def initialize library, uri, procedure
           @library = library
-          @uri = normalize_uri uri
+          @uri = HTTPClients::URIUtil.parse_and_normalize_url(uri)
           @procedure = procedure
           @host_header = nil
           @app_data = nil
@@ -88,10 +88,6 @@ module NewRelic
             node_params[:transaction_guid] = transaction_guid
           end
           Agent.instance.transaction_sampler.add_node_parameters node_params
-        end
-
-        def normalize_uri uri
-          uri.is_a?(URI) ? uri : HTTPClients::URIUtil.parse_url(uri)
         end
 
         def process_host_header request
