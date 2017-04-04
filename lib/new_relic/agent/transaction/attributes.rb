@@ -122,8 +122,6 @@ module NewRelic
           # Avoid allocating anything if there are no attrs at all
           return EMPTY_HASH if attributes.empty?
 
-          return attributes.dup if destination == NewRelic::Agent::AttributeFilter::DST_DEVELOPER_MODE
-
           attributes.inject({}) do |memo, (key, value)|
             if @filter.allows?(calculated_destinations[key], destination)
               memo[key] = value

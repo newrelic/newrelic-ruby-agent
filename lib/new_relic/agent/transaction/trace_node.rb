@@ -146,16 +146,6 @@ module NewRelic
           summary.current_nest_count -= 1 if summary
         end
 
-        # This is only for use by developer mode
-        def find_node(id)
-          return self if object_id == id
-          called_nodes.each do |node|
-            found = node.find_node(id)
-            return found if found
-          end
-          nil
-        end
-
         def explain_sql
           return params[:explain_plan] if params.key?(:explain_plan)
 

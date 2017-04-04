@@ -10,7 +10,6 @@ lib/new_relic/agent/datastores.rb
 lib/new_relic/agent/sql_sampler.rb
 lib/new_relic/agent/transaction.rb
 lib/new_relic/agent/transaction_sampler.rb
-lib/new_relic/rack/developer_mode.rb
 lib/new_relic/rack/agent_hooks.rb
 lib/new_relic/rack/browser_monitoring.rb
 lib/new_relic/rack/error_collector.rb

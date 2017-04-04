@@ -3,21 +3,10 @@
 New Relic is a performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  It provides you with deep
 information about the performance of your Rails or Ruby
-application as it runs in production. The New Relic Ruby Agent is
-dual-purposed as a either a Gem or a Rails plugin, hosted on
-[github](https://github.com/newrelic/rpm/tree/master).
-
-The New Relic Ruby Agent runs in one of two modes:
-
-**Production Mode**
-Low overhead instrumentation that captures detailed information on
-your application running in production and transmits them to
-newrelic.com where you can monitor them in real time.
-
-**Developer Mode**
-A Rack middleware that maps `/newrelic` to an application for showing
-detailed performance metrics on a page by page basis.  Installed
-automatically in Rails applications.
+application as it runs in production and transmits them to
+newrelic.com where you can monitor them in real time. The New Relic
+Ruby Agent is dual-purposed as a either a Gem or a Rails plugin,
+hosted on [github](https://github.com/newrelic/rpm/tree/master).
 
 ## Supported Environments
 
@@ -90,9 +79,6 @@ Then make sure you set `RACK_ENV` to the environment corresponding to the
 configuration definitions in the newrelic.yml file; e.g., development,
 staging, production, etc.
 
-To use Developer Mode in Sinatra, add `NewRelic::Rack::DeveloperMode` to
-the middleware stack.  See the `config.ru` sample below.
-
 #### Other Environments
 
 You can use the Ruby Agent to monitor any Ruby application. Add:
@@ -117,45 +103,6 @@ The Ruby Agent provides an API that allows custom instrumentation of additional
 frameworks.  You can find a list of community created intrumentation plugins
 (e.g. [newrelic-redis](https://github.com/evanphx/newrelic-redis)) in the
 [extends_newrelic_rpm project](https://github.com/newrelic/extends_newrelic_rpm).
-
-## Developer Mode
-
-When running the Developer Mode, the Ruby Agent will track the
-performance of every HTTP request serviced by your application, and
-store in memory this information for the last 100 HTTP transactions.
-
-To view this performance information, including detailed SQL statement
-analysis, open `/newrelic` in your web application.  For instance if
-you are running mongrel or thin on port 3000, enter the following into
-your browser:
-
-    http://localhost:3000/newrelic
-
-Developer Mode is only initialized if the `developer_mode` setting in
-the newrelic.yml file is set to true.  By default, it is turned off in
-all environments but `development`.
-
-#### Developer Mode in Rails
-
-Developer Mode is available automatically in Rails Applications based
-on Rails 2.3 and later.  No additional configuration is required. When
-your application starts and `developer_mode` is enabled, the Ruby
-Agent injects a middleware into your Rails middleware stack.
-
-For earlier versions of Rails that support Rack, you can use
-a `config.ru` as below.
-
-#### Developer Mode in Rack Applications
-
-Developer Mode is available for any Rack based application such as
-Sinatra by installing the NewRelic::Rack::DeveloperMode
-middleware. This middleware passes all requests that do not start with
-/newrelic.
-
-Here's an example entry for Developer Mode in a `config.ru` file:
-
-    require 'new_relic/rack/developer_mode'
-    use NewRelic::Rack::DeveloperMode
 
 ## Production Mode
 

@@ -127,11 +127,8 @@ class NewRelic::Agent::TracedMethodStackTest < Minitest::Test
   end
 
   def test_sampler_enabling
-    assert_sampler_enabled_with(true,  :'transaction_tracer.enabled' => true,  :developer_mode => false)
-    assert_sampler_enabled_with(true,  :'transaction_tracer.enabled' => false, :developer_mode => true)
-    assert_sampler_enabled_with(true,  :'transaction_tracer.enabled' => true,  :developer_mode => true)
-
-    assert_sampler_enabled_with(false, :'transaction_tracer.enabled' => false, :developer_mode => false)
+    assert_sampler_enabled_with(true,  :'transaction_tracer.enabled' => true)
+    assert_sampler_enabled_with(false, :'transaction_tracer.enabled' => false)
   end
 
   def test_fetch_matching_frame_fetches_the_next_matching_frame

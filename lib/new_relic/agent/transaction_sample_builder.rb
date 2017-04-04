@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/collection_helper'
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/trace'
 
@@ -43,8 +42,6 @@ module NewRelic
       end
 
       attr_reader :current_node, :sample
-
-      include NewRelic::CollectionHelper
 
       def initialize(time=Time.now)
         @sample = NewRelic::Agent::Transaction::Trace.new(time.to_f)

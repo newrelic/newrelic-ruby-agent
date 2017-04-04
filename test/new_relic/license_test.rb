@@ -26,21 +26,11 @@ class LicenseTest < Minitest::Test
   # unless listed here the expectation is that these terms will not occur in
   # the source code.
   EXPECTED_LICENSE_OCCURRENCES = {
-    ['/newrelic_rpm.gemspec', 'MIT'] => 1, # licenses specificiation, which includes MIT for MIT-licensed portions of code
-    ['/LICENSE', 'MIT'] => 2,
-    ['/LICENSE', '(c)'] => 2,
-    ['/LICENSE', 'Copyright'] => 4,
+    ['/LICENSE', '(c)'] => 1,
+    ['/LICENSE', 'Copyright'] => 1,
     ['/LICENSE', 'rights reserved'] => 1,
-    ['/ui/views/layouts/newrelic_default.rhtml', 'rights reserved'] => 1,
-    ['/ui/views/newrelic/file/javascript/jquery-1.4.2.js', 'GPL'] => 3,
-    ['/ui/views/newrelic/file/javascript/jquery-1.4.2.js', 'BSD'] => 2,
-    ['/ui/views/newrelic/file/javascript/jquery-1.4.2.js', 'Copyright'] => 3,
-    ['/ui/views/newrelic/file/javascript/jquery-1.4.2.js', 'MIT'] => 3,
-    ['/test/new_relic/agent/agent_test_controller_test.rb', 'Apache'] => 1, # apache header tests
-    ['/vendor/gems/metric_parser-0.1.0.pre1/lib/new_relic/metric_parser/solr.rb', 'Apache'] => 2, # parse apache solr metrics
-    ['/vendor/gems/metric_parser-0.1.0.pre1/lib/new_relic/metric_parser/solr_request_handler.rb', 'Apache'] => 1, # parse apache solr metrics
-    ['/lib/new_relic/agent/system_info.rb', 'BSD'] => 4,
-    ['/test/new_relic/agent/system_info_test.rb', 'BSD'] => 2
+    ['/lib/new_relic/agent/system_info.rb', 'BSD'] => 4, # reference to BSD the operating system, not BSD the license
+    ['/test/new_relic/agent/system_info_test.rb', 'BSD'] => 2 # reference to BSD the operating system, not BSD the license
   }
 
   def shebang

@@ -9,7 +9,6 @@ class ExternalSegment < Performance::TestCase
 
   CONFIG = {
       :license_key     => 'a' * 40,
-      :developer_mode  => false,
       :'cross_application_tracer.enabled' => true,
       :cross_process_id                   => "1#1884",
       :encoding_key                       => "jotorotoes",
@@ -20,7 +19,6 @@ class ExternalSegment < Performance::TestCase
     NewRelic::Agent.config.add_config_for_testing(CONFIG)
 
     NewRelic::Agent.manual_start(
-      :developer_mode => false,
       :monitor_mode   => false
     )
   end

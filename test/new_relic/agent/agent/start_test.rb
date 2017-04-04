@@ -61,7 +61,8 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     self.expects(:generate_environment_report)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
-    with_config(:dispatcher => 'test', :sync_startup => false, :monitor_mode => true, :license_key => 'a' * 40) do
+    with_config(:dispatcher => 'test', :sync_startup => false, :monitor_mode => true,
+      :license_key => 'a' * 40, :disable_samplers => false) do
       check_config_and_start_agent
     end
   end
@@ -73,7 +74,8 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
-    with_config(:dispatcher => 'test', :sync_startup => true, :monitor_mode => true, :license_key => 'a' * 40) do
+    with_config(:dispatcher => 'test', :sync_startup => true, :monitor_mode => true,
+      :license_key => 'a' * 40, :disable_samplers => false) do
       check_config_and_start_agent
     end
   end

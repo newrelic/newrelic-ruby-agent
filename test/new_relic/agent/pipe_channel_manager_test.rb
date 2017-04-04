@@ -61,20 +61,19 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     def test_listener_merges_transaction_traces
       sampler = NewRelic::Agent.agent.transaction_sampler
-      sample = run_sample_trace
-      assert_equal(1, sampler.count)
+      assert_equal(0, sampler.count)
 
       start_listener_with_pipe(667)
       run_child(667) do
         NewRelic::Agent.after_fork
         with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-          sample = run_sample_trace
+          run_sample_trace
           service = NewRelic::Agent::PipeService.new(667)
           service.transaction_sample_data(sampler.harvest!)
         end
       end
 
-      assert_equal(2, sampler.count)
+      assert_equal(1, sampler.count)
     end
 
     def test_listener_merges_error_traces
