@@ -17,6 +17,11 @@
   different from the Rails environment. Thanks Andrea Campolonghi for the
   contribution, as well as Steve Schwartz for also looking into this issue!
 
+  * Normalization of external hostnames
+
+  Hostnames from URIs used in external HTTP requests are now always downcased
+  to prevent duplicate metrics when only case is different.
+
 ## v4.0.0 ##
 
   * Require Ruby 2.0.0+
