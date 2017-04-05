@@ -356,7 +356,7 @@ module NewRelic
           txn_options   = create_transaction_options(trace_options, category, state)
 
           begin
-            txn = Transaction.start(state, category, txn_options)
+            Transaction.start(state, category, txn_options)
 
             begin
               yield
@@ -366,10 +366,6 @@ module NewRelic
             end
 
           ensure
-            if txn
-              txn.ignore_apdex!   if ignore_apdex?
-              txn.ignore_enduser! if ignore_enduser?
-            end
             Transaction.stop(state)
           end
         end
@@ -430,6 +426,8 @@ module NewRelic
           txn_options[:filtered_params] = trace_options[:params]
           txn_options[:transaction_name] = TransactionNamer.name_for(nil, self, category, trace_options)
           txn_options[:apdex_start_time] = detect_queue_start_time(state)
+          txn_options[:ignore_apdex] = ignore_apdex?
+          txn_options[:ignore_enduser] = ignore_enduser?
           txn_options
         end
 
