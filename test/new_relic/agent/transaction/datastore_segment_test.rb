@@ -330,6 +330,24 @@ module NewRelic
           assert_nil segment.host
           assert_nil segment.port_path_or_id
         end
+
+        def test_backtrace_appended_when_over_duration
+          segment = nil
+          with_config :'transaction_tracer.stack_trace_threshold' => 1.0 do
+            in_web_transaction "test_txn" do
+              segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+              segment.start
+              advance_time 2.0
+              segment.finish
+            end
+          end
+
+          refute_nil segment.params[:backtrace]
+
+          sample = last_transaction_trace
+          node = find_node_with_name_matching(sample, /^Datastore/)
+          refute_nil node.params[:backtrace]
+        end
       end
     end
   end

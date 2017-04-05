@@ -82,24 +82,29 @@ module NewRelic
         end
 
         def add_segment_parameters
-          instance_reporting_enabled = NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
-          db_name_reporting_enabled = NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
-          return unless instance_reporting_enabled || db_name_reporting_enabled
-
-          params = {}
-          add_instance_parameters params if instance_reporting_enabled
-          add_database_name_parameter params if db_name_reporting_enabled
+          add_instance_parameters
+          add_database_name_parameter
+          add_backtrace_parameter
 
           NewRelic::Agent.instance.transaction_sampler.add_node_parameters params
         end
 
-        def add_instance_parameters params
+        def add_instance_parameters
+          return unless NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
           params[:host] = host if host
           params[:port_path_or_id] = port_path_or_id if port_path_or_id
         end
 
-        def add_database_name_parameter(params)
+        def add_database_name_parameter
+          return unless NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
           params[:database_name] = database_name if database_name
+        end
+
+        NEWLINE = "\n".freeze
+
+        def add_backtrace_parameter
+           return unless duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
+           params[:backtrace] = caller.join(NEWLINE)
         end
 
         def notice_sql_statement
