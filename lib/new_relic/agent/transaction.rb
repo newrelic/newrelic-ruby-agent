@@ -63,7 +63,8 @@ module NewRelic
                   :cat_path_hashes,
                   :attributes,
                   :payload,
-                  :nesting_max_depth
+                  :nesting_max_depth,
+                  :initial_segment
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -247,6 +248,7 @@ module NewRelic
       def initialize(category, options)
         @nesting_max_depth = 0
         @initial_segment = nil
+        @current_segment = nil
         @frame_stack = []
 
         self.default_name = options[:transaction_name]
