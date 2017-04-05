@@ -68,12 +68,12 @@ module NewRelic
           @nosql_statement = nosql_statement
         end
 
-        private
-
         def record_metrics
           @unscoped_metrics = Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
           super
         end
+
+        private
 
         def segment_complete
           add_segment_parameters

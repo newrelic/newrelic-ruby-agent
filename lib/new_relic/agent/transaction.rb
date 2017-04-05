@@ -64,7 +64,7 @@ module NewRelic
                   :attributes,
                   :payload,
                   :nesting_max_depth,
-                  :initial_segment
+                  :segments
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -247,8 +247,8 @@ module NewRelic
 
       def initialize(category, options)
         @nesting_max_depth = 0
-        @initial_segment = nil
         @current_segment = nil
+        @segments = []
         @frame_stack = []
 
         self.default_name = options[:transaction_name]
@@ -412,10 +412,13 @@ module NewRelic
         create_initial_segment @default_name
       end
 
+      def initial_segment
+        segments.first
+      end
+
       def create_initial_segment name
-        @initial_segment = create_segment @default_name
-        @initial_segment.record_scoped_metric = false
-        @initial_segment
+        segment = create_segment @default_name
+        segment.record_scoped_metric = false
       end
 
       def create_segment(name)
@@ -447,8 +450,8 @@ module NewRelic
       end
 
       def nest_initial_segment
-        @initial_segment.name = self.class.nested_transaction_name @initial_segment.name
-        @initial_segment.record_scoped_metric = true
+        self.initial_segment.name = self.class.nested_transaction_name initial_segment.name
+        initial_segment.record_scoped_metric = true
       end
 
       # Call this to ensure that the current transaction trace is not saved
@@ -490,7 +493,7 @@ module NewRelic
           outermost_frame.name = @frozen_name
         end
 
-        @initial_segment.finish
+        outermost_frame.finish
 
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
@@ -513,6 +516,7 @@ module NewRelic
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
+        segments.each { |s| s.record_metrics if s.record_metrics? }
         record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
@@ -521,7 +525,6 @@ module NewRelic
 
         record_exceptions
         record_transaction_event
-
         merge_metrics
         send_transaction_finished_event
       end

@@ -247,6 +247,61 @@ module NewRelic
             assert_in_delta(0.001 + segment_b.exclusive_duration, segment_a.exclusive_duration, 0.0001)
           end
         end
+
+        def test_segments_abides_by_limit_configuration
+          limit = Agent.config[:'transaction_tracer.limit_segments']
+          txn = in_transaction do
+            (limit + 10).times do |n|
+              NewRelic::Agent::Transaction.start_segment "MyCustom/segment#{n}"
+            end
+          end
+          assert_equal limit, txn.segments.size
+        end
+
+        def test_segments_retain_exclusive_time_after_surpassing_limit
+          with_config(:'transaction_tracer.limit_segments' => 2) do
+            segment_a, segment_b, segment_c = nil, nil, nil
+            in_transaction do
+              advance_time(1)
+              segment_a = NewRelic::Agent::Transaction.start_segment 'metric_a'
+              advance_time(2)
+              segment_b = NewRelic::Agent::Transaction.start_segment 'metric_b'
+              advance_time(3)
+              segment_c = NewRelic::Agent::Transaction.start_segment 'metric_c'
+              advance_time(4)
+              segment_c.finish
+              segment_b.finish
+              segment_a.finish
+            end
+
+            assert_equal 2, segment_a.exclusive_duration
+            assert_equal 9, segment_a.duration
+
+            assert_equal 3, segment_b.exclusive_duration
+            assert_equal 7, segment_b.duration
+          end
+        end
+
+        def test_segments_over_limit_still_record_metrics
+          with_config(:'transaction_tracer.limit_segments' => 2) do
+            segment_a, segment_b, segment_c = nil, nil, nil
+            in_transaction do
+              advance_time(1)
+              segment_a = NewRelic::Agent::Transaction.start_segment 'metric_a'
+              advance_time(2)
+              segment_b = NewRelic::Agent::Transaction.start_segment 'metric_b'
+              advance_time(3)
+              segment_c = NewRelic::Agent::Transaction.start_segment 'metric_c'
+              advance_time(4)
+              segment_c.finish
+              segment_b.finish
+              segment_a.finish
+            end
+
+            assert_metrics_recorded ['metric_a', 'metric_b', 'metric_c']
+          end
+        end
+
       end
     end
   end
