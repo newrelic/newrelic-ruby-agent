@@ -55,6 +55,7 @@ module NewRelic
 
         def notice_sql sql
           _notice_sql sql
+          nil
         end
 
         # @api private
@@ -65,7 +66,8 @@ module NewRelic
 
         def notice_nosql_statement nosql_statement
           return unless record_sql?
-          @nosql_statement = nosql_statement
+          @nosql_statement = Database.truncate_query(nosql_statement)
+          nil
         end
 
         def record_metrics
@@ -76,12 +78,8 @@ module NewRelic
         private
 
         def segment_complete
-          add_segment_parameters
           notice_sql_statement if sql_statement
           notice_statement if nosql_statement
-        end
-
-        def add_segment_parameters
           add_instance_parameters
           add_database_name_parameter
           add_backtrace_parameter
@@ -108,14 +106,12 @@ module NewRelic
         end
 
         def notice_sql_statement
-          NewRelic::Agent.instance.transaction_sampler.notice_sql_statement(sql_statement, duration)
+          params[:sql] = sql_statement
           NewRelic::Agent.instance.sql_sampler.notice_sql_statement(sql_statement.dup, name, duration)
-          nil
         end
 
         def notice_statement
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(nosql_statement, duration)
-          nil
+          params[:statement] = nosql_statement
         end
 
         def record_sql?

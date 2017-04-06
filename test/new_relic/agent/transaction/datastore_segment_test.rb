@@ -240,13 +240,13 @@ module NewRelic
             segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
             segment.notice_sql "select * from blogs"
             advance_time 2.0
-            Agent.instance.transaction_sampler.expects(:notice_sql_statement).with(segment.sql_statement, 2.0)
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
               assert_equal segment.sql_statement.sql, statement.sql_statement
               assert_equal segment.name, name
               assert_equal duration, 2.0
             end
             segment.finish
+            assert_equal segment.params[:sql].sql, "select * from blogs"
           end
         end
 
@@ -277,13 +277,13 @@ module NewRelic
             segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
             segment._notice_sql "select * from blogs", {:adapter => :sqlite}, explainer
             advance_time 2.0
-            Agent.instance.transaction_sampler.expects(:notice_sql_statement).with(segment.sql_statement, 2.0)
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
               assert_equal segment.sql_statement.sql, statement.sql_statement
               assert_equal segment.name, name
               assert_equal duration, 2.0
             end
             segment.finish
+            assert_equal segment.params[:sql].sql, "select * from blogs"
           end
         end
 
@@ -294,8 +294,8 @@ module NewRelic
             segment.notice_nosql_statement statement
             advance_time 2.0
 
-            Agent.instance.transaction_sampler.expects(:notice_nosql_statement).with(statement, 2.0)
             segment.finish
+            assert_equal segment.params[:statement], statement
           end
         end
 

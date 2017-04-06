@@ -43,7 +43,7 @@ module NewRelic
 
       def truncate_query(query)
         if query.length > (MAX_QUERY_LENGTH - 4)
-          query[0..MAX_QUERY_LENGTH - 4] + ELLIPSIS
+          query[0..MAX_QUERY_LENGTH - 4] << ELLIPSIS
         else
           query
         end

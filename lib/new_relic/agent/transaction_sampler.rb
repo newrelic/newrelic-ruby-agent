@@ -154,7 +154,7 @@ module NewRelic
       # than the specified duration
       def append_backtrace(node, duration)
         if duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
-         node[:backtrace] = caller.join("\n")
+          node[:backtrace] = caller.join("\n")
         end
       end
 
