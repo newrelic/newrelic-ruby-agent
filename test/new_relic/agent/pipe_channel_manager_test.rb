@@ -67,7 +67,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       run_child(667) do
         NewRelic::Agent.after_fork
         with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-          run_sample_trace
+          in_transaction {}
           service = NewRelic::Agent::PipeService.new(667)
           service.transaction_sample_data(sampler.harvest!)
         end

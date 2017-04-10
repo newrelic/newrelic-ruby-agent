@@ -250,6 +250,18 @@ module NewRelic
           end
         end
 
+        def test_notice_sql_not_recording
+          state = NewRelic::Agent::TransactionState.tl_get
+          state.record_sql = false
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
+            segment.notice_sql "select * from blogs"
+            assert_nil segment.sql_statement
+            segment.finish
+          end
+          state.record_sql = true
+        end
+
         def test_notice_sql_creates_database_statement_with_identifier
           in_transaction do
             segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "jonan.gummy_planet", "1337"
@@ -268,6 +280,15 @@ module NewRelic
             segment.finish
 
             assert_equal "pizza_cube", segment.sql_statement.database_name
+          end
+        end
+
+        def test_notice_sql_truncates_long_queries
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
+            segment.notice_sql "select * from blogs where " + ("something is nothing" * 16_384)
+            segment.finish
+            assert_equal segment.params[:sql].sql.length, 16_384
           end
         end
 
@@ -297,6 +318,18 @@ module NewRelic
             segment.finish
             assert_equal segment.params[:statement], statement
           end
+        end
+
+        def test_notice_nosql_statement_not_recording
+          state = NewRelic::Agent::TransactionState.tl_get
+          state.record_sql = false
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
+            segment.notice_nosql_statement "hgetall somehash"
+            assert_nil segment.nosql_statement
+            segment.finish
+          end
+          state.record_sql = true
         end
 
         def test_set_instance_info_with_valid_data
@@ -331,6 +364,24 @@ module NewRelic
           assert_nil segment.port_path_or_id
         end
 
+        def test_backtrace_not_appended_if_not_over_duration
+          segment = nil
+          with_config :'transaction_tracer.stack_trace_threshold' => 2.0 do
+            in_web_transaction "test_txn" do
+              segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+              segment.start
+              advance_time 1.0
+              segment.finish
+            end
+          end
+
+          assert_nil segment.params[:backtrace]
+
+          sample = last_transaction_trace
+          node = find_node_with_name_matching(sample, /^Datastore/)
+          assert_nil node.params[:backtrace]
+        end
+
         def test_backtrace_appended_when_over_duration
           segment = nil
           with_config :'transaction_tracer.stack_trace_threshold' => 1.0 do
@@ -347,6 +398,22 @@ module NewRelic
           sample = last_transaction_trace
           node = find_node_with_name_matching(sample, /^Datastore/)
           refute_nil node.params[:backtrace]
+        end
+
+        def test_multithread
+          ts = Array.new(5).map do
+            Thread.new do
+              in_transaction do
+                10.times do
+                  s = NewRelic::Agent::Transaction.start_datastore_segment
+                  s.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'")
+                  sleep 0.0001
+                  s.finish
+                end
+              end
+            end
+          end
+          ts.each &:join
         end
       end
     end
