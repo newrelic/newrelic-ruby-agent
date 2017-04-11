@@ -46,6 +46,10 @@ module NewRelic
             @unscoped_metrics = metric
           end
         end
+
+        def segment_complete
+          Agent.instance.transaction_sampler.add_node_parameters params if params?
+        end
       end
     end
   end

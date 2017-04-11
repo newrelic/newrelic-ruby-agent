@@ -147,9 +147,10 @@ module NewRelic
       # @api public
       #
       def self.notice_sql(query, scoped_metric, elapsed)
-        agent = NewRelic::Agent.instance
-        agent.transaction_sampler.notice_sql(query, nil, elapsed)
-        agent.sql_sampler.notice_sql(query, scoped_metric, nil, elapsed)
+        state = TransactionState.tl_get
+        if (txn = state.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_sql)
+          segment.notice_sql(query)
+        end
         nil
       end
 
@@ -179,10 +180,10 @@ module NewRelic
       def self.notice_statement(statement, elapsed)
         # Settings may change eventually, but for now we follow the same
         # capture rules as SQL for non-SQL statements.
-        return unless NewRelic::Agent::Database.should_record_sql?
-
-        agent = NewRelic::Agent.instance
-        agent.transaction_sampler.notice_nosql_statement(statement, elapsed)
+        state = TransactionState.tl_get
+        if (txn = state.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_nosql_statement)
+          segment.notice_nosql_statement(statement)
+        end
         nil
       end
 

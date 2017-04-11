@@ -20,25 +20,4 @@ module TransactionSampleTestHelper
 
     return sampler.last_sample
   end
-
-  def run_sample_trace(path='/path')
-    sampler = nil
-    state = NewRelic::Agent::TransactionState.tl_get
-
-    request = stub(:path => path)
-
-    in_transaction("Controller/sandwiches/index", :request => request) do
-      sampler = NewRelic::Agent.instance.transaction_sampler
-      sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0, state)
-      sampler.notice_push_frame(state, "ab")
-      sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0, state)
-      yield sampler if block_given?
-      sampler.notice_pop_frame(state, "ab")
-      sampler.notice_push_frame(state, "lew")
-      sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0, state)
-      sampler.notice_pop_frame(state, "lew")
-    end
-
-    return sampler.last_sample
-  end
 end
