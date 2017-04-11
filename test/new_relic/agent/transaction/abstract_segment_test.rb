@@ -16,6 +16,8 @@ module NewRelic
             metric_cache.record_scoped_and_unscoped name, duration, exclusive_duration
             metric_cache.record_unscoped "Basic/all", duration, exclusive_duration
           end
+          def segment_complete
+          end
         end
 
         def setup
@@ -96,6 +98,29 @@ module NewRelic
             advance_time 1.0
             segment.finish
           end
+        end
+
+        def test_segment_records_metrics_on_finish
+          in_transaction do |txn|
+            segment = BasicSegment.new "Custom/basic/segment"
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.record_on_finish = true
+            segment.finish
+            assert_includes txn.metrics.instance_variable_get(:@scoped).keys, 'Custom/basic/segment'
+            assert_includes txn.metrics.instance_variable_get(:@unscoped).keys, 'Basic/all'
+          end
+        end
+
+        def test_params_are_checkable_and_lazy_initializable
+          segment = BasicSegment.new "Custom/basic/segment"
+          refute segment.params?
+          assert_nil segment.instance_variable_get :@params
+
+          segment.params[:foo] = "bar"
+          assert segment.params?
+          assert_equal({foo: "bar"}, segment.params)
         end
       end
     end

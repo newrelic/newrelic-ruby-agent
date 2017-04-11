@@ -211,15 +211,16 @@ class SequelPluginTest < Minitest::Test
     end
   end
 
-  def test_notices_sql_with_proper_metric_name_for_select
+  def test_notices_sql_with_proper_metric_name_for_all
     config = {
       :'transaction_tracer.explain_threshold' => -0.01,
       :'transaction_tracer.record_sql' => 'obfuscated'
     }
     with_config(config) do
       in_web_transaction { Post.all }
-      expected_metric_name = "Datastore/operation/#{product_name}/select"
+      expected_metric_name = "Datastore/statement/#{product_name}/Post/all"
       recorded_metric_names = NewRelic::Agent.agent.sql_sampler.sql_traces.values.map(&:database_metric_name)
+
       assert recorded_metric_names.include? expected_metric_name
     end
   end

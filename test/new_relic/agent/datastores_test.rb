@@ -139,21 +139,34 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     metric  = "Datastore/statement/MyFirstDatabase/SomeThing/find"
     elapsed = 1.0
 
-    agent = NewRelic::Agent.instance
-    agent.transaction_sampler.expects(:notice_sql).with(query, nil, elapsed)
-    agent.sql_sampler.expects(:notice_sql).with(query, metric, nil, elapsed)
-
-    NewRelic::Agent::Datastores.notice_sql(query, metric, elapsed)
+    in_transaction do |txn|
+      freeze_time
+      segment = NewRelic::Agent::Transaction.start_datastore_segment("MyFirstDatabase", "find", "SomeThing")
+      NewRelic::Agent::Datastores.notice_sql(query, metric, elapsed)
+      advance_time elapsed
+      assert_equal segment, txn.current_segment
+      segment.finish
+      unfreeze_time
+      assert_equal segment.sql_statement.sql, query
+      assert_equal segment.duration, elapsed
+    end
   end
 
   def test_notice_statement
     query   = "key"
     elapsed = 1.0
 
-    agent = NewRelic::Agent.instance
-    agent.transaction_sampler.expects(:notice_nosql_statement).with(query, elapsed)
-
-    NewRelic::Agent::Datastores.notice_statement(query, elapsed)
+    in_transaction do |txn|
+      freeze_time
+      segment = NewRelic::Agent::Transaction.start_datastore_segment("MyFirstDatastore", "get", "key")
+      NewRelic::Agent::Datastores.notice_statement(query, elapsed)
+      advance_time elapsed
+      assert_equal segment, txn.current_segment
+      segment.finish
+      unfreeze_time
+      assert_equal segment.nosql_statement, query
+      assert_equal segment.duration, elapsed
+    end
   end
 
   def test_dont_notice_statement_based_on_record_sql_setting

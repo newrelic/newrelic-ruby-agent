@@ -240,14 +240,26 @@ module NewRelic
             segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
             segment.notice_sql "select * from blogs"
             advance_time 2.0
-            Agent.instance.transaction_sampler.expects(:notice_sql_statement).with(segment.sql_statement, 2.0)
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
               assert_equal segment.sql_statement.sql, statement.sql_statement
               assert_equal segment.name, name
               assert_equal duration, 2.0
             end
             segment.finish
+            assert_equal segment.params[:sql].sql, "select * from blogs"
           end
+        end
+
+        def test_notice_sql_not_recording
+          state = NewRelic::Agent::TransactionState.tl_get
+          state.record_sql = false
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
+            segment.notice_sql "select * from blogs"
+            assert_nil segment.sql_statement
+            segment.finish
+          end
+          state.record_sql = true
         end
 
         def test_notice_sql_creates_database_statement_with_identifier
@@ -271,19 +283,28 @@ module NewRelic
           end
         end
 
+        def test_notice_sql_truncates_long_queries
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
+            segment.notice_sql "select * from blogs where " + ("something is nothing" * 16_384)
+            segment.finish
+            assert_equal segment.params[:sql].sql.length, 16_384
+          end
+        end
+
         def test_internal_notice_sql
           explainer = stub(:explainer)
           in_transaction do
             segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
             segment._notice_sql "select * from blogs", {:adapter => :sqlite}, explainer
             advance_time 2.0
-            Agent.instance.transaction_sampler.expects(:notice_sql_statement).with(segment.sql_statement, 2.0)
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
               assert_equal segment.sql_statement.sql, statement.sql_statement
               assert_equal segment.name, name
               assert_equal duration, 2.0
             end
             segment.finish
+            assert_equal segment.params[:sql].sql, "select * from blogs"
           end
         end
 
@@ -294,9 +315,21 @@ module NewRelic
             segment.notice_nosql_statement statement
             advance_time 2.0
 
-            Agent.instance.transaction_sampler.expects(:notice_nosql_statement).with(statement, 2.0)
+            segment.finish
+            assert_equal segment.params[:statement], statement
+          end
+        end
+
+        def test_notice_nosql_statement_not_recording
+          state = NewRelic::Agent::TransactionState.tl_get
+          state.record_sql = false
+          in_transaction do
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
+            segment.notice_nosql_statement "hgetall somehash"
+            assert_nil segment.nosql_statement
             segment.finish
           end
+          state.record_sql = true
         end
 
         def test_set_instance_info_with_valid_data
@@ -329,6 +362,42 @@ module NewRelic
           segment.set_instance_info '', ''
           assert_nil segment.host
           assert_nil segment.port_path_or_id
+        end
+
+        def test_backtrace_not_appended_if_not_over_duration
+          segment = nil
+          with_config :'transaction_tracer.stack_trace_threshold' => 2.0 do
+            in_web_transaction "test_txn" do
+              segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+              segment.start
+              advance_time 1.0
+              segment.finish
+            end
+          end
+
+          assert_nil segment.params[:backtrace]
+
+          sample = last_transaction_trace
+          node = find_node_with_name_matching(sample, /^Datastore/)
+          assert_nil node.params[:backtrace]
+        end
+
+        def test_backtrace_appended_when_over_duration
+          segment = nil
+          with_config :'transaction_tracer.stack_trace_threshold' => 1.0 do
+            in_web_transaction "test_txn" do
+              segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+              segment.start
+              advance_time 2.0
+              segment.finish
+            end
+          end
+
+          refute_nil segment.params[:backtrace]
+
+          sample = last_transaction_trace
+          node = find_node_with_name_matching(sample, /^Datastore/)
+          refute_nil node.params[:backtrace]
         end
       end
     end

@@ -23,6 +23,7 @@ branches:
     - master
     - dev
     - release
+    - current_async_work
 
 notifications:
   webhooks: http://notifitron.herokuapp.com/

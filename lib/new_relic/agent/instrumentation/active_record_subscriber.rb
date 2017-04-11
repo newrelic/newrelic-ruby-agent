@@ -109,8 +109,8 @@ module NewRelic
           # See comment for start_segment as we continue to work around limitations of the
           # current tracer in this method.
           def finish
-            if state.current_transaction
-              state.traced_method_stack.push_segment state, @segment
+            if txn = state.current_transaction
+              txn.add_segment @segment
             end
             @segment.finish
           end

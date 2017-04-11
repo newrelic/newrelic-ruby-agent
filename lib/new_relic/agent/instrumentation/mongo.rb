@@ -56,10 +56,10 @@ DependencyDetection.defer do
 
       # It's key that this method eats all exceptions, as it rests between the
       # Mongo operation the user called and us returning them the data. Be safe!
-      def new_relic_notice_statement(t0, payload, name)
+      def new_relic_notice_statement(segment, payload, name)
         statement = NewRelic::Agent::Datastores::Mongo::StatementFormatter.format(payload, name)
         if statement
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(statement, (Time.now - t0).to_f)
+          segment.notice_nosql_statement statement
         end
       rescue => e
         NewRelic::Agent.logger.debug("Exception during Mongo statement gathering", e)
@@ -85,7 +85,7 @@ DependencyDetection.defer do
             instrument_without_new_relic_trace(name, payload, &block)
           end
 
-          new_relic_notice_statement(segment.start_time, payload, name) if segment
+          new_relic_notice_statement(segment, payload, name) if segment
           result
         ensure
           segment.finish if segment
@@ -107,7 +107,7 @@ DependencyDetection.defer do
             save_without_new_relic_trace(doc, opts, &block)
           end
 
-          new_relic_notice_statement(segment.start_time, doc, :save) if segment
+          new_relic_notice_statement(segment, doc, :save) if segment
           result
         ensure
           segment.finish if segment
@@ -138,7 +138,7 @@ DependencyDetection.defer do
                    spec.dup
                  end
 
-          new_relic_notice_statement(segment.start_time, spec, :ensureIndex) if segment
+          new_relic_notice_statement(segment, spec, :ensureIndex) if segment
           result
         ensure
           segment.finish if segment

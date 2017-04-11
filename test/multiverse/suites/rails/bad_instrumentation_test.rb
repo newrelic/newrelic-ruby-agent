@@ -11,9 +11,7 @@ class BadInstrumentationController < ApplicationController
   # to fail.
   # https://newrelic.atlassian.net/browse/RUBY-1158
   def failwhale
-    state = NewRelic::Agent::TransactionState.tl_get
-    stack = state.traced_method_stack
-    stack.push_frame(state, 'failwhale')
+    NewRelic::Agent::Transaction.start_segment "Controller/BadInstrumentationController/failwhale"
     render :text => 'everything went great'
   end
 end

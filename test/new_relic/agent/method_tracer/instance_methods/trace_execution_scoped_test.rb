@@ -98,43 +98,6 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     assert_metrics_recorded_exclusive('outer' => expected_values)
   end
 
-  def test_log_errors_base
-    ran = false
-    NewRelic::Agent::MethodTracerHelpers.log_errors("name") do
-      ran = true
-    end
-    assert ran, "should run the contents of the block"
-  end
-
-  def test_log_errors_with_return
-    ran = false
-    return_val = NewRelic::Agent::MethodTracerHelpers.log_errors('name') do
-      ran = true
-      'happy trees'
-    end
-
-    assert ran, "should run contents of block"
-    assert_equal 'happy trees', return_val, "should return contents of the block"
-  end
-
-  def test_log_errors_with_error
-    expects_logging(:error,
-      includes("Caught exception in name."),
-      instance_of(RuntimeError))
-
-    NewRelic::Agent::MethodTracerHelpers.log_errors("name") do
-      raise "should not propagate out of block"
-    end
-  end
-
-  def test_trace_execution_scoped_header
-    state = NewRelic::Agent::TransactionState.tl_get
-    stack = state.traced_method_stack
-    NewRelic::Agent::MethodTracerHelpers.expects(:log_errors).with(:trace_execution_scoped_header).yields
-    stack.expects(:push_frame).with(state, :method_tracer, 1.0)
-    NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, 1.0)
-  end
-
   def test_trace_execution_scoped_calculates_exclusive_time
     freeze_time
     in_transaction('txn') do

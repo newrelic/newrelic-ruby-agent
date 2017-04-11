@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
+require File.expand_path '../../../test_helper', __FILE__
+require File.expand_path '../../data_container_tests', __FILE__
 
 class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
@@ -135,95 +135,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
 
     assert_equal(42, attributes_for(@sampler.last_sample, :intrinsic)[:cpu_time])
-  end
-
-  def test_notice_extra_data_no_builder
-    ret = @sampler.send(:notice_extra_data, nil, nil, nil, nil)
-    assert_nil ret
-  end
-
-  def test_notice_extra_data_no_node
-    mock_builder = mock('builder')
-    @sampler.expects(:tl_builder).returns(mock_builder).once
-    mock_builder.expects(:current_node).returns(nil)
-    builder = @sampler.tl_builder
-    @sampler.send(:notice_extra_data, builder, nil, nil, nil)
-  end
-
-  def test_notice_extra_data_with_node_no_old_message_no_config_key
-    key = :a_key
-    mock_builder = mock('builder')
-    node = mock('node')
-    @sampler.expects(:tl_builder).returns(mock_builder).once
-    mock_builder.expects(:current_node).returns(node)
-    NewRelic::Agent::TransactionSampler.expects(:truncate_message) \
-      .with('a message').returns('truncated_message')
-    node.expects(:[]=).with(key, 'truncated_message')
-    @sampler.expects(:append_backtrace).with(node, 1.0)
-    builder = @sampler.tl_builder
-    @sampler.send(:notice_extra_data, builder, 'a message', 1.0, key)
-  end
-
-  def test_append_backtrace_under_duration
-    with_config(:'transaction_tracer.stack_trace_threshold' => 2.0) do
-      node = mock('node')
-      node.expects(:[]=).with(:backtrace, any_parameters).never
-      @sampler.append_backtrace(mock('node'), 1.0)
-    end
-  end
-
-  def test_append_backtrace_over_duration
-    with_config(:'transaction_tracer.stack_trace_threshold' => 2.0) do
-      node = mock('node')
-      # note the mocha expectation matcher - you can't hardcode a
-      # backtrace so we match on any string, which should be okay.
-      node.expects(:[]=).with(:backtrace, instance_of(String))
-      @sampler.append_backtrace(node, 2.5)
-    end
-  end
-
-  def test_notice_sql_recording_sql
-    @state.record_sql = true
-    builder = @sampler.tl_builder
-    @sampler.expects(:notice_extra_data).with do |sample_builder, message, duration, key|
-      sample_builder == builder &&
-      message.sql == 'some sql' &&
-      duration == 1.0 &&
-      key == :sql
-    end
-    @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0, @state)
-  end
-
-  def test_notice_sql_not_recording
-    @state.record_sql = false
-    builder = @sampler.tl_builder
-    @sampler.expects(:notice_extra_data).with(builder, 'some sql', 1.0, :sql).never # <--- important
-    @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0, @state)
-  end
-
-  def test_notice_sql_statment_recording_sql
-    @state.record_sql = true
-    builder = @sampler.tl_builder
-    @sampler.expects(:notice_extra_data).with do |sample_builder, message, duration, key|
-      sample_builder == builder &&
-      message.sql == 'some sql' &&
-      duration == 1.0 &&
-      key == :sql
-    end
-    statement = NewRelic::Agent::Database::Statement.new 'some sql', {:config => 'a config'}
-    @sampler.notice_sql_statement(statement, 1.0)
-  end
-
-  def test_notice_nosql
-    builder = @sampler.tl_builder
-    @sampler.expects(:notice_extra_data).with(builder, 'a key', 1.0, :key)
-    @sampler.notice_nosql('a key', 1.0)
-  end
-
-  def test_notice_nosql_statement
-    builder = @sampler.tl_builder
-    @sampler.expects(:notice_extra_data).with(builder, 'query data', 1.0, :statement)
-    @sampler.notice_nosql_statement('query data', 1.0)
   end
 
   def test_harvest_when_disabled
@@ -392,7 +303,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   # unit tests per se - some overlap with the tests above, but
   # generally usefully so
 
-
   def test_sample_tree
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       @sampler.on_start_transaction(@state, Time.now)
@@ -445,13 +355,35 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   # sample traces, for example. It's unfortunate, but we can't
   # reliably turn off GC on all versions of ruby under test
   def test_harvest_slowest
+    freeze_time
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      run_sample_trace(0,0.1)
-      run_sample_trace(0,0.1)
-      # two second duration
-      run_sample_trace(0,2)
-      run_sample_trace(0,0.1)
-      run_sample_trace(0,0.1)
+      in_transaction do
+        s = NewRelic::Agent::Transaction.start_segment 'first'
+        advance_time 0.1
+        s.finish
+      end
+      in_transaction do
+        s = NewRelic::Agent::Transaction.start_segment 'second'
+        advance_time 0.1
+        s.finish
+      end
+
+      in_transaction do
+        s = NewRelic::Agent::Transaction.start_segment 'two_seconds'
+        advance_time 2
+        s.finish
+      end
+
+      in_transaction do
+        s = NewRelic::Agent::Transaction.start_segment 'fourth'
+        advance_time 0.1
+        s.finish
+      end
+      in_transaction do
+        s = NewRelic::Agent::Transaction.start_segment 'fifth'
+        advance_time 0.1
+        s.finish
+      end
 
       slowest = @sampler.harvest![0]
       first_duration = slowest.duration
@@ -459,47 +391,29 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
              "expected sample duration = 2, but was: #{slowest.duration.inspect}")
 
       # 1 second duration
-      run_sample_trace(0,1)
+      # run_sample_trace(0,1)
+      in_transaction do
+        s = NewRelic::Agent::Transaction.start_segment 'one_second'
+        advance_time 1
+        s.finish
+      end
       @sampler.merge!([slowest])
       not_as_slow = @sampler.harvest![0]
       assert((not_as_slow == slowest), "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
 
-      run_sample_trace(0,10)
+      # 1 second duration
+      in_transaction do
+        s = NewRelic::Agent::Transaction.start_segment 'ten_seconds'
+        advance_time 10
+        s.finish
+      end
 
       @sampler.merge!([slowest])
       new_slowest = @sampler.harvest![0]
       assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
       assert_equal(new_slowest.duration.round, 10, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
     end
-  end
-
-  def test_prepare_to_send
-    t0 = freeze_time
-    sample = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      run_sample_trace { advance_time(2.0) }
-      @sampler.harvest![0]
-    end
-
-    ready_to_send = sample.prepare_to_send!
-    assert_equal 2.0, ready_to_send.duration
-    assert_equal t0.to_f, ready_to_send.start_time
-  end
-
-  def test_multithread
-    threads = []
-
-    5.times do
-      threads << Thread.new do
-        10.times do
-          # Important that this uses the actual thread-local, not the shared
-          # @state variable used in other non-threaded tests
-          run_sample_trace(Time.now.to_f, nil, NewRelic::Agent::TransactionState.tl_get) do
-            sleep 0.0001
-          end
-        end
-      end
-    end
-    threads.each {|t| t.join }
+    unfreeze_time
   end
 
   def test_sample_with_parallel_paths
@@ -539,84 +453,31 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
   end
 
-
-  def test_record_sql_off
-    @sampler.on_start_transaction(@state, Time.now.to_f)
-
-    @state.record_sql = false
-
-    @sampler.notice_sql("test", {}, 0, @state)
-
-    node = @sampler.send(:tl_builder).current_node
-
-    assert_nil node[:sql]
-  end
-
-  def test_stack_trace_sql
-    with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
-      @sampler.on_start_transaction(@state, Time.now.to_f)
-      @sampler.notice_sql("test", {}, 1, @state)
-      node = @sampler.send(:tl_builder).current_node
-
-      assert node[:sql]
-      assert node[:backtrace]
-    end
-  end
-
-  def test_nil_stacktrace
-    with_config(:'transaction_tracer.stack_trace_threshold' => 2) do
-      @sampler.on_start_transaction(@state, Time.now.to_f)
-      @sampler.notice_sql("test", {}, 1, @state)
-      node = @sampler.send(:tl_builder).current_node
-
-      assert node[:sql]
-      assert_nil node[:backtrace]
-    end
-  end
-
-  def test_big_sql
-    @sampler.on_start_transaction(@state, Time.now.to_f)
-
-    sql = "SADJKHASDHASD KAJSDH ASKDH ASKDHASDK JASHD KASJDH ASKDJHSAKDJHAS DKJHSADKJSAH DKJASHD SAKJDH SAKDJHS"
-
-    len = 0
-    while len <= 16384
-      @sampler.notice_sql(sql, {}, 0, @state)
-      len += sql.length
-    end
-
-    node = @sampler.send(:tl_builder).current_node
-
-    sql = node[:sql]
-
-    assert sql.sql.length <= 16384
-  end
-
   def test_node_obfuscated
     @sampler.on_start_transaction(@state, Time.now.to_f)
-    @sampler.notice_push_frame(@state)
-
     orig_sql = "SELECT * from Jim where id=66"
 
-    @sampler.notice_sql(orig_sql, {}, 0, @state)
+    in_transaction do
+      s = NewRelic::Agent::Transaction.start_datastore_segment
+      s.notice_sql(orig_sql)
+      s.finish
+    end
 
-    node = @sampler.send(:tl_builder).current_node
-
+    node = find_last_transaction_node(@sampler.last_sample)
     assert_equal orig_sql, node[:sql].sql
     assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
-    @sampler.notice_pop_frame(@state, "foo")
   end
 
   def test_should_not_collect_nodes_beyond_limit
     with_config(:'transaction_tracer.limit_segments' => 3) do
-      run_sample_trace do
-        @sampler.notice_push_frame(@state)
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'challah'", {}, 0, @state)
-        @sampler.notice_push_frame(@state)
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", {}, 0, @state)
-        @sampler.notice_pop_frame(@state, "a11")
-        @sampler.notice_pop_frame(@state, "a1")
+      in_transaction do
+        %w[ wheat challah semolina ].each do |bread|
+          s = NewRelic::Agent::Transaction.start_datastore_segment
+          s.notice_sql("SELECT * FROM sandwiches WHERE bread = '#{bread}'")
+          s.finish
+        end
       end
+
       assert_equal 3, @sampler.last_sample.count_nodes
 
       expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"

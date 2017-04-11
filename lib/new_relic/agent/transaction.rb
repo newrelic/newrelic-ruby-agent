@@ -31,17 +31,10 @@ module NewRelic
       ACTION_CABLE_PREFIX          = 'Controller/ActionCable/'.freeze
       OTHER_TRANSACTION_PREFIX     = 'OtherTransaction/'.freeze
 
-      CONTROLLER_MIDDLEWARE_PREFIX = 'Controller/Middleware/Rack'.freeze
-
-      NESTED_TRACE_STOP_OPTIONS    = { :metric => true }.freeze
       WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
       TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
-      EMPTY_SUMMARY_METRICS        = [].freeze
-
-      TRACE_OPTIONS_SCOPED         = { :metric => true, :scoped_metric => true }.freeze
-      TRACE_OPTIONS_UNSCOPED       = { :metric => true, :scoped_metric => false }.freeze
 
       # reference to the transaction state managing this transaction
       attr_accessor :state
@@ -69,7 +62,9 @@ module NewRelic
                   :frame_stack,
                   :cat_path_hashes,
                   :attributes,
-                  :payload
+                  :payload,
+                  :nesting_max_depth,
+                  :segments
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -154,22 +149,7 @@ module NewRelic
           txn.stop(state, end_time, nested_frame)
           state.reset
         else
-          nested_name = nested_transaction_name(nested_frame.name)
-
-          if nested_name.start_with?(MIDDLEWARE_PREFIX)
-            summary_metrics = MIDDLEWARE_SUMMARY_METRICS
-          else
-            summary_metrics = EMPTY_SUMMARY_METRICS
-          end
-
-          NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_footer(
-            state,
-            nested_frame.start_time.to_f,
-            nested_name,
-            summary_metrics,
-            nested_frame,
-            NESTED_TRACE_STOP_OPTIONS,
-            end_time.to_f)
+          nested_frame.finish
         end
 
         :transaction_stopped
@@ -266,8 +246,10 @@ module NewRelic
       end
 
       def initialize(category, options)
+        @nesting_max_depth = 0
+        @current_segment = nil
+        @segments = []
         @frame_stack = []
-        @has_children = false
 
         self.default_name = options[:transaction_name]
         @overridden_name    = nil
@@ -287,8 +269,8 @@ module NewRelic
         @cat_path_hashes = nil
 
         @ignore_this_transaction = false
-        @ignore_apdex = false
-        @ignore_enduser = false
+        @ignore_apdex = options.fetch(:ignore_apdex, false)
+        @ignore_enduser = options.fetch(:ignore_enduser, false)
         @ignore_trace = false
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
@@ -340,19 +322,6 @@ module NewRelic
         @default_name = Helper.correctly_encoded(name)
       end
 
-      def create_nested_frame(state, category, options)
-        @has_children = true
-        if options[:filtered_params] && !options[:filtered_params].empty?
-          @filtered_params = options[:filtered_params]
-          merge_request_parameters(options[:filtered_params])
-        end
-
-        frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, Time.now.to_f)
-        name_last_frame(options[:transaction_name])
-
-        set_default_transaction_name(options[:transaction_name], category)
-      end
-
       def merge_request_parameters(params)
         merge_untrusted_agent_attributes(params, :'request.parameters', AttributeFilter::DST_NONE)
       end
@@ -379,6 +348,7 @@ module NewRelic
       end
 
       def name_last_frame(name)
+        name = self.class.nested_transaction_name(name) if nesting_max_depth > 1
         frame_stack.last.name = name
       end
 
@@ -439,8 +409,49 @@ module NewRelic
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
-        frame_stack.push NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_header(state, start_time.to_f)
-        name_last_frame @default_name
+        create_initial_segment @default_name
+      end
+
+      def initial_segment
+        segments.first
+      end
+
+      def create_initial_segment name
+        segment = create_segment @default_name
+        segment.record_scoped_metric = false
+      end
+
+      def create_segment(name)
+        summary_metrics = nil
+
+        if name.start_with?(MIDDLEWARE_PREFIX)
+          summary_metrics = MIDDLEWARE_SUMMARY_METRICS
+        end
+
+        @nesting_max_depth += 1
+        segment = self.class.start_segment name, summary_metrics
+        frame_stack.push segment
+        segment
+      end
+
+      def create_nested_frame(state, category, options)
+        if options[:filtered_params] && !options[:filtered_params].empty?
+          @filtered_params = options[:filtered_params]
+          merge_request_parameters(options[:filtered_params])
+        end
+
+        @ignore_apdex = options[:ignore_apdex] if options.key? :ignore_apdex
+        @ignore_enduser = options[:ignore_enduser] if options.key? :ignore_enduser
+
+        nest_initial_segment if nesting_max_depth == 1
+        nested_name = self.class.nested_transaction_name options[:transaction_name]
+        create_segment nested_name
+        set_default_transaction_name(options[:transaction_name], category)
+      end
+
+      def nest_initial_segment
+        self.initial_segment.name = self.class.nested_transaction_name initial_segment.name
+        initial_segment.record_scoped_metric = true
       end
 
       # Call this to ensure that the current transaction trace is not saved
@@ -478,35 +489,15 @@ module NewRelic
         freeze_name_and_execute_if_not_ignored
         ignore! if user_defined_rules_ignore?
 
-        if @has_children
-          name = Transaction.nested_transaction_name(outermost_frame.name)
-          trace_options = TRACE_OPTIONS_SCOPED
-        else
-          name = @frozen_name
-          trace_options = TRACE_OPTIONS_UNSCOPED
+        if nesting_max_depth == 1
+          outermost_frame.name = @frozen_name
         end
 
-        # These metrics are recorded here instead of in record_summary_metrics
-        # in order to capture the exclusive time associated with the outer-most
-        # TT node.
-        if needs_middleware_summary_metrics?(name)
-          summary_metrics_with_exclusive_time = MIDDLEWARE_SUMMARY_METRICS
-        else
-          summary_metrics_with_exclusive_time = EMPTY_SUMMARY_METRICS
-        end
-
-        NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped_footer(
-          state,
-          start_time.to_f,
-          name,
-          summary_metrics_with_exclusive_time,
-          outermost_frame,
-          trace_options,
-          end_time.to_f)
+        outermost_frame.finish
 
         NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
 
-        commit!(state, end_time, name) unless @ignore_this_transaction
+        commit!(state, end_time, outermost_frame.name) unless @ignore_this_transaction
       end
 
       def user_defined_rules_ignore?
@@ -525,6 +516,7 @@ module NewRelic
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
+        segments.each { |s| s.record_metrics if s.record_metrics? }
         record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
@@ -533,7 +525,6 @@ module NewRelic
 
         record_exceptions
         record_transaction_event
-
         merge_metrics
         send_transaction_finished_event
       end

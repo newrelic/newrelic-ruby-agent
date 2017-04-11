@@ -479,4 +479,15 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal expected_sql, sql
   end
 
+  def test_append_sql_stops_at_limit
+    table_name = 'a' * 1_000
+    sql = "select * from #{table_name}"
+    statement = NewRelic::Agent::Database::Statement.new sql, {:adapter => :mysql}
+
+    #grow the statement larger than the 16384 character limit
+    16.times { statement.append_sql sql }
+
+    assert_equal NewRelic::Agent::Database::MAX_QUERY_LENGTH, statement.sql.size
+  end
+
 end

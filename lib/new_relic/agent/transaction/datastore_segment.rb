@@ -55,6 +55,7 @@ module NewRelic
 
         def notice_sql sql
           _notice_sql sql
+          nil
         end
 
         # @api private
@@ -65,52 +66,52 @@ module NewRelic
 
         def notice_nosql_statement nosql_statement
           return unless record_sql?
-          @nosql_statement = nosql_statement
+          @nosql_statement = Database.truncate_query(nosql_statement)
+          nil
         end
-
-        private
 
         def record_metrics
           @unscoped_metrics = Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
           super
         end
 
+        private
+
         def segment_complete
-          add_segment_parameters
           notice_sql_statement if sql_statement
           notice_statement if nosql_statement
+          add_instance_parameters
+          add_database_name_parameter
+          add_backtrace_parameter
+
+          super
         end
 
-        def add_segment_parameters
-          instance_reporting_enabled = NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
-          db_name_reporting_enabled = NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
-          return unless instance_reporting_enabled || db_name_reporting_enabled
-
-          params = {}
-          add_instance_parameters params if instance_reporting_enabled
-          add_database_name_parameter params if db_name_reporting_enabled
-
-          NewRelic::Agent.instance.transaction_sampler.add_node_parameters params
-        end
-
-        def add_instance_parameters params
+        def add_instance_parameters
+          return unless NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
           params[:host] = host if host
           params[:port_path_or_id] = port_path_or_id if port_path_or_id
         end
 
-        def add_database_name_parameter(params)
+        def add_database_name_parameter
+          return unless NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
           params[:database_name] = database_name if database_name
         end
 
+        NEWLINE = "\n".freeze
+
+        def add_backtrace_parameter
+           return unless duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
+           params[:backtrace] = caller.join(NEWLINE)
+        end
+
         def notice_sql_statement
-          NewRelic::Agent.instance.transaction_sampler.notice_sql_statement(sql_statement, duration)
+          params[:sql] = sql_statement
           NewRelic::Agent.instance.sql_sampler.notice_sql_statement(sql_statement.dup, name, duration)
-          nil
         end
 
         def notice_statement
-          NewRelic::Agent.instance.transaction_sampler.notice_nosql_statement(nosql_statement, duration)
-          nil
+          params[:statement] = nosql_statement
         end
 
         def record_sql?

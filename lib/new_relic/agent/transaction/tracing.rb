@@ -53,17 +53,31 @@ module NewRelic
           base.extend ClassMethods
         end
 
+        attr_reader :current_segment
+
         def add_segment segment
           segment.transaction = self
-          state.traced_method_stack.push_segment state, segment
+          segment.parent = current_segment
+          @current_segment = segment
+          if @segments.length < Agent.config[:'transaction_tracer.limit_segments']
+            @segments << segment
+            transaction_sampler.notice_push_frame state, segment.start_time if transaction_sampler_enabled?
+          else
+            segment.record_on_finish = true
+          end
         end
 
         def segment_complete segment
-          state.traced_method_stack.pop_frame(state, segment, segment.name, segment.end_time, segment.record_metrics?)
+          @current_segment = segment.parent
+          if transaction_sampler_enabled? && !segment.record_on_finish?
+            transaction_sampler.notice_pop_frame state, segment.name, segment.end_time
+          end
         end
 
-        def current_segment
-          state.traced_method_stack.last
+        private
+
+        def transaction_sampler_enabled?
+          Agent.config[:'transaction_tracer.enabled']
         end
       end
     end
