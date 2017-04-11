@@ -399,22 +399,6 @@ module NewRelic
           node = find_node_with_name_matching(sample, /^Datastore/)
           refute_nil node.params[:backtrace]
         end
-
-        def test_multithread
-          ts = Array.new(5).map do
-            Thread.new do
-              in_transaction do
-                10.times do
-                  s = NewRelic::Agent::Transaction.start_datastore_segment
-                  s.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'")
-                  sleep 0.0001
-                  s.finish
-                end
-              end
-            end
-          end
-          ts.each &:join
-        end
       end
     end
   end
