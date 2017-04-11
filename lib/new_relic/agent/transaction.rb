@@ -66,7 +66,8 @@ module NewRelic
                   :attributes,
                   :payload,
                   :nesting_max_depth,
-                  :segments
+                  :segments,
+                  :end_time
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -261,6 +262,7 @@ module NewRelic
 
         @category = category
         @start_time = Time.now
+        @end_time = nil
         @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
@@ -492,6 +494,8 @@ module NewRelic
 
       def stop(state, end_time, outermost_frame)
         return if !state.is_execution_traced?
+
+        @end_time = end_time
         freeze_name_and_execute_if_not_ignored
 
         if nesting_max_depth == 1

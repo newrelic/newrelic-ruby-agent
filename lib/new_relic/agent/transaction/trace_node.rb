@@ -9,12 +9,22 @@ module NewRelic
         attr_reader :entry_timestamp
         # The exit timestamp will be relative except for the outermost sample which will
         # have a timestamp.
-        attr_reader :exit_timestamp
+        attr_accessor :exit_timestamp
+
         attr_reader :parent_node
 
         attr_accessor :metric_name, :params
 
         UNKNOWN_NODE_NAME = '<unknown>'.freeze
+
+        class << self
+          def new2(metric_name, relative_start, relative_end, params)
+            node = new(relative_start, metric_name)
+            node.exit_timestamp = relative_end
+            node.params = params
+            node
+          end
+        end
 
         def initialize(timestamp, metric_name)
           @entry_timestamp = timestamp
@@ -81,6 +91,10 @@ module NewRelic
           else @exit_timestamp.to_s
           end
           s << " #{metric_name}\n"
+        end
+
+        def children
+          @called_nodes ||= []
         end
 
         def called_nodes
@@ -163,7 +177,6 @@ module NewRelic
           @called_nodes = nodes
         end
 
-        protected
         def parent_node=(s)
           @parent_node = s
         end
