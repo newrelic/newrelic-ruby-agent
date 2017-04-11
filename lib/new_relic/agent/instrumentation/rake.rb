@@ -102,7 +102,9 @@ module NewRelic
             def invoke_prerequisites_concurrently(*_)
               NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/multitask") do
                 prereqs = self.prerequisite_tasks.map(&:name).join(", ")
-                NewRelic::Agent::Datastores.notice_statement("Couldn't trace concurrent prereq tasks: #{prereqs}", 0)
+                if txn = ::NewRelic::Agent::TransactionState.tl_get.current_transaction
+                  txn.current_segment.params[:statement] = NewRelic::Agent::Database.truncate_query("Couldn't trace concurrent prereq tasks: #{prereqs}")
+                end
                 super
               end
             end
