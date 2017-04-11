@@ -16,6 +16,8 @@ module NewRelic
             metric_cache.record_scoped_and_unscoped name, duration, exclusive_duration
             metric_cache.record_unscoped "Basic/all", duration, exclusive_duration
           end
+          def segment_complete
+          end
         end
 
         def setup

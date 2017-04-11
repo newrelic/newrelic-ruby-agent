@@ -84,7 +84,7 @@ module NewRelic
           add_database_name_parameter
           add_backtrace_parameter
 
-          NewRelic::Agent.instance.transaction_sampler.add_node_parameters params
+          super
         end
 
         def add_instance_parameters
