@@ -18,10 +18,11 @@ module NewRelic
         UNKNOWN_NODE_NAME = '<unknown>'.freeze
 
         class << self
-          def new2(metric_name, relative_start, relative_end, params)
+          def new2(metric_name, relative_start, relative_end, params, parent)
             node = new(relative_start, metric_name)
             node.exit_timestamp = relative_end
             node.params = params
+            node.parent_node = parent
             node
           end
         end
@@ -91,6 +92,10 @@ module NewRelic
           else @exit_timestamp.to_s
           end
           s << " #{metric_name}\n"
+        end
+
+        def children= value
+          @called_nodes = value
         end
 
         def children
