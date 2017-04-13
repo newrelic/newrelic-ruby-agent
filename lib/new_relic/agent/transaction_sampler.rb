@@ -6,6 +6,7 @@ require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/slowest_sample_buffer'
 require 'new_relic/agent/transaction/synthetics_sample_buffer'
 require 'new_relic/agent/transaction/xray_sample_buffer'
+require 'new_relic/agent/transaction/trace_builder'
 
 module NewRelic
   module Agent
@@ -54,12 +55,6 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled']
       end
 
-      def on_start_transaction(state, start_time)
-        if enabled?
-          start_builder(state, start_time.to_f)
-        end
-      end
-
       # This delegates to the builder to create a new open transaction node
       # for the frame, beginning at the optionally specified time.
       def notice_push_frame(state, time=Time.now)
@@ -85,19 +80,16 @@ module NewRelic
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
       def on_finishing_transaction(state, txn, time=Time.now)
-        last_builder = state.transaction_sample_builder
-        return unless last_builder && enabled?
+        return if !enabled? || txn.ignore_trace?
 
-        state.transaction_sample_builder = nil
-        return if txn.ignore_trace?
+        last_sample = NewRelic::Agent::Transaction::TraceBuilder.build_trace txn
 
-        last_builder.finish_trace(time.to_f)
-
-        last_sample = last_builder.sample
         last_sample.transaction_name = txn.best_name
         last_sample.uri = txn.request_path
         last_sample.guid = txn.guid
         last_sample.attributes = txn.attributes
+        last_sample.threshold = transaction_trace_threshold
+        last_sample.finished = true
 
         @samples_lock.synchronize do
           @last_sample = last_sample
@@ -192,6 +184,18 @@ module NewRelic
       # The current thread-local transaction sample builder
       def tl_builder
         TransactionState.tl_get.transaction_sample_builder
+      end
+
+      TT_THRESHOLD_KEY = :'transaction_tracer.transaction_threshold'
+
+      def transaction_trace_threshold #THREAD_LOCAL_ACCESS
+        state = TransactionState.tl_get
+        source_class = Agent.config.source(TT_THRESHOLD_KEY).class
+        if source_class == Configuration::DefaultSource && state.current_transaction
+          state.current_transaction.apdex_t * 4
+        else
+          Agent.config[TT_THRESHOLD_KEY]
+        end
       end
     end
   end

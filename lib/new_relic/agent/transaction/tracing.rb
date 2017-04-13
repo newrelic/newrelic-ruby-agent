@@ -90,7 +90,6 @@ module NewRelic
           @current_segment = segment
           if @segments.length < Agent.config[:'transaction_tracer.limit_segments']
             @segments << segment
-            transaction_sampler.notice_push_frame state, segment.start_time if transaction_sampler_enabled?
           else
             segment.record_on_finish = true
           end
@@ -98,15 +97,6 @@ module NewRelic
 
         def segment_complete segment
           @current_segment = segment.parent
-          if transaction_sampler_enabled? && !segment.record_on_finish?
-            transaction_sampler.notice_pop_frame state, segment.name, segment.end_time
-          end
-        end
-
-        private
-
-        def transaction_sampler_enabled?
-          Agent.config[:'transaction_tracer.enabled']
         end
       end
     end
