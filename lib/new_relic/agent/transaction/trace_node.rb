@@ -43,12 +43,16 @@ module NewRelic
           to_debug_str(0)
         end
 
+        EMPTY_HASH = {}.freeze
+        EMPTY_ARRAY = [].freeze
+
         def to_array
+          params = @params ? @params : EMPTY_HASH
           [ NewRelic::Helper.time_to_millis(@entry_timestamp),
             NewRelic::Helper.time_to_millis(@exit_timestamp),
             NewRelic::Coerce.string(@metric_name),
             params ] +
-            [ (@called_nodes ? @called_nodes.map{|s| s.to_array} : []) ]
+            [ (@called_nodes ? @called_nodes.map{|s| s.to_array} : EMPTY_ARRAY) ]
         end
 
         def path_string
