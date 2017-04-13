@@ -13,27 +13,18 @@ module NewRelic
 
         attr_reader :parent_node
 
-        attr_accessor :metric_name, :params
+        attr_accessor :metric_name
+        attr_writer :params
 
         UNKNOWN_NODE_NAME = '<unknown>'.freeze
 
-        class << self
-          def new2(metric_name, relative_start, relative_end, params, parent)
-            node = new(relative_start, metric_name)
-            node.exit_timestamp = relative_end
-            node.params = params
-            node.parent_node = parent
-            node
-          end
-        end
-
-        def initialize(timestamp, metric_name)
-          @entry_timestamp = timestamp
+        def initialize(metric_name, relative_start, relative_end=nil, params=nil, parent=nil)
+          @entry_timestamp = relative_start
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
-          @exit_timestamp  = nil
+          @exit_timestamp  = relative_end
           @called_nodes    = nil
-          @params          = {}
-          @parent_node     = nil
+          @params          = params
+          @parent_node     = parent
         end
 
         # sets the final timestamp on a node to indicate the exit
@@ -126,6 +117,10 @@ module NewRelic
           count = 1
           called_nodes.each { | node | count  += node.count_nodes }
           count
+        end
+
+        def params
+          @params ||= {}
         end
 
         def []=(key, value)

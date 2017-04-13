@@ -15,10 +15,12 @@ module NewRelic
                       :attributes, :node_count, :finished, :threshold,
                       :profile
 
+        ROOT = "ROOT".freeze
+
         def initialize(start_time)
           @start_time = start_time
           @node_count = 0
-          @root_node = NewRelic::Agent::Transaction::TraceNode.new(0.0, "ROOT")
+          @root_node = NewRelic::Agent::Transaction::TraceNode.new(ROOT, 0.0, nil, nil, nil)
           @prepared = false
         end
 
@@ -51,7 +53,7 @@ module NewRelic
         def create_node(time_since_start, metric_name = nil)
           raise FinishedTraceError.new "Can't create additional node for finished trace." if self.finished
           self.node_count += 1
-          NewRelic::Agent::Transaction::TraceNode.new(time_since_start, metric_name)
+          NewRelic::Agent::Transaction::TraceNode.new(metric_name, time_since_start)
         end
 
         def each_node(&block)

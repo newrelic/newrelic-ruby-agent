@@ -39,7 +39,7 @@ module NewRelic
         def create_trace_node transaction, segment, parent
           relative_start = segment.start_time - transaction.start_time
           relative_end = segment.end_time - transaction.start_time
-          TraceNode.new2 segment.name, relative_start, relative_end, segment.params, parent
+          TraceNode.new segment.name, relative_start, relative_end, segment.params, parent
         end
       end
     end
