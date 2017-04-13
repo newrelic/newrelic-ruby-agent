@@ -387,8 +387,7 @@ def find_last_transaction_node(transaction_sample=nil)
   if transaction_sample
     root_node = transaction_sample.root_node
   else
-    builder = NewRelic::Agent.agent.transaction_sampler.tl_builder
-    root_node = builder.current_node
+    root_node = NewRelic::Agent.instance.transaction_sampler.last_sample.root_node
   end
 
   last_node = nil

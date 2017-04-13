@@ -354,9 +354,9 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             in_transaction do
               @collection.insert_one(@tribbles.first)
-
-              node = find_last_transaction_node
             end
+
+            node = find_last_transaction_node
 
             expected = {
               :database   => @database_name,
@@ -378,9 +378,9 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             in_transaction do
               @collection.insert_one(@tribbles.first)
-              node = find_last_transaction_node
             end
 
+            node = find_last_transaction_node
             query = node.params[:statement]
 
             assert_equal :insert, query[:operation]
@@ -391,10 +391,9 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             in_transaction do
               @collection.update_one(@tribbles[0], @tribbles[1])
-
-              node = find_last_transaction_node
             end
 
+            node = find_last_transaction_node
             query = node.params[:statement]
 
             assert_equal :update, query[:operation]
@@ -406,9 +405,9 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             in_transaction do
               @collection.insert_one(@tribbles.first)
               @collection.find(@tribbles.first).to_a
-              node = find_last_transaction_node
             end
 
+            node = find_last_transaction_node
             query = node.params[:statement]
 
             assert_equal 'find', query[:operation]
@@ -419,9 +418,9 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             in_transaction do
               @collection.insert_one(@tribbles.first)
-              node = find_last_transaction_node
             end
 
+            node = find_last_transaction_node
             statement = node.params[:statement]
 
             refute statement.keys.include?(:documents), "Noticed NoSQL should not include documents: #{statement}"
@@ -433,13 +432,12 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             in_transaction do
               @collection.find({'password' => '$ecret'}).to_a
-              node = find_last_transaction_node
             end
 
+            node = find_last_transaction_node
             statement = node.params[:statement]
 
             refute statement.inspect.include?('$secret')
-
             assert_equal '?', statement['filter']['password']
           end
 

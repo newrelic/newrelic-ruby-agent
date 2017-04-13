@@ -73,9 +73,9 @@ class ExconTest < Minitest::Test
       rescue Excon::Errors::Error
         # meh
       end
-
-      last_node = find_last_transaction_node()
-      assert_equal("External/localhost/Excon/GET", last_node.metric_name)
     end
+
+    last_node = find_last_transaction_node()
+    assert_equal("External/localhost/Excon/GET", last_node.metric_name)
   end
 end

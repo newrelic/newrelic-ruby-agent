@@ -360,9 +360,9 @@ module MongoOperationTests
 
     in_transaction do
       @collection.insert(@tribble)
-
-      node = find_last_transaction_node
     end
+
+    node = find_last_transaction_node
 
     expected = {
       :database   => @database_name,
@@ -379,9 +379,9 @@ module MongoOperationTests
 
     in_transaction do
       @collection.insert(@tribble)
-      node = find_last_transaction_node
     end
 
+    node = find_last_transaction_node
     query = node.params[:statement]
 
     assert_equal :insert, query[:operation]
@@ -394,10 +394,9 @@ module MongoOperationTests
       updated = @tribble.dup
       updated['name'] = 't-rex'
       @collection.update(@tribble, updated)
-
-      node = find_last_transaction_node
     end
 
+    node = find_last_transaction_node
     query = node.params[:statement]
 
     assert_equal :update, query[:operation]
@@ -408,9 +407,9 @@ module MongoOperationTests
 
     in_transaction do
       @collection.save(@tribble)
-      node = find_last_transaction_node
     end
 
+    node = find_last_transaction_node
     query = node.params[:statement]
     assert_equal :save, query[:operation]
   end
@@ -420,9 +419,9 @@ module MongoOperationTests
 
     in_transaction do
       @collection.ensure_index([[unique_field_name, Mongo::ASCENDING]])
-      node = find_last_transaction_node
     end
 
+    node = find_last_transaction_node
     assert_ensure_index_in_transaction_node(node)
   end
 
@@ -431,9 +430,9 @@ module MongoOperationTests
 
     in_transaction do
       @collection.ensure_index(unique_field_name.to_sym)
-      node = find_last_transaction_node
     end
 
+    node = find_last_transaction_node
     assert_ensure_index_in_transaction_node(node)
   end
 
@@ -442,9 +441,9 @@ module MongoOperationTests
 
     in_transaction do
       @collection.ensure_index(unique_field_name)
-      node = find_last_transaction_node
     end
 
+    node = find_last_transaction_node
     assert_ensure_index_in_transaction_node(node)
   end
 
@@ -460,9 +459,9 @@ module MongoOperationTests
 
     in_transaction do
       @collection.insert({'name' => 'soterios johnson'})
-      node = find_last_transaction_node
     end
 
+    node = find_last_transaction_node
     statement = node.params[:statement]
 
     refute statement.keys.include?(:documents), "Noticed NoSQL should not include documents: #{statement}"
@@ -474,13 +473,12 @@ module MongoOperationTests
 
     in_transaction do
       @collection.remove({'password' => '$ecret'})
-      node = find_last_transaction_node
     end
 
+    node = find_last_transaction_node
     statement = node.params[:statement]
 
     refute statement.inspect.include?('$secret')
-
     assert_equal '?', statement[:selector]['password']
   end
 
