@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/instrumentation/metric_frame'
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/instrumentation/ignore_actions'
