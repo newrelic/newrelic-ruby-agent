@@ -22,10 +22,7 @@ module NewRelic
           elsif platform =~ /linux/
             @sampler = ProcStatus.new
             if !@sampler.can_run?
-              ::NewRelic::Agent.logger.debug "Error attempting to use /proc/#{$$}/status file for reading memory. Using ps command instead."
               @sampler = ShellPS.new("ps -o rsz")
-            else
-              ::NewRelic::Agent.logger.debug "Using /proc/#{$$}/status for reading process memory."
             end
           elsif platform =~ /darwin9/ # 10.5
             @sampler = ShellPS.new("ps -o rsz")
@@ -34,11 +31,15 @@ module NewRelic
           elsif platform =~ /freebsd/
             @sampler = ShellPS.new("ps -o rss")
           elsif platform =~ /solaris/
-            @sampler = ShellPS.new("/usr/bin/ps -o rss -p")
+            @sampler = ProcStatus.new("/system/lxproc")
+            if !@sampler.can_run?
+              @sampler = ShellPS.new("/usr/bin/ps -o rss -p")
+            end
           end
 
           raise Unsupported, "Unsupported platform for getting memory: #{platform}" if @sampler.nil?
-          raise Unsupported, "Unable to run #{@sampler}" unless @sampler.can_run?
+          raise Unsupported, "Unable to run <#{@sampler}>" unless @sampler.can_run?
+          ::NewRelic::Agent.logger.debug "Using <#{@sampler}> for reading process memory."
         end
 
         def self.supported_on_this_platform?
@@ -128,6 +129,10 @@ module NewRelic
         # A class that samples memory by reading the file /proc/$$/status, which is specific to linux
         #
         class ProcStatus < Base
+          def initialize(proc_prefix="/proc")
+            super()
+            @proc_prefix = proc_prefix
+          end
           # Returns the amount of resident memory this process is using in MB
           def get_memory
             proc_status = File.open(proc_status_file, "r") {|f| f.read_nonblock(4096).strip }
@@ -138,7 +143,7 @@ module NewRelic
           end
 
           def proc_status_file
-            "/proc/#{$$}/status"
+            "#{@proc_prefix}/#{$$}/status"
           end
 
           def to_s
