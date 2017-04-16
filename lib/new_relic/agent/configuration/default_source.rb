@@ -86,7 +86,7 @@ module NewRelic
             when defined?(::NewRelic::TEST) then :test
             when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
             when defined?(::Rails::VERSION)
-              case Rails::VERSION::MAJOR
+              case Rails::VERSION::MAJOR.to_i
               when 0..2
                 :rails
               when 3
