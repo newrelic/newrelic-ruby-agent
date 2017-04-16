@@ -249,7 +249,7 @@ module NewRelic
         # metric associated with the call, so if you want to use interpolation
         # evaluated at call time, then single quote the value like this:
         #
-        #     add_method_tracer :foo, 'Custom/#{self.class.name}/foo'
+        #     add_method_tracer :foo, "Custom/#{self.class.name}/foo"
         #
         # This would name the metric according to the class of the runtime
         # intance, as opposed to the class where +foo+ is defined.
@@ -278,7 +278,7 @@ module NewRelic
         #   add_method_tracer :foo
         #
         #   # With a custom metric name
-        #   add_method_tracer :foo, 'Custom/#{self.class.name}/foo'
+        #   add_method_tracer :foo, "Custom/#{self.class.name}/foo"
         #
         #   # Instrument foo only for custom dashboards (not in transaction
         #   # traces or breakdown charts)
