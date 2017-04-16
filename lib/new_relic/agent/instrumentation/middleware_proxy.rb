@@ -44,7 +44,8 @@ module NewRelic
         def self.needs_wrapping?(target)
           (
             !target.respond_to?(:_nr_has_middleware_tracing) &&
-            !is_sinatra_app?(target)
+            !is_sinatra_app?(target) &&
+            !target.is_a?(Proc)
           )
         end
 
