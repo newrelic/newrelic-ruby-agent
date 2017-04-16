@@ -83,27 +83,23 @@ module NewRelic::Rack
       # Only scan the first 50k (roughly) then give up.
       beginning_of_source = source[0..SCAN_LIMIT]
 
-      if body_start = find_body_start(beginning_of_source)
-        meta_tag_positions = [
-          find_x_ua_compatible_position(beginning_of_source),
-          find_charset_position(beginning_of_source)
-        ].compact
+      meta_tag_positions = [
+        find_x_ua_compatible_position(beginning_of_source),
+        find_charset_position(beginning_of_source)
+      ].compact
 
-        if !meta_tag_positions.empty?
-          insertion_index = meta_tag_positions.max
-        else
-          insertion_index = find_end_of_head_open(beginning_of_source) || body_start
-        end
-
-        if insertion_index
-          source = source[0...insertion_index] <<
-            js_to_inject <<
-            source[insertion_index..-1]
-        else
-          NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Could not properly determine location to inject script."
-        end
+      if !meta_tag_positions.empty?
+        insertion_index = meta_tag_positions.max
       else
-        msg = "Skipping RUM instrumentation. Unable to find <body> tag in first #{SCAN_LIMIT} bytes of document."
+        insertion_index = find_end_of_head_open(beginning_of_source) || find_body_start(beginning_of_source)
+      end
+
+      if insertion_index
+        source = source[0...insertion_index] <<
+          js_to_inject <<
+          source[insertion_index..-1]
+      else
+        msg = "Skipping RUM instrumentation. Could not properly determine location to inject script in first #{SCAN_LIMIT} bytes of document."
         NewRelic::Agent.logger.log_once(:warn, :rum_insertion_failure, msg)
         NewRelic::Agent.logger.debug(msg)
       end
