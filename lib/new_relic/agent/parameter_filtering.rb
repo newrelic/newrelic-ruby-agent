@@ -14,9 +14,15 @@ module NewRelic
       end
 
       def filter_using_rails(env, params)
-        return params unless defined?(ActionDispatch::Http::ParameterFilter) && env.key?("action_dispatch.parameter_filter")
-        filters = env["action_dispatch.parameter_filter"]
-        ActionDispatch::Http::ParameterFilter.new(filters).filter(params)
+        if Object.const_defined?(:ActionDispatch) &&
+           ::ActionDispatch.const_defined?(:Http) &&
+           ::ActionDispatch::Http.const_defined?(:ParameterFilter) &&
+           env.key?("action_dispatch.parameter_filter")
+          filters = env["action_dispatch.parameter_filter"]
+          ActionDispatch::Http::ParameterFilter.new(filters).filter(params)
+        else
+          params
+        end
       end
 
       def filter_rack_file_data(env, params)
