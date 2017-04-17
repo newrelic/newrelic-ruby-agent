@@ -8,7 +8,7 @@ make_notify_task = Proc.new do
 
     # on all deployments, notify New Relic
     desc "Record a deployment in New Relic (newrelic.com)"
-    task :notice_deployment, :roles => :app, :except => {:no_release => true } do
+    task :notice_deployment do
       rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
 
       require 'new_relic/cli/command'
