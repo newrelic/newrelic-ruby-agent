@@ -23,7 +23,6 @@ branches:
     - master
     - dev
     - release
-    - current_async_work
 
 notifications:
   webhooks: http://notifitron.herokuapp.com/
@@ -32,10 +31,10 @@ notifications:
 
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
-  - jruby-9.1.2.0
-  - 2.4.0
-  - 2.3.3
-  - 2.2.6
+  - jruby-9.1.8.0
+  - 2.4.1
+  - 2.3.4
+  - 2.2.7
   - 2.1.10
   - 2.0.0-p648
 
@@ -80,39 +79,39 @@ matrix:
   exclude:
     # Unsupported Rails/Ruby combinations
     # 2.4
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: TYPE=UNIT ENVIRONMENT=rails30
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: TYPE=UNIT ENVIRONMENT=rails31
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: TYPE=UNIT ENVIRONMENT=rails32
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: TYPE=UNIT ENVIRONMENT=rails40
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: TYPE=UNIT ENVIRONMENT=rails41
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: TYPE=UNIT ENVIRONMENT=rails42
 
     # 2.3
-    - rvm: 2.3.3
+    - rvm: 2.3.4
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.3.3
+    - rvm: 2.3.4
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.3.3
+    - rvm: 2.3.4
       env: TYPE=UNIT ENVIRONMENT=rails23
 
     # 2.2
-    - rvm: 2.2.6
+    - rvm: 2.2.7
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.2.6
+    - rvm: 2.2.7
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.2.6
+    - rvm: 2.2.7
       env: TYPE=UNIT ENVIRONMENT=rails23
 
     # 2.1
@@ -136,15 +135,15 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails50
 
     # jruby 9.0
-    - rvm: jruby-9.1.2.0
+    - rvm: jruby-9.1.8.0
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: jruby-9.1.2.0
+    - rvm: jruby-9.1.8.0
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: jruby-9.1.2.0
+    - rvm: jruby-9.1.8.0
       env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: jruby-9.1.2.0
+    - rvm: jruby-9.1.8.0
       env: TYPE=UNIT ENVIRONMENT=rails30
-    - rvm: jruby-9.1.2.0
+    - rvm: jruby-9.1.8.0
       env: TYPE=UNIT ENVIRONMENT=rails31
-    - rvm: jruby-9.1.2.0
+    - rvm: jruby-9.1.8.0
       env: TYPE=UNIT ENVIRONMENT=rails32
