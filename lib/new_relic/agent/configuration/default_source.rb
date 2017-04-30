@@ -272,7 +272,9 @@ module NewRelic
           :description => 'Specify the <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/name-your-application">application name</a> used to aggregate data in the New Relic UI. To report data to <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app">multiple apps at the same time</a>, specify a list of names separated by a semicolon <code>;</code>. For example, <code>MyApp</code> or <code>MyStagingApp;Instance1</code>.'
         },
         :monitor_mode => {
-          :default => value_of(:enabled),
+          :default => Proc.new {
+            NewRelic::Agent.config[:enabled] ? NewRelic::Control.instance.env != 'test' : false
+          },
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
