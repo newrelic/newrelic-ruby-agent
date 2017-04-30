@@ -19,7 +19,7 @@ module NewRelic
         @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
 
-        @config = { :license_key => "a" * 40 }
+        @config = { :license_key => "a" * 40, :monitor_mode => true }
         NewRelic::Agent.config.add_config_for_testing(@config)
       end
 
