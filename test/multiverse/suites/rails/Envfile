@@ -1,7 +1,8 @@
 if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
   gemfile <<-RB
     gem 'rails', '5.0.0'
-    gem 'haml', :require => false
+    gem 'haml', '~>5.0.0'
+    gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
   RB
 end
@@ -9,7 +10,8 @@ end
 if RUBY_VERSION < '2.4.0'
   gemfile <<-RB
     gem 'rails', '~>4.2.1'
-    gem 'haml', :require => false
+    gem 'haml', '~>5.0.0'
+    gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
   RB
@@ -20,13 +22,14 @@ if RUBY_VERSION < '2.4.0'
     # now
     gem 'minitest', '5.2.3'
 
-    # Load error with beta haml + rails, so hold require until test needs it.
-    gem 'haml', '~>4.1.0.beta1', :require => false
+    gem 'haml', '~>5.0.0'
+    gem 'haml-rails', '~>1.0.0'
   RB
 
   gemfile <<-RB
     gem 'rails', '~>4.0.13'
-    gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
+    gem 'haml', '~>5.0.0'
+    gem 'haml-rails', '~>1.0.0'
   RB
 
   gemfile <<-RB
