@@ -66,7 +66,8 @@ class IgnoredActionsTest < RailsMultiverseTest
   end
 
   def test_should_not_write_cat_response_headers_for_ignored_transactions
-    get '/ignored/action_to_ignore', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
+    get '/ignored/action_to_ignore',
+      headers: {'X-NewRelic-ID' => Base64.encode64('1#234')}
     assert_nil @response.headers["X-NewRelic-App-Data"]
   end
 

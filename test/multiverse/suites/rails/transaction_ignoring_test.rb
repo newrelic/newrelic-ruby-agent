@@ -25,17 +25,27 @@ class TransactionIgnoringTest < RailsMultiverseTest
   include TransactionIgnoringTestCases
 
   def trigger_transaction(txn_name)
-    get '/transaction_ignorer/run_transaction', :txn_name  => txn_name
+
+    get '/transaction_ignorer/run_transaction',
+      params: {
+        txn_name: txn_name
+      }
   end
 
   def trigger_transaction_with_error(txn_name, error_msg)
-    get '/transaction_ignorer/run_transaction', :txn_name  => txn_name,
-                                                :error_msg => error_msg
+    get '/transaction_ignorer/run_transaction',
+      params: {
+        txn_name: txn_name,
+        error_msg: error_msg
+      }
   end
 
   def trigger_transaction_with_slow_sql(txn_name)
-    get '/transaction_ignorer/run_transaction', :txn_name  => txn_name,
-                                                :slow_sql  => 'true'
+    get '/transaction_ignorer/run_transaction',
+      params: {
+        txn_name: txn_name,
+        slow_sql: 'true'
+      }
   end
 
 end

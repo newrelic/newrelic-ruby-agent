@@ -66,7 +66,7 @@ class QueueTimeTest < RailsMultiverseTest
 
   def get_path(path, queue_start_time)
     value = "t=#{(queue_start_time.to_f * 1_000_000).to_i}"
-    get(path, nil, REQUEST_START_HEADER => value)
+    get(path, headers:{ REQUEST_START_HEADER => value})
   end
 
   def extract_queue_time_from_response

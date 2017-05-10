@@ -67,7 +67,8 @@ class ParameterCaptureTest < RailsMultiverseTest
 
   def test_referrer_on_traced_errors_never_contains_query_string_without_capture_params
     with_config(:capture_params => false) do
-      get '/parameter_capture/error?other=1234&secret=4567', {}, { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+      get '/parameter_capture/error?other=1234&secret=4567',
+        headers: { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
       attributes = agent_attributes_for_single_error_posted
       assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
@@ -75,7 +76,8 @@ class ParameterCaptureTest < RailsMultiverseTest
 
   def test_referrer_on_traced_errors_never_contains_query_string_even_with_capture_params
     with_config(:capture_params => true) do
-      get '/parameter_capture/error?other=1234&secret=4567', {}, { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+      get '/parameter_capture/error?other=1234&secret=4567',
+        headers: { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
       attributes = agent_attributes_for_single_error_posted
       assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
@@ -251,7 +253,7 @@ class ParameterCaptureTest < RailsMultiverseTest
     def test_params_tts_should_be_filtered_when_serviced_by_rack_app
       params = {"secret" => "shhhhhhh", "name" => "name"}
       with_config(:capture_params => true) do
-        post '/filtering_test/', params
+        post '/filtering_test/', params: params
       end
 
       expected = {
@@ -264,7 +266,7 @@ class ParameterCaptureTest < RailsMultiverseTest
     def test_params_on_errors_should_be_filtered_when_serviced_by_rack_app
       params = {"secret" => "shhhhhhh", "name" => "name"}
       with_config(:capture_params => true) do
-        post '/filtering_test?raise=1', params
+        post '/filtering_test?raise=1', params: params
 
         expected = {
           "request.parameters.secret" => "[FILTERED]",
@@ -292,7 +294,11 @@ class ParameterCaptureTest < RailsMultiverseTest
   if Rails::VERSION::MAJOR > 2 && defined?(Sinatra)
     def test_params_tts_should_be_filtered_when_serviced_by_sinatra_app
       with_config(:capture_params => true) do
-        get '/sinatra_app/', "secret" => "shhhhhhh", "name" => "name"
+        get '/sinatra_app/',
+          params: {
+            "secret" => "shhhhhhh",
+            "name" => "name"
+          }
       end
 
       expected = {
@@ -304,8 +310,11 @@ class ParameterCaptureTest < RailsMultiverseTest
 
     def test_params_on_errors_should_be_filtered_when_serviced_by_sinatra_app
       with_config(:capture_params => true) do
-        get '/sinatra_app?raise=1', "secret" => "shhhhhhh", "name" => "name"
-
+        get '/sinatra_app?raise=1',
+          params: {
+            "secret": "shhhhhhh",
+            "name": "name"
+          }
         attributes = agent_attributes_for_single_error_posted
         assert_equal "[FILTERED]", attributes["request.parameters.secret"]
         assert_equal "name", attributes["request.parameters.name"]
@@ -315,7 +324,10 @@ class ParameterCaptureTest < RailsMultiverseTest
 
     def test_file_upload_params_are_replaced_with_placeholder
       with_config(:capture_params => true, :'transaction_tracer.transaction_threshold' => -10) do
-        post '/parameter_capture', :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
+        post '/parameter_capture',
+          params: {
+            file: Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
+          }
 
         run_harvest
 
