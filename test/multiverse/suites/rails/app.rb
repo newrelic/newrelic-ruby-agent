@@ -2,18 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.join(File.dirname(__FILE__), 'middlewares')
-
-suite_dir = File.expand_path(File.dirname(__FILE__))
-
-if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR > 2
-  require File.join(suite_dir, 'rails3_app', 'app_rails3_plus')
-  class RailsMultiverseTest < ActionDispatch::IntegrationTest; end
-elsif !defined?(RAILS_ROOT)
-  RAILS_ROOT = File.join(suite_dir, 'rails2_app')
-  require File.join(RAILS_ROOT, 'config', 'environment')
-  class RailsMultiverseTest < ActionController::IntegrationTest; end
-end
+require File.expand_path('../middlewares', __FILE__)
+require File.expand_path('../rails3_app/app_rails3_plus', __FILE__)
+class RailsMultiverseTest < ActionDispatch::IntegrationTest; end
 
 # a basic active model compliant model we can render
 class Foo
