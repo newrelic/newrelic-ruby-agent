@@ -72,7 +72,7 @@ if !defined?(MyApp)
       config.middleware.use ErrorMiddleware
     end
     initializer "install_middleware_by_name" do
-      config.middleware.use "NamedMiddleware"
+      config.middleware.use NamedMiddleware
     end
     initializer "install_middleware_instance" do
       config.middleware.use InstanceMiddleware.new
