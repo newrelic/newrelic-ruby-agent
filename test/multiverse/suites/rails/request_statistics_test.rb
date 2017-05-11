@@ -23,7 +23,7 @@ class RequestStatsController < ApplicationController
   end
 end
 
-class RequestStatsTest < RailsMultiverseTest
+class RequestStatsTest < ActionDispatch::IntegrationTest
   extend Multiverse::Color
 
   include MultiverseHelpers

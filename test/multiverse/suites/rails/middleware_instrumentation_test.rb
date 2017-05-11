@@ -8,7 +8,7 @@ require './app'
 
 if Rails::VERSION::MAJOR.to_i >= 3
 
-class MiddlewareInstrumentationTest < RailsMultiverseTest
+class MiddlewareInstrumentationTest < ActionDispatch::IntegrationTest
   def test_rails_middleware_records_metrics
     get('/')
     assert_metrics_recorded(

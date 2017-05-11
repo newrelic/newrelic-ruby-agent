@@ -23,7 +23,7 @@ class QueueController < ApplicationController
   add_transaction_tracer :nested_transaction
 end
 
-class QueueTimeTest < RailsMultiverseTest
+class QueueTimeTest < ActionDispatch::IntegrationTest
 
   REQUEST_START_HEADER = 'HTTP_X_REQUEST_START'
 

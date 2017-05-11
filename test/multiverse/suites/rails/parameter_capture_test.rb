@@ -33,7 +33,7 @@ class ParameterCaptureController < ApplicationController
   end
 end
 
-class ParameterCaptureTest < RailsMultiverseTest
+class ParameterCaptureTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
   setup_and_teardown_agent
 

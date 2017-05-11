@@ -83,7 +83,7 @@ class ViewsController < ApplicationController
   end
 end
 
-class ViewInstrumentationTest < RailsMultiverseTest
+class ViewInstrumentationTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
 
   setup_and_teardown_agent do

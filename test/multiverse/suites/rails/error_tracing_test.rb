@@ -75,7 +75,7 @@ class ErrorController < ApplicationController
   end
 end
 
-class ErrorsWithoutSSCTest < RailsMultiverseTest
+class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   extend Multiverse::Color
 
   include MultiverseHelpers

@@ -19,7 +19,7 @@ class TransactionIgnorerController < ApplicationController
 
 end
 
-class TransactionIgnoringTest < RailsMultiverseTest
+class TransactionIgnoringTest < ActionDispatch::IntegrationTest
 
   include MultiverseHelpers
   include TransactionIgnoringTestCases

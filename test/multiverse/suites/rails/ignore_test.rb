@@ -34,7 +34,7 @@ class ChildController < ParentController
 end
 
 
-class IgnoredActionsTest < RailsMultiverseTest
+class IgnoredActionsTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
 
   setup_and_teardown_agent(:cross_process_id => "boo",
