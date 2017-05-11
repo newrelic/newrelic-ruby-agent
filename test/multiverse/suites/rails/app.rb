@@ -22,7 +22,7 @@ module RequestHelpersCompatibility
 end
 
 if Rails::VERSION::MAJOR.to_i < 5
-  ActionDispatch::Integration::Session.prepend RequestHelpersCompatibility
+  ActionDispatch::Integration::Session.send :prepend, RequestHelpersCompatibility
 end
 
 # a basic active model compliant model we can render
