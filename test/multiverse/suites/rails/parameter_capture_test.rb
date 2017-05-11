@@ -227,10 +227,13 @@ class ParameterCaptureTest < RailsMultiverseTest
       expected = {
         "response.headers.contentType" => "#{response.content_type}; charset=#{response.charset}",
         "request.headers.contentLength" => request.content_length.to_i,
-        "request.headers.contentType" => request.content_type,
         "request.headers.host" => request.host,
         "request.headers.accept" => request.accept
       }
+
+      if request.content_type
+        expected["request.headers.contentType"] = request.content_type
+      end
 
       # ActionController::IntegrationTest sets this header whereas ActionDispatch::IntegrationTest
       # does not. Since we test using both we need to conditionally expect content_length to be set.
