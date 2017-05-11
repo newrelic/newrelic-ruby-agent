@@ -6,12 +6,12 @@ require './app'
 
 class ParameterCaptureController < ApplicationController
   def transaction
-    render :text => 'hi!'
+    render body:  'hi!'
   end
 
   def create
     raise 'problem' if params[:raise]
-    render :text => 'created'
+    render body:  'created'
   end
 
   def sql

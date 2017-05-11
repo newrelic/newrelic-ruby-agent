@@ -13,7 +13,7 @@ class TransactionIgnorerController < ApplicationController
     NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
                                  "Database/test/select",
                                  nil, 1.5, state) if params[:slow_sql]
-    render :text => 'some stuff'
+    render body:  'some stuff'
   end
 
 

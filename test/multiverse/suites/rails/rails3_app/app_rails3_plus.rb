@@ -95,5 +95,19 @@ if !defined?(MyApp)
     get '/:controller(/:action(/:id))'
   end
 
-  class ApplicationController < ActionController::Base; end
+  class ApplicationController < ActionController::Base
+    # The :text option to render was deprecated in Rails 4.1 in favor of :body.
+    # With the patch below we can write our tests using render :body but have
+    # that converted to render :text for Rails versions that do not support
+    # render :body.
+    if Rails::VERSION::STRING < "4.1.0"
+      def render *args
+        options = args.first
+        if Hash === options && options.key?(:body)
+          options[:text] = options.delete(:body)
+        end
+        super
+      end
+    end
+  end
 end

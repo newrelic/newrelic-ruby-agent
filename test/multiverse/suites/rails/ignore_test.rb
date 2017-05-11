@@ -11,11 +11,11 @@ class IgnoredController < ApplicationController
   newrelic_ignore_apdex :only => :action_to_ignore_apdex
 
   def action_to_ignore
-    render :text => "Ignore this"
+    render body:  "Ignore this"
   end
 
   def action_to_ignore_apdex
-    render :text => "This too"
+    render body:  "This too"
   end
 end
 

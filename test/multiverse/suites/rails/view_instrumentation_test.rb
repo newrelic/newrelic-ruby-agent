@@ -23,7 +23,7 @@ class ViewsController < ApplicationController
   end
 
   def text_render
-    render :text => "Yay"
+    render body:  "Yay"
   end
 
   def json_render
@@ -46,7 +46,7 @@ class ViewsController < ApplicationController
   end
 
   def nothing_render
-    render :nothing => true
+    render body: nil
   end
 
   def inline_render

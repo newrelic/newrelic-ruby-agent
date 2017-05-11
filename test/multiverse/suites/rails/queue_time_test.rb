@@ -9,13 +9,13 @@ require './app'
 class QueueController < ApplicationController
   def queued
     respond_to do |format|
-      format.html { render :text => "<html><head></head><body>Queued</body></html>" }
+      format.html { render body:  "<html><head></head><body>Queued</body></html>" }
     end
   end
 
   def nested
     nested_transaction
-    render :text => 'whatever'
+    render body:  'whatever'
   end
 
   def nested_transaction; end

@@ -48,16 +48,16 @@ class ErrorController < ApplicationController
 
   def string_noticed_error
     NewRelic::Agent.notice_error("trilobites died out millions of years ago")
-    render :text => 'trilobites'
+    render body: 'trilobites'
   end
 
   def noticed_error
     NewRelic::Agent.notice_error(RuntimeError.new('this error should be noticed'))
-    render :text => "Shoulda noticed an error"
+    render body: "Shoulda noticed an error"
   end
 
   def middleware_error
-    render :text => 'everything went great'
+    render body: 'everything went great'
   end
 
   def error_with_custom_params
@@ -67,7 +67,7 @@ class ErrorController < ApplicationController
 
   def noticed_error_with_trace_only
     NewRelic::Agent.notice_error("Raise the gates!", :trace_only => true)
-    render :text => 'Runner 5'
+    render body: 'Runner 5'
   end
 
   if Rails::VERSION::MAJOR == 2
