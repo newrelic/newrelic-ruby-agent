@@ -6,8 +6,6 @@
 
 require './app'
 
-if Rails::VERSION::MAJOR.to_i >= 3
-
 class MiddlewareInstrumentationTest < ActionDispatch::IntegrationTest
   def test_rails_middleware_records_metrics
     get('/')
@@ -36,6 +34,4 @@ class MiddlewareInstrumentationTest < ActionDispatch::IntegrationTest
       assert_metrics_recorded('Middleware/Rack/InstanceMiddleware/call')
     end
   end
-end
-
 end

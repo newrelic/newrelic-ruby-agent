@@ -26,11 +26,6 @@ class ParameterCaptureController < ApplicationController
   def error
     raise 'wut'
   end
-
-  # For Rails 3+, this is configured globally in the config block for the app
-  if Rails::VERSION::MAJOR == 2
-    filter_parameter_logging(:secret)
-  end
 end
 
 class ParameterCaptureTest < ActionDispatch::IntegrationTest
@@ -251,50 +246,47 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
       assert_equal(expected, actual)
   end
 
+  def test_params_tts_should_be_filtered_when_serviced_by_rack_app
+    params = {"secret" => "shhhhhhh", "name" => "name"}
+    with_config(:capture_params => true) do
+      post '/filtering_test/', params: params
+    end
 
-  if Rails::VERSION::MAJOR > 2
-    def test_params_tts_should_be_filtered_when_serviced_by_rack_app
-      params = {"secret" => "shhhhhhh", "name" => "name"}
-      with_config(:capture_params => true) do
-        post '/filtering_test/', params: params
-      end
+    expected = {
+      "request.parameters.secret" => "[FILTERED]",
+      "request.parameters.name" => "name"
+    }
+    assert_equal expected, last_transaction_trace_request_params
+  end
+
+  def test_params_on_errors_should_be_filtered_when_serviced_by_rack_app
+    params = {"secret" => "shhhhhhh", "name" => "name"}
+    with_config(:capture_params => true) do
+      post '/filtering_test?raise=1', params: params
 
       expected = {
         "request.parameters.secret" => "[FILTERED]",
-        "request.parameters.name" => "name"
+        "request.parameters.name" => "name",
+        "request.parameters.raise" => "1"
       }
-      assert_equal expected, last_transaction_trace_request_params
-    end
 
-    def test_params_on_errors_should_be_filtered_when_serviced_by_rack_app
-      params = {"secret" => "shhhhhhh", "name" => "name"}
-      with_config(:capture_params => true) do
-        post '/filtering_test?raise=1', params: params
-
-        expected = {
-          "request.parameters.secret" => "[FILTERED]",
-          "request.parameters.name" => "name",
-          "request.parameters.raise" => "1"
-        }
-
-        attributes = agent_attributes_for_single_error_posted
-        expected.each do |key, value|
-          assert_equal value, attributes[key]
-        end
+      attributes = agent_attributes_for_single_error_posted
+      expected.each do |key, value|
+        assert_equal value, attributes[key]
       end
-    end
-
-    def test_parameter_filtering_should_not_mutate_argument
-      input = { "foo" => "bar", "secret" => "baz" }
-      env   = { "action_dispatch.parameter_filter" => ["secret"] }
-      filtered = NewRelic::Agent::ParameterFiltering.apply_filters(env, input)
-
-      assert_equal({ "foo" => "bar", "secret" => "[FILTERED]" }, filtered)
-      assert_equal({ "foo" => "bar", "secret" => "baz" }, input)
     end
   end
 
-  if Rails::VERSION::MAJOR > 2 && defined?(Sinatra)
+  def test_parameter_filtering_should_not_mutate_argument
+    input = { "foo" => "bar", "secret" => "baz" }
+    env   = { "action_dispatch.parameter_filter" => ["secret"] }
+    filtered = NewRelic::Agent::ParameterFiltering.apply_filters(env, input)
+
+    assert_equal({ "foo" => "bar", "secret" => "[FILTERED]" }, filtered)
+    assert_equal({ "foo" => "bar", "secret" => "baz" }, input)
+  end
+
+  if defined?(Sinatra)
     def test_params_tts_should_be_filtered_when_serviced_by_sinatra_app
       with_config(:capture_params => true) do
         get '/sinatra_app/',
