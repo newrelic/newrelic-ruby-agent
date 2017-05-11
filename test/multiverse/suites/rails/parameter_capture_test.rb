@@ -307,8 +307,8 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
       with_config(:capture_params => true) do
         get '/sinatra_app?raise=1',
           params: {
-            "secret": "shhhhhhh",
-            "name": "name"
+            "secret" => "shhhhhhh",
+            "name" => "name"
           }
         attributes = agent_attributes_for_single_error_posted
         assert_equal "[FILTERED]", attributes["request.parameters.secret"]
