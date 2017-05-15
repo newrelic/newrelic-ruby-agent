@@ -26,16 +26,17 @@ if RUBY_VERSION < '2.4.0'
     gem 'rails', '~>4.1.10'
     # Multiverse has an incompatibility with Minitest 5.3.0, so lock here for
     # now
-    gem 'minitest', '5.2.3'
-
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
+    gem 'minitest', '5.2.3'
+    gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
   RB
 
   gemfile <<-RB
     gem 'rails', '~>4.0.13'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
+    gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
   RB
 
   gemfile <<-RB
