@@ -2,6 +2,10 @@
 
 ## v4.2.0 ##
 
+  * Sinatra 2.0 and Padrino 0.14.x Support
+
+  The agent has been verified against the latest versions of Sinatra and Padrino.
+
   * Rails 5.1 Support
 
   The Ruby agent has been validated against the latest release of Ruby on Rails!
