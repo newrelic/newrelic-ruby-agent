@@ -61,6 +61,7 @@ env:
     - TYPE=UNIT ENVIRONMENT=rails41
     - TYPE=UNIT ENVIRONMENT=rails42
     - TYPE=UNIT ENVIRONMENT=rails50
+    - TYPE=UNIT ENVIRONMENT=rails51
     - TYPE=UNIT ENVIRONMENT=norails
     - TYPE=FUNCTIONAL GROUP=agent
     - TYPE=FUNCTIONAL GROUP=api
@@ -123,6 +124,8 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails23
     - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails50
+    - rvm: 2.1.10
+      env: TYPE=UNIT ENVIRONMENT=rails51
 
     # 2.0
     - rvm: 2.0.0-p648
@@ -133,6 +136,8 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails23
     - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails50
+    - rvm: 2.0.0-p648
+      env: TYPE=UNIT ENVIRONMENT=rails51
 
     # jruby 9.0
     - rvm: jruby-9.1.8.0

@@ -11,11 +11,11 @@ class IgnoredController < ApplicationController
   newrelic_ignore_apdex :only => :action_to_ignore_apdex
 
   def action_to_ignore
-    render :text => "Ignore this"
+    render body:  "Ignore this"
   end
 
   def action_to_ignore_apdex
-    render :text => "This too"
+    render body:  "This too"
   end
 end
 
@@ -34,7 +34,7 @@ class ChildController < ParentController
 end
 
 
-class IgnoredActionsTest < RailsMultiverseTest
+class IgnoredActionsTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
 
   setup_and_teardown_agent(:cross_process_id => "boo",
@@ -66,7 +66,8 @@ class IgnoredActionsTest < RailsMultiverseTest
   end
 
   def test_should_not_write_cat_response_headers_for_ignored_transactions
-    get '/ignored/action_to_ignore', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
+    get '/ignored/action_to_ignore',
+      headers: {'X-NewRelic-ID' => Base64.encode64('1#234')}
     assert_nil @response.headers["X-NewRelic-App-Data"]
   end
 

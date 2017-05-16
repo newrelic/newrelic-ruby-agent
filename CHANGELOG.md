@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+## v4.2.0 ##
+
+  * Rails 5.1 Support
+
+  The Ruby agent has been validated against the latest release of Ruby on Rails!
+
 ## v4.1.0 ##
 
   * Developer Mode removed

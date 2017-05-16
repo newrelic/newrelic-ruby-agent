@@ -23,7 +23,7 @@ class ViewsController < ApplicationController
   end
 
   def text_render
-    render :text => "Yay"
+    render body:  "Yay"
   end
 
   def json_render
@@ -46,7 +46,7 @@ class ViewsController < ApplicationController
   end
 
   def nothing_render
-    render :nothing => true
+    render body: nil
   end
 
   def inline_render
@@ -83,7 +83,7 @@ class ViewsController < ApplicationController
   end
 end
 
-class ViewInstrumentationTest < RailsMultiverseTest
+class ViewInstrumentationTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
 
   setup_and_teardown_agent do
@@ -98,10 +98,6 @@ class ViewInstrumentationTest < RailsMultiverseTest
   end
 
   (ViewsController.action_methods - ['raise_render']).each do |method|
-
-    # proc rendering doesn't work on Rails 2
-    next if method == 'proc_render' && Rails::VERSION::MAJOR <= 2
-
     define_method("test_sanity_#{method}") do
       get "/views/#{method}"
       assert_equal 200, status
@@ -117,12 +113,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
       sample = NewRelic::Agent.agent.transaction_sampler.last_sample
       nodes = find_all_nodes_with_name_matching(sample, ['^Nested/Controller/views', '^View'])
       nodes_list = "Found these nodes:\n  #{nodes.map(&:metric_name).join("\n  ")}"
-
-      if Rails::VERSION::MAJOR <= 2
-        assert_equal 8, nodes.length, "Should be a node for the controller action, the template, and 3 partials with two nodes each (8). #{nodes_list}"
-      else
-        assert_equal 5, nodes.length, "Should be a node for the controller action, the template, and 3 partials (5). #{nodes_list}"
-      end
+      assert_equal 5, nodes.length, "Should be a node for the controller action, the template, and 3 partials (5). #{nodes_list}"
     end
 
     def test_should_have_3_nodes_with_the_correct_metric_name
@@ -135,35 +126,32 @@ class ViewInstrumentationTest < RailsMultiverseTest
       assert_equal ['View/views/_a_partial.html.erb/Partial'], partial_nodes.map(&:metric_name).uniq
     end
 
-    # We don't capture text or inline template rendering on Rails 2
-    if Rails::VERSION::MAJOR >= 3
-      def test_should_create_a_metric_for_the_rendered_inline_template
-        get '/views/inline_render'
+    def test_should_create_a_metric_for_the_rendered_inline_template
+      get '/views/inline_render'
+
+      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+      text_node = find_node_with_name(sample, 'View/inline template/Rendering')
+
+      assert text_node, "Failed to find a node named View/inline template/Rendering"
+      assert_metrics_recorded('View/inline template/Rendering')
+    end
+
+    # It doesn't seem worth it to get consistent behavior here.
+    if Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0
+      def test_should_not_instrument_rendering_of_text
+        get '/views/text_render'
+        sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+        refute find_node_with_name(sample, 'View/text template/Rendering')
+      end
+    else
+      def test_should_create_a_metric_for_the_rendered_text
+        get '/views/text_render'
 
         sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-        text_node = find_node_with_name(sample, 'View/inline template/Rendering')
+        text_node = find_node_with_name(sample, 'View/text template/Rendering')
 
-        assert text_node, "Failed to find a node named View/inline template/Rendering"
-        assert_metrics_recorded('View/inline template/Rendering')
-      end
-
-      # It doesn't seem worth it to get consistent behavior here.
-      if Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0
-        def test_should_not_instrument_rendering_of_text
-          get '/views/text_render'
-          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-          refute find_node_with_name(sample, 'View/text template/Rendering')
-        end
-      else
-        def test_should_create_a_metric_for_the_rendered_text
-          get '/views/text_render'
-
-          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-          text_node = find_node_with_name(sample, 'View/text template/Rendering')
-
-          assert text_node, "Failed to find a node named View/text template/Rendering"
-          assert_metrics_recorded('View/text template/Rendering')
-        end
+        assert text_node, "Failed to find a node named View/text template/Rendering"
+        assert_metrics_recorded('View/text template/Rendering')
       end
     end
 
@@ -183,7 +171,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
 
       # Different versions have significant difference in handling, but we're
       # happy enough with what each of them does in the unknown case
-      if Rails::VERSION::MAJOR.to_i < 3 || (Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0)
+      if Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0
         refute find_node_with_name_matching(sample, /^View/)
       elsif Rails::VERSION::MAJOR.to_i == 3
         assert find_node_with_name(sample, 'View/collection/Partial')
@@ -199,7 +187,6 @@ class ViewInstrumentationTest < RailsMultiverseTest
     end
 
     [:js_render, :xml_render, :proc_render, :json_render ].each do |action|
-      next if action == :proc_render && Rails::VERSION::MAJOR <= 2
       define_method("test_should_not_instrument_rendering_of_#{action}") do
         get "/views/#{action}"
         sample = NewRelic::Agent.agent.transaction_sampler.last_sample
@@ -208,15 +195,11 @@ class ViewInstrumentationTest < RailsMultiverseTest
       end
     end
 
-    # The Rails 2.3 view instrumentation doesn't actually pass this test, but it
-    # hasn't been a problem thus far, so we're letting it slide.
-    if Rails::VERSION::MAJOR >= 3
-      def test_should_create_a_metric_for_rendered_file_that_does_not_include_the_filename_so_it_doesnt_metric_explode
-        get '/views/file_render'
-        sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-        assert find_node_with_name(sample, 'View/file/Rendering')
-        refute find_node_with_name_matching(sample, 'dummy')
-      end
+    def test_should_create_a_metric_for_rendered_file_that_does_not_include_the_filename_so_it_doesnt_metric_explode
+      get '/views/file_render'
+      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+      assert find_node_with_name(sample, 'View/file/Rendering')
+      refute find_node_with_name_matching(sample, 'dummy')
     end
 
     def test_exclusive_time_for_template_render_metrics_should_not_include_partial_rendering_time
@@ -236,12 +219,7 @@ class ViewInstrumentationTest < RailsMultiverseTest
 
       scope = 'Controller/views/render_with_delays'
       template_metric = 'View/views/index.html.erb/Rendering'
-
-      if Rails::VERSION::MAJOR <= 2
-        partial_metric  = 'View/views/_a_partial.html.erb/Rendering'
-      else
-        partial_metric  = 'View/views/_a_partial.html.erb/Partial'
-      end
+      partial_metric  = 'View/views/_a_partial.html.erb/Partial'
 
       assert_metrics_recorded(
          partial_metric           => expected_stats_partial,

@@ -1,0 +1,23 @@
+source 'https://rubygems.org'
+
+gem 'rake', '< 11'
+
+gem 'rails', '5.1.0'
+
+gem 'minitest', '5.2.3'
+gem 'mocha', '1.1', :require => false
+gem 'rack'
+gem 'rack-test'
+
+platforms :jruby do
+  gem "jruby-openssl"
+end
+
+platforms :ruby do
+  gem "mysql2"
+end
+
+gem "newrelic_rpm", :path => "../../.."
+
+gem 'pry', '~> 0.9.12'
+gem 'hometown', '~> 0.2.5'
