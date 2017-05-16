@@ -1,3 +1,11 @@
+if RUBY_VERSION >= '2.2.0'
+  gemfile <<-RB
+    gem 'activesupport', '~> 3'
+    gem 'padrino', '~> 0.14.0'
+    gem 'rack-test', :require => 'rack/test'
+  RB
+end
+
 gemfile <<-RB
   gem 'activesupport', '~> 3'
   gem 'padrino', '~> 0.13.0'
