@@ -165,7 +165,7 @@ class NewRelic::NoticedError
       @exception_class_name = UNKNOWN_ERROR_CLASS_NAME
       @message = NIL_ERROR_MESSAGE
     else
-      if defined?(Rails) && Rails::VERSION::MAJOR < 5 && exception.respond_to?(:original_exception)
+      if defined?(Rails::VERSION) && Rails::VERSION::MAJOR < 5 && exception.respond_to?(:original_exception)
         exception = exception.original_exception || exception
       end
       @exception_class_name = exception.is_a?(Exception) ? exception.class.name : UNKNOWN_ERROR_CLASS_NAME
