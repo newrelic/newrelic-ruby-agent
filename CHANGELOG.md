@@ -14,6 +14,11 @@
 
   The agent will now consider the APP_ENV environment when starting up.
 
+  * Test files excluded from gem
+
+  The gemspec has been updated to exclude test files from being packaged into the
+  gem. Thanks dimko for the contribution!
+
 ## v4.1.0 ##
 
   * Developer Mode removed
