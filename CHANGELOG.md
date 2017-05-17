@@ -10,6 +10,10 @@
 
   The Ruby agent has been validated against the latest release of Ruby on Rails!
 
+  * APP_ENV considered when determining environment
+
+  The agent will now consider the APP_ENV environment when starting up.
+
 ## v4.1.0 ##
 
   * Developer Mode removed
