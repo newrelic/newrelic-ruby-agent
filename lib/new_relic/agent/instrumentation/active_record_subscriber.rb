@@ -14,14 +14,36 @@ module NewRelic
         CACHED_QUERY_NAME = 'CACHE'.freeze
 
         def initialize
+          define_cachedp_method
           # We cache this in an instance variable to avoid re-calling method
           # on each query.
           @explainer = method(:get_explain_plan)
           super
         end
 
+        # The cached? method is dynamically defined based on ActiveRecord version.
+        # This file can and often is required before ActiveRecord is loaded. For
+        # that reason we define the cache? method in initialize. The behavior
+        # difference is that AR 5.1 includes a key in the payload to check,
+        # where older versions set the :name to CACHE.
+
+        def define_cachedp_method
+          # we don't expect this to be called more than once, but we're being
+          # defensive.
+          return if defined?(cached?)
+          if ::ActiveRecord::VERSION::STRING >= "5.1.0"
+            def cached?(payload)
+              payload.fetch(:cached, false)
+            end
+          else
+            def cached?(payload)
+              payload[:name] == CACHED_QUERY_NAME
+            end
+          end
+        end
+
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
-          return if payload[:name] == CACHED_QUERY_NAME
+          return if cached?(payload)
           return unless NewRelic::Agent.tl_is_execution_traced?
           config = active_record_config(payload)
           event = ActiveRecordEvent.new(name, Time.now, nil, id, payload, @explainer, config)
@@ -31,7 +53,7 @@ module NewRelic
         end
 
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
-          return if payload[:name] == CACHED_QUERY_NAME
+          return if cached?(payload)
           return unless state.is_execution_traced?
           event = pop_event(id)
           event.finish
@@ -109,8 +131,8 @@ module NewRelic
           # See comment for start_segment as we continue to work around limitations of the
           # current tracer in this method.
           def finish
-            if state.current_transaction
-              state.traced_method_stack.push_segment state, @segment
+            if txn = state.current_transaction
+              txn.add_segment @segment
             end
             @segment.finish
           end

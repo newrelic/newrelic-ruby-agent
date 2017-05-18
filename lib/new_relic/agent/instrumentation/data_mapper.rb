@@ -184,8 +184,11 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           return unless state.is_execution_traced?
 
-          duration = msg.duration / 1000000.0
-          NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, nil, duration, state)
+          txn = state.current_transaction
+
+          if txn && txn.current_segment.respond_to?(:notice_sql)
+            txn.current_segment.notice_sql msg.query
+          end
         ensure
           super
         end

@@ -45,13 +45,12 @@ module NewRelic
                             :request          => event.request,
                             :filtered_params  => filter(event.payload[:params]),
                             :apdex_start_time => event.queue_start,
-                            :transaction_name => event.metric_name)
+                            :transaction_name => event.metric_name,
+                            :ignore_apdex     => event.apdex_ignored?,
+                            :ignore_enduser   => event.enduser_ignored?)
         end
 
         def stop_transaction(event)
-          txn = state.current_transaction
-          txn.ignore_apdex!   if event.apdex_ignored?
-          txn.ignore_enduser! if event.enduser_ignored?
           Transaction.stop(state)
         end
 

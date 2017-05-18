@@ -147,12 +147,18 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     assert_equal(1, hash[specs[3]].call_count)
   end
 
-  def test_marshal_dump
-    @hash.record(NewRelic::MetricSpec.new('foo'), 1)
-    @hash.record(NewRelic::MetricSpec.new('bar'), 2)
-    copy = Marshal.load(Marshal.dump(@hash))
-    assert_equal(@hash, copy)
-    assert_equal(@hash.started_at, copy.started_at)
+  # Marshal.load is broken on current versions of Jruby, but it has been reported
+  # and will be fixed in JRuby 9.1.9.0. This conditional be removed after it's
+  # released. See: https://github.com/jruby/jruby/issues/4526.
+  if RUBY_ENGINE == 'ruby' || RUBY_ENGINE == 'jruby' && JRUBY_VERSION >= "9.1.9.0"
+    def test_marshal_dump
+      @hash.record(NewRelic::MetricSpec.new('foo'), 1)
+      @hash.record(NewRelic::MetricSpec.new('bar'), 2)
+
+      copy = Marshal.load(Marshal.dump(@hash))
+      assert_equal(@hash, copy)
+      assert_equal(@hash.started_at, copy.started_at)
+    end
   end
 
   # We can only fix up the default proc on Rubies that let us set it

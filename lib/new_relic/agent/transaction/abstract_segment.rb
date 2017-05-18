@@ -7,13 +7,18 @@ module NewRelic
     class Transaction
       class AbstractSegment
         attr_reader :start_time, :end_time, :duration, :exclusive_duration
-        attr_accessor :name, :children_time, :transaction
+        attr_accessor :name, :parent, :children_time, :transaction
+        attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
 
         def initialize name=nil
           @name = name
           @children_time = 0.0
           @record_metrics = true
+          @record_scoped_metric = true
           @transaction = nil
+          @parent = nil
+          @record_on_finish = false
+          @params = nil
         end
 
         def start
@@ -25,8 +30,9 @@ module NewRelic
           @duration = end_time.to_f - start_time.to_f
           @exclusive_duration = duration - children_time
           if transaction
-            record_metrics if record_metrics?
+            record_metrics if record_metrics? && record_on_finish?
             segment_complete
+            parent.child_complete self if parent
             transaction.segment_complete self
           end
         rescue => e
@@ -40,12 +46,24 @@ module NewRelic
           @record_metrics
         end
 
-        def record_metrics= value
-          @record_metrics = value
+        def record_scoped_metric?
+          @record_scoped_metric
+        end
+
+        def record_on_finish?
+          @record_on_finish
         end
 
         def record_metrics
           raise NotImplementedError, "Subclasses must implement record_metrics"
+        end
+
+        def params
+          @params ||= {}
+        end
+
+        def params?
+          !!@params
         end
 
         INSPECT_IGNORE = [:@transaction, :@transaction_state].freeze
@@ -57,10 +75,21 @@ module NewRelic
           sprintf('#<%s:0x%x %s>', self.class.name, object_id, ivars.join(', '))
         end
 
+        protected
+
+        def child_complete segment
+          if segment.record_metrics?
+            self.children_time += segment.duration
+          else
+            self.children_time += segment.children_time
+          end
+        end
+
         private
 
         # callback for subclasses to override
         def segment_complete
+          raise NotImplementedError
         end
 
         def metric_cache

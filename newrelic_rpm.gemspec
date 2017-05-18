@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.0.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Tim Krajcar", "Matthew Wear", "Katherine Wu", "Kenichi Nakamura" ]
+  s.authors = [ "Tim Krajcar", "Matthew Wear", "Kenichi Nakamura", "Chris Pine" ]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.licenses    = ['New Relic']
   s.description = <<-EOS
@@ -31,7 +31,7 @@ EOS
     "newrelic.yml"
   ]
 
-  file_list = `git ls-files`.split
+  file_list = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   build_file_path = 'lib/new_relic/build.rb'
   file_list << build_file_path if File.exist?(build_file_path)
   s.files = file_list

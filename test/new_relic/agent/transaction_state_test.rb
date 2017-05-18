@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/transaction'
+require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/transaction_state'
 
 module NewRelic::Agent
@@ -69,12 +70,6 @@ module NewRelic::Agent
 
       assert_equal(false, state.is_cross_app_caller?)
       assert_equal(false, state.is_cross_app_callee?)
-    end
-
-    def test_reset_forces_traced_method_stack_clear
-      state.traced_method_stack.push_frame(state, :reset_me)
-      state.reset
-      assert_empty state.traced_method_stack
     end
 
     def test_reset_doesnt_touch_record_tt

@@ -2,8 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/traced_method_stack'
-
 module NewRelic
   module Agent
 
@@ -35,7 +33,6 @@ module NewRelic
 
       def initialize
         @untraced = []
-        @traced_method_stack = TracedMethodStack.new
         @current_transaction = nil
         @record_tt = nil
         @record_sql = nil
@@ -51,7 +48,6 @@ module NewRelic
         @request = nil
         @current_transaction = transaction
 
-        @traced_method_stack.clear
 
         @is_cross_app_caller = false
         @client_cross_app_id = nil
@@ -146,10 +142,6 @@ module NewRelic
 
       # Sql Sampler Transaction Data
       attr_accessor :sql_sampler_transaction_data
-
-      # Scope stack tracking from NewRelic::StatsEngine::Transactions
-      # Should not be nil--this class manages its initialization and resetting
-      attr_reader :traced_method_stack
     end
   end
 end

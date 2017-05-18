@@ -1473,4 +1473,50 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       assert txn.payload[:error], "Expected error to be recorded"
     end
   end
+
+  def test_nesting_max_depth_increments
+    state = NewRelic::Agent::TransactionState.tl_get
+
+    txn = in_transaction do |t|
+      assert_equal 1, t.nesting_max_depth
+      NewRelic::Agent::Transaction.start state, :other, :transaction_name => "inner_1"
+      assert_equal 2, t.nesting_max_depth
+      NewRelic::Agent::Transaction.start state, :other, :transaction_name => "inner_2"
+      assert_equal 3, t.nesting_max_depth
+      NewRelic::Agent::Transaction.stop(state)
+      NewRelic::Agent::Transaction.stop(state)
+    end
+
+    assert_equal 3, txn.nesting_max_depth
+  end
+
+  def test_set_transaction_name_for_nested_transactions
+    state = NewRelic::Agent::TransactionState.tl_get
+
+    in_web_transaction "Controller/Framework/webby" do |t|
+      NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "Controller/Framework/inner_1"
+      NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "Controller/Framework/inner_2"
+      segment = NewRelic::Agent::Transaction.start_segment "Ruby/my_lib/my_meth"
+      NewRelic::Agent.set_transaction_name "RackFramework/action"
+      segment.finish
+      NewRelic::Agent::Transaction.stop(state)
+      NewRelic::Agent::Transaction.stop(state)
+    end
+
+    assert_metrics_recorded_exclusive [
+      "Controller/RackFramework/action",
+      "HttpDispatcher",
+      "Apdex",
+      "ApdexAll",
+      "Apdex/RackFramework/action",
+      "Nested/Controller/Framework/webby",
+      "Nested/Controller/Framework/inner_1",
+      "Nested/Controller/RackFramework/action",
+      "Ruby/my_lib/my_meth",
+      ["Nested/Controller/Framework/webby", "Controller/RackFramework/action"],
+      ["Nested/Controller/Framework/inner_1", "Controller/RackFramework/action"],
+      ["Nested/Controller/RackFramework/action", "Controller/RackFramework/action"],
+      ["Ruby/my_lib/my_meth", "Controller/RackFramework/action"]
+    ]
+  end
 end

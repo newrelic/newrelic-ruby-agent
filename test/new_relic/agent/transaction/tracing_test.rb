@@ -15,6 +15,7 @@ module NewRelic
         end
 
         def teardown
+          unfreeze_time
           NewRelic::Agent.drop_buffered_data
         end
 
@@ -127,9 +128,33 @@ module NewRelic
 
         def test_current_segment_in_transaction
           in_transaction "test_txn" do |txn|
-            segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            assert_equal txn.initial_segment, txn.current_segment
+            ds_segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            assert_equal ds_segment, txn.current_segment
+
+            segment = Transaction.start_segment "Custom/basic/segment"
             assert_equal segment, txn.current_segment
+
             segment.finish
+            assert_equal ds_segment, txn.current_segment
+
+            ds_segment.finish
+            assert_equal txn.initial_segment, txn.current_segment
+          end
+        end
+
+        def test_segments_are_properly_parented
+          in_transaction "test_txn" do |txn|
+            assert_equal nil, txn.initial_segment.parent
+
+            ds_segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            assert_equal txn.initial_segment, ds_segment.parent
+
+            segment = Transaction.start_segment "Custom/basic/segment"
+            assert_equal ds_segment, segment.parent
+
+            segment.finish
+            ds_segment.finish
           end
         end
 
@@ -169,6 +194,114 @@ module NewRelic
             ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
         end
+
+        def test_children_time
+          in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment "metric a"
+            advance_time(0.001)
+
+            segment_b = NewRelic::Agent::Transaction.start_segment "metric b"
+            advance_time(0.002)
+
+            segment_c = NewRelic::Agent::Transaction::start_segment "metric c"
+            advance_time(0.003)
+            segment_c.finish
+            assert_equal 0, segment_c.children_time
+
+            advance_time(0.001)
+
+            segment_d = NewRelic::Agent::Transaction.start_segment "metric d"
+            advance_time(0.002)
+            segment_d.finish
+            assert_equal 0, segment_d.children_time
+
+            segment_b.finish
+            assert_in_delta(segment_c.duration + segment_d.duration, segment_b.children_time, 0.0001)
+
+            segment_a.finish
+            assert_in_delta(segment_b.duration, segment_a.children_time, 0.0001)
+          end
+        end
+
+        def test_timing_correct_with_record_metrics_false
+          in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment "metric a"
+            advance_time(0.001)
+
+            segment_b = NewRelic::Agent::Transaction.start_segment "metric b"
+            segment_b.record_metrics = false
+            advance_time(0.002)
+
+            segment_c = NewRelic::Agent::Transaction::start_segment "metric c"
+            advance_time(0.003)
+            segment_c.finish
+            assert_equal 0, segment_c.children_time
+
+            advance_time(0.001)
+
+            segment_b.finish
+            assert_in_delta(segment_c.duration, segment_b.children_time, 0.0001)
+
+            segment_a.finish
+            assert_in_delta(segment_c.duration, segment_a.children_time, 0.0001)
+            assert_in_delta(0.001 + segment_b.exclusive_duration, segment_a.exclusive_duration, 0.0001)
+          end
+        end
+
+        def test_segments_abides_by_limit_configuration
+          limit = Agent.config[:'transaction_tracer.limit_segments']
+          txn = in_transaction do
+            (limit + 10).times do |n|
+              NewRelic::Agent::Transaction.start_segment "MyCustom/segment#{n}"
+            end
+          end
+          assert_equal limit, txn.segments.size
+        end
+
+        def test_segments_retain_exclusive_time_after_surpassing_limit
+          with_config(:'transaction_tracer.limit_segments' => 2) do
+            segment_a, segment_b, segment_c = nil, nil, nil
+            in_transaction do
+              advance_time(1)
+              segment_a = NewRelic::Agent::Transaction.start_segment 'metric_a'
+              advance_time(2)
+              segment_b = NewRelic::Agent::Transaction.start_segment 'metric_b'
+              advance_time(3)
+              segment_c = NewRelic::Agent::Transaction.start_segment 'metric_c'
+              advance_time(4)
+              segment_c.finish
+              segment_b.finish
+              segment_a.finish
+            end
+
+            assert_equal 2, segment_a.exclusive_duration
+            assert_equal 9, segment_a.duration
+
+            assert_equal 3, segment_b.exclusive_duration
+            assert_equal 7, segment_b.duration
+          end
+        end
+
+        def test_segments_over_limit_still_record_metrics
+          with_config(:'transaction_tracer.limit_segments' => 2) do
+            segment_a, segment_b, segment_c = nil, nil, nil
+            in_transaction do
+              advance_time(1)
+              segment_a = NewRelic::Agent::Transaction.start_segment 'metric_a'
+              advance_time(2)
+              segment_b = NewRelic::Agent::Transaction.start_segment 'metric_b'
+              advance_time(3)
+              segment_c = NewRelic::Agent::Transaction.start_segment 'metric_c'
+              advance_time(4)
+              segment_c.finish
+              segment_b.finish
+              segment_a.finish
+            end
+
+            assert_metrics_recorded ['metric_a', 'metric_b', 'metric_c']
+          end
+        end
+
       end
     end
   end

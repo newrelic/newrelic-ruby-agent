@@ -19,10 +19,36 @@ module NewRelic
         end
 
         def record_metrics
-          metric_cache.record_scoped_and_unscoped name, duration, exclusive_duration
+          if record_scoped_metric?
+            metric_cache.record_scoped_and_unscoped name, duration, exclusive_duration
+          else
+            append_unscoped_metric name
+          end
           if unscoped_metrics
             metric_cache.record_unscoped unscoped_metrics, duration, exclusive_duration
           end
+        end
+
+        private
+
+        def append_unscoped_metric metric
+          if @unscoped_metrics
+            if Array === @unscoped_metrics
+              if unscoped_metrics.frozen?
+                @unscoped_metrics += [name]
+              else
+                @unscoped_metrics << name
+              end
+            else
+              @unscoped_metrics = [@unscoped_metrics, metric]
+            end
+          else
+            @unscoped_metrics = metric
+          end
+        end
+
+        def segment_complete
+          Agent.instance.transaction_sampler.add_node_parameters params if params?
         end
       end
     end

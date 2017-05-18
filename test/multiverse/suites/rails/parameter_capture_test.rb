@@ -6,12 +6,12 @@ require './app'
 
 class ParameterCaptureController < ApplicationController
   def transaction
-    render :text => 'hi!'
+    render body:  'hi!'
   end
 
   def create
     raise 'problem' if params[:raise]
-    render :text => 'created'
+    render body:  'created'
   end
 
   def sql
@@ -26,14 +26,9 @@ class ParameterCaptureController < ApplicationController
   def error
     raise 'wut'
   end
-
-  # For Rails 3+, this is configured globally in the config block for the app
-  if Rails::VERSION::MAJOR == 2
-    filter_parameter_logging(:secret)
-  end
 end
 
-class ParameterCaptureTest < RailsMultiverseTest
+class ParameterCaptureTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
   setup_and_teardown_agent
 
@@ -67,7 +62,8 @@ class ParameterCaptureTest < RailsMultiverseTest
 
   def test_referrer_on_traced_errors_never_contains_query_string_without_capture_params
     with_config(:capture_params => false) do
-      get '/parameter_capture/error?other=1234&secret=4567', {}, { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+      get '/parameter_capture/error?other=1234&secret=4567',
+        headers: { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
       attributes = agent_attributes_for_single_error_posted
       assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
@@ -75,7 +71,8 @@ class ParameterCaptureTest < RailsMultiverseTest
 
   def test_referrer_on_traced_errors_never_contains_query_string_even_with_capture_params
     with_config(:capture_params => true) do
-      get '/parameter_capture/error?other=1234&secret=4567', {}, { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+      get '/parameter_capture/error?other=1234&secret=4567',
+        headers: { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
       attributes = agent_attributes_for_single_error_posted
       assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
@@ -225,10 +222,13 @@ class ParameterCaptureTest < RailsMultiverseTest
       expected = {
         "response.headers.contentType" => "#{response.content_type}; charset=#{response.charset}",
         "request.headers.contentLength" => request.content_length.to_i,
-        "request.headers.contentType" => request.content_type,
         "request.headers.host" => request.host,
         "request.headers.accept" => request.accept
       }
+
+      if request.content_type
+        expected["request.headers.contentType"] = request.content_type
+      end
 
       # ActionController::IntegrationTest sets this header whereas ActionDispatch::IntegrationTest
       # does not. Since we test using both we need to conditionally expect content_length to be set.
@@ -246,53 +246,54 @@ class ParameterCaptureTest < RailsMultiverseTest
       assert_equal(expected, actual)
   end
 
+  def test_params_tts_should_be_filtered_when_serviced_by_rack_app
+    params = {"secret" => "shhhhhhh", "name" => "name"}
+    with_config(:capture_params => true) do
+      post '/filtering_test/', params: params
+    end
 
-  if Rails::VERSION::MAJOR > 2
-    def test_params_tts_should_be_filtered_when_serviced_by_rack_app
-      params = {"secret" => "shhhhhhh", "name" => "name"}
-      with_config(:capture_params => true) do
-        post '/filtering_test/', params
-      end
+    expected = {
+      "request.parameters.secret" => "[FILTERED]",
+      "request.parameters.name" => "name"
+    }
+    assert_equal expected, last_transaction_trace_request_params
+  end
+
+  def test_params_on_errors_should_be_filtered_when_serviced_by_rack_app
+    params = {"secret" => "shhhhhhh", "name" => "name"}
+    with_config(:capture_params => true) do
+      post '/filtering_test?raise=1', params: params
 
       expected = {
         "request.parameters.secret" => "[FILTERED]",
-        "request.parameters.name" => "name"
+        "request.parameters.name" => "name",
+        "request.parameters.raise" => "1"
       }
-      assert_equal expected, last_transaction_trace_request_params
-    end
 
-    def test_params_on_errors_should_be_filtered_when_serviced_by_rack_app
-      params = {"secret" => "shhhhhhh", "name" => "name"}
-      with_config(:capture_params => true) do
-        post '/filtering_test?raise=1', params
-
-        expected = {
-          "request.parameters.secret" => "[FILTERED]",
-          "request.parameters.name" => "name",
-          "request.parameters.raise" => "1"
-        }
-
-        attributes = agent_attributes_for_single_error_posted
-        expected.each do |key, value|
-          assert_equal value, attributes[key]
-        end
+      attributes = agent_attributes_for_single_error_posted
+      expected.each do |key, value|
+        assert_equal value, attributes[key]
       end
-    end
-
-    def test_parameter_filtering_should_not_mutate_argument
-      input = { "foo" => "bar", "secret" => "baz" }
-      env   = { "action_dispatch.parameter_filter" => ["secret"] }
-      filtered = NewRelic::Agent::ParameterFiltering.apply_filters(env, input)
-
-      assert_equal({ "foo" => "bar", "secret" => "[FILTERED]" }, filtered)
-      assert_equal({ "foo" => "bar", "secret" => "baz" }, input)
     end
   end
 
-  if Rails::VERSION::MAJOR > 2 && defined?(Sinatra)
+  def test_parameter_filtering_should_not_mutate_argument
+    input = { "foo" => "bar", "secret" => "baz" }
+    env   = { "action_dispatch.parameter_filter" => ["secret"] }
+    filtered = NewRelic::Agent::ParameterFiltering.apply_filters(env, input)
+
+    assert_equal({ "foo" => "bar", "secret" => "[FILTERED]" }, filtered)
+    assert_equal({ "foo" => "bar", "secret" => "baz" }, input)
+  end
+
+  if defined?(Sinatra)
     def test_params_tts_should_be_filtered_when_serviced_by_sinatra_app
       with_config(:capture_params => true) do
-        get '/sinatra_app/', "secret" => "shhhhhhh", "name" => "name"
+        get '/sinatra_app/',
+          params: {
+            "secret" => "shhhhhhh",
+            "name" => "name"
+          }
       end
 
       expected = {
@@ -304,8 +305,11 @@ class ParameterCaptureTest < RailsMultiverseTest
 
     def test_params_on_errors_should_be_filtered_when_serviced_by_sinatra_app
       with_config(:capture_params => true) do
-        get '/sinatra_app?raise=1', "secret" => "shhhhhhh", "name" => "name"
-
+        get '/sinatra_app?raise=1',
+          params: {
+            "secret" => "shhhhhhh",
+            "name" => "name"
+          }
         attributes = agent_attributes_for_single_error_posted
         assert_equal "[FILTERED]", attributes["request.parameters.secret"]
         assert_equal "name", attributes["request.parameters.name"]
@@ -315,7 +319,10 @@ class ParameterCaptureTest < RailsMultiverseTest
 
     def test_file_upload_params_are_replaced_with_placeholder
       with_config(:capture_params => true, :'transaction_tracer.transaction_threshold' => -10) do
-        post '/parameter_capture', :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
+        post '/parameter_capture',
+          params: {
+            file: Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
+          }
 
         run_harvest
 

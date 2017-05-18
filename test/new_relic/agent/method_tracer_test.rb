@@ -103,14 +103,6 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_equal '12345', TestModuleWithLog.other_method
   end
 
-  def test_record_metrics_does_not_raise_outside_transaction
-    state = NewRelic::Agent::TransactionState.tl_get
-    NewRelic::Agent::MethodTracerHelpers.record_metrics(state, 'a', ['b'], 12, 10, :metric => true)
-
-    expected = { :call_count => 1, :total_call_time => 12, :total_exclusive_time => 10 }
-    assert_metrics_recorded('a' => expected, 'b' => expected)
-  end
-
   def test_trace_execution_scoped_records_metric_data
     metric = "hello"
 

@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-class AddTimestampsToOrders < ActiveRecord::Migration
+class AddTimestampsToOrders < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration[5.0] : ActiveRecord::Migration
   def self.up
     change_table(:orders) do |t|
       t.timestamps

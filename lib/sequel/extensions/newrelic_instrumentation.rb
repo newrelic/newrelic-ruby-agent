@@ -52,21 +52,36 @@ module Sequel
       begin
         super(*args, &blk)
       ensure
-        notice_sql(sql, segment.name, segment.start_time, Time.now)
+        notice_sql(sql)
         segment.finish
       end
     end
 
+    # We notice sql through the current_segment due to the disable_all_tracing
+    # block in the sequel Plugin instrumentation. A simple ORM operation from the Plugin
+    # instrumentation may trigger a number of calls to this method. We want to append
+    # the statements that come from the disable_all_tracing block into this node's
+    # statement, otherwise we would end up ovewriting the sql statement with the
+    # last one executed.
+    def notice_sql sql
+      return unless txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
+
+      current_segment = txn.current_segment
+      return unless current_segment.is_a?(NewRelic::Agent::Transaction::DatastoreSegment)
+
+      if current_segment.sql_statement
+        current_segment.sql_statement.append_sql sql
+      else
+        current_segment._notice_sql sql, self.opts, explainer_for(sql)
+      end
+    end
 
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool)
     ].freeze
 
-    def notice_sql(sql, metric_name, start, finish)
-      state    = NewRelic::Agent::TransactionState.tl_get
-      duration = finish - start
-
-      explainer = Proc.new do |*|
+    def explainer_for sql
+      Proc.new do |*|
         if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
           self[ sql ].explain
         else
@@ -74,10 +89,7 @@ module Sequel
           nil
         end
       end
-      NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, self.opts, duration, state, explainer)
-      NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric_name, self.opts, duration, state, explainer)
     end
-
   end # module NewRelicInstrumentation
 
   NewRelic::Agent.logger.debug "Registering the :newrelic_instrumentation extension."

@@ -9,21 +9,21 @@ require './app'
 class RequestStatsController < ApplicationController
   def stats_action
     sleep 0.01
-    render :text => 'some stuff'
+    render body:  'some stuff'
   end
 
   def cross_app_action
     NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
-    render :text => 'some stuff'
+    render body:  'some stuff'
   end
 
   def stats_action_with_custom_params
     ::NewRelic::Agent.add_custom_attributes('color' => 'blue', 1 => :bar, 'bad' => {})
-    render :text => 'some stuff'
+    render body:  'some stuff'
   end
 end
 
-class RequestStatsTest < RailsMultiverseTest
+class RequestStatsTest < ActionDispatch::IntegrationTest
   extend Multiverse::Color
 
   include MultiverseHelpers
@@ -101,7 +101,7 @@ class RequestStatsTest < RailsMultiverseTest
         'HTTP_X_NEWRELIC_ID'          => Base64.encode64('1#234'),
         'HTTP_X_NEWRELIC_TRANSACTION' => Base64.encode64('["8badf00d",1]')
       }
-      get '/request_stats/cross_app_action', {}, rack_env
+      get '/request_stats/cross_app_action', headers: rack_env
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 

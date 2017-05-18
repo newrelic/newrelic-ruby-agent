@@ -571,15 +571,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       })
   end
 
-  def test_segment_skips_traced_method_stack_outside_txn
-    state = NewRelic::Agent::TransactionState.tl_get
-    stack = state.traced_method_stack
-    stack.expects(:push_segment).never
-
-    Order.create(:name => 'bob')
-  end
-
-
   ## helpers
 
   def adapter

@@ -1,6 +1,15 @@
+if RUBY_VERSION >= '2.2.0'
+  gemfile <<-RB
+    gem 'activesupport', '~> 3'
+    gem 'padrino', '~> 0.14.0'
+    gem 'rack-test', :require => 'rack/test'
+  RB
+end
+
 gemfile <<-RB
   gem 'activesupport', '~> 3'
   gem 'padrino', '~> 0.13.0'
+  gem 'sinatra', '< 2' # there is an incompatibility between padrino 0.13.3.3 and Sinatra 2.0
   gem 'rack-test', :require => 'rack/test'
 RB
 

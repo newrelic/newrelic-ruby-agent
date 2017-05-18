@@ -11,14 +11,12 @@ class BadInstrumentationController < ApplicationController
   # to fail.
   # https://newrelic.atlassian.net/browse/RUBY-1158
   def failwhale
-    state = NewRelic::Agent::TransactionState.tl_get
-    stack = state.traced_method_stack
-    stack.push_frame(state, 'failwhale')
-    render :text => 'everything went great'
+    NewRelic::Agent::Transaction.start_segment "Controller/BadInstrumentationController/failwhale"
+    render body:  'everything went great'
   end
 end
 
-class BadInstrumentationTest < RailsMultiverseTest
+class BadInstrumentationTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
   setup_and_teardown_agent
 

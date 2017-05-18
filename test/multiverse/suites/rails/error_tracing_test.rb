@@ -48,16 +48,16 @@ class ErrorController < ApplicationController
 
   def string_noticed_error
     NewRelic::Agent.notice_error("trilobites died out millions of years ago")
-    render :text => 'trilobites'
+    render body: 'trilobites'
   end
 
   def noticed_error
     NewRelic::Agent.notice_error(RuntimeError.new('this error should be noticed'))
-    render :text => "Shoulda noticed an error"
+    render body: "Shoulda noticed an error"
   end
 
   def middleware_error
-    render :text => 'everything went great'
+    render body: 'everything went great'
   end
 
   def error_with_custom_params
@@ -67,15 +67,11 @@ class ErrorController < ApplicationController
 
   def noticed_error_with_trace_only
     NewRelic::Agent.notice_error("Raise the gates!", :trace_only => true)
-    render :text => 'Runner 5'
-  end
-
-  if Rails::VERSION::MAJOR == 2
-    filter_parameter_logging(:secret)
+    render body: 'Runner 5'
   end
 end
 
-class ErrorsWithoutSSCTest < RailsMultiverseTest
+class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   extend Multiverse::Color
 
   include MultiverseHelpers
@@ -94,41 +90,39 @@ class ErrorsWithoutSSCTest < RailsMultiverseTest
     errors.last
   end
 
-  if Rails::VERSION::MAJOR >= 3
-    def test_error_collector_should_be_enabled
-      assert NewRelic::Agent.config[:agent_enabled]
-      assert NewRelic::Agent.config[:'error_collector.enabled']
-      assert @error_collector.enabled?
-    end
+  def test_error_collector_should_be_enabled
+    assert NewRelic::Agent.config[:agent_enabled]
+    assert NewRelic::Agent.config[:'error_collector.enabled']
+    assert @error_collector.enabled?
+  end
 
-    def test_should_capture_routing_error
-      get '/bad_route'
-      assert_error_reported_once('this is an uncaught routing error', nil, nil)
-    end
+  def test_should_capture_routing_error
+    get '/bad_route'
+    assert_error_reported_once('this is an uncaught routing error', nil, nil)
+  end
 
-    def test_should_capture_errors_raised_in_middleware_before_call
-      get '/error/middleware_error/before'
-      assert_error_reported_once('middleware error', nil, nil)
-    end
+  def test_should_capture_errors_raised_in_middleware_before_call
+    get '/error/middleware_error/before'
+    assert_error_reported_once('middleware error', nil, nil)
+  end
 
-    def test_should_capture_errors_raised_in_middleware_after_call
-      get '/error/middleware_error/after'
-      assert_error_reported_once('middleware error', nil, nil)
-    end
+  def test_should_capture_errors_raised_in_middleware_after_call
+    get '/error/middleware_error/after'
+    assert_error_reported_once('middleware error', nil, nil)
+  end
 
-    def test_should_capture_request_uri_and_params
-      get '/error/controller_error?eat=static'
-      assert_equal('/error/controller_error', attributes_for_single_error_posted("request_uri"))
+  def test_should_capture_request_uri_and_params
+    get '/error/controller_error?eat=static'
+    assert_equal('/error/controller_error', attributes_for_single_error_posted("request_uri"))
 
-      expected_params = {
-        'request.parameters.eat' => 'static',
-        'httpResponseCode' => '500'
-      }
+    expected_params = {
+      'request.parameters.eat' => 'static',
+      'httpResponseCode' => '500'
+    }
 
-      attributes = agent_attributes_for_single_error_posted
-      expected_params.each do |key, value|
-        assert_equal value, attributes[key]
-      end
+    attributes = agent_attributes_for_single_error_posted
+    expected_params.each do |key, value|
+      assert_equal value, attributes[key]
     end
   end
 

@@ -18,7 +18,7 @@ class LiveController < UndeadController
   include ActionController::Live
 end
 
-class ActionControllerLiveRumTest < RailsMultiverseTest
+class ActionControllerLiveRumTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
 
   JS_LOADER = "JS LOADER IN DA HOUSE"

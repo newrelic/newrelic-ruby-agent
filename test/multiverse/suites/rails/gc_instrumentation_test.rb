@@ -25,7 +25,7 @@ class GcController < ApplicationController
       puts "Timed out waiting for GC..."
     end
 
-    render :text => 'ha'
+    render body:  'ha'
   end
 end
 
