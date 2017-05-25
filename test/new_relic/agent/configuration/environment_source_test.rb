@@ -82,6 +82,12 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_arrays_are_applied
+      ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'jobs.sidekiq.args.*,jobs.resque.args.*'
+      source = EnvironmentSource.new
+      assert_equal %w| jobs.sidekiq.args.* jobs.resque.args.*  |, source[:'attributes.include']
+    end
+
     def test_set_log_config_from_environment
       ENV['NEW_RELIC_LOG'] = 'off/in/space.log'
       source = EnvironmentSource.new

@@ -94,6 +94,8 @@ module NewRelic
             elsif value != nil
               self[config_key] = true
             end
+          elsif type == Array
+            self[config_key] = value.split(',')
           else
             ::NewRelic::Agent.logger.info("#{environment_key} does not have a corresponding configuration setting (#{config_key} does not exist).")
             ::NewRelic::Agent.logger.info("Run `rake newrelic:config:docs` or visit https://newrelic.com/docs/ruby/ruby-agent-configuration to see a list of available configuration settings.")
