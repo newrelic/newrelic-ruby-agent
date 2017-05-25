@@ -9,7 +9,7 @@ module NewRelic
     end
 
     FOOTER = <<'EOS'
-    See https://github.com/newrelic/rpm/blob/master/CHANGELOG for a full list of
+    See https://github.com/newrelic/rpm/blob/master/CHANGELOG.md for a full list of
     changes.
 EOS
 
