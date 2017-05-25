@@ -53,9 +53,19 @@ module NewRelic::Rack
       NewRelic::Agent.config[:'browser_monitoring.auto_instrument'] &&
         status == 200 &&
         !env[ALREADY_INSTRUMENTED_KEY] &&
+        !is_route_ignored?(env) &&
         is_html?(headers) &&
         !is_attachment?(headers) &&
         !is_streaming?(env)
+    end
+
+    def is_route_ignored?(env)
+      return unless env['PATH_INFO']
+      return if (rules = NewRelic::Agent.config[:"rules.ignore_url_regexes"]).empty?
+
+      rules.any? do |rule|
+        env['PATH_INFO'].match(rule)
+      end
     end
 
     def is_html?(headers)
