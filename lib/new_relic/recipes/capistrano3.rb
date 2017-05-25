@@ -10,7 +10,7 @@ namespace :newrelic do
   desc "Record a deployment in New Relic (newrelic.com)"
   task :notice_deployment do
     if fetch(:newrelic_role)
-      on roles(fetch(:newrelic_role)) do
+      on primary fetch(:newrelic_role) do
         send_deployment_notification_to_newrelic
       end
     else
