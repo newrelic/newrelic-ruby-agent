@@ -22,6 +22,9 @@ module NewRelic
           end
 
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
+            if defined?(::ActiveRecord::Turntable)
+              include ::ActiveRecord::Turntable::ActiveRecordExt::AbstractAdapter
+            end
             include ::NewRelic::Agent::Instrumentation::ActiveRecord
           end
         end
