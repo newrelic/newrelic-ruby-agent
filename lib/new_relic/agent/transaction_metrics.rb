@@ -10,11 +10,11 @@
 module NewRelic
   module Agent
     class TransactionMetrics
-      DEFAULT_PROC = Proc.new { |hash, name| hash[name] = NewRelic::Agent::Stats.new }
+      DEFAULT_STATS = NewRelic::Agent::Stats.new
 
       def initialize
-        @unscoped = Hash.new(&DEFAULT_PROC)
-        @scoped   = Hash.new(&DEFAULT_PROC)
+        @unscoped = {}
+        @scoped = {}
       end
 
       # As a general rule, when recording a scoped metric, the corresponding
@@ -38,7 +38,7 @@ module NewRelic
       end
 
       def [](key)
-        @unscoped[key]
+        @unscoped.fetch(key, DEFAULT_STATS)
       end
 
       def each_unscoped
@@ -54,10 +54,10 @@ module NewRelic
         case names
         when Array
           names.each do |name|
-            target[name].record(value, aux, &blk)
+            target.fetch(name, DEFAULT_STATS).record(value, aux, &blk)
           end
         else
-          target[names].record(value, aux, &blk)
+          target.fetch(names, DEFAULT_STATS).record(value, aux, &blk)
         end
       end
     end
