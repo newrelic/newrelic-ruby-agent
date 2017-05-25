@@ -5,7 +5,7 @@ services:
 
 language: ruby
 
-sudo: required
+sudo: false
 
 before_install:
   - gem --version
