@@ -26,17 +26,19 @@ if RUBY_VERSION < '2.4.0'
   RB
 end
 
-# delayed_job_active_record 4.1.2 drops support for Rails 3
-gemfile <<~RB
-  gem 'delayed_job', '~> 4.1.0'
-  gem 'delayed_job_active_record', '~> 4.1.2'
-  gem 'activerecord', '~> 5.0.0'
-  gem 'i18n', '~> 0.7.0'
-  gem 'minitest', '~> 5.1.0'
-  #{boilerplate_gems}
-RB
+if RUBY_VERSION >= '2.2.2'
+  # delayed_job_active_record 4.1.2 drops support for Rails 3
+  gemfile <<-RB
+    gem 'delayed_job', '~> 4.1.0'
+    gem 'delayed_job_active_record', '~> 4.1.2'
+    gem 'activerecord', '~> 5.0.0'
+    gem 'i18n', '~> 0.7.0'
+    gem 'minitest', '~> 5.1.0'
+    #{boilerplate_gems}
+  RB
+end
 
-gemfile <<~RB
+gemfile <<-RB
   gem 'delayed_job', '~> 4.1.0'
   gem 'delayed_job_active_record', '~> 4.1.2'
   gem 'activerecord', '~> 4.2.0'

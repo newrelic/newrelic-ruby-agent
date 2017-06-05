@@ -32,8 +32,10 @@ if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
   # have versioned migration classes (e.g. ActiveRecord::Migration[5.0]) and those
   # less than 5.0 do not.
 
-  delayed_job_gem = Bundler.rubygems.all_specs.detect {|g| g.name == "delayed_job_active_record" }
-  dj_gem_path = delayed_job_gem.stub.full_gem_path
+  dj_gem_spec = Bundler.rubygems.loaded_specs("delayed_job_active_record") ||
+                Bundler.rubygems.loaded_specs("delayed_job")
+
+  dj_gem_path = dj_gem_spec.full_gem_path
 
   b = binding
   content = File.read("#{dj_gem_path}/lib/generators/delayed_job/templates/migration.rb")
