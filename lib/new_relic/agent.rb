@@ -47,6 +47,7 @@ module NewRelic
     require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'
     require 'new_relic/agent/database'
+    require 'new_relic/agent/datastores'
     require 'new_relic/agent/pipe_channel_manager'
     require 'new_relic/agent/configuration'
     require 'new_relic/agent/rules_engine'
