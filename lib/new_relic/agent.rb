@@ -235,6 +235,12 @@ module NewRelic
     # @api public
     #
     def notice_error(exception, options={})
+
+      if options.has_key?(:trace_only)
+        warn 'trace_only is deprecated. Please use expected_error instead.'
+        options[:expected_error] = options.delete(:trace_only)
+      end
+
       Transaction.notice_error(exception, options)
       nil # don't return a noticed error datastructure. it can only hurt.
     end
