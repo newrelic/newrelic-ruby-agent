@@ -785,10 +785,10 @@ module NewRelic
 
       def had_error_affecting_apdex?
         @exceptions.each do |exception, options|
-          ignored    = NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
-          trace_only = options[:trace_only]
+          ignored        = NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
+          expected_error = options[:expected_error]
 
-          return true unless ignored || trace_only
+          return true unless ignored || expected_error
         end
         false
       end

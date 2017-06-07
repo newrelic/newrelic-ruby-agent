@@ -211,7 +211,7 @@ module NewRelic
     # @param [Exception] exception Error you wish to send
     # @param [Hash]      options Modify how New Relic processes the error
     # @option options [Hash]    :custom_params Custom parameters to attach to the trace
-    # @option options [Boolean] :trace_only Only record the error trace
+    # @option options [Boolean] :expected_error Only record the error trace
     #                           (do not affect error rate or Apdex status)
     # @option options [String]  :uri Request path, minus request params or query string
     #                           (usually not needed)
@@ -237,7 +237,7 @@ module NewRelic
     def notice_error(exception, options={})
 
       if options.has_key?(:trace_only)
-        warn 'trace_only is deprecated. Please use expected_error instead.'
+        NewRelic::Agent.logger.log_once(:warn, :trace_only_deprecated, 'trace_only is deprecated. Please use expected_error instead.')
         options[:expected_error] = options.delete(:trace_only)
       end
 
