@@ -360,6 +360,14 @@ module NewRelic
       end
     end
 
+    def test_notice_error_deprecates_trace_only
+      log = with_array_logger(:warn) do
+        NewRelic::Agent.notice_error(StandardError.new, { trace_only: true })
+      end
+
+      assert log.array.any? {|msg| msg.include?('trace_only is deprecated') }
+    end
+
     def test_eventing_helpers
       called = false
       NewRelic::Agent.subscribe(:boo) { called = true }
