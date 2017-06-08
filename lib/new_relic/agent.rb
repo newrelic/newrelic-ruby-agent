@@ -237,7 +237,8 @@ module NewRelic
     def notice_error(exception, options={})
 
       if options.has_key?(:trace_only)
-        NewRelic::Agent.logger.log_once(:warn, :trace_only_deprecated, 'trace_only is deprecated. Please use expected_error instead.')
+        NewRelic::Agent.logger.log_once(:warn, :trace_only_deprecated, 
+          'Passing the :trace_only option to NewRelic::Agent.notice_error is deprecated. Please use :expected_error instead.')
         options[:expected_error] = options.delete(:trace_only)
       end
 
