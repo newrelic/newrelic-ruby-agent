@@ -37,10 +37,9 @@ if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
 
   dj_gem_path = dj_gem_spec.full_gem_path
 
-  b = binding
   content = File.read("#{dj_gem_path}/lib/generators/delayed_job/templates/migration.rb")
   renderer = ERB.new(content)
-  eval(renderer.result(b))
+  eval(renderer.result(binding))
 
   class CreateDelayedJobs
     @connection = $db_connection
