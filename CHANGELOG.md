@@ -1,5 +1,9 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Deprecate `:trace_only` option
+
+  The `NewRelic::Agent.notice_errors` API has been updated to deprecate the `:trace_only` option in favor of `:expected_error`.
+
 ## v4.2.0 ##
 
   * Sinatra 2.0 and Padrino 0.14.x Support
