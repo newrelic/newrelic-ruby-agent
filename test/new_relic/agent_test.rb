@@ -365,7 +365,7 @@ module NewRelic
         NewRelic::Agent.notice_error(StandardError.new, { trace_only: true })
       end
 
-      assert log.array.any? {|msg| msg.include?('trace_only is deprecated') }
+      assert log.array.any? {|msg| msg.include?('Passing the :trace_only option to NewRelic::Agent.notice_error is deprecated. Please use :expected_error instead') }
     end
 
     def test_eventing_helpers
