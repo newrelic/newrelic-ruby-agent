@@ -71,7 +71,7 @@ class ErrorController < ApplicationController
   end
 
   def noticed_error_with_expected_error
-    NewRelic::Agent.notice_error("Raise the gates!", :expected_error => true)
+    NewRelic::Agent.notice_error("Raise the gates!", :expected => true)
     render body: 'Runner 5'
   end
 end
@@ -280,7 +280,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     get '/error/noticed_error_with_expected_error'
 
     assert_equal(1, errors.size,
-                 'Error with :expected_error should have been recorded')
+                 'Error with :expected should have been recorded')
 
     assert_metrics_not_recorded([
       'Errors/all',

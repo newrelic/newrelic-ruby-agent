@@ -361,7 +361,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_expected_error_does_not_increment_metrics
-    @error_collector.notice_error(StandardError.new, :expected_error => true)
+    @error_collector.notice_error(StandardError.new, :expected => true)
     traces = harvest_error_traces
     events = harvest_error_events
 
@@ -371,7 +371,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_expected_error_not_recorded_as_custom_attribute
-    @error_collector.notice_error(StandardError.new, :expected_error => true)
+    @error_collector.notice_error(StandardError.new, :expected => true)
     traces = harvest_error_traces
     events = harvest_error_events
 
@@ -379,10 +379,10 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal 1, events.length
 
     event_attrs = events[0][1]
-    refute event_attrs.key?("expected_error"), "Unexpected attribute expected_error found in custom attributes"
+    refute event_attrs.key?("expected"), "Unexpected attribute expected found in custom attributes"
 
     trace_attrs = traces[0].attributes_from_notice_error
-    refute trace_attrs.key?(:expected_error), "Unexpected attribute expected_error found in custom attributes"
+    refute trace_attrs.key?(:expected), "Unexpected attribute expected found in custom attributes"
   end
 
   private
