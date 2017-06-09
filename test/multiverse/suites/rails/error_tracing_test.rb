@@ -69,6 +69,11 @@ class ErrorController < ApplicationController
     NewRelic::Agent.notice_error("Raise the gates!", :trace_only => true)
     render body: 'Runner 5'
   end
+
+  def noticed_error_with_expected_error
+    NewRelic::Agent.notice_error("Raise the gates!", :expected_error => true)
+    render body: 'Runner 5'
+  end
 end
 
 class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
@@ -271,12 +276,24 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_should_not_increment_metrics_on_trace_only_errors
-    get '/error/noticed_error_with_trace_only'
+  def test_should_not_increment_metrics_on_expected_error_errors
+    get '/error/noticed_error_with_expected_error'
 
     assert_equal(1, errors.size,
-                 'Error with :trace_only should have been recorded')
+                 'Error with :expected_error should have been recorded')
 
+    assert_metrics_not_recorded([
+      'Errors/all',
+      'Errors/Controller/error/noticed_error_with_expected_error'
+    ])
+
+    assert_metrics_recorded("Apdex" => { :apdex_s => 1 })
+  end
+
+  def test_should_permit_trace_only_option
+    get '/error/noticed_error_with_trace_only'
+
+    assert_equal(1, errors.size, 'Error with :trace_error should have been recorded')
     assert_metrics_not_recorded([
       'Errors/all',
       'Errors/Controller/error/noticed_error_with_trace_only'
