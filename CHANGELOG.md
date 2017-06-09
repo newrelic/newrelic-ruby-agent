@@ -2,7 +2,7 @@
 
   * Deprecate `:trace_only` option
 
-  The `NewRelic::Agent.notice_error` API has been updated to deprecate the `:trace_only` option in favor of `:expected_error`.
+  The `NewRelic::Agent.notice_error` API has been updated to deprecate the `:trace_only` option in favor of `:expected`.
 
 ## v4.2.0 ##
 
