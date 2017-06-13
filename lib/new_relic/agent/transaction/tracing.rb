@@ -37,6 +37,20 @@ module NewRelic
             segment
           end
 
+          def start_message_broker_segment action:, library:, destination_type:, destination_name:, message_properties: nil, parameters: nil
+            segment = MessageBrokerSegment.new(
+              action: action,
+              library: library,
+              destination_type: destination_type,
+              destination_name: destination_name,
+              message_properties: message_properties,
+              parameters: parameters
+            )
+            segment.start
+            add_segment segment
+            segment
+          end
+
           private
 
           def add_segment segment
