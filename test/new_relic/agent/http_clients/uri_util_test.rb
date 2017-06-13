@@ -33,12 +33,12 @@ class URIUtilTest < Minitest::Test
   end
 
   def test_filtered_uri_reflects_use_of_ssl
-    assert_filtered('https://foo.com/bar/baz',
+    assert_filtered("https://foo.com/bar/baz",
                     "https://foo.com/bar/baz")
   end
 
   def test_filtered_uri_reflects_use_of_ssl_with_custom_port
-    assert_filtered('https://foo.com:9999/bar/baz',
+    assert_filtered("https://foo.com:9999/bar/baz",
                     "https://foo.com:9999/bar/baz")
   end
 
@@ -57,8 +57,17 @@ class URIUtilTest < Minitest::Test
                     "http://foo.com/bar/baz")
   end
 
+  def test_invalid_url_normalization
+    assert_normalized("foobarbaz",
+                      "foobarbaz")
+  end
+
   def assert_filtered(original, expected)
     assert_equal(expected, NewRelic::Agent::HTTPClients::URIUtil.filter_uri(URI(original)))
+  end
+
+  def assert_normalized(original, expected)
+    assert_equal(expected, NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(URI(original)).to_s)
   end
 
 end

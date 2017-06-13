@@ -1,4 +1,9 @@
 # New Relic Ruby Agent Release Notes #
+  
+  * Safely normalize external hostnames
+
+  The agent has been updated to check for nil host values before downcasing the hostname.
+  Thanks Rafael Valério for the contribution!
 
   * Deprecate `:trace_only` option
 
