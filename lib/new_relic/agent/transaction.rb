@@ -9,6 +9,7 @@ require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
+require 'new_relic/agent/cross_app_tracing'
 
 module NewRelic
   module Agent
@@ -907,6 +908,15 @@ module NewRelic
 
       def ignore_trace?
         @ignore_trace
+      end
+
+      def add_message_cat_headers headers
+        state.is_cross_app_caller = true
+        CrossAppTracing.insert_message_headers headers,
+                                               guid,
+                                               cat_trip_id(state),
+                                               cat_path_hash(state),
+                                               raw_synthetics_header
       end
 
       private
