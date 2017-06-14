@@ -80,6 +80,55 @@ module NewRelic
             end
           end
         end
+
+        def test_segment_reads_cat_headers_from_message_properties_for_consume
+          with_config :"cross_application_tracer.enabled" => true, :cross_process_id => "321#123", :encoding_key => "abc" do
+
+            in_transaction "test_txn" do |txn|
+              obfuscated_id = obfuscator.obfuscate "321#123"
+              raw_txn_info = [txn.guid, false, txn.guid, txn.cat_path_hash(txn.state)]
+              obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
+
+              NewRelic::Agent::Transaction.start_message_broker_segment(
+                action: :consume,
+                library: "RabbitMQ",
+                destination_type: :exchange,
+                destination_name: "Default",
+                message_properties: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
+              )
+
+              assert_equal "321#123", txn.state.client_cross_app_id
+              assert_equal raw_txn_info, txn.state.referring_transaction_info
+            end
+          end
+        end
+
+        def test_segment_reads_synthetics_and_cat_headers_from_message_properties_for_consume
+          with_config :"cross_application_tracer.enabled" => true, :cross_process_id => "321#123", :encoding_key => "abc" do
+
+            in_transaction "test_txn" do |txn|
+              obfuscated_id = obfuscator.obfuscate "321#123"
+              raw_txn_info = [txn.guid, false, txn.guid, txn.cat_path_hash(txn.state)]
+              obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
+
+              NewRelic::Agent::Transaction.start_message_broker_segment(
+                action: :consume,
+                library: "RabbitMQ",
+                destination_type: :exchange,
+                destination_name: "Default",
+                message_properties: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info, "NewRelicSynthetics" => "boo" }
+              )
+
+              assert_equal "321#123", txn.state.client_cross_app_id
+              assert_equal raw_txn_info, txn.state.referring_transaction_info
+              assert_equal "boo", txn.raw_synthetics_header
+            end
+          end
+        end
+
+        def obfuscator
+          NewRelic::Agent::Transaction::MessageBrokerSegment.obfuscator
+        end
       end
     end
   end

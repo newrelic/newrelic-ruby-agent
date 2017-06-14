@@ -111,6 +111,10 @@ module NewRelic
         headers[NR_MESSAGE_BROKER_TXN_HEADER] = obfuscator.obfuscate(::JSON.dump([txn_guid, false, trip_id, path_hash]))
         headers[NR_MESSAGE_BROKER_SYNTHETICS_HEADER] = synthetics_header if synthetics_header
       end
+
+      def message_has_crossapp_request_header? headers
+        !!headers[NR_MESSAGE_BROKER_ID_HEADER]
+      end
     end
   end
 end
