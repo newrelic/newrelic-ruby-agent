@@ -1,0 +1,4 @@
+gemfile <<-RB
+  gem 'rack'
+  gem 'bunny', '~>2.6.5'
+RB
