@@ -5,7 +5,6 @@
 require File.expand_path('../../../../test_helper', __FILE__)
 
 require 'new_relic/agent/transaction'
-require 'new_relic/agent/transaction/message_broker_segment'
 
 module NewRelic
   module Agent

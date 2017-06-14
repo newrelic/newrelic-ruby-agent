@@ -5,6 +5,7 @@
 require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/transaction/datastore_segment'
 require 'new_relic/agent/transaction/external_request_segment'
+require 'new_relic/agent/transaction/message_broker_segment'
 
 module NewRelic
   module Agent
@@ -46,6 +47,35 @@ module NewRelic
               message_properties: message_properties,
               parameters: parameters
             )
+            segment.start
+            add_segment segment
+            segment
+          end
+
+          def start_amqp_publish_segment(library:,
+                                         destination_name:,
+                                         headers:,
+                                         routing_key: nil,
+                                         reply_to: nil,
+                                         correlation_id: nil,
+                                         exchange_type: nil)
+
+            original_headers = headers.dup
+
+            segment = start_message_broker_segment(
+              action: :produce,
+              library: library,
+              destination_type: :exchange,
+              destination_name: destination_name,
+              message_properties: headers
+            )
+
+            segment.params[:headers] = original_headers if original_headers
+            segment.params[:routing_key] = routing_key if routing_key
+            segment.params[:reply_to] = reply_to if reply_to
+            segment.params[:correlation_id] = correlation_id if correlation_id
+            segment.params[:exchange_type] = exchange_type if exchange_type
+
             segment.start
             add_segment segment
             segment
