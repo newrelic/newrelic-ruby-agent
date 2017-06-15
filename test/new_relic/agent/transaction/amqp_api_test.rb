@@ -10,6 +10,10 @@ module NewRelic
   module Agent
     class Transaction
       class AMQPAPITest < Minitest::Test
+        def teardown
+          NewRelic::Agent.drop_buffered_data
+        end
+
         def test_metrics_recorded_for_amqp_segment
           in_transaction "test_txn" do
             segment = NewRelic::Agent::Transaction.start_amqp_publish_segment(
