@@ -10,12 +10,11 @@ module NewRelic
   module Agent
     class Transaction
       class MessageBrokerSegmentTest < Minitest::Test
-
-        def setup
+        def teardown
           NewRelic::Agent.drop_buffered_data
         end
 
-        def test_segment_recorded_in_txn
+        def test_metrics_recorded_for_produce
           in_transaction "test_txn" do
             segment = NewRelic::Agent::Transaction.start_message_broker_segment(
               action: :produce,
@@ -29,6 +28,23 @@ module NewRelic
           assert_metrics_recorded [
             ["MessageBroker/RabbitMQ/Exchange/Produce/Named/Default", "test_txn"],
             "MessageBroker/RabbitMQ/Exchange/Produce/Named/Default"
+          ]
+        end
+
+        def test_metrics_recorded_for_consume
+          in_transaction "test_txn" do
+            segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+              action: :consume,
+              library: "RabbitMQ",
+              destination_type: :exchange,
+              destination_name: "Default"
+            )
+            segment.finish
+          end
+
+          assert_metrics_recorded [
+            ["MessageBroker/RabbitMQ/Exchange/Consume/Named/Default", "test_txn"],
+            "MessageBroker/RabbitMQ/Exchange/Consume/Named/Default"
           ]
         end
 
