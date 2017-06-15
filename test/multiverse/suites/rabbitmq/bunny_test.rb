@@ -54,6 +54,27 @@ class BunnyTest < Minitest::Test
     assert_equal "abc", node.params[:correlation_id]
   end
 
+  def test_segment_parameters_recorded_for_consume
+    x = Bunny::Exchange.new @chan, :fanout, "activity.events"
+
+    in_transaction "test_txn" do
+      x.publish "howdy", {
+        routing_key: "red",
+        headers: headers,
+        reply_to: "blue",
+        correlation_id: "abc"
+      }
+    end
+
+    node = find_node_with_name_matching last_transaction_trace, /^MessageBroker\//
+
+    assert_equal :fanout, node.params[:exchange_type]
+    assert_equal "red", node.params[:routing_key]
+    assert_equal headers, node.params[:headers]
+    assert_equal "blue", node.params[:reply_to]
+    assert_equal "abc", node.params[:correlation_id]
+  end
+
   def test_error_starting_amqp_segment_does_not_interfere_with_transaction
     NewRelic::Agent::Transaction::MessageBrokerSegment.any_instance.stubs(:start).raises(StandardError.new("Boo"))
     queue  = @chan.queue("test1")

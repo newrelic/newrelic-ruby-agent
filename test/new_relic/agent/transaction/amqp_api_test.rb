@@ -14,7 +14,7 @@ module NewRelic
           NewRelic::Agent.drop_buffered_data
         end
 
-        def test_metrics_recorded_for_amqp_segment
+        def test_metrics_recorded_for_amqp_publish
           in_transaction "test_txn" do
             segment = NewRelic::Agent::Transaction.start_amqp_publish_segment(
               library: "RabbitMQ",
@@ -27,6 +27,24 @@ module NewRelic
           assert_metrics_recorded [
             ["MessageBroker/RabbitMQ/Exchange/Produce/Named/Default", "test_txn"],
             "MessageBroker/RabbitMQ/Exchange/Produce/Named/Default"
+          ]
+        end
+
+        def test_metrics_recorded_for_amqp_consume
+          in_transaction "test_txn" do
+            segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
+              library: "RabbitMQ",
+              destination_name: "Default",
+              delivery_info: {routing_key: "foo", exchange_name: "bar"},
+              message_properties: {headers: {}}
+            )
+
+            segment.finish
+          end
+
+          assert_metrics_recorded [
+            ["MessageBroker/RabbitMQ/Exchange/Consume/Named/Default", "test_txn"],
+            "MessageBroker/RabbitMQ/Exchange/Consume/Named/Default"
           ]
         end
 
