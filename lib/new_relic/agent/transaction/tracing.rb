@@ -68,7 +68,7 @@ module NewRelic
                                          correlation_id: nil,
                                          exchange_type: nil)
 
-            original_headers = headers.dup
+            original_headers = headers.nil? ? nil : headers.dup
 
             segment = start_message_broker_segment(
               action: :produce,
