@@ -56,6 +56,8 @@ module NewRelic
             segment.start
             add_segment segment
             segment
+          rescue => e
+            NewRelic::Agent.logger.error "Exception starting message broker segment", e
           end
 
           def start_amqp_publish_segment(library:,
@@ -85,6 +87,8 @@ module NewRelic
             segment.start
             add_segment segment
             segment
+          rescue => e
+            NewRelic::Agent.logger.error "Exception starting AMQP segment", e
           end
 
           private

@@ -53,4 +53,21 @@ class BunnyTest < Minitest::Test
     assert_equal "blue", node.params[:reply_to]
     assert_equal "abc", node.params[:correlation_id]
   end
+
+  def test_error_starting_amqp_segment_does_not_interfere_with_transaction
+    NewRelic::Agent::Transaction::MessageBrokerSegment.any_instance.stubs(:start).raises(StandardError.new("Boo"))
+    queue  = @chan.queue("test1")
+    in_transaction "test_txn" do
+      #our instrumentation should error here, but not interfere with bunny
+      queue.publish("test_msg")
+       #this segment should be fine
+      segment = NewRelic::Agent::Transaction.start_segment "Custom/blah/method"
+      segment.finish
+    end
+
+    assert_metrics_recorded ["Custom/blah/method"]
+    refute_metrics_recorded [
+      "MessageBroker/RabbitMQ/Exchange/Produce/Named/Default"
+    ]
+  end
 end
