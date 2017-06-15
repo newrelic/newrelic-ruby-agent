@@ -110,9 +110,9 @@ module NewRelic
             segment.params[:headers] = message_properties[:headers] if message_properties[:headers]
             segment.params[:routing_key] = delivery_info[:routing_key] if delivery_info[:routing_key]
             segment.params[:reply_to] = message_properties[:reply_to] if message_properties[:reply_to]
+            segment.params[:queue_name] = queue_name if queue_name
             segment.params[:exchange_type] = exchange_type if exchange_type
             segment.params[:exchange_name] = delivery_info[:exchange_name] if delivery_info[:exchange_name]
-            segment.params[:subscribed] = subscribed
             segment.params[:correlation_id] = message_properties[:correlation_id] if message_properties[:correlation_id]
 
             segment.start

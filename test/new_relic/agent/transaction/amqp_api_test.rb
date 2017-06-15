@@ -68,6 +68,29 @@ module NewRelic
             assert_equal "direct", segment.params[:exchange_type]
           end
         end
+
+        def test_segment_parameters_recorded_for_consume
+          in_transaction "test_txn" do
+            message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
+            delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+
+            segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
+              library: "RabbitMQ",
+              destination_name: "Default",
+              delivery_info: delivery_info,
+              message_properties: message_properties,
+              queue_name: "yellow",
+              exchange_type: "direct"
+            )
+
+            assert_equal("red", segment.params[:routing_key])
+            assert_equal({foo: "bar"}, segment.params[:headers])
+            assert_equal("blue", segment.params[:reply_to])
+            assert_equal("abc", segment.params[:correlation_id])
+            assert_equal("direct", segment.params[:exchange_type])
+            assert_equal("yellow", segment.params[:queue_name])
+          end
+        end
       end
     end
   end
