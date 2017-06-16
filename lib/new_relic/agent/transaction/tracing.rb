@@ -91,6 +91,10 @@ module NewRelic
             NewRelic::Agent.logger.error "Exception starting AMQP segment", e
           end
 
+          ROUTING_KEY_DESTINATION = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS | 
+                                    NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER | 
+                                    NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+
           def start_amqp_consume_segment(library:,
                                          destination_name:,
                                          delivery_info:,
@@ -117,6 +121,11 @@ module NewRelic
 
             segment.start
             add_segment segment
+
+            if segment.transaction && subscribed && delivery_info[:routing_key]
+              segment.transaction.add_agent_attribute :"message.routingKey", delivery_info[:routing_key], ROUTING_KEY_DESTINATION
+            end
+
             segment
           rescue => e
             NewRelic::Agent.logger.error "Exception starting AMQP segment", e

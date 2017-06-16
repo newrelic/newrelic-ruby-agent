@@ -91,6 +91,81 @@ module NewRelic
             assert_equal("yellow", segment.params[:queue_name])
           end
         end
+
+        def test_agent_attributes_assigned_when_in_transaction_and_subscribed
+          in_transaction "test_txn" do
+            message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
+            delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+
+            segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
+              library: "RabbitMQ",
+              destination_name: "Default",
+              delivery_info: delivery_info,
+              message_properties: message_properties,
+              queue_name: "yellow",
+              exchange_type: "direct",
+              subscribed: true
+            )
+          end
+          event = last_transaction_event
+          assert_equal "red", event[2][:"message.routingKey"]
+        end
+
+        def test_agent_attributes_not_assigned_when_in_transaction_but_not_subscribed
+          in_transaction "test_txn" do
+            message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
+            delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+
+            segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
+              library: "RabbitMQ",
+              destination_name: "Default",
+              delivery_info: delivery_info,
+              message_properties: message_properties,
+              queue_name: "yellow",
+              exchange_type: "direct",
+              subscribed: false
+            )
+          end
+
+          event = last_transaction_event
+          assert_equal nil, event[2][:"message.routingKey"]
+        end
+
+        def test_agent_attributes_not_assigned_when_subscribed_but_not_in_transaction
+          message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
+          delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+
+          segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
+            library: "RabbitMQ",
+            destination_name: "Default",
+            delivery_info: delivery_info,
+            message_properties: message_properties,
+            queue_name: "yellow",
+            exchange_type: "direct",
+            subscribed: true
+          )
+
+          refute segment.transaction
+          refute last_transaction_event
+        end
+
+        def test_agent_attributes_not_assigned_when_not_subscribed_or_in_transaction
+          message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
+          delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+
+          segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
+            library: "RabbitMQ",
+            destination_name: "Default",
+            delivery_info: delivery_info,
+            message_properties: message_properties,
+            queue_name: "yellow",
+            exchange_type: "direct",
+            subscribed: false
+          )
+
+          refute segment.transaction
+          refute last_transaction_event
+        end
       end
     end
   end
