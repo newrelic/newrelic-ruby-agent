@@ -41,6 +41,32 @@ DependencyDetection.defer do
           end
         end
       end
+
+      class Queue
+        
+        alias_method :pop_without_new_relic, :pop
+
+        def pop(opts = {:manual_ack => false}, &block)
+          msg = pop_without_new_relic opts, &block
+
+          begin
+            exchange_name = msg.first.exchange.empty? ? NewRelic::Agent::Instrumentation::Bunny::DEFAULT : msg.first.exchange
+
+            segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
+              library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+              destination_name: exchange_name,
+              delivery_info: msg.first,
+              message_properties: msg[1],
+              exchange_type: channel.exchanges[msg.first.exchange].type,
+              queue_name: name
+            )
+
+            msg
+          ensure
+            segment.finish if segment
+          end
+        end
+      end
     end
   end
 end
