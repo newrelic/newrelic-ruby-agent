@@ -145,11 +145,11 @@ module NewRelic
             subscribed: true
           )
 
-          refute segment.transaction
-          refute last_transaction_event
+          refute segment.transaction, "expected nil segment.transaction, actual: #{segment.transaction}"
+          refute last_transaction_event, "expected nil last_transaction_event, actual: #{last_transaction_event}"
         end
 
-        def test_agent_attributes_not_assigned_when_not_subscribed_or_in_transaction
+        def test_agent_attributes_not_assigned_when_not_subscribed_nor_in_transaction
           message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
           delivery_info      = {routing_key: "red", exchange_name: "foobar"}
 
@@ -163,8 +163,8 @@ module NewRelic
             subscribed: false
           )
 
-          refute segment.transaction
-          refute last_transaction_event
+          refute segment.transaction, "expected nil segment.transaction, actual: #{segment.transaction}"
+          refute last_transaction_event, "expected nil last_transaction_event, actual: #{last_transaction_event}"
         end
       end
     end
