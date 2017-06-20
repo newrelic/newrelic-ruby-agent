@@ -95,8 +95,6 @@ module NewRelic
             segment.params[:correlation_id] = correlation_id if correlation_id
             segment.params[:exchange_type] = exchange_type if exchange_type
 
-            segment.start
-            add_segment segment
             segment
           rescue => e
             NewRelic::Agent.logger.error "Exception starting AMQP segment", e
@@ -135,9 +133,6 @@ module NewRelic
             segment.params[:exchange_type] = exchange_type if exchange_type
             segment.params[:exchange_name] = delivery_info[:exchange_name] if delivery_info[:exchange_name]
             segment.params[:correlation_id] = message_properties[:correlation_id] if message_properties[:correlation_id]
-
-            segment.start
-            add_segment segment
 
             if segment.transaction && subscribed && delivery_info[:routing_key]
               segment.transaction.add_agent_attribute :"message.routingKey", delivery_info[:routing_key], ROUTING_KEY_DESTINATION
