@@ -22,6 +22,7 @@ DependencyDetection.defer do
 
         def publish payload, opts = {}
           destination = name.empty? ? NewRelic::Agent::Instrumentation::Bunny::DEFAULT : name
+          opts[:headers] ||= {}
 
           segment = NewRelic::Agent::Transaction.start_amqp_publish_segment(
             library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,

@@ -1,3 +1,7 @@
+suite_condition("bunny not supported for JRuby") do
+  RUBY_PLATFORM != 'java'
+end
+
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.6.5'

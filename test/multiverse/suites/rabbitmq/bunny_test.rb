@@ -56,6 +56,7 @@ class BunnyTest < Minitest::Test
 
   def test_segment_parameters_recorded_for_consume
     x = Bunny::Exchange.new @chan, :fanout, "activity.events"
+    headers = {foo: "bar"}
 
     in_transaction "test_txn" do
       x.publish "howdy", {

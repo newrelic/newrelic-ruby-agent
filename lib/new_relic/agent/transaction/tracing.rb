@@ -123,7 +123,7 @@ module NewRelic
               library: library,
               destination_name: destination_name,
               destination_type: :exchange,
-              message_properties: message_properties
+              message_properties: message_properties[:headers]
             )
 
             segment.params[:headers] = message_properties[:headers] if message_properties[:headers]
