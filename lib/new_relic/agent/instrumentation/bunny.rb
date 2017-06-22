@@ -12,6 +12,7 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing Bunny instrumentation'
     require 'new_relic/agent/cross_app_tracing'
+    require 'new_relic/agent/messaging'
     require 'new_relic/agent/transaction/message_broker_segment'
   end
 
@@ -25,7 +26,7 @@ DependencyDetection.defer do
             destination = NewRelic::Agent::Instrumentation::Bunny.exchange_name(name)
             opts[:headers] ||= {}
 
-            segment = NewRelic::Agent::Transaction.start_amqp_publish_segment(
+            segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
               library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
               destination_name: destination,
               headers: opts[:headers],
@@ -55,7 +56,7 @@ DependencyDetection.defer do
           begin
             exchange_name = NewRelic::Agent::Instrumentation::Bunny.exchange_name(msg.first.exchange)
 
-            segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
+            segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
               library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
               destination_name: exchange_name,
               delivery_info: msg.first,
@@ -113,7 +114,7 @@ DependencyDetection.defer do
               txn_started = true
             end
 
-            segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
+            segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
                 library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
                 destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
                 delivery_info: delivery_info,
