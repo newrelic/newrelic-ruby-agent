@@ -5,6 +5,11 @@
   The agent has been updated to check for nil host values before downcasing the hostname.
   Thanks Rafael Valério for the contribution!
 
+  * Datastores required explicitly in agent
+
+  The agent has been modified to require datastores explicitly whereas previously it was required implicitly.
+  Thanks Kevin Griffin for the contribution!
+
   * Deprecate `:trace_only` option
 
   The `NewRelic::Agent.notice_error` API has been updated to deprecate the `:trace_only` option in favor of `:expected`.
