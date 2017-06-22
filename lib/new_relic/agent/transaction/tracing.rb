@@ -56,8 +56,6 @@ module NewRelic
               parameters: parameters
             )
             start_and_add_segment segment
-          rescue => e
-            NewRelic::Agent.logger.error "Exception starting message broker segment", e
           end
 
           def start_amqp_publish_segment(library: nil,
@@ -90,8 +88,6 @@ module NewRelic
             segment.params[:exchange_type] = exchange_type if exchange_type
 
             segment
-          rescue => e
-            NewRelic::Agent.logger.error "Exception starting AMQP segment", e
           end
 
           ROUTING_KEY_DESTINATION = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
@@ -133,8 +129,6 @@ module NewRelic
             end
 
             segment
-          rescue => e
-            NewRelic::Agent.logger.error "Exception starting AMQP segment", e
           end
 
           private

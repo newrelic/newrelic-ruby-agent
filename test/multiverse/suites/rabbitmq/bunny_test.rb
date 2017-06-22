@@ -211,4 +211,21 @@ class BunnyTest < Minitest::Test
 
     assert_metrics_recorded "MessageBroker/RabbitMQ/Queue/Purge/Named/test"
   end
+
+  def test_error_starting_message_broker_segment_does_not_interfere_with_transaction
+    q = @chan.queue
+    NewRelic::Agent::Transaction::MessageBrokerSegment.any_instance.stubs(:start).raises(StandardError.new("Boo"))
+
+    in_transaction "test_txn" do
+      # This should error
+      q.publish "test_msg"
+
+      #this segment should be fine
+      segment = NewRelic::Agent::Transaction.start_segment "Custom/blah/method"
+      segment.finish
+    end
+
+    assert_metrics_recorded ["Custom/blah/method"]
+    refute_metrics_recorded ["MessageBroker/RabbitMQ/Exchange/Produce/Named/Default"]
+  end
 end
