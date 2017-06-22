@@ -149,7 +149,9 @@ class BunnyTest < Minitest::Test
     cond = ConditionVariable.new
 
     msg = nil
+    exchange = @chan.direct('myDirectExchange')
     queue = @chan.queue("QQ", :exclusive => true)
+    queue.bind(exchange, routing_key: 'some.key')
 
     queue.subscribe(:block => false) do |delivery_info, properties, payload|
       lock.synchronize do
@@ -159,7 +161,7 @@ class BunnyTest < Minitest::Test
     end
 
     lock.synchronize do
-      queue.publish "hi"
+      exchange.publish "hi", routing_key: 'some.key'
       cond.wait(lock)
     end
 
@@ -182,7 +184,7 @@ class BunnyTest < Minitest::Test
     trace_node = find_node_with_name_matching tt, /^MessageBroker/
 
     # expected parameters
-    assert_equal "QQ", trace_node.params[:routing_key]
+    assert_equal "some.key", trace_node.params[:routing_key]
     assert_equal "QQ", trace_node.params[:queue_name]
     assert_equal :direct, trace_node[:exchange_type]
 
@@ -191,13 +193,13 @@ class BunnyTest < Minitest::Test
                               NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
                               NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
-    assert_equal({:"message.routingKey"=>"QQ"}, tt.attributes.agent_attributes_for(expected_destinations))
+    assert_equal({:"message.routingKey"=>"some.key"}, tt.attributes.agent_attributes_for(expected_destinations))
 
     # metrics
     assert_metrics_recorded [
-      ["MessageBroker/RabbitMQ/Exchange/Consume/Named/Default", "OtherTransaction/Message/RabbitMQ/Exchange/Named/Default"],
-      "OtherTransaction/Message/RabbitMQ/Exchange/Named/Default",
-      "MessageBroker/RabbitMQ/Exchange/Consume/Named/Default"
+      ["MessageBroker/RabbitMQ/Exchange/Consume/Named/myDirectExchange", "OtherTransaction/Message/RabbitMQ/Exchange/Named/myDirectExchange"],
+      "OtherTransaction/Message/RabbitMQ/Exchange/Named/myDirectExchange",
+      "MessageBroker/RabbitMQ/Exchange/Consume/Named/myDirectExchange"
     ]
   end
 
@@ -224,6 +226,9 @@ class BunnyTest < Minitest::Test
       segment = NewRelic::Agent::Transaction.start_segment "Custom/blah/method"
       segment.finish
     end
+
+    msg = q.pop
+    assert_equal "test_msg", msg[2]
 
     assert_metrics_recorded ["Custom/blah/method"]
     refute_metrics_recorded ["MessageBroker/RabbitMQ/Exchange/Produce/Named/Default"]

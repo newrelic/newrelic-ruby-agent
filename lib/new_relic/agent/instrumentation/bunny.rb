@@ -65,12 +65,13 @@ DependencyDetection.defer do
               queue_name: name
             )
 
-            msg
           rescue => e
             NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Queue#pop", e
           ensure
             segment.finish if segment
           end
+
+          msg
         end
 
         alias_method :purge_without_new_relic, :purge
