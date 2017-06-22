@@ -14,9 +14,7 @@ module NewRelic
         module ClassMethods
           def start_segment name, unscoped_metrics=nil
             segment = Segment.new name, unscoped_metrics
-            segment.start
-            add_segment segment
-            segment
+            start_and_add_segment segment
           end
 
           UNKNOWN_PRODUCT = "Unknown".freeze
@@ -26,9 +24,7 @@ module NewRelic
             product ||= UNKNOWN_PRODUCT
             operation ||= UNKNOWN_OPERATION
             segment = DatastoreSegment.new product, operation, collection, host, port_path_or_id, database_name
-            segment.start
-            add_segment segment
-            segment
+            start_and_add_segment segment
           end
 
           def start_external_request_segment library, uri, procedure
@@ -59,9 +55,7 @@ module NewRelic
               message_properties: message_properties,
               parameters: parameters
             )
-            segment.start
-            add_segment segment
-            segment
+            start_and_add_segment segment
           rescue => e
             NewRelic::Agent.logger.error "Exception starting message broker segment", e
           end
@@ -144,6 +138,12 @@ module NewRelic
           end
 
           private
+
+          def start_and_add_segment segment
+            segment.start
+            add_segment segment
+            segment
+          end
 
           def add_segment segment
             state = NewRelic::Agent::TransactionState.tl_get
