@@ -34,6 +34,33 @@ module NewRelic
             segment
           end
 
+          # Start a MessageBroker segment configured to trace a messaging action.
+          # Finishing this segment will handle timing and recording of the proper
+          # metrics for New Relic's messaging features..
+          #
+          # @param action [Symbol] The message broker action being traced (see
+          #   NewRelic::Agent::Transaction::MessageBrokerSegment::ACTIONS) for
+          #   all options.
+          #
+          # @param library [String] The name of the library being instrumented
+          #
+          # @param destination_type [Symbol] Type of destination (see
+          #   NewRelic::Agent::Transaction::MessageBrokerSegment::DESTINATION_TYPES)
+          #   for all options.
+          #
+          # @param destination_name [String] Name of destination (queue or
+          #   exchange name)
+          #
+          # @param message_properties [Hash] Metadata about the message and opaque
+          #   application-level data (optional)
+          #
+          # @param parameters [Hash] A hash of parameters to be attached to this
+          #   segment (optional)
+          #
+          # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
+          #
+          # @api public
+          #
           def start_message_broker_segment(action: nil,
                                            library: nil,
                                            destination_type: nil,
