@@ -170,7 +170,7 @@ class BunnyTest < Minitest::Test
     # that this test doesn't block indefinitely if something unexpected occurs.
 
     cycles = 0
-    until tt = last_transaction_trace || cycles > 10
+    until (tt = last_transaction_trace) || cycles > 10
       sleep 0.1
       cycles += 1
     end
@@ -199,5 +199,16 @@ class BunnyTest < Minitest::Test
       "OtherTransaction/Message/RabbitMQ/Exchange/Named/Default",
       "MessageBroker/RabbitMQ/Exchange/Consume/Named/Default"
     ]
+  end
+
+  def test_metrics_recorded_for_purge
+    queue  = @chan.queue("test")
+
+    in_transaction "test_txn" do
+      queue.publish "test"
+      queue.purge
+    end
+
+    assert_metrics_recorded "MessageBroker/RabbitMQ/Queue/Purge/Named/test"
   end
 end

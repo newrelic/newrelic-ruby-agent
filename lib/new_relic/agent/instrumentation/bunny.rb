@@ -65,6 +65,30 @@ DependencyDetection.defer do
             segment.finish if segment
           end
         end
+
+        alias_method :purge_without_new_relic, :purge
+
+        def purge *args
+          segment = nil
+
+          begin
+            type = server_named? ? :temporary_queue : :queue
+            segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+              action: :purge,
+              library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+              destination_type: type,
+              destination_name: name
+            )
+          rescue => e
+            NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Queue#purge", e
+          end
+
+          begin
+            purge_without_new_relic(*args)
+          ensure
+            segment.finish if segment
+          end
+        end
       end
 
       class Consumer
