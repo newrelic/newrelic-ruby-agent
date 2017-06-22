@@ -43,7 +43,6 @@ module NewRelic
         }
 
         METRIC_PREFIX      = 'MessageBroker/'.freeze
-        TRANSACTION_PREFIX = 'OtherTransaction/Message/'.freeze
 
         class << self
           def obfuscator

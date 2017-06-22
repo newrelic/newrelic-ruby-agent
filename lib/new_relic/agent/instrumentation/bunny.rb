@@ -12,12 +12,12 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing Bunny instrumentation'
     require 'new_relic/agent/cross_app_tracing'
+    require 'new_relic/agent/transaction/message_broker_segment'
   end
 
   executes do
     module Bunny
       class Exchange
-
         alias_method :publish_without_new_relic, :publish
 
         def publish payload, opts = {}
@@ -43,7 +43,6 @@ DependencyDetection.defer do
       end
 
       class Queue
-        
         alias_method :pop_without_new_relic, :pop
 
         def pop(opts = {:manual_ack => false}, &block)
@@ -67,6 +66,45 @@ DependencyDetection.defer do
           end
         end
       end
+
+      class Consumer
+        alias_method :call_without_new_relic, :call
+
+        def call *args
+          delivery_info, message_properties, _ = args
+          segment = nil
+          txn_started = false
+          state = NewRelic::Agent::TransactionState.tl_get
+
+          begin
+            unless state.current_transaction
+              txn_name = NewRelic::Agent::Instrumentation::Bunny.transaction_name delivery_info.exchange,
+                                                                                  delivery_info.routing_key
+              NewRelic::Agent::Transaction.start state, :background, transaction_name: txn_name
+              txn_started = true
+            end
+
+            segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
+                library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+                destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
+                delivery_info: delivery_info,
+                message_properties: message_properties,
+                exchange_type: channel.exchanges[delivery_info.exchange] && channel.exchanges[delivery_info.exchange].type,
+                queue_name: queue.name,
+                subscribed: true
+              )
+          rescue => e
+            NewRelic::Agent.logger.error "Error starting message broker segment in Bunny consumer", e
+          end
+
+          begin
+            call_without_new_relic(*args)
+          ensure
+            segment.finish if segment
+            NewRelic::Agent::Transaction.stop(state) if txn_started
+          end
+        end
+      end
     end
   end
 end
@@ -77,6 +115,24 @@ module NewRelic
       module Bunny
         LIBRARY = 'RabbitMQ'.freeze
         DEFAULT = 'Default'.freeze
+        SLASH   = '/'.freeze
+
+        class << self
+          def exchange_name name
+            name.empty? ? DEFAULT : name
+          end
+
+          def transaction_name exchange_name, destination_type, routing_key = nil
+            transaction_name = NewRelic::Agent::Transaction::MESSAGE_PREFIX +
+                               NewRelic::Agent::Instrumentation::Bunny::LIBRARY
+            transaction_name << SLASH
+            transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::EXCHANGE
+            transaction_name << SLASH
+            transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::NAMED
+            transaction_name << self.exchange_name(exchange_name)
+            transaction_name
+          end
+        end
       end
     end
   end
