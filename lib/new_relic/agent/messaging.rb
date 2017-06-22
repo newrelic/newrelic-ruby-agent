@@ -5,9 +5,40 @@ require 'new_relic/agent/transaction'
 
 module NewRelic
   module Agent
+    #
+    # This module contains helper methods to facilitate instrumentation of
+    # message brokers.
+    #
+    # @api public
     module Messaging
       extend self
 
+      # Start a MessageBroker segment configured to trace an AMQP publish.
+      # Finishing this segment will handle timing and recording of the proper
+      # metrics for New Relic's messaging features. This method is a convenience
+      # wrapper around NewRelic::Agent::Transaction.start_message_broker_segment.
+      #
+      # @param library [String] The name of the library being instrumented
+      #
+      # @param destination_name [String] Name of destination (exchange name)
+      #
+      # @param headers [Hash] The message headers
+      #
+      # @param routing_key [String] The routing key used for the message (optional)
+      #
+      # @param reply_to [String] A routing key for use in RPC-models for the
+      #   receiver to publish a response to (optional)
+      #
+      # @param correlation_id [String] An application-generated value to link up
+      #   request and responses in RPC-models (optional)
+      #
+      # @param exchange_type [String] Type of exchange which determines how
+      #   message are routed (optional)
+      #
+      # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
+      #
+      # @api public
+      #
       def start_amqp_publish_segment(library: nil,
                                      destination_name: nil,
                                      headers: nil,
@@ -44,6 +75,33 @@ module NewRelic
                                 NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
                                 NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
+      # Start a MessageBroker segment configured to trace an AMQP consume.
+      # Finishing this segment will handle timing and recording of the proper
+      # metrics for New Relic's messaging features. This method is a convenience
+      # wrapper around NewRelic::Agent::Transaction.start_message_broker_segment.
+      #
+      # @param library [String] The name of the library being instrumented
+      #
+      # @param destination_name [String] Name of destination (exchange name)
+      #
+      # @param delivery_info [Hash] Metadata about how the message was delivered
+      #
+      # @param message_properties [Hash] Metadata about the message and opaque
+      #   application-level data
+      #
+      # @param exchange_type [String] Type of exchange which determines how
+      #   messages are routed (optional)
+      #
+      # @param queue_name [String] The name of the queue the message was
+      #   consumed from (optional)
+      #
+      # @param subscribed [Boolean] Indicates that this trace is the result of
+      #   subscription to queue (optional)
+      #
+      # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
+      #
+      # @api public
+      #
       def start_amqp_consume_segment(library: nil,
                                      destination_name: nil,
                                      delivery_info: nil,
