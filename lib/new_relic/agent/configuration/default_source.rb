@@ -1230,6 +1230,14 @@ module NewRelic
           :allowed_from_server => false,
           :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 5.'
         },
+        :disable_bunny => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'If <code>true</code>, disables instrumentation for the bunny gem.'
+        },
         :disable_curb => {
           :default      => false,
           :public       => true,

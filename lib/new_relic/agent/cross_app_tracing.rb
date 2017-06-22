@@ -21,6 +21,10 @@ module NewRelic
       # The cross app synthetics header
       NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
 
+      NR_MESSAGE_BROKER_ID_HEADER  = 'NewRelicID'.freeze
+      NR_MESSAGE_BROKER_TXN_HEADER = 'NewRelicTransaction'.freeze
+      NR_MESSAGE_BROKER_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
+
       ###############
       module_function
       ###############
@@ -100,6 +104,16 @@ module NewRelic
 
       def valid_cross_app_id?(xp_id)
         !!(xp_id =~ /\A\d+#\d+\z/)
+      end
+
+      def insert_message_headers headers, txn_guid, trip_id, path_hash, synthetics_header
+        headers[NR_MESSAGE_BROKER_ID_HEADER]  = obfuscator.obfuscate(NewRelic::Agent.config[:cross_process_id])
+        headers[NR_MESSAGE_BROKER_TXN_HEADER] = obfuscator.obfuscate(::JSON.dump([txn_guid, false, trip_id, path_hash]))
+        headers[NR_MESSAGE_BROKER_SYNTHETICS_HEADER] = synthetics_header if synthetics_header
+      end
+
+      def message_has_crossapp_request_header? headers
+        !!headers[NR_MESSAGE_BROKER_ID_HEADER]
       end
     end
   end
