@@ -22,7 +22,7 @@ DependencyDetection.defer do
 
         def publish payload, opts = {}
           begin
-            destination = name.empty? ? NewRelic::Agent::Instrumentation::Bunny::DEFAULT : name
+            destination = NewRelic::Agent::Instrumentation::Bunny.exchange_name(name)
             opts[:headers] ||= {}
 
             segment = NewRelic::Agent::Transaction.start_amqp_publish_segment(
@@ -53,7 +53,7 @@ DependencyDetection.defer do
           msg = pop_without_new_relic opts, &block
 
           begin
-            exchange_name = msg.first.exchange.empty? ? NewRelic::Agent::Instrumentation::Bunny::DEFAULT : msg.first.exchange
+            exchange_name = NewRelic::Agent::Instrumentation::Bunny.exchange_name(msg.first.exchange)
 
             segment = NewRelic::Agent::Transaction.start_amqp_consume_segment(
               library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
