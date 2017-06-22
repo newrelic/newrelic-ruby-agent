@@ -194,6 +194,22 @@ module NewRelic
         assert NewRelic::Agent::Transaction::MessageBrokerSegment === segment
         assert_equal message_properties[:headers], segment.message_properties
       end
+
+      def test_start_message_broker_segments_returns_properly_constructed_segment
+        segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+          action: :produce,
+          library: "RabbitMQ",
+          destination_type: :exchange,
+          destination_name: "QQ"
+        )
+
+        assert NewRelic::Agent::Transaction::MessageBrokerSegment === segment
+        assert_equal "MessageBroker/RabbitMQ/Exchange/Produce/Named/QQ", segment.name
+        assert_equal :produce, segment.action
+        assert_equal "RabbitMQ", segment.library
+        assert_equal :exchange, segment.destination_type
+        assert_equal "QQ", segment.destination_name
+      end
     end
   end
 end
