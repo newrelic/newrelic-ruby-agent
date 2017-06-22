@@ -21,18 +21,22 @@ DependencyDetection.defer do
         alias_method :publish_without_new_relic, :publish
 
         def publish payload, opts = {}
-          destination = name.empty? ? NewRelic::Agent::Instrumentation::Bunny::DEFAULT : name
-          opts[:headers] ||= {}
+          begin
+            destination = name.empty? ? NewRelic::Agent::Instrumentation::Bunny::DEFAULT : name
+            opts[:headers] ||= {}
 
-          segment = NewRelic::Agent::Transaction.start_amqp_publish_segment(
-            library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-            destination_name: destination,
-            headers: opts[:headers],
-            routing_key: opts[:routing_key] || opts[:key],
-            reply_to: opts[:reply_to],
-            correlation_id: opts[:correlation_id],
-            exchange_type: type
-          )
+            segment = NewRelic::Agent::Transaction.start_amqp_publish_segment(
+              library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+              destination_name: destination,
+              headers: opts[:headers],
+              routing_key: opts[:routing_key] || opts[:key],
+              reply_to: opts[:reply_to],
+              correlation_id: opts[:correlation_id],
+              exchange_type: type
+            )
+          rescue => e
+            NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Exchange#publish", e
+          end
 
           begin
             publish_without_new_relic payload, opts
@@ -61,6 +65,8 @@ DependencyDetection.defer do
             )
 
             msg
+          rescue => e
+            NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Queue#pop", e
           ensure
             segment.finish if segment
           end
@@ -69,8 +75,6 @@ DependencyDetection.defer do
         alias_method :purge_without_new_relic, :purge
 
         def purge *args
-          segment = nil
-
           begin
             type = server_named? ? :temporary_queue : :queue
             segment = NewRelic::Agent::Transaction.start_message_broker_segment(
@@ -98,9 +102,10 @@ DependencyDetection.defer do
           delivery_info, message_properties, _ = args
           segment = nil
           txn_started = false
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = nil
 
           begin
+            state = NewRelic::Agent::TransactionState.tl_get
             unless state.current_transaction
               txn_name = NewRelic::Agent::Instrumentation::Bunny.transaction_name delivery_info.exchange,
                                                                                   delivery_info.routing_key
@@ -125,7 +130,7 @@ DependencyDetection.defer do
             call_without_new_relic(*args)
           ensure
             segment.finish if segment
-            NewRelic::Agent::Transaction.stop(state) if txn_started
+            NewRelic::Agent::Transaction.stop(state) if state && txn_started
           end
         end
       end
