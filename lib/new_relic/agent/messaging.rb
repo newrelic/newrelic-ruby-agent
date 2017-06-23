@@ -106,7 +106,7 @@ module NewRelic
           message_properties: headers
         )
 
-        segment.params[:headers] = original_headers if original_headers
+        segment.params[:headers] = original_headers if original_headers && !original_headers.empty?
         segment.params[:routing_key] = routing_key if routing_key
         segment.params[:reply_to] = reply_to if reply_to
         segment.params[:correlation_id] = correlation_id if correlation_id
@@ -168,7 +168,9 @@ module NewRelic
           message_properties: message_properties[:headers]
         )
 
-        segment.params[:headers] = message_properties[:headers] if message_properties[:headers]
+        if message_properties[:headers] && !message_properties[:headers].empty?
+          segment.params[:headers] = CrossAppTracing.reject_cat_headers message_properties[:headers]
+        end
         segment.params[:routing_key] = delivery_info[:routing_key] if delivery_info[:routing_key]
         segment.params[:reply_to] = message_properties[:reply_to] if message_properties[:reply_to]
         segment.params[:queue_name] = queue_name if queue_name

@@ -210,6 +210,38 @@ module NewRelic
         assert_equal :exchange, segment.destination_type
         assert_equal "QQ", segment.destination_name
       end
+
+      def test_headers_not_attached_to_segment_if_empty_on_produce
+        segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
+          library: "RabbitMQ",
+          destination_name: "Default",
+          headers: {}
+        )
+        refute segment.params[:headers], "expected no :headers key in segment params"
+      end
+
+      def test_headers_not_attached_to_segment_if_empty_on_consume
+        segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
+          library: "RabbitMQ",
+          destination_name: "Default",
+          delivery_info: {routing_key: "foo", exchange_name: "bar"},
+          message_properties: {headers: {}}
+        )
+        refute segment.params[:headers], "expected no :headers key in segment params"
+      end
+
+      def test_consume_segments_filter_out_CAT_headers_from_parameters
+        segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
+          library: "RabbitMQ",
+          destination_name: "Default",
+          delivery_info: {routing_key: "foo", exchange_name: "bar"},
+          message_properties: {headers: {'hi' => 'there', 'NewRelicID' => '123#456', 'NewRelicTransaction' => 'abcdef'}}
+        )
+        refute segment.params[:headers].key?('NewRelicID'), "expected segment params to not have CAT header 'NewRelicID'"
+        refute segment.params[:headers].key?('NewRelicTransaction'), "expected segment params to not have CAT header 'NewRelicTransaction'"
+        assert segment.params[:headers].key?('hi'), "expected segment params to have application defined headers"
+        assert_equal 'there', segment.params[:headers]['hi']
+      end
     end
   end
 end
