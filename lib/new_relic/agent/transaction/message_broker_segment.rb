@@ -14,6 +14,7 @@ module NewRelic
         NAMED    = 'Named/'.freeze
         PRODUCE  = 'Produce'.freeze
         QUEUE    = 'Queue'.freeze
+        PURGE    = 'Purge'.freeze
         SLASH    = '/'.freeze
         TEMP     = 'Temp'.freeze
         TOPIC    = 'Topic'.freeze
@@ -32,7 +33,8 @@ module NewRelic
 
         ACTIONS = {
           consume: CONSUME,
-          produce: PRODUCE
+          produce: PRODUCE,
+          purge: PURGE
         }
 
         TYPES = {
@@ -43,7 +45,6 @@ module NewRelic
         }
 
         METRIC_PREFIX      = 'MessageBroker/'.freeze
-        TRANSACTION_PREFIX = 'OtherTransaction/Message/'.freeze
 
         class << self
           def obfuscator
