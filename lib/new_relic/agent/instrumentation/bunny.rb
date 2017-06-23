@@ -59,7 +59,7 @@ DependencyDetection.defer do
             segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
               library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
               destination_name: exchange_name,
-              delivery_info: msg.first,
+              delivery_info: msg[0],
               message_properties: msg[1],
               exchange_type: channel.exchanges[msg.first.exchange].type,
               queue_name: name
