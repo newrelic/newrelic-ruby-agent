@@ -169,7 +169,8 @@ module NewRelic
         )
 
         if message_properties[:headers] && !message_properties[:headers].empty?
-          segment.params[:headers] = CrossAppTracing.reject_cat_headers message_properties[:headers]
+          non_cat_headers = CrossAppTracing.reject_cat_headers message_properties[:headers]
+          segment.params[:headers] = non_cat_headers unless non_cat_headers.empty?
         end
         segment.params[:routing_key] = delivery_info[:routing_key] if delivery_info[:routing_key]
         segment.params[:reply_to] = message_properties[:reply_to] if message_properties[:reply_to]

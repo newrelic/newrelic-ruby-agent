@@ -242,6 +242,16 @@ module NewRelic
         assert segment.params[:headers].key?('hi'), "expected segment params to have application defined headers"
         assert_equal 'there', segment.params[:headers]['hi']
       end
+
+      def test_consume_segments_do_not_attach_empty_after_filtering_headers
+        segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
+          library: "RabbitMQ",
+          destination_name: "Default",
+          delivery_info: {routing_key: "foo", exchange_name: "bar"},
+          message_properties: {headers: {'NewRelicID' => '123#456', 'NewRelicTransaction' => 'abcdef'}}
+        )
+        refute segment.params[:headers], "expected no :headers key in segment params"
+      end
     end
   end
 end
