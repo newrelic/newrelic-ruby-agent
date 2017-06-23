@@ -1,5 +1,9 @@
 # New Relic Ruby Agent Release Notes #
-  
+
+  * Instrumentation for the Bunny AMQP Client
+
+  The agent now provides instrumentation for the Bunny AMQP Client.
+
   * Safely normalize external hostnames
 
   The agent has been updated to check for nil host values before downcasing the hostname.
