@@ -54,7 +54,6 @@ DependencyDetection.defer do
           msg = pop_without_new_relic opts, &block
 
           begin
-            require 'pry-byebug'; binding.pry
             exchange_name = NewRelic::Agent::Instrumentation::Bunny.exchange_name(msg.first.exchange)
 
             # msg[1] is an immutable MessageProperties instance that mimics a Hash interface
