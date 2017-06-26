@@ -64,6 +64,8 @@ class BunnyTest < Minitest::Test
       refute event[0].has_key?("nr.tripId"), "Event should not have key 'nr.tripId'"
       refute event[0].has_key?("nr.pathHash"), "Event should not have key 'nr.pathHash'"
       refute event[0].has_key?("nr.referringPathHash"), "Event should not have key 'nr.referringPathHash'"
+
+      assert_metrics_not_recorded ["ClientApplication/#{cross_process_id}/all"]
     end
   end
 
