@@ -60,7 +60,7 @@ DependencyDetection.defer do
               library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
               destination_name: exchange_name,
               delivery_info: msg[0],
-              message_properties: msg[1],
+              message_properties: NewRelic::Agent::CrossAppTracing.reject_cat_headers(msg[1]),
               exchange_type: channel.exchanges[msg.first.exchange].type,
               queue_name: name
             )
