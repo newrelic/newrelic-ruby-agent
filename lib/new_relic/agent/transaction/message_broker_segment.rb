@@ -103,7 +103,7 @@ module NewRelic
             consume_message_headers
           end
         rescue => e
-          NewRelic::Agent.logger.error "Error during message header processsing", e
+          NewRelic::Agent.logger.error "Error during message header processing", e
         end
 
         private
