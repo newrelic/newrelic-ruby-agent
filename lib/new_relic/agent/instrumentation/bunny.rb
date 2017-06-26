@@ -54,13 +54,20 @@ DependencyDetection.defer do
           msg = pop_without_new_relic opts, &block
 
           begin
+            require 'pry-byebug'; binding.pry
             exchange_name = NewRelic::Agent::Instrumentation::Bunny.exchange_name(msg.first.exchange)
+
+            # msg[1] is an immutable MessageProperties instance that mimics a Hash interface
+            # to_hash here so that we can update the headers and sneakily remove any CAT key/values
+            # N.B. this then requires that all subsequent usage uses Hash accessors
+            non_cat_message_properties = msg[1].to_hash
+            non_cat_message_properties[:headers] = NewRelic::Agent::CrossAppTracing.reject_cat_headers non_cat_message_properties[:headers]
 
             segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
               library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
               destination_name: exchange_name,
               delivery_info: msg[0],
-              message_properties: NewRelic::Agent::CrossAppTracing.reject_cat_headers(msg[1]),
+              message_properties: non_cat_message_properties,
               exchange_type: channel.exchanges[msg.first.exchange].type,
               queue_name: name
             )
