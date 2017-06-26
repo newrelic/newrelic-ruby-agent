@@ -94,7 +94,7 @@ module NewRelic
         # ruby 2.0.0 does not support required kwargs
         raise ArgumentError, 'missing required argument: library' if library.nil?
         raise ArgumentError, 'missing required argument: destination_name' if destination_name.nil?
-        raise ArgumentError, 'missing required argument: headers' if headers.nil?
+        raise ArgumentError, 'missing required argument: headers' if headers.nil? && NewRelic::Agent::CrossAppTracing.cross_app_enabled?
 
         original_headers = headers.nil? ? nil : headers.dup
 
