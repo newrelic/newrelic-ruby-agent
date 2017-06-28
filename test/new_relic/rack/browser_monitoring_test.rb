@@ -102,6 +102,15 @@ EOL
     end
   end
 
+  def test_should_not_inject_javascript_when_transaction_ignored
+    with_config(:'rules.ignore_url_regexes' => ['^/ignore/path']) do
+      get '/ignore/path'
+
+      app.stubs(:should_instrument?).returns(true)
+      app.expects(:autoinstrument_source).never
+    end
+  end
+
   def test_insert_header_should_mark_environment
     get '/'
     assert last_request.env.key?(NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY)
