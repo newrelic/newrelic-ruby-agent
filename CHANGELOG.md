@@ -1,5 +1,9 @@
 # New Relic Ruby Agent Release Notes #
 
+  * JavaScript not injected if transaction ignored
+
+  The agent now checks if transaction is ignored before sending up JavaScript to browser.
+
   * Instrumentation for the Bunny AMQP Client
 
   The agent now provides instrumentation for the Bunny AMQP Client.
