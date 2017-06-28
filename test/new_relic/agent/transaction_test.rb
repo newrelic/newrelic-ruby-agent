@@ -1053,6 +1053,17 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_not_recorded(['Controller/boom'])
   end
 
+  def test_start_ignores_transactions_from_ignored_paths
+    with_config(:rules => { :ignore_url_regexes => ['ignored/path'] }) do
+      req = mock('request')
+      req.stubs(:path).returns('ignored/path')
+
+      in_transaction(request: req) do |txn|
+        assert txn.ignore?
+      end
+    end
+  end
+
   def test_stop_safe_from_exceptions
     NewRelic::Agent::Transaction.any_instance.stubs(:stop).raises("Haha")
     expects_logging(:error, any_parameters)
@@ -1078,15 +1089,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_transaction do |txn|
         txn.stubs(:request_path).returns(rule + '/path')
         assert txn.user_defined_rules_ignore?, "Paths should be ignored based on user defined rules. Rule: '#{rule}', Path: '#{txn.request_path}'."
-      end
-    end
-  end
-
-  def test_stop_ignores_transactions_from_ignored_paths
-    with_config(:rules => { :ignore_url_regexes => ['ignored/path'] }) do
-      in_transaction do |txn|
-        txn.stubs(:request_path).returns('ignored/path')
-        txn.expects(:ignore!)
       end
     end
   end

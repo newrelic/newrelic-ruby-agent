@@ -411,6 +411,8 @@ module NewRelic
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
+        ignore! if user_defined_rules_ignore?
+
         create_initial_segment @default_name
       end
 
@@ -489,7 +491,6 @@ module NewRelic
       def stop(state, end_time, outermost_frame)
         return if !state.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
-        ignore! if user_defined_rules_ignore?
 
         if nesting_max_depth == 1
           outermost_frame.name = @frozen_name
