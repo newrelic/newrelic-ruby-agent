@@ -27,8 +27,12 @@ module NewRelic
         state
       end
 
-      def self.tl_clear_for_testing
+      def self.tl_clear
         Thread.current[:newrelic_transaction_state] = nil
+      end
+
+      def self.tl_clear_for_testing
+        tl_clear
       end
 
       def initialize

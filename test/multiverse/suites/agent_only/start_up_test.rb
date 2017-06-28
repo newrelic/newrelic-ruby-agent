@@ -67,6 +67,29 @@ class StartUpTest < Minitest::Test
     assert_equal('my great app', NewRelic::Agent.config[:app_name])
   end
 
+  def test_after_fork_clears_existing_transactions
+    read, write = IO.pipe
+
+    NewRelic::Agent.manual_start(:app_name => 'my great app')
+
+    in_transaction "outer txn" do
+      pid = Process.fork do
+        read.close
+        NewRelic::Agent.after_fork
+
+        txn_name = NewRelic::Agent::TransactionState.tl_get.transaction_name
+        Marshal.dump(txn_name, write)
+      end
+      write.close
+      result = read.read
+      Process.wait(pid)
+
+      inner_txn_name = Marshal.load(result)
+
+      assert_nil inner_txn_name
+    end
+  end
+
   # Older rubies have a lot of warnings that we don't care much about. Track it
   # going forward from Ruby 2.1.
   if RUBY_VERSION >= "2.1"
