@@ -38,10 +38,11 @@ module NewRelic
         }
 
         TYPES = {
-          exchange: EXCHANGE,
-          queue:    QUEUE,
-          topic:    TOPIC,
-          unknown:  EXCHANGE
+          exchange:        EXCHANGE,
+          temporary_queue: QUEUE,
+          queue:           QUEUE,
+          topic:           TOPIC,
+          unknown:         EXCHANGE
         }
 
         METRIC_PREFIX      = 'MessageBroker/'.freeze
@@ -103,7 +104,7 @@ module NewRelic
             consume_message_headers
           end
         rescue => e
-          NewRelic::Agent.logger.error "Error during message header processsing", e
+          NewRelic::Agent.logger.error "Error during message header processing", e
         end
 
         private
@@ -122,6 +123,7 @@ module NewRelic
             decode_id
             decode_txn_info
             assign_synthetics_header
+            assign_transaction_attributes
           end
         rescue => e
           NewRelic::Agent.logger.error "Error in consume_message_headers", e
@@ -134,7 +136,10 @@ module NewRelic
                        else
                          obfuscator.deobfuscate(encoded_id)
                        end
-          transaction_state.client_cross_app_id = decoded_id
+          if NewRelic::Agent::CrossAppTracing.valid_cross_app_id? decoded_id
+            transaction_state.client_cross_app_id = decoded_id
+            append_unscoped_metric "ClientApplication/#{decoded_id}/all"
+          end
         end
 
         def decode_txn_info
@@ -151,6 +156,16 @@ module NewRelic
         def assign_synthetics_header
           if synthetics_header = message_properties[NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER]
             transaction.raw_synthetics_header = synthetics_header
+          end
+        end
+
+        def assign_transaction_attributes
+          if transaction_state.client_cross_app_id
+            transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, transaction_state.client_cross_app_id)
+          end
+
+          if referring_guid = transaction_state.referring_transaction_info && transaction_state.referring_transaction_info[0]
+            transaction.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
           end
         end
       end
