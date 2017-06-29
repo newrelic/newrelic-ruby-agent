@@ -30,7 +30,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def teardown
-    NewRelic::Agent::TransactionState.tl_clear_for_testing
+    NewRelic::Agent::TransactionState.tl_clear
     NewRelic::Agent.config.reset_to_defaults
   end
 

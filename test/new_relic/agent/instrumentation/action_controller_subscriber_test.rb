@@ -41,7 +41,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.clear_stats
     NewRelic::Agent.manual_start
-    NewRelic::Agent::TransactionState.tl_clear_for_testing
+    NewRelic::Agent::TransactionState.tl_clear
   end
 
   def teardown

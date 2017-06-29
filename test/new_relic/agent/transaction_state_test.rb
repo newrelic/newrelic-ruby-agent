@@ -12,12 +12,12 @@ module NewRelic::Agent
     attr_reader :state
 
     def setup
-      TransactionState.tl_clear_for_testing
+      TransactionState.tl_clear
       @state = TransactionState.tl_get
     end
 
     def teardown
-      TransactionState.tl_clear_for_testing
+      TransactionState.tl_clear
     end
 
     def test_without_transaction_stack_on_thread

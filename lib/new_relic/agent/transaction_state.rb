@@ -31,10 +31,6 @@ module NewRelic
         Thread.current[:newrelic_transaction_state] = nil
       end
 
-      def self.tl_clear_for_testing
-        tl_clear
-      end
-
       def initialize
         @untraced = []
         @current_transaction = nil
