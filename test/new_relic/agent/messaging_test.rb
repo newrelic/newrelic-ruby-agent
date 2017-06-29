@@ -97,21 +97,17 @@ module NewRelic
         end
       end
 
-      def test_agent_attributes_assigned_when_in_transaction_and_subscribed
-        in_transaction "test_txn" do
-          message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
-          delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+      def test_agent_attributes_assigned_for_generic_wrap_consume_transaction
+        tap = mock 'tap'
+        tap.expects :tap
 
-          NewRelic::Agent::Messaging.start_amqp_consume_segment(
-            library: "RabbitMQ",
-            destination_name: "Default",
-            delivery_info: delivery_info,
-            message_properties: message_properties,
-            queue_name: "yellow",
-            exchange_type: "direct",
-            subscribed: true
-          )
-        end
+        NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
+          library: "RabbitMQ",
+          destination_type: :exchange,
+          destination_name: "Default",
+          attributes: {:'message.routingKey' => 'red'}
+        ) { tap.tap }
+
         event = last_transaction_event
         assert Array === event, "expected Array, actual: #{event.class}"
         assert_equal 3, event.length, "expected Array of 3 elements, actual: #{event.length}"
@@ -131,32 +127,12 @@ module NewRelic
             delivery_info: delivery_info,
             message_properties: message_properties,
             queue_name: "yellow",
-            exchange_type: "direct",
-            subscribed: false
+            exchange_type: "direct"
           )
         end
 
         event = last_transaction_event
         assert_equal nil, event[2][:"message.routingKey"]
-      end
-
-      def test_agent_attributes_not_assigned_when_subscribed_but_not_in_transaction
-        message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
-        delivery_info      = {routing_key: "red", exchange_name: "foobar"}
-
-        segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
-          library: "RabbitMQ",
-          destination_name: "Default",
-          delivery_info: delivery_info,
-          message_properties: message_properties,
-          queue_name: "yellow",
-          exchange_type: "direct",
-          subscribed: true
-        )
-
-        refute segment.transaction, "expected nil segment.transaction, actual: #{segment.transaction.inspect}"
-        event = last_transaction_event
-        refute event, "expected nil last_transaction_event, actual: #{event.inspect}"
       end
 
       def test_agent_attributes_not_assigned_when_not_subscribed_nor_in_transaction
@@ -169,8 +145,7 @@ module NewRelic
           delivery_info: delivery_info,
           message_properties: message_properties,
           queue_name: "yellow",
-          exchange_type: "direct",
-          subscribed: false
+          exchange_type: "direct"
         )
 
         refute segment.transaction, "expected nil segment.transaction, actual: #{segment.transaction}"
@@ -187,8 +162,7 @@ module NewRelic
           delivery_info: delivery_info,
           message_properties: message_properties,
           queue_name: "yellow",
-          exchange_type: "direct",
-          subscribed: false
+          exchange_type: "direct"
         )
 
         assert NewRelic::Agent::Transaction::MessageBrokerSegment === segment
@@ -251,6 +225,27 @@ module NewRelic
           message_properties: {headers: {'NewRelicID' => '123#456', 'NewRelicTransaction' => 'abcdef'}}
         )
         refute segment.params[:headers], "expected no :headers key in segment params"
+      end
+
+      def test_agent_attributes_assigned_for_amqp_wrap_consume_transaction
+        tap = mock 'tap'
+        tap.expects :tap
+
+        NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
+          library: "AwesomeBunniez",
+          destination_name: "MyExchange",
+          delivery_info: {routing_key: 'blue'},
+          message_properties: {reply_to: 'reply.key', correlation_id: 'correlate'},
+          exchange_type: :fanout,
+          queue_name: 'some.queue',
+        ) { tap.tap }
+
+        event = last_transaction_event
+        assert_equal "blue", event[2][:'message.routingKey']
+        assert_equal "reply.key", event[2][:'message.replyTo']
+        assert_equal "correlate", event[2][:'message.correlationId']
+        assert_equal :fanout, event[2][:'message.exchangeType']
+        assert_equal "some.queue", event[2][:'message.queueName']
       end
     end
   end
