@@ -156,6 +156,9 @@ module NewRelic
 
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
           "jdbcpostgresql" => "Postgres",
+          
+          # https://rubygems.org/gems/activerecord-postgis-adapter
+          "postgis"    => "Postgres",
 
           # https://rubygems.org/gems/activerecord-jdbcsqlite3-adapter
           "jdbcsqlite3"    => "SQLite",
@@ -197,7 +200,8 @@ module NewRelic
             "jdbcmysql"  => :mysql,
 
             "postgresql"     => :postgres,
-            "jdbcpostgresql" => :postgres
+            "jdbcpostgresql" => :postgres,
+            "postgis"        => :postgres
           }.freeze
 
           DATASTORE_DEFAULT_PORTS = {
