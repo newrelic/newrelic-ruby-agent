@@ -182,6 +182,24 @@ module NewRelic
           end
         end
 
+        def test_sets_start_time_from_constructor
+          t = Time.now
+
+          segment = MessageBrokerSegment.new action: :produce,
+                                             library: "RabbitMQ",
+                                             destination_type: :exchange,
+                                             destination_name: "Default",
+                                             start_time: t
+          assert_equal t, segment.start_time
+
+          segment = NewRelic::Agent::Transaction.start_message_broker_segment action: :produce,
+                                                                              library: "RabbitMQ",
+                                                                              destination_type: :exchange,
+                                                                              destination_name: "Default",
+                                                                              start_time: t
+          assert_equal t, segment.start_time
+        end
+
         def obfuscator
           NewRelic::Agent::Transaction::MessageBrokerSegment.obfuscator
         end

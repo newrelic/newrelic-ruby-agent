@@ -36,6 +36,10 @@ module NewRelic
       # @param parameters [Hash] A hash of parameters to be attached to this
       #   segment (optional)
       #
+      # @param start_time [Time] An instance of Time class denoting the start
+      #   time of the segment. Value is set by AbstractSegment#start if not
+      #   given. (optional)
+      #
       # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
       #
       # @api public
@@ -45,7 +49,8 @@ module NewRelic
                                        destination_type: nil,
                                        destination_name: nil,
                                        message_properties: nil,
-                                       parameters: nil)
+                                       parameters: nil,
+                                       start_time: nil)
 
         NewRelic::Agent::Transaction.start_message_broker_segment(
           action: action,
@@ -53,7 +58,8 @@ module NewRelic
           destination_type: destination_type,
           destination_name: destination_name,
           message_properties: message_properties,
-          parameters: parameters
+          parameters: parameters,
+          start_time: start_time
         )
       end
 
@@ -79,6 +85,10 @@ module NewRelic
       # @param exchange_type [String] Type of exchange which determines how
       #   message are routed (optional)
       #
+      # @param start_time [Time] An instance of Time class denoting the start
+      #   time of the segment. Value is set by AbstractSegment#start if not
+      #   given. (optional)
+      #
       # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
       #
       # @api public
@@ -89,7 +99,8 @@ module NewRelic
                                      routing_key: nil,
                                      reply_to: nil,
                                      correlation_id: nil,
-                                     exchange_type: nil)
+                                     exchange_type: nil,
+                                     start_time: nil)
 
         # ruby 2.0.0 does not support required kwargs
         raise ArgumentError, 'missing required argument: library' if library.nil?
@@ -103,7 +114,8 @@ module NewRelic
           library: library,
           destination_type: :exchange,
           destination_name: destination_name,
-          message_properties: headers
+          message_properties: headers,
+          start_time: start_time
         )
 
         segment.params[:headers] = original_headers if original_headers && !original_headers.empty?
@@ -142,6 +154,10 @@ module NewRelic
       # @param subscribed [Boolean] Indicates that this trace is the result of
       #   subscription to queue (optional)
       #
+      # @param start_time [Time] An instance of Time class denoting the start
+      #   time of the segment. Value is set by AbstractSegment#start if not
+      #   given. (optional)
+      #
       # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
       #
       # @api public
@@ -152,7 +168,8 @@ module NewRelic
                                      message_properties: nil,
                                      exchange_type: nil,
                                      queue_name: nil,
-                                     subscribed: false)
+                                     subscribed: false,
+                                     start_time: nil)
 
         # ruby 2.0.0 does not support required kwargs
         raise ArgumentError, 'missing required argument: library' if library.nil?
@@ -165,7 +182,8 @@ module NewRelic
           library: library,
           destination_name: destination_name,
           destination_type: :exchange,
-          message_properties: message_properties[:headers]
+          message_properties: message_properties[:headers],
+          start_time: start_time
         )
 
         if message_properties[:headers] && !message_properties[:headers].empty?

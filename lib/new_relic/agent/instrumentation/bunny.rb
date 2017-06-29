@@ -51,6 +51,7 @@ DependencyDetection.defer do
         alias_method :pop_without_new_relic, :pop
 
         def pop(opts = {:manual_ack => false}, &block)
+          t0 = Time.now
           msg = pop_without_new_relic opts, &block
 
           begin
@@ -68,7 +69,8 @@ DependencyDetection.defer do
               delivery_info: msg[0],
               message_properties: non_cat_message_properties,
               exchange_type: channel.exchanges[msg.first.exchange].type,
-              queue_name: name
+              queue_name: name,
+              start_time: t0
             )
 
           rescue => e

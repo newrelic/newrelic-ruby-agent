@@ -59,7 +59,13 @@ module NewRelic
                     :library,
                     :message_properties
 
-        def initialize action: nil, library: nil, destination_type: nil, destination_name: nil, message_properties: nil, parameters: nil
+        def initialize action: nil,
+                       library: nil,
+                       destination_type: nil,
+                       destination_name: nil,
+                       message_properties: nil,
+                       parameters: nil,
+                       start_time: nil
 
           # ruby 2.0.0 does not support required kwargs
           raise ArgumentError, 'missing required argument: action' if action.nil?
@@ -72,7 +78,7 @@ module NewRelic
           @destination_type = destination_type
           @destination_name = destination_name
           @message_properties = message_properties
-          super()
+          super(nil, nil, start_time)
           params.merge! parameters if parameters
         end
 
