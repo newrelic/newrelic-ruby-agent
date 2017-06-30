@@ -82,14 +82,15 @@ module NewRelic
       # @param library [String] The name of the library being instrumented
       #
       # @param destination_type [Symbol] Type of destination (see
-      #   NewRelic::Agent::Transaction::MessageBrokerSegment::DESTINATION_TYPES)
+      #   +NewRelic::Agent::Transaction::MessageBrokerSegment::DESTINATION_TYPES+)
       #   for all options.
       #
       # @param destination_name [String] Name of destination (queue or
       #   exchange name)
       #
       # @param attributes [Hash] A hash of attributes to be attached to this
-      #   transaction (optional)
+      #   transaction, filtered by allowed keys, see
+      #   +NewRelic::Agent::Messaging::ALLOWED_AGENT_ATTRIBUTES+ (optional)
       #
       # @param &block [Proc] The block should handle calling the original subscribed
       #   callback function
