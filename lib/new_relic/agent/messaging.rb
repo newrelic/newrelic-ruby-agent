@@ -182,11 +182,13 @@ module NewRelic
           message_properties: headers
         )
 
-        segment.params[:headers] = original_headers if original_headers && !original_headers.empty?
-        segment.params[:routing_key] = routing_key if routing_key
-        segment.params[:reply_to] = reply_to if reply_to
-        segment.params[:correlation_id] = correlation_id if correlation_id
-        segment.params[:exchange_type] = exchange_type if exchange_type
+        if segment_parameters_enabled?
+          segment.params[:headers] = original_headers if original_headers && !original_headers.empty?
+          segment.params[:routing_key] = routing_key if routing_key
+          segment.params[:reply_to] = reply_to if reply_to
+          segment.params[:correlation_id] = correlation_id if correlation_id
+          segment.params[:exchange_type] = exchange_type if exchange_type
+        end
 
         segment
       end
@@ -241,16 +243,19 @@ module NewRelic
           start_time: start_time
         )
 
-        if message_properties[:headers] && !message_properties[:headers].empty?
-          non_cat_headers = CrossAppTracing.reject_cat_headers message_properties[:headers]
-          segment.params[:headers] = non_cat_headers unless non_cat_headers.empty?
+        if segment_parameters_enabled?
+          if message_properties[:headers] && !message_properties[:headers].empty?
+            non_cat_headers = CrossAppTracing.reject_cat_headers message_properties[:headers]
+            segment.params[:headers] = non_cat_headers unless non_cat_headers.empty?
+          end
+
+          segment.params[:routing_key] = delivery_info[:routing_key] if delivery_info[:routing_key]
+          segment.params[:reply_to] = message_properties[:reply_to] if message_properties[:reply_to]
+          segment.params[:queue_name] = queue_name if queue_name
+          segment.params[:exchange_type] = exchange_type if exchange_type
+          segment.params[:exchange_name] = delivery_info[:exchange_name] if delivery_info[:exchange_name]
+          segment.params[:correlation_id] = message_properties[:correlation_id] if message_properties[:correlation_id]
         end
-        segment.params[:routing_key] = delivery_info[:routing_key] if delivery_info[:routing_key]
-        segment.params[:reply_to] = message_properties[:reply_to] if message_properties[:reply_to]
-        segment.params[:queue_name] = queue_name if queue_name
-        segment.params[:exchange_type] = exchange_type if exchange_type
-        segment.params[:exchange_name] = delivery_info[:exchange_name] if delivery_info[:exchange_name]
-        segment.params[:correlation_id] = message_properties[:correlation_id] if message_properties[:correlation_id]
 
         segment
       end
@@ -309,6 +314,10 @@ module NewRelic
       end
 
       private
+
+      def segment_parameters_enabled?
+        NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled'] && !NewRelic::Agent.config[:high_security]
+      end
 
       def transaction_name library, destination_type, destination_name
         transaction_name = NewRelic::Agent::Transaction::MESSAGE_PREFIX + library

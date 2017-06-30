@@ -74,6 +74,52 @@ module NewRelic
         end
       end
 
+      def test_segment_params_not_recorded_for_publish_in_high_security_mode
+        with_config(high_security: true) do
+          in_transaction "test_txn" do
+            headers = {foo: "bar"}
+            segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
+              library: "RabbitMQ",
+              destination_name: "Default",
+              headers: headers,
+              routing_key: "red",
+              reply_to: "blue",
+              correlation_id: "abc",
+              exchange_type: "direct"
+            )
+
+            refute segment.params.has_key?(:routing_key), "Params should not have key :routing_key"
+            refute segment.params.has_key?(:headers), "Params should not have key :headers"
+            refute segment.params.has_key?(:reply_to), "Params should not have key :reply_to"
+            refute segment.params.has_key?(:correlation_id), "Params should not have key :correlation_id"
+            refute segment.params.has_key?(:exchange_type), "Params should not have key :exchange_type"
+          end
+        end
+      end
+
+      def test_segment_params_not_recorded_for_publish_with_segment_params_disabled
+        with_config(:'message_tracer.segment_parameters.enabled' => false) do
+          in_transaction "test_txn" do
+            headers = {foo: "bar"}
+            segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
+              library: "RabbitMQ",
+              destination_name: "Default",
+              headers: headers,
+              routing_key: "red",
+              reply_to: "blue",
+              correlation_id: "abc",
+              exchange_type: "direct"
+            )
+
+            refute segment.params.has_key?(:routing_key), "Params should not have key :routing_key"
+            refute segment.params.has_key?(:headers), "Params should not have key :headers"
+            refute segment.params.has_key?(:reply_to), "Params should not have key :reply_to"
+            refute segment.params.has_key?(:correlation_id), "Params should not have key :correlation_id"
+            refute segment.params.has_key?(:exchange_type), "Params should not have key :exchange_type"
+          end
+        end
+      end
+
       def test_segment_parameters_recorded_for_consume
         in_transaction "test_txn" do
           message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
@@ -94,6 +140,56 @@ module NewRelic
           assert_equal("abc", segment.params[:correlation_id])
           assert_equal("direct", segment.params[:exchange_type])
           assert_equal("yellow", segment.params[:queue_name])
+        end
+      end
+
+      def test_segment_params_not_recorded_for_consume_in_high_security_mode
+        with_config(high_security: true) do
+          in_transaction "test_txn" do
+
+            message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
+            delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+
+            segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
+              library: "RabbitMQ",
+              destination_name: "Default",
+              delivery_info: delivery_info,
+              message_properties: message_properties,
+              queue_name: "yellow",
+              exchange_type: "direct"
+            )
+
+            refute segment.params.has_key?(:routing_key), "Params should not have key :routing_key"
+            refute segment.params.has_key?(:headers), "Params should not have key :headers"
+            refute segment.params.has_key?(:reply_to), "Params should not have key :reply_to"
+            refute segment.params.has_key?(:correlation_id), "Params should not have key :correlation_id"
+            refute segment.params.has_key?(:exchange_type), "Params should not have key :exchange_type"
+          end
+        end
+      end
+
+      def test_segment_params_not_recorded_for_consume_with_segment_params_disabled
+        with_config(:'message_tracer.segment_parameters.enabled' => false) do
+          in_transaction "test_txn" do
+
+            message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
+            delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+
+            segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
+              library: "RabbitMQ",
+              destination_name: "Default",
+              delivery_info: delivery_info,
+              message_properties: message_properties,
+              queue_name: "yellow",
+              exchange_type: "direct"
+            )
+
+            refute segment.params.has_key?(:routing_key), "Params should not have key :routing_key"
+            refute segment.params.has_key?(:headers), "Params should not have key :headers"
+            refute segment.params.has_key?(:reply_to), "Params should not have key :reply_to"
+            refute segment.params.has_key?(:correlation_id), "Params should not have key :correlation_id"
+            refute segment.params.has_key?(:exchange_type), "Params should not have key :exchange_type"
+          end
         end
       end
 
