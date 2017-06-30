@@ -13,6 +13,14 @@ module NewRelic
     module Messaging
       extend self
 
+      ALLOWED_AGENT_ATTRIBUTES = [
+        :'message.routingKey',
+        :'message.exchangeType',
+        :'message.queueName',
+        :'message.replyTo',
+        :'message.correlationId'
+      ].freeze
+
       ATTR_DESTINATION = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
                          NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
                          NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
@@ -108,7 +116,9 @@ module NewRelic
         begin
           txn_name = transaction_name library, destination_type, destination_name
           txn = NewRelic::Agent::Transaction.start state, :background, transaction_name: txn_name
-          attributes.each {|attr, value| txn.add_agent_attribute attr, value, ATTR_DESTINATION} if attributes
+          attributes.select {|k,_| ALLOWED_AGENT_ATTRIBUTES.include? k}.each do |attr, value|
+            txn.add_agent_attribute attr, value, ATTR_DESTINATION
+          end if attributes
         rescue => e
           NewRelic::Agent.logger.error "Error starting Message Broker consume transaction", e
         end

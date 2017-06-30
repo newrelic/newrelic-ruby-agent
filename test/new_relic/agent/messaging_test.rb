@@ -97,6 +97,24 @@ module NewRelic
         end
       end
 
+      def test_wrap_message_broker_consume_transaction
+        tap = mock 'tap'
+        tap.expects :tap
+
+        NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
+          library: "AwesomeBunniez",
+          destination_type: :exchange,
+          destination_name: "Default",
+          attributes: {:'message.routingKey' => 'red'}
+        ) do
+          assert_equal 'OtherTransaction/Message/AwesomeBunniez/Exchange/Named/Default', NewRelic::Agent.get_transaction_name
+          tap.tap
+        end
+
+        txn = last_transaction_trace
+        assert txn.finished, "Expected transaction to be finished"
+      end
+
       def test_agent_attributes_assigned_for_generic_wrap_consume_transaction
         tap = mock 'tap'
         tap.expects :tap
@@ -114,6 +132,30 @@ module NewRelic
         assert event.all? {|e| Hash === e}, "expected Array of 3 hashes, actual: [#{event.map(&:class).join(',')}]"
         assert event[2].key?(:'message.routingKey'), "expected 3rd hash to have key :'message.routingKey', actual: #{event[2].keys.join(',')}"
         assert_equal "red", event[2][:'message.routingKey']
+      end
+
+      def test_agent_attributes_filtered_for_generic_wrap_consume_transaction
+        NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
+          library: "RabbitMQ",
+          destination_type: :exchange,
+          destination_name: "Default",
+          attributes: {
+            :'message.routingKey'    => 'red',
+            :'message.exchangeType'  => 'fanout',
+            :'message.queueName'     => 'some.queue',
+            :'message.replyTo'       => 'reply.to.queue',
+            :'message.correlationId' => 'abcdef12345',
+            :'key.that.shouldnt.be'  => 'value.that.shouldnt.be'
+          }
+        ) {}
+
+        event = last_transaction_event
+        assert_equal "red", event[2][:'message.routingKey']
+        assert_equal "fanout", event[2][:'message.exchangeType']
+        assert_equal "some.queue", event[2][:'message.queueName']
+        assert_equal "reply.to.queue", event[2][:'message.replyTo']
+        assert_equal "abcdef12345", event[2][:'message.correlationId']
+        refute event[2].key?(:'key.that.shouldnt.be'), "wrap_message_broker_consume_transaction should filter disallowed attributes"
       end
 
       def test_agent_attributes_not_assigned_when_in_transaction_but_not_subscribed
