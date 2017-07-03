@@ -18,6 +18,11 @@
 
   The `NewRelic::Agent.notice_error` API has been updated to deprecate the `:trace_only` option in favor of `:expected`.
 
+  * Postgis adapter reports as Postgres for datastores
+
+  A public contribution from Vojtěch Vondra maps the Postgis adapter to Postgres
+  for datastore metrics. Thanks for the contribution!
+
 ## v4.2.0 ##
 
   * Sinatra 2.0 and Padrino 0.14.x Support
