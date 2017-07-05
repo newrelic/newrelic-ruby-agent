@@ -316,7 +316,7 @@ module NewRelic
       private
 
       def segment_parameters_enabled?
-        NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled'] && !NewRelic::Agent.config[:high_security]
+        NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled']
       end
 
       def transaction_name library, destination_type, destination_name
