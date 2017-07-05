@@ -543,6 +543,7 @@ module NewRelic
           @transaction_event_recorder.drop_buffered_data
           @custom_event_aggregator.reset!
           @sql_sampler.reset!
+          TransactionState.tl_clear
         end
 
         # Clear out state for any objects that we know lock from our parents

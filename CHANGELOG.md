@@ -17,6 +17,13 @@
   * Deprecate `:trace_only` option
 
   The `NewRelic::Agent.notice_error` API has been updated to deprecate the `:trace_only` option in favor of `:expected`.
+  
+  * Clear transaction state after forking
+  
+  Previously, if a transaction was started and the process forks, the transaction state
+  survived the fork and `#after_fork` call in thread local storage.  Now, this sate is
+  cleared by `#after_fork`.  The test method `TransactionState.tl_clear_for_testing` has
+  also been removed.
 
 ## v4.2.0 ##
 

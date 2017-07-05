@@ -90,7 +90,7 @@ class NewRelic::Agent::BusyCalculatorTest < Minitest::Test
   end
 
   def test_finishing_without_starting_doesnt_raise
-    NewRelic::Agent::TransactionState.tl_clear_for_testing
+    NewRelic::Agent::TransactionState.tl_clear
     NewRelic::Agent::BusyCalculator.dispatcher_finish
   end
 

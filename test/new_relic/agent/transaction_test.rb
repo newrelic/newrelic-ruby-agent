@@ -20,7 +20,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def cleanup_transaction
-    NewRelic::Agent::TransactionState.tl_clear_for_testing
+    NewRelic::Agent::TransactionState.tl_clear
   end
 
   def test_request_parsing_none
