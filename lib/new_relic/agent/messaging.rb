@@ -13,14 +13,6 @@ module NewRelic
     module Messaging
       extend self
 
-      ALLOWED_AGENT_ATTRIBUTES = [
-        :'message.routingKey',
-        :'message.exchangeType',
-        :'message.queueName',
-        :'message.replyTo',
-        :'message.correlationId'
-      ].freeze
-
       ATTR_DESTINATION = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
                          NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
                          NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
@@ -103,7 +95,12 @@ module NewRelic
       def wrap_message_broker_consume_transaction library: nil,
                                                   destination_type: nil,
                                                   destination_name: nil,
-                                                  attributes: nil
+                                                  headers: nil,
+                                                  routing_key: nil,
+                                                  exchange_type: nil,
+                                                  correlation_id: nil,
+                                                  queue_name: nil,
+                                                  reply_to: nil
 
         # ruby 2.0.0 does not support required kwargs
         raise ArgumentError, 'missing required argument: library' if library.nil?
@@ -117,9 +114,16 @@ module NewRelic
         begin
           txn_name = transaction_name library, destination_type, destination_name
           txn = NewRelic::Agent::Transaction.start state, :background, transaction_name: txn_name
-          attributes.select {|k,_| ALLOWED_AGENT_ATTRIBUTES.include? k}.each do |attr, value|
-            txn.add_agent_attribute attr, value, ATTR_DESTINATION
-          end if attributes
+
+          CrossAppTracing.reject_cat_headers(headers).each do |k, v|
+            txn.add_agent_attribute :"message.headers.#{k}", v, NewRelic::Agent::AttributeFilter::DST_NONE unless v.nil?
+          end if headers
+
+          txn.add_agent_attribute :'message.routingKey', routing_key, ATTR_DESTINATION if routing_key
+          txn.add_agent_attribute :'message.exchangeType', exchange_type, NewRelic::Agent::AttributeFilter::DST_NONE if exchange_type
+          txn.add_agent_attribute :'message.correlationId', correlation_id, NewRelic::Agent::AttributeFilter::DST_NONE if correlation_id
+          txn.add_agent_attribute :'message.queueName', queue_name, ATTR_DESTINATION if queue_name
+          txn.add_agent_attribute :'message.replyTo', reply_to, NewRelic::Agent::AttributeFilter::DST_NONE if reply_to
         rescue => e
           NewRelic::Agent.logger.error "Error starting Message Broker consume transaction", e
         end
@@ -294,22 +298,15 @@ module NewRelic
                                         queue_name: nil,
                                         &block
 
-        attributes = {}
-        attributes[:"message.routingKey"]    = delivery_info[:routing_key]         if delivery_info[:routing_key]
-        attributes[:"message.replyTo"]       = message_properties[:reply_to]       if message_properties[:reply_to]
-        attributes[:"message.queueName"]     = queue_name                          if queue_name
-        attributes[:"message.exchangeType"]  = exchange_type                       if exchange_type
-        attributes[:"message.correlationId"] = message_properties[:correlation_id] if message_properties[:correlation_id]
-
-        if message_properties[:headers] && !message_properties[:headers].empty?
-          non_cat_headers = CrossAppTracing.reject_cat_headers message_properties[:headers]
-          attributes[:"message.headers"] = non_cat_headers unless non_cat_headers.empty?
-        end
-
         wrap_message_broker_consume_transaction library: library,
                                                 destination_type: :exchange,
                                                 destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(destination_name),
-                                                attributes: attributes,
+                                                routing_key: delivery_info[:routing_key],
+                                                reply_to: message_properties[:reply_to],
+                                                queue_name: queue_name,
+                                                exchange_type: exchange_type,
+                                                headers: message_properties[:headers],
+                                                correlation_id: message_properties[:correlation_id],
                                                 &block
       end
 

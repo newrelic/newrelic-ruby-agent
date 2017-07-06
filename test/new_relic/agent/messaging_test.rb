@@ -153,7 +153,7 @@ module NewRelic
           library: "AwesomeBunniez",
           destination_type: :exchange,
           destination_name: "Default",
-          attributes: {:'message.routingKey' => 'red'}
+          routing_key: "red"
         ) do
           assert_equal 'OtherTransaction/Message/AwesomeBunniez/Exchange/Named/Default', NewRelic::Agent.get_transaction_name
           tap.tap
@@ -171,7 +171,7 @@ module NewRelic
           library: "RabbitMQ",
           destination_type: :exchange,
           destination_name: "Default",
-          attributes: {:'message.routingKey' => 'red'}
+          routing_key: "red"
         ) { tap.tap }
 
         event = last_transaction_event
@@ -182,28 +182,56 @@ module NewRelic
         assert_equal "red", event[2][:'message.routingKey']
       end
 
-      def test_agent_attributes_filtered_for_generic_wrap_consume_transaction
+      def test_header_attributes_assigned_for_generic_wrap_consume_transaction
+        with_config :"attributes.include" => "message.headers.*" do
+          tap = mock 'tap'
+          tap.expects :tap
+
+          NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
+            library: "RabbitMQ",
+            destination_type: :exchange,
+            destination_name: "Default",
+            routing_key: "red",
+            headers: {token: "foo"}
+          ) { tap.tap }
+
+          event = last_transaction_event
+          assert_equal "foo", event[2][:"message.headers.token"], "Expected header attributes to be added, actual attributes: #{event[2]}"
+        end
+      end
+
+      def test_cat_headers_removed_when_headers_assigned_as_attributes
+        with_config :"attributes.include" => "message.headers.*" do
+          tap = mock 'tap'
+          tap.expects :tap
+
+          NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
+            library: "RabbitMQ",
+            destination_type: :exchange,
+            destination_name: "Default",
+            routing_key: "red",
+            headers: {"token" => "foo", "NewRelicID" => "bar"}
+          ) { tap.tap }
+
+          event = last_transaction_event
+          refute event[2].has_key?(:"message.headers.NewRelicID"), "Expected CAT headers to be omitted from message attributes"
+        end
+      end
+
+      def test_header_attributes_not_assigned_when_headers_not_included_in_consume_transaction
+        tap = mock 'tap'
+        tap.expects :tap
+
         NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
           library: "RabbitMQ",
           destination_type: :exchange,
           destination_name: "Default",
-          attributes: {
-            :'message.routingKey'    => 'red',
-            :'message.exchangeType'  => 'fanout',
-            :'message.queueName'     => 'some.queue',
-            :'message.replyTo'       => 'reply.to.queue',
-            :'message.correlationId' => 'abcdef12345',
-            :'key.that.shouldnt.be'  => 'value.that.shouldnt.be'
-          }
-        ) {}
+          routing_key: "red",
+          headers: {token: "foo"}
+        ) { tap.tap }
 
         event = last_transaction_event
-        assert_equal "red", event[2][:'message.routingKey']
-        assert_equal "fanout", event[2][:'message.exchangeType']
-        assert_equal "some.queue", event[2][:'message.queueName']
-        assert_equal "reply.to.queue", event[2][:'message.replyTo']
-        assert_equal "abcdef12345", event[2][:'message.correlationId']
-        refute event[2].key?(:'key.that.shouldnt.be'), "wrap_message_broker_consume_transaction should filter disallowed attributes"
+        refute event[2].has_key?(:"message.headers.token"), "Expected header attributes not to be added"
       end
 
       def test_agent_attributes_not_assigned_when_in_transaction_but_not_subscribed
@@ -318,24 +346,28 @@ module NewRelic
       end
 
       def test_agent_attributes_assigned_for_amqp_wrap_consume_transaction
-        tap = mock 'tap'
-        tap.expects :tap
+        with_config :"attributes.include" => ["message.headers.*", "message.replyTo", "message.correlationId", "message.exchangeType"] do
+          tap = mock 'tap'
+          tap.expects :tap
 
-        NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
-          library: "AwesomeBunniez",
-          destination_name: "MyExchange",
-          delivery_info: {routing_key: 'blue'},
-          message_properties: {reply_to: 'reply.key', correlation_id: 'correlate'},
-          exchange_type: :fanout,
-          queue_name: 'some.queue',
-        ) { tap.tap }
+          NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
+            library: "AwesomeBunniez",
+            destination_name: "MyExchange",
+            delivery_info: {routing_key: 'blue'},
+            message_properties: {reply_to: 'reply.key', correlation_id: 'correlate', headers: {"foo" => "bar", "NewRelicID" => "baz"}},
+            exchange_type: :fanout,
+            queue_name: 'some.queue',
+          ) { tap.tap }
 
-        event = last_transaction_event
-        assert_equal "blue", event[2][:'message.routingKey']
-        assert_equal "reply.key", event[2][:'message.replyTo']
-        assert_equal "correlate", event[2][:'message.correlationId']
-        assert_equal :fanout, event[2][:'message.exchangeType']
-        assert_equal "some.queue", event[2][:'message.queueName']
+          event = last_transaction_event
+          assert_equal "blue", event[2][:'message.routingKey']
+          assert_equal "reply.key", event[2][:'message.replyTo']
+          assert_equal "correlate", event[2][:'message.correlationId']
+          assert_equal :fanout, event[2][:'message.exchangeType']
+          assert_equal "some.queue", event[2][:'message.queueName']
+          assert_equal "bar", event[2][:'message.headers.foo']
+          refute event[2].has_key?(:'message.headers.NewRelicID')
+        end
       end
     end
   end
