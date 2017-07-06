@@ -29,6 +29,11 @@
   cleared by `#after_fork`.  The test method `TransactionState.tl_clear_for_testing` has
   also been removed.
 
+  * Postgis adapter reports as Postgres for datastores
+
+  A public contribution from Vojtěch Vondra maps the Postgis adapter to Postgres
+  for datastore metrics. Thanks for the contribution!
+
 ## v4.2.0 ##
 
   * Sinatra 2.0 and Padrino 0.14.x Support
