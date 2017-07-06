@@ -17,6 +17,8 @@ module NewRelic
                          NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
                          NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
+      EMPTY_STRING = ''.freeze
+
       # Start a MessageBroker segment configured to trace a messaging action.
       # Finishing this segment will handle timing and recording of the proper
       # metrics for New Relic's messaging features..
@@ -114,6 +116,7 @@ module NewRelic
         begin
           txn_name = transaction_name library, destination_type, destination_name
           txn = NewRelic::Agent::Transaction.start state, :background, transaction_name: txn_name
+          consume_message_headers headers, txn, state
 
           CrossAppTracing.reject_cat_headers(headers).each do |k, v|
             txn.add_agent_attribute :"message.headers.#{k}", v, NewRelic::Agent::AttributeFilter::DST_NONE unless v.nil?
@@ -341,6 +344,55 @@ module NewRelic
         end
 
         transaction_name
+      end
+
+      def consume_message_headers headers, transaction, state
+        return unless CrossAppTracing.cross_app_enabled?
+
+        if CrossAppTracing.message_has_crossapp_request_header? headers
+          decode_id headers[NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER], state
+          decode_txn_info headers[NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER], state
+          assign_synthetics_header headers[NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER], transaction
+          assign_transaction_attributes transaction, state
+        end
+      rescue => e
+        NewRelic::Agent.logger.error "Error in consume_message_headers", e
+      end
+
+      def decode_id encoded_id, transaction_state
+        decoded_id = if encoded_id.nil?
+                       EMPTY_STRING
+                     else
+                       NewRelic::Agent::CrossAppTracing.obfuscator.deobfuscate(encoded_id)
+                     end
+        if NewRelic::Agent::CrossAppTracing.valid_cross_app_id? decoded_id
+          transaction_state.client_cross_app_id = decoded_id
+          # append_unscoped_metric "ClientApplication/#{decoded_id}/all"
+        end
+      end
+
+      def decode_txn_info txn_header, transaction_state
+        begin
+          txn_info = ::JSON.load(NewRelic::Agent::CrossAppTracing.obfuscator.deobfuscate(txn_header))
+          transaction_state.referring_transaction_info = txn_info
+        rescue => e
+          NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
+          nil
+        end
+      end
+
+      def assign_synthetics_header synthetics_header, transaction
+        transaction.raw_synthetics_header = synthetics_header if synthetics_header
+      end
+
+      def assign_transaction_attributes transaction, transaction_state
+        if transaction_state.client_cross_app_id
+          transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, transaction_state.client_cross_app_id)
+        end
+
+        if referring_guid = transaction_state.referring_transaction_info && transaction_state.referring_transaction_info[0]
+          transaction.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
+        end
       end
 
     end
