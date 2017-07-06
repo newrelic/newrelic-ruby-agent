@@ -214,14 +214,6 @@ class BunnyTest < Minitest::Test
 
       refute_nil tt, "Did not expect tt to be nil. Something terrible has occurred."
 
-      # trace_node = find_node_with_name_matching tt, /^MessageBroker/
-
-      # expected parameters
-      # assert_equal "some.key", trace_node.params[:routing_key]
-      # assert_equal queue.name, trace_node.params[:queue_name]
-      # assert_equal :direct, trace_node[:exchange_type]
-
-      # agent attributes
       expected_destinations =   NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
                                 NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
                                 NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
@@ -233,11 +225,7 @@ class BunnyTest < Minitest::Test
                    tt.attributes.agent_attributes_for(expected_destinations))
 
       # metrics
-      assert_metrics_recorded [
-        #["MessageBroker/RabbitMQ/Exchange/Consume/Named/myDirectExchange", "OtherTransaction/Message/RabbitMQ/Exchange/Named/myDirectExchange"],
-        "OtherTransaction/Message/RabbitMQ/Exchange/Named/myDirectExchange"#,
-        #"MessageBroker/RabbitMQ/Exchange/Consume/Named/myDirectExchange"
-      ]
+      assert_metrics_recorded ["OtherTransaction/Message/RabbitMQ/Exchange/Named/myDirectExchange"]
     end
   end
 
