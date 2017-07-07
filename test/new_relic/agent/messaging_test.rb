@@ -370,6 +370,22 @@ module NewRelic
         end
       end
 
+      def test_segment_records_proper_metrics_for_consume
+        in_transaction "test_txn" do |txn|
+          NewRelic::Agent::Messaging.start_message_broker_segment(
+            action: :consume,
+            library: "RabbitMQ",
+            destination_type: :exchange,
+            destination_name: "Default"
+          )
+        end
+
+        assert_metrics_recorded [
+          ["MessageBroker/RabbitMQ/Exchange/Consume/Named/Default", "test_txn"],
+          "MessageBroker/RabbitMQ/Exchange/Consume/Named/Default"
+        ]
+      end
+
       def test_wrap_message_broker_consume_transaction_reads_cat_headers
         guid                 = "BEC1BC64675138B9"
         cross_process_id     = "321#123"
@@ -381,7 +397,10 @@ module NewRelic
         tap = mock 'tap'
         tap.expects :tap
 
-        with_config :"cross_application_tracer.enabled" => true, :cross_process_id => cross_process_id, :encoding_key => "abc" do
+        with_config :"cross_application_tracer.enabled" => true,
+                    :cross_process_id => cross_process_id,
+                    :trusted_account_ids => [321],
+                    :encoding_key => "abc" do
 
           in_transaction do |txn|
             obfuscated_id       = obfuscator.obfuscate cross_process_id
@@ -392,7 +411,7 @@ module NewRelic
           NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
             library: "RabbitMQ",
             destination_type: :exchange,
-            destination_name: '',
+            destination_name: 'Default',
             headers: { "NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
           ) do
             txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
@@ -401,37 +420,6 @@ module NewRelic
             assert_equal txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER), intrinsic_attributes
             tap.tap
           end
-        end
-      end
-
-      def test_segment_records_proper_metrics_for_consume_with_cat
-        guid                 = "BEC1BC64675138B9"
-        cross_process_id     = "321#123"
-        obfuscated_id        = nil
-        raw_txn_info         = nil
-        obfuscated_txn_info  = nil
-
-        with_config :"cross_application_tracer.enabled" => true, :cross_process_id => cross_process_id, :encoding_key => "abc" do
-
-          in_transaction "test_txn" do |txn|
-            obfuscated_id = obfuscator.obfuscate cross_process_id
-            raw_txn_info = [guid, false, guid, txn.cat_path_hash(txn.state)]
-            obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
-
-            NewRelic::Agent::Messaging.start_message_broker_segment(
-              action: :consume,
-              library: "RabbitMQ",
-              destination_type: :exchange,
-              destination_name: "Default",
-              message_properties: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
-            )
-          end
-
-          assert_metrics_recorded [
-            ["MessageBroker/RabbitMQ/Exchange/Consume/Named/Default", "test_txn"],
-            "MessageBroker/RabbitMQ/Exchange/Consume/Named/Default"# ,
-            # "ClientApplication/#{cross_process_id}/all"
-          ]
         end
       end
 
@@ -445,7 +433,10 @@ module NewRelic
         tap = mock 'tap'
         tap.expects :tap
 
-        with_config :"cross_application_tracer.enabled" => true, :cross_process_id => "321#123", :encoding_key => "abc" do
+        with_config :"cross_application_tracer.enabled" => true,
+                    :cross_process_id => cross_process_id,
+                    :trusted_account_ids => [321],
+                    :encoding_key => "abc" do
 
           in_transaction "test_txn" do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
@@ -456,7 +447,7 @@ module NewRelic
           NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
             library: "RabbitMQ",
             destination_type: :exchange,
-            destination_name: "",
+            destination_name: "Default",
             headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info, "NewRelicSynthetics" => "boo" }
           ) do
             txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
@@ -466,6 +457,40 @@ module NewRelic
             tap.tap
           end
 
+        end
+      end
+
+      def test_wrap_message_broker_consume_transaction_records_proper_metrics_with_cat
+        guid                 = "BEC1BC64675138B9"
+        cross_process_id     = "321#123"
+        obfuscated_id        = nil
+        raw_txn_info         = nil
+        obfuscated_txn_info  = nil
+
+        tap = mock 'tap'
+        tap.expects :tap
+
+        with_config :"cross_application_tracer.enabled" => true,
+                    :cross_process_id => cross_process_id,
+                    :trusted_account_ids => [321],
+                    :encoding_key => "abc" do
+
+          in_transaction "test_txn" do |txn|
+            obfuscated_id = obfuscator.obfuscate cross_process_id
+            raw_txn_info = [guid, false, guid, txn.cat_path_hash(txn.state)]
+            obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
+          end
+
+          NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
+            library: "RabbitMQ",
+            destination_type: :exchange,
+            destination_name: "Default",
+            headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info, "NewRelicSynthetics" => "boo" }
+          ) do
+            tap.tap
+          end
+
+          assert_metrics_recorded "ClientApplication/#{cross_process_id}/all"
         end
       end
 

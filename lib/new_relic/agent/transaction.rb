@@ -522,6 +522,7 @@ module NewRelic
         record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
+        record_client_application_metric state
 
         generate_payload(state, start_time, end_time)
 
@@ -774,6 +775,12 @@ module NewRelic
           else
             ::NewRelic::Agent.logger.log_once(:warn, :too_high_queue_time, "Not recording unreasonably large queue time of #{value} s")
           end
+        end
+      end
+
+      def record_client_application_metric state
+        if id = state.client_cross_app_id
+          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", state.timings.app_time_in_seconds
         end
       end
 

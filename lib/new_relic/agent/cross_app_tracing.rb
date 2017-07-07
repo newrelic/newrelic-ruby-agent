@@ -122,6 +122,31 @@ module NewRelic
           k == NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER
         end
       end
+
+      def trusts? id
+        split_id = id.match(/(\d+)#\d+/)
+        return false if split_id.nil?
+
+        NewRelic::Agent.config[:trusted_account_ids].include? split_id.captures.first.to_i
+      end
+
+      def trusted_valid_cross_app_id? id
+        valid_cross_app_id?(id) && trusts?(id)
+      end
+
+      def assign_intrinsic_transaction_attributes state
+        # We expect to get the before call to set the id (if we have it) before
+        # this, and then write our custom parameter when the transaction starts
+        return unless transaction = state.current_transaction
+
+        if state.client_cross_app_id
+          transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, state.client_cross_app_id)
+        end
+
+        if referring_guid = state.referring_transaction_info && state.referring_transaction_info[0]
+          transaction.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
+        end
+      end
     end
   end
 end

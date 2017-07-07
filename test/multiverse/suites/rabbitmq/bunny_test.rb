@@ -183,49 +183,51 @@ class BunnyTest < Minitest::Test
     msg = nil
     exchange = @chan.direct('myDirectExchange')
 
-    with_queue do |queue|
-      queue.bind(exchange, routing_key: 'some.key')
+    with_config :'attributes.include' => ['message.exchangeType'] do
+      with_queue do |queue|
+        queue.bind(exchange, routing_key: 'some.key')
 
-      queue.subscribe(:block => false) do |delivery_info, properties, payload|
-        lock.synchronize do
-          msg = payload
-          cond.signal
+        queue.subscribe(:block => false) do |delivery_info, properties, payload|
+          lock.synchronize do
+            msg = payload
+            cond.signal
+          end
         end
+
+        lock.synchronize do
+          exchange.publish "hi", routing_key: 'some.key'
+          cond.wait(lock)
+        end
+
+        # Even with the condition variable above there is a race condition between
+        # when the subscribe block finishes and when the transaction is committed.
+        # This gross code below is here to account for that. Also, we don't
+        # ever expect to hit the max number of cycles, but we are being defensive so
+        # that this test doesn't block indefinitely if something unexpected occurs.
+
+        cycles = 0
+        until (tt = last_transaction_trace) || cycles > 10
+          sleep 0.1
+          cycles += 1
+        end
+
+        assert_equal "hi", msg
+
+        refute_nil tt, "Did not expect tt to be nil. Something terrible has occurred."
+
+        expected_destinations =   NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
+                                  NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
+                                  NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+
+        assert_equal({ :"message.routingKey" => "some.key",
+                       :"message.queueName" => queue.name,
+                       :"message.exchangeType" => :direct,
+                     },
+                     tt.attributes.agent_attributes_for(expected_destinations))
+
+        # metrics
+        assert_metrics_recorded ["OtherTransaction/Message/RabbitMQ/Exchange/Named/myDirectExchange"]
       end
-
-      lock.synchronize do
-        exchange.publish "hi", routing_key: 'some.key'
-        cond.wait(lock)
-      end
-
-      # Even with the condition variable above there is a race condition between
-      # when the subscribe block finishes and when the transaction is committed.
-      # This gross code below is here to account for that. Also, we don't
-      # ever expect to hit the max number of cycles, but we are being defensive so
-      # that this test doesn't block indefinitely if something unexpected occurs.
-
-      cycles = 0
-      until (tt = last_transaction_trace) || cycles > 10
-        sleep 0.1
-        cycles += 1
-      end
-
-      assert_equal "hi", msg
-
-      refute_nil tt, "Did not expect tt to be nil. Something terrible has occurred."
-
-      expected_destinations =   NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
-                                NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
-                                NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
-
-      assert_equal({ :"message.routingKey" => "some.key",
-                     :"message.queueName" => queue.name,
-                     :"message.exchangeType" => :direct,
-                   },
-                   tt.attributes.agent_attributes_for(expected_destinations))
-
-      # metrics
-      assert_metrics_recorded ["OtherTransaction/Message/RabbitMQ/Exchange/Named/myDirectExchange"]
     end
   end
 

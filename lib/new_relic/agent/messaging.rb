@@ -13,9 +13,9 @@ module NewRelic
     module Messaging
       extend self
 
-      ATTR_DESTINATION = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
-                         NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
-                         NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+      ATTR_DESTINATION = AttributeFilter::DST_TRANSACTION_EVENTS |
+                         AttributeFilter::DST_TRANSACTION_TRACER |
+                         AttributeFilter::DST_ERROR_COLLECTOR
 
       EMPTY_STRING = ''.freeze
 
@@ -58,7 +58,7 @@ module NewRelic
                                        parameters: nil,
                                        start_time: nil)
 
-        NewRelic::Agent::Transaction.start_message_broker_segment(
+        Transaction.start_message_broker_segment(
           action: action,
           library: library,
           destination_type: destination_type,
@@ -109,24 +109,24 @@ module NewRelic
         raise ArgumentError, 'missing required argument: destination_type' if destination_type.nil?
         raise ArgumentError, 'missing required argument: destination_name' if destination_name.nil?
 
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = TransactionState.tl_get
         return yield if state.current_transaction
         txn = nil
 
         begin
           txn_name = transaction_name library, destination_type, destination_name
-          txn = NewRelic::Agent::Transaction.start state, :background, transaction_name: txn_name
+          txn = Transaction.start state, :background, transaction_name: txn_name
           consume_message_headers headers, txn, state
 
           CrossAppTracing.reject_cat_headers(headers).each do |k, v|
-            txn.add_agent_attribute :"message.headers.#{k}", v, NewRelic::Agent::AttributeFilter::DST_NONE unless v.nil?
+            txn.add_agent_attribute :"message.headers.#{k}", v, AttributeFilter::DST_NONE unless v.nil?
           end if headers
 
           txn.add_agent_attribute :'message.routingKey', routing_key, ATTR_DESTINATION if routing_key
-          txn.add_agent_attribute :'message.exchangeType', exchange_type, NewRelic::Agent::AttributeFilter::DST_NONE if exchange_type
-          txn.add_agent_attribute :'message.correlationId', correlation_id, NewRelic::Agent::AttributeFilter::DST_NONE if correlation_id
+          txn.add_agent_attribute :'message.exchangeType', exchange_type, AttributeFilter::DST_NONE if exchange_type
+          txn.add_agent_attribute :'message.correlationId', correlation_id, AttributeFilter::DST_NONE if correlation_id
           txn.add_agent_attribute :'message.queueName', queue_name, ATTR_DESTINATION if queue_name
-          txn.add_agent_attribute :'message.replyTo', reply_to, NewRelic::Agent::AttributeFilter::DST_NONE if reply_to
+          txn.add_agent_attribute :'message.replyTo', reply_to, AttributeFilter::DST_NONE if reply_to
         rescue => e
           NewRelic::Agent.logger.error "Error starting Message Broker consume transaction", e
         end
@@ -134,7 +134,7 @@ module NewRelic
         yield
       ensure
         begin
-          NewRelic::Agent::Transaction.stop(state) if txn
+          Transaction.stop(state) if txn
         rescue => e
           NewRelic::Agent.logger.error "Error stopping Message Broker consume transaction", e
         end
@@ -177,11 +177,11 @@ module NewRelic
         # ruby 2.0.0 does not support required kwargs
         raise ArgumentError, 'missing required argument: library' if library.nil?
         raise ArgumentError, 'missing required argument: destination_name' if destination_name.nil?
-        raise ArgumentError, 'missing required argument: headers' if headers.nil? && NewRelic::Agent::CrossAppTracing.cross_app_enabled?
+        raise ArgumentError, 'missing required argument: headers' if headers.nil? && CrossAppTracing.cross_app_enabled?
 
         original_headers = headers.nil? ? nil : headers.dup
 
-        segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+        segment = Transaction.start_message_broker_segment(
           action: :produce,
           library: library,
           destination_type: :exchange,
@@ -241,7 +241,7 @@ module NewRelic
         raise ArgumentError, 'missing required argument: delivery_info' if delivery_info.nil?
         raise ArgumentError, 'missing required argument: message_properties' if message_properties.nil?
 
-        segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+        segment = Transaction.start_message_broker_segment(
           action: :consume,
           library: library,
           destination_name: destination_name,
@@ -303,7 +303,7 @@ module NewRelic
 
         wrap_message_broker_consume_transaction library: library,
                                                 destination_type: :exchange,
-                                                destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(destination_name),
+                                                destination_name: Instrumentation::Bunny.exchange_name(destination_name),
                                                 routing_key: delivery_info[:routing_key],
                                                 reply_to: message_properties[:reply_to],
                                                 queue_name: queue_name,
@@ -320,25 +320,25 @@ module NewRelic
       end
 
       def transaction_name library, destination_type, destination_name
-        transaction_name = NewRelic::Agent::Transaction::MESSAGE_PREFIX + library
-        transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::SLASH
-        transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::TYPES[destination_type]
-        transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::SLASH
+        transaction_name = Transaction::MESSAGE_PREFIX + library
+        transaction_name << Transaction::MessageBrokerSegment::SLASH
+        transaction_name << Transaction::MessageBrokerSegment::TYPES[destination_type]
+        transaction_name << Transaction::MessageBrokerSegment::SLASH
 
         case destination_type
         when :queue
-          transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::NAMED
+          transaction_name << Transaction::MessageBrokerSegment::NAMED
           transaction_name << destination_name
 
         when :topic
-          transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::NAMED
+          transaction_name << Transaction::MessageBrokerSegment::NAMED
           transaction_name << destination_name
 
         when :temporary_queue, :temporary_topic
-          transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::TEMP
+          transaction_name << Transaction::MessageBrokerSegment::TEMP
 
         when :exchange
-          transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::NAMED
+          transaction_name << Transaction::MessageBrokerSegment::NAMED
           transaction_name << destination_name
 
         end
@@ -350,10 +350,10 @@ module NewRelic
         return unless CrossAppTracing.cross_app_enabled?
 
         if CrossAppTracing.message_has_crossapp_request_header? headers
-          decode_id headers[NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER], state
-          decode_txn_info headers[NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER], state
-          assign_synthetics_header headers[NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER], transaction
-          assign_transaction_attributes transaction, state
+          decode_id headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER], state
+          decode_txn_info headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER], state
+          assign_synthetics_header headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER], transaction
+          CrossAppTracing.assign_intrinsic_transaction_attributes state
         end
       rescue => e
         NewRelic::Agent.logger.error "Error in consume_message_headers", e
@@ -363,17 +363,16 @@ module NewRelic
         decoded_id = if encoded_id.nil?
                        EMPTY_STRING
                      else
-                       NewRelic::Agent::CrossAppTracing.obfuscator.deobfuscate(encoded_id)
+                       CrossAppTracing.obfuscator.deobfuscate(encoded_id)
                      end
-        if NewRelic::Agent::CrossAppTracing.valid_cross_app_id? decoded_id
+        if CrossAppTracing.trusted_valid_cross_app_id? decoded_id
           transaction_state.client_cross_app_id = decoded_id
-          # append_unscoped_metric "ClientApplication/#{decoded_id}/all"
         end
       end
 
       def decode_txn_info txn_header, transaction_state
         begin
-          txn_info = ::JSON.load(NewRelic::Agent::CrossAppTracing.obfuscator.deobfuscate(txn_header))
+          txn_info = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(txn_header))
           transaction_state.referring_transaction_info = txn_info
         rescue => e
           NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
@@ -383,16 +382,6 @@ module NewRelic
 
       def assign_synthetics_header synthetics_header, transaction
         transaction.raw_synthetics_header = synthetics_header if synthetics_header
-      end
-
-      def assign_transaction_attributes transaction, transaction_state
-        if transaction_state.client_cross_app_id
-          transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, transaction_state.client_cross_app_id)
-        end
-
-        if referring_guid = transaction_state.referring_transaction_info && transaction_state.referring_transaction_info[0]
-          transaction.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
-        end
       end
 
     end
