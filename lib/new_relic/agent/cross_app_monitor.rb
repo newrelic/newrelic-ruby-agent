@@ -33,12 +33,12 @@ module NewRelic
           debug("Wiring up Cross Application Tracing to events after finished configuring")
 
         events.subscribe(:before_call) do |env| #THREAD_LOCAL_ACCESS
-          if should_process_request(env)
+          if id = decoded_id(env) and should_process_request?(id)
             state = NewRelic::Agent::TransactionState.tl_get
 
-            save_client_cross_app_id(state, env)
+            state.client_cross_app_id = id
             save_referring_transaction_info(state, env)
-            set_transaction_attributes(state)
+            CrossAppTracing.assign_intrinsic_transaction_attributes state
           end
         end
 
@@ -48,14 +48,6 @@ module NewRelic
           insert_response_header(state, env, headers)
         end
 
-      end
-
-      def save_client_cross_app_id(state, request_headers)
-        state.client_cross_app_id = decoded_id(request_headers)
-      end
-
-      def clear_client_cross_app_id(state)
-        state.client_cross_app_id = nil
       end
 
       def save_referring_transaction_info(state, request_headers)
@@ -93,28 +85,17 @@ module NewRelic
               content_length = content_length_from_request(request_headers)
 
               set_response_headers(state, response_headers, timings, content_length)
-              set_metrics(state.client_cross_app_id, timings)
             end
           end
-          clear_client_cross_app_id(state)
         end
       end
 
-      def should_process_request(request_headers)
-        return cross_app_enabled? && trusts?(request_headers)
+      def should_process_request? id
+        return cross_app_enabled? && CrossAppTracing.trusts?(id)
       end
 
       def cross_app_enabled?
         NewRelic::Agent::CrossAppTracing.cross_app_enabled?
-      end
-
-      # Expects an ID of format "12#345", and will only accept that!
-      def trusts?(request)
-        id = decoded_id(request)
-        split_id = id.match(/(\d+)#\d+/)
-        return false if split_id.nil?
-
-        NewRelic::Agent.config[:trusted_account_ids].include?(split_id.captures.first.to_i)
       end
 
       def set_response_headers(state, response_headers, timings, content_length)
@@ -131,26 +112,6 @@ module NewRelic
           state.request_guid
         ]
         payload = obfuscator.obfuscate(::JSON.dump(payload))
-      end
-
-      def set_transaction_attributes(state)
-        # We expect to get the before call to set the id (if we have it) before
-        # this, and then write our custom parameter when the transaction starts
-        return unless txn = state.current_transaction
-
-        if state.client_cross_app_id
-          txn.attributes.add_intrinsic_attribute(:client_cross_process_id, state.client_cross_app_id)
-        end
-
-        referring_guid = client_referring_transaction_guid(state)
-        if referring_guid
-          txn.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
-        end
-      end
-
-      def set_metrics(id, timings)
-        metric_name = "ClientApplication/#{id}/all"
-        NewRelic::Agent.record_metric(metric_name, timings.app_time_in_seconds)
       end
 
       def decoded_id(request)

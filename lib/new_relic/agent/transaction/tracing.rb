@@ -29,44 +29,18 @@ module NewRelic
 
           def start_external_request_segment library, uri, procedure
             segment = ExternalRequestSegment.new library, uri, procedure
-            segment.start
-            add_segment segment
-            segment
+            start_and_add_segment segment
           end
 
-          # Start a MessageBroker segment configured to trace a messaging action.
-          # Finishing this segment will handle timing and recording of the proper
-          # metrics for New Relic's messaging features..
-          #
-          # @param action [Symbol] The message broker action being traced (see
-          #   NewRelic::Agent::Transaction::MessageBrokerSegment::ACTIONS) for
-          #   all options.
-          #
-          # @param library [String] The name of the library being instrumented
-          #
-          # @param destination_type [Symbol] Type of destination (see
-          #   NewRelic::Agent::Transaction::MessageBrokerSegment::DESTINATION_TYPES)
-          #   for all options.
-          #
-          # @param destination_name [String] Name of destination (queue or
-          #   exchange name)
-          #
-          # @param message_properties [Hash] Metadata about the message and opaque
-          #   application-level data (optional)
-          #
-          # @param parameters [Hash] A hash of parameters to be attached to this
-          #   segment (optional)
-          #
-          # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
-          #
-          # @api public
+          # @api private
           #
           def start_message_broker_segment(action: nil,
                                            library: nil,
                                            destination_type: nil,
                                            destination_name: nil,
                                            message_properties: nil,
-                                           parameters: nil)
+                                           parameters: nil,
+                                           start_time: nil)
 
             # ruby 2.0.0 does not support required kwargs
             raise ArgumentError, 'missing required argument: action' if action.nil?
@@ -80,7 +54,8 @@ module NewRelic
               destination_type: destination_type,
               destination_name: destination_name,
               message_properties: message_properties,
-              parameters: parameters
+              parameters: parameters,
+              start_time: start_time
             )
             start_and_add_segment segment
           end

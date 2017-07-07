@@ -107,6 +107,12 @@ module NewRelic
             "Segment/allOther"
           ]
         end
+
+        def test_sets_start_time_from_constructor
+          t = Time.now
+          segment = Segment.new nil, nil, t
+          assert_equal t, segment.start_time
+        end
       end
     end
   end

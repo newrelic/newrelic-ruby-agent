@@ -122,6 +122,28 @@ module NewRelic
           assert segment.params?
           assert_equal({foo: "bar"}, segment.params)
         end
+
+        def test_sets_start_time_from_constructor
+          t = Time.now
+          segment = BasicSegment.new nil, t
+          assert_equal t, segment.start_time
+        end
+
+        def test_sets_start_time_if_not_given_when_started
+          t = Time.now
+          segment = BasicSegment.new
+          segment.start
+          assert_equal t, segment.start_time
+        end
+
+        def test_does_not_override_construction_start_time_when_started
+          t = Time.now
+          segment = BasicSegment.new nil, t
+          assert_equal t, segment.start_time
+          advance_time 1
+          segment.start
+          assert_equal t, segment.start_time
+        end
       end
     end
   end

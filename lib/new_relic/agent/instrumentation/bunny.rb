@@ -51,24 +51,20 @@ DependencyDetection.defer do
         alias_method :pop_without_new_relic, :pop
 
         def pop(opts = {:manual_ack => false}, &block)
+          t0 = Time.now
           msg = pop_without_new_relic opts, &block
 
           begin
             exchange_name = NewRelic::Agent::Instrumentation::Bunny.exchange_name(msg.first.exchange)
 
-            # msg[1] is an immutable MessageProperties instance that mimics a Hash interface
-            # to_hash here so that we can update the headers and sneakily remove any CAT key/values
-            # N.B. this then requires that all subsequent usage uses Hash accessors
-            non_cat_message_properties = msg[1].to_hash
-            non_cat_message_properties[:headers] = NewRelic::Agent::CrossAppTracing.reject_cat_headers non_cat_message_properties[:headers] unless non_cat_message_properties[:headers].nil?
-
             segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
               library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
               destination_name: exchange_name,
               delivery_info: msg[0],
-              message_properties: non_cat_message_properties,
+              message_properties: msg[1],
               exchange_type: channel.exchanges[msg.first.exchange].type,
-              queue_name: name
+              queue_name: name,
+              start_time: t0
             )
 
           rescue => e
@@ -108,37 +104,15 @@ DependencyDetection.defer do
 
         def call *args
           delivery_info, message_properties, _ = args
-          segment = nil
-          txn_started = false
-          state = nil
+          NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
+              library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+              destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
+              delivery_info: delivery_info,
+              message_properties: message_properties,
+              exchange_type: NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel),
+              queue_name: queue.name) do
 
-          begin
-            state = NewRelic::Agent::TransactionState.tl_get
-            unless state.current_transaction
-              txn_name = NewRelic::Agent::Instrumentation::Bunny.transaction_name delivery_info.exchange,
-                                                                                  delivery_info.routing_key
-              NewRelic::Agent::Transaction.start state, :background, transaction_name: txn_name
-              txn_started = true
-            end
-
-            segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
-                library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-                destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
-                delivery_info: delivery_info,
-                message_properties: message_properties,
-                exchange_type: channel.exchanges[delivery_info.exchange] && channel.exchanges[delivery_info.exchange].type,
-                queue_name: queue.name,
-                subscribed: true
-              )
-          rescue => e
-            NewRelic::Agent.logger.error "Error starting message broker segment in Bunny consumer", e
-          end
-
-          begin
-            call_without_new_relic(*args)
-          ensure
-            segment.finish if segment
-            NewRelic::Agent::Transaction.stop(state) if state && txn_started
+              call_without_new_relic(*args)
           end
         end
       end
@@ -159,15 +133,11 @@ module NewRelic
             name.empty? ? DEFAULT : name
           end
 
-          def transaction_name exchange_name, destination_type, routing_key = nil
-            transaction_name = NewRelic::Agent::Transaction::MESSAGE_PREFIX +
-                               NewRelic::Agent::Instrumentation::Bunny::LIBRARY
-            transaction_name << SLASH
-            transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::EXCHANGE
-            transaction_name << SLASH
-            transaction_name << NewRelic::Agent::Transaction::MessageBrokerSegment::NAMED
-            transaction_name << self.exchange_name(exchange_name)
-            transaction_name
+          def exchange_type delivery_info, channel
+            if di_exchange = delivery_info[:exchange]
+              return :direct if di_exchange.empty?
+              return channel.exchanges[delivery_info[:exchange]].type if channel.exchanges[di_exchange]
+            end
           end
         end
       end
