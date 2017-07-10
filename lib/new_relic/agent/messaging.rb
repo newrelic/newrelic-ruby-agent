@@ -396,7 +396,19 @@ module NewRelic
       end
 
       def assign_synthetics_header synthetics_header, transaction
-        transaction.raw_synthetics_header = synthetics_header if synthetics_header
+        if synthetics_header
+          incoming_payload = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(synthetics_header))
+
+          return unless incoming_payload &&
+            SyntheticsMonitor.is_valid_payload?(incoming_payload) &&
+            SyntheticsMonitor.is_supported_version?(incoming_payload) &&
+            SyntheticsMonitor.is_trusted?(incoming_payload)
+
+          transaction.raw_synthetics_header = synthetics_header
+          transaction.synthetics_payload = incoming_payload
+        end
+      rescue => e
+        NewRelic::Agent.logger.error "Error in assign_synthetics_header", e
       end
 
     end
