@@ -50,13 +50,13 @@ module NewRelic
                     :destination_name,
                     :destination_type,
                     :library,
-                    :message_properties
+                    :headers
 
         def initialize action: nil,
                        library: nil,
                        destination_type: nil,
                        destination_name: nil,
-                       message_properties: nil,
+                       headers: nil,
                        parameters: nil,
                        start_time: nil
 
@@ -70,7 +70,7 @@ module NewRelic
           @library = library
           @destination_type = destination_type
           @destination_name = destination_name
-          @message_properties = message_properties
+          @headers = headers
           super(nil, nil, start_time)
           params.merge! parameters if parameters
         end
@@ -91,10 +91,10 @@ module NewRelic
 
         def transaction= t
           super
-          return unless message_properties
+          return unless headers
           if action == :produce
             return unless record_metrics? && CrossAppTracing.cross_app_enabled?
-            transaction.add_message_cat_headers message_properties if transaction
+            transaction.add_message_cat_headers headers if transaction
           end
         rescue => e
           NewRelic::Agent.logger.error "Error during message header processing", e

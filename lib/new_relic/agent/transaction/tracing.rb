@@ -38,7 +38,7 @@ module NewRelic
                                            library: nil,
                                            destination_type: nil,
                                            destination_name: nil,
-                                           message_properties: nil,
+                                           headers: nil,
                                            parameters: nil,
                                            start_time: nil)
 
@@ -53,7 +53,7 @@ module NewRelic
               library: library,
               destination_type: destination_type,
               destination_name: destination_name,
-              message_properties: message_properties,
+              headers: headers,
               parameters: parameters,
               start_time: start_time
             )

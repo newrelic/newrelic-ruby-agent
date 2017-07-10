@@ -284,7 +284,7 @@ module NewRelic
         )
 
         assert NewRelic::Agent::Transaction::MessageBrokerSegment === segment
-        assert_equal message_properties[:headers], segment.message_properties
+        assert_equal message_properties[:headers], segment.headers
       end
 
       def test_start_message_broker_segments_returns_properly_constructed_segment
