@@ -8,7 +8,8 @@
   report data for messages sent and received by an application. Data on messages
   is available in both APM and Insights. Applications connected through a
   RabbitMQ exchange will now also be visible on Service Maps as part of Cross
-  Application Tracing.
+  Application Tracing. See the [message queues documentation page](https://docs.newrelic.com/docs/agents/ruby-agent/features/message-queues)
+  for more details.
 
   * Safely normalize external hostnames
 
