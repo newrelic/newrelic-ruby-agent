@@ -36,7 +36,7 @@ module NewRelic
       # @param destination_name [String] Name of destination (queue or
       #   exchange name)
       #
-      # @param message_properties [Hash] Metadata about the message and opaque
+      # @param headers [Hash] Metadata about the message and opaque
       #   application-level data (optional)
       #
       # @param parameters [Hash] A hash of parameters to be attached to this
@@ -54,7 +54,7 @@ module NewRelic
                                        library: nil,
                                        destination_type: nil,
                                        destination_name: nil,
-                                       message_properties: nil,
+                                       headers: nil,
                                        parameters: nil,
                                        start_time: nil)
 
@@ -63,7 +63,7 @@ module NewRelic
           library: library,
           destination_type: destination_type,
           destination_name: destination_name,
-          message_properties: message_properties,
+          headers: headers,
           parameters: parameters,
           start_time: start_time
         )
@@ -82,9 +82,23 @@ module NewRelic
       # @param destination_name [String] Name of destination (queue or
       #   exchange name)
       #
-      # @param attributes [Hash] A hash of attributes to be attached to this
-      #   transaction, filtered by allowed keys, see
-      #   +NewRelic::Agent::Messaging::ALLOWED_AGENT_ATTRIBUTES+ (optional)
+      # @param headers [Hash] Metadata about the message and opaque
+      #   application-level data (optional)
+      #
+      # @param routing_key [String] Value used by AMQP message brokers to route
+      #   messages to queues
+      #
+      # @param queue_name [String] Name of AMQP queue that received the
+      #   message (optional)
+      #
+      # @param exchange_type [Symbol] Type of last AMQP exchange to deliver the
+      #   message (optional)
+      #
+      # @param reply_to [String] Routing key to be used to send AMQP-based RPC
+      #   response messages (optional)
+      #
+      # @param correlation_id [String] Application-level value used to correlate
+      #   AMQP-based RPC response messages to request messages (optional)
       #
       # @param &block [Proc] The block should handle calling the original subscribed
       #   callback function
@@ -99,10 +113,10 @@ module NewRelic
                                                   destination_name: nil,
                                                   headers: nil,
                                                   routing_key: nil,
-                                                  exchange_type: nil,
-                                                  correlation_id: nil,
                                                   queue_name: nil,
-                                                  reply_to: nil
+                                                  exchange_type: nil,
+                                                  reply_to: nil,
+                                                  correlation_id: nil
 
         # ruby 2.0.0 does not support required kwargs
         raise ArgumentError, 'missing required argument: library' if library.nil?
@@ -186,7 +200,7 @@ module NewRelic
           library: library,
           destination_type: :exchange,
           destination_name: destination_name,
-          message_properties: headers
+          headers: headers
         )
 
         if segment_parameters_enabled?
@@ -211,8 +225,8 @@ module NewRelic
       #
       # @param delivery_info [Hash] Metadata about how the message was delivered
       #
-      # @param message_properties [Hash] Metadata about the message and opaque
-      #   application-level data
+      # @param message_properties [Hash] AMQP-specific metadata about the message
+      #   including headers and opaque application-level data
       #
       # @param exchange_type [String] Type of exchange which determines how
       #   messages are routed (optional)
@@ -220,8 +234,9 @@ module NewRelic
       # @param queue_name [String] The name of the queue the message was
       #   consumed from (optional)
       #
-      # @param subscribed [Boolean] Indicates that this trace is the result of
-      #   subscription to queue (optional)
+      # @param start_time [Time] An instance of Time class denoting the start
+      #   time of the segment. Value is set by AbstractSegment#start if not
+      #   given. (optional)
       #
       # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
       #
@@ -246,7 +261,7 @@ module NewRelic
           library: library,
           destination_name: destination_name,
           destination_type: :exchange,
-          message_properties: message_properties[:headers],
+          headers: message_properties[:headers],
           start_time: start_time
         )
 
@@ -381,7 +396,19 @@ module NewRelic
       end
 
       def assign_synthetics_header synthetics_header, transaction
-        transaction.raw_synthetics_header = synthetics_header if synthetics_header
+        if synthetics_header
+          incoming_payload = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(synthetics_header))
+
+          return unless incoming_payload &&
+            SyntheticsMonitor.is_valid_payload?(incoming_payload) &&
+            SyntheticsMonitor.is_supported_version?(incoming_payload) &&
+            SyntheticsMonitor.is_trusted?(incoming_payload)
+
+          transaction.raw_synthetics_header = synthetics_header
+          transaction.synthetics_payload = incoming_payload
+        end
+      rescue => e
+        NewRelic::Agent.logger.error "Error in assign_synthetics_header", e
       end
 
     end

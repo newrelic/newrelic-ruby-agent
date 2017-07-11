@@ -284,7 +284,7 @@ module NewRelic
         )
 
         assert NewRelic::Agent::Transaction::MessageBrokerSegment === segment
-        assert_equal message_properties[:headers], segment.message_properties
+        assert_equal message_properties[:headers], segment.headers
       end
 
       def test_start_message_broker_segments_returns_properly_constructed_segment
@@ -430,6 +430,9 @@ module NewRelic
         raw_txn_info         = nil
         obfuscated_txn_info  = nil
 
+        synthetics_payload   = [1, 321, 'abc', 'def', 'ghe']
+        synthetics_header    = nil
+
         tap = mock 'tap'
         tap.expects :tap
 
@@ -442,18 +445,20 @@ module NewRelic
             obfuscated_id = obfuscator.obfuscate cross_process_id
             raw_txn_info = [guid, false, guid, txn.cat_path_hash(txn.state)]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
+            synthetics_header = obfuscator.obfuscate synthetics_payload.to_json
           end
 
           NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
             library: "RabbitMQ",
             destination_type: :exchange,
             destination_name: "Default",
-            headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info, "NewRelicSynthetics" => "boo" }
+            headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info, "NewRelicSynthetics" => synthetics_header }
           ) do
             txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
             assert_equal cross_process_id, txn.state.client_cross_app_id
             assert_equal raw_txn_info, txn.state.referring_transaction_info
-            assert_equal "boo", txn.raw_synthetics_header
+            assert_equal synthetics_header, txn.raw_synthetics_header
+            assert_equal synthetics_payload, txn.synthetics_payload
             tap.tap
           end
 
@@ -485,7 +490,7 @@ module NewRelic
             library: "RabbitMQ",
             destination_type: :exchange,
             destination_name: "Default",
-            headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info, "NewRelicSynthetics" => "boo" }
+            headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
           ) do
             tap.tap
           end

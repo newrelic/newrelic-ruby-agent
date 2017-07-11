@@ -71,12 +71,12 @@ module NewRelic
                 library: "RabbitMQ",
                 destination_type: :exchange,
                 destination_name: "Default",
-                message_properties: {}
+                headers: {}
               )
 
-              assert segment.message_properties.key?("NewRelicID"), "Expected message_properties to contain: NewRelicId"
-              assert segment.message_properties.key?("NewRelicTransaction"), "Expected message_properties to contain: NewRelicTransaction"
-              refute segment.message_properties.key?("NewRelicSynthetics")
+              assert segment.headers.key?("NewRelicID"), "Expected message_properties to contain: NewRelicId"
+              assert segment.headers.key?("NewRelicTransaction"), "Expected message_properties to contain: NewRelicTransaction"
+              refute segment.headers.key?("NewRelicSynthetics")
             end
           end
         end
@@ -91,12 +91,12 @@ module NewRelic
                 library: "RabbitMQ",
                 destination_type: :exchange,
                 destination_name: "Default",
-                message_properties: {}
+                headers: {}
               )
 
-              assert segment.message_properties.key?("NewRelicID"), "Expected message_properties to contain: NewRelicId"
-              assert segment.message_properties.key?("NewRelicTransaction"), "Expected message_properties to contain: NewRelicTransaction"
-              assert segment.message_properties.key?("NewRelicSynthetics"), "Expected message_properties to contain: NewRelicSynthetics"
+              assert segment.headers.key?("NewRelicID"), "Expected message_properties to contain: NewRelicId"
+              assert segment.headers.key?("NewRelicTransaction"), "Expected message_properties to contain: NewRelicTransaction"
+              assert segment.headers.key?("NewRelicSynthetics"), "Expected message_properties to contain: NewRelicSynthetics"
             end
           end
         end
