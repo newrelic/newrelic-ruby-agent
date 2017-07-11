@@ -116,11 +116,8 @@ module NewRelic
         !!headers[NR_MESSAGE_BROKER_ID_HEADER]
       end
 
-      def reject_cat_headers headers
-        headers.reject do |k,_|
-          k == NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER ||
-          k == NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER
-        end
+      def reject_messaging_cat_headers headers
+        headers.reject {|k,_| k == NR_MESSAGE_BROKER_ID_HEADER || k == NR_MESSAGE_BROKER_TXN_HEADER}
       end
 
       def trusts? id

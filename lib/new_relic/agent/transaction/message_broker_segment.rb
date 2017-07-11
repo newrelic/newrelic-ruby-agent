@@ -91,10 +91,8 @@ module NewRelic
 
         def transaction= t
           super
-          return unless headers
-          if action == :produce
-            return unless record_metrics? && CrossAppTracing.cross_app_enabled?
-            transaction.add_message_cat_headers headers if transaction
+          if headers && transaction && action == :produce && record_metrics? && CrossAppTracing.cross_app_enabled?
+            transaction.add_message_cat_headers headers
           end
         rescue => e
           NewRelic::Agent.logger.error "Error during message header processing", e
