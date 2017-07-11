@@ -132,7 +132,7 @@ module NewRelic
           txn = Transaction.start state, :background, transaction_name: txn_name
           consume_message_headers headers, txn, state
 
-          CrossAppTracing.reject_cat_headers(headers).each do |k, v|
+          CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
             txn.add_agent_attribute :"message.headers.#{k}", v, AttributeFilter::DST_NONE unless v.nil?
           end if headers
 
@@ -267,8 +267,9 @@ module NewRelic
 
         if segment_parameters_enabled?
           if message_properties[:headers] && !message_properties[:headers].empty?
-            non_cat_headers = CrossAppTracing.reject_cat_headers message_properties[:headers]
-            segment.params[:headers] = non_cat_headers unless non_cat_headers.empty?
+            non_cat_headers = CrossAppTracing.reject_messaging_cat_headers message_properties[:headers]
+            non_synth_headers = SyntheticsMonitor.reject_messaging_synthetics_header non_cat_headers
+            segment.params[:headers] = non_synth_headers unless non_synth_headers.empty?
           end
 
           segment.params[:routing_key] = delivery_info[:routing_key] if delivery_info[:routing_key]
@@ -362,14 +363,13 @@ module NewRelic
       end
 
       def consume_message_headers headers, transaction, state
-        return unless CrossAppTracing.cross_app_enabled?
-
-        if CrossAppTracing.message_has_crossapp_request_header? headers
+        if CrossAppTracing.cross_app_enabled? && CrossAppTracing.message_has_crossapp_request_header?(headers)
           decode_id headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER], state
           decode_txn_info headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER], state
-          assign_synthetics_header headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER], transaction
           CrossAppTracing.assign_intrinsic_transaction_attributes state
         end
+
+        assign_synthetics_header headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER], transaction
       rescue => e
         NewRelic::Agent.logger.error "Error in consume_message_headers", e
       end
@@ -396,13 +396,11 @@ module NewRelic
       end
 
       def assign_synthetics_header synthetics_header, transaction
-        if synthetics_header
-          incoming_payload = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(synthetics_header))
-
-          return unless incoming_payload &&
-            SyntheticsMonitor.is_valid_payload?(incoming_payload) &&
-            SyntheticsMonitor.is_supported_version?(incoming_payload) &&
-            SyntheticsMonitor.is_trusted?(incoming_payload)
+        if synthetics_header and
+           incoming_payload = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(synthetics_header)) and
+           SyntheticsMonitor.is_valid_payload?(incoming_payload) and
+           SyntheticsMonitor.is_supported_version?(incoming_payload) and
+           SyntheticsMonitor.is_trusted?(incoming_payload)
 
           transaction.raw_synthetics_header = synthetics_header
           transaction.synthetics_payload = incoming_payload
