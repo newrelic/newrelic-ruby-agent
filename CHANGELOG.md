@@ -2,6 +2,15 @@
 
 ## v4.3.0 ##
 
+  * User/Utilization and System/Utilization metrics not recorded after Resque forks
+
+  The agent now doesn't record User/Utilization and System/Utilization metrics after
+  Resque process forks (so values won't be negative).
+
+  * JavaScript not injected if transaction ignored
+
+  The agent now checks if transaction is ignored before sending up JavaScript to browser.
+
   * Instrumentation for the Bunny AMQP Client
 
   The Bunny AMQP Client is now automatically instrumented. The agent will
