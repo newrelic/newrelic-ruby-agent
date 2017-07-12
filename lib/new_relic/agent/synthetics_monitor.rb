@@ -23,9 +23,9 @@ module NewRelic
         incoming_payload = deserialize_header(encoded_header, SYNTHETICS_HEADER_KEY)
 
         return unless incoming_payload &&
-            is_valid_payload?(incoming_payload) &&
-            is_supported_version?(incoming_payload) &&
-            is_trusted?(incoming_payload)
+          SyntheticsMonitor.is_valid_payload?(incoming_payload) &&
+          SyntheticsMonitor.is_supported_version?(incoming_payload) &&
+          SyntheticsMonitor.is_trusted?(incoming_payload)
 
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
@@ -33,18 +33,27 @@ module NewRelic
         txn.synthetics_payload    = incoming_payload
       end
 
-      def is_supported_version?(incoming_payload)
-        incoming_payload.first == SUPPORTED_VERSION
+      class << self
+
+        def is_supported_version?(incoming_payload)
+          incoming_payload.first == SUPPORTED_VERSION
+        end
+
+        def is_trusted?(incoming_payload)
+          account_id = incoming_payload[1]
+          NewRelic::Agent.config[:trusted_account_ids].include?(account_id)
+        end
+
+        def is_valid_payload?(incoming_payload)
+          incoming_payload.length == EXPECTED_PAYLOAD_LENGTH
+        end
+
+        def reject_messaging_synthetics_header headers
+          headers.reject {|k,_| k == NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER}
+        end
+
       end
 
-      def is_trusted?(incoming_payload)
-        account_id = incoming_payload[1]
-        NewRelic::Agent.config[:trusted_account_ids].include?(account_id)
-      end
-
-      def is_valid_payload?(incoming_payload)
-        incoming_payload.length == EXPECTED_PAYLOAD_LENGTH
-      end
     end
   end
 end

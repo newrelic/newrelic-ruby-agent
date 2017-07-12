@@ -13,9 +13,9 @@ module NewRelic
         # initialize it as an array that would be empty, have one item, or many items.
         attr_reader :unscoped_metrics
 
-        def initialize name = nil, unscoped_metrics=nil
+        def initialize name=nil, unscoped_metrics=nil, start_time=nil
           @unscoped_metrics = unscoped_metrics
-          super name
+          super name, start_time
         end
 
         def record_metrics

@@ -17,14 +17,14 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     @error_collector = NewRelic::Agent::ErrorCollector.new
     @error_collector.stubs(:enabled).returns(true)
 
-    NewRelic::Agent::TransactionState.tl_clear_for_testing
+    NewRelic::Agent::TransactionState.tl_clear
     NewRelic::Agent.instance.stats_engine.reset!
   end
 
   def teardown
     super
     NewRelic::Agent::ErrorCollector.ignore_error_filter = nil
-    NewRelic::Agent::TransactionState.tl_clear_for_testing
+    NewRelic::Agent::TransactionState.tl_clear
     NewRelic::Agent.config.reset_to_defaults
   end
 
@@ -360,8 +360,8 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     end
   end
 
-  def test_trace_only_does_not_increment_metrics
-    @error_collector.notice_error(StandardError.new, :trace_only => true)
+  def test_expected_error_does_not_increment_metrics
+    @error_collector.notice_error(StandardError.new, :expected => true)
     traces = harvest_error_traces
     events = harvest_error_events
 
@@ -370,8 +370,8 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_metrics_not_recorded ['Errors/all']
   end
 
-  def test_trace_only_not_recorded_as_custom_attribute
-    @error_collector.notice_error(StandardError.new, :trace_only => true)
+  def test_expected_error_not_recorded_as_custom_attribute
+    @error_collector.notice_error(StandardError.new, :expected => true)
     traces = harvest_error_traces
     events = harvest_error_events
 
@@ -379,10 +379,10 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal 1, events.length
 
     event_attrs = events[0][1]
-    refute event_attrs.key?("trace_only"), "Unexpected attribute trace_only found in custom attributes"
+    refute event_attrs.key?("expected"), "Unexpected attribute expected found in custom attributes"
 
     trace_attrs = traces[0].attributes_from_notice_error
-    refute trace_attrs.key?(:trace_only), "Unexpected attribute trace_only found in custom attributes"
+    refute trace_attrs.key?(:expected), "Unexpected attribute expected found in custom attributes"
   end
 
   private

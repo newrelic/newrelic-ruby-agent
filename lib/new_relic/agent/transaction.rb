@@ -9,6 +9,7 @@ require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
+require 'new_relic/agent/cross_app_tracing'
 
 module NewRelic
   module Agent
@@ -25,6 +26,7 @@ module NewRelic
       MIDDLEWARE_PREFIX            = 'Middleware/Rack/'.freeze
       TASK_PREFIX                  = 'OtherTransaction/Background/'.freeze
       RAKE_PREFIX                  = 'OtherTransaction/Rake/'.freeze
+      MESSAGE_PREFIX               = 'OtherTransaction/Message/'.freeze
       RACK_PREFIX                  = 'Controller/Rack/'.freeze
       SINATRA_PREFIX               = 'Controller/Sinatra/'.freeze
       GRAPE_PREFIX                 = 'Controller/Grape/'.freeze
@@ -409,6 +411,8 @@ module NewRelic
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
 
+        ignore! if user_defined_rules_ignore?
+
         create_initial_segment @default_name
       end
 
@@ -487,7 +491,6 @@ module NewRelic
       def stop(state, end_time, outermost_frame)
         return if !state.is_execution_traced?
         freeze_name_and_execute_if_not_ignored
-        ignore! if user_defined_rules_ignore?
 
         if nesting_max_depth == 1
           outermost_frame.name = @frozen_name
@@ -520,6 +523,7 @@ module NewRelic
         record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
+        record_client_application_metric state
 
         generate_payload(state, start_time, end_time)
 
@@ -775,6 +779,12 @@ module NewRelic
         end
       end
 
+      def record_client_application_metric state
+        if id = state.client_cross_app_id
+          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", state.timings.app_time_in_seconds
+        end
+      end
+
       APDEX_ALL_METRIC   = 'ApdexAll'.freeze
 
       APDEX_METRIC       = 'Apdex'.freeze
@@ -785,10 +795,10 @@ module NewRelic
 
       def had_error_affecting_apdex?
         @exceptions.each do |exception, options|
-          ignored    = NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
-          trace_only = options[:trace_only]
+          ignored        = NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
+          expected = options[:expected]
 
-          return true unless ignored || trace_only
+          return true unless ignored || expected
         end
         false
       end
@@ -907,6 +917,15 @@ module NewRelic
 
       def ignore_trace?
         @ignore_trace
+      end
+
+      def add_message_cat_headers headers
+        state.is_cross_app_caller = true
+        CrossAppTracing.insert_message_headers headers,
+                                               guid,
+                                               cat_trip_id(state),
+                                               cat_path_hash(state),
+                                               raw_synthetics_header
       end
 
       private

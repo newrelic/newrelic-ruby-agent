@@ -47,6 +47,14 @@ def last_traced_error
   harvest_error_traces!.last
 end
 
+def harvest_transaction_events!
+  NewRelic::Agent.instance.transaction_event_aggregator.harvest!
+end
+
+def last_transaction_event
+  harvest_transaction_events!.last.last
+end
+
 unless defined?( assert_block )
   def assert_block(*msgs)
     assert yield, *msgs

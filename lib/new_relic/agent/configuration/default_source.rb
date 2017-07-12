@@ -874,6 +874,13 @@ module NewRelic
           :allowed_from_server => false,
           :description  => 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.'
         },
+        :'message_tracer.segment_parameters.enabled' => {
+          :default      => true,
+          :public       => true,
+          :type         => Boolean,
+          :allowed_from_server => true,
+          :description  => 'If <code>true</code>, the agent will collect metadata about messages and attach them as segment parameters.'
+        },
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
           :public => true,
@@ -1229,6 +1236,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 5.'
+        },
+        :disable_bunny => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'If <code>true</code>, disables instrumentation for the bunny gem.'
         },
         :disable_curb => {
           :default      => false,

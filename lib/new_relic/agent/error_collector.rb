@@ -199,7 +199,7 @@ module NewRelic
 
         state = ::NewRelic::Agent::TransactionState.tl_get
 
-        unless options.delete(:trace_only)
+        unless options.delete(:expected)
           increment_error_count!(state, exception, options)
         end
 

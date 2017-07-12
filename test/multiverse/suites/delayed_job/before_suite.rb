@@ -3,8 +3,18 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'delayed_job'
+
+migration_version = nil
+
 begin
   require 'active_record'
+
+  # Get the version of the ActiveRecord migration class (see below)
+
+  if ActiveRecord::VERSION::STRING >= '5.0.0'
+    migration_version = "[#{ActiveRecord::VERSION::MAJOR}.#{ActiveRecord::VERSION::MINOR}]"
+  end
+
 rescue LoadError
   # Let it fail, might be working with another library
 end
@@ -16,14 +26,20 @@ if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
   $db_connection = ActiveRecord::Base.establish_connection(:adapter  => "sqlite3",
                                                            :database => ":memory:")
 
-  begin
-    require 'generators/delayed_job/templates/migration'
-  rescue MissingSourceFile
-    # Back on DJ v2 the generators aren't in the lib folder so we have to do some
-    # sneaky stuff to get them loaded. Still better than dup'ing them, though.
-    dj_dir = ($:).grep(/delayed_job-/).first
-    require "#{dj_dir}/../generators/delayed_job/templates/migration"
-  end
+
+  # Evaluate the delayed_job_active_record ERB template for database migration
+  # This handles the case where ActiveRecord versions greater than or equal to 5.0
+  # have versioned migration classes (e.g. ActiveRecord::Migration[5.0]) and those
+  # less than 5.0 do not.
+
+  dj_gem_spec = Bundler.rubygems.loaded_specs("delayed_job_active_record") ||
+                Bundler.rubygems.loaded_specs("delayed_job")
+
+  dj_gem_path = dj_gem_spec.full_gem_path
+
+  content = File.read("#{dj_gem_path}/lib/generators/delayed_job/templates/migration.rb")
+  renderer = ERB.new(content)
+  eval(renderer.result(binding))
 
   class CreateDelayedJobs
     @connection = $db_connection

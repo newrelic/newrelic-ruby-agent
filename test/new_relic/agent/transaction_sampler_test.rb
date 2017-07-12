@@ -26,7 +26,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def setup
-    NewRelic::Agent::TransactionState.tl_clear_for_testing
+    NewRelic::Agent::TransactionState.tl_clear
     @state = NewRelic::Agent::TransactionState.tl_get
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
@@ -53,7 +53,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def teardown
     super
-    NewRelic::Agent::TransactionState.tl_clear_for_testing
+    NewRelic::Agent::TransactionState.tl_clear
     NewRelic::Agent.config.remove_config(@test_config)
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @old_sampler)
   end

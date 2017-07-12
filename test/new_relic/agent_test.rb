@@ -19,7 +19,7 @@ module NewRelic
     end
 
     def teardown
-      NewRelic::Agent::TransactionState.tl_clear_for_testing
+      NewRelic::Agent::TransactionState.tl_clear
     end
 
     def test_shutdown
@@ -358,6 +358,14 @@ module NewRelic
       rescue => e
         assert_equal nil, ::NewRelic::Agent.notice_error(e)
       end
+    end
+
+    def test_notice_error_deprecates_trace_only
+      log = with_array_logger(:warn) do
+        NewRelic::Agent.notice_error(StandardError.new, { trace_only: true })
+      end
+
+      assert log.array.any? {|msg| msg.include?('Passing the :trace_only option to NewRelic::Agent.notice_error is deprecated. Please use :expected instead') }
     end
 
     def test_eventing_helpers

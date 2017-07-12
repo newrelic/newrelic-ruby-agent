@@ -21,6 +21,10 @@ module NewRelic
       # The cross app synthetics header
       NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
 
+      NR_MESSAGE_BROKER_ID_HEADER  = 'NewRelicID'.freeze
+      NR_MESSAGE_BROKER_TXN_HEADER = 'NewRelicTransaction'.freeze
+      NR_MESSAGE_BROKER_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
+
       ###############
       module_function
       ###############
@@ -100,6 +104,45 @@ module NewRelic
 
       def valid_cross_app_id?(xp_id)
         !!(xp_id =~ /\A\d+#\d+\z/)
+      end
+
+      def insert_message_headers headers, txn_guid, trip_id, path_hash, synthetics_header
+        headers[NR_MESSAGE_BROKER_ID_HEADER]  = obfuscator.obfuscate(NewRelic::Agent.config[:cross_process_id])
+        headers[NR_MESSAGE_BROKER_TXN_HEADER] = obfuscator.obfuscate(::JSON.dump([txn_guid, false, trip_id, path_hash]))
+        headers[NR_MESSAGE_BROKER_SYNTHETICS_HEADER] = synthetics_header if synthetics_header
+      end
+
+      def message_has_crossapp_request_header? headers
+        !!headers[NR_MESSAGE_BROKER_ID_HEADER]
+      end
+
+      def reject_messaging_cat_headers headers
+        headers.reject {|k,_| k == NR_MESSAGE_BROKER_ID_HEADER || k == NR_MESSAGE_BROKER_TXN_HEADER}
+      end
+
+      def trusts? id
+        split_id = id.match(/(\d+)#\d+/)
+        return false if split_id.nil?
+
+        NewRelic::Agent.config[:trusted_account_ids].include? split_id.captures.first.to_i
+      end
+
+      def trusted_valid_cross_app_id? id
+        valid_cross_app_id?(id) && trusts?(id)
+      end
+
+      def assign_intrinsic_transaction_attributes state
+        # We expect to get the before call to set the id (if we have it) before
+        # this, and then write our custom parameter when the transaction starts
+        return unless transaction = state.current_transaction
+
+        if state.client_cross_app_id
+          transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, state.client_cross_app_id)
+        end
+
+        if referring_guid = state.referring_transaction_info && state.referring_transaction_info[0]
+          transaction.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
+        end
       end
     end
   end

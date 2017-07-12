@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.0.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Tim Krajcar", "Matthew Wear", "Kenichi Nakamura", "Chris Pine" ]
+  s.authors = [ "Matthew Wear", "Kenichi Nakamura", "Chris Pine", "Dana Scheider" ]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.licenses    = ['New Relic']
   s.description = <<-EOS
