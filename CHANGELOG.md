@@ -7,10 +7,6 @@
   
 ## v4.3.0 ##
 
-  * JavaScript not injected if transaction ignored
-
-  The agent now checks if transaction is ignored before sending up JavaScript to browser.
-
   * Instrumentation for the Bunny AMQP Client
 
   The Bunny AMQP Client is now automatically instrumented. The agent will
