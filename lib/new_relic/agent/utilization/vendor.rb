@@ -21,16 +21,18 @@ module NewRelic
             headers ? @headers = headers.freeze : @headers
           end
 
-          def key_mapping key_mapping = nil
-            key_mapping ? @key_mapping = key_mapping.freeze : @key_mapping
+          def keys keys = nil
+            keys ? @keys = keys.freeze : @keys
           end
         end
 
-        [:provider_name, :endpoint, :headers, :key_mapping].each do |method_name|
-          define_method(method_name) { self.class.send(method_name) }
+        def initialize
+          @metadata = {}
         end
 
-        attr_accessor :instance_type, :instance_id, :availability_zone
+        [:provider_name, :endpoint, :headers, :keys].each do |method_name|
+          define_method(method_name) { self.class.send(method_name) }
+        end
 
         def process
           response = request_metadata
@@ -39,6 +41,12 @@ module NewRelic
           end
         rescue => e
           NewRelic::Agent.logger.error "Unexpected error obtaining utilization data for #{provider_name}", e
+        end
+
+        def to_collector_hash
+          {
+            provider_name => @metadata
+          }
         end
 
         private
@@ -53,12 +61,9 @@ module NewRelic
         end
 
         def assign_keys response
-          metadata = JSON.parse response
-          key_mapping.each_pair do |nr_name, vendor_name|
-            if value = metadata[vendor_name]
-              value.strip!
-              send :"#{nr_name}=", value
-            end
+          parsed_response = JSON.parse response
+          keys.each do |key|
+            @metadata[key] = parsed_response[key]
           end
         end
 

@@ -13,9 +13,7 @@ module NewRelic
           provider_name "example"
           endpoint "http://http://169.254.169.254/metadata"
           headers "meta" => "yes"
-          key_mapping instance_type:     "vm_type",
-                      instance_id:       "vm_id",
-                      availability_zone: "vm_zone"
+          keys ["vm_type", "vm_id", "vm_zone"]
         end
 
         def setup
@@ -40,9 +38,15 @@ module NewRelic
           @vendor.stubs(:request_metadata).returns(mock_response)
           @vendor.process
 
-          assert_equal "large", @vendor.instance_type
-          assert_equal "x123", @vendor.instance_id
-          assert_equal "danger_zone", @vendor.availability_zone
+          expected = {
+            "example" => {
+              "vm_type" => "large",
+              "vm_id" => "x123",
+              "vm_zone" => "danger_zone"
+            }
+          }
+
+          assert_equal expected, @vendor.to_collector_hash
         end
       end
     end
