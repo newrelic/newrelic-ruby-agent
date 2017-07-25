@@ -34,16 +34,20 @@ module NewRelic
           define_method(method_name) { self.class.send(method_name) }
         end
 
+        SUCCESS = '200'.freeze
+
         def detect
           response = request_metadata
-          if response.code == '200'
-            assign_keys response.body
-            true
+          if response.code == SUCCESS
+            process_response prepare_response(response)
           else
+            record_supportability_metric
             false
           end
         rescue => e
           NewRelic::Agent.logger.error "Unexpected error obtaining utilization data for #{vendor_name}", e
+          record_supportability_metric
+          false
         end
 
         def to_collector_hash
@@ -63,15 +67,60 @@ module NewRelic
           response
         end
 
-        def assign_keys response
-          parsed_response = JSON.parse response
+        def prepare_response response
+          JSON.parse response.body
+        end
+
+        def process_response response
           keys.each do |key|
-            @metadata[key] = parsed_response[key]
+            normalized = normalize response[key]
+            if normalized
+              @metadata[key] = normalized
+            else
+              @metadata.clear
+              record_supportability_metric
+              return false
+            end
+          end
+          true
+        end
+
+        def normalize value
+          return unless String === value
+          value.force_encoding Encoding::UTF_8
+          value.strip!
+
+          return unless valid_length? value
+          return unless valid_chars? value
+
+          value
+        end
+
+        def valid_length? value
+          if value.bytesize <= 255
+            true
+          else
+            NewRelic::Agent.logger.warn "Found invalid length value while detecting: #{vendor_name}"
+            false
           end
         end
 
+        VALID_CHARS = /^[0-9a-zA-Z_ .\/-]$/
+
+        def valid_chars? value
+          value.each_char do |ch|
+            next if ch =~ VALID_CHARS
+            code_point = ch[0].ord # this works in Ruby 1.8.7 - 2.1.2
+            next if code_point >= 0x80
+
+            NewRelic::Agent.logger.warn "Found invalid character while detecting: #{vendor_name}"
+            return false # it's in neither set of valid characters
+          end
+          true
+        end
+
         def record_supportability_metric
-          Agent.increment_metric "Supportability/utilization/#{vendor_name}/error"
+          NewRelic::Agent.increment_metric "Supportability/utilization/#{vendor_name}/error"
         end
       end
     end

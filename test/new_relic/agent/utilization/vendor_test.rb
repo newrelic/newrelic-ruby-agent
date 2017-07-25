@@ -20,6 +20,10 @@ module NewRelic
           @vendor = ExampleVendor.new
         end
 
+        def teardown
+          NewRelic::Agent.drop_buffered_data
+        end
+
         def test_has_name
           assert_equal "example", @vendor.vendor_name
         end
@@ -47,6 +51,22 @@ module NewRelic
           }
 
           assert_equal expected, @vendor.to_collector_hash
+        end
+
+        def test_detect_fails_when_expected_field_is_null
+          mock_response = mock(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":null}')
+          @vendor.stubs(:request_metadata).returns(mock_response)
+
+          refute @vendor.detect
+          assert_metrics_recorded "Supportability/utilization/example/error" => {:call_count => 1}
+        end
+
+        def test_detect_fails_when_expected_field_has_invalid_chars
+          mock_response = mock(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"*star*is*invalid*"}')
+          @vendor.stubs(:request_metadata).returns(mock_response)
+
+          refute @vendor.detect
+          assert_metrics_recorded "Supportability/utilization/example/error" => {:call_count => 1}
         end
       end
     end
