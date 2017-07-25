@@ -10,7 +10,7 @@ module NewRelic
     module Utilization
       class VendorTest < Minitest::Test
         class ExampleVendor < Vendor
-          provider_name "example"
+          vendor_name "example"
           endpoint "http://http://169.254.169.254/metadata"
           headers "meta" => "yes"
           keys ["vm_type", "vm_id", "vm_zone"]
@@ -21,7 +21,7 @@ module NewRelic
         end
 
         def test_has_name
-          assert_equal "example", @vendor.provider_name
+          assert_equal "example", @vendor.vendor_name
         end
 
         def test_has_endpoint
@@ -36,7 +36,7 @@ module NewRelic
         def test_assigns_expected_keys
           mock_response = mock(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"danger_zone", "whatever":"nothing"}')
           @vendor.stubs(:request_metadata).returns(mock_response)
-          @vendor.process
+          assert @vendor.detect
 
           expected = {
             "example" => {

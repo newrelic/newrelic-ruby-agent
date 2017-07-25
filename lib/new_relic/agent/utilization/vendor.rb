@@ -9,8 +9,8 @@ module NewRelic
     module Utilization
       class Vendor
         class << self
-          def provider_name provider_name = nil
-            provider_name ? @provider_name = provider_name.freeze : @provider_name
+          def vendor_name vendor_name = nil
+            vendor_name ? @vendor_name = vendor_name.freeze : @vendor_name
           end
 
           def endpoint endpoint = nil
@@ -30,22 +30,25 @@ module NewRelic
           @metadata = {}
         end
 
-        [:provider_name, :endpoint, :headers, :keys].each do |method_name|
+        [:vendor_name, :endpoint, :headers, :keys].each do |method_name|
           define_method(method_name) { self.class.send(method_name) }
         end
 
-        def process
+        def detect
           response = request_metadata
           if response.code == '200'
             assign_keys response.body
+            true
+          else
+            false
           end
         rescue => e
-          NewRelic::Agent.logger.error "Unexpected error obtaining utilization data for #{provider_name}", e
+          NewRelic::Agent.logger.error "Unexpected error obtaining utilization data for #{vendor_name}", e
         end
 
         def to_collector_hash
           {
-            provider_name => @metadata
+            vendor_name => @metadata
           }
         end
 
@@ -68,7 +71,7 @@ module NewRelic
         end
 
         def record_supportability_metric
-          Agent.increment_metric "Supportability/utilization/#{provider_name}/error"
+          Agent.increment_metric "Supportability/utilization/#{vendor_name}/error"
         end
       end
     end
