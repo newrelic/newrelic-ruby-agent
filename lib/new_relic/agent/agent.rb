@@ -803,7 +803,8 @@ module NewRelic
               :environment   => @environment_report,
               :settings      => Agent.config.to_collector_hash,
               :high_security => Agent.config[:high_security],
-              :utilization   => UtilizationData.new.to_collector_hash
+              :utilization   => UtilizationData.new.to_collector_hash,
+              :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}"
             }
           end
 

@@ -101,17 +101,27 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_connect_settings
-    NewRelic::Agent.config.expects(:app_names).returns(["apps"])
+    2.times { NewRelic::Agent.config.expects(:app_names).returns(["apps"]) }
     @local_host = "lo-calhost"
     @environment_report = {}
 
-    keys = %w(pid host display_host app_name language agent_version environment settings).map(&:to_sym)
+    keys = %w(pid host identifier display_host app_name language agent_version environment settings).map(&:to_sym)
 
     settings = connect_settings
     keys.each do |k|
       assert_includes(settings.keys, k)
       refute_nil(settings[k], "expected a value for #{k}")
     end
+  end
+
+  def test_connect_settings_includes_correct_identifier
+    2.times { NewRelic::Agent.config.expects(:app_names).returns(["b", "a", "c"]) }
+    @local_host = "lo-calhost"
+    @environment_report = {}
+
+    settings = connect_settings
+
+    assert_equal settings[:identifier], "ruby:lo-calhost:a,b,c"
   end
 
   def test_configure_transaction_tracer_positive
