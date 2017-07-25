@@ -5,6 +5,12 @@
   The agent now doesn't record User/Utilization and System/Utilization metrics after
   Resque process forks (so values won't be negative).
   
+  * Add `identifier` field to agent connect settings
+
+  The agent now includes a unique identifier in its connect settings, ensuring
+  that when multiple agents connect to multiple different apps, data are reported
+  for each of the apps.
+
 ## v4.3.0 ##
 
   * Instrumentation for the Bunny AMQP Client
