@@ -1,5 +1,10 @@
 # New Relic Ruby Agent Release Notes #
 
+  * User/Utilization and System/Utilization metrics not recorded after Resque forks
+
+  The agent now doesn't record User/Utilization and System/Utilization metrics after
+  Resque process forks (so values won't be negative).
+  
 ## v4.3.0 ##
 
   * Instrumentation for the Bunny AMQP Client

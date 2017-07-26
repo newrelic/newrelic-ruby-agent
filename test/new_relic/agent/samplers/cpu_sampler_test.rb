@@ -13,10 +13,11 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
   end
 
   def teardown
+    clear_metrics!
     set_jruby_version_constant(@original_jruby_version) if defined?(JRuby)
   end
 
-  def test_correcly_detecting_jruby_support_for_correct_cpu_sampling
+  def test_correctly_detecting_jruby_support_for_correct_cpu_sampling
     if defined?(JRuby)
       set_jruby_version_constant '1.6.8'
       refute_supported_on_platform
@@ -47,7 +48,7 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
     Object.send(:remove_const, 'JRUBY_VERSION') if defined?(JRUBY_VERSION)
     Object.const_set('JRUBY_VERSION', string)
   end
-
+  
   def test_cpu_sampler_records_user_and_system_time
     timeinfo0 = mock
     timeinfo0.stubs(:utime).returns(10.0)
@@ -75,5 +76,26 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
       # (2s system time) / ((10s elapsed time) * 4 cpus) = 0.05
       'CPU/System/Utilization' => { :call_count => 1, :total_call_time => 0.05 }
     })
+  end
+
+  def test_cpu_sampler_doesnt_return_negative_user_and_system_utilization_values
+    timeinfo0 = mock
+    timeinfo0.stubs(:utime).returns(10.0)
+    timeinfo0.stubs(:stime).returns(5.0)
+
+    timeinfo1 = mock
+    timeinfo1.stubs(:utime).returns(0.0)
+    timeinfo1.stubs(:stime).returns(0.0)
+
+    freeze_time
+    Process.stubs(:times).returns(timeinfo0, timeinfo1)
+
+    s = NewRelic::Agent::Samplers::CpuSampler.new # this calls poll
+    s.poll
+
+    assert_metrics_not_recorded([
+      'CPU/User/Utilization',
+      'CPU/System/Utilization'
+      ])
   end
 end

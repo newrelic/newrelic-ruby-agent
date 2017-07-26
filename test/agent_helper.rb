@@ -227,6 +227,23 @@ def assert_metrics_recorded_exclusive(expected, options={})
   assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: #{format_metric_spec_list(unexpected_metrics)}")
 end
 
+# The clear_metrics! method prevents metrics from "leaking" between tests by resetting
+# the @stats_hash instance variable in the current instance of NewRelic::Agent::StatsEngine.
+
+module NewRelic
+  module Agent
+    class StatsEngine
+      def reset_for_test!
+        @stats_hash = StatsHash.new
+      end
+    end
+  end
+end
+
+def clear_metrics!
+  NewRelic::Agent.instance.stats_engine.reset_for_test!
+end
+
 def assert_metrics_not_recorded(not_expected)
   not_expected = _normalize_metric_expectations(not_expected)
   found_but_not_expected = []
