@@ -35,7 +35,7 @@ module NewRelic
         end
 
         def aws_fixture_path
-          File.expand_path('../../../../fixtures/utilization/aws.json', __FILE__)
+          File.expand_path('../../../../fixtures/utilization/aws/aws.json', __FILE__)
         end
       end
     end
