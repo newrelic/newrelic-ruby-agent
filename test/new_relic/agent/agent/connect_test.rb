@@ -101,7 +101,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_connect_settings
-    2.times { NewRelic::Agent.config.expects(:app_names).returns(["apps"]) }
+    NewRelic::Agent.config.expects(:app_names).twice.returns(["apps"])
     @local_host = "lo-calhost"
     @environment_report = {}
 
@@ -115,7 +115,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_connect_settings_includes_correct_identifier
-    2.times { NewRelic::Agent.config.expects(:app_names).returns(["b", "a", "c"]) }
+    NewRelic::Agent.config.expects(:app_names).twice.returns(["b", "a", "c"])
     @local_host = "lo-calhost"
     @environment_report = {}
 
