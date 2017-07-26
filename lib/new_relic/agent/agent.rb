@@ -217,7 +217,7 @@ module NewRelic
           trap_signals_for_litespeed
           untraced_graceful_disconnect
           revert_to_default_configuration
-          
+
           @started = nil
           Control.reset
         end
