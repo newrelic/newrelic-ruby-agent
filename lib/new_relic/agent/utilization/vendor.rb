@@ -44,26 +44,34 @@ module NewRelic
 
         def detect
           response = request_metadata
-          if response.code == SUCCESS
-            process_response prepare_response(response)
-          else
+          return false unless response
+
+          begin
+            if response.code == SUCCESS
+              process_response prepare_response(response)
+            else
+              false
+            end
+          rescue => e
+            NewRelic::Agent.logger.error "Unexpected error obtaining utilization data for #{vendor_name}", e
+            record_supportability_metric
             false
           end
-        rescue => e
-          NewRelic::Agent.logger.error "Unexpected error obtaining utilization data for #{vendor_name}", e
-          record_supportability_metric
-          false
         end
 
         private
 
         def request_metadata
-          response = nil
-          Net::HTTP.start endpoint.host, endpoint.port do |http|
-            req = Net::HTTP::Get.new endpoint, headers
-            response = http.request req
+          Timeout.timeout 1 do
+            response = nil
+            Net::HTTP.start endpoint.host, endpoint.port do |http|
+              req = Net::HTTP::Get.new endpoint, headers
+              response = http.request req
+            end
+            response
           end
-          response
+        rescue => e
+          NewRelic::Agent.logger.debug "Timeout obtaining utilization data for #{vendor_name}", e
         end
 
         def prepare_response response
