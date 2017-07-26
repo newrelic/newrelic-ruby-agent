@@ -2,12 +2,16 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/aws_info'
+require 'new_relic/agent/utilization/aws'
 
 module NewRelic
   module Agent
     class UtilizationData
-      METADATA_VERSION = 2
+      METADATA_VERSION = 3
+
+      VENDORS = {
+        Utilization::AWS => :'utilization.detect_aws'
+      }
 
       def hostname
         NewRelic::Agent::Hostname.get
@@ -55,21 +59,23 @@ module NewRelic
           :hostname => hostname
         }
 
-        append_aws_info(result)
+        append_vendor_info(result)
         append_docker_info(result)
         append_configured_values(result)
 
         result
       end
 
-      def append_aws_info(collector_hash)
-        return unless Agent.config[:'utilization.detect_aws']
+      def append_vendor_info(collector_hash)
+        VENDORS.each_pair do |klass, config_option|
+          next unless Agent.config[config_option]
+          vendor = klass.new
 
-        aws_info = AWSInfo.new
-
-        if aws_info.loaded?
-          collector_hash[:vendors] ||= {}
-          collector_hash[:vendors][:aws] = aws_info.to_collector_hash
+          if vendor.detect
+            collector_hash[:vendors] ||= {}
+            collector_hash[:vendors][vendor.vendor_name.to_sym] = vendor.metadata
+            break
+          end
         end
       end
 

@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/utilization_data'
+require 'new_relic/agent/utilization/aws'
 
 module NewRelic::Agent
   class UtilizationDataTest < Minitest::Test
@@ -23,34 +24,25 @@ module NewRelic::Agent
       end
     end
 
-    def setup
-      stub_aws_info
+    def teardown
+      NewRelic::Agent.drop_buffered_data
     end
 
     def test_aws_information_is_included_when_available
-      stub_aws_info(
-        :instance_id => "i-e7e85ce1",
-        :instance_type => "m3.medium",
-        :availability_zone => "us-west-2b"
-      )
-
+      stub_aws_info
       utilization_data = UtilizationData.new
 
       expected = {
-        :id => "i-e7e85ce1",
-        :type => "m3.medium",
-        :zone => "us-west-2b"
+        :instanceId => "i-08987cdeff7489fa7",
+        :instanceType => "c4.2xlarge",
+        :availabilityZone => "us-west-2c"
       }
 
       assert_equal expected, utilization_data.to_collector_hash[:vendors][:aws]
     end
 
     def test_aws_information_is_omitted_when_available_but_disabled_by_config
-      stub_aws_info(
-        :instance_id => "i-e7e85ce1",
-        :instance_type => "m3.medium",
-        :availability_zone => "us-west-2b"
-      )
+      stub_aws_info
 
       with_config(:'utilization.detect_aws' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
@@ -92,21 +84,16 @@ module NewRelic::Agent
     end
 
     def test_aws_and_docker_information_is_included_when_both_available
-      stub_aws_info(
-        :instance_id => "i-e7e85ce1",
-        :instance_type => "m3.medium",
-        :availability_zone => "us-west-2b"
-      )
+      stub_aws_info
 
       NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
-
       utilization_data = UtilizationData.new
 
       expected = {
         :aws => {
-          :id => "i-e7e85ce1",
-          :type => "m3.medium",
-          :zone => "us-west-2b"
+          :instanceId => "i-08987cdeff7489fa7",
+          :instanceType => "c4.2xlarge",
+          :availabilityZone => "us-west-2c"
         },
         :docker => {
           :id => "47cbd16b77c50cbf71401"
@@ -182,6 +169,13 @@ module NewRelic::Agent
         utilization_data = UtilizationData.new
         assert_equal 42, utilization_data.to_collector_hash[:config][:total_ram_mib]
       end
+    end
+
+    def stub_aws_info
+      aws_fixture_path = File.expand_path('../../../fixtures/utilization/aws', __FILE__)
+      fixture = File.read File.join(aws_fixture_path, "valid.json")
+      stubbed_response = stub(code: '200', body: fixture)
+      Utilization::AWS.any_instance.stubs(:request_metadata).returns(stubbed_response)
     end
   end
 end
