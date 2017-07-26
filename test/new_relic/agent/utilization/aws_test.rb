@@ -23,15 +23,14 @@ module NewRelic
           mock_response = mock(code: '200', body: fixture)
           @vendor.stubs(:request_metadata).returns(mock_response)
 
-          expected = {"aws" => {
-              "instanceId" => "i-08987cdeff7489fa7",
-              "instanceType" => "c4.2xlarge",
-              "availabilityZone" => "us-west-2c"
-            }
+          expected = {
+            :instanceId => "i-08987cdeff7489fa7",
+            :instanceType => "c4.2xlarge",
+            :availabilityZone => "us-west-2c"
           }
 
           assert @vendor.detect
-          assert_equal expected, @vendor.to_collector_hash
+          assert_equal expected, @vendor.metadata
         end
 
         def test_fails_when_response_contains_invalid_chars

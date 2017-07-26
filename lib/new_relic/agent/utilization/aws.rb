@@ -11,6 +11,7 @@ module NewRelic
         vendor_name "aws"
         endpoint "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document"
         keys ["instanceId", "instanceType", "availabilityZone"]
+        key_transforms :to_sym
       end
     end
   end
