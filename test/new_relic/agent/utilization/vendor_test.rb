@@ -14,6 +14,7 @@ module NewRelic
           endpoint "http://http://169.254.169.254/metadata"
           headers "meta" => "yes"
           keys ["vm_type", "vm_id", "vm_zone"]
+          key_transforms :to_sym
         end
 
         def setup
@@ -43,14 +44,12 @@ module NewRelic
           assert @vendor.detect
 
           expected = {
-            "example" => {
-              "vm_type" => "large",
-              "vm_id" => "x123",
-              "vm_zone" => "danger_zone"
-            }
+              :vm_type => "large",
+              :vm_id => "x123",
+              :vm_zone => "danger_zone"
           }
 
-          assert_equal expected, @vendor.to_collector_hash
+          assert_equal expected, @vendor.metadata
         end
 
         def test_detect_fails_when_expected_field_is_null

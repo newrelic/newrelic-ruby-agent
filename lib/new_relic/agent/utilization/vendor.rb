@@ -24,13 +24,19 @@ module NewRelic
           def keys keys = nil
             keys ? @keys = keys.freeze : @keys
           end
+
+          def key_transforms key_transforms = nil
+            key_transforms ? @key_transforms = Array(key_transforms).freeze : @key_transforms
+          end
         end
+
+        attr_reader :metadata
 
         def initialize
           @metadata = {}
         end
 
-        [:vendor_name, :endpoint, :headers, :keys].each do |method_name|
+        [:vendor_name, :endpoint, :headers, :keys, :key_transforms].each do |method_name|
           define_method(method_name) { self.class.send(method_name) }
         end
 
@@ -47,12 +53,6 @@ module NewRelic
           NewRelic::Agent.logger.error "Unexpected error obtaining utilization data for #{vendor_name}", e
           record_supportability_metric
           false
-        end
-
-        def to_collector_hash
-          {
-            vendor_name => @metadata
-          }
         end
 
         private
@@ -74,7 +74,7 @@ module NewRelic
           keys.each do |key|
             normalized = normalize response[key]
             if normalized
-              @metadata[key] = normalized
+              @metadata[transform_key(key)] = normalized
             else
               @metadata.clear
               record_supportability_metric
@@ -116,6 +116,11 @@ module NewRelic
             return false # it's in neither set of valid characters
           end
           true
+        end
+
+        def transform_key key
+          return key unless key_transforms
+          key_transforms.inject(key) { |memo, transform| memo.send(transform) }
         end
 
         def record_supportability_metric
