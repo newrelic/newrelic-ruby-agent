@@ -41,7 +41,6 @@ module NewRelic
           if response.code == SUCCESS
             process_response prepare_response(response)
           else
-            record_supportability_metric
             false
           end
         rescue => e
