@@ -39,7 +39,7 @@ module NewRelic
         end
 
         def test_assigns_expected_keys
-          mock_response = mock(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"danger_zone", "whatever":"nothing"}')
+          mock_response = stub(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"danger_zone", "whatever":"nothing"}')
           @vendor.stubs(:request_metadata).returns(mock_response)
           assert @vendor.detect
 
@@ -53,7 +53,7 @@ module NewRelic
         end
 
         def test_detect_fails_when_expected_field_is_null
-          mock_response = mock(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":null}')
+          mock_response = stub(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":null}')
           @vendor.stubs(:request_metadata).returns(mock_response)
 
           refute @vendor.detect
@@ -61,7 +61,7 @@ module NewRelic
         end
 
         def test_detect_fails_when_expected_field_has_invalid_chars
-          mock_response = mock(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"*star*is*invalid*"}')
+          mock_response = stub(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"*star*is*invalid*"}')
           @vendor.stubs(:request_metadata).returns(mock_response)
 
           refute @vendor.detect
