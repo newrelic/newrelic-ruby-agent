@@ -4,6 +4,12 @@
 
   The agent now collects cloud metadata from Azure.
 
+  * Install `at_exit` hook when running JRuby
+
+  The agent now installs an `at_exit` hook when running JRuby, which wasn't
+  done before because of constraints related to older JRuby versions that
+  are no longer supported.
+
   * User/Utilization and System/Utilization metrics not recorded after Resque forks
 
   The agent now doesn't record User/Utilization and System/Utilization metrics after
