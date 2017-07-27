@@ -39,8 +39,8 @@ module NewRelic
         end
 
         def test_assigns_expected_keys
-          mock_response = stub(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"danger_zone", "whatever":"nothing"}')
-          @vendor.stubs(:request_metadata).returns(mock_response)
+          stubbed_response = stub(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"danger_zone", "whatever":"nothing"}')
+          @vendor.stubs(:request_metadata).returns(stubbed_response)
           assert @vendor.detect
 
           expected = {
@@ -53,16 +53,16 @@ module NewRelic
         end
 
         def test_detect_fails_when_expected_field_is_null
-          mock_response = stub(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":null}')
-          @vendor.stubs(:request_metadata).returns(mock_response)
+          stubbed_response = stub(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":null}')
+          @vendor.stubs(:request_metadata).returns(stubbed_response)
 
           refute @vendor.detect
           assert_metrics_recorded "Supportability/utilization/example/error" => {:call_count => 1}
         end
 
         def test_detect_fails_when_expected_field_has_invalid_chars
-          mock_response = stub(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"*star*is*invalid*"}')
-          @vendor.stubs(:request_metadata).returns(mock_response)
+          stubbed_response = stub(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"*star*is*invalid*"}')
+          @vendor.stubs(:request_metadata).returns(stubbed_response)
 
           refute @vendor.detect
           assert_metrics_recorded "Supportability/utilization/example/error" => {:call_count => 1}

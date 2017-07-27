@@ -24,6 +24,10 @@ module NewRelic::Agent
       end
     end
 
+    def setup
+      stub_aws_info response_code: 404
+    end
+
     def teardown
       NewRelic::Agent.drop_buffered_data
     end
@@ -171,11 +175,14 @@ module NewRelic::Agent
       end
     end
 
-    def stub_aws_info
-      aws_fixture_path = File.expand_path('../../../fixtures/utilization/aws', __FILE__)
-      fixture = File.read File.join(aws_fixture_path, "valid.json")
-      stubbed_response = stub(code: '200', body: fixture)
+    def stub_aws_info response_code: '200', response_body: default_aws_response
+      stubbed_response = stub(code: response_code, body: response_body)
       Utilization::AWS.any_instance.stubs(:request_metadata).returns(stubbed_response)
+    end
+
+    def default_aws_response
+      aws_fixture_path = File.expand_path('../../../fixtures/utilization/aws', __FILE__)
+      File.read File.join(aws_fixture_path, "valid.json")
     end
   end
 end
