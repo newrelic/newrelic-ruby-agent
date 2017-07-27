@@ -184,5 +184,13 @@ module NewRelic::Agent
       aws_fixture_path = File.expand_path('../../../fixtures/utilization/aws', __FILE__)
       File.read File.join(aws_fixture_path, "valid.json")
     end
+
+    def test_boot_id_is_present_in_collector_hash
+      NewRelic::Agent::SystemInfo.stubs(:boot_id).returns("boot-id")
+
+      utilization_data = UtilizationData.new
+
+      assert_equal "boot-id", utilization_data.to_collector_hash[:boot_id]
+    end
   end
 end

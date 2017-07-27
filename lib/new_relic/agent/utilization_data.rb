@@ -62,6 +62,7 @@ module NewRelic
         append_vendor_info(result)
         append_docker_info(result)
         append_configured_values(result)
+        append_boot_id(result)
 
         result
       end
@@ -90,6 +91,12 @@ module NewRelic
 
       def append_configured_values(collector_hash)
         collector_hash[:config] = config_hash unless config_hash.empty?
+      end
+
+      def append_boot_id(collector_hash)
+        if bid = ::NewRelic::Agent::SystemInfo.boot_id
+          collector_hash[:boot_id] = bid
+        end
       end
 
       def config_hash
