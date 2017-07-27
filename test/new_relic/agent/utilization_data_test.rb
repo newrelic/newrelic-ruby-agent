@@ -25,7 +25,8 @@ module NewRelic::Agent
     end
 
     def setup
-      stub_aws_info response_code: 404
+      stub_aws_info response_code: '404'
+      stub_gcp_info response_code: '404'
     end
 
     def teardown
@@ -49,6 +50,29 @@ module NewRelic::Agent
       stub_aws_info
 
       with_config(:'utilization.detect_aws' => false, :'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+        assert_nil utilization_data.to_collector_hash[:vendors]
+      end
+    end
+
+    def test_gcp_information_is_included_when_available
+      stub_gcp_info
+      utilization_data = UtilizationData.new
+
+      expected = {
+        :id => "4332984205593314925",
+        :machineType => "custom-1-1024",
+        :name => "aef-default-20170714t143150-1q67",
+        :zone => "us-central1-b"
+      }
+
+      assert_equal expected, utilization_data.to_collector_hash[:vendors][:gcp]
+    end
+
+    def test_gcp_information_is_omitted_when_available_but_disabled_by_config
+      stub_gcp_info
+
+      with_config(:'utilization.detect_gcp' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
         assert_nil utilization_data.to_collector_hash[:vendors]
       end
@@ -175,6 +199,14 @@ module NewRelic::Agent
       end
     end
 
+    def test_boot_id_is_present_in_collector_hash
+      NewRelic::Agent::SystemInfo.stubs(:boot_id).returns("boot-id")
+
+      utilization_data = UtilizationData.new
+
+      assert_equal "boot-id", utilization_data.to_collector_hash[:boot_id]
+    end
+
     def stub_aws_info response_code: '200', response_body: default_aws_response
       stubbed_response = stub(code: response_code, body: response_body)
       Utilization::AWS.any_instance.stubs(:request_metadata).returns(stubbed_response)
@@ -185,12 +217,14 @@ module NewRelic::Agent
       File.read File.join(aws_fixture_path, "valid.json")
     end
 
-    def test_boot_id_is_present_in_collector_hash
-      NewRelic::Agent::SystemInfo.stubs(:boot_id).returns("boot-id")
+    def stub_gcp_info response_code: '200', response_body: default_gcp_response
+      stubbed_response = stub(code: response_code, body: response_body)
+      Utilization::GCP.any_instance.stubs(:request_metadata).returns(stubbed_response)
+    end
 
-      utilization_data = UtilizationData.new
-
-      assert_equal "boot-id", utilization_data.to_collector_hash[:boot_id]
+    def default_gcp_response
+      aws_fixture_path = File.expand_path('../../../fixtures/utilization/gcp', __FILE__)
+      File.read File.join(aws_fixture_path, "valid.json")
     end
   end
 end
