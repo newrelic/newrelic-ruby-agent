@@ -93,7 +93,9 @@ module NewRelic
         end
 
         def normalize value
-          return unless String === value
+          return if value.nil?
+
+          value = value.to_s
           value.force_encoding Encoding::UTF_8
           value.strip!
 
