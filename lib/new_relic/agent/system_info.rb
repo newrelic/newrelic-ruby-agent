@@ -251,6 +251,40 @@ module NewRelic
           nil
         end
       end
+
+      def self.boot_id
+        return nil unless linux?
+        if bid = proc_try_read('/proc/sys/kernel/random/boot_id')
+          bid.chomp!
+
+          if bid.ascii_only?
+            if bid.empty?
+              ::NewRelic::Agent.logger.debug("boot_id not found in /proc/sys/kernel/random/boot_id")
+              ::NewRelic::Agent.increment_metric "Supportability/utilization/boot_id/error"
+              nil
+
+            elsif bid.bytesize == 36
+              bid
+
+            else
+              ::NewRelic::Agent.logger.debug("Found boot_id with invalid length: #{bid}")
+              ::NewRelic::Agent.increment_metric "Supportability/utilization/boot_id/error"
+              bid[0,128]
+
+            end
+          else
+            ::NewRelic::Agent.logger.debug("Found boot_id with non-ASCII characters: #{bid}")
+            ::NewRelic::Agent.increment_metric "Supportability/utilization/boot_id/error"
+            nil
+
+          end
+        else
+          ::NewRelic::Agent.logger.debug("boot_id not found in /proc/sys/kernel/random/boot_id")
+          ::NewRelic::Agent.increment_metric "Supportability/utilization/boot_id/error"
+          nil
+
+        end
+      end
     end
   end
 end
