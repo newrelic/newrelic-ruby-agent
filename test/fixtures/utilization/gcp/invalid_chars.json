@@ -1,0 +1,139 @@
+{
+    "attributes": {
+        "block-project-ssh-keys": "TRUE",
+        "created-by": "projects/247603934360/regions/us-central1/instanceGroupManagers/aef-default-20170714t143150-00",
+        "gae_agent_bucket_path": "",
+        "gae_allow_ssh": "false",
+        "gae_api_proxy_image_name": "gcr.io/google_appengine/api-proxy",
+        "gae_app_bucket": "vm-config-internal.new-relic-apm-ruby.appspot.com",
+        "gae_app_container_memory_mb": "615",
+        "gae_app_env_filename": "new-relic-apm-ruby_20170714t143150-402671421653972587.env",
+        "gae_app_nginx_conf_filename": "new-relic-apm-ruby_20170714t143150-402671421653972587.conf",
+        "gae_app_updater_image_name": "gcr.io/google_appengine/app-updater",
+        "gae_backend_instance": "0",
+        "gae_backend_minor_version": "402671421653972587",
+        "gae_backend_name": "default",
+        "gae_backend_version": "20170714t143150",
+        "gae_cloud_logging": "true",
+        "gae_disable_app_nginx_network": "true",
+        "gae_enable_app_engine_apis": "false",
+        "gae_enable_app_updater": "true",
+        "gae_enable_app_updater_daemon": "true",
+        "gae_enable_flex_instance_logging": "true",
+        "gae_enable_shutdown_logging": "true",
+        "gae_enable_vm_health_check_metric": "true",
+        "gae_endpoints_service_name": "",
+        "gae_endpoints_service_version": "",
+        "gae_environment": "",
+        "gae_fluentd_image_name": "gcr.io/google_appengine/fluentd-logger",
+        "gae_forwarded_ports": "",
+        "gae_free_disk_space_threshold_mb": "1024",
+        "gae_full_app_container": "us.gcr.io/new-relic-apm-ruby/appengine/default.20170714t143150@sha256:d40d5f8364d7a5815d10adf784429878c0a3ef2ef632201ce8a8cd3c920218e2",
+        "gae_has_docker_image": "true",
+        "gae_health_check_port": "8443",
+        "gae_module_yaml_path": "app.yaml",
+        "gae_nginx_config": "",
+        "gae_nginx_proxy_image_name": "gcr.io/google_appengine/nginx-proxy",
+        "gae_no_appserver_affinity": "true",
+        "gae_partition": "s",
+        "gae_project": "new-relic-apm-ruby",
+        "gae_publish_ports": "",
+        "gae_run_docker_privileged": "false",
+        "gae_run_http_unlock": "true",
+        "gae_server_software": "Google App Engine/1.9.48",
+        "gae_shutdown_on_watchdog_failure": "true",
+        "gae_unlocked": "false",
+        "gae_use_api_proxy": "true",
+        "gae_use_container_watchdog": "true",
+        "gae_use_endpoints_api_management": "false",
+        "gae_use_gitkit": "false",
+        "gae_use_nginx_proxy": "true",
+        "gae_use_stackdriver_metrics_agent": "true",
+        "gae_vm_runtime": "ruby",
+        "gae_wait_until_lameducked_sec": "7",
+        "google-container-manifest": "kind: Pod metadata: name: managed-vm-pod spec: dnsPolicy: Default restartPolicy: Always version: v1beta2 ",
+        "instance-template": "projects/247603934360/global/instanceTemplates/aef-default-20170714t143150-00it",
+        "shutdown-script": "/usr/share/vm_runtime/vm_shutdown.sh",
+        "startup-script": "/usr/share/vm_runtime/vm_runtime_init.sh start"
+    },
+    "cpuPlatform": "Intel Haswell",
+    "description": "",
+    "disks": [
+        {
+            "deviceName": "boot",
+            "index": 0,
+            "mode": "READ_WRITE",
+            "type": "PERSISTENT"
+        }
+    ],
+    "hostname": "aef-default-20170714t143150-1q67.c.new-relic-apm-ruby.internal",
+    "id": 4332984205593314925,
+    "image": "",
+    "licenses": [
+        {
+            "id": "1002501"
+        }
+    ],
+    "machineType": "projects/247603934360/machineTypes/custom-1-1024*****",
+    "maintenanceEvent": "NONE",
+    "name": "aef-default-20170714t143150-1q67",
+    "networkInterfaces": [
+        {
+            "accessConfigs": [
+                {
+                    "externalIp": "35.188.146.122",
+                    "type": "ONE_TO_ONE_NAT"
+                }
+            ],
+            "forwardedIps": [
+
+            ],
+            "ip": "10.128.0.10",
+            "ipAliases": [
+
+            ],
+            "mac": "42:01:0a:80:00:0a",
+            "network": "projects/247603934360/networks/default"
+        }
+    ],
+    "scheduling": {
+        "automaticRestart": "TRUE",
+        "onHostMaintenance": "MIGRATE",
+        "preemptible": "FALSE"
+    },
+    "serviceAccounts": {
+        "default": {
+            "aliases": [
+                "default"
+            ],
+            "email": "new-relic-apm-ruby@appspot.gserviceaccount.com",
+            "scopes": [
+                "https://www.googleapis.com/auth/appengine.apis",
+                "https://www.googleapis.com/auth/cloud-platform",
+                "https://www.googleapis.com/auth/devstorage.full_control",
+                "https://www.googleapis.com/auth/logging.write",
+                "https://www.googleapis.com/auth/userinfo.email"
+            ]
+        },
+        "new-relic-apm-ruby@appspot.gserviceaccount.com": {
+            "aliases": [
+                "default"
+            ],
+            "email": "new-relic-apm-ruby@appspot.gserviceaccount.com",
+            "scopes": [
+                "https://www.googleapis.com/auth/appengine.apis",
+                "https://www.googleapis.com/auth/cloud-platform",
+                "https://www.googleapis.com/auth/devstorage.full_control",
+                "https://www.googleapis.com/auth/logging.write",
+                "https://www.googleapis.com/auth/userinfo.email"
+            ]
+        }
+    },
+    "tags": [
+        "aef-default-20170714t143150"
+    ],
+    "virtualClock": {
+        "driftToken": "0"
+    },
+    "zone": "projects/247603934360/zones/us-central1-b"
+}

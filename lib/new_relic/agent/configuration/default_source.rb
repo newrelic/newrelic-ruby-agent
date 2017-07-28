@@ -1564,6 +1564,14 @@ module NewRelic
           :dynamic_name => true,
           :description => 'If <code>true</code>, the agent automatically detects that it is running in an AWS environment.'
         },
+        :'utilization.detect_gcp' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :dynamic_name => true,
+          :description => 'If <code>true</code>, the agent automatically detects that it is running in an Google Cloud Platform environment.'
+        },
         :'utilization.detect_docker' => {
           :default     => true,
           :public      => true,

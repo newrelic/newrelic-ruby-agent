@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/utilization/aws'
+require 'new_relic/agent/utilization/gcp'
 
 module NewRelic
   module Agent
@@ -10,7 +11,8 @@ module NewRelic
       METADATA_VERSION = 3
 
       VENDORS = {
-        Utilization::AWS => :'utilization.detect_aws'
+        Utilization::AWS => :'utilization.detect_aws',
+        Utilization::GCP => :'utilization.detect_gcp'
       }
 
       def hostname
