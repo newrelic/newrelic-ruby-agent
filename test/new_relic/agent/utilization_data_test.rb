@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/utilization_data'
+require 'new_relic/agent/utilization/aws'
 
 module NewRelic::Agent
   class UtilizationDataTest < Minitest::Test
@@ -24,33 +25,28 @@ module NewRelic::Agent
     end
 
     def setup
-      stub_aws_info
+      stub_aws_info response_code: 404
+    end
+
+    def teardown
+      NewRelic::Agent.drop_buffered_data
     end
 
     def test_aws_information_is_included_when_available
-      stub_aws_info(
-        :instance_id => "i-e7e85ce1",
-        :instance_type => "m3.medium",
-        :availability_zone => "us-west-2b"
-      )
-
+      stub_aws_info
       utilization_data = UtilizationData.new
 
       expected = {
-        :id => "i-e7e85ce1",
-        :type => "m3.medium",
-        :zone => "us-west-2b"
+        :instanceId => "i-08987cdeff7489fa7",
+        :instanceType => "c4.2xlarge",
+        :availabilityZone => "us-west-2c"
       }
 
       assert_equal expected, utilization_data.to_collector_hash[:vendors][:aws]
     end
 
     def test_aws_information_is_omitted_when_available_but_disabled_by_config
-      stub_aws_info(
-        :instance_id => "i-e7e85ce1",
-        :instance_type => "m3.medium",
-        :availability_zone => "us-west-2b"
-      )
+      stub_aws_info
 
       with_config(:'utilization.detect_aws' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
@@ -92,21 +88,16 @@ module NewRelic::Agent
     end
 
     def test_aws_and_docker_information_is_included_when_both_available
-      stub_aws_info(
-        :instance_id => "i-e7e85ce1",
-        :instance_type => "m3.medium",
-        :availability_zone => "us-west-2b"
-      )
+      stub_aws_info
 
       NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
-
       utilization_data = UtilizationData.new
 
       expected = {
         :aws => {
-          :id => "i-e7e85ce1",
-          :type => "m3.medium",
-          :zone => "us-west-2b"
+          :instanceId => "i-08987cdeff7489fa7",
+          :instanceType => "c4.2xlarge",
+          :availabilityZone => "us-west-2c"
         },
         :docker => {
           :id => "47cbd16b77c50cbf71401"
@@ -184,75 +175,22 @@ module NewRelic::Agent
       end
     end
 
-    load_cross_agent_test("utilization/utilization_json").each do |test_case|
-
-      test_case = NewRelic::Agent::UtilizationDataTest.symbolize_keys_in_object test_case
-      define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
-        setup_cross_agent_test_stubs test_case
-        # This is a little bit ugly, but TravisCI runs these tests in a docker environment,
-        # which means we get an unexpected docker id in the vendors hash. Since none of the
-        # cross agent tests expect docker ids in the vendors hash we can safely turn off
-        # docker detection.
-        options = convert_env_to_config_options(test_case).merge(:'utilization.detect_docker' => false)
-        with_config options do
-          assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash
-        end
-      end
+    def stub_aws_info response_code: '200', response_body: default_aws_response
+      stubbed_response = stub(code: response_code, body: response_body)
+      Utilization::AWS.any_instance.stubs(:request_metadata).returns(stubbed_response)
     end
 
-    def setup_cross_agent_test_stubs test_case
-      stub_utilization_inputs test_case
-      stub_aws_inputs test_case
+    def default_aws_response
+      aws_fixture_path = File.expand_path('../../../fixtures/utilization/aws', __FILE__)
+      File.read File.join(aws_fixture_path, "valid.json")
     end
 
-    UTILIZATION_INPUTS = {
-      :input_total_ram_mib => :ram_in_mib,
-      :input_logical_processors => :cpu_count,
-      :input_hostname => :hostname
-    }
+    def test_boot_id_is_present_in_collector_hash
+      NewRelic::Agent::SystemInfo.stubs(:boot_id).returns("boot-id")
 
-    def stub_utilization_inputs test_case
-      test_case.keys.each do |key|
-        if meth = UTILIZATION_INPUTS[key]
-          UtilizationData.any_instance.stubs(meth).returns(test_case[key])
-        end
-      end
-    end
+      utilization_data = UtilizationData.new
 
-    AWS_INPUTS = {
-      :input_aws_id => :instance_id,
-      :input_aws_type => :instance_type,
-      :input_aws_zone => :availability_zone
-    }
-
-    def stub_aws_inputs test_case
-      test_case.keys.each do |key|
-        if meth = AWS_INPUTS[key]
-          AWSInfo.any_instance.stubs(meth).returns(test_case[key])
-        end
-      end
-    end
-
-    ENV_TO_OPTIONS = {
-      :NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS => :'utilization.logical_processors',
-      :NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB =>  :'utilization.total_ram_mib',
-      :NEW_RELIC_UTILIZATION_BILLING_HOSTNAME => :'utilization.billing_hostname'
-    }
-
-    NUMERIC_ENV_OPTS = [:NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS, :NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB]
-
-    def convert_env_to_config_options test_case
-      env_inputs = test_case.fetch :input_environment_variables, {}
-      env_inputs.keys.inject({}) do |memo, k|
-        memo[ENV_TO_OPTIONS[k]] = NUMERIC_ENV_OPTS.include?(k) ? env_inputs[k].to_i : env_inputs[k]
-        memo
-      end
-    end
-
-    def stub_aws_info(responses = {})
-      AWSInfo.any_instance.stubs(:remote_fetch).with("instance-id").returns(responses[:instance_id])
-      AWSInfo.any_instance.stubs(:remote_fetch).with("instance-type").returns(responses[:instance_type])
-      AWSInfo.any_instance.stubs(:remote_fetch).with("placement/availability-zone").returns(responses[:availability_zone])
+      assert_equal "boot-id", utilization_data.to_collector_hash[:boot_id]
     end
   end
 end
