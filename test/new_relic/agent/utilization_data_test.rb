@@ -27,6 +27,7 @@ module NewRelic::Agent
     def setup
       stub_aws_info response_code: '404'
       stub_gcp_info response_code: '404'
+      stub_azure_info response_code: '404'
     end
 
     def teardown
@@ -50,6 +51,29 @@ module NewRelic::Agent
       stub_aws_info
 
       with_config(:'utilization.detect_aws' => false, :'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+        assert_nil utilization_data.to_collector_hash[:vendors]
+      end
+    end
+
+    def test_azure_information_is_included_when_available
+      stub_azure_info
+      utilization_data = UtilizationData.new
+
+      expected = {
+        :vmId     => "c84ffaa7-1b0a-4aa6-9f5c-0912655d9870",
+        :name     => "rubytest",
+        :vmSize   => "Standard_DS1_v2",
+        :location => "eastus"
+      }
+
+      assert_equal expected, utilization_data.to_collector_hash[:vendors][:azure]
+    end
+
+    def test_azure_information_is_omitted_when_available_but_disabled_by_config
+      stub_azure_info
+
+      with_config(:'utilization.detect_azure' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
         assert_nil utilization_data.to_collector_hash[:vendors]
       end
@@ -215,6 +239,16 @@ module NewRelic::Agent
     def default_aws_response
       aws_fixture_path = File.expand_path('../../../fixtures/utilization/aws', __FILE__)
       File.read File.join(aws_fixture_path, "valid.json")
+    end
+
+    def stub_azure_info response_code: '200', response_body: default_azure_response
+      stubbed_response = stub(code: response_code, body: response_body)
+      Utilization::Azure.any_instance.stubs(:request_metadata).returns(stubbed_response)
+    end
+
+    def default_azure_response
+      azure_fixture_path = File.expand_path('../../../fixtures/utilization/azure', __FILE__)
+      File.read File.join(azure_fixture_path, 'valid.json')
     end
 
     def stub_gcp_info response_code: '200', response_body: default_gcp_response
