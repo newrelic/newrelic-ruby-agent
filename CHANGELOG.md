@@ -1,4 +1,8 @@
 # New Relic Ruby Agent Release Notes #
+  
+  * Collect cloud metadata from Azure
+
+  The agent now collects cloud metadata from Azure.
 
   * User/Utilization and System/Utilization metrics not recorded after Resque forks
 
