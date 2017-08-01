@@ -1,6 +1,5 @@
 {
   "location": "eastus",
-  "name": "rubytest",
   "offer": "UbuntuServer",
   "osType": "Linux",
   "platformFaultDomain": "0",

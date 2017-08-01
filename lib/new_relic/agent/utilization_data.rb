@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/utilization/aws'
 require 'new_relic/agent/utilization/gcp'
+require 'new_relic/agent/utilization/azure'
 
 module NewRelic
   module Agent
@@ -11,8 +12,9 @@ module NewRelic
       METADATA_VERSION = 3
 
       VENDORS = {
-        Utilization::AWS => :'utilization.detect_aws',
-        Utilization::GCP => :'utilization.detect_gcp'
+        Utilization::AWS   => :'utilization.detect_aws',
+        Utilization::GCP   => :'utilization.detect_gcp',
+        Utilization::Azure => :'utilization.detect_azure'
       }
 
       def hostname
