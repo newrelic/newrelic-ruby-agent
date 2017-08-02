@@ -53,7 +53,7 @@ module NewRelic
               false
             end
           rescue => e
-            NewRelic::Agent.logger.error "Unexpected error obtaining utilization data for #{vendor_name}", e
+            NewRelic::Agent.logger.error "Error occurred detecting: #{vendor_name}", e
             record_supportability_metric
             false
           end
@@ -70,8 +70,8 @@ module NewRelic
             end
             response
           end
-        rescue => e
-          NewRelic::Agent.logger.debug "Timeout obtaining utilization data for #{vendor_name}", e
+        rescue
+          NewRelic::Agent.logger.debug "#{vendor_name} environment not detected"
         end
 
         def prepare_response response

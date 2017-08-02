@@ -16,8 +16,8 @@ module NewRelic
           begin
             return false unless pcf_keys_present?
             process_response ENV
-          rescue => e
-            NewRelic::Agent.logger.error "Unexpected error obtaining utilization data for #{vendor_name}", e
+          rescue
+            NewRelic::Agent.logger.error "Error occurred detecting: #{vendor_name}", e
             record_supportability_metric
             false
           end
