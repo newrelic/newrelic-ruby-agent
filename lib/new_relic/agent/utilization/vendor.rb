@@ -95,8 +95,8 @@ module NewRelic
         def normalize value
           return if value.nil?
 
-          value = value.dup if value.frozen?
           value = value.to_s
+          value = value.dup if value.frozen?
 
           value.force_encoding Encoding::UTF_8
           value.strip!
