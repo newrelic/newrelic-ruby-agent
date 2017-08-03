@@ -102,6 +102,35 @@ module NewRelic::Agent
       end
     end
 
+    def test_pcf_information_is_included_when_available
+      utilization_data = UtilizationData.new
+
+      with_pcf_env "CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
+                   "CF_INSTANCE_IP"   => "101.1.149.48",
+                   "MEMORY_LIMIT"     => "2048m" do
+
+        expected = {
+          :cf_instance_guid => "ab326c0e-123e-47a1-65cc-45f6",
+          :cf_instance_ip => "101.1.149.48",
+          :memory_limit   => "2048m"
+        }
+
+        assert_equal expected, utilization_data.to_collector_hash[:vendors][:pcf]
+      end
+    end
+
+    def test_pcf_information_is_omitted_when_available_but_disabled_by_config
+      with_config(:'utilization.detect_pcf' => false, :'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+        with_pcf_env "CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
+                     "CF_INSTANCE_IP"   => "101.1.149.48",
+                     "MEMORY_LIMIT"     => "2048m" do
+
+          assert_nil utilization_data.to_collector_hash[:vendors]
+        end
+      end
+    end
+
     def test_docker_information_is_included_when_available
       NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
 
@@ -259,6 +288,12 @@ module NewRelic::Agent
     def default_gcp_response
       aws_fixture_path = File.expand_path('../../../fixtures/utilization/gcp', __FILE__)
       File.read File.join(aws_fixture_path, "valid.json")
+    end
+
+    def with_pcf_env vars, &blk
+      vars.each_pair { |k,v| ENV[k] = v }
+      blk.call
+      vars.keys.each { |k| ENV.delete k }
     end
   end
 end
