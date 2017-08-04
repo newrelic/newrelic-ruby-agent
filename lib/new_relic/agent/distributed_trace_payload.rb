@@ -71,6 +71,59 @@ module NewRelic
       def connected?
         !!Agent.config[:'cross_process_id']
       end
+
+      def synthetics?
+        !!(synthetics_resource || synthetics_job || synthetics_monitor)
+      end
+
+      VERSION_KEY             = 'v'.freeze
+      DATA_KEY                = 'd'.freeze
+      CALLER_TYPE_KEY         = 'ty'.freeze
+      CALLER_ACCOUNT_KEY      = 'ac'.freeze
+      CALLER_APP_KEY          = 'ap'.freeze
+      ID_KEY                  = 'id'.freeze
+      TRIP_ID_KEY             = 'tr'.freeze
+      DEPTH_KEY               = 'de'.freeze
+      ORDER_KEY               = 'or'.freeze
+      TIMESTAMP_KEY           = 'ti'.freeze
+      HOST_KEY                = 'ho'.freeze
+      SYNTHETICS_KEY          = 'sy'.freeze
+      SYNTHETICS_RESOURCE_KEY = 'r'.freeze
+      SYNTHETICS_JOB_KEY      = 'j'.freeze
+      SYNTHETICS_MONITOR_KEY  = 'm'.freeze
+
+      def to_json
+        result = {
+          VERSION_KEY => version
+        }
+
+        result[DATA_KEY] = {
+          CALLER_TYPE_KEY    => caller_type,
+          CALLER_ACCOUNT_KEY => caller_account_id,
+          CALLER_APP_KEY     => caller_app_id,
+          ID_KEY             => id,
+          TRIP_ID_KEY        => trip_id,
+          DEPTH_KEY          => depth,
+          ORDER_KEY          => order,
+          TIMESTAMP_KEY      => timestamp,
+        }
+
+        if synthetics?
+          result[DATA_KEY][SYNTHETICS_KEY] = {
+            SYNTHETICS_RESOURCE_KEY => synthetics_resource,
+            SYNTHETICS_JOB_KEY      => synthetics_job,
+            SYNTHETICS_MONITOR_KEY  => synthetics_monitor
+          }
+        end
+
+        JSON.dump(result)
+      end
+
+      alias_method :text, :to_json
+
+      def http_safe
+        Bas64.encode64 to_json
+      end
     end
   end
 end
