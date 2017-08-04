@@ -11,71 +11,7 @@ module NewRelic
       CALLER_TYPE = "App".freeze
       POUND = '#'.freeze
 
-      class << self
-        def for transaction, uri=nil
-          payload = new
-          return payload unless payload.connected?
-
-          payload.id = transaction.guid
-          payload.trip_id = transaction.distributed_tracing_trip_id
-          payload.depth = transaction.depth
-          payload.order = transaction.order
-          payload.host = uri.host if uri
-
-          if transaction.synthetics_payload
-            payload.synthetics_resource = transaction.synthetics_payload[2]
-            payload.synthetics_job = transaction.synthetics_payload[3]
-            payload.synthetics_monitor = transaction.synthetics_payload[4]
-          end
-
-          #todo:
-          # handle order, depth
-
-          payload
-        end
-      end
-
-      attr_accessor :id,
-                    :trip_id,
-                    :synthetics_resource,
-                    :synthetics_job,
-                    :synthetics_monitor,
-                    :order,
-                    :depth,
-                    :host
-
-      attr_reader  :caller_account_id,
-                   :caller_app_id,
-                   :timestamp
-
-      def initialize
-        # We should return a valid DistributedTracePayload will all fields nil
-        # if we haven't connected
-        return unless connected?
-
-        @caller_account_id = Agent.config[:cross_process_id].split(POUND).first
-        @caller_app_id = Agent.config[:application_id]
-        @timestamp = Time.now.to_f
-      end
-
-      def version
-        VERSION
-      end
-
-      def caller_type
-        CALLER_TYPE
-      end
-
-      # We use the presence of the cross_process_id in the config to tell if we
-      # have connected yet.
-      def connected?
-        !!Agent.config[:'cross_process_id']
-      end
-
-      def synthetics?
-        !!(synthetics_resource || synthetics_job || synthetics_monitor)
-      end
-
+      # Key names for serialization
       VERSION_KEY             = 'v'.freeze
       DATA_KEY                = 'd'.freeze
       CALLER_TYPE_KEY         = 'ty'.freeze
@@ -92,6 +28,83 @@ module NewRelic
       SYNTHETICS_JOB_KEY      = 'j'.freeze
       SYNTHETICS_MONITOR_KEY  = 'm'.freeze
 
+      class << self
+        def for transaction, uri=nil
+          payload = new
+          return payload unless connected?
+
+          payload.version = VERSION
+          payload.caller_type = CALLER_TYPE
+          payload.caller_account_id = Agent.config[:cross_process_id].split(POUND).first
+          payload.caller_app_id = Agent.config[:application_id]
+          payload.timestamp = Time.now.to_f
+          payload.id = transaction.guid
+          payload.trip_id = transaction.distributed_tracing_trip_id
+          payload.depth = transaction.depth
+          payload.order = transaction.order
+          payload.host = uri.host if uri
+
+          if transaction.synthetics_payload
+            payload.synthetics_resource = transaction.synthetics_payload[2]
+            payload.synthetics_job = transaction.synthetics_payload[3]
+            payload.synthetics_monitor = transaction.synthetics_payload[4]
+          end
+
+          payload
+        end
+
+        def from_json serialized_payload
+          raw_payload = JSON.parse serialized_payload
+          payload_data = raw_payload[DATA_KEY]
+          payload = new
+
+          payload.version           = raw_payload[VERSION_KEY]
+          payload.caller_type       = payload_data[CALLER_TYPE_KEY]
+          payload.caller_account_id = payload_data[CALLER_ACCOUNT_KEY]
+          payload.caller_app_id     = payload_data[CALLER_APP_KEY]
+          payload.timestamp         = payload_data[TIMESTAMP_KEY]
+          payload.id                = payload_data[ID_KEY]
+          payload.trip_id           = payload_data[TRIP_ID_KEY]
+          payload.depth             = payload_data[DEPTH_KEY]
+          payload.order             = payload_data[ORDER_KEY]
+          payload.host              = payload_data[HOST_KEY]
+
+          if payload_synthetics = payload_data[SYNTHETICS_KEY]
+            payload.synthetics_resource = payload_synthetics[SYNTHETICS_RESOURCE_KEY]
+            payload.synthetics_job      = payload_synthetics[SYNTHETICS_JOB_KEY]
+            payload.synthetics_monitor  = payload_synthetics[SYNTHETICS_MONITOR_KEY]
+          end
+
+          payload
+        end
+
+        private
+
+        # We use the presence of the cross_process_id in the config to tell if we
+        # have connected yet.
+        def connected?
+          !!Agent.config[:'cross_process_id']
+        end
+      end
+
+      attr_accessor :version,
+                    :caller_type,
+                    :caller_account_id,
+                    :caller_app_id,
+                    :id,
+                    :trip_id,
+                    :synthetics_resource,
+                    :synthetics_job,
+                    :synthetics_monitor,
+                    :order,
+                    :depth,
+                    :timestamp,
+                    :host
+
+      def synthetics?
+        !!(synthetics_resource || synthetics_job || synthetics_monitor)
+      end
+
       def to_json
         result = {
           VERSION_KEY => version
@@ -105,6 +118,7 @@ module NewRelic
           TRIP_ID_KEY        => trip_id,
           DEPTH_KEY          => depth,
           ORDER_KEY          => order,
+          HOST_KEY           => host,
           TIMESTAMP_KEY      => timestamp,
         }
 
