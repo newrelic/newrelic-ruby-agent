@@ -7,7 +7,7 @@ require 'base64'
 module NewRelic
   module Agent
     class DistributedTracePayload
-      VERSION =[2, 0]
+      VERSION =[2, 0].freeze
       CALLER_TYPE = "App".freeze
       POUND = '#'.freeze
 
@@ -29,7 +29,7 @@ module NewRelic
       SYNTHETICS_MONITOR_KEY  = 'm'.freeze
 
       class << self
-        def for transaction, uri=nil
+        def for_transaction transaction, uri=nil
           payload = new
           return payload unless connected?
 

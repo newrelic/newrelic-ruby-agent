@@ -19,7 +19,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
           created_at = Time.now.to_f
-          payload = DistributedTracePayload.for transaction
+          payload = DistributedTracePayload.for_transaction transaction
 
           assert_equal "46954", payload.caller_app_id
           assert_equal "190", payload.caller_account_id
@@ -34,7 +34,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
 
           transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
-          payload = DistributedTracePayload.for transaction
+          payload = DistributedTracePayload.for_transaction transaction
 
           assert_equal transaction.guid, payload.id
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
@@ -50,7 +50,7 @@ module NewRelic
           transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
           transaction.synthetics_payload = [1, 1, 100, 200, 300]
 
-          payload = DistributedTracePayload.for transaction
+          payload = DistributedTracePayload.for_transaction transaction
 
           assert_equal 100, payload.synthetics_resource
           assert_equal 200, payload.synthetics_job
@@ -63,7 +63,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
 
-          payload = DistributedTracePayload.for transaction, URI("http://newrelic.com/blog")
+          payload = DistributedTracePayload.for_transaction transaction, URI("http://newrelic.com/blog")
 
           assert_equal "newrelic.com", payload.host
         end
@@ -80,7 +80,7 @@ module NewRelic
           referring_transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
           referring_transaction.synthetics_payload = [1, 1, 100, 200, 300]
 
-          incoming_payload = DistributedTracePayload.for referring_transaction, URI("http://newrelic.com/blog")
+          incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
         end
 
         payload = DistributedTracePayload.from_json incoming_payload.to_json
@@ -111,7 +111,7 @@ module NewRelic
           referring_transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
           referring_transaction.synthetics_payload = [1, 1, 100, 200, 300]
 
-          incoming_payload = DistributedTracePayload.for referring_transaction, URI("http://newrelic.com/blog")
+          incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
         end
 
         payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
