@@ -9,6 +9,32 @@ module NewRelic
       CALLER_TYPE = "App".freeze
       POUND = '#'.freeze
 
+      class << self
+        def for transaction, uri=nil
+          payload = new
+          return payload unless payload.connected?
+
+          payload.id = transaction.guid
+          payload.host = uri.host if uri
+
+          if transaction.raw_synthetics_header && transaction.synthetics_payload
+            copy_synthetics transaction, payload
+          end
+
+          #todo:
+          # handle order, depth
+
+          payload
+        end
+
+        def copy_synthetics transaction, payload
+          payload.synthetics = transaction.raw_synthetics_header
+          payload.synthetics_resource = transaction.synthetics_payload[2]
+          payload.synthetics_job = transaction.synthetics_payload[3]
+          payload.synthetics_monitor = transaction.synthetics_payload[4]
+        end
+      end
+
       attr_accessor :data,
                     :id,
                     :tripId,
