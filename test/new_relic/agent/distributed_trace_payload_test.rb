@@ -36,6 +36,9 @@ module NewRelic
           payload = DistributedTracePayload.for transaction
 
           assert_equal transaction.guid, payload.id
+          assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
+          assert_equal transaction.depth, payload.depth
+          assert_equal transaction.order, payload.order
         end
       end
 
@@ -44,12 +47,10 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
 
           transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
-          transaction.raw_synthetics_header = "something"
           transaction.synthetics_payload = [1, 1, 100, 200, 300]
 
           payload = DistributedTracePayload.for transaction
 
-          assert_equal "something", payload.synthetics
           assert_equal 100, payload.synthetics_resource
           assert_equal 200, payload.synthetics_job
           assert_equal 300, payload.synthetics_monitor
@@ -61,7 +62,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
 
-          payload = DistributedTracePayload.for transaction, URI("http://newrelic.com")
+          payload = DistributedTracePayload.for transaction, URI("http://newrelic.com/blog")
 
           assert_equal "newrelic.com", payload.host
         end

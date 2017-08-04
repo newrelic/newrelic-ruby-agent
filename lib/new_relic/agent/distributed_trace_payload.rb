@@ -1,6 +1,8 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+require 'json'
+require 'base64'
 
 module NewRelic
   module Agent
@@ -15,10 +17,15 @@ module NewRelic
           return payload unless payload.connected?
 
           payload.id = transaction.guid
+          payload.trip_id = transaction.distributed_tracing_trip_id
+          payload.depth = transaction.depth
+          payload.order = transaction.order
           payload.host = uri.host if uri
 
-          if transaction.raw_synthetics_header && transaction.synthetics_payload
-            copy_synthetics transaction, payload
+          if transaction.synthetics_payload
+            payload.synthetics_resource = transaction.synthetics_payload[2]
+            payload.synthetics_job = transaction.synthetics_payload[3]
+            payload.synthetics_monitor = transaction.synthetics_payload[4]
           end
 
           #todo:
@@ -26,19 +33,10 @@ module NewRelic
 
           payload
         end
-
-        def copy_synthetics transaction, payload
-          payload.synthetics = transaction.raw_synthetics_header
-          payload.synthetics_resource = transaction.synthetics_payload[2]
-          payload.synthetics_job = transaction.synthetics_payload[3]
-          payload.synthetics_monitor = transaction.synthetics_payload[4]
-        end
       end
 
-      attr_accessor :data,
-                    :id,
-                    :tripId,
-                    :synthetics,
+      attr_accessor :id,
+                    :trip_id,
                     :synthetics_resource,
                     :synthetics_job,
                     :synthetics_monitor,

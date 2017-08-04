@@ -9,6 +9,7 @@ require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
+require 'new_relic/agent/transaction/distributed_tracing'
 require 'new_relic/agent/cross_app_tracing'
 
 module NewRelic
@@ -19,6 +20,7 @@ module NewRelic
     # @api public
     class Transaction
       include Tracing
+      include DistributedTracing
 
       # for nested transactions
       SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
