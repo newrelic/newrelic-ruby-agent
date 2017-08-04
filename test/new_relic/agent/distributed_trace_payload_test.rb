@@ -99,6 +99,37 @@ module NewRelic
         assert_equal 200, payload.synthetics_job
         assert_equal 300, payload.synthetics_monitor
       end
+
+      def test_payload_attributes_populated_from_html_safe_version
+        incoming_payload = nil
+        referring_transaction = nil
+        created_at = Time.now.to_f
+
+        with_config application_id: "46954", cross_process_id: "190#222" do
+          state = NewRelic::Agent::TransactionState.tl_get
+
+          referring_transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
+          referring_transaction.synthetics_payload = [1, 1, 100, 200, 300]
+
+          incoming_payload = DistributedTracePayload.for referring_transaction, URI("http://newrelic.com/blog")
+        end
+
+        payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
+
+        assert_equal [2, 0], payload.version
+        assert_equal "App", payload.caller_type
+        assert_equal "46954", payload.caller_app_id
+        assert_equal "190", payload.caller_account_id
+        assert_equal referring_transaction.guid, payload.id
+        assert_equal referring_transaction.distributed_tracing_trip_id, payload.trip_id
+        assert_equal referring_transaction.depth, payload.depth
+        assert_equal referring_transaction.order, payload.order
+        assert_equal created_at, payload.timestamp
+        assert_equal "newrelic.com", payload.host
+        assert_equal 100, payload.synthetics_resource
+        assert_equal 200, payload.synthetics_job
+        assert_equal 300, payload.synthetics_monitor
+      end
     end
   end
 end

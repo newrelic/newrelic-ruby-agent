@@ -56,8 +56,8 @@ module NewRelic
         def from_json serialized_payload
           raw_payload = JSON.parse serialized_payload
           payload_data = raw_payload[DATA_KEY]
-          payload = new
 
+          payload = new
           payload.version           = raw_payload[VERSION_KEY]
           payload.caller_type       = payload_data[CALLER_TYPE_KEY]
           payload.caller_account_id = payload_data[CALLER_ACCOUNT_KEY]
@@ -76,6 +76,11 @@ module NewRelic
           end
 
           payload
+        end
+
+        def from_http_safe http_safe_payload
+          decoded_payload = Base64.decode64 http_safe_payload
+          from_json decoded_payload
         end
 
         private
@@ -136,7 +141,7 @@ module NewRelic
       alias_method :text, :to_json
 
       def http_safe
-        Bas64.encode64 to_json
+        Base64.encode64 to_json
       end
     end
   end
