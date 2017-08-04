@@ -5,6 +5,7 @@
 require File.expand_path('../../../test_helper', __FILE__)
 require 'new_relic/agent/distributed_trace_payload'
 require 'new_relic/agent/transaction'
+require 'net/http'
 
 module NewRelic
   module Agent
@@ -14,12 +15,18 @@ module NewRelic
         freeze_time
       end
 
+      def teardown
+        NewRelic::Agent.drop_buffered_data
+      end
+
       def test_payload_is_created_if_connected
         with_config application_id: "46954", cross_process_id: "190#222" do
-          state = NewRelic::Agent::TransactionState.tl_get
-          transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
+          state = TransactionState.tl_get
+
+          transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
           created_at = Time.now.to_f
           payload = DistributedTracePayload.for_transaction transaction
+          Transaction.stop state
 
           assert_equal "46954", payload.caller_app_id
           assert_equal "190", payload.caller_account_id
@@ -31,10 +38,11 @@ module NewRelic
 
       def test_attributes_are_copied_from_transaction
         with_config application_id: "46954", cross_process_id: "190#222" do
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = TransactionState.tl_get
 
-          transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
+          transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
           payload = DistributedTracePayload.for_transaction transaction
+          Transaction.stop state
 
           assert_equal transaction.guid, payload.id
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
@@ -45,12 +53,13 @@ module NewRelic
 
       def test_attributes_synthetics_attributes_are_copied_when_present
         with_config application_id: "46954", cross_process_id: "190#222" do
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = TransactionState.tl_get
 
-          transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
+          transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
           transaction.synthetics_payload = [1, 1, 100, 200, 300]
 
           payload = DistributedTracePayload.for_transaction transaction
+          Transaction.stop state
 
           assert_equal 100, payload.synthetics_resource
           assert_equal 200, payload.synthetics_job
@@ -60,10 +69,11 @@ module NewRelic
 
       def test_host_copied_from_uri
         with_config application_id: "46954", cross_process_id: "190#222" do
-          state = NewRelic::Agent::TransactionState.tl_get
-          transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
+          state = TransactionState.tl_get
 
+          transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
           payload = DistributedTracePayload.for_transaction transaction, URI("http://newrelic.com/blog")
+          Transaction.stop state
 
           assert_equal "newrelic.com", payload.host
         end
@@ -75,10 +85,11 @@ module NewRelic
         created_at = Time.now.to_f
 
         with_config application_id: "46954", cross_process_id: "190#222" do
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = TransactionState.tl_get
 
-          referring_transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
+          referring_transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
           referring_transaction.synthetics_payload = [1, 1, 100, 200, 300]
+          Transaction.stop state
 
           incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
         end
@@ -106,10 +117,11 @@ module NewRelic
         created_at = Time.now.to_f
 
         with_config application_id: "46954", cross_process_id: "190#222" do
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = TransactionState.tl_get
 
-          referring_transaction = NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "test_txn"
+          referring_transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
           referring_transaction.synthetics_payload = [1, 1, 100, 200, 300]
+          Transaction.stop state
 
           incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
         end
