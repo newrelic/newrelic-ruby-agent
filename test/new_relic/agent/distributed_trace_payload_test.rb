@@ -46,6 +46,7 @@ module NewRelic
 
           assert_equal transaction.guid, payload.id
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
+          assert_equal transaction.parent_ids, payload.parent_ids
           assert_equal transaction.depth, payload.depth
           assert_equal transaction.order, payload.order
         end
@@ -102,6 +103,7 @@ module NewRelic
         assert_equal "190", payload.caller_account_id
         assert_equal referring_transaction.guid, payload.id
         assert_equal referring_transaction.distributed_tracing_trip_id, payload.trip_id
+        assert_equal referring_transaction.parent_ids, payload.parent_ids
         assert_equal referring_transaction.depth, payload.depth
         assert_equal referring_transaction.order, payload.order
         assert_equal created_at, payload.timestamp
@@ -134,6 +136,7 @@ module NewRelic
         assert_equal "190", payload.caller_account_id
         assert_equal referring_transaction.guid, payload.id
         assert_equal referring_transaction.distributed_tracing_trip_id, payload.trip_id
+        assert_equal referring_transaction.parent_ids, payload.parent_ids
         assert_equal referring_transaction.depth, payload.depth
         assert_equal referring_transaction.order, payload.order
         assert_equal created_at, payload.timestamp

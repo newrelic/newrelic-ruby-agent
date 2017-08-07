@@ -19,6 +19,7 @@ module NewRelic
       CALLER_APP_KEY          = 'ap'.freeze
       ID_KEY                  = 'id'.freeze
       TRIP_ID_KEY             = 'tr'.freeze
+      PARENT_IDS_KEY           = 'pa'.freeze
       DEPTH_KEY               = 'de'.freeze
       ORDER_KEY               = 'or'.freeze
       TIMESTAMP_KEY           = 'ti'.freeze
@@ -40,6 +41,7 @@ module NewRelic
           payload.timestamp = Time.now.to_f
           payload.id = transaction.guid
           payload.trip_id = transaction.distributed_tracing_trip_id
+          payload.parent_ids = transaction.parent_ids
           payload.depth = transaction.depth
           payload.order = transaction.order
           payload.host = uri.host if uri
@@ -65,6 +67,7 @@ module NewRelic
           payload.timestamp         = payload_data[TIMESTAMP_KEY]
           payload.id                = payload_data[ID_KEY]
           payload.trip_id           = payload_data[TRIP_ID_KEY]
+          payload.parent_ids        = payload_data[PARENT_IDS_KEY]
           payload.depth             = payload_data[DEPTH_KEY]
           payload.order             = payload_data[ORDER_KEY]
           payload.host              = payload_data[HOST_KEY]
@@ -99,6 +102,7 @@ module NewRelic
                     :caller_app_id,
                     :id,
                     :trip_id,
+                    :parent_ids,
                     :synthetics_resource,
                     :synthetics_job,
                     :synthetics_monitor,
@@ -122,6 +126,7 @@ module NewRelic
           CALLER_APP_KEY     => caller_app_id,
           ID_KEY             => id,
           TRIP_ID_KEY        => trip_id,
+          PARENT_IDS_KEY     => parent_ids,
           DEPTH_KEY          => depth,
           ORDER_KEY          => order,
           HOST_KEY           => host,

@@ -32,6 +32,7 @@ module NewRelic
             assert_equal "App", payload.caller_type
             assert_equal transaction.guid, payload.id
             assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
+            assert_equal transaction.parent_ids, payload.parent_ids
             assert_equal transaction.depth, payload.depth
             assert_equal transaction.order, payload.order
             assert_equal "newrelic.com", payload.host
@@ -45,16 +46,15 @@ module NewRelic
         def test_accept_distributed_trace_payload_assigns_payload
           payload = nil
 
-          state = TransactionState.tl_get
           with_config application_id: "46954", cross_process_id: "190#222" do
-            transaction = Transaction.start state, :controller, :transaction_name => "test_txn2"
-            payload = transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            Transaction.stop(state)
+            in_transaction do |txn|
+              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            end
           end
 
-          transaction = Transaction.start state, :controller, :transaction_name => "test_txn2"
-          transaction.accept_distributed_trace_payload "HTTP", payload.to_json
-          Transaction.stop(state)
+          transaction = in_transaction "test_txn2" do |txn|
+            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+          end
 
           refute_nil transaction.inbound_distributed_trace_payload
 

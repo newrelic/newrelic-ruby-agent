@@ -42,6 +42,19 @@ module NewRelic
           end
         end
 
+        def parent_ids
+          if inbound_distributed_trace_payload && inbound_distributed_trace_payload.parent_ids.last != guid
+            inbound_ids = inbound_distributed_trace_payload.parent_ids.dup
+            inbound_ids.push guid
+            if inbound_ids.size > 3
+              inbound_ids.shift
+            end
+            inbound_ids
+          else
+            [guid]
+          end
+        end
+
         def depth
           if inbound_distributed_trace_payload
             inbound_distributed_trace_payload.depth + 1
