@@ -54,6 +54,13 @@ module NewRelic
         end
 
         attr_writer :order
+
+        def append_distributed_tracing_info(payload)
+          if inbound_distributed_trace_payload
+            inbound_distributed_trace_payload.assign_intrinsics payload
+            payload[:guid] = guid
+          end
+        end
       end
     end
   end

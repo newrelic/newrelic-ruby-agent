@@ -616,6 +616,7 @@ module NewRelic
           :error                => false
         }
         append_cat_info(state, duration, @payload)
+        append_distributed_tracing_info(@payload)
         append_apdex_perf_zone(duration, @payload)
         append_synthetics_to(state, @payload)
         append_referring_transaction_guid_to(state, @payload)

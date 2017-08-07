@@ -143,6 +143,19 @@ module NewRelic
       def http_safe
         Base64.encode64 to_json
       end
+
+      def assign_intrinsics payload
+        payload[:caller_type] = caller_type
+        payload[:caller_app_id]  = caller_app_id
+        payload[:caller_account_id] = caller_account_id
+        #todo add transport_type
+        #payload[:caller_transport_type] =
+        payload[:host] = host
+        payload[:depth] = depth
+        payload[:order] = order
+        payload[:referring_transaction_guid] = id
+        payload[:cat_trip_id] = trip_id
+      end
     end
   end
 end
