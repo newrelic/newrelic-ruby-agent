@@ -14,7 +14,6 @@ module NewRelic
           DistributedTracePayload.for_transaction self, url
         end
 
-        # todo: what do we do with transport type?
         # todo: check if browser agent has been injected
         def accept_distributed_trace_payload transport_type, payload_json
           if inbound_distributed_trace_payload
@@ -24,7 +23,9 @@ module NewRelic
             NewRelic::Agent.logger.warn "create_distributed_trace_payload called before accepted_distributed_trace_payload, ignoring call"
             return
           end
-          self.inbound_distributed_trace_payload = DistributedTracePayload.from_json payload_json
+          payload = DistributedTracePayload.from_json payload_json
+          payload.caller_transport_type = transport_type
+          self.inbound_distributed_trace_payload = payload
         end
 
         def inbound_distributed_trace_payload

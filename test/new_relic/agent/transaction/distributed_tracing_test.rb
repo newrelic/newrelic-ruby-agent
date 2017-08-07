@@ -81,7 +81,8 @@ module NewRelic
 
           inbound_payload = transaction.inbound_distributed_trace_payload
 
-          #assert_equal inbound_payload.caller_type, intrinsics["caller.type"],
+          assert_equal inbound_payload.caller_type, intrinsics["caller.type"]
+          assert_equal inbound_payload.caller_transport_type, intrinsics["caller.transportType"]
           assert_equal inbound_payload.caller_app_id, intrinsics["caller.app"]
           assert_equal inbound_payload.caller_account_id, intrinsics["caller.account"]
           assert_equal inbound_payload.host, intrinsics["caller.host"]

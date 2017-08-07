@@ -90,6 +90,7 @@ module NewRelic
 
       def append_distributed_trace_intrinsics(sample, payload)
         sample[CALLER_TYPE] = payload[:caller_type] if payload[:caller_type]
+        sample[CALLER_TRANSPORT_TYPE] = payload[:caller_transport_type] if payload[:caller_transport_type]
         sample[CALLER_APP_ID] = payload[:caller_app_id] if payload[:caller_app_id]
         sample[CALLER_ACCOUNT_ID] = payload[:caller_account_id] if payload[:caller_account_id]
         sample[CALLER_TRANSPORT_TYPE] = payload[:caller_transport_type] if payload[:caller_transport_type]
