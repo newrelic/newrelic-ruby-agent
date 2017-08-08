@@ -36,8 +36,18 @@ module NewRelic
 
           payload.version = VERSION
           payload.caller_type = CALLER_TYPE
-          payload.caller_account_id = Agent.config[:cross_process_id].split(POUND).first
-          payload.caller_app_id = Agent.config[:application_id]
+
+          # We should not rely on the xp_id being formulated this way, but we have
+          # seen nil account ids coming down in staging for some accounts
+          account_id, fallback_app_id = Agent.config[:cross_process_id].split(POUND)
+          payload.caller_account_id = account_id
+
+          payload.caller_app_id =  if Agent.config[:application_id].empty?
+            fallback_app_id
+          else
+            Agent.config[:application_id]
+          end
+
           payload.timestamp = Time.now.to_f
           payload.id = transaction.guid
           payload.trip_id = transaction.distributed_tracing_trip_id
