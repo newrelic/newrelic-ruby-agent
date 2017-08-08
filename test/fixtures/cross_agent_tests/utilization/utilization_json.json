@@ -1,86 +1,64 @@
 [
   {
-    "testname":"only agent derived data",
+    "testname": "only agent derived data",
     "input_total_ram_mib": 1024,
     "input_logical_processors": 8,
     "input_hostname": "myhost",
     "expected_output_json": {
-      "metadata_version":2,
-      "logical_processors":8,
-      "total_ram_mib":1024,
-      "hostname":"myhost"
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 1024,
+      "hostname": "myhost"
     }
   },
   {
-    "testname":"only agent derived data with aws",
-    "input_total_ram_mib": 2048,
-    "input_logical_processors": 8,
-    "input_hostname": "myotherhost",
-    "input_aws_id": "8BADFOOD",
-    "input_aws_type": "t2.micro",
-    "input_aws_zone": "us-west-1",
-    "expected_output_json": {
-      "metadata_version":2,
-      "logical_processors":8,
-      "total_ram_mib":2048,
-      "hostname":"myotherhost",
-      "vendors": {
-        "aws": {
-          "id":"8BADFOOD",
-          "type":"t2.micro",
-          "zone":"us-west-1"
-        }
-      }
-    }
-  },
-  {
-    "testname":"only agent derived but bad data",
+    "testname": "only agent derived but bad data",
     "input_total_ram_mib": null,
     "input_logical_processors": null,
     "input_hostname": "myotherhost",
     "expected_output_json": {
-      "metadata_version": 2,
-      "logical_processors":null,
-      "total_ram_mib":null,
-      "hostname":"myotherhost"
+      "metadata_version": 3,
+      "logical_processors": null,
+      "total_ram_mib": null,
+      "hostname": "myotherhost"
     }
   },
   {
-    "testname":"agent derived null and so environment variables",
+    "testname": "agent derived null and some environment variables",
     "input_total_ram_mib": null,
     "input_logical_processors": null,
     "input_hostname": "myotherhost",
     "input_environment_variables": {
       "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": 8,
-      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB" : 2048
+      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB": 2048
     },
     "expected_output_json": {
-      "metadata_version": 2,
-      "logical_processors":null,
-      "total_ram_mib":null,
-      "hostname":"myotherhost",
-      "config" : {
+      "metadata_version": 3,
+      "logical_processors": null,
+      "total_ram_mib": null,
+      "hostname": "myotherhost",
+      "config": {
         "logical_processors": 8,
         "total_ram_mib": 2048
       }
     }
   },
   {
-    "testname":"all environment variables",
+    "testname": "all environment variables",
     "input_total_ram_mib": 1,
     "input_logical_processors": 2,
     "input_hostname": "myotherhost",
     "input_environment_variables": {
       "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": 16,
-      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB" : 4096,
-      "NEW_RELIC_UTILIZATION_BILLING_HOSTNAME" : "localhost"
+      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB": 4096,
+      "NEW_RELIC_UTILIZATION_BILLING_HOSTNAME": "localhost"
     },
     "expected_output_json": {
-      "metadata_version": 2,
-      "logical_processors":2,
-      "total_ram_mib":1,
-      "hostname":"myotherhost",
-      "config" : {
+      "metadata_version": 3,
+      "logical_processors": 2,
+      "total_ram_mib": 1,
+      "hostname": "myotherhost",
+      "config": {
         "logical_processors": 16,
         "total_ram_mib": 4096,
         "hostname": "localhost"
@@ -88,21 +66,21 @@
     }
   },
   {
-    "testname":"all environment variables with error in processors",
+    "testname": "all environment variables with error in processors",
     "input_total_ram_mib": 1024,
     "input_logical_processors": 4,
     "input_hostname": "myotherhost",
     "input_environment_variables": {
       "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": "abc",
-      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB" : 4096,
-      "NEW_RELIC_UTILIZATION_BILLING_HOSTNAME" : "localhost"
+      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB": 4096,
+      "NEW_RELIC_UTILIZATION_BILLING_HOSTNAME": "localhost"
     },
     "expected_output_json": {
-      "metadata_version": 2,
-      "logical_processors":4,
-      "total_ram_mib":1024,
-      "hostname":"myotherhost",
-      "config" : {
+      "metadata_version": 3,
+      "logical_processors": 4,
+      "total_ram_mib": 1024,
+      "hostname": "myotherhost",
+      "config": {
         "total_ram_mib": 4096,
         "hostname": "localhost"
       }
@@ -115,18 +93,172 @@
     "input_hostname": "myotherhost",
     "input_environment_variables": {
       "NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS": 8,
-      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB" : "notgood",
-      "NEW_RELIC_UTILIZATION_BILLING_HOSTNAME" : "localhost"
+      "NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB": "notgood",
+      "NEW_RELIC_UTILIZATION_BILLING_HOSTNAME": "localhost"
     },
     "expected_output_json": {
-      "metadata_version": 2,
-      "logical_processors":4,
-      "total_ram_mib":1024,
-      "hostname":"myotherhost",
-      "config" : {
+      "metadata_version": 3,
+      "logical_processors": 4,
+      "total_ram_mib": 1024,
+      "hostname": "myotherhost",
+      "config": {
         "logical_processors": 8,
         "hostname": "localhost"
       }
+    }
+  },
+  {
+    "testname": "only agent derived data with aws",
+    "input_total_ram_mib": 2048,
+    "input_logical_processors": 8,
+    "input_hostname": "myotherhost",
+    "input_aws_id": "8BADFOOD",
+    "input_aws_type": "t2.micro",
+    "input_aws_zone": "us-west-1",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 2048,
+      "hostname": "myotherhost",
+      "vendors": {
+        "aws": {
+          "instanceId": "8BADFOOD",
+          "instanceType": "t2.micro",
+          "availabilityZone": "us-west-1"
+        }
+      }
+    }
+  },
+  {
+    "testname": "invalid agent derived data with aws",
+    "input_total_ram_mib": 2048,
+    "input_logical_processors": 8,
+    "input_hostname": "myotherhost",
+    "input_aws_id": null,
+    "input_aws_type": "t2.micro",
+    "input_aws_zone": "us-west-1",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 2048,
+      "hostname": "myotherhost"
+    }
+  },
+  {
+    "testname": "only agent derived data with gcp",
+    "input_total_ram_mib": 2048,
+    "input_logical_processors": 8,
+    "input_hostname": "myotherhost",
+    "input_gcp_id": "3161347020215157000",
+    "input_gcp_type": "projects/492690098729/machineTypes/custom-1-1024",
+    "input_gcp_name": "aef-default-20170501t160547-7gh8",
+    "input_gcp_zone": "projects/492690098729/zones/us-central1-c",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 2048,
+      "hostname": "myotherhost",
+      "vendors": {
+        "gcp": {
+          "id": "3161347020215157000",
+          "machineType": "custom-1-1024",
+          "name": "aef-default-20170501t160547-7gh8",
+          "zone": "us-central1-c"
+        }
+      }
+    }
+  },
+  {
+    "testname": "invalid agent derived data with gcp",
+    "input_total_ram_mib": 2048,
+    "input_logical_processors": 8,
+    "input_hostname": "myotherhost",
+    "input_gcp_id": "3161347020215157000",
+    "input_gcp_type": "projects/492690098729/machineTypes/custom-1-1024",
+    "input_gcp_name": null,
+    "input_gcp_zone": "projects/492690098729/zones/us-central1-c",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 2048,
+      "hostname": "myotherhost"
+    }
+  },
+  {
+    "testname": "only agent derived data with pcf",
+    "input_total_ram_mib": 2048,
+    "input_logical_processors": 8,
+    "input_hostname": "myotherhost",
+    "input_pcf_guid": "b977d090-83db-4bdb-793a-bb77",
+    "input_pcf_ip": "10.10.147.130",
+    "input_pcf_mem_limit": "1024m",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 2048,
+      "hostname": "myotherhost",
+      "vendors": {
+        "pcf": {
+          "cf_instance_guid": "b977d090-83db-4bdb-793a-bb77",
+          "cf_instance_ip": "10.10.147.130",
+          "memory_limit": "1024m"
+        }
+      }
+    }
+  },
+  {
+    "testname": "invalid agent derived data with pcf",
+    "input_total_ram_mib": 2048,
+    "input_logical_processors": 8,
+    "input_hostname": "myotherhost",
+    "input_pcf_guid": null,
+    "input_pcf_ip": "10.10.147.130",
+    "input_pcf_mem_limit": "1024m",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 2048,
+      "hostname": "myotherhost"
+    }
+  },
+  {
+    "testname": "only agent derived data with azure",
+    "input_total_ram_mib": 2048,
+    "input_logical_processors": 8,
+    "input_hostname": "myotherhost",
+    "input_azure_location": "CentralUS",
+    "input_azure_name": "IMDSCanary",
+    "input_azure_id": "5c08b38e-4d57-4c23-ac45-aca61037f084",
+    "input_azure_size": "Standard_DS2",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 2048,
+      "hostname": "myotherhost",
+      "vendors": {
+        "azure": {
+          "location": "CentralUS",
+          "name": "IMDSCanary",
+          "vmId": "5c08b38e-4d57-4c23-ac45-aca61037f084",
+          "vmSize": "Standard_DS2"
+        }
+      }
+    }
+  },
+  {
+    "testname": "invalid agent derived data with azure",
+    "input_total_ram_mib": 2048,
+    "input_logical_processors": 8,
+    "input_hostname": "myotherhost",
+    "input_azure_location": "CentralUS",
+    "input_azure_name": "IMDSCanary",
+    "input_azure_id": null,
+    "input_azure_size": "Standard_DS2",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 2048,
+      "hostname": "myotherhost"
     }
   }
 ]
