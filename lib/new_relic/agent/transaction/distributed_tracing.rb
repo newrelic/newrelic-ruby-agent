@@ -85,6 +85,7 @@ module NewRelic
           if inbound_distributed_trace_payload
             inbound_distributed_trace_payload.assign_intrinsics payload
             payload[:guid] = guid
+            payload[:caller_transport_duration] = start_time.to_f - inbound_distributed_trace_payload.timestamp
           end
         end
       end

@@ -40,9 +40,11 @@ module NewRelic
       CALLER_APP_ID                  = "caller.app".freeze
       CALLER_ACCOUNT_ID              = "caller.account".freeze
       CALLER_TRANSPORT_TYPE          = "caller.transportType".freeze
+      CALLER_TRANSPORT_DURATION      = "caller.transportDuration".freeze
       CALLER_HOST                    = "caller.host".freeze
       DEPTH                          = "nr.depth".freeze
       ORDER                          = "nr.order".freeze
+
 
       # To avoid allocations when we have empty custom or agent attributes
       EMPTY_HASH = {}.freeze
@@ -94,6 +96,7 @@ module NewRelic
         sample[CALLER_APP_ID] = payload[:caller_app_id] if payload[:caller_app_id]
         sample[CALLER_ACCOUNT_ID] = payload[:caller_account_id] if payload[:caller_account_id]
         sample[CALLER_TRANSPORT_TYPE] = payload[:caller_transport_type] if payload[:caller_transport_type]
+        sample[CALLER_TRANSPORT_DURATION] = payload[:caller_transport_duration] if payload[:caller_transport_duration]
         sample[CALLER_HOST] = payload[:host] if payload[:host]
         sample[DEPTH] = payload[:depth] if payload[:depth]
         sample[ORDER] = payload[:order] if payload[:order]
