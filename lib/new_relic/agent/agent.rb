@@ -19,6 +19,7 @@ require 'new_relic/agent/database'
 require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
+require 'new_relic/agent/distributed_trace_monitor'
 require 'new_relic/agent/synthetics_monitor'
 require 'new_relic/agent/synthetics_event_buffer'
 require 'new_relic/agent/transaction_event_recorder'
@@ -48,18 +49,19 @@ module NewRelic
 
         @service = NewRelicService.new
 
-        @events                = NewRelic::Agent::EventListener.new
-        @stats_engine          = NewRelic::Agent::StatsEngine.new
-        @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
-        @sql_sampler           = NewRelic::Agent::SqlSampler.new
-        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
-        @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
-        @synthetics_monitor    = NewRelic::Agent::SyntheticsMonitor.new(@events)
-        @error_collector       = NewRelic::Agent::ErrorCollector.new
-        @transaction_rules     = NewRelic::Agent::RulesEngine.new
-        @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
-        @monotonic_gc_profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
-        @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
+        @events                    = NewRelic::Agent::EventListener.new
+        @stats_engine              = NewRelic::Agent::StatsEngine.new
+        @transaction_sampler       = NewRelic::Agent::TransactionSampler.new
+        @sql_sampler               = NewRelic::Agent::SqlSampler.new
+        @agent_command_router      = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
+        @cross_app_monitor         = NewRelic::Agent::CrossAppMonitor.new(@events)
+        @distributed_trace_monitor = NewRelic::Agent::DistributedTraceMonitor.new(@events)
+        @synthetics_monitor        = NewRelic::Agent::SyntheticsMonitor.new(@events)
+        @error_collector           = NewRelic::Agent::ErrorCollector.new
+        @transaction_rules         = NewRelic::Agent::RulesEngine.new
+        @harvest_samplers          = NewRelic::Agent::SamplerCollection.new(@events)
+        @monotonic_gc_profiler     = NewRelic::Agent::VM::MonotonicGCProfiler.new
+        @javascript_instrumentor   = NewRelic::Agent::JavascriptInstrumentor.new(@events)
 
         @harvester       = NewRelic::Agent::Harvester.new(@events)
         @after_fork_lock = Mutex.new
