@@ -43,7 +43,7 @@ module NewRelic
           end
         end
 
-        def test_accept_distributed_trace_payload_assigns_payload
+        def test_accept_distributed_trace_payload_assigns_json_payload
           payload = nil
 
           with_config application_id: "46954", cross_process_id: "190#222" do
@@ -58,8 +58,27 @@ module NewRelic
 
           refute_nil transaction.inbound_distributed_trace_payload
 
-          assert_equal payload.depth + 1, transaction.depth
-          assert_equal payload.trip_id, transaction.distributed_tracing_trip_id
+          assert_equal transaction.depth, payload.depth + 1
+          assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
+        end
+
+        def test_accept_distributed_trace_payload_assigns_http_safe_payload
+          payload = nil
+
+          with_config application_id: "46954", cross_process_id: "190#222" do
+            in_transaction do |txn|
+              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            end
+          end
+
+          transaction = in_transaction "test_txn2" do |txn|
+            txn.accept_distributed_trace_payload "HTTP", payload.http_safe
+          end
+
+          refute_nil transaction.inbound_distributed_trace_payload
+
+          assert_equal transaction.depth, payload.depth + 1
+          assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
         end
 
         def test_instrinsics_assigned_to_transaction_event_from_disributed_trace

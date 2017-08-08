@@ -14,18 +14,30 @@ module NewRelic
           DistributedTracePayload.for_transaction self, url
         end
 
+        LBRACE = "{".freeze
+
         # todo: check if browser agent has been injected
-        def accept_distributed_trace_payload transport_type, payload_json
+        def accept_distributed_trace_payload transport_type, payload
           if inbound_distributed_trace_payload
             NewRelic::Agent.logger.debug "accepted_distributed_trace_payload called, but a payload has already been accepted"
-            return
+            return false
           elsif self.order > 0
             NewRelic::Agent.logger.warn "create_distributed_trace_payload called before accepted_distributed_trace_payload, ignoring call"
-            return
+            return false
           end
-          payload = DistributedTracePayload.from_json payload_json
+
+          payload = if payload.start_with? LBRACE
+            DistributedTracePayload.from_json payload
+          else
+            DistributedTracePayload.from_http_safe payload
+          end
+
           payload.caller_transport_type = transport_type
           self.inbound_distributed_trace_payload = payload
+          true
+        rescue => e
+          NewRelic::Agent.logger.warn "Failed to accept distributed trace payload", e
+          false
         end
 
         def inbound_distributed_trace_payload
