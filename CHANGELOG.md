@@ -1,8 +1,9 @@
 # New Relic Ruby Agent Release Notes #
   
-  * Collect cloud metadata from Azure
+  * Collect cloud metadata from Azure, GCP, PCF, and AWS cloud platform
 
-  The agent now collects cloud metadata from Azure.
+  The agent now collects cloud metadata tracking container size, usage, and other
+  key utilization data.
 
   * User/Utilization and System/Utilization metrics not recorded after Resque forks
 
