@@ -474,6 +474,18 @@ module NewRelic
 
         # ---
 
+        def test_segment_adds_distributed_trace_header
+          request = RequestWrapper.new
+          with_config cat_config do
+            in_transaction :category => :controller do |txn|
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+              segment.add_request_headers request
+              segment.finish
+            end
+          end
+          assert request.headers.key?("X-NewRelic-Trace"), "Expected to find X-NewRelic-Trace header"
+        end
+
         def cat_config
           {
             :cross_process_id    => "269975#22824",

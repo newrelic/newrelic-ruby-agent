@@ -46,7 +46,6 @@ module NewRelic
         # @api public
         def add_request_headers request
           process_host_header request
-
           synthetics_header = transaction && transaction.raw_synthetics_header
           insert_synthetics_header request, synthetics_header if synthetics_header
 
@@ -58,6 +57,7 @@ module NewRelic
           path_hash = transaction && transaction.cat_path_hash
 
           CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
+          insert_distributed_trace_header request
         rescue => e
           NewRelic::Agent.logger.error "Error in add_request_headers", e
         end
@@ -197,6 +197,13 @@ module NewRelic
           if @host_header = request.host_from_header
             update_segment_name
           end
+        end
+
+        X_NEWRELIC_TRACE_HEADER = "X-NewRelic-Trace".freeze
+
+        def insert_distributed_trace_header request
+          payload = transaction.create_distributed_trace_payload uri
+          request[X_NEWRELIC_TRACE_HEADER] = payload.http_safe
         end
 
         EXTERNAL_ALL = "External/all".freeze
